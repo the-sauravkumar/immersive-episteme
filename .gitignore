@@ -1,0 +1,67 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# testing
+/coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# next.js
+/.next/
+/out/
+/build
+
+# misc
+.DS_Store
+Thumbs.db
+desktop.ini
+*.pem
+*.log
+npm-debug.log*
+
+# env files — only the template is committed
+.env
+.env.*
+!.env.example
+
+# secrets for tooling
+.sentryclirc
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# local scratch output from CLIs (spatial compiler, content validation, exports)
+/.tmp/
+/.cache/
+
+# analysis outputs (scripts are committed; generated data is not)
+/analysis/out/
+
+# python (analysis scripts and notebooks)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# local copies of cited source documents: third-party copyright, so only
+# content/review/source-manifest.tsv (URLs + sha256) is committed
+/content/.source-cache/
+
+# local tooling state
+.claude/settings.local.json
+.codegraph/

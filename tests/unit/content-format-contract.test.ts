@@ -1,0 +1,110 @@
+/**
+ * The interchange-format contract (content/FORMAT.md v1, `contentPackageFileSchema`) on
+ * SYNTHETIC fixtures, so the application's own test run guards the format without depending on
+ * the separately curated files in content/ (those are checked by `npm run test:content`).
+ * Fixture text is placeholder only ("Demo:" titles, demo-* keys): no craft facts.
+ */
+import { describe, expect, it } from "vitest";
+
+import { checkCrossFileReferences, contentPackageFileSchema } from "@/features/knowledge/contracts";
+
+const source = { id: "S1", kind: "historical_documentation", title: "Demo: placeholder source", reliability: "medium" };
+
+const stepOne = {
+  key: "demo-fixture-a.process_stage.step-one",
+  type: "process_stage",
+  category: "process_stages",
+  title: "Demo: step one",
+  local_terms: ["demo-term"],
+  provenance_kind: "historical_documentation",
+  verification_state: "under_review",
+  claims: [{ text: "Demo: placeholder claim.", source_ids: ["S1"], quote: "a short placeholder quote" }],
+};
+
+const fileA = {
+  format_version: 1,
+  slug: "demo-fixture-a",
+  name: "Demo: fixture A",
+  region: { place: null, state: null, country: null, lat: null, lon: null },
+  gi: { registered: false, source_ids: ["S1"] },
+  sources: [source],
+  concepts: [
+    stepOne,
+    {
+      key: "demo-fixture-a.process_stage.step-two",
+      type: "process_stage",
+      category: "process_stages",
+      title: "Demo: step two",
+      provenance_kind: "historical_documentation",
+      verification_state: "needs_evidence",
+      claims: [{ text: "Demo: another placeholder claim.", source_ids: ["S1"] }],
+    },
+  ],
+  relationships: [
+    {
+      source: "demo-fixture-a.process_stage.step-one",
+      target: "demo-fixture-a.process_stage.step-two",
+      type: "PRECEDES",
+      ordinal: 1,
+      provenance_kind: "historical_documentation",
+      verification_state: "under_review",
+      source_ids: ["S1"],
+    },
+  ],
+  media_candidates: [
+    { url: "https://example.org/placeholder.jpg", title: "Demo: placeholder", depicts: "demo-fixture-a.process_stage.step-one" },
+  ],
+};
+
+const withStepOne = (patch: Record<string, unknown>) => ({ ...fileA, concepts: [{ ...stepOne, ...patch }] });
+
+describe("interchange format contract (synthetic fixtures)", () => {
+  it("accepts a complete file losslessly (keys, local terms, sourced claims with quotes, GI, media)", () => {
+    const r = contentPackageFileSchema.safeParse(fileA);
+    if (!r.success) throw new Error(JSON.stringify(r.error.issues, null, 2));
+    expect(r.data.concepts[0]!.claims[0]).toEqual({
+      text: "Demo: placeholder claim.",
+      source_ids: ["S1"],
+      quote: "a short placeholder quote",
+    });
+    expect(r.data.concepts[0]!.local_terms).toEqual(["demo-term"]);
+    expect(r.data.sources[0]!.reliability).toBe("medium");
+    expect(r.data.gi).toEqual({ registered: false, source_ids: ["S1"] });
+    expect(r.data.media_candidates).toHaveLength(1);
+  });
+
+  it.each([
+    ["a claim without a source", withStepOne({ claims: [{ text: "x", source_ids: [] }] })],
+    ["an unknown source id", withStepOne({ claims: [{ text: "x", source_ids: ["S9"] }] })],
+    ["a verified state (imports are never verified)", withStepOne({ verification_state: "verified" })],
+    ["a quote longer than 25 words", withStepOne({ claims: [{ text: "x", source_ids: ["S1"], quote: "w ".repeat(26) }] })],
+    ["a key whose type segment disagrees", withStepOne({ type: "material" })],
+  ])("rejects %s", (_label, file) => {
+    expect(contentPackageFileSchema.safeParse(file).success).toBe(false);
+  });
+
+  it("resolves concept keys across files", () => {
+    const a = contentPackageFileSchema.parse(fileA);
+    const b = contentPackageFileSchema.parse({
+      format_version: 1,
+      slug: "demo-fixture-b",
+      name: "Demo: fixture B",
+      sources: [source],
+      concepts: [],
+      relationships: [
+        {
+          source: "demo-fixture-a.process_stage.step-one",
+          target: "demo-fixture-b.process_stage.missing",
+          type: "SIMILAR_TO",
+          provenance_kind: "historical_documentation",
+          verification_state: "under_review",
+          source_ids: ["S1"],
+        },
+      ],
+    });
+    expect(checkCrossFileReferences([a])).toEqual([]);
+    expect(checkCrossFileReferences([a, b])).toEqual([
+      "demo-fixture-b: relationship demo-fixture-a.process_stage.step-one -SIMILAR_TO-> demo-fixture-b.process_stage.missing references unknown concept demo-fixture-b.process_stage.missing",
+    ]);
+  });
+});

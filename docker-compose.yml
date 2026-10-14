@@ -1,0 +1,35 @@
+# Local PostgreSQL 18 + pgvector for Immersive Episteme.
+# Pinned by digest (PostgreSQL 18.6, pgvector 0.8.7, pulled 2026-10-14) so a later pull cannot
+# change the server or extension version under the same migrations; scripts/db/_shared.ts
+# asserts both after migrating. To upgrade: pull the new tag, update the digest here and in
+# .github/workflows/ci.yml, and update EXPECTED_DB in scripts/db/_shared.ts.
+# Host port 5433 avoids clashing with a locally installed Postgres on 5432.
+name: immersive-episteme
+
+services:
+  db:
+    image: pgvector/pgvector:pg18@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11
+    container_name: immersive-episteme-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: episteme
+      POSTGRES_PASSWORD: episteme_dev_password
+      POSTGRES_DB: episteme
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "5433:5432"
+    volumes:
+      # Postgres 18 images keep PGDATA under /var/lib/postgresql/18/docker; mount the parent.
+      - episteme_pgdata:/var/lib/postgresql
+      - ./docker/postgres/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U episteme -d episteme && psql -U episteme -d episteme_test -c 'select 1' >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+volumes:
+  episteme_pgdata:
+    name: immersive-episteme-pgdata

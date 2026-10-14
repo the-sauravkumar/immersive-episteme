@@ -1,0 +1,3551 @@
+{
+  "format_version": 1,
+  "slug": "dabu",
+  "name": "Dabu mud-resist block printing",
+  "alt_names": [
+    "Dabu",
+    "Daboo print",
+    "Dabbu",
+    "Akola print",
+    "Aakola Dabu Prints",
+    "mud-resist printing"
+  ],
+  "region": {
+    "place": "Akola (Chhipo ka Akola), Bhupalsagar tehsil",
+    "district": "Chittorgarh",
+    "state": "Rajasthan",
+    "country": "India",
+    "lat": 24.9,
+    "lon": 74.33
+  },
+  "gi": {
+    "registered": false,
+    "application_no": "845",
+    "year": 2022,
+    "source_ids": [
+      "S5"
+    ]
+  },
+  "summary": "Dabu is a Rajasthani hand-block technique in which a paste of mud, lime and natural gum is block-printed onto cloth, dusted with sawdust and sun-dried so that it resists a cold indigo bath; resist-and-dye cycles are repeated to build layered shades. Akola village in Chittorgarh district, home to Chhipa printers on the Beduch river, is widely described as its centre of origin. Recipes vary between centres, and in present-day Akola tar-based resists have partly displaced mud.",
+  "sources": [
+    {
+      "id": "S1",
+      "kind": "researcher_interpretation",
+      "title": "Dabu printing Akola | Story of Indian crafts and craftsmen",
+      "author": "Gaatha (unattributed)",
+      "publisher": "Gaatha",
+      "year": 2013,
+      "url": "https://gaatha.com/dabu-print-akola/",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Craft-organisation field documentation of Akola: legend, Chhipa community, Beduch river settlement, mud+gum+lime paste, indigo, alizarin->naphthol, tar substitution, motifs (Kahma, Lal titri, Dholika, Kantedar), Phetiya garments, Kishangarh fabric, Udaipur pigments."
+    },
+    {
+      "id": "S2",
+      "kind": "historical_documentation",
+      "title": "Block Print~Akola (Craft Archive)",
+      "author": "Gaatha (unattributed)",
+      "publisher": "Gaatha craft archive (gaatha.org)",
+      "year": null,
+      "url": "https://gaatha.org/Craft-of-India/akola-dabu-printing-process-history/",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Detailed cluster documentation of Akola: location (Bhopalsagar tehsil, Chittorgarh), ~200 practitioners, allied communities, 14 traditional block designs, current tar/oil/rogan resist replacing mud (mud cracked), naphthol + red salt reds, ash dusting, indigo cold bath green->blue, boiling to remove tar, tools, challenges (fumes, water use, groundwater pollution). Intro inconsistently names Udaipur district. Fact-check 2026-10-14: page also explains naphthol/diazo salt coupling and records the zigzag phetiya border and kadhai-like boilers."
+    },
+    {
+      "id": "S3",
+      "kind": "historical_documentation",
+      "title": "Block printing the impermeable clay Dabu",
+      "author": "Craft Revival Trust",
+      "publisher": "Craft Revival Trust Archive via Google Arts & Culture",
+      "year": 2009,
+      "url": "https://artsandculture.google.com/asset/qAHdern7Ol5QrQ",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Documented at Deesa, Gujarat (not Akola). Paste of river-bed silt, local gum, lime, sugarcane molasses and water; kneaded by stamping over several days; strained; sawdust over wet paste; sun-dried until hard; dip-dyed; repeated per colour."
+    },
+    {
+      "id": "S4",
+      "kind": "historical_documentation",
+      "title": "Drying the dabu clay paste",
+      "author": "Craft Revival Trust",
+      "publisher": "Craft Revival Trust Archive via Google Arts & Culture",
+      "year": 2009,
+      "url": "https://artsandculture.google.com/asset/hAHlNy5fiW14NQ",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Documented at Bagru. Wet dabu dusted with beden (insect-eaten wheat-flour waste) to dry quickly and prevent smudging; dabu printing often done by women at home or in karkhanas."
+    },
+    {
+      "id": "S5",
+      "kind": "historical_documentation",
+      "title": "GI Application No. 845 - Aakola Dabu Prints",
+      "author": "Geographical Indications Registry",
+      "publisher": "Intellectual Property India (GIR public search)",
+      "year": 2022,
+      "url": "https://search.ipindia.gov.in/GIRPublicSearch/Application/Details/845",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Applicant Udhyam Protsahan Sansthan; filed 04-03-2022; Class 24 handicrafts; status Pre Examination (not registered) as of access date. Statement of Case listed but not read."
+    },
+    {
+      "id": "S6",
+      "kind": "researcher_interpretation",
+      "title": "Hand Block Printing of Akola, Rajasthan",
+      "author": "Global InCH (unattributed)",
+      "publisher": "Global InCH - International Journal of Living Heritage",
+      "year": null,
+      "url": "https://globalinch.org/?p=1200",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Akola dabu types phetia and nangna; three resists of increasing strength: chuna/lime (kirana), mitti/mud, rait/sand; also describes a boiled bedja-gum + oil hot resist with ash dusting, metal blocks, naphthol/alizarin. Places Akola in Udaipur district. Fact-check: Phetia worn by Jat and Chaudhury women after childbirth or at weddings; nangna by Gujjar women (occasion not given)."
+    },
+    {
+      "id": "S7",
+      "kind": "researcher_interpretation",
+      "title": "Dabu/Hand Block Printing of Rajasthan",
+      "author": "Global InCH (unattributed)",
+      "publisher": "Global InCH - International Journal of Living Heritage",
+      "year": null,
+      "url": "https://globalinch.org/?p=169745",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Bagru-centred: fabric washed and sun-dried, paste of gum, mud and waste wheat chaff, printed on large tables, sun-dried, dyed, washed."
+    },
+    {
+      "id": "S8",
+      "kind": "researcher_interpretation",
+      "title": "Dabu Print of Gujarat",
+      "author": "Global InCH (unattributed)",
+      "publisher": "Global InCH - International Journal of Living Heritage",
+      "year": null,
+      "url": "https://globalinch.org/?p=177964",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Dabu in Deesa, Ahmedabad, Jamnagar; paste of mud and local baval gum; washing at each new colour."
+    },
+    {
+      "id": "S10",
+      "kind": "unverified",
+      "title": "Akola, Chittorgarh",
+      "author": "Wikipedia contributors",
+      "publisher": "Wikipedia",
+      "year": 2026,
+      "url": "https://en.wikipedia.org/wiki/Akola,_Chittorgarh",
+      "accessed": "2026-10-14",
+      "reliability": "low",
+      "notes": "Village in Bhupalsagar tehsil, Chittorgarh district; coordinates 24.9N 74.33E; alt name Chhipo ka Akola. Fact-check: the alt name \"Chhipo ka Akola\" carries a [citation needed] tag on Wikipedia."
+    },
+    {
+      "id": "S11",
+      "kind": "historical_documentation",
+      "title": "Textile, object 88-16-37 (Bagru, mid-late 19th c.)",
+      "author": "Penn Museum",
+      "publisher": "University of Pennsylvania Museum of Archaeology and Anthropology",
+      "year": null,
+      "url": "https://collections.penn.museum/collections/object/304133",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Cotton kagra (skirt) cloth from Bagru catalogued as block printed, mud resist, resist dyed, mordant dyed; resist areas pinkish possibly from red bleeding in washing."
+    },
+    {
+      "id": "S12",
+      "kind": "practitioner_testimony",
+      "title": "Indigo Dye Workshop",
+      "author": "Pratt's Textile Dye Garden",
+      "publisher": "Pratt Institute",
+      "year": null,
+      "url": "https://textiledyegarden.pratt.edu/learn/past-workshops/indigo-dye-workshop",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Clay resist works only with indigo because vat is cold and immersion brief; most natural dyes need heat and long immersion which would wash clay off; indigo turns green to blue as it oxygenates."
+    },
+    {
+      "id": "S13",
+      "kind": "practitioner_testimony",
+      "title": "Clay-Resist Indigo Dyeing",
+      "author": "Pratt's Textile Dye Garden",
+      "publisher": "Pratt Institute",
+      "year": null,
+      "url": "https://textiledyegarden.pratt.edu/learn/past-workshops/clay-resist-indigo-dyeing",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Generic (non-Indian) clay resist: let clay dry completely before submerging; fabric puckers as clay dries; re-dip possible while clay intact. Analogue evidence only."
+    },
+    {
+      "id": "S14",
+      "kind": "scientific_evidence",
+      "title": "Fiber-Safe Extraction of Red Mordant Dyes from Hair Fibers",
+      "author": "Tiedemann, Erica J.; Yang, Yiqi",
+      "publisher": "Journal of the American Institute for Conservation 34(3):195-206",
+      "year": 1995,
+      "url": "https://cool.culturalheritage.org/jaic/articles/jaic34-03-004_2.html",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Alizarin forms six-membered chelate rings with aluminium; metal-dye lakes resist extraction by water and solvents. Supports shared alizarin-lake mechanism."
+    },
+    {
+      "id": "S15",
+      "kind": "researcher_interpretation",
+      "title": "Do or dye: New life for 500-year-old craft",
+      "author": "Ramdev, Darshana",
+      "publisher": "Deccan Chronicle",
+      "year": 2018,
+      "url": "https://deccanchronicle.com/lifestyle/books-and-art/261018/do-or-dye-new-life-for-500-year-old-craft.html",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Journalism on Alka Sharma (Aavaran founder) and a self-help group for Akola artisans set up in 2009; mud from riverbank mixed with lime and natural gum, babul seed resin binder, calcium hydroxide and pounded wheat chaff, mud soaked overnight; \"five hundred year old craft\"; origin tale presented as possibly untrue. Places Akola \"near Udaipur\"."
+    },
+    {
+      "id": "S16",
+      "kind": "unverified",
+      "title": "Kaisori discovers: The Dabu block prints of Akola",
+      "author": "Kaisori (unattributed)",
+      "publisher": "Kaisori (retailer blog)",
+      "year": 2020,
+      "url": "https://kaisori.com/blogs/kaisori-discovers/the-dabu-of-akola",
+      "accessed": "2026-10-14",
+      "reliability": "low",
+      "notes": "Retailer field visit: arid region supplies mud, river water for washing, paste called \"Hada\", repeated resist and dye; largely mirrors S1."
+    },
+    {
+      "id": "S17",
+      "kind": "unverified",
+      "title": "Mud In Textiles: The Art Of Block Printing in Rajasthan",
+      "author": "Jain, Anoushka",
+      "publisher": "Enroute Indian History (blog)",
+      "year": 2023,
+      "url": "https://enrouteindianhistory.com/mud-in-textiles-the-art-of-block-printing-in-rajasthan/",
+      "accessed": "2026-10-14",
+      "reliability": "low",
+      "notes": "Secondary blog citing Kaur \"DABU - A Unique Style of Mud Printing\" (not accessible): kalidar, dolidar and gawarvali dabu recipes, kali mitti from dry pond soaked overnight, muslin straining, mardia pot, block woods, dye seeping through cracks."
+    },
+    {
+      "id": "S18",
+      "kind": "researcher_interpretation",
+      "title": "Dabu Printing",
+      "author": "Rao, Bindu Gopal",
+      "publisher": "bindugopalrao.com (first published in Apparel magazine, April 2019)",
+      "year": 2019,
+      "url": "https://www.bindugopalrao.com/dabu-printing/",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Journalist interview with an Akola printer: clay, chuna, wheat chaff, gum from acacia/babul; mud dug from a dry pond and soaked overnight; sawdust; hot-sun drying; repeat cycles; uneven cracks and veining; challenges. Fact-check: article spells the word \"Dabana\"; dated 3 May 2019 on the blog."
+    },
+    {
+      "id": "S19",
+      "kind": "unverified",
+      "title": "Daboo Print: An Ancient Printing Technique from Rajasthan",
+      "author": "Utsavpedia (unattributed)",
+      "publisher": "Utsavpedia (Utsav Fashion)",
+      "year": 2017,
+      "url": "https://www.utsavpedia.com/motifs-embroideries/daboo-print/",
+      "accessed": "2026-10-14",
+      "reliability": "low",
+      "notes": "Akola as acknowledged origin; 675 AD claim; process incl. pre-printing with fast dyes; double/triple dabu; traditional dyes kashish, indigo, pomegranate."
+    },
+    {
+      "id": "S20",
+      "kind": "researcher_interpretation",
+      "title": "Craft Name: Dabu (Craft Katha)",
+      "author": "All India Artisans and Craftworkers Welfare Association (AIACA)",
+      "publisher": "AIACA",
+      "year": 2025,
+      "url": "https://www.aiacaonline.org/craftkatha-pop-up/dabu-print",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Black clay, lime and natural gum; \"fermented mud paste\"; light crackle effect; 5-15 days and 2-4 artisans per piece; attributes craft to Khatri community; claims GI tag in 2023 (contradicted by S5). Fact-check: page says \"Khatris\" and lists \"Light crackle effect visible in resist areas\" as an authenticity marker; no publication date (footer 2025)."
+    },
+    {
+      "id": "S21",
+      "kind": "unverified",
+      "title": "Dabu Block Printing",
+      "author": "Maiwa (unattributed)",
+      "publisher": "Maiwa Handprints (supplier)",
+      "year": null,
+      "url": "https://www.maiwa.com/pages/dabu-block-printing",
+      "accessed": "2026-10-14",
+      "reliability": "low",
+      "notes": "Dabu described as \"a cold-water resist\" and a \"mud-resist\" using fine desert sand of Rajasthan, used during an indigo bath; reports certain patterns printed only on certain weaves of set width and length depending on the communities."
+    },
+    {
+      "id": "S22",
+      "kind": "unverified",
+      "title": "The Story of Dabu Prints: Tradition, Craft, and Contemporary Style",
+      "author": "Team PeepulTree",
+      "publisher": "Live History India / PeepulTree",
+      "year": 2024,
+      "url": "https://livehistoryindia.com/story/living-culture/the-story-of-dabu-prints-tradition-craft-and-contemporary-style",
+      "accessed": "2026-10-14",
+      "reliability": "low",
+      "notes": "Paste of chuna, gond and local clay; sawdust; sun-dry; dye; dry; wash; double/triple dabu; 8th-century claim."
+    },
+    {
+      "id": "S23",
+      "kind": "researcher_interpretation",
+      "title": "'Bagru' - A Traditional Printing Technique of Rajasthan",
+      "author": "Raj, Sambaditya",
+      "publisher": "fibre2fashion.com (textile industry portal, article PDF)",
+      "year": 2012,
+      "url": "https://images.fibre2fashion.com/ArticleResources/PdfFiles/62/6198.pdf",
+      "accessed": "2026-10-14",
+      "reliability": "low",
+      "notes": "Added by fact-check. Bagru-centred (not Akola). Scouring with a paste of cow dung, soda ash and sesame oil (\"Hari sarana\"); harda (myrobalan) wash whose tannic acid acts as mordant for the iron of the black (syahi); dabu = lime, \"Bedhan\" (worm-spoiled wheat flour) and black clay, mashed, left overnight, strained; Kaligar/Dolidar/Gawarbali dabu types; sawdust; indigo then pomegranate, then alum-water rinse to fix colour, alum quantity varying with dabu strength. Year from PDF metadata (2012); no peer review."
+    },
+    {
+      "id": "S24",
+      "kind": "researcher_interpretation",
+      "title": "Indian Block-Printed Textiles: Past and Present",
+      "author": "Rosenfield, Yael",
+      "publisher": "The Metropolitan Museum of Art (Perspectives)",
+      "year": 2016,
+      "url": "https://www.metmuseum.org/perspectives/indian-block-printed-textiles",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Added by fact-check. Museum conservator essay (15 Nov 2016) with fieldwork at Bagru, Akola, Ajrakhpur, Sri Kalahasti: Dabu is \"the most common resist used for indigo today\", often showing crack lines where dye penetrated cracks in the resist; photo of an indigo vat at Akola (2015). Dung scouring and harde/alum/iron passages refer to Ajrakh/general practice, not Dabu."
+    }
+  ],
+  "concepts": [
+    {
+      "key": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "tradition",
+      "category": "tradition_identity",
+      "title": "Dabu mud-resist block printing",
+      "summary": "Dabu is a mud-resist printing technique; blocks are dipped in a paste of mud, gum and lime and pressed onto fabric, and resist and dye are applied several times.",
+      "body_md": "Dabu is a mud-resist printing technique; blocks are dipped in a paste of mud, gum and lime and pressed onto fabric, and resist and dye are applied several times. [S1]\n\nThe name Dabu derives from dabaana, meaning to press. [S1, S2, S18]\n\nAkola in Chittorgarh district is commonly acknowledged as the origin of the mud-resist Dabu style. [S19]\n\nDabu clay-resist printing is also documented by the Craft Revival Trust at Bagru (Rajasthan) and Deesa (Gujarat). [S3, S4]\n\nAkola is described as a self-sufficient system for Dabu printing. [S1, S16]",
+      "local_terms": [
+        "Dabu",
+        "Daboo",
+        "Dabbu",
+        "mud-resist printing",
+        "Akola print"
+      ],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Dabu is a mud-resist printing technique; blocks are dipped in a paste of mud, gum and lime and pressed onto fabric, and resist and dye are applied several times.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The name Dabu derives from dabaana, meaning to press.",
+          "source_ids": [
+            "S1",
+            "S2",
+            "S18"
+          ]
+        },
+        {
+          "text": "Akola in Chittorgarh district is commonly acknowledged as the origin of the mud-resist Dabu style.",
+          "source_ids": [
+            "S19"
+          ]
+        },
+        {
+          "text": "Dabu clay-resist printing is also documented by the Craft Revival Trust at Bagru (Rajasthan) and Deesa (Gujarat).",
+          "source_ids": [
+            "S3",
+            "S4"
+          ]
+        },
+        {
+          "text": "Akola is described as a self-sufficient system for Dabu printing.",
+          "source_ids": [
+            "S1",
+            "S16"
+          ],
+          "quote": "self sufficient system"
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.historical_context.akola-cluster",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Akola village as the primary Dabu cluster",
+      "summary": "Akola is a village in Bhopalsagar tehsil, Chittorgarh district, about 52 km west of Chittorgarh.",
+      "body_md": "Akola is a village in Bhopalsagar tehsil, Chittorgarh district, about 52 km west of Chittorgarh. [S2, S10]\n\nAbout 200 people practise the craft in Akola. [S1, S2]\n\nTradition holds that hundreds of years ago Rani Rathorji of Mewar established a village for the Chippa community on the banks of the Beduch river. [S1, S2]\n\nFabric is sourced from Kishangarh and pigments from Udaipur. [S1, S2]\n\nAkola is also called Chhipo ka Akola. [S10]",
+      "local_terms": [
+        "Chhipo ka Akola",
+        "Beduch"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Akola is a village in Bhopalsagar tehsil, Chittorgarh district, about 52 km west of Chittorgarh.",
+          "source_ids": [
+            "S2",
+            "S10"
+          ]
+        },
+        {
+          "text": "About 200 people practise the craft in Akola.",
+          "source_ids": [
+            "S1",
+            "S2"
+          ]
+        },
+        {
+          "text": "Tradition holds that hundreds of years ago Rani Rathorji of Mewar established a village for the Chippa community on the banks of the Beduch river.",
+          "source_ids": [
+            "S1",
+            "S2"
+          ]
+        },
+        {
+          "text": "Fabric is sourced from Kishangarh and pigments from Udaipur.",
+          "source_ids": [
+            "S1",
+            "S2"
+          ]
+        },
+        {
+          "text": "Akola is also called Chhipo ka Akola.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.historical_context.chhipa-and-allied-communities",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Chhipa printers and allied dyeing communities",
+      "summary": "The block printers of Akola are the Chippa community, whose name derives from chhapna, to print.",
+      "body_md": "The block printers of Akola are the Chippa community, whose name derives from chhapna, to print. [S1, S2]\n\nNeelgars (indigo dyers), Rangrez (dyers) and Dhobis (washermen) worked alongside the Chippas. [S2]\n\nDabu printing is often done by women, at home or in printers' workshops called karkhanas (Bagru). [S4]",
+      "local_terms": [
+        "Chhipa",
+        "Chippa",
+        "Neelgar",
+        "Rangrez",
+        "Dhobi",
+        "karkhana"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The block printers of Akola are the Chippa community, whose name derives from chhapna, to print.",
+          "source_ids": [
+            "S1",
+            "S2"
+          ]
+        },
+        {
+          "text": "Neelgars (indigo dyers), Rangrez (dyers) and Dhobis (washermen) worked alongside the Chippas.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Dabu printing is often done by women, at home or in printers' workshops called karkhanas (Bagru).",
+          "source_ids": [
+            "S4"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.historical_context.etymology-and-origin-legend",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Name and origin legend",
+      "summary": "A legend tells of a Rangrez dyer whose mud-stained dhoti left an undyed patch after indigo dyeing.",
+      "body_md": "A legend tells of a Rangrez dyer whose mud-stained dhoti left an undyed patch after indigo dyeing. [S1, S15]\n\nThe truth of the legend is unverified. [S15]",
+      "local_terms": [
+        "dabaana",
+        "dabana"
+      ],
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "A legend tells of a Rangrez dyer whose mud-stained dhoti left an undyed patch after indigo dyeing.",
+          "source_ids": [
+            "S1",
+            "S15"
+          ]
+        },
+        {
+          "text": "The truth of the legend is unverified.",
+          "source_ids": [
+            "S15"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.historical_context.antiquity-claims",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Antiquity of Dabu (contested dating)",
+      "summary": "The oldest known Dabu-printed specimen was found in Central Asia, suggesting use in the 8th century AD.",
+      "body_md": "The oldest known Dabu-printed specimen was found in Central Asia, suggesting use in the 8th century AD. [S1, S2]\n\nMud-resist printing origins are traced to about 675 AD. [S19]\n\nThe craft is described as about 500 years old. [S15]\n\nAkola Dabu is described as a 200-year-old legacy. [S16]\n\nA cotton textile from Bagru dated mid to late 19th century is catalogued with the technique \"Mud Resist\". [S11]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "The oldest known Dabu-printed specimen was found in Central Asia, suggesting use in the 8th century AD.",
+          "source_ids": [
+            "S1",
+            "S2"
+          ]
+        },
+        {
+          "text": "Mud-resist printing origins are traced to about 675 AD.",
+          "source_ids": [
+            "S19"
+          ]
+        },
+        {
+          "text": "The craft is described as about 500 years old.",
+          "source_ids": [
+            "S15"
+          ]
+        },
+        {
+          "text": "Akola Dabu is described as a 200-year-old legacy.",
+          "source_ids": [
+            "S16"
+          ]
+        },
+        {
+          "text": "A cotton textile from Bagru dated mid to late 19th century is catalogued with the technique \"Mud Resist\".",
+          "source_ids": [
+            "S11"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.historical_context.decline-and-revival",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Decline and revival",
+      "summary": "Rajasthan once had many Dabu clusters; very few remain.",
+      "body_md": "Rajasthan once had many Dabu clusters; very few remain. [S1, S16]\n\nDaboo almost died out in the era before independence because of cheap machine-printed alternatives; a designer quoted in 2019 says it has been revived by new-age designers. [S19, S18]\n\nAavaran set up a self-help group for Akola artisans in 2009, retaining the traditional process while introducing new motifs. [S15]\n\nAavaran and COS-V are cited as giving new direction to the craft. [S1]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Rajasthan once had many Dabu clusters; very few remain.",
+          "source_ids": [
+            "S1",
+            "S16"
+          ]
+        },
+        {
+          "text": "Daboo almost died out in the era before independence because of cheap machine-printed alternatives; a designer quoted in 2019 says it has been revived by new-age designers.",
+          "source_ids": [
+            "S19",
+            "S18"
+          ]
+        },
+        {
+          "text": "Aavaran set up a self-help group for Akola artisans in 2009, retaining the traditional process while introducing new motifs.",
+          "source_ids": [
+            "S15"
+          ]
+        },
+        {
+          "text": "Aavaran and COS-V are cited as giving new direction to the craft.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.historical_context.gi-application",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Geographical Indication status",
+      "summary": "GI application 845, Aakola Dabu Prints, was filed by Udhyam Protsahan Sansthan on 04-03-2022 and its status is Pre Examination.",
+      "body_md": "GI application 845, Aakola Dabu Prints, was filed by Udhyam Protsahan Sansthan on 04-03-2022 and its status is Pre Examination. [S5]\n\nAIACA states that Dabu received a GI tag in 2023. [S20]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "GI application 845, Aakola Dabu Prints, was filed by Udhyam Protsahan Sansthan on 04-03-2022 and its status is Pre Examination.",
+          "source_ids": [
+            "S5"
+          ]
+        },
+        {
+          "text": "AIACA states that Dabu received a GI tag in 2023.",
+          "source_ids": [
+            "S20"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.historical_context.garment-traditions",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Phetiya, nangna and community dress",
+      "summary": "A fetiya was an 8-12 m cloth joined with one line of stitching, worn by Jat, Gadariya and Gujjar women, often with a bandhej lugda.",
+      "body_md": "A fetiya was an 8-12 m cloth joined with one line of stitching, worn by Jat, Gadariya and Gujjar women, often with a bandhej lugda. [S1, S2]\n\nAkola dabu has two types, phetia (Jat and Chaudhury women, after childbirth or at weddings) and nangna (Gujjar women). [S6]\n\nModern products include dupattas, stoles and saris with separate designs for border, pallu and main body. [S2]",
+      "local_terms": [
+        "phetiya",
+        "fetiya",
+        "nangna",
+        "nandna",
+        "ghagra",
+        "bandhej lugda"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "A fetiya was an 8-12 m cloth joined with one line of stitching, worn by Jat, Gadariya and Gujjar women, often with a bandhej lugda.",
+          "source_ids": [
+            "S1",
+            "S2"
+          ]
+        },
+        {
+          "text": "Akola dabu has two types, phetia (Jat and Chaudhury women, after childbirth or at weddings) and nangna (Gujjar women).",
+          "source_ids": [
+            "S6"
+          ]
+        },
+        {
+          "text": "Modern products include dupattas, stoles and saris with separate designs for border, pallu and main body.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.historical_context.other-centres",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Other Dabu centres",
+      "summary": "Dabu printing was also practised in Tarapur, Bhilwara and Pahuna.",
+      "body_md": "Dabu printing was also practised in Tarapur, Bhilwara and Pahuna. [S2]\n\nDabu is popular among block printers of Deesa, Ahmedabad and Jamnagar. [S8]\n\nDabu/hand block printing is mainly practised in Bagru, Jaipur. [S7]\n\nThe Craft Revival Trust documented dabu clay paste drying at Bagru in 2009. [S4]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Dabu printing was also practised in Tarapur, Bhilwara and Pahuna.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Dabu is popular among block printers of Deesa, Ahmedabad and Jamnagar.",
+          "source_ids": [
+            "S8"
+          ]
+        },
+        {
+          "text": "Dabu/hand block printing is mainly practised in Bagru, Jaipur.",
+          "source_ids": [
+            "S7"
+          ]
+        },
+        {
+          "text": "The Craft Revival Trust documented dabu clay paste drying at Bagru in 2009.",
+          "source_ids": [
+            "S4"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.material.mud-black-clay",
+      "type": "material",
+      "category": "materials",
+      "title": "Mud / black clay (kali mitti)",
+      "summary": "Mud is dug from a dry pond and soaked overnight in a separate tank.",
+      "body_md": "Mud is dug from a dry pond and soaked overnight in a separate tank. [S18, S17]\n\nArtisans collect mud from riverbanks and soak it overnight into a sticky paste. [S15]\n\nThe Deesa paste uses silt from a river bed. [S3]\n\nThe resist base is black clay (kali mitti). [S17, S20, S23]\n\nIn Akola the earth supplies the mud and the river the water. [S2]",
+      "local_terms": [
+        "kali mitti",
+        "mitti",
+        "dabu"
+      ],
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Mud is dug from a dry pond and soaked overnight in a separate tank.",
+          "source_ids": [
+            "S18",
+            "S17"
+          ]
+        },
+        {
+          "text": "Artisans collect mud from riverbanks and soak it overnight into a sticky paste.",
+          "source_ids": [
+            "S15"
+          ]
+        },
+        {
+          "text": "The Deesa paste uses silt from a river bed.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "The resist base is black clay (kali mitti).",
+          "source_ids": [
+            "S17",
+            "S20",
+            "S23"
+          ]
+        },
+        {
+          "text": "In Akola the earth supplies the mud and the river the water.",
+          "source_ids": [
+            "S2"
+          ],
+          "quote": "the earth lends mud and the river bestows water"
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.material.lime-chuna",
+      "type": "material",
+      "category": "materials",
+      "title": "Lime (chuna, calcium hydroxide)",
+      "summary": "The resist paste is mud, gum and lime.",
+      "body_md": "The resist paste is mud, gum and lime. [S1, S3, S22]\n\nThe paste contains calcium hydroxide (chuna). [S15, S18]\n\nChuna/lime (kirana) is the weakest resist, used for fine outlines. [S6]",
+      "local_terms": [
+        "chuna",
+        "kirana"
+      ],
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The resist paste is mud, gum and lime.",
+          "source_ids": [
+            "S1",
+            "S3",
+            "S22"
+          ]
+        },
+        {
+          "text": "The paste contains calcium hydroxide (chuna).",
+          "source_ids": [
+            "S15",
+            "S18"
+          ]
+        },
+        {
+          "text": "Chuna/lime (kirana) is the weakest resist, used for fine outlines.",
+          "source_ids": [
+            "S6"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.material.natural-gum-gond",
+      "type": "material",
+      "category": "materials",
+      "title": "Natural gum (gond)",
+      "summary": "Gum from acacia or babul seeds acts as the binder.",
+      "body_md": "Gum from acacia or babul seeds acts as the binder. [S18, S15]\n\nGujarat dabu paste uses a local gum called baval. [S8]\n\nIn the kalidar recipe a gum (gond) solution is added to the black clay, lime and beedan mixture. [S17]",
+      "local_terms": [
+        "gond",
+        "gaund",
+        "babul",
+        "baval",
+        "bedja"
+      ],
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Gum from acacia or babul seeds acts as the binder.",
+          "source_ids": [
+            "S18",
+            "S15"
+          ]
+        },
+        {
+          "text": "Gujarat dabu paste uses a local gum called baval.",
+          "source_ids": [
+            "S8"
+          ]
+        },
+        {
+          "text": "In the kalidar recipe a gum (gond) solution is added to the black clay, lime and beedan mixture.",
+          "source_ids": [
+            "S17"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.material.wheat-chaff-beedan",
+      "type": "material",
+      "category": "materials",
+      "title": "Wheat chaff / beedan (insect-eaten wheat flour)",
+      "summary": "The paste is made with gum, mud and waste wheat chaff.",
+      "body_md": "The paste is made with gum, mud and waste wheat chaff. [S7, S19]\n\nPounded wheat chaff is part of the mud resist. [S15, S18]\n\nKalidar dabu uses beedan, moth-eaten wheat flour. [S17]\n\nAt Bagru, beden (insect-eaten wheat flour waste) is the fine powder dusted onto wet dabu. [S4]\n\nAt Bagru, a fibre2fashion article lists \"Bedhan\", wheat flour spoiled by worms, as a dabu paste ingredient with lime and black clay. [S23]",
+      "local_terms": [
+        "beedan",
+        "beden"
+      ],
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "The paste is made with gum, mud and waste wheat chaff.",
+          "source_ids": [
+            "S7",
+            "S19"
+          ]
+        },
+        {
+          "text": "Pounded wheat chaff is part of the mud resist.",
+          "source_ids": [
+            "S15",
+            "S18"
+          ]
+        },
+        {
+          "text": "Kalidar dabu uses beedan, moth-eaten wheat flour.",
+          "source_ids": [
+            "S17"
+          ]
+        },
+        {
+          "text": "At Bagru, beden (insect-eaten wheat flour waste) is the fine powder dusted onto wet dabu.",
+          "source_ids": [
+            "S4"
+          ]
+        },
+        {
+          "text": "At Bagru, a fibre2fashion article lists \"Bedhan\", wheat flour spoiled by worms, as a dabu paste ingredient with lime and black clay.",
+          "source_ids": [
+            "S23"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.material.sugarcane-molasses",
+      "type": "material",
+      "category": "materials",
+      "title": "Sugarcane molasses (Deesa recipe)",
+      "summary": "The Deesa paste is a mix of river-bed silt, local gum, lime, sugarcane molasses and water.",
+      "body_md": "The Deesa paste is a mix of river-bed silt, local gum, lime, sugarcane molasses and water. [S3]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The Deesa paste is a mix of river-bed silt, local gum, lime, sugarcane molasses and water.",
+          "source_ids": [
+            "S3"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.material.paste-variants",
+      "type": "material",
+      "category": "materials",
+      "title": "Recipe variants: kalidar, dolidar, gawarvali, rait",
+      "summary": "Three resists are used: chuna/lime the weakest for fine outlines, mitti/mud for repeated indigo immersion, rait/sand the strongest for absorbent colours like pomegranate and ferrous.",
+      "body_md": "Three resists are used: chuna/lime the weakest for fine outlines, mitti/mud for repeated indigo immersion, rait/sand the strongest for absorbent colours like pomegranate and ferrous. [S6]\n\nDolidar dabu combines gond, chuna and Multani mitti; gawarvali dabu uses roasted, ground guar mixed with boiled lime and gum. [S17]\n\nFamilies reportedly keep their own secret recipes. [S17]\n\nA Bagru account names three dabu types: Kaligar (processed once), Dolidar (more gum, withstands about two dye-vat trips) and Gawarbali (oil and gawar powder, for repeated dyeing). [S23]",
+      "local_terms": [
+        "kalidar",
+        "dolidar",
+        "gawarvali",
+        "Multani mitti",
+        "gwar",
+        "rait"
+      ],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Three resists are used: chuna/lime the weakest for fine outlines, mitti/mud for repeated indigo immersion, rait/sand the strongest for absorbent colours like pomegranate and ferrous.",
+          "source_ids": [
+            "S6"
+          ]
+        },
+        {
+          "text": "Dolidar dabu combines gond, chuna and Multani mitti; gawarvali dabu uses roasted, ground guar mixed with boiled lime and gum.",
+          "source_ids": [
+            "S17"
+          ]
+        },
+        {
+          "text": "Families reportedly keep their own secret recipes.",
+          "source_ids": [
+            "S17"
+          ]
+        },
+        {
+          "text": "A Bagru account names three dabu types: Kaligar (processed once), Dolidar (more gum, withstands about two dye-vat trips) and Gawarbali (oil and gawar powder, for repeated dyeing).",
+          "source_ids": [
+            "S23"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.material.sawdust",
+      "type": "material",
+      "category": "materials",
+      "title": "Sawdust",
+      "summary": "White areas stamped with paste are immediately covered with sawdust to prevent the wet clay smudging.",
+      "body_md": "White areas stamped with paste are immediately covered with sawdust to prevent the wet clay smudging. [S3]\n\nSawdust is sprinkled over the paste to dry it and hold it in place. [S18, S22]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "White areas stamped with paste are immediately covered with sawdust to prevent the wet clay smudging.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "Sawdust is sprinkled over the paste to dry it and hold it in place.",
+          "source_ids": [
+            "S18",
+            "S22"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.material.indigo",
+      "type": "material",
+      "category": "materials",
+      "title": "Indigo",
+      "summary": "The fabric is dyed in indigo; resisted areas keep the original colour.",
+      "body_md": "The fabric is dyed in indigo; resisted areas keep the original colour. [S1]\n\nIndigo dyeing is done in a cold bath, the cloth turning green then indigo as it oxidises in air. [S2]\n\nTraditional Dabu uses natural dyes such as indigo. [S18, S19]",
+      "local_terms": [
+        "neel",
+        "neela"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The fabric is dyed in indigo; resisted areas keep the original colour.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Indigo dyeing is done in a cold bath, the cloth turning green then indigo as it oxidises in air.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Traditional Dabu uses natural dyes such as indigo.",
+          "source_ids": [
+            "S18",
+            "S19"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.material.alizarin-and-naphthol-reds",
+      "type": "material",
+      "category": "materials",
+      "title": "Reds: alizarin, now naphthol with red salt",
+      "summary": "Alizarin (red) was later replaced by naphthol.",
+      "body_md": "Alizarin (red) was later replaced by naphthol. [S1, S2]\n\nNaphthol is printed and the cloth dipped in red salt, which reacts with it to give bright red. [S2]",
+      "local_terms": [
+        "lal"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Alizarin (red) was later replaced by naphthol.",
+          "source_ids": [
+            "S1",
+            "S2"
+          ]
+        },
+        {
+          "text": "Naphthol is printed and the cloth dipped in red salt, which reacts with it to give bright red.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.material.cotton-fabric",
+      "type": "material",
+      "category": "materials",
+      "title": "Cotton cloth",
+      "summary": "Cotton fabric of 20x20 count is sourced from Kishangarh.",
+      "body_md": "Cotton fabric of 20x20 count is sourced from Kishangarh. [S2]\n\nDabu was mainly on cotton saris and later spread to silk, crepe and georgette. [S18]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Cotton fabric of 20x20 count is sourced from Kishangarh.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Dabu was mainly on cotton saris and later spread to silk, crepe and georgette.",
+          "source_ids": [
+            "S18"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.material.tar-oil-rogan-resist",
+      "type": "material",
+      "category": "materials",
+      "title": "Tar, oil and rogan resist (modern Akola substitute)",
+      "summary": "The resist is now a mixture of tar, oil and rogan; earlier a mud paste was used.",
+      "body_md": "The resist is now a mixture of tar, oil and rogan; earlier a mud paste was used. [S2]\n\nTar is used instead of mud for designs needing sharper contrast. [S1]\n\nAsh is sprinkled on tar-printed areas to speed drying and prevent sticking. [S2, S6]\n\nThe fabric is boiled to remove the tar, which floats and can be reused. [S2]",
+      "local_terms": [
+        "rogan",
+        "rakh"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The resist is now a mixture of tar, oil and rogan; earlier a mud paste was used.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Tar is used instead of mud for designs needing sharper contrast.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Ash is sprinkled on tar-printed areas to speed drying and prevent sticking.",
+          "source_ids": [
+            "S2",
+            "S6"
+          ]
+        },
+        {
+          "text": "The fabric is boiled to remove the tar, which floats and can be reused.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.material.myrobalan-and-mordants",
+      "type": "material",
+      "category": "materials",
+      "title": "Harda (myrobalan), alum and iron",
+      "summary": "At Bagru, scoured cloth is washed in powdered harda and water, giving a yellow tint; harda's tannic acid acts as a mordant for the iron of the black printing colour.",
+      "body_md": "At Bagru, scoured cloth is washed in powdered harda and water, giving a yellow tint; harda's tannic acid acts as a mordant for the iron of the black printing colour. [S23]\n\nAt Bagru, dabu-printed cloth dyed in indigo and pomegranate is rinsed in alum water to fix the colour; the quantity of alum varies with the strength of the dabu. [S23]\n\nA 19th-century Bagru mud-resist textile is catalogued as mordant dyed. [S11]",
+      "local_terms": [
+        "harda"
+      ],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "At Bagru, scoured cloth is washed in powdered harda and water, giving a yellow tint; harda's tannic acid acts as a mordant for the iron of the black printing colour.",
+          "source_ids": [
+            "S23"
+          ]
+        },
+        {
+          "text": "At Bagru, dabu-printed cloth dyed in indigo and pomegranate is rinsed in alum water to fix the colour; the quantity of alum varies with the strength of the dabu.",
+          "source_ids": [
+            "S23"
+          ]
+        },
+        {
+          "text": "A 19th-century Bagru mud-resist textile is catalogued as mordant dyed.",
+          "source_ids": [
+            "S11"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.tool.carved-wooden-block",
+      "type": "tool",
+      "category": "tools",
+      "title": "Carved wooden printing blocks",
+      "summary": "Block carvers in the village make the wooden blocks.",
+      "body_md": "Block carvers in the village make the wooden blocks. [S1, S2]\n\nBlocks are made of sheesham, rohira and teak by batkare (local carpenters). [S17]\n\nThe craft in Akola had 14 traditional block designs. [S2]",
+      "local_terms": [
+        "chhapa",
+        "batkare"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Block carvers in the village make the wooden blocks.",
+          "source_ids": [
+            "S1",
+            "S2"
+          ]
+        },
+        {
+          "text": "Blocks are made of sheesham, rohira and teak by batkare (local carpenters).",
+          "source_ids": [
+            "S17"
+          ]
+        },
+        {
+          "text": "The craft in Akola had 14 traditional block designs.",
+          "source_ids": [
+            "S2"
+          ],
+          "quote": "a beautiful plethora of 14 traditional block designs"
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.tool.printing-table",
+      "type": "tool",
+      "category": "tools",
+      "title": "Printing table",
+      "summary": "Small wooden printing tables of about 150 cm x 60 cm are used.",
+      "body_md": "Small wooden printing tables of about 150 cm x 60 cm are used. [S2]\n\nResist is applied on a single table with the printer seated or on a running table. [S18]\n\nCloth is laid on huge printing tables. [S7]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Small wooden printing tables of about 150 cm x 60 cm are used.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Resist is applied on a single table with the printer seated or on a running table.",
+          "source_ids": [
+            "S18"
+          ]
+        },
+        {
+          "text": "Cloth is laid on huge printing tables.",
+          "source_ids": [
+            "S7"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.tool.dye-vat-and-trays",
+      "type": "tool",
+      "category": "tools",
+      "title": "Indigo vat and dyeing trays",
+      "summary": "Dyeing trays of wood or plastic are used.",
+      "body_md": "Dyeing trays of wood or plastic are used. [S2]\n\nThe fabric is dipped in a dye vat, dried again and washed. [S18, S19]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Dyeing trays of wood or plastic are used.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "The fabric is dipped in a dye vat, dried again and washed.",
+          "source_ids": [
+            "S18",
+            "S19"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.tool.muslin-strainer-and-mardia",
+      "type": "tool",
+      "category": "tools",
+      "title": "Straining cloth and mardia pot",
+      "summary": "The paste is strained before use.",
+      "body_md": "The paste is strained before use. [S3]\n\nThe mixture is strained through fine muslin and kept in a mud pot called a mardia. [S17]",
+      "local_terms": [
+        "mardia"
+      ],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "The paste is strained before use.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "The mixture is strained through fine muslin and kept in a mud pot called a mardia.",
+          "source_ids": [
+            "S17"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.tool.tar-boilers",
+      "type": "tool",
+      "category": "tools",
+      "title": "Boilers for tar removal",
+      "summary": "Large kadhai-like boilers for removing tar were set up with government support.",
+      "body_md": "Large kadhai-like boilers for removing tar were set up with government support. [S2]",
+      "local_terms": [
+        "kadhai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Large kadhai-like boilers for removing tar were set up with government support.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.process_stage.mud-soaking",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "Collecting and soaking the mud",
+      "summary": "Mud is dug from a dry pond and soaked overnight in a separate tank.",
+      "body_md": "Mud is dug from a dry pond and soaked overnight in a separate tank. [S18, S17]\n\nMud collected from riverbanks is soaked overnight. [S15]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Mud is dug from a dry pond and soaked overnight in a separate tank.",
+          "source_ids": [
+            "S18",
+            "S17"
+          ]
+        },
+        {
+          "text": "Mud collected from riverbanks is soaked overnight.",
+          "source_ids": [
+            "S15"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.process_stage.paste-preparation",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "Preparing the resist paste",
+      "summary": "The paste is kneaded by stamping over several days, then strained before use.",
+      "body_md": "The paste is kneaded by stamping over several days, then strained before use. [S3]\n\nMud, gum and lime are mixed into a viscous paste. [S1]\n\nAt Bagru the lime, bedhan and black clay are mashed into a thick paste, left overnight and strained into a liquid paste for printing. [S23]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The paste is kneaded by stamping over several days, then strained before use.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "Mud, gum and lime are mixed into a viscous paste.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "At Bagru the lime, bedhan and black clay are mashed into a thick paste, left overnight and strained into a liquid paste for printing.",
+          "source_ids": [
+            "S23"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.process_stage.fabric-washing",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "Washing / scouring the cloth",
+      "summary": "The fabric is first washed to remove impurities that could block dyeing.",
+      "body_md": "The fabric is first washed to remove impurities that could block dyeing. [S18, S19]\n\nThe fabric is washed and sun-dried to remove impurities. [S7]\n\nAt Bagru, Chhipas scour the cloth with a paste of cow dung, soda ash and sesame oil prepared over two days (locally \"Hari sarana\"). [S23]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The fabric is first washed to remove impurities that could block dyeing.",
+          "source_ids": [
+            "S18",
+            "S19"
+          ]
+        },
+        {
+          "text": "The fabric is washed and sun-dried to remove impurities.",
+          "source_ids": [
+            "S7"
+          ]
+        },
+        {
+          "text": "At Bagru, Chhipas scour the cloth with a paste of cow dung, soda ash and sesame oil prepared over two days (locally \"Hari sarana\").",
+          "source_ids": [
+            "S23"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.process_stage.pre-printing-colour",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "Optional pre-printing of colour (naphthol red)",
+      "summary": "Naphthol is printed on areas to be red, sun-dried, then dipped in red salt.",
+      "body_md": "Naphthol is printed on areas to be red, sun-dried, then dipped in red salt. [S2]\n\nThe design is hand-block printed with fast dyes before the mud resist. [S19, S18]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Naphthol is printed on areas to be red, sun-dried, then dipped in red salt.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "The design is hand-block printed with fast dyes before the mud resist.",
+          "source_ids": [
+            "S19",
+            "S18"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.process_stage.resist-printing",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "Block-printing the resist",
+      "summary": "Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric.",
+      "body_md": "Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric. [S1]\n\nThe white areas of the design are stamped with the paste. [S3]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The white areas of the design are stamped with the paste.",
+          "source_ids": [
+            "S3"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.process_stage.dusting",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "Dusting the wet resist",
+      "summary": "Paste areas are immediately covered with sawdust to prevent smudging.",
+      "body_md": "Paste areas are immediately covered with sawdust to prevent smudging. [S3]\n\nWet dabu is dusted with beden to dry it quickly and prevent smudging. [S4]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Paste areas are immediately covered with sawdust to prevent smudging.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "Wet dabu is dusted with beden to dry it quickly and prevent smudging.",
+          "source_ids": [
+            "S4"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.process_stage.sun-drying",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "Sun-drying the resist",
+      "summary": "The fabric is sun-dried until the paste hardens.",
+      "body_md": "The fabric is sun-dried until the paste hardens. [S3]\n\nThe fabric is spread in hot sun until the paste dries completely. [S18]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The fabric is sun-dried until the paste hardens.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "The fabric is spread in hot sun until the paste dries completely.",
+          "source_ids": [
+            "S18"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.process_stage.dip-dyeing",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "Dip-dyeing (usually indigo)",
+      "summary": "The cloth is dip-dyed after the paste hardens.",
+      "body_md": "The cloth is dip-dyed after the paste hardens. [S3]\n\nIndigo dyeing is in a cold bath, repeated until the required shade is reached. [S2]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The cloth is dip-dyed after the paste hardens.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "Indigo dyeing is in a cold bath, repeated until the required shade is reached.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.process_stage.oxidation-drying",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "Airing and drying",
+      "summary": "The cloth turns green, then deepens to indigo as it oxidises in air.",
+      "body_md": "The cloth turns green, then deepens to indigo as it oxidises in air. [S2]\n\nAfter dyeing the fabric is dried again. [S18, S22]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The cloth turns green, then deepens to indigo as it oxidises in air.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "After dyeing the fabric is dried again.",
+          "source_ids": [
+            "S18",
+            "S22"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.process_stage.washing-off-resist",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "Washing off the resist",
+      "summary": "The fabric is washed to remove paste and excess dye.",
+      "body_md": "The fabric is washed to remove paste and excess dye. [S18]\n\nThe Beduch river provides water and washing grounds. [S2]\n\nTar is removed by boiling the fabric. [S2]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The fabric is washed to remove paste and excess dye.",
+          "source_ids": [
+            "S18"
+          ]
+        },
+        {
+          "text": "The Beduch river provides water and washing grounds.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Tar is removed by boiling the fabric.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.process_stage.repeat-cycles",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "Repeating resist-dye cycles (double/triple dabu)",
+      "summary": "The resist-and-dye sequence is repeated through a dye bath for each colour needed.",
+      "body_md": "The resist-and-dye sequence is repeated through a dye bath for each colour needed. [S3]\n\nResist and dye are applied several times to build shades. [S1]\n\nDouble and triple dabu give richer effects. [S19, S22]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The resist-and-dye sequence is repeated through a dye bath for each colour needed.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "Resist and dye are applied several times to build shades.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Double and triple dabu give richer effects.",
+          "source_ids": [
+            "S19",
+            "S22"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.artisan_decision.choosing-resist-strength",
+      "type": "artisan_decision",
+      "category": "tacit_decisions",
+      "title": "Choosing the resist recipe for the job",
+      "summary": "Lime is used for fine outlines, mud for repeated indigo immersion, and sand for absorbent colours such as pomegranate and ferrous dyes.",
+      "body_md": "Lime is used for fine outlines, mud for repeated indigo immersion, and sand for absorbent colours such as pomegranate and ferrous dyes. [S6]",
+      "local_terms": [
+        "kirana",
+        "mitti",
+        "rait"
+      ],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Lime is used for fine outlines, mud for repeated indigo immersion, and sand for absorbent colours such as pomegranate and ferrous dyes.",
+          "source_ids": [
+            "S6"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.artisan_decision.paste-consistency",
+      "type": "artisan_decision",
+      "category": "tacit_decisions",
+      "title": "Working the paste to a smooth, viscous consistency",
+      "summary": "The paste is kneaded by stamping over several days and strained before use.",
+      "body_md": "The paste is kneaded by stamping over several days and strained before use. [S3]\n\nThe paste is a viscous mixture of mud, gum and lime. [S1, S16]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The paste is kneaded by stamping over several days and strained before use.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "The paste is a viscous mixture of mud, gum and lime.",
+          "source_ids": [
+            "S1",
+            "S16"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.artisan_decision.timing-of-dusting-and-drying",
+      "type": "artisan_decision",
+      "category": "tacit_decisions",
+      "title": "Dusting immediately and drying fully before dyeing",
+      "summary": "The paste is immediately covered with sawdust to keep the wet clay from smudging, and sun-dried until hard before dip-dyeing.",
+      "body_md": "The paste is immediately covered with sawdust to keep the wet clay from smudging, and sun-dried until hard before dip-dyeing. [S3]\n\nClay should be completely dry before the fabric is submerged in indigo. [S13]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The paste is immediately covered with sawdust to keep the wet clay from smudging, and sun-dried until hard before dip-dyeing.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "Clay should be completely dry before the fabric is submerged in indigo.",
+          "source_ids": [
+            "S13"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.artisan_decision.number-of-dips-and-cycles",
+      "type": "artisan_decision",
+      "category": "tacit_decisions",
+      "title": "Judging dips and cycles for the shade",
+      "summary": "The indigo dip is repeated until the required shade is reached.",
+      "body_md": "The indigo dip is repeated until the required shade is reached. [S2]\n\nThe resist-and-dye process can be done more than once to achieve the desired colour and effect. [S18]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The indigo dip is repeated until the required shade is reached.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "The resist-and-dye process can be done more than once to achieve the desired colour and effect.",
+          "source_ids": [
+            "S18"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.artisan_decision.mud-versus-tar",
+      "type": "artisan_decision",
+      "category": "tacit_decisions",
+      "title": "Mud or tar for fine designs",
+      "summary": "Tar replaced mud for finer designs because mud mostly cracked and changed the look.",
+      "body_md": "Tar replaced mud for finer designs because mud mostly cracked and changed the look. [S2]\n\nTar is used instead of mud for designs needing sharper contrast. [S1]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Tar replaced mud for finer designs because mud mostly cracked and changed the look.",
+          "source_ids": [
+            "S2"
+          ],
+          "quote": "difficult with the use of mud, which mostly cracked and changed the look"
+        },
+        {
+          "text": "Tar is used instead of mud for designs needing sharper contrast.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.design_principle.nature-derived-motifs",
+      "type": "design_principle",
+      "category": "design_principles",
+      "title": "Motifs drawn from nature and surroundings",
+      "summary": "Motifs are picked from nature and surrounding elements and crafted onto wooden blocks.",
+      "body_md": "Motifs are picked from nature and surrounding elements and crafted onto wooden blocks. [S1, S16]\n\nDesigns are symmetrical and drawn from nature, including birds, flowers and leaves. [S18]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Motifs are picked from nature and surrounding elements and crafted onto wooden blocks.",
+          "source_ids": [
+            "S1",
+            "S16"
+          ]
+        },
+        {
+          "text": "Designs are symmetrical and drawn from nature, including birds, flowers and leaves.",
+          "source_ids": [
+            "S18"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.design_principle.akola-named-motifs",
+      "type": "design_principle",
+      "category": "design_principles",
+      "title": "Named Akola motifs (Lal Titri, Kahma, Dholika, Kantedar)",
+      "summary": "Four main motifs survive: Kahma, Lal Titri, Dholika and Kantedar.",
+      "body_md": "Four main motifs survive: Kahma, Lal Titri, Dholika and Kantedar. [S1, S2, S16]\n\nThe Lal Titri motif, known as the Akola print, covered the phetiyas. [S2]\n\nThe Phetiya was spread with an overall print in the ground and a zigzag line-like border, printed in red and indigo. [S2]",
+      "local_terms": [
+        "Lal Titri",
+        "Kahma",
+        "Dholika",
+        "Kantedar"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Four main motifs survive: Kahma, Lal Titri, Dholika and Kantedar.",
+          "source_ids": [
+            "S1",
+            "S2",
+            "S16"
+          ]
+        },
+        {
+          "text": "The Lal Titri motif, known as the Akola print, covered the phetiyas.",
+          "source_ids": [
+            "S2"
+          ],
+          "quote": "The Lal Titri motif prominently known as the Akola print beautifully covered the Phetiya's"
+        },
+        {
+          "text": "The Phetiya was spread with an overall print in the ground and a zigzag line-like border, printed in red and indigo.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.design_principle.reserve-light-on-dark",
+      "type": "design_principle",
+      "category": "design_principles",
+      "title": "Reserving light motifs on a dyed ground",
+      "summary": "Unresisted areas take indigo while resisted areas keep the original colour, like stars in an indigo sky.",
+      "body_md": "Unresisted areas take indigo while resisted areas keep the original colour, like stars in an indigo sky. [S1]\n\nThe white areas of the design are stamped with the resist. [S3]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Unresisted areas take indigo while resisted areas keep the original colour, like stars in an indigo sky.",
+          "source_ids": [
+            "S1"
+          ],
+          "quote": "like stars in an indigo sky"
+        },
+        {
+          "text": "The white areas of the design are stamped with the resist.",
+          "source_ids": [
+            "S3"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.design_principle.layered-colour",
+      "type": "design_principle",
+      "category": "design_principles",
+      "title": "Layered colour through successive resists",
+      "summary": "Resist and dye applied several times create different ground and motif shades.",
+      "body_md": "Resist and dye applied several times create different ground and motif shades. [S1]\n\nDouble and triple dabu give richer effects. [S19]",
+      "local_terms": [
+        "double dabu",
+        "triple dabu"
+      ],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Resist and dye applied several times create different ground and motif shades.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Double and triple dabu give richer effects.",
+          "source_ids": [
+            "S19"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.design_principle.community-specific-patterns",
+      "type": "design_principle",
+      "category": "design_principles",
+      "title": "Patterns tied to communities and garments",
+      "summary": "Phetia was worn by Jat and Chaudhury women and nangna by Gujjar women.",
+      "body_md": "Phetia was worn by Jat and Chaudhury women and nangna by Gujjar women. [S6]\n\nMaiwa reports that certain patterns were printed only on certain weaves (coarse or fine) of a set width and length, depending on the communities served. [S21]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Phetia was worn by Jat and Chaudhury women and nangna by Gujjar women.",
+          "source_ids": [
+            "S6"
+          ]
+        },
+        {
+          "text": "Maiwa reports that certain patterns were printed only on certain weaves (coarse or fine) of a set width and length, depending on the communities served.",
+          "source_ids": [
+            "S21"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.outcome.undyed-motifs-on-indigo",
+      "type": "outcome",
+      "category": "production_outcomes",
+      "title": "Undyed motifs on an indigo ground",
+      "summary": "Resisted areas keep the original colour after indigo dyeing.",
+      "body_md": "Resisted areas keep the original colour after indigo dyeing. [S1]\n\nProtected areas stay plain while unprotected areas take the colour; paste is washed out. [S18]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Resisted areas keep the original colour after indigo dyeing.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Protected areas stay plain while unprotected areas take the colour; paste is washed out.",
+          "source_ids": [
+            "S18"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.outcome.crackle-veining",
+      "type": "outcome",
+      "category": "production_outcomes",
+      "title": "Crackle / veining effect",
+      "summary": "The result shows uneven cracks, and veining is described as a highlight of Dabu.",
+      "body_md": "The result shows uneven cracks, and veining is described as a highlight of Dabu. [S18]\n\nDyes may enter the fabric where the mud cracks. [S17]\n\nA light crackle effect in resist areas is a sign of genuine Dabu. [S20]\n\nMud mostly cracked and changed the look, a reason for adopting tar. [S2]\n\nDabu, the most common resist for indigo today, often shows characteristic crack lines where dye penetrated cracks in the resist. [S24]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The result shows uneven cracks, and veining is described as a highlight of Dabu.",
+          "source_ids": [
+            "S18"
+          ]
+        },
+        {
+          "text": "Dyes may enter the fabric where the mud cracks.",
+          "source_ids": [
+            "S17"
+          ]
+        },
+        {
+          "text": "A light crackle effect in resist areas is a sign of genuine Dabu.",
+          "source_ids": [
+            "S20"
+          ]
+        },
+        {
+          "text": "Mud mostly cracked and changed the look, a reason for adopting tar.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Dabu, the most common resist for indigo today, often shows characteristic crack lines where dye penetrated cracks in the resist.",
+          "source_ids": [
+            "S24"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.outcome.multi-tone-cloth",
+      "type": "outcome",
+      "category": "production_outcomes",
+      "title": "Multi-tone layered cloth (blue, red, brown)",
+      "summary": "Repeated resist and dyeing build shades of soil brown and neela (indigo).",
+      "body_md": "Repeated resist and dyeing build shades of soil brown and neela (indigo). [S16]\n\nLal Titri was printed in red (alizarin) and indigo. [S2]",
+      "local_terms": [
+        "neela"
+      ],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Repeated resist and dyeing build shades of soil brown and neela (indigo).",
+          "source_ids": [
+            "S16"
+          ]
+        },
+        {
+          "text": "Lal Titri was printed in red (alizarin) and indigo.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.scientific_mechanism.clay-resist-cold-vat-compatibility",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Why a mud resist suits a cold indigo vat",
+      "summary": "Clay resist can only be used with indigo because the vat is cold and submersion quick, which prevents the clay washing off.",
+      "body_md": "Clay resist can only be used with indigo because the vat is cold and submersion quick, which prevents the clay washing off. [S12]\n\nMost natural dyes involve heat and prolonged immersion, so clay would wash off. [S12]\n\nDabu is a cold-water resist used to block areas during an indigo bath. [S21]\n\nThe most common resist used for indigo today is a mud paste called Dabu. [S24]",
+      "local_terms": [],
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Clay resist can only be used with indigo because the vat is cold and submersion quick, which prevents the clay washing off.",
+          "source_ids": [
+            "S12"
+          ],
+          "quote": "the vat is cold and submersion is quick, which prevents the clay from washing off"
+        },
+        {
+          "text": "Most natural dyes involve heat and prolonged immersion, so clay would wash off.",
+          "source_ids": [
+            "S12"
+          ]
+        },
+        {
+          "text": "Dabu is a cold-water resist used to block areas during an indigo bath.",
+          "source_ids": [
+            "S21"
+          ]
+        },
+        {
+          "text": "The most common resist used for indigo today is a mud paste called Dabu.",
+          "source_ids": [
+            "S24"
+          ],
+          "quote": "The most common resist used for indigo today is a mud paste called Dabu"
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.scientific_mechanism.crack-dye-penetration",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Crack formation lets dye penetrate the resist",
+      "summary": "Dyes may enter the fabric where the mud cracks.",
+      "body_md": "Dyes may enter the fabric where the mud cracks. [S17]\n\nFabric puckers as the clay dries. [S13]\n\nThe result shows uneven cracks on the fabric. [S18]\n\nDabu often displays characteristic crack lines where the dye penetrated the cracks in the resist. [S24]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Dyes may enter the fabric where the mud cracks.",
+          "source_ids": [
+            "S17"
+          ]
+        },
+        {
+          "text": "Fabric puckers as the clay dries.",
+          "source_ids": [
+            "S13"
+          ]
+        },
+        {
+          "text": "The result shows uneven cracks on the fabric.",
+          "source_ids": [
+            "S18"
+          ]
+        },
+        {
+          "text": "Dabu often displays characteristic crack lines where the dye penetrated the cracks in the resist.",
+          "source_ids": [
+            "S24"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.scientific_mechanism.dusting-accelerated-drying",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Dusting powder sets and dries the wet paste",
+      "summary": "Dusting with beden dries the paste quickly and keeps it from smudging.",
+      "body_md": "Dusting with beden dries the paste quickly and keeps it from smudging. [S4]\n\nAsh sprinkled on tar speeds drying and prevents sticking. [S2]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Dusting with beden dries the paste quickly and keeps it from smudging.",
+          "source_ids": [
+            "S4"
+          ]
+        },
+        {
+          "text": "Ash sprinkled on tar speeds drying and prevents sticking.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.scientific_mechanism.naphthol-red-development",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Developing naphthol red with red salt",
+      "summary": "Dipping in red salt reacts with the naphthol to produce a bright red.",
+      "body_md": "Dipping in red salt reacts with the naphthol to produce a bright red. [S2]\n\nNaphthol dyes are applied to the fibre and then combined with a diazotized base or salt at low temperature, producing an insoluble dye within the fibre. [S2]",
+      "local_terms": [
+        "red salt"
+      ],
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Dipping in red salt reacts with the naphthol to produce a bright red.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Naphthol dyes are applied to the fibre and then combined with a diazotized base or salt at low temperature, producing an insoluble dye within the fibre.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.environmental_condition.sun-and-arid-climate",
+      "type": "environmental_condition",
+      "category": "environmental_conditions",
+      "title": "Strong sun and arid climate",
+      "summary": "The fabric is sun-dried until the paste hardens.",
+      "body_md": "The fabric is sun-dried until the paste hardens. [S3]\n\nThe fabric is spread in hot sun until the paste dries completely. [S18]\n\nThe dry, arid region supplies the mud used for Dabu. [S16]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The fabric is sun-dried until the paste hardens.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "The fabric is spread in hot sun until the paste dries completely.",
+          "source_ids": [
+            "S18"
+          ]
+        },
+        {
+          "text": "The dry, arid region supplies the mud used for Dabu.",
+          "source_ids": [
+            "S16"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.environmental_condition.river-water",
+      "type": "environmental_condition",
+      "category": "environmental_conditions",
+      "title": "River water for washing (Beduch)",
+      "summary": "Water comes from the Beduch river, plus hand pumps and tube wells.",
+      "body_md": "Water comes from the Beduch river, plus hand pumps and tube wells. [S2]\n\nThe river provides water for washing the fabric. [S16]",
+      "local_terms": [
+        "Beduch"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Water comes from the Beduch river, plus hand pumps and tube wells.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "The river provides water for washing the fabric.",
+          "source_ids": [
+            "S16"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.environmental_condition.water-pollution-and-hazards",
+      "type": "environmental_condition",
+      "category": "environmental_conditions",
+      "title": "Groundwater pollution and workplace hazards",
+      "summary": "Heated tar fumes and ash dust are hazardous to printers.",
+      "body_md": "Heated tar fumes and ash dust are hazardous to printers. [S2]\n\nThe craft archive calls for measures to reuse water, and states that residue water from chemical dyes and mordants is polluting local groundwater. [S2]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Heated tar fumes and ash dust are hazardous to printers.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "The craft archive calls for measures to reuse water, and states that residue water from chemical dyes and mordants is polluting local groundwater.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.comparison.mud-resist-vs-wax-and-direct-print",
+      "type": "comparison",
+      "category": "cross_tradition_comparisons",
+      "title": "Dabu and other Rajasthani block prints (Bagru, Sanganeri)",
+      "summary": "Bagru and Sanganeri are other Rajasthani block prints distinct in look and method from Daboo.",
+      "body_md": "Bagru and Sanganeri are other Rajasthani block prints distinct in look and method from Daboo. [S19]",
+      "local_terms": [],
+      "provenance_kind": "unverified",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Bagru and Sanganeri are other Rajasthani block prints distinct in look and method from Daboo.",
+          "source_ids": [
+            "S19"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only",
+      "compares": [
+        "dabu.tradition.dabu-mud-resist-printing",
+        "bagru.tradition.bagru-hand-block-print",
+        "sanganeri.tradition.sanganeri-hand-block-printing"
+      ]
+    },
+    {
+      "key": "dabu.open_question.paste-recipe",
+      "type": "open_question",
+      "category": "open_questions",
+      "title": "What exactly is in the Dabu paste?",
+      "summary": "Paste is mud, gum and lime.",
+      "body_md": "Paste is mud, gum and lime. [S1]\n\nPaste is river-bed silt, gum, lime, sugarcane molasses and water. [S3]\n\nAt Bagru, beden (insect-eaten wheat-flour waste) is used as the dusting powder on wet dabu. [S4]\n\nDabu is a fermented mud paste. [S20]\n\nThe resist is made with fine desert sand. [S21]\n\nAnother Bagru account lists bedhan (worm-spoiled wheat flour) as a paste ingredient. [S23]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Paste is mud, gum and lime.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Paste is river-bed silt, gum, lime, sugarcane molasses and water.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "At Bagru, beden (insect-eaten wheat-flour waste) is used as the dusting powder on wet dabu.",
+          "source_ids": [
+            "S4"
+          ]
+        },
+        {
+          "text": "Dabu is a fermented mud paste.",
+          "source_ids": [
+            "S20"
+          ]
+        },
+        {
+          "text": "The resist is made with fine desert sand.",
+          "source_ids": [
+            "S21"
+          ]
+        },
+        {
+          "text": "Another Bagru account lists bedhan (worm-spoiled wheat flour) as a paste ingredient.",
+          "source_ids": [
+            "S23"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.open_question.akola-current-resist",
+      "type": "open_question",
+      "category": "open_questions",
+      "title": "Is Akola Dabu still mud-based?",
+      "summary": "The resist is now tar, oil and rogan; earlier a mud paste was used.",
+      "body_md": "The resist is now tar, oil and rogan; earlier a mud paste was used. [S2]\n\nThe resist is a boiled local gum (bedja) mixed with oil, dusted with ash. [S6]\n\nAavaran in Akola retains the traditional mud process. [S15]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "The resist is now tar, oil and rogan; earlier a mud paste was used.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "The resist is a boiled local gum (bedja) mixed with oil, dusted with ash.",
+          "source_ids": [
+            "S6"
+          ]
+        },
+        {
+          "text": "Aavaran in Akola retains the traditional mud process.",
+          "source_ids": [
+            "S15"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.open_question.dating-and-community",
+      "type": "open_question",
+      "category": "open_questions",
+      "title": "Age, district and community attribution",
+      "summary": "Akola is in Udaipur district.",
+      "body_md": "Akola is in Udaipur district. [S6]\n\nAkola is in Chittorgarh district. [S2, S10]\n\nDabu developed within the Khatri community. [S20]\n\nThe Akola printers are the Chippa community. [S1, S2]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Akola is in Udaipur district.",
+          "source_ids": [
+            "S6"
+          ]
+        },
+        {
+          "text": "Akola is in Chittorgarh district.",
+          "source_ids": [
+            "S2",
+            "S10"
+          ]
+        },
+        {
+          "text": "Dabu developed within the Khatri community.",
+          "source_ids": [
+            "S20"
+          ]
+        },
+        {
+          "text": "The Akola printers are the Chippa community.",
+          "source_ids": [
+            "S1",
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "dabu.open_question.gi-status",
+      "type": "open_question",
+      "category": "open_questions",
+      "title": "GI status of Akola Dabu",
+      "summary": "Application 845 status is Pre Examination.",
+      "body_md": "Application 845 status is Pre Examination. [S5]\n\nDabu received a GI tag in 2023. [S20]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Application 845 status is Pre Examination.",
+          "source_ids": [
+            "S5"
+          ]
+        },
+        {
+          "text": "Dabu received a GI tag in 2023.",
+          "source_ids": [
+            "S20"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    }
+  ],
+  "relationships": [
+    {
+      "source": "dabu.process_stage.mud-soaking",
+      "target": "dabu.process_stage.paste-preparation",
+      "type": "PRECEDES",
+      "explanation": "Sequential step in the generalised Dabu resist-dye cycle.",
+      "conditions": "Paste-making sequence (separate from the cloth sequence).",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.resist-printing",
+      "target": "dabu.process_stage.paste-preparation",
+      "type": "REQUIRES",
+      "explanation": "Block-printing the resist uses the prepared mud-resist paste.",
+      "conditions": "Paste preparation runs in parallel with cloth preparation; the sources give no order between paste-making and washing the cloth.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.fabric-washing",
+      "target": "dabu.process_stage.pre-printing-colour",
+      "type": "PRECEDES",
+      "explanation": "S18: the cloth is first washed, then designs are hand block printed using fast dyes, before the mud resist is applied.",
+      "conditions": "Pre-printing colour is optional.",
+      "ordinal": 1,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.pre-printing-colour",
+      "target": "dabu.process_stage.resist-printing",
+      "type": "PRECEDES",
+      "explanation": "Sequential step in the generalised Dabu resist-dye cycle.",
+      "conditions": "Applies only when coloured motifs are pre-printed.",
+      "ordinal": 2,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.resist-printing",
+      "target": "dabu.process_stage.dusting",
+      "type": "PRECEDES",
+      "explanation": "Sequential step in the generalised Dabu resist-dye cycle.",
+      "conditions": null,
+      "ordinal": 3,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.dusting",
+      "target": "dabu.process_stage.sun-drying",
+      "type": "PRECEDES",
+      "explanation": "Sequential step in the generalised Dabu resist-dye cycle.",
+      "conditions": null,
+      "ordinal": 4,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.sun-drying",
+      "target": "dabu.process_stage.dip-dyeing",
+      "type": "PRECEDES",
+      "explanation": "Sequential step in the generalised Dabu resist-dye cycle.",
+      "conditions": null,
+      "ordinal": 5,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.dip-dyeing",
+      "target": "dabu.process_stage.oxidation-drying",
+      "type": "PRECEDES",
+      "explanation": "Sequential step in the generalised Dabu resist-dye cycle.",
+      "conditions": null,
+      "ordinal": 6,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.oxidation-drying",
+      "target": "dabu.process_stage.washing-off-resist",
+      "type": "PRECEDES",
+      "explanation": "Sequential step in the generalised Dabu resist-dye cycle.",
+      "conditions": null,
+      "ordinal": 7,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.washing-off-resist",
+      "target": "dabu.process_stage.repeat-cycles",
+      "type": "PRECEDES",
+      "explanation": "Sequential step in the generalised Dabu resist-dye cycle.",
+      "conditions": null,
+      "ordinal": 8,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.repeat-cycles",
+      "target": "dabu.process_stage.resist-printing",
+      "type": "PRECEDES",
+      "explanation": "Each further colour or depth requires a new resist printing before the next dye bath.",
+      "conditions": "Loop for double/triple dabu.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S1"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.mud-soaking",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Stage of the Dabu process.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.paste-preparation",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Stage of the Dabu process.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.fabric-washing",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Stage of the Dabu process.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.pre-printing-colour",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Stage of the Dabu process.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.resist-printing",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Stage of the Dabu process.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.dusting",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Stage of the Dabu process.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.sun-drying",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Stage of the Dabu process.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.dip-dyeing",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Stage of the Dabu process.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.oxidation-drying",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Stage of the Dabu process.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.washing-off-resist",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Stage of the Dabu process.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.repeat-cycles",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Stage of the Dabu process.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.historical_context.akola-cluster",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Contextual aspect of the Dabu tradition.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.historical_context.chhipa-and-allied-communities",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Contextual aspect of the Dabu tradition.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.historical_context.gi-application",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Contextual aspect of the Dabu tradition.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.historical_context.garment-traditions",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Contextual aspect of the Dabu tradition.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.historical_context.other-centres",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Contextual aspect of the Dabu tradition.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.historical_context.decline-and-revival",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Contextual aspect of the Dabu tradition.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.design_principle.nature-derived-motifs",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Design principle of Dabu.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.design_principle.akola-named-motifs",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Design principle of Dabu.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.design_principle.reserve-light-on-dark",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Design principle of Dabu.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.design_principle.layered-colour",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Design principle of Dabu.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.design_principle.community-specific-patterns",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Design principle of Dabu.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.mud-soaking",
+      "target": "dabu.material.mud-black-clay",
+      "type": "USES",
+      "explanation": "Mud is soaked overnight.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S18",
+        "S15"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.paste-preparation",
+      "target": "dabu.material.mud-black-clay",
+      "type": "USES",
+      "explanation": "Mud is the paste base.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S3"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.paste-preparation",
+      "target": "dabu.material.lime-chuna",
+      "type": "USES",
+      "explanation": "Lime is mixed into the paste.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S3"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.paste-preparation",
+      "target": "dabu.material.natural-gum-gond",
+      "type": "USES",
+      "explanation": "Gum binds the paste.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.paste-preparation",
+      "target": "dabu.material.wheat-chaff-beedan",
+      "type": "USES",
+      "explanation": "Wheat chaff/beedan in some recipes.",
+      "conditions": "Not in all recipes; elsewhere used as dusting.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S7",
+        "S15"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.paste-preparation",
+      "target": "dabu.material.sugarcane-molasses",
+      "type": "USES",
+      "explanation": "Molasses in the Deesa recipe.",
+      "conditions": "Deesa, Gujarat only.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.paste-preparation",
+      "target": "dabu.tool.muslin-strainer-and-mardia",
+      "type": "USES",
+      "explanation": "Paste is strained and stored.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S17"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.resist-printing",
+      "target": "dabu.tool.carved-wooden-block",
+      "type": "USES",
+      "explanation": "Blocks dipped in paste apply the resist.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.resist-printing",
+      "target": "dabu.tool.printing-table",
+      "type": "USES",
+      "explanation": "Printing is done on tables.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.resist-printing",
+      "target": "dabu.material.cotton-fabric",
+      "type": "USES",
+      "explanation": "Cotton is the main ground cloth.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.dusting",
+      "target": "dabu.material.sawdust",
+      "type": "USES",
+      "explanation": "Sawdust is sprinkled on wet paste.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.dusting",
+      "target": "dabu.material.wheat-chaff-beedan",
+      "type": "USES",
+      "explanation": "Beden used as dusting powder at Bagru.",
+      "conditions": "Documented at Bagru.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S4"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.dip-dyeing",
+      "target": "dabu.material.indigo",
+      "type": "USES",
+      "explanation": "Cold indigo bath.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2",
+        "S1"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.dip-dyeing",
+      "target": "dabu.tool.dye-vat-and-trays",
+      "type": "USES",
+      "explanation": "Dyeing in vats/trays.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.pre-printing-colour",
+      "target": "dabu.material.alizarin-and-naphthol-reds",
+      "type": "USES",
+      "explanation": "Naphthol printed and developed in red salt.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.washing-off-resist",
+      "target": "dabu.tool.tar-boilers",
+      "type": "USES",
+      "explanation": "Tar resist is boiled off.",
+      "conditions": "Only for the modern tar resist.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.resist-printing",
+      "target": "dabu.material.tar-oil-rogan-resist",
+      "type": "USES",
+      "explanation": "Modern Akola substitute for mud.",
+      "conditions": "Present-day Akola per Gaatha archive.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.fabric-washing",
+      "target": "dabu.material.myrobalan-and-mordants",
+      "type": "USES",
+      "explanation": "At Bagru the scoured cloth is washed in harda before printing.",
+      "conditions": "Documented for Bagru by a low-reliability source; not confirmed for Akola.",
+      "ordinal": null,
+      "provenance_kind": "unverified",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S23"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.washing-off-resist",
+      "target": "dabu.outcome.undyed-motifs-on-indigo",
+      "type": "PRODUCES",
+      "explanation": "Removing the resist reveals reserved motifs.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.repeat-cycles",
+      "target": "dabu.outcome.multi-tone-cloth",
+      "type": "PRODUCES",
+      "explanation": "Repeated cycles build layered shades.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S16"
+      ]
+    },
+    {
+      "source": "dabu.material.mud-black-clay",
+      "target": "dabu.outcome.crackle-veining",
+      "type": "ENABLES",
+      "explanation": "Dried mud cracks, allowing veining.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2",
+        "S17",
+        "S18",
+        "S24"
+      ]
+    },
+    {
+      "source": "dabu.artisan_decision.choosing-resist-strength",
+      "target": "dabu.material.paste-variants",
+      "type": "DEPENDS_ON",
+      "explanation": "Choice is among resist recipes of differing strength.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S6"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.paste-preparation",
+      "target": "dabu.artisan_decision.paste-consistency",
+      "type": "REQUIRES",
+      "explanation": "Paste must be kneaded/strained to usable consistency.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.dusting",
+      "target": "dabu.artisan_decision.timing-of-dusting-and-drying",
+      "type": "REQUIRES",
+      "explanation": "Dusting must be immediate; drying complete before dyeing.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.dip-dyeing",
+      "target": "dabu.artisan_decision.number-of-dips-and-cycles",
+      "type": "REQUIRES",
+      "explanation": "Dyer judges dips until shade reached.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.artisan_decision.mud-versus-tar",
+      "target": "dabu.outcome.crackle-veining",
+      "type": "AFFECTED_BY",
+      "explanation": "Decision to use tar was driven by mud cracking.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.material.tar-oil-rogan-resist",
+      "target": "dabu.material.mud-black-clay",
+      "type": "CONTRASTS_WITH",
+      "explanation": "Tar replaced mud for finer designs in Akola.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2",
+        "S1"
+      ]
+    },
+    {
+      "source": "dabu.material.mud-black-clay",
+      "target": "shared.scientific_mechanism.mud-resist-barrier",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "The dried mud paste physically blocks dye from reaching the cloth beneath.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S3",
+        "S12"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.dip-dyeing",
+      "target": "shared.scientific_mechanism.indigo-vat-reduction",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Indigo dyeing in a vat with colour developing green-to-blue on air oxidation.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2",
+        "S12"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.oxidation-drying",
+      "target": "shared.scientific_mechanism.indigo-vat-reduction",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Green-to-blue change on airing is the reoxidation step.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2",
+        "S12"
+      ]
+    },
+    {
+      "source": "dabu.material.alizarin-and-naphthol-reds",
+      "target": "shared.scientific_mechanism.alizarin-lake-formation",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Traditional alizarin reds rely on metal-alizarin lakes.",
+      "conditions": "Applies to the historical alizarin red, not modern naphthol.",
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S2",
+        "S14"
+      ]
+    },
+    {
+      "source": "dabu.material.myrobalan-and-mordants",
+      "target": "shared.scientific_mechanism.alum-mordant-complexation",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "An alum-water rinse is reported to fix colour on dabu-printed cloth at Bagru.",
+      "conditions": "Bagru account only.",
+      "ordinal": null,
+      "provenance_kind": "unverified",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S23",
+        "S14"
+      ]
+    },
+    {
+      "source": "dabu.material.myrobalan-and-mordants",
+      "target": "shared.scientific_mechanism.iron-tannin-black",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Harda tannin acts as mordant for the iron of the black printing colour (Bagru).",
+      "conditions": "Bagru account only.",
+      "ordinal": null,
+      "provenance_kind": "unverified",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S23"
+      ]
+    },
+    {
+      "source": "dabu.material.mud-black-clay",
+      "target": "dabu.scientific_mechanism.clay-resist-cold-vat-compatibility",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Mud resist survives only cold, brief immersion.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S12"
+      ]
+    },
+    {
+      "source": "dabu.scientific_mechanism.clay-resist-cold-vat-compatibility",
+      "target": "dabu.material.indigo",
+      "type": "EXPLAINS",
+      "explanation": "Explains the tie between mud resist and indigo.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S12",
+        "S21"
+      ]
+    },
+    {
+      "source": "dabu.outcome.crackle-veining",
+      "target": "dabu.scientific_mechanism.crack-dye-penetration",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Dye seeps through cracks in dried mud.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S17",
+        "S18",
+        "S24"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.dusting",
+      "target": "dabu.scientific_mechanism.dusting-accelerated-drying",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Dusting dries and fixes paste.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S3",
+        "S4"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.pre-printing-colour",
+      "target": "dabu.scientific_mechanism.naphthol-red-development",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Red develops when naphthol meets red salt.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.sun-drying",
+      "target": "dabu.environmental_condition.sun-and-arid-climate",
+      "type": "AFFECTED_BY",
+      "explanation": "Drying depends on hot sun.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S18"
+      ]
+    },
+    {
+      "source": "dabu.process_stage.washing-off-resist",
+      "target": "dabu.environmental_condition.river-water",
+      "type": "AFFECTED_BY",
+      "explanation": "Washing uses Beduch river water.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.material.tar-oil-rogan-resist",
+      "target": "dabu.environmental_condition.water-pollution-and-hazards",
+      "type": "CAUSES",
+      "explanation": "Gaatha directly reports tar fumes as hazardous to printers.",
+      "conditions": "Hazard from heated tar fumes; groundwater pollution attributed to chemical residues generally.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.tradition.dabu-mud-resist-printing",
+      "target": "dabu.comparison.mud-resist-vs-wax-and-direct-print",
+      "type": "CONTRASTS_WITH",
+      "explanation": "Daboo is described as distinct from Bagru and Sanganeri prints in look and method.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "unverified",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S19"
+      ]
+    },
+    {
+      "source": "dabu.design_principle.layered-colour",
+      "target": "dabu.process_stage.repeat-cycles",
+      "type": "DEPENDS_ON",
+      "explanation": "Layered colour requires repeated resist-dye cycles.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S3"
+      ]
+    },
+    {
+      "source": "dabu.design_principle.reserve-light-on-dark",
+      "target": "dabu.process_stage.resist-printing",
+      "type": "DEPENDS_ON",
+      "explanation": "Light motifs are those printed with resist.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3"
+      ]
+    },
+    {
+      "source": "dabu.design_principle.akola-named-motifs",
+      "target": "dabu.tool.carved-wooden-block",
+      "type": "DEPENDS_ON",
+      "explanation": "Motifs exist as carved blocks.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.design_principle.community-specific-patterns",
+      "target": "dabu.historical_context.garment-traditions",
+      "type": "DEPENDS_ON",
+      "explanation": "Patterns tied to phetia/nangna garments.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S6",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.historical_context.chhipa-and-allied-communities",
+      "target": "dabu.process_stage.resist-printing",
+      "type": "PRACTITIONER_EXPLAINS",
+      "explanation": "Chhipa printers carry out the resist printing.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.historical_context.antiquity-claims",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Sources give conflicting dates for the origin of Dabu.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S11",
+        "S15",
+        "S16",
+        "S19",
+        "S2"
+      ]
+    },
+    {
+      "source": "dabu.historical_context.etymology-and-origin-legend",
+      "target": "dabu.tradition.dabu-mud-resist-printing",
+      "type": "BELONGS_TO",
+      "explanation": "The origin legend of Dabu mud-resist printing.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S15"
+      ]
+    },
+    {
+      "source": "dabu.open_question.akola-current-resist",
+      "target": "dabu.artisan_decision.mud-versus-tar",
+      "type": "BELONGS_TO",
+      "explanation": "The question concerns whether Akola printers now resist with mud, tar or gum.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S15",
+        "S2",
+        "S6"
+      ]
+    },
+    {
+      "source": "dabu.open_question.dating-and-community",
+      "target": "dabu.historical_context.akola-cluster",
+      "type": "BELONGS_TO",
+      "explanation": "The question concerns Akola's district and which community the printers belong to.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S10",
+        "S2",
+        "S20",
+        "S6"
+      ]
+    },
+    {
+      "source": "dabu.open_question.paste-recipe",
+      "target": "dabu.process_stage.paste-preparation",
+      "type": "BELONGS_TO",
+      "explanation": "The question concerns the ingredients of the resist paste.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S20",
+        "S21",
+        "S23",
+        "S3",
+        "S4"
+      ]
+    }
+  ],
+  "media_candidates": [
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Dabu_Printed_Fabric.jpg",
+      "title": "Dabu Printed Fabric",
+      "licence": "CC BY-SA 4.0",
+      "author": "Aayushimundada (Wikimedia Commons user)",
+      "depicts": "dabu.outcome.undyed-motifs-on-indigo",
+      "width": 868,
+      "height": 1156,
+      "mime": "image/jpeg",
+      "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Woman_doing_Block_Printing_at_Bagru_village,_Jaipur,_India.jpg",
+      "title": "Woman doing Block Printing at Bagru village, Jaipur, India",
+      "licence": "CC0 1.0",
+      "author": "Anildiggiwal (Wikimedia Commons user)",
+      "depicts": "dabu.tool.carved-wooden-block",
+      "width": 1280,
+      "height": 958,
+      "mime": "image/jpeg",
+      "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
+    }
+  ]
+}

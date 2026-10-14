@@ -1,0 +1,192 @@
+/**
+ * Media: stored binary assets (object-storage key + checksum), their versions/derivatives,
+ * links to concepts, and imported media candidates (content/FORMAT.md `media_candidates`)
+ * awaiting licence review.
+ */
+import { sql } from "drizzle-orm";
+import {
+  bigint,
+  check,
+  foreignKey,
+  index,
+  integer,
+  pgTable,
+  smallint,
+  text,
+  unique,
+  uuid,
+} from "drizzle-orm/pg-core";
+
+import {
+  SHA256_HEX_RE,
+  actorId,
+  assetKindEnum,
+  assetLinkRoleEnum,
+  createdAt,
+  isDemo,
+  mediaCandidateStatusEnum,
+  pk,
+  provenanceKindEnum,
+  updatedAt,
+  verificationStateEnum,
+} from "./_common";
+import { concepts, contentPackages, sources } from "./knowledge";
+
+const SHA = sql.raw(`'${SHA256_HEX_RE}'`);
+const MIME = sql.raw(`'^[a-z]+/[a-z0-9][a-z0-9.+-]*$'`);
+
+export const assets = pgTable(
+  "assets",
+  {
+    id: pk(),
+    kind: assetKindEnum().notNull(),
+    title: text().notNull(),
+    storageKey: text().notNull().unique(),
+    mimeType: text().notNull(),
+    byteSize: bigint({ mode: "number" }).notNull(),
+    sha256: text().notNull(),
+    width: integer(),
+    height: integer(),
+    durationMs: integer(),
+    /** Required for images and textures; '' marks a purely decorative image. */
+    altText: text(),
+    caption: text(),
+    credit: text(),
+    licence: text(),
+    licenceUrl: text(),
+    sourceUrl: text(),
+    sourceId: uuid(),
+    provenanceKind: provenanceKindEnum().notNull(),
+    verificationState: verificationStateEnum().notNull().default("draft"),
+    currentVersion: integer().notNull().default(1),
+    isDemo: isDemo(),
+    createdBy: actorId(),
+    updatedBy: actorId(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique("assets_id_demo_uq").on(t.id, t.isDemo),
+    foreignKey({
+      name: "assets_source_fk",
+      columns: [t.sourceId, t.isDemo],
+      foreignColumns: [sources.id, sources.isDemo],
+    }).onDelete("restrict"),
+    check("assets_sha_ck", sql`${t.sha256} ~ ${SHA}`),
+    check("assets_mime_ck", sql`${t.mimeType} ~ ${MIME}`),
+    check("assets_size_ck", sql`${t.byteSize} > 0`),
+    check("assets_dims_ck", sql`(${t.width} IS NULL OR ${t.width} > 0) AND (${t.height} IS NULL OR ${t.height} > 0)`),
+    check("assets_duration_ck", sql`${t.durationMs} IS NULL OR ${t.durationMs} >= 0`),
+    check("assets_alt_ck", sql`${t.kind} NOT IN ('image', 'texture') OR ${t.altText} IS NOT NULL`),
+    check(
+      "assets_accepted_licence_ck",
+      sql`${t.verificationState} NOT IN ('verified', 'published') OR ${t.licence} IS NOT NULL`,
+    ),
+    check(
+      "assets_demo_ck",
+      sql`NOT ${t.isDemo} OR (${t.title} LIKE 'Demo:%' AND ${t.provenanceKind} = 'unverified' AND ${t.verificationState} NOT IN ('verified', 'published'))`,
+    ),
+    check("assets_current_version_ck", sql`${t.currentVersion} > 0`),
+    index("assets_sha_idx").on(t.sha256),
+  ],
+);
+
+/** Immutable derivatives / revisions of an asset (original, web, thumb, ktx2, draco...). */
+export const assetVersions = pgTable(
+  "asset_versions",
+  {
+    id: pk(),
+    assetId: uuid()
+      .notNull()
+      .references(() => assets.id, { onDelete: "cascade" }),
+    version: integer().notNull(),
+    variant: text().notNull().default("original"),
+    storageKey: text().notNull().unique(),
+    mimeType: text().notNull(),
+    byteSize: bigint({ mode: "number" }).notNull(),
+    sha256: text().notNull(),
+    width: integer(),
+    height: integer(),
+    createdBy: actorId(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique("asset_versions_uq").on(t.assetId, t.version, t.variant),
+    check("asset_versions_version_ck", sql`${t.version} > 0`),
+    check("asset_versions_variant_ck", sql`${t.variant} ~ '^[a-z0-9_-]+$'`),
+    check("asset_versions_sha_ck", sql`${t.sha256} ~ ${SHA}`),
+    check("asset_versions_mime_ck", sql`${t.mimeType} ~ ${MIME}`),
+    check("asset_versions_size_ck", sql`${t.byteSize} > 0`),
+  ],
+);
+
+export const assetLinks = pgTable(
+  "asset_links",
+  {
+    id: pk(),
+    assetId: uuid().notNull(),
+    conceptId: uuid().notNull(),
+    role: assetLinkRoleEnum().notNull().default("illustration"),
+    position: smallint().notNull().default(0),
+    captionOverride: text(),
+    isDemo: isDemo(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique("asset_links_uq").on(t.assetId, t.conceptId, t.role),
+    foreignKey({
+      name: "asset_links_asset_fk",
+      columns: [t.assetId, t.isDemo],
+      foreignColumns: [assets.id, assets.isDemo],
+    }).onDelete("cascade"),
+    foreignKey({
+      name: "asset_links_concept_fk",
+      columns: [t.conceptId, t.isDemo],
+      foreignColumns: [concepts.id, concepts.isDemo],
+    }).onDelete("cascade"),
+    index("asset_links_concept_idx").on(t.conceptId, t.position),
+  ],
+);
+
+/** Media referenced by imported content but not yet licence-checked or stored. */
+export const mediaCandidates = pgTable(
+  "media_candidates",
+  {
+    id: pk(),
+    packageId: uuid(),
+    url: text().notNull(),
+    title: text().notNull(),
+    licence: text(),
+    author: text(),
+    /** Concept key as given in the file (`depicts`), kept even if the concept is missing. */
+    depictsKey: text(),
+    depictsConceptId: uuid(),
+    status: mediaCandidateStatusEnum().notNull().default("candidate"),
+    assetId: uuid(),
+    notes: text(),
+    isDemo: isDemo(),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    unique("media_candidates_uq").on(t.packageId, t.url, t.depictsKey).nullsNotDistinct(),
+    foreignKey({
+      name: "media_candidates_package_fk",
+      columns: [t.packageId, t.isDemo],
+      foreignColumns: [contentPackages.id, contentPackages.isDemo],
+    }).onDelete("cascade"),
+    // Single-column FKs: a composite FK with SET NULL would also null is_demo.
+    foreignKey({
+      name: "media_candidates_concept_fk",
+      columns: [t.depictsConceptId],
+      foreignColumns: [concepts.id],
+    }).onDelete("set null"),
+    foreignKey({
+      name: "media_candidates_asset_fk",
+      columns: [t.assetId],
+      foreignColumns: [assets.id],
+    }).onDelete("set null"),
+    check("media_candidates_url_ck", sql`${t.url} ~ '^https?://'`),
+    check("media_candidates_imported_ck", sql`${t.status} <> 'imported' OR ${t.assetId} IS NOT NULL`),
+  ],
+);

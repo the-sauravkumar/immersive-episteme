@@ -1,0 +1,3856 @@
+{
+  "format_version": 1,
+  "slug": "sanganeri",
+  "name": "Sanganeri hand block printing",
+  "alt_names": [
+    "Sanganeri print",
+    "Sanganer print",
+    "Sanganeri Hand Block Printing (GI)",
+    "Syahi-begar (red-and-black Sanganer style)"
+  ],
+  "region": {
+    "place": "Sanganer",
+    "district": "Jaipur",
+    "state": "Rajasthan",
+    "country": "India",
+    "lat": 26.8222,
+    "lon": 75.7419
+  },
+  "gi": {
+    "registered": true,
+    "application_no": "147",
+    "year": null,
+    "source_ids": [
+      "S2",
+      "S3",
+      "S4",
+      "S9"
+    ]
+  },
+  "summary": "Sanganeri hand block printing is a hand block-printed textile tradition of Sanganer town, about 16 km from Jaipur, registered as a Geographical Indication (application no. 147) by the Calico Printers Co-operative Society. It is known for fine, repetitive floral butis and butas on a white ground, printed by Chhipa printers with blocks carved by Kharadi block-makers, traditionally using a harda (myrobalan) pre-treatment, iron (syahi) and alum (begar) mordants dyed in alizarin/madder, sun-bleaching, dabu mud-resist and indigo. Since the 1960s the craft has faced competition from screen printing and a large shift to synthetic dyes, and the cluster is associated with documented water pollution.",
+  "sources": [
+    {
+      "id": "S1",
+      "kind": "historical_documentation",
+      "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+      "author": "Calico Printers Co-operative Society Ltd., Sanganer (applicant)",
+      "publisher": "Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn",
+      "year": null,
+      "url": "https://www.origin-gi.com/wp-content/uploads/2017/01/102-sanganeri-hand-block-printing.pdf",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Primary GI statement of case: specifications, products, geographical area, historical proofs (quoting Watt 1903, Chandramani Singh, Ritu Kumar, Kamaladevi Chattopadhyay, Imperial Gazetteer 1908), 12-step method of production with local terms, materials, tools, uniqueness, inspection body, screen-print competition. Scanned/OCR text; some local terms and dimensions are garbled, so those are cited cautiously. Filing date not legible in the copy read. It is an applicant's (interested party's) document."
+    },
+    {
+      "id": "S2",
+      "kind": "historical_documentation",
+      "title": "Registration Details of Geographical Indications",
+      "author": "Geographical Indications Registry",
+      "publisher": "Office of the Controller General of Patents, Designs & Trade Marks (IP India)",
+      "year": null,
+      "url": "https://ipindia.gov.in/storage/uploads/docs-operator/aa9ef4c8-ae0e-4717-9181-52b6a9479b82.pdf",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Lists S.No. 119, Application No. 147, Sanganeri Hand Block Printing, Handicraft, Rajasthan, within the section headed 'FROM APRIL 2009 - MARCH 2010'."
+    },
+    {
+      "id": "S3",
+      "kind": "historical_documentation",
+      "title": "GI Product Details: Sanganeri Hand Block Printing",
+      "author": "NABARD",
+      "publisher": "National Bank for Agriculture and Rural Development",
+      "year": null,
+      "url": "https://www.nabard.org/gi/GIProductDetails.aspx?Id=64",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "States GI tag year 2009; brief generic description of process."
+    },
+    {
+      "id": "S4",
+      "kind": "researcher_interpretation",
+      "title": "Lack of Post-Registration Exploitation of GI: A Case Study from Bagru and Sanganer Hand-Block Prints",
+      "author": "Gauri Kathju; Radha Kashyap",
+      "publisher": "IIS University Journal of Arts, Vol. 14(2), pp. 150-163",
+      "year": 2025,
+      "url": "https://iisjoa.org/sites/default/files/iisjoa/April%202025/Paper%2012.pdf",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Interview study (Sanganer n=32 units): artisans mostly Khatri or Chhipa; GI received 2009 via state initiative (RSSIC); 50% of Sanganer respondents aware of GI; 96.9% do not use GI in marketing; competition from screen and digital printing passing off; chemical dyes widely used, natural dyes for specific orders. Journal peer-review status is not stated in the PDF; the host's TLS certificate had expired when re-fetched on 2026-10-14 (content still retrievable)."
+    },
+    {
+      "id": "S5",
+      "kind": "historical_documentation",
+      "title": "Block-printed cotton length, Sanganer, ca. 1850 (museum no. 823A-1852)",
+      "author": "Victoria and Albert Museum",
+      "publisher": "Victoria and Albert Museum, London (collections API record O77745)",
+      "year": null,
+      "url": "https://collections.vam.ac.uk/item/O77745/",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Purchased from the Great Exhibition 1851; Sanganer served the Jaipur court; blocks usually teak, most esteemed from Pethapur; indigo and madder, green from indigo plus a yellow (probably turmeric); offset rows of florals with Mughal 17th-c. origins. Read via api.vam.ac.uk/v2/object/O77745."
+    },
+    {
+      "id": "S6",
+      "kind": "historical_documentation",
+      "title": "Block-printed cotton, floral design, Sanganer, ca. 1850 (museum no. 823-1852)",
+      "author": "Victoria and Albert Museum",
+      "publisher": "Victoria and Albert Museum, London (collections API record O147901)",
+      "year": null,
+      "url": "https://collections.vam.ac.uk/item/O147901/",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Red and green repeating floral on white ground; block printing encouraged by Jaipur royal patronage; blocks of seasoned teak called chhapas or buntis. Read via api.vam.ac.uk/v2/object/O147901."
+    },
+    {
+      "id": "S7",
+      "kind": "historical_documentation",
+      "title": "Printed cotton chintz ('cheet'), Sanganer, c.1882 (V&A 517 (IS) 1883 register entry)",
+      "author": "Victoria and Albert Museum",
+      "publisher": "Victoria and Albert Museum, London (collections API record O481223)",
+      "year": null,
+      "url": "https://collections.vam.ac.uk/item/O481223/",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "1883 register: chintz 'cheet', sprigs in yellow, purple and green on white ground, 'Sanganir, Jeypore'. Read via api.vam.ac.uk/v2/object/O481223."
+    },
+    {
+      "id": "S8",
+      "kind": "researcher_interpretation",
+      "title": "Syahi Begar | Sanganer Print",
+      "author": "Gaatha (no individual author named)",
+      "publisher": "Gaatha",
+      "year": 2015,
+      "url": "https://gaatha.com/syahi-begar/",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Craft-documentation organisation: syahi (scrap iron, horseshoes, gur), begar (alum, tree gum, geru), harda pila-karna, teluni scouring, copper tamda on bhatti, dhaura ka phool, river washing and sun drying; migration story; chemical dyes from 1980s; social categories of designs. Fact-check: kind changed from practitioner_testimony to researcher_interpretation; this is an unsigned narrative article by a craft-documentation/retail organisation, not a first-hand practitioner account."
+    },
+    {
+      "id": "S9",
+      "kind": "researcher_interpretation",
+      "title": "Sanganeri",
+      "author": "Impart Encyclopedia of Art (formerly MAP Academy)",
+      "publisher": "Art & Photography Foundation (Museum of Art & Photography, Bengaluru)",
+      "year": 2022,
+      "url": "https://imp-art.org/articles/sanganeri/",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Encyclopedia entry: migration from Kathiawar after Mughal-Maratha campaigns; Chhipa; Sawai Jai Singh patronage conjectured; river Dhoondh; bhant motifs (400+ types); syahi begar / court / temple design categories; Mughal and East India Company influence on motifs; block carvers, Farrukhabad migration 1970s; GI 2010."
+    },
+    {
+      "id": "S10",
+      "kind": "researcher_interpretation",
+      "title": "Past and Present of Hand Block Printing of Sanganer in Jaipur City of Rajasthan",
+      "author": "Ruby Jain; Meetu Rani Hada (Dept. of Home Science, University of Rajasthan)",
+      "publisher": "Textile Review (Saket Projects, Ahmedabad), Dec 2012; republished by Fibre2Fashion",
+      "year": 2012,
+      "url": "https://static.fibre2fashion.com/articleresources/PdfFiles/68/6741.pdf",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Field study (15 units, 90 artisans): motif vocabulary, block woods, block-carving steps, rekh/chirai/datai blocks, beggar and syahee preparation, screen printing from ~1960 and Khatri migrants, 1970s revival, 1981 floods, UNIDO cluster 1997, 95% synthetic dyes (association secretary), gum-based natural/chemical labelling, High Court relocation orders."
+    },
+    {
+      "id": "S11",
+      "kind": "scientific_evidence",
+      "title": "Environmental impact of dyeing and printing industry of Sanganer, Rajasthan (India)",
+      "author": "Ikbal Husain; Jakir Husain; Mohammed Arif",
+      "publisher": "Turkish Journal of Engineering and Environmental Sciences 37: 272-285",
+      "year": 2013,
+      "url": "https://doi.org/10.3906/muh-1310-8",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Peer-reviewed. Only the abstract could be read (via OpenAlex/Crossref metadata); publisher full-text host unreachable. Wastewater high in Na, Cl, sulfate, with Cu, Cr, Fe; discharged untreated into Amanishah Nallah; 11 groundwater samples polluted by percolation."
+    },
+    {
+      "id": "S12",
+      "kind": "researcher_interpretation",
+      "title": "Colourful fabrics lead to murky waters",
+      "author": "Amita Bhaduri",
+      "publisher": "India Water Portal",
+      "year": 2015,
+      "url": "https://www.indiawaterportal.org/agriculture/livelihoods/colourful-fabrics-lead-murky-waters",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Journalistic/NGO portal: 12.3 MLD official vs 17-18 MLD estimated untreated discharge into nallahs draining to Dravyawati river; screen printing from 1960s with synthetic dyes; CETP cost dispute and delays; High Court orders."
+    },
+    {
+      "id": "S13",
+      "kind": "unverified",
+      "title": "Sanganeri Hand Block Printing",
+      "author": "Incredible India (Ministry of Tourism)",
+      "publisher": "Government of India tourism portal",
+      "year": null,
+      "url": "https://www.incredibleindia.gov.in/en/rajasthan/sanganeri-hand-block-printing",
+      "accessed": "2026-10-14",
+      "reliability": "low",
+      "notes": "Promotional tourism text; used only to document conflicting claims (founder Rana Sanga, river Saraswati radiance, late 16th-early 17th c. migration, GI 2010)."
+    },
+    {
+      "id": "S14",
+      "kind": "unverified",
+      "title": "Craft Name: Sanganeri Print (Craftkatha)",
+      "author": "All India Artisans and Craftworkers Welfare Association (AIACA), no author named",
+      "publisher": "AIACA",
+      "year": null,
+      "url": "https://www.aiacaonline.org/craftkatha-pop-up/?p=4662",
+      "accessed": "2026-10-14",
+      "reliability": "low",
+      "notes": "Craft-organisation consumer page; states GI in 2023 (contradicts registry), 3-10 days per piece, 2-5 artisans, 'natural and azo-free dyes', craft origin 16th-17th century. Used only for conflict notes and present-day identification markers."
+    },
+    {
+      "id": "S15",
+      "kind": "unverified",
+      "title": "Sanganer",
+      "author": "Wikipedia contributors",
+      "publisher": "Wikipedia",
+      "year": null,
+      "url": "https://en.wikipedia.org/wiki/Sanganer",
+      "accessed": "2026-10-14",
+      "reliability": "low",
+      "notes": "Used only for town coordinates (26°49'20\"N 75°44'31\"E) and as a further instance of the GI-year claim (2010)."
+    }
+  ],
+  "concepts": [
+    {
+      "key": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "type": "tradition",
+      "category": "tradition_identity",
+      "title": "Sanganeri hand block printing",
+      "summary": "The GI specification gives the base colour of Sanganeri hand block prints as white, with delicate floral motifs and necessarily repetitive designs.",
+      "body_md": "The GI specification gives the base colour of Sanganeri hand block prints as white, with delicate floral motifs and necessarily repetitive designs. [S1]\n\nPrinting is done by stamping wooden hand blocks, and the GI application states that no other device is used. [S1]\n\nThe GI applicant is the Calico Printers Co-operative Society Ltd., Sanganer, and the goods are dress material, home furnishings and garments in Classes 24 and 25. [S1]\n\nThe GI Registry lists Sanganeri Hand Block Printing as application no. 147, a Rajasthan handicraft. [S2]",
+      "local_terms": [
+        "Sanganeri chhapai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The GI specification gives the base colour of Sanganeri hand block prints as white, with delicate floral motifs and necessarily repetitive designs.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Printing is done by stamping wooden hand blocks, and the GI application states that no other device is used.",
+          "source_ids": [
+            "S1"
+          ],
+          "quote": "Sanganeri Hand Block Printing is by using a Stamp or Wooden Block's and no other device."
+        },
+        {
+          "text": "The GI applicant is the Calico Printers Co-operative Society Ltd., Sanganer, and the goods are dress material, home furnishings and garments in Classes 24 and 25.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The GI Registry lists Sanganeri Hand Block Printing as application no. 147, a Rajasthan handicraft.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.historical_context.sanganer-geography",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Sanganer town and the GI production area",
+      "summary": "The geographical area of production is mainly Sanganer town, 16 km from Jaipur and headquarters of Sanganer tehsil, together with nearby villages.",
+      "body_md": "The geographical area of production is mainly Sanganer town, 16 km from Jaipur and headquarters of Sanganer tehsil, together with nearby villages. [S1]\n\nThe GI application reported 315 printing units in Sanganer and more than twenty exporting units. [S1]\n\nA 2012 field study, citing a 2003 High Court sub-committee report, counted 473 units in eight clusters, with around two lakh people involved directly or indirectly. [S10]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The geographical area of production is mainly Sanganer town, 16 km from Jaipur and headquarters of Sanganer tehsil, together with nearby villages.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The GI application reported 315 printing units in Sanganer and more than twenty exporting units.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "A 2012 field study, citing a 2003 High Court sub-committee report, counted 473 units in eight clusters, with around two lakh people involved directly or indirectly.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.historical_context.founding-of-sanganer",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Founding of Sanganer (early 16th century)",
+      "summary": "Sanganer was founded by the Kachhwaha prince Sangaji in the early 16th century; the GI application (citing Hanuman Sharma) adds that he was the son of Prithviraj of Amber.",
+      "body_md": "Sanganer was founded by the Kachhwaha prince Sangaji in the early 16th century; the GI application (citing Hanuman Sharma) adds that he was the son of Prithviraj of Amber. [S1, S8]\n\nA government tourism page states instead that Sanganer was established by Rana Sanga, a Mewar Rajput. [S13]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Sanganer was founded by the Kachhwaha prince Sangaji in the early 16th century; the GI application (citing Hanuman Sharma) adds that he was the son of Prithviraj of Amber.",
+          "source_ids": [
+            "S1",
+            "S8"
+          ]
+        },
+        {
+          "text": "A government tourism page states instead that Sanganer was established by Rana Sanga, a Mewar Rajput.",
+          "source_ids": [
+            "S13"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.historical_context.gujarati-migration-and-jaipur-patronage",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Migration of printers and Jaipur royal patronage",
+      "summary": "Oral tradition, said to be confirmed by archival sources, holds that Sawai Jai Singh invited craftsmen to Jaipur, including printers from Gujarat; Malwa craftsmen are conjectured too.",
+      "body_md": "Oral tradition, said to be confirmed by archival sources, holds that Sawai Jai Singh invited craftsmen to Jaipur, including printers from Gujarat; Malwa craftsmen are conjectured too. [S1, S10]\n\nThe craft is widely believed to have arisen from mid-17th-century Mughal and Maratha campaigns in Gujarat that forced printers from Kathiawar to migrate to Rajasthan, including Sanganer. [S9]\n\nGaatha says mid-17th-century upheavals may have forced Gujarati printers to flee to Sanganer in the Dhundhar region. [S8]\n\nThe V&A describes Sanganer as a centre for high-quality block-printed cotton, established to serve the Jaipur court and encouraged by Jaipur royal patronage. [S5, S6]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Oral tradition, said to be confirmed by archival sources, holds that Sawai Jai Singh invited craftsmen to Jaipur, including printers from Gujarat; Malwa craftsmen are conjectured too.",
+          "source_ids": [
+            "S1",
+            "S10"
+          ]
+        },
+        {
+          "text": "The craft is widely believed to have arisen from mid-17th-century Mughal and Maratha campaigns in Gujarat that forced printers from Kathiawar to migrate to Rajasthan, including Sanganer.",
+          "source_ids": [
+            "S9"
+          ]
+        },
+        {
+          "text": "Gaatha says mid-17th-century upheavals may have forced Gujarati printers to flee to Sanganer in the Dhundhar region.",
+          "source_ids": [
+            "S8"
+          ]
+        },
+        {
+          "text": "The V&A describes Sanganer as a centre for high-quality block-printed cotton, established to serve the Jaipur court and encouraged by Jaipur royal patronage.",
+          "source_ids": [
+            "S5",
+            "S6"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.historical_context.eighteenth-century-records",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Archival evidence from the 18th and 19th centuries",
+      "summary": "East India Company records of the 16th and 17th centuries do not name Sanganer; dastur-al-amal reports of 1703 and rangkhana records of 1727 describe taxes on printed fabrics.",
+      "body_md": "East India Company records of the 16th and 17th centuries do not name Sanganer; dastur-al-amal reports of 1703 and rangkhana records of 1727 describe taxes on printed fabrics. [S1]\n\nA head-dress in the City Palace collection carries an octroi seal dated V.S. 1856 (A.D. 1799), and dupattas printed at Sanganer carry dated octroi stamps such as 1853 and 1906. [S1]\n\nState archival records are available from 1727 onward, and no record of a Sanganer printing unit is traced before the 18th century. [S10]\n\nSir George Watt (Indian Art at Delhi, 1902-03) called Sanganer the metropolis of the calico-printing craft of India for art conceptions and technique. [S1, S10]",
+      "local_terms": [
+        "rangkhana",
+        "dastur-al-amal"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "East India Company records of the 16th and 17th centuries do not name Sanganer; dastur-al-amal reports of 1703 and rangkhana records of 1727 describe taxes on printed fabrics.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "A head-dress in the City Palace collection carries an octroi seal dated V.S. 1856 (A.D. 1799), and dupattas printed at Sanganer carry dated octroi stamps such as 1853 and 1906.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "State archival records are available from 1727 onward, and no record of a Sanganer printing unit is traced before the 18th century.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Sir George Watt (Indian Art at Delhi, 1902-03) called Sanganer the metropolis of the calico-printing craft of India for art conceptions and technique.",
+          "source_ids": [
+            "S1",
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.historical_context.export-and-museum-record",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Chintz, exhibitions and museum collections",
+      "summary": "A length of Sanganer block-printed cotton, about 1850, was purchased from the Great Exhibition of 1851.",
+      "body_md": "A length of Sanganer block-printed cotton, about 1850, was purchased from the Great Exhibition of 1851. [S5, S6]\n\nAn 1883 V&A register entry describes a Sanganer chintz ('cheet') with sprigs in yellow, purple and green on a white ground. [S7]\n\nThe Imperial Gazetteer (1908), quoted in the GI application, says Sanganer chintzes were printed by hand blocks but the industry was decaying from machine competition. [S1]",
+      "local_terms": [
+        "cheet",
+        "chhint"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "A length of Sanganer block-printed cotton, about 1850, was purchased from the Great Exhibition of 1851.",
+          "source_ids": [
+            "S5",
+            "S6"
+          ]
+        },
+        {
+          "text": "An 1883 V&A register entry describes a Sanganer chintz ('cheet') with sprigs in yellow, purple and green on a white ground.",
+          "source_ids": [
+            "S7"
+          ]
+        },
+        {
+          "text": "The Imperial Gazetteer (1908), quoted in the GI application, says Sanganer chintzes were printed by hand blocks but the industry was decaying from machine competition.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.historical_context.chhipa-community",
+      "type": "historical_context",
+      "category": "artisan_knowledge",
+      "title": "Chhipa printers",
+      "summary": "The art and skill are limited to the Chhipa community, who acquired them from parents and grandparents over generations.",
+      "body_md": "The art and skill are limited to the Chhipa community, who acquired them from parents and grandparents over generations. [S1]\n\nOnly the skilled Chhipas are described as having the expertise to prepare colour mixtures from the desired ingredients in specific ratios. [S1]\n\nThe Chhipa printers of Sanganer are described as Hindus who follow Sant Namdev. [S10]\n\nRespondents in a 2025 study of Sanganer and Bagru units were mostly from the Khatri or Chhipa communities. [S4]",
+      "local_terms": [
+        "Chhipa",
+        "Chippa"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The art and skill are limited to the Chhipa community, who acquired them from parents and grandparents over generations.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Only the skilled Chhipas are described as having the expertise to prepare colour mixtures from the desired ingredients in specific ratios.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The Chhipa printers of Sanganer are described as Hindus who follow Sant Namdev.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Respondents in a 2025 study of Sanganer and Bagru units were mostly from the Khatri or Chhipa communities.",
+          "source_ids": [
+            "S4"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.historical_context.kharadi-block-makers",
+      "type": "historical_context",
+      "category": "artisan_knowledge",
+      "title": "Kharadi block-makers",
+      "summary": "Turners locally known as Kharadis carve the blocks from dried wood of shisham, gurjan, mango and teak.",
+      "body_md": "Turners locally known as Kharadis carve the blocks from dried wood of shisham, gurjan, mango and teak. [S1]\n\nBlock carvers are historically little documented; carver numbers grew with migration from Farrukhabad in the 1970s, and 52 carving units were counted in 2008. [S9]",
+      "local_terms": [
+        "Kharadi"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Turners locally known as Kharadis carve the blocks from dried wood of shisham, gurjan, mango and teak.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Block carvers are historically little documented; carver numbers grew with migration from Farrukhabad in the 1970s, and 52 carving units were counted in 2008.",
+          "source_ids": [
+            "S9"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.historical_context.screen-printing-shift",
+      "type": "historical_context",
+      "category": "geography_history",
+      "title": "Screen printing, synthetic dyes and revival (1960s onward)",
+      "summary": "Screen printing entered Sanganer around 1960 through Khatri migrants from Mirpur and Sind, and many printing families adopted mill cloth, synthetic dyes and screens.",
+      "body_md": "Screen printing entered Sanganer around 1960 through Khatri migrants from Mirpur and Sind, and many printing families adopted mill cloth, synthetic dyes and screens. [S10]\n\nScreen printing emerged in Sanganer in the 1960s as a cheaper, faster method using synthetic dyes, and some block printers also adopted synthetic dyes. [S12]\n\nOver the preceding decades a large number of screen-printing units arose, and screen-printed 'Sanganeri' textiles were being sold across India. [S1]\n\nThe craft was revived in the 1970s with patrons including Kamaladevi Chattopadhyay and Anokhi; floods in 1981 set the industry back, and Sanganer joined a UNIDO cluster programme in 1997. [S10]\n\nGaatha says chemical dyes were introduced in the 1980s and widened the range of colours. [S8]",
+      "local_terms": [
+        "Khatri Nagar"
+      ],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Screen printing entered Sanganer around 1960 through Khatri migrants from Mirpur and Sind, and many printing families adopted mill cloth, synthetic dyes and screens.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Screen printing emerged in Sanganer in the 1960s as a cheaper, faster method using synthetic dyes, and some block printers also adopted synthetic dyes.",
+          "source_ids": [
+            "S12"
+          ]
+        },
+        {
+          "text": "Over the preceding decades a large number of screen-printing units arose, and screen-printed 'Sanganeri' textiles were being sold across India.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The craft was revived in the 1970s with patrons including Kamaladevi Chattopadhyay and Anokhi; floods in 1981 set the industry back, and Sanganer joined a UNIDO cluster programme in 1997.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Gaatha says chemical dyes were introduced in the 1980s and widened the range of colours.",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.historical_context.gi-registration",
+      "type": "historical_context",
+      "category": "tradition_identity",
+      "title": "Geographical Indication registration and its use",
+      "summary": "Sanganeri Hand Block Printing (application 147) appears in the GI Registry list in the section for April 2009 to March 2010.",
+      "body_md": "Sanganeri Hand Block Printing (application 147) appears in the GI Registry list in the section for April 2009 to March 2010. [S2]\n\nThe applicant proposed a five-member independent inspection team and a CPCSL-issued wooden stamp with a unit identification number to be applied to finished products. [S1]\n\nOnly 50% of Sanganer respondents were aware of the GI, and 96.9% did not use it as a marketing tool. [S4]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Sanganeri Hand Block Printing (application 147) appears in the GI Registry list in the section for April 2009 to March 2010.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "The applicant proposed a five-member independent inspection team and a CPCSL-issued wooden stamp with a unit identification number to be applied to finished products.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Only 50% of Sanganer respondents were aware of the GI, and 96.9% did not use it as a marketing tool.",
+          "source_ids": [
+            "S4"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.cotton-mulmul",
+      "type": "material",
+      "category": "materials",
+      "title": "Base fabric: cotton, mulmul and silk",
+      "summary": "Sanganeri textiles are mostly printed on cotton and sometimes on cotton-silk; safas are printed on a fine fabric called mulmul.",
+      "body_md": "Sanganeri textiles are mostly printed on cotton and sometimes on cotton-silk; safas are printed on a fine fabric called mulmul. [S1]\n\nThe GI materials list allows all natural fabrics as well as man-made fibres like rayon and poly-cotton. [S1]\n\nArtisans reported that a decade before the 2012 study mostly mulmul cotton was used and silk only for royalty; crepe, georgette, linen, khadi and jute are now also printed. [S10]",
+      "local_terms": [
+        "mulmul"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Sanganeri textiles are mostly printed on cotton and sometimes on cotton-silk; safas are printed on a fine fabric called mulmul.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The GI materials list allows all natural fabrics as well as man-made fibres like rayon and poly-cotton.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Artisans reported that a decade before the 2012 study mostly mulmul cotton was used and silk only for royalty; crepe, georgette, linen, khadi and jute are now also printed.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.harda-myrobalan",
+      "type": "material",
+      "category": "materials",
+      "title": "Harda (myrobalan)",
+      "summary": "Washed fabric is treated with myrobalan (harda), which contains tannic acid that attracts the mordants applied with wooden blocks.",
+      "body_md": "Washed fabric is treated with myrobalan (harda), which contains tannic acid that attracts the mordants applied with wooden blocks. [S1]\n\nThe tannic acid of harda forms a black colour with the ferrous syahi. [S1]\n\nHarda gives the cloth a yellowish tinge and acts as a pre-mordant linking the fibre to other ingredients. [S8]",
+      "local_terms": [
+        "harda",
+        "harad"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Washed fabric is treated with myrobalan (harda), which contains tannic acid that attracts the mordants applied with wooden blocks.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The tannic acid of harda forms a black colour with the ferrous syahi.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Harda gives the cloth a yellowish tinge and acts as a pre-mordant linking the fibre to other ingredients.",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.syahi-iron-black",
+      "type": "material",
+      "category": "materials",
+      "title": "Syahi (fermented iron black)",
+      "summary": "Syahi is a fermented solution of iron with jaggery (gur) and gum, and develops a deep black in combination with harda.",
+      "body_md": "Syahi is a fermented solution of iron with jaggery (gur) and gum, and develops a deep black in combination with harda. [S1]\n\nSyahi is made from scrap iron, horseshoes and gur prepared in an earthenware vessel. [S8]\n\nHorseshoe iron and jaggery are kept in cold water in a closed mud pot for about a fortnight to make the black. [S10]",
+      "local_terms": [
+        "syahi",
+        "syahee"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Syahi is a fermented solution of iron with jaggery (gur) and gum, and develops a deep black in combination with harda.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Syahi is made from scrap iron, horseshoes and gur prepared in an earthenware vessel.",
+          "source_ids": [
+            "S8"
+          ]
+        },
+        {
+          "text": "Horseshoe iron and jaggery are kept in cold water in a closed mud pot for about a fortnight to make the black.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.begar-alum-mordant",
+      "type": "material",
+      "category": "materials",
+      "title": "Begar (alum mordant paste)",
+      "summary": "Begar paste is the alum mordant which, combined with alizarine, develops a rich red colour.",
+      "body_md": "Begar paste is the alum mordant which, combined with alizarine, develops a rich red colour. [S1]\n\nBegar is alum mixed with sticky tree gum and a pinch of geru (red ochre). [S8]\n\nThe red 'beggar' is prepared from alum and geru, a red soil. [S10]",
+      "local_terms": [
+        "begar",
+        "beggar",
+        "geru"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Begar paste is the alum mordant which, combined with alizarine, develops a rich red colour.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Begar is alum mixed with sticky tree gum and a pinch of geru (red ochre).",
+          "source_ids": [
+            "S8"
+          ]
+        },
+        {
+          "text": "The red 'beggar' is prepared from alum and geru, a red soil.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.madder-alizarin",
+      "type": "material",
+      "category": "materials",
+      "title": "Madder / alizarin dye bath",
+      "summary": "The red bath is prepared from madder (Rubia tinctorum, Rubia manjista), containing alizarin and purpurin; synthetic alizarine is now used due to a shortage of the vegetable dye.",
+      "body_md": "The red bath is prepared from madder (Rubia tinctorum, Rubia manjista), containing alizarin and purpurin; synthetic alizarine is now used due to a shortage of the vegetable dye. [S1]\n\nThe red dye may be Indian madder or synthetic alizarine. [S1]\n\nThe red on a Sanganer cotton of about 1850 is madder. [S5]",
+      "local_terms": [
+        "manjistha",
+        "alizarine"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The red bath is prepared from madder (Rubia tinctorum, Rubia manjista), containing alizarin and purpurin; synthetic alizarine is now used due to a shortage of the vegetable dye.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The red dye may be Indian madder or synthetic alizarine.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The red on a Sanganer cotton of about 1850 is madder.",
+          "source_ids": [
+            "S5"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.dhawai-phool",
+      "type": "material",
+      "category": "materials",
+      "title": "Dhawai flowers (dyeing auxiliary)",
+      "summary": "Alizarine and dhawai flowers are mixed in specific ratios in water for the red bath.",
+      "body_md": "Alizarine and dhawai flowers are mixed in specific ratios in water for the red bath. [S1]\n\nA local flower boiled with the alizarin is used to avoid patches and staining. [S1]\n\nRed dyeing uses the dye with dhaura flowers and a few drops of castor or sesame oil. [S8]",
+      "local_terms": [
+        "dhawai ka phool",
+        "dhaura ka phool"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Alizarine and dhawai flowers are mixed in specific ratios in water for the red bath.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "A local flower boiled with the alizarin is used to avoid patches and staining.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Red dyeing uses the dye with dhaura flowers and a few drops of castor or sesame oil.",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.dabu-resist-paste",
+      "type": "material",
+      "category": "materials",
+      "title": "Dabu (mud resist paste)",
+      "summary": "Dabu paste is prepared by mixing kali mitti, lime, wheat flour and gum in ratios that depend on the type of dabu needed.",
+      "body_md": "Dabu paste is prepared by mixing kali mitti, lime, wheat flour and gum in ratios that depend on the type of dabu needed. [S1]\n\nThe art of making dabu paste is kept secret, and every family has its own recipe. [S1]",
+      "local_terms": [
+        "dabu",
+        "dhabu",
+        "kali mitti"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Dabu paste is prepared by mixing kali mitti, lime, wheat flour and gum in ratios that depend on the type of dabu needed.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The art of making dabu paste is kept secret, and every family has its own recipe.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.sawdust",
+      "type": "material",
+      "category": "materials",
+      "title": "Sawdust (on wet dabu)",
+      "summary": "Sawdust sprinkled over dabu absorbs water from the paste and gives additional layers of resist.",
+      "body_md": "Sawdust sprinkled over dabu absorbs water from the paste and gives additional layers of resist. [S1]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Sawdust sprinkled over dabu absorbs water from the paste and gives additional layers of resist.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.indigo",
+      "type": "material",
+      "category": "materials",
+      "title": "Indigo (neel)",
+      "summary": "Indigo blue (nil) is extracted from Indigofera tinctoria; nowadays synthetic indigo granules are used.",
+      "body_md": "Indigo blue (nil) is extracted from Indigofera tinctoria; nowadays synthetic indigo granules are used. [S1]\n\nOnce ready, an indigo vat is kept alive by constant addition of indigo, lime and jaggery. [S1]\n\nA Sanganer cotton of about 1850 uses indigo for its blue. [S5]",
+      "local_terms": [
+        "neel",
+        "nil"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Indigo blue (nil) is extracted from Indigofera tinctoria; nowadays synthetic indigo granules are used.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Once ready, an indigo vat is kept alive by constant addition of indigo, lime and jaggery.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "A Sanganer cotton of about 1850 uses indigo for its blue.",
+          "source_ids": [
+            "S5"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.haldi-naspal-yellow",
+      "type": "material",
+      "category": "materials",
+      "title": "Turmeric and pomegranate-rind yellow",
+      "summary": "The yellow dye is extracted from haldi (turmeric) and naspal (pomegranate rind) and is very fugitive.",
+      "body_md": "The yellow dye is extracted from haldi (turmeric) and naspal (pomegranate rind) and is very fugitive. [S1]\n\nGreen on a Sanganer cotton of about 1850 was made by combining indigo with a yellow dye, probably turmeric. [S5]",
+      "local_terms": [
+        "haldi",
+        "naspal"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The yellow dye is extracted from haldi (turmeric) and naspal (pomegranate rind) and is very fugitive.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Green on a Sanganer cotton of about 1850 was made by combining indigo with a yellow dye, probably turmeric.",
+          "source_ids": [
+            "S5"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.alum-fitkari",
+      "type": "material",
+      "category": "materials",
+      "title": "Alum (fitkari)",
+      "summary": "The fabric is printed with two mordants: ferrous (syahi) and aluminium sulphate (begar).",
+      "body_md": "The fabric is printed with two mordants: ferrous (syahi) and aluminium sulphate (begar). [S1]\n\nPost-mordanting with diluted alum (fitkari) makes the fugitive turmeric-pomegranate yellow fast. [S1]",
+      "local_terms": [
+        "fitkari"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The fabric is printed with two mordants: ferrous (syahi) and aluminium sulphate (begar).",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Post-mordanting with diluted alum (fitkari) makes the fugitive turmeric-pomegranate yellow fast.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.cow-dung",
+      "type": "material",
+      "category": "materials",
+      "title": "Cow dung",
+      "summary": "Traditionally cow dung was used for scouring, but soaps have now replaced it because the method is tedious and slow.",
+      "body_md": "Traditionally cow dung was used for scouring, but soaps have now replaced it because the method is tedious and slow. [S1]\n\nA mild solution of cow dung and water is sprinkled over the fabric during sun-bleaching. [S1]",
+      "local_terms": [
+        "gobar"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Traditionally cow dung was used for scouring, but soaps have now replaced it because the method is tedious and slow.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "A mild solution of cow dung and water is sprinkled over the fabric during sun-bleaching.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.material.synthetic-dyes",
+      "type": "material",
+      "category": "materials",
+      "title": "Synthetic dyes and pigments (present-day)",
+      "summary": "Natural and/or synthetic azo-free dyes are mostly used.",
+      "body_md": "Natural and/or synthetic azo-free dyes are mostly used. [S1]\n\nA trade-association office-holder reported that 95% of the dyes used in the area are synthetic; rapid and indigosol dyes and pigments are common. [S10]\n\nCraftspeople in Sanganer and Bagru use chemical dyes in abundance and natural dyes only for specific orders. [S4]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Natural and/or synthetic azo-free dyes are mostly used.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "A trade-association office-holder reported that 95% of the dyes used in the area are synthetic; rapid and indigosol dyes and pigments are common.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Craftspeople in Sanganer and Bagru use chemical dyes in abundance and natural dyes only for specific orders.",
+          "source_ids": [
+            "S4"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.tool.bunta-wooden-block",
+      "type": "tool",
+      "category": "tools",
+      "title": "Bunta (carved wooden printing block)",
+      "summary": "Buntas are wooden blocks of various shapes with motifs engraved on the bottom face and a wooden handle on top that the printer strikes.",
+      "body_md": "Buntas are wooden blocks of various shapes with motifs engraved on the bottom face and a wooden handle on top that the printer strikes. [S1]\n\nBlocks are carved from dried wood of shisham, gurjan, mango and teak. [S1, S10]\n\nBlocks must be extremely hard wood, usually teak; the most highly esteemed blocks are traditionally those from Pethapur in Gujarat. [S5]\n\nBlock printing at Sanganer still uses seasoned teak blocks known as chhapas or buntis. [S6]\n\nBlocks have grown from about 3 to 5 inches to 4 to 6 inches and larger as designs became bigger. [S10]",
+      "local_terms": [
+        "bunta",
+        "buntis",
+        "chhapa",
+        "chand",
+        "hatha"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Buntas are wooden blocks of various shapes with motifs engraved on the bottom face and a wooden handle on top that the printer strikes.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Blocks are carved from dried wood of shisham, gurjan, mango and teak.",
+          "source_ids": [
+            "S1",
+            "S10"
+          ]
+        },
+        {
+          "text": "Blocks must be extremely hard wood, usually teak; the most highly esteemed blocks are traditionally those from Pethapur in Gujarat.",
+          "source_ids": [
+            "S5"
+          ]
+        },
+        {
+          "text": "Block printing at Sanganer still uses seasoned teak blocks known as chhapas or buntis.",
+          "source_ids": [
+            "S6"
+          ]
+        },
+        {
+          "text": "Blocks have grown from about 3 to 5 inches to 4 to 6 inches and larger as designs became bigger.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.tool.rekh-datta-gadh-block-set",
+      "type": "tool",
+      "category": "tools",
+      "title": "Block set: rekh (outline), datta (filler) and background blocks",
+      "summary": "The iron mordant is usually printed with the outline block (rekh), and another printer then registers the filler block (datta) with begar.",
+      "body_md": "The iron mordant is usually printed with the outline block (rekh), and another printer then registers the filler block (datta) with begar. [S1]\n\nBlocks used are rekh (outline), chirai (a second outline if required) and datai (filling), with one block per colour. [S10]\n\nThe red mordant is applied with a datta block to fill the rekh. [S8]",
+      "local_terms": [
+        "rekh",
+        "datta",
+        "datai",
+        "chirai",
+        "gadh"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The iron mordant is usually printed with the outline block (rekh), and another printer then registers the filler block (datta) with begar.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Blocks used are rekh (outline), chirai (a second outline if required) and datai (filling), with one block per colour.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "The red mordant is applied with a datta block to fill the rekh.",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.tool.printing-table-and-pad",
+      "type": "tool",
+      "category": "tools",
+      "title": "Printing table (patia) with padded surface",
+      "summary": "Fabric is spread over a low bench covered with a thick pad of several layers of heavy cloth, and the printer squats in front of it.",
+      "body_md": "Fabric is spread over a low bench covered with a thick pad of several layers of heavy cloth, and the printer squats in front of it. [S1]\n\nTwo kinds of table are used in block printing: the patia and a long printing table. [S1]\n\nPrinting (chhapai) is done on a long table. [S9]",
+      "local_terms": [
+        "patia"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Fabric is spread over a low bench covered with a thick pad of several layers of heavy cloth, and the printer squats in front of it.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Two kinds of table are used in block printing: the patia and a long printing table.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Printing (chhapai) is done on a long table.",
+          "source_ids": [
+            "S9"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.tool.colour-tray",
+      "type": "tool",
+      "category": "tools",
+      "title": "Colour tray with jute-and-cotton pad",
+      "summary": "A frame and layers of jute and cotton fabric inside the colour container spread the colour evenly and form a pad for the block impression.",
+      "body_md": "A frame and layers of jute and cotton fabric inside the colour container spread the colour evenly and form a pad for the block impression. [S1]\n\nFor each colour impression the printer prepares a separate pan. [S1]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "A frame and layers of jute and cotton fabric inside the colour container spread the colour evenly and form a pad for the block impression.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "For each colour impression the printer prepares a separate pan.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.tool.kalam-chisels",
+      "type": "tool",
+      "category": "tools",
+      "title": "Kalam (block-carving chisels)",
+      "summary": "Kalams are steel chisels of different widths and cutting surfaces used by Kharadis to engrave motifs on the blocks.",
+      "body_md": "Kalams are steel chisels of different widths and cutting surfaces used by Kharadis to engrave motifs on the blocks. [S1]",
+      "local_terms": [
+        "kalam"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Kalams are steel chisels of different widths and cutting surfaces used by Kharadis to engrave motifs on the blocks.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.tool.copper-dye-vessel",
+      "type": "tool",
+      "category": "tools",
+      "title": "Copper dye vessel over a wood-fired furnace",
+      "summary": "Dyeing is carried out in large copper vessels heated by wood fire, with the alizarin placed in small cloth bags.",
+      "body_md": "Dyeing is carried out in large copper vessels heated by wood fire, with the alizarin placed in small cloth bags. [S1]\n\nRed dyeing is done in a copper vessel (tamda) on a furnace (bhatti). [S8]",
+      "local_terms": [
+        "tamda",
+        "bhatti"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Dyeing is carried out in large copper vessels heated by wood fire, with the alizarin placed in small cloth bags.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Red dyeing is done in a copper vessel (tamda) on a furnace (bhatti).",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.tool.mogri-mallet",
+      "type": "tool",
+      "category": "tools",
+      "title": "Mogri (wooden mallet)",
+      "summary": "The mogri, a wooden mallet, is used in some cases to beat the folds of moist finished cloth.",
+      "body_md": "The mogri, a wooden mallet, is used in some cases to beat the folds of moist finished cloth. [S1]\n\nHarda-treated cloth is folded and beaten with a wooden mallet to remove excess harda and open the fibre to the dye. [S1]",
+      "local_terms": [
+        "mogri"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The mogri, a wooden mallet, is used in some cases to beat the folds of moist finished cloth.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Harda-treated cloth is folded and beaten with a wooden mallet to remove excess harda and open the fibre to the dye.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.tool.indigo-vat",
+      "type": "tool",
+      "category": "tools",
+      "title": "Indigo vat (tank)",
+      "summary": "Starting a new indigo tank is tedious and complicated, but once ready it is kept alive by adding indigo, lime and jaggery.",
+      "body_md": "Starting a new indigo tank is tedious and complicated, but once ready it is kept alive by adding indigo, lime and jaggery. [S1]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Starting a new indigo tank is tedious and complicated, but once ready it is kept alive by adding indigo, lime and jaggery.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.block-carving",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "Block carving (preparatory)",
+      "summary": "Block carving proceeds through ghisai (smoothing), chakai (design transfer), khudai (carving), dabana (levelling the background), chilai (smoothing the sides) and fixing the hatha handle.",
+      "body_md": "Block carving proceeds through ghisai (smoothing), chakai (design transfer), khudai (carving), dabana (levelling the background), chilai (smoothing the sides) and fixing the hatha handle. [S10]\n\nSides are smoothed so consecutive impressions match in repeat printing. [S10]",
+      "local_terms": [
+        "ghisai",
+        "chakai",
+        "khudai",
+        "dabana",
+        "chilai",
+        "hatha"
+      ],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Block carving proceeds through ghisai (smoothing), chakai (design transfer), khudai (carving), dabana (levelling the background), chilai (smoothing the sides) and fixing the hatha handle.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Sides are smoothed so consecutive impressions match in repeat printing.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.scouring",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "1. Scouring and bleaching the grey cloth",
+      "summary": "Cloth is scoured to remove starch, oil and dust for good, even penetration of colours.",
+      "body_md": "Cloth is scoured to remove starch, oil and dust for good, even penetration of colours. [S1]\n\nTraditionally cloth was steeped overnight in cow dung and water, then spread on open grounds and re-wetted 5-6 times a day for 3 to 6 days until white. [S1]\n\nThe first step, teluni, is rigorous scouring and bleaching to emulsify oils on the cotton. [S8]",
+      "local_terms": [
+        "teluni"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Cloth is scoured to remove starch, oil and dust for good, even penetration of colours.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Traditionally cloth was steeped overnight in cow dung and water, then spread on open grounds and re-wetted 5-6 times a day for 3 to 6 days until white.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The first step, teluni, is rigorous scouring and bleaching to emulsify oils on the cotton.",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.harda-treatment",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "2. Harda pre-treatment (peela karna)",
+      "summary": "Harda powder is mixed with water; the cloth is submerged, squeezed, dried flat, then folded and beaten with a mallet; this is called peela karna.",
+      "body_md": "Harda powder is mixed with water; the cloth is submerged, squeezed, dried flat, then folded and beaten with a mallet; this is called peela karna. [S1]\n\nHarda leaves a yellowish tinge, hence pila-karna. [S8]",
+      "local_terms": [
+        "peela karna",
+        "pila karna",
+        "harda rangai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Harda powder is mixed with water; the cloth is submerged, squeezed, dried flat, then folded and beaten with a mallet; this is called peela karna.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Harda leaves a yellowish tinge, hence pila-karna.",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.mordant-printing",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "3. Printing the mordants (chhapai)",
+      "summary": "The block is pressed onto a dye-saturated pad and stamped on the fabric; each colour has a separate pan.",
+      "body_md": "The block is pressed onto a dye-saturated pad and stamped on the fabric; each colour has a separate pan. [S1]\n\nThe fabric is printed with two mordants, ferrous syahi and aluminium sulphate begar; the ferrous is usually printed with the outline block. [S1]\n\nBlack outline is printed with syahi, then begar is filled in with the datta block, and the fabric dries for a week. [S8]",
+      "local_terms": [
+        "chhapai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The block is pressed onto a dye-saturated pad and stamped on the fabric; each colour has a separate pan.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The fabric is printed with two mordants, ferrous syahi and aluminium sulphate begar; the ferrous is usually printed with the outline block.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Black outline is printed with syahi, then begar is filled in with the datta block, and the fabric dries for a week.",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.ageing",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "4. Ageing (sukhai)",
+      "summary": "Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
+      "body_md": "Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result. [S1]",
+      "local_terms": [
+        "sukhai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.washing-excess-mordant",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "5. Washing off excess mordant (khulai)",
+      "summary": "Printed fabric is washed in running water to remove excess mordants before dyeing.",
+      "body_md": "Printed fabric is washed in running water to remove excess mordants before dyeing. [S1]\n\nThe fabric is washed thoroughly to remove the tree gum. [S8]",
+      "local_terms": [
+        "khulai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Printed fabric is washed in running water to remove excess mordants before dyeing.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The fabric is washed thoroughly to remove the tree gum.",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.alizarin-dyeing",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "6. Alizarin / madder dyeing (rangai)",
+      "summary": "The dye reacts with two mordants at two locations on the same print, giving red with alum and black with ferrous.",
+      "body_md": "The dye reacts with two mordants at two locations on the same print, giving red with alum and black with ferrous. [S1]\n\nDyeing in the copper vessel usually takes half a day, and the fabric is then dried on the ground. [S1]\n\nRed dyeing, 'ghan ki rangai', is done in a copper tamda on a bhatti. [S8]",
+      "local_terms": [
+        "rangai",
+        "ghan ki rangai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The dye reacts with two mordants at two locations on the same print, giving red with alum and black with ferrous.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Dyeing in the copper vessel usually takes half a day, and the fabric is then dried on the ground.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Red dyeing, 'ghan ki rangai', is done in a copper tamda on a bhatti.",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.sun-bleaching",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "7. Sun-bleaching (tapai)",
+      "summary": "Alizarin over-dyes the ground to an off-white or yellow tinge, so the fabric is sun-bleached to whiten the ground again.",
+      "body_md": "Alizarin over-dyes the ground to an off-white or yellow tinge, so the fabric is sun-bleached to whiten the ground again. [S1]\n\nThe fabric is laid flat on a river bed and sprinkled with a mild cow dung solution, repeated as it dries. [S1]\n\nThe GI application calls tapai the most typical part of the Sanganeri production process. [S1]\n\nCloth is washed in running river water and dried in scorching sun, with water sprinkled on it, giving a white background. [S8]",
+      "local_terms": [
+        "tapai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Alizarin over-dyes the ground to an off-white or yellow tinge, so the fabric is sun-bleached to whiten the ground again.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The fabric is laid flat on a river bed and sprinkled with a mild cow dung solution, repeated as it dries.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The GI application calls tapai the most typical part of the Sanganeri production process.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Cloth is washed in running river water and dried in scorching sun, with water sprinkled on it, giving a white background.",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.dabu-resist-printing",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "8. Dabu resist printing",
+      "summary": "Dabu is applied with a wooden block, sawdust is sprinkled over it, and the fabric is sun-dried before the indigo tanks.",
+      "body_md": "Dabu is applied with a wooden block, sawdust is sprinkled over it, and the fabric is sun-dried before the indigo tanks. [S1]\n\nThe dabu technique is used only for creating patterns with indigo blue, and gives no sharp definition because the paste is thick and sticky. [S1]",
+      "local_terms": [
+        "dabu datai",
+        "dhabu"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Dabu is applied with a wooden block, sawdust is sprinkled over it, and the fabric is sun-dried before the indigo tanks.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The dabu technique is used only for creating patterns with indigo blue, and gives no sharp definition because the paste is thick and sticky.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.indigo-dyeing",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "9. Indigo dyeing (neel rangai)",
+      "summary": "Cloth folded like sari pleats is lowered into the tank and opened under the liquid; it is then taken out and opened to react with atmospheric oxygen.",
+      "body_md": "Cloth folded like sari pleats is lowered into the tank and opened under the liquid; it is then taken out and opened to react with atmospheric oxygen. [S1]\n\nThe first dip gives a pale sky blue; dipping and oxidising are repeated until the desired dark shade is reached. [S1]",
+      "local_terms": [
+        "neel rangai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Cloth folded like sari pleats is lowered into the tank and opened under the liquid; it is then taken out and opened to react with atmospheric oxygen.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The first dip gives a pale sky blue; dipping and oxidising are repeated until the desired dark shade is reached.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.yellow-dyeing",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "10. Yellow dyeing by mopping (haldi naspal putai)",
+      "summary": "Four persons hold the cloth at the corners while a fifth rubs on turmeric and pomegranate-rind dye with a loose-woven woollen cloth used as a sponge.",
+      "body_md": "Four persons hold the cloth at the corners while a fifth rubs on turmeric and pomegranate-rind dye with a loose-woven woollen cloth used as a sponge. [S1]\n\nLoose-woven fabric is used so it retains enough dye during application. [S1]",
+      "local_terms": [
+        "haldi naspal putai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Four persons hold the cloth at the corners while a fifth rubs on turmeric and pomegranate-rind dye with a loose-woven woollen cloth used as a sponge.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Loose-woven fabric is used so it retains enough dye during application.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.alum-post-mordant",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "11. Alum post-mordanting (fitkari rangai)",
+      "summary": "Fabric is dipped for a few minutes in a copper vessel of water and diluted alum, squeezed and dried flat.",
+      "body_md": "Fabric is dipped for a few minutes in a copper vessel of water and diluted alum, squeezed and dried flat. [S1]\n\nThe dry fabric is folded and stored in dark places for at least 3 to 4 days so the yellow dye sets. [S1]",
+      "local_terms": [
+        "fitkari rangai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Fabric is dipped for a few minutes in a copper vessel of water and diluted alum, squeezed and dried flat.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The dry fabric is folded and stored in dark places for at least 3 to 4 days so the yellow dye sets.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.process_stage.final-washing",
+      "type": "process_stage",
+      "category": "process_stages",
+      "title": "12. Final washing (dhulai)",
+      "summary": "Fabric is left in big tanks for at least 3 to 4 hours until the resist paste becomes smooth, then beaten on a flat stone slab to remove paste and excess dye.",
+      "body_md": "Fabric is left in big tanks for at least 3 to 4 hours until the resist paste becomes smooth, then beaten on a flat stone slab to remove paste and excess dye. [S1]\n\nBeating of the cloth is generally done where there is a flow of water. [S1]",
+      "local_terms": [
+        "dhulai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Fabric is left in big tanks for at least 3 to 4 hours until the resist paste becomes smooth, then beaten on a flat stone slab to remove paste and excess dye.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Beating of the cloth is generally done where there is a flow of water.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.artisan_decision.block-order-and-registration",
+      "type": "artisan_decision",
+      "category": "tacit_decisions",
+      "title": "Choosing the block order for registration",
+      "summary": "Ferrous is usually printed with the outline block because it immediately shows a black impression, so another printer can easily place the filler block.",
+      "body_md": "Ferrous is usually printed with the outline block because it immediately shows a black impression, so another printer can easily place the filler block. [S1]\n\nSometimes the background block is applied before the outline block. [S1]\n\nA high degree of skill is required for placing the design and applying even pressure. [S1, S10]",
+      "local_terms": [
+        "rekh",
+        "datta"
+      ],
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Ferrous is usually printed with the outline block because it immediately shows a black impression, so another printer can easily place the filler block.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Sometimes the background block is applied before the outline block.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "A high degree of skill is required for placing the design and applying even pressure.",
+          "source_ids": [
+            "S1",
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.artisan_decision.colour-recipe-ratios",
+      "type": "artisan_decision",
+      "category": "tacit_decisions",
+      "title": "Judging dye quantities and recipe ratios",
+      "summary": "The quantity of alizarin dye is calculated by the experienced dyer.",
+      "body_md": "The quantity of alizarin dye is calculated by the experienced dyer. [S1]\n\nDabu ingredients are mixed in specific ratios depending on the type of dabu needed, and each family keeps its recipe secret. [S1]",
+      "local_terms": [],
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The quantity of alizarin dye is calculated by the experienced dyer.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Dabu ingredients are mixed in specific ratios depending on the type of dabu needed, and each family keeps its recipe secret.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.artisan_decision.reading-the-indigo-vat",
+      "type": "artisan_decision",
+      "category": "tacit_decisions",
+      "title": "Reading and feeding the indigo vat",
+      "summary": "An expert indigo dyer can tell the state of the dye by the colour of the vat and adds ingredients by experience.",
+      "body_md": "An expert indigo dyer can tell the state of the dye by the colour of the vat and adds ingredients by experience. [S1]",
+      "local_terms": [],
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "An expert indigo dyer can tell the state of the dye by the colour of the vat and adds ingredients by experience.",
+          "source_ids": [
+            "S1"
+          ],
+          "quote": "There is no written recipe with the indigo dyer and every family has its own way of handling indigo."
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.artisan_decision.protecting-dabu-during-dyeing",
+      "type": "artisan_decision",
+      "category": "tacit_decisions",
+      "title": "Handling cloth to avoid patchy indigo and cracked dabu",
+      "summary": "Air trapped in folds or pleats gives patchy dyeing, so the dyer opens each pleat neatly and gently under the liquid, avoiding cracking of the dabu.",
+      "body_md": "Air trapped in folds or pleats gives patchy dyeing, so the dyer opens each pleat neatly and gently under the liquid, avoiding cracking of the dabu. [S1]\n\nThe alum dip lasts only a few minutes because a long period causes the dabu to come off. [S1]\n\nYellow is applied gently, like mopping a floor, so the dabu does not come off. [S1]",
+      "local_terms": [],
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Air trapped in folds or pleats gives patchy dyeing, so the dyer opens each pleat neatly and gently under the liquid, avoiding cracking of the dabu.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The alum dip lasts only a few minutes because a long period causes the dabu to come off.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Yellow is applied gently, like mopping a floor, so the dabu does not come off.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.artisan_decision.ageing-duration",
+      "type": "artisan_decision",
+      "category": "tacit_decisions",
+      "title": "Deciding how long to age printed cloth",
+      "summary": "Printed fabric is aged at least three to four days, and longer ageing gives a better result.",
+      "body_md": "Printed fabric is aged at least three to four days, and longer ageing gives a better result. [S1]\n\nAfter begar printing the fabric dries for a week. [S8]",
+      "local_terms": [
+        "sukhai"
+      ],
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Printed fabric is aged at least three to four days, and longer ageing gives a better result.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "After begar printing the fabric dries for a week.",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.artisan_decision.design-for-patron-and-occasion",
+      "type": "artisan_decision",
+      "category": "artisan_knowledge",
+      "title": "Matching motifs and colours to patron and occasion",
+      "summary": "Motifs had to suit the occasion, location and requirements of the patrons who commissioned the textiles.",
+      "body_md": "Motifs had to suit the occasion, location and requirements of the patrons who commissioned the textiles. [S1, S10]\n\nThe rich gentry preferred dark yellow, green and pink with natural floral designs, whereas local people preferred red and black prints. [S1]\n\nToday buyers usually decide the motif and pattern, and placement is planned around garment construction rather than running fabric. [S10]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Motifs had to suit the occasion, location and requirements of the patrons who commissioned the textiles.",
+          "source_ids": [
+            "S1",
+            "S10"
+          ]
+        },
+        {
+          "text": "The rich gentry preferred dark yellow, green and pink with natural floral designs, whereas local people preferred red and black prints.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Today buyers usually decide the motif and pattern, and placement is planned around garment construction rather than running fabric.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.design_principle.buti-buta-jaal-bel",
+      "type": "design_principle",
+      "category": "design_principles",
+      "title": "Motif vocabulary: buti, buta, jhar/jaal and bel",
+      "summary": "Sanganeri design forms are known as butis, butas, jhar and border, and all GI textiles carry buti, buta or jhar or a combination.",
+      "body_md": "Sanganeri design forms are known as butis, butas, jhar and border, and all GI textiles carry buti, buta or jhar or a combination. [S1]\n\nA buti is a very small motif at predetermined spacing, up to 20 per block; a buta is a single complete motif usually no larger than 3 by 5 inches. [S10]\n\nJaal is a continuous all-over pattern that was not very popular in Sanganeri prints; bel are narrow 2-4 inch borders. [S10]\n\nSanganeri small patterns, called bhant, include floral patterns, buta, bel and jaali, with over four hundred types. [S9]",
+      "local_terms": [
+        "buti",
+        "buta",
+        "jhar",
+        "jaal",
+        "bel",
+        "bhant"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Sanganeri design forms are known as butis, butas, jhar and border, and all GI textiles carry buti, buta or jhar or a combination.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "A buti is a very small motif at predetermined spacing, up to 20 per block; a buta is a single complete motif usually no larger than 3 by 5 inches.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Jaal is a continuous all-over pattern that was not very popular in Sanganeri prints; bel are narrow 2-4 inch borders.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Sanganeri small patterns, called bhant, include floral patterns, buta, bel and jaali, with over four hundred types.",
+          "source_ids": [
+            "S9"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.design_principle.fine-floral-on-white",
+      "type": "design_principle",
+      "category": "design_principles",
+      "title": "Fine, stylised florals on a white ground",
+      "summary": "Motifs can be flowers, leaves and buds, intertwisted tendrils, figurative designs or geometric designs; more than a hundred traditional designs are used.",
+      "body_md": "Motifs can be flowers, leaves and buds, intertwisted tendrils, figurative designs or geometric designs; more than a hundred traditional designs are used. [S1]\n\nSari motifs include lotus, iris, rose, poppy, water lily, narcissus, marigold and sunflower, composed into mango, betel-leaf, dagger and jhumka forms. [S1]\n\nOrderly designs of offset rows of floral motifs originate in 17th-century Mughal court designs. [S5]\n\nMughal influence added iris, tulip and narcissus, not grown locally, and East India Company trade brought the cabbage rose. [S9]",
+      "local_terms": [
+        "jhumka",
+        "keri"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Motifs can be flowers, leaves and buds, intertwisted tendrils, figurative designs or geometric designs; more than a hundred traditional designs are used.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Sari motifs include lotus, iris, rose, poppy, water lily, narcissus, marigold and sunflower, composed into mango, betel-leaf, dagger and jhumka forms.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Orderly designs of offset rows of floral motifs originate in 17th-century Mughal court designs.",
+          "source_ids": [
+            "S5"
+          ]
+        },
+        {
+          "text": "Mughal influence added iris, tulip and narcissus, not grown locally, and East India Company trade brought the cabbage rose.",
+          "source_ids": [
+            "S9"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.design_principle.harmonised-multiple-designs",
+      "type": "design_principle",
+      "category": "design_principles",
+      "title": "Harmonising several designs in one cloth",
+      "summary": "A special feature of Sanganer prints is the use of a variety of designs in the same cloth, beautifully harmonised.",
+      "body_md": "A special feature of Sanganer prints is the use of a variety of designs in the same cloth, beautifully harmonised. [S1, S10]\n\nFor a sari, chhipas use buti for the body, bel for the edges and buta for the end panel, so many blocks are needed. [S10]\n\nTwo different buti blocks can be printed together to form a third buti, such as the singhbal buti. [S10]",
+      "local_terms": [
+        "singhbal buti",
+        "pallav"
+      ],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "A special feature of Sanganer prints is the use of a variety of designs in the same cloth, beautifully harmonised.",
+          "source_ids": [
+            "S1",
+            "S10"
+          ]
+        },
+        {
+          "text": "For a sari, chhipas use buti for the body, bel for the edges and buta for the end panel, so many blocks are needed.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Two different buti blocks can be printed together to form a third buti, such as the singhbal buti.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.design_principle.social-design-categories",
+      "type": "design_principle",
+      "category": "design_principles",
+      "title": "Design categories by user and use",
+      "summary": "Syahi-begar black and red designs on white cloth were used for safa turbans or angochha shawls of local men; buti florals on white or soft grounds were favoured by the Jaipur court.",
+      "body_md": "Syahi-begar black and red designs on white cloth were used for safa turbans or angochha shawls of local men; buti florals on white or soft grounds were favoured by the Jaipur court. [S8, S9]\n\nTemple dupattas and shawls bore red designs on white or yellow cloth. [S8, S9]\n\nBandhani-imitating prints for women included the mali chunnari and the mina chaddar. [S9]\n\nSafas are printed with a white ground, black outline and red, and Shiva-worship dupattas carry damaru, trident and dhatura motifs. [S1]",
+      "local_terms": [
+        "syahi-begar",
+        "safa",
+        "angochha",
+        "mali chunnari",
+        "mina chaddar"
+      ],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Syahi-begar black and red designs on white cloth were used for safa turbans or angochha shawls of local men; buti florals on white or soft grounds were favoured by the Jaipur court.",
+          "source_ids": [
+            "S8",
+            "S9"
+          ]
+        },
+        {
+          "text": "Temple dupattas and shawls bore red designs on white or yellow cloth.",
+          "source_ids": [
+            "S8",
+            "S9"
+          ]
+        },
+        {
+          "text": "Bandhani-imitating prints for women included the mali chunnari and the mina chaddar.",
+          "source_ids": [
+            "S9"
+          ]
+        },
+        {
+          "text": "Safas are printed with a white ground, black outline and red, and Shiva-worship dupattas carry damaru, trident and dhatura motifs.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.outcome.white-ground-red-black",
+      "type": "outcome",
+      "category": "production_outcomes",
+      "title": "Clear white ground with red and black design",
+      "summary": "Sanganeri saris have red and black as the two main colours with shades of yellow, brown, indigo, blue and green.",
+      "body_md": "Sanganeri saris have red and black as the two main colours with shades of yellow, brown, indigo, blue and green. [S1]\n\nWashing in river water and drying in the sun gives a white background with clear, richly coloured designs. [S8]\n\nA Sanganer cotton of about 1850 shows a red and green floral repeat on a white ground. [S6]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Sanganeri saris have red and black as the two main colours with shades of yellow, brown, indigo, blue and green.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Washing in river water and drying in the sun gives a white background with clear, richly coloured designs.",
+          "source_ids": [
+            "S8"
+          ]
+        },
+        {
+          "text": "A Sanganer cotton of about 1850 shows a red and green floral repeat on a white ground.",
+          "source_ids": [
+            "S6"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.outcome.print-visible-on-reverse",
+      "type": "outcome",
+      "category": "production_outcomes",
+      "title": "Design equally visible on the reverse",
+      "summary": "The print design is equally vividly seen on the underside of the cloth.",
+      "body_md": "The print design is equally vividly seen on the underside of the cloth. [S1]\n\nPatterns were impressed so perfectly with wooden blocks that the print appeared vividly on the back. [S10]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The print design is equally vividly seen on the underside of the cloth.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Patterns were impressed so perfectly with wooden blocks that the print appeared vividly on the back.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.outcome.fast-colours",
+      "type": "outcome",
+      "category": "production_outcomes",
+      "title": "Fast, bright colours ('colours of Sanganer')",
+      "summary": "Sanganer was known for its bright and fast dyes; a collection of sayings dated 1796 refers to the 'colours of Sanganer'.",
+      "body_md": "Sanganer was known for its bright and fast dyes; a collection of sayings dated 1796 refers to the 'colours of Sanganer'. [S1]\n\nThe main contributions of Sanganer printers were fast colours and well-proportioned lyrical motifs. [S1, S10]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Sanganer was known for its bright and fast dyes; a collection of sayings dated 1796 refers to the 'colours of Sanganer'.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The main contributions of Sanganer printers were fast colours and well-proportioned lyrical motifs.",
+          "source_ids": [
+            "S1",
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.outcome.green-by-overdyeing",
+      "type": "outcome",
+      "category": "production_outcomes",
+      "title": "Green by overdyeing indigo with yellow",
+      "summary": "To make green, indigo-dyed fabric goes on to yellow dyeing, with dabu printed first to retain some blue areas.",
+      "body_md": "To make green, indigo-dyed fabric goes on to yellow dyeing, with dabu printed first to retain some blue areas. [S1]\n\nGreen on a Sanganer cotton of about 1850 combines indigo with a yellow dye, probably turmeric. [S5]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "To make green, indigo-dyed fabric goes on to yellow dyeing, with dabu printed first to retain some blue areas.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Green on a Sanganer cotton of about 1850 combines indigo with a yellow dye, probably turmeric.",
+          "source_ids": [
+            "S5"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.outcome.product-range",
+      "type": "outcome",
+      "category": "production_outcomes",
+      "title": "Product range",
+      "summary": "Products include saris, chintz yardage for ghagharas, salwar suits with dupattas, safas and home furnishings such as bedspreads, quilts and curtains.",
+      "body_md": "Products include saris, chintz yardage for ghagharas, salwar suits with dupattas, safas and home furnishings such as bedspreads, quilts and curtains. [S1]\n\nA safa is usually 8 m long and 0.9 m wide. [S1]\n\nMale garments are now printed, which was not done earlier. [S10]",
+      "local_terms": [
+        "chheent",
+        "ghaghara",
+        "safa",
+        "dupatta"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Products include saris, chintz yardage for ghagharas, salwar suits with dupattas, safas and home furnishings such as bedspreads, quilts and curtains.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "A safa is usually 8 m long and 0.9 m wide.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Male garments are now printed, which was not done earlier.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.explanation.one-dye-two-mordants",
+      "type": "explanation",
+      "category": "scientific_mechanisms",
+      "title": "One dye bath, two colours: iron and alum mordants",
+      "summary": "The dye reacts with two mordants at two locations on the same print, giving red with alum and black with ferrous.",
+      "body_md": "The dye reacts with two mordants at two locations on the same print, giving red with alum and black with ferrous. [S1]\n\nTannic acid of harda attracts the mordants and forms a black colour with the ferrous syahi. [S1]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The dye reacts with two mordants at two locations on the same print, giving red with alum and black with ferrous.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Tannic acid of harda attracts the mordants and forms a black colour with the ferrous syahi.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.explanation.tapai-alkali-and-heat",
+      "type": "explanation",
+      "category": "scientific_mechanisms",
+      "title": "Sun-bleaching explained as alkali plus solar heat",
+      "summary": "The interaction of alkali from cow dung and thermal heat from sun rays bleaches the ground colour white again.",
+      "body_md": "The interaction of alkali from cow dung and thermal heat from sun rays bleaches the ground colour white again. [S1]",
+      "local_terms": [
+        "tapai"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "The interaction of alkali from cow dung and thermal heat from sun rays bleaches the ground colour white again.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.explanation.dabu-mechanical-resist",
+      "type": "explanation",
+      "category": "scientific_mechanisms",
+      "title": "Dabu as a mechanical resist",
+      "summary": "Dabu acts as a mechanical resist and prevents the penetration of dye on covered areas.",
+      "body_md": "Dabu acts as a mechanical resist and prevents the penetration of dye on covered areas. [S1]\n\nSawdust absorbs water from the dabu paste and gives additional layers of resist. [S1]",
+      "local_terms": [
+        "dabu"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Dabu acts as a mechanical resist and prevents the penetration of dye on covered areas.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Sawdust absorbs water from the dabu paste and gives additional layers of resist.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.explanation.indigo-oxidation-and-dips",
+      "type": "explanation",
+      "category": "scientific_mechanisms",
+      "title": "Indigo: reduced in the vat, oxidised in air, built up by repeated dips",
+      "summary": "Fabric is opened out to react with atmospheric oxygen and turn reduced indigo into oxidised indigo.",
+      "body_md": "Fabric is opened out to react with atmospheric oxygen and turn reduced indigo into oxidised indigo. [S1]\n\nBecause indigo has poor affinity to the fabric, the first dip gives pale sky blue, and dips are repeated for darker shades. [S1]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Fabric is opened out to react with atmospheric oxygen and turn reduced indigo into oxidised indigo.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Because indigo has poor affinity to the fabric, the first dip gives pale sky blue, and dips are repeated for darker shades.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.environmental_condition.river-and-running-water",
+      "type": "environmental_condition",
+      "category": "environmental_conditions",
+      "title": "River and running water",
+      "summary": "Oral tradition says chhipa families moved their work to places with space and running water near Jaipur; Sanganer's riverbanks were ideal.",
+      "body_md": "Oral tradition says chhipa families moved their work to places with space and running water near Jaipur; Sanganer's riverbanks were ideal. [S8]\n\nSun-bleaching is done on a river bed, and final beating of the cloth generally where water flows. [S1]\n\nThe banks of the river Dhoondh were an asset for dyers and bleachers. [S9]\n\nThe water of the river 'Saraswati', soil, sunshine and humid air are said to have contributed to the characteristic shades of the natural dyes. [S10, S13]",
+      "local_terms": [
+        "Dhoondh",
+        "Dravyavati",
+        "Amanishah nallah"
+      ],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Oral tradition says chhipa families moved their work to places with space and running water near Jaipur; Sanganer's riverbanks were ideal.",
+          "source_ids": [
+            "S8"
+          ]
+        },
+        {
+          "text": "Sun-bleaching is done on a river bed, and final beating of the cloth generally where water flows.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The banks of the river Dhoondh were an asset for dyers and bleachers.",
+          "source_ids": [
+            "S9"
+          ]
+        },
+        {
+          "text": "The water of the river 'Saraswati', soil, sunshine and humid air are said to have contributed to the characteristic shades of the natural dyes.",
+          "source_ids": [
+            "S10",
+            "S13"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.environmental_condition.sun-and-semi-arid-climate",
+      "type": "environmental_condition",
+      "category": "environmental_conditions",
+      "title": "Strong sun, open ground and semi-arid climate",
+      "summary": "Annual rainfall is 556 mm, and district temperatures range from 3 to 50 degrees Celsius.",
+      "body_md": "Annual rainfall is 556 mm, and district temperatures range from 3 to 50 degrees Celsius. [S1]\n\nThe applicant claims Sanganer has very conducive geographical and climatic conditions for the desired shades and fine designs. [S1]\n\nCloth is dried in scorching sun with periodic sprinkling to obtain a white background. [S8]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Annual rainfall is 556 mm, and district temperatures range from 3 to 50 degrees Celsius.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "The applicant claims Sanganer has very conducive geographical and climatic conditions for the desired shades and fine designs.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Cloth is dried in scorching sun with periodic sprinkling to obtain a white background.",
+          "source_ids": [
+            "S8"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.environmental_condition.effluent-and-water-pollution",
+      "type": "environmental_condition",
+      "category": "environmental_conditions",
+      "title": "Dyeing effluent, the Amanishah Nallah and groundwater",
+      "summary": "Wastewater from Sanganer dyeing and printing units is high in sodium, chloride and sulfate, with copper, chromium and iron, and enters the Amanishah Nallah untreated.",
+      "body_md": "Wastewater from Sanganer dyeing and printing units is high in sodium, chloride and sulfate, with copper, chromium and iron, and enters the Amanishah Nallah untreated. [S11]\n\nEleven groundwater samples from Sanganer were polluted by percolation of this wastewater; iron was found in almost all sources. [S11]\n\nUnits discharge an estimated 17-18 MLD of untreated wastewater (officially about 12.3 MLD) into nallahs draining to the Dravyawati river. [S12]\n\nSmall units generate 1-2 m³ of effluent per day; the society was setting up a CETP under state directives. [S1]\n\nScreen-printing units were described as the main source of pollution, leading to High Court relocation orders around 2003-2004. [S10]",
+      "local_terms": [
+        "Amanishah nallah"
+      ],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Wastewater from Sanganer dyeing and printing units is high in sodium, chloride and sulfate, with copper, chromium and iron, and enters the Amanishah Nallah untreated.",
+          "source_ids": [
+            "S11"
+          ]
+        },
+        {
+          "text": "Eleven groundwater samples from Sanganer were polluted by percolation of this wastewater; iron was found in almost all sources.",
+          "source_ids": [
+            "S11"
+          ]
+        },
+        {
+          "text": "Units discharge an estimated 17-18 MLD of untreated wastewater (officially about 12.3 MLD) into nallahs draining to the Dravyawati river.",
+          "source_ids": [
+            "S12"
+          ]
+        },
+        {
+          "text": "Small units generate 1-2 m³ of effluent per day; the society was setting up a CETP under state directives.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Screen-printing units were described as the main source of pollution, leading to High Court relocation orders around 2003-2004.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.open_question.origin-date",
+      "type": "open_question",
+      "category": "open_questions",
+      "title": "When did printing begin at Sanganer?",
+      "summary": "No record of a Sanganer printing unit is traced before the early 18th century (the earliest cited are dastur-al-amal reports of 1703); the GI applicant infers printing was established by then.",
+      "body_md": "No record of a Sanganer printing unit is traced before the early 18th century (the earliest cited are dastur-al-amal reports of 1703); the GI applicant infers printing was established by then. [S1, S10]\n\nThe craft is widely believed to stem from mid-17th-century migrations from Gujarat. [S8, S9]\n\nNABARD describes the textiles as roughly 500 years old. [S3]\n\nSingh et al. (2000), quoted, say Sanganer prints have been renowned for at least 250 years. [S1, S10]\n\nTourism and craft-organisation pages date the craft to the late 16th or 16th-17th century. [S13, S14]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "No record of a Sanganer printing unit is traced before the early 18th century (the earliest cited are dastur-al-amal reports of 1703); the GI applicant infers printing was established by then.",
+          "source_ids": [
+            "S1",
+            "S10"
+          ]
+        },
+        {
+          "text": "The craft is widely believed to stem from mid-17th-century migrations from Gujarat.",
+          "source_ids": [
+            "S8",
+            "S9"
+          ]
+        },
+        {
+          "text": "NABARD describes the textiles as roughly 500 years old.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "Singh et al. (2000), quoted, say Sanganer prints have been renowned for at least 250 years.",
+          "source_ids": [
+            "S1",
+            "S10"
+          ]
+        },
+        {
+          "text": "Tourism and craft-organisation pages date the craft to the late 16th or 16th-17th century.",
+          "source_ids": [
+            "S13",
+            "S14"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.open_question.founder-of-sanganer",
+      "type": "open_question",
+      "category": "open_questions",
+      "title": "Who founded Sanganer: Sangaji or Rana Sanga?",
+      "summary": "Sanganer was founded by Sangaji, son of Prithviraj of Amber.",
+      "body_md": "Sanganer was founded by Sangaji, son of Prithviraj of Amber. [S1]\n\nGaatha states that the Kachhwaha Rajput prince Sangaji founded Sanganer in the early 16th century. [S8]\n\nSanganer was established by Rana Sanga, a Mewar Rajput. [S13]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Sanganer was founded by Sangaji, son of Prithviraj of Amber.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "Gaatha states that the Kachhwaha Rajput prince Sangaji founded Sanganer in the early 16th century.",
+          "source_ids": [
+            "S8"
+          ]
+        },
+        {
+          "text": "Sanganer was established by Rana Sanga, a Mewar Rajput.",
+          "source_ids": [
+            "S13"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.open_question.gi-registration-year",
+      "type": "open_question",
+      "category": "open_questions",
+      "title": "GI registration year: 2009, 2010 or 2023?",
+      "summary": "Application 147 is listed in the registry section for April 2009 to March 2010.",
+      "body_md": "Application 147 is listed in the registry section for April 2009 to March 2010. [S2]\n\nThe GI tag was received in 2009. [S3, S4]\n\nThe GI tag was received in 2010. [S9, S10, S13, S15]\n\nA craft-organisation page states the GI tag was received in 2023. [S14]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Application 147 is listed in the registry section for April 2009 to March 2010.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "The GI tag was received in 2009.",
+          "source_ids": [
+            "S3",
+            "S4"
+          ]
+        },
+        {
+          "text": "The GI tag was received in 2010.",
+          "source_ids": [
+            "S9",
+            "S10",
+            "S13",
+            "S15"
+          ]
+        },
+        {
+          "text": "A craft-organisation page states the GI tag was received in 2023.",
+          "source_ids": [
+            "S14"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.open_question.which-river-and-water-effect",
+      "type": "open_question",
+      "category": "open_questions",
+      "title": "Which river, and does the water really shape the colours?",
+      "summary": "The riverbanks of the river Dhoondh were an asset to the dyers and bleachers.",
+      "body_md": "The riverbanks of the river Dhoondh were an asset to the dyers and bleachers. [S9]\n\nThe water of the river 'Saraswati' is credited with the characteristic shades or radiance. [S10, S13]\n\nSanganer's nallahs drain into the Dravyawati river. [S12]",
+      "local_terms": [],
+      "provenance_kind": "hypothesis",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "The riverbanks of the river Dhoondh were an asset to the dyers and bleachers.",
+          "source_ids": [
+            "S9"
+          ]
+        },
+        {
+          "text": "The water of the river 'Saraswati' is credited with the characteristic shades or radiance.",
+          "source_ids": [
+            "S10",
+            "S13"
+          ]
+        },
+        {
+          "text": "Sanganer's nallahs drain into the Dravyawati river.",
+          "source_ids": [
+            "S12"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.open_question.natural-vs-synthetic-share",
+      "type": "open_question",
+      "category": "open_questions",
+      "title": "How much present-day Sanganeri printing is natural-dyed, and what counts as 'natural'?",
+      "summary": "Synthetic alizarine and synthetic indigo granules are now used in place of madder and plant indigo.",
+      "body_md": "Synthetic alizarine and synthetic indigo granules are now used in place of madder and plant indigo. [S1]\n\n95% synthetic dyes are used in the area, and prints are called natural or chemical according to whether guar gum or synthetic gum is used. [S10]\n\nNatural dyes are used only for specific orders. [S4]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Synthetic alizarine and synthetic indigo granules are now used in place of madder and plant indigo.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "95% synthetic dyes are used in the area, and prints are called natural or chemical according to whether guar gum or synthetic gum is used.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Natural dyes are used only for specific orders.",
+          "source_ids": [
+            "S4"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "sanganeri.open_question.pollution-attribution-and-cetp",
+      "type": "open_question",
+      "category": "open_questions",
+      "title": "How much of the pollution comes from block printing, and is effluent treated?",
+      "summary": "Dyeing and printing units collectively pollute the Amanishah Nallah and groundwater.",
+      "body_md": "Dyeing and printing units collectively pollute the Amanishah Nallah and groundwater. [S11]\n\nScreen-printing units were the main source of pollution. [S10]\n\nOfficial discharge is about 12.3 MLD versus estimates of 17-18 MLD; CETP construction had not started by 2015 despite 2014 clearance. [S12]\n\nThe cooperative was setting up a CETP under state government directives at the time of the GI application. [S1]",
+      "local_terms": [],
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Dyeing and printing units collectively pollute the Amanishah Nallah and groundwater.",
+          "source_ids": [
+            "S11"
+          ]
+        },
+        {
+          "text": "Screen-printing units were the main source of pollution.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Official discharge is about 12.3 MLD versus estimates of 17-18 MLD; CETP construction had not started by 2015 despite 2014 clearance.",
+          "source_ids": [
+            "S12"
+          ]
+        },
+        {
+          "text": "The cooperative was setting up a CETP under state government directives at the time of the GI application.",
+          "source_ids": [
+            "S1"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    }
+  ],
+  "relationships": [
+    {
+      "source": "sanganeri.historical_context.sanganer-geography",
+      "target": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Sanganer town and nearby villages form the GI production area.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.historical_context.founding-of-sanganer",
+      "target": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Founding of the town is part of the tradition's historical record.",
+      "conditions": "Founder identity disputed.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1",
+        "S8",
+        "S13"
+      ]
+    },
+    {
+      "source": "sanganeri.historical_context.gujarati-migration-and-jaipur-patronage",
+      "target": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "type": "ENABLES",
+      "explanation": "Migrant printers and Jaipur court patronage are credited with establishing and refining printing at Sanganer.",
+      "conditions": "Timing and the role of Sawai Jai Singh are partly conjectural.",
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S9",
+        "S5"
+      ]
+    },
+    {
+      "source": "sanganeri.historical_context.eighteenth-century-records",
+      "target": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Archival tax and rangkhana records and dated pieces document the tradition from the early 18th century.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.historical_context.export-and-museum-record",
+      "target": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "type": "BELONGS_TO",
+      "explanation": "19th-century museum pieces are datable material evidence of the tradition.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S5",
+        "S6",
+        "S7"
+      ]
+    },
+    {
+      "source": "sanganeri.historical_context.chhipa-community",
+      "target": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "type": "BELONGS_TO",
+      "explanation": "The GI application describes the skill as held by the Chhipa community.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.historical_context.kharadi-block-makers",
+      "target": "sanganeri.tool.bunta-wooden-block",
+      "type": "PRODUCES",
+      "explanation": "Kharadis carve the printing blocks.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "target": "sanganeri.historical_context.screen-printing-shift",
+      "type": "AFFECTED_BY",
+      "explanation": "The tradition is affected by competition from screen-printed imitations and the shift to synthetic dyes.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S10",
+        "S4"
+      ]
+    },
+    {
+      "source": "sanganeri.historical_context.gi-registration",
+      "target": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "type": "BELONGS_TO",
+      "explanation": "GI registration (application 147) is part of the tradition's legal identity.",
+      "conditions": "Registration year disputed across secondary sources.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "source": "sanganeri.historical_context.screen-printing-shift",
+      "target": "sanganeri.historical_context.gi-registration",
+      "type": "CAUSES",
+      "explanation": "The GI application explicitly gives screen-printed 'Sanganeri' imitations as the reason for seeking protection.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.scouring",
+      "target": "sanganeri.process_stage.harda-treatment",
+      "type": "PRECEDES",
+      "explanation": "GI production sequence step 1 to 2.",
+      "conditions": null,
+      "ordinal": 1,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.harda-treatment",
+      "target": "sanganeri.process_stage.mordant-printing",
+      "type": "PRECEDES",
+      "explanation": "GI production sequence step 2 to 3.",
+      "conditions": null,
+      "ordinal": 2,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.mordant-printing",
+      "target": "sanganeri.process_stage.ageing",
+      "type": "PRECEDES",
+      "explanation": "GI production sequence step 3 to 4.",
+      "conditions": null,
+      "ordinal": 3,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.ageing",
+      "target": "sanganeri.process_stage.washing-excess-mordant",
+      "type": "PRECEDES",
+      "explanation": "GI production sequence step 4 to 5.",
+      "conditions": null,
+      "ordinal": 4,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.washing-excess-mordant",
+      "target": "sanganeri.process_stage.alizarin-dyeing",
+      "type": "PRECEDES",
+      "explanation": "GI production sequence step 5 to 6.",
+      "conditions": null,
+      "ordinal": 5,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.alizarin-dyeing",
+      "target": "sanganeri.process_stage.sun-bleaching",
+      "type": "PRECEDES",
+      "explanation": "GI production sequence step 6 to 7.",
+      "conditions": null,
+      "ordinal": 6,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.sun-bleaching",
+      "target": "sanganeri.process_stage.dabu-resist-printing",
+      "type": "PRECEDES",
+      "explanation": "GI production sequence step 7 to 8.",
+      "conditions": "Only for designs with indigo; red-black syahi-begar pieces end after bleaching and washing.",
+      "ordinal": 7,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.dabu-resist-printing",
+      "target": "sanganeri.process_stage.indigo-dyeing",
+      "type": "PRECEDES",
+      "explanation": "GI production sequence step 8 to 9.",
+      "conditions": null,
+      "ordinal": 8,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.indigo-dyeing",
+      "target": "sanganeri.process_stage.yellow-dyeing",
+      "type": "PRECEDES",
+      "explanation": "GI production sequence step 9 to 10 (dabu reprinted before yellow).",
+      "conditions": "Only where green is wanted.",
+      "ordinal": 9,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.yellow-dyeing",
+      "target": "sanganeri.process_stage.alum-post-mordant",
+      "type": "PRECEDES",
+      "explanation": "GI production sequence step 10 to 11.",
+      "conditions": null,
+      "ordinal": 10,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.alum-post-mordant",
+      "target": "sanganeri.process_stage.final-washing",
+      "type": "PRECEDES",
+      "explanation": "GI production sequence step 11 to 12.",
+      "conditions": null,
+      "ordinal": 11,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.mordant-printing",
+      "target": "sanganeri.process_stage.block-carving",
+      "type": "REQUIRES",
+      "explanation": "Printing is done by stamping wooden hand blocks (GI), and those blocks are made in the carving sequence (ghisai, chakai, khudai, dabana, chilai).",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S10"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.block-carving",
+      "target": "sanganeri.tool.kalam-chisels",
+      "type": "USES",
+      "explanation": "Kharadis engrave blocks with kalam chisels.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.block-carving",
+      "target": "sanganeri.tool.bunta-wooden-block",
+      "type": "PRODUCES",
+      "explanation": "Carving sequence yields the bunta.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S10"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.scouring",
+      "target": "sanganeri.material.cow-dung",
+      "type": "USES",
+      "explanation": "Traditional scouring steeps cloth in cow dung and water.",
+      "conditions": "Now largely replaced by soap and desizing agents.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.scouring",
+      "target": "sanganeri.material.cotton-mulmul",
+      "type": "USES",
+      "explanation": "Grey cotton or silk cloth is scoured before printing.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.harda-treatment",
+      "target": "sanganeri.material.harda-myrobalan",
+      "type": "USES",
+      "explanation": "Cloth is soaked in harda solution.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.harda-treatment",
+      "target": "sanganeri.tool.mogri-mallet",
+      "type": "USES",
+      "explanation": "Dried harda cloth is beaten with a wooden mallet.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.mordant-printing",
+      "target": "sanganeri.material.syahi-iron-black",
+      "type": "USES",
+      "explanation": "Iron mordant printed with outline blocks.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.mordant-printing",
+      "target": "sanganeri.material.begar-alum-mordant",
+      "type": "USES",
+      "explanation": "Alum mordant printed with filler blocks.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.mordant-printing",
+      "target": "sanganeri.tool.rekh-datta-gadh-block-set",
+      "type": "USES",
+      "explanation": "Outline and filler blocks print the two mordants.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8",
+        "S10"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.mordant-printing",
+      "target": "sanganeri.tool.printing-table-and-pad",
+      "type": "USES",
+      "explanation": "Cloth is spread on a padded bench or table.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.mordant-printing",
+      "target": "sanganeri.tool.colour-tray",
+      "type": "USES",
+      "explanation": "Block is inked on a padded colour tray, one per colour.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.alizarin-dyeing",
+      "target": "sanganeri.material.madder-alizarin",
+      "type": "USES",
+      "explanation": "Alizarin or madder is the red dye.",
+      "conditions": "Synthetic alizarin now usual.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.alizarin-dyeing",
+      "target": "sanganeri.material.dhawai-phool",
+      "type": "USES",
+      "explanation": "Dhawai flowers are boiled with the alizarin.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.alizarin-dyeing",
+      "target": "sanganeri.tool.copper-dye-vessel",
+      "type": "USES",
+      "explanation": "Dyeing in wood-fired copper vessels.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.sun-bleaching",
+      "target": "sanganeri.material.cow-dung",
+      "type": "USES",
+      "explanation": "Dilute cow dung is sprinkled during tapai.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.dabu-resist-printing",
+      "target": "sanganeri.material.dabu-resist-paste",
+      "type": "USES",
+      "explanation": "Dabu paste is block-printed as resist.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.dabu-resist-printing",
+      "target": "sanganeri.material.sawdust",
+      "type": "USES",
+      "explanation": "Sawdust is sprinkled on wet dabu.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.indigo-dyeing",
+      "target": "sanganeri.material.indigo",
+      "type": "USES",
+      "explanation": "Indigo is the blue dye.",
+      "conditions": "Synthetic indigo granules now usual.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.indigo-dyeing",
+      "target": "sanganeri.tool.indigo-vat",
+      "type": "USES",
+      "explanation": "Cloth is dipped in the indigo tank.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.yellow-dyeing",
+      "target": "sanganeri.material.haldi-naspal-yellow",
+      "type": "USES",
+      "explanation": "Turmeric-pomegranate dye is mopped on.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.alum-post-mordant",
+      "target": "sanganeri.material.alum-fitkari",
+      "type": "USES",
+      "explanation": "Dilute alum bath fixes the yellow.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.alum-post-mordant",
+      "target": "sanganeri.tool.copper-dye-vessel",
+      "type": "USES",
+      "explanation": "Alum bath is held in a big copper vessel.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.material.begar-alum-mordant",
+      "target": "sanganeri.material.alum-fitkari",
+      "type": "DEPENDS_ON",
+      "explanation": "Begar is an alum-based paste.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.material.synthetic-dyes",
+      "target": "sanganeri.material.madder-alizarin",
+      "type": "CONTRASTS_WITH",
+      "explanation": "Synthetic dyes have largely replaced madder and other natural dyes.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S10",
+        "S4"
+      ]
+    },
+    {
+      "source": "sanganeri.material.harda-myrobalan",
+      "target": "shared.scientific_mechanism.tannin-pre-mordanting",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "GI application says harda's tannic acid attracts the printed mordants.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.explanation.one-dye-two-mordants",
+      "target": "shared.scientific_mechanism.alum-mordant-complexation",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Red on alum-printed areas is attributed to the alum mordant.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.explanation.one-dye-two-mordants",
+      "target": "shared.scientific_mechanism.alizarin-lake-formation",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Alizarin forms different colours with alum (red) and iron (black).",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.explanation.one-dye-two-mordants",
+      "target": "shared.scientific_mechanism.iron-tannin-black",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Syahi forms black with harda tannin.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.alizarin-dyeing",
+      "target": "sanganeri.explanation.one-dye-two-mordants",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Two colours from one bath are explained by the two printed mordants.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.sun-bleaching",
+      "target": "sanganeri.explanation.tapai-alkali-and-heat",
+      "type": "PRACTITIONER_EXPLAINS",
+      "explanation": "Applicant's explanation of tapai whitening.",
+      "conditions": "Not independently tested in sources read.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.explanation.tapai-alkali-and-heat",
+      "target": "shared.scientific_mechanism.sun-bleaching",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Links the source's alkali-plus-heat account to the shared sun-bleaching mechanism.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.dabu-resist-printing",
+      "target": "sanganeri.explanation.dabu-mechanical-resist",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Dabu works as a physical barrier.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.explanation.dabu-mechanical-resist",
+      "target": "shared.scientific_mechanism.mud-resist-barrier",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Shared mud-resist mechanism.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.indigo-dyeing",
+      "target": "sanganeri.explanation.indigo-oxidation-and-dips",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Air oxidation and repeated dips explain colour development.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.explanation.indigo-oxidation-and-dips",
+      "target": "shared.scientific_mechanism.indigo-vat-reduction",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Shared indigo vat reduction and oxidation mechanism.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.alum-post-mordant",
+      "target": "shared.scientific_mechanism.alum-mordant-complexation",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Alum makes the fugitive yellow fast.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.artisan_decision.block-order-and-registration",
+      "target": "sanganeri.process_stage.mordant-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Block order is decided during mordant printing.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.artisan_decision.colour-recipe-ratios",
+      "target": "sanganeri.process_stage.alizarin-dyeing",
+      "type": "BELONGS_TO",
+      "explanation": "The dyer judges alizarin quantity.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.artisan_decision.colour-recipe-ratios",
+      "target": "sanganeri.material.dabu-resist-paste",
+      "type": "BELONGS_TO",
+      "explanation": "Dabu ratios vary by type and family recipe.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.artisan_decision.reading-the-indigo-vat",
+      "target": "sanganeri.tool.indigo-vat",
+      "type": "BELONGS_TO",
+      "explanation": "Vat state is judged by colour and experience.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.artisan_decision.protecting-dabu-during-dyeing",
+      "target": "sanganeri.process_stage.indigo-dyeing",
+      "type": "BELONGS_TO",
+      "explanation": "Handling of pleats and dabu during indigo dipping.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.artisan_decision.protecting-dabu-during-dyeing",
+      "target": "sanganeri.process_stage.alum-post-mordant",
+      "type": "BELONGS_TO",
+      "explanation": "Alum dip time is limited to protect the dabu.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.artisan_decision.ageing-duration",
+      "target": "sanganeri.process_stage.ageing",
+      "type": "BELONGS_TO",
+      "explanation": "Ageing length is a judgement.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "practitioner_testimony",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.artisan_decision.design-for-patron-and-occasion",
+      "target": "sanganeri.design_principle.social-design-categories",
+      "type": "PRODUCES",
+      "explanation": "Matching designs to patron and occasion produced distinct design categories.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S9"
+      ]
+    },
+    {
+      "source": "sanganeri.design_principle.buti-buta-jaal-bel",
+      "target": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "type": "BELONGS_TO",
+      "explanation": "GI defines Sanganeri design forms in these terms.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.design_principle.fine-floral-on-white",
+      "target": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Delicate florals on white are a GI specification.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.design_principle.harmonised-multiple-designs",
+      "target": "sanganeri.design_principle.buti-buta-jaal-bel",
+      "type": "DEPENDS_ON",
+      "explanation": "Harmonised layouts combine buti, bel and buta.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S10"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.sun-bleaching",
+      "target": "sanganeri.outcome.white-ground-red-black",
+      "type": "PRODUCES",
+      "explanation": "Tapai restores the white ground after alizarin over-dyeing.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.alizarin-dyeing",
+      "target": "sanganeri.outcome.white-ground-red-black",
+      "type": "PRODUCES",
+      "explanation": "Red (on alum) and black (on iron) develop in the alizarin bath; the white ground itself is restored afterwards by sun-bleaching (tapai).",
+      "conditions": "Produces the red and black of the outcome only; the white ground depends on tapai.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.yellow-dyeing",
+      "target": "sanganeri.outcome.green-by-overdyeing",
+      "type": "PRODUCES",
+      "explanation": "Yellow over indigo gives green.",
+      "conditions": "Dabu reserves areas that stay blue.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S5"
+      ]
+    },
+    {
+      "source": "sanganeri.outcome.fast-colours",
+      "target": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "type": "BELONGS_TO",
+      "explanation": "Fast colours are a historically recognised attribute.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.outcome.product-range",
+      "target": "sanganeri.tradition.sanganeri-hand-block-printing",
+      "type": "BELONGS_TO",
+      "explanation": "GI-listed product types.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.sun-bleaching",
+      "target": "sanganeri.environmental_condition.sun-and-semi-arid-climate",
+      "type": "DEPENDS_ON",
+      "explanation": "Tapai requires strong sun and open ground.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.sun-bleaching",
+      "target": "sanganeri.environmental_condition.river-and-running-water",
+      "type": "DEPENDS_ON",
+      "explanation": "Cloth is laid on a river bed and washed in running river water.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S8"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.final-washing",
+      "target": "sanganeri.environmental_condition.river-and-running-water",
+      "type": "DEPENDS_ON",
+      "explanation": "Beating to remove dabu is done where water flows.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.washing-excess-mordant",
+      "target": "sanganeri.environmental_condition.river-and-running-water",
+      "type": "DEPENDS_ON",
+      "explanation": "Excess mordant is washed in running water.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.scouring",
+      "target": "sanganeri.environmental_condition.sun-and-semi-arid-climate",
+      "type": "DEPENDS_ON",
+      "explanation": "Traditional scouring repeats wetting and drying on open ground over days.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "sanganeri.historical_context.screen-printing-shift",
+      "target": "sanganeri.environmental_condition.effluent-and-water-pollution",
+      "type": "ENABLES",
+      "explanation": "Mass production by screen printing with chemicals flooded the area with effluent.",
+      "conditions": "Sources attribute pollution mainly to screen-printing units; not quantified separately.",
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S10",
+        "S12"
+      ]
+    },
+    {
+      "source": "sanganeri.environmental_condition.river-and-running-water",
+      "target": "sanganeri.environmental_condition.effluent-and-water-pollution",
+      "type": "AFFECTED_BY",
+      "explanation": "The nallah and groundwater around Sanganer are affected by untreated dyeing and printing wastewater.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S11",
+        "S12"
+      ]
+    },
+    {
+      "source": "sanganeri.open_question.origin-date",
+      "target": "sanganeri.historical_context.eighteenth-century-records",
+      "type": "CONTRASTS_WITH",
+      "explanation": "Earlier origin claims contrast with documentary evidence starting in 1703.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1",
+        "S3",
+        "S9"
+      ]
+    },
+    {
+      "source": "sanganeri.open_question.founder-of-sanganer",
+      "target": "sanganeri.historical_context.founding-of-sanganer",
+      "type": "BELONGS_TO",
+      "explanation": "Dispute over the founder.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1",
+        "S13"
+      ]
+    },
+    {
+      "source": "sanganeri.open_question.gi-registration-year",
+      "target": "sanganeri.historical_context.gi-registration",
+      "type": "BELONGS_TO",
+      "explanation": "Conflicting GI years.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S2",
+        "S3",
+        "S9",
+        "S14"
+      ]
+    },
+    {
+      "source": "sanganeri.open_question.which-river-and-water-effect",
+      "target": "sanganeri.environmental_condition.river-and-running-water",
+      "type": "BELONGS_TO",
+      "explanation": "Uncertainty about river identity and effect.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "hypothesis",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S9",
+        "S10",
+        "S12",
+        "S13"
+      ]
+    },
+    {
+      "source": "sanganeri.open_question.natural-vs-synthetic-share",
+      "target": "sanganeri.material.synthetic-dyes",
+      "type": "BELONGS_TO",
+      "explanation": "Uncertain share and labelling of synthetic vs natural dyes.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1",
+        "S4",
+        "S10"
+      ]
+    },
+    {
+      "source": "sanganeri.open_question.pollution-attribution-and-cetp",
+      "target": "sanganeri.environmental_condition.effluent-and-water-pollution",
+      "type": "BELONGS_TO",
+      "explanation": "Attribution and treatment status unresolved.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S10",
+        "S11",
+        "S12"
+      ]
+    }
+  ],
+  "media_candidates": [
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Fabric_drying.jpg",
+      "title": "Fabric drying (sun-drying of hand-printed cotton, uploaded by CTC Sanganer)",
+      "licence": "CC BY 4.0",
+      "author": "CTC Sanganer Official",
+      "depicts": "sanganeri.environmental_condition.sun-and-semi-arid-climate",
+      "width": 1080,
+      "height": 1370,
+      "mime": "image/jpeg",
+      "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Master_artist_carves_a_woodblock_for_textile_printing.jpg",
+      "title": "Master artist carves a woodblock for textile printing (Anokhi Museum, Amer/Jaipur, 2019; not Sanganer-specific)",
+      "licence": "CC BY-SA 4.0",
+      "author": "Journyes",
+      "depicts": "sanganeri.process_stage.block-carving",
+      "width": 3024,
+      "height": 3024,
+      "mime": "image/jpeg",
+      "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Carving_of_a_wooden_block.jpg",
+      "title": "Carving of a wooden block (Anokhi, Jaipur region; not Sanganer-specific)",
+      "licence": "CC BY-SA 4.0",
+      "author": "Katz Ketayun",
+      "depicts": "sanganeri.tool.kalam-chisels",
+      "width": 2010,
+      "height": 3036,
+      "mime": "image/jpeg",
+      "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Carved_wooden_block.jpg",
+      "title": "Carved wooden block (Anokhi, Jaipur region; not Sanganer-specific)",
+      "licence": "CC BY-SA 4.0",
+      "author": "Katz Ketayun",
+      "depicts": "sanganeri.tool.bunta-wooden-block",
+      "width": 1591,
+      "height": 2240,
+      "mime": "image/jpeg",
+      "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Blocks_used_for_the_block_printing_of_clothes_,rajasthani_print_,Jaipur.jpg",
+      "title": "Blocks used for the block printing of clothes, Rajasthani print, Jaipur",
+      "licence": "CC BY-SA 4.0",
+      "author": "Swapnil.Karambelkar",
+      "depicts": "sanganeri.tool.rekh-datta-gadh-block-set",
+      "width": 4608,
+      "height": 2592,
+      "mime": "image/jpeg",
+      "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Hand_Printing_with_wooden_block.jpg",
+      "title": "Hand printing with wooden block (Anokhi, Jaipur region; not Sanganer-specific)",
+      "licence": "CC BY-SA 4.0",
+      "author": "Katz Ketayun",
+      "depicts": "sanganeri.process_stage.mordant-printing",
+      "width": 2000,
+      "height": 3008,
+      "mime": "image/jpeg",
+      "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Printing_with_Hand_Carved_Block.jpg",
+      "title": "Printing with hand carved block (Anokhi, Jaipur region; not Sanganer-specific)",
+      "licence": "CC BY-SA 4.0",
+      "author": "Katz Ketayun",
+      "depicts": "sanganeri.tool.printing-table-and-pad",
+      "width": 2608,
+      "height": 2000,
+      "mime": "image/jpeg",
+      "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Block_Printing_steps.jpg",
+      "title": "Block printing steps (Anokhi, Jaipur; not Sanganer-specific)",
+      "licence": "CC BY-SA 4.0",
+      "author": "Katz Ketayun",
+      "depicts": "sanganeri.artisan_decision.block-order-and-registration",
+      "width": 1151,
+      "height": 284,
+      "mime": "image/jpeg",
+      "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
+    },
+    {
+      "url": "https://commons.wikimedia.org/wiki/File:Jaipur_03-2016_11_textile_printing.jpg",
+      "title": "Interior of textile printing manufacture, Jaipur (2016; location within Jaipur not confirmed as Sanganer)",
+      "licence": "Free Art Licence (FAL)",
+      "author": "A.Savin",
+      "depicts": "sanganeri.tool.printing-table-and-pad",
+      "width": 4264,
+      "height": 2843,
+      "mime": "image/jpeg",
+      "dimensions_source": "Wikimedia Commons API imageinfo (2026-10-14)"
+    }
+  ]
+}

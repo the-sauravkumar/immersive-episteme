@@ -1,0 +1,1467 @@
+{
+  "format_version": 1,
+  "slug": "shared",
+  "name": "Shared craft science",
+  "alt_names": [
+    "Cross-tradition dyeing and printing chemistry"
+  ],
+  "region": null,
+  "gi": null,
+  "summary": "Shared scientific mechanisms and materials of Indian hand-block printing: metal-mordant complexation of anthraquinone reds, iron-tannin blacks and their fibre damage, indigo vat reduction and re-oxidation, physical resists, tannin pre-treatment, cloth preparation, sun bleaching and print-paste rheology. Mechanisms are stated only as far as the cited literature supports. Several rest on studies of other systems (Turkey red, paper, modern screen printing, pure clay films) and are flagged as analogies.",
+  "sources": [
+    {
+      "id": "S1",
+      "kind": "scientific_evidence",
+      "title": "Fiber-Safe Extraction of Red Mordant Dyes from Hair Fibers",
+      "author": "Erica J. Tiedemann; Yiqi Yang",
+      "publisher": "Journal of the American Institute for Conservation 34(3):195-206",
+      "year": 1995,
+      "url": "https://cool.culturalheritage.org/jaic/articles/jaic34-03-004_2.html",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Peer-reviewed conservation chemistry. Mordants as metal salts forming insoluble dye complexes; figure of a Ca-Al alizarin lake adapted from Kiel & Heertjes; alizarin forms six-member chelate rings with Al; acid extraction 'probably' works by replacing the metal ion with H+; large complexes likely physically trapped. Study is on hair (protein) fibres; mechanism statements are general."
+    },
+    {
+      "id": "S2",
+      "kind": "scientific_evidence",
+      "title": "Turkey red dyeing in late-19th century Glasgow: Interpreting the historical process through re-creation and chemical analysis for heritage research and conservation (PhD thesis)",
+      "author": "Julie Hodges Wertz",
+      "publisher": "University of Glasgow",
+      "year": 2017,
+      "url": "https://theses.gla.ac.uk/8183/1/2017WertzPhD.pdf",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Alum = potassium aluminium sulfate; aluminium acetate ('red liquor') considered better for cellulose; red colour is a lake of alizarin, aluminium and calcium; 27Al ssNMR shows six-fold coordinated Al on oiled-and-alumed calico and replica Turkey red; tannins chelate metals and 'probably' attract more aluminium. Context is European Turkey red (oil-mordant process), not Indian block printing."
+    },
+    {
+      "id": "S3",
+      "kind": "scientific_evidence",
+      "title": "Experimental Treatment for Black-dyed Cotton Textiles Using Japanese Adhesives Funori and Nikawa",
+      "author": "Ajla Redzic; Moe Sato; Yae Ichimiya; Hisae Watanabe; Noriko Hayakawa",
+      "publisher": "Science for Conservation (Hozon Kagaku) No. 63, Tokyo National Research Institute for Cultural Properties",
+      "year": 2024,
+      "url": "https://www.tobunken.go.jp/ccr/pdf/63/6302.pdf",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Lab study (ferrous sulfate + tannic acid on cotton). Introduction (citing earlier literature): iron + tannins give blacks/greys/browns; acidic process causing hydrolytic degradation of cellulose; iron-catalysed decomposition makes fibre weak and brittle; analogous to iron-gall-ink corrosion. Own measurement: extract pH of unaged dyed control 4.08 vs 6.85 undyed; pH falls and fragility rises with accelerated ageing. No aged undyed tensile control, so the strength loss is not isolated to iron in this study."
+    },
+    {
+      "id": "S4",
+      "kind": "scientific_evidence",
+      "title": "Microbial Communities Associated With Indigo Fermentation That Thrive in Anaerobic Alkaline Environments",
+      "author": "Keiichi Aino; Kikue Hirota; Takahiro Okamoto; Zhihao Tu; Hidetoshi Matsuyama; Isao Yumoto",
+      "publisher": "Frontiers in Microbiology 9:2196 (doi:10.3389/fmicb.2018.02196)",
+      "year": 2018,
+      "url": "https://www.frontiersin.org/journals/microbiology/articles/10.3389/fmicb.2018.02196/full",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Indigo insoluble, leucoindigo soluble; reduction by indigo-reducing bacteria or sodium dithionite; brief air exposure oxidises leucoindigo; traditional vats kept at pH > 10.3-10.5 with lime hydrate; anaerobic alkaline conditions. Japanese sukumo vats."
+    },
+    {
+      "id": "S5",
+      "kind": "scientific_evidence",
+      "title": "Influence of Cotton Pre-Treatment on Dyeing with Onion and Pomegranate Peel Extracts",
+      "author": "Lea Botteri; Anja Miljković; Martinia Ira Glogar",
+      "publisher": "Molecules 27(14):4547 (doi:10.3390/molecules27144547)",
+      "year": 2022,
+      "url": "https://mdpi-res.com/d_attachment/molecules/molecules-27-04547/article_deploy/molecules-27-04547.pdf",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Cotton impurities (pectin, proteins, organic acids, waxes, fats) give hydrophobicity; scouring removes them; most natural dyes have affinity for protein rather than cellulose fibres; mordants key for fastness; iron salts gave the most achromatic shades; pomegranate peel (28% tannins) is a tannin dye and the authors attribute part of its behaviour to tannin acting as a mordant (interpretation, not measured)."
+    },
+    {
+      "id": "S6",
+      "kind": "scientific_evidence",
+      "title": "Enzymatic desizing of cotton: a review",
+      "author": "Kiro Mojsov",
+      "publisher": "International Journal of Management, IT and Engineering 4(1)",
+      "year": 2014,
+      "url": "https://eprints.ugd.edu.mk/8773/1/ENZYMATIC%20DESIZING%20OF%20COTTON%2C%20A%20REVIEW%2C%20Mojsov%20Kiro.pdf",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Warp threads coated with sizing agent (mostly starch) to prevent breakage; size must be removed before dyeing; amylase desizing. Review in a lower-tier journal; industrial context."
+    },
+    {
+      "id": "S7",
+      "kind": "scientific_evidence",
+      "title": "The influence of mixed thickeners on printing over lyocell knitted fabric",
+      "author": "Nahida Akter; Nasrin Akter; Mahfuza Pervin; Md. Reazuddin Repon",
+      "publisher": "Heliyon 9:e14175 (doi:10.1016/j.heliyon.2023.e14175)",
+      "year": 2023,
+      "url": "https://epubl.ktu.edu/object/elaba:158662716/158662716.pdf",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Print sharpness, penetration and colour yield depend on paste viscosity and rheology; viscosity depends on the thickener; low-viscosity paste spreads and penetrates deeply; pseudoplastic paste has lower viscosity as shear rate increases; guar gum (galactomannan) pastes above 0.5% are pseudoplastic. Modern reactive-dye screen printing on lyocell: used here only as an analogue for block-printing pastes."
+    },
+    {
+      "id": "S8",
+      "kind": "scientific_evidence",
+      "title": "Bleaching cotton in textile conservation: a closer look using atomic force microscopy",
+      "author": "Rana T. A. Salem; Karen Thompson; Mahesh Uttamlal",
+      "publisher": "Heritage Science 10:195 (doi:10.1186/s40494-022-00830-2)",
+      "year": 2022,
+      "url": "https://eprints.gla.ac.uk/285903/1/285903.pdf",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Photochemical and chemical attack can yellow cotton; discolouration lessened by oxidative or reductive bleaching; bleaching generally accepted to impart damage. Does not study sunlight bleaching itself."
+    },
+    {
+      "id": "S9",
+      "kind": "scientific_evidence",
+      "title": "Comprehensive Review on Fruit of Terminalia chebula: Traditional Uses, Phytochemistry, Pharmacology, Toxicity, and Pharmacokinetics",
+      "author": "Changjian Wang et al.",
+      "publisher": "Molecules 29(23):5547 (doi:10.3390/molecules29235547)",
+      "year": 2024,
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11643145/",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Fruit tannins predominantly hydrolysable (gallotannins, ellagitannins, chebulic ellagitannins incl. chebulagic/chebulinic acid); 60 tannin compounds reported; during sunlight-drying of the fruit these degrade to gallic, ellagic and chebulic acids. No dyeing content."
+    },
+    {
+      "id": "S10",
+      "kind": "historical_documentation",
+      "title": "Indian Block-Printed Textiles: Past and Present",
+      "author": "Yael Rosenfield",
+      "publisher": "The Metropolitan Museum of Art",
+      "year": 2016,
+      "url": "https://www.metmuseum.org/perspectives/indian-block-printed-textiles",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Met Perspectives article dated 15 Nov 2016 (author role not stated on page). Cleaning with camel dung, castor oil, soda ash, sun bleaching 'by oxidation'; myrobalan (harde) as mordant precursor; alum paste fixes red only where printed; on the 13th-14th c. Met fragment the darker purple was printed with iron acetate from fermented scrap iron which with myrobalan caused fibre loss; Dabu mud resist with crack lines; indigo oxidises on air exposure; Indian red dye plants (Al, munjeet, chay); synthetic alizarin and indigo common today."
+    },
+    {
+      "id": "S11",
+      "kind": "historical_documentation",
+      "title": "Chintz (process sample), museum no. T.1-1920",
+      "author": "Victoria and Albert Museum",
+      "publisher": "V&A Collections",
+      "year": 1920,
+      "url": "https://collections.vam.ac.uk/item/O472037/chintz-unknown",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Coromandel Coast process: alum and iron mordants applied by kalam; chay-root bath gives red on alum and black on iron; wax resist for indigo; cloth washed and bleached between colours. Year is acquisition (made c.1919)."
+    },
+    {
+      "id": "S12",
+      "kind": "researcher_interpretation",
+      "title": "Charting Chintz: Making the Fabric",
+      "author": "Alka Raman",
+      "publisher": "Winterthur Museum, Garden & Library",
+      "year": 2020,
+      "url": "https://www.winterthur.org/charting-chintz-making-the-fabric/",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Experimental reconstruction (Beaulieu manuscript): scouring, myrobalan and milk soaks, alum (red) and iron-water (black) outlines, madder bath under 60 C, repeated dunging and sun bleaching (sun lamps substituted). Year approximate (page shows 2020-2026 copyright)."
+    },
+    {
+      "id": "S13",
+      "kind": "historical_documentation",
+      "title": "Dyeing cotton fabrics is an ancient Indian art",
+      "author": "Amit Mitra",
+      "publisher": "Down To Earth",
+      "year": 1992,
+      "url": "https://www.downtoearth.org.in/amp/story/environment/dyeing-cotton-fabrics-is-an-ancient-indian-art-30445",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Science journalism (published 15 Dec 1992). For madder, cloth first dipped in tannic solution then mordanted; alum gives red, iron acetate black; in contemporary Masulipatnam iron acetate replaced indigo for large black areas despite its known corrosive qualities; indigo reduced by fermentation to soluble indigo white and fixed by air oxidation; resists of gum and mud or wax."
+    },
+    {
+      "id": "S14",
+      "kind": "historical_documentation",
+      "title": "Block printing the impermeable clay Dabu",
+      "author": "Craft Revival Trust",
+      "publisher": "Google Arts & Culture (Craft Revival Trust archive)",
+      "year": 2009,
+      "url": "https://artsandculture.google.com/asset/qAHdern7Ol5QrQ",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Archive caption (Craft Revival Trust, 2009, Deesa, Gujarat): Dabu paste of dried river-bed silt, local natural gum, lime, sugar-cane molasses and water, kneaded several days and strained; sawdust sprinkled; sun-dried till hard; dip-dyed; repeated per colour. Documentation of one workshop, not chemical analysis."
+    },
+    {
+      "id": "S15",
+      "kind": "scientific_evidence",
+      "title": "Effects of Aqueous Light Bleaching on the Subsequent Aging of Paper",
+      "author": "Terry Trosper Schaeffer; Mary T. Baker; Victoria Blyth-Hill; Dianne van der Reyden",
+      "publisher": "Journal of the American Institute for Conservation 31(3):289-311",
+      "year": 1992,
+      "url": "https://cool.culturalheritage.org/jaic/articles/jaic31-03-003_1.html",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Peer-reviewed conservation science on light bleaching of wet (immersed) paper, by sunlight or lamps. Mechanism statement: a chromophore absorbs light and is converted to a reactive peroxide or free radical, which causes (usually oxidative) change; chromophores become colourless products; light can also degrade paper components. Paper, not cotton cloth: analogue only for Indian sun bleaching."
+    },
+    {
+      "id": "S16",
+      "kind": "scientific_evidence",
+      "title": "Production and validation of model iron-tannate dyed textiles for use as historic textile substitutes in stabilisation treatment studies",
+      "author": "Helen Wilson; Chris Carr; Marei Hacke",
+      "publisher": "Chemistry Central Journal 6:44 (doi:10.1186/1752-153X-6-44)",
+      "year": 2012,
+      "url": "https://bmcchem.biomedcentral.com/articles/10.1186/1752-153X-6-44",
+      "accessed": "2026-10-14",
+      "reliability": "high",
+      "notes": "Peer-reviewed, with undyed controls. Fe(II) + hydrolysable tannins form blue-black iron(III)-tannate, colour from Fe(III)-O charge transfer; cellulose can bind tannic acid (H-bonding) and metal ions; dyed textiles surface pH 2.65-3.91 vs 5.36-7.46 undyed; dyed cotton lost tensile strength faster and more than undyed during accelerated ageing (80 C, 58% RH), attributed to acid hydrolysis and metal-catalysed oxidation. Model dyes from iron salt + tannic acid, not Indian iron acetate/myrobalan."
+    },
+    {
+      "id": "S17",
+      "kind": "scientific_evidence",
+      "title": "Topology of desiccation crack patterns in clay and invariance of crack interface area with thickness",
+      "author": "Tajkera Khatun; Tapati Dutta; Sujata Tarafdar",
+      "publisher": "arXiv:1412.2842 (preprint); published in The European Physical Journal E (2015), doi:10.1140/epje/i2015-15083-6",
+      "year": 2014,
+      "url": "https://arxiv.org/abs/1412.2842",
+      "accessed": "2026-10-14",
+      "reliability": "medium",
+      "notes": "Fetched the arXiv preprint (published version not read). Drying clay (bentonite) slurry films on glass: below a critical cracking thickness films dry without cracking; crack spacing is of the order of film thickness; thicker layers give fewer, wider cracks; composition, drying rate, humidity, substrate affect patterns. Pure clay on glass, not Dabu on cloth: physical analogue only."
+    }
+  ],
+  "concepts": [
+    {
+      "key": "shared.scientific_mechanism.alum-mordant-complexation",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Aluminium (alum) mordant complexation",
+      "summary": "Mordants are metal salts that form an insoluble complex with dye molecules.",
+      "body_md": "Mordants are metal salts that form an insoluble complex with dye molecules. [S1]\n\nIn Indian block printing, a paste of the mordant alum fixes the red dye to the cotton only where the paste was applied. [S10]\n\n27Al solid-state NMR of oiled-and-alumed calico and replica Turkey red indicates aluminium in a six-fold coordination complex with oxygen; aluminium not in the lake likely remains as carboxylates. [S2]\n\nIn the Turkey red process, the purpose of the alum or aluminium acetate bath is to imbue the oiled cotton with aluminium ions, the basis of the colour complex formed in dyeing. [S2]\n\nMordants were found to be of key importance for the fastness of natural dyes on cotton. [S5]",
+      "local_terms": [],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Mordants are metal salts that form an insoluble complex with dye molecules.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "In Indian block printing, a paste of the mordant alum fixes the red dye to the cotton only where the paste was applied.",
+          "source_ids": [
+            "S10"
+          ],
+          "quote": "the mordant alum, which fixes the red dye to the cotton fiber, but only in the areas where it was applied"
+        },
+        {
+          "text": "27Al solid-state NMR of oiled-and-alumed calico and replica Turkey red indicates aluminium in a six-fold coordination complex with oxygen; aluminium not in the lake likely remains as carboxylates.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "In the Turkey red process, the purpose of the alum or aluminium acetate bath is to imbue the oiled cotton with aluminium ions, the basis of the colour complex formed in dyeing.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Mordants were found to be of key importance for the fastness of natural dyes on cotton.",
+          "source_ids": [
+            "S5"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.scientific_mechanism.alizarin-lake-formation",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Alizarin (madder) metal-lake formation",
+      "summary": "The red colour complex is a lake of alizarin, aluminium and calcium; other hydroxy-anthraquinone dyes also complex.",
+      "body_md": "The red colour complex is a lake of alizarin, aluminium and calcium; other hydroxy-anthraquinone dyes also complex. [S2]\n\nAlizarin molecules can form six-member chelate rings with aluminium ions; large complexes may be partly physically trapped within the fibre. [S1]\n\nStrong-acid extraction probably releases the dye by replacing the metal ion with hydrogen ions. [S1]\n\nIn Coromandel chintz, chay root reacts with alum mordant to give red and with iron mordant to give black. [S11]\n\nAlum gives red when used with madder; iron acetate gives black. [S13]\n\nOn a 13th-14th-century Indian block-printed fragment at the Met, the darker purple area had been printed with iron acetate before the red dye bath. [S10]\n\nIndian red dyes (Morinda citrifolia/Al, Rubia cordifolia/munjeet, chay root) are chemically different from dyer's madder; most artisans now use synthetic alizarin. [S10]",
+      "local_terms": [
+        "Al",
+        "munjeet",
+        "chay"
+      ],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "The red colour complex is a lake of alizarin, aluminium and calcium; other hydroxy-anthraquinone dyes also complex.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Alizarin molecules can form six-member chelate rings with aluminium ions; large complexes may be partly physically trapped within the fibre.",
+          "source_ids": [
+            "S1"
+          ],
+          "quote": "The alizarin molecules are capable of forming six-member chelate rings with aluminum ions."
+        },
+        {
+          "text": "Strong-acid extraction probably releases the dye by replacing the metal ion with hydrogen ions.",
+          "source_ids": [
+            "S1"
+          ]
+        },
+        {
+          "text": "In Coromandel chintz, chay root reacts with alum mordant to give red and with iron mordant to give black.",
+          "source_ids": [
+            "S11"
+          ]
+        },
+        {
+          "text": "Alum gives red when used with madder; iron acetate gives black.",
+          "source_ids": [
+            "S13"
+          ]
+        },
+        {
+          "text": "On a 13th-14th-century Indian block-printed fragment at the Met, the darker purple area had been printed with iron acetate before the red dye bath.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Indian red dyes (Morinda citrifolia/Al, Rubia cordifolia/munjeet, chay root) are chemically different from dyer's madder; most artisans now use synthetic alizarin.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.scientific_mechanism.iron-tannin-black",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Iron-tannin black and iron-catalysed fibre degradation",
+      "summary": "Iron mordant and tannins have long been combined to achieve deep blacks, greys and browns.",
+      "body_md": "Iron mordant and tannins have long been combined to achieve deep blacks, greys and browns. [S3]\n\nIron-mordant dyeing with tannins is an acidic process causing hydrolytic degradation of cellulose; the iron-catalysed reaction makes the fibre weak and brittle. [S3]\n\nIron-tannate-dyed cotton had an extract pH of 4.08 against 6.85 for undyed cotton; pH decreased with accelerated ageing and the longest-aged samples were extremely fragile. [S3]\n\nOn a Met Indian block-printed fragment, iron acetate made from fermented scrap iron, together with myrobalan tannin, formed a corrosive dye that caused fibre loss. [S10]\n\nIn contemporary Masulipatnam kalamkari, iron acetate is used for black outlines and has replaced indigo for large black areas, despite its known corrosive qualities. [S13]\n\nAmong aluminium, copper and iron mordants on cotton, iron gave the most achromatic (dull, dark) shades. [S5]\n\nFerrous ions with hydrolysable tannins form blue-black iron(III)-tannate complexes; the colour is due to reversible charge transfer across the Fe(III)-O bond. [S16]\n\nModel iron-tannate-dyed cotton was acidic (surface pH 2.65-3.91 vs 5.36-7.46 undyed) and lost tensile strength faster and more than undyed controls in accelerated ageing. [S16]\n\nThe degradation is attributed to acid hydrolysis and metal-catalysed oxidation. [S16]",
+      "local_terms": [],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Iron mordant and tannins have long been combined to achieve deep blacks, greys and browns.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "Iron-mordant dyeing with tannins is an acidic process causing hydrolytic degradation of cellulose; the iron-catalysed reaction makes the fibre weak and brittle.",
+          "source_ids": [
+            "S3"
+          ],
+          "quote": "the iron-catalyst reaction decomposes the fibre, making it weak and brittle"
+        },
+        {
+          "text": "Iron-tannate-dyed cotton had an extract pH of 4.08 against 6.85 for undyed cotton; pH decreased with accelerated ageing and the longest-aged samples were extremely fragile.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "On a Met Indian block-printed fragment, iron acetate made from fermented scrap iron, together with myrobalan tannin, formed a corrosive dye that caused fibre loss.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "In contemporary Masulipatnam kalamkari, iron acetate is used for black outlines and has replaced indigo for large black areas, despite its known corrosive qualities.",
+          "source_ids": [
+            "S13"
+          ]
+        },
+        {
+          "text": "Among aluminium, copper and iron mordants on cotton, iron gave the most achromatic (dull, dark) shades.",
+          "source_ids": [
+            "S5"
+          ]
+        },
+        {
+          "text": "Ferrous ions with hydrolysable tannins form blue-black iron(III)-tannate complexes; the colour is due to reversible charge transfer across the Fe(III)-O bond.",
+          "source_ids": [
+            "S16"
+          ]
+        },
+        {
+          "text": "Model iron-tannate-dyed cotton was acidic (surface pH 2.65-3.91 vs 5.36-7.46 undyed) and lost tensile strength faster and more than undyed controls in accelerated ageing.",
+          "source_ids": [
+            "S16"
+          ]
+        },
+        {
+          "text": "The degradation is attributed to acid hydrolysis and metal-catalysed oxidation.",
+          "source_ids": [
+            "S16"
+          ],
+          "quote": "suggesting that the degradation has occurred by acid hydrolysis and metal-catalysed oxidation"
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.scientific_mechanism.indigo-vat-reduction",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Indigo vat reduction and air re-oxidation",
+      "summary": "Indigo is not soluble in water whereas leucoindigo is; indigo is transformed to leucoindigo by indigo-reducing bacteria.",
+      "body_md": "Indigo is not soluble in water whereas leucoindigo is; indigo is transformed to leucoindigo by indigo-reducing bacteria. [S4]\n\nFermentation reduction has in many operations been replaced by chemical reduction with sodium dithionite. [S4]\n\nTraditional indigo fermentation is kept under anaerobic, high-pH conditions, above pH 10.3-10.5 using lime hydrate. [S4]\n\nDyed textiles are briefly exposed to air to oxidise leucoindigo back to indigo. [S4]\n\nIn Indian resist-dyed cloth, the dye oxidises to the insoluble blue form on exposure to air, adhering to the fibres. [S10]\n\nIndigo is reduced to soluble 'indigo white' for dyeing and fixed to the fibre by air oxidation. [S13]",
+      "local_terms": [],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Indigo is not soluble in water whereas leucoindigo is; indigo is transformed to leucoindigo by indigo-reducing bacteria.",
+          "source_ids": [
+            "S4"
+          ],
+          "quote": "Although indigo is not soluble in water, leucoindigo is soluble in water."
+        },
+        {
+          "text": "Fermentation reduction has in many operations been replaced by chemical reduction with sodium dithionite.",
+          "source_ids": [
+            "S4"
+          ]
+        },
+        {
+          "text": "Traditional indigo fermentation is kept under anaerobic, high-pH conditions, above pH 10.3-10.5 using lime hydrate.",
+          "source_ids": [
+            "S4"
+          ]
+        },
+        {
+          "text": "Dyed textiles are briefly exposed to air to oxidise leucoindigo back to indigo.",
+          "source_ids": [
+            "S4"
+          ]
+        },
+        {
+          "text": "In Indian resist-dyed cloth, the dye oxidises to the insoluble blue form on exposure to air, adhering to the fibres.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Indigo is reduced to soluble 'indigo white' for dyeing and fixed to the fibre by air oxidation.",
+          "source_ids": [
+            "S13"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.scientific_mechanism.mud-resist-barrier",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Mud-resist barrier and crackle",
+      "summary": "The most common resist for indigo today is a mud paste called Dabu, which often shows characteristic crack lines where the dye penetrated cracks in the resist.",
+      "body_md": "The most common resist for indigo today is a mud paste called Dabu, which often shows characteristic crack lines where the dye penetrated cracks in the resist. [S10]\n\nA documented Dabu paste is made of river-bed silt, a local natural gum, lime, cane molasses and water, kneaded for several days, printed, covered with sawdust and sun-dried until hard before dip dyeing. [S14]\n\nResists in Indian cotton printing were made from gum and mud or from wax. [S13]\n\nCiting earlier studies, the paper notes that drying clay films have a critical cracking thickness below which they dry without cracking, and that average crack spacing is of the order of the film thickness. [S17]\n\nCiting earlier work, the paper notes that in thicker clay layers cracks are generally fewer in number but wider on average. [S17]",
+      "local_terms": [
+        "dabu"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "The most common resist for indigo today is a mud paste called Dabu, which often shows characteristic crack lines where the dye penetrated cracks in the resist.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "A documented Dabu paste is made of river-bed silt, a local natural gum, lime, cane molasses and water, kneaded for several days, printed, covered with sawdust and sun-dried until hard before dip dyeing.",
+          "source_ids": [
+            "S14"
+          ]
+        },
+        {
+          "text": "Resists in Indian cotton printing were made from gum and mud or from wax.",
+          "source_ids": [
+            "S13"
+          ]
+        },
+        {
+          "text": "Citing earlier studies, the paper notes that drying clay films have a critical cracking thickness below which they dry without cracking, and that average crack spacing is of the order of the film thickness.",
+          "source_ids": [
+            "S17"
+          ]
+        },
+        {
+          "text": "Citing earlier work, the paper notes that in thicker clay layers cracks are generally fewer in number but wider on average.",
+          "source_ids": [
+            "S17"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.scientific_mechanism.tannin-pre-mordanting",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Tannin (myrobalan) pre-mordanting of cotton",
+      "summary": "Tannins are polyphenolic compounds with many -OH groups that chelate metals; they were known to improve colour uptake by attracting more mordant and probably served as a secondary mordant attracting aluminium.",
+      "body_md": "Tannins are polyphenolic compounds with many -OH groups that chelate metals; they were known to improve colour uptake by attracting more mordant and probably served as a secondary mordant attracting aluminium. [S2]\n\nMyrobalan (harde), a strong tannin from the fruit of the chebulic myrobalan, has traditionally been used as a mordant in India, applied as a precursor to dyeing. [S10]\n\nFor madder dyeing, cloth is first dipped in a tannic solution and mordants are then applied. [S13]\n\nMost natural dyes have natural affinity for protein rather than cellulose fibres, which makes dyeing cotton problematic. [S5]\n\nThe authors attribute the behaviour of a tannin-rich extract (pomegranate peel, 28% tannins) on cotton partly to tannin behaving as a mordant. [S5]\n\nChintz reconstruction began with scouring, myrobalan soak and boil, and a myrobalan-and-milk soak before mordant outlining. [S12]\n\nThe carbonyl, carboxyl and hydroxyl groups of cellulosic materials can bind tannic acid by hydrogen bonding, and can also bind metal ions. [S16]",
+      "local_terms": [
+        "harde"
+      ],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Tannins are polyphenolic compounds with many -OH groups that chelate metals; they were known to improve colour uptake by attracting more mordant and probably served as a secondary mordant attracting aluminium.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Myrobalan (harde), a strong tannin from the fruit of the chebulic myrobalan, has traditionally been used as a mordant in India, applied as a precursor to dyeing.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "For madder dyeing, cloth is first dipped in a tannic solution and mordants are then applied.",
+          "source_ids": [
+            "S13"
+          ]
+        },
+        {
+          "text": "Most natural dyes have natural affinity for protein rather than cellulose fibres, which makes dyeing cotton problematic.",
+          "source_ids": [
+            "S5"
+          ]
+        },
+        {
+          "text": "The authors attribute the behaviour of a tannin-rich extract (pomegranate peel, 28% tannins) on cotton partly to tannin behaving as a mordant.",
+          "source_ids": [
+            "S5"
+          ]
+        },
+        {
+          "text": "Chintz reconstruction began with scouring, myrobalan soak and boil, and a myrobalan-and-milk soak before mordant outlining.",
+          "source_ids": [
+            "S12"
+          ]
+        },
+        {
+          "text": "The carbonyl, carboxyl and hydroxyl groups of cellulosic materials can bind tannic acid by hydrogen bonding, and can also bind metal ions.",
+          "source_ids": [
+            "S16"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.scientific_mechanism.sun-bleaching",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Sun bleaching of the ground",
+      "summary": "Cleaning treatments are repeated several times, interspersed with laying the cloth in the sun to be bleached by oxidation.",
+      "body_md": "Cleaning treatments are repeated several times, interspersed with laying the cloth in the sun to be bleached by oxidation. [S10]\n\nIn chintz production the cloth is washed and bleached between each colour. [S11]\n\nA chintz reconstruction substituted full-spectrum sun lamps for sunlight in repeated dunging-and-bleaching steps. [S12]\n\nPhotochemical and chemical attack can yellow cotton; such discolouration can be lessened by oxidative or reductive bleaching, which is generally accepted to impart damage. [S8]\n\nIn light bleaching, a chromophore absorbs light energy and is converted to a reactive peroxide or free radical, which causes chemical change, usually oxidation. [S15]\n\nLight-bleached chromophores are altered to colourless products that may or may not be removed from the wet substrate; aqueous light bleaching can use sunlight. [S15]\n\nAmple sunlight for bleaching was a fixed constraint of the Indian chintz process that early European printers had to overcome. [S12]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Cleaning treatments are repeated several times, interspersed with laying the cloth in the sun to be bleached by oxidation.",
+          "source_ids": [
+            "S10"
+          ],
+          "quote": "interspersed with laying in the sun to be bleached by oxidation"
+        },
+        {
+          "text": "In chintz production the cloth is washed and bleached between each colour.",
+          "source_ids": [
+            "S11"
+          ]
+        },
+        {
+          "text": "A chintz reconstruction substituted full-spectrum sun lamps for sunlight in repeated dunging-and-bleaching steps.",
+          "source_ids": [
+            "S12"
+          ]
+        },
+        {
+          "text": "Photochemical and chemical attack can yellow cotton; such discolouration can be lessened by oxidative or reductive bleaching, which is generally accepted to impart damage.",
+          "source_ids": [
+            "S8"
+          ]
+        },
+        {
+          "text": "In light bleaching, a chromophore absorbs light energy and is converted to a reactive peroxide or free radical, which causes chemical change, usually oxidation.",
+          "source_ids": [
+            "S15"
+          ],
+          "quote": "The bleaching reactions proceed via absorption of light energy by a chromophore, which is then converted to a reactive peroxide or free radical"
+        },
+        {
+          "text": "Light-bleached chromophores are altered to colourless products that may or may not be removed from the wet substrate; aqueous light bleaching can use sunlight.",
+          "source_ids": [
+            "S15"
+          ]
+        },
+        {
+          "text": "Ample sunlight for bleaching was a fixed constraint of the Indian chintz process that early European printers had to overcome.",
+          "source_ids": [
+            "S12"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.scientific_mechanism.thickened-print-paste-rheology",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Thickened print-paste rheology",
+      "summary": "Sharpness, penetration, levelness, colour yield and retained white ground heavily rely on print-paste viscosity and rheological behaviour; viscosity depends on the thickener.",
+      "body_md": "Sharpness, penetration, levelness, colour yield and retained white ground heavily rely on print-paste viscosity and rheological behaviour; viscosity depends on the thickener. [S7]\n\nLow-viscosity printing paste causes spreading, deep penetration and flushing of colour. [S7]\n\nGuar gum is a galactomannan whose pastes above 0.5% are pseudoplastic, favourable for printing. [S7]\n\nDabu resist paste includes a local natural gum. [S14]\n\nIndian resists were made from combinations of gum and mud, or from wax. [S13]",
+      "local_terms": [],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Sharpness, penetration, levelness, colour yield and retained white ground heavily rely on print-paste viscosity and rheological behaviour; viscosity depends on the thickener.",
+          "source_ids": [
+            "S7"
+          ]
+        },
+        {
+          "text": "Low-viscosity printing paste causes spreading, deep penetration and flushing of colour.",
+          "source_ids": [
+            "S7"
+          ],
+          "quote": "Low-viscous printing paste is responsible for spreading, deep penetration, and flushing of the colour"
+        },
+        {
+          "text": "Guar gum is a galactomannan whose pastes above 0.5% are pseudoplastic, favourable for printing.",
+          "source_ids": [
+            "S7"
+          ]
+        },
+        {
+          "text": "Dabu resist paste includes a local natural gum.",
+          "source_ids": [
+            "S14"
+          ]
+        },
+        {
+          "text": "Indian resists were made from combinations of gum and mud, or from wax.",
+          "source_ids": [
+            "S13"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.scientific_mechanism.scouring-and-desizing",
+      "type": "scientific_mechanism",
+      "category": "scientific_mechanisms",
+      "title": "Scouring and desizing of cotton",
+      "summary": "Warp threads are coated with a sizing agent, most commonly starch, which must be removed before dyeing and finishing.",
+      "body_md": "Warp threads are coated with a sizing agent, most commonly starch, which must be removed before dyeing and finishing. [S6]\n\nImpurities in the cotton primary wall (pectin, proteins, organic acids) and cuticle (waxes, fats) give hydrophobicity; scouring removes them. [S5]\n\nCotton pre-treatments significantly influence colour appearance and fastness. [S5]\n\nIndian block-printing preparation immerses cloth in camel dung, castor oil, soda ash and water, with trampling and beating, to remove impurities and prepare the fibre to receive dye. [S10]",
+      "local_terms": [],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Warp threads are coated with a sizing agent, most commonly starch, which must be removed before dyeing and finishing.",
+          "source_ids": [
+            "S6"
+          ]
+        },
+        {
+          "text": "Impurities in the cotton primary wall (pectin, proteins, organic acids) and cuticle (waxes, fats) give hydrophobicity; scouring removes them.",
+          "source_ids": [
+            "S5"
+          ]
+        },
+        {
+          "text": "Cotton pre-treatments significantly influence colour appearance and fastness.",
+          "source_ids": [
+            "S5"
+          ]
+        },
+        {
+          "text": "Indian block-printing preparation immerses cloth in camel dung, castor oil, soda ash and water, with trampling and beating, to remove impurities and prepare the fibre to receive dye.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.material.alum",
+      "type": "material",
+      "category": "materials",
+      "title": "Alum (potassium aluminium sulfate)",
+      "summary": "Alum is potassium aluminium sulfate; aluminium acetate made as 'red liquor' was also used and is supposed to be better for cellulosic fibres.",
+      "body_md": "Alum is potassium aluminium sulfate; aluminium acetate made as 'red liquor' was also used and is supposed to be better for cellulosic fibres. [S2]\n\nAlum is printed as a paste and fixes red only where applied. [S10]",
+      "local_terms": [],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Alum is potassium aluminium sulfate; aluminium acetate made as 'red liquor' was also used and is supposed to be better for cellulosic fibres.",
+          "source_ids": [
+            "S2"
+          ]
+        },
+        {
+          "text": "Alum is printed as a paste and fixes red only where applied.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.material.iron-acetate-solution",
+      "type": "material",
+      "category": "materials",
+      "title": "Iron acetate solution (iron liquor)",
+      "summary": "Iron acetate made of fermented scrap iron is printed as a paste.",
+      "body_md": "Iron acetate made of fermented scrap iron is printed as a paste. [S10]\n\nIron acetate gives black and has known corrosive qualities (contemporary Masulipatnam). [S13]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Iron acetate made of fermented scrap iron is printed as a paste.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Iron acetate gives black and has known corrosive qualities (contemporary Masulipatnam).",
+          "source_ids": [
+            "S13"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.material.madder-or-alizarin",
+      "type": "material",
+      "category": "materials",
+      "title": "Madder-family red dyes / alizarin",
+      "summary": "Indian red dyes are from the Rubiaceae (Morinda citrifolia/Al, Rubia cordifolia/munjeet, chay root) and differ chemically from Rubia tinctorum; synthetic alizarin is now common.",
+      "body_md": "Indian red dyes are from the Rubiaceae (Morinda citrifolia/Al, Rubia cordifolia/munjeet, chay root) and differ chemically from Rubia tinctorum; synthetic alizarin is now common. [S10]\n\nAlizarin and related hydroxy-anthraquinones form the dye component of the red lake. [S2]",
+      "local_terms": [
+        "Al",
+        "munjeet",
+        "chay"
+      ],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Indian red dyes are from the Rubiaceae (Morinda citrifolia/Al, Rubia cordifolia/munjeet, chay root) and differ chemically from Rubia tinctorum; synthetic alizarin is now common.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Alizarin and related hydroxy-anthraquinones form the dye component of the red lake.",
+          "source_ids": [
+            "S2"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.material.indigo",
+      "type": "material",
+      "category": "materials",
+      "title": "Indigo",
+      "summary": "Indigo is not soluble in water and must be reduced to leucoindigo to dye.",
+      "body_md": "Indigo is not soluble in water and must be reduced to leucoindigo to dye. [S4]\n\nIndigo comes from Indigofera tinctoria. [S13]\n\nSynthesised indigo is now more often used in traditional Indian processes. [S10]",
+      "local_terms": [],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Indigo is not soluble in water and must be reduced to leucoindigo to dye.",
+          "source_ids": [
+            "S4"
+          ]
+        },
+        {
+          "text": "Indigo comes from Indigofera tinctoria.",
+          "source_ids": [
+            "S13"
+          ]
+        },
+        {
+          "text": "Synthesised indigo is now more often used in traditional Indian processes.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.material.myrobalan-harda",
+      "type": "material",
+      "category": "materials",
+      "title": "Myrobalan (harda, Terminalia chebula fruit)",
+      "summary": "Tannins in Terminalia chebula fruit are predominantly hydrolysable tannins: gallotannins, ellagitannins and chebulic ellagitannins.",
+      "body_md": "Tannins in Terminalia chebula fruit are predominantly hydrolysable tannins: gallotannins, ellagitannins and chebulic ellagitannins. [S9]\n\nMyrobalan (harde) is a strong tannin traditionally used as a mordant in India. [S10]",
+      "local_terms": [
+        "harde"
+      ],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Tannins in Terminalia chebula fruit are predominantly hydrolysable tannins: gallotannins, ellagitannins and chebulic ellagitannins.",
+          "source_ids": [
+            "S9"
+          ]
+        },
+        {
+          "text": "Myrobalan (harde) is a strong tannin traditionally used as a mordant in India.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.material.cotton-cellulose",
+      "type": "material",
+      "category": "materials",
+      "title": "Cotton (cellulose) cloth",
+      "summary": "Raw cotton carries hydrophobic waxes, fats and pectins; most natural dyes have affinity for protein rather than cellulose fibres.",
+      "body_md": "Raw cotton carries hydrophobic waxes, fats and pectins; most natural dyes have affinity for protein rather than cellulose fibres. [S5]\n\nCellulose undergoes acid hydrolysis and iron-catalysed degradation in iron-tannate dyeings. [S3]\n\nIron-tannate-dyed cotton lost tensile strength faster than undyed cotton during accelerated ageing. [S16]",
+      "local_terms": [],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Raw cotton carries hydrophobic waxes, fats and pectins; most natural dyes have affinity for protein rather than cellulose fibres.",
+          "source_ids": [
+            "S5"
+          ]
+        },
+        {
+          "text": "Cellulose undergoes acid hydrolysis and iron-catalysed degradation in iron-tannate dyeings.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "Iron-tannate-dyed cotton lost tensile strength faster than undyed cotton during accelerated ageing.",
+          "source_ids": [
+            "S16"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.material.gum-arabic-or-natural-gum",
+      "type": "material",
+      "category": "materials",
+      "title": "Natural gum thickener",
+      "summary": "Dabu resist paste contains a local natural gum.",
+      "body_md": "Dabu resist paste contains a local natural gum. [S14]\n\nGuar gum is a natural galactomannan hydrocolloid used as a printing thickener. [S7]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Dabu resist paste contains a local natural gum.",
+          "source_ids": [
+            "S14"
+          ]
+        },
+        {
+          "text": "Guar gum is a natural galactomannan hydrocolloid used as a printing thickener.",
+          "source_ids": [
+            "S7"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.material.lime",
+      "type": "material",
+      "category": "materials",
+      "title": "Lime (calcium hydroxide)",
+      "summary": "Indigo fermentation is maintained above pH 10.3-10.5 by adding lime hydrate.",
+      "body_md": "Indigo fermentation is maintained above pH 10.3-10.5 by adding lime hydrate. [S4]\n\nLime is an ingredient of Dabu resist paste. [S14]",
+      "local_terms": [],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Indigo fermentation is maintained above pH 10.3-10.5 by adding lime hydrate.",
+          "source_ids": [
+            "S4"
+          ]
+        },
+        {
+          "text": "Lime is an ingredient of Dabu resist paste.",
+          "source_ids": [
+            "S14"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.material.clay-or-silt",
+      "type": "material",
+      "category": "materials",
+      "title": "Clay / river silt (resist base)",
+      "summary": "Dabu paste is based on silt from a dried river bed.",
+      "body_md": "Dabu paste is based on silt from a dried river bed. [S14]\n\nThe resist used for indigo is a mud paste. [S10]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Dabu paste is based on silt from a dried river bed.",
+          "source_ids": [
+            "S14"
+          ]
+        },
+        {
+          "text": "The resist used for indigo is a mud paste.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.outcome.mordant-red",
+      "type": "outcome",
+      "category": "production_outcomes",
+      "title": "Mordant red",
+      "summary": "Chay root with alum mordant gives red.",
+      "body_md": "Chay root with alum mordant gives red. [S11]\n\nAlum paste fixes the red dye only where it was applied. [S10]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Chay root with alum mordant gives red.",
+          "source_ids": [
+            "S11"
+          ]
+        },
+        {
+          "text": "Alum paste fixes the red dye only where it was applied.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.outcome.iron-black",
+      "type": "outcome",
+      "category": "production_outcomes",
+      "title": "Iron black / dark purple",
+      "summary": "Chay root with iron mordant gives black.",
+      "body_md": "Chay root with iron mordant gives black. [S11]\n\nOn a Met Indian block-printed fragment, iron acetate with myrobalan gave a darker purple shade and caused fibre loss. [S10]\n\nIron with tannins gives deep blacks, greys and browns. [S3]\n\nFerrous ions with hydrolysable tannins form blue-black iron(III)-tannate. [S16]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Chay root with iron mordant gives black.",
+          "source_ids": [
+            "S11"
+          ]
+        },
+        {
+          "text": "On a Met Indian block-printed fragment, iron acetate with myrobalan gave a darker purple shade and caused fibre loss.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Iron with tannins gives deep blacks, greys and browns.",
+          "source_ids": [
+            "S3"
+          ]
+        },
+        {
+          "text": "Ferrous ions with hydrolysable tannins form blue-black iron(III)-tannate.",
+          "source_ids": [
+            "S16"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.outcome.indigo-blue",
+      "type": "outcome",
+      "category": "production_outcomes",
+      "title": "Indigo blue",
+      "summary": "On exposure to air the dye oxidises to the insoluble blue form adhering to the fibres.",
+      "body_md": "On exposure to air the dye oxidises to the insoluble blue form adhering to the fibres. [S10]\n\nBrief air exposure oxidises leucoindigo on the textile. [S4]",
+      "local_terms": [],
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "On exposure to air the dye oxidises to the insoluble blue form adhering to the fibres.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Brief air exposure oxidises leucoindigo on the textile.",
+          "source_ids": [
+            "S4"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.outcome.crackle-lines",
+      "type": "outcome",
+      "category": "production_outcomes",
+      "title": "Crackle lines in resisted areas",
+      "summary": "Dabu-resisted cloth often shows crack lines where dye penetrated cracks in the resist.",
+      "body_md": "Dabu-resisted cloth often shows crack lines where dye penetrated cracks in the resist. [S10]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "claims": [
+        {
+          "text": "Dabu-resisted cloth often shows crack lines where dye penetrated cracks in the resist.",
+          "source_ids": [
+            "S10"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.open_question.iron-anthraquinone-colour-chemistry",
+      "type": "open_question",
+      "category": "open_questions",
+      "title": "What complex gives the black/purple of iron under Indian red dyes?",
+      "summary": "Chay with iron mordant gives black.",
+      "body_md": "Chay with iron mordant gives black. [S11]\n\nIron acetate with myrobalan tannin produced a darker purple after the red bath. [S10]\n\nIron with tannins alone gives blacks, greys and browns. [S3]",
+      "local_terms": [],
+      "provenance_kind": "hypothesis",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Chay with iron mordant gives black.",
+          "source_ids": [
+            "S11"
+          ]
+        },
+        {
+          "text": "Iron acetate with myrobalan tannin produced a darker purple after the red bath.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Iron with tannins alone gives blacks, greys and browns.",
+          "source_ids": [
+            "S3"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
+      "key": "shared.open_question.sun-bleaching-photochemistry",
+      "type": "open_question",
+      "category": "open_questions",
+      "title": "Photochemistry of traditional sun bleaching",
+      "summary": "Sun exposure bleaches the cloth by oxidation.",
+      "body_md": "Sun exposure bleaches the cloth by oxidation. [S10]\n\nBleaching is generally accepted to impart damage to cotton. [S8]\n\nIn light bleaching of paper, light absorbed by chromophores generates reactive peroxides or free radicals that oxidise them. [S15]",
+      "local_terms": [],
+      "provenance_kind": "hypothesis",
+      "verification_state": "needs_evidence",
+      "claims": [
+        {
+          "text": "Sun exposure bleaches the cloth by oxidation.",
+          "source_ids": [
+            "S10"
+          ]
+        },
+        {
+          "text": "Bleaching is generally accepted to impart damage to cotton.",
+          "source_ids": [
+            "S8"
+          ]
+        },
+        {
+          "text": "In light bleaching of paper, light absorbed by chromophores generates reactive peroxides or free radicals that oxidise them.",
+          "source_ids": [
+            "S15"
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    }
+  ],
+  "relationships": [
+    {
+      "source": "shared.scientific_mechanism.alum-mordant-complexation",
+      "target": "shared.material.alum",
+      "type": "DEPENDS_ON",
+      "explanation": "Complexation requires aluminium ions supplied by alum or aluminium acetate.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.alum-mordant-complexation",
+      "target": "shared.scientific_mechanism.alizarin-lake-formation",
+      "type": "ENABLES",
+      "explanation": "Aluminium deposited on the fibre is the metal centre of the red alizarin lake formed in the dye bath.",
+      "conditions": "Requires a hydroxy-anthraquinone dye bath; calcium also participates.",
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2",
+        "S1"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.alizarin-lake-formation",
+      "target": "shared.material.madder-or-alizarin",
+      "type": "DEPENDS_ON",
+      "explanation": "The lake's chromophore is alizarin or related hydroxy-anthraquinones from madder-family dyes.",
+      "conditions": "Indian Rubiaceae dyes differ chemically from Rubia tinctorum.",
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2",
+        "S10"
+      ]
+    },
+    {
+      "source": "shared.material.madder-or-alizarin",
+      "target": "shared.scientific_mechanism.alizarin-lake-formation",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Why a red dye bath fixes only on mordanted areas is explained by metal-lake formation.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S1",
+        "S2"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.iron-tannin-black",
+      "target": "shared.material.iron-acetate-solution",
+      "type": "DEPENDS_ON",
+      "explanation": "Iron ions in Indian printing come from iron acetate liquor.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S10"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.iron-tannin-black",
+      "target": "shared.material.myrobalan-harda",
+      "type": "DEPENDS_ON",
+      "explanation": "The tannin partner of the iron black on Indian cloth is supplied by myrobalan pre-treatment.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S10",
+        "S3"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.iron-tannin-black",
+      "target": "shared.material.cotton-cellulose",
+      "type": "CAUSES",
+      "explanation": "Direct laboratory evidence with undyed controls: iron-tannate dyeing acidifies cotton, and dyed cotton loses tensile strength faster than undyed cotton under accelerated ageing, attributed to acid hydrolysis and iron-catalysed oxidation. A museum Indian block print shows fibre loss in the iron areas (observational).",
+      "conditions": "Laboratory evidence uses iron salt and tannic acid, not iron acetate and myrobalan; accelerated (80 C, 58% RH) ageing; severity depends on iron load and environment.",
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S16",
+        "S3",
+        "S10"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.tannin-pre-mordanting",
+      "target": "shared.material.myrobalan-harda",
+      "type": "DEPENDS_ON",
+      "explanation": "Myrobalan supplies hydrolysable tannins for the pre-treatment.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S9",
+        "S10"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.tannin-pre-mordanting",
+      "target": "shared.scientific_mechanism.alum-mordant-complexation",
+      "type": "ENABLES",
+      "explanation": "Tannins chelate metals and are believed to increase the amount of aluminium mordant fixed on cotton.",
+      "conditions": "Described as probable, not demonstrated, in the cited source.",
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2",
+        "S13"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.tannin-pre-mordanting",
+      "target": "shared.scientific_mechanism.iron-tannin-black",
+      "type": "ENABLES",
+      "explanation": "Tannin already on the cloth reacts with printed iron to form the black.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S10",
+        "S16"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.indigo-vat-reduction",
+      "target": "shared.material.indigo",
+      "type": "DEPENDS_ON",
+      "explanation": "The vat converts insoluble indigo to soluble leuco-indigo.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S4"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.indigo-vat-reduction",
+      "target": "shared.material.lime",
+      "type": "DEPENDS_ON",
+      "explanation": "Fermentation vats are held strongly alkaline with lime hydrate.",
+      "conditions": "Chemical vats may use other alkalis.",
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S4"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.mud-resist-barrier",
+      "target": "shared.material.clay-or-silt",
+      "type": "DEPENDS_ON",
+      "explanation": "Silt/clay forms the body of the dried resist coating.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S14"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.mud-resist-barrier",
+      "target": "shared.material.gum-arabic-or-natural-gum",
+      "type": "DEPENDS_ON",
+      "explanation": "Natural gum is a binder ingredient of the resist paste.",
+      "conditions": "Function of gum in the dried film is not experimentally characterised.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S14"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.mud-resist-barrier",
+      "target": "shared.scientific_mechanism.indigo-vat-reduction",
+      "type": "CONTRASTS_WITH",
+      "explanation": "Resist blocks dye physically, whereas indigo colours by redox; resist is applied before the vat so covered areas stay undyed except along cracks.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S10"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.thickened-print-paste-rheology",
+      "target": "shared.material.gum-arabic-or-natural-gum",
+      "type": "DEPENDS_ON",
+      "explanation": "Paste viscosity is governed by the thickener.",
+      "conditions": "Evidence from modern screen printing.",
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S7"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.scouring-and-desizing",
+      "target": "shared.material.cotton-cellulose",
+      "type": "ENABLES",
+      "explanation": "Removing size, waxes and pectins makes cotton hydrophilic and receptive to mordant and dye.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S5",
+        "S6"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.scouring-and-desizing",
+      "target": "shared.scientific_mechanism.tannin-pre-mordanting",
+      "type": "PRECEDES",
+      "explanation": "Cloth is cleaned before the myrobalan treatment.",
+      "conditions": null,
+      "ordinal": 1,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S10",
+        "S12"
+      ]
+    },
+    {
+      "source": "shared.material.cotton-cellulose",
+      "target": "shared.scientific_mechanism.sun-bleaching",
+      "type": "AFFECTED_BY",
+      "explanation": "The whiteness of the cotton ground is affected by repeated oxidative sun exposure; oxidative bleaching can also damage cotton.",
+      "conditions": "Mechanism not directly characterised.",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S10",
+        "S8",
+        "S15"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.alizarin-lake-formation",
+      "target": "shared.open_question.iron-anthraquinone-colour-chemistry",
+      "type": "EXPLAINS",
+      "explanation": "Lake formation is one candidate explanation for the dark iron colour under red dyes; unresolved.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "hypothesis",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S11",
+        "S10"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.alizarin-lake-formation",
+      "target": "shared.outcome.mordant-red",
+      "type": "PRODUCES",
+      "explanation": "The Al(-Ca)-anthraquinone lake is the red colour on alum-printed areas.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S2",
+        "S11",
+        "S13"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.iron-tannin-black",
+      "target": "shared.outcome.iron-black",
+      "type": "PRODUCES",
+      "explanation": "Iron with tannin yields black, grey or brown.",
+      "conditions": "Under a red dye bath the iron areas may read as dark purple.",
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S3",
+        "S10",
+        "S11"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.indigo-vat-reduction",
+      "target": "shared.outcome.indigo-blue",
+      "type": "PRODUCES",
+      "explanation": "Re-oxidised indigo on the fibre is the blue.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "scientific_evidence",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S4",
+        "S10"
+      ]
+    },
+    {
+      "source": "shared.scientific_mechanism.mud-resist-barrier",
+      "target": "shared.outcome.crackle-lines",
+      "type": "PRODUCES",
+      "explanation": "Dye entering cracks in dried resist produces crackle lines.",
+      "conditions": "Crack formation in drying clay films depends on layer thickness and drying conditions (physical analogue, not measured on Dabu).",
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S10",
+        "S17"
+      ]
+    },
+    {
+      "source": "shared.open_question.sun-bleaching-photochemistry",
+      "target": "shared.scientific_mechanism.sun-bleaching",
+      "type": "BELONGS_TO",
+      "explanation": "The question concerns the photochemistry behind traditional sun bleaching.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "under_review",
+      "source_ids": [
+        "S10",
+        "S15",
+        "S8"
+      ]
+    }
+  ],
+  "media_candidates": []
+}

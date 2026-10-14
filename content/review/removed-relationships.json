@@ -1,0 +1,127 @@
+[
+  {
+    "file": "shared/craft-science.json",
+    "source": "shared.scientific_mechanism.thickened-print-paste-rheology",
+    "target": "shared.scientific_mechanism.alum-mordant-complexation",
+    "type": "ENABLES",
+    "explanation": "A thickened mordant paste confines alum to printed areas, so colour develops only there.",
+    "conditions": "Inference: rheology evidence is from modern screen printing and the thickener of Indian alum paste is not documented here.",
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S7",
+      "S10"
+    ],
+    "removal_reason": "Self-described inference; rheology evidence is from screen printing, the Indian alum-paste thickener is undocumented."
+  },
+  {
+    "file": "comparisons.json",
+    "source": "dabu.scientific_mechanism.clay-resist-cold-vat-compatibility",
+    "target": "sanganeri.artisan_decision.protecting-dabu-during-dyeing",
+    "type": "SIMILAR_TO",
+    "explanation": "The mechanism (clay survives only short, cold immersions) matches the Sanganeri dyer's practice of opening pleats gently and keeping the alum dip to a few minutes so the dabu does not crack or come off.",
+    "conditions": "The Dabu mechanism comes from a workshop source (Pratt) and is needs_evidence in its file; the link is an inference across files.",
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "dabu:S12",
+      "sanganeri:S1"
+    ],
+    "removal_reason": "Inference across files; no source compares these."
+  },
+  {
+    "file": "comparisons.json",
+    "source": "dabu.scientific_mechanism.clay-resist-cold-vat-compatibility",
+    "target": "bagru.artisan_decision.protecting-the-resist",
+    "type": "SIMILAR_TO",
+    "explanation": "As above for Bagru: gentle unfolding avoids cracking the dabu, and a long alum dip makes the dabu come off.",
+    "conditions": "Inference across files; Dabu mechanism is needs_evidence.",
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "dabu:S12",
+      "bagru:S1"
+    ],
+    "removal_reason": "Inference across files; no source compares these."
+  },
+  {
+    "file": "traditions/ajrakh/tradition.json",
+    "source": "ajrakh.process_stage.vichharnu",
+    "target": "ajrakh.tool.washing-tanks",
+    "type": "USES",
+    "explanation": "The vichharnu stage uses this tool.",
+    "conditions": "The GI text names washing tanks only for the resist-washing stage; their use in the final wash is inferred.",
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "Self-described inference: the GI names washing tanks only for resist washing."
+  },
+  {
+    "file": "traditions/bagh/tradition.json",
+    "source": "bagh.scientific_mechanism.iron-alizarin-black",
+    "target": "shared.scientific_mechanism.iron-tannin-black",
+    "type": "SIMILAR_TO",
+    "explanation": "Harara (tannin source) plus iron mordant parallels iron–tannin black; Bagh sources describe the black as iron + alizarin.",
+    "conditions": "Bagh sources do not explicitly invoke iron–tannin chemistry.",
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1",
+      "S7"
+    ],
+    "removal_reason": "Self-described: Bagh sources do not invoke iron-tannin chemistry."
+  },
+  {
+    "file": "traditions/sanganeri/tradition.json",
+    "source": "sanganeri.design_principle.fine-floral-on-white",
+    "target": "sanganeri.tool.bunta-wooden-block",
+    "type": "REQUIRES",
+    "explanation": "Fine-line small motifs require finely carved small hardwood blocks.",
+    "conditions": "Inferred: sources describe small, finely carved blocks and fine-line motifs but do not state the requirement explicitly.",
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S9",
+      "S10"
+    ],
+    "removal_reason": "Self-described inference; requirement not stated by sources."
+  },
+  {
+    "file": "traditions/sanganeri/tradition.json",
+    "source": "sanganeri.process_stage.ageing",
+    "target": "sanganeri.outcome.print-visible-on-reverse",
+    "type": "ENABLES",
+    "explanation": "Ageing lets mordant paste penetrate the fibre; the GI also specifies a print visible on the underside.",
+    "conditions": "Link inferred from the two GI statements; not stated as causal in sources.",
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "Self-described inference; causal link not stated by sources."
+  },
+  {
+    "file": "traditions/machilipatnam-kalamkari/tradition.json",
+    "source": "machilipatnam-kalamkari.historical_context.kalam-to-block-shift",
+    "target": "machilipatnam-kalamkari.historical_context.coromandel-chintz-trade",
+    "type": "AFFECTED_BY",
+    "explanation": "Repetitive trade designs favoured blocks.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S6"
+    ],
+    "removal_reason": "No source attributes the pen-to-block shift to the trade; sources only record that blocks later took over."
+  }
+]

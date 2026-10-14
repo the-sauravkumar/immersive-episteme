@@ -1,0 +1,316 @@
+/*
+ * Immersive Episteme design tokens.
+ * Adapted from virtual-walkthrough src/styles.css:6-23, src/admin/admin.css:3-31,
+ * src/museum/ui/entry.css:77-107, src/museum/ui/deepzoom/DeepZoomViewer.css:4-8,
+ * src/museum/a11y/a11y.css:245-280 — via docs/architecture/design-reuse-catalogue.md §2.5.
+ *
+ * Deviations from the catalogue block (critic fixes):
+ *  - `.dark` maps every shadcn semantic token (secondary, muted, accent, input, *-foreground,
+ *    destructive), so no light value leaks into dark surfaces.
+ *  - The high-contrast focus ring is a black/white double ring. Yellow is reserved for the
+ *    optional guidance cue (requirements digest §9) and is never used for focus.
+ *  - The admin `--faint #7d7368` (4.12:1 on paper) is not ported. Secondary text uses
+ *    `--ink-muted` (>= 4.5:1 on every light surface; see tests/unit/contrast.test.ts).
+ *
+ * Every text/background pair below is checked by tests/unit/contrast.test.ts, which parses
+ * this file. Keep colour values as hex or `rgb(r g b / a)` so the parser can read them.
+ */
+@import "tailwindcss";
+@import "tw-animate-css";
+/* data-open:/data-checked:/... custom variants used by the radix-nova shadcn components. */
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant hc (&:where(.a11y-contrast, .a11y-contrast *));
+
+/* ---- raw tokens ---- */
+:root {
+  --paper: #f5f1e8;
+  --paper-2: #efe9df;
+  --paper-3: #e7dfd2;
+  --card-warm: #fbf8f2;
+  --ink: #2b2621;
+  --ink-soft: #3a332c;
+  --ink-muted: #6f665c;
+  --brand: #8a5a3b;
+  --brand-hover: #744a2f;
+  --brand-fg: #fbf7f0;
+  --hairline: rgb(43 38 33 / 0.14);
+  --hairline-strong: rgb(43 38 33 / 0.24);
+  --panel-bg: rgb(245 241 232 / 0.8);
+  --panel-bg-solid: rgb(245 241 232 / 0.94);
+  --panel-blur: saturate(1.2) blur(14px);
+  --shadow-panel-v: 0 1px 2px rgb(43 38 33 / 0.06), 0 12px 32px -12px rgb(43 38 33 / 0.22);
+  --focus-halo: rgb(251 247 240 / 0.85);
+
+  /* shadcn semantic layer */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--card-warm);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--brand);
+  --primary-foreground: var(--brand-fg);
+  --secondary: var(--paper-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper-2);
+  --muted-foreground: var(--ink-muted);
+  --accent: rgb(43 38 33 / 0.06); /* hover fill — NOT the madder brand colour */
+  --accent-foreground: var(--ink);
+  --destructive: #9b3326;
+  --border: var(--hairline);
+  --input: var(--hairline-strong);
+  --ring: var(--brand);
+  --radius: 6px;
+}
+
+/* Dark palette — ui/deepzoom/DeepZoomViewer.css:4-8, completed for every semantic token. */
+.dark {
+  --ink-soft: #e9e3d8;
+  --brand-hover: #e4c4a3;
+  --background: #1a1714;
+  --foreground: #f5f1e8;
+  --card: #221d19;
+  --card-foreground: #f5f1e8;
+  --popover: #221d19;
+  --popover-foreground: #f5f1e8;
+  --primary: #d9b48f;
+  --primary-foreground: #1a1714;
+  --secondary: #2a241f;
+  --secondary-foreground: #f5f1e8;
+  --muted: #2a241f;
+  --muted-foreground: #b3aa9f;
+  --accent: rgb(245 241 232 / 0.08);
+  --accent-foreground: #f5f1e8;
+  --destructive: #e58a76;
+  --border: rgb(245 241 232 / 0.16);
+  --input: rgb(245 241 232 / 0.28);
+  --ring: #d9b48f;
+  --focus-halo: rgb(26 23 20 / 0.85);
+  --panel-bg: rgb(26 23 20 / 0.82);
+  --panel-bg-solid: rgb(26 23 20 / 0.94);
+  --shadow-panel-v: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -12px rgb(0 0 0 / 0.6);
+}
+
+/* High contrast (light) — a11y.css:245-255. */
+.a11y-contrast {
+  --foreground: #111111;
+  --card-foreground: #111111;
+  --popover-foreground: #111111;
+  --secondary-foreground: #111111;
+  --accent-foreground: #111111;
+  --muted-foreground: #3a342e;
+  --primary: #6b3f22;
+  --ring: #000000;
+  --border: rgb(17 17 17 / 0.45);
+  --input: rgb(17 17 17 / 0.7);
+  --panel-bg: #fffdf8;
+  --panel-bg-solid: #fffdf8;
+  --panel-blur: none;
+  --shadow-panel-v: 0 0 0 1px rgb(17 17 17 / 0.55), 0 10px 26px -10px rgb(0 0 0 / 0.45);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand-hover: var(--brand-hover);
+  --color-ink-soft: var(--ink-soft);
+  --color-panel: var(--panel-bg);
+
+  --font-display:
+    var(--font-cormorant), "Cormorant", Garamond, "Noto Serif Devanagari", "Noto Serif Bengali",
+    "Times New Roman", serif;
+  --font-sans:
+    var(--font-inter), "Noto Sans Devanagari", "Noto Sans Bengali", system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: var(--radius);
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 14px;
+  --radius-3xl: 18px;
+  --radius-4xl: 24px;
+  --shadow-panel: var(--shadow-panel-v);
+}
+
+@theme {
+  /* Categorical colours (entry.css:77-107). Never the only cue. No yellow: reserved for guidance. */
+  --color-madder: #a34a33;
+  --color-indigo: #34506e;
+  --color-wood: #9b6a45;
+  --color-wood-dark: #6e472c;
+  --color-cloth: #f8f2e6;
+  --color-ok: #3d6b45;
+  --color-warn: #7a5716;
+  --color-danger: #9b3326;
+  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  --text-kicker: 0.65625rem;
+  --text-kicker--line-height: 1.4;
+  --text-kicker--letter-spacing: 0.22em;
+  --text-kicker--font-weight: 500;
+  --text-label: 0.75rem;
+  --text-label--letter-spacing: 0.02em;
+  --text-label--font-weight: 500;
+  --text-reading: 1.125rem;
+  --text-reading--line-height: 1.5;
+  --text-title: 1.875rem;
+  --text-title--line-height: 1.08;
+  --text-hero: clamp(2.75rem, 8.4vw, 5.375rem); /* public pages only */
+  --text-hero--line-height: 0.98;
+
+  --shadow-card: 0 1px 2px rgb(43 38 33 / 0.05), 0 1px 1px rgb(43 38 33 / 0.03);
+  --shadow-pop: 0 12px 32px -12px rgb(43 38 33 / 0.28), 0 2px 6px rgb(43 38 33 / 0.06);
+  --ease-museum: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --breakpoint-xs: 32.5rem;
+  --spacing-edge: 18px;
+
+  /* Named z-index scale (catalogue §2.4). Use as z-(--z-modal). */
+  --z-canvas: 0;
+  --z-hud: 10;
+  --z-panel: 20;
+  --z-drawer: 30;
+  --z-modal: 40;
+  --z-transition: 50;
+  --z-viewer: 60;
+  --z-skip-link: 100;
+
+  /* Functional motion only. Decorative keyframes are banned in /learn/* and the study flow. */
+  --animate-fade-in: fade-in 0.3s var(--ease-museum) both;
+  --animate-rise-sm: rise-sm 0.35s var(--ease-museum) both;
+  --animate-drop: drop 0.22s var(--ease-museum) both;
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes rise-sm {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes drop {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--focus-halo);
+  }
+  /* High contrast: black/white double ring, visible on any surface. Never yellow. */
+  .a11y-contrast :focus-visible {
+    outline: 3px solid #000;
+    outline-offset: 2px;
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 7px #fff;
+  }
+  .dark.a11y-contrast :focus-visible,
+  .dark .a11y-contrast :focus-visible {
+    outline-color: #fff;
+    box-shadow:
+      0 0 0 2px #000,
+      0 0 0 7px #000;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  .a11y-reduce-motion *,
+  .a11y-reduce-motion *::before,
+  .a11y-reduce-motion *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  :lang(hi),
+  :lang(hi) *,
+  :lang(bn),
+  :lang(bn) * {
+    letter-spacing: normal !important;
+    text-transform: none !important;
+  }
+}
+
+/* .ui-panel, styles.css:154-167 — immersive overlays only. */
+@utility panel {
+  background: var(--panel-bg);
+  backdrop-filter: var(--panel-blur);
+  -webkit-backdrop-filter: var(--panel-blur);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel-v);
+  @supports not (backdrop-filter: blur(1px)) {
+    background: var(--panel-bg-solid);
+  }
+}
+
+/* .ui-kicker, styles.css:169-176 */
+@utility kicker {
+  @apply font-sans;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}

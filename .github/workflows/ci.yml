@@ -1,0 +1,130 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # CI-only values; not secrets. Real deployments inject their own. BETTER_AUTH_SECRET is not
+  # set here: each job generates a random one (src/lib/env.ts rejects published placeholders).
+  DATABASE_URL: postgres://episteme:episteme_ci_password@localhost:5432/episteme
+  TEST_DATABASE_URL: postgres://episteme:episteme_ci_password@localhost:5432/episteme_test
+  BETTER_AUTH_URL: http://localhost:3000
+  APP_BUILD_VERSION: ci-${{ github.sha }}
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  verify:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        # Same image as docker-compose.yml (PostgreSQL 18.6 + pgvector 0.8.7), pinned by digest;
+        # scripts/db/_shared.ts asserts the versions after migrating.
+        image: pgvector/pgvector:pg18@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11
+        env:
+          POSTGRES_USER: episteme
+          POSTGRES_PASSWORD: episteme_ci_password
+          POSTGRES_DB: episteme
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U episteme -d episteme"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate an ephemeral auth secret
+        run: echo "BETTER_AUTH_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")" >> "$GITHUB_ENV"
+
+      - name: Create test database
+        run: psql "postgres://episteme:episteme_ci_password@localhost:5432/episteme" -c "CREATE DATABASE episteme_test"
+
+      - name: Apply migrations
+        run: |
+          npm run db:migrate
+          npm run db:migrate -- --test
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit and integration tests (application)
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  content:
+    # The curated dataset in content/ is maintained by a separate effort and may be mid-edit.
+    # Its contract check is reported here, separately, so it never gates the application jobs.
+    name: Content dataset contract (curation)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate content/ against content/FORMAT.md
+        run: npm run test:content
+
+  e2e:
+    name: Playwright smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    needs: verify
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate an ephemeral auth secret
+        run: echo "BETTER_AUTH_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")" >> "$GITHUB_ENV"
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e
+        run: npm run test:e2e
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
