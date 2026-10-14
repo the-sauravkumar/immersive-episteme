@@ -160,6 +160,10 @@ export function loadContentFiles(inputs: readonly ContentFileInput[]): LoadResul
         licence: m.licence ?? null,
         author: m.author ?? null,
         depicts: m.depicts ?? null,
+        width: m.width ?? null,
+        height: m.height ?? null,
+        mime: m.mime ?? null,
+        dimensionsSource: m.dimensions_source ?? null,
       })),
       isDemo: false,
     };

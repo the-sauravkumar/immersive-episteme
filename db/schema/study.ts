@@ -249,6 +249,16 @@ export const studySessions = pgTable(
     startedAt: tsz(),
     completedAt: tsz(),
     lastActivityAt: tsz(),
+    /**
+     * Learning clock (migration 0009), set by the server, never by the client: when the learning
+     * phase started, the budget copied from the frozen study config (`exposure.mode = fixed_time`,
+     * `exposure.minutes`; NULL when self-paced), when it ends (start + budget) and when it actually
+     * ended. Identical budget for both conditions by design. Set-once; not a learning outcome.
+     */
+    learningStartedAt: tsz(),
+    learningBudgetSeconds: integer(),
+    learningEndsAt: tsz(),
+    learningEndedAt: tsz(),
     interrupted: boolean().notNull().default(false),
     interruptionCount: integer().notNull().default(0),
     /** Covariates: viewport, input device, GPU class, quality tier, a11y settings. No fingerprinting. */
@@ -287,6 +297,11 @@ export const studySessions = pgTable(
       sql`${t.status} <> 'completed' OR (${t.completedAt} IS NOT NULL AND ${t.completedAt} >= ${t.startedAt})`,
     ),
     check("study_sessions_excluded_ck", sql`NOT ${t.excluded} OR (${t.exclusionReason} IS NOT NULL AND ${t.excludedAt} IS NOT NULL)`),
+    check("study_sessions_learning_budget_ck", sql`${t.learningBudgetSeconds} IS NULL OR ${t.learningBudgetSeconds} > 0`),
+    check(
+      "study_sessions_learning_clock_ck",
+      sql`(${t.learningEndsAt} IS NULL OR ${t.learningStartedAt} IS NOT NULL) AND (${t.learningEndedAt} IS NULL OR ${t.learningEndedAt} >= ${t.learningStartedAt})`,
+    ),
     check("study_sessions_withdrawn_ck", sql`NOT ${t.withdrawn} OR ${t.withdrawnAt} IS NOT NULL`),
     check("study_sessions_interruptions_ck", sql`${t.interruptionCount} >= 0 AND (${t.interrupted} OR ${t.interruptionCount} = 0)`),
     index("study_sessions_study_idx").on(t.studyId, t.status),

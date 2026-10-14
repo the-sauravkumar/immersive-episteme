@@ -50,6 +50,12 @@ export const contentSnapshots = pgTable(
     title: text().notNull(),
     description: text(),
     status: snapshotStatusEnum().notNull().default("draft"),
+    /**
+     * `release` (default): may be published and bound to a study. `review`: a researcher review
+     * build that may hold unverified content; it can never be published and no non-demo study
+     * may reference it (migration 0007). Immutable.
+     */
+    kind: text().notNull().default("release"),
     /** Snapshot bundle format version (see src/features/knowledge/contracts.ts). */
     schemaVersion: integer().notNull().default(1),
     payload: jsonb().notNull(),
@@ -78,6 +84,8 @@ export const contentSnapshots = pgTable(
       "content_snapshots_demo_ck",
       sql`${t.isDemo} = (${t.versionLabel} LIKE 'demo%') AND (NOT ${t.isDemo} OR ${t.title} LIKE 'Demo:%')`,
     ),
+    check("content_snapshots_kind_ck", sql`${t.kind} IN ('release', 'review')`),
+    check("content_snapshots_review_ck", sql`${t.kind} <> 'review' OR (${t.status} = 'draft' AND ${t.includesUnverified})`),
     check("content_snapshots_item_count_ck", sql`${t.itemCount} >= 0`),
   ],
 );

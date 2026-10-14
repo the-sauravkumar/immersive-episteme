@@ -57,13 +57,20 @@ export const studyConfigSchema = z.object({
       strata: z.array(z.string().min(1)).default([]),
     })
     .default({ algorithm: "block", strata: [] }),
-  /** Learning-phase exposure (Q-R9). */
+  /**
+   * Learning-phase exposure (Q-R9). `fixed_time`: every session of BOTH conditions gets the same
+   * `minutes`; the server stamps the learning clock (study_sessions.learning_*, migration 0009)
+   * and the learning context exposes it as `learningTime`.
+   */
   exposure: z
     .object({
       mode: z.enum(["fixed_time", "self_paced"]).default("self_paced"),
       minutes: z.number().int().positive().optional(),
+      /** fixed_time only: may a participant end the learning phase before the budget runs out? Same for both conditions. */
+      allowEarlyFinish: z.boolean().default(false),
     })
-    .default({ mode: "self_paced" }),
+    .refine((e) => e.mode !== "fixed_time" || e.minutes !== undefined, { path: ["minutes"], message: "A fixed_time study needs exposure.minutes" })
+    .default({ mode: "self_paced", allowEarlyFinish: false }),
   /** Must be identical across conditions (Q-R5). */
   guidance: z
     .object({
@@ -74,6 +81,17 @@ export const studyConfigSchema = z.object({
   /** What happens when WebGL fails for an immersive participant (Q-R10). */
   webglFailurePolicy: z.enum(["exclude", "retry", "reassign"]).default("retry"),
   minimap: z.enum(["on", "off", "toggle"]).default("toggle"),
+  /**
+   * Concept search in the learning conditions (Q-R6: which query affordance exists is still
+   * open). Off unless the protocol enables it; when on it must be on for both conditions.
+   * Read through the learning context (`features.search`), never per page.
+   */
+  searchEnabled: z.boolean().default(false),
+  /**
+   * Marks a study whose sessions are never experimental data (demo / pilot walkthroughs).
+   * Demo studies (is_demo) are always non-experimental regardless of this flag.
+   */
+  nonExperimental: z.boolean().default(false),
   consentVersion: z.string().min(1).max(64).optional(),
   retentionDays: z.number().int().positive().optional(),
   notes: z.string().max(4000).optional(),

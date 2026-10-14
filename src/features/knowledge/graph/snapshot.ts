@@ -186,7 +186,11 @@ export function buildBundle(
           id: ids.claim(c.key, i),
           text: cl.text,
           quote: cl.quote,
-          sources: dedupe(cl.sourceRefs).map((ref) => ({ sourceId: ids.source(ref), locator: null })),
+          // Sorted by id like relationship sources, so a bundle rebuilt from the database (which
+          // keeps no citation order) is byte-identical to one built from the files.
+          sources: dedupe(cl.sourceRefs)
+            .map((ref) => ({ sourceId: ids.source(ref), locator: null }))
+            .sort((x, y) => byString(x.sourceId, y.sourceId)),
         })),
         assetIds: [],
       }))

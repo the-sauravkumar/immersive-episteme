@@ -58,6 +58,21 @@ export const EVENT_TYPE_REGISTRY = [
   { code: "task_completed", label: "Task completed", description: "A learning or assessment task completed.", analyticConcept: "task_completed", scope: "both", requirementRefs: ["EVT-12"] },
   // EVT-13: first exposure to a concept (unique counts are derived).
   { code: "concept_encountered", label: "Concept encountered", description: "A concept became visible or was opened (metadata.mode = seen | opened).", analyticConcept: "concept_encountered", scope: "both", requirementRefs: ["EVT-13"] },
+  // Time accounting (lead requirement: equal exposure across conditions; navigation time kept
+  // apart from learning). Every moment of a learning session is EITHER content exposure OR
+  // navigation OR paused/idle, never two at once: the client time accountant
+  // (src/features/telemetry/client/timing.ts) holds one open interval at a time. Durations are
+  // measured with performance.now() and exclude paused time. These are telemetry only: derived
+  // metrics may aggregate them; learning-outcome tables (responses, derived_scores) never hold them.
+  { code: "exposure_started", label: "Content exposure started", description: "A concept's content became visible: 2D concept page in view, or 3D information panel open (metadata.layer).", analyticConcept: "content_exposure", scope: "both", requirementRefs: ["EVT-02"] },
+  { code: "exposure_ended", label: "Content exposure ended", description: "The concept content interval ended; metadata carries start/end on the monotonic clock, active and paused milliseconds.", analyticConcept: "content_exposure", scope: "both", requirementRefs: ["EVT-02"] },
+  { code: "navigation_started", label: "Navigation started", description: "The participant is moving or browsing with no concept content open (3D walking, 2D menus or catalogue).", analyticConcept: "navigation", scope: "both", requirementRefs: ["EVT-02"] },
+  { code: "navigation_ended", label: "Navigation ended", description: "The navigation interval ended; metadata carries start/end on the monotonic clock, active and paused milliseconds.", analyticConcept: "navigation", scope: "both", requirementRefs: ["EVT-02"] },
+  { code: "timing_paused", label: "Timing paused", description: "Interval timing paused: tab hidden, window blurred or a non-content modal opened (metadata.cause, metadata.intervalKind).", analyticConcept: "timing_pause", scope: "both", requirementRefs: [], isTechnical: true },
+  { code: "timing_resumed", label: "Timing resumed", description: "Interval timing resumed after a pause (metadata.pausedMs).", analyticConcept: "timing_pause", scope: "both", requirementRefs: [], isTechnical: true },
+  // Optional citation use (citations never obstruct the primary learning path).
+  { code: "citation_opened", label: "Citation opened", description: "The participant opened the source citation of a claim (metadata.sourceId, metadata.claimIndex).", analyticConcept: "citation_used", scope: "both", requirementRefs: [] },
+  { code: "citation_closed", label: "Citation closed", description: "The citation was closed (metadata.openMs).", analyticConcept: "citation_used", scope: "both", requirementRefs: [] },
   // Technical / lifecycle events: excluded from behavioural metrics, used for data quality.
   { code: "session_started", label: "Session started", description: "The learning session started on this client.", analyticConcept: "session_lifecycle", scope: "both", requirementRefs: [], isTechnical: true },
   { code: "session_resumed", label: "Session resumed", description: "The session resumed after an interruption or reload.", analyticConcept: "session_lifecycle", scope: "both", requirementRefs: [], isTechnical: true },
@@ -88,6 +103,39 @@ const durationMs = z.number().int().nonnegative().max(24 * 60 * 60 * 1000);
 const count = z.number().int().nonnegative().max(100_000);
 const domainEntry = { fromId: shortCode.optional(), via: z.enum(["navigation", "link", "portal", "search", "guidance", "start", "resume"]).optional() };
 
+/** What part of a concept's content is showing during an exposure interval. */
+export const EXPOSURE_LAYERS = ["overview", "artisan", "process", "science"] as const;
+const exposureLayer = z.enum(EXPOSURE_LAYERS);
+export type ExposureLayer = (typeof EXPOSURE_LAYERS)[number];
+/** Where navigation happens (3D: walk; 2D: menu, catalogue, map, search results). */
+export const NAVIGATION_SURFACES = ["walk", "menu", "catalogue", "map", "search"] as const;
+const navigationSurface = z.enum(NAVIGATION_SURFACES);
+export type NavigationSurface = (typeof NAVIGATION_SURFACES)[number];
+const monoMs = z.number().nonnegative();
+/** Why timing is paused: tab hidden, window lost focus, or a non-content modal is open. */
+export const PAUSE_CAUSES = ["hidden", "blur", "modal"] as const;
+export type PauseCause = (typeof PAUSE_CAUSES)[number];
+const pauseCause = z.enum(PAUSE_CAUSES);
+/** End of an interval: monotonic start/end, active (unpaused) and paused time, why it ended. */
+const intervalEnd = {
+  startMonoMs: monoMs,
+  endMonoMs: monoMs,
+  activeMs: durationMs,
+  pausedMs: durationMs,
+  reason: z.enum(["switched", "closed", "exit", "budget_ended"]),
+};
+
+/**
+ * Interval events. Only the client time accountant (src/features/telemetry/client/timing.ts)
+ * emits them, so one moment can never be counted as both exposure and navigation; the public
+ * `track` and the typed helpers refuse them.
+ */
+export const TIMING_EVENT_TYPES = ["exposure_started", "exposure_ended", "navigation_started", "navigation_ended", "timing_paused", "timing_resumed"] as const;
+export type TimingEventTypeCode = (typeof TIMING_EVENT_TYPES)[number];
+
+/** Event types that must carry `conceptId` (time and citations are attributed to a concept). */
+export const CONCEPT_REQUIRED_EVENT_TYPES = ["exposure_started", "exposure_ended", "citation_opened", "citation_closed"] as const;
+
 /** Allowed metadata per event type (all keys optional unless stated). */
 export const EVENT_METADATA_SCHEMAS = {
   room_entered: z.strictObject(domainEntry),
@@ -115,6 +163,20 @@ export const EVENT_METADATA_SCHEMAS = {
   task_started: z.strictObject({ taskCode: shortCode.optional() }),
   task_completed: z.strictObject({ taskCode: shortCode.optional(), durationMs: durationMs.optional() }),
   concept_encountered: z.strictObject({ mode: z.enum(["seen", "opened"]) }),
+  exposure_started: z.strictObject({ intervalId: shortCode, layer: exposureLayer, startMonoMs: monoMs }),
+  exposure_ended: z.strictObject({ intervalId: shortCode, layer: exposureLayer, ...intervalEnd }),
+  navigation_started: z.strictObject({ intervalId: shortCode, surface: navigationSurface.optional(), startMonoMs: monoMs }),
+  navigation_ended: z.strictObject({ intervalId: shortCode, surface: navigationSurface.optional(), ...intervalEnd }),
+  timing_paused: z.strictObject({ intervalId: shortCode.optional(), intervalKind: z.enum(["exposure", "navigation", "none"]), cause: pauseCause }),
+  timing_resumed: z.strictObject({
+    intervalId: shortCode.optional(),
+    intervalKind: z.enum(["exposure", "navigation", "none"]),
+    pausedMs: durationMs,
+    /** Every cause that was active during the pause. */
+    causes: z.array(pauseCause).min(1).max(PAUSE_CAUSES.length).optional(),
+  }),
+  citation_opened: z.strictObject({ sourceId: uuidSchema, claimIndex: count }),
+  citation_closed: z.strictObject({ sourceId: uuidSchema, claimIndex: count, openMs: durationMs.optional() }),
   session_started: z.strictObject({}),
   session_resumed: z.strictObject({ gapMs: durationMs.optional() }),
   session_ended: z.strictObject({ reason: z.enum(["completed", "timeout", "user_exit", "error"]).optional() }),
@@ -147,6 +209,18 @@ export const telemetryEventSchema = z
     if (JSON.stringify(e.metadata).length > MAX_METADATA_BYTES) {
       ctx.addIssue({ code: "custom", path: ["metadata"], message: "metadata is limited to 4 KiB" });
       return;
+    }
+    if ((CONCEPT_REQUIRED_EVENT_TYPES as readonly string[]).includes(e.type) && !e.conceptId) {
+      ctx.addIssue({ code: "custom", path: ["conceptId"], message: `${e.type} needs conceptId` });
+    }
+    if (e.type === "exposure_ended" || e.type === "navigation_ended") {
+      const m = e.metadata as { startMonoMs?: number; endMonoMs?: number; activeMs?: number; pausedMs?: number };
+      if (typeof m.startMonoMs === "number" && typeof m.endMonoMs === "number" && typeof m.activeMs === "number" && typeof m.pausedMs === "number") {
+        const span = m.endMonoMs - m.startMonoMs;
+        if (span < 0 || m.activeMs + m.pausedMs > Math.ceil(span) + 1) {
+          ctx.addIssue({ code: "custom", path: ["metadata"], message: "interval times are inconsistent (active + paused must fit between start and end)" });
+        }
+      }
     }
     const result = EVENT_METADATA_SCHEMAS[e.type].safeParse(e.metadata);
     if (!result.success) {
@@ -194,6 +268,68 @@ export const telemetryBatchResultSchema = z.object({
   quarantined: z.number().int().nonnegative(),
 });
 export type TelemetryBatchResult = z.infer<typeof telemetryBatchResultSchema>;
+
+// ---------------------------------------------------------------------------------------
+// Ingestion endpoint (POST /api/telemetry/batch), shared by the server route and the client
+// tracker. See docs/architecture/data-and-telemetry-layer.md §4.
+// ---------------------------------------------------------------------------------------
+
+export const TELEMETRY_BATCH_ENDPOINT = "/api/telemetry/batch";
+/** Request bodies above this size are refused with 413 before parsing. */
+export const MAX_BATCH_BYTES = 512 * 1024;
+
+/**
+ * Batch envelope as the server first reads it: the header strictly, the events loosely, so a
+ * single malformed event is quarantined instead of failing the whole upload.
+ */
+export const telemetryBatchEnvelopeSchema = z.object({
+  idempotencyKey: z.string().regex(/^[A-Za-z0-9_:.-]{8,128}$/),
+  sessionId: uuidSchema,
+  schemaVersion: z.literal(TELEMETRY_SCHEMA_VERSION),
+  appBuild: z.string().min(1).max(100),
+  contentVersion: z.string().min(1).max(64),
+  clientSentAt: z.iso.datetime({ offset: true }),
+  events: z.array(z.unknown()).min(1).max(MAX_EVENTS_PER_BATCH),
+});
+export type TelemetryBatchEnvelope = z.infer<typeof telemetryBatchEnvelopeSchema>;
+
+export const sequenceGapSchema = z.object({ fromSeq: z.number().int().min(0), toSeq: z.number().int().min(0) });
+
+/**
+ * 200 response. `persisted: false` for public-demo and staff-preview uploads (no study session
+ * exists, so nothing is written to the research tables). `nonExperimental` is true for those and
+ * for sessions of a demo study. `gaps` lists the missing seq ranges known after this batch.
+ */
+export const telemetryIngestResponseSchema = z.object({
+  batchId: uuidSchema.nullable(),
+  status: z.enum(["accepted", "partial", "rejected"]),
+  replayed: z.boolean(),
+  accepted: z.number().int().nonnegative(),
+  duplicates: z.number().int().nonnegative(),
+  quarantined: z.number().int().nonnegative(),
+  persisted: z.boolean(),
+  nonExperimental: z.boolean(),
+  gaps: z.array(sequenceGapSchema),
+  serverReceivedAt: z.iso.datetime({ offset: true }),
+});
+export type TelemetryIngestResponse = z.infer<typeof telemetryIngestResponseSchema>;
+
+/**
+ * Error responses: `{ error: TelemetryIngestError, message }`. The client retries only 408, 429
+ * (honouring Retry-After) and 5xx; any other status is final for that batch, and the tracker
+ * records it as an explicit drop (never silently).
+ */
+export const TELEMETRY_INGEST_ERRORS = [
+  "invalid_json",
+  "invalid_batch",
+  "payload_too_large",
+  "unauthenticated",
+  "session_mismatch",
+  "session_closed",
+  "rate_limited",
+  "server_error",
+] as const;
+export type TelemetryIngestError = (typeof TELEMETRY_INGEST_ERRORS)[number];
 
 /** A versioned derived metric (derived_metrics). Documented formula lives with the pipeline. */
 export const derivedMetricSchema = z.object({

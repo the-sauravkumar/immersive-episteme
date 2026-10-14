@@ -71,7 +71,7 @@ describe("entity validation (1xx)", () => {
     model.concepts[2]!.title = "Demo: stage two"; // KG105
     const cmp = model.concepts.find((c) => c.type === "comparison")!;
     cmp.compares = ["alpha.process_stage.missing"]; // KG108 + KG109
-    model.packages[0]!.mediaCandidates.push({ url: "https://example.org/m", title: "m", licence: null, author: null, depicts: "alpha.tool.nope" }); // KG110
+    model.packages[0]!.mediaCandidates.push({ url: "https://example.org/m", title: "m", licence: null, author: null, depicts: "alpha.tool.nope", width: null, height: null, mime: null, dimensionsSource: null }); // KG110
     expect(codes(run(validateEntities, model))).toEqual(["KG103", "KG104", "KG105", "KG108", "KG109", "KG110"]);
   });
 

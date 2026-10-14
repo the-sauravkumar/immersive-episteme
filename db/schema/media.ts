@@ -161,6 +161,12 @@ export const mediaCandidates = pgTable(
     /** Concept key as given in the file (`depicts`), kept even if the concept is missing. */
     depictsKey: text(),
     depictsConceptId: uuid(),
+    /** Source pixel size from the file (FORMAT.md), so renderers keep the true aspect ratio. */
+    width: integer(),
+    height: integer(),
+    mimeType: text(),
+    /** Where width/height came from, e.g. "Wikimedia Commons API imageinfo (2026-10-14)". */
+    dimensionsSource: text(),
     status: mediaCandidateStatusEnum().notNull().default("candidate"),
     assetId: uuid(),
     notes: text(),
@@ -187,6 +193,8 @@ export const mediaCandidates = pgTable(
       foreignColumns: [assets.id],
     }).onDelete("set null"),
     check("media_candidates_url_ck", sql`${t.url} ~ '^https?://'`),
+    check("media_candidates_dims_ck", sql`(${t.width} IS NULL OR ${t.width} > 0) AND (${t.height} IS NULL OR ${t.height} > 0)`),
+    check("media_candidates_mime_ck", sql`${t.mimeType} IS NULL OR ${t.mimeType} ~ ${MIME}`),
     check("media_candidates_imported_ck", sql`${t.status} <> 'imported' OR ${t.assetId} IS NOT NULL`),
   ],
 );

@@ -92,6 +92,11 @@ export interface GraphMediaCandidate {
   licence: string | null;
   author: string | null;
   depicts: string | null;
+  /** Source pixel size and type as recorded in the file (FORMAT.md), or null. */
+  width: number | null;
+  height: number | null;
+  mime: string | null;
+  dimensionsSource: string | null;
 }
 
 export interface GraphPackage {

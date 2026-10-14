@@ -104,6 +104,14 @@ Audit       audit_log
 traceability and parity queries. `release_manifests` tie a snapshot, a spatial manifest and an
 app build together. `parity_reports` are append-only results of the parity checks.
 
+`content_snapshots.kind` (migration 0006) is `release` (default) or `review`. A review snapshot is
+built by `npm run content:import` from unverified curated content: it is always a draft with
+`includes_unverified` (check `content_snapshots_review_ck`), its kind can never change, and no
+non-demo study may reference it or a manifest compiled from it (migration 0007). See
+`data-and-telemetry-layer.md` §5. `media_candidates` also keep `width`, `height`, `mime_type`
+and `dimensions_source` from the files, and `spatial_manifests.traditions` (the compiled
+selection) is part of the manifest uniqueness key.
+
 ### Spatial
 
 `spatial_manifests` store `compile(snapshot, rule set + overrides, compiler_version, seed)`;

@@ -112,6 +112,11 @@ export const spatialManifests = pgTable(
     ruleSetId: uuid().notNull(),
     compilerVersion: text().notNull(),
     seed: text().notNull(),
+    /**
+     * Tradition slugs the manifest was compiled for (sorted). Part of the compile input, so it
+     * is part of the uniqueness key: one snapshot can yield a manifest per tradition selection.
+     */
+    traditions: text().array().notNull().default(sql`'{}'::text[]`),
     manifest: jsonb().notNull(),
     manifestHash: text()
       .notNull()
@@ -127,7 +132,7 @@ export const spatialManifests = pgTable(
   },
   (t) => [
     unique("spatial_manifests_id_demo_uq").on(t.id, t.isDemo),
-    unique("spatial_manifests_inputs_uq").on(t.snapshotId, t.ruleSetId, t.compilerVersion, t.seed),
+    unique("spatial_manifests_inputs_uq").on(t.snapshotId, t.ruleSetId, t.compilerVersion, t.seed, t.traditions),
     foreignKey({
       name: "spatial_manifests_snapshot_fk",
       columns: [t.snapshotId, t.isDemo],

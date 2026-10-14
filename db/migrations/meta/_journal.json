@@ -43,6 +43,34 @@
       "when": 1791971594176,
       "tag": "0005_review_fix_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791974988171,
+      "tag": "0006_review_snapshots_media_dims",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791974989579,
+      "tag": "0007_review_snapshot_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791976451611,
+      "tag": "0008_learning_clock",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791976454125,
+      "tag": "0009_learning_clock_guard",
+      "breakpoints": true
     }
   ]
 }
