@@ -13,10 +13,19 @@ import * as THREE from "three";
 
 import type { Facing, SceneBox, ScenePlane } from "@/features/immersive/scene-model";
 
+import { faceShade } from "./resources";
+
 type V3 = readonly [number, number, number];
 
-/** Accumulates triangles for one merged mesh. */
+/**
+ * Accumulates triangles for one merged mesh. Every vertex carries a colour: the builder's current
+ * `tint` times the fixed face shading of its normal (`faceShade`), the baked part of the unlit
+ * finish (resources.ts). Materials without `vertexColors` ignore it.
+ */
 export class GeometryBuilder {
+  /** Albedo tint for the faces added next (relative to the material colour). */
+  tint: [number, number, number] = [1, 1, 1];
+  private readonly col: number[] = [];
   private readonly pos: number[] = [];
   private readonly nor: number[] = [];
   private readonly uv: number[] = [];
@@ -31,9 +40,15 @@ export class GeometryBuilder {
    * Quad with corners p0..p3 (counter-clockwise seen from the normal side). `uv1` defaults to
    * the AO mapping given by `ao` (floor rectangle or wall height).
    */
+  private pushColour(n: V3) {
+    const s = faceShade(n);
+    this.col.push(this.tint[0] * s, this.tint[1] * s, this.tint[2] * s);
+  }
+
   quad(p: [V3, V3, V3, V3], n: V3, uvs: [number, number][], uv1s: [number, number][]) {
     const base = this.pos.length / 3;
     for (let i = 0; i < 4; i++) {
+      this.pushColour(n);
       this.pos.push(p[i]![0], p[i]![1], p[i]![2]);
       this.nor.push(n[0], n[1], n[2]);
       this.uv.push(uvs[i]![0], uvs[i]![1]);
@@ -45,6 +60,7 @@ export class GeometryBuilder {
   tri(p: [V3, V3, V3], n: V3, uvs: [number, number][], uv1s: [number, number][]) {
     const base = this.pos.length / 3;
     for (let i = 0; i < 3; i++) {
+      this.pushColour(n);
       this.pos.push(p[i]![0], p[i]![1], p[i]![2]);
       this.nor.push(n[0], n[1], n[2]);
       this.uv.push(uvs[i]![0], uvs[i]![1]);
@@ -60,6 +76,7 @@ export class GeometryBuilder {
     g.setAttribute("normal", new THREE.Float32BufferAttribute(this.nor, 3));
     g.setAttribute("uv", new THREE.Float32BufferAttribute(this.uv, 2));
     g.setAttribute("uv1", new THREE.Float32BufferAttribute(this.uv1, 2));
+    g.setAttribute("color", new THREE.Float32BufferAttribute(this.col, 3));
     g.setIndex(this.pos.length / 3 > 65535 ? new THREE.Uint32BufferAttribute(this.idx, 1) : new THREE.Uint16BufferAttribute(this.idx, 1));
     g.computeBoundingBox();
     g.computeBoundingSphere();
@@ -100,12 +117,21 @@ const FACES: { n: V3; corners: (a: V3, b: V3) => [V3, V3, V3, V3] }[] = [
  * Axis-aligned box. `skipBottom` drops the face resting on the floor (never visible, and it
  * would be coplanar with the floor plane facing the other way).
  */
-export function addBox(b: GeometryBuilder, box: Pick<SceneBox, "min" | "max">, ao: AoMapping, opts: { skipBottom?: boolean } = {}) {
+export function addBox(
+  b: GeometryBuilder,
+  box: Pick<SceneBox, "min" | "max">,
+  ao: AoMapping,
+  opts: { skipBottom?: boolean; skipTop?: boolean; tintFor?: (n: V3) => [number, number, number] | null } = {},
+) {
+  const base = b.tint;
   for (const f of FACES) {
     if (opts.skipBottom && f.n[1] === -1) continue;
+    if (opts.skipTop && f.n[1] === 1) continue;
+    b.tint = opts.tintFor?.(f.n) ?? base;
     const c = f.corners(box.min, box.max);
     b.quad(c, f.n, c.map((p) => worldUv(p, f.n)) as [number, number][], c.map((p) => aoUv(p, ao)) as [number, number][]);
   }
+  b.tint = base;
 }
 
 /**

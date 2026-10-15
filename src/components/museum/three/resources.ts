@@ -1,15 +1,32 @@
 /**
- * Shared render resources: KTX2 architecture textures (one set for every tier, §2d), baked
- * ambient-occlusion maps, PBR materials and the fixed lighting rig.
+ * Shared render resources and the gallery finish (DR-023; DESIGN-v2 §11, F1 to F11).
  *
- * Material values adapted from virtual-walkthrough src/museum/materials/materials.ts:148-181 and
- * lighting values from src/museum/config/lighting.ts (design-reuse catalogue §4.3). Lighting is
- * the same in every zone (C2 cross-zone luminance); no light casts dynamic shadows; contact
- * shading comes from AO baked from the manifest geometry (bakeFloorAo) instead.
+ * The finish is ONE parameter set (`GALLERY_FINISH`) with no zone, tradition or room key, so every
+ * wing is finished identically. Architecture is unlit: each surface is its colour map times a
+ * baked irradiance term, so nothing about a room's light depends on where it is or which way it
+ * faces at run time:
+ *  - walls, posts, lintels, reveals and plinths: one shared vertical wall-wash profile (a lightmap
+ *    on uv1, brighter towards the ceiling cove, flat across the card band, darker at the skirting),
+ *    times a fixed per-face shading baked into the vertex colours;
+ *  - floors and ceilings: one lightmap per room (contact shading from the walls and plinths, the
+ *    cove's up-light on the ceiling), each normalised to the same mean.
+ * This replaces the PBR materials, the hemisphere and key lights and the environment map (the X2
+ * correction: a lightmap only adds irradiance, and three.js has no per-material light exclusion).
+ * It drops the wall and floor normal and roughness detail, an accepted cost recorded in the module
+ * record; only the two colour maps are downloaded.
+ *
+ * Plates, plaques and signs are display-referred: white paper and black ink that bypass the tone
+ * mapping (`toneMapped: false` in intent). The frame pipeline renders into a linear target and tone
+ * maps the whole frame in its OutputPass, where a material's `toneMapped` flag has no effect, so the
+ * label materials write alpha 0 and the pipeline's OutputPass leaves those pixels unmapped
+ * (`pipeline.ts`). The paper renders at sRGB 255 and the ink at 0 on every wall.
+ *
+ * Every target below is a rendered (display) value. `preToneMap` inverts the Neutral tone mapping
+ * (three 0.186.1 `NeutralToneMapping`, exposure 1), so a target is reached exactly by construction
+ * and then checked on the rendered frame (C2, C2b).
  */
 import * as THREE from "three";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
-import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
 import type { Rect, Vec3 } from "@/features/spatial/compiler/types";
 
@@ -26,6 +43,117 @@ export const STUDY_RENDER_CONFIG = {
   cameraFar: 150,
 } as const;
 
+// ---------------------------------------------------------------------------------------
+// The finish: one parameter set for the whole museum (no zone, tradition or room key).
+// ---------------------------------------------------------------------------------------
+
+/**
+ * Gallery finish (DR-023). Rendered sRGB values are 8-bit display values of a neutral grey, measured
+ * on the frame by the rendering checks. Sizes are metres.
+ */
+export const GALLERY_FINISH = {
+  /** F1: lit wall in the card band (1.55 to 2.25 m), neutral. Inside gallery3d's 200 to 210. */
+  wallSrgb: 205,
+  /** F1b: matte floor mean, at most 0.3 x the wall luminance (here 0.21 x; Smithsonian contrast 79%). */
+  floorSrgb: 100,
+  /** Floor colour-map detail kept (0 = flat, 1 = the map's own contrast): no high-contrast plank lines. */
+  floorDetail: 0.55,
+  /** Ceiling mean (F4), a little under the washed walls. */
+  ceilingSrgb: 196,
+  /** Plinth body: the same plaster, a step lighter than the wall so the stand reads as an object. */
+  plinthSrgb: 226,
+  /** F6 shadow-gap skirting and F8 plinth toe: rendered sRGB 35 to 45. */
+  shadowSrgb: 40,
+  /** F7 door edge colour (rendered as given: 5.79 to 6.40:1 against walls of 200 to 210). */
+  doorEdge: "#3f454c",
+  /** F5 cove slot surface: below 0.8 linear after exposure, so it never clips (C2). */
+  coveLinear: 0.72,
+  /** F5: 150 mm ceiling cove, recessed `rise` above the ceiling plane. */
+  cove: { width: 0.15, rise: 0.08 },
+  /** F6: 25 mm high, 15 mm deep shadow gap at the foot of every wall and post. */
+  skirting: { height: 0.025, depth: 0.015 },
+  /** F7: 20 mm flush edge round every opening (replaces the proud dark linings). */
+  doorEdgeWidth: 0.02,
+  /** F8: 30 mm high, 20 mm inset recessed toe under every plinth. */
+  plinthToe: { height: 0.03, inset: 0.02 },
+  /**
+   * F3 wall wash (a fraction of the card-band level): contact darkening at the skirting, flat
+   * (within ±3%) across the card band, brighter towards the cove.
+   */
+  wash: { floor: 0.86, floorFalloff: 0.22, cove: 0.1, coveFalloff: 0.32 },
+  /** F4 floor contact shading (walls and plinths) and the ceiling's cove up-light, before normalising. */
+  floorContact: { strength: 0.32, falloff: 0.3, texelsPerMetre: 16 },
+  ceilingCove: { strength: 0.16, falloff: 0.55, texelsPerMetre: 8 },
+  /**
+   * Fixed per-face shading (baked into vertex colours, identical in every room): a soffit is
+   * darker than a wall, a horizontal top a touch lighter, and walls facing east or west a touch
+   * darker than walls facing north or south, so corners read without any light at run time.
+   */
+  faceShade: { top: 1.03, down: 0.82, xFacing: 0.95 },
+  /** F10/F11: neutral; no light colour, no post pass beyond the anti-aliasing and output. */
+  background: "#c9cbcd",
+} as const;
+
+/** sRGB 8-bit value to linear. */
+export function srgbToLinear(v255: number): number {
+  const v = v255 / 255;
+  return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+}
+
+/** Linear to sRGB 8-bit value (unrounded). */
+export function linearToSrgb(l: number): number {
+  const v = l <= 0.0031308 ? l * 12.92 : 1.055 * l ** (1 / 2.4) - 0.055;
+  return v * 255;
+}
+
+const NEUTRAL_START = 0.8 - 0.04;
+const NEUTRAL_D = 1 - NEUTRAL_START;
+
+/** three 0.186.1 `NeutralToneMapping` for a neutral grey (r = g = b), exposure 1. */
+export function neutralToneMap(x: number): number {
+  const offset = x < 0.08 ? x - 6.25 * x * x : 0.04;
+  const c = x - offset;
+  if (c < NEUTRAL_START) return c;
+  return 1 - (NEUTRAL_D * NEUTRAL_D) / (c + NEUTRAL_D - NEUTRAL_START);
+}
+
+/** The linear scene value that the Neutral tone mapping renders as display-linear `o` (inverse of `neutralToneMap`). */
+export function preToneMap(o: number): number {
+  if (o <= 0) return 0;
+  if (o < 0.04) return Math.sqrt(o / 6.25);
+  if (o < NEUTRAL_START) return o + 0.04;
+  if (o >= 1) throw new Error("preToneMap: display value 1 is never reached by the Neutral tone mapping");
+  return (NEUTRAL_D * NEUTRAL_D) / (1 - o) - NEUTRAL_D + NEUTRAL_START + 0.04;
+}
+
+/** Scene-linear value for a rendered sRGB 8-bit target. */
+export const sceneValueFor = (srgb255: number) => preToneMap(srgbToLinear(srgb255));
+
+/** Per-face shading for a face normal (vertex colours). */
+export function faceShade(n: readonly [number, number, number]): number {
+  const s = GALLERY_FINISH.faceShade;
+  const vertical = n[1] >= 0 ? 1 + (s.top - 1) * n[1] : 1 + (1 - s.down) * n[1];
+  return vertical * (1 - (1 - s.xFacing) * Math.abs(n[0]));
+}
+
+/**
+ * The shared wall-wash profile, as a function of height y (metres) in a room of height `h`:
+ * 1 across the card band. Exported for the unit test (flatness of the card band).
+ */
+export function wallWash(y: number, h: number): number {
+  const w = GALLERY_FINISH.wash;
+  const contact = 1 - (1 - w.floor) * Math.exp(-Math.max(0, y) / w.floorFalloff);
+  const cove = 1 + w.cove * Math.exp(-Math.max(0, h - y) / w.coveFalloff);
+  return contact * cove;
+}
+
+/** Lightmap storage: 8-bit, with headroom (a stored 1 means LIGHTMAP_RANGE). */
+export const LIGHTMAP_RANGE = 2;
+
+// ---------------------------------------------------------------------------------------
+// Textures
+// ---------------------------------------------------------------------------------------
+
 export interface TextureIndexEntry {
   url: string;
   width: number;
@@ -41,10 +169,11 @@ export interface TextureIndex {
   textures: Record<"wall" | "floor", { tileMetres: number; maps: Record<"color" | "normal" | "orm", TextureIndexEntry> }>;
 }
 
+/** The loaded maps of one surface. The unlit finish loads the colour map only. */
 export interface TextureSet {
   color: THREE.Texture;
-  normal: THREE.Texture;
-  orm: THREE.Texture;
+  normal?: THREE.Texture;
+  orm?: THREE.Texture;
 }
 
 export interface LoadedTextures {
@@ -55,8 +184,29 @@ export interface LoadedTextures {
   bytes: number;
 }
 
+/**
+ * Linear means of the two colour maps, measured over the authored 8-bit sources
+ * (`analysis/out/museum/sources/*.png`, every texel, sRGB decoded): the material colour divides by
+ * these so each surface renders at its target mean, neutral.
+ */
+export const COLOUR_MAP_MEAN = {
+  wall: [0.7681, 0.7238, 0.6452],
+  floor: [0.3142, 0.2245, 0.1376],
+} as const;
+
+/** The maps the finish uses (normal and ORM maps stay in the index for the record, unloaded). */
+export const LOADED_MAPS = [
+  { set: "wall", role: "color" },
+  { set: "floor", role: "color" },
+] as const;
+
 let ktx2: KTX2Loader | null = null;
 
+/**
+ * The KTX2 loader (GPU-compressed transcode, 8 bits per texel). Transcoding to uncompressed RGBA8
+ * was tried for C12 and changed nothing (wall colour SSIM 0.9753 against 0.9746 for BC7, at four
+ * times the memory): the residual is the UASTC encode itself (results document, C12).
+ */
 export function ktx2Loader(renderer: THREE.WebGLRenderer): KTX2Loader {
   if (!ktx2) ktx2 = new KTX2Loader().setTranscoderPath("/museum/basis/").detectSupport(renderer);
   return ktx2;
@@ -67,13 +217,13 @@ export function disposeKtx2Loader() {
   ktx2 = null;
 }
 
-/** Loads the architecture textures; reports progress in bytes (loading indicator). */
+/** Loads the architecture colour maps; reports progress in bytes (loading indicator). */
 export async function loadArchitectureTextures(renderer: THREE.WebGLRenderer, onProgress: (loadedBytes: number, totalBytes: number) => void): Promise<LoadedTextures> {
   const res = await fetch("/museum/textures/index.json", { cache: "no-cache" });
   if (!res.ok) throw new Error(`texture index: HTTP ${res.status}`);
   const index = (await res.json()) as TextureIndex;
   const loader = ktx2Loader(renderer);
-  const entries = (["wall", "floor"] as const).flatMap((set) => (["color", "normal", "orm"] as const).map((role) => ({ set, role, e: index.textures[set].maps[role], tile: index.textures[set].tileMetres })));
+  const entries = LOADED_MAPS.map(({ set, role }) => ({ set, role, e: index.textures[set].maps[role], tile: index.textures[set].tileMetres }));
   const total = entries.reduce((s, x) => s + x.e.bytes, 0);
   let done = 0;
   onProgress(0, total);
@@ -96,10 +246,10 @@ export async function loadArchitectureTextures(renderer: THREE.WebGLRenderer, on
       return { ...x, tex };
     }),
   );
-  const pick = (set: "wall" | "floor", role: "color" | "normal" | "orm") => loaded.find((l) => l.set === set && l.role === role)!.tex;
+  const pick = (set: "wall" | "floor") => loaded.find((l) => l.set === set)!.tex;
   return {
-    wall: { color: pick("wall", "color"), normal: pick("wall", "normal"), orm: pick("wall", "orm") },
-    floor: { color: pick("floor", "color"), normal: pick("floor", "normal"), orm: pick("floor", "orm") },
+    wall: { color: pick("wall") },
+    floor: { color: pick("floor") },
     manifest: loaded.map((l) => ({
       url: l.e.url,
       width: (l.tex.image as { width: number }).width,
@@ -112,64 +262,85 @@ export async function loadArchitectureTextures(renderer: THREE.WebGLRenderer, on
 }
 
 // ---------------------------------------------------------------------------------------
-// Baked ambient occlusion
+// Baked light: the shared wall-wash profile and the per-room floor and ceiling maps
 // ---------------------------------------------------------------------------------------
 
-/** Vertical AO profile for walls, posts, plinths and linings (u ignored, v = y / height). */
-export function wallAoTexture(height: number): THREE.DataTexture {
-  const n = 256;
-  const data = new Uint8Array(n * 4);
-  for (let i = 0; i < n; i++) {
-    const y = ((i + 0.5) / n) * height;
-    const ao = (1 - 0.32 * Math.exp(-y / 0.16)) * (1 - 0.14 * Math.exp(-(height - y) / 0.22));
-    const v = Math.round(255 * ao);
-    data.set([v, v, v, 255], i * 4);
+function greyTexture(values: Float32Array, w: number, h: number, name: string, mipmaps: boolean): THREE.DataTexture {
+  const data = new Uint8Array(w * h * 4);
+  for (let i = 0; i < w * h; i++) {
+    const v = Math.max(0, Math.min(255, Math.round((values[i]! / LIGHTMAP_RANGE) * 255)));
+    data[i * 4] = v;
+    data[i * 4 + 1] = v;
+    data[i * 4 + 2] = v;
+    data[i * 4 + 3] = 255;
   }
-  const t = new THREE.DataTexture(data, 1, n, THREE.RGBAFormat);
+  const t = new THREE.DataTexture(data, w, h, THREE.RGBAFormat);
   t.colorSpace = THREE.NoColorSpace;
+  t.generateMipmaps = mipmaps;
+  t.minFilter = mipmaps ? THREE.LinearMipmapLinearFilter : THREE.LinearFilter;
   t.magFilter = THREE.LinearFilter;
-  t.minFilter = THREE.LinearFilter;
   t.wrapS = THREE.ClampToEdgeWrapping;
   t.wrapT = THREE.ClampToEdgeWrapping;
-  t.name = "ao-wall";
+  t.channel = 1;
+  t.name = name;
   t.needsUpdate = true;
   return t;
 }
 
+/** Rows of the wall-wash profile texture (uv1.y = y / room height). */
+export const WALL_PROFILE_ROWS = 256;
+
 /**
- * Floor (or ceiling) AO for one room, baked from the manifest boxes standing on it: each texel
- * is darkened by its distance to every nearby wall, post and plinth footprint. Deterministic:
- * a function of the manifest geometry only.
+ * The single wall-wash profile every wall, post, lintel, reveal and plinth references (F3). One
+ * column (u is unused), 256 rows over the room height.
  */
-export function bakeRoomAo(rect: Rect, boxes: readonly { min: Vec3; max: Vec3 }[], opts: { strength: number; falloff: number; texelsPerMetre: number }): THREE.DataTexture {
+export function wallProfileTexture(height: number): THREE.DataTexture {
+  const n = WALL_PROFILE_ROWS;
+  const v = new Float32Array(n);
+  for (let i = 0; i < n; i++) v[i] = wallWash(((i + 0.5) / n) * height, height);
+  return greyTexture(v, 1, n, "wall-wash-profile", false);
+}
+
+/**
+ * Floor or ceiling light for one room (F4), a pure function of the manifest geometry: contact
+ * shading by distance to every nearby wall, post and plinth footprint (`sign` -1), or the cove's
+ * up-light, brighter near the walls (`sign` +1). Normalised so the room's mean is exactly 1: every
+ * room's floor (and ceiling) has the same mean, whatever its size or furniture.
+ */
+export function bakeRoomLight(rect: Rect, boxes: readonly { min: Vec3; max: Vec3 }[], opts: { strength: number; falloff: number; texelsPerMetre: number; sign: 1 | -1 }): { values: Float32Array; w: number; h: number; rawMean: number } {
   const w = Math.max(8, Math.min(512, Math.round((rect.maxX - rect.minX) * opts.texelsPerMetre)));
   const h = Math.max(8, Math.min(512, Math.round((rect.maxZ - rect.minZ) * opts.texelsPerMetre)));
-  const data = new Uint8Array(w * h * 4);
+  const values = new Float32Array(w * h);
   const near = boxes.filter((b) => b.max[0] > rect.minX - 1 && b.min[0] < rect.maxX + 1 && b.max[2] > rect.minZ - 1 && b.min[2] < rect.maxZ + 1);
+  let sum = 0;
   for (let j = 0; j < h; j++) {
-    // Row 0 of a DataTexture is v = 0, which uv1 maps to the room's max z edge (see geometry aoUv).
+    // Row 0 of a DataTexture is v = 0, which uv1 maps to the room's max z edge (geometry aoUv).
     const z = rect.maxZ - ((j + 0.5) / h) * (rect.maxZ - rect.minZ);
     for (let i = 0; i < w; i++) {
       const x = rect.minX + ((i + 0.5) / w) * (rect.maxX - rect.minX);
-      let ao = 1;
-      for (const b of near) {
-        const dx = Math.max(b.min[0] - x, 0, x - b.max[0]);
-        const dz = Math.max(b.min[2] - z, 0, z - b.max[2]);
-        ao *= 1 - opts.strength * Math.exp(-Math.hypot(dx, dz) / opts.falloff);
+      let v = 1;
+      if (opts.sign < 0) {
+        for (const b of near) {
+          const dx = Math.max(b.min[0] - x, 0, x - b.max[0]);
+          const dz = Math.max(b.min[2] - z, 0, z - b.max[2]);
+          v *= 1 - opts.strength * Math.exp(-Math.hypot(dx, dz) / opts.falloff);
+        }
+        v = Math.max(0.5, v);
+      } else {
+        const d = Math.min(x - rect.minX, rect.maxX - x, z - rect.minZ, rect.maxZ - z);
+        v = 1 + opts.strength * Math.exp(-Math.max(0, d) / opts.falloff);
       }
-      const v = Math.round(255 * Math.max(0.5, ao));
-      data.set([v, v, v, 255], (j * w + i) * 4);
+      values[j * w + i] = v;
+      sum += v;
     }
   }
-  const t = new THREE.DataTexture(data, w, h, THREE.RGBAFormat);
-  t.colorSpace = THREE.NoColorSpace;
-  t.generateMipmaps = true;
-  t.minFilter = THREE.LinearMipmapLinearFilter;
-  t.magFilter = THREE.LinearFilter;
-  t.wrapS = THREE.ClampToEdgeWrapping;
-  t.wrapT = THREE.ClampToEdgeWrapping;
-  t.needsUpdate = true;
-  return t;
+  const rawMean = sum / (w * h);
+  for (let i = 0; i < values.length; i++) values[i]! /= rawMean;
+  return { values, w, h, rawMean };
+}
+
+export function roomLightTexture(bake: { values: Float32Array; w: number; h: number }, name: string): THREE.DataTexture {
+  return greyTexture(bake.values, bake.w, bake.h, name, true);
 }
 
 // ---------------------------------------------------------------------------------------
@@ -177,71 +348,51 @@ export function bakeRoomAo(rect: Rect, boxes: readonly { min: Vec3; max: Vec3 }[
 // ---------------------------------------------------------------------------------------
 
 /**
- * Scene colours. Plate paper and ink are the study tokens `--ground` (#F5F1E8) and `--ink`
- * (#211D19) of DESIGN.md 4.2, so wall plates and room plaques are "ink on #F5F1E8" (11.6), the
- * same paper and ink as the knowledge sheet. Design interpretations; not measured or historical
- * dye colours.
+ * Scene colours. Plate paper and ink are white and black (F2): the plates, plaques and signs are
+ * display-referred, so they render at exactly these values. The selection frame and floor route use
+ * the study's single interactive accent `--indigo` (DESIGN.md 4.2). Design values; not measured or
+ * historical dye colours.
  */
 export const PALETTE = {
-  paper: "#f5f1e8",
-  ink: "#211d19",
-  /**
-   * Selection frame and floor route: the study's single interactive accent `--indigo` (DESIGN.md
-   * 4.2, 12.2 rule 5), not a warm brand colour, so the scene's cues use the same accent as the panel.
-   */
+  paper: "#ffffff",
+  ink: "#000000",
   brand: "#24406e",
-  plinth: "#f1eee8",
-  trim: "#3a332c",
-  ceilingTint: "#ffffff",
 } as const;
 
 export interface Materials {
-  wall: THREE.MeshStandardMaterial;
-  ceiling: THREE.MeshStandardMaterial;
-  floor: THREE.MeshStandardMaterial;
-  plinth: THREE.MeshStandardMaterial;
-  trim: THREE.MeshStandardMaterial;
-  panel: THREE.MeshStandardMaterial;
+  /** Walls, posts, lintels, reveals, skirting and cove (vertex-colour tints on one plaster material). */
+  wall: THREE.MeshBasicMaterial;
+  /** Plinths: the same material instance as the walls (their tint is in the vertex colours). */
+  plinth: THREE.MeshBasicMaterial;
+  /** Door reveals and thresholds: the same material instance as the walls. */
+  trim: THREE.MeshBasicMaterial;
+  /** Floor and ceiling templates; each room gets its own instance with its light map (`roomSurfaceMaterial`). */
+  floor: THREE.MeshBasicMaterial;
+  ceiling: THREE.MeshBasicMaterial;
+  panel: THREE.MeshBasicMaterial;
   /** The same card without lettering (rooms whose lettering is not resident). */
-  panelBlank: THREE.MeshStandardMaterial;
+  panelBlank: THREE.MeshBasicMaterial;
   highlight: THREE.MeshBasicMaterial;
-  route: THREE.MeshStandardMaterial;
-  wallAo: THREE.DataTexture;
+  route: THREE.MeshBasicMaterial;
+  /** The shared wall-wash profile (every wall references this one texture instance). */
+  wallProfile: THREE.DataTexture;
   all: THREE.Material[];
 }
 
-function aoChannel(t: THREE.Texture) {
-  t.channel = 1;
-  return t;
-}
+/**
+ * Display-referred output for labels: alpha 0 marks the pixel for the pipeline's OutputPass, which
+ * then skips the tone mapping (see the module comment).
+ */
+const DISPLAY_REFERRED = "gl_FragColor = vec4( outgoingLight, 0.0 );";
 
 /**
- * Label light: the constant emissive share of the paper colour on wall plates and room plaques (and
- * their unlettered stand-ins, so lettering residency never changes a card's brightness).
+ * Panel material: the atlas is a single-channel coverage mask (R8); the shader mixes paper and ink
+ * by it, so text costs 1 byte per texel. Unlit and display-referred: the paper is #FFFFFF and the
+ * ink #000000 on screen at every wall orientation and in every room. Create one per atlas page with
+ * this function: Material.clone() does not copy onBeforeCompile.
  */
-export const LABEL_LIGHT = 0.28;
-
-/**
- * Matte print (P26, DESIGN.md 11.6). Lettering is ink printed on paper, so labels take no specular
- * light: with the standard material's gloss, a plaque that faces a room light or the environment at
- * the viewing angle gets a veil of reflected light added equally to paper and ink, which lowered its
- * contrast at the 2.5 m signage distance to 4.16-4.53:1 (the plaques of the brightly lit Tradition
- * Context rooms), below WCAG 1.4.3 for two study traditions and above it for the third: a 3D-only
- * difference in how legible each tradition's signage is. A brighter label light made it worse
- * (3.96-4.36:1), because the ink brightens with the light while the paper is already compressed by
- * the tone mapping. Removing the specular terms keeps the diffuse and emissive light unchanged.
- */
-const MATTE_PRINT = "#include <aomap_fragment>\n  reflectedLight.directSpecular = vec3( 0.0 );\n  reflectedLight.indirectSpecular = vec3( 0.0 );";
-
-/**
- * Panel material: the atlas is a single-channel coverage mask (R8); the shader mixes paper and
- * ink by it, so text costs 1 byte per texel and stays fully lit by the same PBR lighting.
- * Create one per atlas page with this function: Material.clone() does not copy onBeforeCompile.
- */
-export function panelMaterial(): THREE.MeshStandardMaterial {
-  // Label lighting: the card is lit as if by its own picture light (a constant emissive share of
-  // the paper colour), so the lettering reads equally well on every wall orientation.
-  const m = new THREE.MeshStandardMaterial({ color: "#ffffff", roughness: 0.88, metalness: 0, name: "panel", emissive: "#ffffff", emissiveIntensity: LABEL_LIGHT });
+export function panelMaterial(): THREE.MeshBasicMaterial {
+  const m = new THREE.MeshBasicMaterial({ color: "#ffffff", name: "panel", toneMapped: false });
   const paper = new THREE.Color(PALETTE.paper);
   const ink = new THREE.Color(PALETTE.ink);
   m.onBeforeCompile = (shader) => {
@@ -250,113 +401,129 @@ export function panelMaterial(): THREE.MeshStandardMaterial {
     shader.fragmentShader = shader.fragmentShader
       .replace("#include <common>", "#include <common>\nuniform vec3 uPaper;\nuniform vec3 uInk;")
       .replace("#include <map_fragment>", "#ifdef USE_MAP\n  float coverage = texture2D( map, vMapUv ).r;\n  diffuseColor.rgb *= mix( uPaper, uInk, coverage );\n#endif")
-      // The label light scales with the lettered colour (ink stays dark).
-      .replace("#include <emissivemap_fragment>", "#include <emissivemap_fragment>\n#ifdef USE_MAP\n  totalEmissiveRadiance *= diffuseColor.rgb;\n#endif")
-      .replace("#include <aomap_fragment>", MATTE_PRINT);
+      .replace("#include <opaque_fragment>", DISPLAY_REFERRED);
   };
-  m.customProgramCacheKey = () => "ie-panel-mask-v2-matte";
+  m.customProgramCacheKey = () => "ie-panel-mask-v3-unlit";
   return m;
 }
 
-/** The unlettered card: the same paper, label light and matte print as a lettered one. */
-function panelBlankMaterial(): THREE.MeshStandardMaterial {
-  const m = new THREE.MeshStandardMaterial({ name: "panel-blank", color: PALETTE.paper, roughness: 0.88, metalness: 0, emissive: PALETTE.paper, emissiveIntensity: LABEL_LIGHT });
+/** The unlettered card: the same paper, unlit and display-referred. */
+function panelBlankMaterial(): THREE.MeshBasicMaterial {
+  const m = new THREE.MeshBasicMaterial({ name: "panel-blank", color: PALETTE.paper, toneMapped: false });
   m.onBeforeCompile = (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace("#include <aomap_fragment>", MATTE_PRINT);
+    shader.fragmentShader = shader.fragmentShader.replace("#include <opaque_fragment>", DISPLAY_REFERRED);
   };
-  m.customProgramCacheKey = () => "ie-panel-blank-v2-matte";
+  m.customProgramCacheKey = () => "ie-panel-blank-v3-unlit";
   return m;
+}
+
+/** Material colour that turns a map of linear mean `mean` into a neutral grey of scene value `v`. */
+function neutralGain(mean: readonly number[], v: number): THREE.Color {
+  return new THREE.Color().setRGB(v / mean[0]!, v / mean[1]!, v / mean[2]!, THREE.LinearSRGBColorSpace);
+}
+
+/** Vertex-colour tint (relative to the wall) that renders a plaster surface at `srgb` in the card band. */
+export function plasterTint(srgb: number): number {
+  return sceneValueFor(srgb) / sceneValueFor(GALLERY_FINISH.wallSrgb);
+}
+
+/** Tint for a surface that should render as the given hex colour (e.g. the door edge), relative to the wall. */
+export function plasterTintRgb(hex: string): [number, number, number] {
+  const c = new THREE.Color(hex);
+  const w = sceneValueFor(GALLERY_FINISH.wallSrgb);
+  return [preToneMap(c.r) / w, preToneMap(c.g) / w, preToneMap(c.b) / w];
+}
+
+/**
+ * The plaster material for walls, plinths and reveals: the wall colour map with a neutral gain
+ * (F1), the shared wall-wash profile as a lightmap on uv1 (F3), tints and face shading in the
+ * vertex colours. Unlit.
+ */
+function plasterMaterial(tex: LoadedTextures, profile: THREE.DataTexture): THREE.MeshBasicMaterial {
+  return new THREE.MeshBasicMaterial({
+    name: "plaster",
+    map: tex.wall.color,
+    color: neutralGain(COLOUR_MAP_MEAN.wall, sceneValueFor(GALLERY_FINISH.wallSrgb)),
+    vertexColors: true,
+    lightMap: profile,
+    lightMapIntensity: Math.PI * LIGHTMAP_RANGE,
+  });
+}
+
+/**
+ * A floor or ceiling material for one room (F4): the colour map with a neutral gain to the finish
+ * mean, that room's normalised light map, and (floor) the map's contrast reduced to `floorDetail`.
+ * All rooms share one program (the onBeforeCompile and its cache key are set on every instance).
+ */
+export function roomSurfaceMaterial(kind: "floor" | "ceiling", tex: LoadedTextures, light: THREE.Texture | null): THREE.MeshBasicMaterial {
+  const floor = kind === "floor";
+  const mean = floor ? COLOUR_MAP_MEAN.floor : COLOUR_MAP_MEAN.wall;
+  const target = sceneValueFor(floor ? GALLERY_FINISH.floorSrgb : GALLERY_FINISH.ceilingSrgb);
+  const m = new THREE.MeshBasicMaterial({
+    name: kind,
+    map: floor ? tex.floor.color : tex.wall.color,
+    color: neutralGain(mean, target),
+    lightMap: light,
+    lightMapIntensity: Math.PI * LIGHTMAP_RANGE,
+  });
+  if (floor) {
+    const uMean = new THREE.Vector3(mean[0], mean[1], mean[2]);
+    const detail = { value: GALLERY_FINISH.floorDetail };
+    m.onBeforeCompile = (shader) => {
+      shader.uniforms.uMapMean = { value: uMean };
+      shader.uniforms.uDetail = detail;
+      shader.fragmentShader = shader.fragmentShader
+        .replace("#include <common>", "#include <common>\nuniform vec3 uMapMean;\nuniform float uDetail;")
+        .replace("#include <map_fragment>", "#ifdef USE_MAP\n  vec4 sampledDiffuseColor = texture2D( map, vMapUv );\n  diffuseColor.rgb *= mix( uMapMean, sampledDiffuseColor.rgb, uDetail );\n#endif");
+    };
+    m.customProgramCacheKey = () => "ie-floor-v1";
+  }
+  return m;
+}
+
+/**
+ * A room's own floor or ceiling material: the template (floor or ceiling) with that room's light
+ * map. The same program as the template (onBeforeCompile and its cache key are carried over:
+ * Material.clone() does not copy them).
+ */
+export function withRoomLight(template: THREE.MeshBasicMaterial, light: THREE.Texture): THREE.MeshBasicMaterial {
+  const m = template.clone();
+  m.onBeforeCompile = template.onBeforeCompile;
+  m.customProgramCacheKey = template.customProgramCacheKey;
+  light.channel = 1;
+  m.lightMap = light;
+  return m;
+}
+
+/** Mean light of a stored light map (the 8-bit values the GPU samples), in units of the card-band level. */
+export function storedMean(t: THREE.DataTexture): number {
+  const d = t.image.data as Uint8Array;
+  let sum = 0;
+  for (let i = 0; i < d.length; i += 4) sum += d[i]!;
+  return (sum / (d.length / 4) / 255) * LIGHTMAP_RANGE;
 }
 
 export function createMaterials(tex: LoadedTextures, wallHeight: number): Materials {
-  const wallAo = wallAoTexture(wallHeight);
-  const wall = new THREE.MeshStandardMaterial({
-    name: "wall",
-    map: tex.wall.color,
-    normalMap: tex.wall.normal,
-    normalScale: new THREE.Vector2(0.35, 0.35),
-    roughnessMap: tex.wall.orm,
-    metalnessMap: tex.wall.orm,
-    roughness: 1,
-    metalness: 0,
-    aoMap: aoChannel(wallAo),
-    aoMapIntensity: 1,
-    envMapIntensity: 0.6,
-  });
-  // Ceilings and floors get a per-room AO map (bakeRoomAo): these are templates cloned per room.
-  const ceiling = new THREE.MeshStandardMaterial({
-    name: "ceiling",
-    map: tex.wall.color,
-    normalMap: tex.wall.normal,
-    normalScale: new THREE.Vector2(0.2, 0.2),
-    roughnessMap: tex.wall.orm,
-    metalnessMap: tex.wall.orm,
-    roughness: 1,
-    metalness: 0,
-    color: PALETTE.ceilingTint,
-    // Light reflected up from the lit floor and walls (a constant, baked bounce term): without it
-    // a ceiling only sees the hemisphere's ground colour and reads as a dark brown lid.
-    emissive: "#8f8a82",
-    emissiveIntensity: 1,
-    aoMap: aoChannel(wallAo),
-    envMapIntensity: 0.6,
-  });
-  const floor = new THREE.MeshStandardMaterial({
-    name: "floor",
-    map: tex.floor.color,
-    normalMap: tex.floor.normal,
-    normalScale: new THREE.Vector2(0.5, 0.5),
-    roughnessMap: tex.floor.orm,
-    metalnessMap: tex.floor.orm,
-    roughness: 1,
-    metalness: 0,
-    aoMap: aoChannel(wallAo),
-    envMapIntensity: 0.8,
-  });
-  const plinth = new THREE.MeshStandardMaterial({ name: "plinth", color: PALETTE.plinth, roughness: 0.7, metalness: 0, aoMap: aoChannel(wallAo), envMapIntensity: 0.6 });
-  const trim = new THREE.MeshStandardMaterial({ name: "trim", color: PALETTE.trim, roughness: 0.55, metalness: 0, aoMap: aoChannel(wallAo), envMapIntensity: 0.6 });
+  const wallProfile = wallProfileTexture(wallHeight);
+  const plaster = plasterMaterial(tex, wallProfile);
+  // Templates (compiled before entry); each room gets its own instance with its light map.
+  const floor = roomSurfaceMaterial("floor", tex, wallProfile);
+  const ceiling = roomSurfaceMaterial("ceiling", tex, wallProfile);
   const panel = panelMaterial();
   const panelBlank = panelBlankMaterial();
-  const highlight = new THREE.MeshBasicMaterial({ name: "highlight", color: PALETTE.brand, toneMapped: true, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
-  const route = new THREE.MeshStandardMaterial({ name: "route", color: PALETTE.brand, roughness: 0.6, metalness: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
-  return { wall, ceiling, floor, plinth, trim, panel, panelBlank, highlight, route, wallAo, all: [wall, ceiling, floor, plinth, trim, panel, panelBlank, highlight, route] };
-}
-
-/** A per-room clone of a floor/ceiling template using that room's baked AO. Shares the program. */
-export function withRoomAo(template: THREE.MeshStandardMaterial, ao: THREE.Texture): THREE.MeshStandardMaterial {
-  const m = template.clone();
-  ao.channel = 1;
-  m.aoMap = ao;
-  return m;
+  const highlight = new THREE.MeshBasicMaterial({ name: "highlight", color: PALETTE.brand, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+  const route = new THREE.MeshBasicMaterial({ name: "route", color: PALETTE.brand, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+  return { wall: plaster, plinth: plaster, trim: plaster, floor, ceiling, panel, panelBlank, highlight, route, wallProfile, all: [plaster, floor, ceiling, panel, panelBlank, highlight, route] };
 }
 
 // ---------------------------------------------------------------------------------------
-// Lighting: identical everywhere, no dynamic shadows.
+// Scene setup: no lights (the architecture is unlit), a neutral background.
 // ---------------------------------------------------------------------------------------
 
-export function createLighting(renderer: THREE.WebGLRenderer, scene: THREE.Scene): () => void {
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  const envScene = new RoomEnvironment();
-  const env = pmrem.fromScene(envScene, 0.04).texture;
-  envScene.traverse((o) => {
-    const mesh = o as THREE.Mesh;
-    if (mesh.isMesh) {
-      mesh.geometry.dispose();
-      (mesh.material as THREE.Material).dispose();
-    }
-  });
-  pmrem.dispose();
-  scene.environment = env;
-  scene.environmentIntensity = 0.8;
-  scene.background = new THREE.Color("#d9d3c8");
-  const hemi = new THREE.HemisphereLight("#e9eef2", "#d2b692", 1.0);
-  const key = new THREE.DirectionalLight("#fff1e0", 1.2);
-  key.position.set(-0.45, 1, 0.3);
-  key.castShadow = false;
-  scene.add(hemi, key);
+export function createLighting(_renderer: THREE.WebGLRenderer, scene: THREE.Scene): () => void {
+  scene.environment = null;
+  scene.background = new THREE.Color(GALLERY_FINISH.background);
   return () => {
-    scene.remove(hemi, key);
-    scene.environment = null;
-    env.dispose();
+    scene.background = null;
   };
 }

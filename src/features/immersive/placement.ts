@@ -64,8 +64,15 @@ export function panelTypeScale(model: Pick<SceneModel, "exhibits">) {
   return { approachDistanceMax: dMax, kickerEm: em, footerEm: em, titleEm: Math.ceil(em * 1.9 * 1000) / 1000 };
 }
 
-/** Door-sign geometry: proud of the lintel, centred over the opening, between head lining and ceiling. */
-export const DOOR_SIGN = { offset: 0.003, height: 0.3, maxWidth: 1.4, sideMargin: 0.05, gapAboveOpening: 0.08, kickerEm: 0.07, titleEm: 0.1 } as const;
+/**
+ * Door-sign geometry: proud of the lintel, centred over the opening, between head lining and ceiling;
+ * one size for every doorway. Sized by the 3D-B novice walkthrough: at 0.1 m the room name was legible
+ * only from about 4 m, so a visitor stepping into a wing room could not read which doorway led on
+ * (the far signs were 12 to 16 m away) and tried rooms at random. The name now meets L1 from 6 m and
+ * the zone line from 4.4 m; the sign runs 0.35 m onto the wall either side of a 1.5 m opening, inside
+ * the compiler's 0.6 m door clearance, so it never meets a panel.
+ */
+export const DOOR_SIGN = { offset: 0.003, height: 0.46, width: 2.2, gapAboveOpening: 0.08, kickerEm: 0.106, titleEm: 0.15, readFrom: 6 } as const;
 /** Category signs (manifest `label` elements): one line of capitals at 30% of the sign height. */
 export const CATEGORY_SIGN_EM_FRACTION = 0.3;
 
@@ -85,7 +92,7 @@ export function doorSigns(model: Pick<SceneModel, "portals" | "rooms">): SceneDo
   const out: SceneDoorSign[] = [];
   for (const p of model.portals) {
     if (!p.lintel) continue;
-    const w = Math.min(DOOR_SIGN.maxWidth, p.width - 2 * DOOR_SIGN.sideMargin);
+    const w = DOOR_SIGN.width;
     const y0 = p.height + DOOR_SIGN.gapAboveOpening;
     const y1 = y0 + DOOR_SIGN.height;
     if (y1 > p.lintel.max[1] - 0.02 || w <= 0) continue;

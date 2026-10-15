@@ -1,21 +1,23 @@
 /**
- * Wall-panel and sign lettering: per room, all panel and sign faces are drawn into single-channel
- * (R8) coverage atlases at 600 texels per metre, with a full mip chain. The text is set in the
- * page's own typefaces (the next/font Source Serif 4 and Inter files, DESIGN.md 5.1), so the
- * lettering matches the 2D condition and the HTML panel. The atlas is built only after
- * `document.fonts.ready` and an explicit load of both faces (`ensureLabelFonts`), so a plaque is
- * never drawn in a fallback font in 3D only (DESIGN.md 11.6, residual risk 7).
+ * Wall-plate, plaque and sign lettering: per room, all panel and sign faces are drawn into
+ * single-channel (R8) coverage atlases at 600 texels per metre, with a full mip chain. The text is
+ * set in the study's one typeface, read from the page's `--font-sans` token (Atkinson Hyperlegible
+ * Next under the Atlas direction, DR-022; whatever the token names, the 2D page and the 3D
+ * lettering use the same face). The atlas is built only after `document.fonts.ready` and an
+ * explicit load of every weight drawn (`ensureLabelFonts`), so a plaque is never drawn in a
+ * fallback font in 3D only (DESIGN.md 11.6, residual risk 7).
  *
- * Wall exhibit planes are typographic plates (DESIGN.md 11.6, 12.3 rule 11): the same size for
- * every exhibit, the concept title in Source Serif 4 600, ink on the `--ground` paper, inside a
- * thin ink frame, and nothing else (the museum passes no kicker or footer). Room plaques (doorway
- * signs naming the room they lead to) are one fixed size for every room, the name in Source Serif 4
- * 600 at a fixed size (two lines when there is no zone line), under the zone it leads into when the
- * doorway changes zone. Lettering is set at a reading optical size (`LETTERING_OPSZ_PX`).
+ * Exhibit plates (DR-023 F2): one size for every exhibit, black ink on white paper inside a thin ink
+ * frame, the concept title in 700. A sequence station also carries "Step n of N" above the title
+ * and "Start" or "Last step" under it (`plaque-text.ts`, the same words as the 2D rail), and a
+ * visited plate the word "Visited" at its foot (the in-world form of the 2D visited marking). Room
+ * plaques over doorways name the room they lead to (two lines when there is no zone line), under
+ * the zone they lead into when the doorway changes zone. Category signs are one line in Title Case:
+ * no capitals or letter-spacing (no uppercase eyebrows).
  *
- * All lettering is drawn at FULL ink coverage. Secondary lines at reduced coverage (0.88) measured
- * 3.1:1 against the lit paper in the legibility check, under the 4.5:1 of WCAG 1.4.3: small type
- * loses contrast to filtering, so no lettering is lightened on purpose.
+ * All lettering is drawn at FULL ink coverage: small type loses contrast to filtering, so no line is
+ * lightened on purpose. The plate material is unlit and display-referred (resources.ts), so the
+ * rendered paper is #FFFFFF and the ink #000000 wherever the plate hangs.
  *
  * Adapted from virtual-walkthrough src/museum/materials/wallGraphics.ts `createLabelTexture`
  * (canvas lettering for wall graphics). Differences: one coverage atlas per room instead of one
@@ -38,8 +40,11 @@ export const PLATE_FRAME = { insetTexels: 12, widthTexels: 3 } as const;
 
 export interface LabelItem {
   id: string;
-  /** panel: exhibit card; sign: category sign (one line); door: doorway sign (where it leads). */
-  kind: "panel" | "sign" | "door";
+  /**
+   * panel: exhibit card; sign: category sign (one line); door: doorway sign (where it leads);
+   * directory: one row of the entrance directory (the destination, and the doorway to it).
+   */
+  kind: "panel" | "sign" | "door" | "directory";
   /** Type sizes in metres (em), from the legibility rule (src/features/immersive/placement.ts). */
   em: { kicker: number; title: number; footer: number };
   widthM: number;
@@ -47,6 +52,8 @@ export interface LabelItem {
   kicker: string | null;
   title: string;
   footer: string | null;
+  /** A quiet mark at the plate's foot, right-aligned ("Visited"); plates only. */
+  mark?: string | null;
 }
 
 export interface AtlasRect {
@@ -69,11 +76,14 @@ function cssFamily(variable: string, fallback: string): string {
   return v || fallback;
 }
 
-/** The next/font family variables set on <html> by src/app/layout.tsx. */
-const SERIF_VAR = "--font-source-serif";
-const SANS_VAR = "--font-inter";
-const serifFamily = () => cssFamily(SERIF_VAR, "serif");
-const sansFamily = () => cssFamily(SANS_VAR, "sans-serif");
+/**
+ * The study typeface: the theme's `--font-sans` token (a full font stack), falling back to the
+ * next/font variable when the token is absent. The 2D page sets its text in the same token.
+ */
+const sansFamily = () => cssFamily("--font-sans", "") || cssFamily("--font-inter", "sans-serif");
+
+/** Weights the lettering draws: secondary lines 600, titles 700. */
+export const LETTERING_WEIGHT = { line: 600, title: 700 } as const;
 
 let fontsReady: Promise<void> | null = null;
 
@@ -83,17 +93,17 @@ let fontsReady: Promise<void> | null = null;
  */
 export function ensureLabelFonts(): Promise<void> {
   if (!fontsReady) {
-    const display = serifFamily();
     const sans = sansFamily();
     fontsReady = document.fonts.ready
-      .then(() => Promise.all([document.fonts.load(`600 64px ${display}`), document.fonts.load(`500 28px ${sans}`), document.fonts.load(`400 26px ${sans}`)]))
+      .then(() => Promise.all([document.fonts.load(`${LETTERING_WEIGHT.title} 64px ${sans}`), document.fonts.load(`${LETTERING_WEIGHT.line} 28px ${sans}`)]))
       .then(() => undefined);
   }
   return fontsReady;
 }
 
 /**
- * Nominal font sizes (canvas px) the lettering is set at. Source Serif 4 takes its optical size
+ * Nominal font sizes (canvas px) the lettering is set at (kept from the serif lettering, where it
+ * chose the optical size; for a face without an opsz axis it only sets the hinting size). Source Serif 4 took its optical size
  * from the font size (`font-optical-sizing: auto`, opsz 8-60), and a canvas has no
  * `font-variation-settings`. Set at its true size (60-72 texels), every title came out in the
  * Display cut, whose hairlines wash out when the texture is minified. So each line is set at the
@@ -151,8 +161,8 @@ function wrapLines(ctx: CanvasRenderingContext2D, s: number, text: string, maxWi
 }
 
 function drawItem(ctx: CanvasRenderingContext2D, item: LabelItem, x: number, y: number, w: number, h: number) {
-  const display = serifFamily();
   const sans = sansFamily();
+  const W = LETTERING_WEIGHT;
   const px = (m: number) => Math.round(m * LABEL_TEXELS_PER_METRE);
   ctx.save();
   ctx.translate(x, y);
@@ -160,9 +170,29 @@ function drawItem(ctx: CanvasRenderingContext2D, item: LabelItem, x: number, y: 
   ctx.textBaseline = "alphabetic";
   if (item.kind === "sign") {
     const size = px(item.em.title);
-    const s = setFace(ctx, 500, size, sans, LETTERING_OPSZ_PX.plaque, 0.1);
-    const line = wrapLines(ctx, s, item.title.toUpperCase(), w * 0.9, 1)[0] ?? "";
+    const s = setFace(ctx, W.title, size, sans, LETTERING_OPSZ_PX.plaque);
+    const line = wrapLines(ctx, s, titleCase(item.title), w * 0.9, 1)[0] ?? "";
     fillAt(ctx, line, (w - measure(ctx, line, s)) / 2, (h + size * 0.7) / 2, s);
+    ctx.restore();
+    return;
+  }
+  if (item.kind === "directory") {
+    // Left-aligned on a fixed pad: the destination in 700 on the first line, the doorway that
+    // leads there in 600 on the second, at the same place in every row so the rows align. A name
+    // wider than the row is set smaller to fit on its line (never cut): measured in the browser.
+    const pad = px(0.05);
+    const t = px(item.em.title);
+    const f = px(item.em.footer);
+    const name = titleCase(item.title);
+    let ts = setFace(ctx, W.title, t, sans, LETTERING_OPSZ_PX.plaque);
+    const room = w - 2 * pad;
+    const wide = measure(ctx, name, ts);
+    if (wide > room) ts *= room / wide;
+    fillAt(ctx, name, pad, pad + t * 0.85, ts);
+    if (item.footer) {
+      const fs = setFace(ctx, W.line, f, sans, LETTERING_OPSZ_PX.plaque);
+      fillAt(ctx, wrapLines(ctx, fs, item.footer, room, 1)[0] ?? "", pad, h - pad - Math.round(f * 0.2), fs);
+    }
     ctx.restore();
     return;
   }
@@ -171,22 +201,22 @@ function drawItem(ctx: CanvasRenderingContext2D, item: LabelItem, x: number, y: 
     // name. The name wraps to a second line when there is no zone line and room for it (11.6).
     const k = px(item.em.kicker);
     const t = px(item.em.title);
-    const ks = setFace(ctx, 500, k, sans, LETTERING_OPSZ_PX.plaque);
+    const ks = setFace(ctx, W.line, k, sans, LETTERING_OPSZ_PX.plaque);
     const kick = item.kicker ? wrapLines(ctx, ks, titleCase(item.kicker), w * 0.94, 2) : [];
     const titleLineH = Math.round(t * 1.08);
     const titleRoom = h - (kick.length * k * 1.2 + (kick.length ? k * 0.25 : 0));
     const maxTitleLines = kick.length === 0 && titleRoom >= t + titleLineH + 2 * Math.round(t * 0.2) ? 2 : 1;
-    const ts = setFace(ctx, 600, t, display, LETTERING_OPSZ_PX.plaque);
+    const ts = setFace(ctx, W.title, t, sans, LETTERING_OPSZ_PX.plaque);
     const title = wrapLines(ctx, ts, titleCase(item.title), w * 0.94, maxTitleLines);
     const total = kick.length * k * 1.2 + (kick.length ? k * 0.25 : 0) + t + (title.length - 1) * titleLineH;
     let cy = (h - total) / 2;
-    setFace(ctx, 500, k, sans, LETTERING_OPSZ_PX.plaque);
+    setFace(ctx, W.line, k, sans, LETTERING_OPSZ_PX.plaque);
     for (const line of kick) {
       cy += k * 1.2;
       fillAt(ctx, line, (w - measure(ctx, line, ks)) / 2, cy - k * 0.2, ks);
     }
     if (kick.length) cy += k * 0.25;
-    setFace(ctx, 600, t, display, LETTERING_OPSZ_PX.plaque);
+    setFace(ctx, W.title, t, sans, LETTERING_OPSZ_PX.plaque);
     cy += t * 0.85;
     for (const line of title) {
       fillAt(ctx, line, (w - measure(ctx, line, ts)) / 2, cy, ts);
@@ -195,8 +225,8 @@ function drawItem(ctx: CanvasRenderingContext2D, item: LabelItem, x: number, y: 
     ctx.restore();
     return;
   }
-  // Exhibit plate: the thin ink frame, then the title (and a kicker or footer only if one is
-  // passed; the museum passes none) left-aligned on a fixed pad.
+  // Exhibit plate: the thin ink frame; the step line (sequence stations), the title, and the foot
+  // line ("Start" / "Last step" left, "Visited" right), left-aligned on a fixed pad.
   const fi = PLATE_FRAME.insetTexels;
   const fw = PLATE_FRAME.widthTexels;
   ctx.fillRect(fi, fi, w - 2 * fi, fw);
@@ -209,30 +239,59 @@ function drawItem(ctx: CanvasRenderingContext2D, item: LabelItem, x: number, y: 
   const f = px(item.em.footer);
   let cy = pad;
   if (item.kicker) {
-    const ks = setFace(ctx, 500, k, sans, LETTERING_OPSZ_PX.plate, 0.1);
+    const ks = setFace(ctx, W.line, k, sans, LETTERING_OPSZ_PX.plate);
     cy += k;
-    fillAt(ctx, wrapLines(ctx, ks, item.kicker.toUpperCase(), w - 2 * pad, 1)[0] ?? "", pad, cy, ks);
+    fillAt(ctx, wrapLines(ctx, ks, item.kicker, w - 2 * pad, 1)[0] ?? "", pad, cy, ks);
     cy += Math.round(k * 0.6);
   }
-  const footerBlock = item.footer ? f * 1.4 : 0;
+  const foot = Boolean(item.footer || item.mark);
+  const footerBlock = foot ? f * 1.4 : 0;
   const lineH = Math.round(t * 1.08);
   const maxLines = Math.max(1, Math.floor((h - cy - pad - footerBlock) / lineH));
-  const ts = setFace(ctx, 600, t, display, LETTERING_OPSZ_PX.plate);
+  const ts = setFace(ctx, W.title, t, sans, LETTERING_OPSZ_PX.plate);
   for (const l of wrapLines(ctx, ts, titleCase(item.title), w - 2 * pad, maxLines)) {
     cy += lineH;
     fillAt(ctx, l, pad, cy, ts);
   }
-  if (item.footer) {
-    const fs = setFace(ctx, 400, f, sans, LETTERING_OPSZ_PX.plate);
-    fillAt(ctx, wrapLines(ctx, fs, item.footer, w - 2 * pad, 1)[0] ?? "", pad, h - pad, fs);
+  if (foot) {
+    const fs = setFace(ctx, W.line, f, sans, LETTERING_OPSZ_PX.plate);
+    const half = (w - 2 * pad) / 2 - f;
+    if (item.footer) fillAt(ctx, wrapLines(ctx, fs, item.footer, half, 1)[0] ?? "", pad, h - pad, fs);
+    if (item.mark) {
+      const m = wrapLines(ctx, fs, item.mark, half, 1)[0] ?? "";
+      fillAt(ctx, m, w - pad - measure(ctx, m, fs), h - pad, fs);
+    }
   }
   ctx.restore();
 }
 
-/** Packs the items on shelves, draws them and uploads one R8 texture per page. */
-export function buildLabelAtlas(items: readonly LabelItem[], anisotropy: number, name: string): LabelAtlas {
-  const rects = new Map<string, AtlasRect>();
-  const placed: { item: LabelItem; page: number; x: number; y: number; w: number; h: number }[] = [];
+/** One item's cell on an atlas page (canvas coordinates: y down from the page top). */
+export interface AtlasPlacement {
+  item: LabelItem;
+  page: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * A room's atlas in the making: the shelf packing is fixed up front, the items are drawn one by
+ * one into the pages' R8 data (`drawNextItems`, time-sliced across frames so a room entering the
+ * resident set never costs one long frame: C4), and the pages are uploaded once every item is in.
+ */
+export interface AtlasJob {
+  name: string;
+  placed: AtlasPlacement[];
+  pages: { data: Uint8Array; width: number; height: number }[];
+  rects: Map<string, AtlasRect>;
+  /** Index of the next item to draw. */
+  next: number;
+}
+
+/** Packs the items on shelves (the pages' size and every item's cell); nothing is drawn yet. */
+export function planLabelAtlas(items: readonly LabelItem[], name: string): AtlasJob {
+  const placed: AtlasPlacement[] = [];
   let page = 0;
   let x = 0;
   let y = 0;
@@ -258,30 +317,70 @@ export function buildLabelAtlas(items: readonly LabelItem[], anisotropy: number,
     shelf = Math.max(shelf, h);
   }
   pageHeights[page] = y + shelf;
-
-  const pages: THREE.DataTexture[] = [];
-  let texels = 0;
+  const pages: AtlasJob["pages"] = [];
+  const rects = new Map<string, AtlasRect>();
   for (let p = 0; p <= page && placed.length > 0; p++) {
     const height = Math.max(4, Math.ceil((pageHeights[p] ?? 4) / 4) * 4);
+    pages.push({ data: new Uint8Array(PAGE * height), width: PAGE, height });
+  }
+  for (const pl of placed) {
+    const height = pages[pl.page]!.height;
+    // Texel centres of the cell, flipped to texture space (row 0 = v 0 = canvas bottom).
+    rects.set(pl.item.id, { page: pl.page, u0: pl.x / PAGE, u1: (pl.x + pl.w) / PAGE, v0: 1 - (pl.y + pl.h) / height, v1: 1 - pl.y / height });
+  }
+  return { name, placed, pages, rects, next: 0 };
+}
+
+let scratch: { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } | null = null;
+
+/** A reusable drawing canvas at least w x h (one per page lifetime; grown, never shrunk). */
+function scratchCanvas(w: number, h: number) {
+  if (!scratch) {
     const canvas = document.createElement("canvas");
-    canvas.width = PAGE;
-    canvas.height = height;
-    const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, PAGE, height);
-    for (const pl of placed.filter((q) => q.page === p)) {
-      drawItem(ctx, pl.item, pl.x, pl.y, pl.w, pl.h);
-      // Texel centres of the cell, flipped to texture space (row 0 = v 0 = canvas bottom).
-      rects.set(pl.item.id, { page: p, u0: pl.x / PAGE, u1: (pl.x + pl.w) / PAGE, v0: 1 - (pl.y + pl.h) / height, v1: 1 - pl.y / height });
-    }
-    const rgba = ctx.getImageData(0, 0, PAGE, height).data;
-    const r8 = new Uint8Array(PAGE * height);
-    for (let row = 0; row < height; row++) {
-      const src = (height - 1 - row) * PAGE * 4;
-      const dst = row * PAGE;
-      for (let i = 0; i < PAGE; i++) r8[dst + i] = rgba[src + i * 4]!;
-    }
-    const tex = new THREE.DataTexture(r8, PAGE, height, THREE.RedFormat, THREE.UnsignedByteType);
+    canvas.width = 8;
+    canvas.height = 8;
+    scratch = { canvas, ctx: canvas.getContext("2d", { willReadFrequently: true })! };
+  }
+  if (scratch.canvas.width < w || scratch.canvas.height < h) {
+    scratch.canvas.width = Math.max(scratch.canvas.width, w);
+    scratch.canvas.height = Math.max(scratch.canvas.height, h);
+    scratch.ctx = scratch.canvas.getContext("2d", { willReadFrequently: true })!;
+  }
+  return scratch.ctx;
+}
+
+/** Draws one placed item and copies its coverage (red channel) into its page, flipped to texture rows. */
+function drawPlacement(job: AtlasJob, pl: AtlasPlacement) {
+  const ctx = scratchCanvas(pl.w, pl.h);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, pl.w, pl.h);
+  drawItem(ctx, pl.item, 0, 0, pl.w, pl.h);
+  const rgba = ctx.getImageData(0, 0, pl.w, pl.h).data;
+  const page = job.pages[pl.page]!;
+  for (let row = 0; row < pl.h; row++) {
+    const dst = (page.height - 1 - (pl.y + row)) * page.width + pl.x;
+    const src = row * pl.w * 4;
+    for (let i = 0; i < pl.w; i++) page.data[dst + i] = rgba[src + i * 4]!;
+  }
+}
+
+/** Draws items until `budgetMs` has passed (at least one). Returns true when every item is drawn. */
+export function drawNextItems(job: AtlasJob, budgetMs: number): boolean {
+  const t0 = performance.now();
+  while (job.next < job.placed.length) {
+    drawPlacement(job, job.placed[job.next]!);
+    job.next++;
+    if (performance.now() - t0 >= budgetMs) break;
+  }
+  return job.next >= job.placed.length;
+}
+
+/** The R8 textures of a finished job. */
+export function atlasTextures(job: AtlasJob, anisotropy: number): LabelAtlas {
+  let texels = 0;
+  const pages = job.pages.map((pg, p) => {
+    const tex = new THREE.DataTexture(pg.data, pg.width, pg.height, THREE.RedFormat, THREE.UnsignedByteType);
     tex.internalFormat = "R8";
     tex.colorSpace = THREE.NoColorSpace;
     tex.generateMipmaps = true;
@@ -289,10 +388,17 @@ export function buildLabelAtlas(items: readonly LabelItem[], anisotropy: number,
     tex.magFilter = THREE.LinearFilter;
     tex.anisotropy = anisotropy;
     tex.unpackAlignment = 1;
-    tex.name = `${name}:labels:${p}`;
+    tex.name = `${job.name}:labels:${p}`;
     tex.needsUpdate = true;
-    pages.push(tex);
-    texels += PAGE * height;
-  }
-  return { pages, rects, texels };
+    texels += pg.width * pg.height;
+    return tex;
+  });
+  return { pages, rects: job.rects, texels };
+}
+
+/** Packs, draws and uploads a whole atlas at once (the start room, before entry). */
+export function buildLabelAtlas(items: readonly LabelItem[], anisotropy: number, name: string): LabelAtlas {
+  const job = planLabelAtlas(items, name);
+  drawNextItems(job, Infinity);
+  return atlasTextures(job, anisotropy);
 }

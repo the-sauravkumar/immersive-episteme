@@ -24,7 +24,8 @@ export interface MuseumCanvasProps {
   model: SceneModel;
   tier: QualityTier;
   bridge: MuseumBridge;
-  describe: (e: SceneExhibit) => { kicker: string | null; footer: string | null };
+  /** Unused (plate lines come from plaqueText); optional so an existing host compiles. */
+  describe?: (e: SceneExhibit) => { kicker: string | null; footer: string | null };
   describeDoor: (s: SceneDoorSign) => { kicker: string | null; title: string };
   probe: boolean;
   gpuRenderer: string | null;

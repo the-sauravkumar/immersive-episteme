@@ -119,3 +119,51 @@ table shows the run after the matte-print change (run id `wp8-fix-1792062394`, 2
 - Architecture geometry and per-room AO maps stay resident for the whole visit: tens of
   kilobytes of geometry, AO at most 512 x 512 RGBA per room. Only the lettering, the dominant
   texture memory, is streamed and disposed per room.
+
+## 6. Results After the Gallery Finish (DR-023, Package 3D-A): High Tier, GTX 1650, Headless
+
+**How it was run.** `IE_GPU=1 PW_GPU=1 PORT=3301 IE_MEASURE_ALL=1 IE_RUN_ID=step3-3d-a-2 node
+node_modules/@playwright/test/cli.js test tests/e2e/immersive-rendering.spec.ts --workers=1`
+against the development server on port 3301 (28.4 min: 8 passed, 2 failed). Renderer `ANGLE
+(NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F9D) Direct3D11 vs_5_0 ps_5_0, D3D11)`, 1280 x 720 at DPR 1.
+Output `analysis/out/museum/rendering-high.json`. The spec changed with the finish: C12 covers the
+textures actually loaded (the two colour maps), C2 counts display-referred plate paper (exactly
+sRGB 255, which no tone-mapped surface reaches) as paper rather than clipping, C2b was added, C11
+takes its snapshots at the spawn view, and C4 asserts no program compiled after entry (a count may
+fall when a material is released).
+
+| Check | Budget | Result | Status |
+|---|---|---|---|
+| C1 static frames, 98 viewpoints x 30 frames | ≤ 0.01% | 0 changed pixels at every viewpoint (WP8: 0.0324%, 29 of 98 failing) | pass |
+| C1b shimmer spikes | 0 | 0 | pass |
+| C2 clipped / crushed; zone means | ≤ 0.5%; ±15% | 0.18% / 0.24% at worst; zone deviation at most 2.7% | pass |
+| C2b wing entrance rooms (tradition_context #wall and #door views) | means within ±5% | Ajrakh 167.90, Machilipatnam Kalamkari 167.82, Sanganeri 166.52 (8-bit luma); at most 0.53% from their average | pass |
+| C3 p95 / p99 (two tours, 24 rooms each) | 16.7 / 25 ms | 7.1 / 7.2 and 7.1 / 7.3 ms; at most 101 draw calls, 27,995 triangles | pass |
+| C4 frames over 50 ms; programs after entry | 0; none compiled | 1 (62.5 ms) in tour 1, 0 in tour 2 (WP8: 26 and 31, max 83 ms); programs 15 before and after | fail (1 frame), dev server |
+| C5 baselines (6 room views) | ≤ 0.2% | new baselines written for the finish (`tests/e2e/immersive-baselines/high/`); need human review | created |
+| C6 non-uniform scale, transparent overlap | 0, 0 | 0, 0 (97 meshes) | pass |
+| C7 configuration | neutral, 1.0, TAA + output + SMAA | as configured; SMAA now runs in motion only (module record I-R7) | pass |
+| C8 context loss | restores, logs | restored, 1 event | pass |
+| C10 idle / hidden frames | 0 / 0 | 0 / 0 (hidden still not measurable headless) | pass |
+| C11 counts after a second tour; heap | equal; < 10% | geometries 94/94/94, textures 69/69/69; heap +0.5% | pass |
+| C12 GPU texture SSIM | ≥ 0.98 | floor colour 0.9925; wall colour 0.9746 | fail (wall colour) |
+| Texture memory during a tour | ≤ 512 MB (high), 192 MB (low) | 32.5 MB textures + 35.0 MB render targets (WP8: 70.5 MB textures) | pass |
+| First download | ≤ 25 MB | 7,058,045 bytes of textures (two colour maps; was 21,354,070) | pass |
+| Card title contrast at the approach point (23 exhibits) | ≥ 4.5:1 | minimum 20.14:1 | pass |
+| Room plaque contrast at 2.5 m (54 plaques) | ≥ 4.5:1 | minimum 13.77:1. Lowest per study tradition: Ajrakh 13.77, Machilipatnam Kalamkari 13.97, Sanganeri 13.97; shared areas 14.16. From the spawn, minimum 9.44:1 | pass; traditions balanced |
+
+**Rendered finish (sampled from the 1440 x 900 screenshots, GTX 1650):** wall in the card band
+sRGB 201 to 205.5 with a\* and b\* within ±0.15; floor 103.6 (luminance 0.137, 0.23 x the wall);
+ceiling 194; plinth 220; plate paper 255 and ink 0 (before the alpha flag survived the TAA copy,
+paper rendered at 240).
+
+**Open.**
+- **C4:** one 62.5 ms frame in the first tour only, on the development server (unminified code). A
+  production-build run is still needed before the number is quoted.
+- **C12 wall colour 0.9746:** not a transcode loss. An uncompressed RGBA8 transcode measured 0.9753
+  (reverted). GPU texels differ from the authored source by the encode itself: mean absolute error
+  0.95 sRGB levels for the wall and 0.90 for the floor, 81% within ±1. The near-flat plaster
+  (standard deviation about 4 levels) makes SSIM fail on the same error the floor passes with. Fix:
+  re-encode the wall colour without RDO (`scripts/museum/build-textures.ts` with KTX-Software
+  4.4.2, not installed here).
+- The low tier (Iris Xe) is not run in this pass.

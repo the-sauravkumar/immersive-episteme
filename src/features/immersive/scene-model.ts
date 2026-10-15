@@ -165,9 +165,24 @@ export interface SceneModel {
   report: ElementReport[];
 }
 
-/** Door lining (trim) thickness inside the opening and how far it stands proud of each wall face. */
-export const LINING_THICKNESS = 0.03;
-export const LINING_PROUD = 0.012;
+/**
+ * Door linings (DR-023 F7): plaster reveals with a 20 mm flush edge. Each lining is LINING_THICKNESS
+ * deep into the opening and spans exactly the wall thickness (LINING_PROUD 0: flush with both wall
+ * faces, no architrave). Its room-facing faces are the 20 mm edge, adjacent to the wall face and
+ * never overlapping it; its face towards the opening is the plaster reveal.
+ */
+export const LINING_THICKNESS = 0.02;
+
+/**
+ * In-world image planes (DR-020 addendum, the images rule): the compiler may declare an image
+ * surface on an exhibit, but the museum never draws one, even when its media are reviewed or
+ * published. Images (structure diagrams and the rights-checked photographs) render only inside
+ * the KnowledgeSheet, through the shared KnowledgeFigure, so the two conditions show the same
+ * images in the same place. The renderer (three/world.ts) has no image-plane code path at all;
+ * tests/unit/immersive/image-planes.test.ts holds both facts.
+ */
+export const IN_WORLD_IMAGES = false as const;
+export const LINING_PROUD = 0;
 
 type Loose = Record<string, unknown>;
 const num = (v: unknown, d = 0) => (typeof v === "number" && Number.isFinite(v) ? v : d);
@@ -204,8 +219,9 @@ function box(elementId: string, c: Loose, collider: boolean): SceneBox {
 
 /**
  * Door linings: one trim per jamb plus one under the lintel, derived from the portal's opening,
- * frame and lintel. They stand LINING_PROUD beyond both wall faces and LINING_THICKNESS into
- * the opening, so no face is coplanar with a wall face (immersive-rendering-quality.md §1).
+ * frame and lintel, LINING_THICKNESS into the opening and flush with both wall faces. A lining face
+ * meets a wall face edge to edge in one plane but never overlaps it, so nothing z-fights
+ * (immersive-rendering-quality.md §1).
  */
 export function doorLinings(portalId: string, axis: "x" | "z", opening: { a: Point; b: Point }, height: number, wallThickness: number): SceneBox[] {
   const t = wallThickness / 2 + LINING_PROUD;
@@ -349,10 +365,10 @@ export function buildSceneModel(manifest: Pick<CompiledManifest, "elements" | "c
     mark(e, "exhibit.panel");
     if (plinthC) mark(e, "exhibit.plinth");
     mark(e, "exhibit.selection");
-    if (image) {
+    if (image && !IN_WORLD_IMAGES) {
       skip(
         e,
-        `image plane ${image.id} not drawn: its asset ${image.assetId ?? "(none)"} is a media candidate whose licence is not reviewed, and the knowledge snapshot carries no media; unreviewed media are shown in neither condition (data-and-telemetry-layer.md §3 parity rule)`,
+        `image plane ${image.id} not drawn: study builds draw no in-world image planes, whatever the licence or review state of asset ${image.assetId ?? "(none)"}; images appear only inside the KnowledgeSheet, through the shared KnowledgeFigure, identically in both conditions (DR-020 addendum)`,
       );
     }
   }
