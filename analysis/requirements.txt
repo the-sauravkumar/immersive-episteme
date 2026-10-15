@@ -1,0 +1,5 @@
+# Statistical analysis of research exports (analysis/episteme_stats). Python 3.14.
+# Pinned exactly; install into a virtual environment:
+#   python -m venv .venv && .venv/Scripts/python -m pip install -r analysis/requirements.txt
+numpy==2.5.4
+scipy==1.18.1

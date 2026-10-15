@@ -4,5 +4,5 @@
  * manifest and of its hash, and spatial_manifests is unique on (snapshot, rule set,
  * compiler version, seed).
  */
-export const COMPILER_VERSION = "spatial-compiler@1.0.0";
-export const LAYOUT_VERSION = "grid-wings@1";
+export const COMPILER_VERSION = "spatial-compiler@1.2.0";
+export const LAYOUT_VERSION = "grid-wings@2";

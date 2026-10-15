@@ -82,11 +82,20 @@ is added whenever the two endpoints sit in different rooms joined by a doorway.
    - Any other cycle is an error.
    - Chains with no ordinals are ordered topologically, with a warning.
 3. **Zone groups** (`layout.ts`). The group order is shared by all wings, so a category sits
-   in the same relative place in every wing.
-   - Slot 0 is the entrance group.
-   - Each next grid slot (`wingColumns` = 2, row-major, row 0 touching the hall) takes the
-     group with the most cross-category relationships to its already-placed grid
-     neighbours. Ties go to the seeded PRNG.
+   in the same relative place in every wing. Grid slots are `wingColumns` = 2 wide,
+   row-major, with row 0 touching the hall.
+   - **Default, `groupOrder: "template"` (rule `layout.template-order`).** The rule set's group
+     order is the same section order as the 2D tradition page: context, materials and tools,
+     process, artisan decisions, design and outcomes, science and environment, open questions.
+     The entrance group comes first. Walking outward from a wing's entrance therefore meets the
+     sections in the 2D order, measured at 0 of 54 room pairs inverted (`tests/unit/immersive/
+     placement.test.ts`). The reason is condition equivalence and wayfinding: both conditions
+     present the template in one order, and relationships still shape the plan through
+     doorways, paths and the comparison hall.
+   - **Alternative, `groupOrder: "connection"`.** Each next slot takes the group with the
+     most cross-category relationships to its already-placed grid neighbours, and ties go to
+     the seeded PRNG. This was the original default; it inverted 24 of 54 room pairs against
+     the 2D order.
 4. **Doorways.** Each wing gets:
    - a breadth-first spanning tree over its grid from the entrance room;
    - a doorway between every other pair of grid neighbours that have cross-category links;
@@ -101,8 +110,15 @@ is added whenever the two endpoints sit in different rooms joined by a doorway.
    - Room sides merge into wall lines, and every junction gets a t×t post.
    - Wall pieces are shortened by t/2 at each junction, and doorways cut openings.
    - The colliders are therefore axis-aligned and disjoint by construction.
-7. **Exhibits.** Slots keep `cornerClearance` and `doorClearance` free and are ordered
-   clockwise from the room's entrance doorway. The order within a room is:
+7. **Exhibits** (rule `layout.even-spacing`). Each wall is cut into free segments that keep
+   `cornerClearance` and `doorClearance`. A room's exhibits are shared among its segments in
+   proportion to segment capacity (largest remainder, never above capacity). On each segment
+   they hang at the one standard centre spacing (`exhibitSpacing`, 2.2 m) as a group centred
+   on the segment. This matters because rooms take their grid column's width and row's depth,
+   so most rooms have more wall than exhibits. Filling slots in order left long empty runs
+   (gaps up to 22.2 m). Now every gap between neighbouring cards on a run of wall is 1.20 m,
+   spread 0.00 m over 87 walls (spatial-compiler@1.1.0). Positions are ordered clockwise from
+   the room's entrance doorway. The order within a room is:
    - category blocks first;
    - within a block, the tradition concept, then PRECEDES chains in order, then the
      remaining concepts chained greedily by association (ties go to the PRNG).
@@ -173,6 +189,7 @@ an edited manifest, for example after manual overrides.
 | `navigation.complexity` | configurable (warn) | Rooms > 40, doorways per room > 6, door hops > 8, exhibits per room > 24, room side > 24 m, path leg > 60 m |
 | `assets.refs` | warn | Concept asset ids with no asset; assets depicting unknown concepts |
 | `traceability.complete` | error | Element without an in-set rule, rationale, trace, interaction or source; index/element disagreement |
+| `geometry.exhibit-consistency` | error | An exhibit's position lies outside its plinth or room, or its approach point is further than exhibit depth/2 + approach distance (+5 cm) |
 | `layout.engine` | error | Construction problems (a doorway not fitting a wall piece, sizing not converging) |
 | `render.coplanar-faces` | error | Parallel, same-facing faces within 1 mm whose projections overlap with positive area. Lists `offendingElementIds`. |
 | `render.panel-offset` | error | Panel, sign or image less than 1.5 mm proud of the surface behind it, or missing `wallOffset`/`polygonOffset` |
@@ -229,11 +246,11 @@ The manifest **passes** when every error-severity check passes.
   doorway.
 - **Routing.** Paths are grid routes smoothed by line of sight. They are not shortest in
   continuous space.
-- **Manual overrides.** `manual_overrides` are not applied yet. Use `revalidateManifest`
-  to check a manually edited manifest.
-- **Image aspect ratios.** Content media candidates carry no pixel sizes, so their image
-  planes have `aspectRatio: null` (a warning). The loader must still fit them until
-  dimensions are recorded.
+- **Manual overrides.** They are applied by the CMS spatial studio (`src/server/cms/spatial/
+  service.ts`), not by the compiler. "Compile with overrides" freezes the draft rule set with
+  its overrides, compiles, applies the active overrides and re-validates the edited manifest
+  with `revalidateManifest`. An override that moves only one field of an exhibit, e.g.
+  `position` without the plinth and approach point, fails `geometry.exhibit-consistency`.
 - **Renderer-side quality checks.** Lighting, luminance, frame time, LOD and texture
   budgets are renderer checks (C1–C5, C7–C11). The compiler only supplies the data they
   need.

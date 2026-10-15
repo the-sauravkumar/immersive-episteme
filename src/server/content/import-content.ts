@@ -406,10 +406,15 @@ async function importInTransaction(
   const claimId = new Map(claimIdRows.rows.map((r) => [`${r.concept_id}#${r.position}`, r.id]));
   const wantedClaimSources = editable.flatMap((c) =>
     c.claims.flatMap((cl, i) =>
-      [...new Set(cl.sourceRefs)].map((ref) => ({
-        claim_id: claimId.get(`${conceptId.get(c.key)!}#${i}`)!,
-        source_id: sourceId.get(ref)!,
-      })),
+      [...new Set(cl.sourceRefs)].map((ref) => {
+        const evidence = cl.evidence.filter((e) => e.ref === ref).map(({ locator, quote, note }) => ({ locator, quote, note }));
+        return {
+          claim_id: claimId.get(`${conceptId.get(c.key)!}#${i}`)!,
+          source_id: sourceId.get(ref)!,
+          locator: evidence[0]?.locator ?? null,
+          evidence,
+        };
+      }),
     ),
   );
   const prunedClaimSources = await q.query(
@@ -420,9 +425,12 @@ async function importInTransaction(
     [[...claimId.values()], JSON.stringify(wantedClaimSources)],
   );
   const insClaimSources = await q.query(
-    `INSERT INTO concept_claim_sources (claim_id, source_id, is_demo)
-     SELECT claim_id, source_id, false FROM jsonb_to_recordset($1::jsonb) AS x(claim_id uuid, source_id uuid)
-     ON CONFLICT DO NOTHING`,
+    `INSERT INTO concept_claim_sources (claim_id, source_id, locator, evidence, is_demo)
+     SELECT claim_id, source_id, locator, evidence, false
+       FROM jsonb_to_recordset($1::jsonb) AS x(claim_id uuid, source_id uuid, locator text, evidence jsonb)
+     ON CONFLICT (claim_id, source_id) DO UPDATE SET locator = EXCLUDED.locator, evidence = EXCLUDED.evidence
+       WHERE concept_claim_sources.locator IS DISTINCT FROM EXCLUDED.locator
+          OR concept_claim_sources.evidence IS DISTINCT FROM EXCLUDED.evidence`,
     [JSON.stringify(wantedClaimSources)],
   );
 

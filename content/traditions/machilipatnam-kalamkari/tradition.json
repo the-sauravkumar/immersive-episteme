@@ -242,24 +242,62 @@
           "text": "Machilipatnam Kalamkari is a registered Geographical Indication (application no. 90) filed by the Vegetable Hand-block Kalamkari Printers Association, Pedana, for handicraft goods in classes 24, 25 and 27.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "§ \"Application Details\"",
+              "quote": "Application Number 90 Geographical Indications Machilipatnam Kalamkari Status Registered Applicant Name Vegetable Hand-block Kalamkari Printers Association Applicant Address Vegetable Hand-block Kalamkari Printers Association, Near Brahmapuram Railway Gate, Agastheswara Puram, Pedana 521 566, Pendana Mandal, Krishna District, Andhra Pradesh, India."
+            },
+            {
+              "source_id": "S1",
+              "locator": "§ \"Application Details\"",
+              "quote": "Date of Filing 16-04-2007 Class 24, 25 & 27 Goods Handicraft Geographical Area Andhra Pradesh Priority Country India Journal Number Supplementary 1 Availability Date 24-03-2008 Certificate Number 71 Certificate Date 10-07-2008 Registration Valid Upto 15-04-2027"
+            }
           ]
         },
         {
           "text": "It is hand-block-printed fabric using vegetable dyes from Pedana, about 13 km from Machilipatnam, and is one of two kalamkari styles, the other being Srikalahasti.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Pedana Block Kalamkari Fabrics : KALAMKARI\"",
+              "quote": "The Machilipatnam style of Kalamkari or Pedana style of Kalamkari is one of the two styles of Kalamkari works present in India, with the other being, Srikalahasti style. It mainly uses vegetable dyes which are applied onto the fabric with the help of wooden blocks."
+            },
+            {
+              "source_id": "S3",
+              "locator": "§ \"History and origin of Kalamkari in Pedana\"",
+              "quote": "Hand-printed calicos printed on cotton cloth with blocks using vegetable dyes from plants, barks, seeds, flowers, leaves and roots of various plants of Andhra Pradesh are known as Kalamkaris."
+            }
           ]
         },
         {
           "text": "Through this art form cotton fabrics are painted freehand or with blocks using vegetable dyes; the GI registration includes the dye recipes and stages of application.",
           "source_ids": [
             "S2"
+          ],
+          "evidence": [
+            {
+              "source_id": "S2",
+              "locator": "§ \"SpicyIP Tidbit: GI for Pedana Kalamkari Art Form\"",
+              "quote": "Through this art form cotton fabrics are painted, either free hand or with the help of blocks, using vegetable dyes."
+            }
           ]
         },
         {
           "text": "The base cloth is printed and dyed with mordants (iron acetate, alum) and dyes such as alizarin, myrobalan and indigo.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 9",
+              "quote": "If the background were to be printed with indigo or indigo-green then the background would be printed last. v) Printing of Mordants Two mordants, namely iron acetate (kasim in Telugu) and alum (karam) are used."
+            }
           ]
         },
         {
@@ -267,6 +305,18 @@
           "source_ids": [
             "S16",
             "S2"
+          ],
+          "evidence": [
+            {
+              "source_id": "S16",
+              "locator": "§ \"Kalamkari work\"",
+              "quote": "other being, Srikalahasti style. [ 6 ] It mainly uses vegetable dyes which are applied onto the fabric with the help of wooden blocks. [ 2 ] According to GIR's authorised user no - AU/396/GI/19/12, production of Machilipatnam Kalamkari is geographically only limited to Pedana"
+            },
+            {
+              "source_id": "S2",
+              "locator": "§ \"SpicyIP Tidbit: GI for Pedana Kalamkari Art Form\"",
+              "quote": "The Machilipatnam Kalamkari craft is made at Pedana near Machilipatnam in Krishna district, Andhra Pradesh."
+            }
           ]
         }
       ],
@@ -293,18 +343,44 @@
           "source_ids": [
             "S2",
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S2",
+              "locator": "§ \"SpicyIP Tidbit: GI for Pedana Kalamkari Art Form\"",
+              "quote": "According to GIR's authorised user no - AU/396/GI/19/12, production of Machilipatnam Kalamkari is geographically limited to Pedana town and its neighbouring villages including Machilipatnam, Polavaram and Kappaladoddi in Guduru Mandal of Krishna district."
+            },
+            {
+              "source_id": "S3",
+              "locator": "§ \"Pedana Block Kalamkari Fabrics : KALAMKARI\"",
+              "quote": "Production of Machilipatnam Kalamkari is geographically limited to Pedana town and its neighboring Villages of Machilipatnam , Polavaram and Kappaladoddi in Guduru mandal of Krishna district."
+            }
           ]
         },
         {
           "text": "In Andhra Pradesh kalamkari block printing is done in Machilipatnam, the main places being Pedana, Kappaladoddi, Polavaram and nearby villages.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 2",
+              "quote": "Regions: In Andhra Pradesh, Kalamkari block printing is done in Machlipatnam. The main places are Pedana, Kappaladoddi, Polavaram and many other small nearby villages."
+            }
           ]
         },
         {
           "text": "The applicant association is located near Brahmapuram Railway Gate, Pedana, Krishna district.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "§ \"Application Details\"",
+              "quote": "Application Number 90 Geographical Indications Machilipatnam Kalamkari Status Registered Applicant Name Vegetable Hand-block Kalamkari Printers Association Applicant Address Vegetable Hand-block Kalamkari Printers Association, Near Brahmapuram Railway Gate, Agastheswara Puram, Pedana 521 566, Pendana Mandal, Krishna District, Andhra Pradesh, India."
+            }
           ]
         }
       ],
@@ -329,24 +405,57 @@
           "text": "The rulers at Golconda patronised kalamkari of Masulipatnam (now Machilipatnam) during the 16th and 17th centuries; textiles were made for the Sultanate and Persia/Iran and customised to Islamic taste.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 2",
+              "quote": "2, 2018 The rulers at Golconda patronised Kalamkari of Masulipatnam (Now called Machilipatnam), during the 16th and 17th centuries. The textiles were made for the Sultanate of Golconda and Persia/Iran."
+            }
           ]
         },
         {
           "text": "Kalamkari flourished at Masulipatnam; the craft began in the old city of Golconda and spread along the eastern coast.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The kalamkari done here is a mixture of painting and hand-printing. This craft was started in the old city of Golconda after which it spread along the eastern coast up to Tamil Nadu."
+            }
           ]
         },
         {
           "text": "The Machilipatnam style developed under Mughal rule and was practised under the Golconda Sultanate.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"History and origin of Kalamkari in Pedana\"",
+              "quote": "This style of art evolved during the rule of Mughal Dynasty and practiced by Golconda Sultanate ."
+            }
           ]
         },
         {
           "text": "Machilipatnam was a busy port during the late medieval period, especially the 15th-17th centuries; its textiles were meant for clothes, prayer mats, bedspreads, tapestries and hangings.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "Machilipatnam, was a busy port during the late medieval period. The port was especially bustling from the 15th-17th century A.D."
+            },
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "The textiles produced in Machilipatnam were meant for clothes, prayer mats, bedspreads, tapestries and hangings."
+            }
           ]
         }
       ],
@@ -370,18 +479,49 @@
           "text": "An 1879 Machilipatnam dress fabric was probably made for export to Iran; its Persian inscription names the trader and calls the textile qalamkar, a printed imitation of hand-drawn kalamkari.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Object details\"",
+              "quote": "A printed inscription in Persian names the trader (Sayyid Muhammad Mahdi), gives the date and labels the piece a'la numuneh ('superior example'). It also calls the textile Qalamkar, as it is a printed imitation of the region's traditional hand-drawn kalamkari decoration."
+            },
+            {
+              "source_id": "S8",
+              "locator": "§ \"Object details\"",
+              "quote": "The design includes scenes of birds, monkeys and other animals, temples, palaces, and Europeans riding, hunting and socialising Dimensions Width: 96cm Length: 330cm Weighed on roller weight: 10kg Gallery label (03/10/2015-10/01/2016) DRESS FABRIC This cotton was probably made for export to Iran."
+            }
           ]
         },
         {
           "text": "A 19th-century quilted cover was catalogued as printed by Iranian craftsmen in Masulipatam for the Iranian market.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Object details\"",
+              "quote": "Original catalogue information says it was printed by Iranian craftsmen in Masulipatam, Madras, India for the Iranian market."
+            }
           ]
         },
         {
           "text": "Masulipatnam output was majorly exported to Persia from the 17th century and designs catered to Persian taste; in 1924 the link with Persia/Iran was broken.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 5",
+              "quote": "The painted Coromandel cotton was much in demand up to early 20th century and well used by people of all classes in general. The output from Masulipatnam was majorly exported to Persia and the designs catered to the Persian taste."
+            },
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 7",
+              "quote": "Trade and commerce : past and present Kalamkari from Masulipatnam was being exported to Persia since 17th century onwards and Kalahasti was an important centre after the second half of the 19th century. however in 1924, the link with Persia/Iran was broken."
+            }
           ]
         }
       ],
@@ -406,18 +546,54 @@
           "text": "Chintz was imported in large quantities into Britain and the Netherlands in the 17th and 18th centuries, and its mordant/resist techniques are particularly associated with the Coromandel Coast.",
           "source_ids": [
             "S11"
+          ],
+          "evidence": [
+            {
+              "source_id": "S11",
+              "locator": "§ \"Chintz hanging\"",
+              "quote": "It is made of chintz, a generic term for the hand-painted cotton fabrics that were imported in large quantities into Britain and The Netherlands during the 17th and 18th centuries."
+            },
+            {
+              "source_id": "S11",
+              "locator": "§ \"Chintz hanging\"",
+              "quote": "These techniques are particularly associated with coastal south-east India (the so-called 'Coromandel Coast') because of the particularly favourable combination of chemicals in the local soil, water and dye- plants."
+            }
           ]
         },
         {
           "text": "The textiles were originally known as Coromandel chintz and were traded in the 17th century mainly to Europe and Iran.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "Originally known as Coromandel chintz, the textiles produced here are famous the world over."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "These paintings were renowned trade items of seventeenth century mainly to European countries and Iran."
+            }
           ]
         },
         {
           "text": "The English called it chintz, the Dutch sitz, the Portuguese pintado; Masulipatnam was the main centre for trade with the west.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 2",
+              "quote": "The English called it chintz, the Dutch called it sitz, the Portugese pintado."
+            },
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 4",
+              "quote": "Masulipatnam was the main centre for trade with the west."
+            }
           ]
         }
       ],
@@ -441,24 +617,57 @@
           "text": "Kalams were replaced by blocks in the nineteenth century.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "Eventually the kalam's were replaced by blocks in the nineteenth century."
+            }
           ]
         },
         {
           "text": "Early chintz was drawn with a bamboo pen and patterned with mordants and resists; block printing later replaced much of this work.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Textile\"",
+              "quote": "Originally chintz textiles were Indian cotton cloth with a pattern applied with a bamboo pen or kalam and by dyeing with mordants and resists. Later, block printing took over."
+            }
           ]
         },
         {
           "text": "In Masulipatnam hand-carved block prints were used with finer details done with the kalam; the shift from kalam to block happened as designs were repetitive.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 1",
+              "quote": "In Masulipatnam hand-carved block prints were used. Finer details were made with `kalam'."
+            },
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 5",
+              "quote": "Slowly the shift from `kalam' to the block happened as the designs were repetitive."
+            }
           ]
         },
         {
           "text": "The industry suffered until 1952, when the All India Handicrafts Board under Kamaladevi Chattopadhyay revived the craft.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 7",
+              "quote": "The industry suffered till 1952. However due to the efforts of Shri Venkataswamy Naidu, Shri B.Pattabhi Seetaramayya, the All India Handicrafts Board under Kamaladevi Chattopadhyay revived the craft in 1952."
+            }
           ]
         }
       ],
@@ -481,12 +690,31 @@
           "text": "Application filed 16-04-2007, published in journal Supplementary 1 (available 24-03-2008), certificate no. 71 dated 10-07-2008, valid up to 15-04-2027.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "§ \"Application Details\"",
+              "quote": "Date of Filing 16-04-2007 Class 24, 25 & 27 Goods Handicraft Geographical Area Andhra Pradesh Priority Country India Journal Number Supplementary 1 Availability Date 24-03-2008 Certificate Number 71 Certificate Date 10-07-2008 Registration Valid Upto 15-04-2027"
+            }
           ]
         },
         {
           "text": "In August 2013 members of the Vegetable Dye Hand Block Kalamkari Printers' Welfare Association, Pedana received the registration certificate; authorised user no. AU/396/GI/19/12.",
           "source_ids": [
             "S2"
+          ],
+          "evidence": [
+            {
+              "source_id": "S2",
+              "locator": "§ \"SpicyIP Tidbit: GI for Pedana Kalamkari Art Form\"",
+              "quote": "Members of Vegetable Dye Hand Block Kalamkari Printers' Welfare Association, Pedana received the registration certificate from the Geographical Indications Registry (GIR), Chennai."
+            },
+            {
+              "source_id": "S2",
+              "locator": "§ \"SpicyIP Tidbit: GI for Pedana Kalamkari Art Form\"",
+              "quote": "According to GIR's authorised user no - AU/396/GI/19/12, production of Machilipatnam Kalamkari is geographically limited to Pedana town and its neighbouring villages including Machilipatnam, Polavaram and Kappaladoddi in Guduru Mandal of Krishna district."
+            }
           ]
         },
         {
@@ -495,6 +723,23 @@
             "S3",
             "S6",
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"AWARDS:\"",
+              "quote": "Pedana (Machilipatnam) kalamkari received a Geographical Indications (GI) tag in 2013."
+            },
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 10",
+              "quote": "The creations of state awardees from Srikalahasti,D."
+            },
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "It was included in the Geographical Indications Registry (GIR) in 2012 under the GI of Goods (Registration and Protection) Act of 1999."
+            }
           ]
         }
       ],
@@ -522,6 +767,18 @@
           "text": "The main castes engaged are Devangas, Padmasalis, Kannebhaktulu and Senapathalu; dyers and printers belonged to Hindu or Muslim faiths; blocks were made by specialist block makers, sometimes by printers themselves.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 3",
+              "quote": "The dyers and printers who did their respective jobs belonged to the Hindu or Muslim faiths. The blocks for printing were made by specialist block makers, but sometimes the printers also made their own blocks."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 3",
+              "quote": "3 Producer Communities The main castes engaged in Kalamkari work in Andhra Pradesh are the Devangas, Padmasalis, Kannebhaktulu and Senapathalu."
+            }
           ]
         },
         {
@@ -529,12 +786,31 @@
           "source_ids": [
             "S3",
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"AWARDS:\"",
+              "quote": "Unlike hand painted kalamkari, which was a smaller setup concentrated as an inter-generational craft Machilipatnam print production is carried out in karkhanas (commercial workshops) where block making, washing and printing takes place simultaneously."
+            },
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "In Machilipatnam, the production is carried out in karkhanas (commercial workshops), where the block makers, washers and printers work under the same roof. In Srikalahasti, the textiles are produced by small family units where the members work together."
+            }
           ]
         },
         {
           "text": "Block makers are mostly from the carpenter community.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "The first sub-unit is the block maker's workshop where the artisans are mostly from the carpenter's community."
+            }
           ]
         },
         {
@@ -542,7 +818,19 @@
           "source_ids": [
             "S14"
           ],
-          "quote": "The printing technique is very old and was first introduced by the rangrez (dyers) community."
+          "quote": "The printing technique is very old and was first introduced by the rangrez (dyers) community.",
+          "evidence": [
+            {
+              "source_id": "S14",
+              "locator": "§ \"Kalamkari Woodblock Makers\" (occurrence 2 of 2)",
+              "quote": "The same wooden blocks of printing, are being used in other contexts, for other purposes. The printing technique is very old and was first introduced by the rangrez (dyers) community."
+            },
+            {
+              "source_id": "S14",
+              "locator": "§ \"Kalamkari Woodblock Makers\" (occurrence 2 of 2)",
+              "quote": "In Andhra Pradesh today, very few people are working in the field of block-making."
+            }
+          ]
         }
       ],
       "prose_policy": "claims-only"
@@ -565,18 +853,44 @@
           "text": "The base is kora (unbleached) long cloth of 20 or 60 counts.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 3",
+              "quote": "The base on which Kalamkari printing and dyeing is carried out on is kora (unbleached) long cloth of 20 or 60 counts."
+            }
           ]
         },
         {
           "text": "Grey cotton cloth is scoured before printing.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "The original grey cloth contains fats, oils and natural impurities has to be removed to get a white cloth for printing by the scouring or boiling, dyeing, bleaching, hand painting, block-printing, starching, and cleaning."
+            }
           ]
         },
         {
           "text": "Pedana block makers report printing on Mangalagiri and other cottons for kurtas and dupattas.",
           "source_ids": [
             "S14"
+          ],
+          "evidence": [
+            {
+              "source_id": "S14",
+              "locator": "§ \"Kalamkari Woodblock Makers\" (occurrence 2 of 2)",
+              "quote": "We are experimenting with the prints on mangalgiri and other cotton cloths, where some designs are already woven."
+            },
+            {
+              "source_id": "S14",
+              "locator": "§ \"Kalamkari Woodblock Makers\" (occurrence 2 of 2)",
+              "quote": "Narsaiah who are makers of woodblocks for printing in Pedana, near Machilipatnam, Andhra Pradesh, share their perspective on the history, transformation and current practices of the art of kalamkari."
+            }
           ]
         }
       ],
@@ -600,24 +914,62 @@
           "text": "Myrobalan solution is prepared from karakkaya, pounded, boiled at least 2.5 hours, filtered, and kept overnight; the cloth dipped in it turns yellowish.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 5",
+              "quote": "The flowers are put into a stone pot and pounded with a wooden rod. Water is added to the powdered karakkaya and the solution is boiled for atleast 2.5 hours."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 5",
+              "quote": "Myrobalan flowers are crushed and mixed with water to get a yellowish myrobalan pulp , from which the juice is extracted . This is kept overnight before use."
+            }
           ]
         },
         {
           "text": "The cloth is treated with myrobalan (karakayya) solution for 30–45 minutes, squeezed and dried in sunlight.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "During this period the cloth is lifted and dipped for several times to get even absorption, care should be taken that the cloth is completely immersed in the solution. After 45 minutes the cloth is` taken out, squeezed evenly and dried in the sunlight."
+            },
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "Myrobalan treatment: The required quantity of Myrobalan (karakayya) solution is taken in to a vessel."
+            }
           ]
         },
         {
           "text": "Myrobalan is identified as Terminalia chebula.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "After this the fabric is treated in Myrobalan (Terminalia chebula) solution to remove buffalo milk odour."
+            }
           ]
         },
         {
           "text": "Yellow is applied with a brush using prepared myrobalan solution; boiling with myrobalan flowers alone gives yellow.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 12",
+              "quote": "This is the only stage where a brush (made of date-palm stick) is used to apply the yellow color (prepared myrobalan solution)."
+            }
           ]
         }
       ],
@@ -642,24 +994,62 @@
           "text": "Iron acetate (kasim in Telugu) is made from salt water, jaggery, iron strips and paddy husk; the strips are smouldered overnight, cleaned and fermented with jaggery-salt solution in a covered stone pot sunk 90% below ground.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 4",
+              "quote": "A solution of jaggery and salt water (well water) is made and poured on to the iron fillings. The stone pot should be securely covered and should be 90 per cent below the ground level."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 8",
+              "quote": "The mordants normally used are iron acetate ( Kasim in Telugu) and Alum( Karam in Telugu).Iron acetate is a fermented mixture of paddy husk , ironfilings , salt and jaggery."
+            }
           ]
         },
         {
           "text": "Black colour is made from iron scraps, jaggery and salt water sealed in a mud jar buried in soil for 21 days.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "For example, making black colour requires mixing iron scraps, jaggery and salt water kept in a mud jar, which is immersed inside the soil, tightly shut and left for 21 days for the colour to be formed and ready for printing."
+            }
           ]
         },
         {
           "text": "Small iron pieces are soaked in jaggery/starch/coconut water and left to ferment for a few days to make black.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "For the colour black, small iron pieces are soaked in jaggery/starch/coconut water and left to ferment for a few days."
+            }
           ]
         },
         {
           "text": "Iron is used to produce black in Machilipatnam block printing.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Keywords\"",
+              "quote": "Andhra Pradesh, Hand Block, Handicraft, handmade, India, Kalamkari, Machilipatnam, printing, Textiles"
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "Fabric is then printed in black and red colour; the black is produced by iron nails and red that is obtained from alum."
+            }
           ]
         }
       ],
@@ -682,12 +1072,31 @@
           "text": "Alum (karam in Telugu) is pounded, boiled in water until reduced to half, and iron implements are avoided because iron darkens the colour.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 5",
+              "quote": "The solution is allowed to boil with occasional stirring until it has reduced to half. A mixture of iron in any form leads to darkening of the color and for this reason the iron implements and utensils are avoided."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 5",
+              "quote": "Alum (Karam in Telugu) Dry alum crystals are pounded to powder. Water is added in the proportion of 4 liters water to 3.5 kilograms alum."
+            }
           ]
         },
         {
           "text": "Alum-based red paste is block-printed where red is needed, and different alum concentrations produce more shades.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "This alum solution is taken by the blocks from the trays and printed where ever red colour is necessary. Using alum with different percentages on different mordents they develop more shades."
+            }
           ]
         },
         {
@@ -695,6 +1104,18 @@
           "source_ids": [
             "S4",
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 6",
+              "quote": "Bleached fabric being dipped in myrobaln solution Obtaining red, indigo, orange and green color dyes: Red is obtained by using alum as the mordant and then boiling the alum-printed fabric in alizerine."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "Fabric is then printed in black and red colour; the black is produced by iron nails and red that is obtained from alum."
+            }
           ]
         }
       ],
@@ -718,24 +1139,57 @@
           "text": "Madder (Rubia) and chay (Oldenlandia umbellata) were highly estimated as fine sources of red in the south.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 2",
+              "quote": "The madder root, rubia, widely used in India and chay (chay is oldenlandia), the root of oldenlandia umbellata, were highly estimated as fine sources of red in the south."
+            }
           ]
         },
         {
           "text": "Alizarin is especially brought from Mumbai; red develops from the combination of alum and alizarin during boiling.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 11",
+              "quote": "During the process not only the red color develops as a result of the combination of alum and alizerine but the alizerine also contributes to fixing the black color which has emerged at a previous stage."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 11",
+              "quote": "These raw materials are brought from Vijaywada in Andhra Pradesh and the alizerine is especially brought from Mumbai."
+            }
           ]
         },
         {
           "text": "Alizarin is used today instead of organic matter.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "Alizarin is used today instead of organic matter."
+            }
           ]
         },
         {
           "text": "A practitioner notes that chay was historically the source of reds and pinks in Coromandel chintz, but at some point madder seems to have been incorporated.",
           "source_ids": [
             "S12"
+          ],
+          "evidence": [
+            {
+              "source_id": "S12",
+              "locator": "§ \"Guest Post: Renuka Reddy’s Adventures in Chintz\"",
+              "quote": "Historically, chay was the source of reds/pinks in Coromandel chintz but at some point, madder seems to have been incorporated."
+            }
           ]
         }
       ],
@@ -756,18 +1210,49 @@
           "text": "Indigo is obtained from indigo cakes and mixed with rice starch, not gum, for printing; indigo does not require any mordant so it is printed directly.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 6",
+              "quote": "Indigo is obtained from indigo cakes. It is mixed with rice starch and not gum for printing purposes."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 12",
+              "quote": "Indigo does not require any mordant so the solution is printed directly."
+            }
           ]
         },
         {
           "text": "In a general account of kalamkari, natural indigo is said to be no longer used, a lighter synthetic blue being used instead.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "Indigo dye is no longer used, instead a synthetic one is used which is lighter in shade. Kalamkari cottons are made in different colours, to fill in the design or to be used as backdrop."
+            }
           ]
         },
         {
           "text": "In Asia InCH's general description of kalamkari, indigo is applied after a wax resist, which is removed by boiling.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "This step is done before the application of indigo. After the wax is removed by boiling, other colours are applied."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"page text\"",
+              "quote": "Hand Block - Printing/ Kalamkari of Machilipatnam, Andhra Pradesh - Asia InCH - Encyclopedia of Intangible Cultural Heritage Select Language Arabic Chinese English French German Hindi Japanese Korean Portuguese Spanish Tamil AN INITIATIVE OF CRAFT REVIVAL TRUST."
+            }
           ]
         }
       ],
@@ -788,18 +1273,44 @@
           "text": "Buffalo milk (5 L to 6 kg rice) is stirred into rice starch to stiffen it and help it spread evenly; fresh milk in the starch prevents colours from running.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 12",
+              "quote": "For yellow, the fabric is dipped in prepared starch (boiled rice water). Fresh buffalo milk is also added to the starch solution to prevent the colors from running."
+            }
           ]
         },
         {
           "text": "The cloth is treated with myrobalan seeds and buffalo milk to prevent dye smudging before printing.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "The next step involves treating the cloth with Myrobalan seeds and buffalo milk to prevent smudging of dyes when painted."
+            }
           ]
         },
         {
           "text": "The fabric is soaked in buffalo milk and cow dung, then treated with myrobalan, which removes the milk odour.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "After this the fabric is treated in Myrobalan (Terminalia chebula) solution to remove buffalo milk odour."
+            },
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "2, 2018 Technique of Kalamkari : modus operandi The process of printing of Kalamkari patterns is a bit complex and has the following steps; the fabric is soaked in a solution made of buffalo milk and cow dung for a few hours, then washed in"
+            }
           ]
         }
       ],
@@ -820,12 +1331,31 @@
           "text": "Unbleached cloth is soaked 5–10 minutes in buffalo or cow dung and water, kept wet overnight, washed in flowing water and sun-dried; nowadays sometimes dipped once as cleansing rather than bleaching.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 6",
+              "quote": "6.b Elaboration of printing process i) Bleaching The unbleached material/cloth/gray cloth is soaked in a solution of buffalo or cow dung and water for 5 to 10 minutes. It is wrung out a little and kept wet overnight."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 7",
+              "quote": "Nowadays sometimes the cloth is dipped in cow dung only once as a cleansing and de-starching process rather than a bleaching process. ii) Application of Myrobalan The cloth thus bleached is then soaked in a myrobalan solution."
+            }
           ]
         },
         {
           "text": "Cotton cloth is soaked in water mixed with cow dung and left overnight.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "Cotton cloth pieces are bought from mills and cut into pieces. These pieces are soaked in water mixed with cow-dung."
+            }
           ]
         }
       ],
@@ -846,12 +1376,31 @@
           "text": "Gum-mixed black colour is printed, and gum is washed out with loose colour in flowing water.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "Printing with Black colour: The gum mixed black colour is taken in colour trays."
+            }
           ]
         },
         {
           "text": "Alum is prepared from alum powder and gum; all colours other than indigo are mixed with gum.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 8",
+              "quote": "Alum is prepared from alum powder and gum."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 6",
+              "quote": "Indigo is obtained from indigo cakes. It is mixed with rice starch and not gum for printing purposes."
+            }
           ]
         }
       ],
@@ -872,12 +1421,36 @@
           "text": "For yellow, the fabric is dipped in prepared starch (boiled rice water) which prevents diffusion of yellow and seepage to the reverse.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 12",
+              "quote": "For yellow, the fabric is dipped in prepared starch (boiled rice water)."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 12",
+              "quote": "Starching prevents diffusion of the yellow color by preventing undue seepage on to the reverse side."
+            }
           ]
         },
         {
           "text": "After boiling and washing, starch is applied for stiffness, followed by a second layer of colour and an alum-water treatment.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "After boiling, the cloth has to be washed well to remove mud, which comes from the natural ingredients. Post this, starch is applied on the cloth for stiffness required for the second layer of colouring."
+            },
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "Alum water ensures the colour stays on the cloth."
+            }
           ]
         }
       ],
@@ -905,6 +1478,18 @@
           "text": "Jajaku leaves are added with alizarin and act as a carrier that hastens dyeing; moduga and anar shift the colour toward orange.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 10",
+              "quote": "The alizerine solution and jajaku leaves are added to the boiling water. The jajaku leaves act as a carrier and hasten the dyeing process."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 11",
+              "quote": "Water + alizerine + Moduga -------- Light orange 3. Water + alizerine + Anar ------------Dark orange 4."
+            }
           ]
         },
         {
@@ -912,12 +1497,26 @@
           "source_ids": [
             "S13"
           ],
-          "quote": "leaves from the local forest, known as gaja, are added to the water to fix the colours"
+          "quote": "leaves from the local forest, known as gaja, are added to the water to fix the colours",
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "While boiling, leaves from the local forest, known as gaja, are added to the water to fix the colours."
+            }
+          ]
         },
         {
           "text": "Pomegranate peel gives a mustard colour, and roots and barks give brown.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "For example, pomegranate peels give a mustard colour, while roots and barks give brown, etc."
+            }
           ]
         }
       ],
@@ -938,12 +1537,36 @@
           "text": "Beeswax is a raw material, melted in broken pots.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 3",
+              "quote": "Beeswax 4."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 4",
+              "quote": "6) Dyeing vat 7) Broken pots for melting wax 8) Larger copper pots for boiling 6 Stages of the Production Process The following are the main stages in the production process: 1."
+            }
           ]
         },
         {
           "text": "In a general kalamkari description, wax resist is hand-applied with a kalam before indigo and removed by boiling.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "This step is done before the application of indigo. After the wax is removed by boiling, other colours are applied."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The wax-resist is hand-printed on to the fabric with a kalam or pen made of an iron loop attached to a bamboo stick."
+            }
           ]
         }
       ],
@@ -964,24 +1587,57 @@
           "text": "A pen drawing is transferred to carved teakwood blocks and each colour gets its own block.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "While in Srikalahasti, the textiles are literally painted with pens made out of bamboo and cotton, in Machilipatnam, the line drawing done with a pen is transferred onto wooden blocks which are carved and then used to print fabric."
+            },
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "The first sub-unit is the block maker's workshop where the artisans are mostly from the carpenter's community. For making the blocks, a cross section of teakwood is generally used."
+            }
           ]
         },
         {
           "text": "Blocks are generally made of teak-wood with designs etched on them.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "Blocks are generally made of teak-wood and designs are etched on them."
+            }
           ]
         },
         {
           "text": "For blocks the cross section of the wood is needed, unlike temple carving which uses the longitudinal section.",
           "source_ids": [
             "S14"
+          ],
+          "evidence": [
+            {
+              "source_id": "S14",
+              "locator": "§ \"Kalamkari Woodblock Makers\" (occurrence 2 of 2)",
+              "quote": "For the temple wood carvings, the longitudinal section of the wood is used. But, for the blocks, the cross section of the wood is needed."
+            }
           ]
         },
         {
           "text": "The blocks used are made by specialist artisans.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The process followed is complex and intricate, and the blocks used are made by specialist artisans."
+            }
           ]
         }
       ],
@@ -1002,12 +1658,26 @@
           "text": "Printing is done on a long wooden table covered with gunny cloth and a damp cloth; the damp under-surface prevents slipping.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 7",
+              "quote": "Tannic acid The myrobalan dipped fabric being dried . iii) Block Printing The printing is done on a long wooden table. The surface of the table is covered with gunny cloth, over which a damp cloth is spread."
+            }
           ]
         },
         {
           "text": "A workbench 63 in long, 27 in wide and 18 in high lets the worker squat beside it.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 3",
+              "quote": "Tools 1) A workbench which is 63 inches long, 27inches wide and 18 inches high, to enable the worker to squat by its side and attend to the block printing work, is required."
+            }
           ]
         }
       ],
@@ -1028,6 +1698,13 @@
           "text": "The printing pad is a rectangular teak tray with bamboo separators, a sponge layer and a woollen or gunny cover acting as a blotter.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 9",
+              "quote": "The basic structure for this is a rectangular tray made of teakwood. The bamboo separators act as the base over which a sponge layer is put which is further covered with a woolen or gunny cloth."
+            }
           ]
         }
       ],
@@ -1048,18 +1725,39 @@
           "text": "A copper pot on a brick fireplace is used to boil the cloth in alizarin solution; larger copper pots for boiling are among the tools.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 10",
+              "quote": "Boiling An alizerine solution is made by dissolving it in cold water. A copper pot with water is placed on a brick fireplace."
+            }
           ]
         },
         {
           "text": "The cloth is boiled in copper vessels with leaves, roots, barks and dry flowers.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "Once washed and dried, the cloth is boiled in copper vessels using leaves, roots, barks, dry flowers etc to give colours."
+            }
           ]
         },
         {
           "text": "Big semi-circular iron vessels over ovens fuelled by rice husk and wood powder are used for boiling.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "These ovens are, till today, fuelled with rice husk and wood powder. Big semi-circular vessels made of iron are placed over these ovens for boiling the fabrics."
+            }
           ]
         }
       ],
@@ -1080,12 +1778,31 @@
           "text": "The cleaned iron strips are placed in a barrel-shaped stone pot, securely covered, 90 per cent below ground level.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 4",
+              "quote": "A solution of jaggery and salt water (well water) is made and poured on to the iron fillings. The stone pot should be securely covered and should be 90 per cent below the ground level."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 4",
+              "quote": "The cleaned strips are placed in a barrelshaped stone pot."
+            }
           ]
         },
         {
           "text": "The iron mixture is sealed in a mud jar buried in soil.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "For example, making black colour requires mixing iron scraps, jaggery and salt water kept in a mud jar, which is immersed inside the soil, tightly shut and left for 21 days for the colour to be formed and ready for printing."
+            }
           ]
         }
       ],
@@ -1108,12 +1825,26 @@
           "text": "The yellow stage is the only stage where a brush made of date-palm stick is used.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 12",
+              "quote": "This is the only stage where a brush (made of date-palm stick) is used to apply the yellow color (prepared myrobalan solution)."
+            }
           ]
         },
         {
           "text": "In the general kalamkari description, a kalam of an iron loop on a bamboo stick hand-applies wax resist, and detailed work is done by brush.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The wax-resist is hand-printed on to the fabric with a kalam or pen made of an iron loop attached to a bamboo stick. This step is done before the application of indigo."
+            }
           ]
         }
       ],
@@ -1134,18 +1865,44 @@
           "text": "Block making is the first stage of production.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 4",
+              "quote": "6) Dyeing vat 7) Broken pots for melting wax 8) Larger copper pots for boiling 6 Stages of the Production Process The following are the main stages in the production process: 1. Block making/Preparation of the Kalam 2."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 8",
+              "quote": "Printing begins with the mordants being printed first."
+            }
           ]
         },
         {
           "text": "The outline drawing is carved on wooden blocks which are then used for printing.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"AWARDS:\"",
+              "quote": "In the Pedana / Machilipatnam style, the outline drawing is carved on wooden blocks which are then used to print on fabrics."
+            }
           ]
         },
         {
           "text": "Each colour gets its own block.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "In Machilipatnam, for the block printed textiles, line drawings are not necessary. The textiles produced here can be monochromatic or polychromatic and for each colour, separate blocks are used."
+            }
           ]
         }
       ],
@@ -1166,18 +1923,44 @@
           "text": "Grey cloth is soaked in dung and water, kept wet overnight, washed in flowing water, spread over waterweed and dried in the sun.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 7",
+              "quote": "The next morning it is washed in flowing water and spread over waterweed and dried in the sun."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 6",
+              "quote": "6.b Elaboration of printing process i) Bleaching The unbleached material/cloth/gray cloth is soaked in a solution of buffalo or cow dung and water for 5 to 10 minutes. It is wrung out a little and kept wet overnight."
+            }
           ]
         },
         {
           "text": "Grey cloth is boiled 2–3 hours in an alkaline solution (soda ash, caustic soda or detergent) to remove impurities and make it absorbent.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "Scouring or boiling: In order to make fibre more absorbent to obtain more even shades, penetration of the dye stuff the natural impurities have to be removed by boiling the cloth in hot alkaline solution like soda ash and caustic soda or detergent for 2-3"
+            }
           ]
         },
         {
           "text": "The cloth is washed on a stone in a pond and spread on grass, repeated the next day.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "The next morning, these pieces are washed on a stone in a pond and spread on grass and water till evening. This process is repeated the next day and then all the cloth pieces are washed and dried."
+            }
           ]
         }
       ],
@@ -1200,12 +1983,31 @@
           "text": "The bleached cloth is dipped in myrobalan solution, squeezed and dried in the sun.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 7",
+              "quote": "(The process has been described earlier.) The material is dipped into this solution, removed immediately and squeezed out and dried in the sun. The tannin in the myrobalan plays a special role."
+            }
           ]
         },
         {
           "text": "The cloth soaks 30–45 minutes in myrobalan, is squeezed and dried in sunlight.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "After 45 minutes the cloth is` taken out, squeezed evenly and dried in the sunlight."
+            },
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "The dried myrobalan cloth is spread tightly on the printing table."
+            }
           ]
         }
       ],
@@ -1228,18 +2030,44 @@
           "text": "Gum-mixed black colour is printed with a wooden block, usually to outline the design.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "The black colour is taken by a wooden block from the colour tray and printing usually outlines of the design."
+            },
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "Printing with Black colour: The gum mixed black colour is taken in colour trays."
+            }
           ]
         },
         {
           "text": "Two mordants, kasim and karam, are printed; the printing of iron mordant precedes that of alum.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 9",
+              "quote": "If the background were to be printed with indigo or indigo-green then the background would be printed last. v) Printing of Mordants Two mordants, namely iron acetate (kasim in Telugu) and alum (karam) are used. The printing of iron mordant precedes that of alum."
+            }
           ]
         },
         {
           "text": "Black is printed with iron (nails) and red with alum after the cloth is bleached, washed and dipped in myrobalan.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The cloth is prepared by bleaching, washing and dipping in myrobalam solution. Fabric is then printed in black and red colour; the black is produced by iron nails and red that is obtained from alum."
+            }
           ]
         }
       ],
@@ -1262,18 +2090,44 @@
           "text": "Alum-based red paste is block-printed where red is needed.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "Printing with Alum solution: The Alum red tinted printing paste is taken in colour tray. This alum solution is taken by the blocks from the trays and printed where ever red colour is necessary."
+            }
           ]
         },
         {
           "text": "First the background of the designs is printed and then the outline, using kasim and karam for red and other colours.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 9",
+              "quote": "First, the background of the designs is printed and then the outline of the designs is printed on the myrobalan-dipped cloth by using kasim and karam for red and other colors."
+            }
           ]
         },
         {
           "text": "Red is obtained from alum in Machilipatnam block printing.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Keywords\"",
+              "quote": "Andhra Pradesh, Hand Block, Handicraft, handmade, India, Kalamkari, Machilipatnam, printing, Textiles"
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "Fabric is then printed in black and red colour; the black is produced by iron nails and red that is obtained from alum."
+            }
           ]
         }
       ],
@@ -1294,18 +2148,39 @@
           "text": "After block printing the cloth is kept two to three days until dried.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 10",
+              "quote": "Degumming and Washing After block printing the cloth is kept for two to three days until dried."
+            }
           ]
         },
         {
           "text": "Printed cloth dries in sunlight about a day and must stay dry, since moisture makes the colours spread.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "Care should be taken that printed portion should not come in to contact with water or moisture. If it is so the colours will spread."
+            }
           ]
         },
         {
           "text": "In a general kalamkari account, the mordanted cloth is kept aside for a day and then washed under running water.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "The cloth or fabric is kept aside for a day and the cloth is later washed under running water."
+            }
           ]
         }
       ],
@@ -1326,18 +2201,39 @@
           "text": "The cloth is washed in flowing water to remove gum and unwanted mordant so colour does not develop in unwanted areas; after washing for one hour it is dried in the sun.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 10",
+              "quote": "It is washed in flowing water to remove the gum and any unwanted mordant so as to avoid development of color in any unwanted area due to spreading of the mordant. After washing for one hour, it is dried in the sun."
+            }
           ]
         },
         {
           "text": "Loose colour and gum are washed out in flowing water and the cloth is sun-dried.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "Washing: The fully dried cloth is taken for washing to remove loosely adhering colour particles and gum on the fabric. They do washing in flowing water."
+            }
           ]
         },
         {
           "text": "After printing, the cloth is washed in running fresh water before boiling.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "After this process, the cloth is printed using natural colours as per the required design and then washed in flowing, fresh water."
+            }
           ]
         }
       ],
@@ -1361,24 +2257,62 @@
           "text": "The mordant-printed fabric is submerged and boiled for an hour and a half with alizarin and jajaku leaves, swirled for even permeation.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 10",
+              "quote": "The mordant-printed fabric is then completely submerged and allowed to boil for an hour and a half. The cloth is properly swirled ensuring even permeation of alizerine."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 11",
+              "quote": "Fabric being boiled in Jajaku leaves and Alizarine After the red color has developed, the cloth is taken out, squeezed and dried in the sun."
+            }
           ]
         },
         {
           "text": "Red colour dyeing is done by boiling with red colouring materials.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "Red colour dyeing is done by boiling with red colouring materials."
+            }
           ]
         },
         {
           "text": "The cloth is boiled in copper vessels with leaves, roots, barks and dry flowers to add colour.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "Once washed and dried, the cloth is boiled in copper vessels using leaves, roots, barks, dry flowers etc to give colours."
+            }
           ]
         },
         {
           "text": "After mordant printing the fabric is dyed in alizarin.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The fabric is then dyed in alizarine and starched."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The kalamkari done here is a mixture of painting and hand-printing. This craft was started in the old city of Golconda after which it spread along the eastern coast up to Tamil Nadu."
+            }
           ]
         }
       ],
@@ -1399,6 +2333,13 @@
           "text": "After red has developed the cloth is taken out, squeezed and dried in the sun.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 11",
+              "quote": "Fabric being boiled in Jajaku leaves and Alizarine After the red color has developed, the cloth is taken out, squeezed and dried in the sun."
+            }
           ]
         }
       ],
@@ -1419,24 +2360,52 @@
           "text": "A second printing applies yellow, green, pink, grey and indigo; yellow is brushed on with a date-palm stick over starched cloth.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 12",
+              "quote": "Printing of Yellow, Green and Indigo After the above process, the second printing is carried out. This involves the printing of yellow, green, pink, gray and indigo."
+            }
           ]
         },
         {
           "text": "After drying the boiled fabric, a second print is done with colours like yellow, green and grey.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 12",
+              "quote": "After drying the above boiled fabric . Second printing is done.Colors like yellow , green , grey are printed in the second print."
+            }
           ]
         },
         {
           "text": "After boiling, starch is applied and a second layer of colour is added.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "After boiling, the cloth has to be washed well to remove mud, which comes from the natural ingredients. Post this, starch is applied on the cloth for stiffness required for the second layer of colouring."
+            }
           ]
         },
         {
           "text": "The alizarin-dyed fabric is starched and painted with yellow.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The fabric is then dyed in alizarine and starched. The starched fabric in the last is painted with yellow colour."
+            }
           ]
         }
       ],
@@ -1459,12 +2428,26 @@
           "text": "The fabric is submerged in alum solution; the excess yellow runs off and all colours are fixed.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 12",
+              "quote": "The fabric is then submerged in this solution for a while. The excess yellow color runs off and all the colors are fixed."
+            }
           ]
         },
         {
           "text": "The cloth is treated in alum water before soap washing.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "Alum water ensures the colour stays on the cloth. Finally, the cloth is washed with soap and dried."
+            }
           ]
         }
       ],
@@ -1485,12 +2468,26 @@
           "text": "The last stage is washing with soap, after which the cloth is dried in the sun.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 13",
+              "quote": "Soaping The last stage is washing with soap after which the cloth is dried in the sun."
+            }
           ]
         },
         {
           "text": "The cloth is washed with soap and dried.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "Finally, the cloth is washed with soap and dried."
+            }
           ]
         }
       ],
@@ -1511,6 +2508,18 @@
           "text": "The two printing stages might reverse depending on the colour; if the background is indigo or indigo-green it is printed last.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 9",
+              "quote": "If the background were to be printed with indigo or indigo-green then the background would be printed last. v) Printing of Mordants Two mordants, namely iron acetate (kasim in Telugu) and alum (karam) are used."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 9",
+              "quote": "The two stages might reverse, depending on the color being used for printing."
+            }
           ]
         }
       ],
@@ -1531,12 +2540,26 @@
           "text": "The amount of time the cloth is kept in water determines the shade.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 11",
+              "quote": "The amount of time for which the cloth is kept in water determines the shade of the cloth."
+            }
           ]
         },
         {
           "text": "Leaves and flowers are added to the alizarin bath according to the colour needed.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 10",
+              "quote": "Sometimes various other leaves and flowers are added with the alizerine and put to boil according to the colors needed."
+            }
           ]
         }
       ],
@@ -1557,6 +2580,13 @@
           "text": "Different alum concentrations produce more shades.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "Using alum with different percentages on different mordents they develop more shades."
+            }
           ]
         }
       ],
@@ -1577,12 +2607,31 @@
           "text": "Printed cloth must stay dry since moisture makes the colours spread.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "Care should be taken that printed portion should not come in to contact with water or moisture. If it is so the colours will spread."
+            }
           ]
         },
         {
           "text": "Cloth is kept 2–3 days until dried before washing to avoid colour developing in unwanted areas through spreading mordant.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 10",
+              "quote": "Degumming and Washing After block printing the cloth is kept for two to three days until dried."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 10",
+              "quote": "It is washed in flowing water to remove the gum and any unwanted mordant so as to avoid development of color in any unwanted area due to spreading of the mordant."
+            }
           ]
         }
       ],
@@ -1603,6 +2652,13 @@
           "text": "A mixture of iron in any form leads to darkening of the colour, so iron implements and utensils are avoided.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 5",
+              "quote": "A mixture of iron in any form leads to darkening of the color and for this reason the iron implements and utensils are avoided."
+            }
           ]
         }
       ],
@@ -1623,12 +2679,31 @@
           "text": "The entire process takes almost two months; nature should be favourable, and progress depends entirely on nature.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 13",
+              "quote": "The entire process takes almost two months. Nature should also be favorable and not interrupt the process."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 13",
+              "quote": "The progress of work depends entirely on nature."
+            }
           ]
         },
         {
           "text": "Colouring, washing and printing are repeated several times and cannot be finished in a day or two.",
           "source_ids": [
             "S14"
+          ],
+          "evidence": [
+            {
+              "source_id": "S14",
+              "locator": "§ \"Kalamkari Woodblock Makers\" (occurrence 2 of 2)",
+              "quote": "Compared to them, this (block-printed cloth) takes more time to get done...printing and washing several times...those things can't be done in a day or two."
+            }
           ]
         }
       ],
@@ -1652,24 +2727,62 @@
           "text": "Persian influence shows in ornamental birds, flowers, creepers and mehrabs or archways; border patterns and a repetitive floral field displaced the early designs.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The motifs used were floral and animal designs. The Persian influence on the designs is visible: ornamental birds, flowers, creepers, and mehrabs or archways found chiefly in Mughal architecture are common."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The border patterns and a field of floral pattern in a repetitive fashion displaced the early designs."
+            }
           ]
         },
         {
           "text": "Machilipatnam kalamkari usually contains Persian motifs like creepers, lotus and twines due to Mughal rule and trade with Persia.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "PDF p. 1",
+              "quote": "Machilipatnam kalamkari is a hand-block printed style made of wood which usually contains Persian motifs like creepers, lotus, twines, etc due to the influence of Mughal rule and ---------- *Corresponding author trade proximity with Persia and Iran1-5."
+            }
           ]
         },
         {
           "text": "Designs included Mughal motifs, floral designs, the mihrab of a mosque, the tree of life and the cypress.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 5",
+              "quote": "Persia continued to patronise Kalamkari for prayer mats, quilts, patkas (waist belts), upholstery and curtains with Mughal motifs, floral designs, mihrab (prayer niche) of a mosque, tree of life, the cypress and animals mentioned in Islamic writings."
+            }
           ]
         },
         {
           "text": "Motifs combine local motifs with those derived from Persia and Europe: stylised plants, creepers, geometric designs, animals and human figures.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "As the textiles produced in Machilipatnam were free from any kinds of cultural or religious restraints, they displayed varied imagery starting from stylized plants, creepers, geometric designs to animals and human figures."
+            },
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "The motifs from Machilipatnam are often cross-cultural and combine local motifs with those derived from Persia and Europe."
+            }
           ]
         }
       ],
@@ -1690,18 +2803,44 @@
           "text": "Each colour gets its own block.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "In Machilipatnam, for the block printed textiles, line drawings are not necessary. The textiles produced here can be monochromatic or polychromatic and for each colour, separate blocks are used."
+            }
           ]
         },
         {
           "text": "Black is printed usually to outline the design.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "The black colour is taken by a wooden block from the colour tray and printing usually outlines of the design."
+            },
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "Care should be taken that printed portion should not come in to contact with water or moisture."
+            }
           ]
         },
         {
           "text": "Craftmark captions show the background printed with alum and the outline and stem-fill printed with iron acetate; the text says background is printed first, then outline and motifs.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 8",
+              "quote": "printing. iv) Block printing is generally carried out in two stages namely: i) Printing of the mordants (iron acetate and alum for outline or background or motifs). Printing begins with the mordants being printed first."
+            }
           ]
         }
       ],
@@ -1722,12 +2861,31 @@
           "text": "Kalamkari cottons are made in black, red, blue, yellow and green.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "Kalamkari cottons are made in different colours, to fill in the design or to be used as backdrop. Black, red, blue, yellow and green."
+            }
           ]
         },
         {
           "text": "Orange, yellowish-orange and pink are obtained through bath additives and unmordanted areas taking a pinkish tint.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 11",
+              "quote": "The portions not treated with alum imbibe a pinkish color."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 11",
+              "quote": "Only Moduga + Water ----------------Yellowish-orange 5."
+            }
           ]
         }
       ],
@@ -1748,18 +2906,49 @@
           "text": "Designs catered to Persian taste, and Dutch and English demand also influenced design.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 5",
+              "quote": "The output from Masulipatnam was majorly exported to Persia and the designs catered to the Persian taste. The Dutch and English too had influenced the design when European demand for the cloth had taken place."
+            }
           ]
         },
         {
           "text": "Nelly H. Sethna rearranged old Machilipatnam block motifs in the 1970s and stopped final bleaching, leaving an off-white background.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 7",
+              "quote": "She brought out old block designs and rearranged many motifs to create new patterns. She also stopped the bleaching of the cloth in the final stage leading to an off-white background which lent a pleasing and warm effect overall."
+            },
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 8",
+              "quote": "As already mentioned, Nelly H. Sethna revitalised the designs in th 1970s."
+            }
           ]
         },
         {
           "text": "Pedana block makers revived old designs from a published collection of Machilipatnam textiles; overseas clients mostly want traditional designs.",
           "source_ids": [
             "S14"
+          ],
+          "evidence": [
+            {
+              "source_id": "S14",
+              "locator": "§ \"Kalamkari Woodblock Makers\" (occurrence 2 of 2)",
+              "quote": "They mainly want these traditional designs and do not ask us to diverge from our traditional practice."
+            },
+            {
+              "source_id": "S14",
+              "locator": "§ \"Kalamkari Woodblock Makers\" (occurrence 2 of 2)",
+              "quote": "But we revived a variety of old designs from the book."
+            }
           ]
         }
       ],
@@ -1780,18 +2969,49 @@
           "text": "Products include block-printed sarees, rugs, hand towels, door covers, bed covers and clothing material.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Pedana Block Kalamkari Fabrics : KALAMKARI\"",
+              "quote": "However, thanks to the art meeting design in the shape of Machilipatnam / Pedana Kalamkari block print sarees , rugs, hand towels, paintings, door covers, bed covers, clothing material, and so on."
+            }
           ]
         },
         {
           "text": "Earlier uses were canopies, screen cloth and prayer cloth; today dress material, saris, curtains, upholstery and bags.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 13",
+              "quote": "List of Products Especially in the olden days, Kalamkari prints were used for canopies, screen cloth, prayer cloth, etc., but today their uses are diversified for different purposes."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 13",
+              "quote": "They are used as dress material, saris, handkerchiefs, curtains, wall and frame hangings and also for upholstery, curtains, bed sheets, pillow covers, mats, carpets, durries, caftans, bags, purses, etc."
+            }
           ]
         },
         {
           "text": "Washing, bleaching and sunning ensure colour fastness.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The fastness of the colours is ensured by washing, bleaching, and sunning."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The starched fabric in the last is painted with yellow colour."
+            }
           ]
         }
       ],
@@ -1812,6 +3032,18 @@
           "text": "Red develops from alum and alizarin, alizarin also fixes the black, and portions not treated with alum imbibe a pinkish colour.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 11",
+              "quote": "The portions not treated with alum imbibe a pinkish color."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 11",
+              "quote": "During the process not only the red color develops as a result of the combination of alum and alizerine but the alizerine also contributes to fixing the black color which has emerged at a previous stage."
+            }
           ]
         }
       ],
@@ -1834,12 +3066,31 @@
           "text": "Screen-printed kalamkari uses chemical colours, is faster and cheaper, and is hard to distinguish at first sight.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "There is a clear difference between block-printed and screen-printed Kalamkari. But at first sight, it is difficult to tell the difference."
+            },
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "If you use chemical colours, it may be cheaper, but the colour fades in two to three washes, while in the original fabric, the colour may slightly fade over the years but largely remains intact."
+            }
           ]
         },
         {
           "text": "Block makers cite competition from serigraphy and machine-made textiles.",
           "source_ids": [
             "S14"
+          ],
+          "evidence": [
+            {
+              "source_id": "S14",
+              "locator": "§ \"Kalamkari Woodblock Makers\" (occurrence 2 of 2)",
+              "quote": "In Andhra Pradesh today, very few people are working in the field of block-making. We are facing competition from serigraphy prints and other machine-made textiles."
+            }
           ]
         }
       ],
@@ -1860,12 +3111,26 @@
           "text": "The tannin in myrobalan reacts with iron salt to produce black; with alum it improves fastness of the red dye; it helps cotton absorb iron and alum salts more evenly.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 7",
+              "quote": "When the tannin reacts with alum it improves the fastness of the red dye. It also helps the cotton fiber to absorb the iron and alum salts more evenly."
+            }
           ]
         },
         {
           "text": "For madder red, cotton had to be dipped in a tannin solution before mordants were applied.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "For use of madder for the red dye, the cotton would have to be dipped in a solution with tannin. Following this, mordants would be applied."
+            }
           ]
         }
       ],
@@ -1886,18 +3151,39 @@
           "text": "Red areas were painted with an alum mordant and black with an iron mordant, which help the dyes fix and give fast colours.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "§ \"Bed curtain\"",
+              "quote": "The areas to be red in the finished piece are painted with an alum mordant, and the black areas with an iron mordant. These then react with the dyes to give fast colours and the unmordanted areas can be rinsed clean of excess dye."
+            }
           ]
         },
         {
           "text": "Madder combines with alum to become red.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "Madder would combine with alum to become red."
+            }
           ]
         },
         {
           "text": "During boiling red develops from alum plus alizarin while alizarin also helps fix the black.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 11",
+              "quote": "During the process not only the red color develops as a result of the combination of alum and alizerine but the alizerine also contributes to fixing the black color which has emerged at a previous stage."
+            }
           ]
         }
       ],
@@ -1918,12 +3204,26 @@
           "text": "Indigo needs no mordant, so wax resist protected areas not to be blue before dipping in the vat.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "§ \"Bed curtain\"",
+              "quote": "The entire cloth is then immersed in the dye vat, and the resist material (usually wax) can then be removed from the non-blue areas. Green is achieved by over-painting yellow dye onto indigo-dyed areas, and purple shades by combining red and blue dyes."
+            }
           ]
         },
         {
           "text": "Indigo does not require any mordant so the solution is printed directly.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 12",
+              "quote": "Indigo does not require any mordant so the solution is printed directly."
+            }
           ]
         }
       ],
@@ -1945,12 +3245,26 @@
           "source_ids": [
             "S12"
           ],
-          "quote": "penetrates deep into the fabric which prevents dyes from spreading"
+          "quote": "penetrates deep into the fabric which prevents dyes from spreading",
+          "evidence": [
+            {
+              "source_id": "S12",
+              "locator": "§ \"Guest Post: Renuka Reddy’s Adventures in Chintz\"",
+              "quote": "When milk-treated fabric is exposed to sunlight, the high fat content from buffalo milk penetrates deep into the fabric which prevents dyes from spreading."
+            }
+          ]
         },
         {
           "text": "Fresh buffalo milk in the starch prevents colours from running.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 12",
+              "quote": "Fresh buffalo milk is also added to the starch solution to prevent the colors from running. Starching prevents diffusion of the yellow color by preventing undue seepage on to the reverse side."
+            }
           ]
         }
       ],
@@ -1974,18 +3288,49 @@
           "source_ids": [
             "S13"
           ],
-          "quote": "In Machilipatnam, the washing of the cotton fabrics is done at the Kalia Canal."
+          "quote": "In Machilipatnam, the washing of the cotton fabrics is done at the Kalia Canal.",
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "In Machilipatnam, the washing of the cotton fabrics is done at the Kalia Canal."
+            }
+          ]
         },
         {
           "text": "The cloth is washed in flowing water after bleaching and after mordant printing.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 10",
+              "quote": "It is washed in flowing water to remove the gum and any unwanted mordant so as to avoid development of color in any unwanted area due to spreading of the mordant. After washing for one hour, it is dried in the sun."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 6",
+              "quote": "6.b Elaboration of printing process i) Bleaching The unbleached material/cloth/gray cloth is soaked in a solution of buffalo or cow dung and water for 5 to 10 minutes."
+            }
           ]
         },
         {
           "text": "Washing in a pond takes about two hours; nearby villages have turned away makers who wash chemically printed cloth in their canals.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "\"Villages such as Pedapulipaka and Sitarampuram are turning away Kalamkari makers who come to wash the cloth in their canals alleging that the chemical colours are polluting their water and causing the death of their cattle."
+            },
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "After this process, the cloth is printed using natural colours as per the required design and then washed in flowing, fresh water. Some of the natural ingredients used to make colours \"Pond washing takes two hours and is a difficult process."
+            }
           ]
         }
       ],
@@ -2006,12 +3351,36 @@
           "text": "Cloth is sun-dried after bleaching, myrobalan, washing, dyeing and soaping; progress depends entirely on nature.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 13",
+              "quote": "Soaping The last stage is washing with soap after which the cloth is dried in the sun."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 13",
+              "quote": "The progress of work depends entirely on nature."
+            }
           ]
         },
         {
           "text": "Washing, bleaching and sunning ensure colour fastness.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The fastness of the colours is ensured by washing, bleaching, and sunning."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The starched fabric in the last is painted with yellow colour."
+            }
           ]
         }
       ],
@@ -2032,6 +3401,13 @@
           "text": "These techniques are associated with the Coromandel Coast because local soil, water and dye plants provided a favourable combination of chemicals.",
           "source_ids": [
             "S11"
+          ],
+          "evidence": [
+            {
+              "source_id": "S11",
+              "locator": "§ \"Chintz hanging\"",
+              "quote": "These techniques are particularly associated with coastal south-east India (the so-called 'Coromandel Coast') because of the particularly favourable combination of chemicals in the local soil, water and dye- plants."
+            }
           ]
         }
       ],
@@ -2052,6 +3428,18 @@
           "text": "Chemical effluents from washing screen-printed fabric reportedly pollute water; the District Collector issued notices to units using chemical colours.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "The chemicals used in the colours let out toxic effluents, which is contaminating the water table. In the past too, the Krishna District Collector sent out a few notices to those using chemical colours, warning them of action."
+            },
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "However, the same metre costs only Rs 50-70 for screen-printed fabric."
+            }
           ]
         }
       ],
@@ -2072,6 +3460,18 @@
           "text": "Srikalahasti style is freehand pen drawing with Hindu mythological stories, mostly for temple cloths; Machilipatnam is hand-block printed with Persian motifs.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "PDF p. 1",
+              "quote": "There are many types of kalamkari arts; such as Srikalahasti, Machilipatnam, Kodali Karuppur and Karuppur Kalamkari. The Srikalahasti style of kalamkari is a freehand drawing using a pen with motifs and stories relating to Hindu mythology because of the influence of the Golconda rule2-6."
+            },
+            {
+              "source_id": "S7",
+              "locator": "PDF p. 1",
+              "quote": "Machilipatnam kalamkari is a hand-block printed style made of wood which usually contains Persian motifs like creepers, lotus, twines, etc due to the influence of Mughal rule and ---------- *Corresponding author trade proximity with Persia and Iran1-5."
+            }
           ]
         },
         {
@@ -2079,18 +3479,49 @@
           "source_ids": [
             "S3",
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"AWARDS:\"",
+              "quote": "Unlike hand painted kalamkari, which was a smaller setup concentrated as an inter-generational craft Machilipatnam print production is carried out in karkhanas (commercial workshops) where block making, washing and printing takes place simultaneously."
+            },
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "In Machilipatnam, the production is carried out in karkhanas (commercial workshops), where the block makers, washers and printers work under the same roof. In Srikalahasti, the textiles are produced by small family units where the members work together."
+            }
           ]
         },
         {
           "text": "Srikalahasti cloth is washed in the Swarnamukhi river; Machilipatnam cloth at the Kalia Canal.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "After this, the cloth is washed again in water before it is finally ready for use. In Machilipatnam, the washing of the cotton fabrics is done at the Kalia Canal."
+            },
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "River Swarnamukhi, in Srikalahasti takes care of this requirement, whereas in Machilipatnam, the canal emptying into the Bay of Bengal acts as the source of water."
+            }
           ]
         },
         {
           "text": "The designs of Masulipatnam were more Persian as it was under the Golconda Sultanate; at Kalahasti artists were from a caste called Balojas.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 4",
+              "quote": "At this centre many took to this work whereas at Kalahasti artists and craftsmen were from a caste called `'Balojas''. The designs of Masulipatnam were more Persian as it was under the Golconda Sultanate."
+            }
           ]
         }
       ],
@@ -2116,18 +3547,39 @@
           "source_ids": [
             "S13"
           ],
-          "quote": "Unlike the process at Srikalahasti, alum solution is not used here for the red colour."
+          "quote": "Unlike the process at Srikalahasti, alum solution is not used here for the red colour.",
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "Unlike the process at Srikalahasti, alum solution is not used here for the red colour."
+            }
+          ]
         },
         {
           "text": "Alum-based red paste is block-printed where red is needed.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "Printing with Alum solution: The Alum red tinted printing paste is taken in colour tray. This alum solution is taken by the blocks from the trays and printed where ever red colour is necessary."
+            }
           ]
         },
         {
           "text": "Red is obtained using alum as mordant and boiling in alizarin.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 6",
+              "quote": "Bleached fabric being dipped in myrobaln solution Obtaining red, indigo, orange and green color dyes: Red is obtained by using alum as the mordant and then boiling the alum-printed fabric in alizerine."
+            }
           ]
         }
       ],
@@ -2148,18 +3600,49 @@
           "text": "Copper pots are used for boiling and iron utensils are avoided with alum.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 5",
+              "quote": "A mixture of iron in any form leads to darkening of the color and for this reason the iron implements and utensils are avoided."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 4",
+              "quote": "6) Dyeing vat 7) Broken pots for melting wax 8) Larger copper pots for boiling 6 Stages of the Production Process The following are the main stages in the production process: 1."
+            }
           ]
         },
         {
           "text": "Boiling in copper vessels.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "Once washed and dried, the cloth is boiled in copper vessels using leaves, roots, barks, dry flowers etc to give colours."
+            },
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "After boiling, the cloth has to be washed well to remove mud, which comes from the natural ingredients."
+            }
           ]
         },
         {
           "text": "Big semi-circular iron vessels are used.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "Big semi-circular vessels made of iron are placed over these ovens for boiling the fabrics."
+            }
           ]
         }
       ],
@@ -2180,12 +3663,26 @@
           "text": "The printing of iron mordant precedes that of alum.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 9",
+              "quote": "The printing of iron mordant precedes that of alum."
+            }
           ]
         },
         {
           "text": "First the background is printed followed by outline and motifs; order reverses for indigo backgrounds.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 8",
+              "quote": "First the background is printed followed by the printing of the outline and the motifs."
+            }
           ]
         }
       ],
@@ -2206,6 +3703,13 @@
           "text": "Certificate no. 71 dated 10-07-2008.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "§ \"Document Details\"",
+              "quote": "GI - Grant of Kalamkari Status - Objections - 03-04-2013 03-04-2013 4 90 - GI - Report Filed by Advocate - 05-12-2012 05-12-2012 5 90 - GI - Notice issued by Municipal Commissioner - 15-09-2012 15-09-2012 6 90 - GI - Certificate Map - 10-07-2008"
+            }
           ]
         },
         {
@@ -2213,18 +3717,49 @@
           "source_ids": [
             "S3",
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"AWARDS:\"",
+              "quote": "Pedana (Machilipatnam) kalamkari received a Geographical Indications (GI) tag in 2013."
+            },
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 10",
+              "quote": "Collections by lifestyle store `Good Earth' who launched special Kalamkari series in 2102, 2013 and 2015 got good success."
+            }
           ]
         },
         {
           "text": "Included in GI Registry in 2012.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "It was included in the Geographical Indications Registry (GIR) in 2012 under the GI of Goods (Registration and Protection) Act of 1999."
+            }
           ]
         },
         {
           "text": "Authorised user no. AU/396/GI/19/12; certificate received 2013.",
           "source_ids": [
             "S2"
+          ],
+          "evidence": [
+            {
+              "source_id": "S2",
+              "locator": "§ \"SpicyIP Tidbit: GI for Pedana Kalamkari Art Form\"",
+              "quote": "According to GIR's authorised user no - AU/396/GI/19/12, production of Machilipatnam Kalamkari is geographically limited to Pedana town and its neighbouring villages including Machilipatnam, Polavaram and Kappaladoddi in Guduru Mandal of Krishna district."
+            },
+            {
+              "source_id": "S2",
+              "locator": "§ \"SpicyIP Tidbit: GI for Pedana Kalamkari Art Form\"",
+              "quote": "Members of Vegetable Dye Hand Block Kalamkari Printers' Welfare Association, Pedana received the registration certificate from the Geographical Indications Registry (GIR), Chennai."
+            }
           ]
         }
       ],
@@ -2245,18 +3780,39 @@
           "text": "Myrobalan solution is prepared from the dried flowers called karakkaya.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 5",
+              "quote": "Preparation of Myrobalan solution: This is prepared from the dried flowers called karakkaya (in Telugu) or myrobalan."
+            }
           ]
         },
         {
           "text": "Myrobalan for dyeing is made from the unripe fruit soaked overnight; yellow dye is made from dried flowers of myrobalan.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 7",
+              "quote": "Myrobalan for dyeing is made from the unripe fruit soaked overnight in water and ground the following morning. For the red and yellow dye; the substance is from the following plants: Pobakka, Suruduchakka and Chevalikodi (local Telugu names)."
+            }
           ]
         },
         {
           "text": "Myrobalan seeds and buffalo milk are used before printing.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "The next step involves treating the cloth with Myrobalan seeds and buffalo milk to prevent smudging of dyes when painted."
+            }
           ]
         }
       ],
@@ -2277,18 +3833,44 @@
           "text": "Hand block printing takes a minimum of 10 steps.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "The original art form Hand block-printed Kalamkari is a tedious and time-consuming process involving a minimum of 10 steps."
+            },
+            {
+              "source_id": "S15",
+              "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+              "quote": "Some of the natural ingredients used to make colours \"Pond washing takes two hours and is a difficult process."
+            }
           ]
         },
         {
           "text": "The entire process takes almost two months.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 13",
+              "quote": "The entire process takes almost two months."
+            }
           ]
         },
         {
           "text": "The process takes several days, weeks or months depending on length.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "Running water is used for washing and the process takes several days, weeks, or months depending on the length of the cotton cloth."
+            }
           ]
         }
       ],
@@ -2309,18 +3891,39 @@
           "text": "Alizarin is brought from Mumbai.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 11",
+              "quote": "These raw materials are brought from Vijaywada in Andhra Pradesh and the alizerine is especially brought from Mumbai."
+            }
           ]
         },
         {
           "text": "Alizarin is used today instead of organic matter.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 6",
+              "quote": "Alizarin is used today instead of organic matter."
+            }
           ]
         },
         {
           "text": "Rising raw material prices led craftsmen to switch to chemical dyes.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "Earlier natural dyes were used but due to the increased prices of raw material craftsmen have shifted to chemical dyes."
+            }
           ]
         }
       ],
@@ -2341,24 +3944,52 @@
           "text": "The Srikalahasti style of kalamkari is drawn freehand with a pen, with motifs and stories from Hindu mythology.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "PDF p. 1",
+              "quote": "The Srikalahasti style of kalamkari is a freehand drawing using a pen with motifs and stories relating to Hindu mythology because of the influence of the Golconda rule2-6."
+            }
           ]
         },
         {
           "text": "In Srikalahasti the textiles are painted with pens made of bamboo and cotton.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "While in Srikalahasti, the textiles are literally painted with pens made out of bamboo and cotton, in Machilipatnam, the line drawing done with a pen is transferred onto wooden blocks which are carved and then used to print fabric."
+            }
           ]
         },
         {
           "text": "The river Swarnamukhi in Srikalahasti supplies the running water the process needs.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"Rajarshi Sengupta\"",
+              "quote": "One mandatory requirement is running water, as the process involves plenty of it. River Swarnamukhi, in Srikalahasti takes care of this requirement, whereas in Machilipatnam, the canal emptying into the Bay of Bengal acts as the source of water."
+            }
           ]
         },
         {
           "text": "At Kalahasti the artists and craftsmen were from a caste called Balojas.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "PDF p. 4",
+              "quote": "At this centre many took to this work whereas at Kalahasti artists and craftsmen were from a caste called `'Balojas''."
+            }
           ]
         }
       ],

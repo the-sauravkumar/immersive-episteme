@@ -1,10 +1,12 @@
 import { cn } from "@/lib/utils"
 
+/* Loading block (DESIGN.md 8, 9.7): a static --sunk block. No pulse, in any area. */
 function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="skeleton"
-      className={cn("animate-pulse rounded-md bg-muted", className)}
+      aria-hidden="true"
+      className={cn("rounded-[2px] bg-sunk", className)}
       {...props}
     />
   )

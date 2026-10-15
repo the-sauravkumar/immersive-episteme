@@ -1,5 +1,13 @@
 /**
- * Staff console shell for /cms, /research and /admin.
+ * Staff console shell for /cms, /research and /admin (DESIGN.md 9.16).
+ *
+ *  - A 15rem left rail on `--sunk`: the wordmark, the area eyebrow ("Research Console", "Content
+ *    Console", "Admin Console") and 44 px nav links (active: ink 600 with a 3 px indigo left
+ *    rule). Under 768 px the rail becomes a top strip and the links fold into a "Sections" sheet.
+ *  - A 56 px top bar with a 2 px ink running-head rule: the area switcher as underline tabs and
+ *    the user menu (name, role badges, Display Settings, sign out).
+ *  - The knock-out band (research) or plain rule (CMS, admin) sits above each PageHeader; see
+ *    page-header.tsx and ConsolePage in gates.tsx.
  *
  * The frame (brand, landmarks) is static. Everything that depends on who is signed in (nav
  * items, area switcher, user menu) streams in behind <Suspense>, as Cache Components requires.
@@ -9,35 +17,50 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 
-import { Badge } from "@/components/ui/badge";
+import { Wordmark } from "@/components/brand/wordmark";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  CONSOLE_AREA_LABELS,
-  areaLanding,
-  enterableAreas,
-  visibleNav,
-  type ConsoleArea,
-} from "@/lib/permissions/console-routes";
+import { areaLanding, enterableAreas, visibleNav, type ConsoleArea } from "@/lib/permissions/console-routes";
 import { ROLE_LABELS } from "@/lib/permissions/roles";
 import { cn } from "@/lib/utils";
 import { getStaffPrincipal } from "@/server/auth/staff";
 
-import { ConsoleNavLinks } from "./console-nav-links";
-import { SignOutButton } from "./sign-out-button";
+import { ConsoleNavLinks, ConsoleNavMenu } from "./console-nav-links";
+import { ConsoleUserMenu } from "./console-user-menu";
+import { DisplayPreferencesSync } from "./display-settings";
 
 const AREA_ROOT: Record<ConsoleArea, string> = { cms: "/cms", research: "/research", admin: "/admin" };
 
+/** Eyebrow in the rail (DESIGN.md 9.16). */
+export const CONSOLE_EYEBROW: Record<ConsoleArea, string> = {
+  cms: "Content Console",
+  research: "Research Console",
+  admin: "Admin Console",
+};
+
+/** Short labels for the area switcher tabs. */
+const AREA_TAB: Record<ConsoleArea, string> = { cms: "Content", research: "Research", admin: "Admin" };
+
+/** Console gutters (DESIGN.md 6): 16 / 24 / 32 px. PageHeader's band bleed mirrors these. */
+export const CONSOLE_GUTTER = "px-4 xs:px-6 lg:px-8";
+
 export function ConsoleShell({ area, children }: { area: ConsoleArea; children: ReactNode }) {
+  const navLabel = `${CONSOLE_EYEBROW[area]} sections`;
   return (
-    <div className="min-h-dvh md:grid md:grid-cols-[15rem_minmax(0,1fr)]">
-      <aside className="border-b border-border bg-secondary md:min-h-dvh md:border-r md:border-b-0">
-        <div className="flex flex-col gap-1 px-4 pt-4 pb-3">
-          <Link href="/" className="font-display text-xl font-medium">
-            Immersive Episteme
-          </Link>
-          <p className="kicker">{CONSOLE_AREA_LABELS[area]} console</p>
+    <div data-zone="console" data-console-area={area} className="min-h-dvh bg-ground md:grid md:grid-cols-[15rem_minmax(0,1fr)]">
+      <DisplayPreferencesSync zone="console" />
+      <aside className="border-b border-rule bg-sunk md:min-h-dvh md:border-r md:border-b-0">
+        <div className="flex items-center justify-between gap-3 px-4 py-2 xs:px-6 md:flex-col md:items-start md:gap-0 md:px-4 md:pt-3 md:pb-4">
+          <div className="flex min-w-0 flex-col">
+            <Wordmark size="console" />
+            <p className="text-eyebrow">{CONSOLE_EYEBROW[area]}</p>
+          </div>
+          <div className="md:hidden">
+            <Suspense fallback={null}>
+              <AreaNavMenu area={area} label={navLabel} />
+            </Suspense>
+          </div>
         </div>
-        <nav aria-label={`${CONSOLE_AREA_LABELS[area]} sections`} className="px-2 pb-4">
+        <nav aria-label={navLabel} className="hidden pb-6 md:block">
           <Suspense fallback={<NavSkeleton />}>
             <AreaNav area={area} />
           </Suspense>
@@ -45,17 +68,19 @@ export function ConsoleShell({ area, children }: { area: ConsoleArea; children: 
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="flex min-h-14 flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-2">
-          <nav aria-label="Console areas">
-            <Suspense fallback={<Skeleton className="h-6 w-48" />}>
-              <AreaSwitcher current={area} />
+        <header className="border-b-2 border-ink">
+          <div className={cn("flex min-h-14 flex-wrap items-center justify-between gap-x-4", CONSOLE_GUTTER)}>
+            <nav aria-label="Console areas" className="min-w-0">
+              <Suspense fallback={<Skeleton className="h-6 w-48" />}>
+                <AreaSwitcher current={area} />
+              </Suspense>
+            </nav>
+            <Suspense fallback={<Skeleton className="h-6 w-32" />}>
+              <UserMenu />
             </Suspense>
-          </nav>
-          <Suspense fallback={<Skeleton className="h-6 w-32" />}>
-            <UserMenu />
-          </Suspense>
+          </div>
         </header>
-        <main id="main" tabIndex={-1} className="flex-1 px-6 py-8 outline-none">
+        <main id="main" tabIndex={-1} className={cn("w-full max-w-[90rem] flex-1 py-8 outline-none", CONSOLE_GUTTER)}>
           {children}
         </main>
       </div>
@@ -65,7 +90,7 @@ export function ConsoleShell({ area, children }: { area: ConsoleArea; children: 
 
 function NavSkeleton() {
   return (
-    <div className="flex flex-col gap-2 px-1" aria-hidden="true">
+    <div className="flex flex-col gap-2 px-4" aria-hidden="true">
       {Array.from({ length: 5 }, (_, i) => (
         <Skeleton key={i} className="h-8 w-full" />
       ))}
@@ -73,31 +98,43 @@ function NavSkeleton() {
   );
 }
 
-async function AreaNav({ area }: { area: ConsoleArea }) {
+async function navLinks(area: ConsoleArea) {
   const principal = await getStaffPrincipal();
   if (!principal) return null;
-  const links = visibleNav(principal, area).map((r) => ({ href: r.path, label: r.label }));
+  return visibleNav(principal, area).map((r) => ({ href: r.path, label: r.label }));
+}
+
+async function AreaNav({ area }: { area: ConsoleArea }) {
+  const links = await navLinks(area);
+  if (!links) return null;
   return <ConsoleNavLinks links={links} rootHref={AREA_ROOT[area]} />;
 }
 
+async function AreaNavMenu({ area, label }: { area: ConsoleArea; label: string }) {
+  const links = await navLinks(area);
+  if (!links) return null;
+  return <ConsoleNavMenu links={links} rootHref={AREA_ROOT[area]} label={label} />;
+}
+
+/** Underline tabs (DESIGN.md 9.6 style): 44 px, active ink with a 3 px indigo bottom bar. */
 async function AreaSwitcher({ current }: { current: ConsoleArea }) {
   const principal = await getStaffPrincipal();
   if (!principal) return null;
   const areas = enterableAreas(principal);
   if (areas.length <= 1) return null;
   return (
-    <ul className="flex flex-wrap gap-1 text-sm">
+    <ul className="flex flex-wrap gap-x-4">
       {areas.map((a) => (
         <li key={a}>
           <Link
             href={areaLanding(principal, a) ?? AREA_ROOT[a]}
             aria-current={a === current ? "page" : undefined}
             className={cn(
-              "inline-flex min-h-9 items-center rounded-md px-3 text-muted-foreground hover:bg-accent hover:text-foreground",
-              a === current && "font-medium text-foreground underline underline-offset-4",
+              "inline-flex min-h-11 items-center border-b-[3px] border-transparent pt-[3px] text-ui text-ink-3 hover:text-ink",
+              a === current && "border-indigo text-ink",
             )}
           >
-            {CONSOLE_AREA_LABELS[a]}
+            {AREA_TAB[a]}
           </Link>
         </li>
       ))}
@@ -108,20 +145,5 @@ async function AreaSwitcher({ current }: { current: ConsoleArea }) {
 async function UserMenu() {
   const principal = await getStaffPrincipal();
   if (!principal) return null;
-  return (
-    <div className="flex flex-wrap items-center gap-3 text-sm">
-      <div className="flex flex-col items-end leading-tight">
-        <span className="font-medium">{principal.name}</span>
-        <span className="text-xs text-muted-foreground">{principal.email}</span>
-      </div>
-      <ul aria-label="Your roles" className="flex flex-wrap gap-1">
-        {principal.roles.map((r) => (
-          <li key={r}>
-            <Badge variant="outline">{ROLE_LABELS[r]}</Badge>
-          </li>
-        ))}
-      </ul>
-      <SignOutButton />
-    </div>
-  );
+  return <ConsoleUserMenu name={principal.name} email={principal.email} roles={principal.roles.map((r) => ROLE_LABELS[r])} />;
 }

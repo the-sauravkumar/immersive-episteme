@@ -17,7 +17,7 @@ import { analyseChains, selectScope } from "./graph";
 import { planLayout, type DoorPlan, type Placement } from "./layout";
 import { NavGrid } from "./navgrid";
 import { compareStrings } from "./prng";
-import { resolveRelationshipRule, rulesWithStrategy, strategyOf, unsupportedRuleIssues, type Resolution, type StrategyId } from "./rules";
+import { comparisonMinTraditions, resolveRelationshipRule, rulesWithStrategy, strategyOf, unsupportedRuleIssues, type Resolution, type StrategyId } from "./rules";
 import type {
   CompiledElement,
   CompiledManifest,
@@ -103,7 +103,7 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
   const sequenceRule = ruleOf("sequence-path");
   const crossRule = ruleOf("architectural-connection");
   const ruleById = new Map(config.rules.map((r) => [r.id, r]));
-  const minTraditions = Number(comparisonRule?.emit.params?.minTraditions ?? 2);
+  const minTraditions = comparisonMinTraditions(config);
 
   const constructsFor = (ruleId: string): string[] => {
     const fromInput = input.assessmentConstructs?.[ruleId];

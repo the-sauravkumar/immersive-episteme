@@ -44,7 +44,9 @@ The platform importer (built later) maps these into the knowledge schema.
       "local_terms": ["hindi/local name if sourced"],
       "provenance_kind": "same enum as source.kind",
       "verification_state": "under_review|needs_evidence",
-      "claims": [ { "text": "...", "source_ids": ["S1"], "quote": "optional ≤25 words" } ] }
+      "claims": [ { "text": "...", "source_ids": ["S1"], "quote": "optional ≤25 words",
+                    "evidence": [ { "source_id": "S1", "locator": "PDF p. 4", "quote": "verbatim passage",
+                                    "note": "optional: what a curator must check by hand" } ] } ] }
   ],
   "relationships": [
     { "source": "concept key", "target": "concept key",
@@ -61,6 +63,16 @@ The platform importer (built later) maps these into the knowledge schema.
   ]
 }
 ```
+
+## Claim evidence
+
+Each claim carries `evidence[]`: for every source it cites, at least one verbatim passage
+from that source with a locator (`PDF p. N` for PDFs, `§ "<nearest heading>"` for web pages,
+with `(occurrence k of n)` when a heading repeats on the page). `source_id` must be one of the
+claim's `source_ids`. A passage supports the claim; it does not by itself verify it — claims
+stay `under_review` until a curator checks them. `note` marks a passage that could not be
+extracted cleanly and must be checked against the original. See
+docs/research/citation-policy.md and content/review/verification.md §V11.
 
 ## Learner-facing text is built from claims only
 

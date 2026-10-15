@@ -10,6 +10,7 @@
  * Nothing here invents text: every string comes from the bundle.
  */
 import type { KnowledgeBundle } from "@/features/knowledge/contracts";
+import { balanceDiagramSets, buildStructureDiagrams, type StructureDiagram } from "@/features/knowledge/read/diagrams";
 import {
   RELATIONSHIP_SEMANTICS,
   type ConceptType,
@@ -55,10 +56,19 @@ export interface SourceView {
   verificationState: VerificationState;
 }
 
-/** A cited source with the citation's own locator/quote. */
+/** A located verbatim passage from a cited source that supports the claim. */
+export interface EvidencePassage {
+  locator: string;
+  quote: string;
+  /** What a curator must check by hand (e.g. a passage whose extracted text was corrupted). */
+  note: string | null;
+}
+
+/** A cited source with the citation's own locator/quote and its supporting passages. */
 export interface Citation extends SourceView {
   locator: string | null;
   quote: string | null;
+  passages: EvidencePassage[];
 }
 
 export interface ConceptRef {
@@ -186,17 +196,187 @@ export interface ComparisonView {
 
 const byString = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
-const shorten = (text: string, max: number) => {
-  const t = text.trim().replace(/\s+/g, " ");
-  return t.length <= max ? t : `${t.slice(0, max - 1).trimEnd()}…`;
-};
-
-/** Display label of a source (see SourceView.label). Uses only fields present in the bundle. */
+/**
+ * Display label of a source (see SourceView.label). Uses only fields present in the bundle. Long
+ * names are cut at a word boundary (DESIGN.md 9.8: never mid-word), which fixes the 2D and 3D
+ * "Stated by" lines together.
+ */
 export function sourceDisplayLabel(s: { author: string | null; publisher: string | null; year: number | null; title: string }): string {
   const who = s.author?.trim() || s.publisher?.trim() || null;
   const year = s.year != null ? String(s.year) : null;
-  if (who) return year ? `${shorten(who, 48)} ${year}` : shorten(who, 48);
-  return year ? `${shorten(s.title, 56)} (${year})` : shorten(s.title, 64);
+  if (who) return year ? `${wordCut(who, 48)} ${year}` : wordCut(who, 48);
+  return year ? `${wordCut(s.title, 56)} (${year})` : wordCut(s.title, 64);
+}
+
+/**
+ * Binds a locator's abbreviation to what follows with no-break spaces, so "PDF p. 4" never breaks
+ * between "PDF" and "p." or between "p." and "4"; the source line wraps only between its parts.
+ */
+function bindLocator(locator: string): string {
+  return locator
+    .replace(/\b(PDF)\s+(?=pp?\.)/g, "$1 ")
+    .replace(/(\b(?:pp?|figs?|nos?|vols?|ch|chap|paras?|sec|cols?|ll?|art|pl)\.|§)\s+(?=[\dIVXLCivxlc])/g, "$1 ");
+}
+
+/** Cuts `text` to at most `max` characters at a word boundary (never mid-word), adding "…". */
+function wordCut(text: string, max: number): string {
+  const t = text.trim().replace(/\s+/g, " ");
+  if (t.length <= max) return t;
+  const cut = t.slice(0, max);
+  const at = cut.lastIndexOf(" ");
+  return `${(at > max / 3 ? cut.slice(0, at) : cut).replace(/[\s,;:·–—-]+$/u, "")}…`;
+}
+
+/** First author (or publisher) as a short name: no parenthetical, first of several, "Surname, Given" -> "Surname". */
+function shortName(raw: string | null): string | null {
+  if (!raw) return null;
+  let s = raw.replace(/\([^)]*\)/g, " ").split(";")[0]!.split(/\s[—–]\s/)[0]!.replace(/\s+/g, " ").trim();
+  const parts = s.split(",").map((x) => x.trim()).filter(Boolean);
+  if (parts.length > 1) s = parts[0]!;
+  s = s.replace(/[\s,;:]+$/u, "");
+  return s ? wordCut(s, 48) : null;
+}
+
+/**
+ * The short label of a citation under its claim (DESIGN.md 9.8): first author or publisher short
+ * name, year, then the citation's own locator, e.g. "Victoria and Albert Museum, 2007 · p. 2".
+ * Derived here from the bundle fields, never hand-written into content/. Every part is cut only
+ * at a word boundary, so the label wraps to at most two lines at the claim measure and is never
+ * truncated mid-word.
+ */
+export function shortCitationLabel(c: { author: string | null; publisher: string | null; year: number | null; title: string; locator?: string | null }): string {
+  const who = shortName(c.author) ?? shortName(c.publisher) ?? wordCut(c.title, 56);
+  const year = c.year != null && c.year > 0 ? String(c.year) : null;
+  const head = year ? `${who}, ${year}` : who;
+  const locator = c.locator?.trim() ? bindLocator(wordCut(c.locator, 48)) : null;
+  return locator ? `${head} · ${locator}` : head;
+}
+
+// ---------------------------------------------------------------------------------------
+// Knowledge figures (DESIGN.md 9.9; DR-018)
+// ---------------------------------------------------------------------------------------
+
+interface FigureBase {
+  /** Stable id (the diagram id, or the asset id). */
+  id: string;
+  /** Concept the figure belongs to. */
+  conceptId: string;
+  /** Zero-based index of the anchor claim; the figure renders right after it. */
+  anchorClaimIndex: number;
+  /** Caption without the "Fig. n" prefix. Restates or points to the anchor claim; adds nothing. */
+  caption: string;
+  /** Text equivalent; never repeats the caption. */
+  alt: string;
+}
+
+/** A diagram generated from the knowledge graph (DR-018, "now"). */
+export interface DiagramFigure extends FigureBase {
+  kind: "diagram";
+  credit: string;
+  diagram: StructureDiagram;
+}
+
+/** A rights-cleared photograph (DR-018, "later"), served by the learner figure route. */
+export interface PhotoFigure extends FigureBase {
+  kind: "photo";
+  src: string;
+  width: number;
+  height: number;
+  /** e.g. "Name, Institution". */
+  credit: string;
+  licence: string;
+  licenceUrl: string | null;
+}
+
+export type KnowledgeFigureData = DiagramFigure | PhotoFigure;
+
+/** One approved illustration link of a concept, as the read model loads it (role `illustration`). */
+export interface IllustrationLink {
+  assetId: string;
+  conceptId: string;
+  role: string;
+  /** asset_links.position: the zero-based index of the anchor claim. */
+  position: number;
+  src: string;
+  width: number;
+  height: number;
+  altText: string;
+  caption: string;
+  credit: string;
+  licence: string;
+  licenceUrl: string | null;
+}
+
+/** Photo figures of a concept: illustration links only, anchored to an existing claim, by position. */
+export function photoFiguresOf(conceptId: string, claimCount: number, links: readonly IllustrationLink[]): PhotoFigure[] {
+  return links
+    .filter((l) => l.conceptId === conceptId && l.role === "illustration" && Number.isInteger(l.position) && l.position >= 0 && l.position < claimCount)
+    .sort((a, b) => a.position - b.position || byString(a.assetId, b.assetId))
+    .map((l) => ({
+      kind: "photo" as const,
+      id: l.assetId,
+      conceptId,
+      anchorClaimIndex: l.position,
+      caption: l.caption,
+      alt: l.altText,
+      src: l.src,
+      width: l.width,
+      height: l.height,
+      credit: l.credit,
+      licence: l.licence,
+      licenceUrl: l.licenceUrl,
+    }));
+}
+
+/** Credit line of every graph-derived diagram (DESIGN.md 9.9). */
+export function diagramCredit(snapshotLabel: string): string {
+  return `Diagram generated from the project's knowledge graph (snapshot ${snapshotLabel})`;
+}
+
+/** The figure of a diagram, attached to its anchor concept and claim. */
+export function diagramFigureOf(d: StructureDiagram, credit: string): DiagramFigure {
+  return { kind: "diagram", id: d.id, conceptId: d.anchor.conceptId, anchorClaimIndex: d.anchor.claimIndex, caption: d.caption, alt: d.alt, credit, diagram: d };
+}
+
+/**
+ * The figures of one concept view (12.3 rule 9: at most ONE figure per concept). The structure
+ * diagram, when the protocol shows them, is balanced by construction and takes the slot; a
+ * photograph is used otherwise. Both conditions call this with the same arguments.
+ */
+export function resolveConceptFigures(input: { diagrams: readonly DiagramFigure[]; photos: readonly PhotoFigure[]; structureDiagrams: boolean }): KnowledgeFigureData[] {
+  const diagram = input.structureDiagrams ? input.diagrams[0] : undefined;
+  if (diagram) return [diagram];
+  const photo = input.photos[0];
+  return photo ? [photo] : [];
+}
+
+export interface DiagramScope {
+  /** Traditions in scope (the study's traditions; every tradition outside a study). */
+  traditionSlugs: readonly string[];
+  /** Traditions whose diagram types must be equal (the study traditions in scope, else all in scope). */
+  balanceSlugs: readonly string[];
+}
+
+/**
+ * Every balanced structure-diagram figure in scope, by concept id. A diagram type is kept for a
+ * tradition only when every tradition in `balanceSlugs` has that type (k(section) = the minimum),
+ * so the study traditions get the same types in the same sections.
+ */
+export function diagramFiguresByConcept(view: Pick<KnowledgeView, "info" | "structureDiagrams">, scope: DiagramScope): Map<string, DiagramFigure[]> {
+  const credit = diagramCredit(view.info().versionLabel);
+  const slugs = [...new Set([...scope.traditionSlugs, ...scope.balanceSlugs])];
+  const all = new Map(slugs.map((slug) => [slug, view.structureDiagrams(slug)]));
+  const balanced = balanceDiagramSets(all, scope.balanceSlugs);
+  const allowed = new Set([...balanced.values()].flat().map((d) => d.type));
+  const byConcept = new Map<string, DiagramFigure[]>();
+  for (const slug of scope.traditionSlugs) {
+    for (const d of all.get(slug) ?? []) {
+      if (!allowed.has(d.type)) continue;
+      const f = diagramFigureOf(d, credit);
+      byConcept.set(f.conceptId, [...(byConcept.get(f.conceptId) ?? []), f]);
+    }
+  }
+  return byConcept;
 }
 
 export interface KnowledgeView {
@@ -210,6 +390,8 @@ export interface KnowledgeView {
   getComparisons(opts?: { traditionSlug?: string }): ComparisonView[];
   /** Concept refs by id (search hits, telemetry, manifest elements). */
   conceptRefsById(ids: readonly string[]): ConceptRef[];
+  /** The graph-derived structure diagrams of a tradition (DR-018), before balancing. */
+  structureDiagrams(traditionSlug: string): StructureDiagram[];
 }
 
 /** Builds the indexes once; every query is then a map lookup or a small scan. */
@@ -232,6 +414,7 @@ export function createKnowledgeView(bundle: KnowledgeBundle): KnowledgeView {
   }
 
   const find = (x: string) => conceptByKey.get(x) ?? conceptBySlug.get(x) ?? conceptById.get(x) ?? null;
+  const diagramsBySlug = new Map<string, StructureDiagram[]>();
 
   const sourceView = (s: BundleSource): SourceView => ({
     id: s.id,
@@ -246,9 +429,9 @@ export function createKnowledgeView(bundle: KnowledgeBundle): KnowledgeView {
     reliability: s.reliability,
     verificationState: s.verificationState,
   });
-  const cite = (sourceId: string, locator: string | null | undefined, quote: string | null | undefined): Citation | null => {
+  const cite = (sourceId: string, locator: string | null | undefined, quote: string | null | undefined, passages: EvidencePassage[] = []): Citation | null => {
     const s = sourceById.get(sourceId);
-    return s ? { ...sourceView(s), locator: locator ?? null, quote: quote ?? null } : null;
+    return s ? { ...sourceView(s), locator: locator ?? null, quote: quote ?? null, passages } : null;
   };
 
   const ref = (c: BundleConcept): ConceptRef => ({
@@ -270,9 +453,16 @@ export function createKnowledgeView(bundle: KnowledgeBundle): KnowledgeView {
       position,
       text: cl.text,
       quote: cl.quote,
-      // A claim's verbatim quote is attached to its citation only when the claim cites exactly one
-      // source; with several sources the bundle does not say which one the quote comes from.
-      evidence: cl.sources.map((s) => cite(s.sourceId, s.locator, cl.sources.length === 1 ? cl.quote : null)).filter((x): x is Citation => !!x),
+      // Each citation carries its own located passages (content/FORMAT.md "Claim evidence"); its
+      // quote is the first passage. Without passages, the claim's own quote is attached only when
+      // the claim cites exactly one source (otherwise it is unknown which source it comes from).
+      evidence: cl.sources
+        .map((s) => {
+          const passages = (s.evidence ?? []).map((e) => ({ locator: e.locator, quote: e.quote, note: e.note }));
+          const first = passages[0];
+          return first ? cite(s.sourceId, s.locator ?? first.locator, first.quote, passages) : cite(s.sourceId, s.locator, cl.sources.length === 1 ? cl.quote : null);
+        })
+        .filter((x): x is Citation => !!x),
     }));
 
   const conceptsOfTradition = (traditionId: string) => bundle.concepts.filter((c) => c.traditionId === traditionId);
@@ -364,7 +554,7 @@ export function createKnowledgeView(bundle: KnowledgeBundle): KnowledgeView {
         for (const e of cl.evidence) {
           if (!seen.has(e.id)) {
             seen.add(e.id);
-            const { locator: _l, quote: _q, ...s } = e;
+            const { locator: _l, quote: _q, passages: _p, ...s } = e;
             sources.push(s);
           }
         }
@@ -475,5 +665,13 @@ export function createKnowledgeView(bundle: KnowledgeBundle): KnowledgeView {
     },
 
     conceptRefsById: (ids) => ids.map((id) => conceptById.get(id)).filter((c): c is BundleConcept => !!c).map(ref),
+
+    structureDiagrams: (slug) => {
+      const hit = diagramsBySlug.get(slug);
+      if (hit) return hit;
+      const built = buildStructureDiagrams(bundle, slug);
+      diagramsBySlug.set(slug, built);
+      return built;
+    },
   };
 }

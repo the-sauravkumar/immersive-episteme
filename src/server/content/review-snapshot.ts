@@ -77,9 +77,12 @@ export async function loadModelFromDb(q: Q, hasher: Sha256Hasher): Promise<DbMod
       WHERE NOT c.is_demo AND c.verification_state = ANY($1::verification_state[])`,
     [states],
   );
-  const cl = await q.query<{ id: string; concept_id: string; position: number; text: string; quote: string | null; source_ids: string[] | null }>(
+  type EvidenceRow = { source_id: string; evidence: { locator: string; quote: string; note?: string | null }[] };
+  const cl = await q.query<{ id: string; concept_id: string; position: number; text: string; quote: string | null; source_ids: string[] | null; evidence: EvidenceRow[] | null }>(
     `SELECT cc.id, cc.concept_id, cc.position, cc.text, cc.quote,
-            array_agg(cs.source_id::text ORDER BY cs.source_id) FILTER (WHERE cs.source_id IS NOT NULL) AS source_ids
+            array_agg(cs.source_id::text ORDER BY cs.source_id) FILTER (WHERE cs.source_id IS NOT NULL) AS source_ids,
+            json_agg(json_build_object('source_id', cs.source_id::text, 'evidence', cs.evidence) ORDER BY cs.source_id)
+              FILTER (WHERE cs.source_id IS NOT NULL) AS evidence
        FROM concept_claims cc LEFT JOIN concept_claim_sources cs ON cs.claim_id = cc.id
       WHERE NOT cc.is_demo
       GROUP BY cc.id ORDER BY cc.concept_id, cc.position`,
@@ -190,7 +193,16 @@ export async function loadModelFromDb(q: Q, hasher: Sha256Hasher): Promise<DbMod
       compares: c.compares,
       provenanceKind: c.provenance_kind,
       verificationState: c.verification_state,
-      claims: claims.map((x) => ({ text: x.text, quote: x.quote, sourceRefs: refs(x.source_ids), rawSourceIds: refs(x.source_ids) })),
+      claims: claims.map((x) => ({
+        text: x.text,
+        quote: x.quote,
+        sourceRefs: refs(x.source_ids),
+        rawSourceIds: refs(x.source_ids),
+        evidence: (x.evidence ?? []).flatMap((row) => {
+          const ref = refBySourceId.get(row.source_id);
+          return ref ? row.evidence.map((e) => ({ ref, locator: e.locator, quote: e.quote, note: e.note ?? null })) : [];
+        }),
+      })),
       prosePolicy: null,
       isDemo: false,
     };

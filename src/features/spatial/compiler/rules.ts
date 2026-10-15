@@ -79,6 +79,18 @@ export function rulesWithStrategy(config: MappingRuleSetConfig, strategy: Strate
   return config.rules.filter((r) => strategyOf(r) === strategy).sort((a, b) => b.priority - a.priority || compareStrings(a.id, b.id));
 }
 
+/** `minTraditions` when the rule set's comparison-zone rule does not set it. */
+export const DEFAULT_COMPARISON_MIN_TRADITIONS = 2;
+
+/**
+ * How many selected traditions a tradition-less comparison concept must compare to be in the
+ * study scope: the highest-priority comparison-zone rule's `minTraditions`. The compiler's scope
+ * (3D) and the 2D scope checker both read it from here, from the same rule set.
+ */
+export function comparisonMinTraditions(config: MappingRuleSetConfig): number {
+  return Number(rulesWithStrategy(config, "comparison-zone")[0]?.emit.params?.minTraditions ?? DEFAULT_COMPARISON_MIN_TRADITIONS);
+}
+
 export interface RelationshipContext {
   type: string;
   semantics: RelationshipSemantics | null;

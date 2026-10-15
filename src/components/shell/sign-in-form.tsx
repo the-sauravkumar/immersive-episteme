@@ -65,7 +65,7 @@ export function SignInForm() {
         <Label htmlFor={passwordId}>Password</Label>
         <Input id={passwordId} name="password" type="password" autoComplete="current-password" required />
       </div>
-      <Button type="submit" size="lg" disabled={pending} className="min-h-11">
+      <Button type="submit" disabled={pending}>
         {pending ? "Signing in…" : "Sign in"}
       </Button>
     </form>

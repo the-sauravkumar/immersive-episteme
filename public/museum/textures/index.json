@@ -1,0 +1,76 @@
+{
+  "resolution": "2k",
+  "encoder": "ktx version: v4.4.2",
+  "textures": {
+    "wall": {
+      "tileMetres": 3,
+      "maps": {
+        "color": {
+          "url": "/museum/textures/wall-color.b62d34f0.ktx2",
+          "width": 2048,
+          "height": 2048,
+          "levels": 12,
+          "colorSpace": "srgb",
+          "bytes": 2697552,
+          "sha256": "b62d34f0884de37887acef6f72471701beeb4e06533a2f87888961e7aca84fec",
+          "sourceSha256": "863ff0a3fb33183078385a67aa0e8221f7e1a602c5f6c77f620dafda633786c5"
+        },
+        "normal": {
+          "url": "/museum/textures/wall-normal.7dc89f50.ktx2",
+          "width": 2048,
+          "height": 2048,
+          "levels": 12,
+          "colorSpace": "linear",
+          "bytes": 4314777,
+          "sha256": "7dc89f50972f13c444d5dce6ed4a93fc47bd701918278765e432bf22c68fcc72",
+          "sourceSha256": "b60c09fafc0f8c9bd17e1b5c8447488b204c31321d364185dda74f1458289845"
+        },
+        "orm": {
+          "url": "/museum/textures/wall-orm.703ea942.ktx2",
+          "width": 2048,
+          "height": 2048,
+          "levels": 12,
+          "colorSpace": "linear",
+          "bytes": 3313083,
+          "sha256": "703ea942cce815eab4b794367b5d0d26cb9a4c17391ab1c2c481025a1289b9d8",
+          "sourceSha256": "0cb76c5323bc3b6d52566d5c4bee49a7fa4f9dc3f877aee21fe7fc1ba73a8441"
+        }
+      }
+    },
+    "floor": {
+      "tileMetres": 1.7,
+      "maps": {
+        "color": {
+          "url": "/museum/textures/floor-color.3b88b65a.ktx2",
+          "width": 2048,
+          "height": 2048,
+          "levels": 12,
+          "colorSpace": "srgb",
+          "bytes": 4360493,
+          "sha256": "3b88b65ac6406e515a9320d0ad5e0cf80ccbb3592ce2ae0bce75a53b8b17fbc4",
+          "sourceSha256": "c3478760e42e1cc96ada37fb3e05f0922f5346ee4b50ed49de300a815919a219"
+        },
+        "normal": {
+          "url": "/museum/textures/floor-normal.c36cb3b9.ktx2",
+          "width": 2048,
+          "height": 2048,
+          "levels": 12,
+          "colorSpace": "linear",
+          "bytes": 3053722,
+          "sha256": "c36cb3b925a67c8595cff8872460e4682aae770cc7756eb22d727aaa3dc61d2a",
+          "sourceSha256": "c1b47334c3e633f27e4d79a2e619d4dbad3f95e784ec0012d54a6e2d854e0363"
+        },
+        "orm": {
+          "url": "/museum/textures/floor-orm.28c68264.ktx2",
+          "width": 2048,
+          "height": 2048,
+          "levels": 12,
+          "colorSpace": "linear",
+          "bytes": 3614443,
+          "sha256": "28c682640b7f9ab877c547a7b76541c24617a7d9ad7dfd61d8104c305d1386b3",
+          "sourceSha256": "69a6c2961dca64ac23c7ad6ff0f92c4fa07d6d1c31e575e72d6d5d501a973991"
+        }
+      }
+    }
+  }
+}

@@ -14,12 +14,16 @@
  * manifest (needs a published snapshot and a frozen rule set) is a separate, curated step; a
  * manifest compiled from a review snapshot can never be published.
  *
- * Exhibit assets come from `media_candidates` (licence not yet reviewed) depicting concepts of
- * the snapshot; they are frozen into the manifest, so the manifest stays reproducible.
+ * Exhibit assets are exactly the assets the snapshot links to its concepts (`assetIds`), so the
+ * museum shows the same images the 2D condition can show (parity check a.media). Unreviewed
+ * media candidates never reach a manifest. They are frozen into the manifest, so the manifest
+ * stays reproducible.
  *
  * Not `server-only`: used by scripts/spatial/publish-manifest.ts and integration tests.
  */
 import type { Pool, PoolClient } from "pg";
+
+import type { KnowledgeBundle } from "@/features/knowledge/contracts";
 
 import {
   COMPILER_VERSION,
@@ -70,15 +74,25 @@ export async function ensureDefaultRuleSet(q: Q): Promise<RuleSetRef> {
   return { id: row.id, name: DEFAULT_RULE_SET.name, version: DEFAULT_RULE_SET.version, config: row.config, configSha256: row.config_sha256 };
 }
 
-async function assetsForSnapshot(q: Q, conceptIds: readonly string[]): Promise<ExhibitAsset[]> {
-  const r = await q.query<{ id: string; concept_id: string; url: string; title: string; licence: string | null; width: number | null; height: number | null }>(
-    `SELECT id, depicts_concept_id AS concept_id, url, title, licence, width, height
-       FROM media_candidates
-      WHERE depicts_concept_id = ANY($1::uuid[]) AND status IN ('candidate', 'approved', 'imported')
-      ORDER BY id`,
-    [conceptIds],
+/**
+ * The exhibit assets of a snapshot: one per (concept, asset id) the bundle links, read from the
+ * asset library. `uri` is the opaque `asset:<id>`; the renderer resolves it through the media
+ * service. Shared by every compile path (plain, CMS compile-with-overrides).
+ */
+export async function exhibitAssetsForBundle(q: Q, bundle: Pick<KnowledgeBundle, "concepts">): Promise<ExhibitAsset[]> {
+  const links = bundle.concepts.flatMap((c) => c.assetIds.map((assetId) => ({ conceptId: c.id, assetId })));
+  if (links.length === 0) return [];
+  const r = await q.query<{ id: string; kind: string; title: string; licence: string | null; width: number | null; height: number | null }>(
+    "SELECT id, kind::text, title, licence, width, height FROM assets WHERE id = ANY($1::uuid[]) AND NOT is_demo",
+    [[...new Set(links.map((l) => l.assetId))]],
   );
-  return r.rows.map((m) => ({ id: m.id, conceptId: m.concept_id, kind: "image", uri: m.url, title: m.title, licence: m.licence, width: m.width, height: m.height }));
+  const byId = new Map(r.rows.map((a) => [a.id, a]));
+  return links
+    .filter((l) => byId.has(l.assetId))
+    .map((l) => {
+      const a = byId.get(l.assetId)!;
+      return { id: a.id, conceptId: l.conceptId, kind: a.kind, uri: `asset:${a.id}`, title: a.title, licence: a.licence, width: a.width, height: a.height };
+    });
 }
 
 export interface CompileAndStoreInput {
@@ -128,7 +142,7 @@ export async function compileAndStoreManifest(client: PoolClient, input: Compile
     const bundle = await loadSnapshotPayload(client, input.snapshotId);
     const missing = traditions.filter((t) => !bundle.traditions.some((x) => x.slug === t));
     if (missing.length > 0) throw new Error(`Snapshot ${bundle.versionLabel} has no tradition(s) ${missing.join(", ")}`);
-    const assets = await assetsForSnapshot(client, bundle.concepts.map((c) => c.id));
+    const assets = await exhibitAssetsForBundle(client, bundle);
     const result = compileSpatialManifest({
       graph: bundle,
       snapshotVersion: bundle.versionLabel,
@@ -176,7 +190,8 @@ export async function compileAndStoreManifest(client: PoolClient, input: Compile
   }
 }
 
-async function storeElementIndex(q: Q, manifestId: string, manifest: CompiledManifest): Promise<{ elements: number; encodings: number }> {
+/** Element index rows for a stored manifest (spatial_elements, spatial_element_encodings). */
+export async function storeElementIndex(q: Q, manifestId: string, manifest: CompiledManifest): Promise<{ elements: number; encodings: number }> {
   const els = manifest.elements.map((e) => ({
     element_id: e.id,
     kind: e.kind,

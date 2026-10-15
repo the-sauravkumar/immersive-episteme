@@ -1,0 +1,12 @@
+scipy 1.18.1; alpha=0.05 two-sided; target power=0.8
+d=0.40: t-test n/group=100; rho=0.5: ANCOVA n/group=75 (Borm approx (1-rho^2)*n_t=75); rho=0.6: ANCOVA n/group=64 (Borm approx (1-rho^2)*n_t=64); rho=0.7: ANCOVA n/group=52 (Borm approx (1-rho^2)*n_t=51)
+d=0.45: t-test n/group=79; rho=0.5: ANCOVA n/group=60 (Borm approx (1-rho^2)*n_t=60); rho=0.6: ANCOVA n/group=51 (Borm approx (1-rho^2)*n_t=51); rho=0.7: ANCOVA n/group=41 (Borm approx (1-rho^2)*n_t=41)
+d=0.50: t-test n/group=64; rho=0.5: ANCOVA n/group=49 (Borm approx (1-rho^2)*n_t=48); rho=0.6: ANCOVA n/group=42 (Borm approx (1-rho^2)*n_t=41); rho=0.7: ANCOVA n/group=34 (Borm approx (1-rho^2)*n_t=33)
+d=0.60: t-test n/group=45; rho=0.5: ANCOVA n/group=34 (Borm approx (1-rho^2)*n_t=34); rho=0.6: ANCOVA n/group=29 (Borm approx (1-rho^2)*n_t=29); rho=0.7: ANCOVA n/group=24 (Borm approx (1-rho^2)*n_t=23)
+d=0.80: t-test n/group=26; rho=0.5: ANCOVA n/group=20 (Borm approx (1-rho^2)*n_t=20); rho=0.6: ANCOVA n/group=17 (Borm approx (1-rho^2)*n_t=17); rho=0.7: ANCOVA n/group=14 (Borm approx (1-rho^2)*n_t=14)
+Power at n=20/group:
+  d=0.45: t-test 0.284; ANCOVA rho=0.5 0.360; ANCOVA rho=0.6 0.410; ANCOVA rho=0.7 0.492
+  d=0.60: t-test 0.456; ANCOVA rho=0.5 0.569; ANCOVA rho=0.6 0.637; ANCOVA rho=0.7 0.735
+  d=0.80: t-test 0.693; ANCOVA rho=0.5 0.812; ANCOVA rho=0.6 0.868; ANCOVA rho=0.7 0.932
+Minimum detectable d (80% power) at n=20/group: rho=0.5: 0.79; rho=0.6: 0.73; rho=0.7: 0.65
+Within-participant N=40 (no carry-over assumed): d=0.45, r=0.3: 0.650; d=0.45, r=0.5: 0.793; d=0.6, r=0.3: 0.878; d=0.6, r=0.5: 0.959

@@ -1,6 +1,15 @@
 "use client"
 
+/*
+ * Dialog (DESIGN.md 9.18): --surface, 1 px --rule-strong border, 2 px radius, the console
+ * shadow; a 44 px close button with a visible "Close" label. Console motion is 150 ms opacity
+ * plus a slight scale; on study routes the global zero-motion rule removes it, and the
+ * Display Settings reduce-motion class clamps it everywhere. The backdrop is a flat tint, never
+ * blur or glass.
+ */
+
 import * as React from "react"
+import { titleCaseNode } from "@/lib/text/title-case"
 import { cn } from "@/lib/utils"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
@@ -39,7 +48,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "fixed inset-0 isolate z-50 bg-black/10 duration-100 supports-backdrop-filter:backdrop-blur-xs data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 isolate z-50 bg-[rgb(33_29_25/0.45)] duration-(--dur-2) data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
       {...props}
@@ -61,7 +70,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl bg-popover p-4 text-sm text-popover-foreground ring-1 ring-foreground/10 duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-card border border-rule-strong bg-surface p-6 font-sans text-[0.9375rem] leading-6 text-ink shadow-console duration-(--dur-2) max-xs:p-4 sm:max-w-lg data-open:animate-in data-open:fade-in-0 data-open:zoom-in-[0.98] data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-[0.98] has-data-[slot=dialog-close-button]:*:data-[slot=dialog-header]:pr-24",
           className
         )}
         {...props}
@@ -71,12 +80,11 @@ function DialogContent({
           <DialogPrimitive.Close data-slot="dialog-close" asChild>
             <Button
               variant="ghost"
-              className="absolute top-2 right-2"
-              size="icon-sm"
+              data-slot="dialog-close-button"
+              className="absolute top-3 right-3 px-3"
             >
-              <XIcon
-              />
-              <span className="sr-only">Close</span>
+              <XIcon aria-hidden="true" />
+              Close
             </Button>
           </DialogPrimitive.Close>
         )}
@@ -89,7 +97,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn("flex flex-col gap-2", className)}
+      className={cn("flex flex-col gap-2 pt-1.5", className)}
       {...props}
     />
   )
@@ -107,7 +115,7 @@ function DialogFooter({
     <div
       data-slot="dialog-footer"
       className={cn(
-        "-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end",
+        "flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-end",
         className
       )}
       {...props}
@@ -124,17 +132,20 @@ function DialogFooter({
 
 function DialogTitle({
   className,
+  children,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Title>) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn(
-        "text-base leading-none font-medium",
+        "text-h3 text-ink",
         className
       )}
       {...props}
-    />
+    >
+      {titleCaseNode(children)}
+    </DialogPrimitive.Title>
   )
 }
 
@@ -146,7 +157,7 @@ function DialogDescription({
     <DialogPrimitive.Description
       data-slot="dialog-description"
       className={cn(
-        "text-sm text-muted-foreground *:[a]:underline *:[a]:underline-offset-3 *:[a]:hover:text-foreground",
+        "text-[0.9375rem] leading-6 text-ink-2 *:[a]:text-indigo *:[a]:underline *:[a]:underline-offset-[3px] *:[a]:hover:decoration-2",
         className
       )}
       {...props}

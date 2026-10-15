@@ -1,26 +1,36 @@
 "use client";
 
 /**
- * CitationDisclosure: the ONE citation affordance for both learning conditions (2D pages and the
- * 3D information panel render the same component, so citation availability is equivalent).
+ * CitationNote and CitationRecord (DESIGN.md 9.8): the ONE citation affordance of both learning
+ * conditions. The 2D concept page and the 3D information panel render this same component under
+ * every claim, so citation availability, wording, typography and the path to the record are
+ * identical (DR-015 rule 3; parity checks P1, P5, P11, P13).
  *
- * - Collapsed by default; a native <button> with aria-expanded/aria-controls (Enter and Space
- *   toggle it; Escape inside the details closes them and returns focus to the button).
- * - Non-modal and inline: it never covers, blocks or pauses the learning content, and opening it
- *   does not end the concept's exposure interval (the citation is part of the content).
- * - Expanded, it shows the full source details from the snapshot: title, author(s), publisher,
- *   year, locator (page/section), the verbatim quote when the claim has one, kind, reliability,
- *   and the link. Labels come from `Citation.label`, never the uuid.
- * - Telemetry: `citation_opened` / `citation_closed` (conceptId, sourceId, claimIndex, openMs)
- *   when a <TelemetryProvider> is present; works without one (CMS preview, tests).
+ * - Collapsed (one per citation, directly under its claim): a full-width native <button>, at least
+ *   44 px tall, left-aligned and borderless: a chevron, the word "Source" (eyebrow) and the short
+ *   label derived in the view layer (`shortCitationLabel`: first author or publisher, year,
+ *   locator). The label wraps; it is never truncated mid-word.
+ * - Expanded, inline under the note at the claim measure: the verbatim quote at claim size in
+ *   Source Serif 4 with a 2 px indigo rule (each supporting passage its own block), a two-column
+ *   record (Title, Author, Publisher, Year, Locator, Kind of Source, Reliability, Accessed), and
+ *   "Open the source" as a 44 px link. Instant: no transition (study zero-motion rule).
+ * - Escape inside the record closes it and returns focus to the note. Non-modal: it never covers
+ *   or pauses the learning content, and opening it does not end the concept's exposure interval.
+ * - Telemetry `citation_opened` / `citation_closed` (conceptId, sourceId, claimIndex, openMs) when
+ *   a <TelemetryProvider> is present; works without one (CMS proof, tests).
+ * - Every claim shows its own note, also when several claims cite the same source.
  */
+import { ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import { useCallback, useId, useRef, useState, type KeyboardEvent } from "react";
 
-import type { Citation } from "@/features/knowledge/read/view";
+import { shortCitationLabel, type Citation } from "@/features/knowledge/read/view";
+import { humanise } from "@/features/learning/labels";
+import { CITATION_TEXT } from "@/features/learning/strings";
 import { useOptionalTelemetry } from "@/features/telemetry/client/provider";
+import { scriptRuns } from "@/lib/text/script-runs";
 import { cn } from "@/lib/utils";
 
-export interface CitationDisclosureProps {
+export interface CitationNoteProps {
   citation: Citation;
   /** Concept whose claim cites this source (telemetry attribution). */
   conceptId: string;
@@ -29,14 +39,17 @@ export interface CitationDisclosureProps {
   className?: string;
 }
 
-const humanise = (code: string) => code.charAt(0).toUpperCase() + code.slice(1).replace(/_/g, " ");
+/** Deprecated name kept for existing call sites; identical to CitationNoteProps. */
+export type CitationDisclosureProps = CitationNoteProps;
 
-export function CitationDisclosure({ citation, conceptId, claimIndex, className }: CitationDisclosureProps) {
+/** The collapsed note under a claim, which expands its CitationRecord inline. */
+export function CitationNote({ citation, conceptId, claimIndex, className }: CitationNoteProps) {
   const [open, setOpen] = useState(false);
-  const panelId = useId();
+  const recordId = useId();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const openedAt = useRef<number | null>(null);
   const telemetry = useOptionalTelemetry();
+  const label = shortCitationLabel(citation);
 
   const toggle = useCallback(
     (next: boolean) => {
@@ -55,7 +68,7 @@ export function CitationDisclosure({ citation, conceptId, claimIndex, className 
     [telemetry, citation.id, claimIndex, conceptId],
   );
 
-  const onPanelKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+  const onRecordKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Escape") {
       e.stopPropagation();
       toggle(false);
@@ -63,54 +76,111 @@ export function CitationDisclosure({ citation, conceptId, claimIndex, className 
     }
   };
 
-  const rows: [string, string | null][] = [
-    ["Title", citation.title],
-    ["Author", citation.author],
-    ["Publisher", citation.publisher],
-    ["Year", citation.year != null ? String(citation.year) : null],
-    ["Locator", citation.locator],
-    ["Kind of source", humanise(citation.kind)],
-    ["Reliability", citation.reliability ? humanise(citation.reliability) : null],
-    ["Accessed", citation.accessedOn],
-  ];
-
+  const Chevron = open ? ChevronDown : ChevronRight;
   return (
-    <div className={cn("text-sm", className)} data-citation-source={citation.id}>
+    <div className={cn("w-full", className)} data-slot="citation-note" data-citation-source={citation.id}>
       <button
         ref={buttonRef}
         type="button"
         aria-expanded={open}
-        aria-controls={panelId}
+        aria-controls={recordId}
+        aria-label={`${CITATION_TEXT.source}: ${label}`}
         onClick={() => toggle(!open)}
-        className="inline-flex items-center gap-1 rounded-sm text-muted-foreground underline decoration-dotted underline-offset-4 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="group flex min-h-11 w-full items-start gap-2 pt-1 pb-2 text-left text-ink-3 hover:text-ink"
       >
-        <span aria-hidden="true">{open ? "▾" : "▸"}</span>
-        <span>Source: {citation.label}</span>
+        <Chevron aria-hidden="true" strokeWidth={1.75} className="mt-0.5 size-4 shrink-0" />
+        <span className="min-w-0">
+          <span className="text-eyebrow mr-2">{CITATION_TEXT.source}</span>
+          <span className="text-source underline decoration-1 underline-offset-[3px] group-hover:decoration-2">{label}</span>
+        </span>
       </button>
-      <div id={panelId} role="region" aria-label={`Source details: ${citation.label}`} hidden={!open} onKeyDown={onPanelKeyDown} className="mt-2 rounded-md border bg-muted/40 p-3">
-        {open ? (
-          <>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-              {rows
-                .filter((r): r is [string, string] => !!r[1])
-                .map(([k, v]) => (
-                  <div key={k} className="contents">
-                    <dt className="text-muted-foreground">{k}</dt>
-                    <dd>{v}</dd>
-                  </div>
-                ))}
-            </dl>
-            {citation.quote ? <blockquote className="mt-2 border-l-2 pl-3 italic">“{citation.quote}”</blockquote> : null}
-            {citation.url ? (
-              <p className="mt-2">
-                <a href={citation.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
-                  Open the source<span className="sr-only"> (opens in a new tab)</span>
-                </a>
-              </p>
-            ) : null}
-          </>
-        ) : null}
+      <div id={recordId} role="region" aria-label={`${CITATION_TEXT.detailsLabel}: ${label}`} hidden={!open} onKeyDown={onRecordKeyDown} data-slot="citation-record">
+        {open ? <CitationRecord citation={citation} /> : null}
       </div>
     </div>
   );
 }
+
+/** The expanded record: verbatim evidence at claim size, then the source record and its link. */
+export function CitationRecord({ citation }: { citation: Citation }) {
+  const rows: [string, string | null][] = [
+    [CITATION_TEXT.rows.title, citation.title],
+    [CITATION_TEXT.rows.author, citation.author],
+    [CITATION_TEXT.rows.publisher, citation.publisher],
+    [CITATION_TEXT.rows.year, citation.year != null && citation.year > 0 ? String(citation.year) : null],
+    [CITATION_TEXT.rows.locator, citation.locator],
+    [CITATION_TEXT.rows.kind, humanise(citation.kind)],
+    [CITATION_TEXT.rows.reliability, citation.reliability ? humanise(citation.reliability) : null],
+    [CITATION_TEXT.rows.accessed, citation.accessedOn],
+  ];
+  return (
+    <div className="pb-4 pl-6">
+      {citation.passages.length > 0 ? (
+        <ul className="flex flex-col gap-4" aria-label={CITATION_TEXT.passagesLabel}>
+          {citation.passages.map((p, i) => (
+            <li key={i}>
+              <Quote text={p.quote} />
+              <p className="text-credit mt-1 pl-[18px]">{p.locator}</p>
+              {p.note ? (
+                <p className="text-credit pl-[18px]">
+                  {CITATION_TEXT.note} {p.note}
+                </p>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : citation.quote ? (
+        <Quote text={citation.quote} />
+      ) : null}
+      <dl className="mt-4 grid grid-cols-1 gap-x-4 xs:grid-cols-[9rem_minmax(0,1fr)]">
+        {rows
+          .filter((r): r is [string, string] => !!r[1])
+          .map(([k, v]) => (
+            <div key={k} className="contents">
+              <dt className="text-dl-label pt-1 xs:pt-0.5">{k}</dt>
+              <dd className="text-dl-value mb-2 break-words xs:mb-1">{v}</dd>
+            </div>
+          ))}
+      </dl>
+      {citation.url ? (
+        <a
+          href={citation.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-ui mt-2 inline-flex min-h-11 items-center gap-2 text-indigo underline decoration-1 underline-offset-[3px] hover:text-indigo-hover hover:decoration-2"
+        >
+          <ExternalLink aria-hidden="true" strokeWidth={1.75} className="size-5 shrink-0" />
+          {CITATION_TEXT.open}
+          <span className="sr-only"> {CITATION_TEXT.newTab}</span>
+        </a>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * The verbatim quote: claim size, Source Serif 4 roman, typographic quotes, 2 px indigo rule. An
+ * Arabic-script run (a Sindhi or Persian spelling quoted by the source) is set right-to-left in its
+ * own `<span lang dir="rtl">` with the system Arabic stack (DESIGN.md 5.1); the text is unchanged.
+ */
+function Quote({ text }: { text: string }) {
+  const runs = scriptRuns(text);
+  return (
+    <blockquote className="text-quote border-l-2 border-indigo pl-4 text-ink">
+      {"“"}
+      {runs.map((r, i) =>
+        r.rtl ? (
+          <span key={i} lang={r.lang} dir="rtl">
+            {r.text}
+          </span>
+        ) : (
+          r.text
+        ),
+      )}
+      {"”"}
+    </blockquote>
+  );
+}
+
+/** Deprecated alias of CitationNote (same component, same props). */
+export const CitationDisclosure = CitationNote;

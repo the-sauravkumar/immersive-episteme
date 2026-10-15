@@ -8,8 +8,8 @@ import type { ConditionInterface, ParticipantStatus, SessionStatus } from "@/lib
 export type StudySessionRecord = {
   sessionId: string;
   participantId: string;
-  /** Condition the database currently assigns this session to (authoritative). */
-  condition: LearningCondition;
+  /** Condition the database currently assigns this session to (authoritative); null before allocation. */
+  condition: LearningCondition | null;
   status: SessionStatus;
   participantStatus: ParticipantStatus;
   /** Session withdrawn by or for the participant. Withdrawn sessions never grant access. */
@@ -26,8 +26,12 @@ export const LEARNING_SESSION_STATUSES: readonly SessionStatus[] = ["in_progress
 /** Participant statuses that may still take part. */
 export const ACTIVE_PARTICIPANT_STATUSES: readonly ParticipantStatus[] = ["enrolled", "active"];
 
-export function conditionFromInterface(value: ConditionInterface): LearningCondition {
+export function conditionFromInterface(value: ConditionInterface): LearningCondition;
+export function conditionFromInterface(value: ConditionInterface | null): LearningCondition | null;
+export function conditionFromInterface(value: ConditionInterface | null): LearningCondition | null {
   switch (value) {
+    case null:
+      return null;
     case "conventional_2d":
       return "2d";
     case "immersive_3d":

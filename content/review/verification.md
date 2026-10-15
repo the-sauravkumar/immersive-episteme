@@ -206,6 +206,61 @@ Result: 0 errors, 0 warnings, 131 info (KG801 +16: concepts linked only by BELON
 Result: content 0 errors, 0 warnings. Compiler validation passed with 0 warnings
 (manifest `sha256:381aad76…`). 746/746 tests, typecheck and lint pass.
 
+## V11. Located evidence for every claim
+
+Every claim now carries `evidence[]` (FORMAT.md, "Claim evidence"): for each source it cites,
+the verbatim passage that supports it and where that passage is.
+
+- **Segmentation.** Each archived source was split into located segments: PDFs one per page
+  (`PDF p. N`, via `pdftotext -f N -l N`), web pages one per section under the nearest h1–h4
+  heading (`§ "<heading>"`). The GI journal copy for Ajrakh and the arXiv full text are
+  labelled with the copy they come from (§V3, §V5). One source with no reachable full text
+  is located as its OpenAlex abstract. 105 sources, 1,961 segments, 778 of them PDF pages.
+- **Matching.** For each claim–source pair (1,428 pairs) the passage of one or two sentences
+  (≤ 45 words) that shares the most content words with the claim was selected. When it
+  covered < 75% of the claim's content words, a second passage for the missing words was
+  added. 1,129 pairs reach ≥ 0.6 word coverage, 184 reach 0.4–0.6 and 115 fall below 0.4
+  (paraphrased or multi-passage claims).
+- **Hand review.** The 100 weakest claims were read against their passages. Most passages
+  were correct but paraphrased. For 21 claims the automatic passage was wrong or incomplete;
+  the correct passage was found and pinned (24 pins), e.g. the 2001 earthquake figures for
+  Ajrakhpur ("completely destroyed", "40 kms away", "80 Khatri families") and the dated
+  octroi seals at Sanganer (V.S. 1856/A.D. 1799; A.D. 1853; A.D. 1906).
+- **Unextractable passage (flagged).** The Molecules 27(14) 4547 statement that tannin acts
+  as a mordant is on PDF p. 11 in a column whose extracted text is corrupted (doubled
+  glyphs). The claim cites the readable p. 4 passage ("contains 28% tannins"). A `note`
+  asks the curator to check p. 11 against the PDF.
+- **Verbatim check.** Before writing, every passage was re-found in its stated segment after
+  the citation policy's normalisation only. Result: 1,889/1,889 verbatim (1,888 after the page-chrome clean-up below). 12 failed on the
+  first run because a heading occurred twice on one page. Those 27 locators now say which
+  occurrence (`(occurrence k of n)`).
+- **Contract.** `formatClaimSchema` accepts `evidence[]` and rejects a passage from a source
+  the claim does not cite (unit test). The content test requires a passage for every cited
+  source of every claim. Content validation: 0 errors, 0 warnings. The snapshot does not
+  include evidence yet, so snapshot ids are unchanged.
+
+- **Web-page chrome removed.** Viewing a citation in the app showed a passage that began with
+  an image-gallery caption. A scan found 4 passages containing page chrome (navigation menu,
+  gallery caption, copyright line, "Skip to content").
+  - **Ajrakh 2001 earthquake (S9):** the passage was trimmed to its sentence ("While Ajrakhpur
+    was selected due to its good water source…").
+  - **Dabu GI (S20) and Kalamkari alum shades (S3):** the chrome passages were dropped; the same
+    sources' real passages remain.
+  - **Bagh GI status:** S12 now cites its record text ("Certificate Date : 10/7/2008 …") with a
+    note that it does not state application number 98. That number comes from the registry
+    record (bagh-factcheck.md). S2 adds "Certificate Number 239 Certificate Date 31-03-2016".
+
+  All edited passages were re-found verbatim in their segments. A content test now rejects
+  page-chrome passages.
+
+Scripts: `content/review/tools/evidence/` (run in order: `segment_sources.py`, `match_evidence.py`,
+`apply_overrides.py`, `write_evidence.py`; they expect the source archive from
+`source-manifest.tsv` and `verify_quotes.py` under a `reqs/` folder of the working directory).
+
+Result: 1,256/1,256 claims have located evidence for every cited source. 977 passages cite a
+PDF page, 906 a web-page section and 5 an abstract record (after the page-chrome clean-up).
+313 passages run 41–45 words (policy: "normally ≤ 40"). Their median length is 29 words.
+
 ## Not yet verified first-hand
 
 - Media-candidate licences.

@@ -71,6 +71,55 @@
       "when": 1791976454125,
       "tag": "0009_learning_clock_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791981901086,
+      "tag": "0010_session_allocation_after_pretest",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791981908757,
+      "tag": "0011_session_allocation_guard",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791985995374,
+      "tag": "0012_claim_source_evidence",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791988167809,
+      "tag": "0013_dashboard_rollups",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791988175646,
+      "tag": "0014_dashboard_notify",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1791990720795,
+      "tag": "0015_curator_notes_keep_review",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1792021157715,
+      "tag": "0016_media_figure_governance",
+      "breakpoints": true
     }
   ]
 }

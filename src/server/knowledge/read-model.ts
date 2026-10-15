@@ -22,7 +22,11 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import {
   createKnowledgeView,
+  diagramFiguresByConcept,
+  resolveConceptFigures,
   type ComparisonView,
+  type DiagramScope,
+  type KnowledgeFigureData,
   type ConceptDetail,
   type ConceptRef,
   type KnowledgeView,
@@ -32,6 +36,7 @@ import {
   type TraditionDetail,
   type TraditionSummary,
 } from "@/features/knowledge/read/view";
+import { STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
 import { getPool } from "@/server/db/client";
 
 import { loadSnapshotPayload, searchSnapshotConcepts, MAX_QUERY_LENGTH } from "./snapshot-store";
@@ -155,4 +160,52 @@ async function searchCached(snapshotId: string, query: string, limit: number, tr
     query,
     hits: rows.filter((r) => refs.has(r.conceptId)).map((r) => ({ concept: refs.get(r.conceptId)!, score: r.score })),
   };
+}
+
+// ---------------------------------------------------------------------------------------
+// Knowledge figures (DESIGN.md 9.9, 12.3; DR-018)
+// ---------------------------------------------------------------------------------------
+
+export interface FigureOptions {
+  /**
+   * Traditions in scope: the learning context's `traditionSlugs` (a study's traditions), or null
+   * for every tradition in the snapshot. Pass the SAME value in both conditions.
+   */
+  traditionSlugs: readonly string[] | null;
+  /** The protocol switch `settings.figures.structureDiagrams` (default on), identical in both conditions. */
+  structureDiagrams: boolean;
+}
+
+function diagramScope(view: KnowledgeView, opts: FigureOptions): DiagramScope {
+  const traditionSlugs = opts.traditionSlugs ? [...opts.traditionSlugs] : view.listTraditions().map((t) => t.slug);
+  const study = traditionSlugs.filter((s) => (STUDY_TRADITION_SLUGS as readonly string[]).includes(s));
+  return { traditionSlugs, balanceSlugs: study.length > 0 ? study : traditionSlugs };
+}
+
+/**
+ * Every concept's figures in scope, by concept id (the 3D payload reads this once; the 2D concept
+ * page reads one entry through `getConceptFigures`). Graph-derived diagrams are balanced across the
+ * study traditions; at most one figure per concept. Photographs join through the same
+ * `resolveConceptFigures` once the learner figure route and licence governance exist (WP6); until
+ * then no photograph is served to learners.
+ */
+export async function getFiguresByConcept(snapshotId: string, opts: FigureOptions): Promise<Record<string, KnowledgeFigureData[]>> {
+  "use cache";
+  tag(snapshotId);
+  const view = await viewFor(snapshotId);
+  const diagrams = diagramFiguresByConcept(view, diagramScope(view, opts));
+  const out: Record<string, KnowledgeFigureData[]> = {};
+  for (const [conceptId, list] of diagrams) {
+    const figures = resolveConceptFigures({ diagrams: list, photos: [], structureDiagrams: opts.structureDiagrams });
+    if (figures.length > 0) out[conceptId] = figures;
+  }
+  return out;
+}
+
+/** The figures of one concept (by key, slug or id), resolved exactly as `getFiguresByConcept`. */
+export async function getConceptFigures(snapshotId: string, keyOrSlugOrId: string, opts: FigureOptions): Promise<KnowledgeFigureData[]> {
+  const view = await viewFor(snapshotId);
+  const concept = view.getConcept(keyOrSlugOrId);
+  if (!concept) return [];
+  return (await getFiguresByConcept(snapshotId, opts))[concept.id] ?? [];
 }

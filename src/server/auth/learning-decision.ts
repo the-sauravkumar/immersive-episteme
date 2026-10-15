@@ -115,6 +115,9 @@ export async function resolveLearningAccess(
     }
     if (record.status === "scheduled") return deny("session_not_started");
     if (!LEARNING_SESSION_STATUSES.includes(record.status)) return deny("session_not_active");
+    // Not allocated yet (allocation after the pre-test), or allocated after this cookie was
+    // issued: back to the session, which re-issues the cookie with the condition.
+    if (record.condition === null || claims.condition === null) return deny("condition_mismatch");
     // The database assignment is authoritative; the cookie claim must agree with it.
     if (record.condition !== claims.condition) return deny("invalid_participant_session");
     if (claims.condition !== condition) return deny("condition_mismatch");
@@ -157,8 +160,12 @@ export async function resolveLearningAccess(
 export type ParticipantContext = {
   participantId: string;
   sessionId: string;
-  condition: LearningCondition;
+  /** null before allocation (allocation after the pre-test). */
+  condition: LearningCondition | null;
 };
+
+/** Where a cookie issued before allocation goes once the session has been allocated. */
+export const REISSUE_AFTER_ALLOCATION_PATH = "/study/allocate";
 
 export type ParticipantDecision =
   | { allowed: true; participant: ParticipantContext }
@@ -173,11 +180,12 @@ export async function resolveParticipantSession(
   const verified = await verifyParticipantSession(participantCookie, deps.secret, { now: deps.now });
   if (!verified.ok) return { allowed: false, redirectTo: LEARNING_DENY_REDIRECT.invalid_participant_session };
   const record = await deps.lookup.findSession(verified.claims.sessionId);
-  if (
-    !record ||
-    record.participantId !== verified.claims.participantId ||
-    record.condition !== verified.claims.condition
-  ) {
+  if (!record || record.participantId !== verified.claims.participantId) {
+    return { allowed: false, redirectTo: LEARNING_DENY_REDIRECT.invalid_participant_session };
+  }
+  // A cookie issued before allocation for a session that has since been allocated: re-issue it.
+  const allocatedSince = verified.claims.condition === null && record.condition !== null;
+  if (record.condition !== verified.claims.condition && !allocatedSince) {
     return { allowed: false, redirectTo: LEARNING_DENY_REDIRECT.invalid_participant_session };
   }
   if (
@@ -188,6 +196,7 @@ export async function resolveParticipantSession(
   ) {
     return { allowed: false, redirectTo: LEARNING_DENY_REDIRECT.session_not_active };
   }
+  if (allocatedSince) return { allowed: false, redirectTo: REISSUE_AFTER_ALLOCATION_PATH };
   return {
     allowed: true,
     participant: {

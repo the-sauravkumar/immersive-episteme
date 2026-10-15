@@ -67,7 +67,7 @@ describe("Content-Security-Policy", () => {
     ]) {
       expect(csp).toContain(d);
     }
-    expect(csp).not.toContain("unsafe-eval");
+    expect(csp).not.toContain("'unsafe-eval'");
     expect(contentSecurityPolicy({ frameAncestors: "self", dev: true })).toContain("'unsafe-eval'");
   });
 
@@ -76,5 +76,22 @@ describe("Content-Security-Policy", () => {
     expect(res.status).toBe(307);
     expect(res.headers.get("content-security-policy")).toContain("object-src 'none'");
     expect(res.headers.get("content-security-policy")).toContain("frame-ancestors 'none'");
+  });
+});
+
+describe("media upload origin in connect-src", () => {
+  it("allows only the configured S3 upload origin", async () => {
+    const { mediaUploadOrigin } = await import("@/lib/security/csp");
+    expect(mediaUploadOrigin({})).toBeNull();
+    expect(mediaUploadOrigin({ MEDIA_S3_BUCKET: "media", MEDIA_S3_REGION: "ap-south-1" })).toBe("https://media.s3.ap-south-1.amazonaws.com");
+    expect(mediaUploadOrigin({ MEDIA_S3_BUCKET: "media", MEDIA_S3_ENDPOINT: "http://localhost:9000", MEDIA_S3_FORCE_PATH_STYLE: "true" })).toBe("http://localhost:9000");
+    expect(mediaUploadOrigin({ MEDIA_S3_BUCKET: "media", MEDIA_S3_ENDPOINT: "https://acc.r2.cloudflarestorage.com" })).toBe("https://media.acc.r2.cloudflarestorage.com");
+    expect(contentSecurityPolicy({ frameAncestors: "none", connectSrc: ["https://media.s3.ap-south-1.amazonaws.com"] })).toContain(
+      "connect-src 'self' https://media.s3.ap-south-1.amazonaws.com;",
+    );
+    expect(contentSecurityPolicy({ frameAncestors: "none", connectSrc: [] })).toContain("connect-src 'self';");
+    // WebAssembly (KTX2 transcoder) is allowed; JS eval is not, outside dev.
+    expect(contentSecurityPolicy({ frameAncestors: "none" })).toMatch(/script-src [^;]*'wasm-unsafe-eval'/);
+    expect(contentSecurityPolicy({ frameAncestors: "none" })).not.toMatch(/'unsafe-eval'/);
   });
 });

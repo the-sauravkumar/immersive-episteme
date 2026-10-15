@@ -34,6 +34,8 @@ export const itemConfigSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("likert"),
     points: z.number().int().min(2).max(11),
+    /** First scale value: 1 (default) or 0 (e.g. Leppink et al. 2013: 0 to 10; SSQ: 0 to 3). Values run min..min+points-1. */
+    min: z.number().int().min(0).max(1).default(1),
     anchors: z.record(z.string(), z.string()).default({}),
   }),
   z.object({ kind: z.literal("numeric"), min: z.number().optional(), max: z.number().optional(), step: z.number().positive().optional() }),

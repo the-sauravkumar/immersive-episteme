@@ -39,6 +39,8 @@ interface LearningContext {
   unverifiedContent: boolean;    // snapshot includes content no curator verified: SHOW A NOTICE
   traditionSlugs: string[];      // study config (demo/preview: the demo study's)
   features: { search: boolean }; // study config `searchEnabled` (demo/preview: true)
+  settings: LearningSettings;    // minimap, webglFailurePolicy, guidance {policy, cueEnabled, stallSeconds, hintText}, learningPrompts
+  scope: { minCompareTraditions: number }; // comparison-zone minTraditions of the pinned manifest's rule set
   telemetrySessionId: string;    // sessionId in study mode; stable uuid per demo cookie/staff user otherwise
   appBuild: string;              // APP_BUILD_VERSION
   learningTime: LearningTimeBudget; // §4e: same budget rule in both conditions, server timestamps
@@ -53,6 +55,13 @@ interface LearningContext {
   `nonExperimental: true`, `unverifiedContent: true`.
 - Throws `LearningContextUnavailableError` (`reason`: `no_review_snapshot` | `session_not_found` |
   `study_has_no_snapshot`) when there is nothing to show. Render a friendly message.
+- Protocol settings are read ONLY here (`ctx.settings`, type in `src/features/learning/settings.ts`);
+  no page reads `studies.config` itself. `ctx.scope.minCompareTraditions` comes from the rule set
+  of the pinned manifest through the compiler's `comparisonMinTraditions` (default rule set
+  without a manifest), so the 2D scope and the 3D museum use the same comparison rule.
+- Familiarisation practice (D5): `getPracticeContext(condition)` (same guard and settings, never
+  touches the learning clock, `telemetrySessionId` = `practiceTelemetrySessionId(sessionId)` in
+  study mode) and `startPractice(condition)` in `src/server/learning/practice.ts`.
 - It reads cookies and the DB: call it **inside `<Suspense>`** (cacheComponents is on) and pass
   the ids down as arguments. Pure core for tests: `resolveLearningContext(access, { data, appBuild })`
   and `pgLearningContextData(pool)` in `src/server/learning/context-data.ts`.
@@ -159,6 +168,8 @@ Route `src/app/api/telemetry/batch/route.ts`; logic `src/server/telemetry/ingest
   database; the client never sends them). A present-but-invalid participant cookie is refused, never
   downgraded. Staff → preview; demo cookie → demo. Demo/preview batches are validated and
   acknowledged with `persisted: false, nonExperimental: true`; nothing is stored (no study session).
+  A participant's practice batch (sessionId = `practiceTelemetrySessionId(studySessionId)`) is
+  acknowledged the same way with `practice: true`: practice never reaches the research tables.
 - Idempotency: `telemetry_batches.idempotency_key` (replay → stored outcome, `replayed: true`) and
   `telemetry_events.event_id` (already stored → `duplicates`).
 - Quarantine (`telemetry_quarantine.reason`): `schema: …`, `session_mismatch: …`,
@@ -210,8 +221,22 @@ t.stats;                                     // { enqueued, acked, pending, drop
   `b:<sessionId>:<firstSeq>-<lastSeq>`; 413 halves the batch; other refusals move the events to a
   persisted dead-letter list counted in `stats.dropped` with the reason; `pagehide` /
   `visibilitychange: hidden` flush with `sendBeacon` (or `fetch` keepalive) while keeping events in
-  the outbox until acknowledged. Two tabs on one session share the outbox but number seqs
-  independently: do not open a session in two tabs.
+  the outbox until acknowledged. Within one page, consecutive trackers of a session (client-side
+  navigation from a learning page to a study page unmounts one `<TelemetryProvider>` and mounts
+  another) hand over the seq counter through a page-wide `SeqHandoff`: the new tracker waits for
+  the previous one's outbox writes and continues after its highest seq. Without it, the new
+  tracker could read the outbox before the last writes landed and reuse a seq, which the server
+  quarantines as `seq_conflict` (found in the study-engine E2E run; regression test in
+  `tests/unit/telemetry-client/tracker.test.ts`). Two tabs on one session share the outbox but
+  number seqs independently: do not open a session in two tabs. Across full page loads, the
+  seq high-water mark is also written synchronously to `localStorage`
+  (`ie-telemetry:v1:<sessionId>:mark`) for every event. Events tracked while a page is being
+  hidden are beaconed, but the page can unload before their asynchronous IndexedDB write
+  commits. The dev database showed this as 5 `seq_conflict` rows after study-page loads, each
+  a `task_started` colliding with the previous page's `timing_paused`. The next page now
+  resumes after the mark. Regression test: "continues after a page unload whose last outbox
+  write never committed". If `localStorage` is unavailable, a conflicting event is
+  quarantined, not lost.
 - Each batch carries `schemaVersion` (`TELEMETRY_SCHEMA_VERSION`), `appBuild`, `contentVersion`
   (must equal the session snapshot label, or the database rejects the events), `clientSentAt`.
 
@@ -238,7 +263,9 @@ useContentExposure(panel?.conceptId ?? null, panel?.layer ?? "overview", { activ
 usePauseWhile(helpOpen);
 ```
 
-- `layer`: `overview | artisan | process | science` (`EXPOSURE_LAYERS`); `surface`:
+- `layer`: `overview | artisan | process | science | comparison | citation` (`EXPOSURE_LAYERS`;
+  both conditions take it from `exposureLayerOf(concept.type)` in `src/features/learning/labels.ts`;
+  `citation` is reserved, no client emits it); `surface`:
   `walk | menu | catalogue | map | search`.
 - One interval at a time (`tracker.timing`, src/features/telemetry/client/timing.ts): opening one
   closes the other at the same `performance.now()` instant; idle = neither. Events:
@@ -295,6 +322,31 @@ provider is present (`useOptionalTelemetry`).
 `derived_metrics` only. `derived_scores` refuses such names (`derived_scores_no_timing_ck`) and
 a test checks that no assessment/outcome table has a timing column. Unterminated intervals are
 excluded and counted, never estimated.
+
+### 4g. Change notifications and dashboard rollups (research dashboard)
+
+- **Notify triggers (migration 0014).** Statement-level `AFTER` triggers with transition tables
+  on `telemetry_events` (insert, delete), `telemetry_batches`, `telemetry_quarantine`,
+  `sequence_gaps`, `study_sessions`, `participants`, `derived_metrics`, `concept_maps` (insert,
+  update), `responses` and `derived_scores` (insert, delete) call `pg_notify('ie_dashboard',
+  <study id>)` once per distinct study per statement (`ie_dashboard_notify`; session-keyed
+  tables resolve the study through `study_sessions`). Notifications only, no writes; delivered
+  at commit, never for a rolled-back transaction, deduplicated within a transaction. Cost on a
+  100-event ingest INSERT: one trigger call (the bench reports its time).
+- **Listener.** One `LISTEN ie_dashboard` connection per server process, outside the request
+  pool (`src/server/research/dashboard-live.ts`), reconnecting with backoff; a reconnect wakes
+  every subscribed study. It feeds the SSE stream `GET /api/research/dashboard/stream` and the
+  request coalescer (`src/server/research/dashboard-cache.ts`).
+- **Rollups (migration 0013).** `session_telemetry_rollups` holds, per session, the dashboard's
+  telemetry figures (`computeSessionTelemetry`, built on `computeTimingMetrics`), with
+  `metrics_version`, `session_status`, `last_seq` and `event_count`. A dashboard load reads
+  max(seq) per session (backward probe on the `(session_id, seq)` unique index), count(*) for
+  open sessions only, and recomputes just the sessions whose watermark changed
+  (`src/server/research/dashboard-rollups.ts`). The table is a derived cache: it can be dropped
+  and is rebuilt on the next load; a `metrics_version` change rebuilds every row.
+- **Indexes added (0013).** `telemetry_events_study_server_ts_idx (study_id, server_ts)` (latest
+  event of a study for the change fingerprint) and the partial
+  `telemetry_batches_duplicates_idx (session_id) WHERE duplicate_count > 0`.
 
 ## 5. Content import and review snapshots
 

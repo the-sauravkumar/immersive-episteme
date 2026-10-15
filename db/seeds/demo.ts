@@ -454,7 +454,7 @@ export async function buildBundleFromDb(tx: Tx, versionLabel: string): Promise<K
             id: cl.id,
             text: cl.text,
             quote: cl.quote,
-            sources: claimSrcs.filter((s) => s.claimId === cl.id).map((s) => ({ sourceId: s.sourceId, locator: s.locator })),
+            sources: claimSrcs.filter((s) => s.claimId === cl.id).map((s) => ({ sourceId: s.sourceId, locator: s.locator, evidence: s.evidence.map((e) => ({ locator: e.locator, quote: e.quote, note: e.note ?? null })) })),
           })),
         assetIds: [],
       })),

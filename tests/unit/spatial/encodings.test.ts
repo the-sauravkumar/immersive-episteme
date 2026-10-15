@@ -41,12 +41,18 @@ describe("sequence -> path", () => {
     }
   });
 
-  it("places consecutive stages in consecutive wall slots of one room", () => {
+  it("places consecutive stages one after another round one room, with no exhibit between them", () => {
     const path = byId.get("path:seq:ajrakh.process_stage.saaj")!;
     const stations = (path.stops as string[]).map((id) => byId.get(id)!);
     expect(new Set(stations.map((s) => s.parentId)).size).toBe(1);
-    const orders = stations.map((s) => s.wallOrder as number);
-    orders.slice(1).forEach((o, i) => expect(o).toBe(orders[i]! + 1));
+    // Exhibits are spread evenly over the room's slots (rule layout.even-spacing), so slot numbers
+    // may skip empty slots; what must hold is the order among the room's exhibits.
+    const roomExhibits = manifest.elements
+      .filter((e) => e.parentId === stations[0]!.parentId && typeof e.wallOrder === "number")
+      .sort((a, b) => (a.wallOrder as number) - (b.wallOrder as number))
+      .map((e) => e.id);
+    const ranks = stations.map((s) => roomExhibits.indexOf(s.id));
+    ranks.slice(1).forEach((r, i) => expect(r).toBe(ranks[i]! + 1));
   });
 });
 

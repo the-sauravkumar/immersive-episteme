@@ -103,8 +103,13 @@ const durationMs = z.number().int().nonnegative().max(24 * 60 * 60 * 1000);
 const count = z.number().int().nonnegative().max(100_000);
 const domainEntry = { fromId: shortCode.optional(), via: z.enum(["navigation", "link", "portal", "search", "guidance", "start", "resume"]).optional() };
 
-/** What part of a concept's content is showing during an exposure interval. */
-export const EXPOSURE_LAYERS = ["overview", "artisan", "process", "science"] as const;
+/**
+ * What part of a concept's content is showing during an exposure interval. `comparison`: a
+ * cross-tradition comparison concept (both conditions, by concept type). `citation` is reserved
+ * for a separate citation interval; today an opened citation stays inside the concept's exposure
+ * (citation_opened / citation_closed events, data-and-telemetry-layer §4c), so no client emits it.
+ */
+export const EXPOSURE_LAYERS = ["overview", "artisan", "process", "science", "comparison", "citation"] as const;
 const exposureLayer = z.enum(EXPOSURE_LAYERS);
 export type ExposureLayer = (typeof EXPOSURE_LAYERS)[number];
 /** Where navigation happens (3D: walk; 2D: menu, catalogue, map, search results). */
@@ -309,6 +314,8 @@ export const telemetryIngestResponseSchema = z.object({
   quarantined: z.number().int().nonnegative(),
   persisted: z.boolean(),
   nonExperimental: z.boolean(),
+  /** A participant's familiarisation practice batch (D5): acknowledged, never stored. */
+  practice: z.boolean().optional(),
   gaps: z.array(sequenceGapSchema),
   serverReceivedAt: z.iso.datetime({ offset: true }),
 });

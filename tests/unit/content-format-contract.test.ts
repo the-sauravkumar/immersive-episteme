@@ -66,6 +66,7 @@ describe("interchange format contract (synthetic fixtures)", () => {
       text: "Demo: placeholder claim.",
       source_ids: ["S1"],
       quote: "a short placeholder quote",
+      evidence: [],
     });
     expect(r.data.concepts[0]!.local_terms).toEqual(["demo-term"]);
     expect(r.data.sources[0]!.reliability).toBe("medium");
@@ -106,5 +107,24 @@ describe("interchange format contract (synthetic fixtures)", () => {
     expect(checkCrossFileReferences([a, b])).toEqual([
       "demo-fixture-b: relationship demo-fixture-a.process_stage.step-one -SIMILAR_TO-> demo-fixture-b.process_stage.missing references unknown concept demo-fixture-b.process_stage.missing",
     ]);
+  });
+
+  it("accepts located evidence only from the claim's own sources", () => {
+    const withEvidence = (sid: string) => ({
+      ...fileA,
+      concepts: [
+        {
+          ...stepOne,
+          claims: [{ text: "Demo: placeholder claim.", source_ids: ["S1"], evidence: [{ source_id: sid, locator: "PDF p. 1", quote: "a placeholder passage" }] }],
+        },
+      ],
+      relationships: [],
+    });
+    const ok = contentPackageFileSchema.safeParse(withEvidence("S1"));
+    expect(ok.success).toBe(true);
+    expect(ok.data?.concepts[0]?.claims[0]?.evidence).toEqual([{ source_id: "S1", locator: "PDF p. 1", quote: "a placeholder passage" }]);
+    const bad = contentPackageFileSchema.safeParse(withEvidence("S2"));
+    expect(bad.success).toBe(false);
+    expect(bad.error?.issues.map((i) => i.message)).toContain("Evidence cites S2, which the claim does not cite");
   });
 });

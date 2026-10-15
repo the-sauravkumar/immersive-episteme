@@ -106,4 +106,23 @@ describe.skipIf(files.length === 0)("content/ interchange files", () => {
     const bad = parsed.flatMap((f) => f.relationships.filter((r) => r.ordinal != null && r.type !== "PRECEDES"));
     expect(bad).toEqual([]);
   });
+
+  it("gives every claim located evidence from each source it cites", () => {
+    const parsed = parseAll();
+    const gaps = parsed.flatMap((f) =>
+      f.concepts.flatMap((c) =>
+        c.claims.flatMap((cl, i) => cl.source_ids.filter((s) => !cl.evidence.some((e) => e.source_id === s)).map((s) => `${c.key}#${i} ${s}`)),
+      ),
+    );
+    expect(gaps).toEqual([]);
+  });
+
+  it("never uses web-page chrome (menus, galleries, footers) as an evidence passage", () => {
+    const CHROME = /Skip to content|View fullsize|Copyright ©|Search Menu Toggle|Hide Image|Join Our Mailing List|Cookie (Policy|Settings)/;
+    const hits = parseAll().flatMap((f) =>
+      f.concepts.flatMap((c) => c.claims.flatMap((cl, i) => cl.evidence.filter((e) => CHROME.test(e.quote)).map((e) => `${c.key}#${i} ${e.source_id}`))),
+    );
+    expect(hits).toEqual([]);
+  });
 });
+

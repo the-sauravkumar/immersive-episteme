@@ -1,7 +1,15 @@
 "use client"
 
+/*
+ * Field layout (DESIGN.md 9.5): label above in Inter 14/500 --ink; help text in `text-credit`;
+ * the error message in --danger with an icon and the words (R-A4). Controls carry `aria-invalid`
+ * and `aria-describedby` at the call site. A choice card (FieldLabel wrapping a Field) is a
+ * 44 px-or-taller row; checked = --wash with a 2 px indigo bar.
+ */
+
 import { useMemo } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
+import { CircleAlertIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 import { Label } from "@/components/ui/label"
@@ -30,7 +38,7 @@ function FieldLegend({
       data-slot="field-legend"
       data-variant={variant}
       className={cn(
-        "mb-1.5 font-medium data-[variant=label]:text-sm data-[variant=legend]:text-base",
+        "mb-2 font-sans font-semibold text-ink data-[variant=label]:text-sm data-[variant=label]:leading-5 data-[variant=legend]:text-base data-[variant=legend]:leading-6",
         className
       )}
       {...props}
@@ -52,7 +60,7 @@ function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 const fieldVariants = cva(
-  "group/field flex w-full gap-2 data-[invalid=true]:text-destructive",
+  "group/field flex w-full gap-2",
   {
     variants: {
       orientation: {
@@ -106,7 +114,7 @@ function FieldLabel({
     <Label
       data-slot="field-label"
       className={cn(
-        "group/field-label peer/field-label flex w-fit gap-2 leading-snug group-data-[disabled=true]/field:opacity-50 has-data-checked:border-primary/30 has-data-checked:bg-primary/5 has-[>[data-slot=field]]:rounded-lg has-[>[data-slot=field]]:border has-[>[data-slot=field]]:not-has-[:disabled,[data-disabled]]:hover:bg-muted/50 has-[>[data-slot=field]]:has-[:focus-visible]:border-ring has-[>[data-slot=field]]:has-[:focus-visible]:ring-3 has-[>[data-slot=field]]:has-[:focus-visible]:ring-ring/50 *:data-[slot=field]:p-2.5 dark:has-data-checked:border-primary/20 dark:has-data-checked:bg-primary/10",
+        "group/field-label peer/field-label flex w-fit gap-2 leading-5 group-data-[disabled=true]/field:text-ink-3 has-[>[data-slot=field]]:min-h-11 has-[>[data-slot=field]]:rounded-card has-[>[data-slot=field]]:border has-[>[data-slot=field]]:border-rule-strong has-[>[data-slot=field]]:not-has-[:disabled,[data-disabled]]:hover:bg-sunk has-[>[data-slot=field]]:has-data-checked:border-indigo has-[>[data-slot=field]]:has-data-checked:bg-wash has-[>[data-slot=field]]:has-data-checked:shadow-[inset_2px_0_0_var(--indigo)] *:data-[slot=field]:p-3",
         "has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col",
         className
       )}
@@ -120,7 +128,7 @@ function FieldTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="field-label"
       className={cn(
-        "flex w-fit items-center gap-2 text-sm font-medium group-data-[disabled=true]/field:opacity-50",
+        "flex w-fit items-center gap-2 font-sans text-sm leading-5 font-medium text-ink group-data-[disabled=true]/field:text-ink-3",
         className
       )}
       {...props}
@@ -133,9 +141,9 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="field-description"
       className={cn(
-        "text-left text-sm leading-normal font-normal text-muted-foreground group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5",
+        "text-credit text-left group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5",
         "last:mt-0 nth-last-2:-mt-1",
-        "[&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
+        "[&>a]:text-indigo [&>a]:underline [&>a]:underline-offset-[3px] [&>a:hover]:decoration-2",
         className
       )}
       {...props}
@@ -163,7 +171,7 @@ function FieldSeparator({
       <Separator className="absolute inset-0 top-1/2" />
       {children && (
         <span
-          className="relative mx-auto block w-fit bg-background px-2 text-muted-foreground"
+          className="relative mx-auto block w-fit bg-background px-2 text-ink-3"
           data-slot="field-separator-content"
         >
           {children}
@@ -216,10 +224,14 @@ function FieldError({
     <div
       role="alert"
       data-slot="field-error"
-      className={cn("text-sm font-normal text-destructive", className)}
+      className={cn(
+        "flex items-start gap-2 font-sans text-sm leading-5 font-medium text-danger",
+        className
+      )}
       {...props}
     >
-      {content}
+      <CircleAlertIcon aria-hidden="true" className="mt-0.5 size-4 shrink-0 stroke-2" />
+      <div className="min-w-0">{content}</div>
     </div>
   )
 }

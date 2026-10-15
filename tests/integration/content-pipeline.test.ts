@@ -138,6 +138,19 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
       if (fromFiles.ok) expect(snap.contentSha256).toBe(fromFiles.snapshot.contentSha256);
     });
 
+    it("carries every claim's located evidence through the database", async () => {
+      // Hash equality above would also hold if evidence were lost on both sides: check it directly.
+      const r = await t.pool.query<{ total: number; with_evidence: number; passages: number }>(
+        `SELECT count(*)::int AS total,
+                count(*) FILTER (WHERE jsonb_array_length(evidence) > 0)::int AS with_evidence,
+                coalesce(sum(jsonb_array_length(evidence)), 0)::int AS passages
+           FROM concept_claim_sources WHERE NOT is_demo`,
+      );
+      const fileSources = loaded.model.concepts.reduce((s, c) => s + c.claims.reduce((n, cl) => n + new Set(cl.sourceRefs).size, 0), 0);
+      const filePassages = loaded.model.concepts.reduce((s, c) => s + c.claims.reduce((n, cl) => n + cl.evidence.length, 0), 0);
+      expect(r.rows[0]).toEqual({ total: fileSources, with_evidence: fileSources, passages: filePassages });
+    });
+
     it("can never be published, relabelled or used by a non-demo study", async () => {
       const curator = await createUser(t.pool);
       await expect(
@@ -200,6 +213,13 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
         const rec = await loadManifest(t.pool, m.id);
         expect(rec?.manifest.snapshotVersion).toBe(snap.versionLabel);
         expect(rec?.validation.compilerManifestHash).toBe(m.compilerManifestHash);
+        // Images come only from the snapshot's asset links (what 2D can show), never from
+        // unreviewed media candidates, although those are in the database (parity check a.media).
+        const candidates = await t.pool.query<{ n: number }>("SELECT count(*)::int AS n FROM media_candidates WHERE NOT is_demo");
+        expect(candidates.rows[0]!.n).toBeGreaterThan(0);
+        const linked = new Set((await loadSnapshotPayload(t.pool, snap.id)).concepts.flatMap((x) => x.assetIds));
+        const shown = rec!.manifest.elements.flatMap((e) => ((e.assetRefs as { assetId: string; missing?: true }[] | undefined) ?? []).filter((r) => !r.missing).map((r) => r.assetId));
+        expect(shown.filter((id) => !linked.has(id))).toEqual([]);
         // A non-demo study can never pin it (the manifest must come from the study snapshot, which cannot be a review snapshot).
         await expect(createStudy(t.pool, { slug: "real-manifest", manifestId: m.id })).rejects.toThrow(/snapshot/);
         await expect(createStudy(t.pool, { slug: "real-manifest-2", snapshotId: snap.id, manifestId: m.id })).rejects.toThrow(/review snapshot/);

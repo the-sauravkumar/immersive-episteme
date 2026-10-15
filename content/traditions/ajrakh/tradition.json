@@ -226,30 +226,70 @@
           "source_ids": [
             "S1"
           ],
-          "quote": "Kutch Ajrakh is an elaborate resist block printing technique that involves series of direct and resist printing and dyeing"
+          "quote": "Kutch Ajrakh is an elaborate resist block printing technique that involves series of direct and resist printing and dyeing",
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 1",
+              "quote": "India C) Name of the Geographical Indication : KUTCH AJRAKH D) Types of Goods : Class 24 and 25 - Textiles and textile goods E) Specification: Kutch Ajrakh is an elaborate resist block printing technique that involves series of direct and resist printing and dyeing"
+            }
+          ]
         },
         {
           "text": "Traditionally four colours are used (blue, black, red, white) and a piece needs all four to be called ajrakh.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "For a piece to be called ajrakh, it needs to have all the four colours, blue, red, black and white."
+            }
           ]
         },
         {
           "text": "The process and designs of Ajrakh printing are common to Sindh, Kutch and Barmer district of Rajasthan (1971 Kutch District Gazetteer as quoted in the GI journal).",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "The process and designs of Ajrakh printing are common to Sindh (now in Pakistan), Kutch and Barmer district of Rajasthan."
+            }
           ]
         },
         {
           "text": "V&A labels describe ajrakh as a laborious technique from western Rajasthan, Kutch and Sindh.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "§ \"Object details\"",
+              "quote": "Gallery label (03/10/2015-10/01/2016) AJRAKH Ajrakh (from Arabic azraq: 'blue') is a laborious technique from western Rajasthan, Kutch and Sindh."
+            }
           ]
         },
         {
           "text": "Ajrakh is printed by Khatri artisans; Dhamadka and Khavda in Kutch became main centres, followed by Barmer.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "Over time, the villages of Dhamadka and Khavda in Kutch became the primary centres of the craft, followed by Barmer in Rajasthan, which too became recognised as an important centre."
+            },
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "These days the Khatri artisans of Kutch have almost stopped producing Ajrakh prints for their traditional Maldhari customers, because of the entry of screen-printed material using chemical dyes, mostly from Pakistan and locally from the village of Khavda in Kutch, which due to their low"
+            }
           ]
         },
         {
@@ -257,6 +297,28 @@
           "source_ids": [
             "S1",
             "S2"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "§ \"Application Details\"",
+              "quote": "Application Number 1050 Geographical Indications Kutch Ajrakh Print of Gujarat Status Registered Applicant Name Ajarakhpur Hastkala Vikas Sangathan Applicant Address Ajarakhpur, Padhar, Post: Kukama, Taluka: Bhuj, Kutch , Gujarat, India, 370 105 Date of Filing 31-01-2023 Class 24,25 Goods Textiles Geographical Area Gujarat Priority Country"
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 1",
+              "quote": "Advertised under Rule 41 (1) of Geographical Indications of Goods (Registration & Protection) Rules, 2002 in the Geographical Indications Journal 188 dated December 19, 2023 G.I."
+            },
+            {
+              "source_id": "S2",
+              "locator": "§ \"Application Details\"",
+              "quote": "Application Number 1050 Geographical Indications Kutch Ajrakh Print of Gujarat Status Registered Applicant Name Ajarakhpur Hastkala Vikas Sangathan Applicant Address Ajarakhpur, Padhar, Post: Kukama, Taluka: Bhuj, Kutch , Gujarat, India, 370 105 Date of Filing 31-01-2023 Class 24,25 Goods Textiles Geographical Area Gujarat Priority Country"
+            },
+            {
+              "source_id": "S2",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 1",
+              "quote": "Advertised under Rule 41 (1) of Geographical Indications of Goods (Registration & Protection) Rules, 2002 in the Geographical Indications Journal 188 dated December 19, 2023 G.I."
+            }
           ]
         }
       ],
@@ -277,30 +339,70 @@
           "text": "Ajrakh printing originally came from Sindh (1971 Gazetteer, quoted in GI journal).",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "The district gazetteers of 1971 have mentioned that Ajrakh Printing-Ajrakh is another popular variety in hand-printing of textiles in Kutch. Ajrakh printing originally came from Sindh and got concentrated where extra soft water was available."
+            }
           ]
         },
         {
           "text": "The GI text argues block printing on cotton in India is thought to be over 4500 years old, citing Indus Valley geometric patterning and dye technology.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "This is said to be the roots of the art which has taken over the region now H) Proof of Origin (Historical records): The art of hand block printing on the cotton cloth is thought to have existed in India for over 4500 years."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "The discovery of geometric patterning and advanced dye technologies in the excavated ancient cities of the Indus Valley suggest that this form of Textiles decoration may be as old as the cultivation of the cotton plant."
+            }
           ]
         },
         {
           "text": "Khamir reports 3000-year-old madder-dyed cotton strands found at an ancient dyer's workshop in Mohenjo-Daro; it does not tie these finds directly to the Khatris.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "§ \"Origins in Sindh\"",
+              "quote": "They unearthed 3000 year old strands of cotton dyed with madder (red) at an ancient dyer's workshop in Mohenjo-Daro, located in modern day Pakistan."
+            }
           ]
         },
         {
           "text": "The likely origins of Ajrakh lie in Sind.",
           "source_ids": [
             "S12"
+          ],
+          "evidence": [
+            {
+              "source_id": "S12",
+              "locator": "§ \"Abstract\"",
+              "quote": "The origin of Ajrakh can be traced to Sind, Pakistan."
+            }
           ]
         },
         {
           "text": "19th-century ajrakh cloths made in Sind are held by the V&A (e.g. 5473A/(IS), ca. 1855-79).",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "§ \"Textile\"",
+              "quote": "1855 - ca. 1879 (made) Artist/Maker Unknown Place of origin Sind (made) Two halves of an ajrakh shawl or cover, block printed, resist- and mordant-dyed."
+            }
           ]
         }
       ],
@@ -323,30 +425,65 @@
           "text": "The technique came to Kutch from Sindh some 400 years ago at the behest of the King of Kutch, who invited Khatri craftsmen to the banks of the Dhamadka river.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+              "quote": "This intricate and exclusively handcrafted block-printing technique came to Kutch from Sindh some 400 years ago at the behest of the King of Kutch, who invited craftsmen from Khatri community to come and practice their art on the banks of Dhamadka river."
+            }
           ]
         },
         {
           "text": "Rao Bharmalji I (1586-1631) invited Khatri printers from Sindh and gave them land and tax exemptions.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "The erstwhile ruler of Kutch Rao Bharmalji - I (1586-1631), invited the cloth-printing Khatri artisans from Sindh and gave them permission to settle and earn their livelihoods anywhere in Kutch. They were given land by the state as well spared any taxation on their produce."
+            }
           ]
         },
         {
           "text": "An artisan account says Rao Barmalji I invited Sindhi artisans, offering land, housing and tax exemptions.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "§ \"From Sindh to Kachchh\"",
+              "quote": "Source: Sindh Jo Ajrakh, Noorjehan Bilgrami \"Rao Barmalji I, the King of Kachchh, was a patron of craft. He invited artisans from across Sindh to come and settle in his kingdom."
+            }
           ]
         },
         {
           "text": "Khamir's account says Hindu Khatris fled Sindh to Kachchh in the 7th century after Arab invasion; Ajrakhpur and Dhamadka Khatris trace their line to Jinda Jeeva, said to have arrived around 1650.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "§ \"From Sindh to Kachchh\"",
+              "quote": "The sweet water of this river was excellent for washing and dyeing.\" While the Khatris of Ajrakhpur and Dhamadka trace their ancestral line to Jinda Jeeva, memories of the Khatris from North and East Kachchh go back only 4-5 generations."
+            }
           ]
         },
         {
           "text": "A legend links the craft to Dhamadka following a 16th-century migration.",
           "source_ids": [
             "S12"
+          ],
+          "evidence": [
+            {
+              "source_id": "S12",
+              "locator": "§ \"Abstract\"",
+              "quote": "According to popular legend, this textile tradition was started in the family of late Mohammad Siddiki when in the year 1586, Raja Bharmal I, invited his forefathers, to migrate from Sind and settle in Dhamadka, Kachchh."
+            }
           ]
         }
       ],
@@ -371,24 +508,57 @@
           "text": "Ajrakh activities prevailed at Dhamadka for the past 450 years because of a water source from a stream of the Indus river; this stream dried up in 1989.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "The Ajrakh activities prevailed at Dhamadka since the past 450 years, as it was having a potential water source from one of the water stream of the Indus river."
+            }
           ]
         },
         {
           "text": "The Dhamadka river was the only one in Kutch said to flow in the opposite direction, emptying into the Banni rather than flowing south; the rangchulis were around the old river.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "The Dhamadka River was the only one in Kutch that used to flow in the opposite direction. Usually the rivers originated in the Banni grasslands and flowed southwards."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "The rangchulis were around the old river."
+            }
           ]
         },
         {
           "text": "The river Saran in Dhamadka dried up by 1989, largely because bore pumps diverted water toward the Kandla Free Trade Zone.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"We are running out of water\"",
+              "quote": "In Dhamadka, the river Saran was always flowing, but it died a slow death by 1989. This was largely due to the increase in bore pumps which diverted the water towards the Kandla Free Trade Zone."
+            }
           ]
         },
         {
           "text": "Khatri families settled near the Saran river, where they washed their fabric.",
           "source_ids": [
             "S14"
+          ],
+          "evidence": [
+            {
+              "source_id": "S14",
+              "locator": "§ \"Questions ? We're here!\"",
+              "quote": "This Khatricommunity settled in Dhamadka for its close proximity to Saran river in whichthey washed their fabric."
+            }
           ]
         },
         {
@@ -396,6 +566,18 @@
           "source_ids": [
             "S1",
             "S14"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "The village is located approximately 50 km east of Bhuj. It is believed that 400 years ago, a group of Khatris settled in Dhamadka and started practicing their craft."
+            },
+            {
+              "source_id": "S14",
+              "locator": "§ \"Related Products\"",
+              "quote": "Quickview Out Of Stock Eidi ~ Ajrakh Stole * J Dhamadka one of the prominent craft villages located almost 30 kms away from Bhuj is a place mentioned in several travelogues and books because of its.."
+            }
           ]
         }
       ],
@@ -419,24 +601,77 @@
           "text": "After a massive earthquake in 2001 the block printers were forced to relocate and settled in Ajrakhpur; over 100 families live there with 30 official workshops.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "After a massive earthquake in Kutch in 2001, the block printers were forced to relocate. They settled in Ajrakhpur village."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "There are over one hundred families living in Ajrakhpur, and 30 official block printing workshops; almost all of the families in Ajrakhpur generate their primary income from Ajrakh."
+            }
           ]
         },
         {
           "text": "Dhamadka was completely destroyed in the 2001 earthquake; printers bought land about 40 km away and founded Ajrakhpur, chosen for its good water source; it has about 80 Khatri families.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"A new home\"",
+              "quote": "Currently, 80 Khatri families live in Ajrakhpur and the land offers capacity for more families to shift, which they plan to do in due time."
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"A new home\"",
+              "quote": "So people from our village came together and bought land 40 kms away from Dhamadka."
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"Everything was broken\"",
+              "quote": "Dhamadka, the heart of the block printing community, was completely destroyed."
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"We are running out of water\"",
+              "quote": "While Ajrakhpur was selected due to its good water source, the water tables are lowering and the need of a sound water management plan is being discussed by the block printers along with"
+            }
           ]
         },
         {
           "text": "After the 2001 quake groundwater quality worsened in Dhamadka and about 100 families moved about 40 km to Ajrakhpur.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "§ \"History repeats itself\"",
+              "quote": "Last time something like this had happened, the entire village of a hundred families moved from their earlier settlement in Dhamadka to their present location, 40 km away, in search of good quality groundwater. This transition was after the devastating earthquake in 2001 ."
+            },
+            {
+              "source_id": "S10",
+              "locator": "§ \"The economic consequences\"",
+              "quote": "\"But now this (water problem) has started again in Ajrakhpur. It's not as bad as it was in Dhamadka, but who knows about the future?"
+            }
           ]
         },
         {
           "text": "Artisans established Ajrakhpur with government and social support after the earthquake damaged Dhamadka.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "In 2001, an earthquake which caused severe damage in Kutch almost destroyed the village of Dhamadka. The Khatri cloth-printing artisans with governmental and social support established a new centre for cloth-printing called Ajrakhpur."
+            }
           ]
         }
       ],
@@ -460,24 +695,67 @@
           "text": "The fabric was traditionally worn by members of the royal court and the pastoral Maldhari community; men used it as cummerbunds, lungis, turbans and shoulder cloths.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 1",
+              "quote": "The fabric is traditionally worn by both; the members of the royal court and the pastoral Maldhari Community."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 1",
+              "quote": "The men use it as cummerbunds colorful lungis (garment to be draped around the waist, covering the lower body), wrap it around their heads like turbans, or toss it across their shoulders as scarves."
+            }
           ]
         },
         {
           "text": "Maldharis also used the cloth as bundles to carry belongings while travelling.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "The semi-nomadic Maldharis also use the fabric as ,,bindles', in which they bundle up a few belongings while traveling."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "Clean water is used to work this soap through the cloth, cleaning out the impurities."
+            }
           ]
         },
         {
           "text": "Khatris made cloth for Maldharis and farming communities, often trading cloth for produce, milk or ghee; designs were not interchangeable between communities.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "§ \"Our cloth is their identity\"",
+              "quote": "They produced cloth for maldharis (cattle herders), both Hindus and Muslims as well as farming communities across Kachchh. They used the barter system and exchanged cloth for produce from farmers, while cattle herders gave them milk or ghee."
+            }
           ]
         },
         {
           "text": "Traditional buyers include Maldharis in Kutch, Muslim Patels in Marwar and Muslim potters in Barmer.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "In Kutch (Gujarat) this community is referred to as Maldharis. In Marwar (Rajasthan) the community is known as Muslim Patels and their hereditary occupation is that of cattle-herders."
+            },
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "Ajrakh production using screen-printing is taking place in Barmer, Rajasthan as well, but here the traditional production method still partly survives."
+            }
           ]
         }
       ],
@@ -498,24 +776,67 @@
           "text": "Alizarin, synthesised in 1868, rapidly superseded madder; madder use almost disappeared and is now being revived.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "Since the introduction of synthetic alizarin crystals use of Madder had almost disappeared, kept alive in the memories of but a few craftsman. Only now, with a global renewal of interest in natural dyes, is the use of natural majeeta seeing a revival."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "(i) Ajrakh with Alizarin Dye:- Alizarin was one of the first chemical dyes for red, invented in 1868 by German chemists Graaebe and Liebermann. Derived from coal tar this crystalline red dye rapidly superseded madder, its natural counterpart."
+            }
           ]
         },
         {
           "text": "Synthetic dyes replaced most natural colour in the Indian market in the early 1950s; interest in traditional craft revived in the 1970s.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"The era of chemical dyes\"",
+              "quote": "Chemicals were already around at that time and they were much easier to adapt to after losing all of our materials and tools for natural dyes.\" By the early 1950s, synthetic dyes had replaced most of the natural color in the Indian textile market because"
+            },
+            {
+              "source_id": "S8",
+              "locator": "§ \"Back to the roots\"",
+              "quote": "In the 1970s a period of reflection started. The Gandhian idea of India as a \"craft nation\" became popular again and many states in India initiated programs to support traditional craft artisans in finding new markets."
+            }
           ]
         },
         {
           "text": "In the mid-2010s most block printers worked with chemical dyes; some printers serve both natural and chemical dye markets according to demand.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Natural vs. Chemical\"",
+              "quote": "The resist materials remain natural, a mixture of gum and lime, while the pigments and dyes are chemical. This technique is used by hand block printers and some screen printers as well."
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"Natural vs. Chemical\"",
+              "quote": "We are doing our work of vegetable dyes at other places like Ajrakhpur and providing the fabric to old customers.\" Today in the mid 2010s, there is a large demand for chemical dyed fabric."
+            }
           ]
         },
         {
           "text": "Globalisation is changing Ajrakh techniques, designs, materials and markets.",
           "source_ids": [
             "S12"
+          ],
+          "evidence": [
+            {
+              "source_id": "S12",
+              "locator": "§ \"Abstract\"",
+              "quote": "Ajrakh, with its rich visual vocabulary is in a state of transition, as traditional processes, raw materials, designs, product categories and markets are evolving within the worldwide phenomenon called globalization."
+            }
           ]
         }
       ],
@@ -536,18 +857,49 @@
           "text": "Before Partition ajrakh was worn by Sindhi Muslim animal-keepers in Sindh, Kutch and Marwar.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "It was in vogue along both sides of the Indus River in pre-Partition India-being mainly used by Sindhi Muslim animal-keepers from Sindh (Pakistan), Kutch (Gujarat) and Marwar (Rajasthan)."
+            },
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "In Barmer, Ajrakh is used by the Muslim potter community as well. The traditional attire, worn casually earlier but now used mostly for weddings and other special occasions, consists of two pieces of cloth-a sarong and a turban."
+            }
           ]
         },
         {
           "text": "After Partition in 1947 border crossing became impossible and trade between East Kachchh and Sindh collapsed.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "§ \"The country divided and we lost our trade routes\"",
+              "quote": "In 1947, India and Pakistan were divided. It was no longer possible to cross the border and the trade between East Kachchh and Sindh collapsed completely."
+            }
           ]
         },
         {
           "text": "In Sindh, ajrak is described as a symbol of Sindhi culture and given as a gesture of hospitality.",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"History\"",
+              "quote": "The cloth is widely used in Sindhi public and cultural life and is presented as a gesture of hospitality and respect. [ 5 ] [ 8 ] Ajrak is commonly presented to guests and used at weddings and cultural events as a symbol of respect."
+            },
+            {
+              "source_id": "S15",
+              "locator": "§ \"References\"",
+              "quote": "Department of Culture and Tourism, Government of Sindh,1990. p."
+            }
           ]
         }
       ],
@@ -568,12 +920,31 @@
           "text": "15th-century resist-printed fragments from Gujarat were found at Fustat in Egypt.",
           "source_ids": [
             "S12"
+          ],
+          "evidence": [
+            {
+              "source_id": "S12",
+              "locator": "§ \"Abstract\"",
+              "quote": "Early evidence of Gujarat's involvement in international trade of colourful block printed textiles comes from the fragments found at the Fostat excavations in Egypt. These have been dated back to the fifteenth century and have been printed by the resist printing technique."
+            }
           ]
         },
         {
           "text": "Block-printed fabric from Al Fustat (11th-14th century) resembles designs still printed in Dhamadka and Ajrakhpur.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "§ \"Remnants in Egypt\"",
+              "quote": "Source: Asmolean Museum Block printed fabric found at Al Fustat. Source: Asmolean Museum In 1930, hundreds of Indian cotton fragments from the 11th-14th century AD were discovered in Al Fustat, the harbor of Old Cairo."
+            },
+            {
+              "source_id": "S7",
+              "locator": "§ \"Remnants in Egypt\"",
+              "quote": "Similar designs are still being printed in modern-day Dhamadka and Ajrakhpur."
+            }
           ]
         }
       ],
@@ -596,12 +967,26 @@
           "text": "In the 1970s about 40-50 Khatri families in Barmer practised Ajrakh; today five or six families do so part-time.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "In the 1970s, about 40 to 50 Khatri families were involved in Ajrakh printing, whereas today the number has reduced to just five or six families involved in the craft and that too part-time."
+            }
           ]
         },
         {
           "text": "Ajrakh printing is practised at Kachchh and Barmer.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+              "quote": "Ajrakh printing is practiced at Kachchh & Barmer."
+            }
           ]
         }
       ],
@@ -622,18 +1007,44 @@
           "text": "Application 1050 for Kutch Ajrakh was made by Ajarakhpur Hastkala Vikas Sangathan, facilitated by the Textiles Committee, Ministry of Textiles.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 1",
+              "quote": "Applicant : Ajarakhpur Hastkala Vikas Sangathan B) Address : Ajarakhpur Hastkala Vikas Sangathan Ajarakhpur, Padhar, Post: Kukama, Taluka: Bhuj, District: Kutch - 370 105, Gujarat, India Facilitated By: Textiles Committee, Ministry of Textiles, Government of India C) Name of the Geographical Indication : KUTCH AJRAKH"
+            }
           ]
         },
         {
           "text": "Registered; certificate of registration dated 22-04-2024; journal 188 dated 19-12-2023.",
           "source_ids": [
             "S2"
+          ],
+          "evidence": [
+            {
+              "source_id": "S2",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 1",
+              "quote": "Advertised under Rule 41 (1) of Geographical Indications of Goods (Registration & Protection) Rules, 2002 in the Geographical Indications Journal 188 dated December 19, 2023 G.I."
+            },
+            {
+              "source_id": "S2",
+              "locator": "§ \"Document Details\"",
+              "quote": "Document Name Document Date Download 1 1050 - Certificate of Registration - 22-04-2024 22-04-2024 2 1050 - GI - Journal Copy - 19-12-2023 19-12-2023 3 1050 - Examination Report - 17-08-2023 17-08-2023 4 1050 - Reply to FCR by Applicant - 14-08-2023 14-08-2023 5 1050"
+            }
           ]
         },
         {
           "text": "The inspection body includes O/o Development Commissioner (Handicrafts) Bhuj, Textiles Committee, GSHHDC and two master artisans.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 10",
+              "quote": "Representative of the O/o Development Commissioner (Handicrafts), Govt. of India, Ministry of Textiles, Bhuj."
+            }
           ]
         }
       ],
@@ -655,24 +1066,57 @@
           "source_ids": [
             "S1"
           ],
-          "quote": "presence of iron in the water supply dulls and darkens the final result"
+          "quote": "presence of iron in the water supply dulls and darkens the final result",
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "Water enriched with alum, tin or chrome mineral deposits will help brighten the colors but presence of iron in the water supply dulls and darkens the final result."
+            }
+          ]
         },
         {
           "text": "Iron content in the water increased drastically after the earthquake, making prints black so that off-white backgrounds were not possible.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Everything was broken\"",
+              "quote": "\"The iron content in the water increased drastically after the earthquake so we had to reduce our work with natural dyes. Iron in water gives you a black color while washing it with Harde [powder to prepare the cloth for better color absorption]."
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"Everything was broken\"",
+              "quote": "It makes the prints black and you cannot keep an off-white background."
+            }
           ]
         },
         {
           "text": "An artisan reports that even small amounts of iron cause black spots on the pale yellow (harde-treated) cloth, and that a family test of Dhamadka groundwater found high iron.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "§ \"History repeats itself\"",
+              "quote": "If there is even one percent iron in water, the (pale yellow) cloth gets black spots. We tested and found seven percent iron content in the groundwater in Dhamadka,\" Sufian explained."
+            }
           ]
         },
         {
           "text": "Excess iron in groundwater threatened Ajrakh in Dhamadka and is again threatening it in Ajrakhpur.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "§ \"Share this article\"",
+              "quote": "Excess iron in groundwater that threatened Ajrakh in Dhamadka, is once again threatening the craft in Ajrakhpur."
+            }
           ]
         }
       ],
@@ -693,30 +1137,80 @@
           "text": "Ajrakh is described as a 16-stage, water-intensive technique; an artisan states that the craftsmen's requirement is to recycle about 1 lakh litres of water every day.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "§ \"Exploring solutions\"",
+              "quote": "\"But it's recycling capacity was much lesser than our requirement of recycling 1 lakh litres of water every day,\" Sufian Khatri said."
+            },
+            {
+              "source_id": "S10",
+              "locator": "§ \"Share this article\"",
+              "quote": "Facebook Linkedin Threads Whatsapp Reddit Email Page link Ajrakh from Gujarat, a 16-stage, water-intensive block printing technique that uses natural dyes, is once again facing its major nemesis-poor quality of groundwater."
+            }
           ]
         },
         {
           "text": "In 2019 a CETP was being set up through NITRA, with an iron filter and dual media filter so process water could be reused.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "§ \"Exploring solutions\"",
+              "quote": "\"The CETP has an iron filter and a dual media filter through which excess iron and other suspended matter will be removed from the water. It can then be reused in the Ajrakh process,\" Srivastava told Mongabay India."
+            }
           ]
         },
         {
           "text": "A government-funded effluent treatment system was built in Ajrakhpur in 2022, with recycled water reusable for washing fabric.",
           "source_ids": [
             "S11"
+          ],
+          "evidence": [
+            {
+              "source_id": "S11",
+              "locator": "§ \"Indigo in Kutch, India: Art and Science, Environment and Economics\"",
+              "quote": "Finally, in 2022, the Indian government launched a RS 1.5 crore (about $180,000 by 2024 rates) effluent treatment system in the village. After six months of operation, the project was turned over to the Ajrakhpur Hand Craft Development Organization."
+            },
+            {
+              "source_id": "S11",
+              "locator": "§ \"Indigo in Kutch, India: Art and Science, Environment and Economics\"",
+              "quote": "Operation is now covered by a monthly fee of RS 2,500 per workshop, and the recycled water can be reused for washing fabric."
+            }
           ]
         },
         {
           "text": "Water levels have been going down by 10-15 feet every year; no comprehensive water management plan has emerged.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"We are running out of water\"",
+              "quote": "But the problem of water still persists because the level of water has been going down by 10-15 feet every year even here. We have to seriously think and plan for the future.\" Water is the lifeline of printing and dyeing."
+            }
           ]
         },
         {
           "text": "Water is an important ingredient in getting the right colour; quality matters as much as quantity.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "Water is an important ingredient in the whole process of getting the right colour."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+              "quote": "Water plays an essential role in the process of dying and the quality of water is as important as the quantity."
+            }
           ]
         }
       ],
@@ -738,12 +1232,26 @@
           "source_ids": [
             "S1"
           ],
-          "quote": "got concentrated where extra soft water was available"
+          "quote": "got concentrated where extra soft water was available",
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "The district gazetteers of 1971 have mentioned that Ajrakh Printing-Ajrakh is another popular variety in hand-printing of textiles in Kutch. Ajrakh printing originally came from Sindh and got concentrated where extra soft water was available."
+            }
+          ]
         },
         {
           "text": "A Khavda printer says Khavda's dyeing techniques were the same as other villages, but the weather and water differed, so the shades differed.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "§ \"Khavda\"",
+              "quote": "\"The dyeing techniques of Khavda compared to other villages was the same. But the weather and the water was different, and so the shades of the color were different."
+            }
           ]
         }
       ],
@@ -764,12 +1272,31 @@
           "text": "Khariyanu outline printing is usually preferred in the morning; kut printing in the afternoon; gach printing later in the day so the cloth is dry and resist does not spread.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Guch printing is usually done later in the day so that the cloth is dry enough in the sun and any chance of the spreading of the resist is avoided."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "The morning time is usually preferred for this stage of printing. Printing of Cloth/fabrics Application of Black colour (Kut):Areas where black is required are now printed with kut paste."
+            }
           ]
         },
         {
           "text": "The final wash is usually done early in the morning when water is cool, as warm afternoon water may dissolve some of the alum.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "It is usually done early in the morning when the water is cool as the warm water of the afternoon may dissolve some of the alum.It clears the excess dyes and makes the whiteness of the Ajrakh stars shine bright."
+            }
           ]
         },
         {
@@ -777,6 +1304,23 @@
           "source_ids": [
             "S1",
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "The artisans work in combinations where the sun, river, animals, trees and mud are all part of its making."
+            },
+            {
+              "source_id": "S8",
+              "locator": "§ \"Resist printing in Kachchh\"",
+              "quote": "the raw materials used in the printing process Gum extracted from the Acacia plant is ground and forms one of the raw materials used in the printing process The print artisan works in total harmony with his environment: the sun, animals, river, trees, and mud"
+            },
+            {
+              "source_id": "S8",
+              "locator": "§ \"The Batik boom\"",
+              "quote": "Natural dyes are extremely difficult to work with in combination with wax, and in the past a single piece could take anywhere between 4 and 12 days."
+            }
           ]
         }
       ],
@@ -797,18 +1341,44 @@
           "text": "Monsoon humidity slows production.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"These days we use Whatsapp!\"",
+              "quote": "The monsoon is a slack period for production since the humiditiy affects the printing and dyeing quality, and there is no place for drying."
+            }
           ]
         },
         {
           "text": "Humidity in the region stops natural dyes from reaching full effect (batik artisan's account).",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"The Batik boom\"",
+              "quote": "Also, the humidity in the region does not allow the natural dyes to take their full effect."
+            },
+            {
+              "source_id": "S8",
+              "locator": "§ \"The Batik boom\"",
+              "quote": "Artisan sources: Khatri Kasam Haji Musa, Shakil Ahemad Khatri (Mundra) Batik is a block printing technique where wax is used as a resist material."
+            }
           ]
         },
         {
           "text": "Blocks are soaked in mustard oil when not in use so they do not expand in the rainy season.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "The blocks are soaked in mustard oil when not in use so that they do not expand in the rainy season."
+            }
           ]
         }
       ],
@@ -834,12 +1404,31 @@
           "text": "Artisans procure cotton fabric from 60s to 120s count depending on end use; silk Ajrakh is made for customised needs.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+              "quote": "The artisans procure cotton fabric ranging from 60's to 120's count depending upon the end use of the product from the market. Silk Ajrakh is also prepared by artisans for customized needs by using different quality fabrics procured from market but mostly from customised needs."
+            }
           ]
         },
         {
           "text": "Earlier, pit-loom cloth was joined along the length to achieve required widths (bepota, dyodha, swaiya, paniya).",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "as per the requirement of the customer were- Bepota (two long two and half meter fabrics of 36 inches joined along the length), dyodha (two pieces of 2.25 m fabric with one of width 36inch and other 18 inches- joined along the length) and Swaiya"
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "Earlier, when the fabric used was woven on the pit looms, the required width of fabric was acquired by joining two narrow width lengths with use of a decorative joining stitch."
+            }
           ]
         }
       ],
@@ -862,12 +1451,26 @@
           "text": "Neerani is a thoroughly emulsified mixture of castor oil, soda ash and camel dung; soda ash was historically obtained from the ash of a local desert plant.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "This is a thoroughly emulsified mixture of castor oil, soda ash and camel dung. Historically the soda ash was obtained from the ash of the local desert plant."
+            }
           ]
         },
         {
           "text": "Camel dung, abundant in the region, is used to remove starch from the fabric.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+              "quote": "Camel dung, found abundantly in the region, is used as an ingredient to remove starch from the fabric."
+            }
           ]
         }
       ],
@@ -891,12 +1494,26 @@
           "text": "Harde is a yellow astringent paste from dried powdered Terminalia chebula fruits containing high levels of tannic acid.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "Use of Pre-Mordant (Kasano):The soft cleaned cloth now undergoes a soak in Harde, a yellow astringent paste made from the dried powdered fruits of the Myroballan tree, Terminalia Chebula. Used widely in ayurvedic medicines , these dried plums contain high levels of Tannic acid."
+            }
           ]
         },
         {
           "text": "Cloth dipped in harda solution dries to a crude cream colour (1971 Gazetteer).",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "First, the white cloth of requisite size treated with emulsion of castor oil is dipped in the solution of harda powder (Terminalia chebula) and cold water. The cloth when dried gets a crude cream colour."
+            }
           ]
         }
       ],
@@ -921,18 +1538,44 @@
           "text": "Kiriyana resist paste consists of babool gum and lime diluted in water.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+              "quote": "Mud Resist paste: mati(clay), chuna (lime), baval no gund (gum arabic), Kiriyana resist paste constitutes of babool ka gondh (gum), chuna (lime) diluted in water."
+            }
           ]
         },
         {
           "text": "Gum (from Acacia) and lime are today's most preferred resist materials.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Resist printing in Kachchh\"",
+              "quote": "Gum and lime are the most preferred resit materials today by the Ajrakh block printers."
+            },
+            {
+              "source_id": "S8",
+              "locator": "§ \"Resist printing in Kachchh\"",
+              "quote": "Several natural materials are used by the block printers as resist material."
+            }
           ]
         },
         {
           "text": "Ajrakh resist printing uses a gum arabic and lime substance.",
           "source_ids": [
             "S11"
+          ],
+          "evidence": [
+            {
+              "source_id": "S11",
+              "locator": "§ \"Indigo in Kutch, India: Art and Science, Environment and Economics\"",
+              "quote": "While Ajrakh and most related cloths are resist printed with a gum arabic and lime substance, the indigo saadlos were batik, printed with wax."
+            }
           ]
         }
       ],
@@ -957,18 +1600,44 @@
           "text": "Kut is made from jaggery or molasses in which scrap iron such as horseshoes and gram flour have been fermented for ten to fifteen days; the iron-water is mixed with tree gum.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "Kut printing is usually undertaken in the afternoon.The kut is a smooth finer paste made from jaggery, or molasses, in which scrap iron such as horse-hoes and besan (gram flour) have been fermented for ten to fifteen days."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "(this is dyed; with long wood) Gach Guch Resist:- For the next two stages of the process a smooth fine paste is mixed from tree gum (Guar ka godh), clay (lal mitti), water and millet flour."
+            }
           ]
         },
         {
           "text": "Scrap iron, jaggery and tamarind are soaked in water for two weeks and then cooked to create the black dye.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+              "quote": "Scrap iron, jaggery and tamarind is soaked in water for two weeks and then cooked over flame to create the black dye for Ajrakh."
+            }
           ]
         },
         {
           "text": "Ajrakh colours come from indigo, madder and iron acetate.",
           "source_ids": [
             "S11"
+          ],
+          "evidence": [
+            {
+              "source_id": "S11",
+              "locator": "§ \"Indigo in Kutch, India: Art and Science, Environment and Economics\"",
+              "quote": "1 The colors are created with a complex process of resist and mordant printing, and dyeing with indigo, madder, and iron acetate (Figure 3)."
+            }
           ]
         }
       ],
@@ -991,12 +1660,26 @@
           "text": "Alum is used as a mordant to fasten the colours.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "Alum is used as a mordant in the process to fasten the colours."
+            }
           ]
         },
         {
           "text": "Red comes from alum as mordant together with dhaori (tamarisk galls).",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+              "quote": "The different colours are prepared by using the above ingredients as follows: Red color: This color comes from alum as mordant and dhaori na phool (galls of tamarisk)."
+            }
           ]
         }
       ],
@@ -1020,12 +1703,26 @@
           "text": "Alum is suspended in a sticky paste of boiled powder from roasted and ground tamarind seeds (kachika).",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "Alum is suspended in a sticky paste of boiled powder from roasted and ground tamarind seeds (locally known as kachika)."
+            }
           ]
         },
         {
           "text": "Tamarind seed powder is used to make the black solution thicker.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+              "quote": "Black color: This color comes from ferrous sulfate, molasses, and millet flour. Tamarind seed powder is used to make the solution thicker."
+            }
           ]
         }
       ],
@@ -1052,18 +1749,39 @@
           "text": "Gach is a smooth paste of tree gum, clay (lal mitti), water and millet flour; alum is added to half of it.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "(this is dyed; with long wood) Gach Guch Resist:- For the next two stages of the process a smooth fine paste is mixed from tree gum (Guar ka godh), clay (lal mitti), water and millet flour."
+            }
           ]
         },
         {
           "text": "Mud resist paste comprises mati (clay), chuna (lime) and baval no gund (gum arabic).",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+              "quote": "Mud Resist paste: mati(clay), chuna (lime), baval no gund (gum arabic), Kiriyana resist paste constitutes of babool ka gondh (gum), chuna (lime) diluted in water."
+            }
           ]
         },
         {
           "text": "Mud was used as resist in East Kachchh.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Resist printing in Kachchh\"",
+              "quote": "Several natural materials are used by the block printers as resist material. Wax is commonly used in Batik, while mud was used by printers in East Kachchh."
+            }
           ]
         }
       ],
@@ -1084,12 +1802,26 @@
           "text": "Sawdust or finely powdered cow dung is sprinkled immediately after printing the gach pastes to prevent the wet clay from smudging.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Saw dust or finely powdered cow dung is sprinkled over immediately after printing these two gach pastes, to prevent the wet day from smudging."
+            }
           ]
         },
         {
           "text": "Areas to be dyed red are dusted while wet with ground cow dung or rice husk to protect against indigo.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+              "quote": "The areas to be dyed red are printed and while still wet are dusted with ground cow dung or rice husk to protect against the indigo dye which is used later."
+            }
           ]
         }
       ],
@@ -1113,18 +1845,44 @@
           "text": "Indigo can be natural (Indigofera tinctoria) or synthetic 'German' indigo; natural indigo is fermented with lime, dates and soda; synthetic is reduced with 'Hydros'.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Indigo dye can either be natural Indigo from Indigofera tinctoria, or a synthesized substitute \"German\" indigo."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Synthetic indigo is also dissolved in alkaline lime powder and water, but often has a strong industrial chemical known as \"Hydros\" added."
+            }
           ]
         },
         {
           "text": "In Dhamadka a small amount of indigo was grown while the river was active.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "In Dhamadka, till the river was active, a small amount of Indigo plant was also grown."
+            }
           ]
         },
         {
           "text": "Indigo came from Shikarpur in Sindh and was also grown in Dhamadka.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"We work in harmony with nature\"",
+              "quote": "Blue extract from the indigo plant mostly came from Shikarpur in Sindh, but it was also grown in Dhamadka."
+            }
           ]
         }
       ],
@@ -1149,12 +1907,31 @@
           "text": "Indian madder roots (Rubia cordifolia), locally majeeta, link to the alum mordant on cotton to develop red where pa and gach were printed.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "This dye extracted from these long thin roots links to the alum mordant on the cotton fibres and develops red area of a design, where Pa, Gach pastes have been printed."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "Ajrakh with Madder Dye:- Indian Madder roots, Rubia Cordifolia, locally known as majeeta, have been traditionally used in the creation of Ajrakh since Ajrakh itself was born many millennia ago."
+            }
           ]
         },
         {
           "text": "Madder red was often used together with indigo blue by printers.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"We work in harmony with nature\"",
+              "quote": "Indigo blue and madder red were often used together by printers."
+            }
           ]
         }
       ],
@@ -1175,12 +1952,31 @@
           "text": "Alizarin, first synthesised in 1868 by Graebe and Liebermann, superseded madder and also requires alum to attach colour.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "Derived from coal tar this crystalline red dye rapidly superseded madder, its natural counterpart. Despite its chemical synthesis, alizarin dye also requires mordants such as alum to attach its colour to the cloth fibres."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "(i) Ajrakh with Alizarin Dye:- Alizarin was one of the first chemical dyes for red, invented in 1868 by German chemists Graaebe and Liebermann."
+            }
           ]
         },
         {
           "text": "The 1971 Gazetteer records ICI alizarine powder used with padvas nut powder and cowdung for red.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+              "quote": "I, padvas powder prepared from the nuts of a tree found on river banks and cowdung, is prepared and the cloth is dipped into it. When taken out the printed portion is found to have turned into red."
+            }
           ]
         }
       ],
@@ -1204,12 +2000,26 @@
           "text": "Cloth is boiled in a solution of tamarix (dhawri) with madder, al or alizarin.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "But for some ajrakh, alizarin (synthetic madder) may be used, in which case the cloth is boiled in a solution of alizarin and tamarix powder."
+            }
           ]
         },
         {
           "text": "If colour spreads into white areas during red dyeing, a handful of dried tamarisk flowers is added.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "Dyeing the purest reds continues for up to four hours. The cloth is carefully watched; if colour spreads into the white areas a handful of dried tamansk flowers are added."
+            }
           ]
         }
       ],
@@ -1235,6 +2045,13 @@
           "text": "Yellow from pomegranate (dadam), turmeric (haldi), flame of the forest (kesuda) and marigold; green from indigo with pomegranate or turmeric.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+              "quote": "Blue: Indigo/ Neel Yellow: Pomegranate/ Dadam, Turmeric/ Haldi, Flame of the Forest flower/ Kesucia, Marigold flower/Hajaari phul GI Journal No."
+            }
           ]
         }
       ],
@@ -1255,6 +2072,13 @@
           "text": "Dyed cloth is soaked in a camel-dung solution and spread on river sand in the sun for tapano.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "The dyed cloth would be soaked in a solution of camel dung, then spread on the sandy banks of a river in the sun and regularly sprinkled with water to keep it moist throughout the day."
+            }
           ]
         }
       ],
@@ -1278,30 +2102,75 @@
           "text": "Blocks in the first printing stage are of shisham and those in the third and fourth stages of teak; blocks are soaked in mustard oil when not in use.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "The blocks used in the first stage of printing are made of shisham and the blocks used in the third and fourth stages are made of teak."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "The blocks are soaked in mustard oil when not in use so that they do not expand in the rainy season."
+            }
           ]
         },
         {
           "text": "Each design is a set of four to six blocks.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+              "quote": "Each design is a set of four to six blocks."
+            }
           ]
         },
         {
           "text": "Small registration marks at the corners of the symmetrically patterned blocks aid double-sided registration.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "This is helped by small registration marks on the corners of the symmetrically patterned blocks."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "Double sided Ajrakh was the most expensive and only the rich could afford it."
+            }
           ]
         },
         {
           "text": "Blocks are carved from teak (sag); printers today buy blocks from block-makers in Pethapur near Gandhinagar.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Crafting the block\"",
+              "quote": "Today block printers buy their blocks from block-makers in Pethapur near Gandhinagar, Kachchh."
+            }
           ]
         },
         {
           "text": "Many artisans have mastered carving teak blocks themselves.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+              "quote": "Now, many artisans have mastered the art of chiseling teak wood blocks themselves in complex geometrical and intricate floral patterns."
+            }
           ]
         }
       ],
@@ -1326,6 +2195,18 @@
           "text": "The tari is made of wood with two handles and layered with chhapri, kantan (jute cloth), foam and fine cotton; foam and fine cloth are removed for less fine printing.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "It is layered differently based on the kind of printing being undertaken. It consists of chhapri (a flat structure made of grass, kantan (jute cloth), foam and fine cotton fabric."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "Tari (printing tray) : It is made of wood and has two handles to provision for carrying it around."
+            }
           ]
         }
       ],
@@ -1348,12 +2229,26 @@
           "text": "A paddle called dhoki, made from babool wood, is used to help dislodge emulsified oils during washing.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "Clean water is used to work this soap through the cloth, cleaning out the impurities. A special paddle called dhoki, made from durable wood of babool tree, is employed to help dislodge the emulsified oils."
+            }
           ]
         },
         {
           "text": "Pre-treatment includes beating with an indigenous bat to remove dust, oil and grease.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+              "quote": "In Ajrakh printing the fabrics during the pre-treatment is given specific rectangular folds and gentle wash, with beating by indigenous bat to remove the dust, oil and grease."
+            }
           ]
         }
       ],
@@ -1376,6 +2271,18 @@
           "text": "Natural indigo is fermented in an underground vat; a vat need only be made once and can be kept active, sometimes for decades.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "An indigo vat need only be made once, then used daily and ingredients replenished to keep the Vat active, sometimes for decades."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Natural Indigo is purchased in blocks or cakes, ground to a powder and soaked before fermenting in an underground vat consisting strong alkaline lime powder, dates and carbonate of soda, plus specialty ingredients unique to each particular dyer."
+            }
           ]
         }
       ],
@@ -1396,6 +2303,18 @@
           "text": "Alizarin or madder is heated in a large copper pot over a low fire, and cloth is continuously stirred using two sticks.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Red Dyeing:- Alizarin crystals or the crushed and steeped roots of majeeta or Indian Madder are gently heated in a large copper pot. The fire beneath is kept low and the lengths of cloth continuously GI Journal No."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "stirred using two sticks."
+            }
           ]
         }
       ],
@@ -1416,12 +2335,26 @@
           "text": "Washing and beating at the washing tanks removes resist paste, loose indigo and tamarind paste.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Cleaning:- Through washing and beating at the washing tanks removed the resist paste, the loose indigo dye, and the tamarind seed paste from the cloth."
+            }
           ]
         },
         {
           "text": "An artisan recalls his father washing fabric at the river in Dhamadka.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Crafting the block\"",
+              "quote": "Artisan Sources: Razzaquebhai Khatri (Dhamadka), Khatri Musa TarMohammed (Ajrakhpur) \"My father was washing fabric at the river in Dhamadka, so we used to come here when we were young."
+            }
           ]
         }
       ],
@@ -1445,12 +2378,31 @@
           "text": "Pre-treatment involves a minimum of three soakings in neerani; the procedure is repeated eight to ten times until suitable saponification is achieved.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "The entire procedure is repeated eight to ten times until a suitable level of saponification is achieved, meaning the Saaj process can take many days to complete, depending upon the level of impurities in the cloth, usually by the third or fourth steeping the dung"
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "In Kachchh, pre-treatment of the cotton involves a minimum of three soakings in Neerani solution."
+            }
           ]
         },
         {
           "text": "By the third or fourth steeping the dung-oil mixture emulsifies into a rich lather, leaving the cloth bright white and soft.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "meaning the Saaj process can take many days to complete, depending upon the level of impurities in the cloth, usually by the third or fourth steeping the dung and oil mixture emulsifies to produce a rich lather, which leaves the cloth bright white and soft"
+            }
           ]
         }
       ],
@@ -1473,6 +2425,18 @@
           "text": "Clean water is used to work the soap through the cloth; washing is a rigorous cycle of soaking and beating until all foam is wrung out.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "Washing:By the final cycle of the Saaj process the neerani mixture has produced a rich lather on the cloth. Clean water is used to work this soap through the cloth, cleaning out the impurities."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "The washing is a rigorous cycle of soaking and beating, only completed all traces of foam have been wrung from cloth."
+            }
           ]
         }
       ],
@@ -1496,12 +2460,31 @@
           "text": "The cloth is soaked in harde and dried in the sun without rinsing; tannin is an essential pre-mordant aiding adhesion of printed mordants.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "The cloth is then dried in the sun without rinsing off the Harde solution. The tannin in the Myroballan penetrates the cotton fibres and is essential pre-mordant which aids the adhesion of the subsequent printed mordants onto the cloth."
+            }
           ]
         },
         {
           "text": "Myrobalan is used in an early dyeing stage, followed by washing.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "§ \"History repeats itself\"",
+              "quote": "\"One of the initial stages is when the cloth is dyed with myrobalan and then washed."
+            },
+            {
+              "source_id": "S10",
+              "locator": "§ \"Share this article\"",
+              "quote": "A Common Effluent Treatment Plant (CETP) that will remove excess iron and recycle the water used in this natural-dyeing and block printing process will abate the threat to the craft."
+            }
           ]
         }
       ],
@@ -1525,12 +2508,31 @@
           "text": "Outlines where white is required are printed with a carved block and a lime and tree-gum resist paste.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "Preparation of Outline of design (Khariyanu/ Kiriyana):- Outlines of the design, where white is required, are printed with a carved wooden block and a resist paste containing lime and tree gum."
+            }
           ]
         },
         {
           "text": "For double-sided Ajrakh the same outline must be printed on the reverse; the fabric should be partly wet for registration.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "When double sided Ajrakh is printed it is essential that the same outline design be printed on the reverse of the cloth."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "A printer must be very accurate to ensure designs match precisely on both the sides and the fabric should be partly wet to ensure proper registration."
+            }
           ]
         },
         {
@@ -1538,6 +2540,18 @@
           "source_ids": [
             "S3",
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Object details\"",
+              "quote": "The dyer block-prints resist paste on the areas to remain white, and mordant pastes to fix the colour on the areas to be dyed red or black."
+            },
+            {
+              "source_id": "S4",
+              "locator": "§ \"Object details\"",
+              "quote": "The dyer block-prints resist paste on the areas to remain white, and mordant pastes to fix the colour on the areas to be dyed red or black."
+            }
           ]
         }
       ],
@@ -1561,12 +2575,26 @@
           "text": "Areas where black is required are printed with kut paste, usually an infill (datla) between khariyanu outlines.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "Printing of Cloth/fabrics Application of Black colour (Kut):Areas where black is required are now printed with kut paste. In true Ajrakh, this is usually an infill or datla between selected khariyanu outliners."
+            }
           ]
         },
         {
           "text": "Printed on harde-treated cloth, kut develops a deep fast chocolate-black as iron reacts with the tannic acid.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "When printed onto the harde treated cloth kut develops a deep fast chocolate-black colour as the iron particles in the kut paste oxidise with the tannic acid."
+            }
           ]
         }
       ],
@@ -1591,12 +2619,26 @@
           "text": "Pa, a smooth paste of alum in tamarind-seed paste, is printed with blocks patterned for the mavi areas where red is required.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "This smooth paste called Pa, is printed with blocks which have been carved so that the printing portion of the raised face is patterned only, with the areas of the design called mavi, where red is required."
+            }
           ]
         },
         {
           "text": "Mordant pastes are block-printed to fix colour on areas to be dyed red or black.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Object details\"",
+              "quote": "The dyer block-prints resist paste on the areas to remain white, and mordant pastes to fix the colour on the areas to be dyed red or black."
+            }
           ]
         }
       ],
@@ -1620,6 +2662,18 @@
           "text": "Gach with alum is printed where larger red areas are required (red ground gudh or mavi infill); the clay and millet resist indigo while the alum acts as mordant.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Alum is added to half of this paste, and printed where larger areas of the Red are required in a design, for example a red background gudh or infill areas called mavi."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "The clay and millet flour in the paste act as a resist, preventing indigo from staining the cloth beneath, whilst the alum content acts a mordant for subsequent application of red dye."
+            }
           ]
         }
       ],
@@ -1642,6 +2696,18 @@
           "text": "Dhori gach, without alum, is printed over previously printed white, black and pa-red areas that did not receive gach; sawdust or powdered cow dung is sprinkled immediately after.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "This paste is called dhori gach and does not contain alum. The dhori gach is printed over all previously printed white, black and pa printed red areas which did not receive an application of the previous gach paste."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Saw dust or finely powdered cow dung is sprinkled over immediately after printing these two gach pastes, to prevent the wet day from smudging."
+            }
           ]
         }
       ],
@@ -1665,24 +2731,57 @@
           "text": "The first stage of dyeing is called 'kun me burana'; the fabric is folded (fara) and dipped in the indigo vat.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "The first stage of dyeing is referred to as \"kun me burana\". The fabric is folded (fara) and then dipped in the indigo vat."
+            }
           ]
         },
         {
           "text": "At first bright green, the cloth rapidly becomes blue as oxygen meets the dye on the fibres.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "At first bright green, the cloth rapidly becomes blue as oxygen meets the dye particles on the fibres."
+            }
           ]
         },
         {
           "text": "For two shades of blue the cloth is reprinted between immersions; the darkest shades may need three or four immersions.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "If a design required the darkest shades of the blue then the cloth may be subjected to a total of three or four immersions into the vat to build up rich blue."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Dipping into the Indigo vat for a second time will deepen the color in the blue portions of an Ajrakh design, if two shades of the blue are required in the design then cloth is reprinted between the immersions into the Indigo vat, to preserve"
+            }
           ]
         },
         {
           "text": "The cloth is immersed in indigo for the blue areas, and the resist is then washed off.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Object details\"",
+              "quote": "The whole cloth is then immersed in indigo dye for the blue areas and the resist is washed off."
+            }
           ]
         }
       ],
@@ -1703,6 +2802,18 @@
           "text": "Washing begins gently to loosen clay without smudging, then becomes vigorous soaking and beating; remaining on the fibres are indigo, kut black, alum mordants and resisted whites.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "This washing begins gently, to loosen the clay of the resist pastes without smudging, then becomes a vigorous soaking and beating to ensure the cloth is free from the printing pastes and ready for the red dye."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Remaining on the fibres are the Indigo blue, kut black, alum from Pa and gach mordants and the resisted plain white areas."
+            }
           ]
         }
       ],
@@ -1726,12 +2837,31 @@
           "text": "Alizarin crystals or steeped madder roots are heated in a copper pot; dyeing the purest reds continues for up to four hours.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Red Dyeing:- Alizarin crystals or the crushed and steeped roots of majeeta or Indian Madder are gently heated in a large copper pot."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "Dyeing the purest reds continues for up to four hours."
+            }
           ]
         },
         {
           "text": "The GI text's paragraph on madder/al/alizarin dyeing (placed after pa) says that at this stage (rang) the red and black areas develop, resist areas show white, and the cloth is washed and dried flat in the sun.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "In all cases, the cloth is washed in plain water after dyeing and dried flat in the sun. At this stage (rang), the red and black areas of the design develop and the resist areas are revealed as white."
+            }
           ]
         }
       ],
@@ -1754,6 +2884,18 @@
           "text": "Madder often leaves a pinkish tinge on whites; the cloth is soaked in camel dung, spread on sandy river banks in the sun and sprinkled with water over at least three days.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "The dyed cloth would be soaked in a solution of camel dung, then spread on the sandy banks of a river in the sun and regularly sprinkled with water to keep it moist throughout the day."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "As a result dyeing with majeeta often leaves a pinkish tinge to the white areas of a design. Over time a procedure was developed to counteract this staining."
+            }
           ]
         }
       ],
@@ -1776,6 +2918,18 @@
           "text": "The final washing and beating removes loose colour; it is usually done early in the morning when water is cool.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "It is usually done early in the morning when the water is cool as the warm water of the afternoon may dissolve some of the alum.It clears the excess dyes and makes the whiteness of the Ajrakh stars shine bright."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "Final Wash (Vichharana):The final washing and beating to remove any loose colour is vital."
+            }
           ]
         }
       ],
@@ -1796,6 +2950,13 @@
           "text": "Once washed completely, artisans do ancillary activities like pressing and packaging.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "Packaging of the Product:Once the Ajrakh print is washed completely, the artisans do ancillary activities like pressing, packaging before selling it to the clients/ customers."
+            }
           ]
         }
       ],
@@ -1816,6 +2977,13 @@
           "text": "Saaj can take many days depending on the level of impurities; by the third or fourth steeping a rich lather leaves the cloth bright white and soft.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "meaning the Saaj process can take many days to complete, depending upon the level of impurities in the cloth, usually by the third or fourth steeping the dung and oil mixture emulsifies to produce a rich lather, which leaves the cloth bright white and soft"
+            }
           ]
         }
       ],
@@ -1836,6 +3004,13 @@
           "text": "Gum is soaked and sieved many times to make the paste smooth; for finer outlines the paste must be thicker.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "The tree gum, which would earlier be brought to the Khatris by the Maldhari communities, is soaked in water and sieved a number of times to ensure the paste is smooth and lump free. For finer outlines this paste must be thicker."
+            }
           ]
         }
       ],
@@ -1856,12 +3031,26 @@
           "text": "Khariyanu paste must not spread onto areas where red is required, or the lime will discharge subsequent alum.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "The first side of the cloth is printed with this outline Khariyanu paste. this must not spread onto areas where red is required or the lime will discharge the subsequent applications of alum."
+            }
           ]
         },
         {
           "text": "Care must be taken not to mix pa with lime-printed areas, otherwise colour is prevented from developing in red dyeing.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "Care must be taken not to mix this Pa with the areas printed in lime Khariyanu otherwise the lime will discharge the alum and thus prevent colour developing during subsequent red dyeing."
+            }
           ]
         }
       ],
@@ -1882,6 +3071,18 @@
           "text": "Morning is preferred for khariyanu; kut in the afternoon; guch later in the day so the cloth is dry; final wash early morning in cool water.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Guch printing is usually done later in the day so that the cloth is dry enough in the sun and any chance of the spreading of the resist is avoided."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "It is usually done early in the morning when the water is cool as the warm water of the afternoon may dissolve some of the alum.It clears the excess dyes and makes the whiteness of the Ajrakh stars shine bright."
+            }
           ]
         }
       ],
@@ -1902,6 +3103,18 @@
           "text": "If two shades of blue are required the cloth is reprinted between immersions; the darkest blues may need three or four immersions.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "If a design required the darkest shades of the blue then the cloth may be subjected to a total of three or four immersions into the vat to build up rich blue."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Dipping into the Indigo vat for a second time will deepen the color in the blue portions of an Ajrakh design, if two shades of the blue are required in the design then cloth is reprinted between the immersions into the Indigo vat, to preserve"
+            }
           ]
         }
       ],
@@ -1922,6 +3135,18 @@
           "text": "The fire is kept low and the cloth watched; if colour spreads into white areas, a handful of dried tamarisk flowers is added.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "The cloth is carefully watched; if colour spreads into the white areas a handful of dried tamansk flowers are added."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "The fire beneath is kept low and the lengths of cloth continuously GI Journal No."
+            }
           ]
         }
       ],
@@ -1942,12 +3167,26 @@
           "text": "Most Khatri printers could dip a finger in the vat, taste it and judge the shade and quality.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"We work in harmony with nature\"",
+              "quote": "These colors were decided over time, and given a lot of thought.\" Most Khatri block printers became so attuned to indigo color that they could dip their finger in a pot of indigo, taste it, and be able to tell the shade and quality."
+            }
           ]
         },
         {
           "text": "A late master could tell by tasting a dye bath whether it needed lime, soda ash or dates.",
           "source_ids": [
             "S11"
+          ],
+          "evidence": [
+            {
+              "source_id": "S11",
+              "locator": "§ \"Indigo in Kutch, India: Art and Science, Environment and Economics\"",
+              "quote": "The late Ajrakh master Mohmedbhai Siddique Khatri of the village of Dhamadka in Kutch understood indigo to be a living substance. He could taste a dye bath and know if it needed lime, soda ash, or dates."
+            }
           ]
         }
       ],
@@ -1968,6 +3207,13 @@
           "text": "A printer must be very accurate so designs match on both sides; the fabric should be partly wet; corner registration marks help.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "A printer must be very accurate to ensure designs match precisely on both the sides and the fabric should be partly wet to ensure proper registration. This is helped by small registration marks on the corners of the symmetrically patterned blocks."
+            }
           ]
         }
       ],
@@ -1988,18 +3234,49 @@
           "text": "Some printers serve both natural and chemical dye markets according to market demand.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Natural vs. Chemical\"",
+              "quote": "However, some printers serve both according to the demands of the market. \"People like vegetable more than chemical work but it is not possible to do vegetable work in Dhamadka."
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"Natural vs. Chemical\"",
+              "quote": "Indigo is available in synthetic as well as natural forms. Alizarine (red) is also available as a synthetic dye."
+            }
           ]
         },
         {
           "text": "Artisans use synthetic dyes selectively to supplement natural dyes amid scarcity.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "However, now a days the artisans are also using the synthetic dye to complete the natural dye and completed the scarcity being experienced in the process of preparation of natural dye."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+              "quote": "This is possible for the dyeing of the fabric in Indigo and use of natural dyes."
+            }
           ]
         },
         {
           "text": "Khavda printers work only with chemical dyes because of local water quality.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"We are running out of water\"",
+              "quote": "The Khavda printers now work only with chemical dyes due to the quality of water in their village, incurring skin allergies as a result."
+            }
           ]
         }
       ],
@@ -2020,12 +3297,26 @@
           "text": "Red stands for Earth, black for darkness, white for clouds and blue for the universe itself.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "Red goes for Earth, Black for Darkness, White for Clouds and Blue for the Universe itself."
+            }
           ]
         },
         {
           "text": "An artisan quoted by Khamir says Ajrakh is inspired by Brahma, the universe, and the blues and reds of the evening sky and the stars.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "§ \"Ajrakh is what we are known for\"",
+              "quote": "Ismail Khatri and Jabbarbhai Khatri display a bedspread with Ajrakh design \"Ajrakh is inspired by Brahma, the universe. The blues and the reds of the evening sky and the stars are all inspiration for our cloth."
+            }
           ]
         }
       ],
@@ -2046,24 +3337,52 @@
           "text": "An artisan quoted by Khamir describes Ajrakh as an Islamic design art with no figures, crafted with geometrical forms.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "§ \"Ajrakh is what we are known for\"",
+              "quote": "Ajrakh is an Islamic design art with no figures. Everything is crafted using geometrical forms."
+            }
           ]
         },
         {
           "text": "Ajrakh is recognised by star-shaped patterns in geometric borders and deep indigo hues.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"New expressions and explorations\"",
+              "quote": "It is interpreted in modern ways and printers play with new combinations of motifs, but Ajrakh can still be recognized for its intricate star shaped patterns interspersed into geometric borders and its deep indigo hues."
+            }
           ]
         },
         {
           "text": "Iranian/Islamic influences are noted in the geometry and symmetry of the designs (Cousin, cited).",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "According to Françoise Cousin many of the Ajrakh designs have Iranian/Islamic influences, evident from their geometry and symmetry."
+            }
           ]
         },
         {
           "text": "The GI journal's historical section says the designs in vogue developed under Muslim influence.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+              "quote": "The designs in vogue are those which have been developed under Muslim influence."
+            }
           ]
         }
       ],
@@ -2088,24 +3407,67 @@
           "text": "Historically Ajrakh has been printed on both sides so herders leaving before sunrise could wear it either way.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+              "quote": "No wonder, they say that Ajrakh is suitable to wear around the year. Historically, Ajrakh has been printed on both sides."
+            }
           ]
         },
         {
           "text": "Printing on both sides is the craft's highest achievement.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "However, the Ajrakh cloths, evenly printed on both sides, display the pinnacle of achievement in printing."
+            },
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "Lotika Varadarajan has elaborated on the imprint of the Sufi philosophy on the craft."
+            }
           ]
         },
         {
           "text": "Single- and double-sided prints are called ekpuri and bipuri.",
           "source_ids": [
             "S14"
+          ],
+          "evidence": [
+            {
+              "source_id": "S14",
+              "locator": "§ \"Questions ? We're here!\"",
+              "quote": "There are singleand double sided block prints, respectively known as ' ekpuri' and 'bipuri'originated in the 16th century and pioneered by the community.The artisans from Dhamadka use organic natural colours as well as chemical dyesto print the beautiful patterns on the fabrics."
+            },
+            {
+              "source_id": "S14",
+              "locator": "§ \"Related Products\"",
+              "quote": "This industrial town of Uttar Pradesh, very popularly called the 'Glass City of India' is a renow.."
+            }
           ]
         },
         {
           "text": "V&A process samples explain making a double-sided ('minakari') ajrakh shawl.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Object details\"",
+              "quote": "7-2007 Production Made at Dr Khatri's workshop in Ajrakhpur, Kachchh (Kutch), Gujarat as an educational tool to decsribe the processes involved in making a traditional 'minakari' (double-sided) ajrakh shawl."
+            },
+            {
+              "source_id": "S3",
+              "locator": "§ \"Object details\"",
+              "quote": "Man's wrapped garment Cotton dyed using block-printed mordants and resist Sindh, Pakistan, 1855-79 V&A: 5473A (IS) Samples showing ajrakh process Cotton dyed ysing block-printed mordants and resists Ajrakhpur, Kutch, Gujarat, 2006 V&A: IS."
+            }
           ]
         }
       ],
@@ -2137,18 +3499,44 @@
           "text": "Both ends are decorated and three sides carry fixed border designs; only the central motif changes.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "Both ends of the cloth are decorated while three sides have embellished borders, whose designs are fixed. Only the motif in the centre of the cloth may be changed."
+            }
           ]
         },
         {
           "text": "The GI journal's historical section lists border designs haso, butto, mundhagulo and tavij; field designs kakkal, rial, gini and kori; and kori, adhia and pachlo as coin-based designs.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+              "quote": "Border designs are haso, butto, mundhagulo, tavij, etc.. while the designs used in the body of the Ajrakh print are kakkal. rial, gini, kori, plulada, mefuli, etc."
+            }
           ]
         },
         {
           "text": "V&A 19th-c. Sind ajrakh shows a field of large and small circles with end borders of floral medallions and merlons.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "§ \"Textile\"",
+              "quote": "Blue field with repeating pattern of large and small circles in red, blue, black and white, surrounded by red and white floral motifs. End borders with floral medallions and merlons; plain red border at one side."
+            },
+            {
+              "source_id": "S4",
+              "locator": "§ \"page text\"",
+              "quote": "ajrakh textile, block printed cotton, Sind, ca."
+            }
           ]
         }
       ],
@@ -2169,12 +3557,26 @@
           "text": "Maldhari groups (Nodai, Haleputra, Sama, Sumra, Jat) each had distinct styles and palettes that Khatris did not change.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "§ \"We have walked all over the Banni\"",
+              "quote": "Ismail Khatri (Ajrakhpur Jat Maldharis migrate all over Kachchh in search of water and fodder \"We used to work with the different Maldhari communities: Nodai, Haleputra, Sama, Sumra, and the Jat. the Maldhari community had a distinct style, a distinct color palette and design."
+            }
           ]
         },
         {
           "text": "Patterns, colour and quality of cloth are used as markers for importance and hierarchy.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "Patterns, color, and quality of cloth are used as markers for importance and hierarchy."
+            }
           ]
         }
       ],
@@ -2195,12 +3597,31 @@
           "text": "Each design is a set of four to six blocks.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+              "quote": "Each design is a set of four to six blocks."
+            }
           ]
         },
         {
           "text": "Blocks for the pa stage are carved so only the mavi (red) areas print.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "This smooth paste called Pa, is printed with blocks which have been carved so that the printing portion of the raised face is patterned only, with the areas of the design called mavi, where red is required."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "The first stage of dyeing is referred to as \"kun me burana\"."
+            }
           ]
         }
       ],
@@ -2221,12 +3642,31 @@
           "text": "Remaining on the fibres after washing are indigo blue, kut black, alum mordant and resisted white; red develops in red dyeing.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Remaining on the fibres are the Indigo blue, kut black, alum from Pa and gach mordants and the resisted plain white areas. Red Dyeing:- Alizarin crystals or the crushed and steeped roots of majeeta or Indian Madder are gently heated in a large copper pot."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "After dyeing the still - streaming cloth is piled by the washing tanks."
+            }
           ]
         },
         {
           "text": "The natural-dyed fabric is said not to fade even when old.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "The beauty of the natural dyed fabric is that it does not fade even if it gets old."
+            }
           ]
         },
         {
@@ -2234,6 +3674,18 @@
           "source_ids": [
             "S4",
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "§ \"Object details\"",
+              "quote": "Physical description Two halves of an ajrakh shawl or cover, block printed, resist- and mordant-dyed. Blue field with repeating pattern of large and small circles in red, blue, black and white, surrounded by red and white floral motifs."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Ajrakh\"",
+              "quote": "1855 (made) Place of origin Fatehgarh (made) Pieces of ajrakh textile, resist printed, indigo dyed and mordant-dyed. Red field with repeat pattern of large and small circles with floral background in red, blue, black and white."
+            }
           ]
         }
       ],
@@ -2254,12 +3706,31 @@
           "text": "Traditionally used as shoulder wrap, lungi, kammarband, chaddar and rajai by men; odhani and ghaghara by women.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "Products: Traditionally, ajrakh found its use as a shoulder wrap, lower wrap Lungi, Kammarband, chaddar and rajai only by men. Some types of ajrakh are also used as odhani and ghaghara by women."
+            }
           ]
         },
         {
           "text": "A typical cloth is about 1 m wide and 2.5 m long; sarongs join two turban cloths.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "Generally, the width of the cloth is 1 metre, while its length is 2.5 metres."
+            },
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "Only the motif in the centre of the cloth may be changed. To make a sarong, two turban cloths with borders on three sides are joined in such a way that the final sarong will have a border on all four sides."
+            }
           ]
         }
       ],
@@ -2280,12 +3751,26 @@
           "text": "Double-sided Ajrakh was the most expensive and only the rich could afford it.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "Double sided Ajrakh was the most expensive and only the rich could afford it."
+            }
           ]
         },
         {
           "text": "The fabric is used as honorary gifts.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "Its historical importance and intricacy of the design lend its great importance and therefore the fabric is also used as honorary gifts."
+            }
           ]
         }
       ],
@@ -2306,12 +3791,26 @@
           "text": "Today ajrakh is made into bed sheets, saris, salwar-kameez material and stoles.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "Today, Ajrakh has found a wider range of products like bed sheets, saris, salwaar kameez materials, stoles, etc."
+            }
           ]
         },
         {
           "text": "Many Khatris work with international fashion designers and retailers.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"New expressions and explorations\"",
+              "quote": "Artisan sources: Khatri Khalid Amin, Khatri Razak Abdual Rehman (Ajrakhpur) Today many Khatris work with international fashion designers and retailers."
+            }
           ]
         }
       ],
@@ -2332,6 +3831,18 @@
           "text": "Grey cotton carries oils, pectin and wax that reduce absorbency and must be removed; neerani cycles are repeated until suitable saponification is achieved.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "These impurities give the cloth a dull yellowish look, earning it the name \"grey cloth\". As waxes and oils reduce the absorbency of the Cotton they must be thoroughly removed prior to any dyeing or printing."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "The entire procedure is repeated eight to ten times until a suitable level of saponification is achieved, meaning the Saaj process can take many days to complete, depending upon the level of impurities in the cloth, usually by the third or fourth steeping the dung"
+            }
           ]
         }
       ],
@@ -2352,12 +3863,26 @@
           "text": "The lime will discharge subsequent applications of alum.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "The first side of the cloth is printed with this outline Khariyanu paste. this must not spread onto areas where red is required or the lime will discharge the subsequent applications of alum."
+            }
           ]
         },
         {
           "text": "Where kut is printed over khariyanu, the lime resists the iron, giving further detail to outlines.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "Where kut lines are printed over the previous Khariyanu print the lime in the Khariyanu resists the iron in the kut, giving further detail to the outlines of the design."
+            }
           ]
         }
       ],
@@ -2378,12 +3903,26 @@
           "text": "Colour compounds in madder are more complex than synthetic alizarin, so madder often leaves a pinkish tinge on whites.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "(ii) Tapano:- The color compounds contained within natural madder roots are much more complex than those of synthetic alizarin. As a result dyeing with majeeta often leaves a pinkish tinge to the white areas of a design."
+            }
           ]
         },
         {
           "text": "Sun, moisture and compounds in camel dung act as a bleaching agent on the whites over at least three days.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "This would be repeated over at least three days, by the end of which the sun, moisture and various compound in the dung would have acted as a bleaching agent on the white areas of a design."
+            }
           ]
         }
       ],
@@ -2404,6 +3943,13 @@
           "text": "Warm afternoon water may dissolve some of the alum.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "It is usually done early in the morning when the water is cool as the warm water of the afternoon may dissolve some of the alum.It clears the excess dyes and makes the whiteness of the Ajrakh stars shine bright."
+            }
           ]
         }
       ],
@@ -2424,18 +3970,39 @@
           "text": "The process and designs are common to Sindh, Kutch and Barmer (1971 Gazetteer).",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "The process and designs of Ajrakh printing are common to Sindh (now in Pakistan), Kutch and Barmer district of Rajasthan."
+            }
           ]
         },
         {
           "text": "Kachchh Ajrakh are fine fabrics with a wider range of designs than Barmer.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+              "quote": "The Kachchh Ajrakh are fine fabrics and has a wide range of designs in block prints compared to that of Barmer."
+            }
           ]
         },
         {
           "text": "In Sindh, production areas reportedly include Matiari, Hala and Bhit Shah (uncited list).",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"History\"",
+              "quote": "Ajrak is usually sold as long unstitched cloth for draping as shawls, dupattas or wraps varying in length and size. [ 6 ] Ajrak production is concentrated in many parts of Sindh, including Matiari , Hala , Bhit Shah , Moro , Sukkur , Kandiaro"
+            }
           ]
         }
       ],
@@ -2461,24 +4028,67 @@
           "text": "About 400 years ago (GI uniqueness section); Dhamadka activity 450 years.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "It is believed that 400 years ago, a group of Khatris settled in Dhamadka and started practicing their craft."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+              "quote": "The Uniqueness about the Ajrakh printed fabric is that during the day time, when the temperature are high it gives coolness to the wearer, by opening of the pores of the fabric."
+            }
           ]
         },
         {
           "text": "Rao Bharmalji I (1586-1631).",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "The erstwhile ruler of Kutch Rao Bharmalji - I (1586-1631), invited the cloth-printing Khatri artisans from Sindh and gave them permission to settle and earn their livelihoods anywhere in Kutch."
+            }
           ]
         },
         {
           "text": "7th-century flight; Jinda Jeeva c. 1650.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "§ \"From Sindh to Kachchh\"",
+              "quote": "Among them was Jinda Jeeva, our ancestor who came here in 1650."
+            },
+            {
+              "source_id": "S7",
+              "locator": "§ \"From Sindh to Kachchh\"",
+              "quote": "Ismail Khatri, Abdul Rehman Budda (Ajrahpur), Abdul Rehman Rasool Soneji (Rapar) During the 7th century, the Khatris of Sindh were Hindu."
+            }
           ]
         },
         {
           "text": "16th-century migration legend.",
           "source_ids": [
             "S12"
+          ],
+          "evidence": [
+            {
+              "source_id": "S12",
+              "locator": "§ \"Abstract\"",
+              "quote": "According to popular legend, this textile tradition was started in the family of late Mohammad Siddiki when in the year 1586, Raja Bharmal I, invited his forefathers, to migrate from Sind and settle in Dhamadka, Kachchh."
+            },
+            {
+              "source_id": "S12",
+              "locator": "§ \"Abstract\"",
+              "quote": "These have been dated back to the fifteenth century and have been printed by the resist printing technique."
+            }
           ]
         }
       ],
@@ -2499,24 +4109,62 @@
           "text": "Ajrakh means 'keep it to-day' and also 'beautifying' (1971 Gazetteer).",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "The word 'Ajrakh means \"keep it to-day\" and has probably been used as a means of publicity. It also means \"beautifying\"."
+            },
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "The district gazetteers of 1971 have mentioned that Ajrakh Printing-Ajrakh is another popular variety in hand-printing of textiles in Kutch."
+            }
           ]
         },
         {
           "text": "Ajrakh from Arabic azraq, 'blue'.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "§ \"Object details\"",
+              "quote": "Gallery label (03/10/2015-10/01/2016) AJRAKH Ajrakh (from Arabic azraq: 'blue') is a laborious technique from western Rajasthan, Kutch and Sindh."
+            }
           ]
         },
         {
           "text": "Origin may be Arabic, Sindhi or Sanskrit; first recorded mention 'Ujruk' in 1669.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "An additional point of interest in relation to the word's origins is that the first time there is mention of this cloth being referred to as 'Ujruk' was in 1669 at a display in Karachi, Pakistan."
+            },
+            {
+              "source_id": "S6",
+              "locator": "§ \"Mushtak Khan\"",
+              "quote": "The other question is regarding the origins of its name: does it emerge from Arabic, Sindhi or Sanskrit?"
+            }
           ]
         },
         {
           "text": "Persian ajar 'brick' with diminutive -ak (weakly cited).",
           "source_ids": [
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S15",
+              "locator": "§ \"Etymology\"",
+              "quote": "The word Ajrak ( Sindhi : اجرڪ ) derives from the Persian word ajar ( Persian : اجر ), meaning \"brick,\" combined with the diminutive suffix -ak ( Persian : ک ), meaning \"small,\" conveying a sense of unity and reflecting the craft's cultural journey"
+            }
           ]
         }
       ],
@@ -2537,12 +4185,26 @@
           "text": "Gazetteer sequence: harda, alum print, red dye bath, mud resist, indigo.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "The clay and millet flour in the paste act as a resist, preventing indigo from staining the cloth beneath, whilst the alum content acts a mordant for subsequent application of red dye."
+            }
           ]
         },
         {
           "text": "GI method: pa and gach, indigo, wash, then red dyeing; an earlier paragraph also places a madder/al/alizarin 'rang' dyeing after pa.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Remaining on the fibres are the Indigo blue, kut black, alum from Pa and gach mordants and the resisted plain white areas. Red Dyeing:- Alizarin crystals or the crushed and steeped roots of majeeta or Indian Madder are gently heated in a large copper pot."
+            }
           ]
         },
         {
@@ -2551,6 +4213,23 @@
             "S1",
             "S3",
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
+              "quote": "In total, 15-16 different stages are involved in the process of dyeing and printing, which take approximately 15-21 days."
+            },
+            {
+              "source_id": "S3",
+              "locator": "§ \"Object details\"",
+              "quote": "Dimensions Length: 96.5cm Length when opened out length: 182cm Width: 19.3cm Gallery label (03/10/2015-10/01/2016) AJRAKH Ajrakh (from Arabic azraq: 'blue') is a laborious technique from western Rajasthan, Kutch and Sindh. It involves about 14 stages."
+            },
+            {
+              "source_id": "S10",
+              "locator": "§ \"Exploring solutions\"",
+              "quote": "It can then be reused in the Ajrakh process,\" Srivastava told Mongabay India."
+            }
           ]
         }
       ],
@@ -2571,6 +4250,13 @@
           "text": "The GI text claims the fabric cools by day and warms by night due to indigo and natural dyes opening and closing its pores.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+              "quote": "Similarly during the nights when the temperature are low, it gives warmth to the wearer due to the closure of the pores. This is possible for the dyeing of the fabric in Indigo and use of natural dyes."
+            }
           ]
         }
       ],
@@ -2591,18 +4277,39 @@
           "text": "Iron rose drastically after the earthquake.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Everything was broken\"",
+              "quote": "\"The iron content in the water increased drastically after the earthquake so we had to reduce our work with natural dyes."
+            }
           ]
         },
         {
           "text": "The stream dried in 1989 and well/tank levels kept falling before the quake.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+              "quote": "This water stream dried up in 1989 and water levels from wells and tanks continued to fall."
+            }
           ]
         },
         {
           "text": "An artisan reports family testing found seven percent iron in Dhamadka groundwater (no lab data published).",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "§ \"History repeats itself\"",
+              "quote": "We tested and found seven percent iron content in the groundwater in Dhamadka,\" Sufian explained."
+            }
           ]
         }
       ],

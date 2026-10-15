@@ -231,8 +231,14 @@ export const studySessions = pgTable(
     id: pk(),
     studyId: uuid().notNull(),
     participantId: uuid().notNull(),
-    conditionId: uuid().notNull(),
-    allocationId: uuid().notNull(),
+    /**
+     * NULL until the participant is allocated (migration 0010/0011): when a study allocates after
+     * the pre-test (study decision D3), the session exists from consent so the condition-blind
+     * pre-allocation steps can be stored, and the allocation is attached once, later. Both are
+     * set together and never change afterwards.
+     */
+    conditionId: uuid(),
+    allocationId: uuid(),
     period: smallint().notNull().default(1),
     /** Copied from the allocation by trigger; immutable (see allocations.contentSetCode). */
     contentSetCode: text(),
@@ -291,6 +297,7 @@ export const studySessions = pgTable(
       columns: [t.allocationId, t.participantId, t.conditionId],
       foreignColumns: [allocations.id, allocations.participantId, allocations.conditionId],
     }).onDelete("restrict"),
+    check("study_sessions_allocated_ck", sql`(${t.conditionId} IS NULL) = (${t.allocationId} IS NULL)`),
     check("study_sessions_started_ck", sql`${t.status} = 'scheduled' OR ${t.startedAt} IS NOT NULL`),
     check(
       "study_sessions_completed_ck",

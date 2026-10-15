@@ -27,7 +27,8 @@ const claimsSchema = z
     t: z.literal("participant"),
     pid: opaqueId,
     sid: opaqueId,
-    cond: z.enum(LEARNING_CONDITIONS),
+    /** null while the participant is not yet allocated (allocation after the pre-test, D3). */
+    cond: z.enum(LEARNING_CONDITIONS).nullable(),
     iat: z.number().int().nonnegative(),
     exp: z.number().int().positive(),
   })
@@ -36,7 +37,7 @@ const claimsSchema = z
 export type ParticipantSessionClaims = {
   participantId: string;
   sessionId: string;
-  condition: LearningCondition;
+  condition: LearningCondition | null;
   issuedAt: number;
   expiresAt: number;
 };
@@ -44,7 +45,8 @@ export type ParticipantSessionClaims = {
 export type ParticipantSessionInput = {
   participantId: string;
   sessionId: string;
-  condition: LearningCondition;
+  /** null before allocation; the cookie is re-issued with the condition once allocated. */
+  condition: LearningCondition | null;
 };
 
 const nowSeconds = () => Math.floor(Date.now() / 1000);

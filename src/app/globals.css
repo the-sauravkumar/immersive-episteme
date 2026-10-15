@@ -1,19 +1,20 @@
 /*
- * Immersive Episteme design tokens.
- * Adapted from virtual-walkthrough src/styles.css:6-23, src/admin/admin.css:3-31,
- * src/museum/ui/entry.css:77-107, src/museum/ui/deepzoom/DeepZoomViewer.css:4-8,
- * src/museum/a11y/a11y.css:245-280 — via docs/architecture/design-reuse-catalogue.md §2.5.
+ * Immersive Episteme design tokens: the "Apparatus" system (DESIGN.md sections 4-8).
  *
- * Deviations from the catalogue block (critic fixes):
- *  - `.dark` maps every shadcn semantic token (secondary, muted, accent, input, *-foreground,
- *    destructive), so no light value leaks into dark surfaces.
- *  - The high-contrast focus ring is a black/white double ring. Yellow is reserved for the
- *    optional guidance cue (requirements digest §9) and is never used for focus.
- *  - The admin `--faint #7d7368` (4.12:1 on paper) is not ported. Secondary text uses
- *    `--ink-muted` (>= 4.5:1 on every light surface; see tests/unit/contrast.test.ts).
+ * Rules for this file (DESIGN.md 4.1):
+ *  - Colour values stay as hex or `rgb(r g b / a)` literals inside the flat `:root`, `.dark`,
+ *    `.a11y-contrast` and `.dark.a11y-contrast` blocks. tests/unit/contrast.test.ts parses those
+ *    four blocks with regexes and asserts the DESIGN.md 4.3/4.4 ratios (truncated, never rounded).
+ *  - Raw tokens are mapped onto the shadcn semantic names in EVERY block, so a theme class on a
+ *    subtree remaps the semantics too and every primitive keeps working.
+ *  - `--ground` light stays #F5F1E8: tests/e2e/smoke.spec.ts pins rgb(245, 241, 232).
+ *  - Every craft-derived token is a design interpretation; not a measured or historical dye
+ *    colour (R-C6). No hex here is an "authentic" dye or cloth colour.
+ *  - Yellow is reserved for the guidance cue and never appears in this file. No `--faint` token.
  *
- * Every text/background pair below is checked by tests/unit/contrast.test.ts, which parses
- * this file. Keep colour values as hex or `rgb(r g b / a)` so the parser can read them.
+ * Earlier provenance: the first token set was adapted from virtual-walkthrough src/styles.css,
+ * src/admin/admin.css, src/museum/ui/entry.css and src/museum/a11y/a11y.css (focus double ring).
+ * Apparatus replaces those values; the black/white high-contrast focus ring is kept.
  */
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -23,95 +24,219 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @custom-variant hc (&:where(.a11y-contrast, .a11y-contrast *));
 
-/* ---- raw tokens ---- */
+/* ---- Light theme (DESIGN.md 4.2) ---- */
 :root {
-  --paper: #f5f1e8;
-  --paper-2: #efe9df;
-  --paper-3: #e7dfd2;
-  --card-warm: #fbf8f2;
-  --ink: #2b2621;
-  --ink-soft: #3a332c;
-  --ink-muted: #6f665c;
-  --brand: #8a5a3b;
-  --brand-hover: #744a2f;
-  --brand-fg: #fbf7f0;
-  --hairline: rgb(43 38 33 / 0.14);
-  --hairline-strong: rgb(43 38 33 / 0.24);
-  --panel-bg: rgb(245 241 232 / 0.8);
-  --panel-bg-solid: rgb(245 241 232 / 0.94);
-  --panel-blur: saturate(1.2) blur(14px);
-  --shadow-panel-v: 0 1px 2px rgb(43 38 33 / 0.06), 0 12px 32px -12px rgb(43 38 33 / 0.22);
-  --focus-halo: rgb(251 247 240 / 0.85);
+  --ground: #f5f1e8; /* design interpretation; not a measured or historical dye colour */
+  --surface: #fbf8f2;
+  --sunk: #ece5d8;
+  --ink: #211d19; /* design interpretation; not a measured or historical dye colour */
+  --ink-2: #3a332c;
+  --ink-3: #635a50;
+  --rule: #cfc4b2;
+  --rule-strong: #857a6c;
+  --indigo: #24406e; /* design interpretation; not a measured or historical dye colour */
+  --indigo-hover: #1a3157;
+  --on-indigo: #fbf8f2;
+  --wash: #e2e6ee;
+  --band: #24406e; /* design interpretation; not a measured or historical dye colour */
+  --madder: #8f2f1f; /* design interpretation; not a measured or historical dye colour */
+  --ochre: #7f5c14; /* design interpretation; not a measured or historical dye colour */
+  --ochre-deco: #c99a3a; /* design interpretation; not a measured or historical dye colour */
+  --band-lozenge: #f5f1e8;
+  --danger: #a3242c;
+  --ok: #2e6a3e;
+  --warn: #77540f;
+  --series-2d: #3a5da0;
+  --series-3d: #8e4d16;
+  --grid: #ddd4c6;
+  --viz-seq-1: #e4e3e6;
+  --viz-seq-2: #b9c3d6;
+  --viz-seq-3: #8a9dc0;
+  --viz-seq-4: #4f6a99;
+  --viz-seq-5: #36548a;
+  --viz-seq-6: #1b3360;
+  --focus-halo: #f5f1e8;
+  --shadow-console: 0 8px 24px -12px rgb(33 29 25 / 0.28);
 
   /* shadcn semantic layer */
-  --background: var(--paper);
+  --background: var(--ground);
   --foreground: var(--ink);
-  --card: var(--card-warm);
+  --card: var(--surface);
   --card-foreground: var(--ink);
-  --popover: var(--paper);
+  --popover: var(--surface);
   --popover-foreground: var(--ink);
-  --primary: var(--brand);
-  --primary-foreground: var(--brand-fg);
-  --secondary: var(--paper-2);
+  --primary: var(--indigo);
+  --primary-foreground: var(--on-indigo);
+  --secondary: var(--sunk);
   --secondary-foreground: var(--ink);
-  --muted: var(--paper-2);
-  --muted-foreground: var(--ink-muted);
-  --accent: rgb(43 38 33 / 0.06); /* hover fill — NOT the madder brand colour */
+  --muted: var(--sunk);
+  --muted-foreground: var(--ink-3);
+  --accent: var(--sunk);
   --accent-foreground: var(--ink);
-  --destructive: #9b3326;
-  --border: var(--hairline);
-  --input: var(--hairline-strong);
-  --ring: var(--brand);
-  --radius: 6px;
+  --destructive: var(--danger);
+  --border: var(--rule);
+  --input: var(--rule-strong);
+  --ring: var(--indigo);
+
+  /* Non-colour tokens (DESIGN.md 4.6) */
+  --radius: 3px;
+  --radius-control-v: 3px;
+  --radius-card-v: 2px;
+  --dur-1: 120ms;
+  --dur-2: 150ms;
+  --dur-3: 200ms;
+  --measure: 34rem;
+  --hang: 2.25rem;
+  --studybar-h: 3.5rem;
+  --notice-h: 2.5rem;
+  /* Tallest sticky chrome (notice + StudyBar + 2 px running-head rule), so a focused element
+     scrolled into view is never hidden under it (WCAG 2.4.11, R-A6). */
+  --sticky-chrome: calc(var(--notice-h) + var(--studybar-h) + 2px);
+  --serif-stack: var(--font-source-serif), "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans-stack:
+    var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono-stack: ui-monospace, "Cascadia Code", Consolas, monospace;
+  --arabic-stack: "Segoe UI", "Noto Naskh Arabic", "Geeza Pro", serif;
 }
 
-/* Dark palette — ui/deepzoom/DeepZoomViewer.css:4-8, completed for every semantic token. */
+/* ---- Dark theme (DESIGN.md 4.2). Never applied in study mode (DR-019). ---- */
 .dark {
-  --ink-soft: #e9e3d8;
-  --brand-hover: #e4c4a3;
-  --background: #1a1714;
-  --foreground: #f5f1e8;
-  --card: #221d19;
-  --card-foreground: #f5f1e8;
-  --popover: #221d19;
-  --popover-foreground: #f5f1e8;
-  --primary: #d9b48f;
-  --primary-foreground: #1a1714;
-  --secondary: #2a241f;
-  --secondary-foreground: #f5f1e8;
-  --muted: #2a241f;
-  --muted-foreground: #b3aa9f;
-  --accent: rgb(245 241 232 / 0.08);
-  --accent-foreground: #f5f1e8;
-  --destructive: #e58a76;
-  --border: rgb(245 241 232 / 0.16);
-  --input: rgb(245 241 232 / 0.28);
-  --ring: #d9b48f;
-  --focus-halo: rgb(26 23 20 / 0.85);
-  --panel-bg: rgb(26 23 20 / 0.82);
-  --panel-bg-solid: rgb(26 23 20 / 0.94);
-  --shadow-panel-v: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -12px rgb(0 0 0 / 0.6);
+  --ground: #1a1714;
+  --surface: #221d19;
+  --sunk: #2a241f;
+  --ink: #efe9de;
+  --ink-2: #dcd4c7;
+  --ink-3: #aba195;
+  --rule: #3d352d;
+  --rule-strong: #7d7366;
+  --indigo: #a9bee6;
+  --indigo-hover: #c6d5f1;
+  --on-indigo: #14171d;
+  --wash: #24304a;
+  --band: #1c2d4d;
+  --madder: #e59580;
+  --ochre: #d6ae5e;
+  --ochre-deco: #c99a3a;
+  --band-lozenge: #efe9de;
+  --danger: #f2918c;
+  --ok: #8cc7a0;
+  --warn: #d9b26a;
+  --series-2d: #8faee8;
+  --series-3d: #e0a06a;
+  --grid: #352e27;
+  --viz-seq-1: #2c2b33;
+  --viz-seq-2: #33405a;
+  --viz-seq-3: #465c86;
+  --viz-seq-4: #6582b4;
+  --viz-seq-5: #90aadb;
+  --viz-seq-6: #c3d3f1;
+  --focus-halo: #1a1714;
+  --shadow-console: 0 8px 24px -12px rgb(0 0 0 / 0.6);
+
+  --background: var(--ground);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--indigo);
+  --primary-foreground: var(--on-indigo);
+  --secondary: var(--sunk);
+  --secondary-foreground: var(--ink);
+  --muted: var(--sunk);
+  --muted-foreground: var(--ink-3);
+  --accent: var(--sunk);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
+  --border: var(--rule);
+  --input: var(--rule-strong);
+  --ring: var(--indigo);
 }
 
-/* High contrast (light) — a11y.css:245-255. */
+/* ---- High contrast, light (DESIGN.md 4.4): opaque, flat, every rule solid ink. ---- */
 .a11y-contrast {
-  --foreground: #111111;
-  --card-foreground: #111111;
-  --popover-foreground: #111111;
-  --secondary-foreground: #111111;
-  --accent-foreground: #111111;
-  --muted-foreground: #3a342e;
-  --primary: #6b3f22;
-  --ring: #000000;
-  --border: rgb(17 17 17 / 0.45);
-  --input: rgb(17 17 17 / 0.7);
-  --panel-bg: #fffdf8;
-  --panel-bg-solid: #fffdf8;
-  --panel-blur: none;
-  --shadow-panel-v: 0 0 0 1px rgb(17 17 17 / 0.55), 0 10px 26px -10px rgb(0 0 0 / 0.45);
+  --ground: #fffdf8;
+  --surface: #fffdf8;
+  --sunk: #f1ece2;
+  --wash: #e6eaf2;
+  --ink: #111111;
+  --ink-2: #2b2622;
+  --ink-3: #3a342e;
+  --indigo: #1b2f55;
+  --indigo-hover: #111e38;
+  --on-indigo: #fffdf8;
+  --danger: #8a1a20;
+  --rule: #111111;
+  --rule-strong: #111111;
+  /* Public accents become ink in high contrast (no second hue to tell apart). */
+  --madder: #111111;
+  --ochre: #111111;
+  --focus-halo: #fffdf8;
+  --shadow-console: none;
+
+  --background: var(--ground);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--indigo);
+  --primary-foreground: var(--on-indigo);
+  --secondary: var(--sunk);
+  --secondary-foreground: var(--ink);
+  --muted: var(--sunk);
+  --muted-foreground: var(--ink-3);
+  --accent: var(--sunk);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
+  --border: var(--rule);
+  --input: var(--rule-strong);
+  --ring: var(--indigo);
+}
+
+/* ---- High contrast, dark (DESIGN.md 4.4). Sets every key the light HC block sets, so no light
+   HC value leaks into dark HC (asserted by tests/unit/contrast.test.ts). ---- */
+.dark.a11y-contrast {
+  --ground: #0d0b09;
+  --surface: #0d0b09;
+  --sunk: #1c1813;
+  --wash: #1f2a40;
+  --ink: #ffffff;
+  --ink-2: #f0ebe3;
+  --ink-3: #e2dbd0;
+  --indigo: #c9d7f2;
+  --indigo-hover: #e1e9f8;
+  --on-indigo: #0d0b09;
+  --danger: #ffb0ab;
+  --rule: #ffffff;
+  --rule-strong: #ffffff;
+  --madder: #ffffff;
+  --ochre: #ffffff;
+  --focus-halo: #0d0b09;
+  --shadow-console: none;
+
+  --background: var(--ground);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--indigo);
+  --primary-foreground: var(--on-indigo);
+  --secondary: var(--sunk);
+  --secondary-foreground: var(--ink);
+  --muted: var(--sunk);
+  --muted-foreground: var(--ink-3);
+  --accent: var(--sunk);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
+  --border: var(--rule);
+  --input: var(--rule-strong);
+  --ring: var(--indigo);
 }
 
 @theme inline {
+  /* shadcn semantic colours */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -130,60 +255,72 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-brand-hover: var(--brand-hover);
-  --color-ink-soft: var(--ink-soft);
-  --color-panel: var(--panel-bg);
 
-  --font-display:
-    var(--font-cormorant), "Cormorant", Garamond, "Noto Serif Devanagari", "Noto Serif Bengali",
-    "Times New Roman", serif;
-  --font-sans:
-    var(--font-inter), "Noto Sans Devanagari", "Noto Sans Bengali", system-ui, -apple-system,
-    "Segoe UI", Roboto, sans-serif;
+  /* Apparatus raw colours (bg-ground, text-ink-3, border-rule-strong, ...). Madder and ochre are
+     public-only (lint, DESIGN.md 15); ok and warn are console-only; series and viz are charts. */
+  --color-ground: var(--ground);
+  --color-surface: var(--surface);
+  --color-sunk: var(--sunk);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-indigo: var(--indigo);
+  --color-indigo-hover: var(--indigo-hover);
+  --color-on-indigo: var(--on-indigo);
+  --color-wash: var(--wash);
+  --color-band: var(--band);
+  --color-madder: var(--madder);
+  --color-ochre: var(--ochre);
+  --color-ochre-deco: var(--ochre-deco);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-series-2d: var(--series-2d);
+  --color-series-3d: var(--series-3d);
+  --color-grid: var(--grid);
+  --color-viz-seq-1: var(--viz-seq-1);
+  --color-viz-seq-2: var(--viz-seq-2);
+  --color-viz-seq-3: var(--viz-seq-3);
+  --color-viz-seq-4: var(--viz-seq-4);
+  --color-viz-seq-5: var(--viz-seq-5);
+  --color-viz-seq-6: var(--viz-seq-6);
 
-  --radius-sm: 4px;
-  --radius-md: var(--radius);
-  --radius-lg: 8px;
-  --radius-xl: 10px;
-  --radius-2xl: 14px;
-  --radius-3xl: 18px;
-  --radius-4xl: 24px;
-  --shadow-panel: var(--shadow-panel-v);
+  /* Fonts (DESIGN.md 5.1). */
+  --font-serif: var(--serif-stack);
+  --font-sans: var(--sans-stack);
+  --font-mono: var(--mono-stack);
+
+  /* Square-cut geometry (DESIGN.md 2.6, 4.6): 3 px controls, 2 px cards. The legacy scale is
+     collapsed onto those two values so every package is square-cut before it migrates. */
+  --radius-control: var(--radius-control-v);
+  --radius-card: var(--radius-card-v);
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 3px;
+  --radius-xl: 3px;
+  --radius-2xl: 3px;
+  --radius-3xl: 3px;
+  --radius-4xl: 3px;
+
+  --shadow-console: var(--shadow-console);
+  /* Popovers use the console token; cards and study surfaces carry no shadow. */
+  --shadow-pop: var(--shadow-console);
 }
 
 @theme {
-  /* Categorical colours (entry.css:77-107). Never the only cue. No yellow: reserved for guidance. */
-  --color-madder: #a34a33;
-  --color-indigo: #34506e;
-  --color-wood: #9b6a45;
-  --color-wood-dark: #6e472c;
-  --color-cloth: #f8f2e6;
-  --color-ok: #3d6b45;
-  --color-warn: #7a5716;
-  --color-danger: #9b3326;
-  --font-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  --breakpoint-xs: 32.5rem; /* 520 px */
+  --breakpoint-2xl: 90rem; /* 1440 px */
 
-  --text-kicker: 0.65625rem;
-  --text-kicker--line-height: 1.4;
-  --text-kicker--letter-spacing: 0.22em;
-  --text-kicker--font-weight: 500;
-  --text-label: 0.75rem;
-  --text-label--letter-spacing: 0.02em;
-  --text-label--font-weight: 500;
-  --text-reading: 1.125rem;
-  --text-reading--line-height: 1.5;
-  --text-title: 1.875rem;
-  --text-title--line-height: 1.08;
-  --text-hero: clamp(2.75rem, 8.4vw, 5.375rem); /* public pages only */
-  --text-hero--line-height: 0.98;
-
-  --shadow-card: 0 1px 2px rgb(43 38 33 / 0.05), 0 1px 1px rgb(43 38 33 / 0.03);
-  --shadow-pop: 0 12px 32px -12px rgb(43 38 33 / 0.28), 0 2px 6px rgb(43 38 33 / 0.06);
   --ease-museum: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --breakpoint-xs: 32.5rem;
   --spacing-edge: 18px;
+  --spacing-measure: 34rem;
+  --spacing-hang: 2.25rem;
+  --spacing-sheet: 39.25rem;
 
-  /* Named z-index scale (catalogue §2.4). Use as z-(--z-modal). */
+  /* Named z-index scale (unchanged). Use as z-(--z-modal). */
   --z-canvas: 0;
   --z-hud: 10;
   --z-panel: 20;
@@ -193,36 +330,16 @@
   --z-viewer: 60;
   --z-skip-link: 100;
 
-  /* Functional motion only. Decorative keyframes are banned in /learn/* and the study flow. */
-  --animate-fade-in: fade-in 0.3s var(--ease-museum) both;
-  --animate-rise-sm: rise-sm 0.35s var(--ease-museum) both;
-  --animate-drop: drop 0.22s var(--ease-museum) both;
+  /* Functional motion only (console and public). Study routes clamp everything to zero. */
+  --animate-fade-in: fade-in var(--dur-3) var(--ease-museum) both;
+  --animate-rise-sm: fade-in var(--dur-3) var(--ease-museum) both;
+  --animate-drop: fade-in var(--dur-2) var(--ease-museum) both;
   @keyframes fade-in {
     from {
       opacity: 0;
     }
     to {
       opacity: 1;
-    }
-  }
-  @keyframes rise-sm {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-  @keyframes drop {
-    from {
-      opacity: 0;
-      transform: translateY(-4px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
     }
   }
 }
@@ -233,21 +350,50 @@
   }
   html {
     color-scheme: light;
+    scroll-padding-top: var(--sticky-chrome);
   }
   html.dark {
     color-scheme: dark;
   }
   body {
-    @apply bg-background text-foreground font-sans;
-    font-size: 14px;
-    line-height: 1.5;
+    background-color: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans-stack);
+    font-size: 1rem;
+    line-height: 1.5rem;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--mono-stack);
+  }
+
+  /* Focus (DESIGN.md 9.1, R-A5): 2 px indigo outline at 2 px offset plus a 4 px ground halo,
+     on every focusable. Primitives do not draw their own rings. */
   :focus-visible {
-    outline: 2px solid var(--ring);
+    outline: 2px solid var(--indigo);
     outline-offset: 2px;
     box-shadow: 0 0 0 4px var(--focus-halo);
+  }
+  /* Chromium's date and time inputs have a fourth Tab stop, the picker button inside the
+     input's own shadow tree, where the input matches :focus-within but not :focus-visible. */
+  :is(input[type="date"], input[type="datetime-local"], input[type="time"], input[type="month"], input[type="week"]):focus-within {
+    outline: 2px solid var(--indigo);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--focus-halo);
+  }
+  /* One skip link per view (P22): on learning routes the StudyBar carries it, so the root one hides. */
+  :root:has([data-slot="study-skip-link"]) .root-skip-link {
+    display: none;
+  }
+  /* Programmatic focus targets (the page h1 after navigation, <main>, error summaries) are not
+     controls: focus moves there so screen readers announce them, but no ring is drawn. */
+  [tabindex="-1"]:focus-visible {
+    outline: none;
+    box-shadow: none;
   }
   /* High contrast: black/white double ring, visible on any surface. Never yellow. */
   .a11y-contrast :focus-visible {
@@ -264,6 +410,26 @@
       0 0 0 2px #000,
       0 0 0 7px #000;
   }
+  .a11y-contrast :is(input[type="date"], input[type="datetime-local"], input[type="time"], input[type="month"], input[type="week"]):focus-within {
+    outline: 3px solid #000;
+    outline-offset: 2px;
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 7px #fff;
+  }
+  .dark.a11y-contrast :is(input[type="date"], input[type="datetime-local"], input[type="time"], input[type="month"], input[type="week"]):focus-within {
+    outline-color: #fff;
+    box-shadow:
+      0 0 0 2px #000,
+      0 0 0 7px #000;
+  }
+  /* The high-contrast ring outranks the programmatic-target rule above by source order, so it is
+     repeated here: the sheet h1 focused on concept open shows no ring in any theme. */
+  .a11y-contrast [tabindex="-1"]:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -274,6 +440,7 @@
       scroll-behavior: auto !important;
     }
   }
+  .a11y-reduce-motion,
   .a11y-reduce-motion *,
   .a11y-reduce-motion *::before,
   .a11y-reduce-motion *::after {
@@ -282,35 +449,353 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  /* Study roots (DESIGN.md 5.1, 8, 12.2): no faux bold or italic, and zero motion in both
+     conditions. The `:has()` form also reaches dialogs, sheets and tooltips portalled to <body>
+     while a study shell is mounted, so tw-animate-css never runs on a study route. */
+  .study-root,
+  [data-condition] {
+    font-synthesis: none;
+  }
+  :root:has(.study-root, [data-condition]) *,
+  :root:has(.study-root, [data-condition]) *::before,
+  :root:has(.study-root, [data-condition]) *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Scripts other than Latin (DESIGN.md 5.1, 5.2): no uppercase or tracking on Indic or Arabic
+     script, and Arabic script renders through the system stack. */
   :lang(hi),
   :lang(hi) *,
   :lang(bn),
-  :lang(bn) * {
+  :lang(bn) *,
+  :lang(te),
+  :lang(te) *,
+  :lang(gu),
+  :lang(gu) *,
+  :lang(sd),
+  :lang(sd) * {
     letter-spacing: normal !important;
     text-transform: none !important;
   }
-}
-
-/* .ui-panel, styles.css:154-167 — immersive overlays only. */
-@utility panel {
-  background: var(--panel-bg);
-  backdrop-filter: var(--panel-blur);
-  -webkit-backdrop-filter: var(--panel-blur);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-panel-v);
-  @supports not (backdrop-filter: blur(1px)) {
-    background: var(--panel-bg-solid);
+  :lang(sd),
+  :lang(ar),
+  :lang(fa),
+  :lang(ur) {
+    font-family: var(--arabic-stack);
   }
 }
 
-/* .ui-kicker, styles.css:169-176 */
-@utility kicker {
-  @apply font-sans;
-  font-size: 10.5px;
+/* ---- Type tokens (DESIGN.md 5.2). Knowledge tokens are identical in both conditions. ---- */
+@utility text-title {
+  font-family: var(--serif-stack);
+  font-size: 2rem;
+  line-height: 2.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  @media (width < 32.5rem) {
+    font-size: 1.75rem;
+    line-height: 2.25rem;
+  }
+}
+@utility text-reading {
+  font-family: var(--sans-stack);
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  font-variant-numeric: proportional-nums lining-nums;
+}
+@utility text-claim-number {
+  font-family: var(--sans-stack);
+  font-size: 1.125rem;
+  line-height: 1.75rem;
   font-weight: 500;
-  line-height: 1.4;
-  letter-spacing: 0.22em;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ink-3);
+  text-align: right;
+}
+@utility text-quote {
+  font-family: var(--serif-stack);
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 400;
+  font-style: normal;
+}
+@utility text-lead {
+  font-family: var(--sans-stack);
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 400;
+  color: var(--ink-2);
+}
+@utility text-h2 {
+  font-family: var(--serif-stack);
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 600;
+}
+@utility text-h3 {
+  font-family: var(--serif-stack);
+  font-size: 1.1875rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+}
+@utility text-eyebrow {
+  font-family: var(--sans-stack);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--muted-foreground);
+  color: var(--ink-3);
+}
+@utility text-source {
+  font-family: var(--sans-stack);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+  color: var(--ink-3);
+  overflow-wrap: break-word;
+}
+@utility text-caption {
+  font-family: var(--sans-stack);
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
+  font-weight: 400;
+  color: var(--ink-2);
+}
+@utility text-credit {
+  font-family: var(--sans-stack);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+@utility text-ui {
+  font-family: var(--sans-stack);
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+}
+@utility text-timer {
+  font-family: var(--sans-stack);
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+@utility text-dl-label {
+  font-family: var(--sans-stack);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+@utility text-dl-value {
+  font-family: var(--sans-stack);
+  font-size: 0.9375rem;
+  line-height: 1.5rem;
+  font-weight: 400;
+  color: var(--ink);
+}
+/* Public, console, CMS and admin extras. */
+@utility text-display-1 {
+  font-family: var(--serif-stack);
+  font-size: clamp(2.75rem, 1rem + 5.2vw, 5rem);
+  line-height: 1.04;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  font-optical-sizing: auto;
+  text-wrap: balance;
+}
+@utility text-display-2 {
+  font-family: var(--serif-stack);
+  font-size: 2.5rem;
+  line-height: 3rem;
+  font-weight: 400;
+  text-wrap: balance;
+}
+@utility text-deck {
+  font-family: var(--serif-stack);
+  font-size: 1.375rem;
+  line-height: 2rem;
+  font-weight: 400;
+  color: var(--ink-2);
+}
+@utility text-body {
+  font-family: var(--sans-stack);
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 400;
+}
+@utility text-table {
+  font-family: var(--sans-stack);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+@utility text-stat {
+  font-family: var(--sans-stack);
+  font-size: 1.75rem;
+  line-height: 2.25rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+@utility text-mono {
+  font-family: var(--mono-stack);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  font-weight: 400;
+}
+
+/* Hit area: a 36 px visual control keeps a 44 x 44 target (DESIGN.md 9.1 `compact`). */
+@utility hit-44 {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* ---- Graphic language (DESIGN.md 7). Decorative only; never in study mode. ---- */
+.ie-band,
+.ie-field {
+  display: block;
+}
+.ie-band__field {
+  fill: var(--band);
+}
+.ie-band__lozenge {
+  fill: var(--band-lozenge);
+  fill-opacity: 0.9;
+}
+.dark .ie-band__lozenge {
+  fill-opacity: 0.85;
+}
+.ie-band__dot {
+  fill: var(--ochre-deco);
+}
+.a11y-contrast .ie-band,
+.a11y-contrast .ie-field {
+  display: none;
+}
+/* In high contrast each band is replaced by a 2 px ink rule (DESIGN.md 4.4). */
+.ie-band-rule {
+  display: none;
+}
+.a11y-contrast .ie-band-rule {
+  display: block;
+  border-top: 2px solid var(--ink);
+}
+
+.ie-ticks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.ie-tick {
+  position: absolute;
+  overflow: visible;
+}
+.ie-tick path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linecap: square;
+}
+.ie-tick--tl {
+  top: -6px;
+  left: -6px;
+}
+.ie-tick--tr {
+  top: -6px;
+  right: -6px;
+}
+.ie-tick--bl {
+  bottom: -6px;
+  left: -6px;
+}
+.ie-tick--br {
+  bottom: -6px;
+  right: -6px;
+}
+.a11y-contrast .ie-ticks {
+  display: none;
+}
+
+/* Neutral tradition marker (DESIGN.md 7.7): identical for all six keys. */
+.ie-marker {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  margin-inline-end: 6px;
+  vertical-align: -1px;
+  flex-shrink: 0;
+}
+
+@media (forced-colors: active) {
+  .ie-band,
+  .ie-field,
+  .ie-ticks {
+    display: none;
+  }
+  .ie-band-rule {
+    display: block;
+    border-top: 2px solid CanvasText;
+  }
+}
+
+/* ---- AccessNotice merge (DESIGN.md 9.15, P7). Unlayered, so these win over utilities. ----
+   ONE notice strip above the StudyBar, identical in both conditions: while an AccessNotice (demo,
+   staff preview) is present, the separate "under review" strip is hidden and the AccessNotice
+   shows its merged wording; a participant on unverified content sees the "under review" strip
+   alone. --notice-offset (the StudyBar's sticky top) is the strip height whenever one is shown. */
+[data-access-notice] [data-notice-variant="review"] {
+  display: none;
+}
+[data-condition]:has([data-slot="unverified-notice"]) [data-access-notice] [data-notice-variant="plain"] {
+  display: none;
+}
+[data-condition]:has([data-slot="unverified-notice"]) [data-access-notice] [data-notice-variant="review"] {
+  display: block;
+}
+[data-condition]:has([data-access-notice]) [data-slot="unverified-notice"] {
+  display: none;
+}
+[data-condition]:has([data-access-notice], [data-slot="unverified-notice"]) {
+  --notice-offset: var(--notice-h);
+}
+/* 3D: the scene starts below the chrome; the chrome holds the strip only when it is shown there. */
+[data-testid="museum-root"] {
+  --museum-notice: 0px;
+}
+[data-testid="museum-root"]:has([data-slot="unverified-notice"]) {
+  --museum-notice: var(--notice-h);
+}
+[data-condition]:has([data-access-notice]) [data-testid="museum-root"] {
+  --museum-notice: 0px;
+}
+
+/* React Flow's attribution link (rater and research views only; participants never see it): a
+   44 px target (DESIGN.md 9.1, R-A9) instead of the library's 12 px line. */
+.react-flow__attribution a {
+  display: inline-flex;
+  min-height: 44px;
+  min-width: 44px;
+  align-items: center;
+  padding-inline: 8px;
+  color: var(--indigo);
+  text-decoration: underline;
 }

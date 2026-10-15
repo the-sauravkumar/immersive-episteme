@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** Suspense fallback while a gate checks access. Static, no motion beyond the skeleton pulse. */
+/** Suspense fallback while a gate checks access: static --sunk blocks, no motion (DESIGN.md 8). */
 export function GateFallback({ label = "Checking access…" }: { label?: string }) {
   return (
     <div role="status" aria-live="polite" className="flex flex-col gap-3">

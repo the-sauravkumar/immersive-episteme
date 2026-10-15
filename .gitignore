@@ -65,3 +65,6 @@ venv/
 # local tooling state
 .claude/settings.local.json
 .codegraph/
+
+# local media storage (development fallback, MEDIA_LOCAL_DIR default)
+/.data/

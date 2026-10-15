@@ -1,1 +1,1 @@
-export { CitationDisclosure, type CitationDisclosureProps } from "./citation-disclosure";
+export { CitationDisclosure, CitationNote, CitationRecord, type CitationDisclosureProps, type CitationNoteProps } from "./citation-disclosure";

@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { MemoryOutbox, createTelemetryTracker, type TelemetryTrackerOptions } from "@/features/telemetry/client";
+import { MemoryOutbox, createSeqHandoff, createTelemetryTracker, type SeqMark, type TelemetryTrackerOptions } from "@/features/telemetry/client";
 
 import { SESSION, fakeFetch, type Reply } from "./helpers";
 
@@ -39,6 +39,58 @@ afterEach(() => {
 });
 
 describe("telemetry tracker", () => {
+  it("hands the seq counter to the next tracker of the session while the previous one is still writing", async () => {
+    // An outbox whose writes land only when released: the situation on client-side navigation,
+    // when one page's provider unmounts and the next mounts before IndexedDB has committed.
+    class SlowOutbox extends MemoryOutbox {
+      release: () => void = () => undefined;
+      private gate = new Promise<void>((r) => (this.release = r));
+      override async append(...args: Parameters<MemoryOutbox["append"]>) {
+        await this.gate;
+        return super.append(...args);
+      }
+    }
+    const run = async (linked: boolean) => {
+      const outbox = new SlowOutbox();
+      const handoff = linked ? createSeqHandoff() : undefined;
+      const { tracker: first } = make([], { storage: outbox, handoff });
+      const a = first.pageEntered({ roomOrPageId: "learn" });
+      first.stop();
+      const { tracker: next } = make([], { storage: outbox, handoff });
+      const b = next.pageEntered({ roomOrPageId: "study" });
+      outbox.release();
+      return [(await a)?.seq, (await b)?.seq];
+    };
+    expect(await run(true)).toEqual([0, 1]);
+    // Without the handoff the second tracker reuses seq 0 (the server would quarantine it).
+    expect(await run(false)).toEqual([0, 0]);
+  });
+
+  it("continues after a page unload whose last outbox write never committed", async () => {
+    // The old page tracked an event while being hidden (it was beaconed), then unloaded before
+    // the asynchronous outbox write landed. Only the synchronous seq mark survives.
+    class LostWrites extends MemoryOutbox {
+      override async append() {
+        return new Promise<void>(() => undefined);
+      }
+    }
+    const marks = new Map<string, number>();
+    const seqMark: SeqMark = { get: (s) => marks.get(s) ?? null, set: (s, n) => void marks.set(s, n) };
+    const run = async (mark: SeqMark | null) => {
+      marks.clear();
+      const { tracker: old } = make([], { storage: new LostWrites(), seqMark: mark });
+      await old.ready();
+      void old.pageEntered({ roomOrPageId: "learn" });
+      void old.track("page_exited", { metadata: { dwellMs: 10 } });
+      old.stop();
+      // Fresh page: a new outbox handle on the same (empty) store, a new JS realm (no handoff).
+      const { tracker: next } = make([], { storage: new MemoryOutbox(), seqMark: mark });
+      return (await next.pageEntered({ roomOrPageId: "study" }))?.seq;
+    };
+    expect(await run(seqMark)).toBe(2);
+    expect(await run(null)).toBe(0);
+  });
+
   it("numbers events monotonically and resumes the sequence after a reload", async () => {
     const { tracker, outbox } = make([500, 500, 500]);
     const a = await tracker.pageEntered({ roomOrPageId: "p1" });

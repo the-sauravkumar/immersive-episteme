@@ -1,10 +1,15 @@
 /**
- * Pure resolution of the learning context, plus its database port. Not `server-only`, so the
- * integration tests can run it; pages call `getLearningContext()` in ./context.ts.
+ * Pure resolution of the learning and practice contexts, plus their database port. Not
+ * `server-only`, so the integration tests can run it; pages call `getLearningContext()` (or
+ * `getPracticeContext()`) in ./context.ts.
  */
 import type { Pool, PoolClient } from "pg";
 
-import { studyConfigSchema } from "@/features/study/contracts";
+import { learningSettingsOf, type LearningSettings } from "@/features/learning/settings";
+import { defaultRuleSetConfig } from "@/features/spatial/compiler/config";
+import { comparisonMinTraditions } from "@/features/spatial/compiler/rules";
+import { mappingRuleSetConfigSchema } from "@/features/spatial/contracts";
+import { studyConfigSchema, type StudyConfig } from "@/features/study/contracts";
 import type { LearningCondition } from "@/lib/permissions/learning";
 import type { LearningTimeBudget } from "@/features/learning/time-budget";
 import type { LearningAccess } from "@/server/auth/learning-decision";
@@ -36,6 +41,18 @@ export interface LearningContext {
   /** Tradition slugs the learner should see (study config; for demo/preview the demo study's). */
   traditionSlugs: string[];
   features: { search: boolean };
+  /**
+   * Protocol settings both conditions read (study config; demo/preview: the demo study's):
+   * minimap, WebGL failure policy, guidance (D6) and the learning-task prompts.
+   */
+  settings: LearningSettings;
+  /**
+   * Study scope rule shared with the spatial compiler: a tradition-less comparison concept is in
+   * scope when it compares concepts of at least this many selected traditions. Read from the
+   * rule set of the pinned manifest (the compiler's own source); the default rule set's value
+   * when no manifest is pinned.
+   */
+  scope: { minCompareTraditions: number };
   /**
    * Session id for the telemetry client: the study session id in study mode; otherwise a
    * stable name-based uuid per demo cookie / staff user (the server never stores those events).
@@ -74,6 +91,8 @@ export interface StudySessionContextRow {
   snapshotLabel: string | null;
   includesUnverified: boolean;
   manifestId: string | null;
+  /** mapping_rule_sets.config of the pinned manifest's rule set (null without a manifest). */
+  ruleSetConfig: unknown;
 }
 
 export interface PreviewContentRow {
@@ -82,6 +101,7 @@ export interface PreviewContentRow {
   manifestId: string | null;
   traditionSlugs: string[];
   studyConfig: unknown;
+  ruleSetConfig: unknown;
 }
 
 export interface LearningClockRow {
@@ -105,14 +125,16 @@ export function pgLearningContextData(q: Q): LearningContextData {
     async findStudySession(sessionId) {
       const r = await q.query<{
         session_id: string; code: string; study_id: string; is_demo: boolean; config: unknown; snapshot_id: string | null;
-        version_label: string | null; includes_unverified: boolean | null; manifest_id: string | null;
+        version_label: string | null; includes_unverified: boolean | null; manifest_id: string | null; rule_set_config: unknown;
       }>(
         `SELECT ss.id AS session_id, p.code, st.id AS study_id, st.is_demo, st.config, ss.snapshot_id, cs.version_label,
-                cs.includes_unverified, ss.manifest_id
+                cs.includes_unverified, ss.manifest_id, rs.config AS rule_set_config
            FROM study_sessions ss
            JOIN participants p ON p.id = ss.participant_id
            JOIN studies st ON st.id = ss.study_id
            LEFT JOIN content_snapshots cs ON cs.id = ss.snapshot_id
+           LEFT JOIN spatial_manifests sm ON sm.id = ss.manifest_id
+           LEFT JOIN mapping_rule_sets rs ON rs.id = sm.rule_set_id
           WHERE ss.id = $1`,
         [sessionId],
       );
@@ -128,6 +150,7 @@ export function pgLearningContextData(q: Q): LearningContextData {
         snapshotLabel: row.version_label,
         includesUnverified: row.includes_unverified ?? false,
         manifestId: row.manifest_id,
+        ruleSetConfig: row.rule_set_config ?? null,
       };
     },
     async startLearningClock(sessionId) {
@@ -161,7 +184,10 @@ export function pgLearningContextData(q: Q): LearningContextData {
         manifestId = m.rows[0]?.id ?? null;
         traditions = m.rows[0]?.traditions ?? [];
       }
-      return { snapshotId: row.id, snapshotLabel: row.version_label, manifestId, traditionSlugs: traditions, studyConfig: row.config ?? {} };
+      const rs = manifestId
+        ? await q.query<{ config: unknown }>("SELECT rs.config FROM spatial_manifests m JOIN mapping_rule_sets rs ON rs.id = m.rule_set_id WHERE m.id = $1", [manifestId])
+        : null;
+      return { snapshotId: row.id, snapshotLabel: row.version_label, manifestId, traditionSlugs: traditions, studyConfig: row.config ?? {}, ruleSetConfig: rs?.rows[0]?.config ?? null };
     },
   };
 }
@@ -218,6 +244,84 @@ export function nonStudyTelemetrySessionId(kind: "demo" | "preview", id: string)
 }
 
 /**
+ * Telemetry session id of a participant's familiarisation practice (D5): derived from the study
+ * session, never equal to it, so practice events have their own seq numbering and the ingestion
+ * endpoint can recognise them, acknowledge them and store nothing (they never reach learning
+ * metrics).
+ */
+export function practiceTelemetrySessionId(studySessionId: string): string {
+  return nameBasedUuid(nodeSha256, "telemetry-session", "practice", studySessionId);
+}
+
+/** The study config, or the schema defaults when the stored config is unreadable. */
+function configOf(raw: unknown): StudyConfig {
+  const parsed = studyConfigSchema.safeParse(raw ?? {});
+  return parsed.success ? parsed.data : studyConfigSchema.parse({});
+}
+
+/** The comparison scope rule of the pinned manifest's rule set (the compiler's source). */
+function minCompareTraditionsOf(ruleSetConfig: unknown): number {
+  const parsed = ruleSetConfig == null ? null : mappingRuleSetConfigSchema.safeParse(ruleSetConfig);
+  return comparisonMinTraditions(parsed?.success ? parsed.data : defaultRuleSetConfig());
+}
+
+/**
+ * Context of the familiarisation practice pages (/learn/<condition>/practice, D5). Unlike the
+ * learning context it never touches the learning clock, and its telemetry session is the
+ * practice one (study mode) or the demo/preview one (nothing is stored either way).
+ */
+export interface PracticeContext {
+  mode: LearningMode;
+  condition: LearningCondition;
+  sessionId: string | null;
+  studyId: string | null;
+  telemetrySessionId: string;
+  /** Telemetry header value (the session's snapshot label when there is one). */
+  contentVersion: string;
+  appBuild: string;
+  settings: LearningSettings;
+  /** familiarisation.minutes of the study config; null when the protocol sets none (demo/preview only). */
+  minutes: number | null;
+  /** Protocol features, as in the learning context (DR-019: search is off in study builds by default). */
+  features: { search: boolean };
+}
+
+export async function resolvePracticeContext(access: LearningAccess, deps: { data: LearningContextData; appBuild: string }): Promise<PracticeContext> {
+  if (access.kind === "participant") {
+    const s = await deps.data.findStudySession(access.sessionId);
+    if (!s) throw new LearningContextUnavailableError("session_not_found");
+    const cfg = configOf(s.studyConfig);
+    return {
+      mode: "study",
+      condition: access.condition,
+      sessionId: s.sessionId,
+      studyId: s.studyId,
+      telemetrySessionId: practiceTelemetrySessionId(s.sessionId),
+      contentVersion: s.snapshotLabel ?? "practice",
+      appBuild: deps.appBuild,
+      settings: learningSettingsOf(cfg),
+      minutes: cfg.familiarisation?.minutes ?? null,
+      features: { search: cfg.searchEnabled },
+    };
+  }
+  const preview = await deps.data.findPreviewContent();
+  const cfg = configOf(preview?.studyConfig);
+  return {
+    mode: access.kind === "demo" ? "demo" : "preview",
+    condition: access.condition,
+    sessionId: null,
+    studyId: null,
+    telemetrySessionId: nonStudyTelemetrySessionId(access.kind === "demo" ? "demo" : "preview", access.kind === "demo" ? access.demoId : access.userId),
+    contentVersion: preview?.snapshotLabel ?? "practice",
+    appBuild: deps.appBuild,
+    settings: learningSettingsOf(cfg),
+    minutes: cfg.familiarisation?.minutes ?? null,
+    // Demo and preview offer search, as their learning context does.
+    features: { search: true },
+  };
+}
+
+/**
  * Builds the learning context for an access decision that the learning guard already allowed.
  * Study mode reads the session's pinned snapshot and manifest (which the database forces to equal
  * the study's); demo and preview read the newest review snapshot and are always non-experimental.
@@ -230,8 +334,7 @@ export async function resolveLearningContext(
     const s = await deps.data.findStudySession(access.sessionId);
     if (!s) throw new LearningContextUnavailableError("session_not_found");
     if (!s.snapshotId || !s.snapshotLabel) throw new LearningContextUnavailableError("study_has_no_snapshot");
-    const config = studyConfigSchema.safeParse(s.studyConfig);
-    const cfg = config.success ? config.data : studyConfigSchema.parse({});
+    const cfg = configOf(s.studyConfig);
     return {
       mode: "study",
       condition: access.condition,
@@ -245,6 +348,8 @@ export async function resolveLearningContext(
       unverifiedContent: s.includesUnverified,
       traditionSlugs: cfg.traditionSlugs,
       features: { search: cfg.searchEnabled },
+      settings: learningSettingsOf(cfg),
+      scope: { minCompareTraditions: minCompareTraditionsOf(s.ruleSetConfig) },
       telemetrySessionId: s.sessionId,
       learningTime: await (async () => {
         const clock = await deps.data.startLearningClock(s.sessionId);
@@ -281,6 +386,9 @@ export async function resolveLearningContext(
     traditionSlugs: cfg.success && cfg.data.traditionSlugs.length > 0 ? cfg.data.traditionSlugs : preview.traditionSlugs,
     // Demo and preview show every affordance a study could enable.
     features: { search: true },
+    // The demo study's protocol settings (schema defaults without a readable demo config).
+    settings: learningSettingsOf(configOf(preview.studyConfig)),
+    scope: { minCompareTraditions: minCompareTraditionsOf(preview.ruleSetConfig) },
     telemetrySessionId: nonStudyTelemetrySessionId(access.kind === "demo" ? "demo" : "preview", access.kind === "demo" ? access.demoId : access.userId),
     // Same budget rule as a study (demo study config), but nothing is stored: the client counts
     // from serverNow.

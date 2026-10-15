@@ -128,3 +128,77 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  parity:
+    # DESIGN.md 12.4 and 15 (WP8): the interface parity suite (P1-P27, four viewports x four
+    # themes x three study traditions) and the design acceptance checks, against a database
+    # bootstrapped with the real content and the demo study. On main the measured report is
+    # committed to analysis/parity/interface-parity.json, which the Equivalence Monitor reads;
+    # the report is written even when a check fails, so failures are visible there too.
+    name: Interface parity and design acceptance
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    needs: verify
+    permissions:
+      contents: write
+    services:
+      postgres:
+        image: pgvector/pgvector:pg18@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11
+        env:
+          POSTGRES_USER: episteme
+          POSTGRES_PASSWORD: episteme_ci_password
+          POSTGRES_DB: episteme
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U episteme -d episteme"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate an ephemeral auth secret
+        run: echo "BETTER_AUTH_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")" >> "$GITHUB_ENV"
+
+      - name: Create test database
+        run: psql "postgres://episteme:episteme_ci_password@localhost:5432/episteme" -c "CREATE DATABASE episteme_test"
+
+      - name: Bootstrap the database (migrations, seeds, content, review snapshot, manifests, demo study)
+        run: npx tsx scripts/dev/bootstrap.ts
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Interface parity (P1-P27)
+        run: npx playwright test tests/e2e/parity.spec.ts --workers=1
+
+      - name: Design acceptance (DESIGN.md 15)
+        if: always()
+        run: npx playwright test tests/e2e/design-acceptance.spec.ts tests/e2e/alignment.spec.ts --workers=1
+
+      - name: Commit the interface parity report
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && hashFiles('analysis/parity/interface-parity.json') != ''
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add analysis/parity/interface-parity.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Record the interface parity report for ${GITHUB_SHA::12}"
+          git push
+
+      - name: Upload report
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: parity-playwright-report
+          path: playwright-report/
+          retention-days: 7

@@ -98,6 +98,20 @@ export interface TelemetryTrackerOptions {
   endpoint?: string;
   /** Defaults to `openDefaultOutbox()` (IndexedDB, localStorage, memory). */
   storage?: Outbox | Promise<Outbox>;
+  /**
+   * Hands the seq counter from one tracker of a session to the next one in the same page
+   * (client-side navigation unmounts one provider and mounts another before the first one's
+   * outbox writes have landed). Defaults to a page-wide registry when `storage` is the default
+   * outbox; pass a shared `createSeqHandoff()` to give injected-storage trackers the same link.
+   */
+  handoff?: SeqHandoff;
+  /**
+   * Synchronous seq high-water mark that survives a page unload. Events tracked while a page is
+   * being hidden are beaconed, but the page can unload before their asynchronous outbox write
+   * commits; the next page would then reuse their seqs. Defaults to `localStorage` when
+   * `storage` is the default outbox; pass one explicitly to test it.
+   */
+  seqMark?: SeqMark | null;
   fetchImpl?: typeof fetch;
   /** Defaults to `navigator.sendBeacon` when present; `null` disables beacons. */
   sendBeacon?: ((url: string, data: Blob) => boolean) | null;
@@ -166,6 +180,45 @@ type SendOutcome =
   | { kind: "too_large" }
   | { kind: "final"; code: string; status: number };
 
+/** Per-session seq high-water mark and the last outbox write, shared by trackers of one page. */
+export type SeqHandoff = Map<string, { nextSeq: number; writes: Promise<unknown> }>;
+export const createSeqHandoff = (): SeqHandoff => new Map();
+
+export interface SeqMark {
+  get(sessionId: string): number | null;
+  set(sessionId: string, nextSeq: number): void;
+}
+
+/** `localStorage` mark (`ie-telemetry:v1:<sessionId>:mark`); null where storage is unavailable. */
+export function localStorageSeqMark(): SeqMark | null {
+  let ls: Storage;
+  try {
+    ls = globalThis.localStorage;
+    if (!ls) return null;
+  } catch {
+    return null;
+  }
+  const key = (s: string) => `ie-telemetry:v1:${s}:mark`;
+  return {
+    get(s) {
+      try {
+        const n = Number(ls.getItem(key(s)));
+        return Number.isInteger(n) && n > 0 ? n : null;
+      } catch {
+        return null;
+      }
+    },
+    set(s, n) {
+      try {
+        ls.setItem(key(s), String(n));
+      } catch {
+        // Quota or privacy mode: the asynchronous outbox still carries the counter.
+      }
+    },
+  };
+}
+const pageHandoff: SeqHandoff = createSeqHandoff();
+
 export function createTelemetryTracker(options: TelemetryTrackerOptions): TelemetryTracker {
   const {
     sessionId,
@@ -190,6 +243,13 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
         : null
       : options.sendBeacon;
 
+  const handoff = options.handoff ?? (options.storage === undefined ? pageHandoff : null);
+  const seqMark = options.seqMark !== undefined ? options.seqMark : options.storage === undefined ? localStorageSeqMark() : null;
+  const handoffEntry = () => {
+    let h = handoff?.get(sessionId);
+    if (handoff && !h) handoff.set(sessionId, (h = { nextSeq: 0, writes: Promise.resolve() }));
+    return h;
+  };
   let outbox: Outbox | null = null;
   let initPromise: Promise<void> | null = null;
   /** True once the outbox is open and the seq counter restored: events can then be staged synchronously. */
@@ -243,6 +303,11 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
   function init(): Promise<void> {
     initPromise ??= (async () => {
       try {
+        // A previous tracker of this session in this page may still be writing: let it finish,
+        // so its events are in the outbox (or at least its counter is known) before we resume.
+        const prior = handoffEntry();
+        await prior?.writes.catch(() => undefined);
+        nextSeq = Math.max(nextSeq, prior?.nextSeq ?? 0, seqMark?.get(sessionId) ?? 0);
         outbox = await (options.storage ?? openDefaultOutbox());
         const stored = await outbox.list(sessionId);
         for (const e of stored) pending.set(e.seq, e);
@@ -288,6 +353,9 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
     }
     const event = parsed.data;
     nextSeq = event.seq + 1;
+    const h = handoffEntry();
+    if (h) h.nextSeq = Math.max(h.nextSeq, nextSeq);
+    seqMark?.set(sessionId, nextSeq);
     pending.set(event.seq, event);
     update({ enqueued: stats.enqueued + 1 });
     return event;
@@ -314,17 +382,24 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
       if (!event) return Promise.resolve(null);
       const seqAfter = nextSeq;
       chain = chain.then(() => persist(event, seqAfter)).catch(() => undefined);
+      const h = handoffEntry();
+      if (h) h.writes = chain;
       return chain.then(() => event);
     }
     waiting++;
+    // Start init now (it captures the previous tracker's writes synchronously), before this
+    // tracker's own write is registered in the handoff, so init never waits on itself.
+    const ready = init();
     const p = chain.then(async () => {
-      await init();
+      await ready;
       waiting--;
       const event = stage(type, fields, clientTs, mono);
       if (event) await persist(event, nextSeq);
       return event;
     });
     chain = p.catch(() => undefined);
+    const h = handoffEntry();
+    if (h) h.writes = chain;
     return p;
   };
 

@@ -84,6 +84,16 @@ describe("validation catches injected faults", () => {
     expect(v.checks.find((c) => c.id === "accessibility.doorways")!.passed).toBe(false);
   });
 
+  it("an override that moves only an exhibit's position (plinth and approach left behind)", () => {
+    const { manifest } = compileSpatialManifest(syntheticInput());
+    const ex = manifest.elements.find((e) => e.kind === "exhibit")!;
+    const pos = ex.position as { x: number; z: number };
+    ex.position = { x: pos.x + 3, z: pos.z };
+    const c = revalidateManifest(syntheticInput(), manifest).checks.find((x) => x.id === "geometry.exhibit-consistency")!;
+    expect(c.passed).toBe(false);
+    expect(c.details!.issues.join(" ")).toContain(`${ex.id}: position`);
+  });
+
   it("an unsupported mapping rule", () => {
     const config = defaultRuleSetConfig();
     config.rules.push({ id: "teleport.magic", description: "x", match: { relationshipTypes: ["USES"] }, emit: { params: { strategy: "teleport" } }, priority: 0 });

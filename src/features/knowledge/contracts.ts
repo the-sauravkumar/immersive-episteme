@@ -115,11 +115,31 @@ export const formatSourceSchema = z.object({
   notes: z.string().nullish(),
 });
 
-export const formatClaimSchema = z.object({
-  text: nonBlank(4000),
-  source_ids: z.array(localSourceIdSchema).min(1, "Every claim cites at least one source"),
-  quote: quoteSchema.nullish(),
+/**
+ * A located, verbatim passage from one of the claim's sources that supports it
+ * (docs/research/citation-policy.md). `note` tells the curator what to check by hand.
+ */
+export const formatEvidenceSchema = z.object({
+  source_id: localSourceIdSchema,
+  locator: nonBlank(300),
+  quote: nonBlank(1200),
+  note: z.string().nullish(),
 });
+
+export const formatClaimSchema = z
+  .object({
+    text: nonBlank(4000),
+    source_ids: z.array(localSourceIdSchema).min(1, "Every claim cites at least one source"),
+    quote: quoteSchema.nullish(),
+    evidence: z.array(formatEvidenceSchema).default([]),
+  })
+  .superRefine((cl, ctx) => {
+    cl.evidence.forEach((e, i) => {
+      if (!cl.source_ids.includes(e.source_id)) {
+        ctx.addIssue({ code: "custom", path: ["evidence", i, "source_id"], message: `Evidence cites ${e.source_id}, which the claim does not cite` });
+      }
+    });
+  });
 
 export const formatConceptSchema = z
   .object({
@@ -411,7 +431,13 @@ export type RelationshipInput = z.infer<typeof relationshipInputSchema>;
 
 export const KNOWLEDGE_BUNDLE_SCHEMA_VERSION = 1 as const;
 
-const bundleSourceRefSchema = z.object({ sourceId: uuidSchema, locator: z.string().nullish() });
+/** A located verbatim passage from a cited source (content/FORMAT.md "Claim evidence"). */
+export const bundleEvidenceSchema = z.object({ locator: z.string(), quote: z.string(), note: z.string().nullable() });
+/**
+ * A claim's citation of one source. `evidence` holds the supporting passages in file order;
+ * `locator` is the first passage's locator. Snapshots built before evidence existed parse with [].
+ */
+const bundleSourceRefSchema = z.object({ sourceId: uuidSchema, locator: z.string().nullish(), evidence: z.array(bundleEvidenceSchema).default([]) });
 
 export const bundleCategorySchema = z.object({
   code: knowledgeCategoryCodeSchema,

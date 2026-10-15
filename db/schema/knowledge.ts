@@ -369,13 +369,20 @@ export const conceptClaimSources = pgTable(
   {
     claimId: uuid().notNull(),
     sourceId: uuid().notNull(),
-    /** Page, timestamp or section within the source. */
+    /** Page, timestamp or section within the source (the first evidence passage's locator). */
     locator: text(),
+    /**
+     * Located verbatim passages from this source that support the claim (content/FORMAT.md
+     * "Claim evidence"): [{ locator, quote, note? }]. A passage supports the claim; it does not
+     * verify it (curators do).
+     */
+    evidence: jsonb().$type<{ locator: string; quote: string; note?: string | null }[]>().notNull().default([]),
     isDemo: isDemo(),
     createdAt: createdAt(),
   },
   (t) => [
     primaryKey({ columns: [t.claimId, t.sourceId] }),
+    check("concept_claim_sources_evidence_ck", sql`jsonb_typeof(${t.evidence}) = 'array'`),
     foreignKey({
       name: "concept_claim_sources_claim_fk",
       columns: [t.claimId, t.isDemo],

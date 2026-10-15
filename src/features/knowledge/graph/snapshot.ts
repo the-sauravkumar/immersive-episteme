@@ -189,7 +189,10 @@ export function buildBundle(
           // Sorted by id like relationship sources, so a bundle rebuilt from the database (which
           // keeps no citation order) is byte-identical to one built from the files.
           sources: dedupe(cl.sourceRefs)
-            .map((ref) => ({ sourceId: ids.source(ref), locator: null }))
+            .map((ref) => {
+              const evidence = cl.evidence.filter((e) => e.ref === ref).map(({ locator, quote, note }) => ({ locator, quote, note }));
+              return { sourceId: ids.source(ref), locator: evidence[0]?.locator ?? null, evidence };
+            })
             .sort((x, y) => byString(x.sourceId, y.sourceId)),
         })),
         assetIds: [],

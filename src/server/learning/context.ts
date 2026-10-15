@@ -28,9 +28,16 @@ import type { LearningCondition } from "@/lib/permissions/learning";
 import { requireLearningAccess } from "@/server/auth/learning-access";
 import { getPool } from "@/server/db/client";
 
-import { pgLearningContextData, resolveLearningContext, type LearningContext } from "./context-data";
+import { pgLearningContextData, resolveLearningContext, resolvePracticeContext, type LearningContext, type PracticeContext } from "./context-data";
 
-export { LearningContextUnavailableError, LearningFinishRefusedError, recordLearningEnded, type LearningContext, type LearningMode } from "./context-data";
+export {
+  LearningContextUnavailableError,
+  LearningFinishRefusedError,
+  recordLearningEnded,
+  type LearningContext,
+  type LearningMode,
+  type PracticeContext,
+} from "./context-data";
 
 /**
  * The learning context for `condition`, or a redirect (thrown) when the request has no access.
@@ -49,3 +56,14 @@ export const getLearningContext = cache(async (condition: LearningCondition): Pr
 export async function getLearningTimeBudget(condition: LearningCondition): Promise<LearningTimeBudget> {
   return (await getLearningContext(condition)).learningTime;
 }
+
+/**
+ * Context of the familiarisation practice pages (/learn/<condition>/practice, study decision D5):
+ * the same access guard and protocol settings as the learning context, but it never starts the
+ * learning clock and gives the practice telemetry session (nothing from practice is stored as
+ * learning data). Call inside <Suspense>.
+ */
+export const getPracticeContext = cache(async (condition: LearningCondition): Promise<PracticeContext> => {
+  const access = await requireLearningAccess(condition);
+  return resolvePracticeContext(access, { data: pgLearningContextData(getPool()), appBuild: serverEnv().APP_BUILD_VERSION });
+});

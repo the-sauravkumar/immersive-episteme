@@ -78,8 +78,17 @@ export const layoutConfigSchema = z
     imageMaxWidth: positive.default(0.8),
     imageMaxHeight: positive.default(0.4),
     imageCenterY: positive.default(2.0),
-    signBottom: positive.default(2.4),
-    signTop: positive.default(2.7),
+    /**
+     * Wing room order: "template" follows the rule set's group order (the 2D section order);
+     * "connection" places groups by cross-category relationship weight (seeded tie-breaks).
+     */
+    groupOrder: z.enum(["template", "connection"]).default("template"),
+    /**
+     * Category signs share one band with the museum's doorway signs (src/features/immersive/
+     * placement.ts DOOR_SIGN: door height + 0.08 m gap, 0.30 m tall), so all signage lines up.
+     */
+    signBottom: positive.default(2.48),
+    signTop: positive.default(2.78),
     /** Streaming: warn when one room (streaming unit) holds more exhibits than this. */
     unitExhibitBudget: z.number().int().positive().default(24),
     complexity: complexityLimitsSchema.default(complexityLimitsSchema.parse({})),

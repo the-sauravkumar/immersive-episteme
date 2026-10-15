@@ -176,8 +176,16 @@ function doorsOnSide(s: SideGeom, r: Rect, doors: readonly DoorOpening[]): DoorO
   });
 }
 
-function roomSlots(r: Rect, doors: readonly DoorOpening[], cfg: LayoutConfig): Slot[] {
-  const out: Slot[] = [];
+/** A free stretch of wall (corner and doorway clearances removed) and how many exhibits fit. */
+interface Segment {
+  side: SideGeom;
+  p: number;
+  q: number;
+  capacity: number;
+}
+
+function roomSegments(r: Rect, doors: readonly DoorOpening[], cfg: LayoutConfig): Segment[] {
+  const out: Segment[] = [];
   for (const s of sides(r, cfg.wallThickness)) {
     let free: [number, number][] = [[s.lo + cfg.cornerClearance, s.hi - cfg.cornerClearance]];
     for (const d of doorsOnSide(s, r, doors)) {
@@ -191,15 +199,60 @@ function roomSlots(r: Rect, doors: readonly DoorOpening[], cfg: LayoutConfig): S
       });
     }
     for (const [p, q] of free) {
-      const len = q - p;
-      const k = Math.floor((len + 1e-9) / cfg.exhibitSpacing);
-      const start = p + (len - k * cfg.exhibitSpacing) / 2;
-      for (let j = 0; j < k; j++) {
-        const u = round(start + cfg.exhibitSpacing * (j + 0.5));
-        out.push({ side: s, u, param: perimeterParam(r, s.side, u) });
-      }
+      const capacity = Math.floor((q - p + 1e-9) / cfg.exhibitSpacing);
+      if (capacity > 0) out.push({ side: s, p, q, capacity });
     }
   }
+  return out;
+}
+
+/** Every slot at the standard spacing, centred in its segment (capacity checks and the hall). */
+function roomSlots(r: Rect, doors: readonly DoorOpening[], cfg: LayoutConfig): Slot[] {
+  const out: Slot[] = [];
+  for (const g of roomSegments(r, doors, cfg)) {
+    const start = g.p + (g.q - g.p - g.capacity * cfg.exhibitSpacing) / 2;
+    for (let j = 0; j < g.capacity; j++) {
+      const u = round(start + cfg.exhibitSpacing * (j + 0.5));
+      out.push({ side: g.side, u, param: perimeterParam(r, g.side.side, u) });
+    }
+  }
+  return out;
+}
+
+/**
+ * n exhibit positions spread evenly round a room (rule layout.even-spacing). Rooms share their
+ * grid column's width and row's depth, so a room often has more wall than exhibits. Each free
+ * wall segment gets a share of the n exhibits in proportion to its capacity (largest remainder,
+ * never above capacity). Its exhibits hang at the one standard spacing (`exhibitSpacing`) as a
+ * group centred on the segment, so the rhythm is the same on every wall of the museum, no wall
+ * is left with a long empty run at one end, and corner and doorway clearances are kept.
+ */
+function evenRoomSlots(r: Rect, doors: readonly DoorOpening[], cfg: LayoutConfig, n: number): Slot[] {
+  const segs = roomSegments(r, doors, cfg);
+  const total = segs.reduce((s, g) => s + g.capacity, 0);
+  if (n >= total) return roomSlots(r, doors, cfg);
+  const share = segs.map((g) => (n * g.capacity) / total);
+  const counts = share.map((x) => Math.floor(x));
+  let left = n - counts.reduce((s, c) => s + c, 0);
+  const byRemainder = share
+    .map((x, i) => ({ i, rem: x - Math.floor(x) }))
+    .sort((a, b) => b.rem - a.rem || a.i - b.i);
+  for (const { i } of byRemainder) {
+    if (left === 0) break;
+    if (counts[i]! < segs[i]!.capacity) {
+      counts[i]!++;
+      left--;
+    }
+  }
+  const out: Slot[] = [];
+  segs.forEach((g, i) => {
+    const k = counts[i]!;
+    const start = g.p + (g.q - g.p - k * cfg.exhibitSpacing) / 2;
+    for (let j = 0; j < k; j++) {
+      const u = round(start + cfg.exhibitSpacing * (j + 0.5));
+      out.push({ side: g.side, u, param: perimeterParam(r, g.side.side, u) });
+    }
+  });
   return out;
 }
 
@@ -283,7 +336,14 @@ export function planLayout(input: LayoutInput): Layout {
     return out;
   };
   const groupOrder: string[] = [];
-  {
+  if (cfg.groupOrder === "template") {
+    // Rule layout.template-order: rooms follow the rule set's group order, the same section
+    // order as the 2D tradition page (context, materials and tools, process, …), entrance group
+    // first. Relationships still shape the plan through doorways and the comparison hall.
+    const ids = wingGroups.map((g) => g.id);
+    const first = ids.includes(input.entranceGroup) ? input.entranceGroup : ids[0];
+    if (first) groupOrder.push(first, ...ids.filter((id) => id !== first));
+  } else {
     const rng = rngFor(seed, "group-order");
     const remaining = new Set(wingGroups.map((g) => g.id));
     const first = remaining.has(input.entranceGroup) ? input.entranceGroup : wingGroups[0]?.id;
@@ -581,7 +641,7 @@ export function planLayout(input: LayoutInput): Layout {
   for (const r of sortedRooms) {
     for (const k of r.conceptKeys) roomOf.set(k, r.id);
     if (r.conceptKeys.length === 0) continue;
-    const slots = slotsByRoom.get(r.id)!;
+    let slots = slotsByRoom.get(r.id)!;
     let ordered: { key: string; slot: Slot }[];
     if (r.kind === "hall") {
       ordered = assignHall(r, slots, input, home, roomById);
@@ -589,8 +649,10 @@ export function planLayout(input: LayoutInput): Layout {
       const entrance = r.entranceDoorId ? doorById.get(r.entranceDoorId) : undefined;
       const startParam = entrance ? doorParam(r.rect, entrance) : 0;
       const P = 2 * (r.rect.maxX - r.rect.minX + r.rect.maxZ - r.rect.minZ);
-      const clockwise = [...slots].sort((a, b) => ((a.param - startParam + P) % P) - ((b.param - startParam + P) % P));
       const keys = orderRoomConcepts(r, input, groupById, tieBreaks);
+      slots = evenRoomSlots(r.rect, doors, cfg, keys.length);
+      slotsByRoom.set(r.id, slots);
+      const clockwise = [...slots].sort((a, b) => ((a.param - startParam + P) % P) - ((b.param - startParam + P) % P));
       ordered = keys.map((key, i) => ({ key, slot: clockwise[i]! }));
     }
     const orderIndex = new Map<Slot, number>();

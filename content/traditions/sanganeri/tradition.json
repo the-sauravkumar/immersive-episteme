@@ -228,6 +228,18 @@
           "text": "The GI specification gives the base colour of Sanganeri hand block prints as white, with delicate floral motifs and necessarily repetitive designs.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 1",
+              "quote": "Specifications: r Base colour of S4rganri tland Block Printings is white. . Sanganeri Haad Block Printed textile products have delicate floral motifs. ."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 1",
+              "quote": "Printing on ototh is ty stamping wooden hand blocks. . Designs on tle Textile necessarily are repetitive in nsture. ."
+            }
           ]
         },
         {
@@ -235,18 +247,49 @@
           "source_ids": [
             "S1"
           ],
-          "quote": "Sanganeri Hand Block Printing is by using a Stamp or Wooden Block's and no other device."
+          "quote": "Sanganeri Hand Block Printing is by using a Stamp or Wooden Block's and no other device.",
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 1",
+              "quote": "Printing on ototh is ty stamping wooden hand blocks. ."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "The application oftie yellow dye is like mopping the floor but is done gently so tlrat the 'dlubu' does not come off."
+            }
+          ]
         },
         {
           "text": "The GI applicant is the Calico Printers Co-operative Society Ltd., Sanganer, and the goods are dress material, home furnishings and garments in Classes 24 and 25.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 1",
+              "quote": "List of association of pcrsons/producers/ organization/ authority: Calico Irriders Co-operative Society Ltd (CPCSL) 3. I}pc of Goods: Dress Material and Home Fumishings and Garments falling under Ctass-- 24 and Chss - 25."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 6",
+              "quote": "Sanganer are preserved in private and public collections\". (Gulab Kothari, Colourful Textiles of Rajasthan; Jaipur Printers h( Ltd.; p, nos."
+            }
           ]
         },
         {
           "text": "The GI Registry lists Sanganeri Hand Block Printing as application no. 147, a Rajasthan handicraft.",
           "source_ids": [
             "S2"
+          ],
+          "evidence": [
+            {
+              "source_id": "S2",
+              "locator": "PDF p. 5",
+              "quote": "118 43 Peruvian Pisco Manufactured 119 147 Sanganeri Hand Block Printing Handicraft 120 152 Balaramapuram Sarees and Handicraft Fine Cotton Fabrics FROM APRIL 2010- MARCH 2011 Peru Rajasthan Kerala 121 142 Bikaneri Bhujia Food Stuff Rajasthan 122 143 Guntur Sannam Chilli Agriculture Andhra Pradesh 123"
+            }
           ]
         }
       ],
@@ -267,18 +310,54 @@
           "text": "The geographical area of production is mainly Sanganer town, 16 km from Jaipur and headquarters of Sanganer tehsil, together with nearby villages.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 3",
+              "quote": "The Geographical area of sanganeri Hand Bloci printing is mainly sanganer town and nearby villages as soon in geographical area map Jncbsed at Annexure 3."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 3",
+              "quote": "It is 16 kilometers from Jaipur, the capifal ofRajasthan. sanganir Town is the r^Ieadquarrcr- o{ sa'ganer Tehsil District-Jaipur, Rajasthar."
+            }
           ]
         },
         {
           "text": "The GI application reported 315 printing units in Sanganer and more than twenty exporting units.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 3",
+              "quote": "At present there are 315 printing units in sanganer and a very imall number in nearby villages."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 9",
+              "quote": "At present tlere are three hundred and fifteen production units and more than twenty exporting units in Sanganer."
+            }
           ]
         },
         {
           "text": "A 2012 field study, citing a 2003 High Court sub-committee report, counted 473 units in eight clusters, with around two lakh people involved directly or indirectly.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 10",
+              "quote": "In the \"Report of ministerial sub-committee forwarded by Registrar, High court\" on June 5th 2003 there are 8 clusters identified and 473 units in which around 2 lakh artisans are working directly or indirectly."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 2",
+              "quote": "There were 473 units in eight clusters and around two lakh people were involved directly or indirectly in this trade."
+            }
           ]
         }
       ],
@@ -300,12 +379,41 @@
           "source_ids": [
             "S1",
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 9",
+              "quote": "45 & 46 mentioned that Saaganer was founded by Sangaji the son of lvlaharaj Prithviraj ji of Amber province- At Annexure 4.10 Based on all the above citing of historical evidences, documents and general belief of Chhipas and other inhabitants of the are4 the fact"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 4",
+              "quote": "Traces of History - Sanganer Hand Block Printing 8.1 Origin of Sanganer Town \"A town fowded by a Kacbhawaha prince Sangaji itr the early 16th cetrtury, Sanganer developed into a printing cefire in later centuries."
+            },
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The Kachchwaha Rajput prince, Sangaji, founded Sanganer in the early 16th century and the little dwelling was thriving by the 17th century partially due to its strategic location on major trade routes ."
+            }
           ]
         },
         {
           "text": "A government tourism page states instead that Sanganer was established by Rana Sanga, a Mewar Rajput.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"The Enduring Appeal of Sanganeri Prints\"",
+              "quote": "The town of Sanganer was established by Rana Sanga, a Mewar Rajput, who turned it into one of the busiest art printing centres in entire India."
+            },
+            {
+              "source_id": "S13",
+              "locator": "§ \"Scan to chat\"",
+              "quote": "Terms of Use Privacy Policy Contact Us Help © Ministry of Tourism, Government of India. ×"
+            }
           ]
         }
       ],
@@ -327,18 +435,49 @@
           "source_ids": [
             "S1",
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 5",
+              "quote": "Archival souroes oonfirm the oral tradition that Sawai Iai Sing! invited artists and craftsmeu from different parts of the country to settls at Jaipur, among whom werc za worters from Swat and printers iom Gujarat in general."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 3",
+              "quote": "King Sawai jai Singh has to be credited for settling a foundation to this Printing as he invited artists and craftsman from all over the country especially from Gujarat and Malwa to Sanganer, a place near Jaipur."
+            }
           ]
         },
         {
           "text": "The craft is widely believed to have arisen from mid-17th-century Mughal and Maratha campaigns in Gujarat that forced printers from Kathiawar to migrate to Rajasthan, including Sanganer.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "While the exact point of origin of the craft has remained unknown, it is widely believed to have been borne out of the socio-political upheavals caused by the campaigns of Mughals and Marathas in the region of Gujarat in the mid-seventeenth century."
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "Successive incursions forced many Gujarati artisans and printers to flee from the Kathiawar region and migrate to places in present-day Rajasthan, including Sanganer where a group of artisans from the Chhipa community took residence and developed it into a bustling centre of cloth printing."
+            }
           ]
         },
         {
           "text": "Gaatha says mid-17th-century upheavals may have forced Gujarati printers to flee to Sanganer in the Dhundhar region.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "printing and dyeing techniques for the royal attire to floral depictions across the local and temple textiles ; Sanganer block printing dates back to the social upheavals of mid-17th century that may have forced Gujarati printers to flee to this city in the Dhundhar region"
+            }
           ]
         },
         {
@@ -346,6 +485,18 @@
           "source_ids": [
             "S5",
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Textile\"",
+              "quote": "The town of Sanganer, where this piece was made, was (and still is) renowned as a centre for high-quality block-printed cotton cloth which was established to serve the needs of the nearby Jaipur court."
+            },
+            {
+              "source_id": "S6",
+              "locator": "§ \"Textile\"",
+              "quote": "This example is typical of work from Sanganer, near Jaipur, Rajasthan, where block printing was encouraged by the patronage of the Jaipur royal family. Printed cottons were also exported by the East India Company."
+            }
           ]
         }
       ],
@@ -369,18 +520,64 @@
           "text": "East India Company records of the 16th and 17th centuries do not name Sanganer; dastur-al-amal reports of 1703 and rangkhana records of 1727 describe taxes on printed fabrics.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 4",
+              "quote": "But dos:tw-alanal reports of 1703 gives detailed description of taxes levied on the printed fabrics, so does the rangffitana records of 1727."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 4",
+              "quote": "The East India Company reccfds oftbe 16t nod lf centuries do not mention tbe name of Sangano; nor have we c,ome act'oss anything datd prior to 17@ (Car. no."
+            }
           ]
         },
         {
           "text": "A head-dress in the City Palace collection carries an octroi seal dated V.S. 1856 (A.D. 1799), and dupattas printed at Sanganer carry dated octroi stamps such as 1853 and 1906.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 8",
+              "quote": "in rod narrow border ia rd and blaolq pallava has fioral buns ia red ald black, octrci seat has date-V.S. 1963 (A.D. 1906) Sargarer L.292XW.l70cm . DuPatt4 cotton, whit, printed in red and black, ground-Nagri letten dt A$C{ in black and floral stripes in two"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 8",
+              "quote": "ground, narrow border and pallava wilh bulas. A faded square ocroi seal reads \"FdTS STt Sqfl lgro'\" Swrii Jaipur samvat 1910 (A.D. 1853) Sanganer. L.257XW. l44cm. Damagd. Dupatt4 cotto4 white, printed in red and black; ground has black pattemed stripes; borderTta buils n red, peacock"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 4",
+              "quote": "dated example in the City Palaoe collectioa - a head-dress- also supports this sayiag. The head-dress, with date v.S. 1856 (A.D. 1799) in a square octroi seal, has a simple leaf pattem arranged closely on the ground along with a twig motif on the pllava."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 4",
+              "quote": "A dated example in the City Palaoe collectioa - a head-dress- also supports this sayiag."
+            }
           ]
         },
         {
           "text": "State archival records are available from 1727 onward, and no record of a Sanganer printing unit is traced before the 18th century.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 3",
+              "quote": "www.fibre2fashion.com record of printing unit of Sanganer can be traced. No such account was mentioned in 16th and 17th century records of the East India Company."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 3",
+              "quote": "Even the state archival records are available from 1727 A.D onwards and so onwards a well documented record for many of the printed cloths present in the royal family were evidenced by Chandramani Singh as described in her book."
+            }
           ]
         },
         {
@@ -388,6 +585,23 @@
           "source_ids": [
             "S1",
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 4",
+              "quote": "Sir George Watt wrote in his monumental work lrulian Art at Delht in 190243: 'The Sanganer town of Jaipur Sta&e must, however, be regarded as the very metropolis of the CalicoPrinting Craft of Iadia so far as art conceptions ald techaique are concerned."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 7",
+              "quote": "'As far as the aesthetic imagination and technique is concemed the town of Sanganer in Jaipur may be considered the capital of tle art of textile printing in India\"."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 3",
+              "quote": "Sir George Watt in his monumental work \"Indian art at Delhi 1902-03\" wrote \"The Sanganer town of Jaipur state must however be regarded as the very metropolis of the calico printing craft of India so far as art conceptions and technique are concerned\"."
+            }
           ]
         }
       ],
@@ -412,18 +626,54 @@
           "source_ids": [
             "S5",
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Object details\"",
+              "quote": "Object history Purchased from the Great Exhibition of 1851 Summary Object Type This length of block-printed cotton was intended to be cut and tailored into garments such as coats and trousers, probably for members of the court at Jaipur, Rajasthan."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Textile\"",
+              "quote": "1850 (made) Artist/Maker Unknown Place of origin Sanganer (made) Object Type This length of block-printed cotton was intended to be cut and tailored into garments such as coats and trousers, probably for members of the court at Jaipur, Rajasthan."
+            },
+            {
+              "source_id": "S6",
+              "locator": "§ \"Object details\"",
+              "quote": "1850 Physical description Parts of a length of cotton with block-printed repeating floral design, in red and green on a white ground."
+            },
+            {
+              "source_id": "S6",
+              "locator": "§ \"Object details\"",
+              "quote": "Object history Acquired from the Great Exhibition. 1851."
+            }
           ]
         },
         {
           "text": "An 1883 V&A register entry describes a Sanganer chintz ('cheet') with sprigs in yellow, purple and green on a white ground.",
           "source_ids": [
             "S7"
+          ],
+          "evidence": [
+            {
+              "source_id": "S7",
+              "locator": "§ \"Object details\"",
+              "quote": "Object type Printed cotton Materials and techniques Cotton (Textile) Printing Brief description Printed cotton, white with small flowers in purple, yellow and green, Sanganer, c.1882; Textiles Object history 1883 Register entry: 'CHINTZ, \"CHEET,\" printed cotton."
+            }
           ]
         },
         {
           "text": "The Imperial Gazetteer (1908), quoted in the GI application, says Sanganer chintzes were printed by hand blocks but the industry was decaying from machine competition.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 7",
+              "quote": "The chintzes are printed in colours by hand blocks, but the industry is deoaying owhg to machine competition.\" At Annerure 4.9 8.8 Sanganer was founded by Sangaji the son ofMaharaj Prithviraj ji ofAmber province Mr."
+            }
           ]
         }
       ],
@@ -447,24 +697,57 @@
           "text": "The art and skill are limited to the Chhipa community, who acquired them from parents and grandparents over generations.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 15",
+              "quote": ".TheArtandSkillforproductionofSanganeriHandBlockPrintingislimite<i toacommunityknownasChhipaswhohal.eaoquiredthisskillfromtheir parents and grandparents tkough generations' , 3*g* fraA anA still has very conducive geographical _and climatic *niitionr nffissary for the produition of desired shades of colours and fine designs. . the production process involves a process non as Tapai or suo Bleaching whic'h"
+            }
           ]
         },
         {
           "text": "Only the skilled Chhipas are described as having the expertise to prepare colour mixtures from the desired ingredients in specific ratios.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 2",
+              "quote": "It has various traditional sheds of colours and rtesigns created by the skillecl chhipas who only have the expertise ofpreparing colour Jixture using desired ingredients in specific ratios. Colour preparalion and printing is a highly skilled job."
+            }
           ]
         },
         {
           "text": "The Chhipa printers of Sanganer are described as Hindus who follow Sant Namdev.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "The printers belong to Chhipa community. They were all Hindus and were followers of the renowned Marathi Saint Namdev."
+            }
           ]
         },
         {
           "text": "Respondents in a 2025 study of Sanganer and Bagru units were mostly from the Khatri or Chhipa communities.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 6",
+              "quote": "Result and Discussion The artisans were mostly from the Khatri or Chhipa community. The respondents mostly do job-working for retailers or wholesalers with a few of them also retailing their products."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 1",
+              "quote": "Vol.14 (2), 150-163 (2025) Lack of Post-Registration Exploitation of GI: A Case Study from Bagru and Sanganer HandBlock Prints Gauri Kathju & Radha Kashyap Abstract Geographical Indications (GIs) can be used as a powerful marketing tool to differentiate artisanal textile products from mill-madegoods by providing"
+            }
           ]
         }
       ],
@@ -487,12 +770,26 @@
           "text": "Turners locally known as Kharadis carve the blocks from dried wood of shisham, gurjan, mango and teak.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 2",
+              "quote": "Turners locally known as Kharadiyes posses the skill of producing tlesired blocks using dried wood ofplants like *shisham-, *eurjao\", \"6ango\", \"teak\" and \"ardu\"."
+            }
           ]
         },
         {
           "text": "Block carvers are historically little documented; carver numbers grew with migration from Farrukhabad in the 1970s, and 52 carving units were counted in 2008.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "Due to a large scale migration of artisans from Farrukhabad , in the 1970s, the number of block carvers increased. According to the 2008 census, the city has a total of fifty-two block carving units."
+            }
           ]
         }
       ],
@@ -515,30 +812,80 @@
           "text": "Screen printing entered Sanganer around 1960 through Khatri migrants from Mirpur and Sind, and many printing families adopted mill cloth, synthetic dyes and screens.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 6",
+              "quote": "It was around 1960 that screen printing invaded the area. Migrants from Pakistan (Mirpur and Sind) known as ,,Khatris engaged in printing settled and took to Screen printing, one of the colony in Sanganer is named as ,,Khatri nagar."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 6",
+              "quote": "The result was that slowly cheaper substitutes like mill made cloth, synthetic dyes and a faster process of screen printing was adopted in many families engaged in this art and other who were very few still continued with the traditional methods relied on the consumer"
+            }
           ]
         },
         {
           "text": "Screen printing emerged in Sanganer in the 1960s as a cheaper, faster method using synthetic dyes, and some block printers also adopted synthetic dyes.",
           "source_ids": [
             "S12"
+          ],
+          "evidence": [
+            {
+              "source_id": "S12",
+              "locator": "§ \"Textile mills pollute the waters\"",
+              "quote": "This laborious process gave way to screen printing in the 1960s, which tried to piggy back on the reputation of block printing. Screen printing was a cost effective, mechanical and faster way of printing by using synthetic dyes and chemicals for bleaching."
+            }
           ]
         },
         {
           "text": "Over the preceding decades a large number of screen-printing units arose, and screen-printed 'Sanganeri' textiles were being sold across India.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 16",
+              "quote": "As a result traditional block printing craft and products are facing tough competition from screen printed products. Fake (screen printed) Sanganeri Textiles are being sold all over India in tle name of Sanganeri Print."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 16",
+              "quote": "In fact during last fwo to four decades a large number of screen printed units have come up at Sanganer."
+            }
           ]
         },
         {
           "text": "The craft was revived in the 1970s with patrons including Kamaladevi Chattopadhyay and Anokhi; floods in 1981 set the industry back, and Sanganer joined a UNIDO cluster programme in 1997.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 6",
+              "quote": "Floods in 1981 also gave a big setback to this small scale industry. In 1997, Sanganer was selected for the Cluster Development Programme under UNIDO since it was diagnosed as the ,,underachiever reason being it was a sector with declining performance and high potential."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 6",
+              "quote": "MEASURES After independence the craft almost died until it was revived in the 1970s due to the patronage of prominent exponents like Kamala Devi Chattopadhyay, the person behind the cottage industries movement, Prabha Shah, Laila Tyabji, Pupul Jayakar and Faith and John Singh of ,,Anokhi"
+            }
           ]
         },
         {
           "text": "Gaatha says chemical dyes were introduced in the 1980s and widened the range of colours.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "There have been a lot of changes with the introduction of chemical dyes in the 1980's, which slowly led to a vast number of colours, with a boom in the number of possible designs and products, all of which has now given a new identity"
+            }
           ]
         }
       ],
@@ -559,18 +906,44 @@
           "text": "Sanganeri Hand Block Printing (application 147) appears in the GI Registry list in the section for April 2009 to March 2010.",
           "source_ids": [
             "S2"
+          ],
+          "evidence": [
+            {
+              "source_id": "S2",
+              "locator": "PDF p. 5",
+              "quote": "118 43 Peruvian Pisco Manufactured 119 147 Sanganeri Hand Block Printing Handicraft 120 152 Balaramapuram Sarees and Handicraft Fine Cotton Fabrics FROM APRIL 2010- MARCH 2011 Peru Rajasthan Kerala 121 142 Bikaneri Bhujia Food Stuff Rajasthan 122 143 Guntur Sannam Chilli Agriculture Andhra Pradesh 123"
+            }
           ]
         },
         {
           "text": "The applicant proposed a five-member independent inspection team and a CPCSL-issued wooden stamp with a unit identification number to be applied to finished products.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 15",
+              "quote": "Inspection Body: calico Printers co-operative society Limited, (cPcsl) has decided that Inspection would be entrusted tb independent Inspection Team of five members. A Stamp or hand bloct engraved with CPCSL, Sanganeri Hand."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 15",
+              "quote": "Block Printirg and an Identification Nimber of the production unit user will be issued to every production uoits. The society will make it compulsory for every uuil-to put this stamp otr their finished producti before sale."
+            }
           ]
         },
         {
           "text": "Only 50% of Sanganer respondents were aware of the GI, and 96.9% did not use it as a marketing tool.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 10",
+              "quote": "Table 5 Usage of GI as a marketing tool N=49 Use GI Yes No Bagru n = 17 f % 1.00 5.9 16.00 94.1 Sanganer n = 32 f % 1.0 3.1 31.0 96.9 Majority of the respondents of Bagru (94%) and Sanganer (96.9%) disagreed"
+            }
           ]
         }
       ],
@@ -593,18 +966,44 @@
           "text": "Sanganeri textiles are mostly printed on cotton and sometimes on cotton-silk; safas are printed on a fine fabric called mulmul.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 2",
+              "quote": "Namc of Geographical Indication (and particulars): SANGANERI HAND BLOCK PRINTING 6 Description of the Goods: Sanganeri lland Block Printing Textiles are mostly on cotto cloths and sooetimes on ,otton x silk."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "Washing - localty called 'Dhatsi' The printed fabric is washed in running water to rmove excess mordants. t4"
+            }
           ]
         },
         {
           "text": "The GI materials list allows all natural fabrics as well as man-made fibres like rayon and poly-cotton.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 13",
+              "quote": "9.3 Materials: 9.3.1. Fabric: All possible Natural fabric (like ootto4 silt wool etc) and man made fibers like rayo!, poly-cotton tc."
+            }
           ]
         },
         {
           "text": "Artisans reported that a decade before the 2012 study mostly mulmul cotton was used and silk only for royalty; crepe, georgette, linen, khadi and jute are now also printed.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 9",
+              "quote": "Fabric All the artisans reported that before a decade only cotton cloth mostly mulmul was used and silk was used only for the royal people and now lot of silk, cotton crepe, cotton georgette, linen as well as silk is used both in chiffon and"
+            }
           ]
         }
       ],
@@ -628,18 +1027,44 @@
           "text": "Washed fabric is treated with myrobalan (harda), which contains tannic acid that attracts the mordants applied with wooden blocks.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "Since it is tedious and time cons.rming, soaps have replaced cow dung now a day. - Tannin - locally callert 'Peela Katana' of'Harils' Washed fabric is treated with myrobalan (harda) which contains tannic acidTannic acid attrads the morda s, which are applied with hand wood"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 1",
+              "quote": "Printing on ototh is ty stamping wooden hand blocks. ."
+            }
           ]
         },
         {
           "text": "The tannic acid of harda forms a black colour with the ferrous syahi.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "The tannic acid of myrobalam (harda) forms black colour with ferous (syahee) which is traditionally rnade by raction of old rusted horse shoe nails with jiggerl'- - Printing (mordanting) - locally called 'chapai' This is the process of transferring the design to the cloth and"
+            }
           ]
         },
         {
           "text": "Harda gives the cloth a yellowish tinge and acts as a pre-mordant linking the fibre to other ingredients.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The cloth was treated with Harda, which functions as a pre-mordant link between the fibers and the various other ingredients. It left a yellowish tinge to the fabric, hence known as 'pila-karna '."
+            }
           ]
         }
       ],
@@ -663,18 +1088,39 @@
           "text": "Syahi is a fermented solution of iron with jaggery (gur) and gum, and develops a deep black in combination with harda.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 14",
+              "quote": "Syahi Paste: - Syahi is essentially a fermented solution of iron and fermenting agent molasses fiiggery, gur) and gum. Syahi in combination witl harda develops into a deep black colour."
+            }
           ]
         },
         {
           "text": "Syahi is made from scrap iron, horseshoes and gur prepared in an earthenware vessel.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The craftsman then printed the black area of the design using the Syahi (ink) pinting paste prepared using scrap iron, horseshoes and Gur (jaggery) in an earthenware vessel. After the black outline was made, the craftsman made the Begar, a mordant used for red."
+            }
           ]
         },
         {
           "text": "Horseshoe iron and jaggery are kept in cold water in a closed mud pot for about a fortnight to make the black.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 6",
+              "quote": "dye was made using alum and ,,geru a red soil and Black had a more tedious process where iron pieces in the form of horse shoe and jaggery were placed in a certain proportion in cold water for a fortnight in a closed mud pot."
+            }
           ]
         }
       ],
@@ -699,18 +1145,44 @@
           "text": "Begar paste is the alum mordant which, combined with alizarine, develops a rich red colour.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 14",
+              "quote": "Begar Pastc - This is the mordant alum which in combination with alizarine develops a rich red colour. Syahi Paste: - Syahi is essentially a fermented solution of iron and fermenting agent molasses fiiggery, gur) and gum."
+            }
           ]
         },
         {
           "text": "Begar is alum mixed with sticky tree gum and a pinch of geru (red ochre).",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "After the black outline was made, the craftsman made the Begar, a mordant used for red. Alum was mixed with sticky tree gum paste and a pinch of Geru red ochre to bring out colour in the otherwise transparent paste."
+            }
           ]
         },
         {
           "text": "The red 'beggar' is prepared from alum and geru, a red soil.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 6",
+              "quote": "Red colour dye was made using alum and ,,geru a red soil and Black had a more tedious process where iron pieces in the form of horse shoe and jaggery were placed in a certain proportion in cold water for a fortnight in a closed"
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "Two colours red and black called ,,Beggar and ,,Syahee"
+            }
           ]
         }
       ],
@@ -734,18 +1206,49 @@
           "text": "The red bath is prepared from madder (Rubia tinctorum, Rubia manjista), containing alizarin and purpurin; synthetic alizarine is now used due to a shortage of the vegetable dye.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 14",
+              "quote": "Alizarine Bath: - This is red colouring dye bath prepared by using vegetable dyes like maddar (Rubia tirctoria, Rubia manjista) which contains substanoes called alizarine and purpurin. Nowadays synthetic alizarine is used due to shortage of vegetable alizarine."
+            }
           ]
         },
         {
           "text": "The red dye may be Indian madder or synthetic alizarine.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 13",
+              "quote": "Terminalia chebula Rstz Local Name Dhak- Palas Safilower IIaldi Neel all Harsinehar lndian Madar Naspal trtrarad Red colouring dye can be Indian Madar or Synthetic Alizarhe."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 14",
+              "quote": "Nowadays synthetic alizarine is used due to shortage of vegetable alizarine."
+            }
           ]
         },
         {
           "text": "The red on a Sanganer cotton of about 1850 is madder.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Textile\"",
+              "quote": "1850 (made) Artist/Maker Unknown Place of origin Sanganer (made) Object Type This length of block-printed cotton was intended to be cut and tailored into garments such as coats and trousers, probably for members of the court at Jaipur, Rajasthan."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Textile\"",
+              "quote": "The dyes used for the design are indigo (blue) and madder (red), with green made by combining indigo with a yellow dye, probably turmeric."
+            }
           ]
         }
       ],
@@ -769,18 +1272,44 @@
           "text": "Alizarine and dhawai flowers are mixed in specific ratios in water for the red bath.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 14",
+              "quote": "Alizarine and \"dhawai ka phool\" @hawai Flower Wood Fordia Floribun<la) are mixed in specific ratios in water and mixture kept for required hours to g* required reddish hue."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 14",
+              "quote": "Alizarine Bath: - This is red colouring dye bath prepared by using vegetable dyes like maddar (Rubia tirctoria, Rubia manjista) which contains substanoes called alizarine and purpurin."
+            }
           ]
         },
         {
           "text": "A local flower boiled with the alizarin is used to avoid patches and staining.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "'Dluwadi phool', a local flower is boiled along with alizarin to avoid patches and staining."
+            }
           ]
         },
         {
           "text": "Red dyeing uses the dye with dhaura flowers and a few drops of castor or sesame oil.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "Red dye matter along with Shakur ka phool or dhaura ka phool was added with drop of castor or sesame oil."
+            }
           ]
         }
       ],
@@ -805,12 +1334,26 @@
           "text": "Dabu paste is prepared by mixing kali mitti, lime, wheat flour and gum in ratios that depend on the type of dabu needed.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 14",
+              "quote": "Dabu paste is prepared by mixing *Kali mittf', lime (Bidhan) wheai flour and gurn These are mixed in specific ratio depending upon type ofDabu paste netded."
+            }
           ]
         },
         {
           "text": "The art of making dabu paste is kept secret, and every family has its own recipe.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "The art of maleng'dhabu' paste is kept secret and every family has its own recipe to make the paste. lndigo dyeing loc*lty called 'NeeI rungai' It is the most interesting process of coloring the fabric blue."
+            }
           ]
         }
       ],
@@ -831,6 +1374,13 @@
           "text": "Sawdust sprinkled over dabu absorbs water from the paste and gives additional layers of resist.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "It is applied with wooden block on the fabric and saw dus is sprinkled over it. Saw dust has two major functions at this stage-first to absorb water from the Dha!,u paste and glve additional layers of resist."
+            }
           ]
         }
       ],
@@ -854,18 +1404,44 @@
           "text": "Indigo blue (nil) is extracted from Indigofera tinctoria; nowadays synthetic indigo granules are used.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 14",
+              "quote": "Indigo Blue: - Indrgo blue (nil) is a blue colouring mattr extracted from nil plants (Indigofera tinctoria). Nowadays synthetic indigo granules available in market are used."
+            }
           ]
         },
         {
           "text": "Once ready, an indigo vat is kept alive by constant addition of indigo, lime and jaggery.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "The process to start a new indigo tank is tedious and complicated but once tle val is ready for usg it is kept 'alive' by constant addition of iadigo lime and jaggery."
+            }
           ]
         },
         {
           "text": "A Sanganer cotton of about 1850 uses indigo for its blue.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Textile\"",
+              "quote": "1850 (made) Artist/Maker Unknown Place of origin Sanganer (made) Object Type This length of block-printed cotton was intended to be cut and tailored into garments such as coats and trousers, probably for members of the court at Jaipur, Rajasthan."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Textile\"",
+              "quote": "The dyes used for the design are indigo (blue) and madder (red), with green made by combining indigo with a yellow dye, probably turmeric."
+            }
           ]
         }
       ],
@@ -889,12 +1465,36 @@
           "text": "The yellow dye is extracted from haldi (turmeric) and naspal (pomegranate rind) and is very fugitive.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "Post mordanting with alum - locally known u'Filkui Rangati' The dye extracted ftom turmeric and pomegranate peals is very fugitive and in order to make it fast, post mordanting is done witl alum (fitkari). ln this process the fab'ric is dipped in a big copper"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 9",
+              "quote": "This is most typical paxt of production process of Sanganeri Hand Block Printing. - Resict Printing or mud clay printing locally called *Dhabu Datai\" - Dyeing with blue colour looally oalled *Neel Rangai'. - Dyeing rith yellow dye locally called *Ilaldi Naspal Putai\". - Post"
+            }
           ]
         },
         {
           "text": "Green on a Sanganer cotton of about 1850 was made by combining indigo with a yellow dye, probably turmeric.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Textile\"",
+              "quote": "The dyes used for the design are indigo (blue) and madder (red), with green made by combining indigo with a yellow dye, probably turmeric."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Textile\"",
+              "quote": "1850 (made) Artist/Maker Unknown Place of origin Sanganer (made) Object Type This length of block-printed cotton was intended to be cut and tailored into garments such as coats and trousers, probably for members of the court at Jaipur, Rajasthan."
+            }
           ]
         }
       ],
@@ -917,12 +1517,31 @@
           "text": "The fabric is printed with two mordants: ferrous (syahi) and aluminium sulphate (begar).",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "Washing - localty called 'Dhatsi' The printed fabric is washed in running water to rmove excess mordants. t4"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 14",
+              "quote": "Begar Pastc - This is the mordant alum which in combination with alizarine develops a rich red colour. Syahi Paste: - Syahi is essentially a fermented solution of iron and fermenting agent molasses fiiggery, gur) and gum."
+            }
           ]
         },
         {
           "text": "Post-mordanting with diluted alum (fitkari) makes the fugitive turmeric-pomegranate yellow fast.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "known u'Filkui Rangati' The dye extracted ftom turmeric and pomegranate peals is very fugitive and in order to make it fast, post mordanting is done witl alum (fitkari). ln this process the fab'ric is dipped in a big copper vessel filled with water and diluted"
+            }
           ]
         }
       ],
@@ -945,12 +1564,26 @@
           "text": "Traditionally cow dung was used for scouring, but soaps have now replaced it because the method is tedious and slow.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "Since it is tedious and time cons.rming, soaps have replaced cow dung now a day. - Tannin - locally callert 'Peela Katana' of'Harils' Washed fabric is treated with myrobalan (harda) which contains tannic acidTannic acid attrads the morda s, which are applied with hand wood"
+            }
           ]
         },
         {
           "text": "A mild solution of cow dung and water is sprinkled over the fabric during sun-bleaching.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "In order to make the ground look whitg again the fabric is sun-bleached. In this process the fabrio is laid flat on a river bed, A mild solution ofcow dung and water is sprhkled over the fubric."
+            }
           ]
         }
       ],
@@ -971,18 +1604,49 @@
           "text": "Natural and/or synthetic azo-free dyes are mostly used.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 13",
+              "quote": "9,3J \\es: Natural and/or Synthetic (Azofree) dyes are mostly used."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "Treated effluent is free fiom pollutants."
+            }
           ]
         },
         {
           "text": "A trade-association office-holder reported that 95% of the dyes used in the area are synthetic; rapid and indigosol dyes and pigments are common.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 8",
+              "quote": "Dyes General Secretary of Sanganer Rangai and Chhapai Association Mr Rajendra Jindal reported that 95% synthetic dyes are used in the area."
+            }
           ]
         },
         {
           "text": "Craftspeople in Sanganer and Bagru use chemical dyes in abundance and natural dyes only for specific orders.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 5",
+              "quote": "In both Baru and Sanganer craftsmen have adopted cheaper and more easily available raw materials, that includes the usage of chemical dyes in abundance and the usage of natural dyes only for specific orders."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 9",
+              "quote": "Bagru craftspeople were aware of the presence of GIs, most of them were the original members of the consortium which initiated the granting of GIs and were also unaware of the benefits of GIs."
+            }
           ]
         }
       ],
@@ -1009,6 +1673,18 @@
           "text": "Buntas are wooden blocks of various shapes with motifs engraved on the bottom face and a wooden handle on top that the printer strikes.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 13",
+              "quote": "(iv) Bunta; - These are wooden had-printing blocks of diferent shapes and types with motifs engraved on their bottom faces."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 13",
+              "quote": "To tie upper side of tie bunta is 6xed a wooden handle with which the block is held and over which the printer strikes, to transfer the impression of the motif to tie cloth."
+            }
           ]
         },
         {
@@ -1016,24 +1692,62 @@
           "source_ids": [
             "S1",
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 2",
+              "quote": "Turners locally known as Kharadiyes posses the skill of producing tlesired blocks using dried wood ofplants like *shisham-, *eurjao\", \"6ango\", \"teak\" and \"ardu\"."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "The patterns were impressed so perfectly with the help of a wooden block made of ,,shisham, ,,gurjan, ,,mango and ,,teak wood that the print appeared vividly at the backside."
+            }
           ]
         },
         {
           "text": "Blocks must be extremely hard wood, usually teak; the most highly esteemed blocks are traditionally those from Pethapur in Gujarat.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Textile\"",
+              "quote": "The blocks have to be made of extremely hard wood, usually teak, to endure years of repeated use. The most highly esteemed blocks are traditionally those made in Pethapur in Gujarat."
+            }
           ]
         },
         {
           "text": "Block printing at Sanganer still uses seasoned teak blocks known as chhapas or buntis.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Textile\"",
+              "quote": "Block printing is still practiced in Sanganer, using traditional seasoned teak wood blocks, known as chhapas or buntis."
+            }
           ]
         },
         {
           "text": "Blocks have grown from about 3 to 5 inches to 4 to 6 inches and larger as designs became bigger.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 9",
+              "quote": "As the size of motif is bigger so the size of tools used has also increased, now 4-6 inches blocks and bigger are used instead of 3-5 inches."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 9",
+              "quote": "In whatever meager amount the block printing is done, the size of the blocks have increased as these days the designs are bigger."
+            }
           ]
         }
       ],
@@ -1060,18 +1774,44 @@
           "text": "The iron mordant is usually printed with the outline block (rekh), and another printer then registers the filler block (datta) with begar.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "For each colour impression the printer has to prepare a separate pan. The fabric is printed with two mordant-ferrous ('ry\"h*r) made out of rusted horse shoe nails, and aluminum zulphate (b*SC*) Uzually ferrous is printed with the outline block ('reAh')."
+            }
           ]
         },
         {
           "text": "Blocks used are rekh (outline), chirai (a second outline if required) and datai (filling), with one block per colour.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "Generally a block of outline called ,,Rekh, second outline block, if required called ,,Chirai and the third for filling called ,,Datai was used for printing. The number of blocks made for a design was as many as the colours were used."
+            }
           ]
         },
         {
           "text": "The red mordant is applied with a datta block to fill the rekh.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The begar paste was then applied using a 'Datta' block to fill in the 'Rekh' (the outlining block) and the fabric was dried for a week."
+            },
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "After the black outline was made, the craftsman made the Begar, a mordant used for red."
+            }
           ]
         }
       ],
@@ -1094,18 +1834,39 @@
           "text": "Fabric is spread over a low bench covered with a thick pad of several layers of heavy cloth, and the printer squats in front of it.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "\"A piece of fabric is spread over a low belch covered with a thick'pad made of several layers ofheavy cloth. The printer squats in front of this bench with the dye ia a pan or eatthenware vessel by his side."
+            }
           ]
         },
         {
           "text": "Two kinds of table are used in block printing: the patia and a long printing table.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 13",
+              "quote": "9.3.3- Tools: (i) Tables: - Two kinds of tables used in block printing i.e. (i) Patia - Size2'x3'x4' (ii) Table - Size 5'x 20'x 3.5' (iD Trolly: - Used for movement of colour mixture."
+            }
           ]
         },
         {
           "text": "Printing (chhapai) is done on a long table.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "The process of printing, known as chhapai , is carried over a long table and the block is placed in a tray carrying colour prepared from the dyes."
+            }
           ]
         }
       ],
@@ -1126,12 +1887,26 @@
           "text": "A frame and layers of jute and cotton fabric inside the colour container spread the colour evenly and form a pad for the block impression.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 13",
+              "quote": "Inside the colour container a frame and layers of jute and cotton fabric is placed to spread the oolour evenly for block printing. These layers make a pad for colour impression."
+            }
           ]
         },
         {
           "text": "For each colour impression the printer prepares a separate pan.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "For each colour impression the printer has to prepare a separate pan."
+            }
           ]
         }
       ],
@@ -1154,6 +1929,13 @@
           "text": "Kalams are steel chisels of different widths and cutting surfaces used by Kharadis to engrave motifs on the blocks.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 13",
+              "quote": "(\") Kslams: - These are steel chisels of different widths aad cutting surfaces used by kharaudis, for engraving the motifs on the wooden printing blocks (vi) Mogri: - A wooden mallet used in some cases to beat ttre folds of the moist finished cloth pieces."
+            }
           ]
         }
       ],
@@ -1177,12 +1959,26 @@
           "text": "Dyeing is carried out in large copper vessels heated by wood fire, with the alizarin placed in small cloth bags.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "Dyeing is carried out in large copper vessels ('tonbri ) which are heared by wood fire. Alizario is filled in small cloth-bags ('ptali) and dipped in the vessel."
+            }
           ]
         },
         {
           "text": "Red dyeing is done in a copper vessel (tamda) on a furnace (bhatti).",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The next step known as Ghan ki Rangai involves use of a copper vessel 'Tamda' on a Bhatti. Red dye matter along with Shakur ka phool or dhaura ka phool was added with drop of castor or sesame oil."
+            }
           ]
         }
       ],
@@ -1205,12 +2001,26 @@
           "text": "The mogri, a wooden mallet, is used in some cases to beat the folds of moist finished cloth.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 13",
+              "quote": "(\") Kslams: - These are steel chisels of different widths aad cutting surfaces used by kharaudis, for engraving the motifs on the wooden printing blocks (vi) Mogri: - A wooden mallet used in some cases to beat ttre folds of the moist finished cloth pieces."
+            }
           ]
         },
         {
           "text": "Harda-treated cloth is folded and beaten with a wooden mallet to remove excess harda and open the fibre to the dye.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "Once the fabric is dried, it is folded and beaten with a wooden mallet to remove excess 'harda' powder and open up the fiber to accept the dye."
+            }
           ]
         }
       ],
@@ -1231,6 +2041,13 @@
           "text": "Starting a new indigo tank is tedious and complicated, but once ready it is kept alive by adding indigo, lime and jaggery.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "The process to start a new indigo tank is tedious and complicated but once tle val is ready for usg it is kept 'alive' by constant addition of iadigo lime and jaggery."
+            }
           ]
         }
       ],
@@ -1258,12 +2075,31 @@
           "text": "Block carving proceeds through ghisai (smoothing), chakai (design transfer), khudai (carving), dabana (levelling the background), chilai (smoothing the sides) and fixing the hatha handle.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "After this the background of the block was levelled called ,,Dabana and finally ,,Chilai the sides of the block were smoothened to match the consecutive printing. Lastly the ,,Hatha a handle is added to it."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "certain steps in sequence beginning with ,,Ghisai meaning smoothening the surface of the wooden block than ,,Chakai where a design is transferred from a tracing paper to the wooden surface that is already coated with titanium dioxide and adhesive followed by ,,Khudai that was carving"
+            }
           ]
         },
         {
           "text": "Sides are smoothed so consecutive impressions match in repeat printing.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "After this the background of the block was levelled called ,,Dabana and finally ,,Chilai the sides of the block were smoothened to match the consecutive printing."
+            }
           ]
         }
       ],
@@ -1286,18 +2122,44 @@
           "text": "Cloth is scoured to remove starch, oil and dust for good, even penetration of colours.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "contains natural and added impurities such as starc\\ oil and dust' To g* good ard even penetration of colours, the fabric is boiled with soap and de-sizing agents' ttuditiooutty cow dung was used for soouring- Cow dung and water are mixed togetlrer and the cloth"
+            }
           ]
         },
         {
           "text": "Traditionally cloth was steeped overnight in cow dung and water, then spread on open grounds and re-wetted 5-6 times a day for 3 to 6 days until white.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "Cow dung and water are mixed togetlrer and the cloth is then left dipped in that paste overnight' The pto\"\"o of washing is a long ong generally carried out by the ladies' The next day, the clothes are washed and spread on large open grounds"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "This procedure is carried out until the cloth becomes white and bright. Generally, this process requires 3 to 6 days."
+            }
           ]
         },
         {
           "text": "The first step, teluni, is rigorous scouring and bleaching to emulsify oils on the cotton.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The traditional printing process began with a rigorous scouring and bleaching procedure called Teluni, to emulsify the oils on the cotton threads."
+            }
           ]
         }
       ],
@@ -1322,12 +2184,31 @@
           "text": "Harda powder is mixed with water; the cloth is submerged, squeezed, dried flat, then folded and beaten with a mallet; this is called peela karna.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "locally callert 'Peela Katana' of'Harils' Washed fabric is treated with myrobalan (harda) which contains tannic acidTannic acid attrads the morda s, which are applied with hand wood block- 'tlarda' powder is mixed with water, and the cloth is submerged il il squeezed ad dried flat"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "Once the fabric is dried, it is folded and beaten with a wooden mallet to remove excess 'harda' powder and open up the fiber to accept the dye. This process is klown as 'peela karna'."
+            }
           ]
         },
         {
           "text": "Harda leaves a yellowish tinge, hence pila-karna.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The cloth was treated with Harda, which functions as a pre-mordant link between the fibers and the various other ingredients. It left a yellowish tinge to the fabric, hence known as 'pila-karna '."
+            }
           ]
         }
       ],
@@ -1350,18 +2231,49 @@
           "text": "The block is pressed onto a dye-saturated pad and stamped on the fabric; each colour has a separate pan.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 5",
+              "quote": "Inside this vessel is thick cloth pad saturated with dye. The block is pressed on to this pad and motif is tlen stamped or to the fabric."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "For each colour impression the printer has to prepare a separate pan."
+            }
           ]
         },
         {
           "text": "The fabric is printed with two mordants, ferrous syahi and aluminium sulphate begar; the ferrous is usually printed with the outline block.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "The fabric is printed with two mordant-ferrous ('ry\"h*r) made out of rusted horse shoe nails, and aluminum zulphate (b*SC*) Uzually ferrous is printed with the outline block ('reAh')."
+            }
           ]
         },
         {
           "text": "Black outline is printed with syahi, then begar is filled in with the datta block, and the fabric dries for a week.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The begar paste was then applied using a 'Datta' block to fill in the 'Rekh' (the outlining block) and the fabric was dried for a week."
+            },
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The craftsman then printed the black area of the design using the Syahi (ink) pinting paste prepared using scrap iron, horseshoes and Gur (jaggery) in an earthenware vessel. After the black outline was made, the craftsman made the Begar, a mordant used for red."
+            }
           ]
         }
       ],
@@ -1384,6 +2296,18 @@
           "text": "Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "for anotler prhter to place the filler block ('dalla) with beggar some times the background block is applied before the outline block. - Ageing - localty called 'Sukhti' The printed fabric is left for at least three-four days so that the print (mordant paste) penetrates"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "Longer the ageilg better is the result."
+            }
           ]
         }
       ],
@@ -1406,12 +2330,31 @@
           "text": "Printed fabric is washed in running water to remove excess mordants before dyeing.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "Washing - localty called 'Dhatsi' The printed fabric is washed in running water to rmove excess mordants. t4"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "For turning the fabric green it is taken for further process of yellow dyeing but before this it is printed with dhabu to refain some blue areas."
+            }
           ]
         },
         {
           "text": "The fabric is washed thoroughly to remove the tree gum.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The fabric had to be thoroughly washed in order to remove the tree gum."
+            }
           ]
         }
       ],
@@ -1435,18 +2378,44 @@
           "text": "The dye reacts with two mordants at two locations on the same print, giving red with alum and black with ferrous.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "the dye reacts with two mordents at two diiTerent locations on the same print grvhg two different shades of colours' Alizarin is used as the dye throughout Rajasthan. the colours obtained in conjunctioa with the two mordants are red (with alum) and black (with ferrous)."
+            }
           ]
         },
         {
           "text": "Dyeing in the copper vessel usually takes half a day, and the fabric is then dried on the ground.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "Once the dyed fabric is ready (uzually it takes half a day), it is taken out ofthe copper vessel and left on the ground for drying."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "The fabric is fimlly dried flat on the ground. Care is taken that while dyeing or drying; 'dhabu' does not get broken or cracked."
+            }
           ]
         },
         {
           "text": "Red dyeing, 'ghan ki rangai', is done in a copper tamda on a bhatti.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The next step known as Ghan ki Rangai involves use of a copper vessel 'Tamda' on a Bhatti. Red dye matter along with Shakur ka phool or dhaura ka phool was added with drop of castor or sesame oil."
+            }
           ]
         }
       ],
@@ -1469,24 +2438,57 @@
           "text": "Alizarin over-dyes the ground to an off-white or yellow tinge, so the fabric is sun-bleached to whiten the ground again.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "Sun - bleeching - loc.ally calltd'Tqai' Alizaria often 'over dyes\" the sun printed area giving an of-white or yellow tiage all over the fabric which makes the priat look dull. In order to make the ground look whitg again the fabric is sun-bleached."
+            }
           ]
         },
         {
           "text": "The fabric is laid flat on a river bed and sprinkled with a mild cow dung solution, repeated as it dries.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "In this process the fabrio is laid flat on a river bed, A mild solution ofcow dung and water is sprhkled over the fubric. This process is repeated again when the fabric is drying."
+            }
           ]
         },
         {
           "text": "The GI application calls tapai the most typical part of the Sanganeri production process.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 9",
+              "quote": "This is most typical paxt of production process of Sanganeri Hand Block Printing. - Resict Printing or mud clay printing locally called *Dhabu Datai\" - Dyeing with blue colour looally oalled *Neel Rangai'. - Dyeing rith yellow dye locally called *Ilaldi Naspal Putai\". - Post"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 1",
+              "quote": "FoRMc..-l THE GEOGRAPHICAL INDICATIONS GOODS (REGTSTBAT:rON & PROTSCTTON) ACT, 1999 Applicatioa for Registration of a Geographical Indicgtion ir Part A ofthe Register; Section 11 (1) Rule 23 (5) SANGAI{ERI IIAND BLOCK PRINTING Application is hereby made for the registration in Part A ofthe regists ofthe"
+            }
           ]
         },
         {
           "text": "Cloth is washed in running river water and dried in scorching sun, with water sprinkled on it, giving a white background.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The printer washed the dyed fabric in the running river water and allowed to dry in the scorching sun with sprinkling of water time to time. This resulted in a bright white background and clear richly coloured butis and butahs."
+            }
           ]
         }
       ],
@@ -1510,12 +2512,31 @@
           "text": "Dabu is applied with a wooden block, sawdust is sprinkled over it, and the fabric is sun-dried before the indigo tanks.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "It is applied with wooden block on the fabric and saw dus is sprinkled over it."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "After printiug the ftbric is left outside in tie sun for drying before dipping in indigo taoks."
+            }
           ]
         },
         {
           "text": "The dabu technique is used only for creating patterns with indigo blue, and gives no sharp definition because the paste is thick and sticky.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "This technique is used only for creating patterns with indigo blue. Since the resist paste'dlwbu'is thick and sticky no sharp definitioas are achieved."
+            }
           ]
         }
       ],
@@ -1538,12 +2559,31 @@
           "text": "Cloth folded like sari pleats is lowered into the tank and opened under the liquid; it is then taken out and opened to react with atmospheric oxygen.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "The printed cloth is folded neatly like saree pleats and lowered gently into the indigo tank."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "The fabric is then taken out of tank' gently squeezed and opened out to react with the atmospheric orygen and tum the reduced indigo into oxidized iodigo."
+            }
           ]
         },
         {
           "text": "The first dip gives a pale sky blue; dipping and oxidising are repeated until the desired dark shade is reached.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "Indigo has poor atrni1V to the fabric in the presio\"\" of water, so the first 'dip' gves a pale sky blue shade."
+            }
           ]
         }
       ],
@@ -1566,12 +2606,31 @@
           "text": "Four persons hold the cloth at the corners while a fifth rubs on turmeric and pomegranate-rind dye with a loose-woven woollen cloth used as a sponge.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "Four persons hold it at each corner and fifth person dips a loose-woven woolel fabric which acts as a sponge in the dye extracled out of haldi (turmerio) and naspat (pomegranate rinds) and rubs it gently all over the cloth to be dyed."
+            }
           ]
         },
         {
           "text": "Loose-woven fabric is used so it retains enough dye during application.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "The application oftie yellow dye is like mopping the floor but is done gently so tlrat the 'dlubu' does not come off. Tbe idea of using loose woven fabric in the process of dyeing is to retain enough dye while applying it."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "Dbabu acts as mechauical resist and prevents the pnetration of dye during dyeing on areas covered with 'dhabu'. This technique is used only for creating patterns with indigo blue."
+            }
           ]
         }
       ],
@@ -1594,12 +2653,31 @@
           "text": "Fabric is dipped for a few minutes in a copper vessel of water and diluted alum, squeezed and dried flat.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "known u'Filkui Rangati' The dye extracted ftom turmeric and pomegranate peals is very fugitive and in order to make it fast, post mordanting is done witl alum (fitkari). ln this process the fab'ric is dipped in a big copper vessel filled with water and diluted"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "A-fter leaving it for a few minutes (long period of time will oause the dhabu to come ofi) it is taken out, gently squeezed and dried flat on the ground When it is completely dry it is folded and stored in dark places for at"
+            }
           ]
         },
         {
           "text": "The dry fabric is folded and stored in dark places for at least 3 to 4 days so the yellow dye sets.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "will oause the dhabu to come ofi) it is taken out, gently squeezed and dried flat on the ground When it is completely dry it is folded and stored in dark places for at least 3 to 4 days so that the yellow dye sets"
+            }
           ]
         }
       ],
@@ -1622,12 +2700,26 @@
           "text": "Fabric is left in big tanks for at least 3 to 4 hours until the resist paste becomes smooth, then beaten on a flat stone slab to remove paste and excess dye.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "In this process the fabric is left in big tanks for at lest 3 to 4 hours till the resist paste becomes smooth. The fabric is then beatea over a flat stone slab to remove the resist paste and excess dye."
+            }
           ]
         },
         {
           "text": "Beating of the cloth is generally done where there is a flow of water.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "The beating ofthe cloth is generally done where tlere is a flow ofwater."
+            }
           ]
         }
       ],
@@ -1651,12 +2743,31 @@
           "text": "Ferrous is usually printed with the outline block because it immediately shows a black impression, so another printer can easily place the filler block.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "As it immediately shows a black impressioq it is easy for anotler prhter to place the filler block ('dalla) with beggar some times the background block is applied before the outline block. - Ageing - localty called 'Sukhti' The printed fabric is left for at"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "For each colour impression the printer has to prepare a separate pan. The fabric is printed with two mordant-ferrous ('ry\"h*r) made out of rusted horse shoe nails, and aluminum zulphate (b*SC*) Uzually ferrous is printed with the outline block ('reAh')."
+            }
           ]
         },
         {
           "text": "Sometimes the background block is applied before the outline block.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "As it immediately shows a black impressioq it is easy for anotler prhter to place the filler block ('dalla) with beggar some times the background block is applied before the outline block. - Ageing - localty called 'Sukhti' The printed fabric is left for at"
+            }
           ]
         },
         {
@@ -1664,6 +2775,23 @@
           "source_ids": [
             "S1",
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 5",
+              "quote": "A high degree of skill is required both for tle placement of the design and even application of preszure. Blocks are also used for applying mordants, war( or any other resist in the same way\" (page 317)."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "A high degree of skill was required right from carving of the block and then lifting the colour by pressing the block on the padded tray containing dye and finally impressing it on the cloth again and again at equal spacing with the same amount"
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 9",
+              "quote": "Another technique of applying glitter is first applying the adhesive with the tube according to design and later dusting the fabric with glitter."
+            }
           ]
         }
       ],
@@ -1684,12 +2812,31 @@
           "text": "The quantity of alizarin dye is calculated by the experienced dyer.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "The quailtity of alizarin dye is calculated by the experienced dyer."
+            }
           ]
         },
         {
           "text": "Dabu ingredients are mixed in specific ratios depending on the type of dabu needed, and each family keeps its recipe secret.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 14",
+              "quote": "Dabu paste is prepared by mixing *Kali mittf', lime (Bidhan) wheai flour and gurn These are mixed in specific ratio depending upon type ofDabu paste netded."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "The art of maleng'dhabu' paste is kept secret and every family has its own recipe to make the paste. lndigo dyeing loc*lty called 'NeeI rungai' It is the most interesting process of coloring the fabric blue."
+            }
           ]
         }
       ],
@@ -1711,7 +2858,14 @@
           "source_ids": [
             "S1"
           ],
-          "quote": "There is no written recipe with the indigo dyer and every family has its own way of handling indigo."
+          "quote": "There is no written recipe with the indigo dyer and every family has its own way of handling indigo.",
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "An expert indigo dyer can tell the state of dye by the cplour of the vat. IIe adds the exact quantity of every ingredient required, having leamt it by experience."
+            }
+          ]
         }
       ],
       "prose_policy": "claims-only"
@@ -1731,18 +2885,44 @@
           "text": "Air trapped in folds or pleats gives patchy dyeing, so the dyer opens each pleat neatly and gently under the liquid, avoiding cracking of the dabu.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "Since indigo does not react in the presence ofair, any air trapped in the folds or pleats will give 'patchy' dyeing An experienced dyer always unfold the pleats neatly ald geatly to avoid 15"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "When the cloth is totally submerged io the tank, the dyer still holdiry it under the liquid dye, opens each pleat to allow the fab'ric to have tle indigo dye evenly."
+            }
           ]
         },
         {
           "text": "The alum dip lasts only a few minutes because a long period causes the dabu to come off.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "A-fter leaving it for a few minutes (long period of time will oause the dhabu to come ofi) it is taken out, gently squeezed and dried flat on the ground When it is completely dry it is folded and stored in dark places for at"
+            }
           ]
         },
         {
           "text": "Yellow is applied gently, like mopping a floor, so the dabu does not come off.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "The application oftie yellow dye is like mopping the floor but is done gently so tlrat the 'dlubu' does not come off."
+            }
           ]
         }
       ],
@@ -1765,12 +2945,31 @@
           "text": "Printed fabric is aged at least three to four days, and longer ageing gives a better result.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "shows a black impressioq it is easy for anotler prhter to place the filler block ('dalla) with beggar some times the background block is applied before the outline block. - Ageing - localty called 'Sukhti' The printed fabric is left for at least three-four days"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "Longer the ageilg better is the result."
+            }
           ]
         },
         {
           "text": "After begar printing the fabric dries for a week.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The begar paste was then applied using a 'Datta' block to fill in the 'Rekh' (the outlining block) and the fabric was dried for a week."
+            }
           ]
         }
       ],
@@ -1792,18 +2991,49 @@
           "source_ids": [
             "S1",
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 6",
+              "quote": "These motifs had to suit the occasion, location and requirements of the patrom who commissioned the textileJ'- (Ritu Kumar, Costumcs and Tcrtiles of Royal India; Christie's Books Ltd; 1999, p. ros."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "These motifs had to suit the occasion, location and requirements of the patrons who commissioned the textiles."
+            }
           ]
         },
         {
           "text": "The rich gentry preferred dark yellow, green and pink with natural floral designs, whereas local people preferred red and black prints.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 7",
+              "quote": "The rich gentry prefer dark yellow, green and pink oolours and natural designs of wild flowers ard leaves, creepers and plants and groves whereas the local people prefer red and black prints."
+            }
           ]
         },
         {
           "text": "Today buyers usually decide the motif and pattern, and placement is planned around garment construction rather than running fabric.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 7",
+              "quote": "Another important finding was that now the buyer decides the motif and the pattern of the design than places the order in bulk, he could be a national or international buyer."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 8",
+              "quote": "www.fibre2fashion.com on running fabric without any consideration to the location of motifs on the garment."
+            }
           ]
         }
       ],
@@ -1831,24 +3061,67 @@
           "text": "Sanganeri design forms are known as butis, butas, jhar and border, and all GI textiles carry buti, buta or jhar or a combination.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 14",
+              "quote": "Butis, Butas, Jhar and Border. . The desrgr on the Sanganeri l{and Block Printing necessarily is repetitive. ."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 3",
+              "quote": "All sanganeri Fdand Block Printing Textiles will have print designs of buti/ buta/ jhar or a combiaation ofany two or thre 7, Geogrephical Area of pmduction and Map: Geographical Area of Production of Sanganeri rland Block hi*ing is saugaaer town."
+            }
           ]
         },
         {
           "text": "A buti is a very small motif at predetermined spacing, up to 20 per block; a buta is a single complete motif usually no larger than 3 by 5 inches.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 4",
+              "quote": "www.fibre2fashion.com The details of the four categories used in those times are as follows:- Buti: Buti is a very small motif and the spacing between one buti and another is predetermined."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 4",
+              "quote": "Buta: Buta is normally referred to as design, which is single and complete in itself (Fig."
+            }
           ]
         },
         {
           "text": "Jaal is a continuous all-over pattern that was not very popular in Sanganeri prints; bel are narrow 2-4 inch borders.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 4",
+              "quote": "Jaal was not very popular in Sanganeri prints."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 4",
+              "quote": "Bel: Narrow borders of 2\"-4\" width were also used and they represent and repeat the same theme as used in the entire body."
+            }
           ]
         },
         {
           "text": "Sanganeri small patterns, called bhant, include floral patterns, buta, bel and jaali, with over four hundred types.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "The small decorative patterns of Sanganeri, known as bhant in Hindi, and include floral patterns, buta , bel and jaali . Over four hundred types of bhants are employed by the artisans."
+            }
           ]
         }
       ],
@@ -1872,24 +3145,62 @@
           "text": "Motifs can be flowers, leaves and buds, intertwisted tendrils, figurative designs or geometric designs; more than a hundred traditional designs are used.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 1",
+              "quote": "Tbese may ovedap or circumscribe by others. r Motifs on Sanganeri Hand Block Prints can be of (a) Flowers, Leaves and Buds (b) Intertwistd tenddls (c) Figurative desips (d) Geoefic designs. ."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 1",
+              "quote": "More tlan hundred Traditional Desigus are used for production of Sanganeri Iland Block Printing."
+            }
           ]
         },
         {
           "text": "Sari motifs include lotus, iris, rose, poppy, water lily, narcissus, marigold and sunflower, composed into mango, betel-leaf, dagger and jhumka forms.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 2",
+              "quote": "usually represer$s a variety of flowers e.g. motifs based on Lotus, kis, Rose' Poppy, Water Lily, Narcissus, Marigold, Sunflower, Chinese rosg Chrysanthemum, Chaqpa etc. - Saris have usually motifs consisting offlowers, buds and leaves composed in the form ofa mango, betel lea{ dagger and Jhumka"
+            }
           ]
         },
         {
           "text": "Orderly designs of offset rows of floral motifs originate in 17th-century Mughal court designs.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Textile\"",
+              "quote": "Design & Designing This type of orderly design of offset rows of floral motifs has its origins in the Mughal court designs of the 17th century, but has continued to be popular ever since."
+            }
           ]
         },
         {
           "text": "Mughal influence added iris, tulip and narcissus, not grown locally, and East India Company trade brought the cabbage rose.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "By the late seventeenth century, trade with English and Dutch East India Companies led to further development of the craft and motifs such as the rose - in the form of cabbage rose - made their way to sanganeri."
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "The repertoire of motifs was extended to include flowers such as iris, tulip and narcissus - which were not seen in sanganeri bhant since they were not grown in the area - while the form of plants, foliage and stalks acquired minutiae and curvature."
+            }
           ]
         }
       ],
@@ -1914,18 +3225,49 @@
           "source_ids": [
             "S1",
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 6",
+              "quote": "A special feature of these prints is the use of variety of designs in the same piece of clotb, but beautifully harmonized."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 9",
+              "quote": "Since l8e century, the production and marketing of Sanganeri Hand Block Printed cloth and made ups continues till today. At present tlere are three hundred and fifteen production units and more than twenty exporting units in Sanganer."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 3",
+              "quote": "In the words of Kamaladevi Chattopadhyay \"Sanganer, a village near Jaipur, became the prestigious work centre for such prints with very elaborate techniques. A special feature of these prints is the use of variety of designs in the same piece of cloth, but beautifully harmonized\"."
+            }
           ]
         },
         {
           "text": "For a sari, chhipas use buti for the body, bel for the edges and buta for the end panel, so many blocks are needed.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 4",
+              "quote": "Chhipas generally used a single concept while printing a saree, in which the Buti for the body, Bel for the edges and Buta for the end part of a saree are, used (Fig.3)."
+            }
           ]
         },
         {
           "text": "Two different buti blocks can be printed together to form a third buti, such as the singhbal buti.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 4",
+              "quote": "Sometimes two different blocks of two different buties are printed together to form a third type of buti e.g. Singhbal buti."
+            }
           ]
         }
       ],
@@ -1953,6 +3295,23 @@
           "source_ids": [
             "S8",
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The 'Syahi Begar' black and red designs on gossamer white cloth adorned the Safa turbans or Angochha shawls of men of the local community . Buti sprigged floral motifs stamped upon softly coloured or white backgrounds graced Jaipur court society."
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "The syahi begar style rendered black and red designs on white cloth and was used by the local community for safa turbans or angochha shawls."
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "Fabrics and garments with floral motifs on white or soft-toned colours were patronised by the nobility at Jaipur court; influenced by the imagery of Indo-Persian Mughal repertoire, the butas on these fabrics acquired a slant."
+            }
           ]
         },
         {
@@ -1960,18 +3319,49 @@
           "source_ids": [
             "S8",
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "Dupattas and shawls bearing auspicious red designs on a white or yellow background adorned the pious attendees at Hindu temples."
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "When made for ceremonial purposes, such as donations at Hindu temples, the dupattas (veils) and shawls bore red designs on either white or yellow cloth."
+            }
           ]
         },
         {
           "text": "Bandhani-imitating prints for women included the mali chunnari and the mina chaddar.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "Clothes mimicking the bandhani (tie-dye) patterns were popularly produced for women. It was used in veils such as mali chunnari which had a single and large red circular motif in the centre of the rectangular fabric."
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "It was also used in the mina chaddar shawl which was covered in small red coloured flower-shaped dots on a dark background."
+            }
           ]
         },
         {
           "text": "Safas are printed with a white ground, black outline and red, and Shiva-worship dupattas carry damaru, trident and dhatura motifs.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 8",
+              "quote": "149cm\" r Dupattq cotton, whitg printed b red and blacl groud-benediction to shiva in Nagri letters: qq; Rrqrq in black, sripes in red ; both sides have border with damaru and dhatura patiern printed in two reds; pallava-stripes consisting of dhatura, damarq trident and belpatra"
+            }
           ]
         }
       ],
@@ -1992,18 +3382,44 @@
           "text": "Sanganeri saris have red and black as the two main colours with shades of yellow, brown, indigo, blue and green.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 2",
+              "quote": "Special features ofthese sarees are: These are printed fully by hand blocks These have rnainty red and black as two main colours with a multiple of shades -yelloq brown, indigo blug green etc."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 9",
+              "quote": "This is most typical paxt of production process of Sanganeri Hand Block Printing. - Resict Printing or mud clay printing locally called *Dhabu Datai\" - Dyeing with blue colour looally oalled *Neel Rangai'. - Dyeing rith yellow dye locally called *Ilaldi Naspal Putai\". - Post"
+            }
           ]
         },
         {
           "text": "Washing in river water and drying in the sun gives a white background with clear, richly coloured designs.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The printer washed the dyed fabric in the running river water and allowed to dry in the scorching sun with sprinkling of water time to time. This resulted in a bright white background and clear richly coloured butis and butahs."
+            }
           ]
         },
         {
           "text": "A Sanganer cotton of about 1850 shows a red and green floral repeat on a white ground.",
           "source_ids": [
             "S6"
+          ],
+          "evidence": [
+            {
+              "source_id": "S6",
+              "locator": "§ \"Object details\"",
+              "quote": "1850 Physical description Parts of a length of cotton with block-printed repeating floral design, in red and green on a white ground."
+            }
           ]
         }
       ],
@@ -2024,12 +3440,26 @@
           "text": "The print design is equally vividly seen on the underside of the cloth.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 1",
+              "quote": "Itfut design is equally vividly seen on the underside ofthe cloth. ."
+            }
           ]
         },
         {
           "text": "Patterns were impressed so perfectly with wooden blocks that the print appeared vividly on the back.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "The patterns were impressed so perfectly with the help of a wooden block made of ,,shisham, ,,gurjan, ,,mango and ,,teak wood that the print appeared vividly at the backside."
+            }
           ]
         }
       ],
@@ -2050,6 +3480,18 @@
           "text": "Sanganer was known for its bright and fast dyes; a collection of sayings dated 1796 refers to the 'colours of Sanganer'.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 4",
+              "quote": "Sanganer u/as known for its bright and fast dyes. A collection of miscellaneous-sayings (dared Vikr*n &nwqL 1853 : A,D."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 4",
+              "quote": "1796I while mentioning characteristics of various objects and places refers to \"Colours of Sanganer.\" When and how did this charming art of printing start?"
+            }
           ]
         },
         {
@@ -2057,6 +3499,18 @@
           "source_ids": [
             "S1",
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 6",
+              "quote": "The main contributions of sanganer Printers to the Indian printing industry were fast colours, and well-proportioned lyrical motifs designed for dilpqtlqs, ulhanis, dress materials, soft imishing quilts and upholstery."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "The genius of their print designs lay in their understanding of patterning fabric surfaces and the use of space.\" The main contributions of Sanganer printers to the Indian printing industry were fast colours, and well proportioned lyrical motifs designed for dupattas, odhanis, dress materials, soft"
+            }
           ]
         }
       ],
@@ -2077,12 +3531,31 @@
           "text": "To make green, indigo-dyed fabric goes on to yellow dyeing, with dabu printed first to retain some blue areas.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "For turning the fabric green it is taken for further process of yellow dyeing but before this it is printed with dhabu to refain some blue areas."
+            }
           ]
         },
         {
           "text": "Green on a Sanganer cotton of about 1850 combines indigo with a yellow dye, probably turmeric.",
           "source_ids": [
             "S5"
+          ],
+          "evidence": [
+            {
+              "source_id": "S5",
+              "locator": "§ \"Textile\"",
+              "quote": "The dyes used for the design are indigo (blue) and madder (red), with green made by combining indigo with a yellow dye, probably turmeric."
+            },
+            {
+              "source_id": "S5",
+              "locator": "§ \"Textile\"",
+              "quote": "1850 (made) Artist/Maker Unknown Place of origin Sanganer (made) Object Type This length of block-printed cotton was intended to be cut and tailored into garments such as coats and trousers, probably for members of the court at Jaipur, Rajasthan."
+            }
           ]
         }
       ],
@@ -2108,18 +3581,44 @@
           "text": "Products include saris, chintz yardage for ghagharas, salwar suits with dupattas, safas and home furnishings such as bedspreads, quilts and curtains.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 2",
+              "quote": "Suits and Dupattas: Salwar Suits with Dupattas are predominantly women's wear printed cotton cloth variously coloured and sometimes value added by silver or gold work on sleeves and neckJine. Eome Furnishingl: Several Home Furnishing items are produced using Sanganeri Hand Block Printed coson cloth."
+            }
           ]
         },
         {
           "text": "A safa is usually 8 m long and 0.9 m wide.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 3",
+              "quote": "Eeadgears (Safa): Headgear (safa) is of white background, black outlhe and red under line variously pri$ed rt is uzually of length 8 mtrs and width 0.9 mtrs. and is printed on fine fabrii called'h{ulmul' ."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 2",
+              "quote": "The creation of rich and wide range of print desigus iies in stamping by lland made wooden blocks."
+            }
           ]
         },
         {
           "text": "Male garments are now printed, which was not done earlier.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 10",
+              "quote": "www.fibre2fashion.com noticed was that these days male garments are also printed which was not done earlier."
+            }
           ]
         }
       ],
@@ -2140,12 +3639,31 @@
           "text": "The dye reacts with two mordants at two locations on the same print, giving red with alum and black with ferrous.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "the dye reacts with two mordents at two diiTerent locations on the same print grvhg two different shades of colours' Alizarin is used as the dye throughout Rajasthan. the colours obtained in conjunctioa with the two mordants are red (with alum) and black (with ferrous)."
+            }
           ]
         },
         {
           "text": "Tannic acid of harda attracts the mordants and forms a black colour with the ferrous syahi.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 10",
+              "quote": "The tannic acid of myrobalam (harda) forms black colour with ferous (syahee) which is traditionally rnade by raction of old rusted horse shoe nails with jiggerl'- - Printing (mordanting) - locally called 'chapai' This is the process of transferring the design to the cloth and"
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "the dye reacts with two mordents at two diiTerent locations on the same print grvhg two different shades of colours' Alizarin is used as the dye throughout Rajasthan. the colours obtained in conjunctioa with the two mordants are red (with alum) and black (with ferrous)."
+            }
           ]
         }
       ],
@@ -2168,6 +3686,13 @@
           "text": "The interaction of alkali from cow dung and thermal heat from sun rays bleaches the ground colour white again.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "The interaction of alkali (of cow dung) and thennal heat (sun ray) bleach the ground colour making it look white again."
+            }
           ]
         }
       ],
@@ -2190,12 +3715,26 @@
           "text": "Dabu acts as a mechanical resist and prevents the penetration of dye on covered areas.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "Dbabu acts as mechauical resist and prevents the pnetration of dye during dyeing on areas covered with 'dhabu'."
+            }
           ]
         },
         {
           "text": "Sawdust absorbs water from the dabu paste and gives additional layers of resist.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "Saw dust has two major functions at this stage-first to absorb water from the Dha!,u paste and glve additional layers of resist."
+            }
           ]
         }
       ],
@@ -2216,12 +3755,26 @@
           "text": "Fabric is opened out to react with atmospheric oxygen and turn reduced indigo into oxidised indigo.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "The fabric is then taken out of tank' gently squeezed and opened out to react with the atmospheric orygen and tum the reduced indigo into oxidized iodigo."
+            }
           ]
         },
         {
           "text": "Because indigo has poor affinity to the fabric, the first dip gives pale sky blue, and dips are repeated for darker shades.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "Indigo has poor atrni1V to the fabric in the presio\"\" of water, so the first 'dip' gves a pale sky blue shade. In order to get darker indigo blue, the fabric is again dipped in the tanft' pulled out and o*idi\"ea."
+            }
           ]
         }
       ],
@@ -2246,18 +3799,49 @@
           "text": "Oral tradition says chhipa families moved their work to places with space and running water near Jaipur; Sanganer's riverbanks were ideal.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "Oral tradition suggests that the chhipa families of Jaipur began to shift their work to locations where space and running water were freely available, yet still within easy reaches of the capital city Jaipur."
+            },
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The riverbanks of Sanganer presented the ideal location with the added benefit of specialist dyers and cloth bleachers residing in the town."
+            }
           ]
         },
         {
           "text": "Sun-bleaching is done on a river bed, and final beating of the cloth generally where water flows.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "The beating ofthe cloth is generally done where tlere is a flow ofwater."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 11",
+              "quote": "In order to make the ground look whitg again the fabric is sun-bleached. In this process the fabrio is laid flat on a river bed, A mild solution ofcow dung and water is sprhkled over the fubric."
+            }
           ]
         },
         {
           "text": "The banks of the river Dhoondh were an asset for dyers and bleachers.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "The riverbanks of the river Dhoondh also proved to be an asset for the dyers and bleachers."
+            }
           ]
         },
         {
@@ -2265,6 +3849,18 @@
           "source_ids": [
             "S10",
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "The water of the river ,,Saraswati, the soil, the sunshine, the humid air, and the availability of flowers, leaves and herbs all contributed to the characteristic seasoning of the shades and tints produced by the natural dyes."
+            },
+            {
+              "source_id": "S13",
+              "locator": "§ \"A Timeless Textile Tradition\"",
+              "quote": "What makes Sanganeri prints different from Bagru and Jahota prints is the choice of motifs and the availability of abundant water supply from the river Saraswati, which helps impart a unique radiance to these fabrics."
+            }
           ]
         }
       ],
@@ -2285,18 +3881,44 @@
           "text": "Annual rainfall is 556 mm, and district temperatures range from 3 to 50 degrees Celsius.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 3",
+              "quote": "1'. ii Itncation j ......\"'..''..'\".-....''..'.'-..,.,. : District & State i \"----\"-\"---'-\"--\"--.... tPopulation ; (Sanganer Tehsil) il.atitude rLongitude i_-\"\"'-\"\"*_-\"',\"\"-\"'-,-\"\"' : Totat Land Annual Rainfall 556 mm."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 3",
+              "quote": "Temperafure Literates Season I:nguages spoken The minimum and maximum temperature recorded in the district varies from 3 to 50 degrees Celsius."
+            }
           ]
         },
         {
           "text": "The applicant claims Sanganer has very conducive geographical and climatic conditions for the desired shades and fine designs.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 15",
+              "quote": ".TheArtandSkillforproductionofSanganeriHandBlockPrintingislimite<i toacommunityknownasChhipaswhohal.eaoquiredthisskillfromtheir parents and grandparents tkough generations' , 3*g* fraA anA still has very conducive geographical _and climatic *niitionr nffissary for the produition of desired shades of colours and fine designs. . the production process involves a process non as Tapai or suo Bleaching whic'h"
+            }
           ]
         },
         {
           "text": "Cloth is dried in scorching sun with periodic sprinkling to obtain a white background.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The printer washed the dyed fabric in the running river water and allowed to dry in the scorching sun with sprinkling of water time to time. This resulted in a bright white background and clear richly coloured butis and butahs."
+            }
           ]
         }
       ],
@@ -2319,30 +3941,80 @@
           "text": "Wastewater from Sanganer dyeing and printing units is high in sodium, chloride and sulfate, with copper, chromium and iron, and enters the Amanishah Nallah untreated.",
           "source_ids": [
             "S11"
+          ],
+          "evidence": [
+            {
+              "source_id": "S11",
+              "locator": "Abstract (OpenAlex record; full text not reachable)",
+              "quote": "The wastewater of these units was found to have high concentrations of sodium, chloride, and sulfate. It has remarkable concentrations of copper, chromium, and iron with low chemical oxygen demand and nearly 7-fold biochemical oxygen demand."
+            },
+            {
+              "source_id": "S11",
+              "locator": "Abstract (OpenAlex record; full text not reachable)",
+              "quote": "[Abstract via OpenAlex W-record for doi:10.3906/muh-1310-8; full text not reachable] Wastewater and groundwater samples of Sanganer were studied to find out the pollution load of wastewater generated from dyeing and printing units and its impact on the quality of domestic wastewater of the Amanishah Nallah"
+            }
           ]
         },
         {
           "text": "Eleven groundwater samples from Sanganer were polluted by percolation of this wastewater; iron was found in almost all sources.",
           "source_ids": [
             "S11"
+          ],
+          "evidence": [
+            {
+              "source_id": "S11",
+              "locator": "Abstract (OpenAlex record; full text not reachable)",
+              "quote": "Eleven groundwater samples, collected from various locations of Sanganer, were found polluted due to percolation of wastewater into the ground. Copper and chromium were recorded from some groundwater sources while iron was recorded from almost all sources."
+            }
           ]
         },
         {
           "text": "Units discharge an estimated 17-18 MLD of untreated wastewater (officially about 12.3 MLD) into nallahs draining to the Dravyawati river.",
           "source_ids": [
             "S12"
+          ],
+          "evidence": [
+            {
+              "source_id": "S12",
+              "locator": "§ \"Textile mills pollute the waters\"",
+              "quote": "These units discharge 17-18 million litres (MLD) of untreated chemical water per day into the nallahs which drain into the Dravyawati river. The official figures are a little less--about 12.3 MLD."
+            }
           ]
         },
         {
           "text": "Small units generate 1-2 m³ of effluent per day; the society was setting up a CETP under state directives.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "Eflluent Tmtment: Small capacity Sangirneri llabd Block Printing Units generate 1-2 M' of effluent per day."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "The Calico Printers Co-operative Society Ltd., under the directives of Govemment of Rajasthan is setting up a Common Efiluent Treafment Plant (C.E.T.P.) to treat efiluent of aU printing units to render it re{rsable ald to comply standards set by Rajasthan State Pollution Contml Board."
+            }
           ]
         },
         {
           "text": "Screen-printing units were described as the main source of pollution, leading to High Court relocation orders around 2003-2004.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 10",
+              "quote": "Along with them there were some 300 Screen Printing units, which were the main source of the pollution."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 10",
+              "quote": "In the \"Report of ministerial sub-committee forwarded by Registrar, High court\" on June 5th 2003 there are 8 clusters identified and 473 units in which around 2 lakh artisans are working directly or indirectly."
+            }
           ]
         }
       ],
@@ -2364,6 +4036,18 @@
           "source_ids": [
             "S1",
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 6",
+              "quote": "*Sanganer, in Rajasthat, became an importalt block-printing centre in the eighieenth century."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 3",
+              "quote": "www.fibre2fashion.com record of printing unit of Sanganer can be traced. No such account was mentioned in 16th and 17th century records of the East India Company."
+            }
           ]
         },
         {
@@ -2371,12 +4055,31 @@
           "source_ids": [
             "S8",
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "From sophisticated printing and dyeing techniques for the royal attire to floral depictions across the local and temple textiles ; Sanganer block printing dates back to the social upheavals of mid-17th century that may have forced Gujarati printers to flee to this city in the"
+            },
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "While the exact point of origin of the craft has remained unknown, it is widely believed to have been borne out of the socio-political upheavals caused by the campaigns of Mughals and Marathas in the region of Gujarat in the mid-seventeenth century."
+            }
           ]
         },
         {
           "text": "NABARD describes the textiles as roughly 500 years old.",
           "source_ids": [
             "S3"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"Sanganeri Hand Block Printing\"",
+              "quote": "Sanganeri hand block printed textiles, which date back almost 500 years, are distinguished by their beautiful multicoloured flower designs."
+            }
           ]
         },
         {
@@ -2384,6 +4087,18 @@
           "source_ids": [
             "S1",
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 7",
+              "quote": "8.10 *The block printed cottons of Sanganer, near laipur has been renowned for their precious pattern and oolouriug for at least two hundred and fifu years\" llandcrafted Indiar Textiles, (Mertand Siugh, Rta Kepur Chisti & Rahul Jein, Handcrefted Indian Tertiles; Luster Press Roli Books, 2000,"
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 3",
+              "quote": "Singh et al, (2000) in Handcrafted Indian Textiles reports \"The block printed cottons of Sanganer, near Jaipur has been renowned for their precious pattern and coloring for at least two hundred and fifty years\"."
+            }
           ]
         },
         {
@@ -2391,6 +4106,18 @@
           "source_ids": [
             "S13",
             "S14"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"A Timeless Textile Tradition\"",
+              "quote": "The origin of the Sanganeri Hand Block Printing technique can be traced back to the late 16 th and early 17 th century, when the artisans of the Chippa community migrated from Gujarat to three areas in Rajasthan- Bagru, Sanganer and Jahota."
+            },
+            {
+              "source_id": "S14",
+              "locator": "§ \"CRAFT HISTORY\"",
+              "quote": "Emerging around the 16th-17th century, it developed under the patronage of the Jaipur royal court and the trade networks of the Mughal era."
+            }
           ]
         }
       ],
@@ -2411,18 +4138,39 @@
           "text": "Sanganer was founded by Sangaji, son of Prithviraj of Amber.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 7",
+              "quote": "The chintzes are printed in colours by hand blocks, but the industry is deoaying owhg to machine competition.\" At Annerure 4.9 8.8 Sanganer was founded by Sangaji the son ofMaharaj Prithviraj ji ofAmber province Mr."
+            }
           ]
         },
         {
           "text": "Gaatha states that the Kachhwaha Rajput prince Sangaji founded Sanganer in the early 16th century.",
           "source_ids": [
             "S8"
+          ],
+          "evidence": [
+            {
+              "source_id": "S8",
+              "locator": "§ \"Syahi Begar\"",
+              "quote": "The Kachchwaha Rajput prince, Sangaji, founded Sanganer in the early 16th century and the little dwelling was thriving by the 17th century partially due to its strategic location on major trade routes ."
+            }
           ]
         },
         {
           "text": "Sanganer was established by Rana Sanga, a Mewar Rajput.",
           "source_ids": [
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S13",
+              "locator": "§ \"The Enduring Appeal of Sanganeri Prints\"",
+              "quote": "The town of Sanganer was established by Rana Sanga, a Mewar Rajput, who turned it into one of the busiest art printing centres in entire India."
+            }
           ]
         }
       ],
@@ -2443,6 +4191,13 @@
           "text": "Application 147 is listed in the registry section for April 2009 to March 2010.",
           "source_ids": [
             "S2"
+          ],
+          "evidence": [
+            {
+              "source_id": "S2",
+              "locator": "PDF p. 5",
+              "quote": "118 43 Peruvian Pisco Manufactured 119 147 Sanganeri Hand Block Printing Handicraft 120 152 Balaramapuram Sarees and Handicraft Fine Cotton Fabrics FROM APRIL 2010- MARCH 2011 Peru Rajasthan Kerala 121 142 Bikaneri Bhujia Food Stuff Rajasthan 122 143 Guntur Sannam Chilli Agriculture Andhra Pradesh 123"
+            }
           ]
         },
         {
@@ -2450,6 +4205,18 @@
           "source_ids": [
             "S3",
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S3",
+              "locator": "§ \"GI tag\"",
+              "quote": "This beautiful style of designing the textile received the GI tag in 2009."
+            },
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 3",
+              "quote": "The registration can be done for 10 years and can be renewed for subsequent periods of 10 years.In 2011 and 2009 respectively Bagru and Sanganer hand-block prints received the Geographical Indication (GI) tag from the Government of India through a State Government initiative through Rajasthan"
+            }
           ]
         },
         {
@@ -2459,12 +4226,41 @@
             "S10",
             "S13",
             "S15"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "In 2010, it received the Geographical Indication (GI) tag from the Government of India."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 11",
+              "quote": "Efforts made by the CALICO to get block printing added under Geographical Identification Goods category had been successful in 2010 and now the block printers should be motivated to use Geographic Identification Certification."
+            },
+            {
+              "source_id": "S13",
+              "locator": "§ \"Timeless Treasures\"",
+              "quote": "The Sanganeri prints were awarded the Geographical Indication tag in 2010."
+            },
+            {
+              "source_id": "S15",
+              "locator": "§ \"Textiles of Sanganer\"",
+              "quote": "Today, the town's textile market is famous for its unique blend of traditional and modern styles of printing. [ 4 ] To this end, Sanganer received a geographical indication (GI) tag in 2010. [ 5 ]"
+            }
           ]
         },
         {
           "text": "A craft-organisation page states the GI tag was received in 2023.",
           "source_ids": [
             "S14"
+          ],
+          "evidence": [
+            {
+              "source_id": "S14",
+              "locator": "§ \"WHAT MAKES IT UNIQUE:\"",
+              "quote": "Extremely fine motifs created with hand-carved wooden blocks Use of discharge printing and calico printing techniques Soft pastel colours with detailed outlines, unmatched by machine or screen prints Sun-bleaching process that gives the fabric its signature brightness Received a GI tag in 2023"
+            }
           ]
         }
       ],
@@ -2485,6 +4281,13 @@
           "text": "The riverbanks of the river Dhoondh were an asset to the dyers and bleachers.",
           "source_ids": [
             "S9"
+          ],
+          "evidence": [
+            {
+              "source_id": "S9",
+              "locator": "§ \"Sanganeri\"",
+              "quote": "The riverbanks of the river Dhoondh also proved to be an asset for the dyers and bleachers."
+            }
           ]
         },
         {
@@ -2492,12 +4295,36 @@
           "source_ids": [
             "S10",
             "S13"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 5",
+              "quote": "The water of the river ,,Saraswati, the soil, the sunshine, the humid air, and the availability of flowers, leaves and herbs all contributed to the characteristic seasoning of the shades and tints produced by the natural dyes."
+            },
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 3",
+              "quote": "King Sawai jai Singh has to be credited for settling a foundation to this Printing as he invited artists and craftsman from all over the country especially from Gujarat and Malwa to Sanganer, a place near Jaipur."
+            },
+            {
+              "source_id": "S13",
+              "locator": "§ \"A Timeless Textile Tradition\"",
+              "quote": "What makes Sanganeri prints different from Bagru and Jahota prints is the choice of motifs and the availability of abundant water supply from the river Saraswati, which helps impart a unique radiance to these fabrics."
+            }
           ]
         },
         {
           "text": "Sanganer's nallahs drain into the Dravyawati river.",
           "source_ids": [
             "S12"
+          ],
+          "evidence": [
+            {
+              "source_id": "S12",
+              "locator": "§ \"Textile mills pollute the waters\"",
+              "quote": "These units discharge 17-18 million litres (MLD) of untreated chemical water per day into the nallahs which drain into the Dravyawati river."
+            }
           ]
         }
       ],
@@ -2518,18 +4345,39 @@
           "text": "Synthetic alizarine and synthetic indigo granules are now used in place of madder and plant indigo.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 14",
+              "quote": "Nowadays synthetic indigo granules available in market are used."
+            }
           ]
         },
         {
           "text": "95% synthetic dyes are used in the area, and prints are called natural or chemical according to whether guar gum or synthetic gum is used.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 8",
+              "quote": "finding was that on the basis of the gum used in printing, the people involved in the trade call it natural or chemical, so if the dyers are mixing guar gum to make the printing paste, it is considered as natural dye and if synthetic"
+            }
           ]
         },
         {
           "text": "Natural dyes are used only for specific orders.",
           "source_ids": [
             "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 5",
+              "quote": "In both Baru and Sanganer craftsmen have adopted cheaper and more easily available raw materials, that includes the usage of chemical dyes in abundance and the usage of natural dyes only for specific orders."
+            }
           ]
         }
       ],
@@ -2550,24 +4398,62 @@
           "text": "Dyeing and printing units collectively pollute the Amanishah Nallah and groundwater.",
           "source_ids": [
             "S11"
+          ],
+          "evidence": [
+            {
+              "source_id": "S11",
+              "locator": "Abstract (OpenAlex record; full text not reachable)",
+              "quote": "[Abstract via OpenAlex W-record for doi:10.3906/muh-1310-8; full text not reachable] Wastewater and groundwater samples of Sanganer were studied to find out the pollution load of wastewater generated from dyeing and printing units and its impact on the quality of domestic wastewater of the Amanishah Nallah"
+            }
           ]
         },
         {
           "text": "Screen-printing units were the main source of pollution.",
           "source_ids": [
             "S10"
+          ],
+          "evidence": [
+            {
+              "source_id": "S10",
+              "locator": "PDF p. 10",
+              "quote": "Along with them there were some 300 Screen Printing units, which were the main source of the pollution."
+            }
           ]
         },
         {
           "text": "Official discharge is about 12.3 MLD versus estimates of 17-18 MLD; CETP construction had not started by 2015 despite 2014 clearance.",
           "source_ids": [
             "S12"
+          ],
+          "evidence": [
+            {
+              "source_id": "S12",
+              "locator": "§ \"Textile units served notices in Sanganer yet again\"",
+              "quote": "Yet, even after the RSPCB gave the environmental clearance for setting up the CETP plant in 2014, the construction is yet to begin."
+            },
+            {
+              "source_id": "S12",
+              "locator": "§ \"Textile mills pollute the waters\"",
+              "quote": "These units discharge 17-18 million litres (MLD) of untreated chemical water per day into the nallahs which drain into the Dravyawati river. The official figures are a little less--about 12.3 MLD."
+            }
           ]
         },
         {
           "text": "The cooperative was setting up a CETP under state government directives at the time of the GI application.",
           "source_ids": [
             "S1"
+          ],
+          "evidence": [
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 12",
+              "quote": "The Calico Printers Co-operative Society Ltd., under the directives of Govemment of Rajasthan is setting up a Common Efiluent Treafment Plant (C.E.T.P.) to treat efiluent of aU printing units to render it re{rsable ald to comply standards set by Rajasthan State Pollution Contml Board."
+            },
+            {
+              "source_id": "S1",
+              "locator": "PDF p. 16",
+              "quote": "All communications, relating to this application may be sent to the following address in India. M/s Calico Printers Cooperative Society Ltd Main Road, SANGANER Pin Code 302029 District-JaipuE Rajasthan Email: calico.sanganer@g:mail.com PRESIDENT Calico Printers Co-operative Society Ltd., Sanganer 2A"
+            }
           ]
         }
       ],

@@ -237,6 +237,7 @@ export function loadContentFiles(inputs: readonly ContentFileInput[]): LoadResul
           quote: cl.quote ?? null,
           rawSourceIds: cl.source_ids,
           sourceRefs: cl.source_ids.map((id) => resolve(file.slug, id)),
+          evidence: cl.evidence.map((e) => ({ ref: resolve(file.slug, e.source_id), locator: e.locator, quote: e.quote, note: e.note ?? null })),
         })),
         prosePolicy: typeof policy === "string" ? policy : null,
         isDemo: false,

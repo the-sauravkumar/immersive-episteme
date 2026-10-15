@@ -34,7 +34,8 @@ export function drizzleStudySessionLookup(db: AnyPgDatabase): StudySessionLookup
           participantStatus: participants.status,
         })
         .from(studySessions)
-        .innerJoin(studyConditions, eq(studyConditions.id, studySessions.conditionId))
+        // Left join: a session has no condition until it is allocated (allocation after the pre-test).
+        .leftJoin(studyConditions, eq(studyConditions.id, studySessions.conditionId))
         .innerJoin(participants, eq(participants.id, studySessions.participantId))
         .where(eq(studySessions.id, sessionId))
         .limit(1);

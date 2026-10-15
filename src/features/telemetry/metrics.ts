@@ -25,7 +25,7 @@ export const TIMING_METRICS_VERSION = "1";
 
 export const TIMING_METRIC_DEFINITIONS = [
   { name: "time.exposure_total_ms", version: TIMING_METRICS_VERSION, unit: "ms", definition: "Sum of exposure_ended.metadata.activeMs (content visible, pauses excluded)." },
-  { name: "time.exposure_by_layer_ms", version: TIMING_METRICS_VERSION, unit: "ms", definition: "Exposure active time per metadata.layer (overview, artisan, process, science); value is the total, details.byLayer the split." },
+  { name: "time.exposure_by_layer_ms", version: TIMING_METRICS_VERSION, unit: "ms", definition: "Exposure active time per metadata.layer (overview, artisan, process, science, comparison, citation); value is the total, details.byLayer the split." },
   { name: "time.navigation_ms", version: TIMING_METRICS_VERSION, unit: "ms", definition: "Sum of navigation_ended.metadata.activeMs (moving or browsing with no concept content open, pauses excluded)." },
   { name: "time.navigation_share", version: TIMING_METRICS_VERSION, unit: "ratio", definition: "navigation_ms / (navigation_ms + exposure_total_ms); null when both are zero." },
   { name: "time.pause_ms", version: TIMING_METRICS_VERSION, unit: "ms", definition: "Sum of timing_resumed.metadata.pausedMs (tab hidden, window blurred, non-content modal)." },

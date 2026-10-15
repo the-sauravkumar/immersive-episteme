@@ -23,6 +23,10 @@
  *    below the session's previous maximum is recorded as `out_of_order`.
  *  - Demo and staff preview have no study session: the batch is validated and acknowledged
  *    (`persisted: false`, `nonExperimental: true`) but nothing is written.
+ *  - Familiarisation practice (D5): a participant's practice pages send under their own telemetry
+ *    session (`practiceTelemetrySessionId(sessionId)`, never the study session). Such a batch is
+ *    validated and acknowledged (`persisted: false`, `practice: true`) and nothing is written,
+ *    so practice can never count toward learning metrics or the session's sequence.
  */
 import { createHash } from "node:crypto";
 
@@ -37,6 +41,7 @@ import {
 } from "@/features/telemetry/contracts";
 import { canonicalJson } from "@/features/knowledge/graph/canonical-json";
 import { studyConfigSchema } from "@/features/study/contracts";
+import { practiceTelemetrySessionId } from "@/server/learning/context-data";
 
 export type TelemetryPrincipal =
   | { kind: "participant"; participantId: string; sessionId: string }
@@ -55,7 +60,7 @@ const fail = (status: Exclude<IngestOutcome["status"], 200>, error: TelemetryIng
 interface SessionRow {
   study_id: string;
   participant_id: string;
-  condition_id: string;
+  condition_id: string | null;
   status: string;
   withdrawn: boolean;
   participant_status: string;
@@ -64,6 +69,32 @@ interface SessionRow {
 }
 
 const sha256 = (s: string) => createHash("sha256").update(s, "utf8").digest("hex");
+
+function acknowledgeWithoutStoring(batch: { sessionId: string; events: unknown[] }, receivedAt: Date, practice: boolean): IngestOutcome {
+  let valid = 0;
+  let invalid = 0;
+  for (const raw of batch.events) {
+    const r = telemetryEventSchema.safeParse(raw);
+    if (r.success && r.data.sessionId === batch.sessionId) valid++;
+    else invalid++;
+  }
+  return {
+    status: 200,
+    body: {
+      batchId: null,
+      status: invalid === 0 ? "accepted" : valid === 0 ? "rejected" : "partial",
+      replayed: false,
+      accepted: valid,
+      duplicates: 0,
+      quarantined: invalid,
+      persisted: false,
+      nonExperimental: true,
+      ...(practice ? { practice: true } : {}),
+      gaps: [],
+      serverReceivedAt: receivedAt.toISOString(),
+    },
+  };
+}
 
 /** Validates and stores one batch for `principal`. `body` is the parsed JSON request body. */
 export async function ingestTelemetryBatch(
@@ -79,31 +110,9 @@ export async function ingestTelemetryBatch(
   }
   const batch = env.data;
 
-  if (principal.kind !== "participant") {
-    // Demo / preview: validate, acknowledge, store nothing.
-    let valid = 0;
-    let invalid = 0;
-    for (const raw of batch.events) {
-      const r = telemetryEventSchema.safeParse(raw);
-      if (r.success && r.data.sessionId === batch.sessionId) valid++;
-      else invalid++;
-    }
-    return {
-      status: 200,
-      body: {
-        batchId: null,
-        status: invalid === 0 ? "accepted" : valid === 0 ? "rejected" : "partial",
-        replayed: false,
-        accepted: valid,
-        duplicates: 0,
-        quarantined: invalid,
-        persisted: false,
-        nonExperimental: true,
-        gaps: [],
-        serverReceivedAt: receivedAt.toISOString(),
-      },
-    };
-  }
+  // Demo / preview, and a participant's familiarisation practice: validate, acknowledge, store nothing.
+  if (principal.kind !== "participant") return acknowledgeWithoutStoring(batch, receivedAt, false);
+  if (batch.sessionId === practiceTelemetrySessionId(principal.sessionId)) return acknowledgeWithoutStoring(batch, receivedAt, true);
 
   if (batch.sessionId !== principal.sessionId) {
     return fail(403, "session_mismatch", "The batch belongs to another session than the signed-in participant session");
@@ -124,6 +133,11 @@ export async function ingestTelemetryBatch(
     }
     if (session.withdrawn || session.participant_status === "withdrawn" || session.participant_status === "excluded") {
       return fail(410, "session_closed", "Telemetry is not accepted for a withdrawn or excluded participant");
+    }
+    if (session.condition_id === null) {
+      // Not allocated yet (allocation after the pre-test, D3): events carry a condition, so there
+      // is nothing they could be stored under. The study pages emit none before allocation.
+      return fail(403, "session_mismatch", "The participant session has no condition yet (not allocated)");
     }
     const cfg = studyConfigSchema.safeParse(session.study_config);
     const nonExperimental = session.study_is_demo || (cfg.success && cfg.data.nonExperimental);

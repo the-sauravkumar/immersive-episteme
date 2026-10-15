@@ -1,0 +1,46 @@
+[
+  {
+    "value": [
+      {
+        "b": 1,
+        "a": 0.1,
+        "c": [
+          1e-7,
+          1e+21,
+          123.456,
+          -0.000001,
+          9007199254740992,
+          7000,
+          0.5,
+          0.3333333333333333
+        ]
+      }
+    ],
+    "json": "[{\"a\":0.1,\"b\":1,\"c\":[1e-7,1e+21,123.456,-0.000001,9007199254740992,7000,0.5,0.3333333333333333]}]",
+    "sha256": "a7bc111484707e1e4fa15c229edb8dfa02ae4a4359c9cac2fbb09e24c9c895d5"
+  },
+  {
+    "value": {
+      "z": "quote \" backslash  newline \n tab \t ctrl \u0001 é 漢 😀",
+      "A": null,
+      "a": true,
+      "é": false
+    },
+    "json": "{\"A\":null,\"a\":true,\"z\":\"quote \\\" backslash  newline \\n tab \\t ctrl \\u0001 é 漢 😀\",\"é\":false}",
+    "sha256": "a35dccacbd42a6a6b9497a83eca59ffd4d8be05e67aad28cc6b71a0603b74034"
+  },
+  {
+    "value": [
+      {
+        "value": 0.26666666666666666,
+        "details": {
+          "byLayer": {
+            "science": 2000
+          }
+        }
+      }
+    ],
+    "json": "[{\"details\":{\"byLayer\":{\"science\":2000}},\"value\":0.26666666666666666}]",
+    "sha256": "75621b67cd7557add0dc998f693a8e89857430dcca71bc5b4ee9bf7513fb8318"
+  }
+]

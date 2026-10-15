@@ -13,6 +13,9 @@
  * - telemetry_quarantine: unknown types / invalid events are kept, never silently dropped.
  * - sequence_gaps: detected gaps, duplicates and out-of-order arrivals per session.
  * - derived_metrics: versioned computations, kept apart from the raw events.
+ * - session_telemetry_rollups: per-session read model of the research dashboard (time accounting
+ *   and interaction counts), recomputed from the raw events only when a session has new events
+ *   (src/server/research/dashboard-rollups.ts). A cache of derived values, never source data.
  */
 import { sql } from "drizzle-orm";
 import {
@@ -96,6 +99,8 @@ export const telemetryBatches = pgTable(
       sql`${t.payloadSha256} IS NULL OR ${t.payloadSha256} ~ ${sql.raw(`'${SHA256_HEX_RE}'`)}`,
     ),
     index("telemetry_batches_session_idx").on(t.sessionId, t.receivedAt),
+    /** Research dashboard: the few batches that carried duplicates, without scanning all batches. */
+    index("telemetry_batches_duplicates_idx").on(t.sessionId).where(sql`${t.duplicateCount} > 0`),
   ],
 );
 
@@ -154,6 +159,8 @@ export const telemetryEvents = pgTable(
     index("telemetry_events_study_type_idx").on(t.studyId, t.eventTypeCode),
     index("telemetry_events_concept_idx").on(t.conceptId),
     index("telemetry_events_server_ts_idx").on(t.serverTs),
+    /** Research dashboard change detection: latest event of a study in O(log n). */
+    index("telemetry_events_study_server_ts_idx").on(t.studyId, t.serverTs),
   ],
 );
 
@@ -228,5 +235,43 @@ export const derivedMetrics = pgTable(
     check("derived_metrics_metric_ck", sql`${t.metricName} ~ '^[a-z][a-z0-9_.]{0,63}$'`),
     check("derived_metrics_sha_ck", sql`${t.inputSha256} ~ ${sql.raw(`'${SHA256_HEX_RE}'`)}`),
     check("derived_metrics_count_ck", sql`${t.inputEventCount} >= 0`),
+  ],
+);
+
+/**
+ * Research-dashboard rollup of one session's telemetry (src/server/research/dashboard-rollups.ts).
+ * Derived, recomputable from telemetry_events at any time with the same pure function; a row is
+ * current when `metrics_version` matches, the session's max(seq) equals `last_seq` and, for a
+ * session still open, its event count equals `event_count`.
+ */
+export const sessionTelemetryRollups = pgTable(
+  "session_telemetry_rollups",
+  {
+    sessionId: uuid()
+      .primaryKey()
+      .references(() => studySessions.id, { onDelete: "restrict" }),
+    studyId: uuid().notNull(),
+    metricsVersion: text().notNull(),
+    /** Session status when computed: an ended session with unchanged max(seq) is never recomputed. */
+    sessionStatus: text().notNull(),
+    /** max(seq) of the session's events when computed; -1 when it had none. */
+    lastSeq: integer().notNull(),
+    eventCount: integer().notNull(),
+    exposureMs: doublePrecision().notNull(),
+    navigationMs: doublePrecision().notNull(),
+    pauseMs: doublePrecision().notNull(),
+    unterminated: integer().notNull(),
+    conceptsExposed: integer().notNull(),
+    conceptsInScope: integer().notNull(),
+    relationshipsFollowed: integer().notNull(),
+    citationOpens: integer().notNull(),
+    guidanceUses: integer().notNull(),
+    webglContextLost: integer().notNull(),
+    clientErrors: integer().notNull(),
+    computedAt: tsz().notNull().defaultNow(),
+  },
+  (t) => [
+    index("session_telemetry_rollups_study_idx").on(t.studyId),
+    check("session_telemetry_rollups_counts_ck", sql`${t.eventCount} >= 0 AND ${t.lastSeq} >= -1`),
   ],
 );

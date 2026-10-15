@@ -49,6 +49,8 @@ export interface GraphClaim {
   sourceRefs: SourceRef[];
   /** Ids as written in the file (for messages). */
   rawSourceIds: string[];
+  /** Located verbatim passages, each from one of the cited sources, in file order. */
+  evidence: { ref: SourceRef; locator: string; quote: string; note: string | null }[];
 }
 
 export interface GraphConcept {

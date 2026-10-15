@@ -280,6 +280,28 @@ export function validateCompiled(manifest: CompiledManifest, ctx: ValidationCont
     checks.push(check("geometry.colliders", "Collision geometry is axis-aligned and non-overlapping", "error", issues, { colliders: colliders.length }));
   }
 
+  // Exhibit geometry is consistent: an edit to one field (e.g. a manual override of `position`
+  // alone) must not leave the plinth, approach point or room behind.
+  {
+    const issues: string[] = [];
+    const roomById = new Map(rooms.map((r) => [r.id, r]));
+    const tol = 1e-3;
+    const reach = cfg.exhibitDepth / 2 + cfg.approachDistance + 0.05;
+    for (const e of exhibits) {
+      const pos = e.position as { x: number; z: number } | undefined;
+      if (!pos) continue;
+      const plinth = (Array.isArray(e.colliders) ? (e.colliders as Collider[]) : []).find((c) => c.kind === "plinth");
+      if (plinth && (pos.x < plinth.min[0] - tol || pos.x > plinth.max[0] + tol || pos.z < plinth.min[2] - tol || pos.z > plinth.max[2] + tol)) {
+        issues.push(`${e.id}: position (${pos.x}, ${pos.z}) is outside its plinth ${plinth.id}`);
+      }
+      const ap = e.approach as Point | undefined;
+      if (ap && Math.hypot(ap.x - pos.x, ap.z - pos.z) > reach) issues.push(`${e.id}: approach point is ${Math.hypot(ap.x - pos.x, ap.z - pos.z).toFixed(2)} m from the exhibit (max ${reach.toFixed(2)} m)`);
+      const room = typeof e.parentId === "string" ? roomById.get(e.parentId) : undefined;
+      if (room && !pointInRect({ x: pos.x, z: pos.z }, room.bounds as Rect)) issues.push(`${e.id}: position is outside its room ${room.id}`);
+    }
+    checks.push(check("geometry.exhibit-consistency", "Each exhibit's position, plinth, approach point and room agree", "error", issues, { exhibits: exhibits.length }));
+  }
+
   // 12. Doorways.
   {
     const issues: string[] = [];
