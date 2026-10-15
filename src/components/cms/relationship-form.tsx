@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { saveRelationshipAction } from "@/server/cms/actions";
 
 import { ActionForm, FieldMessage, PrefixErrors } from "./action-form";
-import { SELECT_CLASS } from "./bits";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export interface ConceptChoice {
   id: string;
@@ -45,7 +45,6 @@ export interface RelationshipInitial {
 }
 
 const PROVENANCE = ["practitioner_testimony", "historical_documentation", "scientific_evidence", "researcher_interpretation", "hypothesis"] as const;
-const SELECT = SELECT_CLASS;
 
 export function RelationshipForm({
   concepts,
@@ -84,50 +83,50 @@ export function RelationshipForm({
       <div className="grid gap-4 md:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${id}-src`}>From (source concept)</Label>
-          <select id={`${id}-src`} name="sourceConceptId" className={SELECT} value={s} required onChange={(e) => (onSourceChange ? onSourceChange(e.target.value) : setSrc(e.target.value))}>
+          <NativeSelect id={`${id}-src`} name="sourceConceptId" value={s} required onChange={(e) => (onSourceChange ? onSourceChange(e.target.value) : setSrc(e.target.value))}>
             <option value="">Choose…</option>
             {concepts.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.title} — {c.key}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           <FieldMessage name="sourceConceptId" />
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${id}-tgt`}>To (target concept)</Label>
-          <select id={`${id}-tgt`} name="targetConceptId" className={SELECT} value={t} required onChange={(e) => (onTargetChange ? onTargetChange(e.target.value) : setTgt(e.target.value))}>
+          <NativeSelect id={`${id}-tgt`} name="targetConceptId" value={t} required onChange={(e) => (onTargetChange ? onTargetChange(e.target.value) : setTgt(e.target.value))}>
             <option value="">Choose…</option>
             {concepts.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.title} — {c.key}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           <FieldMessage name="targetConceptId" />
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${id}-type`}>Relationship type</Label>
-          <select id={`${id}-type`} name="typeCode" className={SELECT} value={type} onChange={(e) => setType(e.target.value)} aria-describedby={`${id}-type-hint`}>
+          <NativeSelect id={`${id}-type`} name="typeCode" value={type} onChange={(e) => setType(e.target.value)} aria-describedby={`${id}-type-hint`}>
             {types.map((x) => (
               <option key={x.code} value={x.code}>
                 {x.code} ({x.semantics}{x.directed ? "" : ", undirected"})
               </option>
             ))}
-          </select>
+          </NativeSelect>
           <p id={`${id}-type-hint`} className="text-credit">
             {def ? `“${def.label}”: ${def.description}${def.requiresEvidence ? " Requires a cited source." : ""}` : null}
           </p>
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${id}-prov`}>Provenance kind</Label>
-          <select id={`${id}-prov`} name="provenanceKind" className={SELECT} defaultValue={initial?.provenanceKind ?? "historical_documentation"}>
+          <NativeSelect id={`${id}-prov`} name="provenanceKind" defaultValue={initial?.provenanceKind ?? "historical_documentation"}>
             {PROVENANCE.map((p) => (
               <option key={p} value={p}>
                 {p.replace(/_/g, " ")}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         <div className="flex flex-col gap-1.5 md:col-span-2">
           <Label htmlFor={`${id}-expl`}>Explanation (why the relation holds)</Label>
@@ -139,29 +138,29 @@ export function RelationshipForm({
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${id}-ord`}>Order in the sequence {def?.ordered ? "" : "(only for ordered types)"}</Label>
-          <Input id={`${id}-ord`} name="ordinal" type="number" min={1} defaultValue={initial?.ordinal ?? ""} disabled={!def?.ordered} />
+          <Input id={`${id}-ord`} name="ordinal" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={initial?.ordinal ?? ""} disabled={!def?.ordered} />
           <FieldMessage name="ordinal" />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor={`${id}-str`}>Strength 0–1 (optional)</Label>
-          <Input id={`${id}-str`} name="strength" type="number" min={0} max={1} step="0.05" defaultValue={initial?.strength ?? ""} />
+          <Label htmlFor={`${id}-str`}>Strength, 0 to 1 (optional)</Label>
+          <Input id={`${id}-str`} name="strength" type="text" inputMode="decimal" pattern="[0-9]*([.][0-9]+)?" defaultValue={initial?.strength ?? ""} />
         </div>
       </div>
       <fieldset className="flex min-w-0 flex-col gap-3">
-        <legend className="mb-1 font-sans text-sm font-medium text-ink">Evidence</legend>
+        <legend className="mb-1 font-sans text-[0.9375rem] leading-5 font-bold text-ink">Evidence</legend>
         {cites.length === 0 ? <p className="text-body text-ink-3">No citation yet.</p> : null}
         {cites.map((c, i) => (
           <div key={i} className="grid gap-3 rounded-card border border-rule bg-ground p-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={`${id}-cs-${i}`}>Source</Label>
-              <select id={`${id}-cs-${i}`} className={SELECT} value={c.sourceId} onChange={(e) => setCite(i, { sourceId: e.target.value })} required>
+              <NativeSelect id={`${id}-cs-${i}`} value={c.sourceId} onChange={(e) => setCite(i, { sourceId: e.target.value })} required>
                 <option value="">Choose…</option>
                 {sources.map((o) => (
                   <option key={o.id} value={o.id}>
                     {o.label}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={`${id}-cl-${i}`}>Page or locator</Label>

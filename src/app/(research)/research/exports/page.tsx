@@ -87,7 +87,7 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
               <TableBody>
                 {tables.map((t) => (
                   <TableRow key={t.name}>
-                    <TableCell className="text-mono">{t.name}</TableCell>
+                    <TableCell className="text-id">{t.name}</TableCell>
                     <TableCell className="min-w-64 whitespace-normal">{t.description}</TableCell>
                     <TableCell numeric>{t.columns.length}</TableCell>
                     <TableCell>
@@ -108,7 +108,7 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
         description={
           <>
             Column definitions. CSV cells holding objects are JSON text; empty cells are null. Validate a downloaded bundle offline with{" "}
-            <code className="text-mono">python -m episteme_stats validate bundle.json</code> (analysis/).
+            <code className="text-id">python -m episteme_stats validate bundle.json</code> (analysis/).
           </>
         }
       >
@@ -117,7 +117,7 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
             <Disclosure
               key={t.name}
               className="border-t border-rule first:border-t-0"
-              summary={<span className="text-mono">{t.name}</span>}
+              summary={<span className="text-id">{t.name}</span>}
               detail={
                 <>
                   {t.description}
@@ -136,8 +136,8 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
                 <TableBody>
                   {t.columns.map((c) => (
                     <TableRow key={c.name}>
-                      <TableCell className="text-mono">{c.name}</TableCell>
-                      <TableCell className="text-mono">{c.type}</TableCell>
+                      <TableCell className="text-id">{c.name}</TableCell>
+                      <TableCell className="text-id">{c.type}</TableCell>
                       <TableCell className="min-w-64 whitespace-normal">{c.description}</TableCell>
                     </TableRow>
                   ))}
@@ -147,7 +147,7 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
           ))}
           <Disclosure
             className="border-t border-rule"
-            summary={<span className="text-mono">metricRoles</span>}
+            summary={<span className="text-id">metricRoles</span>}
             detail="Preregistration role of each metric (bundle key metricRoles). Primary outcome: cmap.recall.dl on the post-learning map, ANCOVA with the pre-test score as covariate (D2). Metrics not listed are exploratory."
           >
             <Table label="Metric roles" density="compact">
@@ -162,7 +162,7 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
                   .roles.filter((r) => r.role !== "exploratory")
                   .map((r) => (
                     <TableRow key={r.metric}>
-                      <TableCell className="text-mono">{r.metric}</TableCell>
+                      <TableCell className="text-id">{r.metric}</TableCell>
                       <TableCell>{r.role}</TableCell>
                     </TableRow>
                   ))}

@@ -184,8 +184,8 @@ describe.skipIf(!present)("structure diagrams over the real content", () => {
 
 describe("the structure-diagram switch in the study contract", () => {
   it("defaults on and reaches both conditions through the shared learning settings", () => {
-    expect(learningSettingsOf(studyConfigSchema.parse({})).figures).toEqual({ structureDiagrams: true });
-    expect(learningSettingsOf(studyConfigSchema.parse({ figures: { structureDiagrams: false } })).figures).toEqual({ structureDiagrams: false });
+    expect(learningSettingsOf(studyConfigSchema.parse({})).figures).toEqual({ structureDiagrams: true, photos: true });
+    expect(learningSettingsOf(studyConfigSchema.parse({ figures: { structureDiagrams: false } })).figures).toEqual({ structureDiagrams: false, photos: true });
   });
 });
 
@@ -204,18 +204,18 @@ describe("canonical tradition order (DR-019)", () => {
 describe("shortCitationLabel", () => {
   const base = { title: "A title", locator: null };
   it("uses the first author or publisher short name, the year and the locator", () => {
-    expect(shortCitationLabel({ ...base, author: "Victoria and Albert Museum", publisher: "V&A", year: 2007, locator: "p. 2" })).toBe("Victoria and Albert Museum, 2007 · p. 2");
+    expect(shortCitationLabel({ ...base, author: "Victoria and Albert Museum", publisher: "V&A", year: 2007, locator: "p. 2" })).toBe("Victoria and Albert Museum (2007), p. 2");
     // The locator's abbreviation stays with its number (no break inside "PDF p. 4").
-    expect(shortCitationLabel({ ...base, author: "Khamir", publisher: null, year: 2020, locator: "PDF p. 4" })).toBe("Khamir, 2020 · PDF p. 4");
-    expect(shortCitationLabel({ ...base, author: "Gauri Kathju; Radha Kashyap", publisher: null, year: 2025 })).toBe("Gauri Kathju, 2025");
-    expect(shortCitationLabel({ ...base, author: "Lath, Aparajita", publisher: null, year: 2013 })).toBe("Lath, 2013");
+    expect(shortCitationLabel({ ...base, author: "Khamir", publisher: null, year: 2020, locator: "PDF p. 4" })).toBe("Khamir (2020), PDF p. 4");
+    expect(shortCitationLabel({ ...base, author: "Gauri Kathju; Radha Kashyap", publisher: null, year: 2025 })).toBe("Gauri Kathju (2025)");
+    expect(shortCitationLabel({ ...base, author: "Lath, Aparajita", publisher: null, year: 2013 })).toBe("Lath (2013)");
     expect(shortCitationLabel({ ...base, author: "Khamir (craft resource centre, Kachchh)", publisher: "Khamir", year: null })).toBe("Khamir");
     expect(shortCitationLabel({ ...base, author: null, publisher: "Some Press", year: 0 })).toBe("Some Press");
   });
   it("never cuts a word", () => {
     const label = shortCitationLabel({ title: "t", author: "Office of the Controller General of Patents Designs and Trade Marks of India", publisher: null, year: 2023, locator: "Section 4.2 of the long journal description" });
     const words = "Office of the Controller General of Patents Designs and Trade Marks of India".split(" ");
-    const who = label.split(", 2023")[0]!.replace("…", "");
+    const who = label.split(" (2023)")[0]!.replace("…", "");
     expect(who.split(" ").every((w) => words.includes(w))).toBe(true);
   });
 });

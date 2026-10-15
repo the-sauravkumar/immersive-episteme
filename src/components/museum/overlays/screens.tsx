@@ -6,7 +6,7 @@
  * context loss, failure, and the designed fallback when the browser has no WebGL 2.
  *
  * Every screen uses the one state-message layout of the study surfaces: a 40rem column on opaque
- * `--ground` (never a translucent scrim over the scene), a 32 px outline icon, a Source Serif title,
+ * `--ground` (never a translucent scrim over the scene), the shared StateMessage layout (no hero icon, DR-022),
  * one sentence in `text-reading` and 44 px actions. No transition or animation; loading is a static
  * progress line, not a pulse. Screens shown over a running museum (help, pause, context loss) are
  * labelled regions titled with an h2 (the room name in the StudyBar is the view's h1), NOT modal
@@ -22,9 +22,7 @@ import Link from "next/link";
 import { useEffect, useRef, type ReactNode } from "react";
 
 import { StateMessage } from "@/components/knowledge/state-message";
-import { useGuidance } from "@/components/learning/guidance";
-import { useLearningPhase } from "@/components/learning/learning-phase";
-import { Onboarding } from "@/components/learning/onboarding";
+import { PhaseOnboarding } from "@/components/learning/onboarding";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { ImmersiveSettings } from "@/features/immersive/types";
@@ -93,7 +91,7 @@ export function LoadingScreen({ step, stepIndex, stepCount, loadedBytes, totalBy
       body={
         <p>
           {step.trim().toLowerCase() === SCREEN_TEXT.loadingTitle.toLowerCase() ? null : step}
-          {stepIndex === 1 && totalBytes > 0 ? <span className="tabular-nums">{` · ${mb(loadedBytes)} of ${mb(totalBytes)} MB`}</span> : null}
+          {stepIndex === 1 && totalBytes > 0 ? <span className="tabular-nums">{`, ${mb(loadedBytes)} of ${mb(totalBytes)} MB`}</span> : null}
         </p>
       }
     >
@@ -140,8 +138,8 @@ export function ControlsList() {
     <dl className="mt-6 border-y-[1.5px] border-ink" data-slot="museum-controls">
       {rows.map(([label, value]) => (
         <div key={label} className="grid grid-cols-1 gap-x-4 border-t border-rule py-3 first:border-t-0 xs:grid-cols-[9rem_minmax(0,1fr)]">
-          <dt className="text-dl-label">{label}</dt>
-          <dd className="text-dl-value">{value}</dd>
+          <dt className="text-label">{label}</dt>
+          <dd className="text-value">{value}</dd>
         </div>
       ))}
     </dl>
@@ -153,12 +151,9 @@ export function ControlsList() {
  * the scene. Minutes and the hint come from the same providers the 2D pages use.
  */
 export function OnboardingScreen({ onStart }: { onStart(): void }) {
-  const { budget, kind } = useLearningPhase();
-  const guidance = useGuidance();
-  const minutes = budget.mode === "fixed_time" && budget.budgetSeconds !== null ? Math.round(budget.budgetSeconds / 60) : null;
   return (
     <div data-museum-keys="ui" data-slot="museum-onboarding" className="pointer-events-auto absolute inset-0 z-(--z-modal) overflow-y-auto bg-ground">
-      <Onboarding condition="immersive" kind={kind} minutes={minutes} hintAvailable={!!guidance?.hintText} onStart={onStart} />
+      <PhaseOnboarding condition="immersive" onStart={onStart} />
     </div>
   );
 }

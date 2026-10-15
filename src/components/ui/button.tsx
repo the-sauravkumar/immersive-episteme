@@ -4,9 +4,12 @@ import { cn } from "@/lib/utils"
 import { Slot } from "radix-ui"
 
 /*
- * Button (DESIGN.md 9.1). 44 px by default, 3 px radius, Inter 15/500, sentence case, optional
- * 20 px lucide icon (stroke 1.75) with an 8 px gap. No press translate. Focus is the global ring
- * in globals.css (2 px indigo outline + 4 px ground halo; HC double ring), so no ring classes here.
+ * Button (DESIGN.md 9.6). 44 px by default, 4 px radius, Atkinson 16/600, sentence case, optional
+ * 20 px icon (stroke 1.75) with an 8 px gap. No translate, lift or shadow; no arrow glyphs. One
+ * primary per view. Primary = indigo fill; outline (secondary) = paper with a 1.5 px ink border, so
+ * actions read differently from fields; ghost (quiet) = no border, hover --sunk; link = underlined
+ * 1 px at 0.2em, 2 px on hover. Focus is the global two-tone ring in globals.css (never removed
+ * here), so no ring classes.
  *
  * The deprecated names (variant `secondary`; sizes `xs`, `sm`, `lg`, `icon-xs`, `icon-sm`,
  * `icon-lg`) are removed: tests/unit/design/dead-aliases.test.ts keeps them out (residual risk 6).
@@ -20,7 +23,7 @@ const PRIMARY = cn(
   "disabled:border-rule disabled:bg-transparent aria-disabled:border-rule aria-disabled:bg-transparent"
 )
 const OUTLINE = cn(
-  "border-rule-strong bg-transparent text-ink hover:bg-sunk aria-expanded:bg-sunk",
+  "border-[1.5px] border-ink bg-ground text-ink hover:bg-sunk aria-expanded:bg-sunk",
   DISABLED,
   "disabled:border-rule disabled:hover:bg-transparent aria-disabled:border-rule aria-disabled:hover:bg-transparent"
 )
@@ -28,7 +31,7 @@ const OUTLINE = cn(
 const buttonVariants = cva(
   cn(
     "group/button inline-flex shrink-0 items-center justify-center gap-2 rounded-control border border-transparent",
-    "font-sans text-[0.9375rem] leading-5 font-medium whitespace-nowrap select-none",
+    "font-sans text-base leading-6 font-semibold whitespace-nowrap select-none",
     "transition-colors duration-(--dur-1)",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:stroke-[1.75] [&_svg:not([class*='size-'])]:size-5"
   ),
@@ -44,18 +47,18 @@ const buttonVariants = cva(
           "disabled:hover:bg-transparent aria-disabled:hover:bg-transparent"
         ),
         link: cn(
-          "min-w-11 bg-transparent text-indigo underline decoration-1 underline-offset-[3px] hover:text-indigo-hover hover:decoration-2",
+          "min-w-11 bg-transparent text-indigo underline decoration-1 underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2",
           DISABLED,
           "disabled:no-underline aria-disabled:no-underline"
         ),
         destructive: cn(
-          "border-danger bg-transparent text-danger hover:bg-sunk aria-expanded:bg-sunk",
+          "border-[1.5px] border-danger bg-ground text-danger hover:bg-sunk aria-expanded:bg-sunk",
           DISABLED,
           "disabled:border-rule disabled:hover:bg-transparent aria-disabled:border-rule aria-disabled:hover:bg-transparent"
         ),
         /** Filled danger: ONLY the confirm button inside a destructive-action dialog (9.1). */
         "destructive-solid": cn(
-          "border-danger bg-danger text-on-indigo hover:underline hover:underline-offset-[3px]",
+          "border-danger bg-danger text-on-indigo hover:bg-[color-mix(in_srgb,var(--danger)_88%,var(--ink))]",
           DISABLED,
           "disabled:border-rule disabled:bg-transparent aria-disabled:border-rule aria-disabled:bg-transparent"
         ),

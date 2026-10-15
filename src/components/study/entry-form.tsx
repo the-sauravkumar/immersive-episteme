@@ -8,13 +8,7 @@ import { Label } from "@/components/ui/label";
 import { enterStudy } from "@/server/study/actions";
 
 import { FieldErrorText, FormErrorAlert, StudyActions, useStudyFormGuard } from "./action-form";
-
-/**
- * The native select of the stratum, styled with the Input rules (DESIGN.md 9.5): 44 px, 1 px
- * `--rule-strong`, `--surface`, Inter 16 px. A native control keeps the value in the form post.
- */
-const NATIVE_SELECT =
-  "h-11 w-full min-w-0 rounded-control border border-rule-strong bg-surface px-3 font-sans text-base leading-6 text-ink aria-invalid:border-danger";
+import { OptionRow, Radio } from "@/components/ui/checkbox";
 
 /**
  * Study code entry. `strata` is shown only for a stratified study reached with ?code=.
@@ -41,7 +35,7 @@ export function EntryForm({ defaultCode, strata }: { defaultCode?: string; strat
           defaultValue={defaultCode}
           aria-invalid={codeError ? true : undefined}
           aria-describedby={codeError ? "studyCode-error studyCode-hint" : "studyCode-hint"}
-          className="font-mono"
+          className="text-id"
         />
         <p id="studyCode-hint" className="text-credit max-w-[34rem]">
           The code your facilitator gave you. You will not be asked for your name or email.
@@ -49,17 +43,18 @@ export function EntryForm({ defaultCode, strata }: { defaultCode?: string; strat
         <FieldErrorText id="studyCode-error" message={codeError} />
       </div>
       {strata.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="stratum">Group</Label>
-          <select id="stratum" name="stratum" required className={NATIVE_SELECT}>
-            <option value="">Choose the group the facilitator told you</option>
-            {strata.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
+        // The group as a radio list of full-row 56 px options (DESIGN.md 9.2, 9.6): every option
+        // visible at once, native radios, the form post unchanged (name="stratum").
+        <fieldset className="flex min-w-0 flex-col gap-2">
+          <legend className="mb-2 font-sans text-[0.9375rem] leading-5 font-bold text-ink">Group</legend>
+          <p className="text-credit -mt-1 mb-1">Choose the group the facilitator told you.</p>
+          {strata.map((s) => (
+            <OptionRow key={s} className="min-h-14">
+              <Radio name="stratum" value={s} required />
+              <span className="text-body">{s}</span>
+            </OptionRow>
+          ))}
+        </fieldset>
       ) : null}
       <FormErrorAlert message={state.error} />
       <StudyActions>

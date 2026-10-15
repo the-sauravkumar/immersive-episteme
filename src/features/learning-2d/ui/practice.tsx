@@ -5,9 +5,12 @@
  * around content labelled "Practice". The practice item is the shared KnowledgeSheet placed as on
  * a concept page (the same component the 3D panel places), so a learner practises every control
  * the onboarding explains before the task: the metadata list and step eyebrow, LayerTabs (Overview
- * and Process), a claim's CitationNote and its record, a figure's Enlarge button and lightbox, the
+ * and Process), a claim's citation marker [1] and its record, the reference list, a figure's Enlarge button and lightbox, the
  * Related Concepts links with their "About these links" disclosure, and the pager. After it come
- * placeholder sections (the tradition page's disclosures and link rows).
+ * placeholder sections (the tradition page's disclosures and link rows). The layout is the learning
+ * pages' spread (DR-021): the shared PlaceRail ("In This Section", listing the practice steps and
+ * sections), an index of the practice sections in the field, and the sheet column, with Close in
+ * the sheet's action slot, so every navigation control of the task is practised too.
  *
  * No craft content: every text here is interface wording, the source is the platform itself and
  * the diagram shows three practice steps. Links stay on this page (in-page anchors), so practice
@@ -15,18 +18,19 @@
  */
 import { useMemo, type ReactNode } from "react";
 
-import { ClaimList } from "@/components/knowledge/claim-list";
+import { ClaimList, SheetReferences } from "@/components/knowledge/claim-list";
 import { sheetTitleId } from "@/components/knowledge/knowledge-sheet";
 import { Pager } from "@/components/knowledge/pager";
 import { RelatedConcepts, type RelatedLink } from "@/components/knowledge/related-concepts";
 import { LearningPhaseContent, type LearningPhaseMode } from "@/components/learning/learning-phase";
 import { PracticeSession } from "@/components/learning/practice-session";
 import type { GuidanceSettings } from "@/features/learning/settings";
+import { PRACTICE_TEXT } from "@/features/learning/strings";
 import type { LearningTimeBudget } from "@/features/learning/time-budget";
 import type { Citation, ClaimView, ConceptRef, DiagramFigure } from "@/features/knowledge/read/view";
 import type { TelemetryConfig } from "@/features/telemetry/client/provider";
 
-import { PAGE_TITLES, type StudyBarIndex } from "../navigation";
+import { PAGE_TITLES, type IndexTradition, type Rail2dModel, type StudyBarIndex } from "../navigation";
 import { href2d, LEARN_2D, pageId2d } from "../routes";
 import { createVisitStore } from "../visit-store";
 
@@ -36,7 +40,8 @@ import { DisclosureSection } from "./disclosure-section";
 import { SequenceList } from "./layer-parts";
 import { PageColumn, SectionHeading } from "./page-layout";
 import { VisitStoreProvider } from "./session";
-import { CONTENT_ID, Learning2dStudyBar, type ContentsGroup } from "./site-header";
+import { Learning2dStudyBar, type ContentsGroup } from "./site-header";
+import { Learning2dSpread, Rail2dProvider, StudyIndex } from "./spread";
 import { TrackedLink } from "./tracked-link";
 
 const SECTIONS = [
@@ -58,6 +63,30 @@ const PRACTICE_CONTENTS: readonly ContentsGroup[] = [
 ];
 
 const EMPTY_INDEX: StudyBarIndex = { traditions: [], concepts: {}, parents: [] };
+
+/** The practice rail: the practice steps (the item is the current one), then the practice sections. */
+const PRACTICE_RAIL: Rail2dModel = {
+  items: [1, 2, 3].map((n) => ({
+    key: `practice-step-${n}`,
+    title: n === 2 ? "Practice item" : `Practice step ${n}`,
+    detail: `Process stage, step ${n} of 3`,
+    href: `${LEARN_2D}/practice#${sheetTitleId(ITEM_ID)}`,
+    current: n === 2,
+    visited: false,
+  })),
+  destinations: SECTIONS.map((s) => ({ key: s.id, title: s.title, detail: null, href: href2d.practice(s.id), current: false, visited: false })),
+};
+
+/** The practice index: the practice sections, numbered as a tradition's sections are. */
+const PRACTICE_INDEX: IndexTradition[] = [
+  {
+    slug: "practice",
+    name: "Practice sections",
+    href: href2d.practice(),
+    current: false,
+    sections: SECTIONS.map((s, i) => ({ id: s.id, number: i + 1, title: s.title, href: href2d.practice(s.id), current: false })),
+  },
+];
 
 const ITEM_ID = "practice-item";
 
@@ -82,7 +111,7 @@ const PRACTICE_SOURCE: Citation = {
 const claim = (id: string, position: number, text: string): ClaimView => ({ id, position, text, quote: null, evidence: [PRACTICE_SOURCE] });
 
 const OVERVIEW_CLAIMS: ClaimView[] = [
-  claim("practice-claim-1", 0, "Practice statement. In the learning task, each numbered statement says what the sources say. Open “Source” under it to see where it comes from."),
+  claim("practice-claim-1", 0, "Practice statement. In the learning task, each numbered statement says what the sources say. Select the number in brackets after it, [1], to see where it comes from."),
   claim("practice-claim-2", 1, "Practice statement. Some statements have a figure after them. Use “Enlarge” to see it larger, and “Close” or Escape to return."),
 ];
 const PROCESS_CLAIMS: ClaimView[] = [claim("practice-claim-3", 0, "Practice statement. The Process layer lists the steps in order and marks this one.")];
@@ -180,17 +209,28 @@ export function Practice2d({
   return (
     <PracticeSession telemetry={telemetry} budget={budget} mode={mode} guidance={guidance}>
       <VisitStoreProvider value={visits}>
+        <Rail2dProvider>
         <Learning2dStudyBar index={EMPTY_INDEX} searchEnabled={searchEnabled} contents={PRACTICE_CONTENTS} location={PAGE_TITLES.practice} />
         <LearningPhaseContent>
-          <div id={CONTENT_ID} tabIndex={-1} className="outline-none">
+          <Learning2dSpread index={EMPTY_INDEX} prompts={null} railOverride={PRACTICE_RAIL} fieldOverride={<StudyIndex traditions={PRACTICE_INDEX} pathname={href2d.practice()} />}>
             <ConceptLayersSheet
               concept={{ id: ITEM_ID, title: "Practice item", type: "process_stage", category: "process_stages", localTerms: [], tradition: null, verificationState: "practice" }}
               step={{ index: 2, total: 3 }}
               pageId={pageId}
+              closeHref={href2d.practice(SECTIONS[0].id)}
               layers={[
                 {
                   id: "overview",
-                  entries: [{ conceptId: ITEM_ID, title: "Practice item", category: "process_stages", traditionId: null, view: <ClaimList conceptId={ITEM_ID} claims={OVERVIEW_CLAIMS} figures={[PRACTICE_FIGURE]} /> }],
+                  entries: [
+                    {
+                      conceptId: ITEM_ID,
+                      title: "Practice item",
+                      category: "process_stages",
+                      traditionId: null,
+                      view: <ClaimList conceptId={ITEM_ID} claims={OVERVIEW_CLAIMS} figures={[PRACTICE_FIGURE]} references="sheet" />,
+                      references: <SheetReferences conceptId={ITEM_ID} claims={OVERVIEW_CLAIMS} />,
+                    },
+                  ],
                 },
                 {
                   id: "process",
@@ -203,9 +243,10 @@ export function Practice2d({
                       view: (
                         <>
                           <SequenceList sequence={{ steps: STEPS, links: [], continuous: true }} currentId={ITEM_ID} />
-                          <ClaimList conceptId={ITEM_ID} claims={PROCESS_CLAIMS} />
+                          <ClaimList conceptId={ITEM_ID} claims={PROCESS_CLAIMS} references="sheet" />
                         </>
                       ),
+                      references: <SheetReferences conceptId={ITEM_ID} claims={PROCESS_CLAIMS} />,
                     },
                   ],
                 },
@@ -239,11 +280,9 @@ export function Practice2d({
               }
             />
             <PageColumn className="pt-0">
-              <section aria-labelledby="practice-sections-heading" className="border-t-2 border-ink pt-8">
+              <section aria-labelledby="practice-sections-heading" className="border-t border-rule-strong pt-8">
                 <SectionHeading id="practice-sections-heading">Practice sections</SectionHeading>
-                <p className="text-reading mt-4 text-ink-2">
-                  Try the controls of the learning pages: the contents, the sections, the links and the timer. Nothing on this page is part of the learning content.
-                </p>
+                <p className="text-reading mt-4 text-ink-2">{PRACTICE_TEXT.tryControls["2d"]}</p>
                 <div className="mt-8 border-t border-rule">
                   {SECTIONS.map((s) => (
                     <DisclosureSection key={s.id} sectionId={s.id} title={s.title} pageId={pageId}>
@@ -261,8 +300,9 @@ export function Practice2d({
                 </div>
               </section>
             </PageColumn>
-          </div>
+          </Learning2dSpread>
         </LearningPhaseContent>
+        </Rail2dProvider>
       </VisitStoreProvider>
     </PracticeSession>
   );

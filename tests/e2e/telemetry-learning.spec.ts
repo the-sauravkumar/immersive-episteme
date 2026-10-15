@@ -32,7 +32,7 @@ async function toOnboarding(page: Page): Promise<string> {
   await page.getByLabel("Study code").fill(E2E_STUDY_CODE);
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(/\/study\/consent$/);
-  const code = (await page.locator("span.font-mono").first().textContent())?.trim() ?? "";
+  const code = (await page.locator("span.text-id").first().textContent())?.trim() ?? "";
   await page.getByLabel(/I have read the information above/).check();
   await page.getByRole("button", { name: "I agree to take part" }).click();
   await answerQuestionnaire(page, /\/study\/questionnaire\/before$/);

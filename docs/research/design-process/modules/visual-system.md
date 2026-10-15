@@ -2799,3 +2799,317 @@ D3D11)`, and the report records it. `immersive-rendering.spec.ts` runs this way 
   - Museum: the minimap size and the panel framing.
 - `docs/research/design-process/decisions.md` has two DR-021, DR-022 and DR-023 entries (the
   adopted ones and the proposed next-phase ones). The project lead should renumber one set.
+
+## Atlas: Visual System and Controls (2D-A, DR-022)
+
+The Atlas direction replaces Apparatus (DR-022; DESIGN.md sections 3 to 11 rewritten). This section
+records how the 2D/UI track applied it and every judgement taken where the spec left room. The 3D
+gallery finish (DR-023) and the layout parity spread (DR-021) are recorded in their own sections.
+
+### Tokens and Type
+
+- **Palette:** DESIGN.md 4.2 exactly, in the four flat blocks of `globals.css`. Every ratio of 4.3
+  was recomputed from the hex values (WCAG formula, truncated) before it was encoded, and matches the
+  proposal's independent computation; `tests/unit/contrast.test.ts` asserts each by equality, the
+  per-theme minimum text pair (5.35, 5.11, 7.74, 8.23), rule-strong at least 3.44 on every surface in
+  every theme, and the focus ring at least 4.58:1 against every colour of a 16-step RGB grid and every
+  grey.
+- **Retired:** cream, `--band`, `--madder`, `--ochre`, `--ochre-deco`, `--band-lozenge`,
+  `--focus-halo`, `--shadow-console`, the serif stack and the animation tokens. `--surface` stays an
+  alias of `--ground` in every block (no second paper). `--font-inter` and `--font-source-serif`
+  resolve to `--font-atkinson`, because `src/components/museum/three/labels.ts` (3D track) reads
+  them from `<html>`; both conditions therefore letter in one face until that file reads the new
+  variable.
+- **Faces:** `Atkinson_Hyperlegible_Next` (latin, normal, `--font-atkinson`) in the root layout;
+  `Anek_Latin` (latin, `axes: ["wdth"]`, `--font-anek`) only in the public layout, on a
+  `display: contents` wrapper so the variable reaches the public shell. Display utilities fall back
+  to Atkinson anywhere else, so no other route requests Anek.
+- **Reading size 20/30** with the measure unchanged (34rem). The figures in DESIGN.md 5.2 come from
+  average advance widths; the in-browser line counts (P3, P8) are re-measured by the parity suite.
+- **The diagram layout constant** (`ADVANCE = 0.56` em in `features/knowledge/read/diagrams.ts`)
+  was set for Inter and stays a safe upper bound: Atkinson at the reading size averages about
+  0.44 em per character (62 characters in 34rem at 20 px), narrower than Inter.
+
+### Controls (DESIGN.md 9)
+
+| Control | File | Where it replaced what |
+|---|---|---|
+| `NativeSelect` | `ui/native-select.tsx` | all 63 select render sites (33 raw `<select>` elements and the CMS select skin); the Radix `ui/select.tsx` and `ui/radio-group.tsx`, unused, are deleted |
+| `Segmented` | `ui/segmented.tsx` | the CMS Proof "Preview as" switch (was Radix tabs) |
+| `Disclosure` | `ui/disclosure.tsx` | 12 summaries: the 7 marker-less CMS ones and the admin audit diff (the old `SUMMARY` class), the research "Data table", "Change" and adjudication disclosures, and the claims-editor preview; the research `Disclosure` helper now wraps it |
+| `ie-check` (`Checkbox`, `Radio`, `CHECK_CLASS`) | `ui/checkbox.tsx`, `globals.css` | every native checkbox and radio (the `accent-color` skins) and the Radix checkbox |
+| `OptionRow` | `ui/checkbox.tsx` | the study-entry group (was a select) |
+| `FileInput` | `ui/file-input.tsx` | the media upload file input |
+| numbers | in place | 20 `type="number"` inputs became `type="text"` with `inputMode` and a `pattern`; ranges moved into labels |
+| dates | in place | the 4 date inputs keep the native picker with a linked "Format: YYYY-MM-DD" hint |
+
+- **Selects never apply on change.** Every select sits in a GET or action form with a submit button,
+  or drives local state inside a form that is submitted. The study picker's button is labelled
+  "Show study" and is followed by a two-line readout (full title; key and state as words).
+- **Forced colours:** select, checkbox and radio revert to `appearance: auto` and hide their drawn
+  parts; segmented radios become visible and the checked option is outlined in `Highlight`.
+- **Reserved bold width:** tabs, LayerTabs and segmented options reserve their bold width with a
+  hidden generated copy of the label (`ie-reserve-bold`, `data-label`), which is in neither the text
+  content nor the accessible name, so selection never moves the row.
+
+### Tells Removed
+
+- Eyebrows: `PageHeader`, the console `Section`, `EditorialSection` and the 2D `PageIntro` accept the
+  old `eyebrow` and `kicker` props for call sites and render nothing. The console rail names its area
+  in plain `text-h3`. The study shell's "Study" stays as a sentence-case label (it tells a
+  participant where they are, not a navigation state).
+- Uppercase and tracking: none in `src/` (the label utilities are sentence case; `atlas-lint`).
+- Middle dots: every join became a comma, a semicolon, "to" or "now"; the CMS source label became
+  `package#key: …` (the relationship table splits on ": ").
+- Left bars: alerts, study option rows, consent and withdrawal rows, console rail links, the
+  session step list, the scoring reference list, CMS quote previews and the editor's blockquotes,
+  the stale-data alert and the studio's selected element. A selected or current row is `--wash`
+  plus weight, a check or the word.
+- Monospace: only `<code>`, `<pre>` and the two JSON editors (assessment scoring, content sets);
+  participant codes and IDs use `text-id`.
+- Graphics: the knock-out band, the registration ticks and the tradition marker are deleted; the
+  Figure 1 draw-on is removed (diagrams are static); state pages lost their 32 px hero icon (the
+  error tone keeps a 24 px icon beside its words).
+- Shadows and warm tints: no shadow token or utility; overlay backdrops are flat 50% black.
+
+### Shared Knowledge Components (Both Conditions)
+
+- **Sheet:** no eyebrow; metadata in the order Tradition, Category, Step ("2 of 3"), Local terms,
+  Status; the concept type is dropped from the sheet (the category and the step carry the
+  orientation); the reading-progress bar follows the metadata; "From the Sources" is a `text-h2`.
+- **Claims:** 32 px of space between claims, no hairline; the source note 4 px under its claim.
+- **Evidence:** "Verbatim from the source" over the quote; the quote roman on `--sunk`, no border or
+  left bar, the opening mark hung into the padding.
+- **Pager:** two `--sunk` cells, no border, no arrow glyph.
+- **Diagrams:** the current concept is an indigo box with an on-indigo label.
+- **StallCue:** the alert form with the heading "Hint" (bulb plus word).
+- **StateMessage:** no hero icon; the error tone keeps a 24 px icon beside the heading.
+
+### Equivalence Check (After These Changes)
+
+| Point | Result |
+|---|---|
+| Content | Unchanged: no claim, title, quote, caption, credit or relation text changed; the short citation label changed format identically for both conditions (one view-layer function). |
+| Exposure and timing | Unchanged: no timer, budget or exposure logic touched. |
+| Citation access | Unchanged path: one activation to the record, Escape back; the record gained a visible label only. |
+| Ease once a concept is open | Same components in both conditions; the sheet's metadata is shorter in both; tabs keep their width; every control 44 px. |
+| Natural navigation only | The only condition-specific edits: the 2D navigation pages lost their eyebrows (outside the measured concept view); the 3D location joins room and wing with a comma. |
+| Tradition salience | The marker is gone for every key; traditions are named in words only; P17 now requires no marker. |
+| Telemetry and covariates | Unchanged event names and payloads. |
+
+Unit tests: `contrast`, `focus-ring`, `dead-aliases`, `atlas-lint` (new) and the knowledge,
+layer-parts, layers, strings and import-graph parity tests pass. Two onboarding word-count tests
+(P23) fail exactly as they did before this work: the onboarding movement paragraphs differ by 20% of
+words; the onboarding is switched off in both conditions and the practice room is being rewritten by
+the 3D track. Browser checks (axe, reflow, P1 to P32, screenshots) belong to the verification step:
+this track ran no browser.
+
+## Atlas Layout: Shared Rail, Index and Docked Sheet (2D-B, DR-021)
+
+The DR-021 spread, built once for both conditions. Everything from the moment a concept opens is
+identical by construction; only what a navigation control does differs (12.1 rule 3).
+
+### What Was Built
+
+- **`PlaceRail`** (`src/components/learning/place-rail.tsx`): one component, "In This Section" in 2D
+  and "In This Room" in 3D. Same position (x = 0, from the bottom of the chrome to the bottom of the
+  viewport), width `min(18rem, 85vw)`, `--field` ground, 1 px `--rule-strong` right edge, internal
+  scroll, 44 px rows. Rows carry a title, a type-and-step line ("Process stage, step 3 of 14", from
+  `railDetail`) and nothing else (P29). The current row is on `--wash` in weight 700 with "You are
+  here"; a visited row carries a quiet ink-3 check plus the hidden word "Visited". After the rows,
+  "Leads To": the tradition's other sections (2D) or the doorways (3D).
+- **Open state** (`usePlaceRail`): from 1280 px the rail is docked, open by default in 2D and
+  collapsed by default in 3D (lead decision); Hide collapses it and the StudyBar button of the same
+  name reopens it. Below 1280 px it is a non-modal drawer in both, closed by default; Hide, Escape or
+  choosing a row closes it. Visibility is CSS, so the server and first client render agree. Opening
+  moves focus to the rail heading; hiding returns it to the StudyBar button.
+- **Docked sheet** (`src/components/knowledge/sheet-dock.tsx`): the 3D panel and the 2D sheet column
+  use one width rule (`SHEET_DOCK_CLASS`; the 2D column applies the same classes from 1024 px): the
+  39.25rem sheet plus its 1 px left edge plus the column's own scrollbar, each scrolling internally.
+- **Close in the action slot, both conditions** (`SHEET_CLOSE_CLASS`, `SheetCloseContent`): an
+  outline button with the X glyph and the visible word "Close". In 2D it is a link back to the
+  section view (the concept's section on its tradition page, the comparisons page for a shared
+  comparison, else the index), so Back works; in 3D it closes the panel. It is the first Tab stop
+  after the h1 in both (P13 stays equal). "Up to <parent>" is removed from the 2D StudyBar.
+- **2D spread** (`src/features/learning-2d/ui/spread.tsx`): the sheet column first in the DOM (as
+  the museum's panel, so the Tab path from the sheet back to Finish is unchanged, P24), drawn on the
+  right from 1024 px; the field (the index) next; the rail last in the DOM, fixed at the left.
+- **Index** (the 2D field): the study's traditions in the canonical order, each with its ten
+  numbered sections (names only), then the browse pages. It is a list, never a spatial map. While a
+  concept is open it recedes: only the concept's own tradition keeps its sections, the others show
+  their names only (one focus, the cognitive-load rule). Below 1024 px the index is the body of the
+  StudyBar's Contents sheet, which shows only there.
+- **3D** (`museum-app.tsx`): the old "In this room" box is replaced by the rail (rows walk to the
+  exhibit, doorways walk to the next room, focus or hover previews the exhibit). The rail no longer
+  collapses when a panel opens (the layout never changes when a concept opens, as in 2D). The task
+  prompts and the plan move right of the rail while it is shown, as the 2D field starts right of
+  it. Study builds hide the Mouse look button (Pathway B); the L key and Controls help keep free
+  look. The plan's default follows the protocol (`planDefaultOpen`: "on" shown, "toggle"
+  minimised, "off" none). The scene starts 1 px below the StudyBar (its line is 1 px since DR-022).
+- **Practice** (2D): the same spread, with a practice rail (the three practice steps, the item
+  current; the practice sections under "Leads To"), a practice index and Close in the sheet, so every
+  navigation control of the task is practised. The 3D practice room gets the rail through the same
+  museum runtime.
+- **Navigation source** (`NAVIGATION_SOURCES` in the telemetry contract): `page_entered` (2D: rail,
+  index, pager, link, close), `room_entered` (3D: rail, plan, scene, keyboard, link, pager),
+  `exhibit_selected` and `content_item_selected` carry an optional `source`. 2D carries it through
+  the visit memory to the next page's entry; 3D sets it when the move starts and logs it on arrival.
+  Keyboard versus scene in 3D needs the 3D track's `inputMethodUsed` bridge event; until it lands,
+  scene moves are logged as "scene".
+
+### Choices Made While Building It
+
+1. **The 2D index keeps the ten template sections**, so its numbers are not the 3D Plan's room
+   numbers (seven wing rooms per tradition). P29's numbering clause cannot pass until the two
+   groupings are aligned; regrouping the 2D template is a protocol change that touches the parity
+   engine and a 3D placement test, so it is left to the lead and recorded as open.
+2. **The rail lists only sections that hold concepts** under "Leads To", so it never offers an empty
+   destination; the index lists all ten, as the tradition page does.
+3. **Shared comparisons** have their own rail section (listing the shared comparisons, leading to the
+   traditions), the counterpart of the comparison hall.
+4. **The catalogue keeps its tradition cards** in the sheet; the index lists the same names in the
+   field. The catalogue is outside the measured concept view.
+5. **Prompts** sit at the top of the field from 1024 px (the museum keeps them at the top left of the
+   scene) and in the sheet column below that width, as before.
+
+### Equivalence Check (After These Changes)
+
+| Point | Result |
+|---|---|
+| Content | Unchanged: no claim, quote, caption or relation text changed. The rail and the index carry titles, types, steps and destinations only (unit test on the row shape). |
+| Exposure and timing | Unchanged rules. The 2D exposure and scroll-depth listeners now also hear the sheet column's own scroll (capture), so exposure keeps working with the internal scroll. |
+| Citation access | Unchanged: one activation to the record in both. |
+| Ease once a concept is open | Identical sheet; Close in the same slot with the same content and class (unit test), the first Tab stop after the h1 in both; the sheet docks at the same x, width and top (shared class, unit test). |
+| Natural navigation only | The navigation differs, as designed: 2D rail open by default plus the index; 3D rail collapsed by default plus the scene and the Plan. The rail component, words and marks are the same (DOM parity unit test). |
+| Tradition salience | Canonical order everywhere; tradition names in words only; no counts. |
+| Telemetry and covariates | Event names unchanged; one new optional field, `source`, in both conditions. |
+
+The 2D onboarding movement paragraph was rewritten for the rail (42 words against the museum's 45),
+so the P23 word-count tests, which failed before this package, pass. The public Explore controls,
+the "What Is Identical and What Differs" table and the Accessibility page name the rail and Close.
+
+## Atlas Sheet: Numbered Citations, Lean Metadata and Parity Checks P28 to P33 (2D-C, DR-022 Addendum A)
+
+**Question.** How can the knowledge sheet show its evidence without overloading the reader? Every
+claim carried a full-width "Source" note under it, so a concept with five claims showed five source
+lines before anything was opened. The lead decided on quiet numbered markers that expand in place,
+with one deduplicated reference list ("make sure the knowledge presentation is not cognitive
+overload").
+
+**What was built (shared, so identical in both conditions).**
+
+- `CitedClaim` (`src/components/citations/citation-disclosure.tsx`) renders the claim paragraph,
+  which ends with one marker "[n]" per citation, and the records those markers open. A marker is a
+  native button, 44 x 44 px, with negative block margins so the 30 px reading line is unchanged.
+  Its name is "Source n: <short label>". The record opens directly under the claim (in place, not a
+  jump). It holds the short label with the locator, the labelled verbatim passages and "Open the
+  source". A second activation closes it; so does Escape, which returns focus to the marker.
+- `ReferenceList` (`src/components/citations/reference-list.tsx`) lists each cited source once,
+  under its marker number, with its full details. It sits in the KnowledgeSheet's new `references`
+  slot, after the field and before Related Concepts; standalone claim lists (comparisons and
+  tradition pages, practice, CMS) are followed by their own list. It has no links, so it adds no
+  Tab stops.
+- `referencesOf` / `referenceNumbers` (`src/features/knowledge/read/view.ts`) number the sources
+  of the claims on screen in order of first citation. This is pure and deterministic, so the server
+  render, the client render and both conditions agree.
+- The sheet metadata lost its Status row: the notice strip already states the verification status.
+- The onboarding citation step, the 2D practice statement and the Accessibility page now describe
+  the [n] markers.
+
+**Parity suite (tests/e2e/parity.spec.ts and parity-helpers.ts), written but not run in this
+track (no browser here; the merge stage runs it).**
+
+- 1280 x 720 joined the viewports. P28 and P30 also run at 1024 x 768 and 1920 x 1080.
+- P28: rail geometry and type with the rail shown in both conditions, rows of at least 44 px, and
+  the default state against the lead's defaults: the 2D rail open from 1280 px, the 3D rail
+  collapsed, and both drawers closed below 1280 px.
+- P29: no rail or index string repeats eight consecutive words of a claim; the 2D index section
+  numbers match the 3D Plan's room numbers by name. In-scene lettering is left to the 3D rendering
+  spec and listed as not measured here.
+- P30: the sheet column's x, width and top within 1 px, and the same scroll container (from 1024 px).
+- P31: the focus-ring signatures on every focusable in the StudyBar, rail and sheet.
+- P32: the serialised header, with Close compared by class and content, its name, box and style.
+- P33, new: elements competing for attention on the first screen with a concept open. Counted:
+  visible, uncovered controls, headings, images, canvases, badges and status messages, each once,
+  grouped as sheet, shared chrome and navigation; the claim text is not counted. It passes when the
+  sheet count is equal, each total is at most 30, and the totals are within 6. These limits are a
+  project rule set here, to be reviewed against the first measured run; the measured counts are
+  reported in full whatever the result.
+- Citations: P1 now compares the marker, the record's source line and the reference list; P5
+  includes the reference list; P11 requires every record to open under its own claim; P13 counts
+  Tab stops to the first marker.
+- WP8 review majors: P23 and P24 now need the hint panel, timer and Finish path on both sides (an
+  absent part on either side fails). P26 requires all three study traditions on the catalogue and
+  in the index rows. Its plaque part is reported only in the 1280 x 800 runs, where it is measured,
+  and is no longer copied into other runs.
+- design-acceptance.spec.ts: axe and the focus audit also visit the withdraw page during a session,
+  the closing page, /research/participants, /research/scoring, and the session, scoring rubric,
+  scoring map and assessment reference-map detail pages. axe also runs at 390 px on the study steps
+  and both learning conditions (concept open), in the two themes that take effect on study routes.
+
+**Equivalence check.**
+
+| Point | Result |
+|---|---|
+| Content | Claim text, order and layers unchanged; the reference list is derived from the same citations. |
+| Exposure and timing | Unchanged: the record opens inside the exposure region and does not end the interval. |
+| Citation access | One activation in both conditions; the same component; the record is in place in both. |
+| Ease once a concept is open | Fewer elements under each claim; the same markers, records and list in both. |
+| Natural navigation only | No navigation change; the reference list has no links. |
+| Tradition salience | No tradition-specific styling; P26 strengthened. |
+| Telemetry and covariates | `citation_opened` / `citation_closed` unchanged (sourceId, claimIndex, openMs). |
+
+## Study Photographs, Team and Ethics, Practice Wording and the Input-Method Covariate (2D-D)
+
+**Question.** How do the three V&A photographs reach learners without favouring a condition or a
+tradition, and how do the team, the ethics approval and the practice instructions reach the pages
+that need them?
+
+**What was built.**
+
+- **Photographs (DR-020 Addendum).** The ingest script, the 768 px derivatives in the repository,
+  migration 0017 (licence term and first-publication day), the first-publication stamp, the
+  anchor-claim gate and the `figures.photos` protocol switch. Photographs join the same
+  `resolveConceptFigures` as the diagrams, so a concept still shows at most one figure, through the
+  same `KnowledgeFigure` in the sheet, after the anchor claim. There is no image outside the sheet,
+  and none on the home page. The read model caches the photo list for an hour (tag
+  `media-figures`, dropped by every media action); the learner route re-checks approval, licence
+  and term on every request.
+- **Credit line.** "Photo: © Victoria and Albert Museum, London. Licence: V&A non-commercial terms",
+  with the licence linked. A full stop replaces the middle dot.
+- **Team and ethics.** `src/config/institution.ts` now holds the authors in citation order (Saurav
+  Kumar, Ankit Kumar, Priyadarshi Patnaik), their numbered affiliations, Ankit Kumar's ORCID iD,
+  the ethics approval (CXA/ETH/01) and the project's contact address. The values are recorded in
+  docs/research/study-decisions.md, and no personal email or phone number appears.
+  - One set of components (`src/components/public/team-and-ethics.tsx`) renders them.
+  - About gains the sections Team and Affiliations, Ethics, How to Cite and Contact.
+  - The information and consent page gains "Research Team and Ethics" before the consent text.
+    That page comes before allocation, so it is the same for every participant.
+  - How to Cite gives the platform citation until the paper exists, with "(n.d.)" rather than an
+    invented year.
+- **Practice and onboarding wording.** The 3D onboarding movement step now teaches the one key map
+  (W and S or ↑ and ↓ to walk, A and D or ← and → to turn) and all three look methods equally:
+  drag, hold the right button, or press L for free look. The 2D step gained "and Close to put it
+  away". The two steps have 48 and 50 words (the P23 limit is 10%).
+  - A new `PRACTICE_TEXT.tryControls` gives each condition's practice instruction (39 and 42
+    words). The 2D practice reads its line. The 3D practice room's panel text lives in a 3D-track
+    file, so the merge stage wires the 3D line there.
+  - The onboarding itself stays off in both conditions (the lead's decision, recorded under WP8).
+    `PhaseOnboarding` is the one component both would render if the lead switches it on.
+- **Input-method covariate.** A new event `input_method_used` (3D, metadata `method` = keys | drag |
+  rmb | freelook | click | list, and `previous`) is logged on every switch of method. The museum
+  consumes the bridge's `inputMethodUsed`, which the 3D track adds; until then the handler is a
+  typed optional and nothing is logged. A run of one method is one event, so the event shows which
+  methods a participant used and in what order, without flooding the log.
+
+**Equivalence check.**
+
+| Point | Result |
+|---|---|
+| Content | No claim, layer or order changed. A photograph is a figure after an existing claim, in the one figure slot, in both conditions; captions restate the anchor claim and the V&A record. |
+| Exposure and timing | Unchanged. The photograph sits inside the sheet, in the exposure region; no new modal. |
+| Citation access | Unchanged. |
+| Ease once a concept is open | The same KnowledgeFigure with one Enlarge control in both. The credit line is shorter and has no separator glyph. |
+| Natural navigation only | Unchanged; the onboarding and practice wording describe each condition's own navigation at equal length. |
+| Tradition salience | One photograph per study tradition, the same kind (textile), the same section (context), the same 768 px cap and credit, and the same gate and switch for all three. |
+| Telemetry and covariates | `input_method_used` is new and 3D-only, like `room_entered`: it records how the 3D controls were used, a covariate with no 2D counterpart. Every existing event is unchanged. |

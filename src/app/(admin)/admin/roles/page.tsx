@@ -65,7 +65,7 @@ export default function Page() {
  * bottom rules, 1 px ink midrule, 1 px rule between rows, no vertical rules, no zebra).
  * Sticky cells carry an opaque --ground fill so rows never show through.
  */
-const HEAD = "text-dl-label sticky top-0 z-10 h-11 border-b border-b-ink bg-ground px-2 pb-2 align-bottom";
+const HEAD = "text-label sticky top-0 z-10 h-11 border-b border-b-ink bg-ground px-2 pb-2 align-bottom";
 const ROW_HEAD = "sticky left-0 z-[5] bg-ground py-2 pr-3 pl-0 text-left align-middle font-normal";
 
 async function Matrix() {
@@ -100,7 +100,7 @@ function MatrixTable({ holders }: { holders: Awaited<ReturnType<typeof roleHolde
         aria-describedby="matrix-scroll-hint"
         className="relative max-h-[min(44rem,calc(100dvh-8rem))] w-full overflow-auto border-y-[1.5px] border-y-ink"
       >
-        <table className="w-full border-separate border-spacing-0 text-left font-sans text-sm leading-5 text-ink" aria-labelledby={captionId}>
+        <table className="w-full border-separate border-spacing-0 text-left text-table text-ink" aria-labelledby={captionId}>
           <thead>
             <tr>
               <th scope="col" className={`${HEAD} left-0 z-20 min-w-[11rem] pl-0 text-left`}>
@@ -109,7 +109,7 @@ function MatrixTable({ holders }: { holders: Awaited<ReturnType<typeof roleHolde
               {ROLES.map((r) => (
                 <th key={r} scope="col" className={`${HEAD} min-w-[7.5rem] text-center whitespace-normal`}>
                   <span className="block">{ROLE_LABELS[r]}</span>
-                  <span className="mt-1 block font-normal tracking-normal normal-case tabular-nums">{isStaffRole(r) ? `${holders[r]} holder(s)` : "not stored"}</span>
+                  <span className="mt-1 block font-normal tabular-nums">{isStaffRole(r) ? `${holders[r]} holder(s)` : "not stored"}</span>
                 </th>
               ))}
             </tr>

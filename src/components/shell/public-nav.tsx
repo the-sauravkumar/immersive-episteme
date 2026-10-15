@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Public header navigation (DESIGN.md 9.16): plain text links in Inter 15/500 with 44 px hit
+ * Public header navigation (DESIGN.md 10.1): plain text links in Atkinson 16/600 with 44 px hit
  * areas; the current page is underlined 2 px indigo and carries `aria-current="page"`. From
  * 768 px the links sit in the header; under 768 px they fold into a 44 px "Menu" button that
  * opens a sheet with the same links in the same order.

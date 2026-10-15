@@ -3,8 +3,9 @@ import { titleCaseNode } from "@/lib/text/title-case"
 import { cn } from "@/lib/utils"
 
 /*
- * Card (DESIGN.md 9.2): --surface, 1 px --rule border, 2 px radius, no shadow, 24 px padding
- * (16 px under 520 px). Never behind claims in study (the knowledge surface is --ground).
+ * Card (DESIGN.md 9.2): paper (--ground), 1 px --rule border, radius 0, no shadow, 24 px padding
+ * (16 px under 520 px). Console and CMS only; most content needs no box (DR-022), so public and
+ * study pages use rows and rules instead. Never behind claims in study.
  *
  *  - `parallel`: cards that sit side by side in a grid. The title zone reserves two lines so a
  *    one-line title leaves no gap, and the footer (actions) sits on one baseline via `mt-auto`.
@@ -34,7 +35,7 @@ function Card({
       data-interactive={interactive || undefined}
       data-plate={plate || undefined}
       className={cn(
-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-card border border-rule bg-surface py-(--card-spacing) text-[0.9375rem] leading-6 text-ink",
+        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-card border border-rule bg-ground py-(--card-spacing) text-base leading-6 text-ink",
         "[--card-spacing:--spacing(6)] max-xs:[--card-spacing:--spacing(4)] data-[size=sm]:[--card-spacing:--spacing(4)]",
         "data-interactive:border-rule-strong data-interactive:hover:bg-sunk",
         "data-plate:border-t-2 data-plate:border-t-ink",
@@ -58,12 +59,12 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-/** Eyebrow above the title (tracked uppercase Inter, ink-3). */
+/** A label above the title (sentence case, no tracking, ink-2; replaces the uppercase eyebrow). */
 function CardEyebrow({ className, ...props }: React.ComponentProps<"p">) {
   return (
     <p
       data-slot="card-eyebrow"
-      className={cn("text-eyebrow", className)}
+      className={cn("text-label", className)}
       {...props}
     />
   )
@@ -88,7 +89,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-[0.9375rem] leading-6 text-ink-2", className)}
+      className={cn("text-base leading-6 text-ink-2", className)}
       {...props}
     />
   )

@@ -30,6 +30,15 @@ import { PLAN_TEXT } from "@/features/learning/strings";
 import { titleCase } from "@/lib/text/title-case";
 
 
+/**
+ * Whether the plan is shown when the museum opens: it follows the protocol's `minimap` setting
+ * (DR-021 lead decision; concept note "the map may be minimised"): "on" shows it, "toggle" starts
+ * minimised behind the StudyBar's Plan button, "off" has no plan at all.
+ */
+export function planDefaultOpen(minimap: "on" | "off" | "toggle"): boolean {
+  return minimap === "on";
+}
+
 /** Centres closer than this (metres) along z share a row of the plan. */
 const ROW_TOLERANCE_M = 1;
 /** Margin of the drawing around the rooms, in metres (room for the outline strokes). */
@@ -85,7 +94,7 @@ function roomLabelLayout(r: SceneRoom, n: number, here: boolean, mpp: number, la
   const wPx = (r.bounds.maxX - r.bounds.minX) / mpp;
   const hPx = (r.bounds.maxZ - r.bounds.minZ) / mpp;
   const digits = String(n).length;
-  // Inter digits are about 0.62 em wide and 0.73 em tall (lining); 3 px clearance on every side.
+  // Digits are about 0.62 em wide and 0.73 em tall (lining); 3 px clearance on every side.
   const fit = Math.min(labelPx, (hPx - 6) / 0.73, (wPx - 6) / (digits * 0.62));
   const fontPx = fit >= MIN_LABEL_PX ? fit : null;
   const cx = (r.bounds.minX + r.bounds.maxX) / 2;
@@ -176,7 +185,7 @@ export function Minimap({ model, roomId, roomLabel, onExpand }: { model: SceneMo
   return (
     <section aria-label={PLAN_TEXT.plan} data-museum-keys="ui" data-slot="museum-minimap" className="flex size-48 flex-col border border-rule-strong bg-ground">
       <div className="flex h-11 shrink-0 items-center justify-between pl-3">
-        <p className="text-eyebrow">{PLAN_TEXT.plan}</p>
+        <p className="text-label">{PLAN_TEXT.plan}</p>
         <Button type="button" variant="ghost" size="icon" aria-label={PLAN_TEXT.expand} title={PLAN_TEXT.expand} onClick={onExpand}>
           <Maximize2 aria-hidden="true" />
         </Button>
@@ -227,7 +236,7 @@ export function PlanDialog({
         <DialogPrimitive.Content
           data-museum-keys="ui"
           data-slot="museum-plan-dialog"
-          className="fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-full max-w-[min(56rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-card border border-rule-strong bg-surface p-6 font-sans text-[0.9375rem] leading-6 text-ink outline-none max-xs:p-4"
+          className="fixed top-1/2 left-1/2 z-50 grid max-h-[calc(100dvh-2rem)] w-full max-w-[min(56rem,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-card border border-rule-strong bg-ground p-6 font-sans text-[0.9375rem] leading-6 text-ink outline-none max-xs:p-4"
         >
           <DialogHeader className="pr-24">
             <DialogTitle>{PLAN_TEXT.title}</DialogTitle>

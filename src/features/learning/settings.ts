@@ -33,6 +33,8 @@ export interface LearningSettings {
 export interface FigureSettings {
   /** Graph-derived structure diagrams on (default) or off, in both conditions together. */
   structureDiagrams: boolean;
+  /** Rights-cleared study photographs (DR-020) on (default) or off, in both conditions together. */
+  photos: boolean;
 }
 
 export function learningSettingsOf(cfg: StudyConfig): LearningSettings {
@@ -46,7 +48,7 @@ export function learningSettingsOf(cfg: StudyConfig): LearningSettings {
       hintText: cfg.guidance.hintText ?? null,
     },
     learningPrompts: cfg.learningPrompts.map((p) => ({ id: p.id, text: p.text })),
-    figures: { structureDiagrams: cfg.figures.structureDiagrams },
+    figures: { structureDiagrams: cfg.figures.structureDiagrams, photos: cfg.figures.photos },
   };
 }
 

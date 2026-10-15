@@ -43,3 +43,12 @@ describe("plan", () => {
     expect(container.textContent).toContain("You Are Here");
   });
 });
+
+describe("plan default (DR-021: follows the protocol's minimap setting)", () => {
+  it("shows the plan only when the protocol says 'on'; 'toggle' starts minimised; 'off' has none", async () => {
+    const { planDefaultOpen } = await import("@/components/museum/overlays/minimap");
+    expect(planDefaultOpen("on")).toBe(true);
+    expect(planDefaultOpen("toggle")).toBe(false);
+    expect(planDefaultOpen("off")).toBe(false);
+  });
+});

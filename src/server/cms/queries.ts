@@ -150,7 +150,7 @@ export async function sourceOptions(q: Q): Promise<SourceOption[]> {
   return r.rows.map((s) => ({
     id: s.id,
     key: s.local_key ?? s.id,
-    label: `${s.package_slug ?? "cms"}#${s.local_key ?? "?"} · ${s.author ? `${s.author}${s.year ? ` ${s.year}` : ""}: ` : ""}${s.title.length > 90 ? `${s.title.slice(0, 89)}…` : s.title}`,
+    label: `${s.package_slug ?? "cms"}#${s.local_key ?? "?"}: ${s.author ? `${s.author}${s.year ? ` ${s.year}` : ""}: ` : ""}${s.title.length > 90 ? `${s.title.slice(0, 89)}…` : s.title}`,
     state: s.verification_state,
   }));
 }
@@ -261,7 +261,7 @@ export interface ConceptDetail {
   incoming: RelationshipRow[];
 }
 
-const sourceLabelSql = `coalesce(p.slug, 'cms') || '#' || coalesce(s.local_key, '?') || ' · ' || s.title`;
+const sourceLabelSql = `coalesce(p.slug, 'cms') || '#' || coalesce(s.local_key, '?') || ': ' || s.title`;
 
 export async function getConcept(q: Q, id: string): Promise<ConceptDetail | null> {
   if (!isUuid(id)) return null;
@@ -315,7 +315,7 @@ export async function entityHistory(q: Q, kind: CmsEntityKind, id: string): Prom
   if (!isUuid(id)) return [];
   const r = await q.query<{ at: Date; actor: string | null; what: string; reason: string | null; detail: unknown }>(
     `SELECT v.created_at AS at, coalesce(u.name, v.actor_id) AS actor,
-            'state ' || coalesce(v.from_state::text, '(new)') || ' → ' || v.to_state::text AS what, v.reason, NULL::jsonb AS detail
+            'state ' || coalesce(v.from_state::text, '(new)') || ' to ' || v.to_state::text AS what, v.reason, NULL::jsonb AS detail
        FROM verification_records v LEFT JOIN users u ON u.id = v.actor_id
       WHERE v.entity_kind = $1::verifiable_entity_kind AND v.entity_id = $2
      UNION ALL

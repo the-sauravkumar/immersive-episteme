@@ -1,13 +1,12 @@
 /**
  * Pager (DESIGN.md 9.11 item 6, 9.16): previous and next at the end of the knowledge sheet, the
- * same in both conditions. Two equal-width cards in a grid, at least 64 px tall: "Previous" or
- * "Next" in `text-eyebrow`, the concept title in `text-h3`, both left-aligned; the next card
- * carries a right arrow. An absent side keeps its empty cell, so the next card never moves.
+ * same in both conditions. Two equal-width cells on --sunk in a grid, at least 64 px tall, no
+ * border and no arrow glyph (DR-022): "Previous" or "Next" in `text-label`, the concept title in
+ * `text-h3`, both left-aligned. An absent side keeps its empty cell, so the next cell never moves.
  *
  * How the link acts is the placement's (navigate in 2D, walk in 3D): `renderLink` receives the
  * same class names in both, so the cards look identical.
  */
-import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { SHEET_TEXT } from "@/features/learning/strings";
@@ -18,7 +17,7 @@ export interface PagerItem {
   title: string;
 }
 
-export const PAGER_LINK_CLASS = "flex min-h-16 h-full flex-col justify-start gap-1 border border-rule-strong bg-ground px-4 py-3 text-left text-ink no-underline hover:bg-sunk";
+export const PAGER_LINK_CLASS = "flex min-h-16 h-full flex-col justify-start gap-1 bg-sunk px-4 py-3 text-left text-ink no-underline hover:bg-wash hover:underline hover:decoration-1 hover:underline-offset-[0.2em]";
 
 export interface PagerProps {
   prev: PagerItem | null;
@@ -34,11 +33,8 @@ export function Pager({ prev, next, label = SHEET_TEXT.pagerLabel, renderLink }:
     if (!item) return <span aria-hidden="true" />;
     const content = (
       <>
-        <span className="text-eyebrow">{dir === "prev" ? SHEET_TEXT.previous : SHEET_TEXT.next}</span>
-        <span className="text-h3 flex items-start justify-between gap-2">
-          <span className="min-w-0">{titleCase(item.title)}</span>
-          {dir === "next" ? <ArrowRight aria-hidden="true" strokeWidth={1.75} className="mt-1 size-5 shrink-0" /> : null}
-        </span>
+        <span className="text-label">{dir === "prev" ? SHEET_TEXT.previous : SHEET_TEXT.next}</span>
+        <span className="text-h3 min-w-0">{titleCase(item.title)}</span>
       </>
     );
     return renderLink(item, dir, content, PAGER_LINK_CLASS);

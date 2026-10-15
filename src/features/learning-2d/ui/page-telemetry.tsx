@@ -17,6 +17,7 @@ import { useStableTracker } from "./use-stable-tracker";
 import type { KnowledgeCategoryCode } from "@/lib/validation/enums";
 
 import { shortCodeOrUndefined } from "../routes";
+import { CONTENT_ID } from "../layout-ids";
 
 import { useVisitStore } from "./session";
 
@@ -29,8 +30,16 @@ export interface PageTelemetryProps {
 
 const MAX_DWELL_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * How far down the page has been read: the sheet column's own scroll container where it scrolls
+ * internally (1024 px and wider, DR-021), else the window.
+ */
 function scrollDepthNow(): number {
   if (typeof document === "undefined") return 0;
+  const column = document.getElementById(CONTENT_ID);
+  if (column && column.scrollHeight > column.clientHeight + 1 && /auto|scroll/.test(getComputedStyle(column).overflowY)) {
+    return Math.min(1, Math.max(0, (column.scrollTop + column.clientHeight) / column.scrollHeight));
+  }
   const el = document.documentElement;
   const total = el.scrollHeight;
   if (total <= 0) return 1;
@@ -57,7 +66,7 @@ export function usePageTelemetry({ pageId, conceptId, traditionId, category }: P
       cur = { pageId, enteredAt: performance.now(), maxDepth: scrollDepthNow(), exitTimer: null, exited: false };
       live.current = cur;
       const fromId = shortCodeOrUndefined(entry.fromId);
-      void tel.pageEntered({ ...context, metadata: { via: entry.via, ...(fromId ? { fromId } : {}) } });
+      void tel.pageEntered({ ...context, metadata: { via: entry.via, ...(fromId ? { fromId } : {}), ...(entry.source ? { source: entry.source } : {}) } });
       if (entry.crossedFrom && traditionId) {
         void tel.traditionCrossed({ ...context, metadata: { fromTraditionId: entry.crossedFrom, toTraditionId: traditionId } });
       }
@@ -78,12 +87,13 @@ export function usePageTelemetry({ pageId, conceptId, traditionId, category }: P
     const onScroll = () => {
       cur.maxDepth = Math.max(cur.maxDepth, scrollDepthNow());
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+    // Capture: the sheet column's own scroll events do not bubble to the window.
+    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
     // Capture: runs before the tracker's own pagehide handler, so the exit joins the exit flush.
     window.addEventListener("pagehide", exit, { capture: true });
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onScroll, { capture: true });
       window.removeEventListener("pagehide", exit, { capture: true });
       if (!cur.exited) cur.exitTimer = setTimeout(exit, 0);
     };

@@ -80,7 +80,7 @@ async function enrolAndConsent(page: Page, opts: { contrast?: boolean } = {}): P
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(/\/study\/consent$/);
   await expect(page.getByRole("heading", { level: 2, name: /Consent \(Version demo-e2e-1\)/ })).toBeVisible();
-  const code = (await page.locator("span.font-mono").first().textContent())?.trim() ?? "";
+  const code = (await page.locator("span.text-id").first().textContent())?.trim() ?? "";
   expect(code).toMatch(/^P-[0-9A-Z]{10}$/);
   // The accommodation is offered before the pre-test, with the same control as the device check.
   await expect(page.locator("[data-slot=study-display-step]").getByRole("button", { name: "Display settings" })).toBeVisible();
@@ -283,7 +283,7 @@ test("declining consent exits cleanly without a session", async ({ page }) => {
   await page.getByLabel("Study code").fill(E2E_STUDY_CODE);
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(/\/study\/consent$/);
-  const code = (await page.locator("span.font-mono").first().textContent())?.trim() ?? "";
+  const code = (await page.locator("span.text-id").first().textContent())?.trim() ?? "";
   // Both consent buttons (outline and primary) show the focus ring when reached with Tab.
   await page.getByLabel(/I have read the information above/).focus();
   await expectFocusRing(page, page.getByRole("button", { name: "I do not want to take part" }));

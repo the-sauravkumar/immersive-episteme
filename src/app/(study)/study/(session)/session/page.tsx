@@ -38,10 +38,10 @@ function Progress({ steps, done, position }: { steps: readonly StudyStep[]; done
           <li
             key={s}
             aria-current={current ? "step" : undefined}
-            className="grid min-h-11 grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-x-3 border-l-2 border-l-transparent py-2 pr-3 aria-[current=step]:border-l-ink"
+            className="grid min-h-11 grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-x-3 py-2 pr-3 aria-[current=step]:bg-wash"
           >
             <span className="text-ui text-right tabular-nums text-ink-3">{i + 1}</span>
-            <span className={current ? "text-ui text-ink" : "font-sans text-[0.9375rem] leading-5 text-ink"}>{STEP_LABEL[s]}</span>
+            <span className={current ? "text-ui font-bold text-ink" : "text-body text-ink"}>{STEP_LABEL[s]}</span>
             <span className="text-ui inline-flex items-center gap-1.5 text-ink-3">
               {done.has(s) ? <Check aria-hidden="true" className="size-4 stroke-[1.75] text-ink" /> : null}
               {status}

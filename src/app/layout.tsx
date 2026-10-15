@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Source_Serif_4 } from "next/font/google";
+import { Atkinson_Hyperlegible_Next } from "next/font/google";
 
 import { Providers } from "@/components/providers";
 import { DISPLAY_BOOT_SCRIPT } from "@/components/shell/display-preferences";
@@ -7,33 +7,28 @@ import { DISPLAY_BOOT_SCRIPT } from "@/components/shell/display-preferences";
 import "./globals.css";
 
 /*
- * Fonts (DESIGN.md 5.1): two variable files, self-hosted by next/font at build time (R-T10), so
- * the CSP (`font-src 'self' data:`) is unchanged and no request goes to Google.
- *  - Source Serif 4 (variable wght + opsz, roman only): titles, headings, the verbatim quote.
- *  - Inter (variable wght, roman only): claims, UI, tables, source lines.
- * No italic file, no small caps and no old-style figures (the served Source Serif 4 file lacks
- * onum, lnum and smcp, R-T8). The CSS variable names differ from the Tailwind theme keys
- * (`--font-serif`, `--font-sans`) so the theme can wrap them in fallback stacks without a
- * self-reference; see globals.css `--serif-stack` and `--sans-stack`.
+ * Fonts (DESIGN.md 5.1, DR-022): ONE variable file on study, console and every text role,
+ * self-hosted by next/font at build time (R-T10), so the CSP (`font-src 'self' data:`) is
+ * unchanged and no request goes to Google.
+ *  - Atkinson Hyperlegible Next (OFL; variable wght 200 to 800, upright only): titles, headings,
+ *    claims, the verbatim quote, UI, tables, IDs. Latin-ext loads through unicode-range only.
+ *  - Anek Latin (public display only) is loaded by src/app/(public)/layout.tsx, never here, so
+ *    study and console preload exactly one font file.
+ * No italic file, no serif, no small caps and no old-style figures (R-T8). The CSS variable name
+ * differs from the Tailwind theme key (`--font-sans`) so the theme can wrap it in a fallback stack
+ * without a self-reference; see globals.css `--sans-stack`.
  */
-const sourceSerif = Source_Serif_4({
+const atkinson = Atkinson_Hyperlegible_Next({
   subsets: ["latin"],
-  axes: ["opsz"],
   style: ["normal"],
   display: "swap",
-  variable: "--font-source-serif",
-});
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-inter",
+  variable: "--font-atkinson",
 });
 
 export const metadata: Metadata = {
   title: {
     default: "Immersive Episteme",
-    template: "%s · Immersive Episteme",
+    template: "%s | Immersive Episteme",
   },
   description: "A research platform for studying how people learn about craft knowledge.",
   robots: { index: false, follow: false },
@@ -41,12 +36,12 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   viewportFit: "cover",
-  themeColor: "#F5F1E8",
+  themeColor: "#FFFFFF",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sourceSerif.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" className={atkinson.variable} suppressHydrationWarning>
       <head>
         {/* Pre-paint display classes (DESIGN.md 4.5, 9.19; DR-019): stored high contrast and reduce
             motion, and light forced on study routes, before first paint on a hard load. Static

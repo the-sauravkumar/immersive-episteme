@@ -49,8 +49,11 @@ describe("Button sizes (DESIGN.md 9.1)", () => {
     }
   });
 
-  it("the outline variant renders a rule-strong boundary", () => {
+  it("the outline (secondary) variant renders a 1.5 px ink boundary, so actions read differently from fields (DR-022)", () => {
     render(<Button variant="outline">B</Button>);
-    expect(screen.getByRole("button", { name: "B" }).className).toContain("border-rule-strong");
+    const cls = screen.getByRole("button", { name: "B" }).className;
+    expect(cls).toContain("border-[1.5px]");
+    expect(cls).toContain("border-ink");
+    expect(cls).not.toMatch(/outline-none/);
   });
 });

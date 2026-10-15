@@ -78,6 +78,8 @@ export const EVENT_TYPE_REGISTRY = [
   { code: "session_resumed", label: "Session resumed", description: "The session resumed after an interruption or reload.", analyticConcept: "session_lifecycle", scope: "both", requirementRefs: [], isTechnical: true },
   { code: "session_ended", label: "Session ended", description: "The learning session ended on this client.", analyticConcept: "session_lifecycle", scope: "both", requirementRefs: [], isTechnical: true },
   { code: "visibility_changed", label: "Visibility changed", description: "The tab was hidden or shown (metadata.visible).", analyticConcept: "attention_interrupted", scope: "both", requirementRefs: [], isTechnical: true },
+  // Covariate (3D): how the visitor moved and looked (keys, drag, right-button, free look, click, list).
+  { code: "input_method_used", label: "Input method used", description: "The participant switched to another way of moving or looking in the museum (metadata.method: keys | drag | rmb | freelook | click | list); consecutive uses of one method are one event.", analyticConcept: "input_method", scope: "immersive_3d", requirementRefs: [] },
   { code: "render_quality_changed", label: "Render quality changed", description: "The 3D quality tier changed (metadata.from, metadata.to).", analyticConcept: "runtime_quality", scope: "immersive_3d", requirementRefs: [], isTechnical: true },
   { code: "webgl_context_lost", label: "WebGL context lost", description: "The 3D renderer lost its WebGL context.", analyticConcept: "runtime_failure", scope: "immersive_3d", requirementRefs: [], isTechnical: true },
   { code: "client_error", label: "Client error", description: "An uncaught client error (message hash only, no user data).", analyticConcept: "runtime_failure", scope: "both", requirementRefs: [], isTechnical: true },
@@ -101,7 +103,28 @@ export const eventScopeSchema = z.enum(EVENT_SCOPES);
 const shortCode = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$/, "Expected a short identifier");
 const durationMs = z.number().int().nonnegative().max(24 * 60 * 60 * 1000);
 const count = z.number().int().nonnegative().max(100_000);
-const domainEntry = { fromId: shortCode.optional(), via: z.enum(["navigation", "link", "portal", "search", "guidance", "start", "resume"]).optional() };
+/**
+ * What the learner used to move (DR-021: navigation source, logged in both conditions so list use
+ * can be modelled). 2D: the PlaceRail, the index (the field, or Contents under 1024 px), the
+ * sequence pager, a link in the sheet (related concepts, layer heads, page links) or the sheet's
+ * Close. 3D: the PlaceRail, the scene (clicking an exhibit, a doorway or the floor), the Plan, or
+ * the keyboard (walking with the keys).
+ */
+/**
+ * How the visitor moved or looked in the museum (3D covariate; the bridge's `inputMethodUsed`):
+ * walking or turning with the keys, drag-look, right-button look, free look (L), clicking the
+ * floor, an exhibit or a doorway, or a list (the PlaceRail or the Plan).
+ */
+export const INPUT_METHODS = ["keys", "drag", "rmb", "freelook", "click", "list"] as const;
+export type InputMethod = (typeof INPUT_METHODS)[number];
+export const NAVIGATION_SOURCES = ["rail", "index", "pager", "link", "close", "scene", "plan", "keyboard"] as const;
+export type NavigationSource = (typeof NAVIGATION_SOURCES)[number];
+const navigationSource = z.enum(NAVIGATION_SOURCES);
+const domainEntry = {
+  fromId: shortCode.optional(),
+  via: z.enum(["navigation", "link", "portal", "search", "guidance", "start", "resume"]).optional(),
+  source: navigationSource.optional(),
+};
 
 /**
  * What part of a concept's content is showing during an exposure interval. `comparison`: a
@@ -147,8 +170,8 @@ export const EVENT_METADATA_SCHEMAS = {
   room_exited: z.strictObject({ dwellMs: durationMs.optional() }),
   page_entered: z.strictObject(domainEntry),
   page_exited: z.strictObject({ dwellMs: durationMs.optional(), scrollDepth: z.number().min(0).max(1).optional() }),
-  exhibit_selected: z.strictObject({ elementKind: shortCode.optional() }),
-  content_item_selected: z.strictObject({ elementKind: shortCode.optional() }),
+  exhibit_selected: z.strictObject({ elementKind: shortCode.optional(), source: navigationSource.optional() }),
+  content_item_selected: z.strictObject({ elementKind: shortCode.optional(), source: navigationSource.optional() }),
   information_layer_opened: z.strictObject({ layerId: shortCode.optional() }),
   information_layer_closed: z.strictObject({ layerId: shortCode.optional(), openMs: durationMs.optional() }),
   knowledge_layer_selected: z.strictObject({ layer: z.enum(["artisan", "process", "science"]) }),
@@ -186,6 +209,7 @@ export const EVENT_METADATA_SCHEMAS = {
   session_resumed: z.strictObject({ gapMs: durationMs.optional() }),
   session_ended: z.strictObject({ reason: z.enum(["completed", "timeout", "user_exit", "error"]).optional() }),
   visibility_changed: z.strictObject({ visible: z.boolean() }),
+  input_method_used: z.strictObject({ method: z.enum(INPUT_METHODS), previous: z.enum(INPUT_METHODS).optional() }),
   render_quality_changed: z.strictObject({ from: shortCode, to: shortCode }),
   webgl_context_lost: z.strictObject({}),
   client_error: z.strictObject({ messageSha256: sha256Schema, source: z.enum(["window", "promise", "react", "worker"]).optional() }),

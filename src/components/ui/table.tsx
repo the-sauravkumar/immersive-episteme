@@ -9,12 +9,12 @@ import { cn } from "@/lib/utils"
  *  - 1.5 px --ink top and bottom rules, a 1 px --ink midrule under the header row, no vertical
  *    rules, no zebra. Row separators are 1 px --rule (`rowRules={false}` omits them; public
  *    tables of 6 rows or fewer).
- *  - Header cells in `text-dl-label`. Numbers right-aligned with tabular lining figures: pass
+ *  - Header cells in `text-label`. Numbers right-aligned with tabular lining figures: pass
  *    `numeric` to TableHead and TableCell. Units go in the header ("Time (min)").
  *  - Rows 44 px; `density="compact"` gives 36 px rows for dense console tables (interactive cells
  *    keep a 44 px hit area through the compact Button).
- *  - `hoverRows`: console row hover --sunk. A selected row (`data-state="selected"`) is --wash with
- *    a 2 px indigo bar; the caller adds the check icon or the word "Selected" (R-A4).
+ *  - `hoverRows`: console row hover --sunk. A selected row (`data-state="selected"`) is --wash, its
+ *    first cell bold, no left bar; the caller adds the check icon or the word "Selected" (R-A4).
  *  - Caption above: pass `caption` (and optionally `number`) and the scroll box becomes a
  *    labelled, focusable region (`role="region"`, `tabIndex=0`, `aria-labelledby` the caption),
  *    so a wide table scrolls inside itself, never the page. Or pass `label` for an unlabelled
@@ -65,7 +65,7 @@ function Table({
           data-row-rules={rowRules ? "true" : "false"}
           data-hover-rows={hoverRows ? "true" : undefined}
           className={cn(
-            "group/table w-full caption-top border-collapse border-y-[1.5px] border-y-ink text-left font-sans text-sm leading-5 text-ink",
+            "group/table w-full caption-top border-collapse border-y-[1.5px] border-y-ink text-left text-table text-ink",
             className
           )}
           {...props}
@@ -123,7 +123,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
       className={cn(
         "border-b border-b-rule group-data-[row-rules=false]/table:border-b-0",
         "group-data-[hover-rows=true]/table:hover:bg-sunk has-aria-expanded:bg-sunk",
-        "data-[state=selected]:bg-wash data-[state=selected]:shadow-[inset_2px_0_0_var(--indigo)] data-[state=selected]:*:first:pl-3",
+        "data-[state=selected]:bg-wash data-[state=selected]:*:first:font-bold",
         className
       )}
       {...props}
@@ -141,7 +141,7 @@ function TableHead({
       data-slot="table-head"
       data-numeric={numeric || undefined}
       className={cn(
-        "text-dl-label h-11 px-3 text-left align-bottom whitespace-nowrap first:pl-0 last:pr-0 pb-2 group-data-[density=compact]/table:h-9 [&:has([role=checkbox])]:pr-0",
+        "text-label h-11 px-3 text-left align-bottom whitespace-nowrap first:pl-0 last:pr-0 pb-2 group-data-[density=compact]/table:h-9 [&:has([role=checkbox])]:pr-0",
         numeric && "text-right tabular-nums",
         className
       )}
@@ -170,7 +170,7 @@ function TableCell({
 }
 
 /**
- * Caption above the table: "Table n." in Inter 15/600, then the title in Inter 15/400.
+ * Caption above the table: "Table n." in Atkinson 16/700, then the title in Atkinson 16/400.
  * Without `number`, only the text. Title Case is applied to the title.
  */
 function TableCaption({
@@ -183,13 +183,13 @@ function TableCaption({
     <caption
       data-slot="table-caption"
       className={cn(
-        "caption-top pb-3 text-left font-sans text-[0.9375rem] leading-6 text-ink",
+        "caption-top pb-3 text-left font-sans text-base leading-6 text-ink",
         className
       )}
       {...props}
     >
       {number !== undefined ? (
-        <span className="font-semibold tabular-nums">Table {number}. </span>
+        <span className="font-bold tabular-nums">Table {number}. </span>
       ) : null}
       {number !== undefined ? titleCaseNode(children) : children}
     </caption>

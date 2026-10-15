@@ -8,15 +8,14 @@
  *  - The home page's numbers are live: they equal the counts read from the database by the test
  *    itself (tests/integration/public-dataset-stats.test.ts seeds a different dataset and shows
  *    the reads change with it).
- *  - Figure 1: with `prefers-reduced-motion: reduce` it is fully drawn and nothing animates;
- *    without it, the branch strokes are hidden below the fold and draw once when scrolled to.
- *  - Explore: the two cards' buttons share one baseline; the Colophon lists all 27 parity checks
+ *  - Figure 1 is one static indigo plate (DR-022): no draw-on, nothing animates.
+ *  - Explore: the two cards' buttons share one baseline; the Colophon lists every parity check (PARITY_CHECKS, P1 to P33)
  *    and shows a result only from a stored run.
- *  - High contrast: band and ticks hidden, every rule and accent (ochre eyebrows, madder numbers)
- *    flat ink; every control reached by Tab shows a focus ring, in normal and high contrast.
- *  - Layout fit: Plate 1 is an exact 4:5 box whose specimen is never clipped; the tradition plates'
- *    region eyebrows share one top per row; the dataset table fits 390 px without scrolling; the
- *    two Explore control tables end on one rule.
+ *  - No band, ticks or marker exist anywhere; in high contrast every pane edge is ink; every
+ *    control reached by Tab shows the focus ring, in normal and high contrast.
+ *  - Layout fit: the home title block is left-aligned with nothing beside it; the tradition index
+ *    rows share one title edge and face; the dataset table fits 390 px without scrolling; the two
+ *    Explore control tables end on one rule.
  */
 import { existsSync } from "node:fs";
 import path from "node:path";
@@ -24,6 +23,8 @@ import path from "node:path";
 import { expect, test, type Page } from "@playwright/test";
 import { config as loadEnv } from "dotenv";
 import { Pool } from "pg";
+
+import { PARITY_CHECKS } from "@/features/research/interface-parity";
 
 loadEnv({ quiet: true });
 
@@ -109,45 +110,29 @@ test("home page numbers are the live database counts", async ({ page }) => {
     await expect(total).toContainText(fmt(live.claims));
     // Figure 1 and Table 1 use one definition of sources (distinct sources cited by claims).
     await expect(total).toContainText(fmt(live.sources));
-    // One plate per tradition, never a mix of photographs and typographic plates.
-    await expect(page.locator("[data-slot=tradition-plates] > li")).toHaveCount(live.traditions);
-    await expect(page.locator("[data-slot=tradition-plates]")).toHaveAttribute("data-plates", /^(photo|typographic)$/);
+    // One equal row per tradition in the index, with no image (DR-020, DR-022).
+    await expect(page.locator("[data-slot=tradition-index] > li")).toHaveCount(live.traditions);
+    await expect(page.locator("[data-slot=tradition-index] img")).toHaveCount(0);
   } finally {
     await pool.end();
   }
 });
 
-test("Figure 1 is fully drawn with reduced motion and nothing animates", async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
-  const page = await ctx.newPage();
-  await page.goto("/");
-  await page.waitForLoadState("networkidle");
-  const figure = page.locator("[data-slot=figure-one-diagram] svg:visible");
-  await figure.scrollIntoViewIfNeeded();
-  await page.waitForTimeout(800);
-  const states = await figure.locator("path[data-draw]").evaluateAll((ps) => ps.map((p) => [p.getAttribute("data-draw"), getComputedStyle(p).strokeDashoffset]));
-  expect(states.length).toBeGreaterThan(0);
-  for (const [phase, offset] of states) {
-    expect(phase).toBe("drawn");
-    expect(parseFloat(offset ?? "0")).toBe(0);
-  }
-  expect(await page.evaluate(() => document.getAnimations().filter((a) => a.playState === "running").length)).toBe(0);
-  await ctx.close();
-});
-
-test("Figure 1 draws its branches once when scrolled into view", async ({ browser }) => {
+test("Figure 1 is a static indigo plate: no draw-on and nothing animates (DR-022)", async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
   const page = await ctx.newPage();
   await page.goto("/");
   await page.waitForLoadState("networkidle");
-  const paths = page.locator("[data-slot=figure-one-diagram] svg:visible path[data-draw]");
-  await expect(paths.first()).toHaveAttribute("data-draw", "hidden");
-  await page.locator("[data-slot=figure-one-diagram]").scrollIntoViewIfNeeded();
-  await expect(paths.first()).toHaveAttribute("data-draw", "drawing");
-  await page.waitForTimeout(1000);
-  expect(await paths.evaluateAll((ps) => ps.map((p) => parseFloat(getComputedStyle(p).strokeDashoffset)))).toEqual([0, 0]);
+  const plate = page.locator("[data-slot=figure-one-diagram]");
+  await plate.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(800);
+  expect(await plate.locator("path[data-draw]").count()).toBe(0);
+  const bg = await plate.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(bg).toBe("rgb(36, 64, 110)"); // --indigo #24406E
+  expect(await page.evaluate(() => document.getAnimations().filter((a) => a.playState === "running").length)).toBe(0);
   await ctx.close();
 });
+
 
 test("Explore cards align their actions and the Colophon shows only stored parity results", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
@@ -162,14 +147,14 @@ test("Explore cards align their actions and the Colophon shows only stored parit
 
   await page.goto("/about/colophon");
   const rows = page.locator("#parity tbody tr");
-  await expect(rows).toHaveCount(27);
+  await expect(rows).toHaveCount(PARITY_CHECKS.length);
   if (!existsSync(path.join(process.cwd(), "analysis", "parity", "interface-parity.json"))) {
     await expect(page.getByText("No parity run recorded yet.", { exact: false })).toBeVisible();
     await expect(rows.filter({ hasText: /Pass|Fail/ })).toHaveCount(0);
   }
 });
 
-test("high contrast hides the decorative band and the registration ticks", async ({ browser }) => {
+test("no decorative graphics exist, and high contrast sets every rule in ink (DR-022)", async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   await ctx.addInitScript(() => {
     try {
@@ -177,26 +162,13 @@ test("high contrast hides the decorative band and the registration ticks", async
     } catch {}
   });
   const page = await ctx.newPage();
-  await page.goto("/");
-  await expect(page.locator("html")).toHaveClass(/a11y-contrast/);
-  await expect(page.locator(".ie-band").first()).toBeHidden();
-  await expect(page.locator(".ie-ticks").first()).toBeHidden();
-  // Every rule is solid ink in high contrast (DESIGN.md 4.4), including the madder section rules.
-  const ruleColours = await page.locator(".border-madder").evaluateAll((els) =>
-    els.map((el) => {
-      const s = getComputedStyle(el);
-      return s.borderTopWidth !== "0px" ? s.borderTopColor : s.borderLeftColor;
-    }),
-  );
-  expect(ruleColours.length).toBeGreaterThan(0);
-  for (const c of ruleColours) expect(c).toBe("rgb(17, 17, 17)");
-  // HC text is flat ink: no ochre (yellow-gold) eyebrows and no madder figure numbers.
-  for (const url of ["/", "/about"]) {
+  for (const url of ["/", "/about", "/about/colophon"]) {
     await page.goto(url);
     await expect(page.locator("html")).toHaveClass(/a11y-contrast/);
-    const accents = await page.locator(".text-ochre, .text-madder").evaluateAll((els) => els.map((el) => getComputedStyle(el).color));
-    expect(accents.length, url).toBeGreaterThan(0);
-    for (const c of accents) expect(c, url).toBe("rgb(17, 17, 17)");
+    await expect(page.locator(".ie-band, .ie-ticks, .ie-marker, [data-slot=tradition-marker]")).toHaveCount(0);
+    // The header's one line is a pane edge; in high contrast it is solid ink (#000000).
+    const edge = await page.locator("header").first().evaluate((el) => getComputedStyle(el).borderBottomColor);
+    expect(edge, url).toBe("rgb(0, 0, 0)");
   }
   await ctx.close();
 });
@@ -244,54 +216,46 @@ for (const contrast of [false, true]) {
 
 const WIDTHS = [390, 768, 1024, 1280] as const;
 
-test("Plate 1 is an exact 4:5 box and its specimen is never clipped", async ({ browser }) => {
+test("the home title block is left-aligned with nothing beside it, and Figure 1 follows in the first screens", async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const page = await ctx.newPage();
   await page.goto("/");
-  const box = page.locator("[data-slot=plate-box]").first();
-  await expect(page.locator("[data-slot=claim-specimen]")).toBeVisible();
+  const h1 = page.getByRole("heading", { level: 1, name: "Immersive Episteme" });
   for (const width of WIDTHS) {
     await page.setViewportSize({ width, height: 800 });
-    const r = await box.evaluate((el) => {
+    const r = await h1.evaluate((el) => {
+      const mainEl = document.querySelector("main")!;
+      const main = mainEl.getBoundingClientRect();
       const b = el.getBoundingClientRect();
-      const spec = el.querySelector<HTMLElement>("[data-slot=claim-specimen]")!;
-      const link = spec.querySelector("a");
-      return {
-        ratio: b.height / b.width,
-        overflow: spec.scrollHeight - spec.clientHeight,
-        linkInside: link ? link.getBoundingClientRect().bottom <= b.bottom + 0.5 : true,
-      };
+      const cs = getComputedStyle(mainEl);
+      return { left: b.left - main.left - parseFloat(cs.paddingLeft), scroll: document.documentElement.scrollWidth - window.innerWidth };
     });
-    expect(Math.abs(r.ratio - 1.25), `${width} px ratio ${r.ratio}`).toBeLessThanOrEqual(0.01);
-    expect(r.overflow, `${width} px specimen overflow`).toBeLessThanOrEqual(0);
-    expect(r.linkInside, `${width} px link inside the frame`).toBe(true);
+    expect(Math.abs(r.left), `${width} px h1 left edge`).toBeLessThanOrEqual(1);
+    expect(r.scroll, `${width} px horizontal overflow`).toBeLessThanOrEqual(0);
   }
-  // At 1280 the plate ends within the first screen's reach: Figure 1 starts in the second screen.
+  await expect(page.locator("[data-slot=public-plate], [data-slot=claim-specimen]")).toHaveCount(0);
   await page.setViewportSize({ width: 1280, height: 800 });
   const figTop = await page.locator("#conditions-heading").evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
   expect(figTop).toBeLessThan(1600);
   await ctx.close();
 });
 
-test("tradition plate eyebrows share one top per row", async ({ browser }) => {
+test("the tradition index rows are equal: one left edge and one title face per row", async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const page = await ctx.newPage();
   await page.goto("/");
-  await expect(page.locator("[data-slot=tradition-plates] > li").first()).toBeVisible();
-  for (const width of [600, 768, 1024, 1280]) {
+  await expect(page.locator("[data-slot=tradition-index] > li").first()).toBeVisible();
+  for (const width of [390, 768, 1024, 1280]) {
     await page.setViewportSize({ width, height: 800 });
-    const rows = await page.locator("[data-slot=tradition-plates] > li").evaluateAll((lis) => {
-      const byRow = new Map<number, number[]>();
-      for (const li of lis) {
-        const top = Math.round(li.getBoundingClientRect().top);
-        const eyebrow = li.querySelector(".text-eyebrow");
-        if (!eyebrow) continue;
-        byRow.set(top, [...(byRow.get(top) ?? []), eyebrow.getBoundingClientRect().top]);
-      }
-      return [...byRow.values()];
-    });
-    expect(rows.length, `${width} px rows`).toBeGreaterThan(1);
-    for (const tops of rows) expect(Math.max(...tops) - Math.min(...tops), `${width} px eyebrow tops ${tops.join(", ")}`).toBeLessThanOrEqual(1);
+    const rows = await page.locator("[data-slot=tradition-index] > li").evaluateAll((lis) =>
+      lis.map((li) => {
+        const h = li.querySelector("h3")!;
+        const cs = getComputedStyle(h);
+        return { left: Math.round(h.getBoundingClientRect().left), face: [cs.fontFamily, cs.fontSize, cs.fontWeight].join("|") };
+      }),
+    );
+    expect(new Set(rows.map((r) => r.left)).size, `${width} px title edges`).toBe(1);
+    expect(new Set(rows.map((r) => r.face)).size, `${width} px title faces`).toBe(1);
   }
   await ctx.close();
 });

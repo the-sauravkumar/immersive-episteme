@@ -6,7 +6,6 @@ import { ActionForm } from "@/components/cms/action-form";
 import { Empty, FormField, Mono, NativeSelect, one, Section, StateBadge, type SearchParams, ROW_LINK } from "@/components/cms/bits";
 import { HistoryList } from "@/components/cms/history-list";
 import { TransitionPanel } from "@/components/cms/transition-panel";
-import { TraditionMarker } from "@/components/knowledge/tradition-marker";
 import { ConsolePage } from "@/components/shell/gates";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -64,7 +63,6 @@ async function Traditions({ searchParams }: { searchParams: Promise<SearchParams
             {rows.map((t) => (
               <TableRow key={t.id} aria-current={selected?.id === t.id ? "true" : undefined} data-state={selected?.id === t.id ? "selected" : undefined}>
                 <TableCell className="whitespace-normal">
-                  <TraditionMarker />
                   <Link href={`/cms/traditions?edit=${t.id}#tradition`} className={ROW_LINK}>
                     {t.name}
                   </Link>
@@ -119,7 +117,7 @@ async function SelectedTradition({ t, canEdit, principal }: { t: TraditionRow; c
                 <li key={`${s.sourceId}-${s.purpose}`} className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{s.purpose}</span>
                   <span>
-                    {s.localKey ? `${s.localKey} · ` : ""}
+                    {s.localKey ? `${s.localKey}: ` : ""}
                     {s.title}
                   </span>
                   {canEdit ? (
@@ -204,11 +202,11 @@ function TraditionForm({ t }: { t: TraditionRow | null }) {
         <FormField id={`${p}-country`} name="regionCountry" label="Country">
           <Input id={`${p}-country`} name="regionCountry" defaultValue={t?.regionCountry ?? "India"} />
         </FormField>
-        <FormField id={`${p}-lat`} name="latitude" label="Latitude">
-          <Input id={`${p}-lat`} name="latitude" type="number" step="any" min={-90} max={90} defaultValue={t?.latitude ?? ""} />
+        <FormField id={`${p}-lat`} name="latitude" label="Latitude (degrees, -90 to 90)">
+          <Input id={`${p}-lat`} name="latitude" type="text" inputMode="decimal" pattern="-?[0-9]*([.][0-9]+)?" defaultValue={t?.latitude ?? ""} />
         </FormField>
-        <FormField id={`${p}-lon`} name="longitude" label="Longitude">
-          <Input id={`${p}-lon`} name="longitude" type="number" step="any" min={-180} max={180} defaultValue={t?.longitude ?? ""} />
+        <FormField id={`${p}-lon`} name="longitude" label="Longitude (degrees, -180 to 180)">
+          <Input id={`${p}-lon`} name="longitude" type="text" inputMode="decimal" pattern="-?[0-9]*([.][0-9]+)?" defaultValue={t?.longitude ?? ""} />
         </FormField>
         <FormField id={`${p}-gi`} name="giRegistered" label="GI registered">
           <NativeSelect id={`${p}-gi`} name="giRegistered" defaultValue={t?.giRegistered === null || !t ? "" : t.giRegistered ? "yes" : "no"}>
@@ -220,8 +218,8 @@ function TraditionForm({ t }: { t: TraditionRow | null }) {
         <FormField id={`${p}-gino`} name="giApplicationNo" label="GI application number">
           <Input id={`${p}-gino`} name="giApplicationNo" defaultValue={t?.giApplicationNo ?? ""} />
         </FormField>
-        <FormField id={`${p}-giyear`} name="giYear" label="GI year">
-          <Input id={`${p}-giyear`} name="giYear" type="number" min={1999} max={2100} defaultValue={t?.giYear ?? ""} />
+        <FormField id={`${p}-giyear`} name="giYear" label="GI year (four digits)">
+          <Input id={`${p}-giyear`} name="giYear" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={t?.giYear ?? ""} />
         </FormField>
       </div>
     </ActionForm>

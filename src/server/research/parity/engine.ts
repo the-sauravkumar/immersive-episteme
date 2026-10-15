@@ -33,6 +33,7 @@
  */
 import { knowledgeBundleSchema, type KnowledgeBundle } from "@/features/knowledge/contracts";
 import { balanceDiagramSets, buildStructureDiagrams } from "@/features/knowledge/read/diagrams";
+import { photoGateOpen } from "@/features/knowledge/read/view";
 import { compareTraditionSlugs, exposureLayerOf, STUDY_TRADITION_SLUGS, type KnowledgeLayerId } from "@/features/learning/labels";
 import { EPISTEMIC_SECTIONS, sectionOfType } from "@/features/learning-2d/template";
 import { displayLongEdge, licenceValidOn, STUDY_FIGURE_CAP } from "@/features/media/contracts";
@@ -341,7 +342,7 @@ function sectionLayer(sectionId: string): KnowledgeLayerId {
 export function figureBalance(
   bundle: KnowledgeBundle,
   traditionSlugs: readonly string[],
-  opts: { structureDiagrams: boolean; figureAssets?: readonly ParityFigureAsset[]; asOf?: string | null },
+  opts: { structureDiagrams: boolean; photos?: boolean; figureAssets?: readonly ParityFigureAsset[]; asOf?: string | null },
 ): FigureBalance {
   const inBundle = new Set(bundle.traditions.map((t) => t.slug));
   const scope = [...new Set(traditionSlugs)].filter((s) => inBundle.has(s));
@@ -368,10 +369,13 @@ export function figureBalance(
   // Photographs: approved, licence-valid illustration links of the bundle's concepts.
   const day = opts.asOf ?? null;
   const photoCandidates = new Map<string, ParityFigureAsset[]>();
-  for (const a of opts.figureAssets ?? []) {
+  // The protocol switch `figures.photos` (DR-020): off shows no photograph in either condition.
+  for (const a of opts.photos === false ? [] : (opts.figureAssets ?? [])) {
     if (a.role !== "illustration") continue;
     const c = conceptById.get(a.conceptId);
     if (!c) continue;
+    // The anchor-claim gate (DR-020): a photograph shows only once its concept's claims are verified.
+    if (!photoGateOpen(c.verificationState)) continue;
     if (c.assetIds.length > 0 && !c.assetIds.includes(a.assetId)) continue; // a frozen bundle lists its own figures
     if (a.isDemo && !bundle.isDemo) continue; // demo media never reaches a real bundle
     if (a.verificationState !== "verified" && a.verificationState !== "published") continue;
@@ -576,7 +580,7 @@ export function runParityChecks(input: ParityInput): ParityReport {
 
   // Figures: the per-section balance across the study traditions (12.3 rule 9). Critical, so an
   // unbalanced study bundle cannot be activated (11.10 "blocks publication to a study").
-  const fig = bundle && config ? figureBalance(bundle, traditionSlugs, { structureDiagrams: config.figures.structureDiagrams, figureAssets: input.figureAssets, asOf: input.asOf ?? null }) : null;
+  const fig = bundle && config ? figureBalance(bundle, traditionSlugs, { structureDiagrams: config.figures.structureDiagrams, photos: config.figures.photos, figureAssets: input.figureAssets, asOf: input.asOf ?? null }) : null;
   checks.push(
     check("a.figures", "a", "Figures are balanced per section across the study traditions (at most one per concept, licence-valid, at the lightbox cap)", "critical", fig?.issues ?? [], {
       diagrams: fig?.metrics.diagrams ?? 0,

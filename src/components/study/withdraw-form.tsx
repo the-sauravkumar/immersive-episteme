@@ -19,9 +19,8 @@ const REASONS: { value: string; label: string }[] = [
   { value: "felt_unwell", label: "I do not feel well" },
 ];
 
-/** Full-row 56 px choice (DESIGN.md 11.7): `--wash`, a 2 px indigo bar and a check icon when chosen. */
-const ROW =
-  "group/opt flex min-h-14 cursor-pointer items-center gap-3 border-l-2 border-l-transparent py-3 pr-3 pl-3 has-[:checked]:border-l-indigo has-[:checked]:bg-wash";
+/** Full-row 56 px choice (DESIGN.md 9.6): `--wash` and a check icon when chosen, no bar (DR-022). */
+const ROW = "group/opt flex min-h-14 cursor-pointer items-center gap-3 px-3 py-3 hover:bg-sunk has-[:checked]:bg-wash";
 
 function RowCheck() {
   return <Check aria-hidden="true" className="invisible size-5 shrink-0 stroke-[1.75] text-indigo group-has-[:checked]/opt:visible" />;
@@ -49,7 +48,7 @@ export function WithdrawForm() {
                 name="reason"
                 value={r.value}
                 defaultChecked={r.value === "not_stated"}
-                className="size-5 shrink-0 cursor-pointer accent-indigo"
+                className="ie-check"
               />
               <span className="text-reading min-w-0 flex-1 text-ink">{r.label}</span>
               <RowCheck />
@@ -67,7 +66,7 @@ export function WithdrawForm() {
             name="confirm"
             type="checkbox"
             value="yes"
-            className="size-5 shrink-0 cursor-pointer accent-indigo"
+            className="ie-check"
             aria-describedby={confirmError ? "confirm-error" : undefined}
             aria-invalid={confirmError ? true : undefined}
           />

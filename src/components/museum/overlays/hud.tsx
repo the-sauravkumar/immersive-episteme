@@ -4,23 +4,24 @@
  * The museum's chrome and wayfinding overlays (DESIGN.md 11.6, 9.14):
  *
  *  - `MuseumStudyBar`: the SHARED `StudyBar` (the same component as the 2D pages: wordmark, location,
- *    Hint, Time left, Finish, skip link), with the museum's condition navigation group: Plan,
- *    Controls help and Pause, as 44 px `StudyBarButton`s. The room name is the location; it is the
- *    view's h1 while no concept is open, and live text once the panel (whose title is the h1) opens.
- *  - `RoomContents`: the keyboard route to this room's exhibits and doorways, 44 px rows. No exhibit
- *    count (concept counts are shown in neither condition, 12.3 rule 13).
+ *    Hint, Time left, Finish, skip link), with the museum's condition navigation group: "In This
+ *    Room" (shows the shared PlaceRail while it is hidden, as "In This Section" in 2D), Plan, Mouse
+ *    look (public demo only: study builds hide it, concept note section 7, Pathway B; free look stays
+ *    on the L key and in Controls help), Controls help and Pause, as 44 px `StudyBarButton`s. The
+ *    room name is the location; it is the view's h1 while no concept is open, and live text once the
+ *    panel (whose title is the h1) opens.
  *  - `CueNoteBar`: one manifest cue note at a time.
+ * The room's exhibits and doorways (the keyboard route to them) are in the shared PlaceRail
+ * ("In This Room", museum-app.tsx), the same component as the 2D "In This Section".
  *
  * Opaque `--ground` surfaces, 1 px `--rule-strong` boundaries, no radius, shadow, blur or motion.
  */
-import { Check, ChevronDown, ChevronRight, CircleHelp, DoorOpen, Map as MapIcon, Mouse, Pause, X } from "lucide-react";
+import { CircleHelp, Map as MapIcon, Mouse, Pause, X } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { StudyBar, StudyBarButton } from "@/components/learning/study-bar";
 import { Button } from "@/components/ui/button";
-import type { SceneExhibit, ScenePortal } from "@/features/immersive/scene-model";
 import { ROOM_TEXT, STUDY_BAR_TEXT } from "@/features/learning/strings";
-import { titleCase } from "@/lib/text/title-case";
-import { cn } from "@/lib/utils";
 
 export function MuseumStudyBar({
   location,
@@ -34,6 +35,8 @@ export function MuseumStudyBar({
   onPause,
   freeLook,
   onToggleFreeLook,
+  showMouseLook,
+  railButton,
 }: {
   location: string;
   locationAs: "text" | "h1" | "live";
@@ -49,6 +52,10 @@ export function MuseumStudyBar({
   /** Free mouse look is on (toggle: this button or L). */
   freeLook: boolean;
   onToggleFreeLook(): void;
+  /** The Mouse look button: the public demo and staff preview only; hidden in study builds (Pathway B). */
+  showMouseLook: boolean;
+  /** "In This Room" (the shared `PlaceRailButton`), first in the group as "In This Section" in 2D. */
+  railButton?: ReactNode;
 }) {
   return (
     // Arrow keys on the bar's controls never walk the visitor.
@@ -59,8 +66,12 @@ export function MuseumStudyBar({
         skipTargetId={skipTargetId}
         conditionNav={
           <>
+            {railButton}
             {mapAvailable ? <StudyBarButton icon={<MapIcon aria-hidden="true" />} label={STUDY_BAR_TEXT.plan} aria-pressed={mapOpen} disabled={!controlsEnabled} onClick={onToggleMap} /> : null}
-            <StudyBarButton icon={<Mouse aria-hidden="true" />} label={STUDY_BAR_TEXT.mouseLook} aria-pressed={freeLook} disabled={!controlsEnabled} onClick={onToggleFreeLook} />
+            {/* Phone widths have no mouse to capture, and the bar must fit at 390 px with "In This Room". */}
+            {showMouseLook ? (
+              <StudyBarButton icon={<Mouse aria-hidden="true" />} label={STUDY_BAR_TEXT.mouseLook} aria-pressed={freeLook} disabled={!controlsEnabled} onClick={onToggleFreeLook} className="max-md:hidden" />
+            ) : null}
             <StudyBarButton icon={<CircleHelp aria-hidden="true" />} label={STUDY_BAR_TEXT.controlsHelp} disabled={!controlsEnabled} onClick={onHelp} />
             <StudyBarButton icon={<Pause aria-hidden="true" />} label={STUDY_BAR_TEXT.pause} disabled={!controlsEnabled} onClick={onPause} />
           </>
@@ -70,84 +81,6 @@ export function MuseumStudyBar({
   );
 }
 
-
-const ROW = "text-ui flex min-h-11 w-full items-center gap-2 px-4 py-2 text-left text-ink hover:bg-sunk";
-
-export function RoomContents({
-  open,
-  onToggle,
-  exhibits,
-  doorways,
-  selectedId,
-  onPreview,
-  onSelect,
-  onDoorway,
-  doorLabel,
-}: {
-  open: boolean;
-  onToggle(): void;
-  exhibits: readonly SceneExhibit[];
-  doorways: readonly ScenePortal[];
-  selectedId: string | null;
-  onPreview(id: string | null): void;
-  onSelect(id: string): void;
-  onDoorway(portal: ScenePortal): void;
-  doorLabel(portal: ScenePortal): string;
-}) {
-  const Chevron = open ? ChevronDown : ChevronRight;
-  return (
-    <nav aria-label={ROOM_TEXT.label} data-museum-keys="ui" data-slot="museum-room-contents" className="flex min-h-0 w-[min(20rem,calc(100vw-2rem))] flex-col border border-rule-strong bg-ground">
-      <button type="button" aria-expanded={open} aria-controls="museum-room-contents" onClick={onToggle} className={cn(ROW, "font-semibold")} data-slot="museum-room-contents-toggle">
-        <Chevron aria-hidden="true" strokeWidth={1.75} className="size-5 shrink-0" />
-        <span>{titleCase(ROOM_TEXT.label)}</span>
-      </button>
-      {open ? (
-        <div id="museum-room-contents" className="max-h-[40dvh] min-h-0 overflow-y-auto border-t border-rule">
-          <ul className="list-none" onMouseLeave={() => onPreview(null)}>
-            {exhibits.map((e) => {
-              const current = selectedId === e.id;
-              return (
-                <li key={e.id} className="border-t border-rule first:border-t-0">
-                  <button
-                    type="button"
-                    data-exhibit-id={e.id}
-                    className={cn(ROW, current && "font-semibold")}
-                    aria-current={current ? "true" : undefined}
-                    onFocus={() => onPreview(e.id)}
-                    onBlur={() => onPreview(null)}
-                    onMouseEnter={() => onPreview(e.id)}
-                    onClick={() => onSelect(e.id)}
-                  >
-                    <span className="w-6 shrink-0 text-right text-ink-3 tabular-nums" aria-hidden={e.sequence ? undefined : true}>
-                      {e.sequence ? `${e.sequence.index + 1}.` : null}
-                    </span>
-                    <span className="min-w-0 flex-1">{titleCase(e.label)}</span>
-                    {current ? <Check aria-hidden="true" strokeWidth={1.75} className="size-5 shrink-0" /> : null}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-          {doorways.length > 0 ? (
-            <>
-              <p className="text-eyebrow border-t border-rule px-4 pt-3 pb-1">{titleCase(ROOM_TEXT.doorways)}</p>
-              <ul className="list-none">
-                {doorways.map((p) => (
-                  <li key={p.id}>
-                    <button type="button" className={ROW} onClick={() => onDoorway(p)}>
-                      <DoorOpen className="size-5 shrink-0 text-ink-3" strokeWidth={1.75} aria-hidden="true" />
-                      <span className="min-w-0">{titleCase(doorLabel(p))}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : null}
-        </div>
-      ) : null}
-    </nav>
-  );
-}
 
 
 export function CueNoteBar({ text, detail, actionLabel, onAction, onDismiss }: { text: string; detail: string | null; actionLabel: string | null; onAction(): void; onDismiss(): void }) {

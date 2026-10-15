@@ -126,7 +126,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
   const demo = data.study.nonExperimental;
   const rank = conditionOrder(data.conditions);
   const conditions = [...data.conditions].sort((a, b) => rank(a.id) - rank(b.id));
-  const perCondition = (count: (c: { id: string; code: string }) => number) => conditions.map((c) => `${c.label} ${count(c)}`).join(" · ");
+  const perCondition = (count: (c: { id: string; code: string }) => number) => conditions.map((c) => `${c.label} ${count(c)}`).join(", ");
   const completed = (c: { id: string }) => data.quality.sessionsByStatus.filter((x) => x.conditionId === c.id && x.status === "completed").reduce((a, x) => a + x.n, 0);
   const inScope = (c: { id: string }) => data.telemetry.sessions.filter((x) => x.conditionId === c.id).length;
   const withPrimary = (c: { code: string }) => data.primary.ancova.filter((r) => r.conditionCode === c.code && r.post !== null).length;
@@ -137,7 +137,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
       <StudyPicker studies={studies} current={study.id} />
       <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="text-h3 text-ink">{data.study.title}</span>
-        <span className="text-mono text-ink-3">{data.study.slug}</span>
+        <span className="text-id text-ink-3">{data.study.slug}</span>
         <StatusBadge status={data.study.status} />
         {demo ? <DemoBadge label="Demo / pilot: not experimental data" /> : <Badge variant="neutral">Experimental study</Badge>}
       </div>
@@ -146,7 +146,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
         <AlertTitle>Note</AlertTitle>
         <AlertDescription>
           Descriptive only. Means, SDs, medians and 95% t intervals describe the recorded data; they test nothing and show no causal effect. The confirmatory analysis
-          (ANCOVA of the post score with the pre score as covariate, D2) runs in <code className="text-mono">analysis/episteme_stats</code>. {ANALYSIS_SCOPE_NOTE} Nothing
+          (ANCOVA of the post score with the pre score as covariate, D2) runs in <code className="text-id">analysis/episteme_stats</code>. {ANALYSIS_SCOPE_NOTE} Nothing
           is imputed: undefined values are counted as missing.
         </AlertDescription>
       </Alert>
@@ -258,7 +258,7 @@ function ResultsRow({ data, n, demo, csvHref }: { data: DashboardData; n: Counte
       demo={demo}
       description={
         <>
-          <code className="text-mono">cmap.recall.dl</code> on the pre-test and post-learning concept maps (study decision D2): the proportion of the adjudicated reference map a participant reproduced. Descriptive; no causal reading.
+          <code className="text-id">cmap.recall.dl</code> on the pre-test and post-learning concept maps (study decision D2): the proportion of the adjudicated reference map a participant reproduced. Descriptive; no causal reading.
         </>
       }
     >
@@ -326,7 +326,7 @@ function TraditionRow({
       description={
         <>
           Proportion of keyed knowledge-test items answered correctly on the post-test minus the pre-test, counting only items whose concept belongs to the tradition (
-          <code className="text-mono">item.key_match</code>, latest attempt). A descriptive breakdown of the knowledge test, not a registered outcome; no causal reading.
+          <code className="text-id">item.key_match</code>, latest attempt). A descriptive breakdown of the knowledge test, not a registered outcome; no causal reading.
         </>
       }
     >
@@ -420,8 +420,8 @@ function DwellAndItemsRow({
               <TableBody>
                 {items.map((it) => (
                   <TableRow key={`${it.assessment}|${it.itemKey}`}>
-                    <TableCell className="text-mono">{it.assessment}</TableCell>
-                    <TableCell className="text-mono">{it.itemKey}</TableCell>
+                    <TableCell className="text-id">{it.assessment}</TableCell>
+                    <TableCell className="text-id">{it.itemKey}</TableCell>
                     {it.byCondition.map((c, i) => [
                       <TableCell key={`${i}-n`} numeric>
                         {c.n}
@@ -464,7 +464,7 @@ function InterfaceParityCard({ summary }: { summary: Awaited<ReturnType<typeof r
       </CardHeader>
       <CardContent className="flex flex-col gap-1">
         <p className="text-body text-ink">{summary ? `${interfaceRunLine(summary)}.` : NO_PARITY_RUN}</p>
-        <p className="text-credit">The 2D and 3D interfaces are compared check by check (P1-P27), so these results can be read against a measured, not an assumed, equivalence.</p>
+        <p className="text-credit">The 2D and 3D interfaces are compared check by check (P1-P33), so these results can be read against a measured, not an assumed, equivalence.</p>
       </CardContent>
       <CardFooter>
         <Link href="/research/parity" className={LINK_44}>
@@ -484,7 +484,7 @@ function PrimarySection({ data, csv, n, demo }: { data: DashboardData; csv: (t: 
         demo={demo}
         description={
           <>
-            <code className="text-mono">cmap.recall.dl</code> on the pre-test and post-learning maps, and its change, by condition (study decision D2).
+            <code className="text-id">cmap.recall.dl</code> on the pre-test and post-learning maps, and its change, by condition (study decision D2).
             {data.primary.referenceMaps.length > 1 ? ` Scores come from ${data.primary.referenceMaps.length} reference maps; compare only scores of the same reference map.` : ""}
           </>
         }
@@ -524,7 +524,7 @@ function PrimarySection({ data, csv, n, demo }: { data: DashboardData; csv: (t: 
             <TableBody>
               {data.primary.ancova.map((r) => (
                 <TableRow key={r.participantCode}>
-                  <TableCell className="text-mono">{r.participantCode}</TableCell>
+                  <TableCell className="text-id">{r.participantCode}</TableCell>
                   <TableCell>{r.conditionCode}</TableCell>
                   <TableCell>{r.stratum ?? "–"}</TableCell>
                   <TableCell numeric>{num(r.pre)}</TableCell>
@@ -638,7 +638,7 @@ function TelemetrySection({
             <TableBody>
               {t.sessions.map((s) => (
                 <TableRow key={s.sessionId}>
-                  <TableCell className="text-mono">{s.participantCode}</TableCell>
+                  <TableCell className="text-id">{s.participantCode}</TableCell>
                   <TableCell className="whitespace-nowrap">{name(s.conditionId)}</TableCell>
                   <TableCell className="whitespace-nowrap">{s.status.replace(/_/g, " ")}</TableCell>
                   <TableCell numeric>{s.events}</TableCell>
@@ -781,13 +781,13 @@ function Definitions() {
                 {METRIC_DEFINITIONS.filter((d) => d.group === g).map((d) => (
                   <div key={d.key} className="flex min-w-0 flex-col gap-1 font-sans text-[0.9375rem] leading-6 text-ink">
                     <dt className="font-semibold">
-                      {d.label} <span className="text-mono font-normal text-ink-3 [overflow-wrap:break-word]">{breakableKey(d.key)} v{d.version}</span>
+                      {d.label} <span className="text-id font-normal text-ink-3 [overflow-wrap:break-word]">{breakableKey(d.key)} v{d.version}</span>
                     </dt>
                     <dd>
                       <span className="font-medium">Role: {d.role}.</span> {d.measures}
                     </dd>
                     <dd className="text-ink-2">
-                      Unit: {d.unit}. {d.computation} Computed in <code className="text-mono [overflow-wrap:break-word]">{breakableKey(d.computedIn)}</code>.
+                      Unit: {d.unit}. {d.computation} Computed in <code className="text-id [overflow-wrap:break-word]">{breakableKey(d.computedIn)}</code>.
                     </dd>
                     <dd>
                       {d.citation ? (

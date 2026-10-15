@@ -10,6 +10,8 @@
 import Link from "next/link";
 import type { ComponentProps, MouseEvent } from "react";
 
+import type { NavigationSource } from "@/features/telemetry/contracts";
+
 import type { EntryVia } from "../visit-store";
 
 import { useVisitStore } from "./session";
@@ -26,20 +28,22 @@ export interface FollowedRelationship {
 export type TrackedLinkProps = Omit<ComponentProps<typeof Link>, "href"> & {
   href: string;
   via?: EntryVia;
+  /** What the learner used (DR-021 navigation source): logged on the next page's entry. Default "link". */
+  source?: NavigationSource;
   relationship?: FollowedRelationship;
   /** A concept card or list item selection. */
   item?: { conceptId?: string; traditionId?: string; elementKind: string };
   pageId?: string;
 };
 
-export function TrackedLink({ via = "navigation", relationship, item, pageId, onClick, ...props }: TrackedLinkProps) {
+export function TrackedLink({ via = "navigation", source = "link", relationship, item, pageId, onClick, ...props }: TrackedLinkProps) {
   const tracker = useStableTracker();
   const visits = useVisitStore();
   const handle = (e: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(e);
     // A modified click opens another tab: this page is not left, so nothing is recorded.
     if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-    visits.setPendingVia(relationship ? "link" : via);
+    visits.setPendingVia(relationship ? "link" : via, source);
     const where = pageId ? { roomOrPageId: pageId } : {};
     if (relationship) {
       void tracker.relationshipFollowed({
@@ -60,7 +64,7 @@ export function TrackedLink({ via = "navigation", relationship, item, pageId, on
         ...where,
         ...(item.conceptId ? { conceptId: item.conceptId } : {}),
         ...(item.traditionId ? { traditionId: item.traditionId } : {}),
-        metadata: { elementKind: item.elementKind },
+        metadata: { elementKind: item.elementKind, source },
       });
     }
   };

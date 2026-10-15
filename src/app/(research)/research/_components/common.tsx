@@ -4,55 +4,60 @@
  * <dl> summaries, stat rows set as numbered tables, status badges with words and icons.
  * Headings pass through titleCase(); numbers are tabular and right-aligned.
  */
-import { ChevronRight, CircleAlert, CircleCheck, CircleDashed, FlaskConical, Info, Lock } from "lucide-react";
+import { CircleAlert, CircleCheck, CircleDashed, FlaskConical, Info, Lock } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Disclosure as SharedDisclosure } from "@/components/ui/disclosure";
+import { NativeSelect } from "@/components/ui/native-select";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
 import type { StudySummary } from "@/server/research/studies";
 
 // ---------------------------------------------------------------------------------------------
-// Form field classes (DESIGN.md 9.5): 44 px, 1 px --rule-strong, 3 px radius, --surface, 16 px.
-// Native controls are kept where a plain GET form must work without JavaScript.
+// Form field classes (DESIGN.md 9.6): 44 px, 1 px --rule-strong, 4 px radius, paper, 16 px.
+// Native controls are kept where a plain GET form must work without JavaScript; selects are the
+// shared NativeSelect (9.2) and checkboxes and radios the shared `ie-check` skin.
 // ---------------------------------------------------------------------------------------------
 
-export const FIELD_LABEL = "font-sans text-[0.875rem] leading-5 font-medium text-ink";
+export const FIELD_LABEL = "font-sans text-[0.9375rem] leading-5 font-bold text-ink";
 export const FIELD_HINT = "text-credit";
 export const CONTROL =
-  "w-full min-w-0 rounded-control border border-rule-strong bg-surface px-3 font-sans text-base leading-6 text-ink placeholder:text-ink-3 disabled:cursor-not-allowed disabled:border-rule disabled:bg-sunk disabled:text-ink-3 aria-invalid:border-danger";
-export const SELECT = cn(CONTROL, "h-11 pr-8");
+  "w-full min-w-0 rounded-control border border-rule-strong bg-ground px-3 font-sans text-base leading-6 text-ink placeholder:text-ink-3 hover:not-disabled:border-ink-2 disabled:cursor-not-allowed disabled:border-rule disabled:bg-sunk disabled:text-ink-3 aria-invalid:border-danger";
 export const TEXTAREA = cn(CONTROL, "min-h-24 py-2.5");
-/** A full-row label (44 px) holding a 20 px checkbox or radio (DESIGN.md 9.5). */
-export const CHECK_ROW = "flex min-h-11 cursor-pointer items-center gap-3 font-sans text-[0.9375rem] leading-5 text-ink";
-export const CHECK_BOX = "size-5 shrink-0 accent-indigo";
+/** A full-row label (44 px) holding a 20 px checkbox or radio (DESIGN.md 9.6). */
+export const CHECK_ROW = "flex min-h-11 cursor-pointer items-center gap-3 font-sans text-base leading-6 text-ink";
+export const CHECK_BOX = "ie-check";
 /** An inline indigo link, underlined (indigo vs ink is 1.62:1, so never colour alone, R-A4). */
-export const LINK = "text-indigo underline decoration-1 underline-offset-[3px] hover:text-indigo-hover hover:decoration-2";
+export const LINK = "text-indigo underline decoration-1 underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2";
 /** A text link that is also a 44 px target (rows, navigation lists). */
 export const LINK_44 = cn(LINK, "inline-flex min-h-11 min-w-11 items-center");
 /** A link styled as the 44 px outline button (downloads; DESIGN.md 9.1 outline variant). */
 export const LINK_BUTTON =
-  "inline-flex h-11 shrink-0 items-center gap-2 rounded-control border border-rule-strong px-5 font-sans text-[0.9375rem] leading-5 font-medium text-ink hover:bg-sunk [&_svg]:size-5 [&_svg]:shrink-0 [&_svg]:stroke-[1.75]";
+  "inline-flex h-11 shrink-0 items-center gap-2 rounded-control border-[1.5px] border-ink bg-ground px-5 font-sans text-base leading-6 font-semibold text-ink hover:bg-sunk [&_svg]:size-5 [&_svg]:shrink-0 [&_svg]:stroke-[1.75]";
 
 /**
- * A native disclosure with a 44 px summary row (chevron, label, optional detail in `text-credit`).
- * Opens instantly; server-safe, so it works without JavaScript.
+ * The shared disclosure (DESIGN.md 9.5) with an optional detail after the summary: a 44 px row
+ * with the designed chevron and the state words "Show" and "Hide". Opens instantly; server-safe,
+ * so it works without JavaScript.
  */
 export function Disclosure({ summary, detail, children, open, className }: { summary: ReactNode; detail?: ReactNode; children: ReactNode; open?: boolean; className?: string }) {
   return (
-    <details open={open} className={cn("group/disc min-w-0", className)}>
-      <summary className="flex min-h-11 cursor-pointer list-none items-start gap-2 py-2.5 font-sans text-[0.9375rem] leading-6 text-ink [&::-webkit-details-marker]:hidden">
-        <ChevronRight aria-hidden="true" className="mt-0.5 size-5 shrink-0 stroke-[1.75] group-open/disc:rotate-90" />
-        <span className="min-w-0 [overflow-wrap:anywhere]">
-          <span className="font-medium">{summary}</span>
+    <SharedDisclosure
+      defaultOpen={open}
+      className={cn("min-w-0", className)}
+      summary={
+        <span className="text-body block min-w-0 py-2.5 text-ink [overflow-wrap:anywhere]">
+          <span className="font-semibold">{summary}</span>
           {detail ? <span className="text-ink-2"> {detail}</span> : null}
         </span>
-      </summary>
-      <div className="min-w-0 pb-4 pl-7">{children}</div>
-    </details>
+      }
+    >
+      {children}
+    </SharedDisclosure>
   );
 }
 
@@ -80,8 +85,15 @@ export function FieldLabel({ label, hint, className, children, htmlFor }: { labe
 // Study picker
 // ---------------------------------------------------------------------------------------------
 
-/** Chooses a study (plain GET form: works without JavaScript and keeps the choice in the URL). */
+/**
+ * Chooses a study (DESIGN.md 9.2): the shared NativeSelect joined to a labelled action button,
+ * "Show study" (WCAG SC 3.2.2 and technique H84: the view never changes on input), and a two-line
+ * readout of the current study under it (the full title, then the key and state as words), so a
+ * long title is never only truncated. A plain GET form: it works without JavaScript and keeps the
+ * choice in the URL.
+ */
 export function StudyPicker({ studies, current, extra }: { studies: StudySummary[]; current: string | null; extra?: Record<string, string> }) {
+  const chosen = studies.find((s) => s.id === current) ?? null;
   if (studies.length === 0) {
     return (
       <p className="text-body mb-8 text-ink-2">
@@ -94,23 +106,40 @@ export function StudyPicker({ studies, current, extra }: { studies: StudySummary
     );
   }
   return (
-    <form method="get" className="mb-10 flex flex-wrap items-end gap-3">
-      <FieldLabel label="Study" className="w-full sm:w-auto sm:min-w-[22rem] sm:max-w-xl">
-        <select name="study" defaultValue={current ?? undefined} className={cn(SELECT, "truncate")}>
+    <form method="get" className="mb-10 flex max-w-[48rem] flex-col gap-2">
+      <label htmlFor="study-picker" className={FIELD_LABEL}>
+        Study
+      </label>
+      <div className="flex flex-wrap items-center gap-3">
+        <NativeSelect
+          id="study-picker"
+          name="study"
+          defaultValue={current ?? undefined}
+          aria-describedby={chosen ? "study-picker-readout" : undefined}
+          className="w-full sm:w-auto sm:min-w-[22rem] sm:flex-1"
+        >
           {studies.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.title} ({s.slug}, {s.status}
-              {s.isDemo ? ", demo" : ""})
+              {s.title}
+              {s.isDemo ? " (demo)" : ""}
             </option>
           ))}
-        </select>
-      </FieldLabel>
-      {Object.entries(extra ?? {}).map(([k, v]) => (
-        <input key={k} type="hidden" name={k} value={v} />
-      ))}
-      <Button type="submit" variant="outline">
-        Show
-      </Button>
+        </NativeSelect>
+        {Object.entries(extra ?? {}).map(([k, v]) => (
+          <input key={k} type="hidden" name={k} value={v} />
+        ))}
+        <Button type="submit" variant="outline">
+          Show study
+        </Button>
+      </div>
+      {chosen ? (
+        <div id="study-picker-readout" data-slot="study-picker-readout" className="flex flex-col">
+          <p className="text-body font-bold text-ink [overflow-wrap:anywhere]">{chosen.title}</p>
+          <p className="text-credit">
+            Key <span className="text-id">{chosen.slug}</span>. State: {chosen.status.replace(/_/g, " ")}.{chosen.isDemo ? " Demo data." : ""}
+          </p>
+        </div>
+      ) : null}
     </form>
   );
 }
@@ -167,13 +196,12 @@ export function PublishedBadge({ published, label }: { published: boolean; label
 // ---------------------------------------------------------------------------------------------
 
 /**
- * A console section: a 1 px ink rule, an optional eyebrow running head, an h2 in `text-h2`
- * (Title Case), a description in `text-body` --ink-2, actions right-aligned on the heading row
+ * A console section: a 1 px --rule-strong rule, an h2 in `text-h2` (Title Case; no eyebrow,
+ * DR-022), a description in `text-body` --ink-2, actions right-aligned on the heading row
  * (wrapping under it below 768 px), then the content. 48 px between sections.
  */
 export function Section({
   title,
-  eyebrow,
   description,
   children,
   actions,
@@ -182,6 +210,7 @@ export function Section({
   className,
 }: {
   title: string;
+  /** @deprecated Not rendered (DR-022: no eyebrows). */
   eyebrow?: string;
   description?: ReactNode;
   children: ReactNode;
@@ -193,10 +222,9 @@ export function Section({
 }) {
   const headingId = id ? `${id}-title` : undefined;
   return (
-    <section id={id} aria-labelledby={headingId} className={cn("mb-12 min-w-0 border-t border-ink pt-5", className)}>
+    <section id={id} aria-labelledby={headingId} className={cn("mb-12 min-w-0 border-t border-rule-strong pt-5", className)}>
       <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between md:gap-6">
         <div className="flex min-w-0 flex-col gap-1.5">
-          {eyebrow ? <p className="text-eyebrow">{eyebrow}</p> : null}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <h2 id={headingId} className="text-h2 text-ink">
               {titleCase(title)}
@@ -221,14 +249,14 @@ export function SubHeading({ children, id, className }: { children: string; id?:
   );
 }
 
-/** Two-column <dl> summary (DESIGN.md 11.8): labels in `text-dl-label`, values in `text-dl-value`; stacks under 520 px. */
+/** Two-column <dl> summary (DESIGN.md 11.8): labels in `text-label`, values in `text-value`; stacks under 520 px. */
 export function SummaryList({ items, className }: { items: { label: string; value: ReactNode }[]; className?: string }) {
   return (
     <dl className={cn("border-y border-rule [overflow-wrap:anywhere]", className)}>
       {items.map((it) => (
         <div key={it.label} className="grid min-w-0 gap-1 border-t border-rule py-3 first:border-t-0 xs:grid-cols-[minmax(0,12rem)_minmax(0,1fr)] xs:gap-6">
-          <dt className="text-dl-label">{it.label}</dt>
-          <dd className="text-dl-value min-w-0 text-ink">{it.value}</dd>
+          <dt className="text-label">{it.label}</dt>
+          <dd className="text-value min-w-0 text-ink">{it.value}</dd>
         </div>
       ))}
     </dl>
@@ -238,7 +266,7 @@ export function SummaryList({ items, className }: { items: { label: string; valu
 export interface StatItem {
   label: string;
   value: ReactNode;
-  /** Comparator line in `text-credit`, e.g. "2D 41 · 3D 39" or "of 120 target". */
+  /** Comparator line in `text-credit`, e.g. "2D 41, 3D 39" or "of 120 target". */
   note?: ReactNode;
 }
 
@@ -261,7 +289,7 @@ const STAT_COLUMNS: Record<number, string> = {
 
 /**
  * A booktabs row of figures (DESIGN.md 10 "Stat tiles"): "Table n. Title" above, then label
- * (`text-dl-label`, two lines reserved), value (`text-stat`, tabular) and comparator line on a
+ * (`text-label`, two lines reserved), value (`text-stat`, tabular) and comparator line on a
  * three-row grid so every value sits on one baseline. 1.5 px ink rules above and below.
  */
 export function StatRow({ number, title, items, aside, className }: { number?: number; title: string; items: StatItem[]; aside?: ReactNode; className?: string }) {
@@ -271,9 +299,9 @@ export function StatRow({ number, title, items, aside, className }: { number?: n
           aside's first line, so caption, status and Refresh share one line; the aside's note runs
           under it. */}
       <figcaption className="mb-3 flex flex-wrap items-start justify-between gap-x-6 gap-y-2">
-        <span className={cn("font-sans text-[0.9375rem] leading-6 text-ink", aside ? "flex min-h-11 items-center" : null)}>
+        <span className={cn("font-sans text-base leading-6 text-ink", aside ? "flex min-h-11 items-center" : null)}>
           <span>
-            {number !== undefined ? <span className="font-semibold tabular-nums">Table {number}. </span> : null}
+            {number !== undefined ? <span className="font-bold tabular-nums">Table {number}. </span> : null}
             {titleCase(title)}
           </span>
         </span>
@@ -285,7 +313,7 @@ export function StatRow({ number, title, items, aside, className }: { number?: n
             key={it.label}
             className="grid min-w-0 grid-rows-[2.5rem_auto_auto] content-start gap-1 border-b border-rule py-3 last:odd:col-span-2 sm:border-b-0 sm:last:odd:col-span-1"
           >
-            <dt className="text-dl-label line-clamp-2 self-end">{it.label}</dt>
+            <dt className="text-label line-clamp-2 self-end">{it.label}</dt>
             <dd className="text-stat text-ink tabular-nums lining-nums">{it.value}</dd>
             {/* The comparator wraps rather than truncating, so the 3D value is never cut off. */}
             <dd className="text-credit min-h-5 tabular-nums [overflow-wrap:anywhere]">{it.note ?? ""}</dd>
@@ -343,11 +371,11 @@ export function FlagLine({ level, text }: { level: string; text: string }) {
 
 export const fmtTime = (iso: string | null) => (iso ? iso.replace("T", " ").slice(0, 16) : "–");
 
-/** A timestamp in mono tabular figures (DESIGN.md 5.2 `text-mono`). */
+/** A timestamp in tabular figures (DESIGN.md 5.2 `text-id`; no monospace). */
 export function Timestamp({ iso }: { iso: string | null }) {
-  if (!iso) return <span className="text-mono">–</span>;
+  if (!iso) return <span className="text-id">–</span>;
   return (
-    <time dateTime={iso} className="text-mono whitespace-nowrap tabular-nums">
+    <time dateTime={iso} className="text-id whitespace-nowrap tabular-nums">
       {fmtTime(iso)}
     </time>
   );

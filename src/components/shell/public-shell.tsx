@@ -3,9 +3,9 @@
  * /sign-out, /forbidden. Fully static: it never reads the session, so public pages prerender into
  * the static shell.
  *
- * Header: the wordmark (Source Serif 4 600, 22 px) left; About, Explore, Accessibility, Privacy
- * and Staff sign in as plain text links; a 2 px ink running-head rule; then the 24 px indigo
- * knock-out band (a 2 px ink rule in high contrast). Footer: colophon style, with a one-line
+ * Header (DESIGN.md 10.1, DR-022): a 64 px --field band with the wordmark (Anek Latin 600, 22 px)
+ * left; About, Explore, Accessibility, Privacy and Staff sign in as plain text links; one 1 px
+ * --rule-strong line. No band pattern. Footer: colophon style on the field, with a one-line
  * project statement, links, and the Display Settings button.
  *
  * Landmarks: banner (header), navigation, main#main (skip-link target), contentinfo (footer).
@@ -14,8 +14,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { KnockoutBand } from "@/components/brand/knockout-band";
-import { Rule } from "@/components/brand/rule";
 import { Wordmark } from "@/components/brand/wordmark";
 import { institutionLines } from "@/config/institution";
 
@@ -44,24 +42,22 @@ export function PublicShell({ children }: { children: ReactNode }) {
   return (
     <div data-zone="public" className="flex min-h-dvh flex-col bg-ground">
       <DisplayPreferencesSync zone="public" />
-      <header>
+      <header className="border-b border-rule-strong bg-field">
         <div className={`${COLUMN} flex min-h-16 items-center justify-between gap-x-6 py-2`}>
           <Wordmark size="public" />
           <PublicNav links={NAV} />
         </div>
-        <Rule kind="running-head" />
-        <KnockoutBand size={24} hcRule={false} />
       </header>
 
       <main id="main" tabIndex={-1} className={`${COLUMN} flex-1 py-12 outline-none max-xs:py-8`}>
         {children}
       </main>
 
-      <footer className="border-t-2 border-ink">
+      <footer className="border-t border-rule-strong bg-field">
         <div className={`${COLUMN} flex flex-col gap-6 py-8 md:flex-row md:items-start md:justify-between`}>
           <div className="flex max-w-[34rem] flex-col gap-2">
             <Wordmark size="console" />
-            <p className="text-[0.9375rem] leading-6 text-ink-2">
+            <p className="text-body text-ink-2">
               A research platform for studying how people learn about craft knowledge.
             </p>
             {/* Institution lines only when configured (DESIGN.md 9.16, 13 rule 1). */}
@@ -83,7 +79,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
                   <li key={item.href}>
                     <Link
                       href={item.href}
-                      className="inline-flex min-h-11 items-center text-ui text-indigo underline decoration-1 underline-offset-[3px] hover:text-indigo-hover hover:decoration-2"
+                      className="inline-flex min-h-11 items-center text-ui text-indigo underline decoration-1 underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2"
                     >
                       {item.label}
                     </Link>

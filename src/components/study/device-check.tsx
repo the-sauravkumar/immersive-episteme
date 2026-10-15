@@ -92,8 +92,8 @@ type View = { kind: "ready" } | { kind: "checking" } | { kind: "result"; result:
 function ContrastState({ on }: { on: boolean }) {
   return (
     <dl className="grid grid-cols-[minmax(0,9rem)_1fr] items-center gap-x-4 border-y border-rule py-3">
-      <dt className="text-dl-label">High contrast</dt>
-      <dd className="text-dl-value" data-slot="study-contrast-state">
+      <dt className="text-label">High contrast</dt>
+      <dd className="text-value" data-slot="study-contrast-state">
         {on ? "On" : "Off"}
       </dd>
     </dl>

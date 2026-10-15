@@ -4,9 +4,9 @@
  * decided every node, edge, label and position; this component only draws them:
  *
  *  - ink lines and arrowheads on the figure's `--sunk` mat, square-cut node boxes on `--ground`
- *    with a 1 px ink outline; the anchor ("current") concept carries the one indigo accent, a 2 px
- *    indigo outline; no other colour coding;
- *  - Title Case concept titles in Inter, the relationship label on each edge (or once per band in
+ *    with a 1 px ink outline; the anchor ("current") concept carries the one indigo accent, an indigo
+ *    box with its title in --on-indigo (10.32:1; DR-022); no other colour coding;
+ *  - Title Case concept titles in Atkinson Hyperlegible Next, the relationship label on each edge (or once per band in
  *    the colour diagram, where every edge in the band shares it);
  *  - colours are design tokens, so high contrast and the light study theme apply as everywhere;
  *  - `role="img"` with the generated text equivalent as its name; the SVG text stays selectable.
@@ -72,9 +72,9 @@ export function StructureDiagramSvg({ diagram, label, className }: { diagram: St
               width={n.current ? n.w - 1 : n.w}
               height={n.current ? n.h - 1 : n.h}
               strokeWidth={n.current ? 2 : 1}
-              style={{ fill: "var(--ground)", stroke: n.current ? "var(--indigo)" : "var(--ink)" }}
+              style={{ fill: n.current ? "var(--indigo)" : "var(--ground)", stroke: n.current ? "var(--indigo)" : "var(--ink)" }}
             />
-            <text fontSize={fontSize} fontWeight={500} style={{ fill: "var(--ink)" }}>
+            <text fontSize={fontSize} fontWeight={500} style={{ fill: n.current ? "var(--on-indigo)" : "var(--ink)" }}>
               {n.lines.map((line, i) => (
                 <tspan key={i} x={n.x + 8} y={n.y + 6 + i * lineHeight + fontSize - (lineHeight - fontSize) / 2 + 1}>
                   {line}

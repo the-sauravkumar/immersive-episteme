@@ -28,7 +28,7 @@ export const instant = false;
  * comparison concept): the aspect as an h2 with a link to its own page, then EVERY study tradition
  * in the canonical order as an h3 with the neutral marker, followed by the claims of the concepts
  * of that tradition the comparison compares, through the shared `ClaimList` with their figures and
- * `CitationNote`s, exactly the components the 3D Compare layer uses. No matrix cells and no
+ * numbered citation markers and reference list, exactly the components the 3D Compare layer uses. No matrix cells and no
  * counts, so all three traditions get the same block, measure and weight.
  *
  * Above the blocks, a one-column list of the aspects (links only, no claim text, 44 px rows) jumps
@@ -84,7 +84,7 @@ async function Comparisons() {
             const id = `aspect-${i + 1}`;
             const shared = v.compares.filter((c) => !c.traditionSlug);
             return (
-              <section key={v.concept.id} aria-labelledby={id} data-slot="comparison-aspect" className="border-t-2 border-ink py-10 first:border-t-0 first:pt-0">
+              <section key={v.concept.id} aria-labelledby={id} data-slot="comparison-aspect" className="border-t border-rule-strong py-10 first:border-t-0 first:pt-0">
                 <SectionHeading id={id}>{v.concept.title}</SectionHeading>
                 <TrackedLink
                   href={href2d.concept(v.concept.slug)}

@@ -46,7 +46,7 @@ export function RelationshipTable({ rows, perspective, labelledBy }: { rows: Rel
               {r.conditions ? <span className="text-credit block">Conditions: {r.conditions}</span> : null}
             </TableCell>
             <TableCell className="text-credit min-w-40 whitespace-normal">
-              {r.sources.length ? r.sources.map((s) => `${s.label.split(" · ")[0]}, ${s.locator ?? "no locator"}`).join("; ") : "None"}
+              {r.sources.length ? r.sources.map((s) => `${s.label.split(": ")[0]}, ${s.locator ?? "no locator"}`).join("; ") : "None"}
             </TableCell>
             <TableCell>
               <StateBadge state={r.state} />

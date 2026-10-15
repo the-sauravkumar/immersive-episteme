@@ -5,9 +5,11 @@
  * transaction) -> refresh(), via runAction. The local-disk upload itself goes through the route
  * handler src/app/(cms)/cms/media/upload/route.ts (multipart body).
  */
+import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import type { ActionState } from "@/components/cms/action-state";
+import { MEDIA_FIGURES_CACHE_TAG } from "@/server/knowledge/read-model";
 
 import { CmsError } from "../core";
 import { formObject, runAction } from "../run-action";
@@ -27,6 +29,11 @@ import {
   updateAssetMetadata,
 } from "./service";
 import { getMediaStorage } from "./storage";
+
+/** The learners' study-photo lists (read model) are cached for an hour; a change here drops them. */
+function dropPhotoCache(): void {
+  revalidateTag(MEDIA_FIGURES_CACHE_TAG, "max");
+}
 
 function s3Storage() {
   const storage = getMediaStorage();
@@ -62,6 +69,7 @@ export async function updateAssetAction(_prev: ActionState, fd: FormData): Promi
   const raw = formObject(fd);
   return runAction("media.upload", updateSchema, raw, async ({ actor, pool }, data) => {
     const r = await updateAssetMetadata(pool, actor, { assetId: data.assetId, metadata: raw });
+    dropPhotoCache();
     return r.returnedToReview ? "Saved. The asset was verified, so it is back under review." : "Saved.";
   });
 }
@@ -76,6 +84,7 @@ export async function submitAssetAction(_prev: ActionState, fd: FormData): Promi
 export async function reviewAssetAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
   return runAction("media.review", assetReviewSchema, formObject(fd), async ({ actor, pool }, data) => {
     await reviewAsset(pool, actor, data);
+    dropPhotoCache();
     return data.to === "verified" ? "Verified." : data.to === "rejected" ? "Rejected." : "Marked as needing evidence.";
   });
 }
@@ -99,6 +108,7 @@ export async function linkAssetAction(_prev: ActionState, fd: FormData): Promise
   }
   return runAction("media.upload", assetLinkSchema, input, async ({ actor, pool }, data) => {
     await linkAssetToConcept(pool, actor, data);
+    dropPhotoCache();
     return "Linked to the concept.";
   });
 }
@@ -106,6 +116,7 @@ export async function linkAssetAction(_prev: ActionState, fd: FormData): Promise
 export async function unlinkAssetAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
   return runAction("media.upload", z.object({ linkId: z.uuid() }), formObject(fd), async ({ actor, pool }, data) => {
     await unlinkAsset(pool, actor, data);
+    dropPhotoCache();
     return "Link removed.";
   });
 }

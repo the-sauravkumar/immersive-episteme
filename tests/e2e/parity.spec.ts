@@ -1,10 +1,11 @@
 /**
- * Interface parity suite (DESIGN.md 12.4, P1-P27; 18 WP8 task 1).
+ * Interface parity suite (DESIGN.md 12.4, P1-P33; 18 WP8 task 1, 18.0 package 2D-C).
  *
  * For one concept of each study tradition (canonical order: Ajrakh, Machilipatnam Kalamkari,
  * Sanganeri) it compares the 2D concept page with the 3D information panel for the SAME concept,
- * at 390 x 844, 768 x 1024, 1280 x 800 and 1440 x 900, in the light, dark, high-contrast light and
- * high-contrast dark display settings, and writes every measured value to
+ * at 390 x 844, 768 x 1024, 1280 x 720 (a 1920 x 1080 laptop at 150%), 1280 x 800 and 1440 x 900,
+ * in the light, dark, high-contrast light and high-contrast dark display settings, plus the layout
+ * checks P28 and P30 at 1024 x 768 and 1920 x 1080 (light), and writes every measured value to
  * analysis/parity/interface-parity.json (schema: src/features/research/interface-parity.ts),
  * which the Equivalence Monitor reads. Nothing in the report is assumed or copied: a check that
  * was not measured in a run is absent from that run.
@@ -31,7 +32,18 @@
  *    the check "partial" on the Equivalence Monitor, never "pass".
  *  - P26 reads the room plaques from the museum probe: each plaque's size, and its contrast at the
  *    2.5 m signage distance (as immersive-rendering.spec.ts), for every plaque of each study
- *    tradition's wing and of the hall door into it, measured once at 1280 x 800.
+ *    tradition's wing and of the hall door into it, measured once at 1280 x 800 and reported in the
+ *    1280 x 800 runs only (never copied into runs that did not measure it). The 2D side compares
+ *    the three study traditions' catalogue cards and index rows, and requires all three present.
+ *  - Citations (DR-022 Addendum A): each claim ends with numbered markers [n] that expand the record
+ *    in place; the sheet ends with one deduplicated reference list. P5 compares the reference list
+ *    text too; P11 requires every record to open under its own claim.
+ *  - P28 (rail): the default open state is read on a fresh load (2D at every viewport; 3D on the
+ *    museum's first load at 1280 x 800 for the docked widths, and after a row choice below 1280 px,
+ *    where choosing a row closes the drawer, i.e. the default). Geometry and type are read with the
+ *    rail shown in both. P29 checks rail and index strings against the claims and the 2D index
+ *    numbers against the 3D Plan. P33 counts the elements competing for attention with the open
+ *    concept on the first screen (DESIGN.md 12.4, the cognitive-load rule).
  *
  * Machine limits: one browser, one worker, run against the dev server already up on :3300
  * (PORT=3300). The run takes a long time by design (48 combinations), so it is not part of the
@@ -71,9 +83,20 @@ const VIEWPORTS = QUICK
   : [
       { width: 390, height: 844 },
       { width: 768, height: 1024 },
+      { width: 1280, height: 720 },
       { width: 1280, height: 800 },
       { width: 1440, height: 900 },
     ];
+/** P28 and P30 only (the layout checks), light theme: the sheet docks from 1024 px; the widest common desktop. */
+const LAYOUT_VIEWPORTS = QUICK
+  ? []
+  : [
+      { width: 1024, height: 768 },
+      { width: 1920, height: 1080 },
+    ];
+/** P33 limits (a project rule recorded in visual-system.md, 2D-C): elements on the first screen. */
+const ATTENTION_CAP = 30;
+const ATTENTION_GAP = 6;
 const THEMES = QUICK
   ? [{ id: "light", dark: false, hc: false }]
   : [
@@ -90,7 +113,7 @@ type M = Record<string, unknown> & {
   linesPerClaim: number[];
   visibleLines: number;
   surface: { bg: string; sheetBg: string; backdrop: string; ground: string };
-  texts: { claims: string[]; notes: string[]; captions: string[]; credits: string[]; alts: string[] };
+  texts: { claims: string[]; notes: string[]; references: string[]; captions: string[]; credits: string[]; alts: string[] };
   headingOffset: number | null;
   chrome: { studyBar: number | null; notice: number };
   targets: { where: string; name: string; w: number; h: number; ok: boolean }[];
@@ -126,12 +149,12 @@ async function measure(page: Page, side: "2d" | "3d"): Promise<M> {
   return m;
 }
 
-/** Tab presses from the focused sheet h1 until a CitationNote has focus (P13), or -1. */
+/** Tab presses from the focused sheet h1 until a citation marker [n] has focus (P13), or -1. */
 async function tabStopsToNote(page: Page, side: "2d" | "3d"): Promise<number> {
   await focusTitle(page, side);
   for (let n = 1; n <= 40; n++) {
     await page.keyboard.press("Tab");
-    const onNote = await page.evaluate(() => !!document.activeElement?.closest("[data-slot=citation-note]") && document.activeElement?.tagName === "BUTTON");
+    const onNote = await page.evaluate(() => document.activeElement?.getAttribute("data-slot") === "citation-marker");
     if (onNote) return n;
   }
   return -1;
@@ -165,15 +188,27 @@ const sheetLocator = (page: Page, side: "2d" | "3d") => (side === "3d" ? page.lo
 async function interactions(page: Page, side: "2d" | "3d") {
   const sheet = sheetLocator(page, side).first();
   const out = { record: "n/a", lightbox: "n/a", layer: "n/a", back: "n/a", noteEscape: "n/a", lightboxEdge: null as number | null, lightboxClose: null as { w: number; h: number } | null };
-  // One activation to the expanded citation record; Escape closes it and returns focus to the note.
-  const note = sheet.locator("ol[aria-label='Statements'] [data-slot=citation-note] > button").first();
+  // One activation to the expanded citation record (in place, under the claim); Escape inside the
+  // record closes it and returns focus to the marker; a second activation also closes it.
+  const note = sheet.locator("ol[aria-label='Statements'] [data-slot=citation-marker]").first();
   if ((await note.count()) > 0) {
     await note.click();
-    const rec = sheet.locator("ol[aria-label='Statements'] [data-slot=citation-record]:visible").first();
-    out.record = (await rec.isVisible()) ? "1" : "not reached in 1";
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Escape");
-    out.noteEscape = (await note.evaluate((b) => document.activeElement === b && b.getAttribute("aria-expanded") === "false")) ? "1" : "focus not returned";
+    const recId = (await note.getAttribute("aria-controls")) ?? "";
+    const rec = page.locator(`[id="${recId}"]`);
+    const inPlace = await note.evaluate((b) => {
+      const r = document.getElementById(b.getAttribute("aria-controls") ?? "");
+      return !!r && r.closest("li") === b.closest("li");
+    });
+    out.record = (await rec.isVisible()) && inPlace ? "1" : "not reached in 1";
+    const link = rec.locator("a").first();
+    if ((await link.count()) > 0) {
+      await link.focus();
+      await page.keyboard.press("Escape");
+      out.noteEscape = (await note.evaluate((b) => document.activeElement === b && b.getAttribute("aria-expanded") === "false")) ? "1" : "focus not returned";
+    } else {
+      await note.click();
+      out.noteEscape = (await note.getAttribute("aria-expanded")) === "false" ? "n/a (no link in the record; closed by a second activation)" : "not closed";
+    }
   }
   // One activation to the lightbox; Escape returns focus to Enlarge.
   const enlarge = sheet.getByRole("button", { name: /^Enlarge figure 1$/ }).first();
@@ -246,6 +281,110 @@ async function sharedChrome(page: Page) {
     result.hintClose = (await panel.isVisible()) ? "not closed" : "1";
   }
   return result;
+}
+
+type RailInfo = {
+  shown: boolean;
+  button: string;
+  geometry: { x: number; y: number; w: number; h: number; position: string; overflowY: string; bg: string; edge: string; row: string | null; rowMin: number | null; rowType: string | null; detailType: string | null; heading: string | null } | null;
+};
+const parity = <T,>(page: Page, method: string, ...args: unknown[]) =>
+  page.evaluate(([m, a]) => (window as unknown as { __parity: Record<string, (...x: unknown[]) => unknown> }).__parity[m as string]!(...(a as unknown[])), [method, args] as const) as Promise<T>;
+
+/**
+ * P28: the rail's geometry and type with the rail shown (opened from its StudyBar button when it
+ * is hidden, then hidden again so the page is left as it was).
+ */
+async function railShown(page: Page): Promise<RailInfo> {
+  const now = await parity<RailInfo>(page, "rail");
+  if (now.shown) return now;
+  const button = page.locator("[data-slot=study-bar] [data-slot=rail-button]").first();
+  if ((await button.count()) === 0 || !(await button.isVisible())) return now;
+  await button.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-slot=place-rail]:visible").first()).toBeVisible({ timeout: 10_000 });
+  const shown = await parity<RailInfo>(page, "rail");
+  await page.locator("[data-slot=place-rail]:visible [data-slot=rail-hide]").first().click();
+  return shown;
+}
+
+const railSig = (g: RailInfo["geometry"]) => (g ? `x ${g.x}, w ${g.w}, ${g.position}, ${g.overflowY}, ${g.bg}, edge ${g.edge}, row ${g.row}, type ${hashOf(`${g.rowType}|${g.detailType}|${g.heading}`)}` : "not shown");
+
+/** P29: a rail or index string that repeats claim text (eight consecutive words of a claim, or a whole claim). */
+function claimLeaks(strings: readonly string[], claims: readonly string[]): string[] {
+  const words = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter(Boolean);
+  const shingles = new Set<string>();
+  for (const c of claims) {
+    const w = words(c);
+    for (let i = 0; i + 8 <= w.length; i++) shingles.add(w.slice(i, i + 8).join(" "));
+  }
+  return strings.filter((s) => {
+    if (claims.some((c) => c.trim() === s.trim())) return true;
+    const w = words(s);
+    for (let i = 0; i + 8 <= w.length; i++) if (shingles.has(w.slice(i, i + 8).join(" "))) return true;
+    return false;
+  });
+}
+
+type SheetGeometry = { x: number; w: number; top: number; sheetX: number; sheetW: number; scroller: string; overflowY: string; scrollsInside: boolean } | null;
+
+/** P30: the sheet column's left edge, width and top within 1 px; the same scroll container behaviour. */
+function geometryCheck(g2: SheetGeometry, g3: SheetGeometry): InterfaceParityCheck {
+  const sig = (g: SheetGeometry) => (g ? `x ${g.x}, w ${g.w}, top ${g.top}, sheet ${g.sheetX}+${g.sheetW}, ${g.scroller} ${g.overflowY}${g.scrollsInside ? ", scrolls inside" : ""}` : "absent");
+  if (!g2 || !g3) return check("P30", sig(g2), sig(g3), "absent", "within 1 px; same scroll container", false);
+  const d = Math.max(Math.abs(g2.x - g3.x), Math.abs(g2.w - g3.w), Math.abs(g2.top - g3.top), Math.abs(g2.sheetX - g3.sheetX), Math.abs(g2.sheetW - g3.sheetW));
+  const same = g2.scroller === g3.scroller && g2.overflowY === g3.overflowY && g2.scrollsInside === g3.scrollsInside;
+  return check("P30", sig(g2), sig(g3), Math.round(d * 10) / 10, "within 1 px; same scroll container", d <= 1 && same);
+}
+
+/** P29 (see railContentCheck). */
+async function railContentCheck(page2d: Page, page3d: Page, claims: readonly string[]): Promise<InterfaceParityCheck> {
+  const rail2 = (await parity<string[] | null>(page2d, "railStrings")) ?? [];
+  const rail3 = (await parity<string[] | null>(page3d, "railStrings")) ?? [];
+  const index = await parity<{ strings: string[]; sections: { tradition: string; number: string; title: string }[] } | null>(page2d, "indexStrings");
+  const leaks2 = claimLeaks([...rail2, ...(index?.strings ?? [])], claims);
+  const leaks3 = claimLeaks(rail3, claims);
+  const rooms = await planRooms(page3d);
+  const notMeasured: string[] = ["in-scene lettering (plaques, door signs): read by the 3D track's museum probe and checked in immersive-rendering.spec.ts, not here"];
+  let numbers = "not compared";
+  let numbersOk = true;
+  if (!index || index.sections.length === 0) notMeasured.push("2D index section numbers: the index is not on screen at this viewport");
+  else if (!rooms) notMeasured.push("3D Plan room numbers: the Plan dialog did not open");
+  else {
+    const key = (x: string) => x.toLowerCase().replace(/\s+/g, " ").trim();
+    const matched = index.sections.filter((sec) => rooms.some((r) => key(r.name) === key(sec.title)));
+    const wrong = matched.filter((sec) => !rooms.some((r) => key(r.name) === key(sec.title) && r.number === sec.number));
+    numbers = `${matched.length} of ${index.sections.length} sections matched to rooms by name, ${wrong.length} with another number`;
+    if (matched.length === 0) notMeasured.push("index-to-Plan numbers: no 2D section title matched a 3D room name");
+    numbersOk = wrong.length === 0;
+  }
+  const c = check(
+    "P29",
+    short(`${rail2.length} rail and ${index?.strings.length ?? 0} index strings, ${leaks2.length} repeating claim text${leaks2.length ? `: ${leaks2.slice(0, 2).join("; ")}` : ""}`, 200),
+    short(`${rail3.length} rail strings, ${leaks3.length} repeating claim text${leaks3.length ? `: ${leaks3.slice(0, 2).join("; ")}` : ""}; ${numbers}`, 200),
+    leaks2.length + leaks3.length === 0 && numbersOk ? "none" : "claim text in navigation or numbers differ",
+    "no claim text; index numbers = Plan numbers",
+    rail2.length > 0 && rail3.length > 0 && leaks2.length === 0 && leaks3.length === 0 && numbersOk,
+  );
+  c.notMeasured = notMeasured;
+  return c;
+}
+
+/** P29, 3D: the Plan dialog's numbered rooms, opened from the StudyBar and closed again. */
+async function planRooms(page: Page): Promise<{ number: string; name: string }[] | null> {
+  const plan = page.locator("[data-slot=study-bar]").getByRole("button", { name: /^Plan$/ }).first();
+  if ((await plan.count()) === 0 || !(await plan.isVisible())) return null;
+  await plan.click();
+  const dialog = page.locator("[data-slot=museum-plan-dialog]");
+  try {
+    await expect(dialog).toBeVisible({ timeout: 10_000 });
+  } catch {
+    return null;
+  }
+  const rooms = await parity<{ number: string; name: string }[] | null>(page, "planRooms");
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden({ timeout: 10_000 });
+  return rooms;
 }
 
 /**
@@ -343,6 +482,8 @@ async function startDemo(context: BrowserContext): Promise<Page> {
 
 interface MuseumHandle {
   page: Page;
+  /** The rail on the museum's first load, before anything is opened (P28, the 3D default at a docked width). */
+  initialRail: RailInfo;
   open(exhibitId: string): Promise<{ shift: { all: number; noInput: number }; focusOnTitle: boolean }>;
   close(): Promise<void>;
 }
@@ -351,15 +492,18 @@ async function openMuseum(context: BrowserContext): Promise<MuseumHandle> {
   const page = await context.newPage();
   await page.goto(MUSEUM);
   await page.waitForFunction(() => (window as unknown as { __museumInfo?: () => { ready: boolean } }).__museumInfo?.().ready === true, null, { timeout: 600_000 });
+  const initialRail = await parity<RailInfo>(page, "rail");
   const handle: MuseumHandle = {
     page,
+    initialRail,
     async open(exhibitId: string) {
-      const toggle = page.locator("[data-slot=museum-room-contents-toggle]");
-      if ((await toggle.getAttribute("aria-expanded")) !== "true") {
-        await toggle.focus();
+      // The shared PlaceRail "In This Room" (DR-021) is collapsed by default in 3D: its StudyBar button shows it.
+      const railButton = page.locator("[data-slot=study-bar] [data-slot=rail-button]");
+      if ((await railButton.getAttribute("aria-expanded")) !== "true") {
+        await railButton.focus();
         await page.keyboard.press("Enter");
       }
-      const row = page.locator(`#museum-room-contents li button[data-exhibit-id="${exhibitId}"]`);
+      const row = page.locator(`#museum-rail li button[data-exhibit-id="${exhibitId}"]`);
       await row.focus();
       await page.evaluate(() => (window as unknown as { __parity: { startShift(): void } }).__parity.startShift());
       await page.keyboard.press("Enter");
@@ -390,10 +534,10 @@ async function chooseConcept(museum: MuseumHandle, page2d: Page, slug: string): 
     const v = p.viewpoints().find((x) => x.roomId === `room:${s}:process_sequence`) ?? p.viewpoints().find((x) => x.roomId.startsWith(`room:${s}:`))!;
     await p.stability(v, 1);
   }, slug);
-  const toggle = page.locator("[data-slot=museum-room-contents-toggle]");
-  await expect(toggle).toBeVisible({ timeout: 120_000 });
-  if ((await toggle.getAttribute("aria-expanded")) !== "true") await toggle.click();
-  const ids = await page.locator("#museum-room-contents li button[data-exhibit-id]").evaluateAll((els) => els.map((e) => e.getAttribute("data-exhibit-id")!));
+  const railButton = page.locator("[data-slot=study-bar] [data-slot=rail-button]");
+  await expect(railButton).toBeAttached({ timeout: 120_000 });
+  if ((await railButton.getAttribute("aria-expanded")) !== "true") await railButton.click();
+  const ids = await page.locator("#museum-rail li button[data-exhibit-id]").evaluateAll((els) => els.map((e) => e.getAttribute("data-exhibit-id")!));
   const candidates = ids.filter((id) => id.includes(`${slug}.`));
   for (const id of candidates) {
     const key = id.replace(/^[a-z]+:/, "");
@@ -489,10 +633,10 @@ async function figureBalanceCheck(): Promise<{ value: string; passed: boolean } 
   return { value: short(`${fig.passed ? "balanced" : `unbalanced (${fig.issues.length} issues)`}${matrix ? `: ${matrix}` : ""}`, 200), passed: fig.passed };
 }
 
-test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser }) => {
+test("interface parity P1-P33: 2D concept page vs 3D panel", async ({ browser }) => {
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   await context.addInitScript({ content: PARITY_HELPERS });
-  const runs: (InterfaceParityRun & { effectiveTheme: string; conceptKey: string })[] = [];
+  const runs: (InterfaceParityRun & { effectiveTheme: string; conceptKey: string; layoutOnly?: boolean })[] = [];
   const failures: string[] = [];
 
   // Code-level checks (P19, P20 static part) and the bundle-level check (P21), measured once.
@@ -508,7 +652,7 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
     // P26, 3D: the room plaques, measured once at 1280 x 800 before any panel opens.
     const plaques = await measurePlaques(museum.page);
     // Index and comparisons pages, per viewport and theme, for the 2D salience part of P26.
-    const salience2d = new Map<string, { index: string[]; comparisons: string[] }>();
+    const salience2d = new Map<string, { index: string[]; rows: string[]; comparisons: string[] }>();
     const titles = new Map<string, { t2d: string[]; t3d: string[]; m2d: string[]; m3d: string[] }>();
 
     for (const slug of STUDY_TRADITIONS) {
@@ -533,8 +677,22 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
 
           const m2 = await measure(page2d, "2d");
           const m3 = await measure(museum.page, "3d");
-          const rec2 = await page2d.evaluate(() => (window as unknown as { __parity: { records(s: string): Promise<{ texts: string[]; quoteStyle: string | null }> } }).__parity.records("2d"));
-          const rec3 = await museum.page.evaluate(() => (window as unknown as { __parity: { records(s: string): Promise<{ texts: string[]; quoteStyle: string | null }> } }).__parity.records("3d"));
+          // First-screen and layout reads before any interaction moves focus or scroll (P28-P33).
+          type Attention = { sheet: number; chrome: number; navigation: number; total: number };
+          const att2 = await parity<Attention>(page2d, "attention", "2d");
+          const att3 = await parity<Attention>(museum.page, "attention", "3d");
+          type Geometry = { x: number; w: number; top: number; sheetX: number; sheetW: number; scroller: string; overflowY: string; scrollsInside: boolean } | null;
+          const geo2 = await parity<Geometry>(page2d, "sheetGeometry", "2d");
+          const geo3 = await parity<Geometry>(museum.page, "sheetGeometry", "3d");
+          type Header = { html: string; closeName: string | null; closeBox: string | null; closeStyle: string | null } | null;
+          const head2 = await parity<Header>(page2d, "header", "2d");
+          const head3 = await parity<Header>(museum.page, "header", "3d");
+          // P28 defaults: 2D on this fresh load; 3D from the first load (docked widths) or now (drawer widths).
+          const railNow2 = await parity<RailInfo>(page2d, "rail");
+          const railNow3 = await parity<RailInfo>(museum.page, "rail");
+          type Rec = { texts: string[]; quoteStyle: string | null; sourceStyle: string | null; inPlace: boolean };
+          const rec2 = await parity<Rec>(page2d, "records", "2d");
+          const rec3 = await parity<Rec>(museum.page, "records", "3d");
           const motion2 = await page2d.evaluate(() => (window as unknown as { __parity: { motion(): { bad: number; sample: string[] } } }).__parity.motion());
           const motion3 = await museum.page.evaluate(() => (window as unknown as { __parity: { motion(): { bad: number; sample: string[] } } }).__parity.motion());
           const tabs2 = await tabStopsToNote(page2d, "2d");
@@ -547,11 +705,17 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
           const chrome3 = await sharedChrome(museum.page);
           const prog2 = await page2d.evaluate(() => (window as unknown as { __parity: { progressAtEnd(s: string): Promise<string | null> } }).__parity.progressAtEnd("2d"));
           const prog3 = await museum.page.evaluate(() => (window as unknown as { __parity: { progressAtEnd(s: string): Promise<string | null> } }).__parity.progressAtEnd("3d"));
+          // P31 focus rings and P28 rail geometry (these move focus and may open the rail, so they come last).
+          type Rings = Record<string, string[] | null>;
+          const rings2 = await parity<Rings>(page2d, "focusRings", "2d");
+          const rings3 = await parity<Rings>(museum.page, "focusRings", "3d");
+          const railG2 = await railShown(page2d);
+          const railG3 = await railShown(museum.page);
 
           const checks: InterfaceParityCheck[] = [];
-          // P1: computed styles (claim, title, caption, credit, quote, source line, citation button).
-          const styles2: Record<string, string | null> = { ...m2.styles, quote: rec2.quoteStyle };
-          const styles3: Record<string, string | null> = { ...m3.styles, quote: rec3.quoteStyle };
+          // P1: computed styles (claim, title, caption, credit, quote, the record's source line, the citation marker, the reference list).
+          const styles2: Record<string, string | null> = { ...m2.styles, quote: rec2.quoteStyle, source: rec2.sourceStyle };
+          const styles3: Record<string, string | null> = { ...m3.styles, quote: rec3.quoteStyle, source: rec3.sourceStyle };
           const diffs1 = Object.keys(styles2).filter((k) => styles2[k] !== styles3[k]);
           checks.push(check("P1", hashOf(JSON.stringify(styles2)), hashOf(JSON.stringify(styles3)), diffs1.length ? `differs: ${diffs1.join(", ")}` : "none", 0, diffs1.length === 0 && styles2.claim !== null && styles2.title !== null));
           // P2: claim width.
@@ -592,7 +756,9 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
           const i2 = `claim ${firstClaim2} | record ${act2.record} | lightbox ${act2.lightbox} | layer ${act2.layer} | back ${act2.back}`;
           const i3 = `claim ${firstClaim3} | record ${act3.record} | lightbox ${act3.lightbox} | layer ${act3.layer} | back ${act3.back}`;
           const okCounts = (a: typeof act2, first: string) => first === "0" && a.record === "1" && ["1", "n/a"].includes(a.lightbox) && ["1", "n/a"].includes(a.layer) && ["1", "n/a"].includes(a.back);
-          checks.push(check("P11", i2, i3, i2 === i3 ? "none" : "differs", "0 / 1 / 1 / 1 / 1", i2 === i3 && okCounts(act2, firstClaim2) && okCounts(act3, firstClaim3)));
+          const p11 = check("P11", i2, i3, i2 === i3 ? "none" : "differs", "0 / 1 / 1 / 1 / 1; every record in place", i2 === i3 && okCounts(act2, firstClaim2) && okCounts(act3, firstClaim3) && rec2.inPlace && rec3.inPlace);
+          if (!rec2.inPlace || !rec3.inPlace) p11.delta = `${p11.delta}; records in place: 2D ${rec2.inPlace}, 3D ${rec3.inPlace}`;
+          checks.push(p11);
           // P12: no transitions or animations on the study route.
           checks.push(check("P12", motion2.bad === 0 ? "0 elements" : short(`${motion2.bad}: ${motion2.sample.join(", ")}`), motion3.bad === 0 ? "0 elements" : short(`${motion3.bad}: ${motion3.sample.join(", ")}`), motion3.bad - motion2.bad, "0s", motion2.bad === 0 && motion3.bad === 0));
           // P13: tab stops to the first citation note.
@@ -614,8 +780,8 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
           const kinds3 = m3.figures.map((f) => f.kind).join(",") || "none";
           const decodeFree = (k: string) => k === "none" || k.split(",").every((x) => x === "diagram");
           checks.push(check("P16", decodeFree(kinds2) ? `0 ms (${kinds2}: inline SVG, no decode)` : `photo: measured separately`, decodeFree(kinds3) ? `0 ms (${kinds3}: inline SVG, no decode)` : `photo: measured separately`, 0, "< 150 ms", decodeFree(kinds2) && decodeFree(kinds3) && kinds2 === kinds3));
-          // P17: the marker (cross-tradition identity is finalised after all traditions).
-          checks.push(check("P17", m2.marker ?? "absent", m3.marker ?? "absent", m2.marker === m3.marker ? "none" : "differs", "identical", !!m2.marker && m2.marker === m3.marker));
+          // P17 (DR-022): no tradition marker in either condition (all traditions finalised below).
+          checks.push(check("P17", m2.marker ?? "absent", m3.marker ?? "absent", !m2.marker && !m3.marker ? "none" : "marker present", "absent in both", !m2.marker && !m3.marker));
           // P18: Related Concepts position.
           const r2 = m2.related ? `after field ${m2.related.afterField}, before pager ${m2.related.beforePager}, offset ${m2.related.offset}` : "absent";
           const r3 = m3.related ? `after field ${m3.related.afterField}, before pager ${m3.related.beforePager}, offset ${m3.related.offset}` : "absent";
@@ -643,7 +809,8 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
           const onboarding3 = await museum.page.locator("[data-slot=onboarding]:visible").count();
           const s23a = `hint ${chrome2.hintPanel} | timer ${chrome2.timer}`;
           const s23b = `hint ${chrome3.hintPanel} | timer ${chrome3.timer}`;
-          const p23 = same("P23", s23a, s23b, chrome2.hintPanel !== "absent" && chrome2.timer !== "absent");
+          // Both sides must have rendered the parts compared: an absent part on either side is a failure, never a pass.
+          const p23 = same("P23", s23a, s23b, chrome2.hintPanel !== "absent" && chrome3.hintPanel !== "absent" && chrome2.timer !== "absent" && chrome3.timer !== "absent");
           p23.notMeasured = [
             ...(onboarding2 === 0 && onboarding3 === 0 ? ["onboarding screens: shown in neither condition (onboarding is off in both, a lead decision), so there is no onboarding DOM to compare"] : []),
             "StateMessage unavailable, error and loading: these states cannot be produced on a working demo session (the unavailable message is one shared component, tests/unit/design/learning-unavailable.test.tsx)",
@@ -657,7 +824,7 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
           // P24: interaction counts for the shared chrome (hint open and close, Finish by keyboard).
           const s24a = `hint open ${chrome2.hintOpen}, close ${chrome2.hintClose} | Finish ${back2} back-tabs`;
           const s24b = `hint open ${chrome3.hintOpen}, close ${chrome3.hintClose} | Finish ${back3} back-tabs`;
-          const p24 = same("P24", s24a, s24b, back2 > 0 && chrome2.hintOpen === "1" && chrome2.hintClose === "1");
+          const p24 = same("P24", s24a, s24b, back2 > 0 && back3 > 0 && chrome2.hintOpen === "1" && chrome3.hintOpen === "1" && chrome2.hintClose === "1" && chrome3.hintClose === "1");
           if (chrome2.displaySettings === 0 && chrome3.displaySettings === 0) p24.notMeasured = ["open Display Settings: no Display Settings control in either learning shell (study mode offers it before learning, DESIGN.md 4.5)"];
           else if (chrome2.displaySettings !== chrome3.displaySettings) {
             p24.passed = false;
@@ -669,6 +836,49 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
           checks.push(check("P25", p25(m2, prog2), p25(m3, prog3), p25(m2, prog2) === p25(m3, prog3) ? "none" : "differs", "present; equal; 100 at end", p25(m2, prog2) === p25(m3, prog3) && prog2 === "100" && prog3 === "100"));
           // P27: focus on the sheet h1 when a concept opens.
           checks.push(check("P27", nav2d.focusOnTitle === null ? "not measured" : nav2d.focusOnTitle ? "sheet h1" : "elsewhere", open3d.focusOnTitle ? "sheet h1" : "elsewhere", "none", "sheet h1", nav2d.focusOnTitle === true && open3d.focusOnTitle));
+          // P28: the PlaceRail (DR-021). Geometry and type with the rail shown in both; default open
+          // state per viewport against the lead's defaults (2D open from 1280 px, 3D collapsed;
+          // both drawers closed below 1280 px).
+          const wide = vp.width >= 1280;
+          const def2 = railNow2.shown;
+          const def3 = wide ? museum.initialRail.shown : railNow3.shown;
+          const railOk =
+            railSig(railG2.geometry) === railSig(railG3.geometry) &&
+            !!railG2.geometry &&
+            (railG2.geometry.rowMin ?? 0) >= 44 &&
+            (railG3.geometry?.rowMin ?? 0) >= 44 &&
+            def2 === wide &&
+            def3 === false;
+          checks.push(
+            check(
+              "P28",
+              short(`${railSig(railG2.geometry)}; default ${def2 ? "open" : "closed"}`, 200),
+              short(`${railSig(railG3.geometry)}; default ${def3 ? "open" : "closed"}`, 200),
+              railSig(railG2.geometry) === railSig(railG3.geometry) ? "geometry and type equal" : "geometry or type differs",
+              `equal; default 2D ${wide ? "open" : "closed"}, 3D closed; rows >= 44 px`,
+              railOk,
+            ),
+          );
+          // P30: sheet geometry (from 1024 px, where the sheet docks right in both conditions).
+          if (vp.width >= 1024) checks.push(geometryCheck(geo2, geo3));
+          // P31: focus rings on the StudyBar, rail and sheet focusables.
+          const ringSig = (r: Rings) => ["studybar", "rail", "sheet"].map((k) => `${k}: ${r[k] ? r[k]!.join(" ; ") : "absent"}`).join(" | ");
+          const ringsOk = ringSig(rings2) === ringSig(rings3) && (rings2.sheet?.length ?? 0) > 0 && (rings2.studybar?.length ?? 0) > 0;
+          checks.push(check("P31", short(ringSig(rings2), 240), short(ringSig(rings3), 240), ringSig(rings2) === ringSig(rings3) ? "none" : "differs", "identical in 2D and 3D", ringsOk));
+          // P32: sheet header DOM and the Close control.
+          const h2s = head2 ? `${hashOf(head2.html)} | ${head2.closeName} ${head2.closeBox} ${hashOf(head2.closeStyle ?? "")}` : "absent";
+          const h3s = head3 ? `${hashOf(head3.html)} | ${head3.closeName} ${head3.closeBox} ${hashOf(head3.closeStyle ?? "")}` : "absent";
+          checks.push(check("P32", h2s, h3s, h2s === h3s ? "none" : "differs", 'identical; accessible name "Close"', h2s === h3s && head2?.closeName === "Close"));
+          // P33: elements competing for attention with the open concept on the first screen.
+          const attSig = (a: Attention) => `${a.total} (sheet ${a.sheet}, chrome ${a.chrome}, navigation ${a.navigation})`;
+          const attOk = att2.sheet === att3.sheet && Math.max(att2.total, att3.total) <= ATTENTION_CAP && Math.abs(att2.total - att3.total) <= ATTENTION_GAP;
+          checks.push(check("P33", attSig(att2), attSig(att3), att3.total - att2.total, `sheet equal; each total <= ${ATTENTION_CAP}; gap <= ${ATTENTION_GAP}`, attOk));
+          // P29: rail and index strings are titles, types, steps and destinations, never claim text;
+          // 2D index numbers equal the 3D Plan's room numbers (measured once per tradition, 1280 x 800 light).
+          if (vp.width === 1280 && vp.height === 800 && theme.id === "light") {
+            checks.push(await railContentCheck(page2d, museum.page, [...m2.texts.claims, ...m3.texts.claims]));
+          }
+
           // P20: one string table (static) and the rendered shared strings.
           const headline = vp.width === 1280 && theme.id === "light";
           checks.push(
@@ -699,6 +909,40 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
 
           runs.push({ viewport: vp, theme: theme.id, effectiveTheme: `2D ${eff2d.dark ? "dark" : "light"}${eff2d.hc ? "+hc" : ""}, 3D ${eff3d.dark ? "dark" : "light"}${eff3d.hc ? "+hc" : ""}`, traditionKey: slug, conceptKey: chosen.key, checks });
         }
+      }
+
+      // P28 and P30 at the layout viewports (1024 x 768, 1920 x 1080), light only.
+      for (const vp of LAYOUT_VIEWPORTS) {
+        const light = THEMES[0]!;
+        await page2d.setViewportSize(vp);
+        await museum.page.setViewportSize(vp);
+        await open2d(page2d, slug, chosen.key, light);
+        await museum.page.evaluate((t) => (window as unknown as { __parity: { applyTheme(t: unknown): Promise<unknown> } }).__parity.applyTheme(t), light);
+        await museum.close();
+        await museum.open(chosen.exhibitId);
+        await museum.page.waitForTimeout(300);
+        const geo2 = await parity<SheetGeometry>(page2d, "sheetGeometry", "2d");
+        const geo3 = await parity<SheetGeometry>(museum.page, "sheetGeometry", "3d");
+        const railNow2 = await parity<RailInfo>(page2d, "rail");
+        const railNow3 = await parity<RailInfo>(museum.page, "rail");
+        const railG2 = await railShown(page2d);
+        const railG3 = await railShown(museum.page);
+        const wide = vp.width >= 1280;
+        const def2 = railNow2.shown;
+        const def3 = wide ? museum.initialRail.shown : railNow3.shown;
+        const ok = railSig(railG2.geometry) === railSig(railG3.geometry) && !!railG2.geometry && (railG2.geometry.rowMin ?? 0) >= 44 && (railG3.geometry?.rowMin ?? 0) >= 44 && def2 === wide && def3 === false;
+        const checks: InterfaceParityCheck[] = [
+          check(
+            "P28",
+            short(`${railSig(railG2.geometry)}; default ${def2 ? "open" : "closed"}`, 200),
+            short(`${railSig(railG3.geometry)}; default ${def3 ? "open" : "closed"}`, 200),
+            railSig(railG2.geometry) === railSig(railG3.geometry) ? "geometry and type equal" : "geometry or type differs",
+            `equal; default 2D ${wide ? "open" : "closed"}, 3D closed; rows >= 44 px`,
+            ok,
+          ),
+          geometryCheck(geo2, geo3),
+        ];
+        runs.push({ viewport: vp, theme: light.id, effectiveTheme: "light (layout checks only)", traditionKey: slug, conceptKey: chosen.key, checks, layoutOnly: true });
       }
     }
 
@@ -745,12 +989,18 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
     // P17 across traditions, P23's stall cue and P26: finalised per viewport and theme.
     for (const run of runs) {
       const key = `${typeof run.viewport === "string" ? run.viewport : `${run.viewport.width}x${run.viewport.height}`}/${run.theme}`;
+      if (run.layoutOnly) {
+        run.checks.sort((a, b) => Number(a.id.slice(1)) - Number(b.id.slice(1)));
+        for (const c of run.checks) if (!c.passed) failures.push(`${run.traditionKey} ${key} ${c.id}: 2D ${c.value2d} | 3D ${c.value3d} | ${c.delta}`);
+        continue;
+      }
       const tt = titles.get(key)!;
       const sal = salience2d.get(key)!;
       const allSame = (xs: string[]) => xs.length > 0 && xs.every((x) => x === xs[0]);
       const p17 = run.checks.find((c) => c.id === "P17")!;
-      p17.passed = p17.passed && allSame([...tt.m2d, ...tt.m3d]);
-      p17.delta = allSame([...tt.m2d, ...tt.m3d]) ? "none across 3 traditions" : "differs across traditions";
+      const noMarker = [...tt.m2d, ...tt.m3d].every((m) => m === "");
+      p17.passed = p17.passed && noMarker;
+      p17.delta = noMarker ? "none across 3 traditions" : "a marker is present";
       const p23 = run.checks.find((c) => c.id === "P23")!;
       const st = typeof run.viewport !== "string" && run.viewport.width === 1280 && run.viewport.height === 800 ? stall.get(run.effectiveTheme.includes("+hc")) : undefined;
       if (st) {
@@ -764,15 +1014,19 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
       } else {
         p23.notMeasured = [...(p23.notMeasured ?? []), "stall cue: measured in the 1280 x 800 runs only (each measurement needs freshly loaded pages)"];
       }
-      const ok2d = allSame(sal.index) && allSame(sal.comparisons) && allSame(tt.t2d);
-      const ok3d = allSame(tt.t3d) && plaquesOk;
+      // 2D: all three study traditions present on the catalogue and in the index, each identical.
+      const three = ALL_STUDY_TRADITIONS.length;
+      const ok2d = sal.index.length === three && allSame(sal.index) && (sal.rows.length === 0 || (sal.rows.length === three && allSame(sal.rows))) && allSame(sal.comparisons) && allSame(tt.t2d);
+      // 3D: panel titles in every run; the plaques only in the 1280 x 800 runs, where they were measured.
+      const plaqueRun = typeof run.viewport !== "string" && run.viewport.width === 1280 && run.viewport.height === 800;
+      const ok3d = allSame(tt.t3d) && (!plaqueRun || plaquesOk);
       run.checks.push(
         check(
           "P26",
-          `index cards ${allSame(sal.index) ? "equal" : "differ"} (${sal.index.length}); comparison headings ${allSame(sal.comparisons) ? "equal" : "differ"} (${sal.comparisons.length}); titles ${allSame(tt.t2d) ? "equal" : "differ"}`,
-          short(`panel titles ${allSame(tt.t3d) ? "equal" : "differ"} (${tt.t3d.length}); ${plaqueText}`, 300),
+          `catalogue cards ${allSame(sal.index) ? "equal" : "differ"} (${sal.index.length} of ${three}); index rows ${sal.rows.length === 0 ? "not on screen" : `${allSame(sal.rows) ? "equal" : "differ"} (${sal.rows.length} of ${three})`}; comparison headings ${allSame(sal.comparisons) ? "equal" : "differ"} (${sal.comparisons.length}); titles ${allSame(tt.t2d) ? "equal" : "differ"}`,
+          short(`panel titles ${allSame(tt.t3d) ? "equal" : "differ"} (${tt.t3d.length}); ${plaqueRun ? plaqueText : "plaques: measured in the 1280 x 800 runs"}`, 300),
           ok2d && ok3d ? "none" : "differs",
-          "identical across traditions; plaques one size, each >= 4.5:1 at 2.5 m",
+          "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
           ok2d && ok3d,
         ),
       );
@@ -794,13 +1048,16 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
             generatedAt: report.generatedAt,
             environment: `headless Chromium, WebGL renderer ${renderer}; dev server, demo session; one browser, one worker`,
             notes: [
-              "Study mode is light only (DR-019): the 48 runs request four themes, but only two take effect (light, and light with high contrast); dark and high-contrast dark runs record the effective theme they measured.",
+              "Study mode is light only (DR-019): the 60 main runs (5 viewports x 4 themes x 3 traditions) request four themes, but only two take effect (light, and light with high contrast); dark and high-contrast dark runs record the effective theme they measured.",
               "P19, P20 (string table) and P21 are measured once and recorded in the 1280 x 800 light run of each tradition.",
               "P16: the study figures are graph-derived inline SVG diagrams (DR-018); there is no image decode step to time.",
               "P15: 2D is the load CLS without recent input; 3D is every layout shift during the keyboard-triggered panel open. DESIGN.md 12.4 states 0.00 (two decimals): a value below 0.005 rounds to 0.00 and passes; the unrounded value is recorded.",
               `P22-P24 ran with the guidance fixture (a demo study copying the demo protocol with the hybrid guidance on and a demo hint)${fixture ? "" : ", which could not be installed: no demo study on the review snapshot"}. The stall cue is measured in the 1280 x 800 runs, on freshly loaded pages with a 10 s stall time.`,
               "P23 and P24 list the parts that a working demo session cannot show (onboarding, which is off in both conditions; StateMessage unavailable, error and loading; Display Settings, which is not in either learning shell) as not measured, so these checks show as partial, never as passed.",
-              "P26 (3D) reads every room plaque of the three study traditions' wings, and the hall door into each, from the museum probe, once at 1280 x 800: plaque size, and contrast at the 2.5 m signage distance (paper 90th and ink 1st luminance percentile, as immersive-rendering.spec.ts).",
+              "P26 (3D) reads every room plaque of the three study traditions' wings, and the hall door into each, from the museum probe, once at 1280 x 800: plaque size, and contrast at the 2.5 m signage distance (paper 90th and ink 1st luminance percentile, as immersive-rendering.spec.ts). The plaque part is reported in the 1280 x 800 runs only; the other runs compare the 2D cards, index rows and comparison headings and the 3D panel titles.",
+              "P28 and P30 also run at 1024 x 768 and 1920 x 1080 in light (6 layout-only runs). P28's 3D default at docked widths is the museum's first-load state at 1280 x 800 (the panel opens rows through the rail afterwards); below 1280 px it is the state after a row choice, which closes the drawer.",
+              "P29 runs once per tradition at 1280 x 800 light: no rail or index string repeats eight consecutive words of a claim; 2D index section numbers equal the 3D Plan's room numbers where names match. In-scene lettering is checked by the 3D track's rendering spec.",
+              `P33 counts visible, uncovered controls, headings, images, canvases, badges and status messages on the first screen, each once; the claim text is not counted. Pass: the sheet's count equal in both, each total <= ${ATTENTION_CAP}, and the totals within ${ATTENTION_GAP} (project limits, visual-system.md 2D-C).`,
             ],
             runs,
           },
@@ -819,8 +1076,12 @@ test("interface parity P1-P27: 2D concept page vs 3D panel", async ({ browser })
   expect(failures).toEqual([]);
 });
 
-/** 2D salience inputs of P26: the study traditions' index cards and comparison headings. */
-async function salienceOf2d(page: Page): Promise<{ index: string[]; comparisons: string[] }> {
+/**
+ * 2D salience inputs of P26: the study traditions' catalogue cards, their rows in the spread's
+ * index (when it is on screen) and the comparison headings. Every value is a measured box and
+ * computed style; an absent tradition makes the check fail (the counts are compared with 3).
+ */
+async function salienceOf2d(page: Page): Promise<{ index: string[]; rows: string[]; comparisons: string[] }> {
   await page.goto("/learn/2d");
   await page.waitForLoadState("networkidle");
   const index = await page.locator("main [data-slot=tradition-card]:visible").evaluateAll((cards) =>
@@ -828,21 +1089,29 @@ async function salienceOf2d(page: Page): Promise<{ index: string[]; comparisons:
       const r = c.getBoundingClientRect();
       const title = c.querySelector(".text-h3") as HTMLElement | null;
       const cs = title ? getComputedStyle(title) : null;
-      const marker = c.querySelector("[data-slot=tradition-marker]") as HTMLElement | null;
-      const ms = marker ? getComputedStyle(marker) : null;
-      return [Math.round(r.width), Math.round(r.height), cs ? [cs.fontFamily, cs.fontSize, cs.fontWeight, cs.color].join(",") : "", ms ? [ms.width, ms.height, ms.borderTopWidth, ms.borderTopColor].join(",") : "", c.querySelectorAll("img, picture").length].join("|");
+      // No tradition marker on any key (P17, DR-022): a marker would add a field here.
+      const marker = c.querySelector("[data-slot=tradition-marker]");
+      return [Math.round(r.width), Math.round(r.height), cs ? [cs.fontFamily, cs.fontSize, cs.fontWeight, cs.color].join(",") : "", marker ? "marker" : "", c.querySelectorAll("img, picture").length].join("|");
+    }),
+  );
+  const rows = await page.locator("[data-slot=study-index]:visible li[data-tradition] > h3 > a").evaluateAll((links) =>
+    links.map((a) => {
+      const r = a.getBoundingClientRect();
+      const cs = getComputedStyle(a);
+      const marker = a.querySelector("[data-slot=tradition-marker]");
+      return [Math.round(r.width), Math.round(r.height), cs.fontFamily, cs.fontSize, cs.fontWeight, cs.color, marker ? "marker" : "", a.querySelectorAll("img, picture").length].join("|");
     }),
   );
   await page.goto("/learn/2d/comparisons");
   await page.waitForLoadState("networkidle");
   const comparisons = await page.locator("main h3:visible").evaluateAll((hs) =>
     hs
-      .filter((h) => h.querySelector("[data-slot=tradition-marker]"))
+      .filter((h) => h.querySelector("[data-slot=tradition-name]"))
       .map((h) => {
         const cs = getComputedStyle(h);
-        const ms = getComputedStyle(h.querySelector("[data-slot=tradition-marker]")!);
-        return [cs.fontFamily, cs.fontSize, cs.fontWeight, cs.color, ms.width, ms.height, ms.borderTopWidth, ms.borderTopColor].join(",");
+        const marker = h.querySelector("[data-slot=tradition-marker]");
+        return [cs.fontFamily, cs.fontSize, cs.fontWeight, cs.color, marker ? "marker" : ""].join(",");
       }),
   );
-  return { index, comparisons: [...new Set(comparisons)].length <= 1 ? comparisons : comparisons };
+  return { index, rows, comparisons };
 }

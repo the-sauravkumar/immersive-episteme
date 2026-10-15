@@ -11,7 +11,7 @@ import type { ReactNode } from "react";
 import { CircleAlert, CircleCheck, CircleDashed, Clock } from "lucide-react";
 
 import { FieldMessage } from "@/components/cms/action-form";
-import { BLOCK_LINK, CHECK_BOX, CHECK_ROW, LINK, Mono, ROW_LINK, Section as ConsoleSection, SELECT_CLASS, SUMMARY } from "@/components/cms/bits";
+import { BLOCK_LINK, CHECK_BOX, CHECK_ROW, LINK, Mono, ROW_LINK, Section as ConsoleSection, Disclosure } from "@/components/cms/bits";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +41,7 @@ import { ActionForm } from "@/components/cms/action-form";
 import { inCanonicalOrder } from "@/features/learning/labels";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export interface StudioPermissions {
   compile: boolean;
@@ -48,7 +49,6 @@ export interface StudioPermissions {
   publish: boolean;
 }
 
-const selectClass = SELECT_CLASS;
 
 /** The console section (bits.tsx); the studio's anchors (#inspector-heading ...) name the section. */
 function Section({ title, id, children, description }: { title: string; id: string; children: ReactNode; description?: ReactNode }) {
@@ -98,7 +98,7 @@ export function CompilePanel({ snapshots, selected, traditions }: { snapshots: C
         <form method="get" action="/cms/spatial" className="flex flex-wrap items-end gap-3">
           <div className="flex min-w-64 flex-col gap-2">
             <Label htmlFor="snapshot-pick">Snapshot</Label>
-            <select id="snapshot-pick" name="snapshot" defaultValue={selected ?? ""} className={selectClass}>
+            <NativeSelect id="snapshot-pick" name="snapshot" defaultValue={selected ?? ""}>
               <option value="" disabled>
                 Choose a snapshot
               </option>
@@ -107,7 +107,7 @@ export function CompilePanel({ snapshots, selected, traditions }: { snapshots: C
                   {s.versionLabel} — {s.publishable ? "published release" : `${s.kind} (not publishable)`}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
           <Button type="submit" variant="outline">
             Show traditions
@@ -123,7 +123,7 @@ export function CompilePanel({ snapshots, selected, traditions }: { snapshots: C
             </p>
           ) : null}
           <fieldset className="flex min-w-0 flex-col gap-2">
-            <legend className="text-dl-label mb-1">Traditions</legend>
+            <legend className="text-label mb-1">Traditions</legend>
             {traditions.length === 0 ? <p className="text-body text-ink-2">This snapshot has no traditions.</p> : null}
             <div className="flex flex-wrap gap-x-6">
               {inCanonicalOrder(traditions).map((t) => (
@@ -176,7 +176,7 @@ export function ManifestList({ manifests, selected }: { manifests: ManifestSumma
               {manifests.map((m) => (
                 <TableRow key={m.id} aria-current={m.id === selected ? "true" : undefined} data-state={m.id === selected ? "selected" : undefined}>
                   <TableCell>
-                    <Link href={`/cms/spatial?manifest=${m.id}`} className={cn(ROW_LINK, "font-mono")}>
+                    <Link href={`/cms/spatial?manifest=${m.id}`} className={cn(ROW_LINK, "text-id")}>
                       {shortHash(m.manifestHash)}
                     </Link>
                   </TableCell>
@@ -215,8 +215,8 @@ function Dl({ items }: { items: [string, ReactNode][] }) {
     <dl className="grid grid-cols-1 gap-x-6 gap-y-1 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]">
       {items.map(([k, v]) => (
         <div key={k} className="contents">
-          <dt className="text-dl-label pt-0.5">{k}</dt>
-          <dd className="text-dl-value min-w-0 break-words">{v}</dd>
+          <dt className="text-label pt-0.5">{k}</dt>
+          <dd className="text-value min-w-0 break-words">{v}</dd>
         </div>
       ))}
     </dl>
@@ -284,14 +284,13 @@ export function ValidationReport({ d }: { d: ManifestDetail }) {
                 <span className="text-ink-2">{c.label}</span>
               </div>
               {issues.length > 0 ? (
-                <details className="mt-2">
-                  <summary className={SUMMARY}>{issues.length} issue(s)</summary>
+                <Disclosure className="mt-2" summary={<>{issues.length} issue(s)</>}>
                   <ul className="mt-1 list-disc pl-5 text-ink-3">
                     {issues.slice(0, 50).map((i, n) => (
                       <li key={n}>{i}</li>
                     ))}
                   </ul>
-                </details>
+                </Disclosure>
               ) : null}
             </li>
           );
@@ -299,16 +298,16 @@ export function ValidationReport({ d }: { d: ManifestDetail }) {
       </ul>
       {(d.validation.overrides?.length || d.validation.skippedOverrides?.length) ? (
         <div className="text-body flex flex-col gap-1">
-          <h3 className="text-eyebrow">Overrides in This Manifest</h3>
+          <h3 className="text-label">Overrides in This Manifest</h3>
           <ul className="list-disc pl-5 text-ink-3">
             {(d.validation.overrides ?? []).map((o) => (
               <li key={o.id}>
-                Applied: <code className="text-mono">{o.elementId}</code> <code className="text-mono">{o.field}</code> {json(o.before)} → {json(o.after)} — {o.reason}
+                Applied: <code className="text-id">{o.elementId}</code> <code className="text-id">{o.field}</code> {json(o.before)} to {json(o.after)}: {o.reason}
               </li>
             ))}
             {(d.validation.skippedOverrides ?? []).map((o) => (
               <li key={o.id}>
-                Skipped: <code className="text-mono">{o.elementId}</code> <code className="text-mono">{o.field}</code> — {o.reason}
+                Skipped: <code className="text-id">{o.elementId}</code> <code className="text-id">{o.field}</code> — {o.reason}
               </li>
             ))}
           </ul>
@@ -355,25 +354,25 @@ export function TraceabilityInspector({
         <input type="hidden" name="manifest" value={d.summary.id} />
         <div className="flex flex-col gap-2">
           <Label htmlFor="f-kind">Kind</Label>
-          <select id="f-kind" name="kind" defaultValue={filter.kind ?? ""} className={selectClass}>
+          <NativeSelect id="f-kind" name="kind" defaultValue={filter.kind ?? ""}>
             <option value="">All kinds</option>
             {SPATIAL_ELEMENT_KINDS.map((k) => (
               <option key={k} value={k}>
                 {k}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="f-room">Room</Label>
-          <select id="f-room" name="room" defaultValue={filter.room ?? ""} className={selectClass}>
+          <NativeSelect id="f-room" name="room" defaultValue={filter.room ?? ""}>
             <option value="">All rooms</option>
             {rooms.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.label ?? r.id}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="f-q">Label or id contains</Label>
@@ -400,10 +399,10 @@ export function TraceabilityInspector({
                   aria-current={e.id === elementId ? "true" : undefined}
                   className={cn(
                     "text-body flex min-h-11 items-center gap-2 border-b border-rule px-3 py-1 text-indigo hover:bg-sunk",
-                    e.id === elementId && "bg-wash font-medium text-ink shadow-[inset_2px_0_0_var(--indigo)]",
+                    e.id === elementId && "bg-wash font-bold text-ink",
                   )}
                 >
-                  <span className="text-dl-label">{e.kind}</span> <span className="min-w-0 underline decoration-1 underline-offset-[3px]">{e.label ?? e.id}</span>
+                  <span className="text-label">{e.kind}</span> <span className="min-w-0 underline decoration-1 underline-offset-[0.2em]">{e.label ?? e.id}</span>
                 </Link>
               </li>
             ))}
@@ -424,7 +423,7 @@ export function TraceabilityInspector({
                     "Placed by rule",
                     ex.rule ? (
                       <span key="r">
-                        <code className="text-mono">{ex.rule.id}</code>
+                        <code className="text-id">{ex.rule.id}</code>
                         {ex.rule.strategy ? ` (strategy ${ex.rule.strategy})` : ""}: {ex.rule.description}
                       </span>
                     ) : (
@@ -436,29 +435,29 @@ export function TraceabilityInspector({
                 ]}
               />
               <div>
-                <h4 className="text-eyebrow mb-1">Concepts Presented</h4>
+                <h4 className="text-label mb-1">Concepts Presented</h4>
                 {ex.concepts.length === 0 ? (
                   <p className="text-ink-3">None (structural element).</p>
                 ) : (
                   <ul className="list-disc pl-5">
                     {ex.concepts.map((c) => (
                       <li key={c.id}>
-                        {c.title ?? c.id} {c.key ? <code className="text-mono text-ink-3">{c.key}</code> : null} {c.type ? `(${c.type})` : null}
+                        {c.title ?? c.id} {c.key ? <code className="text-id text-ink-3">{c.key}</code> : null} {c.type ? `(${c.type})` : null}
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
               <div>
-                <h4 className="text-eyebrow mb-1">Relationships</h4>
+                <h4 className="text-label mb-1">Relationships</h4>
                 {ex.relationships.length === 0 ? (
                   <p className="text-ink-3">None.</p>
                 ) : (
                   <ul className="flex flex-col gap-2">
                     {ex.relationships.map((r) => (
-                      <li key={r.id} className="border-l-2 border-rule-strong py-1 pl-3">
+                      <li key={r.id} className="border-t border-rule py-1 first:border-t-0">
                         <p>
-                          <span className="font-medium">{r.source ?? "?"}</span> <code className="text-mono">{r.type}</code> <span className="font-medium">{r.target ?? "?"}</span>
+                          <span className="font-medium">{r.source ?? "?"}</span> <code className="text-id">{r.type}</code> <span className="font-medium">{r.target ?? "?"}</span>
                         </p>
                         {r.explanation ? <p className="text-ink-3">{r.explanation}</p> : null}
                         {r.sources.length ? (
@@ -478,33 +477,33 @@ export function TraceabilityInspector({
               </div>
               {ex.encodes.length ? (
                 <div>
-                  <h4 className="text-eyebrow mb-1">This Element Encodes</h4>
+                  <h4 className="text-label mb-1">This Element Encodes</h4>
                   <ul className="list-disc pl-5">
                     {ex.encodes.map((e) => (
                       <li key={`${e.relationshipId}|${e.ruleId}`}>
-                        {e.encoding} of relationship <code className="text-mono">{e.relationshipId.slice(0, 8)}</code> by rule <code className="text-mono">{e.ruleId}</code>
+                        {e.encoding} of relationship <code className="text-id">{e.relationshipId.slice(0, 8)}</code> by rule <code className="text-id">{e.ruleId}</code>
                       </li>
                     ))}
                   </ul>
                 </div>
               ) : null}
               <div>
-                <h4 className="text-eyebrow mb-1">Visitor Interactions</h4>
+                <h4 className="text-label mb-1">Visitor Interactions</h4>
                 <ul className="list-disc pl-5">
                   {ex.interactions.map((i, n) => (
                     <li key={n}>
-                      {i.action} <code className="text-mono text-ink-3">{i.event}</code>
+                      {i.action} <code className="text-id text-ink-3">{i.event}</code>
                     </li>
                   ))}
                 </ul>
               </div>
               {ex.overridesApplied.length ? (
                 <div>
-                  <h4 className="text-eyebrow mb-1">Manual Overrides Applied Here</h4>
+                  <h4 className="text-label mb-1">Manual Overrides Applied Here</h4>
                   <ul className="list-disc pl-5">
                     {ex.overridesApplied.map((o) => (
                       <li key={o.id}>
-                        <code className="text-mono">{o.field}</code>: {json(o.before)} → {json(o.after)} — {o.reason}
+                        <code className="text-id">{o.field}</code>: {json(o.before)} to {json(o.after)}: {o.reason}
                       </li>
                     ))}
                   </ul>
@@ -518,15 +517,12 @@ export function TraceabilityInspector({
         </div>
       </div>
 
-      <details>
-        <summary className={SUMMARY}>
-          Gaps: {gaps.concepts.length} concept(s) not placed, {gaps.relationships.length} relationship(s) not encoded
-        </summary>
+      <Disclosure summary={<>Gaps: {gaps.concepts.length} concept(s) not placed, {gaps.relationships.length} relationship(s) not encoded</>}>
         <div className="text-body mt-2 grid gap-4 md:grid-cols-2">
           <ul className="list-disc pl-5">
             {gaps.concepts.map((c) => (
               <li key={c.conceptId}>
-                <code className="text-mono">{c.key}</code> — {c.status}
+                <code className="text-id">{c.key}</code> — {c.status}
                 {c.reason ? `: ${c.reason}` : ""}
               </li>
             ))}
@@ -534,20 +530,20 @@ export function TraceabilityInspector({
           <ul className="list-disc pl-5">
             {gaps.relationships.map((r) => (
               <li key={r.relationshipId}>
-                <code className="text-mono">{r.type}</code> {r.relationshipId.slice(0, 8)} — {r.reason ?? "no reason recorded"}
+                <code className="text-id">{r.type}</code> {r.relationshipId.slice(0, 8)} — {r.reason ?? "no reason recorded"}
               </li>
             ))}
           </ul>
         </div>
-      </details>
+      </Disclosure>
     </Section>
   );
 }
 
 function OverrideForm({ d, elementId }: { d: ManifestDetail; elementId: string }) {
   return (
-    <div className="flex flex-col gap-3 border-t-2 border-ink pt-3">
-      <h4 className="text-eyebrow">Record a Manual Override</h4>
+    <div className="flex flex-col gap-3 border-t border-rule-strong pt-3">
+      <h4 className="text-label">Record a Manual Override</h4>
       <ActionForm action={createOverrideAction} submitLabel="Record override" resetOnSuccess>
         <input type="hidden" name="manifestId" value={d.summary.id} />
         <input type="hidden" name="targetElementId" value={elementId} />
@@ -586,7 +582,7 @@ export function OverridesPanel({ d, perms }: { d: ManifestDetail; perms: StudioP
       title="Manual overrides"
       description={
         <>
-          Overrides are recorded on a draft version of <code className="text-mono">{d.overridesRuleSetName}</code>. Compiling with overrides freezes that version, so every manifest
+          Overrides are recorded on a draft version of <code className="text-id">{d.overridesRuleSetName}</code>. Compiling with overrides freezes that version, so every manifest
           names the exact rules and overrides it came from. Overrides are never deleted; a revoked override stays in the record.
         </>
       }
@@ -614,13 +610,13 @@ export function OverridesPanel({ d, perms }: { d: ManifestDetail; perms: StudioP
                     v{o.ruleSetVersion} ({o.ruleSetStatus})
                   </TableCell>
                   <TableCell>
-                    <code className="text-mono">{o.targetElementId}</code>
+                    <code className="text-id">{o.targetElementId}</code>
                   </TableCell>
                   <TableCell>
-                    <code className="text-mono">{o.field}</code>
+                    <code className="text-id">{o.field}</code>
                   </TableCell>
                   <TableCell>
-                    <code className="text-mono">{json(o.value)}</code>
+                    <code className="text-id">{json(o.value)}</code>
                   </TableCell>
                   <TableCell className="whitespace-normal">{o.reason}</TableCell>
                   <TableCell>{o.createdByName ?? o.createdBy}</TableCell>

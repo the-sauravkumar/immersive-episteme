@@ -1,6 +1,6 @@
 /**
  * Line-art schematics of the two learning conditions (DESIGN.md 7.4, 11.1, 11.3). Public pages
- * only. Drawn outline-then-fill through the shared `OutlineDiagram`, never a screenshot, so
+ * only. Drawn as static line art through the shared `OutlineDiagram`, never a screenshot, so
  * neither condition looks richer than the other: both miniatures sit in the same box, use the
  * same outline weight, the same `--sunk` fills and exactly one indigo accent.
  *

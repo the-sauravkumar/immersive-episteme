@@ -237,14 +237,14 @@ export function LearningPhaseContent({ children }: { children: ReactNode }) {
       ) : mode === "study" ? (
         <p className="mt-4 text-reading">
           Taking you to the next step of your session…{" "}
-          <Link href={STUDY_HANDBACK_PATH} className="inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[3px] hover:decoration-2">
+          <Link href={STUDY_HANDBACK_PATH} className="inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[0.2em] hover:decoration-2">
             Continue
           </Link>
         </p>
       ) : (
         <p className="mt-4 text-reading">
           This was a demo or preview, so nothing is recorded as study data.{" "}
-          <Link href="/explore" className="inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[3px] hover:decoration-2">
+          <Link href="/explore" className="inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[0.2em] hover:decoration-2">
             Back to Explore
           </Link>
         </p>

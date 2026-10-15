@@ -20,7 +20,7 @@ async function Withdraw() {
         <p className="text-reading max-w-[34rem] text-ink">
           Answers and records from this session up to now are not deleted automatically: they are kept as described in the information you agreed to
           {days ? ` (retention period: ${days} days)` : ""}. If you want them removed, tell the facilitator your participant code{" "}
-          <span className="font-mono text-mono whitespace-nowrap text-ink">{state.participantCode}</span>.
+          <span className="text-id whitespace-nowrap text-ink">{state.participantCode}</span>.
         </p>
       </div>
       <WithdrawForm />

@@ -143,7 +143,7 @@ async function Pathways({ searchParams }: { searchParams: Promise<Record<string,
                 .sort((a, b) => KIND_RANK[conditionKind(a.conditionInterface)] - KIND_RANK[conditionKind(b.conditionInterface)] || a.participantCode.localeCompare(b.participantCode))
                 .map((s) => (
                   <TableRow key={s.id}>
-                    <TableCell className="text-mono">{s.participantCode}</TableCell>
+                    <TableCell className="text-id">{s.participantCode}</TableCell>
                     <TableCell>{s.conditionCode}</TableCell>
                     <TableCell numeric>{s.events}</TableCell>
                     <TableCell>

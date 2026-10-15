@@ -16,8 +16,9 @@ import { sessionTimeline } from "@/server/research/analytics";
 import { EXCLUSION_CATEGORIES, getSession, integrityFlags, listAnnotations, listDeviations } from "@/server/research/sessions";
 
 import { ActionForm } from "../../_components/action-form";
-import { Empty, FieldLabel, FlagLine, LINK_44, ObservationalNotice, Section, SELECT, StatRow, SummaryList, Timestamp } from "../../_components/common";
+import { Empty, FieldLabel, FlagLine, LINK_44, ObservationalNotice, Section, StatRow, SummaryList, Timestamp } from "../../_components/common";
 import { annotateAction, deviationAction, excludeAction } from "../../actions";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export const metadata: Metadata = { title: "Session" };
 
@@ -80,9 +81,9 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
               </Link>
             ),
           },
-          { label: "Participant", value: <span className="text-mono">{s.participantCode}</span> },
+          { label: "Participant", value: <span className="text-id">{s.participantCode}</span> },
           { label: "Condition", value: `${s.conditionCode} (${s.conditionInterface}), period ${s.period}` },
-          { label: "Build", value: <span className="text-mono">{s.appBuild}</span> },
+          { label: "Build", value: <span className="text-id">{s.appBuild}</span> },
           {
             label: "Started / completed (UTC)",
             value: (
@@ -95,12 +96,12 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
             label: "Learning phase (server clock)",
             value: (
               <>
-                <Timestamp iso={s.learningStartedAt} /> to <Timestamp iso={s.learningEndedAt} /> · budget {s.learningBudgetSeconds ? `${s.learningBudgetSeconds / 60} min` : "self-paced"}
+                <Timestamp iso={s.learningStartedAt} /> to <Timestamp iso={s.learningEndedAt} />, budget {s.learningBudgetSeconds ? `${s.learningBudgetSeconds / 60} min` : "self-paced"}
               </>
             ),
           },
           { label: "Last activity (UTC)", value: <Timestamp iso={s.lastActivityAt} /> },
-          { label: "Device covariates", value: device.length ? device.map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : String(v)}`).join(" · ") : "None recorded" },
+          { label: "Device covariates", value: device.length ? device.map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : String(v)}`).join("; ") : "None recorded" },
         ]}
       />
       <StatRow
@@ -157,7 +158,7 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
             <TableBody>
               {metrics.rows.map((m) => (
                 <TableRow key={`${m.metric_name}@${m.metric_version}`}>
-                  <TableCell className="text-mono">{m.metric_name}</TableCell>
+                  <TableCell className="text-id">{m.metric_name}</TableCell>
                   <TableCell>{m.metric_version}</TableCell>
                   <TableCell numeric>{m.value === null ? "–" : Number.isInteger(m.value) ? m.value : m.value.toFixed(3)}</TableCell>
                   <TableCell>
@@ -179,7 +180,7 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
               key: a.id,
               meta: (
                 <>
-                  {a.kind.replace(/_/g, " ")} · <Timestamp iso={a.createdAt} />
+                  {a.kind.replace(/_/g, " ")}, <Timestamp iso={a.createdAt} />
                 </>
               ),
               body: <p className="whitespace-pre-wrap">{a.body}</p>,
@@ -189,13 +190,13 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
         {mayAnnotate ? (
           <ActionForm action={annotateAction.bind(null, s.id)} submitLabel="Add annotation" className="grid max-w-xl gap-4">
             <FieldLabel label="Kind">
-              <select name="kind" className={SELECT} defaultValue="note">
+              <NativeSelect name="kind" defaultValue="note">
                 {["note", "observation", "technical_issue", "data_quality"].map((k) => (
                   <option key={k} value={k}>
                     {k.replace(/_/g, " ")}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </FieldLabel>
             <FieldLabel label="Annotation (no participant-identifying details)">
               <Textarea name="body" required rows={3} maxLength={4000} />
@@ -213,7 +214,7 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
               key: d.id,
               meta: (
                 <>
-                  {d.severity} · {d.category} · <Timestamp iso={d.reportedAt} />
+                  {d.severity}, {d.category}, <Timestamp iso={d.reportedAt} />
                 </>
               ),
               body: (
@@ -229,19 +230,19 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
           <ActionForm action={deviationAction.bind(null, s.studyId, s.id)} submitLabel="Record deviation" className="grid max-w-xl gap-4">
             <div className="grid gap-4 xs:grid-cols-2">
               <FieldLabel label="Category">
-                <select name="category" className={SELECT} defaultValue="procedure">
+                <NativeSelect name="category" defaultValue="procedure">
                   {["procedure", "technical", "consent", "timing", "allocation", "content", "other"].map((k) => (
                     <option key={k} value={k}>
                       {k}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </FieldLabel>
               <FieldLabel label="Severity">
-                <select name="severity" className={SELECT} defaultValue="minor">
+                <NativeSelect name="severity" defaultValue="minor">
                   <option value="minor">minor</option>
                   <option value="major">major</option>
-                </select>
+                </NativeSelect>
               </FieldLabel>
             </div>
             <FieldLabel label="Description">
@@ -258,13 +259,13 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
         <Section demo={s.nonExperimental} id="exclude" title="Exclude from analysis" description="Flags the session; raw data is kept and exports carry the flag and its category. This cannot be undone here.">
           <ActionForm action={excludeAction.bind(null, s.id)} submitLabel="Exclude session" variant="destructive" className="grid max-w-xl gap-4">
             <FieldLabel label="Reason category">
-              <select name="category" className={SELECT} defaultValue="technical_failure">
+              <NativeSelect name="category" defaultValue="technical_failure">
                 {EXCLUSION_CATEGORIES.map((k) => (
                   <option key={k} value={k}>
                     {k.replace(/_/g, " ")}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </FieldLabel>
             <FieldLabel label="Detail">
               <Input name="detail" required minLength={3} maxLength={2000} />

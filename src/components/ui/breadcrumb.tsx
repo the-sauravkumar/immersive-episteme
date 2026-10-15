@@ -5,7 +5,7 @@ import { ArrowLeft, ChevronRightIcon, MoreHorizontalIcon } from "lucide-react"
 import Link from "next/link"
 
 /*
- * Breadcrumb (DESIGN.md 9.16). One line, never wrapping: links are indigo, underlined, Inter
+ * Breadcrumb (DESIGN.md 9.16). One line, never wrapping: links are indigo, underlined, Atkinson
  * 15/500 with 44 px hit areas; the current page is ink-2 and truncates with an ellipsis.
  *
  * `BreadcrumbTrail` is the ready-made trail:
@@ -14,13 +14,13 @@ import Link from "next/link"
  *  - the full path is in the `title` of the nav;
  *  - under 520 px only "← Parent" shows.
  * On 2D concept pages there is no breadcrumb at all (DESIGN.md 6: it would push the h1 down in
- * 2D only); the "Up to <parent>" control lives in the StudyBar there.
+ * 2D only); the sheet's Close returns to the section view there (DR-021).
  *
  * The compositional parts (Breadcrumb, BreadcrumbList, ...) keep their shadcn names.
  */
 
 const LINK =
-  "inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[3px] hover:text-indigo-hover hover:decoration-2"
+  "inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2"
 
 function Breadcrumb({ className, ...props }: React.ComponentProps<"nav">) {
   return (

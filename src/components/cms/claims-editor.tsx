@@ -17,7 +17,8 @@ import { MAX_QUOTE_WORDS, wordCount } from "@/lib/validation/primitives";
 import { saveClaimsAction } from "@/server/cms/actions";
 
 import { ActionForm, useFormState } from "./action-form";
-import { SELECT_CLASS } from "./bits";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Disclosure } from "@/components/ui/disclosure";
 
 export interface ClaimDraft {
   text: string;
@@ -74,12 +75,11 @@ export function ClaimsEditor({ conceptId, initial, sources, readOnly }: { concep
           Add claim
         </Button>
       </div>
-      <details className="text-body rounded-card border border-rule-strong">
-        <summary className="text-ui flex min-h-11 cursor-pointer items-center px-3">Learner text generated from these claims</summary>
+      <Disclosure className="text-body rounded-card border border-rule-strong" summary={<>Learner text generated from these claims</>}>
         <div className="border-t border-rule px-3 py-3">
-        <p className="text-dl-label">Summary (first claim)</p>
+        <p className="text-label">Summary (first claim)</p>
         <p>{preview[0]?.text.trim() || "None yet"}</p>
-        <p className="text-dl-label mt-3">Body</p>
+        <p className="text-label mt-3">Body</p>
         <div className="flex flex-col gap-2 whitespace-pre-wrap">
           {preview.map((c, i) => (
             <p key={i}>
@@ -88,7 +88,7 @@ export function ClaimsEditor({ conceptId, initial, sources, readOnly }: { concep
           ))}
         </div>
         </div>
-      </details>
+      </Disclosure>
     </ActionForm>
   );
 }
@@ -98,7 +98,7 @@ function ClaimErrors() {
   const msgs = Object.entries(state?.fieldErrors ?? {}).filter(([k]) => k.startsWith("claims"));
   if (!msgs.length) return null;
   return (
-    <ul className="list-disc pl-5 font-sans text-sm leading-5 font-medium text-danger">
+    <ul className="list-disc pl-5 font-sans text-[0.9375rem] leading-5 font-semibold text-danger">
       {msgs.map(([k, m]) => (
         <li key={k}>
           {describePath(k)}: {m.join(" ")}
@@ -165,7 +165,7 @@ function ClaimRow({
       <div className="flex flex-col gap-1.5">
         <Label htmlFor={`${id}-quote`}>Verbatim evidence quotation</Label>
         <Textarea id={`${id}-quote`} value={claim.quote} onChange={(e) => onChange({ quote: e.target.value })} rows={2} required aria-describedby={`${id}-quote-hint`} />
-        <p id={`${id}-quote-hint`} className={words > MAX_QUOTE_WORDS ? "font-sans text-sm leading-5 font-medium text-danger" : "text-credit"}>
+        <p id={`${id}-quote-hint`} className={words > MAX_QUOTE_WORDS ? "font-sans text-[0.9375rem] leading-5 font-semibold text-danger" : "text-credit"}>
           Copy the words exactly as in the source; mark omissions with … and insertions with [ ].{" "}
           <span className="tabular-nums">
             {words} of {MAX_QUOTE_WORDS} words
@@ -174,17 +174,16 @@ function ClaimRow({
         </p>
       </div>
       <fieldset className="flex min-w-0 flex-col gap-3">
-        <legend className="mb-1 font-sans text-sm font-medium text-ink">Citations</legend>
+        <legend className="mb-1 font-sans text-[0.9375rem] leading-5 font-bold text-ink">Citations</legend>
         {claim.sources.map((s, j) => (
           <div key={j} className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto] md:items-end">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={`${id}-src-${j}`}>Source</Label>
-              <select
+              <NativeSelect
                 id={`${id}-src-${j}`}
                 value={s.sourceId}
                 onChange={(e) => setSource(j, { sourceId: e.target.value })}
                 required
-                className={SELECT_CLASS}
               >
                 <option value="">Choose a source…</option>
                 {sources.map((o) => (
@@ -192,7 +191,7 @@ function ClaimRow({
                     {o.label}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={`${id}-loc-${j}`}>Page or locator</Label>
@@ -223,7 +222,7 @@ function ClaimsReadOnly({ claims, keyOf }: { claims: ClaimDraft[]; keyOf: Map<st
           </span>
           <div className="min-w-0">
             <p className="text-body text-ink">{c.text}</p>
-            <blockquote className="text-body mt-2 border-l-2 border-indigo pl-3 font-serif text-ink-2">“{c.quote || "no quotation"}”</blockquote>
+            <blockquote className="text-body mt-2 bg-sunk px-3 py-2 text-ink">“{c.quote || "no quotation"}”</blockquote>
             <p className="text-credit mt-1">{c.sources.map((s) => `${keyOf.get(s.sourceId) ?? "?"}, ${s.locator || "no locator"}`).join("; ")}</p>
           </div>
         </li>

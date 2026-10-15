@@ -19,6 +19,9 @@ import { Button } from "@/components/ui/button";
 import { GUIDANCE_TEXT, ONBOARDING_TEXT, PHASE_TEXT, STUDY_BAR_TEXT } from "@/features/learning/strings";
 import { titleCase } from "@/lib/text/title-case";
 
+import { useGuidance } from "./guidance";
+import { useLearningPhase } from "./learning-phase";
+
 export type OnboardingCondition = "2d" | "immersive";
 
 export interface OnboardingProps {
@@ -71,6 +74,19 @@ export function Onboarding(props: OnboardingProps) {
       </Button>
     </section>
   );
+}
+
+/**
+ * The onboarding of the running phase, the same in both conditions: the time budget and the
+ * kind (practice or learning) from the LearningPhaseProvider, the Hint step when the protocol's
+ * guidance has a hint. The museum's OnboardingScreen renders it; the 2D practice renders the same
+ * component if the lead switches the onboarding on in both conditions (CONDITION_ONBOARDING).
+ */
+export function PhaseOnboarding({ condition, onStart }: { condition: OnboardingCondition; onStart(): void }) {
+  const { budget, kind } = useLearningPhase();
+  const guidance = useGuidance();
+  const minutes = budget.mode === "fixed_time" && budget.budgetSeconds !== null ? Math.round(budget.budgetSeconds / 60) : null;
+  return <Onboarding condition={condition} kind={kind} minutes={minutes} hintAvailable={!!guidance?.hintText} onStart={onStart} />;
 }
 
 /** Static line-art key of the top bar: ink outlines, the shared controls and the navigation group. */

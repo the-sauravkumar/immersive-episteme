@@ -61,6 +61,22 @@ describe("telemetry metadata allowlist", () => {
     expect(r.success).toBe(false);
   });
 
+  it("accepts every 3D input method as a covariate (input_method_used) and rejects others", () => {
+    for (const method of ["keys", "drag", "rmb", "freelook", "click", "list"]) expect(parse("input_method_used", { method }).success, method).toBe(true);
+    expect(parse("input_method_used", { method: "drag", previous: "keys" }).success).toBe(true);
+    expect(parse("input_method_used", { method: "gamepad" }).success).toBe(false);
+    expect(parse("input_method_used", {}).success).toBe(false);
+    expect(parse("input_method_used", { method: "keys", x: 1 }).success).toBe(false);
+  });
+
+  it("accepts the navigation source of both conditions on entries and selections (DR-021) and rejects others", () => {
+    for (const source of ["rail", "index", "pager", "link", "close"]) expect(parse("page_entered", { via: "navigation", source }).success, source).toBe(true);
+    for (const source of ["rail", "scene", "plan", "keyboard"]) expect(parse("room_entered", { via: "portal", source }).success, source).toBe(true);
+    expect(parse("exhibit_selected", { elementKind: "station", source: "rail" }).success).toBe(true);
+    expect(parse("content_item_selected", { elementKind: "tradition_card", source: "index" }).success).toBe(true);
+    expect(parse("page_entered", { source: "teleport" }).success).toBe(false);
+  });
+
   it("still bounds metadata size", () => {
     expect(parse("render_quality_changed", { from: "a", to: "b".repeat(5000) }).success).toBe(false);
   });

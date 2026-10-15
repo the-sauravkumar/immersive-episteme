@@ -37,7 +37,7 @@ const KIND_HINT: Record<string, string> = {
 
 /** A full-row radio option: the 20 px control inside a 44 px label (shared with the media review). */
 export const OPTION_ROW = "flex min-h-11 cursor-pointer items-start gap-3 border-t border-rule py-2.5 first:border-t-0 has-[:disabled]:cursor-not-allowed has-[:disabled]:text-ink-3";
-export const NATIVE_RADIO = "mt-0.5 size-5 shrink-0 accent-indigo";
+export const NATIVE_RADIO = "ie-check mt-0.5";
 
 export function TransitionPanel({
   entityKind,
@@ -72,7 +72,7 @@ export function TransitionPanel({
       <input type="hidden" name="entityKind" value={entityKind} />
       <input type="hidden" name="entityId" value={entityId} />
       <fieldset className="flex min-w-0 flex-col">
-        <legend className="mb-1 font-sans text-sm font-medium text-ink">Decision</legend>
+        <legend className="mb-1 font-sans text-[0.9375rem] leading-5 font-bold text-ink">Decision</legend>
         {options.map((o) => (
           <label key={o.to} className={OPTION_ROW}>
             <input type="radio" name="to" value={o.to} checked={to === o.to} onChange={() => setTo(o.to)} className={NATIVE_RADIO} />
@@ -85,9 +85,9 @@ export function TransitionPanel({
       {blockedVerify ? <p className="text-body text-ink-2">{blockedVerify}</p> : null}
       {chosen?.kind === "verify" ? (
         <fieldset className="flex min-w-0 flex-col rounded-card border border-rule-strong px-3 pb-1">
-          <legend className="px-1 font-sans text-sm font-medium text-ink">Evidence checked (all required)</legend>
+          <legend className="px-1 font-sans text-[0.9375rem] leading-5 font-bold text-ink">Evidence checked (all required)</legend>
           {problems && problems.length > 0 ? (
-            <ul className="list-disc py-2 pl-5 font-sans text-sm font-medium text-danger">
+            <ul className="list-disc py-2 pl-5 font-sans text-[0.9375rem] leading-5 font-semibold text-danger">
               {problems.map((p, i) => (
                 <li key={i}>{p.message}</li>
               ))}

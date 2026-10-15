@@ -92,10 +92,10 @@ describe("chart theme equals the CSS tokens in every theme", () => {
   it("high contrast changes what charts read (ink and surfaces follow the HC block)", () => {
     const hcT = readVizTheme(computed(THEMES["hc-light"]));
     const hcDarkT = readVizTheme(computed(THEMES["hc-dark"]));
-    expect(lc(hcT.ink)).toBe("#111111");
-    expect(lc(hcT.surface)).toBe("#fffdf8");
+    expect(lc(hcT.ink)).toBe("#000000");
+    expect(lc(hcT.surface)).toBe("#ffffff");
     expect(lc(hcDarkT.ink)).toBe("#ffffff");
-    expect(lc(hcDarkT.surface)).toBe("#0d0b09");
+    expect(lc(hcDarkT.surface)).toBe("#000000");
   });
 });
 

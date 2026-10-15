@@ -5,20 +5,23 @@
  *    (getProcessChain: PRECEDES by ordinal), and the link carries the PRECEDES relationship id so
  *    the move is logged as a typed relationship traversal, as walking a sequence path is in 3D.
  *    Other concepts have no pager, as in the 3D panel (DR-021).
- *  - The parent of a concept page, for the StudyBar's "Up to <parent>" control (DESIGN.md 9.14,
- *    section 6: concept pages have no breadcrumb): the concept's section on its tradition page,
- *    or the comparisons page for a comparison.
+ *  - The parent of a concept page, where the sheet's Close leads (DR-021 decision 4; concept
+ *    pages have no breadcrumb): the concept's section on its tradition page, or the comparisons
+ *    page for a comparison.
+ *  - The place of a 2D page (tradition and section) and the models of the shared PlaceRail
+ *    ("In This Section") and the index field (DR-021).
  *  - The StudyBar location (the current page's title) from the URL, so the bar, rendered once by
  *    the layout, names the page on the first paint.
  */
 import type { ComparisonView, ConceptRef, ProcessChain, ProcessSequence, RelatedConceptGroups, TraditionDetail } from "@/features/knowledge/read/view";
 import { CATEGORY_LABELS, compareTraditionSlugs, exposureLayerOf, KNOWLEDGE_LAYERS, type KnowledgeLayerId } from "@/features/learning/labels";
 import { sha256Hex } from "@/features/spatial/compiler/canonical";
+import { railDetail } from "@/features/learning/strings";
 import { titleCase } from "@/lib/text/title-case";
 import { KNOWLEDGE_CATEGORY_CODES, type ConceptType, type KnowledgeCategoryCode } from "@/lib/validation/enums";
 
-import { href2d, LEARN_2D } from "./routes";
-import { EPISTEMIC_SECTIONS, sectionOfType, type EpistemicSection } from "./template";
+import { href2d, LEARN_2D, pageId2d } from "./routes";
+import { EPISTEMIC_SECTIONS, sectionOfType, type EpistemicSection, type EpistemicSectionId } from "./template";
 
 export interface PagerLink {
   concept: ConceptRef;
@@ -234,7 +237,7 @@ function explanationLayerOf(type: ConceptType): KnowledgeLayerId {
 }
 
 // ---------------------------------------------------------------------------------------
-// Page titles and parents (StudyBar location and "Up to <parent>")
+// Page titles and parents (StudyBar location and the sheet's Close)
 // ---------------------------------------------------------------------------------------
 
 /** Titles of the 2D pages that are not a tradition or a concept (interface words). */
@@ -246,7 +249,7 @@ export const PAGE_TITLES = {
   practice: "Practice page",
 } as const;
 
-/** Where "Up to <parent>" leads: a label (a page or section title) and the href. */
+/** Where the sheet's Close leads: a label (a page or section title) and the href. */
 export interface ParentLink {
   label: string;
   href: string;
@@ -265,20 +268,38 @@ export function parentOf(concept: Pick<ConceptRef, "type" | "traditionSlug">, tr
 }
 
 /**
- * Built on the server by the layout (data.ts `loadStudyBarIndex`) and read by the StudyBar on the
- * client: the study's traditions (canonical order) for the Contents sheet, and the in-scope
- * concepts by slug as `[title, index into parents or -1]` (compact: it travels with the layout).
+ * One concept row of the rail and the index (P29: a title, a type and a step only; never claim
+ * text). `step` is `[n, N]` for a station of an ordered sequence.
+ */
+export interface RailEntry {
+  slug: string;
+  key: string;
+  title: string;
+  type: ConceptType;
+  step: [index: number, total: number] | null;
+}
+
+/** The section key of the shared comparisons (concepts that belong to no tradition). */
+export const SHARED_SECTIONS = "*";
+
+/**
+ * Built on the server by the layout (data.ts `loadStudyBarIndex`) and read on the client by the
+ * StudyBar, the rail and the index: the study's traditions (canonical order), the in-scope
+ * concepts by slug as `[title, index into parents or -1]` (compact: it travels with the layout),
+ * and each tradition's sections as ordered concept rows (`sections[traditionSlug][sectionId]`; the
+ * shared comparisons under `SHARED_SECTIONS`).
  */
 export interface StudyBarIndex {
   traditions: { slug: string; name: string }[];
   concepts: Record<string, [title: string, parent: number]>;
   parents: ParentLink[];
+  sections?: Record<string, Partial<Record<EpistemicSectionId, RailEntry[]>>>;
 }
 
 export interface StudyBarPlace {
   /** The current page's title, as the StudyBar shows it (empty when unknown). */
   location: string;
-  /** Concept pages: where "Up to <parent>" leads. */
+  /** Concept pages: where the sheet's Close leads. */
   parent: ParentLink | null;
   /** The URL is a concept page (its title may come from the page itself). */
   conceptPage: boolean;
@@ -321,4 +342,144 @@ export function studyBarPlace(pathname: string, index: StudyBarIndex): StudyBarP
     default:
       return none;
   }
+}
+
+// ---------------------------------------------------------------------------------------
+// Place, rail and index (DR-021)
+// ---------------------------------------------------------------------------------------
+
+/** Where a 2D page is: its tradition and section, and the concept it shows. */
+export interface Place2d {
+  /** The tradition (null for the index pages and the shared comparisons). */
+  traditionSlug: string | null;
+  /** The section (null when the page is not inside one: the index pages, a tradition page without a section). */
+  sectionId: EpistemicSectionId | null;
+  /** The concept page's slug (null on other pages). */
+  conceptSlug: string | null;
+}
+
+const sectionIds = new Set<string>(EPISTEMIC_SECTIONS.map((s) => s.id));
+
+/** The concept's tradition and section, found in the index (the shared comparisons under `SHARED_SECTIONS`). */
+export function conceptPlace(slug: string, index: StudyBarIndex): { traditionSlug: string | null; sectionId: EpistemicSectionId } | null {
+  // The shared comparisons first: a tradition's Comparisons section may also list them.
+  const all = Object.entries(index.sections ?? {}).sort(([a], [b]) => (a === SHARED_SECTIONS ? -1 : b === SHARED_SECTIONS ? 1 : 0));
+  for (const [traditionSlug, sections] of all) {
+    for (const [sectionId, entries] of Object.entries(sections)) {
+      if (entries?.some((e) => e.slug === slug)) return { traditionSlug: traditionSlug === SHARED_SECTIONS ? null : traditionSlug, sectionId: sectionId as EpistemicSectionId };
+    }
+  }
+  return null;
+}
+
+/** The place of a 2D path; `hash` is the URL hash (a tradition page's open section, `#section-<id>`). */
+export function place2d(pathname: string, hash: string, index: StudyBarIndex): Place2d {
+  const none: Place2d = { traditionSlug: null, sectionId: null, conceptSlug: null };
+  if (pathname !== LEARN_2D && !pathname.startsWith(`${LEARN_2D}/`)) return none;
+  const [kind, key] = pathname.slice(LEARN_2D.length).split("/").filter(Boolean);
+  if (kind === "traditions") {
+    const slug = segment(key);
+    if (!index.traditions.some((t) => t.slug === slug)) return none;
+    const m = /^#section-(.+)$/.exec(hash);
+    const sectionId = m && sectionIds.has(m[1]!) ? (m[1] as EpistemicSectionId) : null;
+    return { traditionSlug: slug, sectionId, conceptSlug: null };
+  }
+  if (kind === "concepts") {
+    const slug = segment(key);
+    const at = conceptPlace(slug, index);
+    return { traditionSlug: at?.traditionSlug ?? null, sectionId: at?.sectionId ?? null, conceptSlug: slug };
+  }
+  return none;
+}
+
+export interface Rail2dRow {
+  key: string;
+  title: string;
+  detail: string | null;
+  href: string;
+  current: boolean;
+  visited: boolean;
+}
+
+export interface Rail2dModel {
+  items: Rail2dRow[];
+  destinations: Rail2dRow[];
+}
+
+/**
+ * The 2D PlaceRail ("In This Section"), the counterpart of the museum's "In This Room":
+ *  - in a section: its concepts in section order (title, type and step), the current one marked;
+ *    then "Leads To": the tradition's other sections that hold concepts;
+ *  - on a shared comparison: the shared comparisons, then the traditions;
+ *  - on a tradition page without a section: no rows, then its sections;
+ *  - elsewhere (the index pages): no rows, then the traditions.
+ * `visitedPageIds` are the visit memory's page ids (`concept:<key>`); a current row is never also
+ * marked visited.
+ */
+export function rail2d(place: Place2d, index: StudyBarIndex, visitedPageIds: ReadonlySet<string>): Rail2dModel {
+  const traditionsAsDestinations = (): Rail2dRow[] =>
+    index.traditions.map((t) => ({ key: `tradition:${t.slug}`, title: t.name, detail: null, href: href2d.tradition(t.slug), current: false, visited: false }));
+  const rowOf = (e: RailEntry): Rail2dRow => {
+    const current = e.slug === place.conceptSlug;
+    return {
+      key: e.slug,
+      title: e.title,
+      detail: railDetail(e.type, e.step ? { index: e.step[0], total: e.step[1] } : null),
+      href: href2d.concept(e.slug),
+      current,
+      visited: !current && visitedPageIds.has(pageId2d.concept(e.key)),
+    };
+  };
+  const sectionsOf = (slug: string) => index.sections?.[slug] ?? {};
+  const otherSections = (slug: string, except: string | null): Rail2dRow[] =>
+    EPISTEMIC_SECTIONS.filter((s) => s.id !== except && (sectionsOf(slug)[s.id]?.length ?? 0) > 0).map((s) => ({
+      key: `section:${s.id}`,
+      title: s.title,
+      detail: null,
+      href: href2d.traditionSection(slug, s.id),
+      current: false,
+      visited: false,
+    }));
+
+  if (place.sectionId && place.traditionSlug) {
+    return { items: (sectionsOf(place.traditionSlug)[place.sectionId] ?? []).map(rowOf), destinations: otherSections(place.traditionSlug, place.sectionId) };
+  }
+  if (place.sectionId && !place.traditionSlug) {
+    return { items: (sectionsOf(SHARED_SECTIONS)[place.sectionId] ?? []).map(rowOf), destinations: traditionsAsDestinations() };
+  }
+  if (place.traditionSlug) return { items: [], destinations: otherSections(place.traditionSlug, null) };
+  return { items: [], destinations: traditionsAsDestinations() };
+}
+
+export interface IndexTradition {
+  slug: string;
+  name: string;
+  href: string;
+  /** The tradition page itself is shown (no section open). */
+  current: boolean;
+  /** Its numbered sections; empty while the index recedes to this tradition's name (a concept of another tradition is open). */
+  sections: { id: string; number: number; title: string; href: string; current: boolean }[];
+}
+
+/**
+ * The 2D index field (DR-021 decision 3): the study's traditions in the canonical order, each with
+ * its numbered sections (names only), the current section marked. A list, never a spatial map.
+ * While a concept is open the index recedes so the sheet is the single focus: only the concept's
+ * own tradition keeps its sections; the others show their names only (a shared concept: names only).
+ */
+export function index2d(place: Place2d, index: StudyBarIndex): IndexTradition[] {
+  const receded = place.conceptSlug !== null;
+  return index.traditions.map((t) => {
+    const own = place.traditionSlug === t.slug;
+    const expanded = !receded || own;
+    return {
+      slug: t.slug,
+      name: t.name,
+      href: href2d.tradition(t.slug),
+      current: own && place.sectionId === null && place.conceptSlug === null,
+      sections: expanded
+        ? EPISTEMIC_SECTIONS.map((s, i) => ({ id: s.id, number: i + 1, title: s.title, href: href2d.traditionSection(t.slug, s.id), current: own && place.sectionId === s.id }))
+        : [],
+    };
+  });
 }

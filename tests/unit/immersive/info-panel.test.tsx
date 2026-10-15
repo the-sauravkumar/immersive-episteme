@@ -1,15 +1,16 @@
 /**
  * The rendered information panel (DESIGN.md 11.6, WP3): it is a placement of the SHARED
  * `KnowledgeSheet` (no claim, tab or relation markup of its own), shows the read model's claims
- * verbatim and in order through the shared `ClaimList` with one collapsed citation note per
- * citation, reads layer names and order from `KNOWLEDGE_LAYERS`, places Close over the sheet's
+ * verbatim and in order through the shared `ClaimList` with one collapsed numbered citation marker
+ * per citation, then one reference list, reads layer names and order from `KNOWLEDGE_LAYERS`, places Close over the sheet's
  * reserved action slot but after the sheet in the DOM (the slot stays empty, as in 2D, so the tab
- * stops from the h1 to the first citation note are the same: P13), focuses the sheet h1 on open,
+ * stops from the h1 to the first citation marker are the same: P13), focuses the sheet h1 on open,
  * and Escape closes it (but not from inside a dialog such as the figure lightbox).
  */
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { SHEET_CLOSE_CLASS } from "@/components/knowledge";
 import { InfoPanel, type InfoPanelProps } from "@/components/museum/overlays/info-panel";
 import { buildPanelModel, toPanelConcept } from "@/features/immersive/panel-content";
 import { buildSceneModel } from "@/features/immersive/scene-model";
@@ -77,28 +78,32 @@ describe("InfoPanel", () => {
     renderPanel();
     const list = screen.getByRole("list", { name: "Statements" });
     const items = within(list).getAllByRole("listitem");
-    expect(items.map((li) => li.querySelector("p")!.textContent)).toEqual(read.claims.map((c) => c.text));
-    const notes = within(list).getAllByRole("button", { name: /^Source: / });
+    expect(items.map((li) => li.querySelector("[data-slot=claim-text]")!.textContent)).toEqual(read.claims.map((c) => c.text));
+    const notes = within(list).getAllByRole("button", { name: /^Source \d+: / });
     expect(notes.length).toBe(read.claims.reduce((n, c) => n + c.evidence.length, 0));
     for (const b of notes) expect(b.getAttribute("aria-expanded")).toBe("false");
     expect(screen.getByRole("heading", { name: "From the Sources" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Related Concepts" })).toBeTruthy();
+    // One deduplicated reference list, after the field and before Related Concepts (DR-022 Addendum A).
+    const refs = screen.getAllByRole("region", { name: "References" });
+    expect(refs).toHaveLength(1);
+    expect(within(refs[0]!).getAllByRole("listitem")).toHaveLength(new Set(read.claims.flatMap((c) => c.evidence.map((e) => e.id))).size);
   });
 
-  it("titles the sheet with the concept h1, focused on open, with Close after the sheet and the slot empty", () => {
+  it("titles the sheet with the concept h1, focused on open, with Close in the sheet's action slot (DR-021, P32)", () => {
     const { container, props } = renderPanel();
     const h1 = screen.getByRole("heading", { level: 1 });
     expect(h1.textContent).toBe(titleCase(read.title));
     expect(document.activeElement).toBe(h1);
-    // The reserved slot is empty, exactly as on the 2D page.
-    expect(container.querySelector("[data-slot=sheet-action]")!.childElementCount).toBe(0);
-    const sheet = container.querySelector("[data-slot=knowledge-sheet]")!;
+    // Close fills the action slot, as on the 2D page: the same shared content and class.
+    const slot = container.querySelector("[data-slot=sheet-action]")!;
     const close = screen.getByRole("button", { name: "Close" });
-    expect(sheet.contains(close)).toBe(false);
-    // Close follows every focusable of the sheet in document order.
+    expect(slot.contains(close)).toBe(true);
+    expect(close.textContent).toBe("Close");
+    expect(close.className).toBe(SHEET_CLOSE_CLASS);
+    // It is the first stop after the h1, so the Tab path from the title is the same in both conditions.
     const focusables = [...container.querySelectorAll("button, a[href], [tabindex='0']")];
-    expect(focusables.indexOf(close)).toBe(focusables.length - 1);
-    expect(sheet.compareDocumentPosition(close) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(focusables[0]).toBe(close);
     fireEvent.click(close);
     expect(props.onClose).toHaveBeenCalledTimes(1);
   });

@@ -163,7 +163,7 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
     version: METRIC_VERSIONS["cmap.f1"],
     measures: "Harmonic mean of precision and coverage, directed and labelled (D2 secondary 3).",
     unit: "proportion (0–1)",
-    computation: "2 · precision · recall ÷ (precision + recall).",
+    computation: "2 × precision × recall ÷ (precision + recall).",
     computedIn: SCORING,
     citation: null,
     note: PROJECT,

@@ -11,7 +11,7 @@ import { NotesEditor } from "@/components/cms/notes-editor";
 import { ProofFrame } from "@/components/cms/proof-frame";
 import { RelationshipTable } from "@/components/cms/relationship-table";
 import { TransitionPanel } from "@/components/cms/transition-panel";
-import { ClaimList, KnowledgeSheet, RelatedConcepts, relatedLinksFromGroups, type SheetConcept } from "@/components/knowledge";
+import { ClaimList, KnowledgeSheet, RelatedConcepts, relatedLinksFromGroups, SheetReferences, type SheetConcept } from "@/components/knowledge";
 import { ConsolePage } from "@/components/shell/gates";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -77,12 +77,12 @@ async function ConceptEditor({ params }: { params: Promise<{ conceptId: string }
   return (
     <div className="flex flex-col gap-6">
       <dl aria-label="Concept facts" className="grid grid-cols-1 gap-x-4 gap-y-1 xs:grid-cols-[9rem_minmax(0,1fr)]">
-        <dt className="text-dl-label pt-0.5">Key</dt>
-        <dd className="text-dl-value min-w-0">
+        <dt className="text-label pt-0.5">Key</dt>
+        <dd className="text-value min-w-0">
           <Mono>{concept.key}</Mono>
         </dd>
-        <dt className="text-dl-label pt-0.5">State</dt>
-        <dd className="text-dl-value flex flex-wrap items-center gap-2">
+        <dt className="text-label pt-0.5">State</dt>
+        <dd className="text-value flex flex-wrap items-center gap-2">
           <StateBadge state={concept.state} />
           {concept.isDemo ? (
             <>
@@ -91,12 +91,12 @@ async function ConceptEditor({ params }: { params: Promise<{ conceptId: string }
             </>
           ) : null}
         </dd>
-        <dt className="text-dl-label pt-0.5">Package</dt>
-        <dd className="text-dl-value">{concept.traditionName ?? concept.packageSlug ?? "No package"}</dd>
-        <dt className="text-dl-label pt-0.5">Type</dt>
-        <dd className="text-dl-value">{humanise(concept.type)}</dd>
-        <dt className="text-dl-label pt-0.5">Provenance</dt>
-        <dd className="text-dl-value">{PROVENANCE_LABEL[concept.provenanceKind]}</dd>
+        <dt className="text-label pt-0.5">Package</dt>
+        <dd className="text-value">{concept.traditionName ?? concept.packageSlug ?? "No package"}</dd>
+        <dt className="text-label pt-0.5">Type</dt>
+        <dd className="text-value">{humanise(concept.type)}</dd>
+        <dt className="text-label pt-0.5">Provenance</dt>
+        <dd className="text-value">{PROVENANCE_LABEL[concept.provenanceKind]}</dd>
       </dl>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -170,7 +170,7 @@ async function ConceptEditor({ params }: { params: Promise<{ conceptId: string }
         <Section id="notes" className="xl:col-start-1" title="Curator notes" description="Editorial notes for the team (sources to chase, open questions). Never shown to learners.">
           {!isEmptyDoc(notes) ? (
             <div
-              className="text-body rounded-card bg-sunk p-4 text-ink [&_a]:text-indigo [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-rule-strong [&_blockquote]:pl-3 [&_h2]:text-h3 [&_h3]:text-h3 [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_p+p]:mt-2 [&_ul]:list-disc [&_ul]:pl-5"
+              className="text-body rounded-card bg-sunk p-4 text-ink [&_a]:text-indigo [&_a]:underline [&_blockquote]:bg-sunk [&_blockquote]:px-4 [&_blockquote]:py-2 [&_h2]:text-h3 [&_h3]:text-h3 [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_p+p]:mt-2 [&_ul]:list-disc [&_ul]:pl-5"
               dangerouslySetInnerHTML={{ __html: renderDocHtml(notes) }}
             />
           ) : (
@@ -200,10 +200,10 @@ async function ConceptEditor({ params }: { params: Promise<{ conceptId: string }
 
         <Section id="learner" className="xl:col-start-1" title="Generated learner text" description="The stored summary and body, generated from the claims (search and export use them; the Proof shows how the claims themselves are set).">
           <dl className="grid grid-cols-1 gap-x-4 gap-y-1 xs:grid-cols-[9rem_minmax(0,1fr)]">
-            <dt className="text-dl-label pt-0.5">Summary</dt>
-            <dd className="text-dl-value min-w-0">{concept.summary || "None"}</dd>
-            <dt className="text-dl-label pt-0.5">Body</dt>
-            <dd className="text-dl-value min-w-0 whitespace-pre-wrap">{concept.bodyMd || "None"}</dd>
+            <dt className="text-label pt-0.5">Summary</dt>
+            <dd className="text-value min-w-0">{concept.summary || "None"}</dd>
+            <dt className="text-label pt-0.5">Body</dt>
+            <dd className="text-value min-w-0 whitespace-pre-wrap">{concept.bodyMd || "None"}</dd>
           </dl>
         </Section>
 
@@ -247,6 +247,7 @@ async function Proof({ concept }: { concept: ConceptDetail }) {
         titleAs="h2"
         concept={sheetConcept(detail.id, detail.title, detail.type, detail.category, detail.localTerms, detail.tradition, detail.verificationState)}
         step={chain && at >= 0 ? { index: at + 1, total: chain.steps.length } : null}
+        references={<SheetReferences conceptId={detail.id} claims={detail.claims} />}
         related={
           links.length > 0 ? (
             <RelatedConcepts
@@ -264,7 +265,7 @@ async function Proof({ concept }: { concept: ConceptDetail }) {
           ) : null
         }
       >
-        <ClaimList conceptId={detail.id} claims={detail.claims} figures={figures} />
+        <ClaimList conceptId={detail.id} claims={detail.claims} figures={figures} references="sheet" />
       </KnowledgeSheet>
     );
     return (
@@ -291,8 +292,9 @@ async function Proof({ concept }: { concept: ConceptDetail }) {
       autoFocusTitle={false}
       titleAs="h2"
       concept={sheetConcept(concept.id, concept.title, concept.type as ConceptType, concept.category as KnowledgeCategoryCode, concept.localTerms, tradition, concept.state)}
+      references={<SheetReferences conceptId={concept.id} claims={claims} />}
     >
-      <ClaimList conceptId={concept.id} claims={claims} />
+      <ClaimList conceptId={concept.id} claims={claims} references="sheet" />
     </KnowledgeSheet>
   );
   return (

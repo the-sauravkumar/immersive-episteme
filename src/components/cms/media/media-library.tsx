@@ -14,8 +14,7 @@ import { Check, CircleAlert, CircleCheck, Clock } from "lucide-react";
 import Link from "next/link";
 
 import { ActionForm, FieldMessage } from "@/components/cms/action-form";
-import { BLOCK_LINK, CHECK_BOX, CHECK_ROW, Empty, LINK, Mono, NativeSelect, PROVENANCE_LABELS, ROW_LINK, Section, StateBadge, STATE_LABELS, SUMMARY } from "@/components/cms/bits";
-import { TraditionMarker } from "@/components/knowledge/tradition-marker";
+import { BLOCK_LINK, CHECK_BOX, CHECK_ROW, Empty, LINK, Mono, NativeSelect, PROVENANCE_LABELS, ROW_LINK, Section, StateBadge, STATE_LABELS, Disclosure } from "@/components/cms/bits";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,7 +65,7 @@ export function licenceStatus(expiresOn: string | null, today: string): LicenceS
 
 function LicenceExpiry({ status }: { status: LicenceStatus }) {
   if (status.kind === "none") return <span className="text-ink-3">No expiry</span>;
-  const date = <time dateTime={status.day} className="text-mono tabular-nums whitespace-nowrap text-ink">{status.day}</time>;
+  const date = <time dateTime={status.day} className="text-id tabular-nums whitespace-nowrap text-ink">{status.day}</time>;
   if (status.kind === "valid") return date;
   return (
     <span className="flex flex-col items-end gap-1">
@@ -108,7 +107,7 @@ function Thumb({ asset: a, width }: { asset: AssetListItem; width: number }) {
         // eslint-disable-next-line @next/next/no-img-element
         <img src={`/cms/media/file/${a.id}`} alt="" width={width} height={Math.round((width * 2) / 3)} className="size-full object-contain" loading="lazy" decoding="async" />
       ) : (
-        <span className="text-dl-label">{a.kind}</span>
+        <span className="text-label">{a.kind}</span>
       )}
     </span>
   );
@@ -229,7 +228,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                             </span>
                           ) : null}
                           <span className="text-credit block tabular-nums">
-                            {a.width && a.height ? `${a.width} × ${a.height} px · ` : ""}
+                            {a.width && a.height ? `${a.width} × ${a.height} px, ` : ""}
                             {bytes(a.byteSize)}
                           </span>
                         </TableCell>
@@ -281,7 +280,6 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                         <TableCell className="py-2 align-top whitespace-nowrap">
                           {l.traditionName ? (
                             <>
-                              <TraditionMarker />
                               {l.traditionName}
                             </>
                           ) : (
@@ -375,10 +373,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                     {canReview ? (
                       <TableCell className="min-w-52 py-1 align-top whitespace-normal">
                         {c.status !== "imported" ? (
-                          <details className="group">
-                            <summary className={SUMMARY}>
-                              Record decision<span className="sr-only"> for {c.title}</span>
-                            </summary>
+                          <Disclosure className="group" summary={<>Record decision<span className="sr-only"> for {c.title}</span></>}>
                             <ActionForm action={reviewCandidateAction} submitLabel="Record" submitVariant="outline" className="pt-2 pb-3">
                               <input type="hidden" name="candidateId" value={c.id} />
                               <div className="flex flex-col gap-1.5">
@@ -395,7 +390,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                                 <FieldMessage name="notes" />
                               </div>
                             </ActionForm>
-                          </details>
+                          </Disclosure>
                         ) : (
                           <span className="text-ink-3">Imported</span>
                         )}
@@ -447,8 +442,8 @@ function SelectedAsset({
         <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <StateBadge state={a.verificationState} />
           <span className="tabular-nums">
-            {a.mimeType} · {bytes(a.byteSize)}
-            {a.width && a.height ? ` · ${a.width} × ${a.height} px` : ""} · uploaded by {a.createdByName ?? "unknown"}
+            {a.mimeType}, {bytes(a.byteSize)}
+            {a.width && a.height ? `, ${a.width} × ${a.height} px` : ""}, uploaded by {a.createdByName ?? "unknown"}
           </span>
         </span>
       }
@@ -469,20 +464,20 @@ function SelectedAsset({
               <figcaption className="text-credit">
                 {a.caption ?? "No caption."}
                 {a.credit ? ` ${a.credit}` : ""}
-                {a.licence ? ` · ${a.licence}` : ""}
+                {a.licence ? `, ${a.licence}` : ""}
               </figcaption>
             </figure>
           ) : null}
           <dl className="grid grid-cols-[8rem_minmax(0,1fr)] gap-x-3 gap-y-1">
-            <dt className="text-dl-label pt-0.5">Shown at</dt>
-            <dd className="text-dl-value tabular-nums">
+            <dt className="text-label pt-0.5">Shown at</dt>
+            <dd className="text-value tabular-nums">
               {edge === null ? "Unknown" : `${Math.min(edge, STUDY_FIGURE_CAP)} px long edge`}
               {edge !== null && edge < STUDY_FIGURE_CAP ? <span className="block text-danger">Below the {STUDY_FIGURE_CAP} px study cap</span> : null}
             </dd>
-            <dt className="text-dl-label pt-0.5">Public plate</dt>
-            <dd className="text-dl-value">{a.publicPlate ? "Cleared" : "No"}</dd>
-            <dt className="text-dl-label pt-0.5">Checksum</dt>
-            <dd className="text-dl-value min-w-0">
+            <dt className="text-label pt-0.5">Public plate</dt>
+            <dd className="text-value">{a.publicPlate ? "Cleared" : "No"}</dd>
+            <dt className="text-label pt-0.5">Checksum</dt>
+            <dd className="text-value min-w-0">
               <Mono>{a.sha256}</Mono>
             </dd>
           </dl>
@@ -501,7 +496,7 @@ function SelectedAsset({
         <div className="flex min-w-0 flex-col gap-8">
           {canUpload ? (
             <div className="flex flex-col gap-3">
-              <h3 className="text-eyebrow border-b border-rule pb-1">Metadata</h3>
+              <h3 className="text-label border-b border-rule pb-1">Metadata</h3>
               {a.verificationState === "verified" || a.verificationState === "published" ? <p className="text-body text-ink-2">Saving changes to a verified asset sends it back to review.</p> : null}
               <ActionForm action={updateAssetAction} submitLabel="Save metadata">
                 <input type="hidden" name="assetId" value={a.id} />
@@ -517,12 +512,12 @@ function SelectedAsset({
 
           {canReview && a.verificationState === "under_review" ? (
             <div className="flex flex-col gap-3">
-              <h3 className="text-eyebrow border-b border-rule pb-1">Review</h3>
+              <h3 className="text-label border-b border-rule pb-1">Review</h3>
               {ownWork ? <p className="text-body text-ink-2">You uploaded or last edited this asset, so another reviewer must verify it.</p> : null}
               <ActionForm action={reviewAssetAction} submitLabel="Record decision">
                 <input type="hidden" name="assetId" value={a.id} />
                 <fieldset className="flex min-w-0 flex-col">
-                  <legend className="text-dl-label mb-1">Decision</legend>
+                  <legend className="text-label mb-1">Decision</legend>
                   {(
                     [
                       ["verified", "Verify", ownWork],
@@ -538,7 +533,7 @@ function SelectedAsset({
                   ))}
                 </fieldset>
                 <fieldset className="flex min-w-0 flex-col">
-                  <legend className="text-dl-label mb-1">Evidence checked (all required to verify)</legend>
+                  <legend className="text-label mb-1">Evidence checked (all required to verify)</legend>
                   {MEDIA_EVIDENCE_CHECKS.map((c) => (
                     <label key={c} className={CHECK_ROW}>
                       <input type="checkbox" name="evidenceChecked" value={c} className={CHECK_BOX} />
@@ -557,7 +552,7 @@ function SelectedAsset({
           ) : null}
 
           <div className="flex flex-col gap-3">
-            <h3 className="text-eyebrow border-b border-rule pb-1">{titleCase("Linked concepts")}</h3>
+            <h3 className="text-label border-b border-rule pb-1">{titleCase("Linked concepts")}</h3>
             {a.links.length === 0 ? (
               <Empty>Not linked to any concept.</Empty>
             ) : (
@@ -570,10 +565,10 @@ function SelectedAsset({
                       </Link>
                       <span className="text-credit">
                         {roleLabel(l.role)}
-                        {l.role === "illustration" ? ` · after claim ${l.position + 1}` : ""}
-                        {l.traditionName ? ` · ${l.traditionName}` : ""} · {layerOf(l.conceptType)} layer
+                        {l.role === "illustration" ? `, after claim ${l.position + 1}` : ""}
+                        {l.traditionName ? `, ${l.traditionName}` : ""}, {layerOf(l.conceptType)} layer
                       </span>
-                      {l.role === "illustration" && l.anchorClaim ? <span className="text-body mt-1 max-w-[34rem] border-l-2 border-rule-strong pl-3 text-ink-2">{l.anchorClaim}</span> : null}
+                      {l.role === "illustration" && l.anchorClaim ? <span className="text-body mt-1 max-w-[34rem] bg-sunk px-3 py-1 text-ink-2">{l.anchorClaim}</span> : null}
                     </div>
                     {canUpload ? (
                       <ActionForm action={unlinkAssetAction} submitLabel="Remove link" submitVariant="outline" pendingLabel="Removing…">
@@ -616,11 +611,7 @@ function SelectedAsset({
                     <Label htmlFor={`link-anchor-${a.id}`}>Anchor claim</Label>
                     <Input
                       id={`link-anchor-${a.id}`}
-                      name="anchorClaim"
-                      type="number"
-                      inputMode="numeric"
-                      min={1}
-                      max={1000}
+                      name="anchorClaim" type="text" inputMode="numeric" pattern="[0-9]*"
                       defaultValue={1}
                       aria-describedby={`link-anchor-${a.id}-hint`}
                       className="tabular-nums"

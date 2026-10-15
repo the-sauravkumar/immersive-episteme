@@ -6,13 +6,14 @@
  * once the learning phase has ended.
  *
  * Chrome above content (DESIGN.md 6, 11.5): the AccessNotice slot (rendered by the gate), then the
- * StudyBar (56 px plus its 2 px rule, sticky under the notice). Nothing else stacks above the
- * content: the learning-task prompts sit in the left margin at wide widths and after a concept's
- * sheet at narrow ones (`LearningPromptsSlot`). The content column is the skip-link target.
+ * StudyBar (56 px plus its 1 px line, sticky under the notice). Below it, the spread (DR-021,
+ * spread.tsx): the shared PlaceRail, the index field and the sheet column. Nothing stacks above
+ * the content: the learning-task prompts sit at the top of the field from 1024 px (where the museum
+ * keeps them at the top left of the scene) and after a concept's sheet at narrower widths
+ * (`LearningPromptsSlot`). The sheet column is the skip-link target.
  */
 import type { ReactNode } from "react";
 
-import { StallCue } from "@/components/learning/guidance";
 import { LearningPhaseContent } from "@/components/learning/learning-phase";
 import { LearningTaskPrompts } from "@/components/learning/learning-task-prompts";
 import { LearningUnavailable } from "@/components/learning/learning-unavailable";
@@ -21,7 +22,8 @@ import { UnverifiedContentNotice } from "@/components/learning/unverified-conten
 import { learning2dContext, loadStudyBarIndex } from "../server/data";
 
 import { Learning2dSession, LearningPromptsSlot } from "./session";
-import { CONTENT_ID, Learning2dStudyBar } from "./site-header";
+import { Learning2dStudyBar } from "./site-header";
+import { Learning2dSpread, Rail2dProvider } from "./spread";
 
 export async function Learning2dFrame({ children }: { children: ReactNode }) {
   const result = await learning2dContext();
@@ -38,21 +40,17 @@ export async function Learning2dFrame({ children }: { children: ReactNode }) {
     >
       {/* The "under review" strip, in the notice slot above the StudyBar (DESIGN.md 9.15). */}
       {ctx.unverifiedContent ? <UnverifiedContentNotice /> : null}
-      <Learning2dStudyBar index={index} searchEnabled={ctx.features.search} />
-      <LearningPhaseContent>
-        {/* `relative`: the wide prompts column (LearningPromptsSlot) spans the content in the left margin. */}
-        <div id={CONTENT_ID} tabIndex={-1} className="relative outline-none">
-          {/* Protocol prompts (ctx.settings.learningPrompts): never above a concept's sheet (LearningPromptsSlot). */}
-          {prompts ? <LearningPromptsSlot position="before">{prompts}</LearningPromptsSlot> : null}
-          {children}
-          {prompts ? <LearningPromptsSlot position="after">{prompts}</LearningPromptsSlot> : null}
-        </div>
-        {/* Bottom right of the view, as in the 3D museum. The cue itself takes no condition-specific
-            class (P23: byte-identical DOM); the wrapper restores its pointer events, as in 3D. */}
-        <div className="pointer-events-none fixed right-4 bottom-4 z-40 flex flex-col items-end gap-2 [&>*]:pointer-events-auto">
-          <StallCue />
-        </div>
-      </LearningPhaseContent>
+      <Rail2dProvider>
+        <Learning2dStudyBar index={index} searchEnabled={ctx.features.search} />
+        <LearningPhaseContent>
+          <Learning2dSpread index={index} prompts={prompts}>
+            {/* Protocol prompts (ctx.settings.learningPrompts) below 1024 px: never above a concept's sheet (LearningPromptsSlot). */}
+            {prompts ? <LearningPromptsSlot position="before">{prompts}</LearningPromptsSlot> : null}
+            {children}
+            {prompts ? <LearningPromptsSlot position="after">{prompts}</LearningPromptsSlot> : null}
+          </Learning2dSpread>
+        </LearningPhaseContent>
+      </Rail2dProvider>
     </Learning2dSession>
   );
 }

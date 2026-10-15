@@ -14,7 +14,7 @@ import { useId, useRef, useState, type FormEvent } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { FileInput } from "@/components/ui/file-input";
 import { Label } from "@/components/ui/label";
 import { finalizeUploadAction, presignUploadAction } from "@/server/cms/media/actions";
 import { CircleAlert } from "lucide-react";
@@ -145,10 +145,9 @@ export function UploadForm({ mode, sources }: { mode: "local" | "s3"; sources: {
         <Label htmlFor={fileId}>
           File<span aria-hidden="true"> *</span>
         </Label>
-        <Input
+        <FileInput
           id={fileId}
           name="file"
-          type="file"
           required
           accept={ACCEPT}
           aria-describedby={`${fileId}-hint`}

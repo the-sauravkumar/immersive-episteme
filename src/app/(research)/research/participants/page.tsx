@@ -72,7 +72,7 @@ async function Participants({ searchParams }: { searchParams: Promise<Record<str
             <TableBody>
               {rows.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className="text-mono">{r.code}</TableCell>
+                  <TableCell className="text-id">{r.code}</TableCell>
                   <TableCell>{r.status.replace(/_/g, " ")}</TableCell>
                   <TableCell>{r.condition ?? <span className="text-ink-3">Not allocated</span>}</TableCell>
                   <TableCell>{r.stratum ?? "–"}</TableCell>

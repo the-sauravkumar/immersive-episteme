@@ -67,11 +67,11 @@ async function Scoring({ searchParams }: { searchParams: Promise<Record<string, 
                     <Link
                       href={`/research/scoring?ref=${r.id}`}
                       aria-current={current ? "page" : undefined}
-                      className="group/ref flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 border-l-[3px] border-transparent py-2 pl-3 font-sans text-[0.9375rem] leading-5 text-indigo hover:text-indigo-hover aria-[current=page]:border-indigo aria-[current=page]:font-semibold aria-[current=page]:text-ink"
+                      className="group/ref flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 font-sans text-base leading-6 text-indigo hover:text-indigo-hover aria-[current=page]:bg-wash aria-[current=page]:font-bold aria-[current=page]:text-ink"
                     >
                       {/* Only the text is underlined (a link is never colour alone, R-A4); the badge is not. */}
-                      <span className="underline decoration-1 underline-offset-[3px] group-hover/ref:decoration-2 group-aria-[current=page]/ref:no-underline">
-                        {r.assessmentTitle} <span className="tabular-nums">v{r.assessmentVersion}</span> · reference <span className="tabular-nums">v{r.version}</span>
+                      <span className="underline decoration-1 underline-offset-[0.2em] group-hover/ref:decoration-2 group-aria-[current=page]/ref:no-underline">
+                        {r.assessmentTitle} <span className="tabular-nums">v{r.assessmentVersion}</span>, reference <span className="tabular-nums">v{r.version}</span>
                       </span>
                       {current ? <span className="text-credit">Selected</span> : null}
                       {r.isDemo ? <DemoBadge label="Demo" /> : null}
@@ -111,7 +111,7 @@ async function Scoring({ searchParams }: { searchParams: Promise<Record<string, 
                 <TableBody>
                   {rows.map((r) => (
                     <TableRow key={r.conceptMapId}>
-                      <TableCell className="text-mono">{r.participantCode}</TableCell>
+                      <TableCell className="text-id">{r.participantCode}</TableCell>
                       <TableCell>{r.condition === "immersive_3d" ? "3D" : "2D"}</TableCell>
                       <TableCell>{r.phase}</TableCell>
                       <TableCell numeric>{r.edgeCount}</TableCell>

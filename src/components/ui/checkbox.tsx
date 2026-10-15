@@ -1,41 +1,37 @@
-"use client"
-
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { Checkbox as CheckboxPrimitive } from "radix-ui"
-import { CheckIcon } from "lucide-react"
 
 /*
- * Checkbox (DESIGN.md 9.5): a 20 px box with a 1 px --rule-strong boundary and a 44 x 44 hit area
- * (the ::after extends 12 px on every side). Checked is an --indigo fill with an --on-indigo mark,
- * so on a selected --wash row the boundary stays at least 3:1 (indigo on wash 8.25 light, 7.01
- * dark). An unchecked control is never shown on --wash (rule-strong on dark wash is 2.82).
- * Callers put it inside a full-row label with a 44 px minimum height.
+ * Checkbox and radio (DESIGN.md 9.6): the native input, restyled (globals.css `.ie-check`). 20 px,
+ * a 1.5 px --rule-strong border; checked = --indigo fill with a drawn --on-indigo tick (a radio
+ * gets an indigo ring and dot). Native semantics, keyboard and form participation are unchanged;
+ * forced colours revert to `appearance: auto`. Callers put it inside a full-row label of at least
+ * 44 px (56 px for study options), so the label carries the target. `CHECK_CLASS` is the same
+ * skin for call sites that render the input themselves.
  */
-function Checkbox({
-  className,
-  ...props
-}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+const CHECK_CLASS = "ie-check"
+
+function Checkbox({ className, ...props }: Omit<React.ComponentProps<"input">, "type">) {
+  return <input type="checkbox" data-slot="checkbox" className={cn(CHECK_CLASS, className)} {...props} />
+}
+
+function Radio({ className, ...props }: Omit<React.ComponentProps<"input">, "type">) {
+  return <input type="radio" data-slot="radio" className={cn(CHECK_CLASS, className)} {...props} />
+}
+
+/**
+ * A full-row option (9.6): a label of at least 44 px around a checkbox or radio; when checked the
+ * row turns --wash and shows the word "Selected" (its space is reserved, so nothing shifts).
+ */
+function OptionRow({ className, children, ...props }: React.ComponentProps<"label">) {
   return (
-    <CheckboxPrimitive.Root
-      data-slot="checkbox"
-      className={cn(
-        "peer relative flex size-5 shrink-0 items-center justify-center rounded-[2px] border border-rule-strong bg-surface after:absolute after:-inset-3 after:content-['']",
-        "disabled:cursor-not-allowed disabled:border-rule disabled:bg-sunk",
-        "aria-invalid:border-danger",
-        "data-checked:border-indigo data-checked:bg-indigo data-checked:text-on-indigo",
-        className
-      )}
-      {...props}
-    >
-      <CheckboxPrimitive.Indicator
-        data-slot="checkbox-indicator"
-        className="grid place-content-center text-current [&>svg]:size-4 [&>svg]:stroke-[2.5]"
-      >
-        <CheckIcon aria-hidden="true" />
-      </CheckboxPrimitive.Indicator>
-    </CheckboxPrimitive.Root>
+    <label data-slot="option-row" className={cn("ie-option", className)} {...props}>
+      {children}
+      <span aria-hidden="true" className="ie-option__selected text-ui">
+        Selected
+      </span>
+    </label>
   )
 }
 
-export { Checkbox }
+export { Checkbox, Radio, OptionRow, CHECK_CLASS }

@@ -5,7 +5,7 @@
  *
  *  - `SheetTitle`: the concept h1 (`text-title`, `tabindex="-1"`). When a concept opens, focus
  *    moves to it in BOTH conditions (2D after navigation, 3D on panel open; parity check P27), so
- *    the keyboard path from the title to the first claim and CitationNote is identical (P13).
+ *    the keyboard path from the title to the first claim and citation marker is identical (P13).
  *  - `SheetProgress`: the 2 px `--ink` on `--rule` reading-progress bar under the header row,
  *    `role="progressbar"`, no transition. It measures the sheet's own scroll container, found the
  *    same way in both placements: the nearest scrollable ancestor (the 3D panel), else the window

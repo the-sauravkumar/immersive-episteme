@@ -1,8 +1,9 @@
 /**
  * About (DESIGN.md 11.2), in the editorial frame. Sections in order: Purpose; Method with Figure 2
  * (the study flow); Equivalence; Dataset and Citation Standard; Images and Licences; Data
- * Protection. A section with no verified content is omitted entirely (13): Team and Affiliations,
- * Ethics, How to Cite and Contact appear only once `src/config/institution.ts` supplies them.
+ * Protection; Team and Affiliations; Ethics; How to Cite; Contact. A section with no verified
+ * content is omitted entirely (13): the last four render only what `src/config/institution.ts`
+ * supplies, through the same components as the study's information and consent page.
  *
  * Facts about the platform come from the code that implements them (the study engine's default
  * order, the stored parity report, the live dataset); statements about the craft appear only as
@@ -18,9 +19,11 @@ import { DatasetTable } from "@/components/public/dataset-table";
 import { EditorialFrame, EditorialRow, EditorialSection, Prose } from "@/components/public/editorial-frame";
 import { formatCount } from "@/components/public/figure-one";
 import { PullQuote } from "@/components/public/pull-quote";
+import { AffiliationList, CitationText, ContactLink, TeamList } from "@/components/public/team-and-ethics";
 import { Sidenote } from "@/components/public/sidenote";
 import { EquivalenceMonitor } from "@/components/parity/equivalence-monitor";
 import { PageHeader } from "@/components/shell/page-header";
+import { howToCite, INSTITUTION } from "@/config/institution";
 import { BLIND_STEPS, DEFAULT_STEPS, NEW_STUDY_CONFIG, STEP_LABEL, type StudyStep } from "@/server/study/config";
 import { studyConfigSchema } from "@/features/study/contracts";
 import { getDatasetStats, getImageCredits, getInterfaceParityReport, getPullQuoteClaim } from "@/server/public/dataset-stats";
@@ -32,9 +35,9 @@ const STRUCTURE_DIAGRAMS_BY_DEFAULT = studyConfigSchema.shape.figures.parse(unde
 
 /** A link on its own line: a 44 px target (DESIGN.md 9.1). */
 const STANDALONE =
-  "inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[3px] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-indigo-hover hover:decoration-2";
+  "inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[0.2em] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-indigo-hover hover:decoration-2";
 const LINK =
-  "text-indigo underline decoration-1 underline-offset-[3px] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-indigo-hover hover:decoration-2";
+  "text-indigo underline decoration-1 underline-offset-[0.2em] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-indigo-hover hover:decoration-2";
 
 // ---- Figure 2: the default study flow, derived from the study engine's default order ----------
 
@@ -120,12 +123,12 @@ function FigureTwo() {
   const tall = flowDiagram(true);
   return (
     <figure className="flex flex-col gap-3">
-      <div className="border border-rule bg-surface p-4">
+      <div className="bg-sunk p-4">
         <OutlineDiagram {...wide} className="mx-auto hidden lg:block" />
         <OutlineDiagram {...tall} className="mx-auto max-w-[20rem] lg:hidden" />
       </div>
       <figcaption className="text-caption">
-        <span className="font-semibold text-madder hc:text-ink">{chartFigureLabel(2)}.</span> The default order of a new study in the study engine. Every
+        <span className="font-bold text-ink">{chartFigureLabel(2)}.</span> The default order of a new study in the study engine. Every
         participant takes the same steps; only the learning step differs by condition.
       </figcaption>
     </figure>
@@ -225,7 +228,7 @@ async function ImageCreditsLive() {
           <li key={c.id} className="text-body flex flex-col gap-1 py-3">
             <span className="font-semibold text-ink">{c.title}</span>
             <span className="text-credit">
-              {c.credit} ·{" "}
+              {c.credit}. Licence:{" "}
               {c.licenceUrl ? (
                 <a href={c.licenceUrl} className={LINK} rel="noopener noreferrer" target="_blank">
                   {c.licence}
@@ -247,7 +250,6 @@ export default function AboutPage() {
     <div className="flex flex-col gap-12">
       <PageHeader
         className="mb-0"
-        eyebrow="About"
         title="About the project"
         description="A research platform comparing how people learn craft knowledge through conventional pages and through a spatially organised museum."
       />
@@ -348,6 +350,42 @@ export default function AboutPage() {
             </Link>
           </EditorialRow>
         </EditorialSection>
+
+        {INSTITUTION.authors.length > 0 ? (
+          <EditorialSection id="team" title="Team and affiliations">
+            <EditorialRow>
+              <TeamList institution={INSTITUTION} />
+              <AffiliationList institution={INSTITUTION} />
+            </EditorialRow>
+          </EditorialSection>
+        ) : null}
+
+        {INSTITUTION.ethicsReference?.trim() ? (
+          <EditorialSection id="ethics" title="Ethics">
+            <EditorialRow>
+              <Prose>Ethics approval for the study: {INSTITUTION.ethicsReference.trim()}. Participants read the study information and give consent before taking part, and may withdraw during the study.</Prose>
+            </EditorialRow>
+          </EditorialSection>
+        ) : null}
+
+        {howToCite(INSTITUTION) ? (
+          <EditorialSection id="how-to-cite" title="How to cite">
+            <EditorialRow>
+              {INSTITUTION.paperCitation ? null : <Prose>Until the paper is published, please cite the platform:</Prose>}
+              <CitationText institution={INSTITUTION} />
+            </EditorialRow>
+          </EditorialSection>
+        ) : null}
+
+        {INSTITUTION.contact?.trim() ? (
+          <EditorialSection id="contact" title="Contact">
+            <EditorialRow>
+              <Prose>
+                For questions about the project or the study, write to <ContactLink institution={INSTITUTION} />.
+              </Prose>
+            </EditorialRow>
+          </EditorialSection>
+        ) : null}
       </EditorialFrame>
     </div>
   );

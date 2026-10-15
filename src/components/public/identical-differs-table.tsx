@@ -17,7 +17,7 @@ const IDENTICAL: readonly [string, string][] = [
 
 const DIFFERS: readonly [string, string][] = [
   ["Spatial organisation", "2D: pages and sections. 3D: rooms of a walkable museum"],
-  ["Navigation", "2D: contents and links. 3D: walking, the plan and links that walk to exhibits"],
+  ["Navigation", "2D: the section list, the index and links. 3D: walking, the plan, the room list and links that walk to exhibits"],
 ];
 
 function Group({ head, rows }: { head: string; rows: readonly [string, string][] }) {
@@ -30,7 +30,7 @@ function Group({ head, rows }: { head: string; rows: readonly [string, string][]
       </TableRow>
       {rows.map(([aspect, how]) => (
         <TableRow key={aspect}>
-          <TableHead scope="row" className="h-11 py-2 align-top font-sans text-sm font-medium tracking-normal text-ink normal-case whitespace-normal">
+          <TableHead scope="row" className="h-11 py-2 align-top text-table font-bold text-ink whitespace-normal">
             {aspect}
           </TableHead>
           <TableCell className="align-top whitespace-normal text-ink-2">{how}</TableCell>

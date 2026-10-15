@@ -8,6 +8,7 @@
  * Client-safe (pure data and pure functions).
  */
 import { GUIDANCE_TEXT } from "./guidance";
+import { CONCEPT_TYPE_LABELS, humanise } from "./labels";
 
 export { GUIDANCE_TEXT };
 
@@ -25,34 +26,39 @@ export const SHEET_TEXT = {
   readingProgress: "Reading progress",
   layersLabel: "Information layers",
   metaLabel: "About this concept",
-  meta: { localTerms: "Local Terms", tradition: "Tradition", category: "Category", status: "Status" },
+  /** Metadata labels: sentence case (DESIGN.md 6.3 `text-label`). */
+  meta: { localTerms: "Local terms", tradition: "Tradition", category: "Category", step: "Step" },
   pagerLabel: "Previous and next",
   previous: "Previous",
   next: "Next",
   close: "Close",
 } as const;
 
-/** "Step 3 of 9" (tabular in the eyebrow). */
+/** "Step 3 of 9" (tabular). */
 export function stepOf(index: number, total: number): string {
   return `Step ${index} of ${total}`;
 }
 
-/** The citation note and record (DESIGN.md 9.8). */
+/** "3 of 9": the value of the sheet's Step metadata row (DR-022: a row, not an eyebrow). */
+export function stepValue(index: number, total: number): string {
+  return `${index} of ${total}`;
+}
+
+/** The citation markers, records and reference list (DESIGN.md 9.9; DR-022 Addendum A). */
 export const CITATION_TEXT = {
+  /** Start of a marker's accessible name ("Source 1: ...") and of the record's head ("Source 1"). */
   source: "Source",
-  detailsLabel: "Source details",
+  /** The visible label over the verbatim evidence (DR-022: names what the block is). */
+  verbatim: "Verbatim from the source",
   passagesLabel: "Supporting passages",
   note: "Note:",
   open: "Open the source",
   newTab: "(opens in a new tab)",
-  rows: {
-    title: "Title",
-    author: "Author",
-    publisher: "Publisher",
-    year: "Year",
-    locator: "Locator",
-    kind: "Kind of Source",
-    reliability: "Reliability",
+  /** The deduplicated reference list at the end of the sheet. */
+  reference: {
+    heading: "References",
+    kind: "Kind of source:",
+    reliability: "Reliability:",
     accessed: "Accessed",
   },
 } as const;
@@ -64,7 +70,9 @@ export const FIGURE_TEXT = {
   close: "Close",
   /** Credit line of a graph-derived diagram (DR-018). */
   diagramCredit: (snapshotLabel: string) => `Diagram generated from the project's knowledge graph (snapshot ${snapshotLabel})`,
-  photoCredit: (credit: string) => `Photo: ${credit}`,
+  /** "Photo: © Victoria and Albert Museum, London.": the credit as a sentence; the licence follows. */
+  photoCredit: (credit: string) => `Photo: ${credit.trim().replace(/\.$/, "")}.`,
+  licenceLabel: "Licence:",
 } as const;
 
 /** Shared learning-phase wording (timer, finish, hand-back), identical in both conditions. */
@@ -97,15 +105,45 @@ export const STUDY_BAR_TEXT = {
   barLabel: "Study controls",
   sharedGroupLabel: "Learning controls",
   conditionGroupLabel: "Navigation",
-  /** 2D condition group. */
+  /** 2D condition group: Contents (the index, under 1024 px only) and Search (when the study enables it). */
   contents: "Contents",
   search: "Search",
-  upTo: (parent: string) => `Up to ${parent}`,
   /** 3D condition group. */
   plan: "Plan",
   controlsHelp: "Controls help",
   mouseLook: "Mouse look",
   pause: "Pause",
+} as const;
+
+/**
+ * The shared PlaceRail (DR-021): ONE component in both conditions, so its words are shared too.
+ * Only the heading names the condition's place ("In This Section" in 2D, "In This Room" in 3D),
+ * and it is also the label of the StudyBar button that opens the rail while it is hidden.
+ */
+export const RAIL_TEXT = {
+  heading: { "2d": "In This Section", immersive: "In This Room" },
+  leadsTo: "Leads To",
+  youAreHere: "You are here",
+  visited: "Visited",
+  hide: "Hide",
+  /** No concept or exhibit in the current place (the index or the lobby): only its destinations. */
+  empty: "Choose where to go next.",
+} as const;
+
+/**
+ * The second line of a rail row: the concept type and, for a station of an ordered sequence, its
+ * step ("Process stage, step 3 of 14"). Titles, types and steps only (P29: no claim text).
+ */
+export function railDetail(type: string, step: { index: number; total: number } | null): string {
+  const label = (CONCEPT_TYPE_LABELS as Record<string, string>)[type] ?? humanise(type);
+  return step ? `${label}, step ${step.index} of ${step.total}` : label;
+}
+
+/** The 2D index field (DR-021): the study's traditions and their numbered sections, a list. */
+export const INDEX_TEXT = {
+  label: "Index",
+  youAreHere: "You are here",
+  browse: "Browse",
 } as const;
 
 /**
@@ -124,14 +162,28 @@ export const ONBOARDING_TEXT = {
       ? `There is no time limit. Use Finish in the top bar when you are done.`
       : `You have ${minutes} ${minutes === 1 ? "minute" : "minutes"} for this ${kind === "learning" ? "task" : "practice"}. Time left in the top bar shows what remains.`,
   hint: "Hint, in the top bar, opens a short hint from the researchers. It stays open beside the content until you close it.",
-  citation: "Under every statement, Source opens the record it comes from, with the exact quote. Press Escape to close it.",
+  citation: "After every statement, a number in brackets such as [1] opens where it comes from, with the exact quote. Select it again or press Escape to close it.",
   figure: "Enlarge, under a figure, shows it full size. Close or Escape takes you back.",
   movement: {
-    "2d": "Contents, in the top bar, lists the traditions and their sections. Select a concept to open its page. Links at the end of a page lead to related concepts, and Previous and Next to its neighbours.",
-    immersive: "Plan, in the top bar, shows the rooms. Walk with W and S or ↑ and ↓, turn with A and D or ← and →, and drag to look around. Select an exhibit to open its panel; its links walk you to related exhibits.",
+    "2d": "In This Section, on the left, lists the concepts of the section you are in, and the index beside it lists every section. Select a concept to open it, and Close to put it away. Its links lead to related concepts, and Previous and Next to its neighbours.",
+    // The one key map and all three look methods, each named once and equally (no method first as "the" way).
+    immersive: "Walk with W and S or ↑ and ↓; turn with A and D or ← and →. To look around, drag with the mouse, hold the right button, or press L for free look. Plan, in the top bar, shows the rooms. Select an exhibit to open its panel.",
   },
   keyLabel: "The controls in the top bar",
   start: "Start",
+} as const;
+
+/**
+ * The familiarisation practice's own instruction (study decision D5), one per condition and written
+ * to the same length (within 10% of words, like the onboarding movement step). The 3D version names
+ * the one key map and the three look methods equally, so the practice room exercises each of them;
+ * the practice room's panel text reads it (src/features/immersive/practice-room.ts).
+ */
+export const PRACTICE_TEXT = {
+  tryControls: {
+    "2d": "Try each control of the learning pages: open an item from In This Section or the index, switch its tabs, open a citation number and Enlarge under the figure, follow a link, use Previous and Next, then Close it.",
+    immersive: "Try each control of the museum: walk with W and S, turn with A and D, then look around by dragging, by holding the right button and with L for free look. Open an exhibit and a citation number, then close it.",
+  },
 } as const;
 
 /** The "under review" notice (AccessNotice slot, DESIGN.md 9.15), identical in both conditions. */
@@ -177,7 +229,7 @@ export const ACCESS_NOTICE_TEXT = {
     review: {
       long: "Demo: not recorded as study data. Some content is under review and not yet verified.",
       medium: "Demo: not study data. Content under review.",
-      short: "Demo · under review",
+      short: "Demo, under review",
     },
   },
   preview: {
@@ -189,7 +241,7 @@ export const ACCESS_NOTICE_TEXT = {
     review: {
       long: "Staff preview: not recorded as study data. Some content is under review and not yet verified.",
       medium: "Staff preview: not study data. Content under review.",
-      short: "Preview · under review",
+      short: "Preview, under review",
     },
   },
 } as const;
@@ -216,8 +268,8 @@ export const PANEL_TEXT = {
   notInSnapshot: "This concept is not in the current snapshot.",
 } as const;
 
-/** "In this room" (the room contents list). */
-export const ROOM_TEXT = { label: "In this room", doorways: "Doorways", dismiss: "Dismiss" } as const;
+/** The museum's cue notes. */
+export const ROOM_TEXT = { dismiss: "Dismiss" } as const;
 
 /** The minimap and the full plan dialog (DESIGN.md 11.6). */
 export const PLAN_TEXT = {
@@ -270,11 +322,11 @@ export const SCREEN_TEXT = {
     mouseLook: "Look while walking",
     mouseLookHow: "Hold the right mouse button and move the mouse; release to click again",
     freeLook: "Look without holding a button",
-    freeLookHow: "Press L or select Mouse look, then move the mouse or touchpad; a click acts on the crosshair. Esc or L to stop",
+    freeLookHow: "Press L, then move the mouse or touchpad; a click acts on the crosshair. Esc or L to stop",
     go: "Go somewhere",
     goHow: "Click or tap the floor",
     exhibits: "Exhibits",
-    exhibitsHow: "Click a wall panel, or use “In this room” to choose one with the keyboard",
+    exhibitsHow: "Click a wall panel, or use “In This Room” to choose one with the keyboard",
     close: "Close a panel",
   },
 } as const;

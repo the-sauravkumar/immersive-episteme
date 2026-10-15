@@ -49,7 +49,7 @@ async function Overview() {
         eyebrow="Confound control"
         title="Equivalence Monitor"
         demo={active.some((s) => s.isDemo)}
-        description="The stored parity runs only: the interface checks P1-P27 from the latest committed run, and the latest content parity report of each active study. Nothing here is estimated or sampled."
+        description="The stored parity runs only: the interface checks P1-P33 from the latest committed run, and the latest content parity report of each active study. Nothing here is estimated or sampled."
         actions={
           <Link href="/research/parity" className={LINK_44}>
             Open parity checks
@@ -106,7 +106,7 @@ async function Overview() {
                       {s.title}
                     </Link>
                     <span className="mt-1 flex flex-wrap items-center gap-2 text-ink-3">
-                      <span className="text-mono">{s.slug}</span>
+                      <span className="text-id">{s.slug}</span>
                       <span className="text-credit">protocol {s.protocolVersion}</span>
                       {s.isDemo ? <DemoBadge label="Demo" /> : null}
                     </span>

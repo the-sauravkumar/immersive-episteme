@@ -1,8 +1,10 @@
-# Immersive Episteme Design System: Apparatus
+# Immersive Episteme Design System: Atlas
 
 This file specifies the visual and interaction design of every surface of Immersive Episteme. It is the spec that implementation work packages (section 18) build against. When code and this file disagree, this file wins until a decision record says otherwise.
 
-Read with: `docs/decisions/0001-stack-and-foundation.md`, `docs/architecture/immersive-rendering-quality.md`, `AGENTS.md`.
+**Status.** Atlas (DR-022) replaces the Apparatus system of the first rebuild. It was chosen by a gate-ordered adversarial judgement of three directions (equivalence, then ease of use, then accessibility, then craft), with the project lead's approval of the ten open questions (DR-021 to DR-023). It is **Proposed: the researchers and the methodologist sign it off before any participant data is collected.** The full evidence, the rejected options and the computations are in the design-research proposal (`DESIGN-v2-proposal.md`, design scratchpad), cited below by its IDs.
+
+Read with: `docs/decisions/0001-stack-and-foundation.md`, `docs/architecture/immersive-rendering-quality.md`, `docs/research/design-process/decisions.md` (DR-019, DR-021 to DR-023), `AGENTS.md`.
 
 ---
 
@@ -10,15 +12,21 @@ Read with: `docs/decisions/0001-stack-and-foundation.md`, `docs/architecture/imm
 
 Immersive Episteme exists to answer one question fairly: does learning the same cited knowledge in a 3D museum differ from learning it in conventional 2D pages? The interface must therefore be good in a specific way. It must be impressive enough that the project reads as serious, finished research, and neutral enough that no 2D-versus-3D difference can be blamed on the interface. Media comparison studies are criticised precisely because they "fail to control for instructional method" (R-L10). This design treats that criticism as its brief.
 
-The system is called **Apparatus**, after the scholarly-edition term for the notes and sources printed with a text. The product's strongest existing trait is that every sentence is cited. Apparatus makes that the identity:
+The order of judgement is fixed, and style never overrides it:
 
-- **Every claim is numbered and carries its source line**, and the verbatim quote behind it is set as large as the claim. The evidence is never visually smaller than the statement it supports.
-- **One knowledge sheet, two placements.** The 2D page column and the 3D information panel are the same React components, the same typography tokens, the same opaque cloth ground and the same measure. Only the spatial organisation around them differs, which is the experimental manipulation and nothing else. This is the craft's own logic: in Ajrakh the borders are fixed and "Only the motif in the centre of the cloth may be changed" (R-C11).
-- **Craft as structure, not costume.** The graphic language comes from what all three study traditions share: the carved block (R-C18), its visible footprint (R-C7), registered layers (R-C8) and its corner registration marks (R-C9). It never uses one tradition's motifs or colour signature, because those carry identity (R-C1, R-C6, R-C10, R-C12, R-C14) and would make one tradition more salient.
-- **Character where it is safe.** Public pages, the research console, the dashboard and the CMS get the indigo knock-out band, registration-ticked photographic plates, outline-then-fill diagrams, booktabs tables and a live Equivalence Monitor. Study pages get none of that; their quality comes from measure, rhythm, numerals and rules, which are identical in both conditions by construction.
-- **Equivalence is visible.** The parity checks are not hidden tests. Their real results appear as an Equivalence Monitor in the research console and on the public Colophon, so a reviewer can audit that the interface is not a confound.
+1. **2D vs 3D equivalence**, the core theme: the knowledge presentation is identical, no tradition is more salient, and navigation is the only manipulated difference.
+2. **Ease of use** for non-gamers and novices: the core tasks need no extra steps, controls stay discoverable.
+3. **Accessibility**: WCAG 2.2 AA, 44 px targets, keyboard paths, reduced motion, low-spec performance.
 
-It answers the user's feedback ("boring and vibe-coded") with rigour rather than decoration. Learners in study mode see a calm, beautifully set reading surface; visitors and reviewers see an instrument that shows its own controls.
+Only then is the craft judged: research grade, polished and impressive, with none of the tells of a template or an AI-generated interface (DR-022).
+
+The system is called **Atlas**: the platform is set like a two-plate printed atlas. White paper carries knowledge, and only knowledge; a neutral grey field carries navigation; black is the ink; one indigo means "you can act on this". Hierarchy comes from planes and type, not from rules, ornament or uppercase.
+
+- **Every claim is numbered and carries its source**, and the verbatim evidence behind it is set at claim size, labelled and on its own mat. The evidence is never visually smaller than the statement it supports.
+- **One knowledge sheet, two placements.** The 2D page and the 3D information panel use the same React components, the same tokens, the same white paper and the same measure. Only the spatial organisation around them differs, which is the experimental manipulation and nothing else.
+- **No costume.** No craft motif, colour signature, pattern or marker is used anywhere, in any zone: those carry one tradition's identity (R-C1, R-C6, R-C10, R-C12, R-C14, R-C16) and would make it more salient. The Apparatus band, ticks and tradition marker are removed (DR-022).
+- **Boldness in one place.** The public Figure 1 is one indigo knock-out plate carrying live data; nothing else on the platform competes with it.
+- **Equivalence is visible.** The parity checks are not hidden tests. Their real results appear as the Equivalence Monitor in the research console, on the public home and on the Colophon.
 
 ---
 
@@ -134,36 +142,70 @@ Every research-backed decision below cites a finding by ID. Each finding gives t
 | R-H8 | Labels in a consistent location. | Smithsonian Guidelines (as R-H7), PDF p. 30 | "Labels that appear in a different location at each work of art or within each case are difficult to find for people with low vision and people with cognitive disabilities." |
 | R-H9 | Visitors want bigger pictures (public pages may be image-forward). | V&A Digital blog, "Announcing Explore the Collections", https://www.vam.ac.uk/blog/digital/announcing-explore-the-collections, body | "Our user research revealed that people wanted more and bigger pictures." |
 
-### 2.6 Decisions Taken Without Research Support
+### 2.6 Sources Added for Atlas (DR-022)
+
+Read first-hand for the design-research proposal; each quote was matched in the downloaded text. Bracketed IDs elsewhere in this file (`[N-…]`, `[U-…]`, `[tells …]`, `[mus …]`, `[E-n]`, `[audit …]`) point to the proposal's evidence register (section 15) and its six verified research reports.
+
+| ID | Source and locator | Verbatim quote |
+|---|---|---|
+| N-AHN | google/fonts `ofl/atkinsonhyperlegiblenext/METADATA.pb` and `OFL.txt`; googlefonts/atkinson-hyperlegible-next `README.md`, para. 1 | "This Font Software is licensed under the SIL Open Font License, Version 1.1." / "Atkinson Hyperlegible, named after the founder of the Braille Institute, has been developed specifically to increase legibility for readers with low vision, and to improve comprehension." |
+| N-ANEK | EkType/Anek `README.md`, intro and § License; google/fonts `ofl/aneklatin/METADATA.pb` | "a collective of type designers based in Mumbai focused on designing contemporary Indian typefaces" / "Anek is licensed under the SIL Open Font License v1.1" |
+| N-322 | W3C, Understanding SC 3.2.2 On Input, SC text and Sufficient Techniques | "Changing the setting of any user interface component does not automatically cause a change of context unless the user has been advised of the behavior before using the component." / "H84: Using a button with a select element to perform an action" |
+| N-FC | MDN, "forced-colors", Usage notes | "In forced colors mode, the values of the following properties are treated as if they have no author-level values specified." / "box-shadow is forced to 'none'" |
+| N-AXE | Deque, axe-core 4.10 rule `scrollable-region-focusable` | "Scrollable region must have keyboard access" / "User Impact: Serious" |
+| N-BDA | British Dyslexia Association, "Dyslexia friendly style guide" (secondary copy; corroborated by the University of Exeter) | "Avoid underlining and italics as this can make the text appear to run together and cause crowding. Use bold for emphasis." |
+| U-M4 | Dyson 2004, § 8 | "line length in characters per line should either remain constant or be systematically varied." |
+| U-F1 | W3C, Using ARIA, § 2.1 | "If you can use a native HTML element … then do so." |
+| U-N1 | Pernice and Budiu, NN/g, 26 June 2016, intro | "Hidden navigation provides a worse user experience than visible or partially visible navigation does, in both mobile phones and desktop user interfaces." |
+| tells A1 | Anthropic `frontend-design` SKILL.md, § "Process" and § "Restraint and self-critique" | "a warm cream background (near #F4F1EA) with a high-contrast serif display and a terracotta or warm-clay accent" / "Spend your boldness in one place." |
+| tells A5 | Humble, Fountain Institute, §§ 5 to 7 | "Most content does not need a box around it." / "If a dot requires explanation, a text label was probably the right call." |
+
+### 2.7 Decisions Taken Without Research Support
 
 These are design judgements, labelled as such:
 
-- **Source Serif 4 for headings, Inter for claims.** R-L13 classes typeface as a minor variable and no finding favours serif or sans for learning. Claims stay in Inter (as today) so the study baseline changes as little as possible; parity, not the face, protects validity.
-- **Indigo as the single interactive accent.** Indigo appears in the documented processes of Ajrakh, Sanganeri, Bagru, Dabu and Kalamkari in the dataset (materials and explanations), so as a flat UI colour without star geometry (R-C12) it is not one tradition's marker. Never paired with madder as a brand duo (R-C13).
-- **Square-cut geometry** (2-3 px radii). An aesthetic reference to the carved block's square footprint (a design judgement; R-C7 supports only that the footprint is visible); R-L13 says corner shape is minor.
+- **The planes metaphor** (white = knowledge, grey = navigation). It is a role system; no source tests it.
+- **The right-docked reading column** (DR-021). No source tests reading speed for a right-docked column. It is identical in both conditions; pilot it.
+- **Anek Latin on public pages.** That its forms suit the project is a judgement; its provenance (an Indian foundry) is a fact (N-ANEK).
+- **Radius by role:** 0 for docked surfaces, 4 px for hand-held controls, 2 px for badges. R-L13 classes corner shape as a minor variable.
+- **Indigo as the single interactive colour.** Indigo appears in the documented processes of several traditions, so as a flat interface colour without star geometry (R-C12) it is not one tradition's marker. It is 5.29 ΔE (CIEDE2000) from its nearest Tailwind colour, so it does not read as a framework default (proposal 5.4).
 
 ---
 
 ## 3. Design Thesis
 
-Treat the platform as a **critical edition**: one body of cited knowledge, typeset under one strict system, presented through two placements. Research grade comes from precision (measure, rhythm, numbering, rules, honest figures and tables), never from ornament. Character comes from the craft's shared structure (block module, registration, outline-then-fill, protected white space) and is spent only where it cannot touch a study result.
-
-Three zones, three levels of expression:
+### 3.1 Zones
 
 | Zone | Routes | Expression |
 |---|---|---|
-| Study | `/learn/2d/*`, `/learn/immersive`, `/study/*` | Typography, rules and indigo only. Zero motion. No pattern, ticks, madder, ochre or imagery other than knowledge figures. Identical in both conditions by construction (one component set). |
-| Console | `/research/*`, `/cms/*`, `/admin/*` | Booktabs tables, numbered figures, the Equivalence Monitor, a 48 px knock-out header band (research only), functional motion. No madder. |
-| Public | `/`, `/about`, `/about/colophon`, `/explore`, `/accessibility`, `/privacy`, `/sign-in`, `/sign-out`, `/forbidden` | Full character: knock-out band, registration-ticked photographic plates, outline-then-fill diagrams, madder and ochre accents, one draw-on diagram. |
+| Study (both conditions) | `/learn/2d/*`, `/learn/immersive`, `/study/*` | Paper, field, ink and indigo only. Atkinson Hyperlegible Next only. Zero motion. No pattern, imagery or emphasis other than knowledge figures. Identical by construction (one component set). |
+| Console, CMS, admin | `/research/*`, `/cms/*`, `/admin/*` | The same tokens, booktabs tables, numbered figures, the Equivalence Monitor. Functional motion of 120 to 150 ms opacity. No band. |
+| Public | `/`, `/about`, `/about/colophon`, `/explore`, `/accessibility`, `/privacy`, `/sign-in`, `/sign-out`, `/forbidden` | The above, plus Anek Latin display type, the Figure 1 indigo plate and sidenotes in a working margin. No motion beyond the link underline. |
 
-The memorable signatures, named exactly:
+### 3.2 The Memorable Signatures
 
-1. **Numbered claims with a source line under each**, the number hanging in the margin (study, both conditions).
-2. **The evidence is as large as the claim**: the verbatim quote in the citation record is set at claim size in Source Serif 4 with a 2 px indigo rule (study, both conditions).
-3. **Figure 1, "One Knowledge Model, Two Conditions"**: a live outline-then-fill diagram on the home page drawn from real database counts, with a table of what is identical and what differs.
-4. **Registration-ticked plates**: licence-checked photographs framed by four corner registration ticks (R-C9) on public pages.
-5. **The indigo knock-out band**: neutral block-module geometry reversed out of indigo, as resist protects white (R-C22).
-6. **The Equivalence Monitor**: the measured parity checks (2D value, 3D value, delta, tolerance, status), fed only by real CI runs, in the console and on the Colophon.
+All functional:
+
+1. hanging claim numbers;
+2. the verbatim evidence at claim size, labelled "Verbatim from the source" and set on its mat;
+3. the identical spread in both conditions: navigation left, the same sheet right (DR-021);
+4. the public Figure 1 as one indigo knock-out plate carrying live data;
+5. a 3D gallery that reads as built architecture (DR-023);
+6. the Equivalence Monitor.
+
+### 3.3 Removed Everywhere (DR-022)
+
+- the cream family `#F5F1E8` [tells C1];
+- Source Serif 4 and Inter [tells C1, C9];
+- madder, ochre, ochre-deco and the knock-out band [tells C1, C8];
+- registration ticks;
+- tracked uppercase eyebrows and labels, `" · "` joins, monospace as a data voice, "→" in interface text [tells C2];
+- left-edge accent bars [tells C5];
+- the neutral tradition marker [tells A5];
+- the hero "headline + two buttons + card" formula and stat tiles [tells C6];
+- drop shadows [tells A1].
+
+Rules remain only for booktabs tables and docked pane edges [tells C3].
 
 ---
 
@@ -171,349 +213,258 @@ The memorable signatures, named exactly:
 
 ### 4.1 Rules for the Token File
 
-- All tokens live in `src/app/globals.css`. Colour values stay as hex or `rgb(r g b / a)` literals inside flat `:root`, `.dark`, `.a11y-contrast` and the new `.dark.a11y-contrast` blocks, because `tests/unit/contrast.test.ts` parses them with regexes. WP0 extends the test parser to the new dark high-contrast block.
-- Raw tokens below are mapped onto the shadcn semantic names (`--background`, `--foreground`, ...) so every primitive keeps working.
-- `--ground` light stays `#F5F1E8`: `tests/e2e/smoke.spec.ts` pins `rgb(245, 241, 232)`.
-- Every craft-derived token carries the comment `/* design interpretation; not a measured or historical dye colour */` (R-C6).
-- Contrast ratios below are computed with the WCAG relative-luminance formula and **truncated** to two decimals, never rounded up (R-A2). They were computed with `design/spec/contrast.js` in the design scratchpad; WP0 ports the same pairs into `contrast.test.ts`.
+- **Where tokens live.** Hex literals sit in flat `:root`, `.dark`, `.a11y-contrast` and `.dark.a11y-contrast` blocks in `src/app/globals.css`, so the regex parser in `tests/unit/contrast.test.ts` keeps working.
+- **Values.** Contrast ratios use the WCAG formula and are **truncated** to two decimals (R-A2). They are asserted by `contrast.test.ts` and were computed independently by the proposal's `palette.py`; both agree.
+- **Craft-derived tokens.** None remain. Only `--indigo` keeps the comment `/* design interpretation; not a measured or historical dye colour */` (R-C6).
+- **`--ground`** keeps its name (white paper), so every shadcn mapping survives. `tests/e2e/smoke.spec.ts` pins `rgb(255, 255, 255)`.
+- **New names:** `--field`, `--focus-outer`, `--focus-inner`, `--rail-w`.
+- **Retired names:** `--surface` is an alias of `--ground` (no second paper); `--madder`, `--ochre`, `--ochre-deco`, `--band`, `--band-lozenge`, `--focus-halo`, `--shadow-console` and the `--serif-stack` are deleted. `--font-inter` and `--font-source-serif` remain as aliases of `--font-atkinson` only for the 3D lettering atlas until it reads the new variable. `tests/unit/design/dead-aliases.test.ts` keeps the retired utilities out of `src/`.
 
-### 4.2 Palette (Light and Dark)
+### 4.2 Palette
 
-| Token | Light | Dark | Role and limits |
-|---|---|---|---|
-| `--ground` | `#F5F1E8` | `#1A1714` | THE reading surface: page background and the background of every knowledge container (2D column AND 3D panel). Never tinted per tradition (R-C4, R-C5, R-C21). |
-| `--surface` | `#FBF8F2` | `#221D19` | Raised non-knowledge surfaces: console cards, dialogs, popovers, CMS form pane. Never behind claims in study. |
-| `--sunk` | `#ECE5D8` | `#2A241F` | Table header band, figure mat (letterbox inside the fixed slot), code cells, static loading blocks, console sidebar. |
-| `--ink` | `#211D19` | `#EFE9DE` | All body text, claims, headings, the 2 px running-head rule, diagram outlines. Interpretation of iron black (R-C3). |
-| `--ink-2` | `#3A332C` | `#DCD4C7` | Leads, figure captions, citation record values. |
-| `--ink-3` | `#635A50` | `#ABA195` | Secondary text only: source lines, credit and licence lines, eyebrows, table units, inactive tabs. |
-| `--rule` | `#CFC4B2` | `#3D352D` | Decorative hairlines only (between claims, table rows). Never the only boundary of a control. |
-| `--rule-strong` | `#857A6C` | `#7D7366` | Boundaries of controls (inputs, outline buttons, Enlarge button, checkbox). |
-| `--indigo` | `#24406E` | `#A9BEE6` | The single interactive accent everywhere, including study: primary buttons, links, active tab bar, focus ring, citation-quote rule. |
-| `--indigo-hover` | `#1A3157` | `#C6D5F1` | Hover and pressed state of primary buttons and links. |
-| `--on-indigo` | `#FBF8F2` | `#14171D` | Label colour on indigo fills. |
-| `--wash` | `#E2E6EE` | `#24304A` | Selected row or selected answer option, always with a 2 px indigo bar plus a check icon or the word "Selected". In study, only for the chosen questionnaire option. |
-| `--band` | `#24406E` | `#1C2D4D` | Field of the public and console knock-out bands. |
-| `--madder` | `#8F2F1F` | `#E59580` | **Public pages only**: plate and figure numbers, the 2 px rule above public section heads, the About pull-quote bar. Never in study, console, CMS, admin, forms, alerts or charts. It measures 1.09:1 (light) and 1.02:1 (dark) against `--danger`, and dark red reads as near-black for protanopes (R-A15). |
-| `--ochre` | `#7F5C14` | `#D6AE5E` | **Public pages only**: eyebrows on editorial sections, Colophon swatch labels. Never in study, where yellow is reserved for the guidance cue (a project accessibility rule, section 4.4). Interpretation of the myrobalan yellowish ground (R-C19). |
-| `--ochre-deco` | `#C99A3A` | `#C99A3A` | Decorative dots in the knock-out band only. Never text. |
-| `--danger` | `#A3242C` | `#F2918C` | Errors and destructive actions, always with an icon and the word "Error" or a field message (R-A4). |
-| `--ok` | `#2E6A3E` | `#8CC7A0` | Console, CMS and admin status only (passed, published, live), with word and icon. |
-| `--warn` | `#77540F` | `#D9B26A` | Console, CMS and admin status only (under review, licence expiring, stale), with word and icon. Brown-ochre, not yellow. Never in study. |
-| `--series-2d` | `#3A5DA0` | `#8FAEE8` | Dashboard only: the 2D condition. Circle marker, solid line. |
-| `--series-3d` | `#8E4D16` | `#E0A06A` | Dashboard only: the 3D condition. Square marker, 4-2 dashed line. Relative luminance 0.1127 vs 0.1112 (light) and 0.4194 vs 0.4203 (dark), a 1.00:1 match, so neither condition looks heavier in the researchers' charts; a warm/cool pair (R-A14). |
-| `--grid` | `#DDD4C6` | `#352E27` | Chart y gridlines only, intentionally fainter than axis labels (R-T17). |
-| `--viz-seq-1..6` | `#E4E3E6 #B9C3D6 #8A9DC0 #4F6A99 #36548A #1B3360` | `#2C2B33 #33405A #465C86 #6582B4 #90AADB #C3D3F1` | Single-hue indigo ramp for heatmaps and the CMS Figure Balance matrix. Cells always print their value. |
-
-Shadcn semantic mapping (light, dark and both HC blocks): `background = ground`, `foreground = ink`, `card = surface`, `card-foreground = ink`, `popover = surface`, `popover-foreground = ink`, `primary = indigo`, `primary-foreground = on-indigo`, `secondary = sunk`, `secondary-foreground = ink`, `muted = sunk`, `muted-foreground = ink-3`, `accent = sunk`, `accent-foreground = ink`, `destructive = danger`, `border = rule`, `input = rule-strong`, `ring = indigo`.
-
-The dormant categorical colours in `@theme` (`madder #a34a33`, `indigo #34506e`, `wood`, `wood-dark`, `cloth`, `ok`, `warn`, `danger`) are deleted and replaced by the tokens above. The glass `.panel` utility (`--panel-bg`, `--panel-bg-solid`, `--panel-blur`, `--shadow-panel-v`) is retired; 3D overlays become opaque. Old raw names (`--paper`, `--ink-soft`, `--ink-muted`, `--brand*`, `--card-warm`, `--hairline*`) are kept as `@theme inline` colour aliases by WP0 until WP8 removes them, so no package breaks mid-migration.
-
-### 4.3 Computed Contrast
-
-Light theme (foreground on ground / surface / sunk / wash):
-
-| Foreground | ground | surface | sunk | wash | Allowed |
+| Token | Light | Dark (public and console, opt-in) | HC light | HC dark | Role |
 |---|---|---|---|---|---|
-| ink `#211D19` | 14.85 | 15.79 | 13.36 | 13.38 | everywhere |
-| ink-2 `#3A332C` | 11.02 | 11.72 | 9.92 | 9.93 | everywhere |
-| ink-3 `#635A50` | 5.99 | 6.37 | 5.39 | 5.39 | everywhere, at 13 px or more |
-| indigo `#24406E` | 9.16 | 9.74 | 8.24 | 8.25 | everywhere |
-| indigo-hover `#1A3157` | 11.49 | 12.22 | 10.34 | 10.35 | everywhere |
-| danger `#A3242C` | 6.54 | 6.96 | 5.89 | 5.89 | everywhere |
-| madder `#8F2F1F` | 7.18 | 7.63 | 6.46 | n/a | public only |
-| ochre `#7F5C14` | 5.41 | 5.75 | 4.86 | n/a | public only |
-| ok `#2E6A3E` | 5.73 | 6.10 | 5.16 | n/a | console only |
-| warn `#77540F` | 6.08 | 6.47 | 5.48 | n/a | console only |
+| `--ground` | `#FFFFFF` | `#1A1D21` | `#FFFFFF` | `#000000` | Knowledge paper: the KnowledgeSheet in both conditions, dialogs, console work areas, body |
+| `--field` | `#E9ECEC` | `#111316` | `#FFFFFF` | `#000000` | Navigation: rails (study and console), the 2D index field, the public header and footer, table header band. Never behind claims. |
+| `--sunk` | `#F1F3F3` | `#23272C` | `#F0F0F0` | `#141414` | Figure mat, verbatim-quote mat, pager cells, code blocks, hover on paper, static loading block |
+| `--wash` | `#E4EAF4` | `#22304A` | `#E6EAF2` | `#1F2A40` | Current or selected item, always with a word ("You are here", "Selected") or a check, and weight |
+| `--ink` | `#000000` | `#ECEEF0` | `#000000` | `#FFFFFF` | Text and structure |
+| `--ink-2` | `#363636` | `#C8CDD3` | `#1A1A1A` | `#F0F0F0` | Labels, captions, leads, inactive tabs |
+| `--ink-3` | `#595959` | `#9AA2AC` | `#262626` | `#E0E0E0` | Source lines, credits, units |
+| `--rule` | `#D2D7DA` | `#343A41` | `#000000` | `#FFFFFF` | Decorative only: the booktabs midrule and long console rows |
+| `--rule-strong` | `#767C82` | `#7B838D` | `#000000` | `#FFFFFF` | Every control boundary and docked pane edge |
+| `--indigo` | `#24406E` | `#A9BEE6` | `#1B2F55` | `#C9D7F2` | The single interactive accent |
+| `--indigo-hover` | `#1A3157` | `#C6D5F1` | `#111E38` | `#E1E9F8` | Hover and pressed |
+| `--on-indigo` | `#FFFFFF` | `#111316` | `#FFFFFF` | `#000000` | Labels on indigo and danger fills |
+| `--danger` | `#A3242C` | `#F2918C` | `#8A1A20` | `#FFB0AB` | Errors, always with icon and word |
+| `--ok` / `--warn` | `#2E6A3E` / `#77540F` | `#8CC7A0` / `#D9B26A` | ink | ink | Console status only, always with a word |
+| `--series-2d` / `--series-3d` | `#3A5DA0` / `#8E4D16` | `#8FAEE8` / `#E0A06A` | (light values) | (dark values) | Dashboard only; luminance 0.1127 vs 0.1112 |
+| `--grid` | `#DCE0E3` | `#2B3036` | (light) | (dark) | Chart gridlines |
+| `--viz-seq-1..6` | `#E4E3E6 #B9C3D6 #8A9DC0 #4F6A99 #36548A #1B3360` | `#2C2B33 #33405A #465C86 #6582B4 #90AADB #C3D3F1` | (light) | (dark) | Heatmaps and the Figure Balance matrix; cells print their value |
+| `--focus-outer` / `--focus-inner` | `#000000` / `#FFFFFF` | `#FFFFFF` / `#000000` | `#000000` / `#FFFFFF` | `#FFFFFF` / `#000000` | Two-tone focus ring |
 
-On-indigo on indigo 9.74, on indigo-hover 12.22. Ground (`#F5F1E8`) on the light band (= indigo) 9.16. On-indigo on danger (destructive fill) 6.96 light, `#14171D` on dark danger 7.86. No focusable element ever sits on a band: the indigo focus ring on the light band measures 1.00:1.
+Shadcn semantic mapping (every block): `background = ground`, `foreground = ink`, `card = popover = ground`, `card-foreground = popover-foreground = ink`, `primary = indigo`, `primary-foreground = on-indigo`, `secondary = muted = accent = sunk`, `secondary-foreground = accent-foreground = ink`, `muted-foreground = ink-3`, `destructive = danger`, `border = rule`, `input = rule-strong`, `ring = focus-outer`. Study stays light-only, with high contrast offered identically (DR-019).
 
-Dark theme:
+### 4.3 Computed Contrast (Truncated; Asserted by `contrast.test.ts`)
 
-| Foreground | ground | surface | sunk | wash | Allowed |
-|---|---|---|---|---|---|
-| ink `#EFE9DE` | 14.77 | 13.81 | 12.68 | 10.88 | everywhere |
-| ink-2 `#DCD4C7` | 12.14 | 11.35 | 10.42 | 8.94 | everywhere |
-| ink-3 `#ABA195` | 7.02 | 6.56 | 6.02 | 5.17 | everywhere |
-| indigo `#A9BEE6` | 9.51 | 8.90 | 8.16 | 7.01 | everywhere |
-| indigo-hover `#C6D5F1` | 12.05 | 11.28 | 10.35 | 8.88 | everywhere |
-| danger `#F2918C` | 7.82 | 7.31 | 6.71 | 5.76 | everywhere |
-| madder `#E59580` | 7.60 | 7.10 | 6.52 | n/a | public only |
-| ochre `#D6AE5E` | 8.56 | 8.01 | 7.35 | n/a | public only |
-| ok `#8CC7A0` | 9.17 | 8.58 | 7.87 | n/a | console only |
-| warn `#D9B26A` | 8.94 | 8.36 | 7.68 | n/a | console only |
+Text on ground / field / sunk / wash:
 
-On-indigo on indigo 9.56, on indigo-hover 12.12. Text `#EFE9DE` on the dark band `#1C2D4D` 11.34.
+| Foreground | Light | Dark | HC light | HC dark |
+|---|---|---|---|---|
+| ink | 21.00 / 17.67 / 18.85 / 17.37 | 14.54 / 15.99 / 12.91 / 11.35 | 21.00 / 21.00 / 18.42 / 17.41 | 21.00 / 21.00 / 18.42 / 14.34 |
+| ink-2 | 12.08 / 10.17 / 10.84 / 9.99 | 10.57 / 11.63 / 9.39 / 8.25 | 17.40 / 17.40 / 15.27 / 14.43 | 18.42 / 18.42 / 16.16 / 12.59 |
+| ink-3 | 7.00 / 5.89 / 6.28 / 5.79 | 6.55 / 7.21 / 5.82 / 5.11 | 15.13 / 15.13 / 13.27 / 12.55 | 15.90 / 15.90 / 13.95 / 10.87 |
+| indigo | 10.32 / 8.69 / 9.27 / 8.54 | 9.01 / 9.91 / 8.00 / 7.04 | 13.25 / 13.25 / 11.63 / 10.99 | 14.48 / 14.48 / 12.70 / 9.89 |
+| indigo-hover | 12.95 / 10.90 / 11.63 / 10.71 | 11.42 / 12.57 / 10.14 / 8.92 | 16.57 / 16.57 / 14.54 / 13.74 | 17.21 / 17.21 / 15.09 / 11.76 |
+| danger | 7.37 / 6.21 / 6.62 / 6.10 | 7.41 / 8.15 / 6.58 / 5.79 | 9.33 / 9.33 / 8.19 / 7.74 | 12.05 / 12.05 / 10.57 / 8.23 |
+| ok | 6.46 / 5.44 / 5.80 / 5.35 | 8.69 / 9.56 / 7.71 / 6.78 | = ink | = ink |
+| warn | 6.86 / 5.77 / 6.16 / 5.67 | 8.47 / 9.32 / 7.52 / 6.62 | = ink | = ink |
+| **Minimum text pair** | **5.35** | **5.11** | **7.74** | **8.23** |
 
-Non-text (WCAG 1.4.11 needs 3:1; R-A3):
+Every text pair passes 4.5:1 (R-A1) on every surface, including `--field`, so no pair is forbidden.
 
-| Pair | Light | Dark |
-|---|---|---|
-| rule-strong on ground / surface / sunk | 3.72 / 3.96 / 3.35 | 3.83 / 3.59 / 3.29 |
-| rule-strong on wash | 3.35 | 2.82, so a selected row on wash always carries the 2 px indigo bar (7.01) |
-| focus ring (indigo) on ground | 9.16 | 9.51 |
-| series-2d / series-3d on surface | 6.08 / 6.14 | 7.46 / 7.47 |
-| ochre-deco on band | 4.01 | 5.33 |
-| rule on ground (decorative, exempt) | 1.52 | 1.48 |
-| grid on surface (decorative, exempt) | 1.38 | 1.24 |
+Non-text pairs (3:1 required, R-A3):
+- **rule-strong** on ground / field / sunk / wash: light 4.22 / 3.55 / 3.78 / 3.49; dark 4.40 / 4.84 / 3.91 / 3.44; HC 14.34 or higher.
+- **indigo as a state fill or bar**: light 8.54 or higher; dark 7.04 or higher.
+- **on-indigo** on indigo 10.32 light and 9.91 dark; on danger 7.37 light and 8.15 dark.
+- **Focus ring** (`#000000`/`#FFFFFF`): against every colour of a 16-step RGB grid and every 8-bit grey, the better of the two tones is **at least 4.58:1** (asserted).
+- **Reading-progress bar**: ink on rule 14.47 light, 9.87 dark; in HC the track is `--sunk`.
 
-Watch pairs (these are why the usage rules exist): madder vs danger 1.09 light, 1.02 dark (so madder is public-only); series-2d vs indigo 1.59 light (so there are no links inside chart plot areas); indigo vs ink 1.62 light, 1.55 dark (so links are always underlined, never colour alone, R-A4).
+Watch pairs, and the rule each one forces:
+- **indigo vs ink, 2.03 light and 1.61 dark.** Inline links are always underlined (R-A4). Link lists become full-row targets.
+- **danger vs indigo, 1.39 and 1.21.** Danger always carries an icon and the word "Error".
+- **ground vs field, 1.18.** Docked panes always carry a 1 px `--rule-strong` edge, which is 3.55 on field.
+- **series-2d vs indigo, 1.59.** No links inside chart plot areas.
 
-Sequential ramp cell labels: light, `--ink` on steps 1-3 (13.09, 9.43, 6.10) and `--on-indigo` on steps 4-6 (5.14, 7.09, 11.72). Dark, `#EFE9DE` on steps 1-3 (11.58, 8.59, 5.54) and `#14171D` on steps 4-6 (4.61, 7.65, 11.88).
+Sequential ramp cell labels: light, `--ink` on steps 1-3 (16.42, 11.83, 7.66) and `--on-indigo` on steps 4-6 (5.44, 7.52, 12.43); dark, ink on 1-3 (12.03, 8.93, 5.75) and on-indigo on 4-6 (4.78, 7.93, 12.32).
 
 ### 4.4 High-Contrast Mode
 
-`.a11y-contrast` (light) and the new `.dark.a11y-contrast` (dark; missing today). Surfaces become opaque and flat; every rule becomes solid ink; patterns, ticks and knock-out bands are removed (a 2 px ink rule replaces each band); focus is the existing black/white double ring; yellow is never used except the guidance cue.
-
-| Token | HC light | HC dark |
-|---|---|---|
-| ground = surface | `#FFFDF8` | `#0D0B09` |
-| sunk | `#F1ECE2` | `#1C1813` |
-| wash | `#E6EAF2` | `#1F2A40` |
-| ink | `#111111` | `#FFFFFF` |
-| ink-2 | `#2B2622` | `#F0EBE3` |
-| ink-3 | `#3A342E` | `#E2DBD0` |
-| indigo / indigo-hover | `#1B2F55` / `#111E38` | `#C9D7F2` / `#E1E9F8` |
-| on-indigo | `#FFFDF8` | `#0D0B09` |
-| danger | `#8A1A20` | `#FFB0AB` |
-| rule = rule-strong | `#111111` | `#FFFFFF` |
-
-Computed on ground / sunk / wash. HC light: ink 18.57 / 16.03 / 15.66; ink-2 14.72 / 12.71 / 12.41; ink-3 12.07 / 10.42 / 10.18; indigo 13.03 / 11.25 / 10.99; danger 9.18 / 7.92 / 7.74; button label 13.03. HC dark: ink 19.64 / 17.65 / 14.34; ink-2 16.55 / 14.87 / 12.09; ink-3 14.29 / 12.84 / 10.43; indigo 13.55 / 12.17 / 9.89; danger 11.27 / 10.13 / 8.23; button label 13.55. Rules 18.57 (light) and 19.64 (dark). Focus double ring 21.00.
+`.a11y-contrast` and `.dark.a11y-contrast`: surfaces opaque and flat, `--field` equals `--ground`, every rule and control boundary solid ink, `--ok` and `--warn` become ink (the word carries the status). The focus ring is the same two-tone ring as every other theme. Yellow is never used except the guidance cue.
 
 ### 4.5 Themes and Opt-In
 
-- Light is forced by default in every area (`next-themes` `defaultTheme="light"`, `enableSystem={false}`, as today; R-A16).
-- A new **Display Settings** control (Theme: Light or Dark; High contrast on or off; Reduce motion on or off) is reachable from the public footer and the console user menu (R-A17).
-- **Study mode is fixed to the light theme in both conditions** (lead decision, DR-019).
-  - A participant-chosen dark theme would darken the whole 2D page but only the chrome and panel in 3D, because the scene keeps its lighting. That is a condition asymmetry, and it adds a self-selected covariate.
-  - Light mode is also the better default for reading (R-A16).
-  - **High contrast** stays available in study as an accessibility accommodation. It is offered identically before learning in both conditions, applies to the same surfaces in both, and is logged on the study session through the study engine (not through telemetry, whose events require an allocated condition). Reduce motion is moot in study, which has no motion.
-  - The classes written on `<html>` are the same in both conditions.
+Unchanged from DR-019: light by default everywhere; Display Settings (Dark theme, High contrast, Reduce motion) from the public footer and the console user menu; **study is fixed to light in both conditions**, with High contrast offered identically before learning and recorded on the study session.
 
 ### 4.6 Non-Colour Tokens
 
 | Token | Value |
 |---|---|
-| `--radius-control` | 3px (buttons, inputs, badges) |
-| `--radius-card` | 2px (cards, dialogs); figure frames and the knowledge column 0 |
-| shadows | none on any study surface; console popovers and dialogs `0 8px 24px -12px rgb(33 29 25 / 0.28)` |
-| `--ease-museum` | `cubic-bezier(0.22, 0.61, 0.36, 1)` (kept) |
-| `--dur-1 / --dur-2 / --dur-3` | 120ms / 150ms / 200ms |
+| `--radius-control` | 4px (buttons, inputs, selects, checkboxes, segmented controls, menus, tooltips) |
+| `--radius-badge` | 2px |
+| `--radius-card` | 0 (sheet, rails, bars, tables, figures, dialogs, cards, plates) |
+| shadows | none, in every zone (dialogs and menus use a 1 px `--rule-strong` border) |
+| `--measure` | 34rem |
+| `--hang` | 2.25rem |
+| sheet width | 39.25rem = measure + hang + 2 x 1.5rem padding |
+| `--rail-w` | 18rem (288 px) |
+| `--studybar-h` | 3.5rem; two rows (6.5rem) under 768 px (DR-021) |
+| `--notice-h` | 2.5rem |
+| `--sticky-chrome` | notice + StudyBar + 1 px rule |
+| `--dur-1/2` | 120ms / 150ms (console and public only) |
 | `--z-*` | unchanged scale (canvas 0 to skip-link 100) |
-| `--measure` | 34rem (544 px) |
-| `--hang` | 2.25rem (36 px) |
-| `--studybar-h` | 3.5rem (56 px) |
-| `--notice-h` | 2.5rem (40 px) |
 
 ---
 
 ## 5. Typography
 
-### 5.1 Fonts (next/font, self-hosted)
+### 5.1 Faces, Licences, Files and Budget
 
-All fonts are loaded in `src/app/layout.tsx` through `next/font/google`, which downloads at build time and self-hosts (R-T10); the CSP (`font-src 'self' data:`) is unchanged.
+| Role | Family | Licence | Latin file | Where |
+|---|---|---|---|---|
+| Everything in study, 3D lettering, console, and public text | **Atkinson Hyperlegible Next**, upright only (`Atkinson_Hyperlegible_Next`, `variable: "--font-atkinson"`, root layout) | OFL 1.1 (N-AHN) | 33,996 bytes measured, wght 200 to 800 | all zones |
+| Public display only (home h1, public h2, the public wordmark) | **Anek Latin** (Ek Type), wght + wdth (`Anek_Latin`, `axes: ["wdth"]`, `variable: "--font-anek"`, public layout only) | OFL 1.1 (N-ANEK) | 103,760 bytes measured, wdth 75 to 125, wght 100 to 800 | public routes only |
+| Code and BibTeX blocks, and the two JSON editors of the console | system mono stack | n/a | 0 | `<pre>`, `<code>` |
 
-| Family | next/font call | Role | Why |
+- **Why Atkinson** (accessibility first): "developed specifically to increase legibility for readers with low vision, and to improve comprehension" (N-AHN). That is a design goal, not a measured outcome for normal-vision readers. Its zero and capital O differ, so participant codes and IDs need no monospace.
+- **Why Anek on public pages only:** an Indian foundry (N-ANEK); kept out of study and 3D, so both conditions use one face and study preloads one file.
+- **Self-hosted** by `next/font/google` at build time (R-T10); the CSP is unchanged.
+- **Preloads:** study and console 1 file (33,996 bytes); public 2 files (137,756 bytes). Latin-ext loads through `unicode-range` only. Budget kept: at most 2 preloaded files, 176,000 bytes preloaded and 230,000 bytes of fonts transferred on any page (Anek latin-ext is not yet measured; the acceptance suite measures it).
+- **No italic file is loaded.** Verbatim evidence is set roman (N-BDA). No small caps, no `font-variant-caps`, no old-style figures. `font-synthesis: none` on study roots.
+- **Arrows:** Atkinson has no "→"; arrows are banned in interface text. Arrow keys are named in words ("the Left and Right arrow keys"); keycaps in the controls help may show the arrow glyph, which falls back identically in both conditions.
+- **Indic scripts:** the rule is kept. `tests/content/scripts.test.ts` trips on the first Indic codepoint; then a matching face (the Anek companions, single-script subset, `preload: false`) loads for **every** script present. Arabic script renders through the system stack inside `<span lang dir="rtl">`, identically in both conditions.
+
+### 5.2 Size Re-Set to Hold Characters per Line
+
+"line length in characters per line should either remain constant or be systematically varied." (U-M4)
+
+| Setting | cpl at 544 px (34rem) |
+|---|---|
+| Inter 18/28 (Apparatus) | 64.2 / 64.1 (two independent measurements) |
+| **Atkinson Next 20/30** | **62.2 / 62.0** |
+
+So `text-reading` is **1.25rem / 1.875rem (20/30)**: the measure and the sheet width are unchanged, 62 cpl sits between Dyson's 55 cpl result and the 80-character ceiling, and the cpl is held nearly constant across the change. The cpl figures come from average advance widths; parity checks P3 and P8 re-measure line breaks in the browser in both conditions.
+
+### 5.3 Type Scale
+
+Knowledge tokens are identical in both conditions and consumed only through shared components. Headings go through `titleCase()` (`src/lib/text/title-case.ts`); labels and buttons use sentence case.
+
+| Token | Face | Size / line height | Weight | Notes |
+|---|---|---|---|---|
+| `text-title` (concept h1, 2D and 3D) | Atkinson | 2.25rem / 2.75rem; under 520 px 1.875 / 2.25 | 700 | tracking -0.01em, `text-wrap: balance`; 1.8 x the claim size (R-T4) |
+| `text-reading` | Atkinson | 1.25rem / 1.875rem | 400 | proportional lining figures |
+| `text-claim-number` | Atkinson | 1.25rem / 1.875rem | 700 | `tnum`, ink-3, right-aligned in the hang, `aria-hidden` |
+| `text-quote` | Atkinson | 1.25rem / 1.875rem | 400 | **roman**, ink, on the `--sunk` mat |
+| `text-lead` | Atkinson | 1.25rem / 1.875rem | 400 | ink-2 |
+| `text-h2` | Atkinson | 1.5rem / 2rem | 700 | |
+| `text-h3` | Atkinson | 1.25rem / 1.75rem | 700 | |
+| `text-label` (replaces the uppercase eyebrow and dl label) | Atkinson | 0.9375rem / 1.25rem | 700 | sentence case, tracking 0, ink-2 |
+| `text-value` | Atkinson | 1.0625rem / 1.625rem | 400 | ink |
+| `text-source` | Atkinson | 1rem / 1.5rem | 400 | ink-3; at most 2 lines; never truncated mid-word |
+| `text-caption` | Atkinson | 1.0625rem / 1.625rem | 400 | ink-2 |
+| `text-credit` | Atkinson | 0.9375rem / 1.25rem | 400 | ink-3; the smallest text in study |
+| `text-ui` | Atkinson | 1rem / 1.5rem | 600 | active state 700 with its width reserved (`ie-reserve-bold`) |
+| `text-timer`, `text-id` | Atkinson | 1rem / 1.5rem; `text-id` 0.9375rem / 1.25rem | 600 | `tnum`; IDs, keys, codes, timestamps (no monospace) |
+
+Public and console extras:
+
+| Token | Face | Size / line height | Weight |
 |---|---|---|---|
-| **Source Serif 4** | `Source_Serif_4({ subsets: ["latin"], axes: ["opsz"], style: ["normal"], display: "swap", variable: "--font-serif" })` (variable wght, no weight list) | Display, page and concept titles, section headings, the verbatim quote, home deck, wordmark | A text serif with an optical-size axis (R-T9), so one file serves the 80 px hero and the 32 px concept title. It replaces Cormorant Garamond, a display face whose hairlines break down at panel sizes. |
-| **Inter** | `Inter({ subsets: ["latin"], display: "swap", variable: "--font-sans" })` (variable wght, normal only) | Claims, UI, controls, tables, source lines, captions, data | Already in the stack, so claims change least (section 2.6). The served file has `tnum` and `pnum` (measured GSUB features: `calt ccmp dnom frac locl numr pnum tnum`). |
-| Monospace | system stack `ui-monospace, "Cascadia Code", Consolas, monospace` | Participant codes, IDs, timestamps, BibTeX | No download. |
+| `text-display-1` (home h1) | Anek Latin, wdth 112 | clamp(3rem, 1.5rem + 4.5vw, 5.5rem) / 1.0 | 600 |
+| `text-display-2` (home h2) | Anek Latin, wdth 100 | 2.5rem / 3rem | 600 |
+| `text-display-3` (editorial section h2, under a `text-title` h1) | Anek Latin, wdth 100 | 1.75rem / 2.25rem | 600 |
+| `text-deck` | Atkinson | 1.5rem / 2.25rem | 400, ink-2 |
+| `text-body` | Atkinson | 1.0625rem / 1.625rem | 400 |
+| `text-table` | Atkinson | 0.9375rem / 1.25rem | 400, `tnum`; numbers right-aligned |
+| `text-stat` | Atkinson | 1.75rem / 2.25rem | 700, `tnum` |
+| chart labels | Atkinson | 13 px ink-3; 15 px 600 ink | two levels (R-T18) |
 
-Not loaded: Cormorant Garamond (removed), any italic file, any mono webfont. `font-synthesis: none` is set on study roots so no faux italic or bold appears in study text.
+Outside Anek, `font-display` and the display utilities fall back to Atkinson, so no route other than the public ones ever requests the display face.
 
-**Features the served file lacks are never used.** The Source Serif 4 file Google serves has no `onum`, `lnum` or `smcp` (R-T8), and CSS small caps would fall back to fake ones (R-T6, R-T7). So there is no `font-variant-caps`, no old-style figures and no small caps anywhere. Eyebrows and running heads are tracked uppercase Inter.
+**Removed:** uppercase anywhere, tracked labels, eyebrows that repeat the page or navigation state, `" · "` (lint), and monospace outside code.
 
-**Scripts other than Latin.** A count over `content/**/*.json` finds 0 Devanagari, 0 Bengali, 0 Gujarati and 0 Telugu characters (local terms are romanised), 1 Latin Extended character (`ć`) and 12 Arabic-script characters: 8 in a Sindhi/Persian verbatim quote in `content/traditions/ajrakh/tradition.json` and 4 in `content/review/media-proposals.json` (curation file, not learner-facing). Rules:
-
-- Latin Extended: `next/font/google` emits `unicode-range` `@font-face` rules for the family's subsets and preloads only the listed `subsets`, so a latin-ext file downloads only when such a glyph renders.
-- Indic scripts: no webfont is loaded while the count is zero. WP0 adds `tests/content/scripts.test.ts`, which fails as soon as any Indic codepoint appears. The team must then add the matching Noto Serif face (`Noto_Serif_Devanagari` and so on, `preload: false`, single script subset) for **every** script present, never for one tradition only, so no tradition's local terms fall back to a different system font.
-- Arabic script: the system stack `"Segoe UI", "Noto Naskh Arabic", "Geeza Pro", serif`, inside `<span lang="sd" dir="rtl">` (or the language the content declares). It renders through the same component in both conditions, so any device difference is identical across conditions.
-- The arrow `→` (9 occurrences) is outside Inter's latin subset and falls back to the system font identically in both conditions.
-
-**Budget (measured).** Preloaded per page: Inter latin variable 48,432 bytes (measured in the current `.next/static/media`) plus Source Serif 4 latin variable with opsz 122,360 bytes (measured from the Google Fonts API response) = **170,792 bytes in 2 files**. Today's build preloads 3 files (125,512 bytes) and ships 16 font files. Budget: **at most 2 preloaded font files, at most 176,000 bytes preloaded, and at most 230,000 bytes of fonts transferred on any page** (latin-ext included). If the Source Serif 4 file exceeds 125,000 bytes after a Next upgrade, drop `axes: ["opsz"]`.
-
-### 5.2 Type Scale
-
-Sizes are rem at a 16 px root; every line height is a multiple of 4 px. Headings pass through `titleCase()` (`src/lib/text/title-case.ts`); buttons and links use sentence case, as today.
-
-**Knowledge tokens** (study; identical in both conditions; consumed only through the shared components):
-
-| Token | Face | Size / line height | Weight | Other |
-|---|---|---|---|---|
-| `text-title` | Source Serif 4 | 2rem / 2.5rem (32/40); under 520 px 1.75rem / 2.25rem | 600 | tracking -0.01em, `text-wrap: balance`. The concept h1 in 2D AND in the 3D panel (fixes 30 px vs 25.6 px today). |
-| `text-reading` | Inter | 1.125rem / 1.75rem (18/28, ratio 1.556) | 400 | tracking 0; proportional lining figures; measure 34rem, about 60-64 characters (R-T1, R-T3; WCAG 1.4.8 leading). Claims, leads, task prompts, questions. |
-| `text-claim-number` | Inter | 1.125rem / 1.75rem | 500 | `tabular-nums`, ink-3, right-aligned in the 2.25rem hang. |
-| `text-quote` | Source Serif 4 | 1.125rem / 1.75rem | 400 | roman (no italic file), typographic quotation marks, 2 px indigo left rule. Same size as the claim. |
-| `text-lead` | Inter | 1.25rem / 1.75rem | 400 | ink-2. |
-| `text-h2` | Source Serif 4 | 1.5rem / 2rem | 600 | section and layer headings. |
-| `text-h3` | Source Serif 4 | 1.1875rem / 1.75rem | 600 | |
-| `text-eyebrow` | Inter | 0.8125rem / 1.25rem (13/20) | 600 | uppercase, tracking 0.06em, ink-3. Under `:lang(hi)`, `:lang(bn)`, `:lang(te)`, `:lang(gu)`, `:lang(sd)`: no uppercase, no tracking. Replaces the 10.5 px `kicker`. |
-| `text-source` | Inter | 0.875rem / 1.25rem (14/20) | 400 | ink-3. The source line under each claim; wraps to at most 2 lines, never truncates mid-word. |
-| `text-caption` | Inter | 0.9375rem / 1.5rem (15/24) | 400 | ink-2; begins with "Fig. n" in weight 600. |
-| `text-credit` | Inter | 0.8125rem / 1.25rem (13/20) | 400 | ink-3; credit and licence line. |
-| `text-ui` | Inter | 0.9375rem / 1.25rem (15/20) | 500 | buttons, tabs, nav, StudyBar. |
-| `text-timer` | Inter | 0.9375rem / 1.25rem | 500 | `tabular-nums lining-nums`. |
-| `text-dl-label` | Inter | 0.8125rem / 1.25rem | 600 | uppercase, 0.06em, ink-3. |
-| `text-dl-value` | Inter | 0.9375rem / 1.5rem | 400 | ink. |
-
-**Public, console, CMS and admin extras:**
-
-| Token | Face | Size / line height | Weight | Other |
-|---|---|---|---|---|
-| `text-display-1` | Source Serif 4 | clamp(2.75rem, 1rem + 5.2vw, 5rem) / 1.04 | 400 | tracking -0.02em, opsz auto. Home h1 only. |
-| `text-display-2` | Source Serif 4 | 2.5rem / 3rem | 400 | public section h2. |
-| `text-deck` | Source Serif 4 | 1.375rem / 2rem | 400 | public subtitle, ink-2. |
-| `text-body` | Inter | 1rem / 1.5rem | 400 | console prose; public long-form uses `text-reading`. |
-| `text-table` | Inter | 0.875rem / 1.25rem | 400 | numbers `tabular-nums lining-nums`, right-aligned (R-T5, R-T11). |
-| `text-stat` | Inter | 1.75rem / 2.25rem | 500 | `tabular-nums`. |
-| `text-mono` | system mono | 0.8125rem / 1.25rem | 400 | IDs, codes, timestamps. |
-| chart labels | Inter | 0.75rem / 1rem ink-3, and 0.875rem / 1.25rem ink | 400 / 500 | exactly two label levels (R-T18). |
-
-**Numeral policy.** Proportional lining figures in prose (claims hold dates, GI numbers and quantities). Tabular lining figures in every number a reader compares: tables, timers, counts, stats, axis ticks, "Question 4 of 20", claim numbers. Old-style figures are never used (R-T8).
-
-**Weights shipped:** Source Serif 4 at 400 and 600; Inter at 400, 500 and 600 (all from variable files). In study, no heading exceeds about twice the claim size (R-T4): title 32 px against claim 18 px.
+**Numeral policy.** Proportional lining figures in prose; tabular lining figures in every number a reader compares (tables, timers, counts, axis ticks, "Question 4 of 20", claim numbers, Step).
 
 ---
 
-## 6. Grid and Spacing
+## 6. Layout (Both Conditions)
 
-- **Baseline** 4 px. **Spacing scale** 4, 8, 12, 16, 24, 32, 48, 64, 96 (96 = one block cell).
-- **Breakpoints**: 390 (minimum tested), 520 (`xs`, existing), 768, 1024, 1280, 1440.
-- **Page gutters**: 16 px under 520, 24 px from 520 to 1023, 32 px from 1024.
-- **Public and console grid**: 12 columns, max content 1280 px (console fluid to 1440), 24 px column gutters.
-- **Editorial frame** (About, Colophon, Privacy, Accessibility): a 34rem text column, a 3rem gap and a 15rem margin column for sidenotes and marginal citations (R-T12 keeps notes next to text). Under 1024 px sidenotes become inline notes directly after their paragraph.
+### 6.1 Grid
 
-**Study knowledge frame (identical in both conditions):**
+- **Spacing scale:** 4, 8, 12, 16, 24, 32, 48, 64, 96.
+- **Breakpoints:** 390, 520 (`xs`), 768, 1024, 1280, 1440, 1920.
+- **Page gutters:** 16 / 24 / 32 px (below 520, 520 to 1023, 1024 and up).
+- **Public:** 12 columns, 1280 px maximum, 24 px gutters; content is left-aligned on the grid, never a narrow column centred in an empty field.
+- **Editorial frame:** a 34rem text track plus a 15rem working margin for sidenotes. Under 1024 px, notes go inline after their paragraph, never behind a toggle.
+- **Study flow (`/study/*`):** a 1280 px frame with the gutters above; the content is a 42rem column left-aligned in it, so the wordmark, the label and the footer never move.
 
-| Element | Value |
-|---|---|
-| Knowledge column (the `KnowledgeSheet`) | width `min(39.25rem, 100% - 2 x gutter)` = 34rem measure + 2.25rem hang + 2 x 1.5rem padding (628 px) |
-| Claim measure | 34rem (544 px) at 1024 px and wider; below 1024 px the hang folds inside, so the measure is the column width minus the hang and padding, identically in both conditions |
-| Claim number | right-aligned in the 2.25rem hang, top-aligned to the first line |
-| Claim spacing | 24 px, with a 1 px `--rule` between claims |
-| Source line | 4 px below the claim text |
-| Figure | width = measure, aligned to the claim text (not the hang) |
-| Section spacing | 48 px |
-| Chrome above content | `--notice-h` (when the AccessNotice shows) + `--studybar-h` + 2 px running-head rule, sticky, in both conditions |
+### 6.2 The Spread at 1280 px and Wider (DR-021)
 
-**2D page layout:** the KnowledgeSheet sits centred in the viewport on `--ground`, like a manuscript page. The pager is part of the sheet (9.11). On concept pages there is no breadcrumb above the sheet (it would push the h1 down in 2D only and fail P6); the 2D route back to the parent is an "Up to <parent>" control in the StudyBar's condition navigation group. Breadcrumbs remain on 2D index, tradition, category and search pages, which have no 3D counterpart that is measured. Nothing knowledge-bearing sits outside the sheet (this removes the 1100 px slab with an empty right half, and avoids a 2D-only side rail).
+Navigation left, the same sheet right, in both conditions:
 
-**3D panel layout:** at 1024 px and wider the same KnowledgeSheet docks right, full height below the chrome, opaque `--ground`, 1 px `--rule-strong` left border, no radius, no shadow, internal scroll. Below 1024 px, and at 200% zoom, it becomes full-width and full-height below the chrome (it covers the scene), exactly mirroring the 2D column. There is no 70dvh bottom sheet: a partial sheet would show fewer lines per screen than 2D.
+| Element | Identical in both conditions | 2D | 3D |
+|---|---|---|---|
+| Chrome | One merged AccessNotice (40 px or absent in **both**), then the StudyBar (56 px, `--ground`), then ONE 1 px `--rule-strong` line. | | |
+| Rail (`PlaceRail`, one shared component) | x = 0; width `--rail-w`; full height below the chrome; `--field`; 1 px `--rule-strong` right edge; internal scroll; 44 px rows; a `nav` landmark with `aria-current` | "In This Section": the concepts of the current section in section order, then "Leads To" | "In This Room": the exhibits in hanging order, then "Leads To" (doorways); **collapsed by default** (lead decision) |
+| Rail rows | title (`text-ui`) plus a type and step line (`text-source`); current row `--wash`, weight 700, "You are here". **Titles, types, steps and destinations only**: no claim text, counts, images or summaries. | opens the concept (route change) | walks to the exhibit |
+| Field | from `--rail-w` to the sheet edge | **Index**: the three study traditions in canonical order with their numbered sections (names only), the current one marked; a list, never a spatial map | the scene, plus the Plan (visibility follows `studies.config.minimap`) |
+| Sheet | docked right; sheet width; full height below the chrome; `--ground`; 1 px `--rule-strong` left edge; radius 0; no shadow; **internal scroll container** (`role="region"`, `aria-labelledby` the h1, `tabindex="0"`, N-AXE) | present on concept routes; Close returns to the section view | present while a concept is open; Close or walking closes it |
+| Action slot | 44 x 44 "Close" with a visible label, **in both** | navigates to the section (URL), so Back works | closes the panel and returns focus to the trigger |
 
-**Equal reading viewport.** In 2D the page scrolls under the sticky chrome; in 3D the panel scrolls inside a container whose height is the viewport minus the same chrome. The number of claim lines visible in the first screen is therefore equal (parity check P8).
+Below 1280 px the rail is an identical non-modal 18rem drawer in both conditions, opened from a 44 px StudyBar button with a visible label. Under 768 px the StudyBar has two rows in both conditions and the sheet is full width and full height below the chrome. No horizontal scroll at 390 px.
+
+**Navigation source** (rail, scene, plan, keyboard; 2D rail, index, pager, link) is logged in both conditions, so list use can be modelled (DR-021).
+
+The spread is specified here and implemented as its own package (DR-021); until it lands, the 2D sheet sits in the page flow and the 3D sheet docks right, as in the Apparatus rebuild.
+
+### 6.3 Inside the Sheet (Shared, Identical)
+
+The sheet is padded 24 px (16 px under 520 px), with the 2.25rem hang. In order:
+
+1. **Header row:** the `text-title` h1 plus the 44 x 44 action slot. No eyebrow. Focus moves to the h1 on open (P27).
+2. **Metadata `dl`** (lean: only what aids learning): a 9rem label column, `text-label` labels and `text-value` values. Rows: Tradition (the name only); Category; Step ("3 of 9", process stages only); Local terms (`<span lang>`). No Status row: the notice strip above the sheet already states the content's verification status, so a second statement competed with the claims (cognitive-load rule).
+3. **Reading-progress bar:** 2 px `--ink` on `--rule`, on the sheet's own scroll container in both conditions, no transition (P25).
+4. **LayerTabs** (9.4), one layer at a time.
+5. **"From the Sources"** as an `h2` (`text-h2`), then the ClaimList (9.10), each claim ending in its numbered citation markers (9.9).
+6. **References:** one deduplicated, numbered list of the sources cited by the claims shown (9.9), an `h2` set as `text-h3`, the items in `text-source`.
+7. **RelatedConcepts**, then the pager: two equal 64 px cells on `--sunk`, "Previous" and "Next" in `text-label`, titles in `text-h3`, no arrow glyphs.
+8. **Record foot:** off in study builds of both conditions; on in public, demo and CMS proof views ("About This Record": concept ID, snapshot, verification status, persistent URL, "Cite this concept").
+
+**Cognitive load** (the lead's rule): one focus. When a concept is open nothing competes with the sheet; claims are separated by space, numbered, about 4 to 5 per screen; citations are collapsed until asked for; nothing decorative sits near a claim (R-L1, R-L5, R-L6). The counts of elements competing for attention on a concept-open screen stay comparable and low in both conditions.
 
 ---
 
 ## 7. Graphic Language
 
-The language is built from what the three study traditions share: the carved block (R-C18), its visible footprint (R-C7), registered layers (R-C8) and corner registration marks (R-C9), and white as protected space (R-C22). It never uses a tradition's signature: no stars or rosettes on indigo (R-C12), no indigo-with-madder brand duo (R-C1, R-C13), no floral butis or floral offset rows (R-C10), no mehrab arches, arched cards or arched doorways (R-C14), no crackle or veining texture (R-C15), no tradition colour codes or logos (R-C16), no tinted grounds (R-C4, R-C5, R-C21).
+There is no decorative graphic language in Atlas (DR-022). Structure comes from the two planes, type, space and the following:
 
-### 7.1 Block Module
+### 7.1 Rule System (All Areas, Including Study)
 
-- Unit 8 px; decorative cell 96 px. Tiles meet edge to edge with exact seams. No jitter, offset plates, faked misregistration, grain, wear, gradients, bevels or shadows on any pattern (a design judgement: flat, square-edged tiles).
+- ONE 1 px `--rule-strong` line under the public header, the console top bar and the StudyBar (identical in both conditions). It is a docked pane edge, not a running head.
+- Booktabs tables: 1.5 px `--ink` top and bottom rules, 1 px `--ink` midrule under the header row, row separators 1 px `--rule` in long console tables; no vertical rules, no zebra.
+- Claims are separated by 32 px of space, **never by a hairline**.
+- No left-edge bars anywhere (lint).
+- Rules are drawn with `border`, so they survive `forced-colors`.
 
-### 7.2 Knock-Out Band (Public and Research Console Only)
+### 7.2 Numbering
 
-Ground-coloured geometry reversed out of a solid `--band` field (R-C22). Always inline SVG, `aria-hidden="true"`, `focusable="false"`, documented on the Colophon as "decorative pattern, not craft content".
+Claims numbered per concept (1, 2, 3 …); figures "Fig. n" per concept view; dashboard and public charts "Figure n"; tables "Table n". Lining tabular figures.
 
-24 px header band (public header):
+### 7.3 Diagrams (Public and Console)
 
-```html
-<svg class="ie-band" aria-hidden="true" focusable="false" width="100%" height="24">
-  <defs>
-    <pattern id="ie-band-24" width="48" height="24" patternUnits="userSpaceOnUse">
-      <rect class="ie-band__field" width="48" height="24" />
-      <path class="ie-band__lozenge" d="M12 7 L17 12 L12 17 L7 12 Z" />
-      <circle class="ie-band__dot" cx="36" cy="12" r="2" />
-    </pattern>
-  </defs>
-  <rect width="100%" height="24" fill="url(#ie-band-24)" />
-</svg>
-```
+Line diagrams (Figure 1, the About study flow, the Explore schematics) are static: a flat fill layer, a 1.5 px outline layer over it, then the text in Atkinson 13/600 (titles 18/700). Figure 1 is drawn as on-indigo linework on one indigo plate. Every diagram has a text equivalent next to it. No draw-on or entrance motion.
 
-96 px field tile (48 px console header band, empty-state art, Colophon swatch frame), on a STRAIGHT grid (lead decision): a half-drop of offset rows is the arrangement R-C10 ties to Sanganeri, and the public identity must not read as one tradition's grammar.
+### 7.4 Glyphs
 
-```html
-<pattern id="ie-field-96" width="96" height="96" patternUnits="userSpaceOnUse">
-  <rect class="ie-band__field" width="96" height="96" />
-  <path class="ie-band__lozenge" d="M24 19 L29 24 L24 29 L19 24 Z" />
-  <path class="ie-band__lozenge" d="M72 67 L77 72 L72 77 L67 72 Z" />
-  <circle class="ie-band__dot" cx="72" cy="24" r="2" />
-  <circle class="ie-band__dot" cx="24" cy="72" r="2" />
-</pattern>
-```
+Lucide outline icons at 20 px, stroke 1.75, always paired with a visible word; chevrons and the external-link glyph. No 32 px hero icons on state pages (only the error tone of `StateMessage` carries a 24 px danger icon beside its heading). A small purpose-drawn glyph set (place, plan, source, enlarge, verified, under review, error) on a 20 px grid is planned and will be the same in both conditions.
 
-```css
-.ie-band__field   { fill: var(--band); }
-.ie-band__lozenge { fill: var(--ground); fill-opacity: 0.9; }  /* light: ground on #24406E */
-.ie-band__dot     { fill: var(--ochre-deco); }                 /* 4.01:1 light, 5.33:1 dark */
-.dark .ie-band__lozenge { fill: #EFE9DE; fill-opacity: 0.85; }
-.a11y-contrast .ie-band, .a11y-contrast .ie-field { display: none; } /* replaced by a 2 px ink rule */
-@media (forced-colors: active) { .ie-band, .ie-field { display: none; } }
-```
+### 7.5 Imagery
 
-The pattern `id` values are generated with `useId()` so several bands on one page never collide. The `<defs>` file stays under 2 KB.
-
-### 7.3 Registration Ticks (Public, Colophon and CMS Proof Frame Only)
-
-Four L-shaped corner ticks after the printer's corner registration marks (R-C9). Each tick is a 12 x 12 px L, 1.5 px stroke `--ink`, square caps, its corner placed 6 px outside the framed box's corner. Component `RegistrationTicks` renders four small inline SVGs inside a `position: relative` frame, all `aria-hidden`:
-
-```html
-<span class="ie-ticks" aria-hidden="true">
-  <svg class="ie-tick ie-tick--tl" width="12" height="12" viewBox="0 0 12 12"><path d="M0.75 12 V0.75 H12"/></svg>
-  <svg class="ie-tick ie-tick--tr" width="12" height="12" viewBox="0 0 12 12"><path d="M0 0.75 H11.25 V12"/></svg>
-  <svg class="ie-tick ie-tick--bl" width="12" height="12" viewBox="0 0 12 12"><path d="M0.75 0 V11.25 H12"/></svg>
-  <svg class="ie-tick ie-tick--br" width="12" height="12" viewBox="0 0 12 12"><path d="M0 11.25 H11.25 V0"/></svg>
-</span>
-```
-
-```css
-.ie-tick { position: absolute; overflow: visible; }
-.ie-tick path { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-linecap: square; }
-.ie-tick--tl { top: -6px; left: -6px; }    .ie-tick--tr { top: -6px; right: -6px; }
-.ie-tick--bl { bottom: -6px; left: -6px; } .ie-tick--br { bottom: -6px; right: -6px; }
-.a11y-contrast .ie-ticks { display: none; }
-```
-
-Never in study mode, in either condition. The study figure frame is a plain 1 px `--rule` box in both.
-
-### 7.4 Outline-Then-Fill Diagrams (Public and Console)
-
-Diagrams (Figure 1, the About study-flow figure, Explore schematics, empty-state art) are drawn as two registered layers like rekh and datai (R-C8): a 1.5 px `--ink` outline layer exactly over a flat fill layer at 0 offset. Fills are `--sunk`, `--wash` or `--indigo` only (never madder beside indigo). Text in diagrams is Inter 13/600 ink or Source Serif 600. Every diagram has a text equivalent (a list or table) next to it.
-
-### 7.5 Rule System (All Areas, Including Study)
-
-- 2 px `--ink` running-head rule under the public header, the console top bar and the StudyBar (identical in both conditions).
-- 1 px `--rule` hairlines between claims and list rows.
-- Booktabs tables: 1.5 px `--ink` top and bottom rules, 1 px `--ink` midrule under the header row, no vertical rules, no zebra.
-- Public section heads may carry a 2 px `--madder` rule above them (public only).
-- Rules are drawn with `border`, not background fills, so they survive `forced-colors`.
-
-### 7.6 Numbering
-
-Claims numbered per concept (1, 2, 3 ...); figures "Fig. n" per concept view; public photographs "Plate n"; dashboard charts "Figure n"; tables "Table n". Lining tabular figures.
-
-### 7.7 Neutral Tradition Marker
-
-Every tradition named in text may carry the identical marker: a 10 x 10 px square, 1.5 px `--ink` border, no fill, `margin-inline-end: 6px`, `vertical-align: -1px`, `aria-hidden`. Same for all six keys. No tradition colours, icons or motifs anywhere (R-C16).
-
-### 7.8 Imagery
-
-Only real, licence-checked photographs, always with caption, credit and licence (R-H5). No stock photographs, no AI images, no photographs as texture, no texture behind text, no swatch captioned as a dye colour (R-C6).
+Only real, licence-checked photographs, always with caption, credit and licence as words (R-H5). No stock photographs, no AI images, no photographs as texture, no texture behind text, no swatch captioned as a dye colour (R-C6). Study figures render only inside the KnowledgeSheet, identically in both conditions (DR-020). The public home carries no photographs (DR-020).
 
 ---
 
 ## 8. Motion Policy
 
-CSS only. No animation library is added; `tw-animate-css` stays only for shadcn `data-state` transitions in console dialogs and menus.
+CSS only; no animation library.
 
 | Zone | Allowed |
 |---|---|
-| Study (`/learn/*`, `/study/*`) | **Nothing.** Zero transitions and animations on chrome and content in both conditions: citation record, lightbox, hint panel, tabs, panel open and close, onboarding screens and the reading-progress bar all change instantly. Enforced by `.a11y-reduce-motion` on both shells, a lint rule and parity check P12. The 3D camera walk is the experimental manipulation and is governed by `docs/architecture/immersive-rendering-quality.md`, not by this policy; overlay chrome on top of it never animates. No camera motion while the panel is open. |
-| Console, CMS, admin | Dialog, sheet, dropdown: 150 ms opacity plus a 4 px scale; row expand 120 ms. Charts `animation: false`. Skeleton pulse replaced by a static `--sunk` block. No hover lifts, no translate-y on press. |
-| Public | Link underline thickens 1 px to 2 px over 120 ms. Figure 1 draws its two branch strokes once (stroke-dashoffset, 700 ms, `--ease-museum`) when it first enters the viewport (IntersectionObserver adds a class). Plates fade from opacity 0.001 to 1 over 200 ms on image load only, never the first plate (no LCP delay). Nothing moves more than 8 px, nothing loops, no parallax, no scroll-linked motion (R-A11), no count-up numbers. |
+| Study (`/learn/*`, `/study/*`) | **Nothing.** Zero transitions and animations on chrome and content in both conditions (P12). The 3D camera walk is the experimental manipulation and is governed by `docs/architecture/immersive-rendering-quality.md`. |
+| Console, CMS, admin | Dialog, sheet, dropdown: 150 ms opacity plus a slight scale; row expand 120 ms. Charts `animation: false`. No hover lifts or press translates. |
+| Public | The link underline thickens from 1 px to 2 px over 120 ms. Nothing else: no Figure 1 draw-on, no plate fades, no parallax, no scroll-linked motion (R-A11), no count-up numbers. |
 
-`prefers-reduced-motion: reduce` and `.a11y-reduce-motion` clamp every duration to 0.01 ms (existing rule) and render Figure 1 fully drawn (R-A10). The reduce-motion setting never changes the 3D camera behaviour itself (that would alter the manipulation for a subgroup); camera rules stay in the rendering-quality document.
+`prefers-reduced-motion: reduce` and `.a11y-reduce-motion` clamp every duration to 0.01 ms.
 
 ---
 
@@ -521,155 +472,123 @@ CSS only. No animation library is added; `tw-animate-css` stays only for shadcn 
 
 Primitives live in `src/components/ui` and change for everyone. Shared knowledge components live in `src/components/knowledge` and are imported by BOTH conditions; no condition-specific style props exist on them.
 
-### 9.1 Button (`ui/button.tsx`)
+**Principle for every control:** style the native element; never rebuild it in ARIA for looks ("If you can use a native HTML element … then do so", U-F1). `appearance: none` does not change the element's behaviour. Shared rules: at least 44 px; 4 px radius; `--ground` fill; 1 px `--rule-strong` boundary (4.22:1 on paper); 16 px type, so iOS does not zoom; label above in `text-label` style; help text in `text-credit`; errors in `--danger` with an icon, `aria-invalid` and `aria-describedby`; no transitions in study. **Forced colours:** every skinned control declares `appearance: auto` (and hides its drawn parts) under `@media (forced-colors: active)`, because forced colours drop author colours and box shadows (N-FC).
 
-- Default height 44 px (`h-11`), padding 0 20 px, radius 3 px, Inter 15/500, sentence case, optional 20 px lucide icon (stroke 1.75) on the left with an 8 px gap.
-- Variants: **primary** `--indigo` fill, `--on-indigo` label, hover and pressed `--indigo-hover`; **outline** 1 px `--rule-strong` border, `--ink` label, transparent fill, hover `--sunk`; **ghost** no border, hover `--sunk`; **link** `--indigo`, underline 1 px at 3 px offset, 2 px on hover; **destructive** 1 px `--danger` border and label, filled `--danger` with an `--on-indigo` label only inside the confirm dialog (`#FBF8F2` on `#A3242C` 6.96 light; `#14171D` on `#F2918C` 7.86 dark; never white on dark danger, which is 2.28).
-- Sizes: `default` 44; `icon` 44 x 44 with a 20 px glyph; `compact` 36 px visual height, console and CMS dense tables only, keeping a 44 x 44 hit area with `::after { inset: -4px }`. Sizes `xs`, `sm`, `icon-xs`, `icon-sm`, `lg`, `icon-lg` are removed (call sites migrate in their own package; WP0 keeps deprecated aliases that map to `default`/`icon` until WP8).
-- No `active:translate-y`. Disabled: `--ink-3` label, `--rule` border, `aria-disabled` and focusable when it needs to explain why.
-- Focus (all focusables, global rule): 2 px solid `--indigo` outline, 2 px offset, plus a 4 px `--ground` halo box-shadow (R-A5). HC: the existing black/white double ring. `scroll-padding-top` equals the sticky chrome height so focus is never hidden under it (R-A6).
-- Keeps `role` and `data-slot="button"` (tests/unit/button.test.tsx).
+### 9.1 Focus (All Areas, Both Conditions, Including Over the 3D Canvas)
 
-### 9.2 Card (`ui/card.tsx`)
+```css
+:focus-visible {
+  outline: 2px solid var(--focus-outer); outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--focus-inner); /* fills the offset: white inside, black outside (light) */
+}
+```
 
-- `--surface`, 1 px `--rule` border (replacing `ring-1`), radius 2 px, no shadow, padding 24 px (16 px under 520 px). Optional "plate head": a 2 px `--ink` top border and an eyebrow.
-- Parallel cards: grid stretch, `flex-col`, actions `mt-auto`; the title zone reserves two lines (`min-height: 2lh`) so a one-line title (Sanganeri) leaves no gap. Existing `tests/e2e/alignment.spec.ts` must keep passing (actions aligned within 1 px at 1280).
-- Interactive cards (whole card is a link): border `--rule-strong` (3.72:1), hover `--sunk`.
+- One rule for every theme; the tones are tokens. The better tone keeps at least 4.58:1 against any colour (asserted), so the ring is visible over paper, field, indigo and the 3D scene alike.
+- No primitive draws or removes its own ring (`outline-none` is banned in `src/components/ui` and in field classes; `tests/unit/design/focus-ring.test.ts`).
+- Controls whose native input is visually hidden (segmented options, the file button) draw the same ring on their visible label.
+- Programmatic focus targets (`tabindex="-1"`: the sheet h1, `<main>`) show no ring.
+- `scroll-padding-top` equals the chrome height, so focus is never hidden under the StudyBar (R-A6).
 
-### 9.3 Table (`ui/table.tsx`, booktabs)
+### 9.2 Select (`ui/native-select.tsx`)
 
-- Optional caption above: "Table n." in Inter 15/600 then the title in Inter 15/400; source note below in `text-credit`.
-- 1.5 px `--ink` top and bottom rules; header row in `text-dl-label` with a 1 px `--ink` midrule; row separators 1 px `--rule` (all rows in the console, where rows are long; omitted for 6 rows or fewer on public pages).
-- No zebra, no vertical rules. Numbers right-aligned, `tabular-nums lining-nums`; units in the header ("Time (min)").
-- Rows 44 px (36 px compact in dense console tables, with 44 px interactive cells). Console row hover `--sunk`; selected row `--wash` plus a 2 px indigo bar and a check icon.
-- Wide tables scroll inside their own labelled region (`role="region"`, `tabindex="0"`, `aria-labelledby` the caption), never the page; under 640 px, console list tables may switch to stacked label/value cards.
+One `NativeSelect` replaces every select skin of the Apparatus build (63 render sites): the native `<select>` with `appearance: none`, 44 px, padding 10/44/10/12, 1 px `--rule-strong`, 4 px radius, and the project chevron (20 px, 1.5 px stroke, square terminals) at 12 px from the end; hover darkens the boundary to ink-2; disabled on `--sunk`. Forced colours: `appearance: auto` and no chevron.
 
-### 9.4 Badge (`ui/badge.tsx`)
+- **No change of context on input** (WCAG SC 3.2.2): a select that changes the view sits in a form with a **joined, labelled action button** ("Show study"; technique H84, N-322). The URL updates, so the view is linkable.
+- **No truncation:** the study picker shows a two-line readout under the control: the full title, then "Key … State: …" as words.
+- **When every option fits on one line at 390 px, use a segmented control (9.3).**
+- **Participant-facing:** the study-entry group is a radio list (9.6); the concept-map relationship panel keeps the select, identically in both allocations.
+- The Radix `ui/select.tsx` and `ui/radio-group.tsx` are deleted (dead-alias test).
 
-No pills. 24 px tall, radius 2 px, 1 px `--rule-strong` box, Inter 12/600 uppercase 0.06em, `--ink-3`. Status badges (console, CMS, admin only) add a 12 px icon and colour the label with `--ok`, `--warn` or `--danger`, always with the word. Never coloured per tradition. The study verification badge ("Under Review") is this component, in the same position in the metadata list, in both conditions.
+### 9.3 Segmented Control (`ui/segmented.tsx`)
 
-### 9.5 Inputs (`input`, `select`, `textarea`, `checkbox`, `radio-group`, `label`, `field`, `form`)
+A `fieldset` and `legend` of native radios, visually hidden but focusable, with the focus ring and the checked state drawn on the label. Options at least 44 px, 1 px `--rule` dividers, 4 px outer radius. Checked: `--indigo` fill, `--on-indigo` label at 700, with the bold width reserved. Forced colours: the radios show and the checked option is outlined in `Highlight`. Used for the CMS Proof "Preview as: 2D column | 3D panel".
 
-- Height 44 px, 1 px `--rule-strong` border, radius 3 px, `--surface` fill, Inter 16 px (avoids iOS zoom).
-- Label above in Inter 14/500 `--ink`; help text in `text-credit`; error message in `--danger` with an icon, `aria-invalid`, `aria-describedby`. Error summary at the top of long forms receives focus.
-- Checkbox and radio: 20 px box inside a full-row label with a 44 px minimum height. Checked state is an `--indigo` fill with an `--on-indigo` mark, so on a selected `--wash` row the control boundary stays at least 3:1 (indigo on wash 8.25 light, 7.01 dark; the unfilled `--rule-strong` boundary is only 2.82 on dark wash, which is why an unchecked control is never shown on wash).
+### 9.4 Tabs (`ui/tabs.tsx`) and `LayerTabs` (`knowledge/layer-tabs.tsx`)
 
-### 9.6 Tabs (`ui/tabs.tsx`) and `LayerTabs` (`knowledge/layer-tabs.tsx`)
+WAI-ARIA tabs: roving tabindex, arrows, Home and End, automatic activation. 44 px tall, `text-ui`. Inactive tabs ink-2 (12.08:1); the active tab ink at 700 with its width reserved and a 3 px indigo underline. A 1 px `--rule` baseline. Tabs wrap and never scroll. No transition. `LayerTabs` reads names and order from `src/features/learning/labels.ts` and is the only layer navigation in both conditions.
 
-- Underline style only (the pill variant is removed). Each tab min 44 px tall, padding 0 16 px, Inter 15/500; inactive `--ink-3`, active `--ink` with a 3 px `--indigo` bottom border and `aria-selected`; the tablist sits on a 1 px `--rule` baseline.
-- Wraps to further rows; never scrolls horizontally (every layer name stays visible at 390 px).
-- Roving tabindex, arrow keys, Home and End (ARIA tabs pattern).
-- `LayerTabs` reads the layer list and order from one constant in `src/features/learning/labels.ts` (Overview, Artisan, Process, Science, Compare) and is the only layer navigation in both conditions. In 2D this replaces the concept-page layer disclosures; the tradition-page section disclosures stay disclosures (they are a list of sections, not layers of one concept), restyled per 9.13.
+### 9.5 Disclosure (`ui/disclosure.tsx`)
 
-### 9.7 Alert and `StateMessage` (`knowledge/state-message.tsx`)
+One shared `Disclosure` on `<details>`/`<summary>`: the summary is `display: block` with its marker removed; a 20 px chevron in a 44 px box; the state words "Show" and "Hide" in `text-credit`, so the state is never carried by the glyph alone. Native semantics (Enter, Space, find-in-page). It replaces every marker-less CMS and admin summary, the research "Data table" and change disclosures. "About these links" (RelatedConcepts) uses the same look with its telemetry. The 2D section disclosures use 56 px rows.
 
-- Alert: `--ground` fill, 1 px `--rule-strong` border, 4 px left border in the status colour (`--ink` for info), 20 px icon, a bold word ("Error", "Note"), body Inter 15.
-- `StateMessage` is the ONE error, empty, unavailable and loading component for study surfaces: 2D content-unavailable and practice-unavailable pages, every 3D screen (onboarding, help, paused, context lost, failed, no WebGL, loading) and `/study` errors. Same copy source, same 32 px outline icon, Source Serif h1 or h2, one sentence in `text-reading`, one 44 px primary action. Loading in study is a static `--sunk` block, not a pulse.
+### 9.6 Checkbox, Radio, Option Rows, File, Number and Date Inputs
 
-### 9.8 `CitationNote` and `CitationRecord` (`citations/citation-disclosure.tsx`, shared)
+- **Checkbox and radio (`ui/checkbox.tsx`, class `ie-check`):** the native input with `appearance: none`, 20 px, a 1.5 px `--rule-strong` border; checked = indigo fill with a drawn on-indigo tick (radio: an indigo ring and dot). Each sits in a full-row label of at least 44 px (56 px for study options).
+- **Option rows:** a selected row is `--wash` with the check (study questionnaires) or the visible word "Selected" (`OptionRow`). **No left bar.** Changed once in the shared component, so both allocations change together.
+- **File input (`ui/file-input.tsx`):** the native input, visually hidden but focusable, behind a 44 px secondary label button ("Choose file"), with the file name as a readout ("No file chosen" until one is); a form reset clears it.
+- **Number input:** `type="text"` with `inputMode="numeric"` (or `"decimal"`) and a `pattern`; the range and units go in the label ("Depth (1 to 4)"); the server validates as before. No spinner arrows.
+- **Date input:** native, with the input skin and a visible "Format: YYYY-MM-DD" hint linked by `aria-describedby`.
 
-- **Collapsed** (one per claim, directly under it): a full-width native `<button>`, min-height 44 px, left-aligned, no border. Content: a 16 px lucide `ChevronRight` (rotates to `ChevronDown` instantly when open), the word "Source" in `text-eyebrow`, then the short label in `text-source`, for example "Office of the Controller General, Year · p. 2" (the real year comes from the source record). The short label is **derived** in the view layer (`shortCitationLabel()` in `src/features/knowledge/read/view.ts`: first author or publisher short name, year, locator); it is not hand-written into `content/`. It wraps to at most two lines and is never truncated mid-word.
-- **Expanded**: renders inline directly under the note, at the claim measure, in both conditions:
-  1. the verbatim quote in `text-quote` (Source Serif 4 18/28) with a 2 px `--indigo` left rule and 16 px inset, inside typographic quotation marks; supporting passages each as their own block;
-  2. a two-column `<dl>` (label column 9rem, `text-dl-label`; values `text-dl-value`): Title, Author, Publisher, Year, Locator, Kind of Source, Reliability, Accessed. Under 520 px each label stacks over its value;
-  3. "Open the source" as a 44 px link-styled button with an external-link icon.
-- Escape closes the record and returns focus to the note. Telemetry `citation_opened` / `citation_closed` as today. One activation to reach the record from any claim, in both conditions.
-- When the same source supports several claims, every claim still shows its own note (no "first occurrence only" rule, which would make rendering depend on layout).
+### 9.7 Buttons (`ui/button.tsx`)
 
-### 9.9 `KnowledgeFigure` and `FigureLightbox` (`knowledge/knowledge-figure.tsx`, `knowledge/figure-lightbox.tsx`)
+- 44 px default (`compact` 36 px with a 44 px hit area, dense console tables only); 4 px radius; Atkinson 16/600; sentence case; a 20 px icon (stroke 1.75) with an 8 px gap.
+- **Primary:** indigo fill, on-indigo label. **Outline (secondary):** `--ground` fill with a **1.5 px ink border**, so actions read differently from fields. **Ghost (quiet):** no border; hover `--sunk`. **Link:** underlined 1 px at 0.2em, 2 px on hover. **Destructive:** a 1.5 px `--danger` border; filled only inside the confirm dialog.
+- No translate, lift or shadow. One primary per view. No "→".
 
-- `<figure>` at measure width, aligned with claim text, rendered immediately after its anchor claim (asset link role `illustration`, `position` = zero-based index of the anchor claim within the concept's claim list). At most one figure per concept in a study bundle.
-- **Fixed 3:2 slot** (`aspect-ratio: 3 / 2`), `--sunk` mat, 1 px `--rule` outline, image `object-fit: contain` (portrait and square images letterbox inside the same box), so every study figure has the same footprint whatever the source aspect. No registration ticks, no rounded corners, no shadow.
-- Image: `next/image`, explicit `width`/`height`, `sizes="(min-width: 1024px) 544px, calc(100vw - 32px)"` (a string literal: `var()` is not valid in `sizes`; the same literal in both conditions because it lives in the shared component), AVIF then WebP, `decoding="async"`. Loading policy identical in both conditions: the first figure of a concept view is `loading="eager"` without `fetchpriority`; all others `loading="lazy"`.
-- `figcaption`, under the image: line 1 "Fig. n" (600) + caption in `text-caption`; line 2 credit and licence in `text-credit`, for example "Photo: Name, Institution · CC BY-SA 4.0" with the licence linked (R-H5). Caption at most 180 characters (CMS-enforced). A caption must restate or point to its anchor claim; it never adds knowledge (R-L9, R-H6).
-- Alt text: required, about 15 words, describes what is visible and never repeats the caption (R-H6) or adds knowledge absent from the claims.
-- An **Enlarge** outline button, 44 x 44 with a `Maximize2` icon and the accessible name "Enlarge figure n", right-aligned in the caption row (not overlaid on the image). The image itself is not a second trigger, so there is exactly one control in both conditions.
-- **Lightbox**: native `<dialog>` modal with focus trap; **opaque** `--ground` full viewport (an opaque backdrop is required: a translucent one would show a page behind it in 2D and the scene in 3D). Image at natural size capped at **768 px on the long edge for every study figure** (R-C20; one cap for all figures so no tradition's images look sharper), centred; caption and credit repeated below; Close button 44 x 44 top-right with the label "Close"; Escape closes and returns focus to the Enlarge button. No zoom gestures, no animation. One activation from the figure, one to return.
+### 9.8 Badge, Alert, `StateMessage`, Empty State
 
-**Figure kinds (DR-018).** A study figure is one of two kinds, rendered by the same `KnowledgeFigure` frame (slot, caption, credit line, Enlarge button and lightbox are identical):
+- **Badge:** 24 px, 2 px radius, 1 px `--rule-strong`, Atkinson 14/20 at 600, sentence case, ink-2; a status badge carries an icon and the word.
+- **Alert:** `--ground`, a full 1 px `--rule-strong` border, radius 0, **no left bar**, a heading line of icon plus word ("Note", "Error").
+- **StallCue:** the same alert form, with the heading "Hint" (bulb glyph plus word), identical in both conditions; the reserved yellow guidance cue applies in high contrast.
+- **`StateMessage`:** the one error, empty, unavailable and loading layout of study surfaces, in both conditions: the h1 or h2, one sentence in `text-reading`, one 44 px action. No hero icon; only the error tone carries a 24 px danger icon beside its heading.
+- **Empty state:** one plain sentence in `text-body` ink-2, with an optional 44 px next-step link.
 
-- **`diagram` (now).** An explanatory SVG generated from the verified knowledge graph. It shows nothing that the concepts, claims and relationships do not state.
-  - **Types** (same set for every study tradition):
-    - *Process sequence*: the PRECEDES chain, with stage titles as node labels.
-    - *Materials and tools by stage*: the USES/REQUIRES edges of the stage concepts.
-    - *Colour mechanism*: the chain from dye and mordant concepts to outcome concepts, through SCIENTIFICALLY_EXPLAINED_BY / PRODUCES.
-  - **Style:** ink lines on the 3:2 `--sunk` mat, nodes as square-cut boxes with Title Case concept titles in `text-caption`, the relationship type as a small label on each edge, no colour coding beyond ink and one indigo accent for the current concept, identical in both conditions.
-  - **Text:** SVG text is selectable; the figure's alt text is a generated textual equivalent (the node sequence in order).
-  - **Caption and credit:** the caption names the concepts shown and the anchor claim. The credit line reads "Diagram generated from the project's knowledge graph (snapshot <label>)".
-  - **Lightbox:** shows the same SVG, scaled to the same 768 px long edge.
-- **`photo` (later).** A rights-cleared photograph (asset link role `illustration`), under all the rules above, once licences are cleared (`content/review/media-proposals.md`).
-- **Balance applies per kind.** Each study tradition gets the same diagram types in the same sections. Process-sequence and materials diagrams anchor on the tradition's process section; the colour-mechanism diagram anchors on its science section.
-- **Structure-diagram switch.** `figures.structureDiagrams` (default on) is a protocol setting that switches the structure diagrams off in BOTH conditions together, so researchers can rule out the 2D condition gaining structural visualisation (DR-018).
+### 9.9 `CitedClaim`, `CitationRecord` and `ReferenceList` (`citations/`, shared; DR-022 Addendum A)
+
+- **Marker:** each claim paragraph ends with one quiet numbered marker per citation, "[1]", in `text-ui` ink-2 with tabular figures and no fill until it is open. It is a native `<button aria-expanded aria-controls>` with a 44 x 44 px box (`h-11 min-w-11`); negative block margins of 7 px keep the 30 px reading line box, so markers never open up the line spacing. Its accessible name is "Source 1: <short label>", which contains the visible number. The number is the source's position in the view's deduplicated reference list (`referencesOf`, in order of first citation), so a source cited by several claims carries the same number everywhere in the view.
+- **Record, in place:** activating a marker expands its record directly under the claim, at the claim measure. It is a disclosure, never a jump and never a hover preview. In order:
+  - "Source 1" (`text-label`) with the short label and the citation's own locator (`text-source`; `shortCitationLabel()`, no middle dot);
+  - the label "Verbatim from the source";
+  - the quote in `text-quote`, **roman**, ink, on the `--sunk` mat (18.85:1), with 12 px 16 px padding, radius 0, no border and **no left bar**, the opening quotation mark hung into the padding; supporting passages are separate mats 8 px apart, each with its locator;
+  - "Open the source" as a 44 px link with an external-link glyph.
+
+  Activating the marker again closes the record; Escape inside the record closes it and returns focus to the marker. Each marker has its own record. Instant and non-modal. Collapsed by default.
+- **Reference list:** at the end of the sheet's field (the KnowledgeSheet `references` slot), after the claims and comparison blocks and before Related Concepts; after a standalone ClaimList elsewhere. An `h2` "References" set as `text-h3`, then an `<ol>` with the number hanging in the 2.25rem hang. Each source appears once, in `text-source`: "<Author or publisher> (<year>). <Title>. <Publisher>." then "Kind of source: <kind>. Reliability: <reliability>. Accessed <date>." There are no links in the list (the record carries the link), so the list adds no Tab stops between the claims and Related Concepts.
+- One activation reaches a record in both conditions (P11). Telemetry `citation_opened` / `citation_closed` (conceptId, sourceId, claimIndex, openMs) is unchanged.
 
 ### 9.10 `ClaimList` (`knowledge/claim-list.tsx`)
 
-`<ol>` of claims; each `<li>` holds the hanging number (`text-claim-number`, `aria-hidden` because the `<ol>` already numbers for assistive technology), the claim `<p class="text-reading">`, its `CitationNote`, then any figure anchored to it. 24 px between claims with a 1 px `--rule` separator. Replaces `src/features/learning-2d/ui/claim-list.tsx` and the inline claim markup in `info-panel.tsx`.
+An `<ol>`; the number hangs (`text-claim-number`, `aria-hidden`); the claim in `text-reading` ending in its markers [n]; any open records; then any figure anchored to it. **32 px of space between claims, no hairline.** In a sheet the placement passes `references="sheet"` and puts `SheetReferences` in the sheet's slot; standalone, the list follows the ClaimList.
 
-### 9.11 `KnowledgeSheet` (`knowledge/knowledge-sheet.tsx`)
+### 9.11 `KnowledgeFigure` and `FigureLightbox` (DR-018, DR-020 Unchanged in Substance)
 
-The one container for a concept in both conditions:
-
-1. Header row: eyebrow ("Material · Step 3 of 9"), `text-title` h1, and a **reserved 44 x 44 action slot** top-right (holds Close in 3D; empty but reserved in 2D, so title wrapping is identical).
-2. Metadata `<dl>`: Local Terms (each in `<span lang="…">`, roman), Tradition (with the neutral marker), Category, Status (verification badge).
-3. `LayerTabs`.
-4. The field: running head "From the Sources" (`text-eyebrow`), `ClaimList` with figures and citation notes, comparison blocks.
-5. `RelatedConcepts` (9.12) at the end of the column.
-6. Pager (prev/next).
-
-Reading progress: a 2 px `--ink` on `--rule` bar (9.71:1 light, 9.95:1 dark) directly under the header row, labelled `role="progressbar"`, no transition. It measures the sheet's own scroll container in both placements (the window in 2D, the panel in 3D), so it is present and identical in both conditions. It replaces the 2D-only `reading-progress.tsx` bar.
-
-Focus on open: when a concept opens, focus moves to the sheet h1 (`tabindex="-1"`) in BOTH conditions (2D after client navigation, 3D on panel open), so the keyboard path from concept open to the first claim and CitationNote is identical (P13).
-
-Region semantics: `<section aria-labelledby={titleId}>`. Exactly one h1 per view: on a concept view the h1 is the concept title in both conditions. In 3D, while no concept is open, the room name in the StudyBar is the view's h1; when the panel opens, the room name becomes a non-heading `aria-live` text and the panel title is the h1.
+Kept: the fixed 3:2 slot and `object-fit: contain`; at most one figure per concept; the 768 px lightbox cap for every study figure (R-C20); one Enlarge button in the caption row; an opaque lightbox; identical behaviour in both conditions. **Mat:** `--sunk`, a 1 px `--rule` outline, radius 0, for photographs and diagrams alike (no dark photographic mat in study). **Caption:** "Fig. n" then the caption (`text-caption`); then the object and credit line and the rights as words (`text-credit`). **Diagrams:** 1.25 px ink lines on the mat; square-cut nodes with Title Case titles; the relation on each edge; the current concept as an **indigo box with an on-indigo label** (10.32:1). The structure-diagram switch `figures.structureDiagrams` and the photo rules of DR-020 apply unchanged.
 
 ### 9.12 `RelatedConcepts` (`knowledge/related-concepts.tsx`)
 
-At the end of the knowledge column in BOTH conditions (never a 2D side rail). Grouped by relation verb: the verb as an h3 in `text-h3` ("Is Affected By"), then the related concept links in Inter 15/500 `--indigo`, underlined, 44 px rows. One "About these links" disclosure (44 px) per group replaces the four-fold "About this link". In 2D a link navigates; in 3D the same-looking link walks to the exhibit (the walk is the manipulation). Replaces both copies of `RelationDetails`.
+At the end of the sheet in both conditions. Grouped by relation verb (an h3 in `text-h3`), then the related concepts as 44 px link rows with their type and, for another tradition, its name, joined by a comma. One "About these links" disclosure per group (9.5). In 2D a link navigates; in 3D the same-looking link walks (the manipulation).
 
-### 9.13 Section Disclosure (2D tradition page only, `features/learning-2d/ui/disclosure-section.tsx`)
+### 9.13 Section Disclosure (2D Tradition Page Only)
 
-56 px rows within the sheet width: a 20 px chevron in a 44 px box at the left edge, the section label in `text-h2`. No concept count in study mode (12.3 rule 13; the museum rooms show none). The museum mirrors the same section order as rooms. Instant open, logs `information_layer_opened` as today.
+56 px rows within the sheet width: the chevron in a 44 px box, the section label in `text-h2`. No concept count in study.
 
 ### 9.14 `StudyBar` (`learning/study-bar.tsx`, shared)
 
-56 px, opaque `--ground`, 2 px `--ink` rule below, the same component in both conditions. Contents, in DOM and visual order:
-
-1. Wordmark "Immersive Episteme" (Source Serif 4 600, 18 px) as plain text, not a link (no outbound navigation in study).
-2. Location slot: 2D, the current page title (non-heading); 3D, the room name (h1 when no concept is open, see 9.11), Source Serif 4 600 18 px, truncated with an ellipsis on one line.
-3. Shared controls: Hint (`HintControl`), Time Left (`LearningTimer`, `text-timer`), Finish. Same labels, same 44 px buttons.
-4. Condition navigation group (allowed to differ, same button style and size): 2D Contents, Search and, on concept pages, "Up to <parent>"; 3D Plan, Controls Help, Pause. Text labels visible from 1024 px; icon plus `aria-label` and tooltip below.
-
-A skip link "Skip to content" (same label in both) targets the knowledge column (2D) or the panel when open, otherwise the scene region (3D).
+56 px, `--ground`, ONE 1 px `--rule-strong` line below, the same component in both conditions. The wordmark (Atkinson 800, 18 px, plain text); the location (Atkinson 700, 18 px, one line, no middle-dot joins; the 3D room and wing are joined by a comma); the condition group (2D: "In This Section" below 1280 px once the rail lands; 3D: "In This Room" below 1280 px, Plan, Controls help, Pause; "Mouse look" stays a labelled button in the public demo and is hidden in study builds, where free look stays on the L key and in Controls help); then the shared group Hint, Time left, Finish, last and at the right edge, so shared controls never move with the condition. A skip link "Skip to content" with the same label in both.
 
 ### 9.15 `AccessNotice` (`shell/learning-shell.tsx`)
 
-The demo notice and the "under review" notice merge into one 40 px strip (`--sunk`, `text-ui`, an "End demo" 44 px ghost button where applicable), rendered in the same slot above the StudyBar in both conditions. Participants see none in either condition.
+One 40 px strip (`--sunk`, `text-ui`, an "End demo" 44 px ghost button where applicable), in the same slot above the StudyBar in both conditions, or absent in both. Short labels use a comma ("Demo, under review"), never a middle dot.
 
-### 9.16 Navigation and Shells
+### 9.16 Shells and Navigation
 
-- **Public header**: wordmark (Source Serif 4 600, 22 px) left; links About, Explore, Accessibility, Privacy, Staff sign in, all plain text links in Inter 15/500 with 44 px hit areas, the current page underlined 2 px indigo ("Staff sign in" is no longer a pill). 2 px ink rule below, then the 24 px knock-out band. Under 768 px the links fold into a 44 px "Menu" button opening a sheet.
-- **Public footer**: colophon style: one-line project statement, links (Colophon, Accessibility, Privacy, Image credits), Display Settings button, and institution lines only when configured (13.1).
-- **Console shell**: 15rem left rail on `--sunk` with the wordmark, an eyebrow area label ("Research Console", "Content Console", "Admin Console"), 44 px nav links (active: `--ink` 600 with a 3 px indigo left rule; no card, no shadow). Top bar 56 px (area switcher as underline tabs; user menu with name, role badges, Display Settings, sign out) with a 2 px ink rule. Session-dependent parts stay inside `<Suspense>` (cacheComponents).
-- **PageHeader** (`shell/page-header.tsx`): eyebrow, h1 in `text-title`, description in `text-body` `--ink-2` at 40rem, actions right-aligned (wrapping under 768 px). Research pages place a 48 px knock-out band above it; CMS and admin use a plain 2 px ink rule. `PlaceholderNotice` (the dashed box) is deleted; sections without real content are omitted.
-- **Study shell**: wordmark, "Study" eyebrow, "Step n of N" (`tabular-nums`), 2 px ink rule, a 40rem single column on `--ground`, no outbound navigation, footer "Ask the study facilitator".
-- **Breadcrumb**: single line; the middle crumbs collapse to an ellipsis button that reveals them; full path in `title`. Under 520 px it shows "← Parent" only.
-- **Pager**: two equal-width 64 px cards (grid), label "Previous" or "Next" in `text-eyebrow`, title in `text-h3`, both left-aligned; the next card carries a right arrow.
+- **Public header:** a 64 px `--field` band; the wordmark in Anek Latin 600 at 22 px; plain text links in `text-ui` with 44 px hit areas, the current page underlined 2 px indigo; "Staff sign in" as a link; one 1 px `--rule-strong` line. No band pattern. Under 768 px the links fold into a 44 px "Menu" button. **Footer:** on `--field` above a 1 px line; project statement, links, Display Settings, institution lines only when configured.
+- **Console shell:** a 15rem rail on `--field` with a 1 px `--rule-strong` edge; the wordmark (Atkinson 800, 18 px); the area name as plain `text-h3`, not an eyebrow; 44 px rows, the active row ink 700 on `--wash` with `aria-current`, **no left bar**. Top bar 56 px on paper with ONE 1 px line; the area switcher as underline tabs; the user menu. Session-dependent parts inside `<Suspense>`.
+- **PageHeader:** the h1 in `text-title`, the description in `text-body` ink-2 at 40rem, actions right. **No band, no eyebrow, no second rule.**
+- **Study shell:** the wordmark, the label "Study", "Step n of N" (`tabular-nums`), one 1 px line; the content column left-aligned in a 1280 px frame (6.1); no outbound navigation; footer "If anything is unclear, ask the study facilitator."
+- **Breadcrumb:** single line; middle crumbs collapse to a 44 px "…" button; under 520 px the parent only.
 
 ### 9.17 Guidance (`learning/guidance.tsx`)
 
-`HintControl` is a 44 px ghost button in the StudyBar; its panel is a non-modal `--surface` card with a 1 px `--rule-strong` border (no shadow), opening instantly. `StallCue` is a `--ground` card with a 4 px `--indigo` left border in normal mode; in high contrast the reserved yellow guidance cue applies, identically in both conditions.
+`HintControl` is a 44 px ghost button in the StudyBar; its panel is a non-modal paper panel with a 1 px `--rule-strong` border, opening instantly. `StallCue` per 9.8.
 
 ### 9.18 Dialog, Sheet, Dropdown, Tooltip
 
-`--surface`, 1 px `--rule-strong` border, radius 2 px, console shadow token; close buttons 44 x 44 with a visible "Close" label or tooltip. In study routes they open with no transition (the global study zero-motion rule overrides `tw-animate-css`).
+Paper, 1 px `--rule-strong` border, radius 0 (dialogs and sheets) or 4 px (menus and tooltips), **no shadow**; the backdrop is a flat 50% black, never blur or glass; close buttons 44 x 44 with a visible "Close". Menu items 44 px, hover and focus `--sunk`, keyboard focus the global ring (no inset bar). In study routes nothing animates.
 
-### 9.19 Display Settings (`shell/display-settings.tsx`)
+### 9.19 Display Settings and 9.20 Onboarding
 
-A dialog with three 44 px switches (Dark theme, High contrast, Reduce motion), each a labelled `role="switch"`. Writes classes on `<html>` and persists per device in `localStorage` (guarded by try/catch). Same component in every placement. In study mode only the High contrast switch is shown. Its choice is recorded on the study session by the study engine (DR-019), so no telemetry event type is needed.
-
-### 9.20 Onboarding (`learning/onboarding.tsx`, shared)
-
-One component renders the onboarding of both conditions: a `StateMessage`-style column at 40rem on `--ground`, an h1 in `text-title`, numbered steps in `text-reading`, a static line-art key of the controls (ink outlines, no animation, no photograph), and one 44 px primary "Start" action. Both conditions show the same number of screens and the same shared text (time limit, Hint, Time Left, Finish, how to open a citation and a figure); only the paragraph that explains movement differs (2D: Contents, Search and links; 3D: Plan, keyboard and mouse movement), and the two versions are written to the same length (within 10% of words, P23). Strings come from `src/features/learning/strings.ts`. The practice sessions in both conditions use the same component.
+Unchanged in behaviour (DR-019; P23): three labelled 44 px switches outside study, High contrast only in study; one shared onboarding component whose movement paragraphs differ only by condition and by at most 10% of words.
 
 ---
 
@@ -677,23 +596,14 @@ One component renders the onboarding of both conditions: a `StateMessage`-style 
 
 The dashboard reads as the results section of a paper (R-T13, R-T14, R-T16).
 
-**Frame.** Every chart is a `<figure>` with a numbered caption above or below: "Figure 2. Learning Gain by Condition" plus a "How to read" line that states n, the measure, the unit and the uncertainty ("Points show participant scores; bars show 95% CI; n = 24 per condition"). Captions never use causal wording. Under every chart a "Data table" disclosure (existing `charts.tsx` pattern) renders the same data as a booktabs table, and "Download CSV" is a 44 px outline button.
-
-**Forms.** Dot-and-interval and strip plots for condition comparisons, showing every participant when n ≤ 200 (R-T19); slope charts for pre-test to post-test; small multiples for the three study traditions on identical scales, in canonical order, labelled by name; bars only for counts (enrolment, completion), always from zero. No pie, no 3D, no dual axes, no gradients, no red/green pairs.
-
-**Encoding.** 2D = `--series-2d`, circle marker, solid 1.75 px line; 3D = `--series-3d`, square marker, 4-2 dashed line (R-A12). 2D is always first or left. Direct labels at line ends or beside groups instead of legends (R-A13). Traditions are never colour-coded. Heatmaps use the sequential indigo ramp with values printed in cells.
-
-**Style.** ECharts SVG renderer (kept, loaded on demand in the console only); `animation: false`. Axis labels Inter 12 `--ink-3` `tabular-nums`; titles of axes Inter 14/500 `--ink` (two levels, R-T18); x axis line 1 px `--ink`; y gridlines `--grid`; no chart border; plot area on `--surface`. Tooltip as a booktabs mini-table, keyboard reachable. No links inside the plot area (series-2d vs indigo is only 1.59:1).
-
-**Single palette source.** `src/components/analytics/use-echart.ts` builds its `VIZ` object from CSS custom properties through `getComputedStyle(document.documentElement)` at mount and on theme change, so charts follow light, dark and HC. The separate `#2a78d6 / #eb6834 / #1baf7a` palette is deleted.
-
-**Stat tiles** become "Table 1. Enrolment and Completion": a booktabs row of figures (label `text-dl-label`, value `text-stat`, comparator line `text-credit`, e.g. "2D 41 · 3D 39" or "of 120 target"), baselines aligned by the existing three-row grid. No trend arrows coloured red or green.
-
-**Live status.** `--ok`, `--warn`, `--danger` with an icon and a word ("Live", "Stale", "Error") and an "as of hh:mm:ss" timestamp in `text-mono` (R-T20). Replaces the raw `emerald` and `amber` classes.
-
-**Precision.** Fixed decimals per column (scores 1 dp, effect sizes 2 dp, p values 3 dp with "< .001" as the floor). No more precision than the measure supports.
-
-**Equivalence Monitor** (`src/components/parity/equivalence-monitor.tsx`, data from `src/server/research/parity/summary.ts`). A booktabs table: Check, 2D, 3D, Delta, Tolerance, Status (icon + "Pass" or "Fail"), plus a run line ("Interface parity run: commit abc123, 1280 x 800 light; 27 of 27 checks pass"). Fed only by stored parity reports: the existing content parity engine (`src/server/research/parity/engine.ts`) and the latest interface parity report produced by `tests/e2e/parity.spec.ts` in CI and committed as `analysis/parity/interface-parity.json`. If no real report exists, the component renders "No parity run recorded yet" and nothing else; it never shows sample or placeholder values.
+- **Frame.** Every chart is a `<figure>` in the Reuters frame: number, title, a "How to read" line (n, measure, unit, uncertainty), the graphic with direct labels, then Note and Source lines. Captions never use causal wording. Under every chart a "Data table" disclosure (9.5) and a 44 px "Download CSV" button.
+- **Forms.** Dot-and-interval and strip plots for condition comparisons (every participant when n ≤ 200, R-T19); slope charts for pre to post; small multiples for the three study traditions on identical scales, canonical order; bars only for counts, from zero. No pie, no 3D, no dual axes, no gradients, no red/green pairs.
+- **Encoding.** 2D = `--series-2d`, circle, solid line; 3D = `--series-3d`, square, 4-2 dashed line (R-A12). 2D first or left. Direct labels (R-A13). Traditions are never colour-coded. Heatmaps on the sequential indigo ramp with values printed.
+- **Style.** ECharts SVG renderer, console only, `animation: false`. Labels in Atkinson: axis labels 13 px ink-3 `tabular-nums`; axis names 15 px 600 ink (two levels, R-T18); x axis line 1 px ink; y gridlines `--grid`; plot area on paper; tooltip as a booktabs mini-table. Joins in tooltips use words ("A to B", "A, B"), never a middle dot.
+- **Single palette source.** `use-echart.ts` reads the tokens (`--ground` for the plot area) through `getComputedStyle` and rebuilds on theme change.
+- **Table 1** (Enrolment and Completion) is a booktabs row of figures (label `text-label`, value `text-stat`, comparator line "2D 41, 3D 39"), not stat tiles. No coloured trend arrows.
+- **Live status:** `--ok`, `--warn`, `--danger` with an icon and a word ("Live", "Stale", "Error") and "as of hh:mm:ss" in `text-id`; the stale alert has a full 1 px danger border, no left bar.
+- **Equivalence Monitor** (`components/parity/equivalence-monitor.tsx`): a booktabs table (Check, 2D, 3D, Delta, Tolerance, Status with icon and word), fed only by stored real reports; otherwise "No parity run recorded yet" and nothing else.
 
 ---
 
@@ -701,87 +611,43 @@ The dashboard reads as the results section of a paper (R-T13, R-T14, R-T16).
 
 ### 11.1 Public Home (`/`)
 
-1. **Header**: running head (9.16) and the 24 px knock-out band.
-2. **Hero** on the 12-column grid. Columns 1-7: eyebrow "A Research Platform" in `--ochre`; h1 "Immersive Episteme" in `text-display-1` (the smoke test's accessible name is unchanged); a deck in `text-deck` that names the subject: "Six traditions of Indian hand-block printing, Ajrakh, Bagh, Bagru, Dabu, Machilipatnam Kalamkari and Sanganeri, as one cited body of knowledge, learned two ways." Buttons on one row, equal width 12rem: primary "Explore the demo" and outline "Read the method"; full width and stacked under 520 px. Columns 8-12: **Plate 1**, a licence-checked photograph (for example a printer at work or a carved block) in a 4:5 box with registration ticks, "Plate 1." in `--madder` 600 then caption, credit and licence. Until a licensed photograph is approved, this slot holds a typographic specimen: one real dataset claim with its source line and open citation record, inside the same ticked frame (never a stock image).
-3. **Figure 1. One Knowledge Model, Two Conditions** (full width, outline-then-fill SVG): left, a node cluster labelled with live counts (traditions, concepts, relations, sources), read from the database at request time inside `<Suspense>` with a static fallback that shows no numbers; two equal-weight branches lead to a miniature page (text lines with numbered claims) and a miniature floor plan (rooms as squares). The branch strokes draw on once (section 8). Under it a booktabs two-column table: "Identical in Both Conditions" (claims, citations, figures, typefaces and sizes, controls, timer, hints) and "Differs by Design" (spatial organisation, navigation). A text list repeats the diagram for assistive technology.
-4. **Six Traditions**: a 3 x 2 grid of equal plates in canonical order (11.10). Each: a 3:2 photo slot, the neutral marker, the name in Source Serif 4 600 24 px, the region in `text-eyebrow`. Photographs are shown only when all six have an approved licensed image; otherwise all six show a typographic plate (the name on `--sunk`). Never some with and some without.
-5. **Dataset at a Glance**: booktabs "Table 1" with counts by tradition (right-aligned, tabular), live from the database.
-6. **Institution strip**: affiliation, paper citation, ethics approval reference, read from `src/config/institution.ts`; each field is hidden until the team sets it. Nothing is invented and nothing says "to be confirmed".
-7. **Footer** as colophon (9.16).
+1. **Title block,** left-aligned on columns 1 to 7, with nothing beside it: the h1 "Immersive Episteme" in `text-display-1` (the smoke test's name is unchanged); the deck (`text-deck`) naming the six traditions from live data; ONE primary "Explore the demo" and a text link "Read the method". No eyebrow, no hero plate or card.
+2. **Figure 1, "One Knowledge Model, Two Conditions",** full grid width on **one indigo plate** with on-indigo linework (10.32:1): the knowledge model with live counts read inside `<Suspense>` (a fallback with no numbers), and two equal branches to a page miniature and a floor-plan miniature. Static. Then its text equivalents: the count list, the two conditions as two equal unboxed panels with a 1.5 px ink top rule (parallel links on one baseline), and the booktabs "What Is Identical and What Differs" table.
+3. **The traditions** as an index of equal rows (number, short name, full name, region) in canonical order, without images (DR-020), counts or boxes.
+4. **Table 1,** dataset counts by tradition.
+5. **The latest parity run** through the Equivalence Monitor, or "No parity run recorded yet".
+6. **Institution strip:** fields hidden until set (13.1).
 
-At 390 px: the hero stacks with the plate after the deck; Figure 1 switches to a vertical flow; no horizontal scroll.
+### 11.2 About, Colophon, Accessibility, Privacy
 
-### 11.2 About (`/about`) and Colophon (`/about/colophon`)
-
-Editorial frame (section 6). **About**: h1 "About the Project", lead, then sections in order: Purpose; Method, with Figure 2 (study flow: consent, pre-test, learning phase in 2D or 3D, post-test, delayed test) drawn outline-then-fill; Equivalence (embeds the read-only Equivalence Monitor, or the line "No parity run recorded yet"); Dataset and Citation Standard (table of the six traditions by concepts, claims, sources); Images and Licences; Team and Affiliations; Ethics and Data Protection; How to Cite (BibTeX in a `--sunk` mono block with a 44 px Copy button); Contact. Sidenotes in the margin column carry citations for any statement about the craft. A pull-quote (a real cited claim) in Source Serif 4 28 px with a 3 px `--madder` left bar. A section with no verified content is omitted entirely; the dashed placeholder box is removed.
-
-**Colophon**: typefaces with specimens and the measured font budget; palette swatches, each framed by registration ticks and labelled "Design interpretation; not a measured or historical dye colour" (R-C6); the decorative pattern note; the full parity-check list (section 12.4) with the latest real result per check.
+The editorial frame (6.1). Section heads in Anek Latin `text-display-3` with space above and below, no rule and no eyebrow. Sidenotes carry citations for any statement about the craft. **About:** the pull-quote is a real cited claim set in Atkinson 400 at 28/36 on a `--sunk` mat with a hanging opening mark, no bar. **Colophon:** the faces with specimens and the measured font bytes; the palette as plain swatches with their light and dark values and roles (only indigo carries "Design interpretation; not a measured or historical dye colour"); the fixed order; P1 to P32 with real results only.
 
 ### 11.3 Explore (`/explore`)
 
-PageHeader with the honest lede ("This is not part of a study and nothing you do is recorded as study data"). A full-width "What Is the Same" strip above both cards (`--surface`, 4 px indigo left rule): "Same claims, citations, figures, typefaces, controls and timer. Different: how you move through the knowledge." Two equal cards (columns 1-6 and 7-12; stacked at 390 px, 2D first; the fixed 2D-left order is documented on the Colophon): a 16:10 **line-art schematic** drawn in the outline-then-fill style (a page miniature; a floor-plan miniature), never a screenshot, so neither condition looks richer; the title in Source Serif 4 600 26 px; a description written to the same number of lines at 1280 px (reserved 3-line height); a 44 px primary button with `mt-auto`. Below: "Before You Start" with the keyboard and control summary for each condition in two equal booktabs tables, and the Display Settings button.
+PageHeader with the honest lede. "What is the same" as an unboxed lead (no box, no bar). Two equal panels (2D left) with a 1.5 px ink top rule: the line-art schematic on a `--sunk` mat, the title in `text-display-3`, a reserved three-line description, and the 44 px primary action pinned with `mt-auto` so both sit on one line. "Before You Start": the controls of each condition in two equal booktabs tables, arrow keys named in words.
 
-### 11.4 Accessibility, Privacy, Sign-In, Sign-Out, Forbidden
+### 11.4 Sign-In, Sign-Out, Forbidden
 
-Editorial frame; Accessibility documents themes, high contrast, reduced motion, keyboard paths and the Display Settings control; Privacy as long-form text with a `<dl>` for contacts. Sign-in: a centred 24rem `--surface` card on `--ground` with 44 px fields, no band. Forbidden and sign-out use `StateMessage`-style layout with public chrome.
+**Sign-in:** the form on columns 1 to 5 and the explanation (participants never sign in here; accounts come from an administrator) on columns 7 to 11; not a centred card. **Forbidden and sign-out:** the StateMessage layout, left-aligned, no hero icon.
 
 ### 11.5 2D Learning Pages (`/learn/2d/*`)
 
-**Chrome**: AccessNotice slot (40 px, or absent), StudyBar (56 px), 2 px ink rule. Nothing else stacks above content. The 2D navigation (Traditions, Categories, Comparisons, Search) lives in the StudyBar's condition group ("Contents" opens a sheet listing Traditions, Categories, Comparisons; "Search" opens a sheet with a 44 px input), so the chrome height equals 3D.
-
-**Index**: a column at the sheet width, centred.
-- "Traditions": the study traditions as equal typographic cards in canonical order, each with a reserved two-line title zone and the neutral marker. No photograph or plate slot on study index cards (the 3D entry has no equivalent, and section 3 allows no imagery in study other than knowledge figures). Concept counts are hidden in study mode (they are shown in neither condition, since the museum shows none).
-- "Browse by Knowledge Category": a booktabs table (Category, one-line description; no count column in study mode, 12.3 rule 13), each row a 44 px link. Replaces the 13 pills and the orphan grid cells.
-- "Comparisons Across Traditions": one table row link to the comparisons page, not an orphan button.
-
-**Tradition page**: PageIntro with a labelled `<dl>` (Also Known As, Region, GI Status) one value per line; Overview claims through `ClaimList`; provenance as a `<dl>`, not a run-on line; the ten section disclosures (9.13) within the sheet width.
-
-**Concept page**: the `KnowledgeSheet` (9.11) centred, directly under the chrome (no breadcrumb, see section 6); the reading-progress bar is part of the sheet and is identical in 3D (9.11).
-
-**Comparisons**: claim text is never set in narrow matrix cells, because that would give 2D comparison claims a different measure and line count from the 3D Compare layer. Each comparison renders, at the sheet measure, one block per aspect: the aspect as an h2, then the three study traditions in canonical order, each as an h3 (tradition name with the neutral marker) followed by its claims through `ClaimList` with their `CitationNote`s, exactly the components the 3D Compare layer uses. An optional overview table above (rows = aspects, columns = the three traditions with equal widths) holds only in-page links to those blocks, no claim text.
-
-**Practice page**: the real chrome and components with practice content (as today).
+The chrome per 9.14 and 9.15; the spread per 6.2 once DR-021 lands. Page intros have no eyebrow. The index, tradition pages and comparisons keep the Apparatus structure (equal typographic rows, no counts in study, comparisons per aspect at the sheet measure through `ClaimList`), set in the Atlas tokens; comparison aspects are separated by a 1 px `--rule-strong` line, not a 2 px ink rule.
 
 ### 11.6 3D Museum Overlays (`/learn/immersive`)
 
-- **StudyBar**: the shared component (9.14), opaque, replacing the glass HUD blocks.
-- **Info panel**: the `KnowledgeSheet` docked right at 1024 px and wider (39.25rem, opaque `--ground`, 1 px `--rule-strong` left border, no radius, no shadow, internal scroll, full height below the chrome); full width and full height below the chrome under 1024 px and at 200% zoom. Close sits in the reserved action slot (44 x 44, label "Close"). Opening moves focus to the h1; Escape closes and returns focus to the exhibit trigger. Non-modal at 1024 px and wider; modal under 1024 px.
-- **Minimap**: bottom-left, 192 x 192 on opaque `--ground` (study palette rule 5 keeps `--surface` for the hint panel and dialogs) with a 1 px `--rule-strong` border and an eyebrow "Plan". Rooms are 1.5 px `--ink` outlines, unfilled, labelled with section numbers in `tabular-nums`; the current room has a 2 px ink outline, an 8 px ink dot and the text "You Are Here". No colour fills, no tradition colour. A 44 px "Expand plan" button opens a full plan dialog with room names. The minimap is hidden while the panel is open under 1024 px.
-- **Room contents list**: 44 px rows.
-- **Signage (in scene)**: room plaques of one fixed size for every room (1.6 x 0.5 m), ink on `#F5F1E8`, Source Serif 4 600 for the name at a fixed cap height (wrapping to two lines, e.g. "Machilipatnam Kalamkari"), rendered to a `CanvasTexture` with the already loaded webfont; scene start is gated on `document.fonts.ready` so plaques never render in a fallback font. Contrast stays at least 4.5:1 under scene lighting (existing `immersive-rendering.spec.ts`).
-- **Wall exhibit planes**: every exhibit plane has the same size and shows a **typographic plate** (concept title in Source Serif 4 600 on `#F5F1E8`, 1 px ink frame) in study builds. Photographs appear only inside the panel figure, identical to 2D, so imaged concepts are not more salient in the 3D field of view. Activating any plane opens the panel at its top, never the lightbox directly. (A photograph-plane mode may exist behind a flag for public demos only; it is off for every study.)
-- **Screens** (onboarding, help, paused, context lost, failed, no WebGL, loading): `StateMessage` and the shared onboarding component, with the same copy, layout and button sizes as the 2D practice and error pages.
+The shared StudyBar and KnowledgeSheet (6.2, 6.3); the Plan with 1.5 px ink room outlines, tabular section numbers and "You are here"; all overlays opaque (`--ground` sheet; `--field` rail and Plan). The gallery finish, plaques and lobby are specified in DR-023 and `docs/research/design-process/modules/immersive-3d.md`.
 
 ### 11.7 Study Pages (`/study/*`)
 
-Study shell (9.16). Progress: "Question 4 of 20" in Inter `tabular-nums` and a 2 px `--ink`-on-`--rule` line, no transition, no percentages, badges or confetti. Question text in Inter 20/28 600 `--ink`. Options: full-row 56 px labels with a 20 px radio, separated by 1 px `--rule`; selected = `--wash`, 2 px `--indigo` left border and a check icon. Likert scales: a 5- or 7-column table with tabular numbers and end labels in `text-eyebrow`; stacked vertically under 520 px. Free text: textarea, min 132 px. Action row: "Back" outline (left) and "Continue" primary (right, last in DOM and tab order), 44 px. Consent, information and debrief use the editorial text column without sidenotes. Errors use `StateMessage`; field errors per 9.5. The concept-map reconstruction task keeps its canvas but adopts the tokens, 44 px controls and zero motion. No pattern, madder, ochre, ticks or imagery.
+The study shell (9.16). "Question 4 of 20" in tabular figures; the question in Atkinson 20/28 600. Options: full-row 56 px labels with the `ie-check` control, separated by 1 px `--rule`; selected = `--wash` and a check icon, **no bar**. Likert scales: a column per point with tabular numbers and end labels; stacked under 520 px. Numeric answers are text inputs with a numeric keyboard (9.6). The study-entry group is a radio list. Consent and withdrawal rows use the same option row. Errors use `StateMessage`; field errors per 9.6.
 
-### 11.8 Research Console (`/research/*`)
+### 11.8 Research Console, Dashboard, CMS and Admin
 
-Console shell with the 48 px knock-out band above each PageHeader. The landing page (`/research`) leads with the **Equivalence Monitor** summary (content parity status of each active study plus the latest interface parity run) above the study list. Lists (studies, sessions, participants, assessments, exports) are booktabs tables with 44 px rows, mono participant codes and status badges with words. Detail pages: a two-column `<dl>` summary, then sections under `text-eyebrow` running heads; protocols as numbered lists. `/research/parity` keeps its run form and history and adds the interface parity section. Analytics, scoring and pathways pages follow section 10. A "Demo data" `--warn` badge appears on every panel while `is_demo` records are shown.
-
-### 11.9 Research Dashboard (`/research/dashboard`)
-
-A results sheet, in rows:
-1. Table 1, Enrolment and Completion (stat row) with the live status line at the right.
-2. Figure 1, Pre/Post Score by Condition (slope chart) and Figure 2, Learning Gain by Condition (dot plus 95% CI with raw points), two equal columns.
-3. Figure 3, Gain by Tradition: small multiples for the three study traditions on identical y scales, canonical order.
-4. Figure 4, Dwell Time per Layer (heatmap, sequential ramp, values in cells); Table 2, Per-Item Statistics (booktabs, right-aligned tabular, Download CSV).
-5. An "Interface Parity" card linking to the latest parity run, so the confound control sits next to the results.
-
-No decorative band on the dashboard beyond the console header band.
-
-### 11.10 CMS (`/cms/*`)
-
-Console shell, plain 2 px ink rule above page headers (no madder anywhere in the CMS). Lists are dense booktabs tables (36 px compact rows with 44 px hit areas), mono IDs, status badges with words.
-- **Concept editor**: split view, form 60% and **Proof** 40%. The Proof renders the real `KnowledgeSheet` inside a frame with registration ticks; a "Preview As: 2D Column | 3D Panel" tab switch renders the same component in both placements, as a standing parity demonstration.
-- **Media library**: booktabs table with Thumbnail (3:2), Credit, Licence, Max Pixels, Licence Expiry (tabular date), Linked Concept, Anchor Claim, Tradition and Layer. Licence-expiring rows flagged with `--warn` plus the word. Upload form requires alt text (about 15 words, must differ from the caption), caption (at most 180 characters, must name its anchor claim), credit, licence, source URL, max pixel size, expiry, linked concept and anchor claim.
-- **Figure Balance** (new review gate, in `/cms/media`): a matrix table of the three study traditions (columns, canonical order) by section (rows, grouped under their layer) giving figure counts on the sequential ramp with printed values. A row whose counts differ shows `--danger` with an icon and the words "Unbalanced: blocks publication to a study". The rule (section 12.3) is enforced server-side by the content parity engine, not only displayed.
-- Demo records carry the "Demo:" title prefix and a "Demo" badge and are never publishable into a study.
-
-### 11.11 Admin (`/admin/*`)
-
-Console shell, plainest skin: no band, a plain 2 px ink rule. Users and roles as booktabs tables with 44 px rows, role badges and a trailing 44 px row-action menu; the roles page is a permission matrix with check glyphs plus visually hidden text, sticky first column and header. Audit log: mono timestamps in `tabular-nums`, actor, action, target, a filter bar of 44 px inputs and diffs in a `--sunk` mono block. Settings: sectioned forms with `text-eyebrow` running heads, a sticky "Save changes" bar, and a "Danger zone" alert with a `--danger` left rule; destructive actions need typed confirmation in a dialog.
+- **Console pages:** sections under a 1 px `--rule-strong` rule with a Title Case h2 and no eyebrow; booktabs lists with 44 px rows; IDs and timestamps in `text-id`; status as word plus icon. The study picker per 9.2.
+- **Dashboard:** Table 1 in place of stat tiles; every figure in the frame of section 10; the live status line; the Equivalence Monitor.
+- **CMS:** dense booktabs tables (36 px compact rows with 44 px hits). Sections are paper panes with a 1 px `--rule-strong` edge. The concept editor's **Proof** renders the real sheet in both placements through a segmented "Preview as: 2D column | 3D panel" inside a 1 px `--rule-strong` mount on `--field` (no ticks). Every filter select is the shared NativeSelect with its "Apply" button; every summary the shared Disclosure; numbers, dates and files per 9.6. The Figure Balance matrix is kept.
+- **Admin:** every control 44 px; the permission matrix keeps its sticky raw table (sticky header and first column) in the booktabs style; the audit filter's dates carry the format hint; settings are read-only (the earlier DR-023 on admin settings).
 
 ---
 
@@ -793,80 +659,84 @@ Scope: `/learn/2d/*`, `/learn/immersive` (all DOM overlays and in-scene text), `
 
 ### 12.1 One Source of Truth
 
-1. `KnowledgeSheet`, `ClaimList`, `CitationNote`/`CitationRecord`, `KnowledgeFigure`, `FigureLightbox`, `LayerTabs`, `RelatedConcepts`, `StudyBar`, `HintControl`, `StallCue`, `LearningTimer`, `StateMessage`, onboarding and `DisplaySettings` each exist once and are imported by both conditions. The inline claims, tabs and `RelationDetails` copy in `info-panel.tsx` are deleted.
+1. `KnowledgeSheet`, `ClaimList`, `CitationNote`/`CitationRecord`, `KnowledgeFigure`, `FigureLightbox`, `LayerTabs`, `RelatedConcepts`, `StudyBar`, `HintControl`, `StallCue`, `LearningTimer`, `StateMessage`, onboarding, `DisplaySettings` and (DR-021) `PlaceRail` each exist once and are imported by both conditions. The control primitives of section 9 are shared by construction.
 2. Layer names and order, concept type and category labels, and the canonical tradition order come from `src/features/learning/labels.ts`. All learner-visible interface strings for both conditions come from one module (`src/features/learning/strings.ts`).
-3. Allowed differences between conditions, and only these: the placement of the `KnowledgeSheet` (page flow vs docked panel), the presence of the 3D scene, the condition navigation group in the StudyBar (2D Contents and Search; 3D Plan, Controls Help, Pause; same size and style), how a related-concept or pager link acts (navigate vs walk), and the 2D-only "Up to <parent>" control inside the condition navigation group. The path from the learning start to a concept is the manipulation and is not equalised; it is logged per session (navigation events) so it can be modelled. Everything from the moment a concept is open is equalised and measured (12.4).
+3. Allowed differences between conditions, and only these: the field beside the sheet (the 2D index vs the 3D scene and Plan), the rail's content (the section's concepts vs the room's exhibits; same component, same rows), the condition navigation group in the StudyBar (same size and style), and how a rail row, related-concept link, pager link or Close acts (navigate vs walk or close). Until DR-021 lands, the 2D "Up to <parent>" control in the condition group is also allowed. The path from the learning start to a concept is the manipulation and is not equalised; it is logged per session (navigation events, with the navigation source) so it can be modelled. Everything from the moment a concept is open is equalised and measured (12.4).
 
 ### 12.2 Typography, Surface, Palette and Motion
 
-4. Every knowledge string (title, claims, captions, credits, citation records, relation verbs, layer names) uses the same token in both conditions. The knowledge container background is `--ground` in both, for all six tradition keys; the 3D panel is opaque with `backdrop-filter: none`.
-5. Study palette: `--ground`, `--surface` (hint panel and dialogs only), `--sunk`, `--ink`, `--ink-2`, `--ink-3`, `--rule`, `--rule-strong`, `--indigo` (+ hover, on-indigo), `--danger` (errors only), `--wash` (chosen questionnaire option only). No madder, ochre, ok, warn, bands, patterns, ticks, outline-then-fill art or tradition colour. Yellow only for the guidance cue.
-6. Zero motion (section 8), no shadows on knowledge containers, no glass, no badges or emphasis present in one condition only.
-7. Light theme unless the participant opts into dark, high contrast or reduced motion through Display Settings, offered identically before learning in both conditions and logged.
+4. Every knowledge string (title, claims, captions, credits, citation records, relation verbs, layer names) uses the same token in both conditions. The knowledge container background is `--ground` (white paper) in both, for all six tradition keys; the 3D panel is opaque with `backdrop-filter: none`.
+5. Study palette: `--ground`, `--field` (rails and the 2D index only, never behind claims), `--sunk`, `--wash` (current or chosen item, with a word or a check), `--ink`, `--ink-2`, `--ink-3`, `--rule`, `--rule-strong`, `--indigo` (+ hover, on-indigo), `--danger` (errors only). No ok, warn, pattern, marker or tradition colour. Yellow only for the guidance cue.
+6. Zero motion (section 8), no shadows, no glass, no badges or emphasis present in one condition only.
+7. Light theme in study; High contrast offered identically before learning in both conditions and recorded (DR-019).
 
 ### 12.3 Figures and Salience
 
-8. Each study figure is attached to a concept and an anchor claim and renders right after that claim in both conditions, with identical caption, credit, licence, alt text, 3:2 slot and lightbox behaviour (9.9). Images never replace a claim and never carry knowledge that the claims and alt text do not also carry (R-L2, R-L3, R-L8).
-9. **Balancing rule.** At most one figure per concept. Within each section (the concept type: the 2D tradition-page section and the museum room), Ajrakh, Sanganeri and Machilipatnam Kalamkari carry **exactly the same number of figures**: k(section) = the minimum number of approved, licence-checked figures available across the three for that section. Because the knowledge layer is a function of the concept type (`exposureLayerOf()` in `labels.ts`), per-section balance also balances every layer and the per-tradition total. Surplus figures are held back from the study bundle (they may appear on public pages). No visible empty placeholders are rendered in study; balance comes from equal counts and the identical fixed slot. The content parity engine fails the study activation when any section is unbalanced, and the CMS Figure Balance matrix shows why.
-10. Lightbox long edge capped at 768 px for every study figure (R-C20), one activation to open in both conditions. A study may raise the cap to 1200 px only if every figure in its frozen bundle is at least 1200 px on the long edge; the cap is recorded in the study protocol and applies to both conditions.
-11. 3D wall planes show typographic plates only in study builds (11.6), all one size; photographs appear only in the panel figure.
-12. **Canonical tradition order**: alphabetical by display name (Ajrakh, Bagh, Bagru, Dabu, Machilipatnam Kalamkari, Sanganeri; the three study traditions as Ajrakh, Machilipatnam Kalamkari, Sanganeri), fixed and identical in both conditions (DR-019). It applies on every list, table column, comparison matrix, dashboard facet and museum wing sequence. The current Ajrakh/Machilipatnam/Sanganeri vs Ajrakh/Sanganeri/Machilipatnam inconsistency is removed.
-13. Traditions are identified by name and the identical neutral marker only. Concept counts are hidden in study mode (the museum shows none). The three study traditions get the same card, the same plate rule and the same visual weight.
+8. Each study figure is attached to a concept and an anchor claim and renders right after that claim in both conditions, with identical caption, credit, licence, alt text, 3:2 slot and lightbox behaviour (9.11). Images never replace a claim and never carry knowledge that the claims and alt text do not also carry (R-L2, R-L3, R-L8).
+9. **Balancing rule.** At most one figure per concept. Within each section, Ajrakh, Sanganeri and Machilipatnam Kalamkari carry **exactly the same number of figures**: k(section) = the minimum available across the three. The content parity engine fails the study activation when any section is unbalanced, and the CMS Figure Balance matrix shows why.
+10. Lightbox long edge capped at 768 px for every study figure (R-C20), one activation to open in both conditions.
+11. No in-world image planes on museum walls in study builds; photographs appear only in the sheet figure (DR-020).
+12. **Canonical tradition order**: alphabetical by display name, fixed and identical in both conditions (DR-019).
+13. Traditions are identified **by name only** (DR-022: the neutral marker is removed for all six keys). Concept counts are hidden in study mode. The three study traditions get the same rows, the same type and the same visual weight.
 
 ### 12.4 Parity Checks
 
-`tests/e2e/parity.spec.ts` runs each check at viewports 390 x 844, 768 x 1024, 1280 x 800 and 1440 x 900, in light, dark, HC light and HC dark, for one concept from each study tradition, comparing the 2D concept page with the 3D panel for the same concept. It writes a JSON report (schema in `src/features/research/interface-parity.ts`) to `analysis/parity/interface-parity.json`, which CI commits and the Equivalence Monitor reads. Tolerance is 0 unless stated.
+`tests/e2e/parity.spec.ts` runs each check at viewports 390 x 844, 768 x 1024, **1280 x 720** (a 1920 x 1080 laptop at 150% scaling), 1280 x 800 and 1440 x 900 (and **1024 x 768** and **1920 x 1080** for P28 and P30, light only), in light, dark, HC light and HC dark, for one concept from each study tradition, comparing the 2D concept page with the 3D panel for the same concept. It writes a JSON report (schema in `src/features/research/interface-parity.ts`) to `analysis/parity/interface-parity.json`, which the Equivalence Monitor reads. Tolerance is 0 unless stated.
 
 | ID | Check | Pass condition |
 |---|---|---|
-| P1 | Computed style of the claim `<p>`, title h1, caption, credit, quote, source line and citation button: font-family, font-size, line-height, font-weight, letter-spacing, color, font-variant-numeric, font-feature-settings | equal in 2D and 3D |
+| P1 | Computed style of the claim `<p>`, title h1, caption, credit, quote, the record's source line, the citation marker and the reference list: font-family, font-size, line-height, font-weight, letter-spacing, color, font-variant-numeric, font-feature-settings | equal in 2D and 3D |
 | P2 | Content box width of the claim paragraph | equal within 1 px |
 | P3 | Line-break parity: number of rendered lines per claim (`Range.getClientRects()`) | equal for every claim |
 | P4 | Knowledge container `background-color` and `backdrop-filter` | `--ground` value and `none` in both, for all six tradition keys |
-| P5 | Text content of claims, citation records, figure captions, credits and alt text for the same concept | byte-identical |
+| P5 | Text content of claims, citation markers, citation records, the reference list, figure captions, credits and alt text for the same concept | byte-identical |
 | P6 | Chrome offset: y of the KnowledgeSheet's first heading below the bottom of the chrome | equal within 1 px |
 | P7 | StudyBar height and AccessNotice height | equal (or AccessNotice absent in both) |
 | P8 | Claim lines visible in the first screen of the knowledge column | equal within 1 line |
 | P9 | Bounding box of every interactive element in StudyBar, LayerTabs, CitationNote, Enlarge, lightbox Close, panel Close, RelatedConcepts, pager and minimap controls | at least 44 x 44 px; allow-list empty |
 | P10 | Text contrast of every text node in the knowledge container, from computed styles (truncated, R-A2) | at least 4.5:1 |
-| P11 | Scripted interaction counts from an open concept: to see the first claim of the Overview layer (expected 0: it is visible on open); to the expanded citation record; to the lightbox; to switch layer; lightbox back to its trigger (Escape) | 0 for the first claim, 1 for each of the others, equal in both |
+| P11 | Scripted interaction counts from an open concept: first claim (0); the expanded citation record (in place, under its own claim); the lightbox; switch layer; lightbox back to its trigger | 0 for the first claim, 1 for each of the others, equal in both; every record in place |
 | P12 | Computed `transition-duration` and `animation-duration` of every element on study routes | `0s` (or the 0.01 ms clamp) |
-| P13 | Tab stops from the top of the knowledge container to the first CitationNote | equal |
+| P13 | Tab stops from the sheet h1 to the first citation marker | equal |
 | P14 | Figure slots: count, order index, src, alt, caption, credit, licence, rendered aspect box size, lightbox max dimension | equal; aspect 3:2; long edge at most 768 px |
 | P15 | Cumulative Layout Shift on 2D load and on 3D panel open | 0.00 |
-| P16 | Figure decode latency: concept open to first figure decode complete, low-spec profile (4x CPU throttle) | median difference under 150 ms |
-| P17 | Neutral tradition marker computed color, size and border | identical for all six keys |
+| P16 | Figure decode latency, low-spec profile (4x CPU throttle) | median difference under 150 ms |
+| P17 | **Tradition marker (changed, DR-022)** | no marker on any key, in either condition |
 | P18 | Related Concepts block: DOM position and y-offset below the last claim of the field | follows the field and precedes the pager in both; offset equal within 1 px |
 | P19 | Import graph: both route trees resolve the shared knowledge components from the same module files | true |
 | P20 | String table: learner-visible interface strings used by both conditions | diff is empty |
-| P21 | Figure-count matrix of the published study bundle | equal per section (and so per layer and in total) across the three study traditions |
-| P22 | StudyBar shared group (wordmark, Hint, Time Left, Finish) and the skip link: accessible names, DOM order, tab order, bounding boxes, computed styles | identical in 2D and 3D; boxes within 1 px |
-| P23 | Shared-component DOM snapshot: hint panel open, StallCue, LearningTimer, onboarding screens, StateMessage (unavailable, error, loading), Display Settings dialog, rendered from the same fixture in each condition's shell | byte-identical serialised DOM and equal computed styles, apart from the condition-specific onboarding body text, whose word count differs by at most 10% |
-| P24 | Interaction counts for shared chrome: open and close the hint panel; open Display Settings; reach Finish from the knowledge container by keyboard (tab stops) | equal in 2D and 3D |
-| P25 | Reading-progress bar inside the KnowledgeSheet: presence, height, colour, `role`, and value after scrolling the container to the end | present in both; equal; 100 at the end |
-| P26 | Tradition salience: for each of the three study traditions, on the 2D index and comparisons pages and in the 3D panel and room plaques, the title computed style, card or plaque box size, marker and the presence of any image | identical across the three traditions within each condition |
-| P27 | Focus on concept open: `document.activeElement` after a concept opens | the sheet h1 in both conditions |
+| P21 | Figure-count matrix of the published study bundle | equal per section across the three study traditions |
+| P22 | StudyBar shared group (wordmark, Hint, Time Left, Finish) and the skip link: names, DOM order, tab order, boxes, computed styles | identical in 2D and 3D; boxes within 1 px |
+| P23 | Shared-component DOM snapshot (hint panel, StallCue, LearningTimer, onboarding, StateMessage, Display Settings) | byte-identical DOM and equal computed styles, apart from the onboarding movement paragraph (word count within 10%) |
+| P24 | Interaction counts for shared chrome (hint panel, Display Settings, reach Finish by keyboard) | equal in 2D and 3D |
+| P25 | Reading-progress bar inside the KnowledgeSheet: presence, height, colour, `role`, and value at the end of the container | present in both; equal; 100 at the end |
+| P26 | Tradition salience: title computed style, row or plaque box size, marker absence and image presence for each study tradition | identical across the three traditions within each condition |
+| P27 | Focus on concept open: `document.activeElement` | the sheet h1 in both conditions |
+| P28 | `PlaceRail` parity: computed width, x, row height (44 px), type tokens, default open state, and drawer behaviour per viewport | equal in 2D and 3D (DR-021) |
+| P29 | Rail and index content type: every rail and index string is a title, type, step or destination from `labels.ts` or the manifest; no read-model claim string appears in the rail, the 2D index or any in-scene text; section numbers in the 2D index equal the 3D Plan's room numbers | true |
+| P30 | Sheet geometry: left-edge x, width, top, `overflow-y` container and `scrollHeight` behaviour at 1024, 1280, 1440 and 1920 | equal within 1 px |
+| P31 | Focus-ring computed style (outline, offset, box-shadow) on every focusable in the StudyBar, rail and sheet | identical in 2D and 3D |
+| P32 | Sheet header: action-slot content (accessible name "Close", box, styles) and the serialised header DOM (the Close element itself, a link in 2D and a button in 3D, compared by class and content) | identical in 2D and 3D |
+| P33 | Elements competing for attention with the open concept on the first screen: visible, uncovered controls, headings, images, canvases, badges and status messages, each counted once, grouped as sheet, shared chrome and navigation; the claim text is not counted | sheet count equal; each total at most 30; totals within 6 |
 
 **How the checks map to the governing requirement.**
 
 | Requirement | Checks |
 |---|---|
-| Equivalence of knowledge (same text, face, size, measure, line height, contrast, colour semantics, citation panel, layer names and order, figures) | P1, P2, P3, P4, P5, P10, P14, P18, P20, P25 |
-| Ease of access (same controls, 44 x 44 targets, keyboard paths, interactions to claim, citation, figure and hint; same onboarding, hint, timer, error and empty states) | P6, P7, P8, P9, P11, P12, P13, P22, P23, P24, P27 |
-| Neat UI that cannot skew results (no condition-only emphasis; equal salience of Ajrakh, Sanganeri and Machilipatnam Kalamkari; balanced figures; same performance) | P15, P16, P17, P19, P21, P26 |
+| Equivalence of knowledge (same text, face, size, measure, line height, contrast, colour semantics, citation record, layers, figures) | P1, P2, P3, P4, P5, P10, P14, P18, P20, P25, P30, P32 |
+| Ease of access (same controls, 44 x 44 targets, keyboard paths, interactions to claim, citation, figure and hint; same onboarding, hint, timer, error and empty states) | P6, P7, P8, P9, P11, P12, P13, P22, P23, P24, P27, P28, P31 |
+| Neat UI that cannot skew results (no condition-only emphasis; equal salience of the three study traditions; balanced figures; same performance; navigation strings only in the rail; a low, comparable attention load) | P15, P16, P17, P19, P21, P26, P29, P33 |
 
-A reviewer verifies parity from the stored report alone: every check row carries the 2D value, the 3D value, the delta and the tolerance (section 10, Equivalence Monitor).
-
-The existing content parity checks (engine groups base and a-f) remain and are shown alongside these in the Equivalence Monitor.
+A reviewer verifies parity from the stored report alone: every check row carries the 2D value, the 3D value, the delta and the tolerance. P28 to P33 are implemented in the suite (package 2D-C). P28's default state follows the lead's defaults (2D rail open from 1280 px, 3D rail collapsed, both drawers closed below 1280 px); P26's plaque part is reported in the 1280 x 800 runs, where it is measured. The existing content parity checks remain and are shown alongside these in the Equivalence Monitor.
 
 ---
 
 ## 13. Honesty Rules
 
 1. **No invented facts.** `src/config/institution.ts` holds affiliation, ethics reference, paper citation and contact; each field is `null` until the team supplies it, and a `null` field renders nothing. No "to be confirmed" stubs.
-2. **No fake data.** Live counts come from the database at request time. The Equivalence Monitor and the Colophon parity list show only stored real runs.
+2. **No fake data.** Live counts come from the database at request time. The Equivalence Monitor, the home page and the Colophon show only stored real runs.
 3. **No stock or AI imagery.** Photographs are licence-checked records with credit, licence, source URL, max pixel size and expiry.
-4. **Craft-derived design is labelled.** Every craft-derived token, pattern and swatch is documented as a design interpretation and decoration (R-C6). Content in `content/` is never edited by design work.
+4. **Interpretations are labelled.** The indigo is documented as a design interpretation (R-C6). Content in `content/` is never edited by design work.
 
 ---
 
@@ -875,111 +745,108 @@ The existing content parity checks (engine groups base and a-f) remain and are s
 | Do | Don't |
 |---|---|
 | Render both conditions' knowledge through the same components and tokens. | Restyle a shared component from a condition's own file, or pass condition-specific style props. |
-| Keep `--ground` as the single knowledge surface, opaque, in both conditions. | Use glass, blur, translucency or `--surface` behind claims in one condition. |
-| Use indigo as the only accent in study. | Use madder, ochre, ok, warn, bands, ticks or tradition colours in study. |
-| Keep madder on public pages only. | Put madder in the console, CMS, admin, forms, alerts or charts (1.09:1 vs danger). |
-| Draw patterns from neutral units (dot, lozenge) on the offset-row structure. | Use stars or rosettes on indigo, floral butis, mehrab arches, crackle textures, or the indigo + madder + black + white set as branding. |
-| Seam tiles exactly; keep everything flat. | Fake misregistration, offset "second impression" plates, grain, wear, gradients or bevels. |
-| Use tracked uppercase Inter for eyebrows; lining figures. | Use `font-variant-caps`, small caps or old-style figures (the served file lacks them). |
-| Give every interactive element a 44 x 44 hit area. | Ship 28-36 px controls, tiny disclosure glyphs or one-line citation buttons. |
-| Put Related Concepts at the end of the knowledge column in both conditions. | Add a 2D side rail, a 2D-only section index or any persistent pane one condition lacks. |
-| Use one fixed 3:2 figure slot; balance figure counts per layer. | Let figure aspect vary, show "no image" placeholders in study, or give one tradition more figures. |
-| Cap every study lightbox at the same long edge; open it in one activation. | Use zoom gestures or a different viewer in one condition. |
-| Show every claim's own source line. | Shorten repeated sources to "first occurrence only". |
+| Keep `--ground` (white paper) as the single knowledge surface, opaque, in both conditions. | Use glass, blur, translucency, `--field` or any second paper behind claims. |
+| Use indigo as the only interactive colour. | Bring back cream, a serif display, terracotta, madder, ochre, bands, ticks, markers or tradition colours. |
+| Set hierarchy with planes, type and space. | Use tracked uppercase eyebrows, middle-dot joins, monospace as a data voice, left-edge bars, soft rounded shadowed cards or "→" in text. |
+| Style the native control (select, radio, checkbox, details, file, date). | Rebuild a control in ARIA for looks, or leave an OS-default select, spinner, file button or disclosure triangle. |
+| Keep a select's change behind a labelled action button. | Apply a select on change (WCAG SC 3.2.2). |
+| Give every interactive element a 44 x 44 hit area and the two-tone ring. | Remove the focus ring (`outline-none`) or ship 28 to 36 px controls without a hit area. |
+| Put Related Concepts at the end of the sheet in both conditions; share the one `PlaceRail`. | Add any pane, list or signal present in one condition only. The shared rail is present in both. |
+| Use one fixed 3:2 figure slot; balance figure counts per section. | Let figure aspect vary, show "no image" placeholders in study, or give one tradition more figures. |
 | Derive the short citation label in code. | Hand-write labels into `content/` or truncate mid-word. |
 | Number figures and tables; caption with n, measure and uncertainty. | Use pies, 3D charts, dual axes, red/green pairs or causal wording. |
 | Hide unverified institution and ethics facts. | Show placeholders that read as real or "to be confirmed" stubs. |
-| Keep motion to the public pages, once, short and skippable. | Animate anything in study, loop, parallax, scroll-jack or count numbers up. |
-| Use real licence-checked photographs with credit and licence. | Use stock photographs, AI images or swatches captioned as dye colours. |
+| Spend boldness once (Figure 1). | Animate anything in study, add entrance motion, loop, parallax, scroll-jack or count numbers up. |
 
 ---
 
 ## 15. Acceptance Checklist
 
-All items are measurable; WP8 automates the ones marked (auto).
+All items are measurable; (auto) marks the automated ones.
 
 **Contrast and colour**
-- [ ] (auto) `tests/unit/contrast.test.ts` passes for `:root`, `.dark`, `.a11y-contrast` and `.dark.a11y-contrast`, and asserts at least these values (truncated): ink on ground 14.85 light / 14.77 dark; ink-3 on sunk 5.39 / 6.02; indigo on ground 9.16 / 9.51; on-indigo on indigo 9.74 / 9.56; danger on ground 6.54 / 7.82; rule-strong on sunk 3.35 / 3.29; HC ink 18.57 / 19.64.
-- [ ] (auto) No `#ffd400` or other yellow in the CSS outside the guidance cue; no `--faint` token (existing assertions).
-- [ ] (auto) Lint: no `madder` or `ochre` token or utility in any file outside `src/app/(public)/**` and `src/components/public/**`; no raw Tailwind palette colours (`emerald-*`, `amber-*`, `red-*`) in `src/`.
-- [ ] (auto) Series-2d and series-3d relative luminance within 2% in both themes.
+- [ ] (auto) `contrast.test.ts` asserts the 4.3 values, truncated, for all four theme blocks, including the minima: light text 5.35, dark 5.11, HC light 7.74, HC dark 8.23; rule-strong on every surface at least 3.44; the focus ring at least 4.58 against any colour.
+- [ ] (auto) Lint (`tests/unit/design/atlas-lint.test.ts`, `dead-aliases.test.ts`): no `madder`, `ochre`, `band`, `uppercase`, label tracking, `" · "`, left bars or `font-mono` outside code; no raw `<select>`, number spinner, raw file input, `accent-color` checkbox or marker-less summary; no retired utilities.
+- [ ] (auto) The smoke test pins the body background to `rgb(255, 255, 255)` and the home h1 to "Immersive Episteme".
 
-**Layout and reflow**
-- [ ] (auto) No horizontal scroll at 390 px on every in-scope page (existing `alignment.spec.ts` list plus `/about/colophon` and the immersive route), and at 1280 px with 200% zoom (640 CSS px).
-- [ ] (auto) Parallel-card actions aligned within 1 px at 1280 px (existing `alignment.spec.ts`).
-- [ ] (auto) Every interactive element on study routes is at least 44 x 44 px (P9); every interactive element on public, console, CMS and admin pages is at least 44 x 44 px, or 36 px visual with a 44 x 44 hit area in compact console tables.
-- [ ] (auto) Text spacing override (line height 1.5, paragraph spacing 2x, letter 0.12em, word 0.16em; R-A8) causes no clipping or overlap on the concept page in both conditions.
+**Type and performance**
+- [ ] (auto) Study and console routes preload exactly 1 font file (at most 34,500 bytes); public routes at most 2 files and 176,000 bytes; at most 230,000 bytes of fonts transferred on any page (Anek latin-ext measured).
+- [ ] (auto) No italic or serif webfont is requested anywhere; no `font-variant-caps`.
+- [ ] (auto) LCP at most 2.5 s on `/` and the 2D concept page; INP at most 200 ms for opening a citation record and the lightbox in both conditions; CLS 0.00 on study routes.
+- [ ] 3D: the low-tier frame-time budget of DR-023 (C3/C9 at most 33 ms p95), measured on a quiet machine.
 
-**Motion**
-- [ ] (auto) P12 passes on all study routes.
-- [ ] (auto) With `prefers-reduced-motion: reduce`, public pages have no running animation and Figure 1 renders fully drawn.
-
-**Fonts and performance**
-- [ ] (auto) At most 2 preloaded font files and at most 176,000 bytes preloaded; at most 230,000 bytes of fonts transferred on `/`, `/learn/2d/concepts/[key]` and `/learn/immersive`; no request to a third-party host (CSP unchanged).
-- [ ] (auto) No `font-variant-caps` and no `onum` in the CSS.
-- [ ] (auto) Study figure at 544 px wide is at most 70 KB; at most 250 KB of images per study page view; lightbox images fetched only on open; CLS 0.00 on study routes.
-- [ ] (auto) Measured in Playwright with a CDP 4x CPU throttle and PerformanceObserver: LCP at most 2.5 s on `/` and on `/learn/2d/concepts/[key]`, interaction-to-next-paint at most 200 ms for opening a citation record and the lightbox in both conditions, CLS 0 on study routes.
-- [ ] 3D wall textures at most 512 px long edge and 60 KB each, loaded per room.
-
-**Equivalence and study semantics**
-- [ ] (auto) P1-P27 pass and the report is stored; the Equivalence Monitor shows the run.
-- [ ] (auto) Study semantics unchanged: the same claims, order, layers, exposure budget, timer, hint policy, telemetry event names and payloads as before the redesign (existing unit and integration suites in `tests/unit/learning*`, `tests/unit/immersive`, `tests/integration/learning-*`, `tests/integration/telemetry-ingest.test.ts`, `tests/e2e/telemetry-learning.spec.ts` pass unchanged except for selector updates).
-- [ ] (auto) Content parity engine fails a study with an unbalanced figure matrix.
-- [ ] (auto) `tests/e2e/smoke.spec.ts` passes unchanged (home h1 "Immersive Episteme"; body background `rgb(245, 241, 232)`).
-- [ ] (auto) `tests/unit/title-case.test.ts` passes; every h1-h3 in `src/` passes through `titleCase()` (lint or unit scan).
-- [ ] (auto) `tests/unit/button.test.tsx` passes (role and `data-slot="button"` kept).
-- [ ] A decision record in `docs/decisions/` records the visual system, the claim face (Inter kept), the 768 px lightbox cap, the panel width and the canonical order, before any participant data is collected.
+**Equivalence**
+- [ ] (auto) P1 to P33 pass at every listed viewport and theme; the report is stored and the Equivalence Monitor shows it.
+- [ ] (auto) Study semantics unchanged: the same claims, order, layers, exposure budget, timer, hint policy and telemetry names, plus the navigation-source field of DR-021.
+- [ ] DR-021, DR-022 and DR-023 adopted, with methodologist sign-off, before any participant data.
 
 **Accessibility**
-- [ ] (auto) axe-core (via `@axe-core/playwright`, the only new dependency, pinned exactly by WP8) reports no WCAG 2.2 A or AA violation on every in-scope page in light, dark, HC light and HC dark.
-- [ ] (auto) Focus indicator present on every focusable element (2 px indigo outline or HC double ring) and never obscured by sticky chrome.
-- [ ] (auto) Keyboard: LayerTabs arrow navigation; CitationRecord and FigureLightbox close on Escape and restore focus; skip link works in both conditions.
-- [ ] Local terms carry `lang`; the Sindhi/Persian quote renders right-to-left with `lang` and `dir`.
+- [ ] (auto) axe-core reports no WCAG 2.2 A or AA violation on every in-scope page in four themes, including `scrollable-region-focusable` on both sheets and both rails.
+- [ ] (auto) Every focusable shows the two-tone ring, never hidden under sticky chrome; with `forced-colors: active` the outline remains and every skinned control reverts to `appearance: auto`.
+- [ ] (auto) Every interactive element is at least 44 x 44 px (36 px visual with a 44 px hit only in compact console tables).
+- [ ] (auto) No change of context on input: every select that changes the view keeps its labelled action button (SC 3.2.2).
+- [ ] (auto) The text-spacing override (WCAG 1.4.12) causes no clipping in the sheet, rail, rows or badges in both conditions.
+- [ ] Keyboard paths: rail to field to sheet, skip link, Escape closing the drawer, the record and the lightbox with focus restored, in both conditions.
+
+**Screenshots** (production builds; the same access state in both conditions; light theme; the same concept from each study tradition): 1440 x 900 and 390 x 844 of the 2D concept page and the 3D museum with the sheet open, a citation record expanded, the public home, the dashboard, the CMS concept editor with the Proof in both placements, and admin users; 1280 x 720 for both conditions with a concept open. Each pair is reviewed side by side for alignment (parallel buttons on one line).
 
 ---
 
 ## 16. Performance and Image Pipeline
 
-**Images.** `next.config.ts` gains `images: { formats: ["image/avif", "image/webp"], deviceSizes: [400, 544, 816, 1088, 1600], imageSizes: [96, 192, 288], qualities: [75], localPatterns: [{ pathname: "/figures/**" }, { pathname: "/_next/static/media/**" }] }` (Next 16 allows only listed local patterns and defaults `qualities` to `[75]`; no query strings on figure URLs). All images are local (CSP `img-src 'self' blob: data:` unchanged).
-
-**Figure delivery.** The existing `/cms/media/file/[assetId]` route is staff-only, and the Next image optimiser fetches sources without the visitor's cookies, so learner figures need their own route: `src/app/figures/[assetId]/route.ts` (new, WP6) serves an asset only when it is approved, licence-valid on the request date, and linked with role `illustration` to a concept in a published study bundle or flagged for public plates; anything else returns 404. It sets `Cache-Control: public, max-age=31536000, immutable` and the content type from the database row. The proxy matcher does not cover `/figures`, so no redirect applies. Both conditions request the same URLs through the same `KnowledgeFigure`. Every image has explicit `width` and `height` and sits in a reserved aspect box (CLS 0).
+**Images.** Unchanged (Apparatus section 16): AVIF then WebP, the listed device sizes, `qualities: [75]`, local patterns for `/figures/**`; the `/figures/[assetId]` route serves only approved, licence-valid illustrations of a published bundle or public plates.
 
 | Image | Sizes | Budget |
 |---|---|---|
-| Study figure | srcset 400, 544, 816, 1088; `sizes` per 9.9 | at most 70 KB at 544 w; at most 250 KB of images per study page view |
+| Study figure | srcset 400, 544, 816, 1088 | at most 70 KB at 544 w; at most 250 KB of images per study page view |
 | Study lightbox | one source at 768 px long edge | fetched only on open |
-| 3D wall plates | typographic textures, 512 px long edge | at most 60 KB each, mipmapped, loaded per room |
-| Public plates | up to 1600 w AVIF | at most 180 KB each; lazy below the fold; the first plate is not faded and may use `fetchpriority="high"` |
+| 3D lettering and plates | per DR-023 | per room |
 | CMS thumbnails | 192 w | lazy |
 
-**Graphics.** Patterns are inline SVG (`<defs>` under 2 KB); no raster textures. The glass panel and `backdrop-filter` are removed (cheaper on low-spec GPUs while WebGL is busy).
+**Fonts.** One file on study and console routes (Atkinson, 33,996 bytes), two on public routes (plus Anek Latin, 103,760 bytes); no italic.
 
-**JavaScript.** No animation library. ECharts stays dynamically imported and console-only. The `KnowledgeSheet` is a server component where possible; only `CitationNote`, `LayerTabs`, `FigureLightbox`, `DisplaySettings` and the StudyBar controls are client islands.
+**Graphics.** No pattern SVG, no shadows, no `backdrop-filter`; diagrams are static inline SVG.
 
-**Targets** on a 4x CPU throttle: LCP at most 2.5 s on public pages and 2D concept pages, interaction-to-next-paint at most 200 ms, CLS 0 on study routes, 3D panel open to first paint under 100 ms (it is DOM, not a scene change).
+**JavaScript.** No animation library. ECharts dynamically imported, console only. Every skinned control is CSS on a native element (no extra JavaScript); `FileInput` is the only control client island added.
+
+**Targets** on a 4x CPU throttle: LCP at most 2.5 s on public pages and 2D concept pages, interaction-to-next-paint at most 200 ms, CLS 0 on study routes, 3D panel open to first paint under 100 ms.
 
 ---
 
 ## 17. Residual Risks
 
-1. **The docked panel occludes the scene.** 39.25rem covers about 49% of a 1280 px viewport and the whole scene under 1024 px. This is the cost of equal reading width. Pilot it; if it harms navigation, narrow the measure for BOTH conditions (for example 30rem), never for 3D alone. Name it in the paper's limitations.
-2. **The scene beside the text** (peripheral colour and form) remains a difference; it is the manipulation. No camera motion while the panel is open.
-3. **Figure balance may drop good photographs** when one study tradition has fewer licensed images; k(layer) can be 0. The Figure Balance matrix makes the trade-off visible. Freeze the study bundle so licence expiry cannot change content mid-study.
-4. **Tradition order (resolved, DR-019): one canonical alphabetical order (Ajrakh, Machilipatnam Kalamkari, Sanganeri), fixed and identical in both conditions.**
-   - It is used everywhere: 2D lists and comparison cards, 3D wing order (the compiler orders wings by slug, which gives the same order) and figure order.
-   - It is not counterbalanced. In 3D the order is spatial, so counterbalancing would need a separate compiled museum per order, and an order identical across conditions cannot confound the condition comparison.
-   - Order effects on tradition-level analyses are reported as a limitation.
-5. **Changing the visual system changes study materials.** Acceptable only before any participant data is collected, with a decision record (DR-019).
-6. **Token and size changes break tests and reflow console pages** (contrast test token names, 44 px default buttons). WP0 keeps deprecated aliases until every package lands.
-7. **Canvas signage** depends on `document.fonts.ready`; a race would show fallback-font plaques in 3D only. Scene start is gated on it.
-8. **Arabic-script text** renders in a system font that differs by device but not by condition.
-9. **2D Search has no 3D counterpart.** Search lets a 2D learner reach claims by keyword; the museum has no equivalent. It is navigation (allowed by 12.1 rule 3), but it is also a retrieval aid. **Resolved (DR-019): search is off in study builds of both conditions.** `searchEnabled` defaults to false in the study contract. A protocol that turns it on must justify it in its decision record, and search events are then logged as a covariate. Search stays available in the public demo.
-10. **Dark theme scope (resolved, DR-019).** A dark theme would darken the whole 2D page but only the chrome and panel in 3D, so study mode is fixed to light in both conditions. Only the High contrast accommodation is offered there, identically, and it is recorded on the session. Analyses should check that it is balanced across conditions.
-11. **Comparison content structure.** The 2D comparisons page (from `content/comparisons.json`) and the 3D Compare layer (counterparts from the manifest's compare hotspots) may not expose the same claims. 11.5 equalises their typography; WP2 and WP3 must also confirm, with a unit test over the read model, that each comparison's claims are reachable in both conditions, or record the difference in the decision record.
+1. **The docked sheet occludes the scene.** 39.25rem covers about half of a 1280 px viewport (a 364 px field while reading). If piloting shows harm, narrow the rail or the measure for BOTH conditions, never for 3D alone. Name it in the paper's limitations.
+2. **The scene beside the text** remains a difference; it is the manipulation. No camera motion while the sheet is open.
+3. **Figure balance may drop good photographs** (k can be 0). Freeze the study bundle so licence expiry cannot change content mid-study.
+4. **Tradition order** is one canonical alphabetical order, identical in both conditions and not counterbalanced (DR-019); order effects on tradition-level analyses are reported as a limitation.
+5. **Changing the visual system changes study materials.** Acceptable only before any participant data is collected, with decision records (DR-019, DR-022).
+6. **3D lettering** depends on `document.fonts.ready`; it reads the Atkinson family through the retired variable aliases until the lettering atlas reads `--font-atkinson`.
+7. **Arabic-script text** renders in a system font that differs by device but not by condition.
+8. **Search** is off in study builds of both conditions (DR-019).
+9. **Comparison content structure** must stay reachable in both conditions (unit test over the read model).
+10. **R1, the 2D arm gets stronger** with a visible rail instead of "Contents": allowed, because navigation is the manipulated variable; frozen before piloting, reported, signed off (DR-021).
+11. **R2, an open 3D rail shortens 3D navigation:** the 3D rail is collapsed by default, and the navigation source is logged in both conditions.
+12. **R3, the Plan default** follows the protocol setting `studies.config.minimap`.
+13. **R4, global overview asymmetry:** the 2D index shows section names, the 3D Plan shows numbers (the list-versus-space manipulation; reported).
+14. **R5, the reading size changes from 18/28 to 20/30:** fewer lines per screen, equal in both conditions; cpl held near constant (5.2); P3 and P8 re-run.
+15. **R6, common laptop viewports:** 1280 x 720 is added to the parity viewports.
+16. **R7, aesthetic asymmetry:** a finished 3D gallery next to a plain 2D page could bias perceived usability and motivation; the 2D pass and the 3D finish ship in one release and the finish level of both is reported.
 
 ---
 
 ## 18. Work Packages
+
+### 18.0 Atlas (DR-021 to DR-023), in Order
+
+Run after the Apparatus rebuild, as two parallel tracks with disjoint file ownership (the 2D/UI track owns everything except the 3D scene, lettering, compiler and their tests), merged sequentially with the parity checks after each merge, and released together (R7).
+
+1. **2D-A, visual system and controls (DR-022):** tokens, fonts and type (sections 4 and 5); the two-tone focus ring; the control set of section 9 (NativeSelect, Segmented, Disclosure, the `ie-check` checkbox and radio, OptionRow, FileInput, numbers and dates); every raw select and control replaced; every listed tell removed; public, console, CMS, admin and study pages restyled; the shared sheet's lean metadata and labelled evidence; tests (`contrast`, `focus-ring`, `atlas-lint`, `dead-aliases`) and this file.
+2. **2D-B, layout parity (DR-021):** the shared `PlaceRail`, the right-docked sheet in 2D, the 2D index field, Close in the action slot, the drawer below 1280 px, the two-row StudyBar under 768 px, the navigation-source telemetry field.
+2a. **2D-C, the sheet, citations, cognitive load and parity:** the numbered citation markers with in-place records and the reference list (9.9), the lean metadata without Status, P28 to P33 and the 1280 x 720 viewport in the parity suite, and the WP8 review majors on P23, P24, P26 and the axe and focus coverage.
+3. **3D gallery finish (DR-023):** walls, floor, plaques (white, unlit, Atkinson, "Step n of N", "Start" and "Last step"), wash, junctions, the lobby directory wall, the lettering atlas on `--font-atkinson`, the `inputMethodUsed` and `setVisited` bridge contracts, and the low-tier measurement.
+4. **Verification:** the parity suite and the acceptance suite at every viewport and theme, then side-by-side screenshots.
+
+The Apparatus packages below are the record of the first rebuild; where their visual specs conflict with sections 3 to 11 above, the Atlas sections win.
 
 Ownership is disjoint: every file below belongs to exactly one package. A package may read any file but edits only its own. New files are marked (new). WP0 runs first; WP1-WP7 run in parallel after WP0; WP8 runs last. Every package keeps `npm run lint`, `npm run typecheck` (or `tsc --noEmit`), the unit suite and its own e2e specs green, keeps headings on `titleCase()`, keeps parallel cards aligned (`mt-auto`), and right-aligns numbers with `tabular-nums`. No package edits `content/`.
 

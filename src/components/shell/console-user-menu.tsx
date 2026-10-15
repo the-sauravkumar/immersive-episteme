@@ -38,7 +38,7 @@ export function ConsoleUserMenu({ name, email, roles }: { name: string; email: s
         <DropdownMenuContent align="end" className="w-72">
           <div className="flex flex-col gap-1 px-2 py-2">
             <span className="text-ui text-ink">{name}</span>
-            <span className="text-mono break-all text-ink-3">{email}</span>
+            <span className="text-id break-all text-ink-3">{email}</span>
           </div>
           <div className="px-2 pb-2">
             <ul aria-label="Your roles" className="flex flex-wrap gap-1">

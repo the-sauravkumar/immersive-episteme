@@ -19,6 +19,16 @@
  *  - The learner and public figure route (src/app/figures/[assetId]/route.ts) serves an asset
  *    only through `loadLearnerFigure`: approved, licence-valid today, and an illustration of a
  *    concept in a published release snapshot, or flagged for public plates.
+ *  - First publication (DR-020 addendum, migration 0017): `stampFirstPublication` records the day
+ *    an asset first becomes servable, once, and sets the expiry of a licence term counted from
+ *    first publication (V&A: 60 months). It runs wherever an asset can become servable: a review
+ *    that verifies it, a link to a concept, a metadata edit and a release publication
+ *    (src/server/cms/release.ts). The learner route refuses a termed asset that has no stamp.
+ *  - First publication (DR-020 addendum, migration 0017): `stampFirstPublication` records the day
+ *    an asset first becomes servable, once, and sets the expiry of a licence term counted from
+ *    first publication (V&A: 60 months). It runs wherever an asset can become servable: a review
+ *    that verifies it, a link to a concept, a metadata edit and a release publication
+ *    (src/server/cms/release.ts). The learner route refuses a termed asset that has no stamp.
  *
  * Not `server-only`: integration tests call it with their own pool and a local store.
  */
@@ -27,6 +37,7 @@ import { createHash } from "node:crypto";
 import type { Pool } from "pg";
 import { z } from "zod";
 
+import type { IllustrationLink } from "@/features/knowledge/read/view";
 import { altTextProblem, captionProblem } from "@/features/media/contracts";
 import { ASSET_LINK_ROLES, PROVENANCE_KINDS, type VerificationState } from "@/lib/validation/enums";
 
@@ -92,6 +103,13 @@ export const assetMetadataSchema = z
     /** Last day the licence permits use; empty = no expiry. */
     licenceExpiresOn: optionalDay,
     publicPlate: checkbox,
+    /** Licence term in months from first publication (V&A: 60); empty = none, or keep on edit. */
+    licenceTermMonths: z
+      .union([z.number(), z.string()])
+      .optional()
+      .nullable()
+      .transform((v) => (v === "" || v === null || v === undefined ? null : Number(v)))
+      .pipe(z.number().int("Use a whole number of months").positive("Use a positive number of months").max(1200).nullable()),
   })
   .superRefine((m, ctx) => {
     if (!m.sourceUrl && !m.sourceId) {
@@ -169,14 +187,14 @@ async function insertAsset(
     const r = await tx.query<{ id: string }>(
       `INSERT INTO assets (kind, title, storage_key, mime_type, byte_size, sha256, width, height, alt_text, caption, credit,
                            licence, licence_url, source_url, source_id, provenance_kind, verification_state, is_demo, created_by, updated_by,
-                           max_pixels, licence_expires_on, public_plate)
+                           max_pixels, licence_expires_on, public_plate, licence_term_months)
        VALUES ($1::asset_kind, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::provenance_kind, 'draft', false, $17, $17,
-               $18, $19::date, $20)
+               $18, $19::date, $20, $21)
        RETURNING id`,
       [
         c.checked.kind, c.meta.title, c.storageKey, c.checked.mime, c.byteSize, c.sha256, c.checked.width, c.checked.height, alt,
         c.meta.caption, c.meta.credit, c.meta.licence, c.meta.licenceUrl, c.meta.sourceUrl, c.meta.sourceId, c.meta.provenanceKind, actor.userId,
-        c.meta.maxPixels, c.meta.licenceExpiresOn, c.meta.publicPlate,
+        c.meta.maxPixels, c.meta.licenceExpiresOn, c.meta.publicPlate, c.meta.licenceTermMonths,
       ],
     );
     const id = r.rows[0]!.id;
@@ -189,7 +207,7 @@ async function insertAsset(
       action: "media.asset_uploaded",
       entity: "assets",
       entityId: id,
-      after: { title: c.meta.title, kind: c.checked.kind, mime: c.checked.mime, byteSize: c.byteSize, sha256: c.sha256, width: c.checked.width, height: c.checked.height, licence: c.meta.licence, maxPixels: c.meta.maxPixels, licenceExpiresOn: c.meta.licenceExpiresOn, publicPlate: c.meta.publicPlate, provenanceKind: c.meta.provenanceKind, sourceUrl: c.meta.sourceUrl, sourceId: c.meta.sourceId, storage: c.via },
+      after: { title: c.meta.title, kind: c.checked.kind, mime: c.checked.mime, byteSize: c.byteSize, sha256: c.sha256, width: c.checked.width, height: c.checked.height, licence: c.meta.licence, maxPixels: c.meta.maxPixels, licenceExpiresOn: c.meta.licenceExpiresOn, licenceTermMonths: c.meta.licenceTermMonths, publicPlate: c.meta.publicPlate, provenanceKind: c.meta.provenanceKind, sourceUrl: c.meta.sourceUrl, sourceId: c.meta.sourceId, storage: c.via },
       reason: "asset uploaded to the media library",
     });
     return { id, sha256: c.sha256, storageKey: c.storageKey, mime: c.checked.mime, kind: c.checked.kind, byteSize: c.byteSize, width: c.checked.width, height: c.checked.height };
@@ -316,13 +334,16 @@ export async function updateAssetMetadata(pool: Pool, actor: Actor, input: { ass
     await tx.query(
       `UPDATE assets SET title = $2, alt_text = $3, caption = $4, credit = $5, licence = $6, licence_url = $7, source_url = $8,
                          source_id = $9, provenance_kind = $10::provenance_kind, verification_state = $11::verification_state, updated_by = $12,
-                         max_pixels = $13, licence_expires_on = $14::date, public_plate = $15
+                         max_pixels = $13, licence_expires_on = $14::date, public_plate = $15,
+                         licence_term_months = COALESCE($16, licence_term_months)
         WHERE id = $1`,
       [
         before.id, meta.title, alt, meta.caption, meta.credit, meta.licence, meta.licenceUrl, meta.sourceUrl, meta.sourceId, meta.provenanceKind, nextState, actor.userId,
-        meta.maxPixels, meta.licenceExpiresOn, meta.publicPlate,
+        meta.maxPixels, meta.licenceExpiresOn, meta.publicPlate, meta.licenceTermMonths,
       ],
     );
+    // An edit never moves the expiry past the end of a term already running from first publication.
+    await stampFirstPublication(tx, actor, { assetId: before.id });
     const after = await lockAsset(tx, before.id);
     await audit(tx, actor, { action: "media.asset_updated", entity: "assets", entityId: before.id, before: metaOf(before), after: metaOf(after), reason: accepted ? "edited after acceptance: returned to review" : null });
     return { returnedToReview: accepted };
@@ -414,6 +435,7 @@ export async function reviewAsset(pool: Pool, actor: Actor, raw: z.input<typeof 
       after: { verificationState: input.to, evidenceChecked: input.evidenceChecked },
       reason,
     });
+    if (input.to === "verified") await stampFirstPublication(tx, actor, { assetId: a.id });
   });
 }
 
@@ -461,6 +483,7 @@ export async function linkAssetToConcept(pool: Pool, actor: Actor, raw: z.input<
       [input.assetId, input.conceptId, input.role, input.position, input.captionOverride],
     );
     await audit(tx, actor, { action: "media.asset_linked", entity: "asset_links", entityId: input.assetId, after: { ...input, conceptKey: c.rows[0].key } });
+    await stampFirstPublication(tx, actor, { assetId: input.assetId });
   });
 }
 
@@ -711,7 +734,9 @@ export interface LearnerFigureRef extends StoredAssetRef {
  *  - it has the credit, caption and alt text every figure prints (9.9, R-H5, honesty rule 13.3),
  *    so an asset approved before those became required is never shown without its credit line;
  *  - it is an `illustration` of a concept frozen into a published release snapshot (the bundle a
- *    study pins), or it is cleared for public plates.
+ *    study pins), or it is cleared for public plates;
+ *  - a licence term counted from first publication has its first-publication day recorded
+ *    (`stampFirstPublication`).
  * Anything else is indistinguishable from a missing asset (the route answers 404).
  */
 export async function loadLearnerFigure(q: Q, assetId: string, day: string): Promise<LearnerFigureRef | null> {
@@ -720,11 +745,28 @@ export async function loadLearnerFigure(q: Q, assetId: string, day: string): Pro
     `SELECT a.id, a.kind, a.title, a.storage_key, a.mime_type, a.byte_size, a.width, a.height, a.max_pixels, a.licence_expires_on::text AS licence_expires_on
        FROM assets a
       WHERE a.id = $1
-        AND NOT a.is_demo
+        AND ${servableSql("$2::date", { requireStamp: true })}`,
+    [assetId, day],
+  );
+  const a = r.rows[0];
+  return a
+    ? { id: a.id, kind: a.kind, title: a.title, storageKey: a.storage_key, mimeType: a.mime_type, byteSize: Number(a.byte_size), width: a.width, height: a.height, maxPixels: a.max_pixels, licenceExpiresOn: a.licence_expires_on }
+    : null;
+}
+
+/**
+ * SQL condition: asset `a` may be shown on `day` (a SQL date expression). With `requireStamp`, an
+ * asset whose licence term runs from first publication must already carry its first-publication
+ * day (the learner route and the read model); without it, the condition says whether the asset is
+ * visible at all (used to stamp that day).
+ */
+function servableSql(day: string, opts: { requireStamp: boolean }): string {
+  return `NOT a.is_demo
         AND a.kind = 'image'
         AND a.verification_state IN ('verified', 'published')
-        AND (a.licence_expires_on IS NULL OR a.licence_expires_on >= $2::date)
+        AND (a.licence_expires_on IS NULL OR a.licence_expires_on >= ${day})
         AND (a.max_pixels IS NULL OR greatest(a.width, a.height) <= a.max_pixels)
+        ${opts.requireStamp ? "AND (a.licence_term_months IS NULL OR a.first_published_on IS NOT NULL)" : ""}
         AND btrim(coalesce(a.credit, '')) <> ''
         AND btrim(coalesce(a.caption, '')) <> ''
         AND btrim(coalesce(a.alt_text, '')) <> ''
@@ -737,13 +779,91 @@ export async function loadLearnerFigure(q: Q, assetId: string, day: string): Pro
               JOIN content_snapshots s ON s.id = si.snapshot_id
              WHERE l.asset_id = a.id AND l.role = 'illustration' AND s.kind = 'release' AND s.status = 'published' AND NOT s.is_demo
           )
-        )`,
-    [assetId, day],
+        )`;
+}
+
+/** Today in UTC: the day the learner route judges licences on. */
+const UTC_TODAY = "(now() AT TIME ZONE 'utc')::date";
+
+/**
+ * Records first publication (DR-020 addendum): every asset that is visible today and has no
+ * first-publication day gets today, once; an asset with a licence term counted from first
+ * publication then gets the expiry the term allows (the day before its anniversary), and an expiry
+ * set by hand never runs past it. With `assetId`, only that asset is considered. Runs in the
+ * caller's transaction; each change is audited. Returns the ids stamped now.
+ */
+export async function stampFirstPublication(q: Q, actor: Actor, opts: { assetId?: string } = {}): Promise<string[]> {
+  const only = opts.assetId ? "AND a.id = $1" : "";
+  const params = opts.assetId ? [opts.assetId] : [];
+  const stamped = await q.query<{ id: string; first_published_on: string }>(
+    `UPDATE assets a SET first_published_on = ${UTC_TODAY}
+      WHERE a.first_published_on IS NULL ${only}
+        AND ${servableSql(UTC_TODAY, { requireStamp: false })}
+      RETURNING a.id, a.first_published_on::text AS first_published_on`,
+    params,
   );
-  const a = r.rows[0];
-  return a
-    ? { id: a.id, kind: a.kind, title: a.title, storageKey: a.storage_key, mimeType: a.mime_type, byteSize: Number(a.byte_size), width: a.width, height: a.height, maxPixels: a.max_pixels, licenceExpiresOn: a.licence_expires_on }
-    : null;
+  const termed = await q.query<{ id: string; licence_expires_on: string }>(
+    `UPDATE assets a
+        SET licence_expires_on = least(coalesce(a.licence_expires_on, t.term_end), t.term_end)
+       FROM (SELECT id, (first_published_on + make_interval(months => licence_term_months::int) - interval '1 day')::date AS term_end
+               FROM assets WHERE licence_term_months IS NOT NULL AND first_published_on IS NOT NULL) t
+      WHERE a.id = t.id ${only}
+        AND a.licence_expires_on IS DISTINCT FROM least(coalesce(a.licence_expires_on, t.term_end), t.term_end)
+      RETURNING a.id, a.licence_expires_on::text AS licence_expires_on`,
+    params,
+  );
+  for (const row of stamped.rows) {
+    await audit(q, actor, {
+      action: "media.asset_first_published",
+      entity: "assets",
+      entityId: row.id,
+      after: { firstPublishedOn: row.first_published_on },
+      reason: "first publication recorded (a licence term counts from this day)",
+    });
+  }
+  for (const row of termed.rows) {
+    await audit(q, actor, {
+      action: "media.asset_term_applied",
+      entity: "assets",
+      entityId: row.id,
+      after: { licenceExpiresOn: row.licence_expires_on },
+      reason: "licence expiry set from the term counted from first publication",
+    });
+  }
+  return stamped.rows.map((r) => r.id);
+}
+
+/**
+ * Every illustration link the learner route would serve on `day`, with what a photo figure prints,
+ * for the read model (src/server/knowledge/read-model.ts). The anchor-claim gate and the protocol
+ * switch are applied there, against the snapshot both conditions read.
+ */
+export async function listLearnerPhotoLinks(q: Q, day: string): Promise<IllustrationLink[]> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return [];
+  const r = await q.query<{
+    asset_id: string; concept_id: string; role: string; position: number; width: number; height: number; alt_text: string; caption: string; credit: string; licence: string; licence_url: string | null;
+  }>(
+    `SELECT l.asset_id, l.concept_id, l.role::text AS role, l.position, a.width, a.height, a.alt_text, ${FIGURE_CAPTION_SQL} AS caption, a.credit, a.licence, a.licence_url
+       FROM asset_links l JOIN assets a ON a.id = l.asset_id
+      WHERE l.role = 'illustration' AND NOT l.is_demo AND a.width IS NOT NULL AND a.height IS NOT NULL
+        AND ${servableSql("$1::date", { requireStamp: true })}
+      ORDER BY l.concept_id, l.position, l.asset_id`,
+    [day],
+  );
+  return r.rows.map((x) => ({
+    assetId: x.asset_id,
+    conceptId: x.concept_id,
+    role: x.role,
+    position: x.position,
+    src: `/figures/${x.asset_id}`,
+    width: x.width,
+    height: x.height,
+    altText: x.alt_text,
+    caption: x.caption,
+    credit: x.credit,
+    licence: x.licence,
+    licenceUrl: x.licence_url,
+  }));
 }
 
 /** One year: the learner figure route's cache lifetime for content-addressed files. */

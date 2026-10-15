@@ -43,7 +43,7 @@ export function LearningTaskPrompts({ prompts, defaultOpen = true, className }: 
 
   // DESIGN.md 9.17 card styling: --surface, 1 px --rule-strong border, 2 px radius, no shadow.
   return (
-    <aside aria-label={TASK_TEXT.label} className={cn("rounded-card border border-rule-strong bg-surface text-ink", className)} data-slot="learning-task-prompts">
+    <aside aria-label={TASK_TEXT.label} className={cn("rounded-card border border-rule-strong bg-ground text-ink", className)} data-slot="learning-task-prompts">
       <h2 className="m-0">
         <button
           type="button"

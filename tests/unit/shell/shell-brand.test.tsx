@@ -9,11 +9,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { chartFigureLabel, claimNumber, countOf, figureLabel, plateLabel, tableLabel } from "@/components/brand/numbering";
-import { KnockoutBand, KnockoutField } from "@/components/brand/knockout-band";
 import { OutlineDiagram } from "@/components/brand/outline-diagram";
-import { RegistrationTicks } from "@/components/brand/registration-ticks";
 import { Rule } from "@/components/brand/rule";
-import { TraditionMarker, TraditionName } from "@/components/knowledge/tradition-marker";
+import { TraditionName } from "@/components/knowledge/tradition-marker";
 import { DISPLAY_BOOT_SCRIPT, DISPLAY_STORAGE_KEY, isStudyPath, parseDisplayPreferences } from "@/components/shell/display-preferences";
 import { DisplayPreferencesSync, DisplaySettings } from "@/components/shell/display-settings";
 import { PageHeader } from "@/components/shell/page-header";
@@ -143,7 +141,7 @@ describe("DISPLAY_BOOT_SCRIPT (pre-paint)", () => {
 });
 
 describe("StudyShell (DESIGN.md 9.16)", () => {
-  it("is a study root with no outbound link, a Study eyebrow and an optional tabular step count", () => {
+  it("is a study root with no outbound link, a Study label and an optional tabular step count", () => {
     const { container } = render(
       <StudyShell step={{ current: 2, total: 7 }}>
         <p>Body</p>
@@ -152,65 +150,32 @@ describe("StudyShell (DESIGN.md 9.16)", () => {
     const root = container.firstElementChild!;
     expect(root).toHaveClass("study-root", "a11y-reduce-motion");
     expect(container.querySelector("a")).toBeNull();
-    expect(screen.getByText("Study")).toHaveClass("text-eyebrow");
+    expect(screen.getByText("Study")).toHaveClass("text-label");
     expect(screen.getByText("Step 2 of 7")).toHaveClass("text-timer");
     expect(screen.getByText(/ask the study facilitator/)).toBeInTheDocument();
   });
 });
 
 describe("PageHeader", () => {
-  it("title-cases the h1 and draws the band or rule only when asked", () => {
+  it("title-cases the h1 and draws no band, no rule and no eyebrow (DR-022)", () => {
     const band = renderToStaticMarkup(<PageHeader title="research overview" eyebrow="console" top="band" />);
     expect(band).toContain("Research Overview");
-    expect(band).toContain('class="ie-band"');
-    const rule = renderToStaticMarkup(<PageHeader title="users" top="rule" />);
-    expect(rule).toContain('data-rule="running-head"');
-    expect(rule).not.toContain("ie-band");
+    expect(band).not.toContain("ie-band");
+    expect(band).not.toContain("data-rule");
+    expect(band).not.toMatch(/>console</i);
     const plain = renderToStaticMarkup(<PageHeader title="questions before learning" kicker="study" />);
-    expect(plain).not.toContain("ie-band");
-    expect(plain).not.toContain("data-rule");
+    expect(plain).toContain("Questions Before Learning");
+    expect(plain).not.toMatch(/>study</i);
   });
 
 });
 
 describe("brand components (DESIGN.md 7)", () => {
-  it("knock-out bands are decorative and use unique pattern ids", () => {
-    const { container } = render(
-      <>
-        <KnockoutBand size={24} />
-        <KnockoutBand size={48} />
-        <KnockoutField columns={2} rows={1} />
-      </>,
-    );
-    const svgs = container.querySelectorAll("svg");
-    expect(svgs).toHaveLength(3);
-    for (const svg of svgs) {
-      expect(svg).toHaveAttribute("aria-hidden", "true");
-      expect(svg).toHaveAttribute("focusable", "false");
-    }
-    const ids = [...container.querySelectorAll("pattern")].map((p) => p.id);
-    expect(new Set(ids).size).toBe(3);
-    // Neutral units only: no stars, rosettes or floral shapes; flat fills.
-    expect(container.innerHTML).not.toMatch(/gradient|filter|polygon|ellipse/);
-    // The HC replacement rule is present unless the band sits under a running-head rule.
-    expect(container.querySelectorAll(".ie-band-rule")).toHaveLength(2);
-    expect(svgs[2]).toHaveAttribute("width", "192");
-  });
-
-  it("registration ticks are four hidden corner marks", () => {
-    const { container } = render(<RegistrationTicks />);
-    const ticks = container.querySelector(".ie-ticks")!;
-    expect(ticks).toHaveAttribute("aria-hidden", "true");
-    expect(ticks.querySelectorAll("svg.ie-tick")).toHaveLength(4);
-  });
-
-  it("the tradition marker is identical for every key (P17)", () => {
+  it("names a tradition in words only, with no marker on any key (P17)", () => {
     const keys = ["ajrakh", "bagh", "bagru", "dabu", "machilipatnam-kalamkari", "sanganeri"];
-    const markup = keys.map((k) => renderToStaticMarkup(<TraditionMarker traditionKey={k} />).replace(/ data-tradition-key="[^"]*"/, ""));
+    const markup = keys.map((k) => renderToStaticMarkup(<TraditionName traditionKey={k}>Name</TraditionName>).replace(/ data-tradition-key="[^"]*"/, ""));
     expect(new Set(markup).size).toBe(1);
-    expect(markup[0]).toBe('<span aria-hidden="true" data-slot="tradition-marker" class="ie-marker"></span>');
-    render(<TraditionName traditionKey="dabu">Dabu</TraditionName>);
-    expect(screen.getByText("Dabu").previousElementSibling).toHaveClass("ie-marker");
+    expect(markup[0]).toBe('<span data-slot="tradition-name" class="inline">Name</span>');
   });
 
   it("rules are borders, never fills", () => {
@@ -221,7 +186,7 @@ describe("brand components (DESIGN.md 7)", () => {
         <Rule kind="booktabs" />
       </>,
     );
-    expect(markup).toContain("border-t-2 border-ink");
+    expect(markup).toContain("border-t border-rule-strong");
     expect(markup).toContain("border-t border-rule");
     expect(markup).toContain("border-t-[1.5px] border-ink");
     expect(markup).not.toMatch(/bg-/);
@@ -237,7 +202,7 @@ describe("brand components (DESIGN.md 7)", () => {
     expect(() => figureLabel(0)).toThrow(RangeError);
   });
 
-  it("outline-then-fill diagrams draw the fill layer under the outline layer, fully drawn by default", () => {
+  it("line diagrams draw the fill layer under the outline layer, static (no draw-on motion)", () => {
     const { container } = render(
       <OutlineDiagram
         width={200}
@@ -259,8 +224,8 @@ describe("brand components (DESIGN.md 7)", () => {
     for (const [i, f] of [...fills].entries()) {
       for (const attr of ["x", "y", "width", "height"]) expect(outlines[i]!.getAttribute(attr)).toBe(f.getAttribute(attr));
     }
-    const edge = svg.querySelector("path[data-draw]") as SVGPathElement;
-    expect(edge.style.strokeDashoffset).toBe("0");
+    expect(svg.querySelector("path[data-draw]")).toBeNull();
+    expect(svg.querySelectorAll('g[data-layer="outline"] path')).toHaveLength(1);
     expect(container.innerHTML).not.toMatch(/madder/);
   });
 });

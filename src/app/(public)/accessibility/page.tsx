@@ -19,7 +19,6 @@ export default function AccessibilityPage() {
     <div className="flex flex-col gap-12">
       <PageHeader
         className="mb-0"
-        eyebrow="Accessibility"
         title="Accessibility"
         description="How the platform supports keyboard, screen-reader, high-contrast and reduced-motion use, and how to change the display."
       />
@@ -81,12 +80,13 @@ export default function AccessibilityPage() {
             <ul className={LIST}>
               <li>Skip to content is the first stop on every page.</li>
               <li>Every control shows a visible focus ring, and sticky bars never cover the focused element.</li>
-              <li>Under every statement, Source opens its record with the exact quotation; Escape closes it and returns to Source.</li>
+              <li>After every statement, a number in brackets such as [1] opens where it comes from, with the exact quotation; selecting it again or pressing Escape closes it and returns to the number. Each sheet ends with one numbered list of its references.</li>
               <li>Enlarge, under a figure, opens it full size; Close or Escape returns to Enlarge.</li>
               <li>Layer tabs move with the arrow keys, Home and End.</li>
               <li>
-                In the museum, &ldquo;In this room&rdquo; lists the exhibits and doorways of the current room, and the plan lists every room, so
-                every exhibit can be reached without the mouse.
+                The same list sits at the left in both conditions: &ldquo;In This Section&rdquo; on the pages and &ldquo;In This Room&rdquo; in the
+                museum, with the button of the same name in the top bar; Escape closes it where it opens over the view. In the museum it lists the
+                exhibits and doorways of the current room, and the plan lists every room, so every exhibit can be reached without the mouse.
               </li>
             </ul>
           </EditorialRow>

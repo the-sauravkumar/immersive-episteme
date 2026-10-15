@@ -239,7 +239,8 @@ function shortName(raw: string | null): string | null {
 
 /**
  * The short label of a citation under its claim (DESIGN.md 9.8): first author or publisher short
- * name, year, then the citation's own locator, e.g. "Victoria and Albert Museum, 2007 · p. 2".
+ * name, the year in brackets, then the citation's own locator, e.g. "Victoria and Albert Museum
+ * (2007), p. 2". No middle dot (DR-022).
  * Derived here from the bundle fields, never hand-written into content/. Every part is cut only
  * at a word boundary, so the label wraps to at most two lines at the claim measure and is never
  * truncated mid-word.
@@ -247,9 +248,34 @@ function shortName(raw: string | null): string | null {
 export function shortCitationLabel(c: { author: string | null; publisher: string | null; year: number | null; title: string; locator?: string | null }): string {
   const who = shortName(c.author) ?? shortName(c.publisher) ?? wordCut(c.title, 56);
   const year = c.year != null && c.year > 0 ? String(c.year) : null;
-  const head = year ? `${who}, ${year}` : who;
+  const head = year ? `${who} (${year})` : who;
   const locator = c.locator?.trim() ? bindLocator(wordCut(c.locator, 48)) : null;
-  return locator ? `${head} · ${locator}` : head;
+  return locator ? `${head}, ${locator}` : head;
+}
+
+/**
+ * The deduplicated reference list of a set of claims (DESIGN.md 9.9; DR-022 Addendum A): every
+ * cited source once, numbered in order of first citation (claim order, then citation order within
+ * a claim). The number of a claim's marker [n] is the source's position here plus one, so a source
+ * cited by several claims carries the same number everywhere in the view. Pure and deterministic:
+ * the server render, the client render and both conditions number identically.
+ */
+export function referencesOf<C extends { id: string }>(claims: readonly { evidence: readonly C[] }[]): C[] {
+  const seen = new Set<string>();
+  const out: C[] = [];
+  for (const claim of claims) {
+    for (const c of claim.evidence) {
+      if (seen.has(c.id)) continue;
+      seen.add(c.id);
+      out.push(c);
+    }
+  }
+  return out;
+}
+
+/** Marker numbers by source id for a set of claims (1-based, as `referencesOf`). */
+export function referenceNumbers(claims: readonly { evidence: readonly { id: string }[] }[]): Map<string, number> {
+  return new Map(referencesOf(claims).map((c, i) => [c.id, i + 1]));
 }
 
 // ---------------------------------------------------------------------------------------
@@ -307,8 +333,27 @@ export interface IllustrationLink {
   licenceUrl: string | null;
 }
 
-/** Photo figures of a concept: illustration links only, anchored to an existing claim, by position. */
-export function photoFiguresOf(conceptId: string, claimCount: number, links: readonly IllustrationLink[]): PhotoFigure[] {
+/**
+ * The anchor-claim gate of a study photograph (DR-020: "a photo goes live only when its anchor claim
+ * is verified"). A claim is verified with its concept (claims carry no state of their own; curators
+ * verify a concept's claims together), so the gate is open only when the anchor concept, as frozen
+ * in the snapshot both conditions read, is verified or published.
+ */
+export function photoGateOpen(conceptVerificationState: string): boolean {
+  return conceptVerificationState === "verified" || conceptVerificationState === "published";
+}
+
+/**
+ * Photo figures of a concept: illustration links only, anchored to an existing claim, by position,
+ * and only while the anchor claim's gate is open (`photoGateOpen`).
+ */
+export function photoFiguresOf(
+  concept: { id: string; claimCount: number; verificationState: string },
+  links: readonly IllustrationLink[],
+): PhotoFigure[] {
+  if (!photoGateOpen(concept.verificationState)) return [];
+  const conceptId = concept.id;
+  const claimCount = concept.claimCount;
   return links
     .filter((l) => l.conceptId === conceptId && l.role === "illustration" && Number.isInteger(l.position) && l.position >= 0 && l.position < claimCount)
     .sort((a, b) => a.position - b.position || byString(a.assetId, b.assetId))
@@ -341,12 +386,19 @@ export function diagramFigureOf(d: StructureDiagram, credit: string): DiagramFig
 /**
  * The figures of one concept view (12.3 rule 9: at most ONE figure per concept). The structure
  * diagram, when the protocol shows them, is balanced by construction and takes the slot; a
- * photograph is used otherwise. Both conditions call this with the same arguments.
+ * photograph is used otherwise, while the protocol shows photographs (`figures.photos`, DR-020).
+ * Both conditions call this with the same arguments.
  */
-export function resolveConceptFigures(input: { diagrams: readonly DiagramFigure[]; photos: readonly PhotoFigure[]; structureDiagrams: boolean }): KnowledgeFigureData[] {
+export function resolveConceptFigures(input: {
+  diagrams: readonly DiagramFigure[];
+  photos: readonly PhotoFigure[];
+  structureDiagrams: boolean;
+  /** The protocol switch `figures.photos` (default on); off shows no photograph in either condition. */
+  photosOn?: boolean;
+}): KnowledgeFigureData[] {
   const diagram = input.structureDiagrams ? input.diagrams[0] : undefined;
   if (diagram) return [diagram];
-  const photo = input.photos[0];
+  const photo = input.photosOn === false ? undefined : input.photos[0];
   return photo ? [photo] : [];
 }
 

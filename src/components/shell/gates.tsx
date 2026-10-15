@@ -33,13 +33,13 @@ export async function StaffAreaGate({ area, children }: { area: ConsoleArea; chi
 export async function ConsolePage({
   path,
   title,
-  kicker,
   description,
   permission,
   children,
 }: {
   path: ConsolePath;
   title?: string;
+  /** @deprecated Not rendered (DR-022: no eyebrows). */
   kicker?: string;
   description?: ReactNode;
   permission?: Permission | readonly Permission[];
@@ -47,12 +47,9 @@ export async function ConsolePage({
 }) {
   const route = consoleRoute(path);
   await requirePermission(permission ?? route.anyOf, { next: path.includes("[") ? undefined : path });
-  // DESIGN.md 9.16, 11.8-11.11: the 48 px knock-out band above research pages; a plain 2 px ink
-  // rule above CMS and admin pages (no band, no madder there).
-  const top = path === "/research" || path.startsWith("/research/") ? "band" : "rule";
   return (
     <>
-      <PageHeader title={title ?? route.label} eyebrow={kicker} description={description} top={top} />
+      <PageHeader title={title ?? route.label} description={description} />
       {children}
     </>
   );

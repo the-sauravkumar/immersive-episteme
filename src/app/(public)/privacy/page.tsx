@@ -26,7 +26,6 @@ export default function PrivacyPage() {
     <div className="flex flex-col gap-12">
       <PageHeader
         className="mb-0"
-        eyebrow="Privacy"
         title="Privacy"
         description="Participants take part under a pseudonymous study identifier. They do not create an account."
       />

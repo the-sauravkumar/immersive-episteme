@@ -42,7 +42,7 @@ export function ConceptCardList({
     <List aria-label={label} data-slot="concept-list" className={cn("flex flex-col", className)}>
       {concepts.map((c) => {
         const tradition = traditionNames && c.traditionSlug ? traditionNames[c.traditionSlug] : undefined;
-        const meta = [showType ? CONCEPT_TYPE_LABELS[c.type] : null, tradition].filter(Boolean).join(" · ");
+        const meta = [showType ? CONCEPT_TYPE_LABELS[c.type] : null, tradition].filter(Boolean).join(", ");
         return (
           // Every row has the same structure: the link, then (when shown) its type on its own line.
           // With a type line the link keeps a fixed 12 px above and below its text (a one-line title

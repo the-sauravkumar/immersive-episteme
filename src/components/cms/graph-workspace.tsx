@@ -48,11 +48,11 @@ type ConceptNodeData = { title: string; type: string; state: string; focus: bool
 
 function ConceptNode({ data }: NodeProps<Node<ConceptNodeData>>) {
   return (
-    <div className={`max-w-52 rounded-card bg-surface px-3 py-2 font-sans text-[0.8125rem] leading-5 ${data.focus ? "border-2 border-indigo" : "border border-rule-strong"}`}>
+    <div className={`max-w-52 rounded-card bg-ground px-3 py-2 font-sans text-[0.8125rem] leading-5 ${data.focus ? "border-2 border-indigo" : "border border-rule-strong"}`}>
       <Handle type="target" position={Position.Left} />
       <p className="font-semibold text-ink">{data.title}</p>
       <p className="text-ink-3">
-        {data.type.replace(/_/g, " ")} · {STATE_LABEL[data.state] ?? data.state}
+        {data.type.replace(/_/g, " ")}, {STATE_LABEL[data.state] ?? data.state}
       </p>
       <Handle type="source" position={Position.Right} />
     </div>
@@ -177,12 +177,12 @@ export function GraphWorkspace({
             <Controls
               showInteractive={false}
               position="top-left"
-              className="rounded-card border border-rule-strong shadow-none! [&_.react-flow\_\_controls-button]:size-11! [&_.react-flow\_\_controls-button]:border-rule! [&_.react-flow\_\_controls-button]:bg-surface! [&_.react-flow\_\_controls-button]:text-ink! [&_.react-flow\_\_controls-button:hover]:bg-sunk! [&_.react-flow\_\_controls-button_svg]:fill-current!"
+              className="rounded-card border border-rule-strong shadow-none! [&_.react-flow\_\_controls-button]:size-11! [&_.react-flow\_\_controls-button]:border-rule! [&_.react-flow\_\_controls-button]:bg-ground! [&_.react-flow\_\_controls-button]:text-ink! [&_.react-flow\_\_controls-button:hover]:bg-sunk! [&_.react-flow\_\_controls-button_svg]:fill-current!"
             />
           </ReactFlow>
         )}
       </div>
-      <section id="new-relationship" aria-labelledby="new-relationship-title" className="flex flex-col gap-4 rounded-card border border-rule bg-surface p-4 xs:p-6">
+      <section id="new-relationship" aria-labelledby="new-relationship-title" className="flex flex-col gap-4 rounded-card border border-rule bg-ground p-4 xs:p-6">
         <h2 id="new-relationship-title" className="text-h3 text-ink">
           {titleCase("New relationship")}
         </h2>

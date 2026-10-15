@@ -4,55 +4,52 @@
  * The 2D condition's top bar: the SHARED StudyBar (DESIGN.md 9.14; the same component as the 3D
  * museum's), with the 2D condition navigation group, the only part allowed to differ (12.1 rule 3):
  *
- *  - Contents: a sheet listing the study's traditions (canonical order) with their template
- *    sections, then the knowledge categories and the comparisons;
+ *  - "In This Section": shows the shared PlaceRail while it is hidden (always below 1280 px, where
+ *    the rail is a drawer; from 1280 px only after Hide). The 3D group has "In This Room" in the
+ *    same way (DR-021);
+ *  - Contents (below 1024 px only, where the index field is not shown): a sheet with the index
+ *    (the study's traditions with their numbered sections) and the browse pages;
  *  - Search: a sheet with a 44 px search field, ONLY when the study enables search (off in
- *    study builds of both conditions, DR-019);
- *  - on concept pages, "Up to <parent>": the concept's section on its tradition page, or the
- *    comparisons page (concept pages carry no breadcrumb, DESIGN.md 6).
+ *    study builds of both conditions, DR-019).
  *
- * All of the 2D navigation lives here, so the chrome above content is the AccessNotice slot plus
- * the 56 px bar and its 2 px rule, as in 3D. The location (the current page title) is resolved from
- * the URL with the layout's index (navigation.ts `studyBarPlace`), so it is right on the first
- * paint; a concept page may name itself (`StudyBarLocation`, session.tsx).
+ * "Up to <parent>" is removed (DR-021 decision 4): the sheet's Close returns to the section view,
+ * and the rail's "Leads To" and the index cover the rest. The location (the current page title) is
+ * resolved from the URL with the layout's index (navigation.ts `studyBarPlace`), so it is right on
+ * the first paint; a concept page may name itself (`StudyBarLocation`, session.tsx).
  *
- * Menu moves are logged as navigation entries (`via: "navigation"`). While a sheet is open the
- * page's exposure region counts navigation (exposure.tsx). The familiarisation practice passes
- * its own contents, which stay on the practice page.
+ * Contents moves are logged with the navigation source "index". While a sheet is open the page's
+ * exposure region counts navigation (exposure.tsx). The familiarisation practice passes its own
+ * contents, which stay on the practice page.
  */
 import Form from "next/form";
 import { usePathname } from "next/navigation";
-import { CornerLeftUp, List, Search } from "lucide-react";
+import { List, Search } from "lucide-react";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 
-import { TraditionName } from "@/components/knowledge/tradition-marker";
-import { STUDY_BAR_LINK_CLASS, StudyBar, StudyBarButton, StudyBarLabel } from "@/components/learning/study-bar";
+import { StudyBar, StudyBarButton } from "@/components/learning/study-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { STUDY_BAR_TEXT } from "@/features/learning/strings";
 import { titleCase } from "@/lib/text/title-case";
-import { cn } from "@/lib/utils";
 
-import { PAGE_TITLES, studyBarPlace, type ParentLink, type StudyBarIndex } from "../navigation";
+import { CONTENT_ID } from "../layout-ids";
+import { index2d, studyBarPlace, type StudyBarIndex } from "../navigation";
 import { href2d } from "../routes";
-import { EPISTEMIC_SECTIONS } from "../template";
 
+import { announceHash, useLocationHash } from "./hash-link";
 import { useChromeOverlay } from "./exposure";
 import { useNavigationCounter } from "./page-heading";
 import { usePageLocation } from "./session";
+import { Rail2dButton, StudyIndex, usePlace2d } from "./spread";
 import { TrackedLink } from "./tracked-link";
 
-/** The id of the 2D content column, the target of the StudyBar's "Skip to content" link. */
-export const CONTENT_ID = "learn-2d-content";
+export { CONTENT_ID };
 
-/** One link of the Contents sheet; a tradition carries its sections. */
+/** One link of a Contents group (the practice page's own contents). */
 export interface ContentsEntry {
   label: string;
   href: string;
-  /** Marks a tradition (neutral marker, DESIGN.md 7.7). */
-  traditionKey?: string;
-  sections?: readonly { label: string; href: string }[];
 }
 
 export interface ContentsGroup {
@@ -60,36 +57,13 @@ export interface ContentsGroup {
   entries: readonly ContentsEntry[];
 }
 
-/** The Contents of the learning pages: traditions with their sections, then the browse pages. */
-export function learningContents(traditions: StudyBarIndex["traditions"]): ContentsGroup[] {
-  return [
-    {
-      heading: "Traditions",
-      entries: traditions.map((t) => ({
-        label: t.name,
-        href: href2d.tradition(t.slug),
-        traditionKey: t.slug,
-        sections: EPISTEMIC_SECTIONS.map((s) => ({ label: s.title, href: href2d.traditionSection(t.slug, s.id) })),
-      })),
-    },
-    {
-      heading: "Browse",
-      entries: [
-        { label: PAGE_TITLES.catalogue, href: href2d.catalogue() },
-        { label: PAGE_TITLES.categories, href: href2d.categories() },
-        { label: PAGE_TITLES.comparisons, href: href2d.comparisons() },
-      ],
-    },
-  ];
-}
-
 const LINK_CLASS =
-  "text-ui inline-flex min-h-11 w-full items-center text-indigo underline decoration-1 underline-offset-[3px] hover:text-indigo-hover hover:decoration-2 aria-[current=page]:font-semibold aria-[current=page]:text-ink aria-[current=page]:no-underline";
+  "text-ui inline-flex min-h-11 w-full items-center text-indigo underline decoration-1 underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2 aria-[current=page]:font-semibold aria-[current=page]:text-ink aria-[current=page]:no-underline";
 
 export interface Learning2dStudyBarProps {
   index: StudyBarIndex;
   searchEnabled: boolean;
-  /** The Contents sheet (default: the learning pages'). The practice passes its own. */
+  /** The Contents sheet's groups (the practice passes its own); default: the index and the browse pages. */
   contents?: readonly ContentsGroup[];
   /** Fixed location text (the practice page); otherwise resolved from the URL. */
   location?: string;
@@ -101,7 +75,6 @@ export function Learning2dStudyBar({ index, searchEnabled, contents, location: f
   const place = studyBarPlace(pathname, index);
   const own = usePageLocation(pathname);
   const location = fixedLocation ?? (own?.location || place.location);
-  const parent = own ? own.parent : place.parent;
   const overlay = useChromeOverlay();
   const [contentsOpen, setContentsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -117,22 +90,14 @@ export function Learning2dStudyBar({ index, searchEnabled, contents, location: f
       skipTargetId={CONTENT_ID}
       conditionNav={
         <>
-          <ContentsSheet groups={contents ?? learningContents(index.traditions)} open={contentsOpen} onOpenChange={setContentsOpen} pathname={pathname} />
+          <Rail2dButton />
+          <ContentsSheet open={contentsOpen} onOpenChange={setContentsOpen} pathname={pathname}>
+            {(follow) => (contents ? <ContentsGroups groups={contents} pathname={pathname} onFollow={follow} /> : <IndexContents index={index} pathname={pathname} onFollow={follow} />)}
+          </ContentsSheet>
           {searchEnabled ? <SearchSheet open={searchOpen} onOpenChange={setSearchOpen} /> : null}
-          {place.conceptPage && parent ? <UpLink parent={parent} /> : null}
         </>
       }
     />
-  );
-}
-
-function UpLink({ parent }: { parent: ParentLink }) {
-  const label = STUDY_BAR_TEXT.upTo(parent.label);
-  return (
-    <TrackedLink href={parent.href} aria-label={label} title={label} data-slot="study-bar-up" className={STUDY_BAR_LINK_CLASS}>
-      <CornerLeftUp aria-hidden="true" />
-      <StudyBarLabel>{label}</StudyBarLabel>
-    </TrackedLink>
   );
 }
 
@@ -153,82 +118,58 @@ function useFollowedLink() {
   };
 }
 
-function ContentsSheet({
-  groups,
-  open,
-  onOpenChange,
-  pathname,
-}: {
-  groups: readonly ContentsGroup[];
-  open: boolean;
-  onOpenChange(open: boolean): void;
-  pathname: string;
-}) {
+/** The Contents sheet: below 1024 px only (from 1024 px the index is on screen, in the field). */
+function ContentsSheet({ open, onOpenChange, pathname, children }: { open: boolean; onOpenChange(open: boolean): void; pathname: string; children(follow: (href: string) => void): ReactNode }) {
   const followed = useFollowedLink();
-  const headingBase = useId();
   const follow = (href: string) => {
     followed.mark();
     onOpenChange(false);
-    // A hash link on the page already shown changes the URL without a hashchange event; the
-    // section disclosures listen for one to open themselves.
-    // The router updates the URL after this handler, so wait (at most about a second) for the hash.
-    const [path, hash] = href.split("#");
-    if (!hash || path !== pathname) return;
-    const announce = (framesLeft: number) => {
-      if (window.location.hash === `#${hash}`) window.dispatchEvent(new HashChangeEvent("hashchange"));
-      else if (framesLeft > 0) window.requestAnimationFrame(() => announce(framesLeft - 1));
-    };
-    window.requestAnimationFrame(() => announce(60));
+    announceHash(href, pathname);
   };
-  const current = (href: string) => (href.split("#")[0] === pathname && !href.includes("#") ? "page" : undefined);
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        <StudyBarButton icon={<List aria-hidden="true" />} label={STUDY_BAR_TEXT.contents} />
+        <StudyBarButton icon={<List aria-hidden="true" />} label={STUDY_BAR_TEXT.contents} className="lg:hidden" />
       </SheetTrigger>
       <SheetContent side="left" aria-describedby={undefined} onCloseAutoFocus={followed.onCloseAutoFocus} data-slot="contents-sheet">
         <SheetHeader>
           <SheetTitle>{STUDY_BAR_TEXT.contents}</SheetTitle>
         </SheetHeader>
-        <nav aria-label={STUDY_BAR_TEXT.contents} className="flex flex-col gap-8 px-6 pb-8 max-xs:px-4">
-          {groups.map((g, gi) => (
-            <section key={g.heading} aria-labelledby={`${headingBase}-${gi}`}>
-              <h3 id={`${headingBase}-${gi}`} className="text-eyebrow border-b border-rule pb-2">
-                {titleCase(g.heading)}
-              </h3>
-              <ul className="mt-1 flex flex-col">
-                {g.entries.map((e) => (
-                  <li key={e.href} className={cn(e.sections && "mt-3 first:mt-0")}>
-                    <ContentsLink href={e.href} current={current(e.href)} onFollow={follow} className={cn(e.traditionKey && "font-serif text-[1.1875rem] leading-7 font-semibold")}>
-                      {e.traditionKey ? <TraditionName traditionKey={e.traditionKey}>{titleCase(e.label)}</TraditionName> : titleCase(e.label)}
-                    </ContentsLink>
-                    {e.sections ? (
-                      <ul aria-label={titleCase(e.label)} className="ml-4 border-l border-rule pl-4">
-                        {e.sections.map((s) => (
-                          <li key={s.href}>
-                            <ContentsLink href={s.href} onFollow={follow}>
-                              {titleCase(s.label)}
-                            </ContentsLink>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
-        </nav>
+        {children(follow)}
       </SheetContent>
     </Sheet>
   );
 }
 
-function ContentsLink({ href, current, onFollow, className, children }: { href: string; current?: "page"; onFollow(href: string): void; className?: string; children: ReactNode }) {
+/** The learning pages' Contents: the index (every tradition with its sections), then the browse pages. */
+function IndexContents({ index, pathname, onFollow }: { index: StudyBarIndex; pathname: string; onFollow(href: string): void }) {
+  const place = usePlace2d(index);
+  useLocationHash();
+  return <StudyIndex traditions={index2d({ ...place, conceptSlug: null }, index)} pathname={pathname} onFollow={onFollow} browse className="px-3 pt-0 pb-8 xs:px-4" />;
+}
+
+function ContentsGroups({ groups, pathname, onFollow }: { groups: readonly ContentsGroup[]; pathname: string; onFollow(href: string): void }) {
+  const headingBase = useId();
+  const current = (href: string) => (href.split("#")[0] === pathname && !href.includes("#") ? "page" : undefined);
   return (
-    <TrackedLink href={href} aria-current={current} className={cn(LINK_CLASS, className)} onClick={() => onFollow(href)}>
-      {children}
-    </TrackedLink>
+    <nav aria-label={STUDY_BAR_TEXT.contents} className="flex flex-col gap-8 px-6 pb-8 max-xs:px-4">
+      {groups.map((g, gi) => (
+        <section key={g.heading} aria-labelledby={`${headingBase}-${gi}`}>
+          <h3 id={`${headingBase}-${gi}`} className="text-label border-b border-rule pb-2">
+            {titleCase(g.heading)}
+          </h3>
+          <ul className="mt-1 flex flex-col">
+            {g.entries.map((e) => (
+              <li key={e.href}>
+                <TrackedLink href={e.href} source="index" aria-current={current(e.href)} className={LINK_CLASS} onClick={() => onFollow(e.href)}>
+                  {titleCase(e.label)}
+                </TrackedLink>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </nav>
   );
 }
 
@@ -253,7 +194,7 @@ function SearchSheet({ open, onOpenChange }: { open: boolean; onOpenChange(open:
           }}
           className="mx-auto flex w-full max-w-[39.25rem] flex-col gap-2 px-6 pb-6 max-xs:px-4"
         >
-          <label htmlFor={fieldId} className="text-[0.875rem] leading-5 font-medium text-ink">
+          <label htmlFor={fieldId} className="text-[0.9375rem] leading-5 font-bold text-ink">
             Search concepts
           </label>
           <div className="flex gap-2">

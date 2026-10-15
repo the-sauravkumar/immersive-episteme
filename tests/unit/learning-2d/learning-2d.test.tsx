@@ -67,9 +67,9 @@ describe("concept content and citations", () => {
   it("renders every claim with a collapsed citation per source, and opening one logs citation_opened", async () => {
     const concept = view.getConcept("alpha.tool.tool-b")!;
     const h = renderWithTelemetry(<ClaimList conceptId={concept.id} claims={concept.claims} />);
-    const items = screen.getAllByRole("listitem");
+    const items = within(screen.getByRole("list", { name: "Statements" })).getAllByRole("listitem");
     expect(items).toHaveLength(concept.claims.length);
-    const buttons = screen.getAllByRole("button", { name: /^Source:/ });
+    const buttons = screen.getAllByRole("button", { name: /^Source \d+:/ });
     expect(buttons).toHaveLength(concept.claims.flatMap((c) => c.evidence).length);
     expect(buttons.every((b) => b.getAttribute("aria-expanded") === "false")).toBe(true);
     await userEvent.click(buttons[0]!);
@@ -263,7 +263,7 @@ describe("the 2D StudyBar group", () => {
     expect(within(dialog).getByRole("searchbox", { name: "Search concepts" })).toHaveClass("h-11");
   });
 
-  it("names the page from the URL and offers 'Up to <parent>' on concept pages only", () => {
+  it("names the page from the URL and has no 'Up to <parent>' (Close in the sheet replaces it, DR-021)", () => {
     const index2d = renderWithTelemetry(bar(false));
     expect(document.querySelector("[data-slot=study-bar]")!).toHaveTextContent("Craft Traditions");
     expect(screen.queryByRole("link", { name: /^Up to/ })).toBeNull();
@@ -271,7 +271,7 @@ describe("the 2D StudyBar group", () => {
     nav.pathname = href2d.concept(stageOne.slug);
     renderWithTelemetry(bar(false));
     expect(document.querySelector("[data-slot=study-bar]")!).toHaveTextContent(titleCase(stageOne.title));
-    expect(screen.getByRole("link", { name: "Up to Process Sequence" })).toHaveAttribute("href", href2d.traditionSection("alpha", "process"));
+    expect(screen.queryByRole("link", { name: /^Up to/ })).toBeNull();
   });
 
   it("lists the traditions in the given order with their sections in Contents, and counts navigation while it is open", async () => {
@@ -480,6 +480,7 @@ describe("concept layers in 2D (LayerTabs, as the 3D panel)", () => {
       ]}
       relatedByConcept={{ [c1!]: <p>related of c1</p>, [s1!]: <p>related of s1</p>, [s2!]: null }}
       pager={null}
+      closeHref={href2d.traditionSection("alpha", "materials-tools")}
     />
   );
 

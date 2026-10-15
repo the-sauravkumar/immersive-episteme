@@ -71,7 +71,7 @@ export function ActionForm({
                 <ul className="mt-1 list-disc pl-5">
                   {((state.data as { details: { code?: string; message?: string }[] }).details).slice(0, 20).map((d, i) => (
                     <li key={i}>
-                      {d.code ? <code className="text-mono mr-1">{d.code}</code> : null}
+                      {d.code ? <code className="text-id mr-1">{d.code}</code> : null}
                       {d.message}
                     </li>
                   ))}
@@ -101,7 +101,7 @@ export function ActionForm({
             {state?.ok && typeof state.data?.href === "string" ? (
               <>
                 {" "}
-                <Link className="inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[3px] hover:decoration-2" href={state.data.href}>
+                <Link className="inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[0.2em] hover:decoration-2" href={state.data.href}>
                   {typeof state.data.hrefLabel === "string" ? state.data.hrefLabel : "Open"}
                 </Link>
               </>
@@ -119,7 +119,7 @@ export function FieldMessage({ name, id }: { name: string; id?: string }) {
   const msgs = state?.fieldErrors?.[name];
   if (!msgs?.length) return null;
   return (
-    <p id={id} className="flex items-start gap-2 font-sans text-sm leading-5 font-medium text-danger">
+    <p id={id} className="flex items-start gap-2 font-sans text-[0.9375rem] leading-5 font-semibold text-danger">
       <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 stroke-2" />
       <span className="min-w-0">{msgs.join(" ")}</span>
     </p>
@@ -137,7 +137,7 @@ export function PrefixErrors({ prefix, describe }: { prefix: string; describe?: 
   const msgs = Object.entries(state?.fieldErrors ?? {}).filter(([k]) => k === prefix || k.startsWith(`${prefix}.`));
   if (!msgs.length) return null;
   return (
-    <ul className="list-disc pl-5 font-sans text-sm leading-5 font-medium text-danger">
+    <ul className="list-disc pl-5 font-sans text-[0.9375rem] leading-5 font-semibold text-danger">
       {msgs.map(([k, m]) => (
         <li key={k}>
           {describe ? describe(k) : k}: {m.join(" ")}

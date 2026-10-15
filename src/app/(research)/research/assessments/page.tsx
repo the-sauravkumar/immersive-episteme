@@ -10,6 +10,7 @@ import { createAssessmentAction } from "@/server/assessment/research-actions";
 import { getPool } from "@/server/db/client";
 
 import { DemoBadge, Empty, LINK_44, PublishedBadge, Section } from "../_components/common";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export const metadata: Metadata = { title: "Assessments" };
 
@@ -67,7 +68,7 @@ async function AssessmentList() {
                       {a.title}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-mono">{a.code}</TableCell>
+                  <TableCell className="text-id">{a.code}</TableCell>
                   <TableCell numeric>v{a.version}</TableCell>
                   <TableCell>{KIND_LABEL[a.kind] ?? a.kind}</TableCell>
                   <TableCell numeric>{a.itemCount}</TableCell>
@@ -90,7 +91,7 @@ async function AssessmentList() {
             <input name="code" required pattern="[a-z][a-z0-9_\-]{1,63}" className={fieldClass} />
           </Field>
           <Field label="Kind">
-            <select name="kind" required className={fieldClass} defaultValue="">
+            <NativeSelect name="kind" required defaultValue="">
               <option value="" disabled>
                 Choose…
               </option>
@@ -99,7 +100,7 @@ async function AssessmentList() {
                   {KIND_LABEL[k] ?? k}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </Field>
           <Field label="Title">
             <input name="title" required maxLength={300} className={fieldClass} />

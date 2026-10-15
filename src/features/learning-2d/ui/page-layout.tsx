@@ -41,14 +41,14 @@ export function PageSkeleton() {
 }
 
 /**
- * The page's header: eyebrow, the h1 (pass a `PageHeading`), an optional labelled metadata list
- * (`meta`, a `<dl>` from `PageMeta`) and an optional lead in `text-reading` ink-2.
+ * The page's header: the h1 (pass a `PageHeading`), an optional labelled metadata list (`meta`, a
+ * `<dl>` from `PageMeta`) and an optional lead in `text-reading` ink-2. No eyebrow (DR-022): the
+ * `eyebrow` prop is accepted for older call sites and not rendered.
  */
-export function PageIntro({ eyebrow, title, lead, meta }: { eyebrow?: string; title: ReactNode; lead?: ReactNode; meta?: ReactNode }) {
+export function PageIntro({ title, lead, meta }: { eyebrow?: string; title: ReactNode; lead?: ReactNode; meta?: ReactNode }) {
   return (
     <header className="mb-10 flex flex-col">
-      {eyebrow ? <p className="text-eyebrow">{eyebrow}</p> : null}
-      <div className="mt-1">{title}</div>
+      <div>{title}</div>
       {meta ? <div className="mt-6">{meta}</div> : null}
       {lead ? <div className="text-reading mt-4 text-ink-2">{lead}</div> : null}
     </header>
@@ -66,8 +66,8 @@ export function PageMeta({ label, rows }: { label: string; rows: readonly { labe
     <dl aria-label={label} className="grid grid-cols-1 gap-x-4 xs:grid-cols-[9rem_minmax(0,1fr)]">
       {shown.map((r) => (
         <div key={r.label} className="contents">
-          <dt className="text-dl-label pt-1 xs:pt-0.5">{r.label}</dt>
-          <dd className="text-dl-value mb-2 min-w-0 break-words xs:mb-1">
+          <dt className="text-label pt-1 xs:pt-0.5">{r.label}</dt>
+          <dd className="text-value mb-2 min-w-0 break-words xs:mb-1">
             {r.values.map((v, i) => (
               <span key={i} className="block">
                 {v}
@@ -118,7 +118,7 @@ export function BrowseTable({ rows, label, pageId, className }: { rows: readonly
                   {titleCase(r.code ? CATEGORY_LABELS[r.code] : (r.label ?? ""))}
                 </TrackedLink>
               </TableCell>
-              <TableCell className="text-dl-value py-2.5 align-top whitespace-normal text-ink-2">{r.code ? CATEGORY_DESCRIPTIONS.get(r.code) : r.description}</TableCell>
+              <TableCell className="text-value py-2.5 align-top whitespace-normal text-ink-2">{r.code ? CATEGORY_DESCRIPTIONS.get(r.code) : r.description}</TableCell>
             </TableRow>
           ))}
         </TableBody>
