@@ -1,13 +1,12 @@
 /**
- * The rule system (DESIGN.md 7.5), for every area including study:
+ * The rule system (DESIGN.md 7.5, DR-022). Rules remain only where they carry structure:
  *
- *  - `running-head`: 2 px `--ink`, under the public header, the console top bar and the StudyBar
- *    (identical in both conditions).
- *  - `hairline`: 1 px `--rule`, between claims and list rows.
+ *  - `running-head`: 1 px `--rule-strong`, the one line under the public header, the console top
+ *    bar and the StudyBar (identical in both conditions). It is a docked pane edge (3.55:1 or
+ *    more against the field), never a 2 px ink band.
+ *  - `hairline`: 1 px `--rule`, long console rows and the booktabs midrule only; claims are
+ *    separated by space, not rules.
  *  - `booktabs`: 1.5 px `--ink`, the top and bottom rules of a booktabs table or figure block.
- *
- * The 2 px madder rule above public section heads is NOT here: madder is public-only and the
- * section 15 lint keeps every madder utility inside `src/app/(public)` and `src/components/public`.
  *
  * Rules are drawn with `border`, never a background fill, so they survive forced colours. They
  * are decorative (`aria-hidden`), not thematic breaks.
@@ -15,7 +14,7 @@
 import { cn } from "@/lib/utils";
 
 const RULE = {
-  "running-head": "border-t-2 border-ink",
+  "running-head": "border-t border-rule-strong",
   hairline: "border-t border-rule",
   booktabs: "border-t-[1.5px] border-ink",
 } as const;

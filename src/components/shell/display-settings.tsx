@@ -119,7 +119,7 @@ function Switch({
           aria-hidden="true"
           className={cn(
             "relative inline-block h-6 w-11 rounded-control border",
-            checked ? "border-indigo bg-indigo" : "border-rule-strong bg-surface",
+            checked ? "border-indigo bg-indigo" : "border-rule-strong bg-ground",
           )}
         >
           <span

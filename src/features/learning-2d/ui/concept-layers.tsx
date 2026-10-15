@@ -13,14 +13,19 @@
  * (previous layer, openMs), `information_layer_opened` and, for the artisan, process and science
  * layers, `knowledge_layer_selected`; showing another concept logs `concept_encountered`
  * ("opened"). Exposure is the shown concept's own `ExposureRegion` (inside its pre-rendered view).
+ *
+ * Close fills the sheet's action slot, as in the 3D panel (DR-021 decision 4): here a link back to
+ * the section view (the concept's section on its tradition page), so Back works; the move is logged
+ * with the navigation source "close".
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { KnowledgeSheet, type FieldLayer, type SheetConcept } from "@/components/knowledge";
+import { KnowledgeSheet, SHEET_CLOSE_CLASS, SheetCloseContent, type FieldLayer, type SheetConcept } from "@/components/knowledge";
 import { ConceptChooser } from "@/components/knowledge/concept-chooser";
 import type { KnowledgeLayerId } from "@/features/learning/labels";
 import type { KnowledgeCategoryCode } from "@/lib/validation/enums";
 
+import { TrackedLink } from "./tracked-link";
 import { useStableTracker } from "./use-stable-tracker";
 
 export interface LayerEntryView {
@@ -30,6 +35,8 @@ export interface LayerEntryView {
   traditionId: string | null;
   /** The concept's view under this layer (head, sequence, exposure region with its claims, comparison blocks). */
   view: ReactNode;
+  /** The ReferenceList of the concept's claims (`SheetReferences`), for the sheet's references slot. */
+  references?: ReactNode;
 }
 
 export interface ConceptLayersSheetProps {
@@ -40,9 +47,11 @@ export interface ConceptLayersSheetProps {
   relatedByConcept: Readonly<Record<string, ReactNode>>;
   pager: ReactNode;
   pageId: string;
+  /** Where Close leads: the section view (null: no Close, e.g. a sheet outside the learning pages). */
+  closeHref: string | null;
 }
 
-export function ConceptLayersSheet({ concept, step, layers, relatedByConcept, pager, pageId }: ConceptLayersSheetProps) {
+export function ConceptLayersSheet({ concept, step, layers, relatedByConcept, pager, pageId, closeHref }: ConceptLayersSheetProps) {
   const first = layers[0];
   const [state, setState] = useState<{ tab: KnowledgeLayerId; conceptId: string }>({ tab: first?.id ?? "overview", conceptId: first?.entries[0]?.conceptId ?? concept.id });
   const layerSince = useRef(0);
@@ -92,8 +101,22 @@ export function ConceptLayersSheet({ concept, step, layers, relatedByConcept, pa
         const entry = layers.find((l) => l.id === layer)?.entries[0];
         if (entry) select(layer, entry.conceptId);
       }}
+      references={shown?.references ?? null}
       related={shown ? relatedByConcept[shown.conceptId] : null}
       pager={pager}
+      action={
+        closeHref ? (
+          <TrackedLink
+            href={closeHref}
+            pageId={pageId}
+            source="close"
+            className={SHEET_CLOSE_CLASS}
+            data-slot="sheet-close"
+          >
+            <SheetCloseContent />
+          </TrackedLink>
+        ) : null
+      }
     />
   );
 }

@@ -16,10 +16,9 @@ import { formatCount } from "./figure-one";
 
 /**
  * Fits 358 px (390 px viewport) without scrolling its region: headers may wrap, and under 520 px
- * the cells keep 8 px instead of 12 px of horizontal padding and the header labels drop their
- * 0.06em tracking (asserted in public-pages.spec.ts).
+ * the cells keep 8 px instead of 12 px of horizontal padding (asserted in public-pages.spec.ts).
  */
-const HEAD = "whitespace-normal max-xs:px-2 max-xs:tracking-normal max-xs:first:pl-0 max-xs:last:pr-0";
+const HEAD = "whitespace-normal max-xs:px-2 max-xs:first:pl-0 max-xs:last:pr-0";
 const CELL = "max-xs:px-2 max-xs:first:pl-0 max-xs:last:pr-0";
 
 export function DatasetTable({ stats, number, title = "Knowledge Dataset by Tradition" }: { stats: DatasetStats; number: number; title?: string }) {

@@ -10,7 +10,8 @@
  *  - kind `diagram`: the graph-derived SVG (DR-018). kind `photo`: next/image with explicit size,
  *    the literal `sizes` below, eager for the first figure of a view and lazy otherwise.
  *  - figcaption: "Fig. n" (600) and the caption in `text-caption`; the credit line in
- *    `text-credit`; and ONE control, a 44 x 44 outline "Enlarge figure n" button in the caption row
+ *    `text-credit` (a photo: "Photo: <credit>. Licence: <licence>", the licence linked when it
+ *    has a URL); and ONE control, a 44 x 44 outline "Enlarge figure n" button in the caption row
  *    (the image itself is not a second trigger).
  *  - The lightbox shows the same media capped at 768 px on its long edge.
  */
@@ -50,9 +51,9 @@ function Caption({ figure, number }: { figure: KnowledgeFigureData; number: numb
           figure.credit
         ) : (
           <>
-            {FIGURE_TEXT.photoCredit(figure.credit)} ·{" "}
+            {FIGURE_TEXT.photoCredit(figure.credit)} {FIGURE_TEXT.licenceLabel}{" "}
             {figure.licenceUrl ? (
-              <a href={figure.licenceUrl} target="_blank" rel="noopener noreferrer license" className="underline decoration-1 underline-offset-[3px] hover:decoration-2">
+              <a href={figure.licenceUrl} target="_blank" rel="noopener noreferrer license" className="underline decoration-1 underline-offset-[0.2em] hover:decoration-2">
                 {figure.licence}
               </a>
             ) : (

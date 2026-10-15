@@ -36,7 +36,7 @@ export function RepeatLinks({ chain, pageId }: { chain: ProcessChain; pageId: st
   if (chain.unorderedLinks.length === 0) return null;
   return (
     <div className="mt-6">
-      <h3 className="text-eyebrow mb-1">{titleCase("Repeated or looping steps")}</h3>
+      <h3 className="text-label mb-1">{titleCase("Repeated or looping steps")}</h3>
       <ul className="flex flex-col">
         {chain.unorderedLinks.map((l) => (
           <li key={l.relationshipId} className="flex flex-wrap items-baseline gap-x-2">

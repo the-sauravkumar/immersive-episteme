@@ -11,8 +11,9 @@ import { getPool } from "@/server/db/client";
 import { listStudies } from "@/server/research/studies";
 
 import { ActionForm } from "../_components/action-form";
-import { DemoBadge, Empty, FieldLabel, LINK_44, Section, SELECT, StatusBadge, Timestamp } from "../_components/common";
+import { DemoBadge, Empty, FieldLabel, LINK_44, Section, StatusBadge, Timestamp } from "../_components/common";
 import { createStudyAction } from "../actions";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export const metadata: Metadata = { title: "Studies" };
 
@@ -53,7 +54,7 @@ async function Studies() {
                       {s.title}
                     </Link>
                     <span className="mt-0.5 flex flex-wrap items-center gap-2">
-                      <span className="text-mono text-ink-3">{s.slug}</span>
+                      <span className="text-id text-ink-3">{s.slug}</span>
                       {s.isDemo ? <DemoBadge label="Demo" /> : null}
                     </span>
                   </TableCell>
@@ -84,10 +85,10 @@ async function Studies() {
               <Input name="protocolVersion" required maxLength={64} defaultValue="1.0" />
             </FieldLabel>
             <FieldLabel label="Design">
-              <select name="design" defaultValue="between" className={SELECT}>
+              <NativeSelect name="design" defaultValue="between">
                 <option value="between">Between subjects</option>
                 <option value="within">Within subjects (needs matched content sets)</option>
-              </select>
+              </NativeSelect>
             </FieldLabel>
             <FieldLabel label="Description (optional)">
               <Textarea name="description" rows={3} maxLength={4000} />

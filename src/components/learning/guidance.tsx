@@ -158,7 +158,7 @@ export function HintControl({ className }: { className?: string }) {
             close();
           }
         }}
-        className="absolute top-full right-0 z-(--z-drawer) mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-card border border-rule-strong bg-surface p-4 text-left text-ink"
+        className="absolute top-full right-0 z-(--z-drawer) mt-2 w-[min(22rem,calc(100vw-2rem))] rounded-card border border-rule-strong bg-ground p-4 text-left text-ink"
       >
         <div className="flex items-start justify-between gap-2">
           <h2 className="text-h3 pt-2">{titleCase(GUIDANCE_TEXT.hintTitle)}</h2>
@@ -183,14 +183,20 @@ export function StallCue({ className }: { className?: string }) {
       aria-live="polite"
       data-slot="guidance-stall"
       className={cn(
-        "flex max-w-[min(26rem,calc(100vw-2rem))] items-start gap-3 border border-l-4 border-rule-strong border-l-indigo bg-ground py-2 pr-2 pl-4 text-ink",
+        // The alert form (DESIGN.md 9.6, DR-022): a full 1 px boundary, radius 0, no left bar, and a
+        // heading line of glyph plus word ("Hint"), identical in both conditions.
+        "flex max-w-[min(26rem,calc(100vw-2rem))] items-start gap-3 border border-rule-strong bg-ground py-2 pr-2 pl-4 text-ink",
         // High contrast: the reserved yellow guidance cue (WCAG: #111111 on #FFD400 is 14.4:1).
         "[.a11y-contrast_&]:border-[#111111] [.a11y-contrast_&]:bg-[#FFD400] [.a11y-contrast_&]:text-[#111111]",
         className,
       )}
     >
       <div className="min-w-0 flex-1 py-2">
-        <p className="text-body font-medium">{GUIDANCE_TEXT.stallCue}</p>
+        <p className="flex items-center gap-2 font-sans text-base leading-6 font-bold">
+          <Lightbulb aria-hidden="true" strokeWidth={1.75} className="size-5 shrink-0" />
+          {GUIDANCE_TEXT.hintTitle}
+        </p>
+        <p className="text-body mt-1">{GUIDANCE_TEXT.stallCue}</p>
         {g.hintText ? (
           <Button type="button" variant="outline" className="mt-2" onClick={g.followStall}>
             {GUIDANCE_TEXT.stallAction}

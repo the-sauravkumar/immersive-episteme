@@ -66,10 +66,10 @@ async function Sessions({ searchParams }: { searchParams: Promise<Record<string,
                 return (
                   <TableRow key={s.id}>
                     <TableCell className="whitespace-nowrap">
-                      <Link className={`${LINK_44} text-mono`} href={`/research/sessions/${s.id}`}>
+                      <Link className={`${LINK_44} text-id`} href={`/research/sessions/${s.id}`}>
                         {s.participantCode}
                       </Link>
-                      {s.period > 1 ? <span className="text-credit"> · period {s.period}</span> : null}
+                      {s.period > 1 ? <span className="text-credit">, period {s.period}</span> : null}
                     </TableCell>
                     <TableCell>{s.conditionCode}</TableCell>
                     <TableCell>{s.status.replace(/_/g, " ")}</TableCell>

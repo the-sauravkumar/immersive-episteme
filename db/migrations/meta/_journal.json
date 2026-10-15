@@ -120,6 +120,13 @@
       "when": 1792021157715,
       "tag": "0016_media_figure_governance",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792074192300,
+      "tag": "0017_media_first_publication",
+      "breakpoints": true
     }
   ]
 }

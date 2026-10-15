@@ -50,7 +50,7 @@ async function Rating({ params }: { params: Promise<{ rubricId: string }> }) {
     <>
       <p className="mb-4">
         <Link href="/research/scoring" className={LINK_44}>
-          <span aria-hidden="true">←&nbsp;</span>Back to scoring
+          Back to scoring
         </Link>
       </p>
       <SummaryList
@@ -125,7 +125,7 @@ async function Rating({ params }: { params: Promise<{ rubricId: string }> }) {
             <TableBody>
               {agreement.pairwise.map((p) => (
                 <TableRow key={`${p.raterA}-${p.raterB}`}>
-                  <TableCell className="text-mono">
+                  <TableCell className="text-id">
                     {p.raterA.slice(-6)} / {p.raterB.slice(-6)}
                   </TableCell>
                   <TableCell numeric>{p.n}</TableCell>

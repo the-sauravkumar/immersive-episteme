@@ -25,10 +25,24 @@ import type {
 import { inCanonicalOrder, type KnowledgeLayerId } from "@/features/learning/labels";
 import type { KnowledgeCategoryCode } from "@/lib/validation/enums";
 import { KNOWLEDGE_CATEGORY_CODES } from "@/lib/validation/enums";
-import { getComparisons, getConcept, getConceptFigures, getProcessChain, getRelatedConcepts, getTradition, listTraditions, search } from "@/server/knowledge/read-model";
+import { figureOptionsOf, getComparisons, getConcept, getConceptFigures, getProcessChain, getRelatedConcepts, getTradition, listTraditions, search } from "@/server/knowledge/read-model";
 import { getLearningContext, LearningContextUnavailableError, type LearningContext } from "@/server/learning/context";
 
-import { byCanonicalTradition, conceptLayers, pagerFor, parentOf, sequenceOf, sharedSequenceOf, type Pager, type ParentLink, type StudyBarIndex } from "../navigation";
+import {
+  byCanonicalTradition,
+  conceptLayers,
+  pagerFor,
+  parentOf,
+  sectionConcepts,
+  sequenceOf,
+  SHARED_SECTIONS,
+  sharedSequenceOf,
+  type Pager,
+  type ParentLink,
+  type RailEntry,
+  type StudyBarIndex,
+} from "../navigation";
+import { EPISTEMIC_SECTIONS } from "../template";
 import { createScopeChecker, filterAccessible, type ScopeChecker } from "../scope";
 
 export type ContextResult = { ok: true; ctx: LearningContext } | { ok: false; reason: LearningContextUnavailableError["reason"] };
@@ -60,8 +74,8 @@ async function studyTraditions(ctx: LearningContext): Promise<TraditionDetail[]>
   return details.filter((t): t is TraditionDetail => !!t);
 }
 
-/** Figure options of the learning context: the same values the 3D payload passes (DR-018, parity check P14). */
-const figureOptions = (ctx: LearningContext) => ({ traditionSlugs: ctx.traditionSlugs ?? null, structureDiagrams: ctx.settings.figures.structureDiagrams });
+/** Figure options of the learning context: `figureOptionsOf`, the one helper the 3D payload uses too (DR-018, DR-020, parity check P14). */
+const figureOptions = (ctx: LearningContext) => figureOptionsOf(ctx);
 
 /** Comparisons whose comparison concept is in scope; compared concepts reduced to the in-scope ones, in the canonical order. */
 async function scopedComparisons(ctx: LearningContext, scope: ScopeChecker, traditionSlug?: string): Promise<ComparisonView[]> {
@@ -153,7 +167,7 @@ export interface ConceptPageData {
   traditionNames: Record<string, string>;
   /** The study's traditions in the canonical order (a comparison lists every one of them). */
   traditions: { slug: string; name: string }[];
-  /** Where "Up to <parent>" leads; null for a shared concept that belongs to no tradition section. */
+  /** Where the sheet's Close leads; null for a shared concept that belongs to no tradition section. */
   parent: ParentLink | null;
 }
 
@@ -319,7 +333,37 @@ export async function loadStudyBarIndex(ctx: LearningContext): Promise<StudyBarI
     for (const c of allConcepts(t)) concepts[c.slug] = [c.title, indexOf(parentOf(c, t))];
   }
   for (const v of comparisons) concepts[v.concept.slug] = [v.concept.title, indexOf(parentOf(v.concept, null))];
-  return { traditions: traditions.map((t) => ({ slug: t.slug, name: t.name })), concepts, parents };
+
+  // The rail and index rows (DR-021): each section's concepts in the tradition page's order (the
+  // process in sequence order), with the step of every station of an ordered sequence.
+  const chains = await Promise.all(traditions.map((t) => getProcessChain(ctx.snapshotId, t.slug)));
+  const sections: NonNullable<StudyBarIndex["sections"]> = {};
+  traditions.forEach((t, i) => {
+    const chain = chains[i] ?? null;
+    const entry = (c: ConceptRef): RailEntry => {
+      const seq = sequenceOf(chain, c.id);
+      const at = seq ? seq.steps.findIndex((x) => x.id === c.id) : -1;
+      return { slug: c.slug, key: c.key, title: c.title, type: c.type, step: seq && at >= 0 ? [at + 1, seq.steps.length] : null };
+    };
+    const own: NonNullable<StudyBarIndex["sections"]>[string] = {};
+    for (const section of EPISTEMIC_SECTIONS) {
+      let list = sectionConcepts(t, section);
+      if (section.id === "process" && chain) {
+        const ordered = chain.steps.filter((s) => list.some((c) => c.id === s.id));
+        list = [...ordered, ...list.filter((c) => !ordered.some((s) => s.id === c.id))];
+      }
+      if (section.id === "comparisons") {
+        const scoped = comparisons.filter((v) => v.compares.some((c) => c.traditionSlug === t.slug)).map((v) => v.concept);
+        list = [...new Map([...list, ...scoped].map((c) => [c.id, c])).values()];
+      }
+      if (list.length > 0) own[section.id] = list.map(entry);
+    }
+    sections[t.slug] = own;
+  });
+  const shared = comparisons.map((v) => v.concept).filter((c) => c.traditionSlug === null);
+  if (shared.length > 0) sections[SHARED_SECTIONS] = { comparisons: shared.map((c) => ({ slug: c.slug, key: c.key, title: c.title, type: c.type, step: null })) };
+
+  return { traditions: traditions.map((t) => ({ slug: t.slug, name: t.name })), concepts, parents, sections };
 }
 
 export const isCategoryCode = (x: string): x is KnowledgeCategoryCode => (KNOWLEDGE_CATEGORY_CODES as readonly string[]).includes(x);

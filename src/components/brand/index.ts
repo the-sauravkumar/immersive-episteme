@@ -1,15 +1,9 @@
 /**
- * Brand components (DESIGN.md 7): the graphic language. Zone limits:
- *  - KnockoutBand / KnockoutField: public and research console only.
- *  - RegistrationTicks / TickedFrame: public, Colophon and the CMS proof frame only.
- *  - OutlineDiagram: public and console only.
+ * Brand components (DESIGN.md 7, DR-022). The Atlas system has no decorative graphics: the
+ * knock-out band, the registration ticks and the tradition marker are removed in every zone.
+ *  - OutlineDiagram: public and console line drawings only (static, no draw-on motion).
  *  - Rule, numbering and Wordmark: every area.
- * None of the decorative ones may appear in study mode, in either condition.
- * The neutral tradition marker lives with the knowledge components
- * (`@/components/knowledge/tradition-marker`) because study pages use it.
  */
-export { BLOCK_CELL, BLOCK_UNIT, KnockoutBand, KnockoutField } from "./knockout-band";
-export { RegistrationTicks, TickedFrame } from "./registration-ticks";
 export { OutlineDiagram, type DiagramEdge, type DiagramFill, type DiagramNode } from "./outline-diagram";
 export { Rule, type RuleKind } from "./rule";
 export { Wordmark, type WordmarkSize } from "./wordmark";

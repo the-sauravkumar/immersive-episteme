@@ -111,6 +111,7 @@ export const SHARED_MODULES = [
   "src/components/knowledge/state-message.tsx",
   "src/components/knowledge/tradition-marker.tsx",
   "src/components/citations/citation-disclosure.tsx",
+  "src/components/citations/reference-list.tsx",
   "src/components/learning/study-bar.tsx",
   "src/components/learning/guidance.tsx",
   "src/components/learning/learning-phase.tsx",
@@ -138,8 +139,9 @@ export const ONE_SIDED_ALLOWED: Readonly<Record<string, string>> = {
 const SHARED_NAMES = [
   "KnowledgeSheet",
   "ClaimList",
-  "CitationNote",
+  "CitedClaim",
   "CitationRecord",
+  "ReferenceList",
   "KnowledgeFigure",
   "FigureLightbox",
   "LayerTabs",
@@ -157,7 +159,7 @@ const SHARED_NAMES = [
   "LayerConceptHead",
   "ComparisonBlocks",
   "ConceptChooser",
-  "TraditionMarker",
+  "TraditionName",
 ];
 const CONDITION_FOLDERS = ["src/features/learning-2d", "src/components/museum", "src/app/(learning)"];
 

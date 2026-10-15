@@ -1,11 +1,11 @@
 /**
  * Explore (DESIGN.md 11.3): the public demo entry.
  *
- * PageHeader with the honest lede; a full-width "What Is the Same" strip above both cards; two
- * equal cards (2D always first and left, a fixed order documented on the Colophon), each with a
- * 16:10 line-art schematic (never a screenshot, so neither condition looks richer), a Source Serif
- * title, a description in a reserved three-line zone and a 44 px primary button pinned to the card
- * bottom; then "Before You Start" with the controls of each condition in two equal booktabs
+ * PageHeader with the honest lede; the "What is the same" note as an unboxed lead (DR-022); two
+ * equal panels (2D always first and left, a fixed order documented on the Colophon), each with a
+ * 16:10 line-art schematic (never a screenshot, so neither condition looks richer), a title, a
+ * description in a reserved three-line zone and a 44 px primary button pinned to the bottom
+ * (`mt-auto`); then "Before You Start" with the controls of each condition in two equal booktabs
  * tables, and the Display Settings button.
  *
  * Starting a demo sets a signed, non-experimental demo cookie (startPublicDemo): nothing done in a
@@ -20,7 +20,6 @@ import { PageHeader } from "@/components/shell/page-header";
 import { DisplaySettings } from "@/components/shell/display-settings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { startPublicDemo } from "@/server/auth/actions";
 import { titleCase } from "@/lib/text/title-case";
@@ -43,8 +42,9 @@ const OPTIONS = [
 /** The controls of each condition, from the shared onboarding wording (strings.ts) and the museum's controls help. */
 const CONTROLS: Record<"2d" | "immersive", readonly [string, string][]> = {
   "2d": [
-    ["See the traditions and sections", "Contents, in the top bar"],
+    ["See where you are", "In This Section, on the left, and the index beside it"],
     ["Open a concept", "Select its link"],
+    ["Close a concept", "Close, at the top of the concept"],
     ["Related concepts", "Links at the end of each page"],
     ["Neighbouring concepts", "Previous and Next"],
     ["Open a source record", "Source, under a statement; Escape closes it"],
@@ -52,10 +52,12 @@ const CONTROLS: Record<"2d" | "immersive", readonly [string, string][]> = {
   ],
   immersive: [
     ["See the rooms", "Plan, in the top bar"],
-    ["Walk", "W and S, or ↑ and ↓"],
-    ["Turn", "A and D, or ← and →"],
+    ["See this room's exhibits", "In This Room, in the top bar"],
+    ["Walk", "W and S, or the Up and Down arrow keys"],
+    ["Turn", "A and D, or the Left and Right arrow keys"],
     ["Look around", "Drag with the mouse or a finger"],
-    ["Open an exhibit", "A wall panel, or the “In this room” list"],
+    ["Open an exhibit", "A wall panel, or the In This Room list"],
+    ["Close an exhibit", "Close, at the top of the panel, or Escape"],
     ["Open a source record", "Source, under a statement; Escape closes it"],
     ["Enlarge a figure", "Enlarge, under the figure; Close or Escape returns"],
   ],
@@ -98,7 +100,7 @@ function ControlsTable({ condition, number }: { condition: "2d" | "immersive"; n
       <TableBody>
         {CONTROLS[condition].map(([task, how]) => (
           <TableRow key={task}>
-            <TableHead scope="row" className={`${ROW_H} py-2 align-top font-sans text-sm font-medium tracking-normal text-ink normal-case whitespace-normal`}>
+            <TableHead scope="row" className={`${ROW_H} py-2 align-top text-table font-bold text-ink whitespace-normal`}>
               {task}
             </TableHead>
             <TableCell className={`${ROW_H} align-top whitespace-normal text-ink-2`}>{how}</TableCell>
@@ -114,7 +116,6 @@ export default function ExplorePage({ searchParams }: PageProps<"/explore">) {
     <div className="flex flex-col gap-12">
       <PageHeader
         className="mb-0"
-        eyebrow="Explore"
         title="Explore the demo"
         description="Try both ways of learning with demonstration content. This is not part of a study and nothing you do is recorded as study data."
       />
@@ -123,46 +124,38 @@ export default function ExplorePage({ searchParams }: PageProps<"/explore">) {
       </Suspense>
 
       <div className="flex flex-col gap-6">
-        <section aria-labelledby="same-heading" data-slot="same-strip" className="border border-l-4 border-rule border-l-indigo bg-surface px-5 py-4 xs:px-6">
-          {/* A lead-in, not a heading: the strip is a callout above the cards, and a third h2 size
-              would put the card titles (26 px, 11.3) above a smaller section h2 of the same level. */}
+        <section aria-labelledby="same-heading" data-slot="same-strip" className="max-w-[48rem]">
+          {/* A lead-in, not a heading: an unboxed note above the panels, and a third h2 size would
+              put the panel titles above a smaller section h2 of the same level. */}
           <p id="same-heading" className="text-h3 text-ink">
             {titleCase("What is the same")}
           </p>
-          <p className="text-body mt-1 text-ink-2">
+          <p className="text-lead mt-1">
             Same claims, citations, figures, typefaces, controls and timer. Different: how you move through the knowledge.
           </p>
         </section>
 
         <ul className="grid gap-6 md:grid-cols-2" aria-label="The two conditions">
           {OPTIONS.map((o) => (
-            <li key={o.condition} className="flex">
-              <Card parallel className="w-full">
-                <CardContent>
-                  <ConditionSchematic condition={o.condition} />
-                </CardContent>
-                <CardHeader>
-                  <CardTitle className="font-serif text-[1.625rem] leading-8 font-semibold">
-                    <h2>{titleCase(o.title)}</h2>
-                  </CardTitle>
-                  <CardDescription className="min-h-[3lh]">{o.description}</CardDescription>
-                </CardHeader>
-                {/* mt-auto (CardFooter) pins the action to the card bottom, so both buttons line up. */}
-                <CardFooter>
-                  <form action={startPublicDemo}>
-                    <input type="hidden" name="condition" value={o.condition} />
-                    <Button type="submit">Open {o.title.toLowerCase()}</Button>
-                  </form>
-                </CardFooter>
-              </Card>
+            <li key={o.condition} data-slot="card" data-parallel="true" className="flex flex-col gap-4 border-t-[1.5px] border-ink pt-4">
+              <div className="bg-sunk p-4">
+                <ConditionSchematic condition={o.condition} />
+              </div>
+              <h2 className="text-display-3 text-ink">{titleCase(o.title)}</h2>
+              <p className="text-body min-h-[3lh] text-ink-2">{o.description}</p>
+              {/* mt-auto pins the action to the panel bottom, so both buttons line up. */}
+              <form action={startPublicDemo} className="mt-auto" data-slot="card-footer">
+                <input type="hidden" name="condition" value={o.condition} />
+                <Button type="submit">Open {o.title.toLowerCase()}</Button>
+              </form>
             </li>
           ))}
         </ul>
       </div>
 
       <section aria-labelledby="before-heading" className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2 border-t-2 border-madder pt-4 hc:border-ink">
-          <h2 id="before-heading" className="text-h2 text-ink">
+        <div className="flex flex-col gap-2 pt-2">
+          <h2 id="before-heading" className="text-display-3 text-ink">
             {titleCase("Before you start")}
           </h2>
           <p className="text-body max-w-[40rem] text-ink-2">

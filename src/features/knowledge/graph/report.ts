@@ -81,8 +81,8 @@ export function renderIntegrityMarkdown(report: IntegrityReport, opts: { title?:
   const lines: string[] = [];
   lines.push(`# ${opts.title ?? "Knowledge graph integrity report"}`, "");
   lines.push(
-    `**Result:** ${report.ok ? "no error-level issues" : `${report.issueCounts.error} error-level issue(s)`} · ` +
-      `${report.issueCounts.warning} warning(s) · ${report.issueCounts.info} info`,
+    `**Result:** ${report.ok ? "no error-level issues" : `${report.issueCounts.error} error-level issue(s)`}; ` +
+      `${report.issueCounts.warning} warning(s); ${report.issueCounts.info} info`,
     "",
   );
   const c = report.counts;

@@ -6,10 +6,10 @@
  * no timers, scores or feedback are shown to the participant.
  *
  * Presentation (DESIGN.md 11.7, 9.5): each question opens with "Question n of N" in tabular
- * figures, then the question in Inter 20/28 600. Choice options are full-row 56 px labels with a
- * 20 px native control, separated by 1 px `--rule`; the chosen option takes `--wash`, a 2 px
- * `--indigo` bar and a check icon (never colour alone). Likert scales are a 4- to 11-column row
- * with tabular numbers and the end labels in `text-eyebrow`, stacked vertically on narrow
+ * figures, then the question in Atkinson 20/28 600. Choice options are full-row 56 px labels with
+ * a 20 px native control, separated by 1 px `--rule`; the chosen option takes `--wash` and a check
+ * icon (never colour alone; no left bar, DR-022). Likert scales are a 4- to 11-column row
+ * with tabular numbers and the end labels in `text-label`, stacked vertically on narrow
  * screens. Free text is at least 132 px tall. Field errors carry an icon and words and are linked
  * through `aria-describedby`; an error summary at the top takes focus after a refused submit.
  * Nothing moves (study zero-motion rule).
@@ -168,10 +168,9 @@ function Prompt({ id, number, total, children }: { id: string; number: number; t
   );
 }
 
-/** A full-row choice: 56 px, native 20 px control, `--wash` plus a 2 px indigo bar and a check icon when chosen. */
-const OPTION_ROW =
-  "group/opt flex min-h-14 cursor-pointer items-center gap-3 border-l-2 border-l-transparent py-3 pr-3 pl-3 has-[:checked]:border-l-indigo has-[:checked]:bg-wash";
-const NATIVE_CONTROL = "size-5 shrink-0 cursor-pointer accent-indigo";
+/** A full-row choice: 56 px, native 20 px control, `--wash` and a check icon when chosen (no bar). */
+const OPTION_ROW = "group/opt flex min-h-14 cursor-pointer items-center gap-3 px-3 py-3 hover:bg-sunk has-[:checked]:bg-wash";
+const NATIVE_CONTROL = "ie-check";
 
 /** The check icon of a chosen option; its space is always reserved, so choosing shifts nothing. */
 function OptionCheck({ className }: { className?: string }) {
@@ -191,13 +190,13 @@ function OptionCheck({ className }: { className?: string }) {
  *
  * Each point carries the same check icon as the choice rows (DESIGN.md 4.2, 11.7): at the row end
  * when stacked, and under the control in column mode (before any per-point label, so the icons
- * of all columns sit on one line). Only the bottom rule is set on a cell (`border-b-rule`), so the
- * transparent left bar of OPTION_ROW survives and only the chosen point shows the indigo bar.
+ * of all columns sit on one line). Only the bottom rule is set on a cell (`border-b-rule`); the
+ * chosen point is the `--wash` cell with its check, with no bar (DR-022).
  */
 const LIKERT = {
   xs: {
     grid: "xs:grid-cols-[repeat(var(--points),minmax(0,1fr))]",
-    cell: "max-xs:last:border-b-0 xs:flex-col xs:justify-center xs:gap-2 xs:border-l-0 xs:border-b-2 xs:border-b-transparent xs:px-1 xs:has-[:checked]:border-b-indigo",
+    cell: "max-xs:last:border-b-0 xs:flex-col xs:justify-center xs:gap-2 xs:border-b-0 xs:px-1",
     number: "xs:order-first",
     check: "max-xs:ml-auto xs:order-1",
     anchorWide: "xs:sr-only",
@@ -206,7 +205,7 @@ const LIKERT = {
   },
   sm: {
     grid: "sm:grid-cols-[repeat(var(--points),minmax(0,1fr))]",
-    cell: "max-sm:last:border-b-0 sm:flex-col sm:justify-center sm:gap-2 sm:border-l-0 sm:border-b-2 sm:border-b-transparent sm:px-1 sm:has-[:checked]:border-b-indigo",
+    cell: "max-sm:last:border-b-0 sm:flex-col sm:justify-center sm:gap-2 sm:border-b-0 sm:px-1",
     number: "sm:order-first",
     check: "max-sm:ml-auto sm:order-1",
     anchorWide: "sm:sr-only",
@@ -290,11 +289,12 @@ function ItemField({
           <Input
             id={item.id}
             name={name}
-            type="number"
+            // A number as text with a numeric keyboard (DESIGN.md 9.6): no spinner arrows, and the
+            // server checks the range (min, max, step) as before.
+            type="text"
             inputMode="decimal"
-            min={item.min}
-            max={item.max}
-            step={item.step ?? "any"}
+            pattern="-?[0-9]*([.,][0-9]+)?"
+            autoComplete="off"
             className="max-w-48 tabular-nums"
             aria-describedby={describedBy}
             aria-invalid={invalid}
@@ -341,8 +341,8 @@ function ItemField({
             </div>
             {!middleAnchors && (left || right) ? (
               <div aria-hidden="true" className={cn("justify-between gap-4 pt-2", L.ends)}>
-                <span className="text-eyebrow max-w-[45%]">{left}</span>
-                <span className="text-eyebrow max-w-[45%] text-right">{right}</span>
+                <span className="text-label max-w-[45%]">{left}</span>
+                <span className="text-label max-w-[45%] text-right">{right}</span>
               </div>
             ) : null}
           </div>

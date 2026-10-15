@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { ClaimList, Pager, RelatedConcepts, relatedLinksFromGroups } from "@/components/knowledge";
+import { ClaimList, Pager, RelatedConcepts, relatedLinksFromGroups, SheetReferences } from "@/components/knowledge";
 import { LearningPage } from "@/components/shell/gates";
 import type { Pager as PagerData } from "@/features/learning-2d/navigation";
 import { href2d, pageId2d } from "@/features/learning-2d/routes";
@@ -22,9 +22,10 @@ export const metadata: Metadata = { title: "Concept" };
 export const instant = false;
 
 /**
- * Concept page (DESIGN.md 11.5): the shared KnowledgeSheet (9.11), centred directly under the
- * chrome, with no breadcrumb (the way up is the StudyBar's "Up to <parent>") and no side rail. The
- * sheet is the SAME component the 3D information panel places, with the same layers (LayerTabs:
+ * Concept page (DESIGN.md 11.5; DR-021): the shared KnowledgeSheet (9.11) in the sheet column,
+ * docked right at the 3D panel's x, width and top from 1024 px, with no breadcrumb: Close, in the
+ * sheet's action slot as in 3D, returns to the section view; the rail ("In This Section") and the
+ * index sit to its left. The sheet is the SAME component the 3D information panel places, with the same layers (LayerTabs:
  * the same layer list, concepts and order as the panel, DR-021), claims, figures, citations,
  * related concepts and pager (a sequence pager for a station only, as in the panel); only how a
  * link acts differs (here it navigates).
@@ -77,7 +78,7 @@ async function Concept({ params }: { params: PageProps<"/learn/2d/concepts/[conc
           layer={exposureLayerOf(c.type)}
           context={{ roomOrPageId: pageId, category: c.category, ...(c.traditionId ? { traditionId: c.traditionId } : {}) }}
         >
-          <ClaimList conceptId={c.id} claims={c.claims} figures={e.figures} />
+          <ClaimList conceptId={c.id} claims={c.claims} figures={e.figures} references="sheet" />
           {e.comparison ? <ComparisonBlocks comparison={e.comparison} traditionNames={traditionNames} /> : null}
         </ExposureRegion>
       </>
@@ -91,12 +92,19 @@ async function Concept({ params }: { params: PageProps<"/learn/2d/concepts/[conc
   const layerViews = layers.map((l) => ({
     id: l.id,
     entries: l.entries.map(
-      (e): LayerEntryView => ({ conceptId: e.concept.id, title: e.concept.title, category: e.concept.category, traditionId: e.concept.traditionId, view: viewOf(l.id, e) }),
+      (e): LayerEntryView => ({
+        conceptId: e.concept.id,
+        title: e.concept.title,
+        category: e.concept.category,
+        traditionId: e.concept.traditionId,
+        view: viewOf(l.id, e),
+        references: <SheetReferences conceptId={e.concept.id} claims={e.concept.claims} />,
+      }),
     ),
   }));
 
   return (
-    <div className="pb-16">
+    <div>
       <PageTelemetry pageId={pageId} conceptId={concept.id} traditionId={concept.traditionId ?? undefined} category={concept.category} />
       <StudyBarLocation location={concept.title} parent={parent} />
       <ConceptLayersSheet
@@ -114,6 +122,7 @@ async function Concept({ params }: { params: PageProps<"/learn/2d/concepts/[conc
         relatedByConcept={relatedByConcept}
         pager={pager ? <ConceptPager pager={pager} conceptId={concept.id} pageId={pageId} /> : null}
         pageId={pageId}
+        closeHref={parent?.href ?? href2d.catalogue()}
       />
     </div>
   );
@@ -174,6 +183,7 @@ function ConceptPager({ pager, conceptId, pageId }: { pager: PagerData; conceptI
             href={href2d.concept(t.concept.slug)}
             pageId={pageId}
             rel={dir}
+            source="pager"
             relationship={
               t.relationshipId
                 ? { relationshipId: t.relationshipId, typeCode: "PRECEDES", fromConceptId: conceptId, toConceptId: t.concept.id, direction: dir === "next" ? "forward" : "inverse" }

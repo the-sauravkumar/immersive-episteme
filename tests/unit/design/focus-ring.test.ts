@@ -80,10 +80,15 @@ describe("focus ring", () => {
     expect(offenders.map(rel)).toEqual([]);
   });
 
-  it("globals.css draws the ring for every theme and none on programmatic targets", () => {
+  it("globals.css draws the two-tone ring for every theme and none on programmatic targets (DR-022)", () => {
     const css = readFileSync(path.join(ROOT, "src/app/globals.css"), "utf8");
-    expect(css).toMatch(/:focus-visible\s*\{\s*outline:\s*2px solid var\(--indigo\);\s*outline-offset:\s*2px;/);
-    expect(css).toMatch(/\.a11y-contrast :focus-visible\s*\{\s*outline:\s*3px solid #000;/);
-    expect(css).toMatch(/\.a11y-contrast \[tabindex="-1"\]:focus-visible\s*\{\s*outline:\s*none;/);
+    // One rule for every theme: the tones are tokens (black outside and white inside in light and
+    // HC light, the reverse in dark), so no per-theme override can drift.
+    expect(css).toMatch(/:focus-visible\s*\{\s*outline:\s*2px solid var\(--focus-outer\);\s*outline-offset:\s*2px;\s*box-shadow:\s*0 0 0 2px var\(--focus-inner\);/);
+    expect(css).not.toMatch(/\.a11y-contrast :focus-visible/);
+    expect(css).toMatch(/\[tabindex="-1"\]:focus-visible\s*\{\s*outline:\s*none;/);
+    // Skinned controls that hide the native input draw the same ring on their visible label.
+    expect(css).toMatch(/\.ie-segmented__input:focus-visible \+ \.ie-segmented__label\s*\{\s*outline:\s*2px solid var\(--focus-outer\);/);
+    expect(css).toMatch(/\.ie-file__input:focus-visible \+ \.ie-file__button\s*\{\s*outline:\s*2px solid var\(--focus-outer\);/);
   });
 });

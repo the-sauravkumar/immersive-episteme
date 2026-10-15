@@ -4,41 +4,51 @@
  * The exhibit's information panel (DESIGN.md 11.6, 9.11): a PLACEMENT of the shared
  * `KnowledgeSheet`, the same component, tokens and measure as the 2D concept page. Nothing here
  * restyles the sheet or its parts; this file only places it and supplies what the museum does
- * differently (12.1 rule 3): a Close button, and links that walk to the exhibit instead of
- * navigating.
+ * differently (12.1 rule 3): what Close does (it closes the panel), and links that walk to the
+ * exhibit instead of navigating.
  *
- * Close sits visually in the sheet's reserved 44 x 44 action slot (11.6) but comes AFTER the sheet
- * in the DOM, so the slot is empty in both conditions and the keyboard path from the sheet h1 to
- * the first CitationNote has the same tab stops in 3D as in 2D (parity check P13, which section 12
- * makes win over the slot wording of 9.11). Escape closes the panel from anywhere inside it.
+ * Close fills the sheet's action slot, as in 2D (DR-021 decision 4): the same `SheetCloseContent`
+ * in the same box, so the Tab path from the h1 to the first citation marker passes the same stops in
+ * both conditions (P13, P32). Escape closes the panel from anywhere inside it.
  *
  * Placement:
- *  - 1024 px and wider: docked right, full height below the chrome, opaque `--ground`, a 1 px
- *    `--rule-strong` left border OUTSIDE the 39.25rem sheet, no radius, shadow or blur, internal
- *    scroll. The scrollbar (always present, `overflow-y: scroll`, 0 px where scrollbars overlay)
- *    is added to the width, so the sheet keeps its full 39.25rem and the claim measure equals the
- *    2D column (parity check P2). `scrollbar-gutter: stable` is NOT used: Chromium reserves a
- *    15 px gutter with it even where scrollbars overlay, which narrowed the claims by 15 px.
+ *  - 1024 px and wider: docked right through the shared `SHEET_DOCK_CLASS` (the 2D sheet column
+ *    uses the same class): full height below the chrome, opaque `--ground`, a 1 px `--rule-strong`
+ *    left border OUTSIDE the 39.25rem sheet, no radius, shadow or blur, internal scroll, the
+ *    scrollbar added to the width (parity checks P2, P30).
  *  - Below 1024 px (and at 200% zoom): full width and full height below the chrome, covering the
  *    scene, exactly mirroring the 2D column; the museum makes the scene overlays inert meanwhile.
  *
  * Content, in the sheet's own order: the exhibit concept's header and metadata, the layers
  * (`LayerTabs`, names and order from labels.ts), the field (claims through the shared `ClaimList`
- * with its figures and citation notes, then comparison blocks), `RelatedConcepts`, and, for
+ * with its figures and numbered citation markers, then comparison blocks), the ReferenceList of the
+ * claims shown, `RelatedConcepts`, and, for
  * process stations, the shared `Pager` over the sequence. Text is the read model's, unchanged.
  */
-import { X } from "lucide-react";
-import { useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
+import { useMemo, useRef, type ReactNode } from "react";
 
-import { ClaimList, KnowledgeSheet, Pager, RelatedConcepts, sheetTitleId, type FieldLayer, type RelatedLink, type SheetConcept } from "@/components/knowledge";
+import {
+  ClaimList,
+  KnowledgeSheet,
+  Pager,
+  RelatedConcepts,
+  SHEET_CLOSE_CLASS,
+  SHEET_DOCK_CLASS,
+  SheetCloseContent,
+  SheetReferences,
+  sheetTitleId,
+  useSheetScrollbar,
+  type FieldLayer,
+  type RelatedLink,
+  type SheetConcept,
+} from "@/components/knowledge";
 import { ConceptChooser as SharedConceptChooser } from "@/components/knowledge/concept-chooser";
 import { ComparisonBlocks as SharedComparisonBlocks, LayerConceptHead as SharedLayerConceptHead, SequenceList as SharedSequenceList } from "@/components/knowledge/layer-parts";
-import { Button } from "@/components/ui/button";
 import { buildPanelModel, type PanelTab, type TabEntry } from "@/features/immersive/panel-content";
 import type { SceneExhibit, SceneModel } from "@/features/immersive/scene-model";
 import { claimViewsOf, type PanelConcept, type PanelRelation } from "@/features/immersive/types";
 import type { KnowledgeFigureData, SourceView } from "@/features/knowledge/read/view";
-import { PANEL_TEXT, SHEET_TEXT } from "@/features/learning/strings";
+import { PANEL_TEXT } from "@/features/learning/strings";
 import { cn } from "@/lib/utils";
 
 
@@ -73,7 +83,8 @@ export interface InfoPanelProps {
   onFocusConcept(conceptId: string): void;
   onClose(): void;
   onWalkToConcept(conceptId: string, relationshipId: string | null): void;
-  onWalkToElement(elementId: string, relationshipId: string | null): void;
+  /** `source`: the sheet's pager ("pager") or another link in it ("link", the default); DR-021 navigation source. */
+  onWalkToElement(elementId: string, relationshipId: string | null, source?: "link" | "pager"): void;
   onFollowCausal(note: CausalNote): void;
   placedConceptIds: ReadonlySet<string>;
 }
@@ -141,16 +152,12 @@ export function InfoPanel(props: InfoPanelProps) {
   const scrollRef = useRef<HTMLElement>(null);
 
   // The panel's own scrollbar width is added to the docked width (see the file comment).
-  useLayoutEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const st = getComputedStyle(el);
-    const sb = Math.max(0, el.offsetWidth - el.clientWidth - (parseFloat(st.borderLeftWidth) || 0) - (parseFloat(st.borderRightWidth) || 0));
-    el.style.setProperty("--panel-sb", `${sb}px`);
-  }, []);
+  useSheetScrollbar(scrollRef);
 
   const entries = panel.tabs.find((t) => t.tab === tab)?.entries ?? [];
   const walkEntry = shown && shown.id !== exhibit.conceptId ? entries.find((x) => x.conceptId === shown.id) : undefined;
+
+  const shownClaims = useMemo(() => (shown ? claimViewsOf(shown.claims, sources) : []), [shown, sources]);
 
   const field = (
     <div data-slot="panel-concept" data-concept-id={shown?.id ?? conceptId} data-concept-key={shown?.key}>
@@ -158,7 +165,7 @@ export function InfoPanel(props: InfoPanelProps) {
       {tab === "process" && panel.sequence ? <SequenceList sequence={panel.sequence} concepts={concepts} /> : null}
       {shown && shown.id !== exhibit.conceptId ? <LayerConceptHead concept={shown} traditionNames={traditionNames} walk={walkEntry?.elementId ? () => props.onWalkToElement(walkEntry.elementId!, walkEntry.relationshipId) : null} /> : null}
       {shown ? (
-        <ClaimList conceptId={shown.id} claims={claimViewsOf(shown.claims, sources)} figures={figures?.[shown.id] ?? []} />
+        <ClaimList conceptId={shown.id} claims={shownClaims} figures={figures?.[shown.id] ?? []} references="sheet" />
       ) : (
         <p className="text-reading text-ink-3">{PANEL_TEXT.notInSnapshot}</p>
       )}
@@ -203,7 +210,7 @@ export function InfoPanel(props: InfoPanelProps) {
         renderLink={(item, _dir, content, className) => {
           const stop = item.conceptId === prev?.conceptId ? prev : next;
           return (
-            <button type="button" className={className} onClick={() => stop && props.onWalkToElement(stop.elementId, null)}>
+            <button type="button" className={className} onClick={() => stop && props.onWalkToElement(stop.elementId, null, "pager")}>
               {content}
             </button>
           );
@@ -224,7 +231,7 @@ export function InfoPanel(props: InfoPanelProps) {
       data-concept-key={own?.key}
       className={cn(
         "pointer-events-auto absolute inset-0 z-(--z-panel) overflow-y-scroll overscroll-contain bg-ground text-ink outline-none",
-        docked && "left-auto w-[calc(39.25rem+1px+var(--panel-sb,0px))] border-l border-rule-strong",
+        docked && cn("left-auto", SHEET_DOCK_CLASS),
       )}
       onKeyDown={(e) => {
         if (e.key !== "Escape") return;
@@ -246,22 +253,22 @@ export function InfoPanel(props: InfoPanelProps) {
               const first = panel.tabs.find((t) => t.tab === layer)?.entries[0];
               if (first) onTab(layer, first.conceptId);
             }}
+            references={shown ? <SheetReferences conceptId={shown.id} claims={shownClaims} /> : null}
             related={related}
             pager={pager}
+            action={
+              <button type="button" className={SHEET_CLOSE_CLASS} onClick={onClose} data-slot="sheet-close">
+                <SheetCloseContent />
+              </button>
+            }
           />
-          {/* Over the reserved slot: the sheet's top padding (24 px) and side padding (16 / 24 px). */}
-          <div className="absolute top-6 right-4 xs:right-6">
-            <Button type="button" variant="outline" size="icon" aria-label={SHEET_TEXT.close} title={SHEET_TEXT.close} onClick={onClose} data-slot="panel-close">
-              <X aria-hidden="true" />
-            </Button>
-          </div>
         </div>
       ) : (
         <div className="mx-auto w-full max-w-[39.25rem] px-4 pt-6 pb-12 xs:px-6">
           <div className="flex justify-end">
-            <Button type="button" variant="outline" size="icon" aria-label={SHEET_TEXT.close} title={SHEET_TEXT.close} onClick={onClose}>
-              <X aria-hidden="true" />
-            </Button>
+            <button type="button" className={SHEET_CLOSE_CLASS} onClick={onClose} data-slot="sheet-close">
+              <SheetCloseContent />
+            </button>
           </div>
           <p className="text-reading text-ink-3">{PANEL_TEXT.notInSnapshot}</p>
         </div>

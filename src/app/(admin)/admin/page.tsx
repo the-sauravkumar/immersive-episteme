@@ -124,7 +124,7 @@ function Panel<T>({ id, title, check, status, children }: { id: string; title: s
 function Version({ text }: { text: string }) {
   const parts = text.split(/\s+/).filter(Boolean);
   return (
-    <code className="text-mono text-ink">
+    <code className="text-id text-ink">
       {parts.map((p, i) => (
         <span key={i} className="whitespace-nowrap">
           {i > 0 ? " " : null}
@@ -139,7 +139,7 @@ function Row({ k, v, numeric = false }: { k: ReactNode; v: ReactNode; numeric?: 
   return (
     <div className="flex items-baseline justify-between gap-x-4 border-b border-b-rule py-2 last:border-b-0">
       <dt className="min-w-0 text-[0.9375rem] leading-6 text-ink-2">{k}</dt>
-      <dd className={numeric ? "text-dl-value text-right whitespace-nowrap tabular-nums" : "text-dl-value min-w-0 text-right [overflow-wrap:anywhere]"}>{v}</dd>
+      <dd className={numeric ? "text-value text-right whitespace-nowrap tabular-nums" : "text-value min-w-0 text-right [overflow-wrap:anywhere]"}>{v}</dd>
     </div>
   );
 }
@@ -156,7 +156,7 @@ async function Overview() {
             {titleCase("health")}
           </h2>
           <p className="text-body text-ink-2">
-            Checked <time dateTime={h.checkedAt} className="text-mono tabular-nums">{h.checkedAt.slice(0, 19).replace("T", " ")}</time> UTC. Reload the page to check again.
+            Checked <time dateTime={h.checkedAt} className="text-id tabular-nums">{h.checkedAt.slice(0, 19).replace("T", " ")}</time> UTC. Reload the page to check again.
           </p>
         </div>
         <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -198,7 +198,7 @@ async function Overview() {
                       k="Last batch (UTC)"
                       v={
                         v.lastReceivedAt ? (
-                          <time dateTime={v.lastReceivedAt} className="text-mono tabular-nums">
+                          <time dateTime={v.lastReceivedAt} className="text-id tabular-nums">
                             {v.lastReceivedAt.slice(0, 19).replace("T", " ")}
                           </time>
                         ) : (
@@ -233,7 +233,7 @@ async function Overview() {
               {(v) => (
                 <>
                   <Row k="Mode" v={v.config.mode === "s3" ? `S3 bucket ${v.config.bucket}` : "Local disk"} />
-                  {v.config.mode === "local" ? <Row k="Directory" v={<span className="text-mono">{v.config.localDir}</span>} /> : null}
+                  {v.config.mode === "local" ? <Row k="Directory" v={<span className="text-id">{v.config.localDir}</span>} /> : null}
                   {v.config.mode === "local" ? <Row k="Writable" v={v.localDirWritable ? "yes" : "no (missing or not writable)"} /> : null}
                   <Row k="Assets" v={v.assets} numeric />
                   <Row k="Stored" v={bytes(v.totalBytes)} numeric />

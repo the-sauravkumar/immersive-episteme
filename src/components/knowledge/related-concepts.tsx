@@ -3,7 +3,7 @@
  * column in BOTH conditions (never a 2D side rail). It replaces both copies of `RelationDetails`.
  *
  * Grouped by relation verb, read from the current concept ("Is Affected By", "Precedes",
- * "Follows"): the verb as an h3 in `text-h3`, then the related concepts as 44 px link rows in Inter
+ * "Follows"): the verb as an h3 in `text-h3`, then the related concepts as 44 px link rows in Atkinson
  * 15/500 indigo, underlined, then ONE "About these links" disclosure per group with each link's
  * explanation, conditions and the sources stating it. Verbs and explanations come from the
  * snapshot; nothing is written here.
@@ -79,7 +79,7 @@ export function groupRelatedLinks(links: readonly RelatedLink[]): RelatedLinkGro
 }
 
 /** Class names every placement's link receives (identical look in both conditions). */
-export const RELATED_LINK_CLASS = "text-ui inline-flex min-h-11 min-w-11 items-center text-left text-indigo underline decoration-1 underline-offset-[3px] hover:text-indigo-hover hover:decoration-2";
+export const RELATED_LINK_CLASS = "text-ui inline-flex min-h-11 min-w-11 items-center text-left text-indigo underline decoration-1 underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2";
 
 export interface RelatedConceptsProps {
   /** The concept whose links these are (telemetry attribution). */
@@ -120,7 +120,7 @@ export function RelatedConcepts({ conceptId, traditionSlug, links, traditionName
                 return (
                   <li key={l.relationshipId} data-relationship-id={l.relationshipId} className="flex flex-wrap items-baseline gap-x-2">
                     {link ?? <span className="text-ui inline-flex min-h-11 items-center text-ink">{title}</span>}
-                    <span className="text-credit">{[CONCEPT_TYPE_LABELS[l.concept.type], other].filter(Boolean).join(" · ")}</span>
+                    <span className="text-credit">{[CONCEPT_TYPE_LABELS[l.concept.type], other].filter(Boolean).join(", ")}</span>
                   </li>
                 );
               })}
@@ -130,10 +130,10 @@ export function RelatedConcepts({ conceptId, traditionSlug, links, traditionName
                 <dl className="flex flex-col gap-3 py-1">
                   {g.links.map((l) => (
                     <div key={l.relationshipId}>
-                      <dt className="text-dl-value font-medium">{titleCase(l.concept.title)}</dt>
-                      {l.explanation ? <dd className="text-dl-value">{l.explanation}</dd> : null}
+                      <dt className="text-value font-medium">{titleCase(l.concept.title)}</dt>
+                      {l.explanation ? <dd className="text-value">{l.explanation}</dd> : null}
                       {l.conditions ? (
-                        <dd className="text-dl-value">
+                        <dd className="text-value">
                           <span className="text-ink-3">{SHEET_TEXT.conditions}</span> {l.conditions}
                         </dd>
                       ) : null}

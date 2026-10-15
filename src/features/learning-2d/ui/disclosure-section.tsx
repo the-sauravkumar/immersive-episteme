@@ -8,7 +8,7 @@
  *
  * Opening and closing log `information_layer_opened/closed` with `layerId` (EVT-04) and the open
  * duration. A section opens by itself when the URL hash targets it (`#section-<id>`, used by the
- * Contents sheet and the concept page's "Up to <parent>"), and focus moves to its button.
+ * index, the rail's "Leads To" and the concept sheet's Close), and focus moves to its button.
  */
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";

@@ -67,10 +67,10 @@ async function Catalogue() {
                   data-slot="tradition-card"
                   className="flex flex-col gap-2 rounded-card border border-rule-strong bg-ground px-4 py-4 text-ink no-underline hover:bg-sunk xs:px-6"
                 >
-                  <span className="text-h3 min-h-[2lh] text-indigo min-[39.25rem]:min-h-0 underline decoration-1 underline-offset-[3px]">
+                  <span className="text-h3 min-h-[2lh] text-indigo min-[39.25rem]:min-h-0 underline decoration-1 underline-offset-[0.2em]">
                     <TraditionName traditionKey={t.slug}>{titleCase(t.name)}</TraditionName>
                   </span>
-                  <span className="text-eyebrow truncate">{[t.region.state, t.region.country].filter(Boolean).join(", ")}</span>
+                  <span className="text-label truncate">{[t.region.state, t.region.country].filter(Boolean).join(", ")}</span>
                 </TrackedLink>
               </li>
             ))}

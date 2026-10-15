@@ -1,5 +1,5 @@
 /**
- * Public components (DESIGN.md 11.1-11.3, 13): the all-or-none photograph rule, the hidden
+ * Public components (DESIGN.md 10.1, 13): the traditions index, the hidden
  * institution strip, the equal-weight condition schematics and Figure 1's number-free fallback.
  */
 import { render, screen } from "@testing-library/react";
@@ -8,37 +8,23 @@ import { describe, expect, it } from "vitest";
 import { ConditionSchematic, pageMiniature, planMiniature, SCHEMATIC_BOX } from "@/components/public/condition-schematic";
 import { FIGURE_ONE_TALL, FIGURE_ONE_WIDE, FigureOneCountList, FigureOneDiagram } from "@/components/public/figure-one";
 import { InstitutionStrip, NO_INSTITUTION } from "@/components/public/institution-strip";
-import { photosForAll, TraditionPlates, type TraditionPlateData } from "@/components/public/tradition-plates";
+import { TraditionIndex, type TraditionIndexData } from "@/components/public/tradition-plates";
 
-const PHOTO = { src: "/figures/x", width: 768, height: 512, alt: "A textile", credit: "Credit" };
-const TRADITIONS: TraditionPlateData[] = [
+const TRADITIONS: TraditionIndexData[] = [
   { slug: "ajrakh", name: "Ajrakh", shortName: "Ajrakh", region: "Kutch, Gujarat" },
-  { slug: "sanganeri", name: "Sanganeri", shortName: "Sanganeri", region: "Jaipur, Rajasthan" },
+  { slug: "sanganeri", name: "Sanganeri Hand Block Printing", shortName: "Sanganeri", region: "Jaipur, Rajasthan" },
 ];
 
-describe("TraditionPlates", () => {
-  it("shows typographic plates for all when any tradition lacks a photograph", () => {
-    const mixed = [{ ...TRADITIONS[0]!, photo: PHOTO }, TRADITIONS[1]!];
-    expect(photosForAll(mixed)).toBe(false);
-    const { container } = render(<TraditionPlates traditions={mixed} />);
-    expect(container.querySelector("[data-slot=tradition-plates]")).toHaveAttribute("data-plates", "typographic");
+describe("TraditionIndex (DR-022)", () => {
+  it("lists every tradition as an equal row in the given order, with no image and no marker", () => {
+    const { container } = render(<TraditionIndex traditions={TRADITIONS} />);
+    const rows = [...container.querySelectorAll("[data-slot=tradition-index] > li")];
+    expect(rows.map((r) => r.getAttribute("data-tradition-key"))).toEqual(["ajrakh", "sanganeri"]);
+    expect(new Set(rows.map((r) => r.className)).size).toBe(1);
+    expect(new Set([...container.querySelectorAll("h3")].map((h) => h.className)).size).toBe(1);
     expect(container.querySelectorAll("img")).toHaveLength(0);
-  });
-
-  it("shows photographs only when every tradition has one, each with its credit", () => {
-    const all = TRADITIONS.map((t) => ({ ...t, photo: PHOTO }));
-    const { container } = render(<TraditionPlates traditions={all} />);
-    expect(container.querySelector("[data-slot=tradition-plates]")).toHaveAttribute("data-plates", "photo");
-    expect(container.querySelectorAll("img")).toHaveLength(2);
-    expect(screen.getAllByText("Credit")).toHaveLength(2);
-  });
-
-  it("gives every tradition the identical marker and heading markup", () => {
-    const { container } = render(<TraditionPlates traditions={TRADITIONS} />);
-    const markers = [...container.querySelectorAll("[data-slot=tradition-marker]")].map((m) => m.className);
-    expect(new Set(markers).size).toBe(1);
-    const headings = [...container.querySelectorAll("h3")].map((h) => h.className);
-    expect(new Set(headings).size).toBe(1);
+    expect(container.querySelector("[data-slot=tradition-marker]")).toBeNull();
+    expect(screen.getByText("Sanganeri Hand Block Printing")).toBeInTheDocument();
   });
 });
 
@@ -82,14 +68,14 @@ describe("Condition schematics", () => {
   });
 });
 
-describe("TraditionPlates titles", () => {
-  it("use the short display name, with the dataset's full name after the region", () => {
+describe("TraditionIndex titles", () => {
+  it("use the short display name, then the dataset's full name and the region", () => {
     const { container } = render(
-      <TraditionPlates traditions={[{ slug: "bagh", name: "Bagh Print (Hand Block Printing of Bagh, Madhya Pradesh)", shortName: "Bagh", region: "Dhar, Madhya Pradesh" }]} />,
+      <TraditionIndex traditions={[{ slug: "bagh", name: "Bagh Print (Hand Block Printing of Bagh, Madhya Pradesh)", shortName: "Bagh", region: "Dhar, Madhya Pradesh" }]} />,
     );
     expect(container.querySelector("h3")?.textContent).toBe("Bagh");
-    const texts = [...container.querySelectorAll("li > div:last-child > p")].map((el) => el.textContent);
-    expect(texts.slice(-2)).toEqual(["Dhar, Madhya Pradesh", "Bagh Print (Hand Block Printing of Bagh, Madhya Pradesh)"]);
+    const texts = [...container.querySelectorAll("li > p")].map((el) => el.textContent);
+    expect(texts).toEqual(["Bagh Print (Hand Block Printing of Bagh, Madhya Pradesh)", "Dhar, Madhya Pradesh"]);
   });
 });
 

@@ -52,13 +52,14 @@ describe("AssessmentForm (DESIGN.md 11.7)", () => {
     expect(screen.getByRole("group", { name: "Question 1 of 3 Which one?" })).toBeInTheDocument();
   });
 
-  it("renders choices as full-row 56 px labels with a native control, wash and an indigo bar when chosen", async () => {
+  it("renders choices as full-row 56 px labels with a native control, wash and a check when chosen, no bar (DR-022)", async () => {
     render(<AssessmentForm step="post_test" assessment={assessment} items={items} returnTo="/study/post-test" />);
     const radio = screen.getByLabelText("Option A");
     const row = radio.closest("label")!;
     expect(row.className).toMatch(/min-h-14/);
     expect(row.className).toMatch(/has-\[:checked\]:bg-wash/);
-    expect(row.className).toMatch(/has-\[:checked\]:border-l-indigo/);
+    expect(row.className).not.toMatch(/border-l/);
+    expect(radio.className).toContain("ie-check");
     // A check icon is reserved in every row (no layout shift) and shown only for the chosen one.
     expect(row.querySelector("svg[aria-hidden=true]")).not.toBeNull();
     await userEvent.setup().click(screen.getByText("Option B"));
@@ -77,19 +78,17 @@ describe("AssessmentForm (DESIGN.md 11.7)", () => {
     expect(scale.style.getPropertyValue("--points")).toBe("5");
   });
 
-  it("gives every Likert point the check icon and the indigo bar only when chosen (no stray left rule)", () => {
+  it("gives every Likert point the check icon and no bar (DR-022)", () => {
     render(<AssessmentForm step="post_test" assessment={assessment} items={items} returnTo="/study/post-test" />);
     const group = screen.getByRole("group", { name: /How much\?/ });
     for (const radio of within(group).getAllByRole("radio")) {
       const cell = radio.closest("label")!;
-      // DESIGN.md 4.2 / 11.7: --wash always comes with the bar and a check icon; its space is reserved.
+      // DESIGN.md 9.6: --wash always comes with a check icon; its space is reserved. No bar.
       expect(cell.querySelector("[data-slot=option-check]")).not.toBeNull();
-      // Only the bottom rule is coloured, so the transparent left bar survives tailwind-merge.
       const classes = cell.className.split(/\s+/);
-      expect(classes).toContain("border-l-transparent");
       expect(classes).toContain("border-b-rule");
-      expect(classes).not.toContain("border-rule");
-      expect(classes).toContain("has-[:checked]:border-l-indigo");
+      expect(classes).toContain("has-[:checked]:bg-wash");
+      expect(classes.some((c) => c.includes("border-l"))).toBe(false);
     }
   });
 

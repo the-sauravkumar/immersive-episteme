@@ -2,10 +2,10 @@
 
 /**
  * The concept editor's Proof (DESIGN.md 11.10): the REAL shared `KnowledgeSheet`, as learners in
- * both conditions get it, inside a frame with registration ticks (7.3: the CMS proof frame is one
- * of the three places ticks are allowed).
+ * both conditions get it, in a 1 px --rule-strong mount on the --field plane (no ticks, DR-022).
  *
- * "Preview as: 2D column | 3D panel" is a standing parity demonstration. It changes ONLY the
+ * "Preview as: 2D column | 3D panel" (a Segmented control on native radios, DESIGN.md 9.3) is a
+ * standing parity demonstration. It changes ONLY the
  * container around the sheet, never the sheet: the 2D column lets the sheet run in the page flow on
  * `--ground`; the 3D panel is the docked panel's box (opaque `--ground`, a 1 px `--rule-strong` left
  * border, internal scroll), so the sheet's reading-progress bar measures the panel as it does in the
@@ -18,8 +18,7 @@
  */
 import { useId, useState, type ReactNode } from "react";
 
-import { TickedFrame } from "@/components/brand/registration-ticks";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Segmented } from "@/components/ui/segmented";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
 
@@ -33,20 +32,6 @@ export const PROOF_PLACEMENTS: readonly { value: ProofPlacement; label: string }
 export function ProofFrame({ sheet, note, className }: { sheet: ReactNode; note?: ReactNode; className?: string }) {
   const [placement, setPlacement] = useState<ProofPlacement>("page");
   const id = useId();
-  const viewport = (p: ProofPlacement) => (
-    <div
-      data-slot="proof-viewport"
-      data-placement={p}
-      className={cn(
-        "bg-ground",
-        p === "page" ? "py-2" : "h-[min(70dvh,44rem)] overflow-y-auto overscroll-contain border-l border-rule-strong",
-      )}
-      // The panel scrolls inside itself, as the docked museum panel does: keyboard users can scroll it.
-      {...(p === "panel" ? { tabIndex: 0, role: "region", "aria-label": "3D panel preview (scrolls)" } : {})}
-    >
-      {sheet}
-    </div>
-  );
   return (
     <section aria-labelledby={`${id}-title`} data-slot="proof-frame" className={cn("flex min-w-0 flex-col gap-4", className)}>
       <header className="flex flex-col gap-1">
@@ -55,26 +40,28 @@ export function ProofFrame({ sheet, note, className }: { sheet: ReactNode; note?
         </h2>
         {note ? <div className="text-credit max-w-[40rem]">{note}</div> : null}
       </header>
-      <Tabs value={placement} onValueChange={(v) => setPlacement(v as ProofPlacement)} className="gap-4">
-        <div className="flex flex-wrap items-end gap-x-3">
-          <span id={`${id}-as`} className="text-dl-label pb-3">
-            Preview as
-          </span>
-          <TabsList aria-labelledby={`${id}-as`} className="w-auto flex-1">
-            {PROOF_PLACEMENTS.map((p) => (
-              <TabsTrigger key={p.value} value={p.value}>
-                {p.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+      <Segmented
+        legend="Preview as"
+        name={`${id}-placement`}
+        options={PROOF_PLACEMENTS}
+        value={placement}
+        onValueChange={(v) => setPlacement(v as ProofPlacement)}
+      />
+      <div className="border border-rule-strong bg-field p-3 xs:p-4">
+        <div
+          key={placement}
+          data-slot="proof-viewport"
+          data-placement={placement}
+          className={cn(
+            "bg-ground",
+            placement === "page" ? "py-2" : "h-[min(70dvh,44rem)] overflow-y-auto overscroll-contain border-l border-rule-strong",
+          )}
+          // The panel scrolls inside itself, as the docked museum panel does: keyboard users can scroll it.
+          {...(placement === "panel" ? { tabIndex: 0, role: "region", "aria-label": "3D panel preview (scrolls)" } : {})}
+        >
+          {sheet}
         </div>
-        {PROOF_PLACEMENTS.map((p) => (
-          <TabsContent key={p.value} value={p.value} className="min-w-0">
-            {/* The ticks sit 6 px outside the frame; the margin keeps them inside the column. */}
-            <TickedFrame className="m-1.5 border border-rule">{viewport(p.value)}</TickedFrame>
-          </TabsContent>
-        ))}
-      </Tabs>
+      </div>
     </section>
   );
 }

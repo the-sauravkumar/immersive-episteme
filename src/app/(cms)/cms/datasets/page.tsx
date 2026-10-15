@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { ActionForm } from "@/components/cms/action-form";
-import { Empty, FormField, Mono, NativeSelect, one, Section, type SearchParams, ROW_LINK, SUMMARY } from "@/components/cms/bits";
+import { Empty, FormField, Mono, NativeSelect, one, Section, type SearchParams, ROW_LINK, Disclosure } from "@/components/cms/bits";
 import { ConsolePage } from "@/components/shell/gates";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -73,8 +73,7 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
               ))}
             </ul>
             {readiness.pending.length ? (
-              <details className="text-body">
-                <summary className={SUMMARY}>Unverified items ({readiness.pending.length}{readiness.pending.length >= 50 ? "+" : ""})</summary>
+              <Disclosure className="text-body" summary={<>Unverified items ({readiness.pending.length}{readiness.pending.length >= 50 ? "+" : ""})</>}>
                 <ul className="mt-2 flex flex-col gap-1">
                   {readiness.pending.map((p) => (
                     <li key={`${p.kind}-${p.id}`}>
@@ -82,11 +81,10 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
                     </li>
                   ))}
                 </ul>
-              </details>
+              </Disclosure>
             ) : null}
             {readiness.errors.length ? (
-              <details className="text-body">
-                <summary className={SUMMARY}>Integrity errors ({readiness.integrity.error})</summary>
+              <Disclosure className="text-body" summary={<>Integrity errors ({readiness.integrity.error})</>}>
                 <ul className="mt-2 flex flex-col gap-1">
                   {readiness.errors.map((e, i) => (
                     <li key={i}>
@@ -94,7 +92,7 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
                     </li>
                   ))}
                 </ul>
-              </details>
+              </Disclosure>
             ) : null}
           </div>
         )}
@@ -218,13 +216,15 @@ async function Diff({ a, b }: { a: string; b: string }) {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-body">
-        {ba.versionLabel} → {bb.versionLabel}
+        From {ba.versionLabel} to {bb.versionLabel}
       </p>
       {kinds.map(([label, k]) => (
-        <details key={label} className="border-t border-rule py-2 text-body" open={k.added.length + k.removed.length + k.changed.length > 0 && k.added.length + k.removed.length + k.changed.length < 40}>
-          <summary className={SUMMARY}>
-            {label}: {k.added.length} added, {k.removed.length} removed, {k.changed.length} changed, {k.unchanged} unchanged
-          </summary>
+        <Disclosure
+          key={label}
+          className="border-t border-rule py-2 text-body"
+          defaultOpen={k.added.length + k.removed.length + k.changed.length > 0 && k.added.length + k.removed.length + k.changed.length < 40}
+          summary={<>{label}: {k.added.length} added, {k.removed.length} removed, {k.changed.length} changed, {k.unchanged} unchanged</>}
+        >
           <ul className="mt-2 flex flex-col gap-1">
             {k.added.map((x) => (
               <li key={`a-${x.key}`}>
@@ -242,7 +242,7 @@ async function Diff({ a, b }: { a: string; b: string }) {
               </li>
             ))}
           </ul>
-        </details>
+        </Disclosure>
       ))}
       <p className="text-credit">
         <Link className={ROW_LINK} href="/cms/datasets#compare">

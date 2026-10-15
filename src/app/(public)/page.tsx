@@ -1,7 +1,15 @@
 /**
- * Public home (DESIGN.md 11.1). Full public character: the hero with Plate 1, Figure 1 "One
- * Knowledge Model, Two Conditions" with live counts, the traditions as equal plates, Table 1 of
- * the dataset, and the institution strip (hidden while its fields are null).
+ * Public home (DESIGN.md 10.1, DR-022). In order:
+ *  1. the title block, left-aligned on columns 1 to 7: the h1 in Anek Latin `text-display-1`, the
+ *     deck, ONE primary action ("Explore the demo") and a text link ("Read the method"). No
+ *     eyebrow, no hero card or plate beside it (the "headline + two buttons + card" formula);
+ *  2. Figure 1, "One Knowledge Model, Two Conditions", full grid width on one indigo plate with live
+ *     counts: the single place where the public pages spend their boldness. Static. Its text
+ *     equivalents follow: the count list, the two conditions as text and the booktabs table;
+ *  3. the six traditions as an index of equal rows, without images (DR-020);
+ *  4. Table 1, the dataset counts;
+ *  5. the latest parity run, or "No parity run recorded yet";
+ *  6. the institution strip (hidden while its fields are null).
  *
  * Every number on this page is read from the database at request time inside <Suspense>
  * (cacheComponents); each fallback is the same layout without numbers, never an invented value.
@@ -11,19 +19,21 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { chartFigureLabel } from "@/components/brand/numbering";
+import { EquivalenceMonitor } from "@/components/parity/equivalence-monitor";
 import { DatasetTable } from "@/components/public/dataset-table";
 import { FigureOneCountList, FigureOneDiagram } from "@/components/public/figure-one";
 import { IdenticalDiffersTable } from "@/components/public/identical-differs-table";
 import { InstitutionStrip } from "@/components/public/institution-strip";
-import { INSTITUTION } from "@/config/institution";
-import { ClaimSpecimen, Plate } from "@/components/public/plate";
-import { TraditionPlates } from "@/components/public/tradition-plates";
+import { TraditionIndex } from "@/components/public/tradition-plates";
 import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { countWord, getDatasetStats, getFeaturedClaim } from "@/server/public/dataset-stats";
+import { INSTITUTION } from "@/config/institution";
+import { countWord, getDatasetStats, getInterfaceParityReport } from "@/server/public/dataset-stats";
 import { titleCase } from "@/lib/text/title-case";
 
 const DECK_TAIL = "as one cited body of knowledge, learned two ways.";
+
+const LINK =
+  "text-ui inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[0.2em] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-indigo-hover hover:decoration-2";
 
 /** "A, B and C". */
 function listOf(items: readonly string[]): string {
@@ -47,19 +57,6 @@ function DeckFallback() {
   return <p className="text-deck max-w-[36rem]">{`Traditions of Indian hand-block printing ${DECK_TAIL}`}</p>;
 }
 
-async function SpecimenPlate() {
-  const claim = await getFeaturedClaim();
-  return (
-    <Plate
-      number={1}
-      caption={claim ? "A claim from the dataset, set as learners read it, with the verbatim passage of its source." : "A claim from the dataset with its source record."}
-      credit={claim ? "Typographic specimen: the claim and quotation are the dataset's own text; no photograph." : "Typographic specimen; no photograph."}
-    >
-      {claim ? <ClaimSpecimen claim={claim} /> : <div className="h-full bg-sunk" />}
-    </Plate>
-  );
-}
-
 async function FigureOneLive() {
   // Sources = the distinct sources the claims cite, the same definition as Table 1's column, so the
   // page never shows two different source totals.
@@ -78,8 +75,8 @@ async function TraditionsLive() {
   if (!stats || stats.traditions.length === 0) return <TraditionsFallback />;
   return (
     <section aria-labelledby="traditions-heading" className="flex flex-col gap-8">
-      <SectionHead id="traditions-heading" title={`${countWord(stats.traditions.length)} Traditions`} />
-      <TraditionPlates traditions={stats.traditions} />
+      <SectionHead id="traditions-heading" title={`The ${countWord(stats.traditions.length)} Traditions`} />
+      <TraditionIndex traditions={stats.traditions} />
     </section>
   );
 }
@@ -88,7 +85,7 @@ function TraditionsFallback() {
   return (
     <section aria-labelledby="traditions-heading" className="flex flex-col gap-8">
       <SectionHead id="traditions-heading" title="The Traditions" />
-      <div className="aspect-[3/1] w-full bg-sunk" />
+      <p className="text-body text-ink-2">The traditions are read from the database when the page loads.</p>
     </section>
   );
 }
@@ -99,13 +96,20 @@ async function DatasetLive() {
   return <DatasetTable stats={stats} number={1} />;
 }
 
+async function ParityLive() {
+  const report = await getInterfaceParityReport();
+  return <EquivalenceMonitor interfaceParity={report} tone="neutral" numbers={{ interface: 2 }} />;
+}
+
 /**
- * Public section head: 2 px madder rule above, display-2 h2 in Title Case. No eyebrow: figure and
- * table numbers live in their captions (9.9, 10), so Figure 1 is numbered once.
+ * Public section head: Anek Latin `text-display-2` h2 in Title Case, set off by space, not a rule
+ * (DR-022). No eyebrow: figure and table numbers live in their captions, so Figure 1 is numbered
+ * once.
  */
-function SectionHead({ id, title }: { id: string; title: string }) {
+function SectionHead({ id, title, label }: { id: string; title: string; label?: string }) {
   return (
-    <div className="flex max-w-[48rem] flex-col gap-2 border-t-2 border-madder pt-4 hc:border-ink">
+    <div className="flex max-w-[56rem] flex-wrap items-baseline gap-x-4 gap-y-1">
+      {label ? <span className="text-label tabular-nums">{label}</span> : null}
       <h2 id={id} className="text-h2 text-ink md:text-display-2">
         {titleCase(title)}
       </h2>
@@ -129,71 +133,49 @@ const CONDITIONS = [
 export default function HomePage() {
   return (
     <div className="flex flex-col gap-24 max-xs:gap-16">
-      {/* 1. Hero: columns 1-7 text, 8-12 Plate 1; stacked under 1024 px with the plate after the deck,
-          centred in the column so no 270 px band sits beside it at tablet widths. */}
-      <section aria-labelledby="home-title" className="grid gap-12 lg:grid-cols-12 lg:gap-x-6">
-        <div className="flex flex-col gap-6 lg:col-span-7 lg:self-center">
-          <p className="text-eyebrow text-ochre hc:text-ink">A Research Platform</p>
+      {/* 1. Title block on columns 1-7, left-aligned; nothing beside it. */}
+      <section aria-labelledby="home-title" className="grid lg:grid-cols-12 lg:gap-x-6">
+        <div className="flex flex-col gap-6 pt-4 lg:col-span-7">
           <h1 id="home-title" className="text-display-1 text-ink">
             Immersive Episteme
           </h1>
           <Suspense fallback={<DeckFallback />}>
             <Deck />
           </Suspense>
-          <div className="flex flex-col gap-3 xs:flex-row">
-            <Button asChild className="xs:w-48">
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+            <Button asChild>
               <Link href="/explore">Explore the demo</Link>
             </Button>
-            <Button asChild variant="outline" className="xs:w-48">
-              <Link href="/about#method">Read the method</Link>
-            </Button>
+            <Link href="/about#method" className={LINK}>
+              Read the method
+            </Link>
           </div>
-        </div>
-        <div className="mx-auto w-full max-w-[28rem] lg:col-span-5 lg:max-w-none">
-          <Suspense
-            fallback={
-              <Plate number={1} caption="A claim from the dataset with its source record." credit="Typographic specimen; no photograph.">
-                <div className="h-full bg-sunk" />
-              </Plate>
-            }
-          >
-            <SpecimenPlate />
-          </Suspense>
         </div>
       </section>
 
-      {/* 2. Figure 1, then its text equivalent: the two conditions, and what is identical. */}
+      {/* 2. Figure 1 on the indigo plate, then its text equivalents. */}
       <section aria-labelledby="conditions-heading" className="flex flex-col gap-8">
-        <SectionHead id="conditions-heading" title="One Knowledge Model, Two Conditions" />
+        <SectionHead id="conditions-heading" label={chartFigureLabel(1)} title="One Knowledge Model, Two Conditions" />
         <figure className="flex flex-col gap-4">
           <Suspense fallback={<FigureOneDiagram counts={null} />}>
             <FigureOneLive />
           </Suspense>
           <figcaption className="text-caption max-w-[48rem]">
-            <span className="font-semibold text-madder hc:text-ink">{chartFigureLabel(1)}.</span> One knowledge model, with its live counts, compiled into two
-            learning conditions of equal weight: conventional pages and an immersive museum.
+            <span className="font-bold text-ink">{chartFigureLabel(1)}.</span> One knowledge model, with its live counts, compiled into two learning
+            conditions of equal weight: conventional pages and an immersive museum.
           </figcaption>
         </figure>
-        <ul className="grid gap-6 md:grid-cols-2" aria-label="The two conditions">
+        <ul className="grid gap-x-6 gap-y-8 md:grid-cols-2" aria-label="The two conditions">
           {CONDITIONS.map((c) => (
-            <li key={c.key} className="flex">
-              {/* Title, reserved description, action. No schematic: Figure 1 above already draws both miniatures. */}
-              <Card parallel className="w-full">
-                <CardHeader>
-                  <CardTitle>
-                    <h3>{titleCase(c.title)}</h3>
-                  </CardTitle>
-                  <CardDescription>{c.description}</CardDescription>
-                </CardHeader>
-                <CardFooter>
-                  <Link
-                    href="/explore"
-                    className="text-ui inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[3px] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-indigo-hover hover:decoration-2"
-                  >
-                    Try it in the demo
-                  </Link>
-                </CardFooter>
-              </Card>
+            <li key={c.key} className="flex flex-col gap-2 border-t-[1.5px] border-ink pt-4">
+              <h3 className="text-h3 text-ink">{titleCase(c.title)}</h3>
+              {/* Reserved three lines, so the two links share one baseline (parallel items). */}
+              <p className="text-body min-h-[4.875rem] max-w-[34rem] text-ink-2">{c.description}</p>
+              <p className="mt-auto">
+                <Link href="/explore" className={LINK}>
+                  Try it in the demo
+                </Link>
+              </p>
             </li>
           ))}
         </ul>
@@ -202,7 +184,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. The traditions as equal plates, canonical order. */}
+      {/* 3. The traditions as an index of equal rows, canonical order. */}
       <Suspense fallback={<TraditionsFallback />}>
         <TraditionsLive />
       </Suspense>
@@ -217,7 +199,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. Institution strip: renders nothing while every field is null (DESIGN.md 13). */}
+      {/* 5. The latest parity run, from the stored report only. */}
+      <section aria-labelledby="parity-heading" className="flex flex-col gap-8">
+        <SectionHead id="parity-heading" title="Equivalence of the Two Conditions" />
+        <div className="max-w-[56rem]">
+          <Suspense fallback={<p className="text-body text-ink-2">Reading the latest parity run…</p>}>
+            <ParityLive />
+          </Suspense>
+        </div>
+      </section>
+
+      {/* 6. Institution strip: renders nothing while every field is null (DESIGN.md 13). */}
       <InstitutionStrip institution={INSTITUTION} />
     </div>
   );

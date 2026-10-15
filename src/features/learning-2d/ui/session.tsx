@@ -106,40 +106,23 @@ export function StudyBarLocation({ location, parent }: { location: string; paren
 // ---------------------------------------------------------------------------------------
 
 /**
- * Where the protocol's learning-task prompts sit in 2D. Never above a concept's KnowledgeSheet, so
- * the sheet stays directly under the chrome (P6) with the same claim lines in the first screen
- * (P8) whether or not a protocol sets prompts:
- *  - from 64rem (1024 px), exactly where the museum docks its panel and keeps the prompts over
- *    the scene (top left, persistent): a persistent, non-flow panel in the left margin, sticky under
- *    the chrome, outside the reading column (at least 166 px wide at 1024 px, up to 24rem), so the
- *    prompts stay visible in both conditions at every width where 3D shows them (R-L5);
- *  - narrower, on a concept page: in flow AFTER the sheet (the museum's full-screen panel covers
- *    its prompts at these widths, below 1024 px);
- *  - narrower, on the other pages (no 3D counterpart is measured): at the top of the column.
+ * Where the protocol's learning-task prompts sit in 2D below 1024 px (from 1024 px they sit at the
+ * top of the index field, spread.tsx, as the museum keeps them at the top left of its scene). Never
+ * above a concept's KnowledgeSheet, so the sheet stays directly under the chrome (P6) with the same
+ * claim lines in the first screen (P8) whether or not a protocol sets prompts:
+ *  - on a concept page: in flow AFTER the sheet (the museum's full-screen panel covers its prompts
+ *    at these widths);
+ *  - on the other pages (no 3D counterpart is measured): at the top of the column.
  * The frame renders the slot twice, `before` and `after` the page; only the one that applies to
- * the current path renders, so there is one prompts panel and one toggle state.
+ * the current path renders.
  */
 export function LearningPromptsSlot({ position, children }: { position: "before" | "after"; children: ReactNode }) {
   const pathname = usePathname() ?? "";
   const onConcept = pathname.startsWith(`${LEARN_2D}/concepts/`);
   if ((position === "after") !== onConcept) return null;
   return (
-    <div
-      data-slot="learning-prompts-slot"
-      className={cn(
-        "mx-auto w-full max-w-[39.25rem] px-4 xs:px-6",
-        position === "before" ? "pt-6" : "pb-12",
-        // The wide placement: a column in the left margin, outside the reading column, spanning the
-        // content (the frame's content wrapper is `relative`), so the panel starts 1rem under the
-        // whole chrome on the first paint (the "under review" strip included) ...
-        "min-[64rem]:absolute min-[64rem]:inset-y-0 min-[64rem]:left-4 min-[64rem]:z-30 min-[64rem]:mx-0 min-[64rem]:max-w-none min-[64rem]:p-0 min-[64rem]:pt-4",
-        "min-[64rem]:w-[min(24rem,calc((100vw-39.25rem)/2-2rem))]",
-      )}
-    >
-      {/* ... and stays 1rem under the sticky chrome while the page scrolls (persistent, as in 3D). */}
-      <div className="min-[64rem]:sticky min-[64rem]:top-[calc(var(--notice-offset,0px)+var(--studybar-h)+2px+1rem)] min-[64rem]:max-h-[calc(100dvh-var(--notice-offset,0px)-var(--studybar-h)-2px-2rem)] min-[64rem]:overflow-y-auto">
-        {children}
-      </div>
+    <div data-slot="learning-prompts-slot" className={cn("mx-auto w-full max-w-[39.25rem] px-4 xs:px-6 lg:hidden", position === "before" ? "pt-6" : "pb-12")}>
+      {children}
     </div>
   );
 }

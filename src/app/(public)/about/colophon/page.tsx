@@ -1,9 +1,9 @@
 /**
- * Colophon (DESIGN.md 11.2): how the platform is set. Typefaces with specimens and the font
- * budget; the palette as swatches framed by registration ticks, each labelled "Design
- * interpretation; not a measured or historical dye colour" (R-C6); the decorative pattern
- * note; the fixed condition order; and the full parity-check list (DESIGN.md 12.4) with the latest
- * real result per check, read from the stored report (never sample values).
+ * Colophon (DESIGN.md 10.1, DR-022): how the platform is set. Typefaces with specimens and the
+ * font budget; the palette as plain swatches with their roles (only the indigo carries "Design
+ * interpretation; not a measured or historical dye colour", R-C6, since no other token derives
+ * from a craft colour); the fixed condition order; and the full parity-check list (DESIGN.md
+ * 12.4) with the latest real result per check, read from the stored report (never sample values).
  *
  * The swatch values are read from `src/app/globals.css` itself (the token file), so the page can
  * never disagree with the colours actually in use.
@@ -14,8 +14,6 @@ import path from "node:path";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { KnockoutField } from "@/components/brand/knockout-band";
-import { TickedFrame } from "@/components/brand/registration-ticks";
 import { EditorialFrame, EditorialRow, EditorialSection, Prose } from "@/components/public/editorial-frame";
 import { Sidenote } from "@/components/public/sidenote";
 import { EquivalenceMonitor } from "@/components/parity/equivalence-monitor";
@@ -28,21 +26,18 @@ export const metadata: Metadata = { title: "Colophon" };
 
 // ---- Palette, read from the token file -------------------------------------------------------
 
-type Swatch = { token: string; name: string; role: string };
+type Swatch = { token: string; name: string; role: string; interpretation?: boolean };
 
 const SWATCHES: readonly Swatch[] = [
-  { token: "ground", name: "Ground", role: "The reading surface of every page and knowledge column" },
-  { token: "ink", name: "Ink", role: "Text, headings, rules and diagram outlines" },
-  { token: "indigo", name: "Indigo", role: "The one interactive accent: links, buttons, focus" },
-  { token: "band", name: "Band", role: "Field of the knock-out band" },
-  { token: "madder", name: "Madder", role: "Public pages only: plate and figure numbers, section rules" },
-  { token: "ochre", name: "Ochre", role: "Public pages only: editorial eyebrows" },
-  { token: "ochre-deco", name: "Ochre dot", role: "Decorative dots in the band; never text" },
-  { token: "surface", name: "Surface", role: "Cards, dialogs and the hint panel" },
-  { token: "sunk", name: "Sunk", role: "Table heads, figure mats, the console rail" },
-  { token: "ink-3", name: "Ink, tertiary", role: "Source lines, credits, eyebrows" },
-  { token: "rule-strong", name: "Strong rule", role: "Boundaries of controls" },
-  { token: "wash", name: "Wash", role: "A selected row or answer, always with a bar and a word" },
+  { token: "ground", name: "Paper", role: "Knowledge only: the sheet in both conditions, dialogs, console work areas" },
+  { token: "field", name: "Field", role: "Navigation: rails, the 2D index, the public header and footer; never behind claims" },
+  { token: "ink", name: "Ink", role: "Text, headings and diagram outlines" },
+  { token: "indigo", name: "Indigo", role: "The one interactive colour: links, buttons, selected states", interpretation: true },
+  { token: "sunk", name: "Sunk", role: "Figure mats, the verbatim-quote mat, hover on paper" },
+  { token: "wash", name: "Wash", role: "A current or selected item, always with a word" },
+  { token: "ink-2", name: "Ink, secondary", role: "Labels, captions, inactive tabs" },
+  { token: "ink-3", name: "Ink, tertiary", role: "Source lines, credits, units" },
+  { token: "rule-strong", name: "Strong rule", role: "Every control boundary and docked pane edge" },
   { token: "danger", name: "Danger", role: "Errors, always with an icon and a word" },
   { token: "series-2d", name: "Series 2D", role: "Dashboard charts: the 2D condition, circles" },
   { token: "series-3d", name: "Series 3D", role: "Dashboard charts: the 3D condition, squares" },
@@ -72,18 +67,15 @@ function Palette() {
     <ul className="grid gap-x-6 gap-y-8 xs:grid-cols-2 lg:grid-cols-3" aria-label="Palette">
       {SWATCHES.map((s) => (
         <li key={s.token} className="flex flex-col gap-2" data-token={s.token}>
-          <TickedFrame className="mx-1.5 mb-2">
-            <div aria-hidden="true" className="h-16 border border-rule" style={{ background: `var(--${s.token})` }} />
-          </TickedFrame>
-          <p className="text-ui mx-1.5 text-ink">{s.name}</p>
-          <p className="text-mono mx-1.5 text-ink-2">
+          <div aria-hidden="true" className="mb-2 h-16 border border-rule-strong" style={{ background: `var(--${s.token})` }} />
+          <p className="text-ui text-ink">{s.name}</p>
+          <p className="text-id text-ink-2">
             {light[s.token] ? <>Light {light[s.token]}</> : null}
-            {light[s.token] && dark[s.token] ? " · " : null}
-            {dark[s.token] ? <>Dark {dark[s.token]}</> : null}
+            {light[s.token] && dark[s.token] ? ", " : null}
+            {dark[s.token] ? <>dark {dark[s.token]}</> : null}
           </p>
-          {/* The identical label sits above the role, so the labels of a row share one baseline. */}
-          <p className="text-credit mx-1.5 font-semibold">Design interpretation; not a measured or historical dye colour.</p>
-          <p className="text-credit mx-1.5">{s.role}</p>
+          <p className="text-credit">{s.role}</p>
+          {s.interpretation ? <p className="text-credit font-bold">Design interpretation; not a measured or historical dye colour.</p> : null}
         </li>
       ))}
     </ul>
@@ -129,26 +121,29 @@ export default function ColophonPage() {
     <div className="flex flex-col gap-12">
       <PageHeader
         className="mb-0"
-        eyebrow="About"
         title="Colophon"
-        description="How the platform is set: its typefaces, its colours, its one decorative pattern, and the measured equivalence of the two learning conditions."
+        description="How the platform is set: its typefaces, its colours, and the measured equivalence of the two learning conditions."
       />
       <EditorialFrame>
         <EditorialSection id="typefaces" title="Typefaces">
-          <EditorialRow note={<Sidenote label="Budget">At most two font files preloaded and 176,000 bytes, self-hosted with no request to a third party. Measured when the faces were adopted: two files, 170,600 bytes.</Sidenote>}>
+          <EditorialRow
+            note={
+              <Sidenote label="Budget">
+                At most two font files preloaded and 176,000 bytes, self-hosted with no request to a third party. Study and console pages preload one
+                file. The Latin files measured when the faces were adopted: Atkinson Hyperlegible Next 33,996 bytes, Anek Latin 103,760 bytes.
+              </Sidenote>
+            }
+          >
             <div className="flex flex-col gap-2 border-t border-rule pt-4">
-              <p className="text-eyebrow">Source Serif 4 · titles, headings, quotations</p>
-              <p className="font-serif text-[2.5rem] leading-[3rem] font-normal text-ink">Immersive Episteme</p>
-              <p className="text-quote text-ink">&ldquo;The evidence is set as large as the claim it supports.&rdquo;</p>
+              <p className="text-label">Atkinson Hyperlegible Next, everything you read and use</p>
+              <p className="text-reading text-ink">Claims are set at 20 pixels on a 30 pixel line, about sixty-two characters to the line, in both conditions.</p>
+              <p className="text-quote bg-sunk px-4 py-3 text-ink">&ldquo;The evidence is set as large as the claim it supports, upright, on its own mat.&rdquo;</p>
+              <p className="text-table text-ink-2">Tabular figures for every number a reader compares: 0123456789. Codes need no monospace: 0O 1Il.</p>
             </div>
             <div className="flex flex-col gap-2 border-t border-rule pt-4">
-              <p className="text-eyebrow">Inter · claims, interface, tables</p>
-              <p className="text-reading text-ink">Claims are set at 18 pixels on a 28 pixel line, about sixty characters to the line, in both conditions.</p>
-              <p className="text-table text-ink-2">Tabular figures for every number a reader compares: 0123456789</p>
-            </div>
-            <div className="flex flex-col gap-2 border-t border-rule pt-4">
-              <p className="text-eyebrow">System monospace · codes and identifiers</p>
-              <p className="text-mono text-ink">0123456789 ABCDEF abcdef</p>
+              <p className="text-label">Anek Latin, public display only</p>
+              <p className="text-display-2 text-ink">Immersive Episteme</p>
+              <p className="text-credit">By Ek Type, a type collective in Mumbai. Never used on study pages or in the museum.</p>
             </div>
           </EditorialRow>
         </EditorialSection>
@@ -162,24 +157,6 @@ export default function ColophonPage() {
             </Prose>
           </EditorialRow>
           <Palette />
-        </EditorialSection>
-
-        <EditorialSection id="pattern" title="Decorative pattern">
-          <EditorialRow
-            note={
-              <Sidenote>
-                <p>Decorative pattern, not craft content. Never shown on study pages, in either condition.</p>
-              </Sidenote>
-            }
-          >
-            <div className="overflow-hidden">
-              <KnockoutField columns={4} rows={1} />
-            </div>
-            <Prose>
-              The band under the header is built from a square block module: a lozenge and a dot reversed out of a flat indigo field, on a straight
-              grid, with edges that meet exactly. It deliberately uses no motif, layout or colour set that belongs to one tradition.
-            </Prose>
-          </EditorialRow>
         </EditorialSection>
 
         <EditorialSection id="order" title="Fixed order">

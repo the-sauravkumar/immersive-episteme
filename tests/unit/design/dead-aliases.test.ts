@@ -7,7 +7,7 @@
  * whole files so JSX attributes that span lines are found. It also asserts that the alias
  * definitions themselves are gone.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -47,14 +47,20 @@ const DEPRECATED: readonly { name: string; pattern: RegExp }[] = [
   { name: "colour alias variable", pattern: /var\(--(?:paper|ink-soft|ink-muted|brand|brand-hover|card-warm|hairline|hairline-strong|panel-bg|panel-bg-solid|panel-blur|shadow-panel-v)\)/ },
   { name: "kicker utility", pattern: classToken("kicker") },
   { name: "panel utility", pattern: classToken("panel") },
-  { name: "text-kicker / text-label / text-hero", pattern: /(?<![\w-])text-(?:kicker|label|hero)(?![\w-])/ },
-  { name: "font-display", pattern: /(?<![\w-])font-display(?![\w-])/ },
+  { name: "text-kicker / text-hero", pattern: /(?<![\w-])text-(?:kicker|hero)(?![\w-])/ },
   { name: "shadow-card / shadow-panel", pattern: /(?<![\w-])shadow-(?:card|panel)(?![\w-])/ },
+  // Atlas (DR-022) retires the Apparatus tracked labels, the second paper, shadows and the graphics.
+  { name: "text-eyebrow / text-dl-label / text-dl-value / text-mono (Apparatus)", pattern: /(?<![\w-])text-(?:eyebrow|dl-label|dl-value|mono)(?![\w-])/ },
+  { name: "bg-surface / text-surface / border-surface (the retired second paper)", pattern: /(?<![\w-])(?:bg|text|border)-surface(?![\w-])/ },
+  { name: "shadow-console / shadow-pop (no shadows)", pattern: /(?<![\w-])shadow-(?:console|pop)(?![\w-])/ },
+  { name: "madder, ochre or band colour utilities", pattern: /(?<![\w-])(?:text|bg|border|fill|stroke|decoration)-(?:madder|ochre|ochre-deco|band)(?![\w-])/ },
+  { name: "KnockoutBand, RegistrationTicks or TraditionMarker", pattern: /\b(?:KnockoutBand|KnockoutField|RegistrationTicks|TraditionMarker)\b/ },
+  { name: "Radix Select or RadioGroup (replaced by NativeSelect and Segmented)", pattern: /@\/components\/ui\/(?:select|radio-group)["']/ },
+  { name: "font-serif (no serif face)", pattern: /(?<![\w-])font-serif(?![\w-])/ },
   {
     name: "deprecated Button size (xs, sm, lg, icon-xs, icon-sm, icon-lg)",
     pattern: new RegExp("<(?:Button|StudyBarButton)\\b" + ATTRS + "\\bsize=" + Q + OLD_SIZES + Q + "|buttonVariants\\(\\{[^}]*\\bsize:\\s*" + Q + OLD_SIZES + Q),
   },
-  { name: "SelectTrigger size sm", pattern: new RegExp("<SelectTrigger\\b" + ATTRS + "\\bsize=" + Q + "sm" + Q) },
   {
     name: "Button or Badge variant secondary",
     pattern: new RegExp("<(?:Button|Badge)\\b" + ATTRS + "\\bvariant=" + Q + "secondary" + Q + "|(?:button|badge)Variants\\(\\{[^}]*\\bvariant:\\s*" + Q + "secondary" + Q),
@@ -93,9 +99,10 @@ describe("the alias definitions are removed", () => {
   it("globals.css defines no deprecated colour, font, shadow or size alias", () => {
     for (const re of [
       /--color-(?:paper|ink-soft|ink-muted|brand|brand-hover|card-warm|hairline|hairline-strong|panel):/,
-      /--font-display:/,
+      /--(?:madder|ochre|ochre-deco|band|band-lozenge|serif-stack|focus-halo|shadow-console):/,
       /--shadow-(?:card|panel|panel-v):/,
-      /--text-(?:kicker|label|hero)(?:--line-height)?:/,
+      /--text-(?:kicker|hero)(?:--line-height)?:/,
+      /@utility text-(?:eyebrow|dl-label|dl-value|mono) \{/,
       /@utility (?:kicker|panel) \{/,
     ]) {
       expect(css, String(re)).not.toMatch(re);
@@ -111,7 +118,8 @@ describe("the alias definitions are removed", () => {
     expect(tabs).not.toMatch(/^\s*line: ""/m);
     const alert = readFileSync(path.join(SRC, "components/ui/alert.tsx"), "utf8");
     expect(alert).not.toMatch(/^\s*default: "/m);
-    const select = readFileSync(path.join(SRC, "components/ui/select.tsx"), "utf8");
-    expect(select).not.toMatch(/size\?: "sm" \| "default"/);
+    for (const gone of ["components/ui/select.tsx", "components/ui/radio-group.tsx"]) {
+      expect(existsSync(path.join(SRC, gone)), gone).toBe(false);
+    }
   });
 });

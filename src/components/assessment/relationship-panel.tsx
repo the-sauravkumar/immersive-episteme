@@ -13,15 +13,11 @@ import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
 
 import { addEdgeProblem, describeEdge, type EditorRules, type MapAction, type MapState } from "./map-state";
+import { NativeSelect } from "@/components/ui/native-select";
 
-/**
- * Native selects with the Input rules (DESIGN.md 9.5): 44 px, 1 px `--rule-strong`, `--surface`,
- * Inter 16 px. Focus is the global ring. Native controls keep the keyboard path library-free.
- */
-const selectClass =
-  "h-11 w-full min-w-0 rounded-control border border-rule-strong bg-surface px-3 font-sans text-base leading-6 font-normal text-ink disabled:cursor-not-allowed disabled:border-rule disabled:bg-sunk disabled:text-ink-3";
-/** A label above its control: Inter 14/500 `--ink` (the Label primitive's style, on a native label). */
-const fieldLabel = "flex min-w-0 flex-col gap-2 font-sans text-sm leading-5 font-medium text-ink";
+/* Selects are the shared NativeSelect (DESIGN.md 9.2): native semantics, the project chevron, 44 px. */
+/** A label above its control: Atkinson 15/700 `--ink` (the Label primitive's style, on a native label). */
+const fieldLabel = "flex min-w-0 flex-col gap-2 font-sans text-[0.9375rem] leading-5 font-bold text-ink";
 
 export interface PendingConnection {
   source: string;
@@ -101,45 +97,45 @@ export function RelationshipPanel({
           <div className="grid gap-4 sm:grid-cols-3">
             <label className={fieldLabel}>
               <span>From concept</span>
-              <select className={selectClass} value={source} onChange={(e) => setSource(e.target.value)} name="source">
+              <NativeSelect value={source} onChange={(e) => setSource(e.target.value)} name="source">
                 <option value="">Choose…</option>
                 {state.nodes.map((n) => (
                   <option key={n.key} value={n.key}>
                     {n.label}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <label className={fieldLabel}>
               <span>Relationship</span>
               {typed ? (
-                <select className={selectClass} value={type} onChange={(e) => setType(e.target.value)} name="type">
+                <NativeSelect value={type} onChange={(e) => setType(e.target.value)} name="type">
                   <option value="">Choose…</option>
                   {rules.relationshipTypes.map((t) => (
                     <option key={t.code} value={t.code}>
                       {t.label}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               ) : (
                 <span className="flex h-11 items-center font-sans text-base font-normal text-ink-2">is linked to</span>
               )}
             </label>
             <label className={fieldLabel}>
               <span>To concept</span>
-              <select className={selectClass} value={target} onChange={(e) => setTarget(e.target.value)} name="target">
+              <NativeSelect value={target} onChange={(e) => setTarget(e.target.value)} name="target">
                 <option value="">Choose…</option>
                 {state.nodes.map((n) => (
                   <option key={n.key} value={n.key}>
                     {n.label}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
           </div>
           {showRequired ? (
             <label className="flex min-h-11 cursor-pointer items-center gap-3 font-sans text-[0.9375rem] leading-5 text-ink">
-              <input type="checkbox" checked={requiredFlag} onChange={(e) => setRequiredFlag(e.target.checked)} className="size-5 shrink-0 cursor-pointer accent-indigo" />
+              <input type="checkbox" checked={requiredFlag} onChange={(e) => setRequiredFlag(e.target.checked)} className="ie-check" />
               Expected (must appear for full credit); unticked means acceptable but optional
             </label>
           ) : null}
@@ -186,9 +182,9 @@ export function RelationshipPanel({
                     <div className="flex flex-wrap items-center gap-2">
                       {typed ? (
                         <label className="flex items-center">
-                          <select
+                          <NativeSelect
                             aria-label={`Relationship type for: ${sentence}`}
-                            className={cn(selectClass, "w-auto")}
+                            className="w-auto"
                             value={edge.relationshipType ?? ""}
                             onChange={(e) => dispatch({ type: "retype_edge", edgeKey: edge.key, relationshipType: e.target.value || null, via: "form" })}
                           >
@@ -197,14 +193,14 @@ export function RelationshipPanel({
                                 {t.label}
                               </option>
                             ))}
-                          </select>
+                          </NativeSelect>
                         </label>
                       ) : null}
                       {showRequired ? (
                         <label className="flex min-h-11 cursor-pointer items-center gap-2 px-1 font-sans text-[0.9375rem] leading-5 text-ink">
                           <input
                             type="checkbox"
-                            className="size-5 shrink-0 cursor-pointer accent-indigo"
+                            className="ie-check"
                             aria-label={`Expected: ${sentence}`}
                             checked={edge.required ?? false}
                             onChange={(e) => dispatch({ type: "set_required", edgeKey: edge.key, required: e.target.checked, via: "form" })}

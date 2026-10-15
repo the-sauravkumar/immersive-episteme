@@ -27,14 +27,14 @@ export function ConsentForm({ consentVersion }: { consentVersion: string }) {
       <div className="flex flex-col gap-2">
         <label
           htmlFor="confirm"
-          className="group/opt flex min-h-14 cursor-pointer items-start gap-3 border-y border-l-2 border-y-rule border-l-transparent py-3 pr-3 pl-3 has-[:checked]:border-l-indigo has-[:checked]:bg-wash"
+          className="group/opt flex min-h-14 cursor-pointer items-start gap-3 border-y border-rule px-3 py-3 hover:bg-sunk has-[:checked]:bg-wash"
         >
           <input
             id="confirm"
             name="confirm"
             type="checkbox"
             value="yes"
-            className="mt-1 size-5 shrink-0 cursor-pointer accent-indigo"
+            className="ie-check mt-0.5"
             aria-invalid={confirmError ? true : undefined}
             aria-describedby={confirmError ? "confirm-error" : undefined}
           />

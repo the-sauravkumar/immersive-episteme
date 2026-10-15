@@ -160,7 +160,7 @@ async function RelationshipReview({ id, principal }: { id: string; principal: Aw
                 {row.sources.map((s) => (
                   <li key={s.sourceId}>
                     {s.label} — {s.locator ?? "no locator"}
-                    <blockquote className="text-quote border-l-2 border-indigo pl-4 text-ink-2">“{s.quote ?? "no quotation"}”</blockquote>
+                    <blockquote className="text-quote bg-sunk px-4 py-3 text-ink">“{s.quote ?? "no quotation"}”</blockquote>
                   </li>
                 ))}
               </ul>

@@ -85,13 +85,13 @@ async function Breakdown({ params, searchParams }: { params: Promise<{ conceptMa
     <>
       <p className="mb-4">
         <Link href={`/research/scoring?ref=${b.reference.id}`} className={LINK_44}>
-          <span aria-hidden="true">←&nbsp;</span>Back to scoring
+          Back to scoring
         </Link>
       </p>
       <SummaryList
         className="mb-10 max-w-[52rem]"
         items={[
-          { label: "Participant", value: <span className="text-mono">{b.map.participantCode}</span> },
+          { label: "Participant", value: <span className="text-id">{b.map.participantCode}</span> },
           { label: "Condition", value: b.map.condition === "immersive_3d" ? "3D" : "2D" },
           {
             label: "Phase",
@@ -110,7 +110,7 @@ async function Breakdown({ params, searchParams }: { params: Promise<{ conceptMa
             label: "Reference",
             value: (
               <>
-                <span className="tabular-nums">v{b.reference.version}</span> ({b.reference.title}), fingerprint <span className="text-mono">{b.reference.fingerprint.slice(0, 12)}</span>
+                <span className="tabular-nums">v{b.reference.version}</span> ({b.reference.title}), fingerprint <span className="text-id">{b.reference.fingerprint.slice(0, 12)}</span>
               </>
             ),
           },
@@ -191,8 +191,8 @@ async function Breakdown({ params, searchParams }: { params: Promise<{ conceptMa
           <TableBody>
             {b.result.scores.map((s) => (
               <TableRow key={s.metricName}>
-                <TableCell className="text-mono">{s.metricName}</TableCell>
-                <TableCell className="text-mono">{s.metricVersion}</TableCell>
+                <TableCell className="text-id">{s.metricName}</TableCell>
+                <TableCell className="text-id">{s.metricVersion}</TableCell>
                 <TableCell numeric>{fmt(s.metricName, s.value)}</TableCell>
                 <TableCell numeric>{fmt(s.metricName, b.stored.find((x) => x.metricName === s.metricName)?.value)}</TableCell>
               </TableRow>
@@ -207,8 +207,8 @@ async function Breakdown({ params, searchParams }: { params: Promise<{ conceptMa
             <ul className="mb-6 flex max-w-[52rem] flex-col border-y border-rule">
               {b.change.changes.map((c, i) => (
                 <li key={i} className="text-body grid gap-x-4 border-t border-rule py-2 text-ink first:border-t-0 xs:grid-cols-[6rem_minmax(0,1fr)]">
-                  <span className="text-dl-label self-center">{CHANGE_LABEL[c.kind] ?? c.kind}</span>
-                  <span>{c.kind === "added" ? keySentence(c.after) : c.kind === "removed" ? keySentence(c.before) : `${keySentence(c.before)} → ${keySentence(c.after)}`}</span>
+                  <span className="text-label self-center">{CHANGE_LABEL[c.kind] ?? c.kind}</span>
+                  <span>{c.kind === "added" ? keySentence(c.after) : c.kind === "removed" ? keySentence(c.before) : `${keySentence(c.before)}, now ${keySentence(c.after)}`}</span>
                 </li>
               ))}
             </ul>
@@ -232,7 +232,7 @@ async function Breakdown({ params, searchParams }: { params: Promise<{ conceptMa
               <TableBody>
                 {b.change.scoreDeltas.map((d) => (
                   <TableRow key={d.metricName}>
-                    <TableCell className="text-mono">{d.metricName}</TableCell>
+                    <TableCell className="text-id">{d.metricName}</TableCell>
                     <TableCell numeric>{fmt(d.metricName, d.pre)}</TableCell>
                     <TableCell numeric>{fmt(d.metricName, d.post)}</TableCell>
                     <TableCell numeric>{fmt(d.metricName, d.delta)}</TableCell>

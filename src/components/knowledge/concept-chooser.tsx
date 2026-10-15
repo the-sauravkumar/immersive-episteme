@@ -24,7 +24,7 @@ export function ConceptChooser({ entries, selected, onSelect }: { entries: reado
               onClick={() => onSelect(e.conceptId)}
               className={cn(
                 "text-ui flex min-h-11 w-full items-center gap-2 py-2 text-left",
-                on ? "font-semibold text-ink" : "text-indigo underline decoration-1 underline-offset-[3px] hover:text-indigo-hover hover:decoration-2",
+                on ? "font-semibold text-ink" : "text-indigo underline decoration-1 underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2",
               )}
             >
               <span className="flex size-5 shrink-0 items-center justify-center" aria-hidden="true">

@@ -149,9 +149,14 @@ export const studyConfigSchema = z.object({
    * Knowledge figures (DR-018). `structureDiagrams` (default on) shows the graph-derived structure
    * diagrams (process sequence, materials and tools, colour mechanism); off removes them from BOTH
    * conditions together, so researchers can rule out the 2D condition gaining structural
-   * visualisation. Read through the learning context (`settings.figures`), never per page.
+   * visualisation. `photos` (default on) shows the rights-cleared study photographs (DR-020: one
+   * museum textile photograph per study tradition); off removes them from BOTH conditions together,
+   * so researchers can rule out the photographs as a source of a difference. Read through the
+   * learning context (`settings.figures`), never per page.
    */
-  figures: z.object({ structureDiagrams: z.boolean().default(true) }).default({ structureDiagrams: true }),
+  figures: z
+    .object({ structureDiagrams: z.boolean().default(true), photos: z.boolean().default(true) })
+    .default({ structureDiagrams: true, photos: true }),
   /**
    * Learning-task prompts written by the researchers, shown verbatim and identically in both
    * conditions (shared LearningTaskPrompts). Read through the learning context.

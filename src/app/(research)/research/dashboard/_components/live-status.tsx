@@ -174,8 +174,8 @@ export function LiveStatus({ studyId, serverTime, fingerprint }: { studyId: stri
           <Icon aria-hidden="true" className={`size-4 shrink-0 stroke-[1.75] ${tone}`} />
           <span>
             <span className={`font-semibold ${tone}`}>{label}</span>
-            <span className="text-ink-2"> · as of </span>
-            <time dateTime={updatedAt} className="text-mono text-ink">
+            <span className="text-ink-2">, as of </span>
+            <time dateTime={updatedAt} className="text-id text-ink">
               {clockUtc(updatedAt)}
             </time>
             <span className="text-ink-2"> UTC</span>
@@ -189,9 +189,9 @@ export function LiveStatus({ studyId, serverTime, fingerprint }: { studyId: stri
         {mode === "polling" ? `Live connection unavailable: checking every ${FALLBACK_POLL_MS / 1000} s.` : "Updates as soon as new data are stored, while this tab is visible."}
       </span>
       {stale ? (
-        <p role="alert" className="inline-flex items-start gap-2 border-l-4 border-danger bg-ground py-1 pl-3 font-sans text-[0.9375rem] leading-6 text-ink">
+        <p role="alert" className="inline-flex items-start gap-2 border border-danger bg-ground px-3 py-1 font-sans text-base leading-6 text-ink">
           <span>
-            <span className="font-semibold text-danger">Stale:</span> the figures were last confirmed at <span className="text-mono">{clockUtc(updatedAt)}</span> UTC, more than {STALE_MS / 1000} s ago.{" "}
+            <span className="font-semibold text-danger">Stale:</span> the figures were last confirmed at <span className="text-id">{clockUtc(updatedAt)}</span> UTC, more than {STALE_MS / 1000} s ago.{" "}
             {error ?? "Waiting for the server."}
           </span>
         </p>

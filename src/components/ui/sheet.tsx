@@ -1,8 +1,8 @@
 "use client"
 
 /*
- * Sheet (DESIGN.md 9.18): the Dialog rules on a side panel (--surface, 1 px --rule-strong edge,
- * square, the console shadow, 44 px "Close"). Motion is a 150 ms fade with a 4 px offset; zero
+ * Sheet (DESIGN.md 9.18): the Dialog rules on a side panel (paper, 1 px --rule-strong edge,
+ * square, no shadow, 44 px "Close"). Motion is a 150 ms fade with a 4 px offset; zero
  * on study routes (global rule). Width never exceeds the viewport, so no horizontal scroll at
  * 390 px.
  */
@@ -45,7 +45,7 @@ function SheetOverlay({
     <SheetPrimitive.Overlay
       data-slot="sheet-overlay"
       className={cn(
-        "fixed inset-0 z-50 bg-[rgb(33_29_25/0.45)] duration-(--dur-2) data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "fixed inset-0 z-50 bg-[rgb(0_0_0/0.5)] duration-(--dur-2) data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
       {...props}
@@ -70,7 +70,7 @@ function SheetContent({
         data-slot="sheet-content"
         data-side={side}
         className={cn(
-          "fixed z-50 flex flex-col gap-4 overflow-y-auto border-rule-strong bg-surface font-sans text-[0.9375rem] leading-6 text-ink shadow-console duration-(--dur-2) data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:max-h-[85dvh] data-[side=bottom]:border-t data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-[min(24rem,100vw)] data-[side=left]:border-r data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-[min(24rem,100vw)] data-[side=right]:border-l data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:max-h-[85dvh] data-[side=top]:border-b data-open:animate-in data-open:fade-in-0 data-[side=bottom]:data-open:slide-in-from-bottom-1 data-[side=left]:data-open:slide-in-from-left-1 data-[side=right]:data-open:slide-in-from-right-1 data-[side=top]:data-open:slide-in-from-top-1 data-closed:animate-out data-closed:fade-out-0 data-[side=bottom]:data-closed:slide-out-to-bottom-1 data-[side=left]:data-closed:slide-out-to-left-1 data-[side=right]:data-closed:slide-out-to-right-1 data-[side=top]:data-closed:slide-out-to-top-1 has-data-[slot=sheet-close-button]:*:data-[slot=sheet-header]:pr-28",
+          "fixed z-50 flex flex-col gap-4 overflow-y-auto border-rule-strong bg-ground font-sans text-[0.9375rem] leading-6 text-ink duration-(--dur-2) data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:max-h-[85dvh] data-[side=bottom]:border-t data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:w-[min(24rem,100vw)] data-[side=left]:border-r data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:w-[min(24rem,100vw)] data-[side=right]:border-l data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:max-h-[85dvh] data-[side=top]:border-b data-open:animate-in data-open:fade-in-0 data-[side=bottom]:data-open:slide-in-from-bottom-1 data-[side=left]:data-open:slide-in-from-left-1 data-[side=right]:data-open:slide-in-from-right-1 data-[side=top]:data-open:slide-in-from-top-1 data-closed:animate-out data-closed:fade-out-0 data-[side=bottom]:data-closed:slide-out-to-bottom-1 data-[side=left]:data-closed:slide-out-to-left-1 data-[side=right]:data-closed:slide-out-to-right-1 data-[side=top]:data-closed:slide-out-to-top-1 has-data-[slot=sheet-close-button]:*:data-[slot=sheet-header]:pr-28",
           className
         )}
         {...props}

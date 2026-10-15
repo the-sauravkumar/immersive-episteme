@@ -5,10 +5,10 @@
  * and marginal citations, so notes stay next to the text they support (R-T12). Under 1024 px the
  * margin column folds away and each sidenote follows its paragraph inline (`EditorialRow`).
  *
- * Section heads carry the public 2 px `--madder` rule above them (7.5; public pages only) and are
- * set in Title Case through `titleCase()`. They are `text-h2` (24 px) at every width: these pages'
- * h1 is the PageHeader's `text-title` (32 px), so a 40 px `text-display-2` h2 would read above it.
- * `text-display-2` stays for the home page's section heads, under the `text-display-1` h1.
+ * Section heads are set in Title Case through `titleCase()`, in Anek Latin `text-display-3`
+ * (28 px; public display only), with space above and below instead of a rule (DR-022: no madder
+ * rule, no eyebrow). They stay below these pages' `text-title` h1 (36 px); `text-display-2`
+ * stays for the home page's section heads, under the `text-display-1` h1.
  */
 import type { ReactNode } from "react";
 
@@ -34,16 +34,16 @@ export function EditorialRow({ children, note, className }: { children: ReactNod
   );
 }
 
-/** A section with its madder-ruled head. Body rows go inside; the h2 id labels the section. */
+/** A section with its head. Body rows go inside; the h2 id labels the section. */
 export function EditorialSection({
   id,
   title,
-  eyebrow,
   children,
   className,
 }: {
   id: string;
   title: string;
+  /** @deprecated Not rendered (DR-022: no eyebrows). */
   eyebrow?: string;
   children: ReactNode;
   className?: string;
@@ -51,9 +51,8 @@ export function EditorialSection({
   const headingId = `${id}-heading`;
   return (
     <section id={id} aria-labelledby={headingId} data-slot="editorial-section" className={cn("flex scroll-mt-8 flex-col gap-6", className)}>
-      <header className="flex max-w-[34rem] flex-col gap-2 border-t-2 border-madder pt-4 hc:border-ink">
-        {eyebrow ? <p className="text-eyebrow text-ochre hc:text-ink">{eyebrow}</p> : null}
-        <h2 id={headingId} className="text-h2 text-ink">
+      <header className="flex max-w-[34rem] flex-col gap-2 pt-2">
+        <h2 id={headingId} className="text-display-3 text-ink">
           {titleCase(title)}
         </h2>
       </header>

@@ -1,10 +1,10 @@
 "use client"
 
 /*
- * Field layout (DESIGN.md 9.5): label above in Inter 14/500 --ink; help text in `text-credit`;
+ * Field layout (DESIGN.md 9.6): label above in Atkinson 15/700 --ink; help text in `text-credit`;
  * the error message in --danger with an icon and the words (R-A4). Controls carry `aria-invalid`
  * and `aria-describedby` at the call site. A choice card (FieldLabel wrapping a Field) is a
- * 44 px-or-taller row; checked = --wash with a 2 px indigo bar.
+ * 44 px-or-taller row; checked = --wash with an indigo boundary (no left bar).
  */
 
 import { useMemo } from "react"
@@ -38,7 +38,7 @@ function FieldLegend({
       data-slot="field-legend"
       data-variant={variant}
       className={cn(
-        "mb-2 font-sans font-semibold text-ink data-[variant=label]:text-sm data-[variant=label]:leading-5 data-[variant=legend]:text-base data-[variant=legend]:leading-6",
+        "mb-2 font-sans font-bold text-ink data-[variant=label]:text-[0.9375rem] data-[variant=label]:leading-5 data-[variant=legend]:text-lg data-[variant=legend]:leading-7",
         className
       )}
       {...props}
@@ -114,7 +114,7 @@ function FieldLabel({
     <Label
       data-slot="field-label"
       className={cn(
-        "group/field-label peer/field-label flex w-fit gap-2 leading-5 group-data-[disabled=true]/field:text-ink-3 has-[>[data-slot=field]]:min-h-11 has-[>[data-slot=field]]:rounded-card has-[>[data-slot=field]]:border has-[>[data-slot=field]]:border-rule-strong has-[>[data-slot=field]]:not-has-[:disabled,[data-disabled]]:hover:bg-sunk has-[>[data-slot=field]]:has-data-checked:border-indigo has-[>[data-slot=field]]:has-data-checked:bg-wash has-[>[data-slot=field]]:has-data-checked:shadow-[inset_2px_0_0_var(--indigo)] *:data-[slot=field]:p-3",
+        "group/field-label peer/field-label flex w-fit gap-2 leading-5 group-data-[disabled=true]/field:text-ink-3 has-[>[data-slot=field]]:min-h-11 has-[>[data-slot=field]]:rounded-card has-[>[data-slot=field]]:border has-[>[data-slot=field]]:border-rule-strong has-[>[data-slot=field]]:not-has-[:disabled,[data-disabled]]:hover:bg-sunk has-[>[data-slot=field]]:has-data-checked:border-indigo has-[>[data-slot=field]]:has-data-checked:bg-wash has-[>[data-slot=field]]:has-[:checked]:border-indigo has-[>[data-slot=field]]:has-[:checked]:bg-wash *:data-[slot=field]:p-3",
         "has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col",
         className
       )}
@@ -128,7 +128,7 @@ function FieldTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="field-label"
       className={cn(
-        "flex w-fit items-center gap-2 font-sans text-sm leading-5 font-medium text-ink group-data-[disabled=true]/field:text-ink-3",
+        "flex w-fit items-center gap-2 font-sans text-[0.9375rem] leading-5 font-bold text-ink group-data-[disabled=true]/field:text-ink-3",
         className
       )}
       {...props}
@@ -143,7 +143,7 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
       className={cn(
         "text-credit text-left group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5",
         "last:mt-0 nth-last-2:-mt-1",
-        "[&>a]:text-indigo [&>a]:underline [&>a]:underline-offset-[3px] [&>a:hover]:decoration-2",
+        "[&>a]:text-indigo [&>a]:underline [&>a]:underline-offset-[0.2em] [&>a:hover]:decoration-2",
         className
       )}
       {...props}
@@ -225,7 +225,7 @@ function FieldError({
       role="alert"
       data-slot="field-error"
       className={cn(
-        "flex items-start gap-2 font-sans text-sm leading-5 font-medium text-danger",
+        "flex items-start gap-2 font-sans text-[0.9375rem] leading-5 font-semibold text-danger",
         className
       )}
       {...props}

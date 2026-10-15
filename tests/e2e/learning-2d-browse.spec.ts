@@ -34,9 +34,12 @@ test("browse catalogue, tradition, concept and a related concept; telemetry reac
   await page.getByRole("button", { name: "Open conventional pages" }).click();
   await expect(page).toHaveURL(/\/learn\/2d$/, SLOW);
   await expect(page.getByRole("heading", { level: 1, name: "Craft Traditions" })).toBeVisible(SLOW);
-  // The 2D navigation lives in the shared StudyBar's condition group (DESIGN.md 9.14).
+  // The 2D navigation (DR-021): the shared PlaceRail "In This Section" docked at the left from
+  // 1280 px, the index in the field, and the StudyBar's condition group (Contents below 1024 px only).
   const bar = page.locator("[data-slot=study-bar]");
-  await expect(bar.getByRole("button", { name: "Contents" })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "In This Section" })).toBeVisible();
+  await expect(page.locator("[data-slot=study-index]")).toBeVisible();
+  await expect(bar.getByRole("button", { name: "Contents" })).toBeHidden();
 
   // Catalogue -> tradition.
   const traditionCard = page.locator('section[aria-labelledby="traditions-heading"] a').first();
@@ -55,18 +58,27 @@ test("browse catalogue, tradition, concept and a related concept; telemetry reac
   const stepTitle = (await firstStep.textContent())!.trim();
   await firstStep.click();
 
-  // Concept page: the shared KnowledgeSheet, its h1 focused on open; no breadcrumb, an "Up to" control instead.
+  // Concept page: the shared KnowledgeSheet, its h1 focused on open; no breadcrumb and no "Up to":
+  // Close in the sheet's action slot returns to the section view, as Close does in 3D (DR-021).
   const conceptTitle = page.getByRole("heading", { level: 1, name: stepTitle });
   await expect(conceptTitle).toBeVisible(SLOW);
   await expect(conceptTitle).toBeFocused();
   await expect(page.getByRole("navigation", { name: "breadcrumb" })).toHaveCount(0);
-  await expect(bar.getByRole("link", { name: "Up to Process Sequence" })).toBeVisible();
+  await expect(bar.getByRole("link", { name: /^Up to/ })).toHaveCount(0);
+  await expect(page.locator("[data-slot=sheet-action]").getByRole("link", { name: "Close" })).toHaveAttribute("href", /#section-process$/);
+  // The rail lists the section's concepts with this one marked "You are here".
+  await expect(page.getByRole("navigation", { name: "In This Section" }).locator("[aria-current=location]")).toContainText(stepTitle);
   const claims = page.getByRole("list", { name: "Statements" });
   await expect(claims.getByRole("listitem").first()).toBeVisible();
-  const citation = claims.getByRole("button", { name: /^Source:/ }).first();
+  // Numbered citation markers [n] after each claim (DR-022 Addendum A), collapsed until asked for;
+  // the record opens in place under the claim, and one reference list ends the sheet.
+  const citation = claims.getByRole("button", { name: /^Source \d+:/ }).first();
   await expect(citation).toHaveAttribute("aria-expanded", "false");
+  await expect(citation).toHaveText(/^\[\d+\]$/);
   await citation.click();
   await expect(citation).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator(`[id="${(await citation.getAttribute("aria-controls")) ?? ""}"]`)).toBeVisible();
+  await expect(page.locator("main [data-slot=knowledge-sheet]:visible").getByRole("region", { name: "References" })).toHaveCount(1);
   // The sequence pager carries the shared default label, as the 3D panel's.
   await expect(page.getByRole("navigation", { name: "Previous and next" })).toBeVisible();
 
@@ -75,6 +87,8 @@ test("browse catalogue, tradition, concept and a related concept; telemetry reac
   const layers = page.getByRole("tablist", { name: "Information layers" });
   await expect(layers.getByRole("tab", { name: "Overview" })).toHaveAttribute("aria-selected", "true");
   await conceptTitle.focus();
+  await page.keyboard.press("Tab");
+  await expect(page.locator("[data-slot=sheet-action]").getByRole("link", { name: "Close" })).toBeFocused();
   await page.keyboard.press("Tab");
   await expect(layers.getByRole("tab", { name: "Overview" })).toBeFocused();
   await page.keyboard.press("ArrowRight");

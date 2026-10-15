@@ -7,6 +7,8 @@
  * falls back to memory when storage is unavailable. Holds page ids and uuids only, never text.
  */
 
+import type { NavigationSource } from "@/features/telemetry/contracts";
+
 export type EntryVia = "navigation" | "link" | "search" | "guidance" | "start" | "resume";
 
 export interface VisitState {
@@ -14,17 +16,19 @@ export interface VisitState {
   lastTraditionId: string | null;
   currentPageId: string | null;
   pendingVia: EntryVia | null;
+  /** What the learner used to leave the last page (DR-021 navigation source), set with `pendingVia`. */
+  pendingSource?: NavigationSource | null;
 }
 
 export interface VisitStore {
   /** Records the entry and returns what it means for telemetry. */
-  enter(pageId: string, traditionId: string | null): { visitCount: number; via: EntryVia; fromId: string | null; crossedFrom: string | null };
-  /** The next page entry happens through `via` (set by a link click just before navigating). */
-  setPendingVia(via: EntryVia): void;
+  enter(pageId: string, traditionId: string | null): { visitCount: number; via: EntryVia; fromId: string | null; crossedFrom: string | null; source: NavigationSource | null };
+  /** The next page entry happens through `via`, from `source` (set by a link click just before navigating). */
+  setPendingVia(via: EntryVia, source?: NavigationSource): void;
   read(): VisitState;
 }
 
-const empty = (): VisitState => ({ visits: {}, lastTraditionId: null, currentPageId: null, pendingVia: null });
+const empty = (): VisitState => ({ visits: {}, lastTraditionId: null, currentPageId: null, pendingVia: null, pendingSource: null });
 
 export function createVisitStore(sessionId: string, storage: Pick<Storage, "getItem" | "setItem"> | null = safeSessionStorage()): VisitStore {
   const key = `ie-2d-visits:v1:${sessionId}`;
@@ -58,16 +62,18 @@ export function createVisitStore(sessionId: string, storage: Pick<Storage, "getI
       // A reload of the page the learner is on is a resumption, not a revisit.
       const visitCount = (s.visits[pageId] ?? 0) + (reload ? 0 : 1);
       const crossedFrom = traditionId && s.lastTraditionId && s.lastTraditionId !== traditionId ? s.lastTraditionId : null;
+      const source = first || reload ? null : (s.pendingSource ?? null);
       save({
         visits: { ...s.visits, [pageId]: visitCount },
         lastTraditionId: traditionId ?? s.lastTraditionId,
         currentPageId: pageId,
         pendingVia: null,
+        pendingSource: null,
       });
-      return { visitCount, via, fromId: first ? null : s.currentPageId, crossedFrom };
+      return { visitCount, via, fromId: first ? null : s.currentPageId, crossedFrom, source };
     },
-    setPendingVia(via) {
-      save({ ...load(), pendingVia: via });
+    setPendingVia(via, source) {
+      save({ ...load(), pendingVia: via, pendingSource: source ?? null });
     },
     read: () => load(),
   };

@@ -645,3 +645,106 @@ researchers' decisions:
 - **Paper:** Report the finish as part of the 3D materials, with the C2b results.
 
 > The project lead reviewed the research synthesis (`design-research/DESIGN-v2-proposal.md`) and its ten open questions, and approved the recommended answers, recorded in DR-021 to DR-023. Methodologist sign-off is still required before any participant data is collected.
+
+## DR-022 Addendum A: Citations as Quiet Numbered Markers That Expand in Place (Lead Decision; Proposed with DR-022)
+
+- **Context:** The lead asked whether the verbatim passage and the full reference must show under every claim, or whether numbered [1] links would do. The cognitive-load rule for the knowledge presentation ("make sure the knowledge presentation is not cognitive overload") also applies.
+- **Decision (the recommendation the lead adopted):**
+  - A quiet numbered marker [n] after each claim, with a 44 px hit area through padding.
+  - Activating it expands IN PLACE under the claim (a disclosure, not a jump): the locator or page, the labelled verbatim passage ("Verbatim from the source"), and "Open the source". Activating it again closes it.
+  - One deduplicated numbered reference list at the end of the KnowledgeSheet gives each source's full details once.
+  - No hover-only previews, and no jump-to-bottom anchors as the primary mechanism.
+  - Identical in both conditions (one shared component); `citation_opened` and `citation_closed` telemetry are unchanged.
+- **Consequence:** This replaces the per-claim full source line of DESIGN.md 9.9.
+- **Implementation (package 2D-C):** the shared `CitedClaim` renders the claim with its markers and the records they open. Both placements put `ReferenceList` in the KnowledgeSheet's `references` slot, after the field and before Related Concepts, built from the same claims. Choices made while building it:
+  1. **Numbering scope:** the claims of the concept view on screen (one concept at a time under LayerTabs), numbered in order of first citation, so the list always matches the visible markers.
+  2. **A lean record:** "Source n" with the short label and locator, the labelled verbatim passages and "Open the source". Title, publisher, kind, reliability and access date moved to the reference list, so they appear once.
+  3. **No links in the reference list:** the record already carries the link. Links in the list would add Tab stops between the claims and Related Concepts in both conditions.
+  4. **Hit area:** the marker's own 44 x 44 px box, with negative block margins so the 30 px reading line box is unchanged. The accessible name is "Source n: <short label>".
+  5. **Lean metadata:** the Status row is removed, because the notice strip already states the verification status. The sheet keeps Tradition, Category, Step and Local terms.
+- **Equivalence:** one shared component serves both conditions. Claim text, order and layers are unchanged, and so are the `citation_opened` / `citation_closed` events (sourceId, claimIndex, openMs). P1, P5, P11 and P13, and the new P33, measure it.
+
+## DR-022 Addendum B: How the Visual System and the Control Set Were Applied (2D/UI Track)
+
+- **Scope:** tokens, faces and type of DESIGN.md 4 and 5; the two-tone focus ring; the control set of DESIGN.md 9; the removal of every listed tell; the public, console, CMS, admin and study pages. Recorded in detail in `docs/research/design-process/modules/visual-system.md` ("Atlas: Visual System and Controls").
+- **Choices made while applying it** (each identical in both conditions, or outside the measured concept view):
+  1. **One focus rule for every theme.** The two tones are tokens (`--focus-outer`, `--focus-inner`), so high contrast needs no separate ring; controls that hide their native input draw the ring on the visible label.
+  2. **Retired names kept as aliases only where code outside this track reads them:** `--surface` is the paper; `--font-inter` and `--font-source-serif` resolve to Atkinson so the 3D lettering atlas letters in the one face until it reads `--font-atkinson`.
+  3. **Selects:** every raw `<select>` (and the CMS select skin) is the shared `NativeSelect`. The research study picker keeps its submit button, now labelled "Show study", with a readout of the full title, key and state; its options no longer repeat the key and state.
+  4. **Participant-facing choice:** the study-entry group became a radio list of 56 px option rows. It is shown before allocation, so it is identical for both allocations.
+  5. **Numbers** are text inputs with a numeric keyboard and a pattern; the range moved into the label; the server validates as before. **Dates** keep the native picker with a visible "Format: YYYY-MM-DD". **Files** use `FileInput`.
+  6. **Lean sheet metadata:** the eyebrow ("Material, Step 3 of 9") is removed. Step became a metadata row; the concept type is no longer shown in the sheet, because the category and the step carry the same orientation with less text. Order: Tradition, Category, Step, Local terms (Status was later removed, DR-022 Addendum A); the reading-progress bar follows the metadata. Shared component, so both conditions change together.
+  7. **Citation label:** "Author (year), locator", derived in the view layer with no middle dot.
+  8. **Option rows and alerts:** no left bars anywhere; a chosen study option is `--wash` with its check icon; the stall cue is the alert form with the heading "Hint" in both conditions.
+  9. **Public home:** the hero plate (a claim specimen beside the title) is removed, because the title-plus-buttons-plus-card hero is a stated tell; the traditions are an index of equal rows; the latest parity run is shown from the stored report only.
+  10. **Study flow pages** sit left-aligned in a 1280 px frame instead of a 40rem column centred on the page.
+  11. **The 2D navigation pages** (index, categories, comparisons, search, tradition pages) no longer show an eyebrow above their h1. These pages are outside the measured concept view, and the 3D museum has no page header to match.
+- **Equivalence:** no knowledge string, claim order, layer, timer, hint policy or telemetry event changed. Every change to a shared component applies to both conditions by construction; the parity tests in `tests/unit` (layers, layer parts, knowledge components, strings, import graph) pass.
+
+## DR-021 and DR-023 Addendum: Alignment With the Concept Note, Pathway B (Lead Decision)
+
+- **Context:** The lead asked whether the build still follows the concept note. Its §7 Pathway B says: "Social/live functions and unnecessary controls should be removed; the map may be minimised; interface instructions should disappear after onboarding; and information should be progressively disclosed." It also says: "The intended comparison is therefore not a 'fancy 3D museum' versus a plain webpage".
+- **Decisions:**
+  - **Study builds hide the "Mouse look" StudyBar button.** Free look stays on the L key and in Controls help; right-button look and drag-look need no interface element. The public demo keeps the button. This revises the earlier answer to the open question on "Mouse look" so that it follows §7.
+  - **The 3D gallery finish stays restrained** (DR-023): credible, never "fancy", and matched by the 2D polish of DR-022, released together.
+
+## DR-021 Addendum: How the Layout Was Built (2D/UI Track, Package 2D-B)
+
+- **Built as decided:** one `PlaceRail` for both conditions ("In This Section", "In This Room");
+  the sheet docked right through one shared width rule; Close in the sheet's action slot in both
+  (2D: a link to the section view; 3D: closes the panel); "Up to <parent>" removed; the 3D rail
+  collapsed by default, the 2D rail open by default from 1280 px; a drawer below 1280 px in both;
+  Mouse look hidden in study builds; the Plan default following `minimap`. Details and the
+  equivalence check: `modules/visual-system.md`, "Atlas Layout".
+- **One focus while reading:** the 2D index recedes while a concept is open (only the concept's own
+  tradition keeps its sections).
+- **Navigation source:** an optional `source` field on `page_entered`, `room_entered`,
+  `exhibit_selected` and `content_item_selected` (2D: rail, index, pager, link, close; 3D: rail,
+  plan, scene, keyboard, link, pager), so list use can be modelled per condition.
+- **Open:** the 2D index numbers the ten template sections while the 3D Plan numbers seven rooms per
+  wing, so P29's "section numbers equal room numbers" clause does not hold yet. Aligning them means
+  regrouping the 2D template to the wing groups (or the reverse), a protocol change for the lead and
+  the methodologist.
+
+## DR-020 Addendum: How the Study Photographs Are Ingested, Gated and Switched (2D/UI Track, Package 2D-D)
+
+- **Ingest:** `scripts/content/ingest-study-photos.ts` takes the three "proposed" images of
+  `content/review/media-proposals.json` (read only) and their 768 px derivatives in
+  `scripts/content/study-photos/` (the Machilipatnam Kalamkari one cropped at the left to remove the
+  paper tag). It uploads each through the media library service, links it as the `illustration` of
+  its concept after the claim that names the object (Ajrakh claim 5, Machilipatnam Kalamkari claim
+  1, Sanganeri claim 2) and submits it for review. It never verifies: a second curator does, in the
+  CMS (nobody verifies their own upload). Run it from the main checkout with
+  `--uploader <staff email>`; `--dry-run` checks the plan without writing.
+- **Metadata on every asset:** the proposal's title, caption and alt text; the credit
+  "© Victoria and Albert Museum, London", with "(cropped)" on the cropped one; the licence "V&A
+  non-commercial terms" linked to the terms page; the V&A record page as provenance; a display cap
+  of 768 px; a 60-month term counted from first publication; no public-plate flag, so a V&A image
+  can never appear on the home page or another public plate.
+- **First publication (migration 0017):** `first_published_on` is stamped once, on the day an asset
+  first becomes servable (verified, linked to a concept in a published release, licence valid).
+  The stamp runs on a verifying review, a link, a metadata edit and a release publication. The same
+  step sets `licence_expires_on` to the day before the fifth anniversary. The learner route refuses
+  a termed asset that has no stamp, so no photograph is shown before its term has started.
+- **Gate:** a photograph shows only when its anchor claim is verified. Claims carry no state of
+  their own (curators verify a concept's claims together), so the gate is the anchor concept's
+  state in the snapshot both conditions read: verified or published. All three anchor concepts are
+  under review or need evidence today, so no photograph is shown to learners yet.
+- **Switch:** the protocol setting `figures.photos` (default on) removes the photographs from both
+  conditions together. The read model, the 2D pages and the content parity engine apply it. The 3D
+  payload must pass the same value: one helper, `figureOptionsOf`, gives both conditions their
+  figure options.
+- **Assessment check (asked by the lead):** none of the three anchor concepts
+  (`ajrakh.historical_context.sindh-indus-origins`,
+  `machilipatnam-kalamkari.historical_context.persian-export-trade`,
+  `sanganeri.historical_context.eighteenth-century-records`) is an assessment item or a node of a
+  reference concept map. This was checked against the development database when the photographs
+  were ingested. It holds 106 assessment items (58 of them real), and every real assessment is a
+  questionnaire (SUS, UMUX-LITE, Cognitive Load, Physical Presence, Simulator Sickness). No
+  knowledge test or reference map names a photo concept. The check must be repeated when the
+  knowledge tests and reference maps are written. If a photo concept becomes an item, the paper
+  reports it, or the photographs are switched off for that study.
+- **Credit line:** "Photo: <credit>. Licence: <licence>", identical in both conditions (the middle
+  dot that joined them is gone).
+- **Paper:** report the three photo concepts by key, as above, with DR-020's note that all three
+  are context figures.

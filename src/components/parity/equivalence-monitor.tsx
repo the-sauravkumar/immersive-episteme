@@ -3,7 +3,7 @@
  * caller passes what `src/server/research/parity/summary.ts` read from the stored reports.
  *
  *  - Interface parity: a run line ("Interface parity run: commit abc123, 1280 x 800 light; 27 of
- *    27 checks pass") and, in the full variant, a booktabs table: Check, What Is Compared, 2D, 3D,
+ *    33 checks pass") and, in the full variant, a booktabs table: Check, What Is Compared, 2D, 3D,
  *    Delta, Tolerance, Runs, Status (icon plus "Pass", "Partial" or "Fail"). "Partial" means the
  *    measured parts passed but a part of the check was not measured; the parts are listed under the
  *    check's description, so an unmeasured part never reads as a pass. With no stored run it renders
@@ -39,7 +39,7 @@ export function ParityStatus({ passed, status, tone = "console", children }: { p
 }
 
 /**
- * "Interface parity run: commit abc123, 1280 x 800 light; 25 of 27 checks pass; 1 partly
+ * "Interface parity run: commit abc123, 1280 x 800 light; 31 of 33 checks pass; 1 partly
  * measured, 1 fails". Partial and failing checks are always named as such, never folded into a pass.
  */
 export function interfaceRunLine(s: InterfaceParitySummary): string {
@@ -55,7 +55,7 @@ function RunLine({ summary }: { summary: InterfaceParitySummary }) {
         {"."}
       </p>
       <p className="text-credit">
-        Run <span className="text-mono">{summary.runId}</span>
+        Run <span className="text-id">{summary.runId}</span>
         {summary.generatedAt ? (
           <>
             {" "}
@@ -151,20 +151,20 @@ export function ContentParity({ rows, number, tone = "console", studyHref }: { r
           <TableRow key={r.studyId}>
             <TableCell className="min-w-48 whitespace-normal">
               {studyHref ? (
-                <Link className="inline-flex min-h-11 items-center text-indigo underline underline-offset-[3px] hover:text-indigo-hover hover:decoration-2" href={studyHref(r.studyId)}>
+                <Link className="inline-flex min-h-11 items-center text-indigo underline underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2" href={studyHref(r.studyId)}>
                   {r.title}
                 </Link>
               ) : (
                 r.title
               )}
-              <span className="text-mono block text-ink-3">{r.slug}</span>
+              <span className="text-id block text-ink-3">{r.slug}</span>
             </TableCell>
             <TableCell>{r.latest?.snapshotLabel ?? "–"}</TableCell>
             <TableCell numeric className="whitespace-nowrap">
               {r.latest ? `${r.latest.passedChecks} of ${r.latest.checks}` : "–"}
             </TableCell>
             <TableCell numeric>{r.latest ? r.latest.criticalFailures : "–"}</TableCell>
-            <TableCell className="text-mono whitespace-nowrap">{r.latest ? r.latest.createdAt.replace("T", " ").slice(0, 16) : "–"}</TableCell>
+            <TableCell className="text-id whitespace-nowrap">{r.latest ? r.latest.createdAt.replace("T", " ").slice(0, 16) : "–"}</TableCell>
             <TableCell>
               <ParityStatus passed={r.latest ? r.latest.passed : null} tone={tone} />
             </TableCell>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { BLOCK_LINK, Empty, Mono, NativeSelect, SUMMARY } from "@/components/cms/bits";
+import { BLOCK_LINK, Empty, Mono, NativeSelect, Disclosure } from "@/components/cms/bits";
 import { ConsolePage } from "@/components/shell/gates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +52,7 @@ const STACK = {
   table: "max-sm:block max-sm:[&>caption]:block max-sm:[&>thead]:sr-only max-sm:[&>tbody]:block",
   row: "max-sm:flex max-sm:flex-col max-sm:gap-2 max-sm:py-4",
   cell: "max-sm:grid max-sm:h-auto max-sm:grid-cols-[5.5rem_minmax(0,1fr)] max-sm:items-baseline max-sm:gap-x-3 max-sm:p-0",
-  label: "text-dl-label sm:hidden",
+  label: "text-label sm:hidden",
 };
 
 function CellLabel({ children }: { children: string }) {
@@ -66,7 +66,7 @@ function CellLabel({ children }: { children: string }) {
 /** "2026-10-14 09:30:12": seconds kept, because the log orders events that can fall in one minute. */
 function When({ iso }: { iso: string }) {
   return (
-    <time dateTime={iso} className="text-mono whitespace-nowrap text-ink tabular-nums">
+    <time dateTime={iso} className="text-id whitespace-nowrap text-ink tabular-nums">
       {iso.slice(0, 19).replace("T", " ")}
     </time>
   );
@@ -81,19 +81,18 @@ function DataChange({ row }: { row: AuditRow }) {
   if (!parts.length) return null;
   const summary = parts.length === 2 ? "Before and after" : parts[0]!.label === "Before" ? "Before (removed state)" : "After (new state)";
   return (
-    <details className="group/data">
-      <summary className={SUMMARY}>{summary}</summary>
+    <Disclosure className="group/data" summary={<>{summary}</>}>
       <div className="mt-2 flex flex-col gap-3">
         {parts.map((p) => (
           <div key={p.label} className="flex min-w-0 flex-col gap-1">
-            <p className="text-dl-label">{p.label}</p>
-            <pre className="text-mono max-h-64 overflow-auto rounded-control border border-rule bg-sunk p-3 whitespace-pre-wrap text-ink [overflow-wrap:anywhere]">
+            <p className="text-label">{p.label}</p>
+            <pre className="text-id max-h-64 overflow-auto rounded-control border border-rule bg-sunk p-3 whitespace-pre-wrap text-ink [overflow-wrap:anywhere]">
               {JSON.stringify(p.value, null, 2)}
             </pre>
           </div>
         ))}
       </div>
-    </details>
+    </Disclosure>
   );
 }
 
@@ -109,7 +108,7 @@ async function AuditLog({ searchParams }: { searchParams: Promise<Record<string,
   return (
     <div className="flex flex-col gap-8">
       <form method="get" action="/admin/audit" aria-label="Filter the audit log" className="flex flex-col gap-4 border-b border-rule pb-6">
-        <p className="text-eyebrow">Filters</p>
+        <p className="text-label">Filters</p>
         <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className={field}>
             <Label htmlFor="f-action">Action starts with</Label>
@@ -136,11 +135,17 @@ async function AuditLog({ searchParams }: { searchParams: Promise<Record<string,
           </div>
           <div className={field}>
             <Label htmlFor="f-from">From (UTC date)</Label>
-            <Input id="f-from" name="from" type="date" defaultValue={filter.from ?? ""} />
+            <Input id="f-from" name="from" type="date" aria-describedby="f-from-hint" defaultValue={filter.from ?? ""} className="tabular-nums" />
+            <p id="f-from-hint" className="text-credit">
+              Format: YYYY-MM-DD
+            </p>
           </div>
           <div className={field}>
             <Label htmlFor="f-to">To (UTC date, inclusive)</Label>
-            <Input id="f-to" name="to" type="date" defaultValue={filter.to ?? ""} />
+            <Input id="f-to" name="to" type="date" aria-describedby="f-to-hint" defaultValue={filter.to ?? ""} className="tabular-nums" />
+            <p id="f-to-hint" className="text-credit">
+              Format: YYYY-MM-DD
+            </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -198,7 +203,7 @@ async function AuditLog({ searchParams }: { searchParams: Promise<Record<string,
                       {r.actorKind}
                       {r.actorName && r.actorId ? (
                         <>
-                          {" · "}
+                          {", "}
                           <Mono className="text-ink-3">{r.actorId}</Mono>
                         </>
                       ) : null}

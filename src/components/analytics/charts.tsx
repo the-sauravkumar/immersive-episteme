@@ -12,13 +12,13 @@
  *    no red/green pairs, no legends (direct labels instead, R-A13).
  *  - Encoding: 2D = --series-2d, circle marker, solid line; 3D = --series-3d, square marker,
  *    4-2 dashed line (R-A12). 2D is always first or left. Traditions are never colour-coded.
- *  - Style: Inter 12 --ink-3 axis labels (tabular), axis names Inter 14/500 --ink (two label
- *    levels, R-T18), 1 px --ink x axis, --grid y gridlines, plot area on --surface, no border,
+ *  - Style: Atkinson 13 --ink-3 axis labels (tabular), axis names Atkinson 15/600 --ink (two label
+ *    levels, R-T18), 1 px --ink x axis, --grid y gridlines, plot area on paper, no border,
  *    `animation: false`. No links inside a plot area.
  * Captions describe; they never use causal wording.
  */
 import type { EChartsCoreOption } from "echarts/core";
-import { ChevronRight, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import type { ReactNode, Ref } from "react";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 
 import { fixed, niceScale, orderByCondition, type ConditionKind, type NiceScale } from "./encoding";
 import { useEChart, type VizTheme } from "./use-echart";
+import { Disclosure } from "@/components/ui/disclosure";
 
 // ---------------------------------------------------------------------------------------------
 // Condition encoding
@@ -48,10 +49,10 @@ function valueAxis(t: VizTheme, name?: string, extra: Record<string, unknown> = 
     name,
     nameLocation: "middle",
     nameGap: 44,
-    nameTextStyle: { color: t.ink, fontSize: 14, fontWeight: 500 },
+    nameTextStyle: { color: t.ink, fontSize: 15, fontWeight: 600 },
     axisLine: { show: false },
     axisTick: { show: false },
-    axisLabel: { color: t.ink3, fontSize: 12 },
+    axisLabel: { color: t.ink3, fontSize: 13 },
     splitLine: { lineStyle: { color: t.grid, width: 1 } },
     ...extra,
   };
@@ -67,7 +68,7 @@ function scaleAxis(t: VizTheme, scale: NiceScale | null): Record<string, unknown
     min: scale.min,
     max: scale.max,
     interval: scale.interval,
-    axisLabel: { color: t.ink3, fontSize: 12, formatter: (v: number) => fixed(v, scale.decimals) },
+    axisLabel: { color: t.ink3, fontSize: 13, formatter: (v: number) => fixed(v, scale.decimals) },
   };
 }
 
@@ -75,7 +76,7 @@ function baseAxis(t: VizTheme, extra: Record<string, unknown> = {}) {
   return {
     axisLine: { show: true, lineStyle: { color: t.ink, width: 1 } },
     axisTick: { show: false },
-    axisLabel: { color: t.ink3, fontSize: 12 },
+    axisLabel: { color: t.ink3, fontSize: 13 },
     splitLine: { show: false },
     ...extra,
   };
@@ -214,13 +215,9 @@ export function CsvDataButton({ filename, spec, label = "Download CSV" }: { file
 /** "Data table" disclosure: 44 px summary, instant open (no transition). */
 export function DataDisclosure({ children, label = "Data table" }: { children: ReactNode; label?: string }) {
   return (
-    <details className="group/data min-w-0">
-      <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 font-sans text-[0.9375rem] leading-5 font-medium text-ink [&::-webkit-details-marker]:hidden">
-        <ChevronRight aria-hidden="true" className="size-5 shrink-0 stroke-[1.75] group-open/data:rotate-90" />
-        {label}
-      </summary>
+    <Disclosure className="min-w-0" summary={<>{label}</>}>
       <div className="mt-2 min-w-0">{children}</div>
-    </details>
+    </Disclosure>
   );
 }
 
@@ -354,7 +351,7 @@ function IntervalPanelChart({
         // Direct labels under each group (R-A13): labels only at the group centres 0..n-1.
         axisLabel: {
           color: t.ink,
-          fontSize: 12,
+          fontSize: 13,
           fontWeight: 500,
           lineHeight: 16,
           customValues: groups.map((_, i) => i),
@@ -423,7 +420,7 @@ function IntervalPanelChart({
     .join("; ");
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      {panel.title ? <p className="font-sans text-[0.875rem] leading-5 font-medium text-ink">{titleCase(panel.title)}</p> : null}
+      {panel.title ? <p className="font-sans text-[0.9375rem] leading-5 font-bold text-ink">{titleCase(panel.title)}</p> : null}
       <div style={{ height }} className="min-w-0 [&_text]:tabular-nums">
         <div ref={ref} role="img" aria-label={`${figure}${panel.title ? `, ${titleCase(panel.title)}` : ""}: ${values}.`} className="h-full w-full" />
       </div>
@@ -555,7 +552,7 @@ export function SlopeChart({
     (t): EChartsCoreOption => ({
       grid: grid(t, { left: 4, right: 104, top: 16, bottom: 4 }),
       tooltip: tooltip(t, { trigger: "item" }),
-      xAxis: { type: "category", data: [preLabel, postLabel], boundaryGap: false, ...baseAxis(t), axisLabel: { color: t.ink, fontSize: 12, fontWeight: 500 } },
+      xAxis: { type: "category", data: [preLabel, postLabel], boundaryGap: false, ...baseAxis(t), axisLabel: { color: t.ink, fontSize: 13, fontWeight: 600 } },
       yAxis: valueAxis(t, unit, scaleAxis(t, niceScale(ordered.flatMap((l) => [l.pre, l.post])))),
       series: [
         ...ordered.map((l) => ({
@@ -566,7 +563,7 @@ export function SlopeChart({
           symbolSize: 5,
           lineStyle: { color: seriesColour(t, l.kind), width: 1, type: dash(l.kind), opacity: 0.45 },
           itemStyle: { color: seriesColour(t, l.kind), opacity: 0.6 },
-          tooltip: { formatter: () => miniTable(`${l.condition} · ${l.id}`, [[preLabel, fixed(l.pre, digits)], [postLabel, fixed(l.post, digits)], ["Change", fixed(l.post - l.pre, digits)]]) },
+          tooltip: { formatter: () => miniTable(`${l.condition}, ${l.id}`, [[preLabel, fixed(l.pre, digits)], [postLabel, fixed(l.post, digits)], ["Change", fixed(l.post - l.pre, digits)]]) },
           z: 2,
         })),
         ...means
@@ -579,7 +576,7 @@ export function SlopeChart({
             symbolSize: 11,
             lineStyle: { color: seriesColour(t, m.kind), width: 2.5, type: dash(m.kind) },
             itemStyle: { color: seriesColour(t, m.kind), borderColor: t.ink, borderWidth: 1.5 },
-            endLabel: { show: true, formatter: `${m.name} mean`, color: t.ink, fontSize: 12, fontWeight: 500, distance: 8 },
+            endLabel: { show: true, formatter: `${m.name} mean`, color: t.ink, fontSize: 13, fontWeight: 600, distance: 8 },
             tooltip: { formatter: () => miniTable(`${m.name} mean (n = ${m.n})`, [[preLabel, fixed(m.pre, digits)], [postLabel, fixed(m.post, digits)]]) },
             z: 4,
           })),
@@ -643,7 +640,7 @@ export function CountBars({
     (t): EChartsCoreOption => ({
       grid: grid(t, { top: single ? 24 : 40 }),
       tooltip: tooltip(t, { trigger: "item" }),
-      xAxis: { type: "category", data: categories, ...baseAxis(t), axisLabel: { color: t.ink, fontSize: 12, fontWeight: 500, interval: 0, overflow: "break", width: 96 } },
+      xAxis: { type: "category", data: categories, ...baseAxis(t), axisLabel: { color: t.ink, fontSize: 13, fontWeight: 600, interval: 0, overflow: "break", width: 96 } },
       yAxis: valueAxis(t, unit, { min: 0, minInterval: 1 }),
       series: ordered.map((s) => ({
         type: "bar",
@@ -663,7 +660,7 @@ export function CountBars({
           show: true,
           position: "top",
           color: t.ink,
-          fontSize: 12,
+          fontSize: 13,
           lineHeight: 14,
           formatter: (p: { value: number }) => (single ? String(p.value) : `${p.value}\n${s.kind === "2d" ? "2D" : s.kind === "3d" ? "3D" : s.name}`),
         },
@@ -705,16 +702,16 @@ export function TransitionHeatmap({ number, title, howToRead, labels, counts }: 
   const max = Math.max(1, ...data.map((d) => d[2]));
   const ref = useEChart(
     (t): EChartsCoreOption => ({
-      tooltip: tooltip(t, { formatter: (p: { value: [number, number, number] }) => miniTable(`${shown[p.value[1]]} → ${shown[p.value[0]]}`, [["Transitions", String(p.value[2])]]) }),
+      tooltip: tooltip(t, { formatter: (p: { value: [number, number, number] }) => miniTable(`${shown[p.value[1]]} to ${shown[p.value[0]]}`, [["Transitions", String(p.value[2])]]) }),
       grid: { left: 8, right: 16, top: 8, bottom: 8, outerBoundsMode: "same", outerBoundsContain: "all", show: false },
-      xAxis: { type: "category", data: shown, name: "To", nameLocation: "middle", nameGap: 0, position: "top", ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.ink3, fontSize: 12, rotate: 45, interval: 0 }, nameTextStyle: { color: t.ink, fontSize: 14, fontWeight: 500 }, splitArea: { show: false } },
-      yAxis: { type: "category", data: shown, name: "From", inverse: true, ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.ink3, fontSize: 12, interval: 0 }, nameTextStyle: { color: t.ink, fontSize: 14, fontWeight: 500 } },
+      xAxis: { type: "category", data: shown, name: "To", nameLocation: "middle", nameGap: 0, position: "top", ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.ink3, fontSize: 13, rotate: 45, interval: 0 }, nameTextStyle: { color: t.ink, fontSize: 15, fontWeight: 600 }, splitArea: { show: false } },
+      yAxis: { type: "category", data: shown, name: "From", inverse: true, ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.ink3, fontSize: 13, interval: 0 }, nameTextStyle: { color: t.ink, fontSize: 15, fontWeight: 600 } },
       series: [
         {
           type: "heatmap",
           data: data.map(([x, y, v]) => {
             const step = rampStep(v, max);
-            return { value: [x, y, v], itemStyle: { color: t.ramp[step], borderColor: t.surface, borderWidth: 2 }, label: { show: true, color: t.rampLabel[step], fontSize: 12 } };
+            return { value: [x, y, v], itemStyle: { color: t.ramp[step], borderColor: t.surface, borderWidth: 2 }, label: { show: true, color: t.rampLabel[step], fontSize: 13 } };
           }),
           label: { show: true },
           emphasis: { disabled: true },
@@ -786,7 +783,7 @@ export function ValueHeatmap({
   const ref = useEChart(
     (t): EChartsCoreOption => ({
       tooltip: tooltip(t, {
-        formatter: (p: { data: { value: [number, number, number]; shown: string } }) => miniTable(`${rowLabels[p.data.value[1]]} · ${colLabels[p.data.value[0]]}`, [[valueName, p.data.shown]]),
+        formatter: (p: { data: { value: [number, number, number]; shown: string } }) => miniTable(`${rowLabels[p.data.value[1]]} to ${colLabels[p.data.value[0]]}`, [[valueName, p.data.shown]]),
       }),
       grid: { left: 8, right: 16, top: colName ? 28 : 8, bottom: 8, outerBoundsMode: "same", outerBoundsContain: "all", show: false },
       xAxis: {
@@ -798,17 +795,17 @@ export function ValueHeatmap({
         position: "top",
         ...baseAxis(t),
         axisLine: { show: false },
-        axisLabel: { color: t.ink, fontSize: 12, fontWeight: 500, interval: 0 },
-        nameTextStyle: { color: t.ink, fontSize: 14, fontWeight: 500 },
+        axisLabel: { color: t.ink, fontSize: 13, fontWeight: 600, interval: 0 },
+        nameTextStyle: { color: t.ink, fontSize: 15, fontWeight: 600 },
       },
-      yAxis: { type: "category", data: rowLabels, name: rowName, inverse: true, ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.ink, fontSize: 12, fontWeight: 500, interval: 0 }, nameTextStyle: { color: t.ink, fontSize: 14, fontWeight: 500 } },
+      yAxis: { type: "category", data: rowLabels, name: rowName, inverse: true, ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.ink, fontSize: 13, fontWeight: 600, interval: 0 }, nameTextStyle: { color: t.ink, fontSize: 15, fontWeight: 600 } },
       series: [
         {
           type: "heatmap",
           data: cells.map(([x, y, v]) => {
             const step = v === null ? 0 : rampStep(v, max);
             const shown = fixed(v, digits);
-            return { value: [x, y, v ?? 0], shown, itemStyle: { color: t.ramp[step], borderColor: t.surface, borderWidth: 2 }, label: { show: true, color: t.rampLabel[step], fontSize: 12, formatter: () => shown } };
+            return { value: [x, y, v ?? 0], shown, itemStyle: { color: t.ramp[step], borderColor: t.surface, borderWidth: 2 }, label: { show: true, color: t.rampLabel[step], fontSize: 13, formatter: () => shown } };
           }),
           emphasis: { disabled: true },
         },
@@ -851,8 +848,8 @@ export function InteractionTimeline({ number, title, points, kind = "other" }: {
     (t): EChartsCoreOption => ({
       tooltip: tooltip(t, { formatter: (p: { data: { label: string; value: [number, number] } }) => miniTable(p.data.label, [["Seconds", fixed(p.data.value[0], 1)]]) }),
       grid: grid(t, { bottom: 32 }),
-      xAxis: { type: "value", name: "Seconds since the first event", nameLocation: "middle", nameGap: 28, ...baseAxis(t), nameTextStyle: { color: t.ink, fontSize: 14, fontWeight: 500 } },
-      yAxis: { type: "category", data: lanes, ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.ink3, fontSize: 12, interval: 0 }, splitLine: { show: true, lineStyle: { color: t.grid } } },
+      xAxis: { type: "value", name: "Seconds since the first event", nameLocation: "middle", nameGap: 28, ...baseAxis(t), nameTextStyle: { color: t.ink, fontSize: 15, fontWeight: 600 } },
+      yAxis: { type: "category", data: lanes, ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.ink3, fontSize: 13, interval: 0 }, splitLine: { show: true, lineStyle: { color: t.grid } } },
       series: [
         {
           type: "scatter",

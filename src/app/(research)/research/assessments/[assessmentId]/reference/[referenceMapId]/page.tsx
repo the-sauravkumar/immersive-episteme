@@ -1,4 +1,4 @@
-import { ChevronRight, CircleAlert } from "lucide-react";
+import { CircleAlert } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -16,6 +16,8 @@ import { requirePermission } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 
 import { DemoBadge, Empty, LINK_44, Section, StatRow, SummaryList } from "../../../../_components/common";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Disclosure } from "@/components/ui/disclosure";
 
 export const metadata: Metadata = { title: "Reference map" };
 
@@ -64,7 +66,7 @@ async function Workspace({ params }: { params: Promise<{ assessmentId: string; r
     <>
       <p className="mb-4">
         <Link href={`/research/assessments/${assessmentId}`} className={LINK_44}>
-          <span aria-hidden="true">←&nbsp;</span>Back to the assessment
+          Back to the assessment
         </Link>
       </p>
       <SummaryList
@@ -181,31 +183,27 @@ async function Workspace({ params }: { params: Promise<{ assessmentId: string; r
                     </div>
                     <span className="text-credit tabular-nums">
                       Proposed by {e.support} of {ws.consensus!.raterCount}, expected by {e.expectedSupport}; majority: {e.majorityDecision}
-                      {e.decidedBy === "adjudication" ? ` · adjudicated${e.adjudication?.note ? `: ${e.adjudication.note}` : ""}` : ""}
+                      {e.decidedBy === "adjudication" ? `; adjudicated${e.adjudication?.note ? `: ${e.adjudication.note}` : ""}` : ""}
                     </span>
                     {open ? (
-                      <details open={e.decision === "disputed"} className="group/adj min-w-0">
-                        <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 font-sans text-[0.9375rem] leading-5 font-medium text-ink [&::-webkit-details-marker]:hidden">
-                          <ChevronRight aria-hidden="true" className="size-5 shrink-0 stroke-[1.75] group-open/adj:rotate-90" />
-                          {e.decision === "disputed" ? "Adjudication decision" : "Override the majority decision"}
-                        </summary>
+                      <Disclosure defaultOpen={e.decision === "disputed"} className="min-w-0" summary={<>{e.decision === "disputed" ? "Adjudication decision" : "Override the majority decision"}</>}>
                         <ActionForm action={adjudicateAction.bind(null, referenceMapId)} submitLabel="Record decision" className="mt-2 flex flex-col gap-4 sm:max-w-xl">
                           <input type="hidden" name="key" value={e.key} />
                           <Field label="Decision">
-                            <select name="decision" required className={fieldClass} defaultValue={e.adjudication?.decision ?? ""}>
+                            <NativeSelect name="decision" required defaultValue={e.adjudication?.decision ?? ""}>
                               <option value="" disabled>
                                 Choose…
                               </option>
                               <option value="expected">Expected</option>
                               <option value="optional">Optional</option>
                               <option value="excluded">Exclude</option>
-                            </select>
+                            </NativeSelect>
                           </Field>
                           <Field label="Reason">
                             <textarea name="note" rows={2} maxLength={2000} defaultValue={e.adjudication?.note ?? ""} className={fieldClass} />
                           </Field>
                         </ActionForm>
-                      </details>
+                      </Disclosure>
                     ) : null}
                   </li>
                 ))}

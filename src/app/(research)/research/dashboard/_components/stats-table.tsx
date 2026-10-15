@@ -83,9 +83,9 @@ export function StatsTable({ rows, conditions, digits = 3, caption, number }: { 
                   {i === 0 ? (
                     <span className="flex flex-col gap-0.5">
                       <span className="font-medium">{METRIC_BY_KEY.get(m.key)?.label ?? m.key}</span>
-                      <span className="text-mono text-ink-3 [overflow-wrap:break-word]">
-                        {breakableKey(m.key)} v{m.version} · {metricRole(m.key)}
-                        {m.label ? ` · ${m.label}` : ""}
+                      <span className="text-id text-ink-3 [overflow-wrap:break-word]">
+                        {breakableKey(m.key)} v{m.version}, {metricRole(m.key)}
+                        {m.label ? `, ${m.label}` : ""}
                       </span>
                     </span>
                   ) : null}

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { ShieldX } from "lucide-react";
 
 import { SignOutButton } from "@/components/shell/sign-out-button";
 import { Button } from "@/components/ui/button";
@@ -9,14 +8,13 @@ export const metadata: Metadata = { title: "Not Allowed", robots: { index: false
 
 /**
  * Target of requirePermission() when a signed-in staff member lacks the permission. The
- * state-message layout (DESIGN.md 11.4): an outline icon, a Source Serif h1, one sentence and one
+ * state-message layout (DESIGN.md 10.1, DR-022): no hero icon, the h1, one sentence and one
  * 44 px primary action (/console opens the first page this account's roles allow), with Sign out
  * as the secondary action.
  */
 export default function ForbiddenPage() {
   return (
-    <section aria-labelledby="forbidden-title" className="mx-auto flex w-full max-w-[40rem] flex-col items-start gap-4 py-4">
-      <ShieldX aria-hidden="true" strokeWidth={1.5} className="size-8 text-ink" />
+    <section aria-labelledby="forbidden-title" className="flex w-full max-w-[40rem] flex-col items-start gap-4 py-4">
       <h1 id="forbidden-title" className="text-title text-ink">
         {titleCase("You do not have access to this page")}
       </h1>

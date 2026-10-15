@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 /** A text link in study pages: indigo, underlined (never colour alone, R-A4), 44 px tall. */
 export const STUDY_LINK_CLASS =
-  "inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[3px] hover:text-indigo-hover hover:decoration-2";
+  "inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2";
 
 /**
  * Every in-session page offers withdrawal (spec: withdrawal at any point). A plain 44 px text

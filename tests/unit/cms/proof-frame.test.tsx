@@ -57,13 +57,12 @@ describe("ProofFrame: one sheet, two placements", () => {
     // The proof never takes focus when the editor opens.
     expect(document.activeElement).toBe(before);
 
-    const viewport = () => container.querySelector<HTMLElement>("[data-slot=proof-viewport]:not([hidden])")!;
-    const visible = () => [...container.querySelectorAll<HTMLElement>("[data-slot=proof-viewport]")].find((v) => v.closest("[role=tabpanel]:not([hidden])"))!;
-    const page = visible() ?? viewport();
+    const visible = () => container.querySelector<HTMLElement>("[data-slot=proof-viewport]")!;
+    const page = visible();
     expect(page.dataset.placement).toBe("page");
     const pageSheet = normalise(page.innerHTML);
 
-    await user.click(screen.getByRole("tab", { name: "3D panel" }));
+    await user.click(screen.getByRole("radio", { name: "3D panel" }));
     const panel = visible();
     expect(panel.dataset.placement).toBe("panel");
     expect(panel).toHaveAttribute("role", "region");

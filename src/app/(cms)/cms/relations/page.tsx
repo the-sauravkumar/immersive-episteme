@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { ActionForm } from "@/components/cms/action-form";
-import { Empty, NativeSelect, one, Section, StateBadge, STATE_LABELS, type SearchParams, ROW_LINK, SUMMARY } from "@/components/cms/bits";
+import { Empty, NativeSelect, one, Section, StateBadge, STATE_LABELS, type SearchParams, ROW_LINK, Disclosure } from "@/components/cms/bits";
 import { GraphWorkspace } from "@/components/cms/graph-workspace";
 import { HistoryList } from "@/components/cms/history-list";
 import { RelationshipForm } from "@/components/cms/relationship-form";
@@ -93,8 +93,8 @@ async function Relations({ searchParams }: { searchParams: Promise<SearchParams>
           </NativeSelect>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="g-depth">Depth</Label>
-          <Input id="g-depth" name="depth" type="number" min={1} max={4} defaultValue={depth} className="w-20" />
+          <Label htmlFor="g-depth">Depth (1 to 4)</Label>
+          <Input id="g-depth" name="depth" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={depth} className="w-20" />
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="g-type">Relationship type</Label>
@@ -185,16 +185,15 @@ async function Relations({ searchParams }: { searchParams: Promise<SearchParams>
         {integrity.issues.length === 0 ? (
           <Empty>No errors or warnings.</Empty>
         ) : (
-          <details>
-            <summary className={SUMMARY}>Show {integrity.issues.length} error(s) and warning(s)</summary>
+          <Disclosure summary={<>Show {integrity.issues.length} error(s) and warning(s)</>}>
             <ul className="mt-2 flex flex-col gap-1 text-body">
               {integrity.issues.map((i, n) => (
                 <li key={n}>
-                  <span className={i.severity === "error" ? "font-medium text-danger" : "text-ink-3"}>{i.severity}</span> <code className="text-mono">{i.code}</code> {i.message}
+                  <span className={i.severity === "error" ? "font-medium text-danger" : "text-ink-3"}>{i.severity}</span> <code className="text-id">{i.code}</code> {i.message}
                 </li>
               ))}
             </ul>
-          </details>
+          </Disclosure>
         )}
       </Section>
     </div>
@@ -230,7 +229,7 @@ async function EdgePanel({
             <ul className="flex flex-col gap-1 text-body">
               {issues.map((i, n) => (
                 <li key={n}>
-                  <span className={i.severity === "error" ? "font-medium text-danger" : "text-ink-3"}>{i.severity}</span> <code className="text-mono">{i.code}</code> {i.message}
+                  <span className={i.severity === "error" ? "font-medium text-danger" : "text-ink-3"}>{i.severity}</span> <code className="text-id">{i.code}</code> {i.message}
                 </li>
               ))}
             </ul>

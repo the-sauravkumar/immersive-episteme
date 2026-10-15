@@ -60,7 +60,7 @@ const ITEM_KIND_LABEL: Record<string, string> = {
 
 /** A JSON block: mono on --sunk, wrapping, never widening the page. */
 function JsonBlock({ value }: { value: unknown }) {
-  return <pre className="text-mono max-h-80 overflow-auto bg-sunk p-3 whitespace-pre-wrap [overflow-wrap:anywhere]">{JSON.stringify(value, null, 2)}</pre>;
+  return <pre className="text-id max-h-80 overflow-auto bg-sunk p-3 whitespace-pre-wrap [overflow-wrap:anywhere]">{JSON.stringify(value, null, 2)}</pre>;
 }
 
 async function Detail({ params }: { params: Promise<{ assessmentId: string }> }) {
@@ -90,14 +90,14 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
               </span>
             ),
           },
-          { label: "Code", value: <span className="text-mono">{a.code}</span> },
+          { label: "Code", value: <span className="text-id">{a.code}</span> },
           { label: "Version", value: <span className="tabular-nums">v{a.version}</span> },
           { label: "Kind", value: KIND_LABEL[a.kind] ?? a.kind },
-          { label: "Published (UTC)", value: a.lockedAt ? <span className="text-mono">{a.lockedAt.toISOString().slice(0, 10)}</span> : "Not published" },
+          { label: "Published (UTC)", value: a.lockedAt ? <span className="text-id">{a.lockedAt.toISOString().slice(0, 10)}</span> : "Not published" },
         ]}
       />
       <nav aria-label="Versions" className="mb-6 flex flex-wrap items-center gap-x-1 border-b border-rule">
-        <span className="text-dl-label mr-3">Versions</span>
+        <span className="text-label mr-3">Versions</span>
         {a.versions.map((v) =>
           v.id === a.id ? (
             <span key={v.id} aria-current="page" className="inline-flex min-h-11 items-center border-b-[3px] border-indigo px-3 font-sans text-[0.9375rem] leading-5 font-medium text-ink tabular-nums">
@@ -143,7 +143,7 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
             </label>
             {a.kind === "reconstruction" ? (
               <Field label="Concept-map scoring configuration (JSON)" hint="Parameters of docs/research/concept-map-scoring.md. Stored resolved, and copied into every score.">
-                <textarea name="scoring" rows={12} defaultValue={JSON.stringify(scoring, null, 2)} className={`${fieldClass} font-mono text-[0.875rem]`} />
+                <textarea name="scoring" rows={12} defaultValue={JSON.stringify(scoring, null, 2)} className={fieldClass} />
               </Field>
             ) : null}
           </ActionForm>
@@ -170,8 +170,8 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
                   <div className="flex min-w-0 flex-col gap-1">
                     {/* Items are numbered from 1 in the order participants see them; the stored (zero-based) position is on the key line. */}
                     <h3 className="text-h3 text-ink tabular-nums">{titleCase(`Item ${index + 1}: ${ITEM_KIND_LABEL[item.kind] ?? item.kind}`)}</h3>
-                    <p className="text-mono break-all text-ink-3">
-                      {item.itemKey} · position {item.position}
+                    <p className="text-id break-all text-ink-3">
+                      {item.itemKey}, position {item.position}
                     </p>
                   </div>
                   {draft ? <ActionButton action={deleteItemAction.bind(null, a.id, item.id)} label="Delete item" variant="destructive" confirm="Delete this item?" /> : null}
@@ -218,8 +218,8 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
                   <CardHeader>
                     <CardEyebrow>Free-text item</CardEyebrow>
                     <h3 className="text-h3 text-ink tabular-nums">{titleCase(`Rubrics for item ${a.items.findIndex((x) => x.id === item.id) + 1}`)}</h3>
-                    <p className="text-mono break-all text-ink-3">
-                      {item.itemKey} · position {item.position}
+                    <p className="text-id break-all text-ink-3">
+                      {item.itemKey}, position {item.position}
                     </p>
                   </CardHeader>
                   <CardContent className="flex flex-col gap-6">
@@ -250,7 +250,7 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
                     ))}
                     <ActionForm action={createRubricAction.bind(null, a.id, item.id)} submitLabel="Create rubric version" resetOnSuccess className="flex flex-col gap-4 border-t border-rule pt-4">
                       <Field label="Levels" hint="One per line as 'value | label | descriptor', e.g. '2 | Full | Explains the mechanism completely'.">
-                        <textarea name="levels" required rows={4} className={`${fieldClass} font-mono text-[0.875rem]`} />
+                        <textarea name="levels" required rows={4} className={fieldClass} />
                       </Field>
                     </ActionForm>
                   </CardContent>

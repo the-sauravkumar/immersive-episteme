@@ -4,8 +4,8 @@ import { extendTailwindMerge } from "tailwind-merge";
 /**
  * The Apparatus type tokens (DESIGN.md 5.2) are `@utility` classes in globals.css that set
  * font family, size, line height, weight and sometimes colour together. tailwind-merge would
- * otherwise read `text-eyebrow` as a text colour and drop it when a colour class follows
- * (`cn("text-eyebrow", "text-ink")` -> "text-ink"). They form their own group: two type tokens
+ * otherwise read `text-label` as a text colour and drop it when a colour class follows
+ * (`cn("text-label", "text-ink")` -> "text-ink"). They form their own group: two type tokens
  * conflict with each other and with nothing else.
  */
 export const TYPE_TOKENS = [

@@ -154,8 +154,8 @@ export function AssetMetadataFields({
         )}
       </Row>
 
-      <fieldset className="flex min-w-0 flex-col gap-4 border-t-2 border-ink pt-3 md:col-span-2">
-        <legend className="text-eyebrow float-left mb-1 w-full">Licence</legend>
+      <fieldset className="flex min-w-0 flex-col gap-4 border-t border-rule-strong pt-3 md:col-span-2">
+        <legend className="text-label float-left mb-1 w-full">Licence</legend>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-4 md:grid-cols-2">
           <Row label="Licence" name="licence" required hint="e.g. CC BY-SA 4.0, or the permission under which it is used.">
             {(id, d) => <Input id={id} name="licence" required maxLength={200} aria-describedby={d} defaultValue={defaults.licence ?? ""} />}
@@ -164,9 +164,9 @@ export function AssetMetadataFields({
             {(id) => <Input id={id} name="licenceUrl" type="url" inputMode="url" defaultValue={defaults.licenceUrl ?? ""} />}
           </Row>
           <Row label="Max pixels (long edge)" name="maxPixels" hint={`The longest side the licence allows on screen; empty when it sets none. Study figures are shown at ${STUDY_FIGURE_CAP} px at most.`}>
-            {(id, d) => <Input id={id} name="maxPixels" type="number" inputMode="numeric" min={1} max={100000} step={1} aria-describedby={d} defaultValue={defaults.maxPixels ?? ""} className="tabular-nums" />}
+            {(id, d) => <Input id={id} name="maxPixels" type="text" inputMode="numeric" pattern="[0-9]*" aria-describedby={d} defaultValue={defaults.maxPixels ?? ""} className="tabular-nums" />}
           </Row>
-          <Row label="Licence expiry" name="licenceExpiresOn" hint="The last day the licence permits use; empty when it does not expire. Expired figures are no longer served.">
+          <Row label="Licence expiry" name="licenceExpiresOn" hint="Format: YYYY-MM-DD. The last day the licence permits use; empty when it does not expire. Expired figures are no longer served.">
             {(id, d) => <Input id={id} name="licenceExpiresOn" type="date" aria-describedby={d} defaultValue={defaults.licenceExpiresOn ?? ""} className="tabular-nums" />}
           </Row>
         </div>
@@ -178,8 +178,8 @@ export function AssetMetadataFields({
         ) : null}
       </fieldset>
 
-      <fieldset className="flex min-w-0 flex-col gap-4 border-t-2 border-ink pt-3 md:col-span-2">
-        <legend className="text-eyebrow float-left mb-1 w-full">Provenance (required)</legend>
+      <fieldset className="flex min-w-0 flex-col gap-4 border-t border-rule-strong pt-3 md:col-span-2">
+        <legend className="text-label float-left mb-1 w-full">Provenance (required)</legend>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-4 md:grid-cols-2">
           <Row label="Provenance kind" name="provenanceKind" required className="md:col-span-2">
             {(id) => (

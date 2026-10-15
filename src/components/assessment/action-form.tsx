@@ -6,7 +6,7 @@
  * with an icon and a word, never colour alone (DESIGN.md 9.5, R-A4).
  *
  * `fieldClass` is the 9.5 input style for native inputs, selects and textareas: at least 44 px
- * tall, 1 px --rule-strong border, 3 px radius, --surface fill, Inter 16 px (no iOS zoom).
+ * tall, 1 px --rule-strong border, 4 px radius, paper fill, Atkinson 16 px (no iOS zoom).
  */
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -16,11 +16,11 @@ import { Button } from "@/components/ui/button";
 import type { ActionResult } from "@/server/assessment/research-actions";
 
 export const fieldClass =
-  "min-h-11 w-full min-w-0 rounded-control border border-rule-strong bg-surface px-3 py-[9px] font-sans text-base leading-6 text-ink placeholder:text-ink-3 disabled:cursor-not-allowed disabled:border-rule disabled:bg-sunk disabled:text-ink-3 aria-invalid:border-danger";
+  "min-h-11 w-full min-w-0 rounded-control border border-rule-strong bg-ground px-3 py-[9px] font-sans text-base leading-6 text-ink placeholder:text-ink-3 disabled:cursor-not-allowed disabled:border-rule disabled:bg-sunk disabled:text-ink-3 aria-invalid:border-danger";
 
 /** A full-row 44 px label around a 20 px checkbox or radio (DESIGN.md 9.5). */
 export const checkRowClass = "flex min-h-11 cursor-pointer items-center gap-3 font-sans text-[0.9375rem] leading-5 text-ink";
-export const checkBoxClass = "size-5 shrink-0 accent-indigo";
+export const checkBoxClass = "ie-check";
 
 function Outcome({ result }: { result: ActionResult | null }) {
   return (
@@ -122,11 +122,11 @@ export function ActionButton({
   );
 }
 
-/** Label above (Inter 14/500), the control, then help text in `text-credit` (DESIGN.md 9.5). */
+/** Label above (Atkinson 15/700), the control, then help text in `text-credit` (DESIGN.md 9.5). */
 export function Field({ label, hint, children, className }: { label: string; hint?: string; children: ReactNode; className?: string }) {
   return (
     <label className={["flex min-w-0 flex-col gap-1.5", className].filter(Boolean).join(" ")}>
-      <span className="font-sans text-[0.875rem] leading-5 font-medium text-ink">{label}</span>
+      <span className="font-sans text-[0.9375rem] leading-5 font-bold text-ink">{label}</span>
       {children}
       {hint ? <span className="text-credit">{hint}</span> : null}
     </label>

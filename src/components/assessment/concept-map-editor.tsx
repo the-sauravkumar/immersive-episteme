@@ -188,7 +188,7 @@ export function ConceptMapEditor({
           <p
             role="status"
             aria-live="polite"
-            className={status === "error" ? "inline-flex items-start gap-2 font-sans text-sm leading-5 font-medium text-danger" : "text-source"}
+            className={status === "error" ? "inline-flex items-start gap-2 font-sans text-[0.9375rem] leading-5 font-semibold text-danger" : "text-source"}
           >
             {status === "error" ? <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 stroke-2" /> : null}
             {statusText}

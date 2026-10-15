@@ -1,4 +1,3 @@
-import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -14,8 +13,10 @@ import { listParityReports } from "@/server/research/parity/store";
 import { assessmentOptions, getStudy, pinOptions, snapshotTraditions, studyHistory, type StudyDetail } from "@/server/research/studies";
 
 import { ActionForm } from "../../_components/action-form";
-import { CHECK_BOX, CHECK_ROW, DemoBadge, Empty, FieldLabel, FIELD_LABEL, LINK_44, Notice, PublishedBadge, Section, SELECT, StatusBadge, SummaryList, TEXTAREA, Timestamp } from "../../_components/common";
+import { CHECK_BOX, CHECK_ROW, DemoBadge, Empty, FieldLabel, FIELD_LABEL, LINK_44, Notice, PublishedBadge, Section, StatusBadge, SummaryList, TEXTAREA, Timestamp } from "../../_components/common";
 import { activateStudyAction, closeStudyAction, newVersionAction, runParityAction, setBatteryAction, updateStudyAction } from "../../actions";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Disclosure } from "@/components/ui/disclosure";
 
 export const metadata: Metadata = { title: "Study" };
 
@@ -66,7 +67,7 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
               </span>
             ),
           },
-          { label: "Slug", value: <span className="text-mono">{study.slug}</span> },
+          { label: "Slug", value: <span className="text-id">{study.slug}</span> },
           { label: "Status", value: <StatusBadge status={study.status} /> },
           { label: "Protocol version", value: <span className="tabular-nums">{study.protocolVersion}</span> },
           { label: "Design", value: DESIGN_LABEL[study.design] ?? study.design },
@@ -103,9 +104,9 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
           <TableBody>
             {study.conditions.map((c) => (
               <TableRow key={c.id}>
-                <TableCell className="text-mono">{c.code}</TableCell>
+                <TableCell className="text-id">{c.code}</TableCell>
                 <TableCell>{c.label}</TableCell>
-                <TableCell className="text-mono">{c.interface}</TableCell>
+                <TableCell className="text-id">{c.interface}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -152,13 +153,9 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
                 </span>
                 {h.reason ? <span className="text-body text-ink-2">{h.reason}</span> : null}
                 {h.before !== null || h.after !== null ? (
-                  <details className="group/change min-w-0">
-                    <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-2 font-sans text-[0.9375rem] leading-5 font-medium text-ink [&::-webkit-details-marker]:hidden">
-                      <ChevronRight aria-hidden="true" className="size-5 shrink-0 stroke-[1.75] group-open/change:rotate-90" />
-                      Change
-                    </summary>
-                    <pre className="text-mono mt-1 max-h-64 overflow-auto bg-sunk p-3 whitespace-pre-wrap [overflow-wrap:anywhere]">{JSON.stringify({ before: h.before, after: h.after }, null, 2)}</pre>
-                  </details>
+                  <Disclosure className="min-w-0" summary={<>Change</>}>
+                    <pre className="text-id mt-1 max-h-64 overflow-auto bg-sunk p-3 whitespace-pre-wrap [overflow-wrap:anywhere]">{JSON.stringify({ before: h.before, after: h.after }, null, 2)}</pre>
+                  </Disclosure>
                 ) : null}
               </li>
             ))}
@@ -243,30 +240,30 @@ function ConfigForm({
         <textarea name="description" rows={2} defaultValue={study.description ?? ""} className={TEXTAREA} />
       </FieldLabel>
       <FieldLabel label="Design">
-        <select name="design" defaultValue={study.design} className={SELECT}>
+        <NativeSelect name="design" defaultValue={study.design}>
           <option value="between">Between subjects</option>
           <option value="within">Within subjects</option>
-        </select>
+        </NativeSelect>
       </FieldLabel>
       <FieldLabel label="Content snapshot (release)">
-        <select name="snapshotId" defaultValue={study.snapshotId ?? ""} className={SELECT}>
+        <NativeSelect name="snapshotId" defaultValue={study.snapshotId ?? ""}>
           <option value="">None</option>
           {pins.snapshots.map((s) => (
             <option key={s.id} value={s.id}>
               {s.versionLabel} ({s.kind}, {s.status})
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FieldLabel>
       <FieldLabel label="Spatial manifest" className="md:col-span-2" hint="Manifests compiled from the selected snapshot. Save after changing the snapshot to refresh this list.">
-        <select name="manifestId" defaultValue={study.manifestId ?? ""} className={SELECT}>
+        <NativeSelect name="manifestId" defaultValue={study.manifestId ?? ""}>
           <option value="">None</option>
           {manifests.map((m) => (
             <option key={m.id} value={m.id}>
               {m.traditions.join(", ")} ({m.status}, compiler {m.compilerVersion})
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FieldLabel>
       <fieldset className="flex min-w-0 flex-col gap-1 md:col-span-2">
         <legend className={FIELD_LABEL}>Traditions</legend>
@@ -281,58 +278,58 @@ function ConfigForm({
         </div>
       </fieldset>
       <FieldLabel label="Allocation algorithm">
-        <select name="allocationAlgorithm" defaultValue={c.allocation.algorithm} className={SELECT}>
+        <NativeSelect name="allocationAlgorithm" defaultValue={c.allocation.algorithm}>
           {ALLOCATION.map((a) => (
             <option key={a} value={a}>
               {words(a)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FieldLabel>
       <FieldLabel label="Block size">
-        <Input name="blockSize" type="number" min={1} defaultValue={c.allocation.blockSize ?? ""} />
+        <Input name="blockSize" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={c.allocation.blockSize ?? ""} />
       </FieldLabel>
       <FieldLabel label="Strata" hint="Comma-separated.">
         <Input name="strata" defaultValue={c.allocation.strata.join(", ")} />
       </FieldLabel>
       <FieldLabel label="Exposure">
-        <select name="exposureMode" defaultValue={c.exposure.mode} className={SELECT}>
+        <NativeSelect name="exposureMode" defaultValue={c.exposure.mode}>
           <option value="fixed_time">Fixed time (equal for both conditions)</option>
           <option value="self_paced">Self-paced</option>
-        </select>
+        </NativeSelect>
       </FieldLabel>
       <FieldLabel label="Exposure (min)">
-        <Input name="exposureMinutes" type="number" min={1} defaultValue={c.exposure.minutes ?? ""} />
+        <Input name="exposureMinutes" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={c.exposure.minutes ?? ""} />
       </FieldLabel>
       <FieldLabel label="Guidance policy">
-        <select name="guidancePolicy" defaultValue={c.guidance.policy} className={SELECT}>
+        <NativeSelect name="guidancePolicy" defaultValue={c.guidance.policy}>
           {GUIDANCE.map((g) => (
             <option key={g} value={g}>
               {words(g)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FieldLabel>
       <FieldLabel label="Mini-map (3D)">
-        <select name="minimap" defaultValue={c.minimap} className={SELECT}>
+        <NativeSelect name="minimap" defaultValue={c.minimap}>
           {["toggle", "on", "off"].map((m) => (
             <option key={m} value={m}>
               {words(m)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FieldLabel>
       <FieldLabel label="WebGL failure policy">
-        <select name="webglFailurePolicy" defaultValue={c.webglFailurePolicy} className={SELECT}>
+        <NativeSelect name="webglFailurePolicy" defaultValue={c.webglFailurePolicy}>
           {["retry", "exclude", "reassign"].map((m) => (
             <option key={m} value={m}>
               {words(m)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FieldLabel>
       <FieldLabel label="Data retention (days)">
-        <Input name="retentionDays" type="number" min={1} defaultValue={c.retentionDays ?? ""} />
+        <Input name="retentionDays" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={c.retentionDays ?? ""} />
       </FieldLabel>
       <FieldLabel label="Consent version">
         <Input name="consentVersion" maxLength={64} defaultValue={c.consentVersion ?? ""} />
@@ -407,24 +404,24 @@ function BatteryForm({ study, assessments, disabled }: { study: StudyDetail; ass
               </TableCell>
               <TableCell className="min-w-56 whitespace-normal">
                 <span className="font-medium">{a.title}</span>
-                <span className="text-mono block text-ink-3">
-                  {a.code} v{a.version} · {a.kind}
+                <span className="text-id block text-ink-3">
+                  {a.code} v{a.version}, {a.kind}
                 </span>
               </TableCell>
               <TableCell>
                 <PublishedBadge published={a.status === "locked"} label={words(a.status)} />
               </TableCell>
               <TableCell>
-                <select name={`phase:${a.id}`} defaultValue={b?.phase ?? (a.kind === "pretest" ? "pre" : "post")} className={`${SELECT} w-40`} disabled={disabled} aria-label={`Phase of ${a.title}`}>
+                <NativeSelect name={`phase:${a.id}`} defaultValue={b?.phase ?? (a.kind === "pretest" ? "pre" : "post")} className="w-40" disabled={disabled} aria-label={`Phase of ${a.title}`}>
                   {PHASES.map((p) => (
                     <option key={p} value={p}>
                       {words(p)}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </TableCell>
               <TableCell numeric>
-                <Input name={`position:${a.id}`} type="number" min={0} max={99} defaultValue={b?.position ?? 0} className="ml-auto w-20 text-right tabular-nums" disabled={disabled} aria-label={`Position of ${a.title}`} />
+                <Input name={`position:${a.id}`} type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={b?.position ?? 0} className="ml-auto w-20 text-right tabular-nums" disabled={disabled} aria-label={`Position of ${a.title}`} />
               </TableCell>
               <TableCell>
                 <label className="flex size-11 cursor-pointer items-center justify-center">

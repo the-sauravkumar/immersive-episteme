@@ -17,7 +17,7 @@
  *    citation record and the lightbox in both conditions;
  *  - focus: a visible focus indicator on every Tab stop, never covered by sticky chrome (Tab is
  *    pressed until focus leaves the page or wraps to the first stop, so long tables are covered);
- *  - keyboard: LayerTabs arrow keys, CitationRecord and FigureLightbox Escape with focus return,
+ *  - keyboard: LayerTabs arrow keys, the in-place CitationRecord and FigureLightbox Escape with focus return,
  *    the skip link in both conditions.
  *
  * In-scope pages: the public pages, every study step a participant passes (consent, both
@@ -61,6 +61,8 @@ const CONSOLE = [
   "/research/dashboard",
   "/research/parity",
   "/research/sessions",
+  "/research/participants",
+  "/research/scoring",
   "/research/exports",
   "/cms",
   "/cms/concepts",
@@ -139,8 +141,9 @@ let pathsCache: string[] | null = null;
 let consoleCache: string[] | null = null;
 
 /**
- * The console pages: CONSOLE plus the first study detail and the first assessment detail page
- * (form pages with dynamic ids, found from their lists once). Call with a signed-in page.
+ * The console pages: CONSOLE plus the research form pages with dynamic ids, found from their lists
+ * once: the first study detail, assessment detail and its first reference map, session detail,
+ * scoring rubric and scoring concept map. Call with a signed-in page.
  */
 async function consolePaths(page: Page): Promise<string[]> {
   if (consoleCache) return consoleCache;
@@ -151,7 +154,11 @@ async function consolePaths(page: Page): Promise<string[]> {
   };
   const study = await detail("/research/studies", /^\/research\/studies\/[0-9a-f-]{36}$/);
   const assessment = await detail("/research/assessments", /^\/research\/assessments\/[0-9a-f-]{36}$/);
-  consoleCache = [...CONSOLE, ...(study ? [study] : []), ...(assessment ? [assessment] : [])];
+  const reference = assessment ? await detail(assessment, /\/reference\/[0-9a-f-]{36}$/) : null;
+  const session = await detail("/research/sessions", /^\/research\/sessions\/[0-9a-f-]{36}$/);
+  const rubric = await detail("/research/scoring", /^\/research\/scoring\/rubrics\/[0-9a-f-]{36}$/);
+  const map = await detail("/research/scoring", /^\/research\/scoring\/maps\/[0-9a-f-]{36}$/);
+  consoleCache = [...CONSOLE, ...[study, assessment, reference, session, rubric, map].filter((x): x is string => !!x)];
   return consoleCache;
 }
 
@@ -174,10 +181,15 @@ async function studyJourney(page: Page, visit: (path: string) => Promise<void>):
   await page.getByLabel("Study code").fill(E2E_STUDY_CODE);
   await page.getByRole("button", { name: "Continue" }).click();
   await step(/\/study\/consent$/);
-  const code = (await page.locator("span.font-mono").first().textContent())?.trim() ?? "";
+  const code = (await page.locator("span.text-id").first().textContent())?.trim() ?? "";
   await page.getByLabel(/I have read the information above/).check();
   await page.getByRole("button", { name: "I agree to take part" }).click();
   await step(/\/study\/questionnaire\/before$/);
+  // The withdraw page of the running session (visited, not submitted), then back to the step.
+  await page.goto("/study/withdraw");
+  await step(/\/study\/withdraw$/);
+  await page.goto("/study/questionnaire/before");
+  await page.waitForURL(/\/study\/questionnaire\/before$/, { timeout: 120_000 });
   await answer();
   await step(/\/study\/pre-test$/);
   await page.getByLabel("Demo option A").check();
@@ -202,6 +214,9 @@ async function studyJourney(page: Page, visit: (path: string) => Promise<void>):
   await step(/\/study\/questionnaire$/);
   await answer();
   await step(/\/study\/session$/);
+  // The closing page (public, the same for every outcome).
+  await page.goto("/study/complete");
+  await step(/\/study\/complete$/);
   return code;
 }
 
@@ -281,6 +296,31 @@ test("axe-core reports no WCAG 2.2 A or AA violation on in-scope pages in all fo
       for (const v of await axe(s)) found.push(`${theme.id} ${path}: ${v}`);
     }
     await staff.close();
+  }
+  // At 390 px too, for the participant-facing pages (study steps, both learning conditions with a
+  // concept open), in the two themes that take effect on study routes (DR-019).
+  for (const theme of THEMES.filter((t) => !t.dark)) {
+    const tag = `390 ${theme.id}`;
+    const part = await themed(browser, PHONE, theme);
+    const q = await part.newPage();
+    await studyJourney(q, async (path) => {
+      for (const v of await axe(q)) found.push(`${tag} ${path}: ${v}`);
+    });
+    await part.close();
+    const demo = await themed(browser, PHONE, theme);
+    const d = await demo.newPage();
+    await startDemo(d);
+    for (const path of await studyPaths(d)) {
+      await settle(d, path);
+      for (const v of await axe(d)) found.push(`${tag} ${path}: ${v}`);
+    }
+    await d.goto(MUSEUM);
+    await d.waitForFunction(() => (window as unknown as { __museumInfo?: () => { ready: boolean } }).__museumInfo?.().ready === true, null, { timeout: 600_000 });
+    const key = keyFromSlug(decodeURIComponent((await studyPaths(d))[2]!.replace("/learn/2d/concepts/", "")));
+    if (await openInMuseum(d, key)) {
+      for (const v of await axe(d)) found.push(`${tag} /learn/immersive panel: ${v}`);
+    } else found.push(`${tag} 3D: could not open ${key}`);
+    await demo.close();
   }
   expect(found).toEqual([]);
 });
@@ -478,9 +518,10 @@ async function openInMuseum(page: Page, key: string): Promise<boolean> {
     return true;
   }, key);
   if (!ok) return false;
-  const toggle = page.locator("[data-slot=museum-room-contents-toggle]");
-  if ((await toggle.getAttribute("aria-expanded")) !== "true") await toggle.click();
-  const row = page.locator(`#museum-room-contents li button[data-exhibit-id$=":${key}"]`);
+  // The shared PlaceRail "In This Room" (DR-021) is collapsed by default in 3D: its StudyBar button shows it.
+  const railButton = page.locator("[data-slot=study-bar] [data-slot=rail-button]");
+  if ((await railButton.getAttribute("aria-expanded")) !== "true") await railButton.click();
+  const row = page.locator(`#museum-rail li button[data-exhibit-id$=":${key}"]`);
   if ((await row.count()) === 0) return false;
   await row.focus();
   await page.keyboard.press("Enter");
@@ -671,7 +712,7 @@ test("performance at a 4x CPU throttle: LCP <= 2.5 s; opening a citation record 
     return page.evaluate(() => Math.max(0, ...(window as unknown as { __events: number[] }).__events));
   };
   const measureBoth = async (page: Page, root: string, side: string) => {
-    const note = page.locator(`${root} ol[aria-label='Statements'] [data-slot=citation-note] > button`).first();
+    const note = page.locator(`${root} ol[aria-label='Statements'] [data-slot=citation-marker]`).first();
     const rec = await latency(page, () => note.click());
     await note.click();
     const enlarge = page.locator(`${root}`).getByRole("button", { name: /^Enlarge figure 1$/ }).first();
@@ -832,12 +873,21 @@ test("keyboard: LayerTabs arrows, record and lightbox Escape restore focus, skip
       await p.keyboard.press("Home");
       if ((await tabs.first().getAttribute("aria-selected")) !== "true") found.push(`${side}: Home did not return to the first tab`);
     }
-    // CitationRecord: Escape closes it and restores focus to its note.
-    const note = p.locator(`${root} ol[aria-label='Statements'] [data-slot=citation-note] > button`).first();
+    // CitationRecord (in place, DR-022 Addendum A): Escape inside it closes it and restores focus to
+    // its marker; a second activation of the marker also closes it.
+    const note = p.locator(`${root} ol[aria-label='Statements'] [data-slot=citation-marker]`).first();
     await note.click();
-    await p.keyboard.press("Tab");
-    await p.keyboard.press("Escape");
-    if (!(await note.evaluate((b) => b === document.activeElement && b.getAttribute("aria-expanded") === "false"))) found.push(`${side}: record Escape did not restore focus`);
+    const record = p.locator(`[id="${(await note.getAttribute("aria-controls")) ?? ""}"]`);
+    if (!(await record.isVisible())) found.push(`${side}: the marker did not open its record`);
+    const inRecord = record.locator("a").first();
+    if ((await inRecord.count()) > 0) {
+      await inRecord.focus();
+      await p.keyboard.press("Escape");
+      if (!(await note.evaluate((b) => b === document.activeElement && b.getAttribute("aria-expanded") === "false"))) found.push(`${side}: record Escape did not restore focus`);
+    } else {
+      await note.click();
+      if ((await note.getAttribute("aria-expanded")) !== "false") found.push(`${side}: a second activation did not close the record`);
+    }
     // FigureLightbox: Escape closes it and restores focus to Enlarge.
     const enlarge = p.locator(root).getByRole("button", { name: /^Enlarge figure 1$/ }).first();
     if ((await enlarge.count()) > 0) {

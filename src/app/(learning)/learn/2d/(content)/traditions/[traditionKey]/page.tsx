@@ -141,7 +141,7 @@ async function Tradition({ params }: { params: PageProps<"/learn/2d/traditions/[
             <DisclosureSection key={section.id} {...common}>
               {sequences.map((s, i) => (
                 <div key={s.steps[0]?.id ?? i} className="mb-6">
-                  <h3 className="text-eyebrow mb-1">{titleCase("Sequence")}</h3>
+                  <h3 className="text-label mb-1">{titleCase("Sequence")}</h3>
                   <ProcessTimeline sequence={s} pageId={pageId} label="Ordered sequence" />
                 </div>
               ))}
@@ -164,7 +164,7 @@ function UnorderedStages({ all, ordered, pageId }: { all: ConceptRef[]; ordered:
   if (rest.length === 0) return null;
   return (
     <div className="mt-6">
-      <h3 className="text-eyebrow mb-1">{titleCase("Other stages")}</h3>
+      <h3 className="text-label mb-1">{titleCase("Other stages")}</h3>
       <ConceptCardList concepts={rest} pageId={pageId} />
     </div>
   );

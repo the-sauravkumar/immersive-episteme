@@ -49,7 +49,7 @@ const STACK = {
   table: "max-sm:block max-sm:[&>caption]:block max-sm:[&>thead]:sr-only max-sm:[&>tbody]:block",
   row: "max-sm:grid max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:gap-x-4 max-sm:gap-y-2 max-sm:py-4",
   cell: "max-sm:col-span-2 max-sm:grid max-sm:h-auto max-sm:grid-cols-[7.5rem_minmax(0,1fr)] max-sm:items-baseline max-sm:gap-x-3 max-sm:p-0 max-sm:text-left",
-  label: "text-dl-label sm:hidden",
+  label: "text-label sm:hidden",
 };
 
 function CellLabel({ children }: { children: string }) {
@@ -109,7 +109,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
           {titleCase("staff accounts")}
         </h2>
         <form method="get" action="/admin/users" aria-label="Filter the staff accounts" className="flex flex-col gap-4 border-b border-rule pb-6">
-          <p className="text-eyebrow">Filters</p>
+          <p className="text-label">Filters</p>
           <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className={field}>
               <Label htmlFor="u-q">Name or email contains</Label>
@@ -184,7 +184,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                     <span className="block font-medium text-ink">
                       {u.name} {u.id === actor.userId ? <span className="font-normal text-ink-3">(you)</span> : null}
                     </span>
-                    <span className="text-mono block text-ink-2 [overflow-wrap:anywhere] sm:whitespace-nowrap">{u.email}</span>
+                    <span className="text-id block text-ink-2 [overflow-wrap:anywhere] sm:whitespace-nowrap">{u.email}</span>
                     <Mono className="block text-ink-3" title="Account id">
                       {u.id}
                     </Mono>

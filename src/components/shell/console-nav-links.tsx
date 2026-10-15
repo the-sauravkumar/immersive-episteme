@@ -17,12 +17,12 @@ function isActive(pathname: string, href: string, isRoot: boolean): boolean {
 }
 
 /*
- * Console rail links (DESIGN.md 9.16): 44 px rows; the active link is --ink at weight 600 with
- * a 3 px indigo left rule and aria-current. No card, no shadow, no pill.
+ * Console rail links (DESIGN.md 10.2): 44 px rows; the active link is --ink at weight 700 on
+ * --wash with aria-current. No left bar, card, shadow or pill.
  */
 const ROW =
-  "flex min-h-11 items-center border-l-[3px] border-transparent py-2 pr-3 pl-[13px] text-ui text-ink-2 hover:text-ink hover:underline hover:decoration-1 hover:underline-offset-4";
-const ACTIVE = "border-indigo font-semibold text-ink";
+  "flex min-h-11 items-center px-4 py-2 text-ui text-ink-2 hover:text-ink hover:underline hover:decoration-1 hover:underline-offset-[0.2em]";
+const ACTIVE = "bg-wash font-bold text-ink";
 
 function LinkList({ links, rootHref, onNavigate }: { links: NavLink[]; rootHref: string; onNavigate?: () => void }) {
   const pathname = usePathname();

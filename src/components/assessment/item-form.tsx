@@ -11,6 +11,7 @@ import { ASSESSMENT_ITEM_KINDS } from "@/lib/validation/enums";
 import type { ActionResult } from "@/server/assessment/research-actions";
 
 import { ActionForm, checkBoxClass, checkRowClass, Field, fieldClass } from "./action-form";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export interface ItemFormValue {
   id?: string;
@@ -60,11 +61,11 @@ export function ItemForm({
         <Field label="Item key" hint="e.g. pre.q1">
           <input name="itemKey" required defaultValue={value.itemKey} pattern="[a-z0-9][a-z0-9_.\-]{0,63}" className={fieldClass} />
         </Field>
-        <Field label="Position">
-          <input name="position" type="number" min={0} required defaultValue={value.position} className={fieldClass} />
+        <Field label="Position (0 or more)">
+          <input name="position" type="text" inputMode="numeric" pattern="[0-9]*" required defaultValue={value.position} className={fieldClass} />
         </Field>
         <Field label="Kind">
-          <select name="kind" value={kind} onChange={(e) => setKind(e.target.value)} className={fieldClass} required>
+          <NativeSelect name="kind" value={kind} onChange={(e) => setKind(e.target.value)} required>
             <option value="" disabled>
               Choose…
             </option>
@@ -73,7 +74,7 @@ export function ItemForm({
                 {KIND_LABEL[k] ?? k}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </Field>
       </div>
       <Field label="Prompt">
@@ -83,7 +84,7 @@ export function ItemForm({
       {kind === "single_choice" || kind === "multiple_choice" || kind === "ranking" ? (
         <>
           <Field label="Options" hint="One per line as 'id: label', e.g. 'a: First option'.">
-            <textarea name="options" required rows={4} defaultValue={asOptions(c)} className={`${fieldClass} font-mono`} />
+            <textarea name="options" required rows={4} defaultValue={asOptions(c)} className={fieldClass} />
           </Field>
           {kind !== "ranking" ? (
             <label className={checkRowClass}>
@@ -92,7 +93,7 @@ export function ItemForm({
           ) : null}
           {kind === "multiple_choice" ? (
             <Field label="Maximum selections (optional)">
-              <input name="maxSelections" type="number" min={1} defaultValue={typeof c.maxSelections === "number" ? c.maxSelections : ""} className={fieldClass} />
+              <input name="maxSelections" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={typeof c.maxSelections === "number" ? c.maxSelections : ""} className={fieldClass} />
             </Field>
           ) : null}
           {kind === "single_choice" ? (
@@ -110,14 +111,14 @@ export function ItemForm({
 
       {kind === "short_text" || kind === "long_text" ? (
         <Field label="Maximum length (characters)" hint="Free-text answers are scored by raters with a rubric.">
-          <input name="maxLength" type="number" min={1} max={kind === "short_text" ? 2000 : 20000} defaultValue={typeof c.maxLength === "number" ? c.maxLength : ""} className={fieldClass} />
+          <input name="maxLength" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={typeof c.maxLength === "number" ? c.maxLength : ""} className={fieldClass} />
         </Field>
       ) : null}
 
       {kind === "likert" ? (
         <>
-          <Field label="Number of points">
-            <input name="points" type="number" min={2} max={11} required defaultValue={typeof c.points === "number" ? c.points : ""} className={fieldClass} />
+          <Field label="Number of points (2 to 11)">
+            <input name="points" type="text" inputMode="numeric" pattern="[0-9]*" required defaultValue={typeof c.points === "number" ? c.points : ""} className={fieldClass} />
           </Field>
           <Field label="Anchors" hint="One per line as 'point: label'.">
             <textarea
@@ -126,7 +127,7 @@ export function ItemForm({
               defaultValue={Object.entries((c.anchors as Record<string, string> | undefined) ?? {})
                 .map(([k, v]) => `${k}: ${v}`)
                 .join("\n")}
-              className={`${fieldClass} font-mono`}
+              className={fieldClass}
             />
           </Field>
         </>
@@ -136,14 +137,14 @@ export function ItemForm({
         <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {(["min", "max", "step"] as const).map((k) => (
             <Field key={k} label={k[0]!.toUpperCase() + k.slice(1)}>
-              <input name={k} type="number" step="any" defaultValue={typeof c[k] === "number" ? (c[k] as number) : ""} className={fieldClass} />
+              <input name={k} type="text" inputMode="decimal" pattern="-?[0-9]*([.][0-9]+)?" defaultValue={typeof c[k] === "number" ? (c[k] as number) : ""} className={fieldClass} />
             </Field>
           ))}
           <Field label="Correct value">
-            <input name="answerValue" type="number" step="any" defaultValue={key.value ?? ""} className={fieldClass} />
+            <input name="answerValue" type="text" inputMode="decimal" pattern="-?[0-9]*([.][0-9]+)?" defaultValue={key.value ?? ""} className={fieldClass} />
           </Field>
           <Field label="Tolerance">
-            <input name="answerTolerance" type="number" step="any" min={0} defaultValue={key.tolerance ?? ""} className={fieldClass} />
+            <input name="answerTolerance" type="text" inputMode="decimal" pattern="[0-9]*([.][0-9]+)?" defaultValue={key.tolerance ?? ""} className={fieldClass} />
           </Field>
         </div>
       ) : null}
@@ -156,11 +157,11 @@ export function ItemForm({
               required
               rows={6}
               defaultValue={Array.isArray(c.conceptKeys) ? (c.conceptKeys as string[]).join("\n") : ""}
-              className={`${fieldClass} font-mono`}
+              className={fieldClass}
             />
           </Field>
           <fieldset className="flex min-w-0 flex-col gap-1">
-            <legend className="mb-1 font-sans text-[0.875rem] leading-5 font-medium text-ink">Relationship types offered (none = untyped links)</legend>
+            <legend className="mb-1 font-sans text-[0.9375rem] leading-5 font-bold text-ink">Relationship types offered (none = untyped links)</legend>
             <div className="grid gap-x-6 sm:grid-cols-2">
               {relationshipTypes.map((t) => (
                 <label key={t.code} className={checkRowClass}>
@@ -172,7 +173,7 @@ export function ItemForm({
                     className={checkBoxClass}
                   />
                   <span className="min-w-0">
-                    {t.label} <span className="text-mono break-all text-ink-3">{t.code}</span>
+                    {t.label} <span className="text-id break-all text-ink-3">{t.code}</span>
                   </span>
                 </label>
               ))}

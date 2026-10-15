@@ -96,7 +96,7 @@ export function FigureBalanceMatrix({ balance, caption }: { balance: FigureBalan
               </TableRow>
               {g.rows.map((r) => (
                 <TableRow key={r.sectionId} data-balanced={r.balanced ? "true" : "false"}>
-                  <TableHead scope="row" className="text-body h-9 font-normal tracking-normal whitespace-normal normal-case text-ink">
+                  <TableHead scope="row" className="text-body h-9 font-normal whitespace-normal text-ink">
                     {r.title}
                   </TableHead>
                   {slugs.map((s) => {
@@ -200,7 +200,7 @@ function FigureBalanceStacked({
     <div className="flex min-w-0 flex-col border-y-[1.5px] border-ink xs:hidden" data-slot="figure-balance-stacked">
       {groups.map((g) => (
         <section key={g.layer.id} aria-label={`${g.layer.label} layer`} className="flex flex-col">
-          <p className="text-dl-label border-b border-ink pt-3 pb-1">{g.layer.label} layer</p>
+          <p className="text-label border-b border-ink pt-3 pb-1">{g.layer.label} layer</p>
           <ul className="flex flex-col">
             {g.rows.map((r) => (
               <li key={r.sectionId} className="border-b border-rule py-2.5 last:border-b-0" data-balanced={r.balanced ? "true" : "false"}>
@@ -312,7 +312,7 @@ export async function FigureBalanceSection({
     >
       <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:gap-x-8">
         <nav aria-label="Bundle" className="flex flex-wrap items-center gap-x-4">
-          <span className="text-dl-label">Bundle</span>
+          <span className="text-label">Bundle</span>
           <Link className={VIEW_LINK} aria-current={source === "release" ? "true" : undefined} href={hrefFor({ source: "release", diagrams })}>
             Latest release
           </Link>
@@ -321,7 +321,7 @@ export async function FigureBalanceSection({
           </Link>
         </nav>
         <nav aria-label="Structure diagrams" className="flex flex-wrap items-center gap-x-4">
-          <span className="text-dl-label">Structure diagrams</span>
+          <span className="text-label">Structure diagrams</span>
           <Link className={VIEW_LINK} aria-current={diagrams ? "true" : undefined} href={hrefFor({ source, diagrams: true })}>
             On
           </Link>
@@ -348,7 +348,7 @@ export async function FigureBalanceSection({
           </p>
           {otherIssues.length > 0 ? (
             <div className="flex flex-col gap-2">
-              <h3 className="text-eyebrow">{titleCase("Other figure issues")}</h3>
+              <h3 className="text-label">{titleCase("Other figure issues")}</h3>
               <ul className="flex flex-col gap-1">
                 {otherIssues.slice(0, 50).map((i, n) => (
                   <li key={n} className="text-body flex items-start gap-2 text-ink">

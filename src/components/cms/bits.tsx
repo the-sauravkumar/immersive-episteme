@@ -1,18 +1,20 @@
 /**
- * Small presentational pieces shared by the CMS pages (server-safe), in the Apparatus console skin
- * (DESIGN.md 9.1-9.5, 11.10):
+ * Small presentational pieces shared by the CMS pages (server-safe), in the Atlas console skin
+ * (DESIGN.md 9, 10.2, 10.3; DR-022):
  *  - status badges always carry a word and an icon (R-A4), coloured ok / warn / danger only in the
- *    console; no madder anywhere in the CMS;
- *  - every control is 44 px (inputs, native selects, buttons); links inside dense tables keep a
- *    44 x 44 hit area (`hit-44`) on a 36 px row;
- *  - sections are --surface cards (the "CMS form pane" of 4.2) with Title Case headings;
+ *    console;
+ *  - every control is 44 px (inputs, the shared NativeSelect, buttons); links inside dense tables
+ *    keep a 44 x 44 hit area (`hit-44`) on a 36 px row;
+ *  - sections are paper panes with a 1 px --rule-strong edge, radius 0, no shadow, with Title Case
+ *    headings;
  *  - empty states are a plain sentence, never a dashed box (9.16: PlaceholderNotice removed).
  */
 import { Archive, CircleCheck, CircleDashed, CircleX, Clock, FileSearch, PencilLine } from "lucide-react";
 import Link from "next/link";
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { CHECK_CLASS } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
@@ -51,15 +53,15 @@ export function StateBadge({ state, className }: { state: string; className?: st
 }
 
 /** Indigo underlined text link (links are never colour alone, R-A4). */
-export const LINK = "text-indigo underline decoration-1 underline-offset-[3px] hover:text-indigo-hover hover:decoration-2";
+export const LINK = "text-indigo underline decoration-1 underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2";
 /** A link inside a dense table cell: same look, a 44 x 44 hit area on a 36 px row. */
 export const ROW_LINK = cn(LINK, "hit-44 inline-block");
 /** A free-standing link: a 44 px target on its own line. */
 export const BLOCK_LINK = cn(LINK, "inline-flex min-h-11 items-center");
 
-/** A native checkbox or radio inside a full-row 44 px label (9.5); the indigo fill marks the checked state. */
+/** A native checkbox or radio inside a full-row 44 px label (9.6); the indigo fill marks the checked state. */
 export const CHECK_ROW = "flex min-h-11 cursor-pointer items-center gap-3 text-body text-ink";
-export const CHECK_BOX = "size-5 shrink-0 accent-(--indigo)";
+export const CHECK_BOX = CHECK_CLASS;
 
 /** Provenance kinds as words (server-safe, so server components can read it). */
 export const PROVENANCE_LABELS: Record<string, string> = {
@@ -71,19 +73,9 @@ export const PROVENANCE_LABELS: Record<string, string> = {
   unverified: "Unverified",
 };
 
-/** A <summary> as a 44 px disclosure control (indigo, underlined, never colour alone). */
-export const SUMMARY = cn(LINK, "inline-flex min-h-11 cursor-pointer items-center");
-
-/**
- * Native select in the Input skin (DESIGN.md 9.5): 44 px, rule-strong border, surface fill, 16 px
- * text. No `outline-none`: the global :focus-visible ring (9.1, R-A5) must reach it.
- */
-export const SELECT_CLASS =
-  "h-11 w-full min-w-0 rounded-control border border-rule-strong bg-surface px-3 font-sans text-base leading-6 text-ink disabled:cursor-not-allowed disabled:border-rule disabled:bg-sunk disabled:text-ink-3 aria-invalid:border-danger";
-
-export function NativeSelect({ className, ...props }: ComponentProps<"select">) {
-  return <select className={cn(SELECT_CLASS, className)} {...props} />;
-}
+/** The shared select and disclosure (DESIGN.md 9.2, 9.5), re-exported for the CMS pages. */
+export { NativeSelect } from "@/components/ui/native-select";
+export { Disclosure } from "@/components/ui/disclosure";
 
 /**
  * Line-break opportunities for a mono identifier: after ".", "-", "_", "/" and ":" only, so a key
@@ -103,13 +95,13 @@ export function breakableKey(text: string): ReactNode[] {
 }
 
 /**
- * Mono identifier (keys, ids, hashes): breaks only at separators (`breakableKey`), never mid-word.
+ * Identifier (keys, ids, hashes) in `text-id` (Atkinson tabular, no monospace): breaks only at separators (`breakableKey`), never mid-word.
  * `overflow-wrap: break-word` is a last resort that does not shrink the column's min-content width,
  * so table columns keep room for whole key segments (unlike `break-all`).
  */
 export function Mono({ children, className, title }: { children: ReactNode; className?: string; title?: string }) {
   return (
-    <code title={title} className={cn("text-mono [overflow-wrap:break-word] text-ink-2", className)}>
+    <code title={title} className={cn("text-id [overflow-wrap:break-word] text-ink-2", className)}>
       {typeof children === "string" ? breakableKey(children) : children}
     </code>
   );
@@ -131,7 +123,7 @@ export function FormField({ id, name, label, hint, children, className }: { id: 
   );
 }
 
-/** A console section: a --surface card with a Title Case h2, an optional lead and actions. */
+/** A console section: a paper pane with a Title Case h2, an optional lead and actions. */
 export function Section({
   title,
   description,
@@ -151,7 +143,7 @@ export function Section({
     <section
       aria-labelledby={id ? `${id}-title` : undefined}
       id={id}
-      className={cn("flex min-w-0 scroll-mt-(--sticky-chrome) flex-col gap-4 rounded-card border border-rule bg-surface p-4 xs:p-6", className)}
+      className={cn("flex min-w-0 scroll-mt-(--sticky-chrome) flex-col gap-4 border border-rule-strong bg-ground p-4 xs:p-6", className)}
     >
       <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <div className="flex max-w-[40rem] min-w-0 flex-col gap-1">
@@ -167,10 +159,10 @@ export function Section({
   );
 }
 
-/** A running head inside a section (`text-eyebrow`), for grouped content. */
+/** A running head inside a section (`text-label`), for grouped content. */
 export function RunningHead({ children, id, as: Tag = "h3" }: { children: ReactNode; id?: string; as?: "h3" | "h4" | "p" }) {
   return (
-    <Tag id={id} className="text-eyebrow border-b border-rule pb-1">
+    <Tag id={id} className="text-label border-b border-rule pb-1">
       {typeof children === "string" ? titleCase(children) : children}
     </Tag>
   );
@@ -219,7 +211,7 @@ export function Pager({ base, params, page, total, pageSize }: { base: string; p
   );
 }
 
-/** UTC timestamp in mono, tabular figures. */
+/** UTC timestamp in tabular figures (`text-id`; no monospace). */
 const fmtStamp = new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "UTC" });
 const fmtDay = new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" });
 
@@ -233,7 +225,7 @@ export function stamp(at: string | Date, withTime = true): string {
 export function Stamp({ at, withTime = true }: { at: string | Date; withTime?: boolean }) {
   const d = typeof at === "string" ? new Date(at) : at;
   return (
-    <time dateTime={d.toISOString()} className="text-mono tabular-nums whitespace-nowrap text-ink-2">
+    <time dateTime={d.toISOString()} className="text-id tabular-nums whitespace-nowrap text-ink-2">
       {stamp(d, withTime)}
     </time>
   );

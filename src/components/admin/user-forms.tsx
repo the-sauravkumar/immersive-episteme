@@ -261,7 +261,7 @@ function GrantRoleForm({ userId, available, onDone }: { userId: string; availabl
 function FieldErrors({ id, messages }: { id: string; messages?: string[] }) {
   if (!messages?.length) return null;
   return (
-    <p id={id} className="flex items-start gap-2 font-sans text-sm leading-5 font-medium text-danger">
+    <p id={id} className="flex items-start gap-2 font-sans text-[0.9375rem] leading-5 font-semibold text-danger">
       <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 stroke-2" />
       <span className="min-w-0">{messages.join(" ")}</span>
     </p>
@@ -323,7 +323,7 @@ function ConfirmForm({
       <div className="flex flex-col gap-1.5">
         <Label htmlFor={ids.confirm}>
           <span>
-            Type <span className="text-mono break-all text-ink">{confirmText}</span> to confirm
+            Type <span className="text-id break-all text-ink">{confirmText}</span> to confirm
           </span>
         </Label>
         <Input

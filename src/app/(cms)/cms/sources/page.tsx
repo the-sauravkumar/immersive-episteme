@@ -96,7 +96,7 @@ async function Sources({ searchParams }: { searchParams: Promise<SearchParams> }
                   <Link href={`/cms/sources?edit=${s.id}#source`} className={ROW_LINK}>
                     {s.title}
                   </Link>
-                  <span className="text-credit block">{[s.author, s.publisher, s.year].filter(Boolean).join(" · ")}</span>
+                  <span className="text-credit block">{[s.author, s.publisher, s.year].filter(Boolean).join(", ")}</span>
                 </TableCell>
                 <TableCell>{label(s.kind)}</TableCell>
                 <TableCell>{s.reliability ?? "—"}</TableCell>
@@ -176,11 +176,11 @@ function SourceForm({ s }: { s: SourceRow | null }) {
         <FormField id={`${p}-publisher`} name="publisher" label="Publisher / venue">
           <Input id={`${p}-publisher`} name="publisher" defaultValue={s?.publisher ?? ""} />
         </FormField>
-        <FormField id={`${p}-year`} name="year" label="Year">
-          <Input id={`${p}-year`} name="year" type="number" min={0} max={2100} defaultValue={s?.year ?? ""} />
+        <FormField id={`${p}-year`} name="year" label="Year (four digits)">
+          <Input id={`${p}-year`} name="year" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={s?.year ?? ""} />
         </FormField>
-        <FormField id={`${p}-accessed`} name="accessedOn" label="Accessed on (web pages)">
-          <Input id={`${p}-accessed`} name="accessedOn" type="date" defaultValue={s?.accessedOn ?? ""} />
+        <FormField id={`${p}-accessed`} name="accessedOn" label="Accessed on (web pages)" hint="Format: YYYY-MM-DD">
+          <Input id={`${p}-accessed`} name="accessedOn" type="date" aria-describedby={`${p}-accessed-hint`} defaultValue={s?.accessedOn ?? ""} className="tabular-nums" />
         </FormField>
         <FormField id={`${p}-url`} name="url" label="URL or DOI link" className="md:col-span-2">
           <Input id={`${p}-url`} name="url" type="url" defaultValue={s?.url ?? ""} placeholder="https://" />

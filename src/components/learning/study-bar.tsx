@@ -2,18 +2,19 @@
 
 /**
  * StudyBar (DESIGN.md 9.14): the one top bar of the learning phase, the SAME component in both
- * conditions (parity checks P7, P22, P24). 56 px tall, opaque `--ground`, a 2 px `--ink` rule
- * below, sticky directly under the AccessNotice (`top: var(--notice-offset)`, set by the learning
+ * conditions (parity checks P7, P22, P24). 56 px tall, opaque `--ground`, ONE 1 px
+ * `--rule-strong` line below (DR-022), sticky directly under the AccessNotice (`top: var(--notice-offset)`, set by the learning
  * shell). In DOM and visual order:
  *
  *  1. a "Skip to content" link (visible on focus), the same label in both conditions;
  *  2. the wordmark as plain text (no outbound navigation in study);
- *  3. the location slot: 2D the page title, 3D the room name (Source Serif 4 600 18 px, one line,
- *     ellipsis). In 3D the room name is the view's h1 while no concept is open
+ *  3. the location slot: 2D the page title, 3D the room name (Atkinson 700 18 px, one line,
+ *     ellipsis; no middle-dot joins). In 3D the room name is the view's h1 while no concept is open
  *     (`locationAs="h1"`); when the panel opens it becomes non-heading `aria-live` text
  *     (`locationAs="live"`), and the panel title is the h1;
  *  4. the condition navigation group (the only part allowed to differ): 2D Contents, Search and
- *     "Up to <parent>"; 3D Plan, Mouse look, Controls help, Pause. Use `StudyBarButton` so both
+ *     2D "In This Section" (the shared PlaceRail's button), Contents (below 1024 px) and Search;
+ *     3D "In This Room", Plan, Mouse look (public demo only), Controls help, Pause. Use `StudyBarButton` so both
  *     groups have the same 44 px style; text labels show from 1024 px, icons with a name and
  *     tooltip below;
  *  5. the shared controls: Hint, Time left, Finish (same labels, same 44 px buttons), last, at the
@@ -53,7 +54,7 @@ export interface StudyBarProps {
   className?: string;
 }
 
-const LOCATION_CLASS = "truncate font-serif text-[1.125rem] leading-7 font-semibold text-ink";
+const LOCATION_CLASS = "truncate text-[1.125rem] leading-7 font-bold text-ink";
 
 export function StudyBar({ location, locationAs = "text", conditionNav, skipTargetId, className }: StudyBarProps) {
   const shown = titleCase(location);
@@ -61,12 +62,12 @@ export function StudyBar({ location, locationAs = "text", conditionNav, skipTarg
     <header
       data-slot="study-bar"
       aria-label={STUDY_BAR_TEXT.barLabel}
-      className={cn("sticky top-[var(--notice-offset,0px)] z-(--z-hud) box-content h-[var(--studybar-h)] border-b-2 border-ink bg-ground", className)}
+      className={cn("sticky top-[var(--notice-offset,0px)] z-(--z-hud) box-content h-[var(--studybar-h)] border-b border-rule-strong bg-ground", className)}
     >
       <a
         href={`#${skipTargetId}`}
         data-slot="study-skip-link"
-        className="text-ui sr-only bg-ground text-indigo underline decoration-1 underline-offset-[3px] focus:not-sr-only focus:absolute focus:top-1.5 focus:left-2 focus:z-(--z-skip-link) focus:inline-flex focus:min-h-11 focus:items-center focus:px-4"
+        className="text-ui sr-only bg-ground text-indigo underline decoration-1 underline-offset-[0.2em] focus:not-sr-only focus:absolute focus:top-1.5 focus:left-2 focus:z-(--z-skip-link) focus:inline-flex focus:min-h-11 focus:items-center focus:px-4"
       >
         {STUDY_BAR_TEXT.skipToContent}
       </a>
@@ -116,7 +117,7 @@ export const StudyBarButton = forwardRef<HTMLButtonElement, StudyBarButtonProps>
   );
 });
 
-/** Class names for a condition-group control that must be a link (e.g. 2D "Up to <parent>"). */
+/** Class names for a condition-group control that must be a link. */
 export const STUDY_BAR_LINK_CLASS =
   "text-ui inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-control px-3 text-ink no-underline hover:bg-sunk lg:px-4 [&_svg]:size-5 [&_svg]:shrink-0 [&_svg]:stroke-[1.75]";
 

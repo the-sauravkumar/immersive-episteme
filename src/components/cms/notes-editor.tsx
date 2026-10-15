@@ -30,7 +30,7 @@ export function NotesEditor({ conceptId, initial, warnAccepted }: { conceptId: s
     editorProps: {
       attributes: {
         class:
-          "min-h-32 rounded-b-control border border-t-0 border-rule-strong bg-surface px-3 py-2 font-sans text-base leading-6 text-ink [&_blockquote]:border-l-2 [&_blockquote]:border-rule-strong [&_blockquote]:pl-3 [&_h2]:text-h3 [&_h3]:text-h3 [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_p+p]:mt-2 [&_ul]:list-disc [&_ul]:pl-5",
+          "min-h-32 rounded-b-control border border-t-0 border-rule-strong bg-ground px-3 py-2 font-sans text-base leading-6 text-ink [&_blockquote]:bg-sunk [&_blockquote]:px-4 [&_blockquote]:py-2 [&_h2]:text-h3 [&_h3]:text-h3 [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_p+p]:mt-2 [&_ul]:list-disc [&_ul]:pl-5",
         role: "textbox",
         "aria-multiline": "true",
         "aria-label": "Curator notes",

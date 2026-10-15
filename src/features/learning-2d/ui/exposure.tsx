@@ -77,11 +77,12 @@ export function useInView<T extends Element>(): [RefObject<T | null>, boolean] {
       { threshold: THRESHOLDS },
     );
     io.observe(el);
-    window.addEventListener("scroll", onScroll, { passive: true });
+    // Capture: the sheet column scrolls internally from 1024 px (DR-021); its scroll events do not bubble.
+    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
     window.addEventListener("resize", onScroll);
     return () => {
       io.disconnect();
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onScroll, { capture: true });
       window.removeEventListener("resize", onScroll);
       if (frame !== 0) cancelAnimationFrame(frame);
       setInView(false);
@@ -168,12 +169,12 @@ export function ExposureGroup({
   }, [measure]);
   useEffect(() => {
     schedule();
-    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("scroll", schedule, { passive: true, capture: true });
     window.addEventListener("resize", schedule);
     const ro = typeof ResizeObserver === "function" ? new ResizeObserver(schedule) : null;
     ro?.observe(document.documentElement);
     return () => {
-      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("scroll", schedule, { capture: true });
       window.removeEventListener("resize", schedule);
       ro?.disconnect();
       if (frame.current !== 0) cancelAnimationFrame(frame.current);

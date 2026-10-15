@@ -5,9 +5,11 @@ import { Suspense } from "react";
 import { GateFallback } from "@/components/shell/gate-fallback";
 import { PageHeader } from "@/components/shell/page-header";
 import { ConsentForm } from "@/components/study/consent-form";
+import { StudyTeamAndEthics } from "@/components/public/team-and-ethics";
 import { StudyDisplayChoice } from "@/components/study/device-check";
 import { StudyStateMessage } from "@/components/study/state-message";
 import { buttonVariants } from "@/components/ui/button";
+import { INSTITUTION } from "@/config/institution";
 import { titleCase } from "@/lib/text/title-case";
 import { getPool } from "@/server/db/client";
 import { loadParticipant, loadStudy } from "@/server/study/engine";
@@ -70,10 +72,11 @@ async function Consent() {
         {study.description ? <p className={TEXT}>{study.description}</p> : null}
         {info ? <div className={TEXT}>{info}</div> : null}
         <p className="text-source max-w-[34rem]">
-          Your participant code is <span className="font-mono text-mono whitespace-nowrap text-ink">{participant.code}</span>. It is the only identifier stored with your
+          Your participant code is <span className="text-id whitespace-nowrap text-ink">{participant.code}</span>. It is the only identifier stored with your
           answers.
         </p>
       </section>
+      <StudyTeamAndEthics institution={INSTITUTION} />
       <section aria-labelledby="consent-heading" className="flex flex-col gap-4">
         <h2 id="consent-heading" className="text-h2 text-ink">
           {/* The version is an identifier and stays verbatim. */}

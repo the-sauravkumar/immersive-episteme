@@ -23,6 +23,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import {
   createKnowledgeView,
   diagramFiguresByConcept,
+  photoFiguresOf,
   resolveConceptFigures,
   type ComparisonView,
   type DiagramScope,
@@ -30,6 +31,7 @@ import {
   type ConceptDetail,
   type ConceptRef,
   type KnowledgeView,
+  type PhotoFigure,
   type ProcessChain,
   type RelatedConceptGroups,
   type SnapshotInfo,
@@ -37,6 +39,7 @@ import {
   type TraditionSummary,
 } from "@/features/knowledge/read/view";
 import { STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
+import { listLearnerPhotoLinks } from "@/server/cms/media/service";
 import { getPool } from "@/server/db/client";
 
 import { loadSnapshotPayload, searchSnapshotConcepts, MAX_QUERY_LENGTH } from "./snapshot-store";
@@ -45,6 +48,8 @@ export type * from "@/features/knowledge/read/view";
 export { SnapshotNotReadableError } from "./snapshot-store";
 
 export const KNOWLEDGE_CACHE_TAG = "knowledge";
+/** Tag of the cached study-photo lists; the media actions drop it when an asset or link changes. */
+export const MEDIA_FIGURES_CACHE_TAG = "media-figures";
 export const snapshotCacheTag = (snapshotId: string) => `snapshot:${snapshotId}`;
 
 // In-process memo of built views (indexes over the payload). Snapshots are immutable, so a
@@ -174,6 +179,45 @@ export interface FigureOptions {
   traditionSlugs: readonly string[] | null;
   /** The protocol switch `settings.figures.structureDiagrams` (default on), identical in both conditions. */
   structureDiagrams: boolean;
+  /**
+   * The protocol switch `settings.figures.photos` (DR-020, default on), identical in both
+   * conditions. Optional only until the 3D payload passes it (contract with the 3D track); an
+   * absent value is read as the protocol default, so pass `figureOptionsOf(ctx)` everywhere.
+   */
+  photos?: boolean;
+}
+
+/**
+ * The figure options of a learning context: the ONE place both conditions take them from (the 2D
+ * pages and the 3D payload), so the two can never pass different switches (parity check P14).
+ */
+export function figureOptionsOf(ctx: { traditionSlugs?: readonly string[] | null; settings: { figures: { structureDiagrams: boolean; photos: boolean } } }): Required<FigureOptions> {
+  return { traditionSlugs: ctx.traditionSlugs ?? null, structureDiagrams: ctx.settings.figures.structureDiagrams, photos: ctx.settings.figures.photos };
+}
+
+/** The protocol default of `figures.photos` (on), used when a caller passes no value. */
+const PHOTOS_BY_DEFAULT = true;
+
+/**
+ * The study photographs servable today, by concept id, gated by the anchor claim's verification in
+ * THIS snapshot (`photoFiguresOf`). Live media rows, so the cache entry lives for an hour (tag
+ * `media-figures`, dropped by the media actions) rather than for the snapshot's lifetime, and the
+ * learner route re-checks every request (licence expiry, approval) on its own.
+ */
+async function photoFiguresByConcept(snapshotId: string, day: string): Promise<Map<string, PhotoFigure[]>> {
+  "use cache";
+  cacheTag(KNOWLEDGE_CACHE_TAG, snapshotCacheTag(snapshotId), MEDIA_FIGURES_CACHE_TAG);
+  cacheLife("hours");
+  const view = await viewFor(snapshotId);
+  const links = await listLearnerPhotoLinks(getPool(), day);
+  const byConcept = new Map<string, PhotoFigure[]>();
+  for (const conceptId of new Set(links.map((l) => l.conceptId))) {
+    const concept = view.getConcept(conceptId);
+    if (!concept) continue;
+    const photos = photoFiguresOf({ id: concept.id, claimCount: concept.claims.length, verificationState: concept.verificationState }, links);
+    if (photos.length > 0) byConcept.set(concept.id, photos);
+  }
+  return byConcept;
 }
 
 function diagramScope(view: KnowledgeView, opts: FigureOptions): DiagramScope {
@@ -185,18 +229,28 @@ function diagramScope(view: KnowledgeView, opts: FigureOptions): DiagramScope {
 /**
  * Every concept's figures in scope, by concept id (the 3D payload reads this once; the 2D concept
  * page reads one entry through `getConceptFigures`). Graph-derived diagrams are balanced across the
- * study traditions; at most one figure per concept. Photographs join through the same
- * `resolveConceptFigures` once the learner figure route and licence governance exist (WP6); until
- * then no photograph is served to learners.
+ * study traditions; at most one figure per concept. Study photographs (DR-020) join through the
+ * same `resolveConceptFigures`: only while the protocol shows them (`photos`), only for concepts in
+ * scope, and only once the anchor claim is verified and the learner route would serve the file.
  */
 export async function getFiguresByConcept(snapshotId: string, opts: FigureOptions): Promise<Record<string, KnowledgeFigureData[]>> {
   "use cache";
-  tag(snapshotId);
+  const photosOn = opts.photos ?? PHOTOS_BY_DEFAULT;
+  // An explicit outer lifetime wins over nested ones (Next cacheLife, "Nested caching behavior"),
+  // so with photographs on this entry lives as long as the photo list (an hour), else forever.
+  cacheTag(KNOWLEDGE_CACHE_TAG, snapshotCacheTag(snapshotId), MEDIA_FIGURES_CACHE_TAG);
+  cacheLife(photosOn ? "hours" : "max");
   const view = await viewFor(snapshotId);
-  const diagrams = diagramFiguresByConcept(view, diagramScope(view, opts));
+  const scope = diagramScope(view, opts);
+  const diagrams = diagramFiguresByConcept(view, scope);
+  // The request day in UTC, as the learner route judges licences (the entry is at most an hour old).
+  const photos = photosOn ? await photoFiguresByConcept(snapshotId, new Date().toISOString().slice(0, 10)) : new Map<string, PhotoFigure[]>();
+  const inScope = new Set(scope.traditionSlugs);
   const out: Record<string, KnowledgeFigureData[]> = {};
-  for (const [conceptId, list] of diagrams) {
-    const figures = resolveConceptFigures({ diagrams: list, photos: [], structureDiagrams: opts.structureDiagrams });
+  for (const conceptId of new Set([...diagrams.keys(), ...photos.keys()])) {
+    const slug = view.getConcept(conceptId)?.tradition?.slug;
+    if (!diagrams.has(conceptId) && (!slug || !inScope.has(slug))) continue;
+    const figures = resolveConceptFigures({ diagrams: diagrams.get(conceptId) ?? [], photos: photos.get(conceptId) ?? [], structureDiagrams: opts.structureDiagrams, photosOn });
     if (figures.length > 0) out[conceptId] = figures;
   }
   return out;

@@ -332,7 +332,11 @@ export function extractDiagramGraphs(bundle: KnowledgeBundle, traditionSlug: str
 // ---------------------------------------------------------------------------------------
 
 const PAD = 8;
-/** Average glyph advance of Inter as a share of the font size, with a safety margin. */
+/**
+ * Average glyph advance as a share of the font size, with a safety margin. Set for Inter; it stays
+ * a safe bound for Atkinson Hyperlegible Next (DR-022), whose measured 62 characters per 34rem line
+ * at 20 px is about 0.44 em per character, narrower than Inter (about 0.47 em).
+ */
 const ADVANCE = 0.56;
 const BOX_PAD_X = 8;
 const BOX_PAD_Y = 6;

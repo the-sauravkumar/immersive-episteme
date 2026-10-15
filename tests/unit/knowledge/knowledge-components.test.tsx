@@ -5,10 +5,9 @@
  *  - KnowledgeSheet: identical DOM in `placement="page"` and `placement="panel"`, apart from the
  *    reserved action slot (WP0 acceptance), with the header, progress bar, metadata, field,
  *    related and pager in the specified order; focus moves to the h1 on open (P27).
- *  - ClaimList: numbered claims with a hidden hang number, one CitationNote per citation, the
- *    figure right after its anchor claim.
- *  - CitationNote / CitationRecord: one activation to the record, the quote at claim size, Escape
- *    returns focus.
+ *  - ClaimList: numbered claims with a hidden hang number, one numbered citation marker per
+ *    citation inside the claim, the figure right after its anchor claim, one reference list.
+ *  - CitedClaim / CitationRecord: one activation to the record in place, Escape returns focus.
  *  - KnowledgeFigure: the 3:2 slot, "Fig. n", one Enlarge control, an opaque lightbox and focus
  *    return; diagrams render only graph text.
  *  - LayerTabs: canonical names and order, arrow keys, Home and End.
@@ -23,9 +22,9 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { ClaimList, KnowledgeSheet, LayeredField, Pager, RelatedConcepts, relatedLinksFromGroups, type SheetConcept } from "@/components/knowledge";
+import { ClaimList, KnowledgeSheet, LayeredField, Pager, RelatedConcepts, relatedLinksFromGroups, SheetReferences, type SheetConcept } from "@/components/knowledge";
 import { GuidanceProvider, LearningPhaseProvider, Onboarding, onboardingSteps, StallCue, StudyBar, StudyBarButton } from "@/components/learning";
-import { diagramCredit, diagramFigureOf, type ConceptDetail, type DiagramFigure } from "@/features/knowledge/read/view";
+import { diagramCredit, diagramFigureOf, referenceNumbers, type ConceptDetail, type DiagramFigure } from "@/features/knowledge/read/view";
 import { KNOWLEDGE_LAYERS } from "@/features/learning/labels";
 import type { GuidanceSettings } from "@/features/learning/settings";
 import { ONBOARDING_TEXT } from "@/features/learning/strings";
@@ -88,39 +87,72 @@ describe("KnowledgeSheet: one container, two placements", () => {
     expect(normalise(panel.container.innerHTML)).toBe(pageHtml);
   });
 
-  it("orders header, progress, metadata, field, related concepts and pager, and focuses the h1", () => {
+  it("orders header, metadata, progress, field, related concepts and pager, and focuses the h1", () => {
     render(<Sheet c={concept} placement="page" />);
     const sheet = screen.getByRole("region", { name: /stage two/i });
     const h1 = within(sheet).getByRole("heading", { level: 1 });
     expect(h1).toHaveFocus();
     expect(h1).toHaveAttribute("tabindex", "-1");
-    const order = ["sheet-action", "reading-progress", "sheet-meta", "sheet-field", "related-concepts", "pager"].map((s) => sheet.querySelector(`[data-slot=${s}]`)!);
+    const order = ["sheet-action", "sheet-meta", "reading-progress", "sheet-field", "related-concepts", "pager"].map((s) => sheet.querySelector(`[data-slot=${s}]`)!);
     for (let i = 1; i < order.length; i++) expect(order[i - 1]!.compareDocumentPosition(order[i]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(within(sheet).getByText(/Step 2 of 3/)).toBeInTheDocument();
+    // Step is a metadata row, not an eyebrow (DR-022).
+    const meta = sheet.querySelector("[data-slot=sheet-meta]")!;
+    expect(within(meta as HTMLElement).getByText("Step")).toBeInTheDocument();
+    expect(within(meta as HTMLElement).getByText("2 of 3")).toBeInTheDocument();
+    // Lean metadata (cognitive-load rule): no Status row; the notice strip states the status.
+    expect(Array.from(meta.querySelectorAll("dt")).map((d) => d.textContent)).not.toContain("Status");
     expect(within(sheet).getByRole("progressbar", { name: "Reading progress" })).toHaveAttribute("aria-valuenow");
-    expect(sheet.querySelector("[data-slot=tradition-marker]")).not.toBeNull();
+    // No tradition marker on any key (P17, DR-022): the tradition is named in words only.
+    expect(sheet.querySelector("[data-slot=tradition-marker]")).toBeNull();
+    expect(sheet.querySelector("[data-slot=tradition-name]")).not.toBeNull();
     expect(within(sheet).getByRole("heading", { level: 2, name: "From the Sources" })).toBeInTheDocument();
   });
 });
 
-describe("ClaimList and CitationNote", () => {
-  it("numbers the claims, hides the hang number and gives every citation its own note", async () => {
+describe("ClaimList and the numbered citation markers", () => {
+  it("numbers the claims, hides the hang number and gives every citation its own marker and record", async () => {
     const h = renderWithTelemetry(<ClaimList conceptId={concept.id} claims={concept.claims} />);
     const list = screen.getByRole("list", { name: "Statements" });
     const items = within(list).getAllByRole("listitem");
     expect(items).toHaveLength(concept.claims.length);
     expect(items[0]!.querySelector("[aria-hidden=true]")!.textContent).toBe("1");
-    const notes = screen.getAllByRole("button", { name: /^Source: / });
-    expect(notes).toHaveLength(concept.claims.flatMap((c) => c.evidence).length);
-    // One activation reaches the record; Escape returns to the note.
-    await userEvent.click(notes[0]!);
-    expect(notes[0]).toHaveAttribute("aria-expanded", "true");
-    const record = screen.getByRole("region", { name: /Source details/ });
-    expect(record.querySelector("dl")).not.toBeNull();
+    const markers = within(list).getAllByRole("button", { name: /^Source \d+: / });
+    expect(markers).toHaveLength(concept.claims.flatMap((c) => c.evidence).length);
+    // Every marker sits inside its claim paragraph, collapsed by default.
+    for (const m of markers) {
+      expect(m.closest("[data-slot=claim]")).not.toBeNull();
+      expect(m).toHaveAttribute("aria-expanded", "false");
+    }
+    // Numbers follow the deduplicated reference list of these claims.
+    const numbers = referenceNumbers(concept.claims);
+    const expected = concept.claims.flatMap((c) => c.evidence.map((e) => String(numbers.get(e.id))));
+    expect(markers.map((m) => m.getAttribute("data-citation-number"))).toEqual(expected);
+    // One activation reaches the record, in place; Escape returns to the marker.
+    await userEvent.click(markers[0]!);
+    expect(markers[0]).toHaveAttribute("aria-expanded", "true");
+    const record = screen.getByRole("region", { name: /^Source 1: / });
+    expect(markers[0]!.closest("li")!.contains(record)).toBe(true);
     fireEvent.keyDown(record, { key: "Escape" });
-    expect(notes[0]).toHaveAttribute("aria-expanded", "false");
-    expect(notes[0]).toHaveFocus();
+    expect(markers[0]).toHaveAttribute("aria-expanded", "false");
+    expect(markers[0]).toHaveFocus();
     expect((await h.events()).map((e) => e.type)).toEqual(expect.arrayContaining(["citation_opened", "citation_closed"]));
+    // Standalone, the list is followed by ONE deduplicated reference list.
+    const refs = screen.getByRole("region", { name: "References" });
+    expect(within(refs).getAllByRole("listitem")).toHaveLength(numbers.size);
+  });
+
+  it("leaves the reference list to the sheet's slot when placed in a KnowledgeSheet", () => {
+    render(
+      <KnowledgeSheet concept={sheetConcept(concept)} autoFocusTitle={false} references={<SheetReferences conceptId={concept.id} claims={concept.claims} />}>
+        <ClaimList conceptId={concept.id} claims={concept.claims} references="sheet" />
+      </KnowledgeSheet>,
+    );
+    const lists = screen.getAllByRole("region", { name: "References" });
+    expect(lists).toHaveLength(1);
+    // At the end of the field, before Related Concepts and the pager.
+    const field = document.querySelector("[data-slot=sheet-field]")!;
+    expect(field.contains(lists[0]!)).toBe(false);
+    expect(field.compareDocumentPosition(lists[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });
 

@@ -3,7 +3,9 @@
 /**
  * LayerTabs (DESIGN.md 9.6): the ONE layer navigation of a concept in both conditions. Names and
  * order come only from `KNOWLEDGE_LAYERS` (src/features/learning/labels.ts): Overview, Artisan,
- * Process, Science, Compare. Underline tabs, each at least 44 px tall; the row wraps and never
+ * Process, Science, Compare. Underline tabs, each at least 44 px tall, inactive --ink-2 (12.08:1),
+ * active --ink at 700 with a 3 px indigo underline and its bold width reserved (DESIGN.md 9.4); the
+ * row wraps and never
  * scrolls sideways, so every layer name stays visible at 390 px. ARIA tabs pattern with a roving
  * tabindex: Arrow keys, Home and End move between tabs and select them (automatic activation).
  * Changes are instant (no transition).
@@ -71,10 +73,12 @@ export function LayerTabs({ layers, value, onValueChange, panelId, idBase, class
             onKeyDown={onKeyDown}
             className={cn(
               "text-ui -mb-px inline-flex min-h-11 items-center border-b-[3px] px-4",
-              selected ? "border-indigo text-ink" : "border-transparent text-ink-3 hover:text-ink",
+              selected ? "border-indigo font-bold text-ink" : "border-transparent text-ink-2 hover:text-ink",
             )}
           >
-            {KNOWLEDGE_LAYER_LABELS[layer]}
+            <span className="ie-reserve-bold" data-label={KNOWLEDGE_LAYER_LABELS[layer]}>
+              {KNOWLEDGE_LAYER_LABELS[layer]}
+            </span>
           </button>
         );
       })}

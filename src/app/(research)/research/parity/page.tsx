@@ -52,7 +52,7 @@ async function Parity({ searchParams }: { searchParams: Promise<Record<string, s
       id="interface"
       eyebrow="Equivalence Monitor"
       title="Interface parity"
-      description="Checks P1-P27 (DESIGN.md 12.4) compare the 2D concept page with the 3D panel for one concept per study tradition, at four viewports and two effective themes (light, and light with high contrast): study routes force light, so the dark and high-contrast dark requests measure light and light with high contrast (DR-019). Values come only from the stored run in analysis/parity/interface-parity.json; the row shows the first failing run, otherwise 1280 x 800 light."
+      description="Checks P1-P33 (DESIGN.md 12.4) compare the 2D concept page with the 3D panel for one concept per study tradition, at five viewports and two effective themes (light, and light with high contrast): study routes force light, so the dark and high-contrast dark requests measure light and light with high contrast (DR-019). Values come only from the stored run in analysis/parity/interface-parity.json; the row shows the first failing run, otherwise 1280 x 800 light."
     >
       <EquivalenceMonitor interfaceParity={iface} full numbers={{ interface: 1 }} />
     </Section>
@@ -114,7 +114,7 @@ async function Parity({ searchParams }: { searchParams: Promise<Record<string, s
                     <Verdict passed={r.report.passed} />
                   </TableCell>
                   <TableCell numeric>{r.report.criticalFailures}</TableCell>
-                  <TableCell className="text-mono">{r.report.inputSha256.slice(0, 12)}</TableCell>
+                  <TableCell className="text-id">{r.report.inputSha256.slice(0, 12)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -170,10 +170,10 @@ function ReportView({ base, id, createdAt, sha, report, demo }: { base: number; 
         items={[
           { label: "Recorded (UTC)", value: <Timestamp iso={createdAt} /> },
           { label: "Result", value: <Verdict passed={report.passed} /> },
-          { label: "Generator", value: <span className="text-mono">{report.generatorVersion}</span> },
+          { label: "Generator", value: <span className="text-id">{report.generatorVersion}</span> },
           { label: "Snapshot", value: report.snapshotLabel ?? "None" },
-          { label: "Manifest", value: <span className="text-mono">{report.manifestHash?.slice(0, 12) ?? "None"}</span> },
-          { label: "Report SHA-256", value: <span className="text-mono break-all">{sha}</span> },
+          { label: "Manifest", value: <span className="text-id">{report.manifestHash?.slice(0, 12) ?? "None"}</span> },
+          { label: "Report SHA-256", value: <span className="text-id break-all">{sha}</span> },
           {
             label: "Content set",
             value: `${report.contentSet.concepts} concepts (${report.contentSet.comparisons} comparisons), ${report.contentSet.relationships} relationships, ${report.contentSet.claims} claims citing ${report.contentSet.sources} sources`,
@@ -199,7 +199,7 @@ function ReportView({ base, id, createdAt, sha, report, demo }: { base: number; 
                 <TableRow key={c.id}>
                   <TableCell className="align-top whitespace-normal">
                     {c.label}
-                    <span className="text-mono mt-0.5 block text-ink-3">{c.id}</span>
+                    <span className="text-id mt-0.5 block text-ink-3">{c.id}</span>
                     {c.issues.length ? (
                       <div className="mt-1">
                         <DataDisclosure label={c.issues.length === 1 ? "1 issue" : `${c.metrics.issueCount ?? c.issues.length} issues`}>
@@ -219,7 +219,7 @@ function ReportView({ base, id, createdAt, sha, report, demo }: { base: number; 
                     {Object.entries(c.metrics)
                       .filter(([k]) => k !== "issueCount")
                       .map(([k, v]) => `${k} ${v}`)
-                      .join(" · ") || "–"}
+                      .join(", ") || "–"}
                   </TableCell>
                 </TableRow>
               ))}

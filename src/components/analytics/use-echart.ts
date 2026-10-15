@@ -27,7 +27,7 @@ export const VIZ_TOKENS = {
   ink3: "--ink-3",
   grid: "--grid",
   rule: "--rule",
-  surface: "--surface",
+  surface: "--ground",
   sunk: "--sunk",
   onIndigo: "--on-indigo",
   ramp: ["--viz-seq-1", "--viz-seq-2", "--viz-seq-3", "--viz-seq-4", "--viz-seq-5", "--viz-seq-6"],
@@ -135,7 +135,7 @@ export function useEChart(build: (t: VizTheme) => EChartsCoreOption, deps: unkno
       chart = core.init(ref.current, undefined, { renderer: "svg" });
       chart.setOption(
         {
-          textStyle: { color: theme.ink3, fontFamily: theme.fontFamily, fontSize: 12 },
+          textStyle: { color: theme.ink3, fontFamily: theme.fontFamily, fontSize: 13 },
           animation: false,
           ...build(theme),
         },

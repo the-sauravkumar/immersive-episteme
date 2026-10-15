@@ -1,21 +1,17 @@
 /**
- * Neutral tradition marker (DESIGN.md 7.7, 12.3 rule 13; parity check P17).
+ * Tradition name (DESIGN.md 12.3 rule 13; parity check P17, DR-022).
  *
- * Every tradition named in text may carry this marker, and it is IDENTICAL for all six keys: a
- * 10 x 10 px square, 1.5 px `--ink` border, no fill, `margin-inline-end: 6px`,
- * `vertical-align: -1px`, `aria-hidden` (globals.css `.ie-marker`). There are no tradition
- * colours, icons or motifs anywhere (R-C16), so the component deliberately takes no styling
- * input that could vary by tradition. `traditionKey` only adds a data attribute for tests.
+ * A tradition is named in words only. The Apparatus neutral square marker is removed for all six
+ * keys ("If a dot requires explanation, a text label was probably the right call"), so P17 is
+ * now "no marker on any key". There are no tradition colours, icons or motifs anywhere (R-C16);
+ * the component takes no styling input that could vary by tradition, and `traditionKey` only
+ * adds a data attribute for tests.
  */
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-export function TraditionMarker({ traditionKey }: { traditionKey?: string }) {
-  return <span aria-hidden="true" data-slot="tradition-marker" data-tradition-key={traditionKey} className="ie-marker" />;
-}
-
-/** A tradition name preceded by the marker, kept on one line. */
+/** A tradition name, kept on one line where it fits. */
 export function TraditionName({
   children,
   traditionKey,
@@ -26,9 +22,8 @@ export function TraditionName({
   className?: string;
 }) {
   return (
-    <span data-slot="tradition-name" className={cn("inline-flex items-baseline", className)}>
-      <TraditionMarker traditionKey={traditionKey} />
-      <span>{children}</span>
+    <span data-slot="tradition-name" data-tradition-key={traditionKey} className={cn("inline", className)}>
+      {children}
     </span>
   );
 }

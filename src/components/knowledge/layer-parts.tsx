@@ -37,7 +37,7 @@ function TypeAndTradition({ type, traditionSlug, traditionNames }: { type: Conce
       {CONCEPT_TYPE_LABELS[type]}
       {traditionSlug ? (
         <>
-          {" · "}
+          {", "}
           <TraditionName traditionKey={traditionSlug}>{traditionNames[traditionSlug] ?? traditionSlug}</TraditionName>
         </>
       ) : null}
@@ -97,7 +97,7 @@ export function LayerConceptHead({
   );
   return (
     <div className="mb-6" data-slot="panel-layer-concept">
-      <p className="text-eyebrow">
+      <p className="text-label">
         <TypeAndTradition type={concept.type} traditionSlug={concept.traditionSlug} traditionNames={traditionNames} />
       </p>
       <h3 className="text-h2 mt-1 text-ink">{titleCase(concept.title)}</h3>
@@ -137,7 +137,7 @@ export function ComparisonBlocks({
           <ul className="mt-2 list-none">
             {compares.map((c) => (
               <li key={c.id} className="border-t border-rule py-2 first:border-t-0">
-                <p className="text-dl-value font-medium text-ink">{titleCase(c.title)}</p>
+                <p className="text-value font-medium text-ink">{titleCase(c.title)}</p>
                 <p className="text-credit">
                   <TypeAndTradition type={c.type} traditionSlug={c.traditionSlug} traditionNames={traditionNames} />
                 </p>
@@ -154,7 +154,7 @@ export function ComparisonBlocks({
           <ul className="mt-2 list-none">
             {links.map((l) => (
               <li key={l.relationshipId} className="border-t border-rule py-3 first:border-t-0">
-                <p className="text-dl-value text-ink">
+                <p className="text-value text-ink">
                   <span className="font-medium">{titleCase(l.aTitle)}</span>
                   <span className="text-ink-3"> {l.type === "SIMILAR_TO" ? LAYER_TEXT.similarTo : LAYER_TEXT.contrastsWith} </span>
                   <span className="font-medium">{titleCase(l.bTitle)}</span>

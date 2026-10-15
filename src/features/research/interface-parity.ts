@@ -1,8 +1,9 @@
 /**
  * Interface parity report (DESIGN.md 12.4, 18 WP0 task 9).
  *
- * `tests/e2e/parity.spec.ts` (WP8) measures checks P1-P27 on the 2D concept page and the 3D panel
- * for one concept per study tradition, at four viewports and four themes, and writes one report
+ * `tests/e2e/parity.spec.ts` measures checks P1-P33 on the 2D concept page and the 3D panel for one
+ * concept per study tradition, at five viewports (plus 1024 x 768 and 1920 x 1080 for the layout
+ * checks P28 and P30) and four themes, and writes one report
  * to `analysis/parity/interface-parity.json`; CI commits it. The Equivalence Monitor reads ONLY
  * that stored file: when it is absent or malformed the monitor says "No parity run recorded yet"
  * and shows nothing else. There is no sample or placeholder path.
@@ -19,9 +20,9 @@ import { z } from "zod";
 /** Where CI writes the report, relative to the repository root. */
 export const INTERFACE_PARITY_REPORT_PATH = "analysis/parity/interface-parity.json";
 
-/** The 27 checks of DESIGN.md 12.4, in order, with the short wording used on every surface. */
+/** The 33 checks of DESIGN.md 12.4, in order, with the short wording used on every surface. */
 export const PARITY_CHECKS: readonly { id: string; label: string }[] = [
-  { id: "P1", label: "Computed style of claim, title, caption, credit, quote, source line and citation button" },
+  { id: "P1", label: "Computed style of claim, title, caption, credit, quote, source line and citation marker" },
   { id: "P2", label: "Content width of the claim paragraph" },
   { id: "P3", label: "Number of rendered lines per claim" },
   { id: "P4", label: "Knowledge container background and backdrop filter" },
@@ -33,11 +34,11 @@ export const PARITY_CHECKS: readonly { id: string; label: string }[] = [
   { id: "P10", label: "Text contrast in the knowledge container" },
   { id: "P11", label: "Interactions to the first claim, a citation record, a figure and a layer" },
   { id: "P12", label: "No transitions or animations on study routes" },
-  { id: "P13", label: "Tab stops to the first source note" },
+  { id: "P13", label: "Tab stops to the first citation marker" },
   { id: "P14", label: "Figure slots: count, order, source, alt, caption, credit, size" },
   { id: "P15", label: "Layout shift on load and on panel open" },
   { id: "P16", label: "Figure decode latency" },
-  { id: "P17", label: "Neutral tradition marker identical for every tradition" },
+  { id: "P17", label: "No tradition marker on any tradition (names only)" },
   { id: "P18", label: "Position of the related concepts block" },
   { id: "P19", label: "Both conditions import the same knowledge components" },
   { id: "P20", label: "Shared interface strings" },
@@ -48,6 +49,12 @@ export const PARITY_CHECKS: readonly { id: string; label: string }[] = [
   { id: "P25", label: "Reading-progress bar" },
   { id: "P26", label: "Equal salience of the study traditions" },
   { id: "P27", label: "Focus on the concept title when a concept opens" },
+  { id: "P28", label: "Place rail: width, position, row height, type, default state and drawer" },
+  { id: "P29", label: "Rail and index carry titles, types and steps only, never claim text" },
+  { id: "P30", label: "Sheet geometry: left edge, width, top and scroll container" },
+  { id: "P31", label: "Focus ring style on the top bar, rail and sheet" },
+  { id: "P32", label: "Sheet header and its Close control" },
+  { id: "P33", label: "Elements competing for attention with the open concept" },
 ];
 
 const value = z.union([z.number(), z.string(), z.boolean(), z.null()]);
