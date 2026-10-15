@@ -24,6 +24,9 @@ export const VISITOR = {
   fov: 62,
 } as const;
 
+/** Route pace: walking within `walkWithin` metres of the destination, brisk beyond `walkWithin + rampOver`. */
+export const ROUTE_PACE = { walkWithin: 3, rampOver: 5 } as const;
+
 export interface Box2 {
   id: string;
   minX: number;
@@ -282,7 +285,13 @@ export function stepVisitor(v: VisitorState, input: MoveInput, dt: number, world
     if (dist < (last ? 0.05 : 0.35)) {
       v.route.shift();
     } else {
-      const sp = VISITOR.walkSpeed * (last ? Math.min(1, dist / 0.7) : 1);
+      // Click-to-walk on a long route goes at the brisk pace (the Shift pace of the keys) and eases
+      // back to the walking pace over the last metres (3D-B walkthrough: the 63 m walk down the
+      // comparison hall to the far wing took 45 s at the walking pace).
+      let remaining = dist;
+      for (let i = 1; i < v.route.length; i++) remaining += Math.hypot(v.route[i]!.x - v.route[i - 1]!.x, v.route[i]!.z - v.route[i - 1]!.z);
+      const brisk = Math.min(1, Math.max(0, (remaining - ROUTE_PACE.walkWithin) / ROUTE_PACE.rampOver));
+      const sp = (VISITOR.walkSpeed + (VISITOR.briskSpeed - VISITOR.walkSpeed) * brisk) * (last ? Math.min(1, dist / 0.7) : 1);
       tvx = (dx / dist) * sp;
       tvz = (dz / dist) * sp;
       // Face the direction of travel unless a final facing is pending on the last leg.

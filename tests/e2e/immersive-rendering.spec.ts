@@ -184,6 +184,19 @@ test("C1 static-frame stability, C2 luminance, C5 visual baseline at every viewp
   }
   for (const z of zoneMeans) expect.soft(Math.abs(z.deviation), `C2 zone ${z.zone}`).toBeLessThanOrEqual(0.15);
 
+  // C2b (DR-023): each study wing's entrance room from the equivalent viewpoints (its "#wall" and
+  // "#door" views) has a mean luminance within ±5% of the wings' average.
+  const entranceRows = rows.filter((r) => /^room:[^:]+:tradition_context#(wall|door)$/.test(r.id));
+  const wingMeans = [...new Set(entranceRows.map((r) => r.id.split(":")[1]!))].map((wing) => {
+    const xs = entranceRows.filter((r) => r.id.split(":")[1] === wing).map((r) => r.mean);
+    return { wing, mean: xs.reduce((a, b) => a + b, 0) / xs.length, views: xs.length };
+  });
+  const wingAverage = wingMeans.reduce((s2, w) => s2 + w.mean, 0) / Math.max(1, wingMeans.length);
+  const c2b = wingMeans.map((w) => ({ ...w, deviation: w.mean / wingAverage - 1 }));
+  (results.c2 as Record<string, unknown>).c2bWingEntranceRooms = c2b;
+  expect.soft(c2b.length, "C2b wings measured").toBeGreaterThanOrEqual(3);
+  for (const w of c2b) expect.soft(Math.abs(w.deviation), `C2b ${w.wing}`).toBeLessThanOrEqual(0.05);
+
   // C5: one room view per zone against an approved baseline (640 x 360 PNG per GPU project).
   const dir = path.join(BASELINES, tier);
   mkdirSync(dir, { recursive: true });
@@ -224,14 +237,20 @@ test("C3 frame times, C4 hitches and shader compiles, C11 memory over two tours"
     await cdp.send("HeapProfiler.collectGarbage");
     await page.waitForTimeout(500);
   };
-  await gc();
+  // C11 compares counts at the same place: every snapshot is taken at the spawn view, so the same
+  // rooms' lettering is resident (the tours end in different rooms).
+  const home = async () => {
+    await call(page, "stability", await call(page, "spawnView"), 1);
+    await gc();
+  };
+  await home();
   const before = await call(page, "memory");
   const t1 = await call(page, "tour", 2.5, Math.PI / 2);
   const tex1 = await call(page, "textureBytes");
-  await gc();
+  await home();
   const mid = await call(page, "memory");
   const t2 = await call(page, "tour", 2.5, Math.PI / 2);
-  await gc();
+  await home();
   const after = await call(page, "memory");
   const b = BUDGET[tier];
   const summarise = (t: typeof t1) => {
@@ -262,7 +281,8 @@ test("C3 frame times, C4 hitches and shader compiles, C11 memory over two tours"
     expect.soft(s.p99, "C3 p99").toBeLessThanOrEqual(b.p99);
     expect.soft(s.maxCalls, "C3 draw calls").toBeLessThanOrEqual(b.calls);
     expect.soft(s.maxTriangles, "C3 triangles").toBeLessThanOrEqual(b.triangles);
-    expect.soft(s.programsAfter, "C4 programs after entry").toBe(s.programsBefore);
+    // No program compiled after entry (a count that falls, when a material is released, is not a compile).
+    expect.soft(s.programsAfter, "C4 programs after entry").toBeLessThanOrEqual(s.programsBefore);
     expect.soft(s.unreachable).toEqual([]);
   }
   if (tier === "high") expect.soft(s1.over50ms + s2.over50ms, "C4 frames > 50 ms").toBe(0);
@@ -302,7 +322,9 @@ test("C10 idle and hidden: no frames while still or hidden", async () => {
 
 test("C12 texture fidelity: GPU texture vs source (SSIM, blocking), same assets on every tier, sharp at rest", async () => {
   const info = await call(page, "info");
-  const names = ["wall-color", "wall-normal", "wall-orm", "floor-color", "floor-normal", "floor-orm"];
+  // Every texture the finish loads (DR-023: the two colour maps; the unlit architecture uses no normal or ORM map).
+  const names = info.textures.map((t) => t.url.replace(/^.*\//, "").replace(/\.[0-9a-f]+\.ktx2$/, ""));
+  expect(names.length).toBeGreaterThan(0);
   const rows: { name: string; width: number; height: number; ssim: number; minWindowSsim: number; perChannel: number[]; blockIndex: number }[] = [];
   for (const name of names) {
     const r = await call(page, "textureLevel0", name);

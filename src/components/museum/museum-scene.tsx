@@ -17,8 +17,10 @@ import { CollisionWorld, VISITOR, createRouter, facingExhibit, moveInputFromKeys
 import { doorSigns, type SceneDoorSign } from "@/features/immersive/placement";
 import { TIERS, type QualityTier } from "@/features/immersive/quality";
 import { residentRooms, roomAt, type SceneExhibit, type SceneModel, type SceneRoom } from "@/features/immersive/scene-model";
+import { plaqueText } from "@/features/immersive/plaque-text";
+import { directoryReadingPoint, doorwayAtWallHit, doorwayWalkTarget, entranceDirectory, farSide } from "@/features/immersive/wayfinding";
 
-import type { MuseumBridge } from "./bridge";
+import type { InputMethod, MuseumBridge } from "./bridge";
 import { installProbe, type ProbeHost } from "./probe";
 import { ensureLabelFonts } from "./three/labels";
 import { WebGLPipeline } from "./three/pipeline";
@@ -29,6 +31,8 @@ import { MuseumWorld } from "./three/world";
 const MOUSE_LOOK_SENSITIVITY = 0.0025;
 const MOVE_KEYS = new Set(["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", "shift"]);
 const DRAG_THRESHOLD_PX = 5;
+/** Milliseconds of lettering drawing per frame while rooms stream in (a third of a 60 Hz frame). */
+const LETTERING_SLICE_MS = 5;
 
 function isTypingTarget(t: EventTarget | null): boolean {
   const el = t as HTMLElement | null;
@@ -42,7 +46,11 @@ export interface MuseumSceneProps {
   model: SceneModel;
   tier: QualityTier;
   bridge: MuseumBridge;
-  describe: (e: SceneExhibit) => { kicker: string | null; footer: string | null };
+  /**
+   * Unused: plate lines come from `plaqueText` (features/immersive/plaque-text.ts), the one source
+   * both conditions share. Kept optional so an existing host compiles.
+   */
+  describe?: (e: SceneExhibit) => { kicker: string | null; footer: string | null };
   describeDoor: (s: SceneDoorSign) => { kicker: string | null; title: string };
   probe: boolean;
   gpuRenderer: string | null;
@@ -132,7 +140,7 @@ function installFrameCrop(camera: THREE.PerspectiveCamera, crop: { current: Fram
   };
 }
 
-export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe, gpuRenderer, cropTop, frameTop }: MuseumSceneProps) {
+export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRenderer, cropTop, frameTop }: MuseumSceneProps) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
@@ -147,6 +155,17 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
   const router = useMemo(() => createRouter(model.rooms, model.colliders), [model]);
   const exhibitsById = useMemo(() => new Map(model.exhibits.map((e) => [e.id, e])), [model]);
   const roomsById = useMemo(() => new Map(model.rooms.map((r) => [r.id, r])), [model]);
+  /**
+   * Signs that walk the visitor through a doorway when clicked (3D-B): each door sign leads to the
+   * room it names, each directory row to the room its doorway opens into.
+   */
+  const directory = useMemo(() => entranceDirectory(model).directory, [model]);
+  const signDoorways = useMemo(() => {
+    const m = new Map<string, { portalId: string; toRoomId: string }>();
+    for (const d of doorSigns(model)) m.set(d.id, { portalId: d.portalId, toRoomId: d.toRoomId });
+    for (const r of entranceDirectory(model).directory?.rows ?? []) m.set(r.id, { portalId: r.portalId, toRoomId: r.toRoomId });
+    return m;
+  }, [model]);
 
   const runtime = useRef<{
     world: MuseumWorld | null;
@@ -161,6 +180,8 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
     look: { yaw: number; pitch: number };
     keys: Set<string>;
     roomId: string | null;
+    /** Set by the pointer handlers: the doorway a sign or wall hit stands for. */
+    doorwayOf?: (hit: { owner: { kind: string; id: string }; point: THREE.Vector3 }) => { portalId: string; toRoomId: string } | null;
     wantResident: Set<string>;
     lastPose: string;
     onArrive: (() => void) | null;
@@ -180,6 +201,10 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
     setFreeLook: ((on: boolean) => void) | null;
     /** Right-button mouse look is held. */
     mouseLooking: boolean;
+    /** Input methods already reported in this navigation interval. */
+    methodsUsed: Set<InputMethod>;
+    /** Visited exhibits to apply once the world exists. */
+    visited: string[];
   }>({
     world: null,
     pipeline: null,
@@ -209,7 +234,20 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
     framesRendered: 0,
     probeHook: null,
     poseOverride: false,
+    methodsUsed: new Set(),
+    visited: [],
   });
+
+  /** Reports the first use of an input method in the current navigation interval. */
+  const noteMethod = useCallback(
+    (m: InputMethod) => {
+      const used = runtime.current.methodsUsed;
+      if (used.has(m)) return;
+      used.add(m);
+      bridge.events.inputMethodUsed?.(m);
+    },
+    [bridge],
+  );
 
   // The projection is cropped to the part of the virtual frame below the chrome (installFrameCrop);
   // the camera is "manual", so R3F never resets its aspect to the canvas's own.
@@ -292,7 +330,8 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
         const materials = createMaterials(textures, model.rooms[0]?.height ?? 3.2);
         rt.materials = materials;
         const anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
-        const world = new MuseumWorld(model, materials, anisotropy, describe, describeDoor);
+        const world = new MuseumWorld(model, materials, anisotropy, describeDoor);
+        world.setVisited(rt.visited);
         rt.world = world;
         scene.add(world.root);
         disposeLights = createLighting(renderer, scene);
@@ -320,6 +359,7 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
         pipeline.render(false, 0);
         renderer.info.reset();
         rt.ready = true;
+        rt.methodsUsed.clear();
         if (rt.roomId) bridge.events.roomChanged(rt.roomId, null, null);
         bridge.events.ready({ backend: "webgl2", tier, gpuRenderer, antialiasing: "TAARenderPass accumulation at rest + SMAA" });
         invalidate();
@@ -337,8 +377,8 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
       }
       rt.pipeline?.dispose();
       for (const m of rt.materials?.all ?? []) m.dispose();
-      rt.materials?.wallAo.dispose();
-      for (const set of rt.textures ? [rt.textures.wall, rt.textures.floor] : []) for (const t of Object.values(set)) t.dispose();
+      rt.materials?.wallProfile.dispose();
+      for (const set of rt.textures ? [rt.textures.wall, rt.textures.floor] : []) for (const t of Object.values(set)) t?.dispose();
       disposeKtx2Loader();
       rt.world = null;
       rt.pipeline = null;
@@ -379,6 +419,14 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
         const route = router.route(rt.visitor, e.approach);
         if (!route) return false;
         startWalk([...route.slice(1), { x: e.approach.x, z: e.approach.z }], facing, onArrive);
+        return true;
+      },
+      walkThroughDoorway(portalId, toRoomId) {
+        const t = doorwayWalkTarget(model, portalId, toRoomId, (p) => router.isFree(p));
+        if (!t) return false;
+        const route = router.route(rt.visitor, t.point);
+        if (!route) return false;
+        startWalk(route.slice(1).length ? route.slice(1) : [t.point], t.yaw);
         return true;
       },
       walkToRoom(roomId) {
@@ -451,11 +499,24 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
       setFreeLook(on) {
         rt.setFreeLook?.(on);
       },
+      setVisited(exhibitIds) {
+        rt.visited = [...exhibitIds];
+        if (rt.world?.setVisited(rt.visited)) {
+          rt.pipeline?.restart();
+          invalidate();
+        }
+      },
+      startNavigationInterval() {
+        rt.methodsUsed.clear();
+      },
+      noteInputMethod(method) {
+        noteMethod(method);
+      },
     };
     return () => {
       bridge.controller = null;
     };
-  }, [bridge, camera, exhibitsById, invalidate, roomsById, router, setFrameloop, lensTarget, applyLens]);
+  }, [bridge, camera, exhibitsById, invalidate, roomsById, router, setFrameloop, lensTarget, applyLens, noteMethod, model]);
 
   // Keyboard, pointer, visibility and context-loss handling.
   useEffect(() => {
@@ -474,7 +535,10 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
       }
       if (!MOVE_KEYS.has(k)) return;
       if (k.startsWith("arrow")) e.preventDefault();
-      if (!rt.keys.has(k) && k !== "shift") bridge.events.manualMove();
+      if (!rt.keys.has(k) && k !== "shift") {
+        bridge.events.manualMove();
+        noteMethod("keys");
+      }
       rt.keys.add(k);
       invalidate();
     };
@@ -577,6 +641,7 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
     };
     const onMove = (e: PointerEvent) => {
       if (rt.freeLook && document.pointerLockElement === el && !mouseLook) {
+        if (e.movementX !== 0 || e.movementY !== 0) noteMethod("freelook");
         rt.look.yaw -= e.movementX * MOUSE_LOOK_SENSITIVITY;
         rt.look.pitch = THREE.MathUtils.clamp(rt.look.pitch - e.movementY * MOUSE_LOOK_SENSITIVITY, -VISITOR.pitchLimit, VISITOR.pitchLimit);
         rt.visitor.routeYaw = null;
@@ -590,6 +655,7 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
         const dy = locked ? e.movementY : e.clientY - mouseLook.y;
         mouseLook.x = e.clientX;
         mouseLook.y = e.clientY;
+        if (dx !== 0 || dy !== 0) noteMethod("rmb");
         // First-person mapping: mouse right turns right, mouse up looks up.
         rt.look.yaw -= dx * MOUSE_LOOK_SENSITIVITY;
         rt.look.pitch = THREE.MathUtils.clamp(rt.look.pitch - dy * MOUSE_LOOK_SENSITIVITY, -VISITOR.pitchLimit, VISITOR.pitchLimit);
@@ -604,6 +670,7 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
         if (!pointer.dragged) {
           pointer.dragged = true;
           bridge.events.manualMove();
+          noteMethod("drag");
           el.setPointerCapture?.(e.pointerId);
         }
         pointer.x = e.clientX;
@@ -631,17 +698,47 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
       if (wasDrag || rt.paused) return;
       activate(e.clientX, e.clientY);
     };
-    /** A click at a point: open the exhibit under it, or walk to the floor point. */
+    /** The doorway a sign or a wall hit stands for (null when it is not one). */
+    function doorwayOf(hit: { owner: { kind: string; id: string }; point: THREE.Vector3 }): { portalId: string; toRoomId: string } | null {
+      if (hit.owner.kind === "sign") return signDoorways.get(hit.owner.id) ?? null;
+      if (hit.owner.kind !== "wall") return null;
+      const p = doorwayAtWallHit(model, hit.point);
+      return p ? { portalId: p.id, toRoomId: farSide(model, p, rt.roomId, rt.visitor) } : null;
+    }
+    rt.doorwayOf = doorwayOf;
+    /** A click at a point: open the exhibit under it, walk through the doorway it shows, or walk to the floor point. */
     function activate(clientX: number, clientY: number) {
       const hit = pick(clientX, clientY);
       if (!hit) return;
       if (hit.owner.kind === "exhibit") {
+        noteMethod("click");
         bridge.events.pickExhibit(hit.owner.id);
+      } else if (hit.owner.kind === "sign" && directory && hit.owner.id.startsWith("directory:") && rt.roomId !== directory.roomId) {
+        // The directory seen from outside its room (the spawn view): walk up to read it.
+        const hfov = 2 * Math.atan(Math.tan(((camera.fov * Math.PI) / 180) / 2) * camera.aspect);
+        const at = directoryReadingPoint(directory, model, hfov);
+        const route = at ? router.route(rt.visitor, at.point) : null;
+        if (at && route) {
+          bridge.events.manualMove();
+          noteMethod("click");
+          rt.visitor.route = route.slice(1).length ? route.slice(1) : [at.point];
+          rt.visitor.routeYaw = at.yaw;
+          rt.onArrive = null;
+          invalidate();
+        }
+      } else if (hit.owner.kind === "sign" || hit.owner.kind === "wall") {
+        // A door sign, a directory row or a doorway frame: walk through into the room beyond.
+        const door = doorwayOf(hit);
+        if (door && bridge.controller?.walkThroughDoorway(door.portalId, door.toRoomId)) {
+          bridge.events.manualMove();
+          noteMethod("click");
+        }
       } else if (hit.owner.kind === "floor") {
         const target = { x: hit.point.x, z: hit.point.z };
         const route = router.route(rt.visitor, target);
         if (route) {
           bridge.events.manualMove();
+          noteMethod("click");
           rt.visitor.route = route.slice(1);
           rt.visitor.routeYaw = null;
           rt.onArrive = null;
@@ -716,7 +813,7 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
       el.removeEventListener("webglcontextlost", onLost);
       el.removeEventListener("webglcontextrestored", onRestored);
     };
-  }, [bridge, camera, gl, invalidate, router, setFrameloop]);
+  }, [bridge, camera, gl, invalidate, router, setFrameloop, noteMethod, directory, model, signDoorways]);
 
   // Measurement probe (non-study modes only; read-only info always).
   useEffect(() => {
@@ -769,12 +866,15 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
       invalidate,
     };
     const uninstall = installProbe(host, probe);
-    const extra = installDoorSignProbe(model, camera, gl.domElement);
+    const extra = installDoorSignProbe(model, camera, gl.domElement, (x, y) => (runtime.current as unknown as { pick?: (x: number, y: number) => { owner: { kind: string; id: string } } | null }).pick?.(x, y) ?? null);
     return () => {
       extra();
       uninstall();
     };
   }, [camera, gl, invalidate, model, probe, scene, tier]);
+
+  /** Uploads one lettering page (spreads a room's pages over frames: C4). */
+  const uploadTexture = useCallback((t: THREE.Texture) => (gl as THREE.WebGLRenderer).initTexture(t), [gl]);
 
   // Per frame: input -> visitor -> camera -> room tracking -> streaming -> cues.
   useFrame((_, delta) => {
@@ -815,12 +915,10 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
       rt.wantResident = residentRooms(model, here.id, cfg.residentDepth);
       for (const cue of model.cues) if (cue.trigger.type === "enter" && portal && cue.trigger.elementId === portal.id) bridge.events.cueTriggered(cue);
     }
-    // Stream lettering: at most one room per frame.
-    if (rt.world && rt.world.pending(rt.wantResident) > 0) {
-      if (rt.world.setResident(rt.wantResident, 1)) rt.pipeline?.restart();
-    } else if (rt.world) {
-      rt.world.setResident(rt.wantResident, 0);
-    }
+    // Stream lettering in time slices: at most LETTERING_SLICE_MS of drawing per frame; a room's
+    // pages are uploaded when its last item is drawn (C4: no long frame when a room enters the
+    // resident set).
+    if (rt.world && rt.world.stepLettering(rt.wantResident, LETTERING_SLICE_MS, uploadTexture)) rt.pipeline?.restart();
 
     // Approach-triggered cues (4 Hz), re-armed after walking away.
     // Checked whenever the visitor has moved 0.1 m (and at 4 Hz), so a jump also re-arms cues.
@@ -854,7 +952,8 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
       rt.hoverQueued = null;
       const hit = (rt as unknown as { pick?: (x: number, y: number) => { owner: { kind: string; id: string } } | null }).pick?.(q.x, q.y);
       bridge.events.hover(hit && hit.owner.kind === "exhibit" ? hit.owner.id : null);
-      gl.domElement.style.cursor = hit && (hit.owner.kind === "exhibit" || hit.owner.kind === "floor") ? "pointer" : "default";
+      const walkable = hit && (hit.owner.kind === "exhibit" || hit.owner.kind === "floor" || ((hit.owner.kind === "sign" || hit.owner.kind === "wall") && rt.doorwayOf?.(hit as never)));
+      gl.domElement.style.cursor = walkable ? "pointer" : "default";
     }
     if (active || rt.world?.pending(rt.wantResident)) invalidate();
   }, 0);
@@ -885,7 +984,7 @@ export function MuseumScene({ model, tier, bridge, describe, describeDoor, probe
  *  - `doorSignRects()`: every plaque facing the camera in the camera's room, as a page rectangle in
  *    CSS px, for reading its lettering out of a screenshot.
  */
-function installDoorSignProbe(model: SceneModel, camera: THREE.PerspectiveCamera, canvas: HTMLCanvasElement): () => void {
+function installDoorSignProbe(model: SceneModel, camera: THREE.PerspectiveCamera, canvas: HTMLCanvasElement, pickAt: (x: number, y: number) => { owner: { kind: string; id: string } } | null): () => void {
   const w = window as unknown as { __museumProbe?: Record<string, unknown> };
   const probe = w.__museumProbe;
   if (!probe) return () => {};
@@ -935,7 +1034,52 @@ function installDoorSignProbe(model: SceneModel, camera: THREE.PerspectiveCamera
     }
     return out;
   };
+  /**
+   * `textRects()` (3D-B novice walkthrough): every exhibit plate, door sign and directory row facing
+   * the camera and in front of it, as a page rectangle in CSS px, with the words it carries and
+   * whether its centre is unoccluded (what a click at its centre would hit). A scripted visitor reads
+   * only these, the words a person sees on screen.
+   */
+  const directory = entranceDirectory(model).directory;
+  const texts = [
+    ...model.exhibits.map((e) => ({ id: e.id, pickId: e.id, kind: "exhibit", words: e.label, step: plaqueText(e, model).kicker, toRoomId: null as string | null, plane: e.panel })),
+    ...signs.map((d) => ({ id: d.id, pickId: d.id, kind: "door-sign", words: d.toRoomId, step: null, toRoomId: d.toRoomId, plane: d.sign })),
+    ...(directory?.rows ?? []).map((d) => ({ id: d.id, pickId: d.id, kind: "directory", words: `${d.title}: ${d.direction}`, step: null, toRoomId: d.toRoomId, plane: d.sign })),
+  ];
+  probe.textRects = () => {
+    const r = canvas.getBoundingClientRect();
+    camera.updateMatrixWorld();
+    const out: { id: string; kind: string; words: string; step: string | null; toRoomId: string | null; left: number; top: number; width: number; height: number; distance: number; clear: boolean }[] = [];
+    for (const t of texts) {
+      const { min, max, facing } = t.plane;
+      const c = { x: (min[0] + max[0]) / 2, y: (min[1] + max[1]) / 2, z: (min[2] + max[2]) / 2 };
+      const n = normal(facing);
+      if ((camera.position.x - c.x) * n.x + (camera.position.z - c.z) * n.z <= 0) continue;
+      const corners = [
+        [min[0], min[1], min[2]],
+        [max[0], max[1], max[2]],
+        [min[0], max[1], min[2]],
+        [max[0], min[1], max[2]],
+      ].map(([x, y, z]) => new THREE.Vector3(x, y, z).applyMatrix4(camera.matrixWorldInverse));
+      if (corners.some((v) => v.z > -camera.near)) continue;
+      const ndc = corners.map((v) => v.applyMatrix4(camera.projectionMatrix));
+      const xs = ndc.map((v) => r.left + ((v.x + 1) / 2) * r.width);
+      const ys = ndc.map((v) => r.top + ((1 - v.y) / 2) * r.height);
+      const left = Math.min(...xs);
+      const top = Math.min(...ys);
+      const right = Math.max(...xs);
+      const bottom = Math.max(...ys);
+      if (right < r.left || left > r.right || bottom < r.top || top > r.bottom) continue;
+      const cx = Math.min(Math.max((left + right) / 2, r.left + 1), r.right - 1);
+      const cy = Math.min(Math.max((top + bottom) / 2, r.top + 1), r.bottom - 1);
+      const hit = pickAt(cx, cy);
+      const clear = !!hit && hit.owner.id === t.pickId;
+      out.push({ id: t.id, kind: t.kind, words: t.words, step: t.step, toRoomId: t.toRoomId, left, top, width: right - left, height: bottom - top, distance: Math.hypot(camera.position.x - c.x, camera.position.z - c.z), clear });
+    }
+    return out;
+  };
   return () => {
+    delete probe.textRects;
     delete probe.doorSignViews;
     delete probe.spawnView;
     delete probe.doorSignRects;

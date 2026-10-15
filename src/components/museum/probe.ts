@@ -96,8 +96,10 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
   let trace: FrameRecord[] | null = null;
   let capture: ((pixels: Uint8Array) => void) | null = null;
   let lastConverging = true;
+  let lastMoving = false;
   host.setFrameHook(({ moving, converging }) => {
     lastConverging = converging;
+    lastMoving = moving;
     if (trace) {
       const i = host.renderer.info;
       trace.push({ t: performance.now(), calls: i.render.calls, triangles: i.render.triangles, programs: i.programs?.length ?? 0, moving });
@@ -140,15 +142,19 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
   function luminance(px: Uint8Array) {
     const hist = new Array<number>(256).fill(0);
     let sum = 0;
+    let paper = 0;
     const n = px.length / 4;
     for (let i = 0; i < px.length; i += 4) {
       const y = Math.round(0.2126 * px[i]! + 0.7152 * px[i + 1]! + 0.0722 * px[i + 2]!);
       hist[y]!++;
       sum += y;
+      // Plate paper is display-referred white (DR-023 F2), exactly 255 by design; a tone-mapped
+      // surface never reaches it (Neutral maps scene value 1 to sRGB 240), so it is not a clipped highlight.
+      if (px[i] === 255 && px[i + 1] === 255 && px[i + 2] === 255) paper++;
     }
-    const clipped = hist.slice(254).reduce((a, b) => a + b, 0) / n;
+    const clipped = (hist.slice(254).reduce((a, b) => a + b, 0) - paper) / n;
     const crushed = hist.slice(0, 3).reduce((a, b) => a + b, 0) / n;
-    return { mean: sum / n, clippedFraction: clipped, crushedFraction: crushed, histogram: hist };
+    return { mean: sum / n, clippedFraction: clipped, crushedFraction: crushed, paperFraction: paper / n, histogram: hist };
   }
 
   async function setPoseAndSettle(p: Pose) {
@@ -207,6 +213,37 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
       }
       const lum = luminance(first);
       return { pixels: first.length / 4, changed, luminance: { mean: lum.mean, clippedFraction: lum.clippedFraction, crushedFraction: lum.crushedFraction } };
+    },
+    /** Marks exhibits visited, as controller.setVisited does (screenshots of the in-world mark). */
+    setVisited(ids: string[]) {
+      if (host.world?.setVisited(ids)) host.pipeline?.restart();
+      host.invalidate();
+    },
+    /** C1 diagnosis: a sequence of still frames with idle gaps; changed pixels of each against the first. */
+    async stabilityDetail(pose: Pose, gapsMs: number[] = [0, 0, 1500, 0, 1500, 0]) {
+      await setPoseAndSettle(pose);
+      const taa = () => (host.pipeline as unknown as { taa: { accumulateIndex: number; accumulate: boolean } } | null)?.taa;
+      const first = await grab();
+      const rows: { where: number[][]; gap: number; changed: number; changedVsPrevious: number; moving: boolean; framesBetween: number; taaIndex: number | null }[] = [];
+      let prev = first;
+      for (const gap of gapsMs) {
+        if (gap) await new Promise((r) => setTimeout(r, gap));
+        const f0 = host.framesRendered;
+        const px = await grab();
+        let c = 0;
+        let cp = 0;
+        for (let j = 0; j < px.length; j += 4) {
+          if (px[j] !== first[j] || px[j + 1] !== first[j + 1] || px[j + 2] !== first[j + 2]) c++;
+          if (px[j] !== prev[j] || px[j + 1] !== prev[j + 1] || px[j + 2] !== prev[j + 2]) cp++;
+        }
+        const w = host.renderer.getContext().drawingBufferWidth;
+        const h = host.renderer.getContext().drawingBufferHeight;
+        const where: number[][] = [];
+        for (let j = 0; j < px.length && where.length < 400; j += 4) if (px[j] !== prev[j] || px[j + 1] !== prev[j + 1] || px[j + 2] !== prev[j + 2]) where.push([(j / 4) % w, h - 1 - Math.floor(j / 4 / w), prev[j]!, px[j]!]);
+        prev = px;
+        rows.push({ where, gap, changed: c, changedVsPrevious: cp, moving: lastMoving, framesBetween: host.framesRendered - f0, taaIndex: taa()?.accumulateIndex ?? null });
+      }
+      return rows;
     },
     /** C1b: slow yaw (stepDeg per frame); frame-to-frame changed-pixel fractions. */
     async slowYaw(pose: Pose, frames = 60, stepDeg = 0.1) {

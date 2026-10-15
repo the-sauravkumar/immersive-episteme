@@ -146,7 +146,7 @@ window.startLab = async (mode: Mode) => {
       const loader = new KTX2Loader().setTranscoderPath("/museum/basis/").detectSupport(renderer);
       const tex = await loadTextures(loader, Math.min(16, renderer.capabilities.getMaxAnisotropy()));
       const mats = createMaterials(tex, 3.2);
-      scene.add(new MuseumWorld(model, mats, 16, () => ({ kicker: null, footer: null }), () => ({ kicker: null, title: "" })).root);
+      scene.add(new MuseumWorld(model, mats, 16, () => ({ kicker: null, title: "" })).root);
       const pmrem = new THREE.PMREMGenerator(renderer);
       lighting(scene, pmrem.fromScene(new RoomEnvironment(), 0.04).texture);
       const pipeline = new WebGLPipeline(renderer, scene, camera, 2);
@@ -209,7 +209,7 @@ window.startLab = async (mode: Mode) => {
     loader.detectSupport(renderer as unknown as THREE.WebGLRenderer);
     const tex = await loadTextures(loader, 16);
     const mats = createMaterials(tex, 3.2);
-    scene.add(new MuseumWorld(model, mats, 16, () => ({ kicker: null, footer: null }), () => ({ kicker: null, title: "" })).root);
+    scene.add(new MuseumWorld(model, mats, 16, () => ({ kicker: null, title: "" })).root);
     const pmrem = new webgpu.PMREMGenerator(renderer);
     lighting(scene, pmrem.fromScene(new RoomEnvironment(), 0.04).texture);
     const scenePass = tsl.pass(scene, camera);
