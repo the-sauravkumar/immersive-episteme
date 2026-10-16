@@ -53,7 +53,8 @@ The platform importer (built later) maps these into the knowledge schema.
       "type": "BELONGS_TO|USES|PRECEDES|DEPENDS_ON|PRODUCES|AFFECTED_BY|EXPLAINS|CONTRASTS_WITH|SIMILAR_TO|REQUIRES|ENABLES|CAUSES|PRACTITIONER_EXPLAINS|SCIENTIFICALLY_EXPLAINED_BY",
       "explanation": "why this relation holds", "conditions": "qualifications or null",
       "ordinal": null, "provenance_kind": "...", "verification_state": "under_review",
-      "source_ids": ["S1"] }
+      "source_ids": ["S1"],
+      "evidence": [ { "source_id": "S1", "locator": "PDF p. 4", "quote": "verbatim passage, at most 25 words" } ] }
   ],
   "media_candidates": [
     { "url": "file page URL (e.g. Wikimedia Commons)", "title": "...", "licence": "CC BY-SA 4.0 etc.",
@@ -73,6 +74,21 @@ claim's `source_ids`. A passage supports the claim; it does not by itself verify
 stay `under_review` until a curator checks them. `note` marks a passage that could not be
 extracted cleanly and must be checked against the original. See
 docs/research/citation-policy.md and content/review/verification.md §V11.
+
+## Relationship evidence
+
+A relationship may carry `evidence[]` (optional; files without it stay valid): for a cited
+source, ONE verbatim passage from that source with a locator, written as for claim evidence.
+`source_id` must be one of the relationship's `source_ids`, and each source has at most one
+entry, because the database keeps one locator and one quote per relationship citation
+(`relationship_sources`). The quote is at most 25 words and the locator at most 200 characters;
+there is no `note` field. The importer writes the locator and quote into that citation. A
+relationship can only be verified, and a release only published, when every one of its
+citations has both (the CMS citation check and release rule REL002), so a relationship that
+should reach a release needs an entry for every source it keeps. As with claims, a passage
+supports the relationship; it does not verify it. A passage never adds a fact: when the source
+says less than the explanation, narrow the explanation to what the source says, never widen it. The graph validator refuses a passage
+from a source the relationship does not cite (KG412).
 
 ## Learner-facing text is built from claims only
 

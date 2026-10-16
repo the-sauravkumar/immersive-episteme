@@ -644,6 +644,11 @@
               "source_id": "ajrakh:S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
               "quote": "The clay and millet flour in the paste act as a resist, preventing indigo from staining the cloth beneath, whilst the alum content acts a mordant for subsequent application of red dye."
+            },
+            {
+              "source_id": "ajrakh:S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "Alum is added to half of this paste"
             }
           ]
         },
@@ -676,6 +681,11 @@
               "source_id": "dabu:S3",
               "locator": "§ \"Craft Revival Trust New Delhi, India\"",
               "quote": "The resist Dabu clay paste is made of a complex mixture of silt, from the dried river-bed, a local natural gum, lime, sugar-cane molasses, and water to form the paste."
+            },
+            {
+              "source_id": "dabu:S3",
+              "locator": "§ \"Details\"",
+              "quote": "Location: Deesa, Gujarat"
             }
           ]
         },
@@ -710,9 +720,19 @@
               "quote": "Dabu paste is prepared by mixing 'Kali Mitti\" (clay soil), lime @idhan) wheat flour and gum. These are mixed in specific ratios depending upon typ of Dabu paste needed."
             },
             {
+              "source_id": "bagru:S1",
+              "locator": "PDF p. 11",
+              "quote": "This iechnique is used only for creating pattems with indigo blue."
+            },
+            {
               "source_id": "sanganeri:S1",
               "locator": "PDF p. 14",
               "quote": "Dabu paste is prepared by mixing *Kali mittf', lime (Bidhan) wheai flour and gurn These are mixed in specific ratio depending upon type ofDabu paste netded."
+            },
+            {
+              "source_id": "sanganeri:S1",
+              "locator": "PDF p. 11",
+              "quote": "This technique is used only for creating patterns with indigo blue."
             }
           ]
         },
@@ -734,9 +754,19 @@
               "quote": "Hence it forms the chief material constituting the Kalamkari fabric."
             },
             {
+              "source_id": "machilipatnam-kalamkari:S4",
+              "locator": "PDF p. 3",
+              "quote": "4 Raw Materials 1. The base on which Kalamkari printing and dyeing is carried out"
+            },
+            {
               "source_id": "machilipatnam-kalamkari:S5",
               "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
               "quote": "This step is done before the application of indigo. After the wax is removed by boiling, other colours are applied."
+            },
+            {
+              "source_id": "machilipatnam-kalamkari:S5",
+              "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+              "quote": "The wax-resist is hand-printed on to the fabric with a kalam or pen made of an iron loop attached to a bamboo stick."
             }
           ]
         }
@@ -758,7 +788,7 @@
       "category": "cross_tradition_comparisons",
       "title": "Indigo application: resist-and-dip versus direct printing",
       "summary": "Ajrakh cloth is folded and dipped in the indigo vat, turns green then blue in air, and the darkest blues need three or four immersions.",
-      "body_md": "Ajrakh cloth is folded and dipped in the indigo vat, turns green then blue in air, and the darkest blues need three or four immersions. [ajrakh:S1]\n\nDabu cloth is dip-dyed in a cold indigo bath after the paste hardens, repeated until the shade is reached. [dabu:S3, dabu:S2]\n\nBagru and Sanganeri cloth is pleated, opened under the liquor and re-dipped; the first dip gives pale sky blue. [bagru:S1, sanganeri:S1]\n\nAt Machilipatnam indigo is mixed with rice starch and printed directly because it needs no mordant. [machilipatnam-kalamkari:S4]\n\nKhatri printers could judge an indigo vat by tasting it; Bagru and Sanganer dyers judge it by its colour. [ajrakh:S8, ajrakh:S11, bagru:S1, sanganeri:S1]",
+      "body_md": "Ajrakh cloth is folded and dipped in the indigo vat, turns green then blue in air, and the darkest blues need three or four immersions. [ajrakh:S1]\n\nDeesa Dabu cloth is dip-dyed after the clay paste hardens; in the Akola tar-resist process the cloth is dipped in a cold indigo solution, repeated to obtain the required shade. [dabu:S3, dabu:S2]\n\nBagru and Sanganeri cloth is pleated, opened under the liquor and re-dipped; the first dip gives pale sky blue. [bagru:S1, sanganeri:S1]\n\nAt Machilipatnam indigo is mixed with rice starch and printed directly because it needs no mordant. [machilipatnam-kalamkari:S4]\n\nKhatri printers could judge an indigo vat by tasting it; Bagru and Sanganer dyers judge it by its colour. [ajrakh:S8, ajrakh:S11, bagru:S1, sanganeri:S1]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
       "verification_state": "under_review",
@@ -773,11 +803,21 @@
               "source_id": "ajrakh:S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
               "quote": "If a design required the darkest shades of the blue then the cloth may be subjected to a total of three or four immersions into the vat to build up rich blue."
+            },
+            {
+              "source_id": "ajrakh:S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "The fabric is folded (fara) and then dipped in the indigo vat."
+            },
+            {
+              "source_id": "ajrakh:S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+              "quote": "At first bright green, the cloth rapidly becomes blue as oxygen meets the dye particles on the fibres."
             }
           ]
         },
         {
-          "text": "Dabu cloth is dip-dyed in a cold indigo bath after the paste hardens, repeated until the shade is reached.",
+          "text": "Deesa Dabu cloth is dip-dyed after the clay paste hardens; in the Akola tar-resist process the cloth is dipped in a cold indigo solution, repeated to obtain the required shade.",
           "source_ids": [
             "dabu:S3",
             "dabu:S2"
@@ -792,6 +832,16 @@
               "source_id": "dabu:S2",
               "locator": "§ \"process:\"",
               "quote": "In case of indigo dyed dabu resist fabrics, the cloth is printed with blocks dipped in tar and sprinkled with ash ."
+            },
+            {
+              "source_id": "dabu:S2",
+              "locator": "§ \"process:\"",
+              "quote": "It is a cold dyeing process where the cloth is dipped in a solution of Indigo dye."
+            },
+            {
+              "source_id": "dabu:S2",
+              "locator": "§ \"process:\"",
+              "quote": "The process is repeated again to obtain the required shade."
             }
           ]
         },
@@ -808,9 +858,29 @@
               "quote": "Indigo has poor affinity to the Abric in t}e presence of water, so tlre first 'dip' gives a pale sky blue shade. Ia order to get darker indigo blue, the fabric is again dipped in the tank, pulled out and oxidized."
             },
             {
+              "source_id": "bagru:S1",
+              "locator": "PDF p. 11",
+              "quote": "The printed cloth is folded neatly like saree pleats and lowered gently into the indigo tank."
+            },
+            {
+              "source_id": "bagru:S1",
+              "locator": "PDF p. 11",
+              "quote": "the dyer still holding it under the liquid dye, opers each pleat to allow the fabric to have the indigo dye evenly."
+            },
+            {
               "source_id": "sanganeri:S1",
               "locator": "PDF p. 12",
               "quote": "Indigo has poor atrni1V to the fabric in the presio\"\" of water, so the first 'dip' gves a pale sky blue shade. In order to get darker indigo blue, the fabric is again dipped in the tanft' pulled out and o*idi\"ea."
+            },
+            {
+              "source_id": "sanganeri:S1",
+              "locator": "PDF p. 11",
+              "quote": "The printed cloth is folded neatly like saree pleats and lowered gently into the indigo tank."
+            },
+            {
+              "source_id": "sanganeri:S1",
+              "locator": "PDF p. 11",
+              "quote": "the dyer still holdiry it under the liquid dye, opens each pleat to allow the fab'ric to have tle indigo dye evenly."
             }
           ]
         },
@@ -899,6 +969,11 @@
               "source_id": "ajrakh:S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
               "quote": "The cloth is then dried in the sun without rinsing off the Harde solution. The tannin in the Myroballan penetrates the cotton fibres and is essential pre-mordant which aids the adhesion of the subsequent printed mordants onto the cloth."
+            },
+            {
+              "source_id": "ajrakh:S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+              "quote": "The soft cleaned cloth now undergoes a soak in Harde"
             }
           ]
         },
@@ -954,6 +1029,11 @@
               "source_id": "machilipatnam-kalamkari:S3",
               "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
               "quote": "After 45 minutes the cloth is` taken out, squeezed evenly and dried in the sunlight."
+            },
+            {
+              "source_id": "machilipatnam-kalamkari:S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "The scoured dried cloth is taken and kept in the above solution for 30-45 mins."
             }
           ]
         },
@@ -988,6 +1068,11 @@
               "quote": "The cleaned strips are placed in a barrelshaped stone pot. A solution of jaggery and salt water (well water) is made and poured on to the iron fillings."
             },
             {
+              "source_id": "machilipatnam-kalamkari:S4",
+              "locator": "PDF p. 4",
+              "quote": "Iron Acetate (Kasim in Telugu) Iron acetate is used for obtaining the black color on the fabric."
+            },
+            {
               "source_id": "bagh:S1",
               "locator": "PDF p. 13",
               "quote": "Black color printing paste Hirakasish or iron sulphate or iron filings are filled in earthen pot where jaggery and water are added to the pot and left aside for 15-20 days."
@@ -1014,6 +1099,11 @@
               "quote": "Begar Pastc - This is the mordant alum which in combination with alizarine develops a rich red colour. Syahi Paste: - Syahi is essentially a fermented solution of iron and fermenting agent molasses fiiggery, gur) and gum."
             },
             {
+              "source_id": "sanganeri:S1",
+              "locator": "PDF p. 11",
+              "quote": "the colours obtained in conjunctioa with the two mordants are red (with alum) and black (with ferrous)."
+            },
+            {
               "source_id": "bagh:S7",
               "locator": "PDF p. 3",
               "quote": "The Alizarin powder reacts with the iron rust to give a bright black colour and with the alum solution to give a bright red colour."
@@ -1022,6 +1112,16 @@
               "source_id": "machilipatnam-kalamkari:S4",
               "locator": "PDF p. 7",
               "quote": "On reaction with iron salt a black color is produced. When the tannin reacts with alum it improves the fastness of the red dye."
+            },
+            {
+              "source_id": "machilipatnam-kalamkari:S4",
+              "locator": "PDF p. 7",
+              "quote": "The tannin in the myrobalan plays a special role."
+            },
+            {
+              "source_id": "machilipatnam-kalamkari:S4",
+              "locator": "PDF p. 11",
+              "quote": "the alizerine also contributes to fixing the black color which has emerged at a previous stage."
             }
           ]
         },
@@ -1129,6 +1229,11 @@
               "source_id": "machilipatnam-kalamkari:S4",
               "locator": "PDF p. 2",
               "quote": "The madder root, rubia, widely used in India and chay (chay is oldenlandia), the root of oldenlandia umbellata, were highly estimated as fine sources of red in the south."
+            },
+            {
+              "source_id": "machilipatnam-kalamkari:S4",
+              "locator": "PDF p. 11",
+              "quote": "the alizerine is especially brought from Mumbai."
             }
           ]
         },
@@ -1231,6 +1336,11 @@
               "source_id": "machilipatnam-kalamkari:S4",
               "locator": "PDF p. 10",
               "quote": "The jajaku leaves act as a carrier and hasten the dyeing process."
+            },
+            {
+              "source_id": "machilipatnam-kalamkari:S4",
+              "locator": "PDF p. 10",
+              "quote": "The alizerine solution and jajaku leaves are added to the boiling water."
             }
           ]
         }
@@ -1277,6 +1387,11 @@
               "source_id": "ajrakh:S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
               "quote": "(ii) Tapano:- The color compounds contained within natural madder roots are much more complex than those of synthetic alizarin. As a result dyeing with majeeta often leaves a pinkish tinge to the white areas of a design."
+            },
+            {
+              "source_id": "ajrakh:S1",
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+              "quote": "This would be repeated over at least three days"
             }
           ]
         },
@@ -1290,6 +1405,21 @@
               "source_id": "sanganeri:S1",
               "locator": "PDF p. 11",
               "quote": "In order to make the ground look whitg again the fabric is sun-bleached. In this process the fabrio is laid flat on a river bed, A mild solution ofcow dung and water is sprhkled over the fubric."
+            },
+            {
+              "source_id": "sanganeri:S1",
+              "locator": "PDF p. 11",
+              "quote": "Alizaria often 'over dyes\" the sun printed area giving an of-white or yellow tiage all over the fabric"
+            },
+            {
+              "source_id": "sanganeri:S1",
+              "locator": "PDF p. 11",
+              "quote": "This process is repeated again when the fabric is drying."
+            },
+            {
+              "source_id": "sanganeri:S1",
+              "locator": "PDF p. 9",
+              "quote": "This is most typical paxt of production process of Sanganeri Hand Block Printing."
             }
           ]
         },
@@ -1395,6 +1525,11 @@
               "source_id": "ajrakh:S10",
               "locator": "§ \"History repeats itself\"",
               "quote": "\"Instead of raining over a period of time, it now rains heavily on some days, and then there is a dry spell,\" said Khalid Khatri, a young craftsman."
+            },
+            {
+              "source_id": "ajrakh:S10",
+              "locator": "§ \"Water woes: Kutch's age-old Ajrakh craft faces its nemesis, once again\"",
+              "quote": "Ajrakh from Gujarat, a 16-stage, water-intensive block printing technique that uses natural dyes"
             }
           ]
         },
@@ -1481,6 +1616,11 @@
               "source_id": "machilipatnam-kalamkari:S4",
               "locator": "PDF p. 13",
               "quote": "The cloth is kept in soap water for a few minutes and then washed and dried in the sunlight. The entire process takes almost two months."
+            },
+            {
+              "source_id": "machilipatnam-kalamkari:S4",
+              "locator": "PDF p. 10",
+              "quote": "After block printing the cloth is kept for two to three days until dried."
             }
           ]
         },
@@ -1553,6 +1693,11 @@
               "source_id": "bagh:S1",
               "locator": "PDF p. 9",
               "quote": "This gives luminous tones to the vegetable colors used for printing at bagh, and enhances the red tone and the black tone, making them very different from the other places in MP and Rajasthan."
+            },
+            {
+              "source_id": "bagh:S1",
+              "locator": "PDF p. 9",
+              "quote": "The chemical composition of this river water has proved to be good for the vegetable dyes used for printing at bagh."
             }
           ]
         },
@@ -1572,6 +1717,11 @@
               "source_id": "bagru:S4",
               "locator": "PDF p. 3",
               "quote": "Today though the river runs dry these artisans thrive in Bagru practicing their same methods of the past thus ensuring survival of the traditional art."
+            },
+            {
+              "source_id": "bagru:S4",
+              "locator": "PDF p. 3",
+              "quote": "The presence of abundant water in the overflowing 'Sanjaria' river and its clean sunny river bed led to the settlement of the Chippas."
             }
           ]
         },
@@ -1616,6 +1766,16 @@
               "source_id": "dabu:S2",
               "locator": "§ \"Infrastructure:\"",
               "quote": "The villages receive water supply throughout the year from the river Beduch and with use of hand pumps and tube wells ."
+            },
+            {
+              "source_id": "dabu:S2",
+              "locator": "§ \"Waste:\"",
+              "quote": "There need to be measures to reuse the water for other purposes ."
+            },
+            {
+              "source_id": "dabu:S2",
+              "locator": "§ \"Waste:\"",
+              "quote": "the residue water which washes back into the ground is polluting the groundwater of the region"
             }
           ]
         },
@@ -1629,6 +1789,16 @@
               "source_id": "sanganeri:S11",
               "locator": "Abstract (OpenAlex record; full text not reachable)",
               "quote": "[Abstract via OpenAlex W-record for doi:10.3906/muh-1310-8; full text not reachable] Wastewater and groundwater samples of Sanganer were studied to find out the pollution load of wastewater generated from dyeing and printing units and its impact on the quality of domestic wastewater of the Amanishah Nallah"
+            },
+            {
+              "source_id": "sanganeri:S11",
+              "locator": "Abstract (OpenAlex record; full text not reachable)",
+              "quote": "The wastewater of these units, discharged on land without any treatment, comes into the Amanishah Nallah through small watercourses."
+            },
+            {
+              "source_id": "sanganeri:S11",
+              "locator": "Abstract (OpenAlex record; full text not reachable)",
+              "quote": "Eleven groundwater samples, collected from various locations of Sanganer, were found polluted due to percolation of wastewater into the ground."
             }
           ]
         }
@@ -1651,7 +1821,7 @@
       "category": "cross_tradition_comparisons",
       "title": "Printer communities: Chhipa and Khatri histories",
       "summary": "Ajrakh came to Kutch from Sindh some 400 years ago when the King of Kutch invited Khatri craftsmen.",
-      "body_md": "Ajrakh came to Kutch from Sindh some 400 years ago when the King of Kutch invited Khatri craftsmen. [ajrakh:S1]\n\nThe Khatri community of chhipas is believed to have come to Bagh about 400 years ago from Larkana in Sindh. [bagh:S1]\n\nBagru Chhipas migrated from Sawai Madhopur, Alwar, Jhunjhunu and Sikar districts about 300 years ago and claim descent from Saint Namdeo. [bagru:S1, bagru:S5]\n\nThe Chhipa printers of Sanganer are described as Hindus who follow Sant Namdev. [sanganeri:S10]\n\nThe Akola block printers are the Chippa community. [dabu:S1, dabu:S2]\n\nSurvey respondents in Bagru and Sanganer were mostly from the Khatri or Chhipa community. [bagru:S3, sanganeri:S4]\n\nMachilipatnam printing is done in karkhanas; castes named include Devangas, Padmasalis, Kannebhaktulu and Senapathalu, with Hindu and Muslim dyers. [machilipatnam-kalamkari:S4, machilipatnam-kalamkari:S3]",
+      "body_md": "Ajrakh came to Kutch from Sindh some 400 years ago when the King of Kutch invited Khatri craftsmen. [ajrakh:S1]\n\nThe Khatri community of chhipas is believed to have come to Bagh about 400 years ago from Larkana in Sindh. [bagh:S1]\n\nBagru Chhipas came from Sawai Madhopur, Alwar, Jhunjhunu and Sikar districts (one account says some 300 years ago, another 450) and claim descent from Saint Namdeo. [bagru:S1, bagru:S5]\n\nThe Chhipa printers of Sanganer are described as Hindus who follow Sant Namdev. [sanganeri:S10]\n\nThe Akola block printers are the Chippa community. [dabu:S1, dabu:S2]\n\nSurvey respondents in Bagru and Sanganer were mostly from the Khatri or Chhipa community. [bagru:S3, sanganeri:S4]\n\nMachilipatnam printing is done in karkhanas; castes named include Devangas, Padmasalis, Kannebhaktulu and Senapathalu, with Hindu and Muslim dyers. [machilipatnam-kalamkari:S4, machilipatnam-kalamkari:S3]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
@@ -1683,7 +1853,7 @@
           ]
         },
         {
-          "text": "Bagru Chhipas migrated from Sawai Madhopur, Alwar, Jhunjhunu and Sikar districts about 300 years ago and claim descent from Saint Namdeo.",
+          "text": "Bagru Chhipas came from Sawai Madhopur, Alwar, Jhunjhunu and Sikar districts (one account says some 300 years ago, another 450) and claim descent from Saint Namdeo.",
           "source_ids": [
             "bagru:S1",
             "bagru:S5"
@@ -1698,6 +1868,11 @@
               "source_id": "bagru:S5",
               "locator": "§ \"History:\" (occurrence 1 of 2)",
               "quote": "It is estimated that this art form was introduced 450 years back when a community of Chhipas (literally meaning people who stamp or print) came to B agru from Sawai Madhopur (Alwar), and settled in Bagru."
+            },
+            {
+              "source_id": "bagru:S5",
+              "locator": "§ \"Myths & Legends:\"",
+              "quote": "All the Chiapas of Bagru claim to be the descendants of saint Namdeo of Maharashtra (1270-1350)."
             }
           ]
         },
@@ -1727,6 +1902,11 @@
               "quote": "46 shares Share Tweet Pin 46 LinkedIn aavaran , akola printing , akola rajasthan , Beduch river , block print rajasthan , block printing india , dabu , Dabu printing , dabu technique , fatia , fatia rajasthan , handicrafts india , Handmade , Indigo"
             },
             {
+              "source_id": "dabu:S1",
+              "locator": "§ \"Dabu printing\"",
+              "quote": "the native craftsmen known as Chippas , specialize in block printing."
+            },
+            {
               "source_id": "dabu:S2",
               "locator": "§ \"page text\" (occurrence 2 of 2)",
               "quote": "Home Block print Block Print~Akola"
@@ -1735,6 +1915,11 @@
               "source_id": "dabu:S2",
               "locator": "§ \"History:\" (occurrence 1 of 2)",
               "quote": "The Hindu caste of cotton printers and dyes known as Chippas were the prominent printing community in Rajasthan."
+            },
+            {
+              "source_id": "dabu:S2",
+              "locator": "§ \"History:\"",
+              "quote": "Rani Rathorji of Mewar established a village for the Chippa Community by the banks of the Beduch river."
             }
           ]
         },
@@ -1828,6 +2013,11 @@
               "source_id": "ajrakh:S7",
               "locator": "§ \"We have walked all over the Banni\"",
               "quote": "A Jat Maldhari couple; the Jat man is wearing a traditional Ajrakh dhoti \"Traditional double-sided Ajrakh was made using camel dungs."
+            },
+            {
+              "source_id": "ajrakh:S7",
+              "locator": "§ \"We have walked all over the Banni\"",
+              "quote": "They never changed styles and we never changed the Ajrakh design."
             }
           ]
         },
@@ -1841,6 +2031,11 @@
               "source_id": "bagh:S1",
               "locator": "PDF p. 16",
               "quote": "Bagh layouts are dramatic in the use of black and red alternately on a white background. Earlier the artisans used to make different prints and even different clothes for different communities and castes like Brahmin, Khatris, Harijan, Bhil, Bhilalas, Jats, Bharur, Mahajan etc."
+            },
+            {
+              "source_id": "bagh:S1",
+              "locator": "PDF p. 16",
+              "quote": "However now none of this differentiation remains except the Adivasis (that too only for particular occasions)"
             }
           ]
         },
@@ -1910,7 +2105,7 @@
       "category": "cross_tradition_comparisons",
       "title": "Geographical Indication status",
       "summary": "Machilipatnam Kalamkari: application 90, certificate 71 dated 10-07-2008.",
-      "body_md": "Machilipatnam Kalamkari: application 90, certificate 71 dated 10-07-2008. [machilipatnam-kalamkari:S1]\n\nBagh Prints: application 98 recorded in 2008; logo application 505 certified 31-03-2016. [bagh:S12, bagh:S2]\n\nSanganeri: application 147 listed for April 2009 to March 2010. [sanganeri:S2]\n\nBagru: application 183 filed 10-08-2009, certificate 150 issued 11-05-2011. [bagru:S2]\n\nKutch Ajrakh: application 1050, certificate dated 22-04-2024. [ajrakh:S2]\n\nAakola Dabu: application 845 filed 04-03-2022, status Pre Examination. [dabu:S5]\n\nSecondary sources give dates the registry contradicts: a Bagru GI in 2024, Sanganeri in 2023, Machilipatnam in 2012, and a Dabu GI in 2023. [bagru:S8, sanganeri:S14, machilipatnam-kalamkari:S15, dabu:S20]",
+      "body_md": "Machilipatnam Kalamkari: application 90, certificate 71 dated 10-07-2008. [machilipatnam-kalamkari:S1]\n\nBagh Prints: a GI index gives a certificate date of 10/7/2008; logo application 505 certified 31-03-2016. [bagh:S12, bagh:S2]\n\nSanganeri: application 147 listed for April 2009 to March 2010. [sanganeri:S2]\n\nBagru: application 183 filed 10-08-2009, certificate 150 issued 11-05-2011. [bagru:S2]\n\nKutch Ajrakh: application 1050, certificate dated 22-04-2024. [ajrakh:S2]\n\nAakola Dabu: application 845 filed 04-03-2022, status Pre Examination. [dabu:S5]\n\nSecondary sources give dates the registry contradicts: a Bagru GI in 2024, Sanganeri in 2023, Machilipatnam in 2012, and a Dabu GI in 2023. [bagru:S8, sanganeri:S14, machilipatnam-kalamkari:S15, dabu:S20]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
@@ -1930,11 +2125,16 @@
               "source_id": "machilipatnam-kalamkari:S1",
               "locator": "§ \"Application Details\"",
               "quote": "Application Number 90 Geographical Indications Machilipatnam Kalamkari Status Registered Applicant Name Vegetable Hand-block Kalamkari Printers Association Applicant Address Vegetable Hand-block Kalamkari Printers Association, Near Brahmapuram Railway Gate, Agastheswara Puram, Pedana 521 566, Pendana Mandal, Krishna District, Andhra Pradesh, India."
+            },
+            {
+              "source_id": "machilipatnam-kalamkari:S1",
+              "locator": "§ \"Application Details\"",
+              "quote": "Certificate Number 71 Certificate Date 10-07-2008"
             }
           ]
         },
         {
-          "text": "Bagh Prints: application 98 recorded in 2008; logo application 505 certified 31-03-2016.",
+          "text": "Bagh Prints: a GI index gives a certificate date of 10/7/2008; logo application 505 certified 31-03-2016.",
           "source_ids": [
             "bagh:S12",
             "bagh:S2"
@@ -1968,6 +2168,11 @@
               "source_id": "sanganeri:S2",
               "locator": "PDF p. 5",
               "quote": "118 43 Peruvian Pisco Manufactured 119 147 Sanganeri Hand Block Printing Handicraft 120 152 Balaramapuram Sarees and Handicraft Fine Cotton Fabrics FROM APRIL 2010- MARCH 2011 Peru Rajasthan Kerala 121 142 Bikaneri Bhujia Food Stuff Rajasthan 122 143 Guntur Sannam Chilli Agriculture Andhra Pradesh 123"
+            },
+            {
+              "source_id": "sanganeri:S2",
+              "locator": "PDF p. 4",
+              "quote": "FROM APRIL 2009 - MARCH 2010"
             }
           ]
         },
@@ -2035,9 +2240,19 @@
               "quote": "Retrieved from \" https://en.wikipedia.org/w/index.php?title=Bagru_print&oldid=1359443271 \" Categories : Textile printing Relief printing Rajasthani arts Painted fabrics Textile arts of India Indian handicrafts Indian clothing Printed fabrics Culture of India Hidden categories: Use dmy dates from May 2024 Use British English from May 2024 All Wikipedia articles"
             },
             {
+              "source_id": "bagru:S8",
+              "locator": "§ \"Bagru Print GI Tag\"",
+              "quote": "In 2024, Bagru print was granted the Geographical Indication (GI) tag"
+            },
+            {
               "source_id": "sanganeri:S14",
               "locator": "§ \"page text\"",
               "quote": "Sanganeri Print - AIACA Home About us Contact us Home About us Contact us Home About us Contact us"
+            },
+            {
+              "source_id": "sanganeri:S14",
+              "locator": "§ \"WHAT MAKES IT UNIQUE:\"",
+              "quote": "Received a GI tag in 2023"
             },
             {
               "source_id": "machilipatnam-kalamkari:S15",
@@ -2048,6 +2263,11 @@
               "source_id": "dabu:S20",
               "locator": "§ \"CRAFT HISTORY\"",
               "quote": "Dabu printing is an ancient mud-resist technique rooted in the desert regions of Rajasthan, especially in villages around Bagru and Akola."
+            },
+            {
+              "source_id": "dabu:S20",
+              "locator": "§ \"WHAT MAKES IT UNIQUE:\"",
+              "quote": "Received a GI tag in 2023"
             }
           ]
         }
@@ -2113,6 +2333,16 @@
               "source_id": "bagru:S1",
               "locator": "PDF p. 9",
               "quote": "or fixing of colours after washing locally called \"Ralgai' Plate No'4 Annexure 13 - Resist Printing or mud clay printing locally called \"Dhabu Datai\" Plate No.S{ Annexure 13 - Dyeing with blue colour locally called \"Neel Rangai\" Plate No'7-8 Annexure 13 - Dyeing with yellow"
+            },
+            {
+              "source_id": "bagru:S1",
+              "locator": "PDF p. 11",
+              "quote": "For tuming the frbrio green it is taken for further process of yellow dyeing"
+            },
+            {
+              "source_id": "bagru:S1",
+              "locator": "PDF p. 11",
+              "quote": "it is printed with dhabu to retain some blue areas."
             },
             {
               "source_id": "sanganeri:S1",
@@ -2390,6 +2620,18 @@
       "source_ids": [
         "ajrakh:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+          "quote": "An indigo vat need only be made once, then used daily and ingredients replenished to keep the Vat active, sometimes for decades."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "once tle val is ready for usg it is kept 'alive' by constant addition of iadigo lime and jaggery."
+        }
       ]
     },
     {
@@ -2475,6 +2717,18 @@
       "source_ids": [
         "ajrakh:S1",
         "machilipatnam-kalamkari:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+          "quote": "The kut is a smooth finer paste made from jaggery, or molasses, in which scrap iron such as horse-hoes and besan (gram flour)"
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 8",
+          "quote": "Iron acetate is a fermented mixture of paddy husk , ironfilings , salt and jaggery."
+        }
       ]
     },
     {
@@ -2591,6 +2845,18 @@
       "source_ids": [
         "ajrakh:S1",
         "machilipatnam-kalamkari:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+          "quote": "Care must be taken not to mix this Pa with the areas printed in lime Khariyanu otherwise the lime will discharge the alum"
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 5",
+          "quote": "A mixture of iron in any form leads to darkening of the color and for this reason the iron implements and utensils are avoided."
+        }
       ]
     },
     {
@@ -2605,6 +2871,18 @@
       "source_ids": [
         "ajrakh:S1",
         "machilipatnam-kalamkari:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+          "quote": "presence of iron in the water supply dulls and darkens the final result."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 5",
+          "quote": "A mixture of iron in any form leads to darkening of the color and for this reason the iron implements and utensils are avoided."
+        }
       ]
     },
     {
@@ -2748,6 +3026,18 @@
       "source_ids": [
         "ajrakh:S9",
         "sanganeri:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S9",
+          "locator": "§ \"Everything was broken\"",
+          "quote": "But most of us shifted to working with chemicals and eventually stopped natural dyeing. Now we do it if there's a need or an order"
+        },
+        {
+          "source_id": "sanganeri:S4",
+          "locator": "PDF p. 5",
+          "quote": "that includes the usage of chemical dyes in abundance and the usage of natural dyes only for specific orders."
+        }
       ]
     },
     {
@@ -2776,6 +3066,18 @@
       "source_ids": [
         "ajrakh:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+          "quote": "then spread on the sandy banks of a river in the sun and regularly sprinkled with water to keep it moist throughout the day."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "In this process the fabrio is laid flat on a river bed, A mild solution ofcow dung and water is sprhkled over the fubric."
+        }
       ]
     },
     {
@@ -2790,6 +3092,18 @@
       "source_ids": [
         "ajrakh:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+          "quote": "the sun, moisture and various compound in the dung would have acted as a bleaching agent on the white areas of a design."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "The interaction of alkali (of cow dung) and thennal heat (sun ray) bleach the ground colour making it look white again."
+        }
       ]
     },
     {
@@ -2834,6 +3148,18 @@
       "source_ids": [
         "machilipatnam-kalamkari:S4",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 11",
+          "quote": "The portions not treated with alum imbibe a pinkish color."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "In order to make the ground look whitg again the fabric is sun-bleached."
+        }
       ]
     },
     {
@@ -2863,6 +3189,23 @@
         "machilipatnam-kalamkari:S4",
         "machilipatnam-kalamkari:S3",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 10",
+          "quote": "After block printing the cloth is kept for two to three days until dried."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S3",
+          "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+          "quote": "After printing with black and alum the cloth is dried under sun light for one day."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 10",
+          "quote": "The printed fabric is left for at least three-four days so that the print (mordant paste) penetrates"
+        }
       ]
     },
     {
@@ -2962,6 +3305,18 @@
       "source_ids": [
         "sanganeri:S10",
         "machilipatnam-kalamkari:S11"
+      ],
+      "evidence": [
+        {
+          "source_id": "sanganeri:S10",
+          "locator": "PDF p. 5",
+          "quote": "The water of the river „Saraswati‟, the soil, the sunshine, the humid air, and the availability of flowers"
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S11",
+          "locator": "§ \"Chintz hanging\"",
+          "quote": "These techniques are particularly associated with coastal south-east India (the so-called 'Coromandel Coast') because of the particularly favourable combination of chemicals in the local soil"
+        }
       ]
     },
     {
@@ -3049,6 +3404,18 @@
       "source_ids": [
         "sanganeri:S10",
         "machilipatnam-kalamkari:S15"
+      ],
+      "evidence": [
+        {
+          "source_id": "sanganeri:S10",
+          "locator": "PDF p. 10",
+          "quote": "Along with them there were some 300 Screen Printing units, which were the main source of the pollution."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S15",
+          "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra's Pedana\"",
+          "quote": "The chemicals used in the colours let out toxic effluents, which is contaminating the water table."
+        }
       ]
     },
     {
@@ -3195,6 +3562,23 @@
         "ajrakh:S1",
         "sanganeri:S1",
         "sanganeri:S10"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+          "quote": "When double sided Ajrakh is printed it is essential that the same outline design be printed on the reverse of the cloth."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 1",
+          "quote": "Itfut design is equally vividly seen on the underside ofthe cloth."
+        },
+        {
+          "source_id": "sanganeri:S10",
+          "locator": "PDF p. 5",
+          "quote": "„gurjan‟, „mango‟ and „teak‟ wood that the print appeared vividly at the backside."
+        }
       ]
     },
     {
@@ -3235,12 +3619,11 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "needs_evidence",
       "source_ids": [
         "machilipatnam-kalamkari:S1",
         "machilipatnam-kalamkari:S15",
-        "sanganeri:S2",
-        "sanganeri:S14"
+        "sanganeri:S2"
       ]
     },
     {
@@ -3269,6 +3652,18 @@
       "source_ids": [
         "machilipatnam-kalamkari:S15",
         "sanganeri:S12"
+      ],
+      "evidence": [
+        {
+          "source_id": "machilipatnam-kalamkari:S15",
+          "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra's Pedana\"",
+          "quote": "There is a clear difference between block-printed and screen-printed Kalamkari. But at first sight, it is difficult to tell the difference."
+        },
+        {
+          "source_id": "sanganeri:S12",
+          "locator": "§ \"Textile mills pollute the waters\"",
+          "quote": "Screen printing was a cost effective, mechanical and faster way of printing by using synthetic dyes and chemicals for bleaching."
+        }
       ]
     },
     {

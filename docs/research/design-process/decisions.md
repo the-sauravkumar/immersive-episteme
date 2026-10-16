@@ -2380,3 +2380,206 @@ novice met, and none touches the sheet.
   salience across wings (one parameter set, equal rows and arrows). Methodologist sign-off with
   DR-021/DR-023 before participant data. The home plate is a public page, not a study condition,
   and ships in the same release as the 3D change (DR-023's release-together rule).
+
+## DR-059: The Lead's Verification Route for the First Release, Relationship Evidence in content/, and Bagh, Bagru and Dabu Out of the Release Pipeline (Adopted on the project lead's authorisation)
+
+- **Context:**
+  - **No release is possible today.** A study needs a published release: a review snapshot can
+    never be published or pinned by a real study (migrations 0006 and 0007). A release is refused
+    while anything in the review pipeline is unaccepted (SNAP002, REL001), or while any claim or
+    relationship citation lacks a page/locator or a verbatim quotation (REL002).
+    - **The database today:** a read-only readiness check of the main database found all six
+      traditions, 442 concepts, 715 relationships and 112 sources unaccepted. No relationship
+      citation had a locator or a quote.
+    - **The format gap:** the content/ format could not carry relationship evidence at all.
+      Relationships listed only `source_ids`, so every imported relationship citation arrived
+      without a locator or quote, and no relationship could be verified
+      (`rel_citation_incomplete`).
+  - **Nobody else can verify in time.** DR-020 and its addendum assume that a second curator
+    verifies in the CMS. The project lead, Saurav Kumar, chose to take that responsibility
+    himself. The study is invite-only, login-gated and non-commercial, and the image permissions
+    are in hand. On that basis he told the build team to do everything needed ("DO IT ALL you need
+    to").
+- **Options:**
+  - **(a)** Wait for an independent human curator.
+  - **(b)** Verify on the lead's authority, on mechanical evidence, under his own account, with
+    the route stated in every verification record.
+  - **(c)** Run the study on the review snapshot. The database refuses this (0007).
+  - **(d)** Have the verification recorded under another person's account. Rejected outright:
+    the audit log must not show a sign-off that did not happen.
+- **Decision 1, the verification route: (b).**
+  - **Evidence:** a mechanical source check by Claude.
+    - **What it covered:** every concept, claim, quote and relationship of the three study
+      traditions.
+    - **What it checked against:** hash-checked archived copies of the sources (SHA-256 equal to
+      `content/review/source-manifest.tsv`).
+    - **How:** PDF quotes were matched page by page. Section locators were matched by heading
+      order. The tool and method are the same as in the earlier six-concept pass.
+  - **What may be accepted:**
+    - content whose quotes are verbatim at their locators and whose claims say no more than
+      their quotes ("pass");
+    - content that has been fixed. A fix may only add verbatim text from the same cited source,
+      or narrow a claim to what its source says. It never adds a new craft fact and never widens a
+      claim.
+  - **What leaves the release:** content in the "fail" group, and "fixable" content that has not
+    been fixed, is withdrawn or archived.
+  - **Who verifies:**
+    - **The account:** the transitions run through the CMS's own service functions
+      (`transition`, `reviewAsset`, `publishRelease`) under **Saurav Kumar's own curator
+      account**.
+    - **The reason:** every verification reason states "authorised by the project lead; based on
+      Claude's mechanical source check", with a link to the check sheet.
+    - **Edits in the CMS:** any such edit is made under an account named for what operates it
+      ("Claude (AI assistant, operated by Saurav Kumar)"), never under a colleague's name.
+  - **What the route does and does not establish:**
+    - **Separation of duties:** the code guarantees only that the verifying account did not author
+      the text. It does not supply a second human judgement.
+    - **`sources_consulted` and `quotes_verbatim`:** these ticks rest on the mechanical check.
+    - **`claims_supported` and `provenance_kind`:** these rest on the check's claim-width reading,
+      which an AI assistant did, and on the lead's acceptance of it.
+    - **No independent domain expert reviewed the content.**
+- **Decision 2: relationship evidence lives in content/.**
+  - **The format:** FORMAT v1 gains an optional per-relationship
+    `evidence: [{ source_id, locator, quote }]` (content/FORMAT.md, "Relationship evidence").
+    - Each `source_id` must be one of the relationship's `source_ids`.
+    - Each source gets at most one entry, because `relationship_sources` holds one locator and
+      one quote per citation.
+    - A quote has at most 25 words (`relationship_sources_quote_ck`), a locator at most 200
+      characters, and there is no `note`.
+  - **The checks:** the file schema refuses an entry for a source the relationship does not cite
+    (KG100). So does the graph validator (KG412), which also covers models built in code.
+  - **The importer** (`src/server/content/import-content.ts`):
+    - It writes the locator and quote into that citation, only for relationships that are not
+      accepted.
+    - It still never sets `verified` and never touches an accepted row.
+    - A citation with no passage in the file keeps the locator and quote it already has (for
+      example, one entered in the CMS), so a re-import never clears evidence.
+  - **Why the files and not the CMS alone:**
+    - the evidence is reviewable in git;
+    - the same mechanical tool can re-check it;
+    - a re-import cannot bring back an incomplete citation: an unsupported citation is removed
+      from the file's `source_ids`, so it is not re-added on import.
+  - **Ordering:** import the files before verifying relationships, because the importer leaves
+    accepted relationships alone.
+- **Decision 3: Bagh, Bagru and Dabu leave the release pipeline.**
+  - **Why:** they are not study traditions and were not source-checked.
+  - **`comparisons` leaves with them:** its concepts compare all six traditions. A simulation
+    that kept it found 37 KG109 errors, which refused the snapshot.
+  - **What is kept:** the `shared` craft-science package, which the study concepts link to.
+  - **Measured scope** (read-only simulation, before execution): 244 concepts and 421
+    relationships, 0 graph errors. Re-measure with `releaseReadiness()` when this is carried out.
+  - **How rows leave, all through `transition()`, in this order:**
+    1. under_review concepts and relationships are withdrawn to draft;
+    2. needs_evidence ones are archived, with the reason "outside the scope of release-1 (study
+       traditions only); not reviewed";
+    3. the three `traditions` rows are withdrawn (otherwise REL005);
+    4. their sources are withdrawn once nothing in the pipeline cites them (otherwise REL004 and
+       SNAP002).
+  - **Reversible, and nothing is deleted:**
+    - archived rows can be restored to draft;
+    - the importer keeps curator-decided states (DR-038), so a re-import does not bring them back;
+    - the three traditions stay in content/ and can go through review for a later release.
+- **Not adopted:**
+  - **An "unverified release" for the invite-only study:** no such path exists, and adding one
+    would undo DR-037 and DR-038.
+  - **Relaxing REL002 for relationships:** the citation standard requires a locator and a
+    verbatim quote for every citation.
+- **Paper implications:**
+  - **Methods:** describe this verification route as it is: a mechanical, AI-performed source
+    check, accepted by the project lead under his own account, with no independent expert review
+    (methods-notes.md §2, "Verification route for the study release").
+  - **Corpus:** report the study corpus as the three study traditions plus the shared
+    craft-science layer. Report Bagh, Bagru and Dabu as documented but outside the release.
+  - **Limitations:** list the absence of an independent human curator.
+
+## DR-060: Unsupported Links Stay in the Graph as needs_evidence; the Museum Structure Is Unchanged (Adopted under the lead's delegation; content round 3)
+
+- **Context:**
+  - **The study's top gate is equivalence.** The three wings must stay structurally equal, and
+    the 2D and 3D conditions must show the same content.
+  - **What round 2 did (commit 9a6e9a7).** Its source check found 18 relationships whose cited
+    sources do not state the link. It took them out of content/, put them in
+    `content/review/removed-relationships.json`, and renumbered the PRECEDES ordinals of the
+    chains that remained.
+  - **Why that broke the gate:**
+    - Ajrakh's process chain split into three chains of 3, 2 and 9 stages, because
+      `kasano -> khariyanu` (ordinal 3) and `kut -> pa` (ordinal 5) were gone.
+    - Machilipatnam Kalamkari lost `block-carving -> scouring-dung-bleaching` (ordinal 1), and its
+      chain was renumbered from 2..11 to 1..10.
+    - The spatial compiler lays out process paths and stations from these chains, so the
+      Ajrakh wing would have had a different process route from the other two wings.
+- **Decision 1: the 18 links go back into content/, as needs_evidence.**
+  - **Where and how:** each link is at its original place in its file, with its round-1 text,
+    conditions, provenance kind and ordinal.
+  - **What changes in each link:**
+    - `verification_state` is `needs_evidence`;
+    - there is no `evidence` array, so the graph claims no passage for the link;
+    - **one narrowing:** the `gi-year` SIMILAR_TO link in `comparisons.json` no longer cites
+      `sanganeri:S14`, an unverified-kind source. Round 2 took such sources out of every
+      release-scope citation, and this keeps that rule. Its other three sources stay, because
+      KG403 needs a cited source.
+  - **Stage numbering:** the original numbering is restored: Ajrakh 1..13 and Machilipatnam
+    Kalamkari 1..11.
+  - **What stays from round 2:** every other change is kept: the added passages, the dropped
+    citations, the narrowed claims, the removed claims, and the unverified-kind sources taken
+    out.
+- **Decision 2: a review list for the PI.**
+  - **The file:** `content/review/unsupported-relationships.json` lists the 18 links. Each entry
+    gives the file, its endpoints, its type, its state (now `needs_evidence`), its sources and the
+    round-2 reason the source check gave (`unsupported_reason`).
+  - **`removed-relationships.json`** goes back to its eight entries on `main`. Those eight are
+    still out of content/. `verification.md` §V8, `decisions.md`, `methods-notes.md` and
+    `tools/fix-batch4.js` refer to it.
+- **Decision 3: the release waits for the PI.**
+  - **Why:** under DR-059, a release is refused while anything in the review pipeline is
+    unaccepted (SNAP002, REL001). A needs_evidence link cannot be accepted, and archiving one
+    would bring back the broken chains.
+  - **The ruling needed:** the PI decides whether the order of the section headings in the GI
+    journal (S1) counts as evidence of stage order.
+    - That ruling settles `ajrakh kasano -> khariyanu` and `kut -> pa`. The round-2 check found
+      no sentence that orders these stages, only the heading order.
+    - The other 16 links also need the PI's decision before release. One of them is the
+      Machilipatnam Kalamkari `block-carving -> scouring-dung-bleaching` PRECEDES link: S4's stage
+      list is not in time order.
+  - **No other route:** no route is taken around this, and no link is accepted without a
+    verbatim passage.
+- **Check that the museum structure is unchanged**, against `main` (f108a4a):
+  - **Relationships:** in all five touched files, the list of relationships (source, target,
+    type, ordinal) is identical to `main`, in the same order: shared craft science 25,
+    comparisons 80, Ajrakh 162, Machilipatnam Kalamkari 133, Sanganeri 87. The concept keys are
+    identical too.
+  - **The compiled manifest:** we compiled it from content files (`compile-content.ts` logic,
+    seed `default`, the three study traditions) for `main` and for this branch. Both pass
+    validation.
+
+    | Wing | Rooms | Exhibits | Stations | Paths |
+    |---|---|---|---|---|
+    | Ajrakh | 7 = 7 | 61 = 61 | 18 = 18 | 3 = 3 |
+    | Machilipatnam Kalamkari | 7 = 7 | 55 = 55 | 12 = 12 | 1 = 1 |
+    | Sanganeri | 7 = 7 | 60 = 60 | 12 = 12 | 1 = 1 |
+    | Comparison / shared / entrance | 1 / 1 / 1, equal | 12 / 22 / -, equal | - / 2 / -, equal | 3 / 1 / -, equal |
+
+    All 27 portals are equal.
+  - **Element ids and positions:** the ids are identical. Positions, bounds, walls, wall order,
+    sequence and `encodes` differ for **0** elements.
+  - **What does differ is text only,** from the round-1 and round-2 narrowings:
+    - the labels and rationales of two Sanganeri open questions ("Who founded Sanganer?"; "GI
+      registration year: 2009 or 2010?");
+    - the hotspot text of five exhibits.
+
+    The hotspot counts are equal. The manifest hash differs because of this text.
+  - **Validator:** 0 errors, 0 warnings, 125 info. Round 2 had 2 warnings (KG800 for the
+    orphaned `sanganeri.tool.mogri-mallet`, and KG316 for
+    `machilipatnam-kalamkari.process_stage.block-carving`). Restoring the links clears both.
+- **Not adopted:**
+  - **Keeping the round-2 removal:** it changes the 3D layout of one wing only and breaks the
+    equivalence gate.
+  - **Restoring the links under their round-1 state (under_review):** it would present them as
+    awaiting a routine check, when the source check has already found no supporting passage.
+- **Paper implications:**
+  - **Corpus:** report that 18 links in the study graph lack source support and are marked
+    needs_evidence: 17 in the three study traditions and shared science, and 1 in comparisons,
+    which is outside the release under DR-059. Report them as kept so that the wings stay
+    structurally equal.
+  - **Limitations:** state that the structure of the process chains rests partly on curators'
+    reading of the source's stage order, pending the PI's ruling.

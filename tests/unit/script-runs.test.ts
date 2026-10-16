@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -27,15 +27,34 @@ describe("scriptRuns (DESIGN.md 5.1, section 15: Sindhi/Persian quote right-to-l
     ]);
   });
 
-  it("finds every Arabic-script run in the curated content and changes no text", () => {
-    const file = readFileSync(path.resolve(__dirname, "../../content/traditions/ajrakh/tradition.json"), "utf8");
-    const quotes: string[] = [];
-    JSON.parse(file, (k, v) => (k === "quote" && typeof v === "string" && /[؀-ۿ]/.test(v) ? (quotes.push(v), v) : v));
-    expect(quotes.length).toBeGreaterThan(0);
-    for (const q of quotes) {
-      const runs = scriptRuns(q);
-      expect(runs.map((r) => r.text).join("")).toBe(q);
-      expect(runs.filter((r) => r.rtl).every((r) => r.rtl && ["sd", "fa"].includes(r.lang))).toBe(true);
+  it("sets the fixture's Arabic-script runs right-to-left with their declared language and changes no text", () => {
+    // A fixture, not content/: content round 2 dropped the only Arabic-script quote (an
+    // unverified-kind source), so the RTL path stays covered whatever the curated content holds.
+    const fixture = JSON.parse(readFileSync(path.resolve(__dirname, "../fixtures/arabic-script-quotes.json"), "utf8")) as {
+      quotes: { quote: string; rtl: [string, string][] }[];
+    };
+    expect(fixture.quotes.length).toBeGreaterThan(0);
+    for (const { quote, rtl } of fixture.quotes) {
+      const runs = scriptRuns(quote);
+      expect(runs.map((r) => r.text).join("")).toBe(quote);
+      expect(runs.filter((r) => r.rtl).map((r) => [r.rtl ? r.lang : null, r.text])).toEqual(rtl);
+    }
+  });
+
+  it("keeps every Arabic-script quote in the curated content intact, if there is any", () => {
+    const files = [
+      ...readdirSync(path.resolve(__dirname, "../../content/traditions")).map((t) => `traditions/${t}/tradition.json`),
+      "shared/craft-science.json",
+      "comparisons.json",
+    ];
+    for (const f of files) {
+      const quotes: string[] = [];
+      JSON.parse(readFileSync(path.resolve(__dirname, "../../content", f), "utf8"), (k, v) => (k === "quote" && typeof v === "string" && /[؀-ۿ]/.test(v) ? (quotes.push(v), v) : v));
+      for (const q of quotes) {
+        const runs = scriptRuns(q);
+        expect(runs.map((r) => r.text).join(""), f).toBe(q);
+        expect(runs.filter((r) => r.rtl).every((r) => r.rtl && ["sd", "fa"].includes(r.lang)), f).toBe(true);
+      }
     }
   });
 });

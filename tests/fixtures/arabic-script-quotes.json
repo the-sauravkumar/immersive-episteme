@@ -1,0 +1,13 @@
+{
+  "purpose": "Test fixture for Arabic-script runs in verbatim quotes (DESIGN.md 5.1; tests/unit/script-runs.test.ts). Not curated content and never imported. The quote is the Wikipedia passage on the word Ajrak that the ajrakh etymology claim cited until content round 2 dropped it (an unverified-kind source); it is kept here only as a string with real Sindhi and Persian runs, so the right-to-left rendering stays covered whatever content/ holds.",
+  "quotes": [
+    {
+      "quote": "The word Ajrak ( Sindhi : اجرڪ ) derives from the Persian word ajar ( Persian : اجر ), meaning \"brick,\" combined with the diminutive suffix -ak ( Persian : ک ), meaning \"small,\" conveying a sense of unity and reflecting the craft's cultural journey",
+      "rtl": [
+        ["sd", "اجرڪ"],
+        ["fa", "اجر"],
+        ["fa", "ک"]
+      ]
+    }
+  ]
+}

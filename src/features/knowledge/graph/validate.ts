@@ -387,6 +387,13 @@ export const validateProvenance: Validator = ({ model, registry, sourceByRef, op
       cited.add(ref);
       if (!sourceByRef.has(ref)) out.push(issue(RULES.REL_UNKNOWN_SOURCE, `${r.packageSlug}: ${id} cites unknown source ${r.rawSourceIds[j] ?? ref}`, { ...at, detail: { ref } }));
     });
+    // Each located passage must come from a source the relationship itself cites (FORMAT.md
+    // "Relationship evidence"); the file schema refuses this too, this also covers models built in code.
+    (r.evidence ?? []).forEach((e, k) => {
+      if (!r.sourceRefs.includes(e.ref)) {
+        out.push(issue(RULES.REL_EVIDENCE_UNLISTED_SOURCE, `${r.packageSlug}: ${id} evidence #${k} quotes ${e.ref}, which the relationship does not cite`, { ...at, detail: { ref: e.ref } }));
+      }
+    });
     if (type?.requiresEvidence && r.sourceRefs.length === 0) {
       out.push(issue(RULES.REL_NO_EVIDENCE, `${r.packageSlug}: ${id} cites no source but ${r.type} requires evidence`, at));
     }

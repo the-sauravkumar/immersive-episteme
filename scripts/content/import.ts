@@ -42,7 +42,7 @@ async function main(): Promise<void> {
     console.log(`[content:import] concepts       ${fmt(s.concepts)}`);
     console.log(`[content:import] claims         ${fmt(s.claims)} (pruned ${s.pruned.claims})`);
     console.log(`[content:import] relationships  ${fmt(s.relationships)} (pruned ${s.pruned.relationships})`);
-    console.log(`[content:import] claim sources  +${s.claimSources.inserted} -${s.claimSources.pruned}; relationship sources +${s.relationshipSources.inserted} -${s.relationshipSources.pruned}; GI sources +${s.traditionSources.inserted} -${s.traditionSources.pruned}`);
+    console.log(`[content:import] claim sources  +${s.claimSources.inserted} -${s.claimSources.pruned}; relationship sources +${s.relationshipSources.inserted} ~${s.relationshipSources.updated} -${s.relationshipSources.pruned}; GI sources +${s.traditionSources.inserted} -${s.traditionSources.pruned}`);
     console.log(`[content:import] media          ${fmt(s.mediaCandidates)} (pruned ${s.mediaCandidates.pruned})`);
     const stale = s.stale.concepts.length + s.stale.sources.length + s.stale.traditions.length + s.stale.relationships.length;
     if (stale > 0) console.log(`[content:import] stale rows kept (no longer in content/): ${JSON.stringify(s.stale)}`);

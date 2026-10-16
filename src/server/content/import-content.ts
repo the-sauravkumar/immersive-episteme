@@ -21,6 +21,9 @@
  *    accepted (verified/published): such rows, and their claims and evidence (including a
  *    tradition's GI sources, knowledge-09), are reported as `keptAccepted` and left as they are.
  *  - `is_demo = false` everywhere (real content; demo rows are a separate seed).
+ *  - Relationship evidence (FORMAT.md): each citation of a relationship that is not accepted gets
+ *    the file's locator and verbatim quote for that source. A citation the file gives no passage
+ *    for keeps the locator and quote it has (e.g. entered in the CMS); the importer never clears them.
  *  - Content removed from a file is pruned for the packages being imported: claims beyond the
  *    file's claim count, claim and relationship evidence links no longer cited, relationships
  *    and media candidates no longer listed. Only relationships the importer created are pruned:
@@ -66,7 +69,8 @@ export interface ImportSummary {
   claims: TableCounts;
   relationships: TableCounts;
   claimSources: { inserted: number; pruned: number };
-  relationshipSources: { inserted: number; pruned: number };
+  /** `updated`: citations whose locator and quote the file's relationship evidence changed. */
+  relationshipSources: { inserted: number; updated: number; pruned: number };
   traditionSources: { inserted: number; pruned: number };
   mediaCandidates: TableCounts & { pruned: number };
   pruned: { claims: number; relationships: number };
@@ -576,7 +580,14 @@ async function importInTransaction(
   const editableRels = model.relationships
     .map((r, i) => ({ r, id: importedRelIds[i]! }))
     .filter(({ id }) => !acceptedRels.has(id));
-  const wantedRelSources = editableRels.flatMap(({ r, id }) => [...new Set(r.sourceRefs)].map((ref) => ({ relationship_id: id, source_id: sourceId.get(ref)! })));
+  // Each citation carries the file's located verbatim passage for that source, if the file gives
+  // one (FORMAT.md "Relationship evidence"; at most one per source, the schema refuses more).
+  const wantedRelSources = editableRels.flatMap(({ r, id }) =>
+    [...new Set(r.sourceRefs)].map((ref) => {
+      const e = (r.evidence ?? []).find((x) => x.ref === ref);
+      return { relationship_id: id, source_id: sourceId.get(ref)!, locator: e?.locator ?? null, quote: e?.quote ?? null };
+    }),
+  );
   const prunedRelSources = await q.query(
     `DELETE FROM relationship_sources rs
       WHERE rs.relationship_id = ANY($1::uuid[])
@@ -584,12 +595,22 @@ async function importInTransaction(
                          WHERE x.relationship_id = rs.relationship_id AND x.source_id = rs.source_id)`,
     [editableRels.map((e) => e.id), JSON.stringify(wantedRelSources)],
   );
-  const insRelSources = await q.query(
-    `INSERT INTO relationship_sources (relationship_id, source_id, is_demo)
-     SELECT relationship_id, source_id, false FROM jsonb_to_recordset($1::jsonb) AS x(relationship_id uuid, source_id uuid)
-     ON CONFLICT DO NOTHING`,
+  // Only relationships that are not accepted (editableRels): an accepted relationship's citations
+  // are what its reviewer checked. A file passage replaces the stored locator and quote; a citation
+  // the file gives no passage for keeps what it has, so a locator and quote entered in the CMS are
+  // never wiped by a re-import of a file that does not carry them.
+  const relSourceRows = await q.query<{ inserted: boolean }>(
+    `INSERT INTO relationship_sources AS t (relationship_id, source_id, locator, quote, is_demo)
+     SELECT relationship_id, source_id, locator, quote, false
+       FROM jsonb_to_recordset($1::jsonb) AS x(relationship_id uuid, source_id uuid, locator text, quote text)
+     ON CONFLICT (relationship_id, source_id) DO UPDATE SET locator = EXCLUDED.locator, quote = EXCLUDED.quote
+       WHERE EXCLUDED.locator IS NOT NULL
+         AND (t.locator, t.quote) IS DISTINCT FROM (EXCLUDED.locator, EXCLUDED.quote)
+     RETURNING (xmax = 0) AS inserted`,
     [JSON.stringify(wantedRelSources)],
   );
+  const relSourcesInserted = relSourceRows.rows.filter((r) => r.inserted).length;
+  const relSourcesUpdated = relSourceRows.rows.length - relSourcesInserted;
 
   // ---- media candidates -------------------------------------------------------------------
   const mediaInput = model.packages.flatMap((p) =>
@@ -659,7 +680,7 @@ async function importInTransaction(
     claims,
     relationships,
     claimSources: { inserted: insClaimSources.rowCount ?? 0, pruned: prunedClaimSources.rowCount ?? 0 },
-    relationshipSources: { inserted: insRelSources.rowCount ?? 0, pruned: prunedRelSources.rowCount ?? 0 },
+    relationshipSources: { inserted: relSourcesInserted, updated: relSourcesUpdated, pruned: prunedRelSources.rowCount ?? 0 },
     traditionSources: { inserted: insTradSources.rowCount ?? 0, pruned: prunedTradSources.rowCount ?? 0 },
     mediaCandidates,
     pruned: { claims: prunedClaims.rowCount ?? 0, relationships: prunedRels.rowCount ?? 0 },

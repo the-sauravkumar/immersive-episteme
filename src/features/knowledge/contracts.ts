@@ -165,17 +165,46 @@ export const formatConceptSchema = z
     }
   });
 
-export const formatRelationshipSchema = z.object({
-  source: conceptKeySchema,
-  target: conceptKeySchema,
-  type: relationshipTypeCodeSchema,
-  explanation: z.string().nullish(),
-  conditions: z.string().nullish(),
-  ordinal: z.number().int().positive().nullish(),
-  provenance_kind: provenanceKindSchema,
-  verification_state: importableStateSchema,
-  source_ids: z.array(localSourceIdSchema).default([]),
+/**
+ * A located, verbatim passage that supports a relationship, from one of the sources it lists
+ * (FORMAT.md "Relationship evidence"). The importer writes it into that citation's
+ * `relationship_sources` row, which holds ONE locator and ONE quote per source; so at most one
+ * entry per source, the quote is limited like every stored quote (≤ 25 words, db:
+ * relationship_sources_quote_ck), the locator like the CMS field (≤ 200 characters), and unknown
+ * keys (such as a claim evidence `note`, which has no column here) are refused, not dropped.
+ */
+export const formatRelationshipEvidenceSchema = z.strictObject({
+  source_id: localSourceIdSchema,
+  locator: nonBlank(200),
+  quote: quoteSchema.refine((s) => s.trim().length > 0, "Must not be blank"),
 });
+
+export const formatRelationshipSchema = z
+  .object({
+    source: conceptKeySchema,
+    target: conceptKeySchema,
+    type: relationshipTypeCodeSchema,
+    explanation: z.string().nullish(),
+    conditions: z.string().nullish(),
+    ordinal: z.number().int().positive().nullish(),
+    provenance_kind: provenanceKindSchema,
+    verification_state: importableStateSchema,
+    source_ids: z.array(localSourceIdSchema).default([]),
+    /** Optional; files written before it parse with []. */
+    evidence: z.array(formatRelationshipEvidenceSchema).default([]),
+  })
+  .superRefine((r, ctx) => {
+    const seen = new Set<string>();
+    r.evidence.forEach((e, i) => {
+      if (!r.source_ids.includes(e.source_id)) {
+        ctx.addIssue({ code: "custom", path: ["evidence", i, "source_id"], message: `Evidence cites ${e.source_id}, which the relationship does not cite` });
+      }
+      if (seen.has(e.source_id)) {
+        ctx.addIssue({ code: "custom", path: ["evidence", i, "source_id"], message: `Evidence for ${e.source_id} is given twice; a relationship citation holds one locator and one quote` });
+      }
+      seen.add(e.source_id);
+    });
+  });
 
 export const formatMediaCandidateSchema = z.object({
   url: httpUrlSchema,

@@ -91,6 +91,7 @@ Codes are stable: a code is never renumbered or reused. Every issue carries `cod
 | KG409 | warning | Source URL missing from `content/review/source-manifest.tsv` | The source was never archived or hashed |
 | KG410 | warning | Qualified source id does not match its origin file | Compares url, title and kind |
 | KG411 | error | GI record cites an unknown source | |
+| KG412 | error | Relationship evidence quotes a source the relationship does not cite | Each `evidence` entry must name one of the relationship's `source_ids` (content/FORMAT.md "Relationship evidence"); the file schema refuses it too (KG100) |
 | KG500 | error | Same normalised title and type twice in one file | |
 | KG501 | warning | Near-duplicate titles (trigram ≥ 0.8), same type, same file | |
 | KG502 | warning | Same claim text twice in one concept | |
