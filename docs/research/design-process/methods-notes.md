@@ -118,6 +118,12 @@ evidence and took responsibility for it. The paper must describe the route as fo
   without deletion. The release holds the three study traditions and the shared craft-science
   layer. A pre-execution simulation counted 244 concepts and 421 relationships with 0 graph
   errors; re-measure at execution.
+- **Execution (DR-063).** On the local database, 40 needs_evidence concepts whose citations were
+  complete were resubmitted, and 244 concepts were then verified under the lead's curator account
+  (ajrakh 80, machilipatnam-kalamkari 68, sanganeri 72, shared 24), with 0 refusals. The same run
+  was first rehearsed on a throwaway copy. Relationships, sources and the tradition rows are not
+  yet verified. Bagh, Bagru, Dabu and `comparisons` stay in the pipeline unverified until the PI
+  rules (DR-060).
 
 ## 3. Knowledge-to-space transformation
 

@@ -9,6 +9,8 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { FIGURE_TEXT } from "../../../src/features/learning/strings";
+
 import {
   missingPhotographer,
   PARI_CREDIT,
@@ -116,10 +118,20 @@ describe("one cap and one term for every source", () => {
   });
 });
 
+describe("the printed credit line (DR-063)", () => {
+  it("never stores the 'Photo: ' prefix the shared figure prints, so it is printed once", () => {
+    for (const p of [rickBradley(), sahapedia(), ericParker(), pari()]) {
+      const { credit } = planPhoto(p).metadata;
+      expect(credit).not.toMatch(/^Photo:/);
+      expect(FIGURE_TEXT.photoCredit(credit)).toMatch(/^Photo: (?!Photo:)/);
+    }
+  });
+});
+
 describe("Rick Bradley (Flickr, CC BY 2.0)", () => {
   it("credits the photographer, the record title, Flickr and the licence", () => {
     const m = planPhoto(rickBradley()).metadata;
-    expect(m.credit).toBe('Photo: Rick Bradley, "printing blocks, ajrakpur, kaach", Flickr, CC BY 2.0');
+    expect(m.credit).toBe('Rick Bradley, "printing blocks, ajrakpur, kaach", Flickr, CC BY 2.0');
     expect(m.licence).toBe("CC BY 2.0");
   });
 
@@ -136,8 +148,9 @@ describe("Rick Bradley (Flickr, CC BY 2.0)", () => {
 });
 
 describe("Sahapedia (CC BY-NC-SA 4.0, with permission)", () => {
-  it("credits exactly 'Photo: <name> / Sahapedia, CC BY-NC-SA 4.0'", () => {
-    expect(planPhoto(sahapedia()).metadata.credit).toBe("Photo: A. Photographer Name / Sahapedia, CC BY-NC-SA 4.0");
+  it("prints exactly 'Photo: <name> / Sahapedia, CC BY-NC-SA 4.0'", () => {
+    expect(planPhoto(sahapedia()).metadata.credit).toBe("A. Photographer Name / Sahapedia, CC BY-NC-SA 4.0");
+    expect(FIGURE_TEXT.photoCredit(planPhoto(sahapedia()).metadata.credit)).toBe("Photo: A. Photographer Name / Sahapedia, CC BY-NC-SA 4.0.");
   });
 
   it("refuses the placeholder and a missing name", () => {
@@ -155,8 +168,8 @@ describe("Sahapedia (CC BY-NC-SA 4.0, with permission)", () => {
 
 describe("Eric Parker (Flickr, CC BY-NC 2.0)", () => {
   it("credits the photographer, Flickr and the licence", () => {
-    expect(planPhoto(ericParker()).metadata.credit).toBe("Photo: Eric Parker, Flickr, CC BY-NC 2.0");
-    expect(planPhoto(ericParker({ notes: CROP })).metadata.credit).toBe("Photo: Eric Parker, Flickr, CC BY-NC 2.0 (cropped)");
+    expect(planPhoto(ericParker()).metadata.credit).toBe("Eric Parker, Flickr, CC BY-NC 2.0");
+    expect(planPhoto(ericParker({ notes: CROP })).metadata.credit).toBe("Eric Parker, Flickr, CC BY-NC 2.0 (cropped)");
   });
 
   it("refuses a missing photographer and the reposting account's page", () => {
@@ -167,8 +180,8 @@ describe("Eric Parker (Flickr, CC BY-NC 2.0)", () => {
 
 describe("PARI (CC BY-NC-ND 4.0, with permission)", () => {
   it("uses PARI's exact credit line from the third reply", () => {
-    expect(planPhoto(pari()).metadata.credit).toBe("Photo: Rahul Maganti / People's Archive of Rural India (PARI). CC BY-NC-ND 4.0, used with permission.");
-    expect(PARI_CREDIT).toBe(planPhoto(pari()).metadata.credit);
+    expect(planPhoto(pari()).metadata.credit).toBe("Rahul Maganti / People's Archive of Rural India (PARI). CC BY-NC-ND 4.0, used with permission.");
+    expect(FIGURE_TEXT.photoCredit(planPhoto(pari()).metadata.credit)).toBe(PARI_CREDIT);
   });
 
   it("refuses a crop note (no derivatives), a missing photographer and anyone but Rahul Maganti", () => {
@@ -195,10 +208,12 @@ describe("V&A stays as it was", () => {
   });
 });
 
-describe("the held kind-A proposals", () => {
+describe("the kind-A proposals (proposed, DR-063)", () => {
   const file = read("process-photo-proposals.json");
+  const plans = planStudyPhotos(file);
+  const bySource = Object.fromEntries(plans.map((p) => [file.images.find((i) => i.id === p.proposalId)!.source, p]));
 
-  it("holds one carved-block photograph per study tradition, each on a tool concept", () => {
+  it("proposes one carved-block photograph per study tradition, each on a tool concept, every held condition recorded as met", () => {
     expect(file.images.map((i) => i.tradition).sort()).toEqual(["ajrakh", "machilipatnam-kalamkari", "sanganeri"]);
     expect(file.images.map((i) => i.conceptKey).sort()).toEqual([
       "ajrakh.tool.wooden-blocks",
@@ -206,14 +221,18 @@ describe("the held kind-A proposals", () => {
       "sanganeri.tool.bunta-wooden-block",
     ]);
     for (const i of file.images) {
-      expect(i).toMatchObject({ status: "held", kind: "blocks", section: "materials-tools" });
-      expect((i.heldUntil as string[]).length).toBeGreaterThan(0);
+      expect(i).toMatchObject({ status: "proposed", kind: "blocks", section: "materials-tools" });
+      expect(i.heldUntil).toBeUndefined();
+      expect((i.conditionsMet as string[]).length).toBeGreaterThan(0);
     }
+    expect(plans).toHaveLength(3);
+    expect(plans.map((p) => p.file).sort()).toEqual(["ajrakh-blocks-768.jpg", "machilipatnam-kalamkari-blocks-768.jpg", "sanganeri-blocks-768.jpg"]);
   });
 
-  it("is skipped by the ingest while held, alone or together with the V&A file", () => {
-    expect(planStudyPhotos(file)).toEqual([]);
-    expect(planStudyPhotos(read("media-proposals.json"), file)).toEqual(planStudyPhotos(read("media-proposals.json")));
+  it("is planned together with the V&A file, which stays as it was", () => {
+    const both = planStudyPhotos(read("media-proposals.json"), file);
+    expect(both.slice(0, 3)).toEqual(planStudyPhotos(read("media-proposals.json")));
+    expect(both).toHaveLength(6);
   });
 
   it("captions with the record's own wording only", () => {
@@ -223,20 +242,12 @@ describe("the held kind-A proposals", () => {
     expect(byTradition.sanganeri!.caption).toBe(`${byTradition.sanganeri!.namingQuote}.`);
   });
 
-  it("would plan the Flickr entries once proposed, and refuses the Sahapedia one until the photographer is named", () => {
-    const plans = Object.fromEntries(
-      file.images.filter((i) => i.source !== "sahapedia").map((i) => [i.source, planPhoto(parsePhotoProposal({ ...i, status: "proposed" }))]),
-    );
-    expect(plans["rick-bradley"]!.metadata.credit).toBe('Photo: Rick Bradley, "printing blocks, ajrakpur, kaach", Flickr, CC BY 2.0');
-    expect(plans["eric-parker"]!.metadata.credit).toBe("Photo: Eric Parker, Flickr, CC BY-NC 2.0");
-    expect(plans["rick-bradley"]!.position).toBe(1);
-    expect(plans["eric-parker"]!.position).toBe(0);
-    const sp = file.images.find((i) => i.source === "sahapedia")!;
-    expect(missingPhotographer(sp.photographer as string | undefined)).toBe(true);
-    expect(() => planPhoto(parsePhotoProposal({ ...sp, status: "proposed" }))).toThrow(/no photographer named/);
-    const named = planPhoto(parsePhotoProposal({ ...sp, status: "proposed", photographer: "Confirmed Name" }));
-    expect(named.metadata.credit).toBe("Photo: Confirmed Name / Sahapedia, CC BY-NC-SA 4.0");
-    expect(named.position).toBe(3);
-    expect(named.file).toBe("machilipatnam-kalamkari-blocks-768.jpg");
+  it("credits each source as it asks, anchored after the named claim", () => {
+    expect(bySource["rick-bradley"]!.metadata.credit).toBe('Rick Bradley, "printing blocks, ajrakpur, kaach", Flickr, CC BY 2.0');
+    expect(bySource["eric-parker"]!.metadata.credit).toBe("Eric Parker, Flickr, CC BY-NC 2.0");
+    expect(missingPhotographer(file.images.find((i) => i.source === "sahapedia")!.photographer as string)).toBe(false);
+    expect(bySource.sahapedia!.metadata.credit).toBe("Courtesy J. Niranjan, Srikalahasti / Sahapedia, CC BY-NC-SA 4.0");
+    expect(FIGURE_TEXT.photoCredit(bySource.sahapedia!.metadata.credit)).toBe("Photo: Courtesy J. Niranjan, Srikalahasti / Sahapedia, CC BY-NC-SA 4.0.");
+    expect([bySource["rick-bradley"]!.position, bySource.sahapedia!.position, bySource["eric-parker"]!.position]).toEqual([1, 3, 0]);
   });
 });

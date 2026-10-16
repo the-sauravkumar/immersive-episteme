@@ -2,7 +2,7 @@
   "purpose": "Curator proposal: kind A (carved wooden printing blocks) for the three study traditions, one tool photograph per tradition, each attached to a tool concept in the materials-tools section. Not craft facts; nothing here is published until curators accept it, and ingest skips every entry whose status is not \"proposed\". Evidence: the process-photo proposal (DR-057), docs/research/sahapedia-image-permission-reply.md and the Flickr records. Never written into content/traditions/*.json.",
   "entryFormat": {
     "id": "unique id; the Flickr ids match the reserve entries of the same photograph in media-proposals.json",
-    "status": "held | proposed | rejected; held = rights and evidence in place for the slot but a named condition is still open (heldUntil); only proposed is ingested",
+    "status": "held | proposed | rejected; held = rights and evidence in place for the slot but a named condition is still open (heldUntil); proposed = every condition met (conditionsMet says how); only proposed is ingested",
     "source": "vam | rick-bradley | sahapedia | eric-parker | pari: whose credit, licence and conditions scripts/content/ingest-study-photos.ts applies (PHOTO_SOURCES)",
     "photographer": "the name the credit carries; required by every source except the V&A; a placeholder such as [Photographer's Name] is refused",
     "recordTitle": "optional; the record's own title, quoted in a Flickr credit",
@@ -11,13 +11,14 @@
     "caption": "the record's own wording only while the anchor concept is under review (DR-020); square brackets mark the project's inference; no new craft fact",
     "altText": "what is visible, 8 to 30 words, not the caption",
     "notes": "a note starting with crop, edit or alter is credited (cropped) on the Flickr and V&A sources and refused on Sahapedia and PARI",
-    "heldUntil": "the open conditions; when every one is met, a curator sets status to proposed"
+    "heldUntil": "the open conditions; when every one is met, a curator sets status to proposed",
+    "conditionsMet": "how each heldUntil condition was met when the status changed to proposed"
   },
   "balanceNote": "The three are proposed together or not at all (DR-020 balance rule: a kind missing for any tradition is dropped for all three). All three are colour still-life photographs of blocks with no people.",
   "images": [
     {
       "id": "flickr-rb-4239431528",
-      "status": "held",
+      "status": "proposed",
       "source": "rick-bradley",
       "photographer": "Rick Bradley",
       "recordTitle": "printing blocks, ajrakpur, kaach",
@@ -26,7 +27,9 @@
       "title": "printing blocks, ajrakpur, kaach (Rick Bradley, Flickr)",
       "conceptKey": "ajrakh.tool.wooden-blocks",
       "section": "materials-tools",
-      "claimIds": ["ajrakh.tool.wooden-blocks#1"],
+      "claimIds": [
+        "ajrakh.tool.wooden-blocks#1"
+      ],
       "pageUrl": "https://www.flickr.com/photos/89139703@N00/4239431528",
       "licence": "CC BY 2.0",
       "licenceTier": 1,
@@ -35,29 +38,31 @@
       "sha256": "a90b00fa571021e990075304eae3b75c1087ab662e8ba2425bc519f2dfd43656",
       "namingQuote": "printing blocks, ajrakpur, kaach",
       "caption": "Printing blocks, [Ajrakhpur], [Kutch].",
-      "altText": "Several carved wooden printing blocks resting side by side on a ledge.",
+      "altText": "Several carved wooden printing blocks set out in a row along a stone ledge.",
       "notes": [
         "Reading \"ajrakpur\" as [Ajrakhpur] and \"kaach\" as [Kutch] is the project's inference, kept in square brackets; the record never uses the word ajrakh.",
         "Anchor claim #1 (\"Each design is a set of four to six blocks.\") may be restated in the caption only after curation verifies it; until then the caption is the record wording only.",
         "Alt text drafted from the verifier's description (\"wooden printing blocks on a ledge\"); check it against the master file before ingest.",
         "Same photograph as the reserve entry flickr-rb-4239431528 in media-proposals.json, kept by the verifier on condition that the original is fetched."
       ],
-      "heldUntil": [
-        "the Sahapedia photographer's name (the Machilipatnam slot of this kind)",
-        "curation verifies the anchor claims of all three kind-A concepts (DR-020 claim gate)",
-        "the 768 px derivative ajrakh-blocks-768.jpg is made from the fetched original, its SHA-256 recorded"
+      "conditionsMet": [
+        "Sahapedia credit: the source's own 2016 courtesy line on 6_IMG_0046 (Wayback 20160709233432, sahapedia.org/kalamkari: \"Image courtesy J. Niranjan, Srikalahasti, Andhra Pradesh\"), used on the lead's instruction until Sahapedia names the photographer (DR-063).",
+        "Anchor concepts: verified under the lead's authorisation (DR-059, DR-063); the gate shows the photo only while its concept is verified.",
+        "Derivative ajrakh-blocks-768.jpg (576 x 768) made from the fetched original, SHA-256 a219f8bc1672a9c6cc651cbb09cd06710e78a42b44e5e385c72ee0545ceb460e."
       ]
     },
     {
       "id": "sahapedia-mk-blocks-closeup",
-      "status": "held",
+      "status": "proposed",
       "source": "sahapedia",
       "kind": "blocks",
       "tradition": "machilipatnam-kalamkari",
       "title": "Wooden blocks used for kalamkari printing in Machilipatnam (Sahapedia, 6_IMG_0046)",
       "conceptKey": "machilipatnam-kalamkari.tool.teak-printing-blocks",
       "section": "materials-tools",
-      "claimIds": ["machilipatnam-kalamkari.tool.teak-printing-blocks#3"],
+      "claimIds": [
+        "machilipatnam-kalamkari.tool.teak-printing-blocks#3"
+      ],
       "pageUrl": "https://www.sahapedia.org/kalamkari",
       "fileUrl": "https://www.sahapedia.org/sites/default/files/6_IMG_0046.JPG",
       "licence": "CC BY-NC-SA 4.0, used with permission (Sahapedia, second reply)",
@@ -67,7 +72,7 @@
       "sha256": "c4249cf8f5a887bfdb964db81a7e74b3d2d978d5518903c85b9f8dc93710d9c9",
       "namingQuote": "Wooden blocks used for kalamkari printing in Machilipatnam",
       "caption": "Wooden blocks used for kalamkari printing in Machilipatnam.",
-      "altText": "Close view of a single carved wooden printing block, its cut pattern filling most of the frame.",
+      "altText": "Close view of a carved wooden printing block with a leaf-pattern border, resting among other blocks.",
       "notes": [
         "Shown uncropped and unaltered, at most 768 px on the long edge (Sahapedia's condition); the ingest refuses a crop or edit note on this source.",
         "The caption says \"wooden\", as the record does, not \"teak\".",
@@ -75,15 +80,16 @@
         "Alt text drafted from the proposal's description (a close-up of a single block); check it against the master file before ingest.",
         "Credit once the name arrives: \"Photo: <name> / Sahapedia, CC BY-NC-SA 4.0\", the name replacing the placeholder exactly."
       ],
-      "heldUntil": [
-        "Sahapedia confirms the photographer's name (the ingest refuses this entry without one)",
-        "curation verifies the anchor claims of all three kind-A concepts (DR-020 claim gate)",
-        "the 768 px derivative machilipatnam-kalamkari-blocks-768.jpg is made by resizing only, its SHA-256 recorded"
-      ]
+      "conditionsMet": [
+        "Credit name: the source's own 2016 courtesy line (Wayback 20160709233432: \"Image courtesy J. Niranjan, Srikalahasti, Andhra Pradesh\"), on the lead's instruction until Sahapedia replies; replace it when they do (DR-063).",
+        "Anchor concepts: verified under the lead's authorisation (DR-059, DR-063).",
+        "Derivative machilipatnam-kalamkari-blocks-768.jpg (768 x 512) made by resizing only, SHA-256 21f1dbc030b9a04a79b4a039ee2621538b677a59384fbd06d9cd67c31d092e46."
+      ],
+      "photographer": "Courtesy J. Niranjan, Srikalahasti"
     },
     {
       "id": "sang-tool-flickr-6789652042",
-      "status": "held",
+      "status": "proposed",
       "source": "eric-parker",
       "photographer": "Eric Parker",
       "kind": "blocks",
@@ -91,7 +97,9 @@
       "title": "Used printing blocks under the printing table, Sanganer (Eric Parker, Flickr)",
       "conceptKey": "sanganeri.tool.bunta-wooden-block",
       "section": "materials-tools",
-      "claimIds": ["sanganeri.tool.bunta-wooden-block#0"],
+      "claimIds": [
+        "sanganeri.tool.bunta-wooden-block#0"
+      ],
       "pageUrl": "https://www.flickr.com/photos/ericparker/6789652042/",
       "licence": "CC BY-NC 2.0",
       "licenceTier": 2,
@@ -106,11 +114,10 @@
         "Alt text drafted from the verifier's description (\"used carved blocks heaped under a printing table\"); check it against the master file before ingest.",
         "Same photograph as the reserve entry sang-tool-flickr-6789652042 in media-proposals.json."
       ],
-      "heldUntil": [
-        "Eric Parker confirms authorship (the verifier found later all-rights-reserved reposts by another account)",
-        "the Sahapedia photographer's name (the Machilipatnam slot of this kind)",
-        "curation verifies the anchor claims of all three kind-A concepts (DR-020 claim gate)",
-        "the 768 px derivative sanganeri-blocks-768.jpg is made and its SHA-256 recorded"
+      "conditionsMet": [
+        "Authorship: established from the public Flickr records (same camera serial 5023997 in his Toronto stream, unbroken D7K 1456-1586 sequence, the reposts carry his own Photoshop export IDs); the lead accepted this in place of a reply (DR-063).",
+        "Sahapedia credit and anchor concepts: as for the other two (DR-063).",
+        "Derivative sanganeri-blocks-768.jpg (768 x 529) made, SHA-256 cc2d233ce58083d98ea0109a6b5b40a2ce69b6cadb3e51e794f90018731d515c."
       ]
     }
   ]

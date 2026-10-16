@@ -2785,3 +2785,128 @@ novice met, and none touches the sheet.
   event added or changed. The probe and the tests change only measurement (`?probe=1`, outside
   study mode). Parity and immersive unit suites and the 3D e2e set were run after the changes
   (results in the run section).
+
+## DR-063: Database Steps on `episteme`: Two Local Staff Accounts, 244 Concepts Verified Under Saurav's Account, Six Study Photographs Ingested and Reviewed, the Demo Kept on the Review Snapshot (Adopted on the project lead's authorisation; DR-059 route)
+
+- **Context:** after the merge (DR-061, DR-062) the local development database `episteme` still
+  held the content of 14 October: no staff account for the lead, 366 under_review and 76
+  needs_evidence real concepts, and no study photograph. The lead authorised the verification
+  route of DR-059 and the photo ingest ("DO IT ALL"). He also ruled that nothing structural is
+  archived or withdrawn and no release is published tonight, so the demo runs from the REVIEW
+  snapshot (DR-060).
+- **Rehearsal first.** Every step below ran first on a throwaway database, `episteme_rehearsal`
+  (migrate, `db:seed:reference`, `content:bootstrap:remote` on the local host, then the steps).
+  The results were the same: 40 resubmitted, 244 verified, 0 refusals, 6 photographs verified and
+  parity `a.figures` passing. The rehearsal database was then dropped. A `pg_dump` of `episteme`
+  was taken before the run.
+- **Accounts** (`scripts/content/create-curator.ts`, the same account path the CMS uses; the
+  passwords are in a local file outside the repository and were never printed):
+  - `saurav.curator@episteme.local`, "Saurav Kumar", role curator: the verifying account;
+  - `photo-ingest@episteme.local`, "Photo ingest (automated)", role content_editor: the uploader,
+    so that no photograph is reviewed by its uploader.
+  - The `.local` addresses are placeholders, because no personal address may be stored
+    (team-and-ethics). The lead can change them in the admin console.
+- **Import:** `content:bootstrap:remote` against the local database (import, review snapshot,
+  the four manifests, the demo study). The importer keeps the states curators decided.
+- **Resubmission (needs_evidence → under_review):**
+  - **Tool:** new `scripts/content/submit-concepts.ts`, which calls the CMS's `transition()` as
+    Saurav.
+  - **Rule:** a concept is resubmitted only when `citationProblems()` returns nothing, the same
+    test verification applies. "Complete evidence" therefore means that every claim has a
+    source, a locator, a verbatim quote and its passage.
+  - **Result:** all 40 needs_evidence concepts in scope qualified (ajrakh 12,
+    machilipatnam-kalamkari 15, sanganeri 9, shared 4); 0 refused.
+  - **Separation of duties:** a submit is a workflow move, not authoring (`authorsOf` counts only
+    `cms.concept.*` actions). It does not make Saurav an author of the text.
+- **Verification:**
+  - **Run:** `scripts/content/verify-concepts.ts --dry-run`, then `--apply --as
+    saurav.curator@episteme.local`, over every under_review concept of the three study
+    traditions and `shared`.
+  - **Recorded reason:** "Authorised by the project lead; based on Claude's mechanical verbatim
+    source check (release-content/round3)". This file is the evidence link.
+  - **Result:** the dry run found 244 to verify and 0 refusals. The apply run verified **244, with
+    0 refused** (ajrakh 80, machilipatnam-kalamkari 68, sanganeri 72, shared 24), each with all
+    four evidence checks recorded.
+  - **Not touched:** Bagh, Bagru, Dabu and `comparisons` (DR-060). Relationships, sources and
+    traditions were not verified, because no tool for them exists yet (RELEASE-PACKAGE §5).
+- **Photographs: kind A (carved blocks) proposed.** DR-057 held the three block photographs until
+  four conditions held. Each is now met, or the lead has ruled on it:
+  - **Sahapedia name:** the lead's instruction is to credit the source's own wording until
+    Sahapedia replies.
+    - The Wayback copy of sahapedia.org/kalamkari of 9 July 2016 gives, for 6_IMG_0046 ("Wooden
+      blocks used for kalamkari printing in Machilipatnam"), `title="Image courtesy J. Niranjan,
+      Srikalahasti, Andhra Pradesh"` (checked in the saved page).
+    - The credit is therefore "Courtesy J. Niranjan, Srikalahasti / Sahapedia, CC BY-NC-SA 4.0".
+      Replace it when Sahapedia names the photographer.
+  - **Eric Parker's authorship:** established from the public Flickr records: his camera's serial
+    number in his own Toronto stream, the unbroken frame sequence of the trip, and reposts that
+    carry his own Photoshop export IDs. The lead accepted this in place of a reply.
+  - **Anchor claims verified:** the three tool concepts are among the 244.
+  - **Derivatives:** the SHA-256 of each 768 px file equals the derivative manifest (a219f8bc…,
+    21f1dbc0…, cc2d233c…). The files are copied to
+    `scripts/content/study-photos/<tradition>-blocks-768.jpg`.
+  - **Alt texts** were checked against the files, and two were corrected to what is visible: the
+    Ajrakh blocks stand in a row along the ledge, not side by side, and the Machilipatnam block
+    fills about half the frame. The captions are unchanged (the record's own wording).
+  - **Status:** the entries in `content/review/process-photo-proposals.json` are now `proposed`,
+    with `conditionsMet` in place of `heldUntil`.
+  - **Not ingested:** the PARI photographs, because they have no balanced kind.
+- **Credit fix:**
+  - **Bug:** the per-source credits of DR-057 began with "Photo: ", and the shared figure prints
+    "Photo: <credit>." in both conditions. Every non-V&A credit would therefore have printed
+    "Photo: Photo: …".
+  - **Fix:** stored credits now omit the prefix, so the printed line is the line each source asks
+    for. PARI's printed line equals its confirmed credit exactly.
+  - **Test:** `tests/unit/knowledge/study-photo-sources.test.ts`.
+- **Ingest and review:**
+  - **Ingest:** `ingest-study-photos.ts --uploader photo-ingest@episteme.local` uploaded the three
+    V&A textiles and the three block photographs to local storage. It linked each as the
+    illustration after its anchor claim and submitted it for review.
+  - **Review:** new `scripts/content/review-study-photos.ts` verified all six as Saurav through
+    the CMS's `reviewAsset`, with all five media checks; 0 were refused.
+  - **Separation of duties:** for every asset, the uploader and the reviewer differ.
+- **Snapshot and manifests rebuilt:** `content:bootstrap:remote` ran again. It built review
+  snapshot `review-682504158e51`, recompiled the four manifests and re-pinned the demo study
+  (still draft, demo and non-experimental). `figures.photos` is on by default, so the demo study
+  needed no change.
+- **Parity (read-only report of the demo study):**
+  - `a.figures` passes: 9 diagrams, 6 photographs, none held back.
+  - Claims 717 = 717, citations 779 = 779, sources 74 = 74, and coverage 254 concepts = 254
+    exhibits.
+  - The 4 critical failures belong to the demo study itself and were identical before the run:
+    the review snapshot is not a release, the manifest is not published, the journey has no
+    battery, and exposure is self-paced.
+- **On screen** (production build, full Chromium on the GTX 1650, renderer string checked): each
+  of the six photo concepts was opened as a 2D concept page and as the 3D panel. **No photograph
+  shows in either condition.**
+  - **Why:** the learner read model serves an illustration only when two things hold. The asset
+    must illustrate a concept in a *published real release*. A termed licence must also have its
+    first-publication day recorded (`servableSql`, DR-037).
+  - **Effect:** no real release is published, so all six are gated, identically in both
+    conditions. Each side shows 0 figures and the same claims around the anchor.
+  - **Decision: keep the gate.** Loosening it so that a review snapshot shows photographs would
+    publish them. That would start the V&A and Sahapedia five-year terms and bypass the release
+    the PI is to rule on. The photographs will appear in both conditions together on the day a
+    release containing their verified anchor concepts is published.
+  - **Finding:** the parity figure check counts approved illustration links without the
+    published-release condition, so it reports 6 photographs where learners see 0. Balance holds
+    either way, but the count should follow the read model. Deferred to the overnight phase.
+- **Equivalence check:**
+  1. Content: both conditions show the same claims, citations and figures (the photographs are
+     gated in both).
+  2. Exposure: unchanged.
+  3. Citations: access unchanged.
+  4. Ease once a concept is open: unchanged.
+  5. Navigation: unchanged.
+  6. Salience: once released, one photograph per tradition per kind (textile, blocks), all in the
+     same sections.
+  7. Telemetry: nothing new is logged.
+  - **Tests:** the unit suites for parity, immersive, 2D learning, knowledge and research (61
+    files, 509 tests) all pass.
+- **Paper implications:**
+  - Report that the verification route (DR-059) was executed as described: 244 concepts verified
+    on the mechanical check under the lead's account, with 0 refusals. Report also that
+    relationships, sources and traditions are not yet verified.
+  - Report each figure's source, credit and licence. State that the Machilipatnam block
+    photograph is credited from the source's 2016 courtesy line until the archive confirms the
+    photographer.

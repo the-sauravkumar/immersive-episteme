@@ -21,6 +21,7 @@
  *  - V&A: the fixed V&A credit, "(cropped)" when a crop is noted;
  *  - Rick Bradley and Eric Parker (Flickr; CC BY 2.0 and CC BY-NC 2.0): the photographer named,
  *    a noted crop credited;
+ *  (every stored credit omits the leading "Photo: ", which the shared figure prints; DR-063)
  *  - Sahapedia (CC BY-NC-SA 4.0 with written permission, docs/research/sahapedia-image-permission-reply.md):
  *    the credit names the photographer Sahapedia confirms; uncropped and unaltered only;
  *  - PARI (CC BY-NC-ND 4.0 with written permission, docs/research/pari-image-permission-reply.md):
@@ -95,8 +96,14 @@ export interface PhotoSource {
 }
 
 const cropSuffix = (cropped: boolean) => (cropped ? " (cropped)" : "");
+/**
+ * Stored credits never start with "Photo: ": the shared figure prints "Photo: <credit>." in both
+ * conditions (FIGURE_TEXT.photoCredit), so a stored prefix would print twice (DR-063). The rendered
+ * line is the line each source asks for.
+ */
+const PHOTO_PREFIX = /^Photo:\s*/;
 const flickrCredit = (licence: string) => (p: { photographer: string; recordTitle?: string | undefined; cropped: boolean }) =>
-  `Photo: ${p.photographer}${p.recordTitle ? `, "${p.recordTitle}"` : ""}, Flickr, ${licence}${cropSuffix(p.cropped)}`;
+  `${p.photographer}${p.recordTitle ? `, "${p.recordTitle}"` : ""}, Flickr, ${licence}${cropSuffix(p.cropped)}`;
 
 export const PHOTO_SOURCES: Record<PhotoSourceId, PhotoSource> = {
   vam: {
@@ -127,7 +134,7 @@ export const PHOTO_SOURCES: Record<PhotoSourceId, PhotoSource> = {
     licenceUrl: "https://creativecommons.org/licenses/by-nc-sa/4.0/",
     photographer: "named",
     noAlteration: true,
-    credit: ({ photographer }) => `Photo: ${photographer} / Sahapedia, CC BY-NC-SA 4.0`,
+    credit: ({ photographer }) => `${photographer} / Sahapedia, CC BY-NC-SA 4.0`,
   },
   "eric-parker": {
     id: "eric-parker",
@@ -147,7 +154,7 @@ export const PHOTO_SOURCES: Record<PhotoSourceId, PhotoSource> = {
     licenceUrl: "https://creativecommons.org/licenses/by-nc-nd/4.0/",
     photographer: "Rahul Maganti",
     noAlteration: true,
-    credit: () => PARI_CREDIT,
+    credit: () => PARI_CREDIT.replace(PHOTO_PREFIX, ""),
   },
 };
 
