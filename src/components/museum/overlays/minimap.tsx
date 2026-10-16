@@ -160,6 +160,7 @@ function PlanDrawing({
   className,
   style,
   roomTitle,
+  onRoom,
 }: {
   model: SceneModel;
   roomId: string | null;
@@ -168,6 +169,12 @@ function PlanDrawing({
   labelPx: number;
   className?: string;
   style?: CSSProperties;
+  /**
+   * Full plan: a click on a room in the drawing walks there, as its row in the list does (the
+   * dialog says "Select a room to walk there"; final review novice-3d-plan-drawing-not-clickable).
+   * Pointer only: the drawing is aria-hidden and the list is the keyboard and screen-reader path.
+   */
+  onRoom?(roomId: string): void;
   /** Full plan: each room's name, shown on hover (an SVG title). */
   roomTitle?: (r: SceneRoom) => string;
 }) {
@@ -177,7 +184,26 @@ function PlanDrawing({
   const current = roomId ? model.rooms.find((r) => r.id === roomId) : undefined;
   const currentLayout = current ? roomLabelLayout(current, numbers.get(current.id), true, mpp, labelPx) : null;
   return (
-    <svg viewBox={`${v.x} ${v.y} ${v.w} ${v.h}`} className={className} style={style} aria-hidden="true" focusable="false" data-slot="museum-plan-drawing">
+    <svg
+      viewBox={`${v.x} ${v.y} ${v.w} ${v.h}`}
+      className={className}
+      style={onRoom ? { ...style, cursor: "pointer" } : style}
+      aria-hidden="true"
+      focusable="false"
+      data-slot="museum-plan-drawing"
+      onClick={
+        onRoom
+          ? (e) => {
+              // The room under the pointer, in plan coordinates (labels drawn over a room count as the room).
+              const m = e.currentTarget.getScreenCTM();
+              if (!m) return;
+              const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+              const hit = model.rooms.find((r) => pt.x >= r.bounds.minX && pt.x <= r.bounds.maxX && pt.y >= r.bounds.minZ && pt.y <= r.bounds.maxZ);
+              if (hit) onRoom(hit.id);
+            }
+          : undefined
+      }
+    >
       {model.rooms.map((r) => {
         const here = r.id === roomId;
         return (
@@ -324,7 +350,20 @@ export function PlanDialog({
           </DialogHeader>
           <div className="grid items-start gap-6 md:grid-cols-[minmax(0,1fr)_18rem]">
             <div className="border border-rule bg-ground p-2">
-              <PlanDrawing model={model} roomId={roomId} headingDeg={headingDeg} roomTitle={roomTitle} boxPx={{ w: 480, h: (480 * box.h) / box.w }} labelPx={13} className="block h-auto w-full" style={{ aspectRatio: `${box.w} / ${box.h}` }} />
+              <PlanDrawing
+                model={model}
+                roomId={roomId}
+                headingDeg={headingDeg}
+                roomTitle={roomTitle}
+                onRoom={(id) => {
+                  onOpenChange(false);
+                  onRoom(id);
+                }}
+                boxPx={{ w: 480, h: (480 * box.h) / box.w }}
+                labelPx={13}
+                className="block h-auto w-full"
+                style={{ aspectRatio: `${box.w} / ${box.h}` }}
+              />
             </div>
             <ol aria-label={PLAN_TEXT.roomsLabel} className="list-none">
               {rooms.map((r) => {

@@ -64,7 +64,7 @@ export const EVENT_TYPE_REGISTRY = [
   // (src/features/telemetry/client/timing.ts) holds one open interval at a time. Durations are
   // measured with performance.now() and exclude paused time. These are telemetry only: derived
   // metrics may aggregate them; learning-outcome tables (responses, derived_scores) never hold them.
-  { code: "exposure_started", label: "Content exposure started", description: "A concept's content became visible: 2D concept page in view, or 3D information panel open (metadata.layer).", analyticConcept: "content_exposure", scope: "both", requirementRefs: ["EVT-02"] },
+  { code: "exposure_started", label: "Content exposure started", description: "A concept's KnowledgeSheet opened (or was uncovered): 2D concept page shown, or 3D information panel open; one rule in both conditions, DR-050 (metadata.layer).", analyticConcept: "content_exposure", scope: "both", requirementRefs: ["EVT-02"] },
   { code: "exposure_ended", label: "Content exposure ended", description: "The concept content interval ended; metadata carries start/end on the monotonic clock, active and paused milliseconds.", analyticConcept: "content_exposure", scope: "both", requirementRefs: ["EVT-02"] },
   { code: "navigation_started", label: "Navigation started", description: "The participant is moving or browsing with no concept content open (3D walking, 2D menus or catalogue).", analyticConcept: "navigation", scope: "both", requirementRefs: ["EVT-02"] },
   { code: "navigation_ended", label: "Navigation ended", description: "The navigation interval ended; metadata carries start/end on the monotonic clock, active and paused milliseconds.", analyticConcept: "navigation", scope: "both", requirementRefs: ["EVT-02"] },

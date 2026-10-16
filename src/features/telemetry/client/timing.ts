@@ -2,7 +2,7 @@
  * Time accountant: content-exposure and navigation intervals, measured the same way in both
  * conditions (lead requirement: equal exposure; navigation recorded apart from learning).
  *
- *  - CONTENT EXPOSURE: a concept's content is visible (2D concept page in view, 3D information
+ *  - CONTENT EXPOSURE: a concept's sheet is open (DR-050: 2D concept page shown, 3D information
  *    panel open). `beginExposure(conceptId, layer)`.
  *  - NAVIGATION: moving or browsing with no concept content open (3D walking between exhibits,
  *    2D menus or catalogue). `beginNavigation(surface)`.

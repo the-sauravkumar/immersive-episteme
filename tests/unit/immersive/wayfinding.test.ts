@@ -252,3 +252,39 @@ describe("route pace", () => {
     expect(short.top).toBeLessThanOrEqual(VISITOR.walkSpeed + 1e-9);
   });
 });
+
+/**
+ * Final review novice-3d-wing-cue-fires-on-leaving: an "enter" cue fires only on crossing its
+ * doorway INTO its room. Walking back from a wing to the lobby raises no "Entering <tradition>"
+ * note (and so logs no guidance_cue_used "shown").
+ */
+describe("enter cues fire on entering only", () => {
+  const enterCues = model.cues.filter((c) => c.trigger.type === "enter");
+
+  it("every wing announcement fires entering its wing and never entering the lobby", async () => {
+    const { enterCuesOnCrossing } = await import("@/features/immersive/scene-model");
+    const wingCues = enterCues.filter((c) => c.id.startsWith("cue:wing-entry:"));
+    expect(wingCues.length).toBeGreaterThanOrEqual(3);
+    for (const cue of wingCues) {
+      const slug = cue.id.slice("cue:wing-entry:".length);
+      const portal = model.portals.find((p) => p.id === cue.trigger.elementId)!;
+      const wing = portal.connects.find((r) => model.rooms.find((x) => x.id === r)?.traditionSlug === slug)!;
+      const outside = portal.connects.find((r) => r !== wing)!;
+      expect(cue.enterRoomId, cue.id).toBe(wing);
+      expect(enterCuesOnCrossing(model.cues, portal.id, wing).map((c) => c.id)).toContain(cue.id);
+      expect(enterCuesOnCrossing(model.cues, portal.id, outside).map((c) => c.id), `${cue.id} leaving`).not.toContain(cue.id);
+    }
+  });
+
+  it("every doorway threshold fires entering the dependent exhibit's room only", () => {
+    for (const cue of enterCues.filter((c) => c.effect.type === "name-prerequisite")) {
+      if (cue.effect.type !== "name-prerequisite") continue;
+      const dependentRoom = model.exhibits.find((e) => e.id === (cue.effect as { dependentElementId: string }).dependentElementId)?.roomId;
+      expect(cue.enterRoomId, cue.id).toBe(dependentRoom);
+    }
+  });
+
+  it("no enter cue is left firing both ways", () => {
+    expect(enterCues.filter((c) => c.enterRoomId === null).map((c) => c.id)).toEqual([]);
+  });
+});

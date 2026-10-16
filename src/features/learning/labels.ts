@@ -140,3 +140,19 @@ export function canonicalSlugIndex(slug: string): number {
 export function compareTraditionSlugs(a: string, b: string): number {
   return canonicalSlugIndex(a) - canonicalSlugIndex(b) || nameCollator.compare(a, b);
 }
+
+/**
+ * Items in the canonical tradition order (alphabetical by display name, DESIGN.md 12.3 rule 12,
+ * DR-019; slugs map to it through `compareTraditionSlugs`), tradition-less items last, stable
+ * within a tradition (so a search ranking or a section order is kept). One helper for both
+ * conditions: the 2D pages and the 3D panel order every tradition list with it (DR-047).
+ */
+export function byCanonicalTradition<T>(items: readonly T[], slugOf: (item: T) => string | null): T[] {
+  return items
+    .map((item, i) => ({ item, i, slug: slugOf(item) }))
+    .sort((a, b) => {
+      if (a.slug === null || b.slug === null) return (a.slug === null ? 1 : 0) - (b.slug === null ? 1 : 0) || a.i - b.i;
+      return compareTraditionSlugs(a.slug, b.slug) || a.i - b.i;
+    })
+    .map((x) => x.item);
+}

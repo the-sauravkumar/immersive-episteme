@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 
-import { ClaimList } from "@/components/knowledge";
 import { LearningPage } from "@/components/shell/gates";
 import type { ConceptRef } from "@/features/knowledge/read/view";
 import { PAGE_TITLES, sectionConcepts } from "@/features/learning-2d/navigation";
@@ -12,9 +11,9 @@ import { EPISTEMIC_SECTIONS } from "@/features/learning-2d/template";
 import { ConceptCardList } from "@/features/learning-2d/ui/concept-list";
 import { Crumbs } from "@/features/learning-2d/ui/crumbs";
 import { DisclosureSection } from "@/features/learning-2d/ui/disclosure-section";
-import { ExposureRegion, NavigationPhase } from "@/features/learning-2d/ui/exposure";
+import { NavigationPhase } from "@/features/learning-2d/ui/exposure";
 import { PageHeading } from "@/features/learning-2d/ui/page-heading";
-import { PageColumn, PageIntro, PageMeta, PageSkeleton, SectionHeading } from "@/features/learning-2d/ui/page-layout";
+import { PageColumn, PageIntro, PageSkeleton } from "@/features/learning-2d/ui/page-layout";
 import { PageTelemetry } from "@/features/learning-2d/ui/page-telemetry";
 import { ProcessTimeline, RepeatLinks } from "@/features/learning-2d/ui/process-timeline";
 import { titleCase } from "@/lib/text/title-case";
@@ -26,12 +25,13 @@ export const instant = false;
 
 /**
  * Tradition page (DESIGN.md 11.5): the common epistemic template in fixed order, in the sheet-width
- * column. The header carries a labelled metadata list (Also known as, Region, GI status; labels in
- * sentence case, as the sheet's "Local terms"). The
- * tradition's overview concept (its sourced claims, through the shared ClaimList) is the page's one
- * content region, with its Geographical Indication record as a list, not a run-on line. Every
- * other section is a 56 px disclosure of concept links (process stages as an ordered list), with no
- * counts (the museum rooms show none).
+ * column. Every section is a 56 px disclosure of concept links (process stages as an ordered list),
+ * with no counts (the museum rooms show none). The page is a navigation surface, as a museum room
+ * is: it shows no knowledge of its own (DR-048). The tradition's overview concept is the first link
+ * of section 1, Tradition and Context, and opens in the shared KnowledgeSheet, exactly as its
+ * exhibit stands first in the museum's Tradition and Context room. The tradition record's
+ * alternative names, region, GI status and GI record are not shown here, because the museum shows
+ * them nowhere: the sheet's metadata (Tradition, Category, Step, Local terms) is the same in both.
  */
 export default function TraditionPage({ params }: PageProps<"/learn/2d/traditions/[traditionKey]">) {
   return (
@@ -43,18 +43,14 @@ export default function TraditionPage({ params }: PageProps<"/learn/2d/tradition
   );
 }
 
-const giStatus = (registered: boolean | null) => (registered === null ? "Not recorded" : registered ? "Registered" : "Not registered");
-
 async function Tradition({ params }: { params: PageProps<"/learn/2d/traditions/[traditionKey]">["params"] }) {
   const result = await learning2dContext();
   if (!result.ok) return null;
   const { traditionKey } = await params;
   const data = await loadTradition(result.ctx, decodeURIComponent(traditionKey));
   if (!data) notFound();
-  const { tradition, overview, overviewFigures, chain, comparisons } = data;
+  const { tradition, chain, comparisons } = data;
   const pageId = pageId2d.tradition(tradition.slug);
-  const region = [tradition.region.place, tradition.region.district, tradition.region.state, tradition.region.country].filter(Boolean).join(", ");
-  const gi = tradition.gi;
 
   const comparisonConcepts: ConceptRef[] = [
     ...new Map([...(tradition.conceptsByType.comparison ?? []), ...comparisons.map((c) => c.concept)].map((c) => [c.id, c])).values(),
@@ -64,47 +60,8 @@ async function Tradition({ params }: { params: PageProps<"/learn/2d/traditions/[
     <PageColumn>
       <PageTelemetry pageId={pageId} traditionId={tradition.id} category="tradition_identity" />
       <Crumbs items={[{ label: PAGE_TITLES.catalogue, href: href2d.catalogue() }, { label: tradition.name }]} />
-      <PageIntro
-        eyebrow="Tradition"
-        title={<PageHeading>{tradition.name}</PageHeading>}
-        meta={
-          <PageMeta
-            label="About this tradition"
-            rows={[
-              { label: "Also known as", values: tradition.altNames },
-              { label: "Region", values: region ? [region] : [] },
-              { label: "GI status", values: gi ? [giStatus(gi.registered)] : [] },
-            ]}
-          />
-        }
-      />
-
-      {overview ? (
-        <ExposureRegion
-          conceptId={overview.id}
-          layer="overview"
-          context={{ roomOrPageId: pageId, traditionId: tradition.id, category: overview.category }}
-          navigationSurface="catalogue"
-        >
-          <SectionHeading id="overview-heading">Overview</SectionHeading>
-          <ClaimList className="mt-6" conceptId={overview.id} claims={overview.claims} figures={overviewFigures} />
-          {gi && (gi.applicationNo || gi.year || gi.sources.length > 0) ? (
-            <div className="mt-8 border-t border-rule pt-6">
-              <PageMeta
-                label="Geographical Indication record"
-                rows={[
-                  { label: "GI application", values: gi.applicationNo ? [gi.applicationNo] : [] },
-                  { label: "GI year", values: gi.year ? [<span key="y" className="tabular-nums">{gi.year}</span>] : [] },
-                  // The full source title (a short label would cut it mid-word, 9.8).
-                  { label: "GI source", values: gi.sources.map((s) => (s.year ? `${s.title} (${s.year})` : s.title)) },
-                ]}
-              />
-            </div>
-          ) : null}
-        </ExposureRegion>
-      ) : (
-        <NavigationPhase surface="catalogue" context={{ roomOrPageId: pageId, traditionId: tradition.id }} />
-      )}
+      <NavigationPhase surface="catalogue" context={{ roomOrPageId: pageId, traditionId: tradition.id }} />
+      <PageIntro eyebrow="Tradition" title={<PageHeading>{tradition.name}</PageHeading>} />
 
       <div className="mt-12 border-t border-rule" data-slot="tradition-sections">
         {EPISTEMIC_SECTIONS.map((section) => {

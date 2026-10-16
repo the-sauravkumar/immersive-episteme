@@ -1141,7 +1141,7 @@ test("interface parity P1-P33: 2D concept page vs 3D panel", async ({ browser })
       run.checks.push(
         check(
           "P26",
-          `catalogue cards ${allSame(sal.index) ? "equal" : "differ"} (${sal.index.length} of ${three}); index rows ${sal.rows.length === 0 ? "not on screen" : `${allSame(sal.rows) ? "equal" : "differ"} (${sal.rows.length} of ${three})`}; comparison headings ${allSame(sal.comparisons) ? "equal" : "differ"} (${sal.comparisons.length}); titles ${allSame(tt.t2d) ? "equal" : "differ"}`,
+          `catalogue cards ${allSame(sal.index) ? "equal" : "differ"} (${sal.index.length} of ${three}); index rows ${sal.rows.length === 0 ? "not on screen" : `${allSame(sal.rows) ? "equal" : "differ"} (${sal.rows.length} of ${three})`}; comparison rows ${allSame(sal.comparisons) ? "equal, no tradition named" : "differ or name a tradition"} (${sal.comparisons.length}); titles ${allSame(tt.t2d) ? "equal" : "differ"}`,
           short(`panel titles ${allSame(tt.t3d) ? "equal" : "differ"} (${tt.t3d.length}); ${plaqueRun ? plaqueText : "plaques: measured in the 1280 x 800 runs"}`, 300),
           ok2d && ok3d ? "none" : "differs",
           "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -1172,7 +1172,7 @@ test("interface parity P1-P33: 2D concept page vs 3D panel", async ({ browser })
               "P15: 2D is the load CLS without recent input; 3D is every layout shift during the keyboard-triggered panel open. DESIGN.md 12.4 states 0.00 (two decimals): a value below 0.005 rounds to 0.00 and passes; the unrounded value is recorded.",
               `P22-P24 ran with the guidance fixture (a demo study copying the demo protocol with the hybrid guidance on and a demo hint)${fixture ? "" : ", which could not be installed: no demo study on the review snapshot"}. The stall cue is measured in the 1280 x 800 runs, on freshly loaded pages with a 10 s stall time.`,
               "P23 and P24 list the parts that a working demo session cannot show (onboarding, which is off in both conditions; StateMessage unavailable, error and loading; Display Settings, which is not in either learning shell) as not measured, so these checks show as partial, never as passed.",
-              "P26 (3D) reads every room plaque of the three study traditions' wings, and the hall door into each, from the museum probe, once at 1280 x 800: plaque size, and contrast at the 2.5 m signage distance (paper 90th and ink 1st luminance percentile, as immersive-rendering.spec.ts), and the shared-map section of every wing room a plaque marks (DR-024: no wing room outside the one section map). The plaque part is reported in the 1280 x 800 runs only; the other runs compare the 2D cards, index rows and comparison headings and the 3D panel titles.",
+              "P26 (3D) reads every room plaque of the three study traditions' wings, and the hall door into each, from the museum probe, once at 1280 x 800: plaque size, and contrast at the 2.5 m signage distance (paper 90th and ink 1st luminance percentile, as immersive-rendering.spec.ts), and the shared-map section of every wing room a plaque marks (DR-024: no wing room outside the one section map). The plaque part is reported in the 1280 x 800 runs only; the other runs compare the 2D cards, index rows and comparison rows and the 3D panel titles.",
               "P28 and P30 also run at 1024 x 768 and 1920 x 1080 in light (6 layout-only runs). P28's 3D default at docked widths is the museum's first-load state at 1280 x 800 (the panel opens rows through the rail afterwards); below 1280 px it is the state after a row choice, which closes the drawer.",
               "P29 runs once per tradition at 1280 x 800 light: no rail or index string repeats eight consecutive words of a claim; every 3D Plan room that is a section carries the number and name of that section in the 2D index of its tradition (the hall: of every tradition), from the one shared section map (DR-024), and each wing's rooms are listed in the index's order. In-scene lettering is checked by the 3D track's rendering spec.",
               `P33 counts visible, uncovered controls, headings, images, canvases, badges and status messages on the first screen, each once; the claim text is not counted. Pass: the sheet's count equal in both, each total <= ${ATTENTION_CAP}, and the totals within ${ATTENTION_GAP} (project limits, visual-system.md 2D-C).`,
@@ -1196,7 +1196,7 @@ test("interface parity P1-P33: 2D concept page vs 3D panel", async ({ browser })
 
 /**
  * 2D salience inputs of P26: the study traditions' catalogue cards, their rows in the spread's
- * index (when it is on screen) and the comparison headings. Every value is a measured box and
+ * index (when it is on screen) and the comparisons page's aspect rows (DR-049: no tradition headings). Every value is a measured box and
  * computed style; an absent tradition makes the check fail (the counts are compared with 3).
  */
 async function salienceOf2d(page: Page): Promise<{ index: string[]; rows: string[]; comparisons: string[] }> {
@@ -1222,16 +1222,18 @@ async function salienceOf2d(page: Page): Promise<{ index: string[]; rows: string
       return [Math.round(r.width), cs.minHeight, cs.fontFamily, cs.fontSize, cs.fontWeight, cs.color, marker ? "marker" : "", a.querySelectorAll("img, picture").length].join("|");
     }),
   );
+  // The comparisons page lists the aspects only (DR-049), as the hall's exhibits: every aspect row
+  // has the same type and colour, and no tradition is named or marked on the page (a tradition
+  // heading would make one tradition salient there; "tradition" appears in the result if one is).
   await page.goto("/learn/2d/comparisons");
   await page.waitForLoadState("networkidle");
-  const comparisons = await page.locator("main h3:visible").evaluateAll((hs) =>
-    hs
-      .filter((h) => h.querySelector("[data-slot=tradition-name]"))
-      .map((h) => {
-        const cs = getComputedStyle(h);
-        const marker = h.querySelector("[data-slot=tradition-marker]");
-        return [cs.fontFamily, cs.fontSize, cs.fontWeight, cs.color, marker ? "marker" : ""].join(",");
-      }),
+  // The page's own column only: the spread's index beside it names every tradition equally (measured above as "index rows").
+  const traditionsNamed = await page.locator("#learn-2d-content [data-slot=tradition-name], #learn-2d-content [data-slot=tradition-marker]").count();
+  const comparisons = await page.locator("main [data-slot=comparison-aspects] li a:visible").evaluateAll((links) =>
+    links.map((a) => {
+      const cs = getComputedStyle(a);
+      return [cs.fontFamily, cs.fontSize, cs.fontWeight, cs.color, cs.minHeight].join(",");
+    }),
   );
-  return { index, rows, comparisons };
+  return { index, rows, comparisons: traditionsNamed > 0 ? [...comparisons, `tradition named ${traditionsNamed}`] : comparisons };
 }

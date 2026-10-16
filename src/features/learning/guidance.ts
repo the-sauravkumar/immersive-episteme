@@ -5,7 +5,7 @@
  *
  * Stall rule: the stall cue is due when no NEW concept has been exposed for `stallSeconds` of
  * active time spent without content on screen. "Exposed" is the shared time accountant's exposure
- * interval (2D: the concept's content is at least half in view; 3D: its information panel is
+ * interval (the shared sheet-open rule, DR-050: 2D: the concept page is shown; 3D: its information panel is
  * open), the same definition the timing metrics use, so the cue fires on the same behaviour in
  * both conditions. Time while content is exposed (reading, also re-reading) and paused time (tab
  * hidden, window blurred, a non-content modal) do not count: a stall is time spent moving or

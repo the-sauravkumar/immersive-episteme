@@ -169,9 +169,16 @@ function drawItem(ctx: CanvasRenderingContext2D, item: LabelItem, x: number, y: 
   ctx.fillStyle = "#fff";
   ctx.textBaseline = "alphabetic";
   if (item.kind === "sign") {
+    // One line, never cut: a category name wider than the sign is set smaller to fit (as the
+    // directory rows), so "Geography and History" never reads "Geography and…" (final review
+    // novice-3d-category-signs-truncated). The longest study label keeps about 60% of the size,
+    // still above the plates' base lettering.
     const size = px(item.em.title);
-    const s = setFace(ctx, W.title, size, sans, LETTERING_OPSZ_PX.plaque);
-    const line = wrapLines(ctx, s, titleCase(item.title), w * 0.9, 1)[0] ?? "";
+    let s = setFace(ctx, W.title, size, sans, LETTERING_OPSZ_PX.plaque);
+    const line = titleCase(item.title);
+    const room = w * 0.9;
+    const wide = measure(ctx, line, s);
+    if (wide > room) s *= room / wide;
     fillAt(ctx, line, (w - measure(ctx, line, s)) / 2, (h + size * 0.7) / 2, s);
     ctx.restore();
     return;

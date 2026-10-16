@@ -54,9 +54,10 @@ describe("every concept is in the same section in both conditions (study manifes
       for (const section of KNOWLEDGE_SECTIONS.filter((s) => s.scope === "wing")) {
         const room = byId.get(`room:${slug}:${section.zoneGroup}`);
         const in3d = exhibits.filter((e) => e.parentId === room?.id).map((e) => keyOf.get(String(e.conceptId))!);
-        // The tradition concept is the 2D tradition page itself and the first exhibit of the context room.
+        // The tradition concept is the first concept of section 1 in 2D (DR-048) and the first exhibit of the context room.
         const in2d = sectionConcepts(tradition, section).map((c) => c.key);
-        const expected = section.id === "context" ? [...in2d, ...(tradition.conceptsByType.tradition ?? []).map((c) => c.key)] : in2d;
+        if (section.id === "context") expect(in2d[0], slug).toBe((tradition.conceptsByType.tradition ?? [])[0]?.key);
+        const expected = in2d;
         expect([...in3d].sort(), `${slug} ${section.id}`).toEqual([...expected].sort());
         if (in2d.length > 0) expect(room?.label, `${slug} ${section.id}`).toBe(`${tradition.name}: ${section.title}`);
         compared += in3d.length;

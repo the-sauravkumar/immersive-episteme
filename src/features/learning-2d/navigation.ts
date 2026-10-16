@@ -14,7 +14,7 @@
  *    the layout, names the page on the first paint.
  */
 import type { ComparisonView, ConceptRef, ProcessChain, ProcessSequence, RelatedConceptGroups, TraditionDetail } from "@/features/knowledge/read/view";
-import { CATEGORY_LABELS, compareTraditionSlugs, exposureLayerOf, KNOWLEDGE_LAYERS, type KnowledgeLayerId } from "@/features/learning/labels";
+import { byCanonicalTradition, CATEGORY_LABELS, exposureLayerOf, KNOWLEDGE_LAYERS, type KnowledgeLayerId } from "@/features/learning/labels";
 import { sha256Hex } from "@/features/spatial/compiler/canonical";
 import { railDetail } from "@/features/learning/strings";
 import { titleCase } from "@/lib/text/title-case";
@@ -40,9 +40,15 @@ export interface Pager {
   section: EpistemicSection;
 }
 
-/** Concepts listed under a section of a tradition page, in display order. */
+/**
+ * Concepts listed under a section of a tradition page, in display order. The tradition's own
+ * overview concept (type `tradition`) opens section 1, as its exhibit stands first in the museum's
+ * Tradition and Context room (compiler: "tradition concepts first"): in both conditions it is one
+ * concept among the section's concepts, opened in the shared sheet (DR-048).
+ */
 export function sectionConcepts(tradition: Pick<TraditionDetail, "conceptsByType">, section: EpistemicSection): ConceptRef[] {
-  return (section.types as readonly ConceptType[]).flatMap((t) => tradition.conceptsByType[t] ?? []);
+  const types = sectionOfType("tradition").id === section.id ? (["tradition", ...section.types] as ConceptType[]) : (section.types as readonly ConceptType[]);
+  return types.flatMap((t) => tradition.conceptsByType[t] ?? []);
 }
 
 /**
@@ -133,20 +139,8 @@ export function pagerFor(
   return processPager(sequence, concept.id, sequence === chain ? undefined : sectionOfType(concept.type));
 }
 
-/**
- * Items in the canonical tradition order (alphabetical by display name, DESIGN.md 12.3 rule 12,
- * DR-019; slugs map to it through `compareTraditionSlugs`), tradition-less items last, stable
- * within a tradition (so a search ranking or a section order is kept).
- */
-export function byCanonicalTradition<T>(items: readonly T[], slugOf: (item: T) => string | null): T[] {
-  return items
-    .map((item, i) => ({ item, i, slug: slugOf(item) }))
-    .sort((a, b) => {
-      if (a.slug === null || b.slug === null) return (a.slug === null ? 1 : 0) - (b.slug === null ? 1 : 0) || a.i - b.i;
-      return compareTraditionSlugs(a.slug, b.slug) || a.i - b.i;
-    })
-    .map((x) => x.item);
-}
+/** Re-exported from the shared labels module (one canonical-order helper for both conditions). */
+export { byCanonicalTradition };
 
 // ---------------------------------------------------------------------------------------
 // Knowledge layers of a concept (DESIGN.md 9.6, 9.11 item 3; DR-034)

@@ -108,7 +108,7 @@ export function PlaceRail({ id, condition, items, destinations, renderItem, rend
       id={id}
       aria-labelledby={headingId}
       data-slot="place-rail"
-      data-museum-keys="ui"
+      data-museum-keys="rail"
       onKeyDown={onKeyDown}
       className={cn("w-[min(18rem,85vw)] flex-col overflow-y-auto overscroll-contain border-r border-rule-strong bg-field pb-6 text-ink", className)}
     >

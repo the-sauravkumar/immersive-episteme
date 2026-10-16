@@ -10,6 +10,7 @@
  */
 import { nameBasedUuid } from "@/features/knowledge/graph/hash";
 import type { SourceView } from "@/features/knowledge/read/view";
+import { practiceDiagramFigure, type PracticeFigureStep } from "@/features/learning/practice-figure";
 import { PRACTICE_TEXT } from "@/features/learning/strings";
 import { nodeSha256 } from "@/features/knowledge/graph/hash-node";
 import { compileSpatialManifest, DEFAULT_RULE_SET, defaultRuleSetConfig, ruleSetUuid, type CompilerGraph } from "@/features/spatial/compiler";
@@ -167,6 +168,15 @@ export function buildPracticeRoom(): Omit<MuseumPayload, "settings"> {
       related: [...related.entries()].map(([semantics, relations]) => ({ semantics: semantics as PanelRelation["semantics"], relations })),
     };
   }
+  // The practice diagram on Practice step 2, after its second statement, as on the 2D practice
+  // sheet (the same figure, shared KnowledgeFigure frame, Enlarge and lightbox; DR-052).
+  const step = (n: 1 | 2 | 3) => byKey.get(`practice.step-${n}`)!;
+  const stepTwo = step(2);
+  const figure = practiceDiagramFigure(
+    ([1, 2, 3] as const).map((n) => ({ id: step(n).id, key: step(n).key, title: step(n).title, type: step(n).type, line: `Practice Step ${n}` })) as [PracticeFigureStep, PracticeFigureStep, PracticeFigureStep],
+    stepTwo.id,
+    1,
+  );
   return {
     manifestId: id("manifest", compiled.manifestHash),
     manifestHash: compiled.manifestHash,
@@ -174,6 +184,7 @@ export function buildPracticeRoom(): Omit<MuseumPayload, "settings"> {
     scene,
     concepts,
     sources: { [PRACTICE_SOURCE_ID]: PRACTICE_SOURCE },
+    figures: { [stepTwo.id]: [figure] },
     traditions: graph.traditions.map((t) => ({ id: t.id, slug: t.slug, name: t.name })),
     missingConceptIds: [],
   };

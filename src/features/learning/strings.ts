@@ -176,15 +176,20 @@ export const ONBOARDING_TEXT = {
 } as const;
 
 /**
- * The familiarisation practice's own instruction (study decision D5), one per condition and written
- * to the same length (within 10% of words, like the onboarding movement step). The 3D version names
- * the one key map and the three look methods equally, so the practice room exercises each of them;
- * the practice room's panel text reads it (src/features/immersive/practice-room.ts).
+ * The familiarisation practice's own instruction (study decision D5), one per condition. Each is a
+ * navigation part, which differs by design (navigation is the manipulated variable: 2D opens an item
+ * from the rail or the index; 3D names the one key map and the three look methods equally, so the
+ * practice room exercises each of them), then the SHEET part, word for word the same in both
+ * (`PRACTICE_SHEET_CONTROLS`: tabs, a citation, Enlarge, a link, Previous and Next, Close), so both
+ * conditions practise the same knowledge-sheet controls (DR-052; final review
+ * equivalence-practice-sheet-controls). The practice room's panel text reads the 3D one
+ * (src/features/immersive/practice-room.ts).
  */
+export const PRACTICE_SHEET_CONTROLS = "switch its tabs, open a citation number and Enlarge under the figure, follow a link, use Previous and Next, then Close it.";
 export const PRACTICE_TEXT = {
   tryControls: {
-    "2d": "Try each control of the learning pages: open an item from In This Section or the index, switch its tabs, open a citation number and Enlarge under the figure, follow a link, use Previous and Next, then Close it.",
-    immersive: "Try each control of the museum: walk with W and S, turn with A and D, then look around by dragging, by holding the right button and with L for free look. Open an exhibit and a citation number, then close it.",
+    "2d": `Try each control of the learning pages: open an item from In This Section or the index, ${PRACTICE_SHEET_CONTROLS}`,
+    immersive: `Try each control of the museum: walk with W and S, turn with A and D, then look around by dragging, by holding the right button and with L for free look. Open Practice step 2, ${PRACTICE_SHEET_CONTROLS}`,
   },
 } as const;
 

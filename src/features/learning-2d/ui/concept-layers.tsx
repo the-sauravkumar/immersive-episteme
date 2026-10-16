@@ -9,7 +9,9 @@
  *  - a layer with several concepts shows a chooser above the shown concept (the panel's
  *    `ConceptChooser`: the same rows, `aria-pressed`, check icon);
  *  - Related Concepts follows the concept shown, the pager stays the page concept's.
- * Telemetry mirrors the panel's `setTab`: switching layers logs `information_layer_closed`
+ * Telemetry mirrors the panel's `openPanel`, `setTab` and `closePanel`: showing the page logs
+ * `information_layer_opened` for the first layer, leaving it logs `information_layer_closed` (the
+ * layer shown, openMs); switching layers logs `information_layer_closed`
  * (previous layer, openMs), `information_layer_opened` and, for the artisan, process and science
  * layers, `knowledge_layer_selected`; showing another concept logs `concept_encountered`
  * ("opened"). Exposure is the shown concept's own `ExposureRegion` (inside its pre-rendered view).
@@ -55,9 +57,6 @@ export function ConceptLayersSheet({ concept, step, layers, relatedByConcept, pa
   const first = layers[0];
   const [state, setState] = useState<{ tab: KnowledgeLayerId; conceptId: string }>({ tab: first?.id ?? "overview", conceptId: first?.entries[0]?.conceptId ?? concept.id });
   const layerSince = useRef(0);
-  useEffect(() => {
-    layerSince.current = performance.now();
-  }, []);
   const tracker = useStableTracker();
 
   const entryOf = (tab: KnowledgeLayerId, conceptId: string) => layers.find((l) => l.id === tab)?.entries.find((e) => e.conceptId === conceptId);
@@ -79,6 +78,38 @@ export function ConceptLayersSheet({ concept, step, layers, relatedByConcept, pa
     if (conceptId !== state.conceptId) void tracker.conceptEncountered({ ...where(next), metadata: { mode: "opened" } });
     setState({ tab, conceptId });
   };
+
+  // The sheet's own open and close, as the 3D panel logs them (openPanel / closePanel; DR-050
+  // Addendum): `information_layer_opened` for the first layer when the concept page is shown, and
+  // `information_layer_closed` with openMs for the layer shown when it is left. Without these, a
+  // 3D panel open logged a layer pair that a 2D page visit did not (final review
+  // equivalence-layer-telemetry-asymmetry).
+  const shownNow = useRef(state);
+  useEffect(() => {
+    shownNow.current = state;
+  });
+  const lifecycle = useRef<{ closeTimer: ReturnType<typeof setTimeout> | null }>({ closeTimer: null });
+  useEffect(() => {
+    const life = lifecycle.current;
+    if (life.closeTimer !== null) {
+      // React Strict Mode's simulated unmount and remount: the sheet never closed.
+      clearTimeout(life.closeTimer);
+      life.closeTimer = null;
+    } else {
+      layerSince.current = performance.now();
+      const s = shownNow.current;
+      void tracker.informationLayerOpened({ ...where(entryOf(s.tab, s.conceptId)), metadata: { layerId: s.tab } });
+    }
+    return () => {
+      // Deferred one task, as page_exited (page-telemetry.tsx), so a Strict Mode remount cancels it.
+      life.closeTimer = setTimeout(() => {
+        life.closeTimer = null;
+        const s = shownNow.current;
+        void tracker.informationLayerClosed({ ...where(entryOf(s.tab, s.conceptId)), metadata: { layerId: s.tab, openMs: Math.max(0, Math.floor(performance.now() - layerSince.current)) } });
+      }, 0);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per shown sheet: the open and the close of this concept page
+  }, [tracker]);
 
   const current = layers.find((l) => l.id === state.tab) ?? first;
   const shown = current?.entries.find((e) => e.conceptId === state.conceptId) ?? current?.entries[0];

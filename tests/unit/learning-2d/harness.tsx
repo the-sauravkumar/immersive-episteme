@@ -2,7 +2,7 @@
  * Test harness for 2D components: a real telemetry tracker over an in-memory outbox (no
  * network, no lifecycle listeners), an in-memory visit store, a fixture knowledge view built
  * from the placeholder knowledge-graph fixtures (no craft facts), and a controllable
- * IntersectionObserver for the "content in view" rule.
+ * IntersectionObserver (no exposure rule uses it since DR-050; it asserts none is created).
  */
 import { render, type RenderResult } from "@testing-library/react";
 import type { ReactNode } from "react";

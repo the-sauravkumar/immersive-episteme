@@ -59,7 +59,8 @@ async function Catalogue() {
               <li key={t.id}>
                 {/* Equal cards: the title zone reserves two lines while the column is narrower than the
                     sheet (a long name wraps there), and one line at the full sheet width, where every
-                    name fits; the region is one line. */}
+                    name fits. The name only: the museum's lobby directory names each wing and shows no
+                    region, so a card shows no tradition fact the museum does not (DR-048). */}
                 <TrackedLink
                   href={href2d.tradition(t.slug)}
                   pageId={pageId}
@@ -70,7 +71,6 @@ async function Catalogue() {
                   <span className="text-h3 min-h-[2lh] text-indigo min-[39.25rem]:min-h-0 underline decoration-1 underline-offset-[0.2em]">
                     <TraditionName traditionKey={t.slug}>{titleCase(t.name)}</TraditionName>
                   </span>
-                  <span className="text-label truncate">{[t.region.state, t.region.country].filter(Boolean).join(", ")}</span>
                 </TrackedLink>
               </li>
             ))}

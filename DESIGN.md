@@ -632,7 +632,7 @@ PageHeader with the honest lede. "What is the same" as an unboxed lead (no box, 
 
 ### 11.5 2D Learning Pages (`/learn/2d/*`)
 
-The chrome per 9.14 and 9.15; the spread per 6.2 once DR-021 lands. Page intros have no eyebrow. The index, tradition pages and comparisons keep the Apparatus structure (equal typographic rows, no counts in study, comparisons per aspect at the sheet measure through `ClaimList`), set in the Atlas tokens; comparison aspects are separated by a 1 px `--rule-strong` line, not a 2 px ink rule.
+The chrome per 9.14 and 9.15; the spread per 6.2 once DR-021 lands. Page intros have no eyebrow. The index, tradition pages and comparisons keep the Apparatus structure (equal typographic rows, no counts in study), set in the Atlas tokens. Only the KnowledgeSheet shows knowledge, in both conditions (DR-048, DR-049): the index cards carry the tradition name only; a tradition page lists its sections' concepts (the tradition's overview concept first in section 1, as its exhibit stands first in the museum's Tradition and Context room) and shows no metadata, GI record or inline claims; the comparisons page lists the aspects compared, each opening its comparison concept's sheet, as a hall exhibit does, with no claims juxtaposed across traditions.
 
 ### 11.6 3D Museum Overlays (`/learn/immersive`)
 
@@ -929,7 +929,7 @@ Files:
 Tasks:
 1. Replace the site header with the shared StudyBar; move Traditions, Categories, Comparisons and Search into its condition group (Contents and Search sheets); one AccessNotice slot.
 2. Concept page renders the shared `KnowledgeSheet` centred (11.5) directly under the chrome, with Related Concepts and the pager at the end, no side rail and no breadcrumb (the "Up to <parent>" control goes in the StudyBar condition group); import `ClaimList`, `RelatedConcepts`, `Pager` from `@/components/knowledge`. Delete `reading-progress.tsx` (the progress bar now lives in the `KnowledgeSheet`, 9.11) and move focus to the sheet h1 after client navigation (P27).
-3. Index per 11.5 (equal typographic tradition cards with no plate slot, counts hidden in study, category table, comparisons row link); tradition page with labelled `<dl>` metadata and the restyled section disclosures (no counts in study); comparisons rendered per aspect at the sheet measure through `ClaimList`, with an optional link-only overview table (11.5).
+3. Index per 11.5 (equal typographic tradition cards with no plate slot, counts hidden in study, category table, comparisons row link); tradition page with the restyled section disclosures (no counts in study); comparisons as a list of aspects (11.5; superseded in part by DR-048 and DR-049: no tradition metadata, no inline claims, no juxtaposed claims).
 4. Canonical tradition order from `labels.ts` everywhere; content-unavailable and practice screens use `StateMessage`.
 5. Keep every telemetry event name and payload unchanged.
 

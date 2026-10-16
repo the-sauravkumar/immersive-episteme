@@ -1,7 +1,7 @@
 /**
  * 2D components: concept access and typed related links (the shared RelatedConcepts with the 2D
  * link behaviour), citation disclosure on every claim (the shared ClaimList), exposure intervals
- * under the "content in view" rule (mocked IntersectionObserver), page telemetry (entries, exits,
+ * under the shared sheet-open rule (DR-050), page telemetry (entries, exits,
  * revisits, tradition crossings), disclosed sections, the 2D StudyBar group (Contents, Search only
  * when enabled, "Up to <parent>"), the shared learning-task prompts and the shared learning-phase
  * hand-back.
@@ -23,7 +23,7 @@ import { EPISTEMIC_SECTIONS } from "@/features/learning-2d/template";
 import { createVisitStore } from "@/features/learning-2d/visit-store";
 import { DisclosureSection } from "@/features/learning-2d/ui/disclosure-section";
 import { ConceptLayersSheet } from "@/features/learning-2d/ui/concept-layers";
-import { ChromeOverlayProvider, ExposureGroup, ExposureRegion, pickActiveRegion, rectInView } from "@/features/learning-2d/ui/exposure";
+import { ChromeOverlayProvider, ExposureRegion } from "@/features/learning-2d/ui/exposure";
 import { LearningPromptsSlot } from "@/features/learning-2d/ui/session";
 import { PageTelemetry } from "@/features/learning-2d/ui/page-telemetry";
 import { Learning2dStudyBar } from "@/features/learning-2d/ui/site-header";
@@ -123,7 +123,7 @@ describe("concept content and citations", () => {
   });
 });
 
-describe("exposure under the content-in-view rule", () => {
+describe("exposure under the shared sheet-open rule (DR-050)", () => {
   const conceptId = view.getConcept("alpha.process_stage.stage-one")!.id;
   const region = () => (
     <ExposureRegion conceptId={conceptId} layer="process" context={{ roomOrPageId: "concept:s1" }}>
@@ -132,42 +132,19 @@ describe("exposure under the content-in-view rule", () => {
   );
   const kinds = async (h: { events(): Promise<{ type: string }[]> }) => (await h.events()).map((e) => e.type).filter((t) => t.startsWith("exposure") || t.startsWith("navigation"));
 
-  it("starts exposure at >= 50% visible and ends it when the region leaves; navigation otherwise", async () => {
+  it("counts exposure from the moment the concept's sheet is shown, whatever is in view, with no navigation interval", async () => {
     const h = renderWithTelemetry(region());
-    const io = MockIntersectionObserver.observers[0]!;
-    expect(await kinds(h)).toEqual(["navigation_started"]);
-
-    act(() => io.fire(0.3));
-    expect(await kinds(h)).toEqual(["navigation_started"]);
-
-    act(() => io.fire(0.6));
-    act(() => io.fire(0.1));
+    // No IntersectionObserver is consulted: the sheet is open, so its concept is exposed.
+    expect(MockIntersectionObserver.observers).toHaveLength(0);
+    expect(await kinds(h)).toEqual(["exposure_started"]);
     const events = await h.events();
-    expect(events.map((e) => e.type).filter((t) => /^(exposure|navigation)/.test(t))).toEqual([
-      "navigation_started",
-      "navigation_ended",
-      "exposure_started",
-      "exposure_ended",
-      "navigation_started",
-    ]);
     const started = events.find((e) => e.type === "exposure_started")!;
     expect(started).toMatchObject({ conceptId, roomOrPageId: "concept:s1", metadata: { layer: "process" } });
     for (const e of events) expect(telemetryEventSchema.safeParse(e).success, e.type).toBe(true);
   });
 
-  it("counts a region taller than the viewport as in view when it fills half the viewport", async () => {
-    const h = renderWithTelemetry(region());
-    const io = MockIntersectionObserver.observers[0]!;
-    // 3000 px region, 800 px viewport: 20% of the region = 600 px on screen (75% of the viewport).
-    act(() => io.fire(0.2, { element: 3000, viewport: 800 }));
-    expect(await kinds(h)).toContain("exposure_started");
-    expect(rectInView({ top: -2000, bottom: 300, height: 2300 }, 800)).toBe(false);
-    expect(rectInView({ top: -100, bottom: 700, height: 800 }, 800)).toBe(true);
-  });
-
   it("closes the exposure interval when the page unmounts", async () => {
     const h = renderWithTelemetry(region());
-    act(() => MockIntersectionObserver.observers[0]!.fire(1));
     h.rerender(<p>another page</p>);
     const ended = (await h.events()).filter((e) => e.type === "exposure_ended");
     expect(ended).toHaveLength(1);
@@ -285,7 +262,6 @@ describe("the 2D StudyBar group", () => {
         </ExposureRegion>,
       ),
     );
-    act(() => MockIntersectionObserver.observers[0]!.fire(1));
     await userEvent.click(screen.getByRole("button", { name: "Contents" }));
     const dialog = screen.getByRole("dialog", { name: "Contents" });
     const traditionLinks = within(dialog)
@@ -296,7 +272,7 @@ describe("the 2D StudyBar group", () => {
     expect(within(dialog).getByRole("list", { name: "Alpha" }).querySelectorAll("a")).toHaveLength(EPISTEMIC_SECTIONS.length);
     await userEvent.keyboard("{Escape}");
     const kinds = (await h.events()).map((e) => e.type).filter((t) => /^(exposure|navigation)/.test(t));
-    expect(kinds).toEqual(["navigation_started", "navigation_ended", "exposure_started", "exposure_ended", "navigation_started", "navigation_ended", "exposure_started"]);
+    expect(kinds).toEqual(["exposure_started", "exposure_ended", "navigation_started", "navigation_ended", "exposure_started"]);
   });
 });
 
@@ -351,7 +327,6 @@ describe("shared learning phase", () => {
           </LearningPhaseContent>
         </LearningPhaseProvider>,
       );
-      act(() => MockIntersectionObserver.observers[0]!.fire(1));
       expect(screen.getByText("content")).toBeVisible();
       act(() => vi.advanceTimersByTime(2000));
       vi.useRealTimers();
@@ -379,56 +354,6 @@ describe("shared learning phase", () => {
     await userEvent.click(screen.getByRole("button", { name: "Confirm: finish learning" }));
     expect(screen.getByRole("heading", { name: "You Have Finished Learning" })).toBeInTheDocument();
     expect(replace).not.toHaveBeenCalled();
-  });
-});
-
-describe("several concepts on one page (comparisons): one exposure region counts at a time", () => {
-  it("picks the in-view region with the most visible height, the first on a tie, none when none is in view", () => {
-    const vh = 800;
-    expect(pickActiveRegion([{ id: "a", top: 0, bottom: 300, height: 300 }, { id: "b", top: 300, bottom: 800, height: 500 }], vh)).toBe("b");
-    expect(pickActiveRegion([{ id: "a", top: 0, bottom: 400, height: 400 }, { id: "b", top: 400, bottom: 800, height: 400 }], vh)).toBe("a");
-    expect(pickActiveRegion([{ id: "a", top: 900, bottom: 1300, height: 400 }], vh)).toBeNull();
-  });
-
-  it("opens exposure for one concept only, and navigation while none counts", async () => {
-    const a = view.getConcept("alpha.process_stage.stage-one")!.id;
-    const b = view.getConcept("beta.process_stage.stage-one")!.id;
-    vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0) as unknown as number);
-    vi.stubGlobal("cancelAnimationFrame", (id: number) => clearTimeout(id));
-    const frame = () => new Promise((r) => setTimeout(r, 5));
-    const rects: Record<string, { top: number; bottom: number }> = { [a]: { top: 0, bottom: 250 }, [b]: { top: 250, bottom: 750 } };
-    const spy = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
-      const r = rects[this.dataset.exposureConcept ?? ""] ?? { top: 2000, bottom: 2000 };
-      return { top: r.top, bottom: r.bottom, height: r.bottom - r.top, left: 0, right: 0, width: 0, x: 0, y: r.top, toJSON: () => ({}) } as DOMRect;
-    });
-    try {
-      const h = renderWithTelemetry(
-        <ExposureGroup context={{ roomOrPageId: "comparisons" }}>
-          <ExposureRegion conceptId={a} layer="overview" context={{ roomOrPageId: "comparisons" }}>
-            <p>claims a</p>
-          </ExposureRegion>
-          <ExposureRegion conceptId={b} layer="overview" context={{ roomOrPageId: "comparisons" }}>
-            <p>claims b</p>
-          </ExposureRegion>
-        </ExposureGroup>,
-      );
-      await act(async () => {
-        window.dispatchEvent(new Event("scroll"));
-        await frame();
-      });
-      const started = (await h.events()).filter((e) => e.type === "exposure_started");
-      expect(started.map((e) => e.conceptId)).toEqual([b]);
-      rects[a] = { top: 3000, bottom: 3300 };
-      rects[b] = { top: 3300, bottom: 3800 };
-      await act(async () => {
-        window.dispatchEvent(new Event("scroll"));
-        await frame();
-      });
-      const kinds = (await h.events()).map((e) => e.type).filter((t) => /^(exposure|navigation)/.test(t));
-      expect(kinds.slice(-2)).toEqual(["exposure_ended", "navigation_started"]);
-    } finally {
-      spy.mockRestore();
-    }
   });
 });
 
@@ -507,6 +432,8 @@ describe("concept layers in 2D (LayerTabs, as the 3D panel)", () => {
     await userEvent.click(screen.getByRole("tab", { name: "Science" }));
     const events = (await h.events()).filter((e) => /information_layer|knowledge_layer|concept_encountered/.test(e.type));
     expect(events.map((e) => [e.type, e.metadata])).toEqual([
+      // The sheet's own open, as the panel's openPanel logs it (DR-050 Addendum).
+      ["information_layer_opened", { layerId: "overview" }],
       ["information_layer_closed", expect.objectContaining({ layerId: "overview" })],
       ["information_layer_opened", { layerId: "science" }],
       ["knowledge_layer_selected", { layer: "science" }],
@@ -514,5 +441,21 @@ describe("concept layers in 2D (LayerTabs, as the 3D panel)", () => {
     ]);
     expect(events.at(-1)).toMatchObject({ conceptId: s1!, roomOrPageId: "concept:c1" });
     for (const e of events) expect(telemetryEventSchema.safeParse(e).success, e.type).toBe(true);
+  });
+
+  it("logs the sheet's open and close as the panel's openPanel and closePanel do (one pair per visit)", async () => {
+    const h = renderWithTelemetry(sheet);
+    await userEvent.click(screen.getByRole("tab", { name: "Science" }));
+    h.rerender(<p>another page</p>);
+    await new Promise((r) => setTimeout(r, 10));
+    const layers = (await h.events()).filter((e) => e.type.startsWith("information_layer")).map((e) => [e.type, e.metadata.layerId]);
+    expect(layers).toEqual([
+      ["information_layer_opened", "overview"],
+      ["information_layer_closed", "overview"],
+      ["information_layer_opened", "science"],
+      ["information_layer_closed", "science"],
+    ]);
+    const closed = (await h.events()).filter((e) => e.type === "information_layer_closed");
+    for (const e of closed) expect(typeof e.metadata.openMs).toBe("number");
   });
 });

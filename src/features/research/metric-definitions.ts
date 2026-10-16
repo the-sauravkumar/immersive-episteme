@@ -342,7 +342,7 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
     label: "Content-exposure time",
     group: "telemetry",
     version: TIMING_METRICS_VERSION,
-    measures: "Active time with concept content in view (2D: content area ≥ 50% in view; 3D: information panel open), pauses excluded.",
+    measures: "Active time with a concept's KnowledgeSheet open and not covered by a navigation overlay (one rule in both conditions, DR-050: 2D concept page shown, 3D information panel open), pauses excluded.",
     unit: "minutes (stored in ms)",
     computation: "Sum of exposure_ended.metadata.activeMs; unterminated intervals are counted, not guessed.",
     computedIn: TIMING,

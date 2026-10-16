@@ -21,7 +21,7 @@ const KIND_RANK = { "2d": 0, "3d": 1, other: 2 } as const;
 
 const LABELS: Record<string, string> = {
   conceptsExposed: "Concepts exposed",
-  conceptsInspected: "Concepts inspected (content in view)",
+  conceptsInspected: "Concepts inspected (sheet open)",
   relationshipsFollowed: "Relationships followed",
   mapEdges: "Concept-map links drawn",
   reconstructedCorrect: "Links matching a snapshot relationship",
@@ -66,7 +66,7 @@ async function Pathways({ searchParams }: { searchParams: Promise<Record<string,
         id="transitions"
         title="Transition matrices"
         demo={study.isDemo}
-        description={`Moves between knowledge categories of consecutive concept visits (a visit = content in view). Rows are where the participant came from. ${ANALYSIS_SCOPE_NOTE}`}
+        description={`Moves between knowledge categories of consecutive concept visits (a visit = a concept's sheet open, DR-050). Rows are where the participant came from. ${ANALYSIS_SCOPE_NOTE}`}
       >
         {orderedMatrices.length === 0 ? (
           <Empty>No telemetry yet.</Empty>

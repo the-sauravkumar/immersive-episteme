@@ -7,7 +7,8 @@
  *    Hint, Time left, Finish, skip link), with the museum's condition navigation group: "In This
  *    Room" (shows the shared PlaceRail while it is hidden, as "In This Section" in 2D), Plan, Mouse
  *    look (public demo only: study builds hide it, concept note section 7, Pathway B; free look stays
- *    on the L key and in Controls help), Controls help and Pause, as 44 px `StudyBarButton`s. The
+ *    on the L key and in Controls help), Controls help and Pause (public demo only, DR-051), as
+ *    44 px `StudyBarButton`s. The
  *    room name is the location; it is the view's h1 while no concept is open, and live text once the
  *    panel (whose title is the h1) opens.
  *  - `CueNoteBar`: one manifest cue note at a time.
@@ -36,6 +37,7 @@ export function MuseumStudyBar({
   freeLook,
   onToggleFreeLook,
   showMouseLook,
+  showPause,
   railButton,
 }: {
   location: string;
@@ -54,12 +56,19 @@ export function MuseumStudyBar({
   onToggleFreeLook(): void;
   /** The Mouse look button: the public demo and staff preview only; hidden in study builds (Pathway B). */
   showMouseLook: boolean;
+  /**
+   * The Pause button: the public demo and staff preview only. Study builds hide it (DR-051): 2D has
+   * no counterpart, the learning clock keeps running while paused, and Pathway B removes
+   * unnecessary controls; Controls help and a hidden tab still pause timing in study builds.
+   */
+  showPause: boolean;
   /** "In This Room" (the shared `PlaceRailButton`), first in the group as "In This Section" in 2D. */
   railButton?: ReactNode;
 }) {
   return (
-    // Arrow keys on the bar's controls never walk the visitor.
-    <div data-museum-keys="ui" className="shrink-0">
+    // "bar": the bar's plain toggles let the movement keys through to the walk; a control that uses
+    // arrows itself (a list, a menu, a dialog) keeps them (museum-scene.tsx isTypingTarget).
+    <div data-museum-keys="bar" className="shrink-0">
       <StudyBar
         location={location}
         locationAs={locationAs}
@@ -73,15 +82,13 @@ export function MuseumStudyBar({
               <StudyBarButton icon={<Mouse aria-hidden="true" />} label={STUDY_BAR_TEXT.mouseLook} aria-pressed={freeLook} disabled={!controlsEnabled} onClick={onToggleFreeLook} className="max-md:hidden" />
             ) : null}
             <StudyBarButton icon={<CircleHelp aria-hidden="true" />} label={STUDY_BAR_TEXT.controlsHelp} disabled={!controlsEnabled} onClick={onHelp} />
-            <StudyBarButton icon={<Pause aria-hidden="true" />} label={STUDY_BAR_TEXT.pause} disabled={!controlsEnabled} onClick={onPause} />
+            {showPause ? <StudyBarButton icon={<Pause aria-hidden="true" />} label={STUDY_BAR_TEXT.pause} disabled={!controlsEnabled} onClick={onPause} /> : null}
           </>
         }
       />
     </div>
   );
 }
-
-
 
 export function CueNoteBar({ text, detail, actionLabel, onAction, onDismiss }: { text: string; detail: string | null; actionLabel: string | null; onAction(): void; onDismiss(): void }) {
   return (

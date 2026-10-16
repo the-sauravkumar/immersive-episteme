@@ -8,8 +8,8 @@
  * time, or more visited exhibits with better learning without supporting evidence" (spec §10.3).
  *
  * Unit of analysis: the VISIT SEQUENCE. A visit is a content-exposure interval
- * (`exposure_started`, emitted by the shared time accountant in both conditions: 2D concept
- * content at least 50% in view, 3D information panel open), so both conditions are measured on
+ * (`exposure_started`, emitted by the shared time accountant in both conditions: 2D
+ * concept page shown, 3D information panel open; one rule, DR-050), so both conditions are measured on
  * the same definition. Consecutive exposures of the same concept (e.g. switching layers inside
  * one panel or scrolling within one page) collapse into one visit.
  *

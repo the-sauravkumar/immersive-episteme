@@ -138,6 +138,12 @@ export interface SceneCue {
   relationshipId: string | null;
   conceptId: string | null;
   trigger: { type: "select" | "approach" | "enter"; elementId: string; radius: number | null };
+  /**
+   * An "enter" cue fires only on crossing its doorway INTO this room (null: either way). A wing
+   * announcement fires on entering the wing, not on walking back to the lobby; a doorway threshold
+   * fires on entering the dependent exhibit's room (final review novice-3d-wing-cue-fires-on-leaving).
+   */
+  enterRoomId: string | null;
   effect: CueEffect;
 }
 
@@ -443,6 +449,27 @@ export function buildSceneModel(manifest: Pick<CompiledManifest, "elements" | "c
       };
     });
 
+  /**
+   * The room an "enter" cue's doorway leads INTO: for a prerequisite note, the dependent exhibit's
+   * room; otherwise the room holding the cue's concept (a wing announcement's tradition exhibit
+   * stands in the wing's first room); failing that, the side that belongs to a tradition the other
+   * side does not (the wing side of a lobby doorway). Null when the doorway does not decide it.
+   */
+  const enterRoomOf = (portalId: string, effect: CueEffect, conceptId: string | null): string | null => {
+    const portal = portals.find((x) => x.id === portalId);
+    if (!portal) return null;
+    const side = (roomId: string | null | undefined) => (roomId && portal.connects.includes(roomId) ? roomId : null);
+    if (effect.type === "name-prerequisite") {
+      const dependent = side(exhibits.find((x) => x.id === effect.dependentElementId)?.roomId);
+      if (dependent) return dependent;
+    }
+    const holder = conceptId ? side(exhibits.find((x) => x.conceptId === conceptId && portal.connects.includes(x.roomId))?.roomId) : null;
+    if (holder) return holder;
+    const [a, b] = portal.connects.map((id) => rooms.find((r) => r.id === id)?.traditionSlug ?? null);
+    if (a && a !== b) return portal.connects[0];
+    if (b && b !== a) return portal.connects[1];
+    return null;
+  };
   const cues: SceneCue[] = [];
   for (const e of els.filter((x) => x.kind === "cue")) {
     const trig = e.trigger as Loose | undefined;
@@ -479,6 +506,7 @@ export function buildSceneModel(manifest: Pick<CompiledManifest, "elements" | "c
       relationshipId: e.encodes[0]?.relationshipId ?? null,
       conceptId: e.conceptId,
       trigger: { type: trig.type as SceneCue["trigger"]["type"], elementId: String(trig.elementId), radius: typeof trig.radius === "number" ? trig.radius : null },
+      enterRoomId: trig.type === "enter" ? enterRoomOf(String(trig.elementId), effect, e.conceptId) : null,
       effect,
     });
     mark(e, effect.type === "explain-and-guide" ? "cue.panel-explanation" : effect.type === "show-path" ? "cue.path-reveal" : effect.type === "announce" ? "cue.announcement" : "cue.prerequisite-note");
@@ -550,4 +578,12 @@ export function residentRooms(model: SceneModel, roomId: string | null, depth = 
     frontier = next;
   }
   return out;
+}
+
+/**
+ * The "enter" cues raised by crossing doorway `portalId` into room `intoRoomId`: a cue fires only
+ * on crossing INTO its room (`enterRoomId`), never on walking back out through the same doorway.
+ */
+export function enterCuesOnCrossing(cues: readonly SceneCue[], portalId: string, intoRoomId: string): SceneCue[] {
+  return cues.filter((c) => c.trigger.type === "enter" && c.trigger.elementId === portalId && (c.enterRoomId === null || c.enterRoomId === intoRoomId));
 }

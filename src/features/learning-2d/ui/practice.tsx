@@ -25,6 +25,7 @@ import { RelatedConcepts, type RelatedLink } from "@/components/knowledge/relate
 import { LearningPhaseContent, type LearningPhaseMode } from "@/components/learning/learning-phase";
 import { PracticeSession } from "@/components/learning/practice-session";
 import type { GuidanceSettings } from "@/features/learning/settings";
+import { practiceDiagramFigure, type PracticeFigureStep } from "@/features/learning/practice-figure";
 import { PRACTICE_TEXT } from "@/features/learning/strings";
 import type { LearningTimeBudget } from "@/features/learning/time-budget";
 import type { Citation, ClaimView, ConceptRef, DiagramFigure } from "@/features/knowledge/read/view";
@@ -130,42 +131,12 @@ const STEPS: ConceptRef[] = [1, 2, 3].map((n) => ({
   verificationState: "draft",
 }));
 
-/** A practice diagram in the figure frame every study diagram uses: three practice steps in order. */
-const PRACTICE_FIGURE: DiagramFigure = {
-  kind: "diagram",
-  id: "practice-diagram",
-  conceptId: ITEM_ID,
-  anchorClaimIndex: 1,
-  caption: "Practice diagram: three practice steps in order, pointing to the second statement.",
-  alt: "Practice step 1 precedes Practice Item, which precedes Practice step 3.",
-  credit: "Practice figure (not part of the learning content)",
-  diagram: {
-    id: "practice:diagram",
-    type: "process-sequence",
-    traditionSlug: "practice",
-    traditionName: "Practice",
-    section: "process",
-    anchor: { conceptId: ITEM_ID, conceptKey: "practice.step-2", claimIndex: 1 },
-    width: 576,
-    height: 384,
-    fontSize: 14,
-    lineHeight: 18,
-    labelSize: 12,
-    nodes: STEPS.map((s, i) => ({ id: s.id, key: s.key, title: s.title, type: s.type, current: s.id === ITEM_ID, x: 20 + i * 198, y: 170, w: 140, h: 36, lines: [s.id === ITEM_ID ? "Practice Item" : `Practice Step ${i + 1}`] })),
-    edges: [0, 1].map((i) => ({
-      relationshipId: `practice-edge-${i}`,
-      type: "PRECEDES",
-      label: "precedes",
-      source: STEPS[i]!.id,
-      target: STEPS[i + 1]!.id,
-      d: `M${160 + i * 198} 188 L${218 + i * 198} 188`,
-      labelAt: { x: 189 + i * 198, y: 172, anchor: "middle" as const },
-    })),
-    bands: [],
-    alt: "Practice step 1 precedes Practice Item, which precedes Practice step 3.",
-    caption: "Practice diagram: three practice steps in order, pointing to the second statement.",
-  },
-};
+/** A practice diagram in the figure frame every study diagram uses: three practice steps in order (shared with the 3D practice room). */
+const PRACTICE_FIGURE: DiagramFigure = practiceDiagramFigure(
+  [0, 1, 2].map((i) => ({ id: STEPS[i]!.id, key: STEPS[i]!.key, title: STEPS[i]!.title, type: STEPS[i]!.type, line: STEPS[i]!.id === ITEM_ID ? "Practice Item" : `Practice Step ${i + 1}` })) as [PracticeFigureStep, PracticeFigureStep, PracticeFigureStep],
+  ITEM_ID,
+  1,
+);
 
 /**
  * Practice related links: in-page anchors to the practice sections. They are typed as explanations,

@@ -23,6 +23,7 @@ vi.mock("next/link", () => ({ default: ({ href, children, ...rest }: { href: str
 const NONE: GuidanceSettings = { policy: "none", cueEnabled: false, stallSeconds: 60, hintText: null };
 const SELF_PACED: LearningTimeBudget = { mode: "self_paced", budgetSeconds: null, allowEarlyFinish: false, startedAt: null, endsAt: null, endedAt: null, serverNow: "2026-01-01T00:00:00.000Z", persisted: false };
 
+/** `demo` false: a study build (Mouse look and Pause hidden); true: the public demo. */
 function bar(showMouseLook: boolean) {
   return renderWithTelemetry(
     <LearningPhaseProvider budget={SELF_PACED} mode="demo">
@@ -40,6 +41,7 @@ function bar(showMouseLook: boolean) {
           freeLook={false}
           onToggleFreeLook={() => {}}
           showMouseLook={showMouseLook}
+          showPause={showMouseLook}
           railButton={<button type="button">In This Room</button>}
         />
       </GuidanceProvider>
@@ -55,6 +57,14 @@ describe("3D StudyBar condition group", () => {
     study.unmount();
     bar(true);
     expect(screen.getByRole("button", { name: STUDY_BAR_TEXT.mouseLook })).toBeInTheDocument();
+  });
+
+  it("hides Pause in study builds (DR-051: no 2D counterpart, the learning clock keeps running) and keeps it in the public demo", () => {
+    const study = bar(false);
+    expect(screen.queryByRole("button", { name: STUDY_BAR_TEXT.pause })).toBeNull();
+    study.unmount();
+    bar(true);
+    expect(screen.getByRole("button", { name: STUDY_BAR_TEXT.pause })).toBeInTheDocument();
   });
 
   it("puts 'In This Room' first in the group, as 'In This Section' in 2D", () => {

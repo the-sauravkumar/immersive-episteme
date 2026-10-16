@@ -115,9 +115,6 @@ export async function loadCatalogue(ctx: LearningContext): Promise<CatalogueData
 
 export interface TraditionPageData {
   tradition: TraditionDetail;
-  overview: ConceptDetail | null;
-  /** Figures of the overview concept, resolved as for every concept view. */
-  overviewFigures: KnowledgeFigureData[];
   chain: ProcessChain | null;
   comparisons: ComparisonView[];
 }
@@ -127,13 +124,9 @@ export async function loadTradition(ctx: LearningContext, slug: string): Promise
   const tradition = await getTradition(ctx.snapshotId, slug);
   if (!tradition) return null;
   const scope = scopeOf(ctx);
-  const [overview, overviewFigures, chain, comparisons] = await Promise.all([
-    tradition.overviewConcept ? getConcept(ctx.snapshotId, tradition.overviewConcept.id) : Promise.resolve(null),
-    tradition.overviewConcept ? getConceptFigures(ctx.snapshotId, tradition.overviewConcept.id, figureOptions(ctx)) : Promise.resolve([]),
-    getProcessChain(ctx.snapshotId, slug),
-    scopedComparisons(ctx, scope, slug),
-  ]);
-  return { tradition, overview, overviewFigures, chain, comparisons };
+  // The page lists concepts only (DR-048): the overview concept opens in the shared sheet.
+  const [chain, comparisons] = await Promise.all([getProcessChain(ctx.snapshotId, slug), scopedComparisons(ctx, scope, slug)]);
+  return { tradition, chain, comparisons };
 }
 
 /** A concept shown under one of the page's layers, with what its view needs (as the 3D panel's `shown`). */
@@ -266,27 +259,12 @@ export async function loadCategory(ctx: LearningContext, code: KnowledgeCategory
 }
 
 export interface ComparisonsPageData {
+  /** The in-scope comparisons; the page lists their comparison concepts only (DR-049). */
   views: ComparisonView[];
-  /** The study's traditions in the canonical order: every comparison block lists each of them. */
-  traditions: { slug: string; name: string }[];
-  /** Each compared concept's claims and figures, by id (shown per aspect through ClaimList, 11.5). */
-  compared: Record<string, { concept: ConceptDetail; figures: KnowledgeFigureData[] }>;
 }
 
 export async function loadComparisons(ctx: LearningContext): Promise<ComparisonsPageData> {
-  const [views, traditions] = await Promise.all([scopedComparisons(ctx, scopeOf(ctx)), studyTraditions(ctx)]);
-  const ids = [...new Set(views.flatMap((v) => v.compares.map((c) => c.id)))];
-  const loaded = await Promise.all(
-    ids.map(async (id) => {
-      const [concept, figures] = await Promise.all([getConcept(ctx.snapshotId, id), getConceptFigures(ctx.snapshotId, id, figureOptions(ctx))]);
-      return concept ? ([id, { concept, figures }] as const) : null;
-    }),
-  );
-  return {
-    views,
-    traditions: traditions.map((t) => ({ slug: t.slug, name: t.name })),
-    compared: Object.fromEntries(loaded.filter((x) => x !== null)),
-  };
+  return { views: await scopedComparisons(ctx, scopeOf(ctx)) };
 }
 
 export interface SearchPageData {

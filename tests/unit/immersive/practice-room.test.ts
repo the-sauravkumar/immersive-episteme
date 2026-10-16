@@ -44,3 +44,30 @@ describe("practice room", () => {
     expect(b).toEqual(a);
   });
 });
+
+/**
+ * DR-052 (final review equivalence-practice-sheet-controls): both practices train the same
+ * knowledge-sheet controls. The instructions end with the same words naming them, and the practice
+ * room carries the 2D practice's diagram (Enlarge and the lightbox) on the station with a pager.
+ */
+describe("practice trains the same sheet controls in both conditions", () => {
+  it("ends both instructions with the same sheet-control words", async () => {
+    const { PRACTICE_SHEET_CONTROLS } = await import("@/features/learning/strings");
+    expect(PRACTICE_TEXT.tryControls["2d"].endsWith(PRACTICE_SHEET_CONTROLS)).toBe(true);
+    expect(PRACTICE_TEXT.tryControls.immersive.endsWith(PRACTICE_SHEET_CONTROLS)).toBe(true);
+    for (const word of ["tabs", "citation", "Enlarge", "link", "Previous and Next", "Close"]) expect(PRACTICE_SHEET_CONTROLS).toContain(word);
+  });
+
+  it("shows the practice diagram after the second statement of Practice step 2, a station with Previous and Next", () => {
+    const p = practiceMuseumPayload(settings);
+    const entries = Object.entries(p.figures ?? {});
+    expect(entries).toHaveLength(1);
+    const [conceptId, figures] = entries[0]!;
+    expect(p.concepts[conceptId]!.title).toBe("Practice step 2");
+    expect(figures).toHaveLength(1);
+    expect(figures[0]).toMatchObject({ kind: "diagram", anchorClaimIndex: 1, caption: expect.stringMatching(/^Practice diagram/) });
+    const station = p.scene.exhibits.find((e) => e.conceptId === conceptId)!;
+    expect(station.sequence).not.toBeNull();
+    expect(station.sequence!.index).toBe(1);
+  });
+});

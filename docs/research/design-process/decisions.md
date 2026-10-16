@@ -1794,3 +1794,263 @@ researchers' decisions:
 - **Paper implications:** report figure balance as "equal per section and per knowledge layer
   across the study traditions". Report runtime WebGL failures under the preregistered failure
   policy, with their count per condition.
+
+## DR-047: Compared Concepts Are Listed in the Canonical Tradition Order in Both Conditions (Adopted under the lead's delegation; final review equivalence-compared-concepts-order)
+
+- **Context:** the "Compared Concepts" block of a comparison concept's sheet listed the traditions in
+  a different order in each condition. The 2D page sorted them into the canonical order (DR-019:
+  Ajrakh, Machilipatnam Kalamkari, Sanganeri). The 3D panel kept the content file's order, and
+  `content/comparisons.json` lists Sanganeri before Machilipatnam Kalamkari in 9 of 11 comparisons.
+  The sheet text of every such hall exhibit therefore differed between conditions (P5), and so did
+  the order in which the traditions were named, which is a salience difference. The review's
+  sheet-by-sheet sweep (92 concepts, 125 layer views) found exactly these differences.
+- **Options:** (a) sort in the 3D panel; (b) keep the content order in both. (b) would break DR-019
+  (one canonical order on every list) in 2D as well.
+- **Decision: (a).** `byCanonicalTradition` moved to the shared `src/features/learning/labels.ts`,
+  and both conditions use that one helper: the 2D `scopedComparisons`, the 3D `toPanelConcept`
+  (the Compared Concepts block) and the 3D Compare layer, which was already sorted. The order is
+  stable within a tradition, as in 2D.
+- **Test:** `tests/unit/immersive/panel-content.test.ts` ("compared concepts follow the canonical
+  tradition order") gives `toPanelConcept` every comparison of the fixture in the file's order and
+  reversed, and requires the 2D rule's result and non-decreasing canonical ranks. Without the fix
+  it fails (`bagru.comparison.bagru-vs-sanganer`).
+- **Equivalence check:** (1) content: the same compared concepts, now in the same order; (2)
+  exposure: unchanged; (3) citations: unchanged; (4) ease: unchanged; (5) navigation: unchanged;
+  (6) tradition salience: now equal (the same order in both); (7) telemetry: nothing new.
+
+## DR-048: Tradition Knowledge Appears Only in the Shared Sheet; the 2D Tradition Page Is a Navigation Page (Adopted under the lead's delegation; final review equivalence-tradition-page-extra-facts)
+
+- **Context:** the 2D tradition page showed tradition knowledge that the 3D condition never shows:
+  "Also known as" (five names), a detailed region, the GI status and a "Geographical Indication
+  record" (application number, year, sources). The landing cards showed each tradition's state and
+  country. The page also showed the tradition's overview claims inline, outside the KnowledgeSheet
+  (no layer tabs, references after them), on every tradition visit. In 3D the same concept is
+  reached only by opening its exhibit in the Tradition and Context room, whose sheet carries
+  Tradition, Category and Local terms. Some names and places were therefore visible to 2D
+  participants only.
+- **Options:** (a) drop the metadata, the GI record and the inline claims from the 2D pages, and
+  list the overview concept as a concept to open; (b) add the same rows to the shared sheet's
+  metadata in both conditions. (b) adds facts to the sheet that are not claims: they carry no
+  numbered citation, so they would be uncited text in the study content (every statement shown is
+  a sourced claim), and the sheet's lean metadata (lead decision: only what aids learning) would
+  grow in both conditions.
+- **Decision: (a).** The 2D tradition page shows the tradition's name, then the seven section
+  disclosures. The tradition's overview concept is the first link of section 1, Tradition and
+  Context, and opens in the shared sheet, exactly as its exhibit stands first in the museum's
+  Tradition and Context room (the compiler places tradition concepts first). The 2D index and
+  rail list it there too (`sectionConcepts`). The landing cards carry the tradition's name only,
+  as the museum's lobby directory does. The page is a navigation surface for as long as it is
+  shown. The tradition record's alternative names, region and GI data stay in the content and in
+  the research console; neither condition shows them.
+- **Tests:** `tests/unit/immersive/section-map.test.ts` now requires the 2D section 1 to start
+  with the tradition concept and each wing room to hold exactly the concepts of the same 2D section
+  (the earlier special case for the tradition concept is gone). Live on the production build:
+  the 2D tradition page shows no "Also known as", GI or region text, its section 1 opens with
+  "Kutch Ajrakh (Ajrakh Resist Block Printing)", and the landing cards read the three tradition
+  names only.
+- **Equivalence check:** (1) content: the same knowledge in both, only through the shared sheet;
+  (2) exposure: the overview claims count as exposure only with the sheet open, in both (DR-050);
+  (3) citations: unchanged (the sheet's markers); (4) ease once a concept is open: unchanged; one
+  click in 2D reaches the overview claims, as opening the exhibit does in 3D; (5) navigation:
+  only the route to the concept changed; (6) tradition salience: the cards and pages are the same
+  for every tradition (no region line whose length differed by tradition); (7) telemetry: the
+  overview concept's visit is now a concept page visit with `concept_encountered`, as an exhibit
+  open is in 3D.
+
+## DR-049: The 2D Comparisons Page Lists the Aspects; No Claims Are Juxtaposed Across Traditions (Adopted under the lead's delegation; final review equivalence-comparisons-juxtaposition)
+
+- **Context:** the 2D Comparisons page stacked every compared concept's full claims, figures and
+  references for all three traditions, aspect by aspect, on one scrolling page. The 3D condition
+  has no counterpart: a hall exhibit's sheet shows the comparison's own claims and the shared
+  Compared Concepts block (titles only), and its Compare layer shows one compared concept at a
+  time. A 2D-only juxtaposition aids exactly the comparison and transfer outcomes being measured,
+  and it breaks the "one focus" cognitive-load rule both sheets follow. An earlier record had
+  called the page a navigation page outside the measured view, which did not match a page that
+  renders claims.
+- **Options:** (a) reduce the 2D page to a list of aspects, each opening its comparison concept's
+  sheet, as a hall exhibit does; (b) build an equivalent juxtaposition in 3D. (b) adds a 3D view
+  that shows several concepts at once, against the concept note's §7 Pathway B ("information
+  should be progressively disclosed") and the one-focus rule, and it would change the 3D sheet,
+  which is shared.
+- **Decision: (a),** citing §7 "progressively disclosed". The page is now the 2D counterpart of
+  the Comparison Hall: a list of the aspects compared (44 px row links, no claim text, no counts,
+  no tradition headings). It is a navigation surface for as long as it is shown. The compared
+  concepts' claims are reached one concept at a time, through the comparison sheet's Compare layer
+  or a link, in both conditions. `ExposureGroup` (several exposure regions on one page) is removed
+  with it.
+- **Parity suite:** P26's 2D part now measures the comparisons page's aspect rows (all with the
+  same type and colour) and requires that no tradition is named or marked in the page's own column
+  (the spread's index beside it names every tradition equally and is measured as "index rows").
+  The quick parity run (PARITY_QUICK=1, three traditions, 1280 x 800 light, GTX 1650) passed after
+  this change; a quick run does not write the report, so the run of record (a757d85) is unchanged
+  and is now out of date for P26's wording. Live: the page lists 12 aspects and renders no
+  statement list. A re-run of the review's sheet sweep over the hall (12 exhibits, 24 layer
+  views, 2D page against 3D panel) found no difference (DR-047).
+- **Equivalence check:** (1) content: the same claims, reached the same way; (2) exposure: claims
+  count only in a sheet, in both (DR-050); (3) citations: unchanged; (4) ease: one comparison at a
+  time in both; (5) navigation: the page is navigation only; (6) tradition salience: no tradition
+  headings, so none is promoted; (7) telemetry: comparison claims are logged as concept visits in
+  both, never as a page-level group.
+
+## DR-050: One Exposure Rule for Both Conditions, Defined on the Shared Sheet (Adopted under the lead's delegation; final review equivalence-exposure-rule, blocker)
+
+- **Context:** content exposure (`time.exposure_total_ms`, `time.navigation_ms`, the `nav.*` visit
+  metrics, the stall cue) followed a different rule in each condition. In 2D it ran only while at
+  least half of the claims region, or half the viewport, was in view. In 3D it ran whenever the
+  panel was open, wherever the panel was scrolled, and also while the full Plan was open over it.
+  Measured by the final review on the :3300 production build at 1280 x 800 for
+  `ajrakh.process_stage.saaj`: on opening the 2D page the claims region spanned 531 to 1252 px of
+  an 800 px viewport (37% of the region, 34% of the viewport visible), so 2D logged navigation
+  (`menu`) while the first claim and Fig. 1 were on screen; the reference list and Related
+  Concepts counted as navigation in 2D and as exposure in 3D. data-and-telemetry-layer.md §4c and
+  condition-equivalence E3 stated the rules were the same; no parity check measured it.
+- **Options:** (a) "sheet open" in both: exposure while the concept's KnowledgeSheet is open and
+  no navigation overlay covers it, wherever it is scrolled; (b) the in-view rule in both, applied to
+  the claims region inside each sheet's scroll container. (b) makes exposure depend on layout
+  geometry, which differs between a page placement and a docked panel (title, metadata, tabs and
+  sequence list push the claims down by different amounts), so the same reading would still be
+  timed differently; it also treats the sheet's own references and related concepts as
+  navigation, although they are the sheet's content in both conditions. (a) is decided by the
+  learner's actions only (open, cover, close), which are the same in both.
+- **Decision: (a).** `useSheetTiming` (`src/features/telemetry/client/sheet-timing.ts`) is THE
+  rule and its only implementation; both conditions call it. 2D: the sheet is open while the
+  concept page is shown; the overlays are the StudyBar's Contents and Search sheets (navigation
+  `menu`). 3D: the sheet is the open panel; the overlay is the full Plan dialog (navigation `map`).
+  The minimap beside the panel is not an overlay, as the 2D rail and index beside the sheet are
+  not. Pages without a sheet (catalogue, tradition, category and comparisons lists, search) are
+  navigation. The 2D in-view machinery (IntersectionObserver, 50% threshold) is removed.
+- **Addendum (minor equivalence-layer-telemetry-asymmetry):** every 3D panel open logged
+  `information_layer_opened` (overview) and every close `information_layer_closed` (openMs), while
+  a 2D concept page logged them only on a tab switch, so 3D had extra layer events and openMs data
+  by construction. The 2D sheet now logs the same pair when the concept page is shown and left
+  (deferred one task, as `page_exited`, so React Strict Mode's simulated remount logs nothing), and
+  the 3D panel logs `concept_encountered` before the layer, the 2D order.
+- **Tests:** `tests/unit/telemetry-client/sheet-timing.test.tsx`: the rule's truth table; both
+  conditions call `useSheetTiming` and neither uses an in-view rule or the bare exposure hook; the
+  same scripted sequence (open, cover, uncover, close) gives identical exposure and navigation
+  intervals through the 2D region and the 3D binding. `tests/unit/learning-2d/learning-2d.test.tsx`:
+  exposure starts on mount with no navigation interval; Contents over the page counts as
+  navigation; the 2D sheet logs one opened/closed pair per visit with openMs. New e2e parity check
+  `tests/e2e/exposure-parity.spec.ts`: the same script on the same concept in both conditions on
+  the production build.
+- **Result (production build on :3300, full Chromium on the GTX 1650, 1280 x 800, demo session,
+  `ajrakh.process_stage.dhori-gach`, the first station of the Ajrakh process room):** both
+  conditions logged exposure -> navigation (overlay) -> exposure -> navigation (after Close), the
+  same seven interval events. Navigation surfaces: 2D `menu` (Search) then `catalogue` (the
+  section page Close leads to); 3D `map` (the full Plan) then `map` (walking with the minimap
+  shown). Exposure activeMs: first interval (3 s at the top plus 3 s scrolled to the reference list
+  and Related Concepts) 2D 6006, 3D 6149; second interval 2D 2076, 3D 2079 (second run; the first
+  run gave 6011/6166 and 2114/2071). Under the old rule the 2D page logged no exposure at all in
+  the first 3 s.
+- **Documents updated:** data-and-telemetry-layer.md §4c, condition-equivalence E3,
+  learning-2d L4 (superseded), the metric definition of exposure, the telemetry event
+  description, the research console's labels ("sheet open"), DESIGN.md 11.5.
+- **Equivalence check:** (1) content: unchanged; (2) exposure: now one rule, so equal by
+  construction; navigation is timed by the same rule's complement; (3) citations: opening a
+  citation is inside the sheet, exposure in both; (4) ease: unchanged; (5) navigation: unchanged;
+  (6) salience: unchanged; (7) telemetry: the definitions of exposure and navigation changed for
+  2D (more exposure, less `menu` navigation on concept pages). No participant data exists yet
+  (methodologist sign-off pending with DR-021), so no recorded session is affected.
+- **Limitation for the paper:** "exposure" is time with a concept's sheet open and uncovered; a
+  learner may look away while a sheet is open, in either condition alike.
+
+## DR-051: The Museum's Pause Button Is Hidden in Study Builds (Adopted under the lead's delegation; final review equivalence-pause-control-3d-only)
+
+- **Context:** the 3D StudyBar had a Pause button with no 2D counterpart. Pausing stopped the
+  telemetry intervals (a 3D-only pause category), while the server-clock learning budget kept
+  running, under a screen reading "The museum is paused. Nothing moves until you resume." Concept
+  note §7 Pathway B: "unnecessary controls should be removed".
+- **Decision:** study builds hide Pause, as they hide Mouse look (DR-021/DR-023 Addendum). The
+  public demo and staff preview keep it. Controls help, a lost graphics context and a hidden tab
+  still pause timing in study builds, the last in both conditions.
+- **Test:** `tests/unit/learning/study-bar-groups.test.tsx` (Pause hidden in a study build, shown
+  in the demo).
+- **Equivalence check:** (1) to (4) unchanged; (5) one 3D-only control fewer; (6) unchanged; (7) no
+  3D-only pause time in study sessions.
+
+## DR-052: Both Practices Train the Same Knowledge-Sheet Controls (Adopted under the lead's delegation; final review equivalence-practice-sheet-controls)
+
+- **Context:** with onboarding off in both conditions, the familiarisation practice (D5) is the
+  only training. The 2D practice had participants switch tabs, open a citation, Enlarge a figure,
+  follow a link and use Previous and Next. The 3D practice room had no figure, and its instruction
+  named only "an exhibit and a citation number", so 3D participants met Enlarge and the lightbox
+  for the first time during the task.
+- **Decision:** the practice diagram is one shared definition
+  (`src/features/learning/practice-figure.ts`). The 2D practice sheet keeps it, and the practice
+  room shows it on Practice step 2, a station with Previous and Next, after its second statement,
+  in the same shared KnowledgeFigure frame. Each instruction is a navigation part (different by
+  design: navigation is the manipulated variable; the 3D part names the key map and the three look
+  methods) followed by the same sheet part, word for word (`PRACTICE_SHEET_CONTROLS`: "switch its
+  tabs, open a citation number and Enlarge under the figure, follow a link, use Previous and Next,
+  then Close it."). This replaces the earlier "within 10% of words" convention for these two
+  strings, which cannot hold once the 3D line names its look methods and the same sheet controls.
+- **Tests:** `tests/unit/immersive/practice-room.test.ts` (both instructions end with the same
+  sheet words naming every control; the practice room carries the diagram on the station).
+- **Equivalence check:** (1) content: practice only, no craft content; (2) exposure: practice is
+  outside learning time in both; (3) citations: the same practice source; (4) ease once a concept
+  is open: both trained on the same sheet controls; (5) navigation: unchanged; (6) salience:
+  unchanged; (7) telemetry: practice is outside the metrics.
+
+## DR-053: Museum Wayfinding Fixes From the Novice Walkthrough (Adopted under the lead's delegation; final review novice-3d findings)
+
+Navigation-only changes in the 3D condition (the manipulated variable). They remove handicaps a
+novice met, and none touches the sheet.
+
+- **Enter cues fire on entering only** (novice-3d-wing-cue-fires-on-leaving). A wing announcement
+  ("Entering <tradition>") and a doorway threshold fired whichever way the visitor crossed the
+  doorway, so walking back to the lobby announced the wing again, the note stayed in the lobby, and
+  each false firing logged `guidance_cue_used` "shown", inflating 3D guidance telemetry. Each
+  enter cue now carries the room it leads into (`SceneCue.enterRoomId`: the dependent exhibit's
+  room for a threshold; the room holding the cue's concept, else the tradition side of the door,
+  for a wing announcement) and fires only on crossing into it (`enterCuesOnCrossing`). Test:
+  `tests/unit/immersive/wayfinding.test.ts` (every wing announcement fires entering its wing and
+  never entering the lobby; every threshold fires entering the dependent's room; no enter cue fires
+  both ways).
+- **Movement keys after a bar or rail click** (novice-3d-arrow-keys-dead-after-bar-buttons). The
+  whole StudyBar and the rail swallowed arrows and WASD, so after clicking Plan or In This Room the
+  visitor could not turn or walk until they clicked the scene. The bar and the rail are now
+  regions whose plain toggles, heading and Hide button let the movement keys through; controls
+  that use arrows themselves (the rail's rows, a menu, a popup trigger, a dialog) and the panel,
+  the Plan and the screens keep them (`src/components/museum/keys.ts`). Test:
+  `tests/unit/immersive/museum-keys.test.tsx`.
+- **"Leads To" names the doorways as their signs do** (novice-3d-rail-leads-to-indistinguishable).
+  The lobby rail listed "Tradition and Context" three times and "Comparison Hall" twice. Rows are
+  now built from the doorway signs' own label function: the section number ("1. Tradition and
+  Context") and, when the doorway changes zone, the tradition as the row's detail; the wings are in
+  the canonical tradition order; two doorways into the same room are one row.
+- **Category signs are never cut** (novice-3d-category-signs-truncated): a name wider than its sign
+  is set smaller to fit on its one line, as the directory rows are, instead of ending in an
+  ellipsis ("Geography and…").
+- **The full Plan's drawing walks to the room clicked** (novice-3d-plan-drawing-not-clickable), as
+  its description says; the list stays the keyboard and screen-reader path.
+- **Verified live** (production build on :3300, GTX 1650, 1280 x 800, demo): the lobby's "Leads
+  To" reads "1. Tradition and Context" with each tradition as its detail, three rows in the
+  canonical order, then "8. Comparison Hall" (one row for its two doorways); entering the Ajrakh
+  wing raised "Entering Ajrakh Resist Block Printing (Kutch Ajrakh)" and walking back raised no
+  note (none in the lobby after 6 s; one `guidance_cue_used` "shown" in the whole walk); holding
+  ArrowRight for 500 ms turned the view by 0.82 to 0.89 rad with focus on the scene, on the bar's
+  In This Room button after Hide, on the rail's heading, and on the Plan button; a click on the
+  Sanganeri Tradition and Context room in the full Plan's drawing closed the dialog and walked
+  there; the commons sign reads "Production Outcomes" in full.
+- **Open (not changed here):**
+  - "Start" and "Last step" are still lettered at the plates' base size (about 3 to 4 px from the
+    room centre). On the 1.0 x 0.8 m plates the step line is 0.099 m; "Step 14 of 14 · Last step"
+    at that size needs about 1.3 m, so it cannot join the step line, and a footer at that size
+    costs a title line (titles would then end in an ellipsis, which knowledge labels must not).
+    Both conditions' rails show the step numbers; the fix needs a plate layout change measured on
+    the GTX 1650 (3D track).
+  - The minimap can cover a plate's bottom-left corner while a panel is open; the framing inset
+    does not include it yet (3D track, measured fix).
+  - The plan drawing does not label the wings with their traditions (hover titles in the full
+    plan; the list names them).
+  - Heading cost at the spawn (equivalence-hub-turn-cost): DR-043 equalised walking distance (5.85
+    m to each wing door), not heading. With the keyboard, Machilipatnam Kalamkari is a 180-degree
+    turn away against 90 degrees for the other two (about 6.3 s against 5.3 s from the visitor's
+    turn and walk speeds, a calculation, not a measurement). Until free-navigation times are
+    measured, the first wing entered and the time to each wing's first room are reported as
+    covariates with DR-043.
+- **Equivalence check:** (1) content: unchanged; (2) exposure: unchanged (navigation only); (3)
+  citations: unchanged; (4) ease once a concept is open: unchanged; (5) navigation: each change
+  makes 3D navigation more natural and handicaps neither condition; (6) salience: the "Leads To"
+  rows name the three wings in the canonical order, with the same row form; (7) telemetry: fewer
+  false `guidance_cue_used` "shown" events; no new event.

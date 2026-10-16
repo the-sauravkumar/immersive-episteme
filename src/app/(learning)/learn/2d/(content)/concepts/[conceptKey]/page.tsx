@@ -30,9 +30,10 @@ export const instant = false;
  * related concepts and pager (a sequence pager for a station only, as in the panel); only how a
  * link acts differs (here it navigates).
  *
- * Every (layer, concept) view is pre-rendered here and one is shown at a time. The shown concept's
- * claims are the page's one content region (exposure while in view, attributed to that concept
- * and its exposure layer, as in 3D); the related concepts and the pager after it are navigation.
+ * Every (layer, concept) view is pre-rendered here and one is shown at a time. The shown concept is
+ * exposed while the sheet is open (the shared rule, DR-050: wherever the sheet is scrolled, and
+ * not while Contents or Search covers it), attributed to that concept and its exposure layer, as
+ * in 3D.
  */
 export default function ConceptPage({ params }: PageProps<"/learn/2d/concepts/[conceptKey]">) {
   return (

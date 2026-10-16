@@ -41,42 +41,16 @@ export function PageSkeleton() {
 }
 
 /**
- * The page's header: the h1 (pass a `PageHeading`), an optional labelled metadata list (`meta`, a
- * `<dl>` from `PageMeta`) and an optional lead in `text-reading` ink-2. No eyebrow (DR-022): the
- * `eyebrow` prop is accepted for older call sites and not rendered.
+ * The page's header: the h1 (pass a `PageHeading`) and an optional lead in `text-reading` ink-2.
+ * No eyebrow (DR-022): the `eyebrow` prop is accepted for older call sites and not rendered. No
+ * metadata list: tradition facts appear only in the shared sheet, in both conditions (DR-048).
  */
-export function PageIntro({ title, lead, meta }: { eyebrow?: string; title: ReactNode; lead?: ReactNode; meta?: ReactNode }) {
+export function PageIntro({ title, lead }: { eyebrow?: string; title: ReactNode; lead?: ReactNode }) {
   return (
     <header className="mb-10 flex flex-col">
       <div>{title}</div>
-      {meta ? <div className="mt-6">{meta}</div> : null}
       {lead ? <div className="text-reading mt-4 text-ink-2">{lead}</div> : null}
     </header>
-  );
-}
-
-/**
- * A labelled metadata list (Also Known As, Region, GI Status ...): the same two-column `<dl>` as
- * the KnowledgeSheet's metadata (9rem label column, stacking under 520 px), one value per line.
- */
-export function PageMeta({ label, rows }: { label: string; rows: readonly { label: string; values: readonly ReactNode[] }[] }) {
-  const shown = rows.filter((r) => r.values.length > 0);
-  if (shown.length === 0) return null;
-  return (
-    <dl aria-label={label} className="grid grid-cols-1 gap-x-4 xs:grid-cols-[9rem_minmax(0,1fr)]">
-      {shown.map((r) => (
-        <div key={r.label} className="contents">
-          <dt className="text-label pt-1 xs:pt-0.5">{r.label}</dt>
-          <dd className="text-value mb-2 min-w-0 break-words xs:mb-1">
-            {r.values.map((v, i) => (
-              <span key={i} className="block">
-                {v}
-              </span>
-            ))}
-          </dd>
-        </div>
-      ))}
-    </dl>
   );
 }
 

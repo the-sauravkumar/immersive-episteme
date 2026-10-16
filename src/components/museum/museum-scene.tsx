@@ -16,11 +16,12 @@ import * as THREE from "three";
 import { CollisionWorld, VISITOR, compassPoint, createRouter, facingExhibit, moveInputFromKeys, stepVisitor, yawFromDeg, type MoveInput, type VisitorState } from "@/features/immersive/navigation";
 import { doorSigns, type SceneDoorSign } from "@/features/immersive/placement";
 import { TIERS, type QualityTier } from "@/features/immersive/quality";
-import { residentRooms, roomAt, type SceneModel, type SceneRoom } from "@/features/immersive/scene-model";
+import { enterCuesOnCrossing, residentRooms, roomAt, type SceneModel, type SceneRoom } from "@/features/immersive/scene-model";
 import { plaqueText } from "@/features/immersive/plaque-text";
 import { directoryReadingPoint, doorwayAtWallHit, doorwayToRoomSeen, doorwayWalkTarget, entranceDirectory, farSide } from "@/features/immersive/wayfinding";
 
 import type { InputMethod, MuseumBridge } from "./bridge";
+import { isTypingTarget } from "./keys";
 import { installProbe, type ProbeHost } from "./probe";
 import { ensureLabelFonts } from "./three/labels";
 import { WebGLPipeline } from "./three/pipeline";
@@ -34,13 +35,6 @@ const DRAG_THRESHOLD_PX = 5;
 /** Milliseconds of lettering drawing per frame while rooms stream in (a third of a 60 Hz frame). */
 const LETTERING_SLICE_MS = 5;
 
-function isTypingTarget(t: EventTarget | null): boolean {
-  const el = t as HTMLElement | null;
-  if (!el || !el.closest) return false;
-  if (el.tagName === "INPUT" || el.tagName === "SELECT" || el.tagName === "TEXTAREA" || el.isContentEditable) return true;
-  // Overlays that use arrow keys themselves (panel, lists, map) keep them.
-  return !!el.closest("[data-museum-keys='ui']");
-}
 
 export interface MuseumSceneProps {
   model: SceneModel;
@@ -952,7 +946,9 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
       const portal = prev ? (model.portals.find((p) => p.connects.includes(prev) && p.connects.includes(here.id)) ?? null) : null;
       bridge.events.roomChanged(here.id, prev, portal?.id ?? null);
       rt.wantResident = residentRooms(model, here.id, cfg.residentDepth);
-      for (const cue of model.cues) if (cue.trigger.type === "enter" && portal && cue.trigger.elementId === portal.id) bridge.events.cueTriggered(cue);
+      // Enter cues fire only on crossing INTO their room (the wing, the dependent's room), never on
+      // walking back out through the same doorway (SceneCue.enterRoomId).
+      if (portal) for (const cue of enterCuesOnCrossing(model.cues, portal.id, here.id)) bridge.events.cueTriggered(cue);
     }
     // Stream lettering in time slices: at most LETTERING_SLICE_MS of drawing per frame; a room's
     // pages are uploaded when its last item is drawn (C4: no long frame when a room enters the

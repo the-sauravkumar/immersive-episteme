@@ -126,3 +126,29 @@ describe("comparison claims are reachable in both conditions", () => {
     expect(inScope).toBeGreaterThan(0);
   });
 });
+
+/**
+ * DR-047 (final review equivalence-compared-concepts-order): a comparison concept's "Compared
+ * Concepts" block lists the traditions in the canonical order in BOTH conditions. The 2D page sorts
+ * them with `byCanonicalTradition` (learning-2d/server/data.ts scopedComparisons); the panel must
+ * not keep the content file's order, which lists Sanganeri before Machilipatnam Kalamkari in most
+ * comparisons.
+ */
+describe("compared concepts follow the canonical tradition order (DR-047)", () => {
+  it("sorts the panel's compared concepts whatever order the content file gives", async () => {
+    const { byCanonicalTradition, canonicalSlugIndex } = await import("@/features/learning/labels");
+    const { view } = museumFixture();
+    const comparisons = view.getComparisons().filter((c) => c.compares.filter((x) => x.traditionSlug).length > 1);
+    expect(comparisons.length).toBeGreaterThan(0);
+    for (const c of comparisons) {
+      for (const order of [c.compares, [...c.compares].reverse()]) {
+        const panel = toPanelConcept(view.getConcept(c.concept.id)!, null, new Map(), { ...c, compares: order }, () => true);
+        // The 2D page's rule on the same input (stable within a tradition, as there).
+        const expected = byCanonicalTradition(order, (x) => x.traditionSlug).map((x) => x.id);
+        expect(panel.comparison!.compares.map((x) => x.id), c.concept.key).toEqual(expected);
+        const ranks = panel.comparison!.compares.filter((x) => x.traditionSlug).map((x) => canonicalSlugIndex(x.traditionSlug!));
+        expect(ranks, c.concept.key).toEqual([...ranks].sort((a, b) => a - b));
+      }
+    }
+  });
+});

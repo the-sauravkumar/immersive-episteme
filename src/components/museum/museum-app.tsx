@@ -11,8 +11,9 @@
  *    comparison), knowledge_layer_selected (artisan | process | science)
  *  - relationship_followed: walking to a connected exhibit from the panel, a cue or a sequence
  *  - guidance_cue_used (shown | followed | dismissed): the manifest's cues
- *  - exposure: useContentExposure while the panel is open (concept shown, its 2D layer);
- *    navigation: useNavigationPhase("walk" | "map") while no panel is open; pauses: modal screens
+ *  - exposure and navigation: the shared rule of both conditions (useSheetTiming, DR-050):
+ *    exposure while the panel is open and the full Plan does not cover it (the concept shown, its
+ *    2D layer); navigation ("walk" | "map") otherwise; pauses: modal screens
  *  - render_quality_changed once per session (tier covariate), webgl_context_lost
  *  - navigation source (DR-021): `exhibit_selected` and `room_entered` carry `source` = rail (the
  *    shared PlaceRail "In This Room"), scene (clicking an exhibit, a doorway or the floor), plan,
@@ -35,6 +36,7 @@ import { LearningTaskPrompts } from "@/components/learning/learning-task-prompts
 import { PlaceRail, PlaceRailButton, usePlaceRail, type PlaceRailItem } from "@/components/learning/place-rail";
 import { UnverifiedContentNotice } from "@/components/learning/unverified-content-notice";
 import { exposureFor, type PanelTab } from "@/features/immersive/panel-content";
+import { byCanonicalTradition } from "@/features/learning/labels";
 import type { SceneDoorSign } from "@/features/immersive/placement";
 import { classifyTier, lockTier, probeGpu, type GpuInfo, type QualityTier } from "@/features/immersive/quality";
 import { museumCanRender } from "@/features/study/gpu-acceptance";
@@ -44,7 +46,8 @@ import type { MuseumPayload, PanelConcept } from "@/features/immersive/types";
 import { sectionOfZoneGroup } from "@/features/learning/sections";
 import type { LearningPrompt } from "@/features/learning/settings";
 import { MUSEUM_TEXT, railDetail } from "@/features/learning/strings";
-import { useContentExposure, useNavigationPhase, usePauseWhile, useTelemetry } from "@/features/telemetry/client/provider";
+import { usePauseWhile, useTelemetry } from "@/features/telemetry/client/provider";
+import { useSheetTiming } from "@/features/telemetry/client/sheet-timing";
 import type { InputMethod, NavigationSource } from "@/features/telemetry/contracts";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
@@ -248,7 +251,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
    * section 2 leads on (novice walkthrough, hub building: the sections are one doorway apart in order).
    */
   const describeDoor = useCallback(
-    (s: SceneDoorSign) => {
+    (s: Pick<SceneDoorSign, "roomId" | "toRoomId">) => {
       const from = zoneLabelOf(s.roomId);
       const to = zoneLabelOf(s.toRoomId);
       const name = roomLabel(s.toRoomId);
@@ -394,17 +397,19 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
       });
       setVisitedExhibits((prev) => (prev.has(exhibitId) ? prev : new Set(prev).add(exhibitId)));
       visits.current.layerSince = performance.now();
-      void t.informationLayerOpened({
-        ...conceptContext(c),
-        roomOrPageId: e.roomId,
-        target: exhibitId,
-        metadata: { layerId: "overview" },
-      });
+      // concept_encountered, then the layer: the order of a 2D concept page (page-telemetry.tsx
+      // logs the encounter, then concept-layers.tsx the first layer; DR-050 Addendum).
       void t.conceptEncountered({
         ...conceptContext(c),
         roomOrPageId: e.roomId,
         target: exhibitId,
         metadata: { mode: "opened" },
+      });
+      void t.informationLayerOpened({
+        ...conceptContext(c),
+        roomOrPageId: e.roomId,
+        target: exhibitId,
+        metadata: { layerId: "overview" },
       });
       for (const cue of selectCues.get(exhibitId) ?? [])
         void t.guidanceCueUsed({
@@ -690,22 +695,25 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
     ctl()?.setVisited([...visitedExhibits]);
   }, [visitedExhibits, ui.phase, attempt, ctl]);
 
-  // Exposure / navigation / pause accounting (shared hooks, identical rules to 2D).
+  // Exposure / navigation / pause accounting: THE exposure rule of both conditions (DR-050,
+  // telemetry/client/sheet-timing.ts): exposure while the sheet (the panel) is open and no
+  // navigation overlay (the full Plan) covers it, wherever the panel is scrolled; navigation else.
   const panelConcept = ui.panelConceptId ? concepts[ui.panelConceptId] : undefined;
   const panelExhibit = ui.panelExhibitId ? exhibitsById.get(ui.panelExhibitId) : undefined;
   const exploring = ui.phase === "exploring";
-  useContentExposure(panelConcept?.id ?? null, panelConcept ? exposureFor(panelConcept) : "overview", {
-    active: exploring && !!panelExhibit,
-    context: {
+  useSheetTiming({
+    enabled: exploring,
+    state: { sheetOpen: !!panelExhibit && !!panelConcept, overlayOpen: planOpen },
+    conceptId: panelConcept?.id ?? null,
+    layer: panelConcept ? exposureFor(panelConcept) : "overview",
+    exposureContext: {
       roomOrPageId: panelExhibit?.roomId,
       target: panelExhibit?.id,
       category: panelConcept?.category as KnowledgeCategoryCode | undefined,
       traditionId: panelConcept?.traditionId ?? undefined,
     },
-  });
-  useNavigationPhase(ui.mapOpen || planOpen ? "map" : "walk", {
-    active: exploring && !panelExhibit,
-    context: { roomOrPageId: ui.roomId ?? undefined },
+    navigationSurface: ui.mapOpen || planOpen ? "map" : "walk",
+    navigationContext: { roomOrPageId: ui.roomId ?? undefined },
   });
   usePauseWhile(ui.phase === "paused" || ui.helpOpen || ui.phase === "onboarding" || ui.phase === "context-lost");
 
@@ -910,7 +918,19 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
       visited: !current && visitedExhibits.has(e.id),
     };
   });
-  const railDoorways: PlaceRailItem[] = roomDoorways.map((p) => ({ key: p.id, title: doorLabel(p) }));
+  /**
+   * "Leads To": one row per room the doorways lead to, named as the doorway sign names it
+   * (describeDoor: the section number, and the tradition as the row's detail when the doorway
+   * changes zone), wings in the canonical tradition order, then the rest. Two doorways into the same
+   * room (the lobby's two hall doors) are one row (final review novice-3d-rail-leads-to-indistinguishable).
+   */
+  const railDoorways: PlaceRailItem[] = byCanonicalTradition(
+    [...new Map(roomDoorways.map((p) => [p.connects.find((r) => r !== ui.roomId) ?? p.connects[0], p] as const)).entries()],
+    ([to]) => roomsById.get(to)?.traditionSlug ?? null,
+  ).map(([to, p]) => {
+    const sign = ui.roomId ? describeDoor({ roomId: ui.roomId, toRoomId: to }) : null;
+    return { key: p.id, title: sign?.title ?? doorLabel(p), detail: sign?.kicker ?? null };
+  });
   /** Help and Pause cover the scene region: what they cover is inert meanwhile (they are not modal). */
   const screenCovers = ui.helpOpen || ui.phase === "paused" || ui.phase === "context-lost";
   const rightOverlayOffset = panelOpen && docked ? `calc(${dockedPanelWidthPx()}px + 1rem)` : undefined;
@@ -946,6 +966,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
             freeLook={ui.freeLook}
             onToggleFreeLook={() => ctl()?.setFreeLook(!ui.freeLook)}
             showMouseLook={mode !== "study"}
+            showPause={mode !== "study"}
             railButton={<PlaceRailButton condition="immersive" railId={MUSEUM_RAIL_ID} state={rail} disabled={ui.phase !== "exploring"} />}
           />
         </div>

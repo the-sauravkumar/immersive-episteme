@@ -247,18 +247,17 @@ Lead requirement: equal exposure; navigation kept distinct and timed separately 
 
 | Interval | 2D | 3D | Hook |
 |---|---|---|---|
-| Content exposure | a concept page (or concept section) is in view | the concept's information panel is open | `useContentExposure(conceptId, layer, { active?, context? })` |
-| Navigation | menus, catalogue, map, search results with no concept content open | walking between exhibits, no panel open | `useNavigationPhase(surface, { active?, context? })` |
+| Content exposure | the concept's KnowledgeSheet is open (the concept page is shown) and neither Contents nor Search covers it, wherever the sheet is scrolled | the concept's KnowledgeSheet is open (the information panel) and the full Plan does not cover it, wherever the panel is scrolled | `useSheetTiming({ state: { sheetOpen, overlayOpen }, … })`, the ONE rule of both conditions (DR-050; `sheet-timing.ts`, built on `useContentExposure`) |
+| Navigation | every other moment: menus, catalogue, tradition and category pages, the comparisons list, search results, and Contents or Search over a concept | every other moment: walking with no panel open, and the full Plan over a panel | `useSheetTiming` (navigation side) and `useNavigationPhase(surface, { active?, context? })` on pages with no concept |
 | Pause | tab hidden, window blurred (automatic) or a non-content modal open | same | `usePauseWhile(open)` for settings/help/confirm dialogs |
 
 ```tsx
-// 2D concept page (client component under <TelemetryProvider>)
-useContentExposure(concept.id, "overview", { context: { roomOrPageId: `concept:${concept.key}` } });
+// 2D concept page (client component under <TelemetryProvider>): the shared rule (DR-050)
+useSheetTiming({ state: { sheetOpen: true, overlayOpen: contentsOrSearchOpen }, conceptId: concept.id, layer: "overview", navigationSurface: "menu" });
 // 2D catalogue / menu
 useNavigationPhase("catalogue");
-// 3D: walking unless a panel is open
-useNavigationPhase("walk", { active: !panel });
-useContentExposure(panel?.conceptId ?? null, panel?.layer ?? "overview", { active: !!panel, context: { roomOrPageId: room.id, target: panel?.elementId } });
+// 3D: the shared rule (DR-050): exposure while the panel is open and the full Plan does not cover it
+useSheetTiming({ enabled: exploring, state: { sheetOpen: !!panel, overlayOpen: planOpen }, conceptId: panel?.conceptId ?? null, layer: panel?.layer ?? "overview", navigationSurface: planOpen ? "map" : "walk" });
 // a help dialog that hides the content
 usePauseWhile(helpOpen);
 ```

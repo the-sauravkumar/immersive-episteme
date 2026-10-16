@@ -17,7 +17,7 @@
  * (that concept, exposureLayerOf(its type)), the same rule the 2D pages use.
  */
 import type { ComparisonView, ConceptDetail, RelatedConceptGroups } from "@/features/knowledge/read/view";
-import { compareTraditionSlugs, exposureLayerOf, KNOWLEDGE_LAYERS, type KnowledgeLayerId } from "@/features/learning/labels";
+import { byCanonicalTradition, exposureLayerOf, KNOWLEDGE_LAYERS, type KnowledgeLayerId } from "@/features/learning/labels";
 import type { ExposureLayer } from "@/features/telemetry/contracts";
 import type { SourceView } from "@/features/knowledge/read/view";
 
@@ -80,16 +80,8 @@ export function buildPanelModel(model: Pick<SceneModel, "exhibits" | "paths">, e
   }
   // The Compare layer lists its concepts in the canonical tradition order (DESIGN.md 12.3 rule 12,
   // DR-019), stable within a tradition and untraditioned concepts last, exactly as the 2D page
-  // orders them (learning-2d/navigation.ts byCanonicalTradition).
-  const compareEntries = tabs.get("comparison")!;
-  const sortedCompare = compareEntries
-    .map((entry, i) => ({ entry, i, slug: concepts[entry.conceptId]?.traditionSlug ?? null }))
-    .sort((a, b) => {
-      if (a.slug === null || b.slug === null) return (a.slug === null ? 1 : 0) - (b.slug === null ? 1 : 0) || a.i - b.i;
-      return compareTraditionSlugs(a.slug, b.slug) || a.i - b.i;
-    })
-    .map((x) => x.entry);
-  tabs.set("comparison", sortedCompare);
+  // orders them (the shared labels.ts byCanonicalTradition).
+  tabs.set("comparison", byCanonicalTradition(tabs.get("comparison")!, (entry) => concepts[entry.conceptId]?.traditionSlug ?? null));
 
   let sequence: PanelModel["sequence"] = null;
   if (exhibit.sequence) {
@@ -152,7 +144,9 @@ export function toPanelConcept(
     })),
     comparison: comparison
       ? {
-          compares: comparison.compares.filter((c) => inScope(c.id)).map((c) => ({ id: c.id, title: c.title, type: c.type, traditionSlug: c.traditionSlug })),
+          // Canonical tradition order, as the 2D page lists them (learning-2d/server/data.ts
+          // scopedComparisons); the content file's order is not used (DR-047).
+          compares: byCanonicalTradition(comparison.compares.filter((c) => inScope(c.id)), (c) => c.traditionSlug).map((c) => ({ id: c.id, title: c.title, type: c.type, traditionSlug: c.traditionSlug })),
           links: comparison.links.filter((l) => inScope(l.a.id) && inScope(l.b.id)).map((l) => ({
             relationshipId: l.relationshipId,
             type: l.type,
