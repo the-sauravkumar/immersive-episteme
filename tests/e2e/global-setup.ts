@@ -20,6 +20,7 @@ import type { FullConfig } from "@playwright/test";
 import { config as loadEnv } from "dotenv";
 import { Pool } from "pg";
 
+import { isLocalHost } from "../../scripts/db/_shared";
 import { signInviteAccess } from "../../src/server/access/invite-cookie";
 import { generateInviteCode, hashInviteCode, inviteCodeHint, normaliseInviteCode } from "../../src/server/access/invite-code";
 import { INVITE_STORAGE_STATE } from "./invite-state";
@@ -35,13 +36,20 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 1 });
   let inviteId: string;
   try {
-    const owner = await pool.query<{ id: string }>("SELECT id FROM users ORDER BY created_at LIMIT 1");
-    if (!owner.rows[0]) throw new Error("e2e global setup: no staff account exists; run npm run dev:bootstrap first");
+    let owner = await pool.query<{ id: string }>("SELECT id FROM users ORDER BY created_at LIMIT 1");
+    if (!owner.rows[0]) {
+      if (!isLocalHost(process.env.DATABASE_URL)) throw new Error("e2e global setup: no staff account exists in a non-local database");
+      owner = await pool.query<{ id: string }>(
+        `INSERT INTO users (id, name, email, email_verified, disabled_at)
+         VALUES ('e2e-invite-owner', 'E2E Invite Owner (locked)', 'e2e-invite-owner@example.invalid', false, now())
+         ON CONFLICT (id) DO UPDATE SET disabled_at = COALESCE(users.disabled_at, now()) RETURNING id`,
+      );
+    }
     const code = normaliseInviteCode(generateInviteCode())!;
     const r = await pool.query<{ id: string }>(
       `INSERT INTO invite_codes (label, code_hash, code_hint, expires_at, created_by)
        VALUES ('Demo: e2e test browser', $1, $2, now() + interval '1 day', $3) RETURNING id`,
-      [hashInviteCode(code), inviteCodeHint(code), owner.rows[0].id],
+      [hashInviteCode(code), inviteCodeHint(code), owner.rows[0]!.id],
     );
     inviteId = r.rows[0]!.id;
   } finally {
