@@ -155,6 +155,15 @@ export function MuseumApp(props: MuseumAppProps) {
   if (!museumCanRender(report) && !(gpu.webgl2 && overrides(props.mode).allowSoftware)) {
     return <WebGLFallback mode={props.mode} settings={props.payload.settings} report={report} reason={!gpu.webgl2 ? "no WebGL 2 context" : "software rendering only"} />;
   }
+  // A layout with no rooms (a placeholder manifest) cannot be walked: the designed failure screen,
+  // never a crash of the walking grid (its bounds would be infinite).
+  if (props.payload.scene.rooms.length === 0) {
+    return (
+      <div className="relative h-full w-full bg-ground">
+        <FailureScreen message="the museum layout has no rooms" mode={props.mode} settings={props.payload.settings} onRetry={() => window.location.reload()} />
+      </div>
+    );
+  }
   return <MuseumRuntime {...props} gpu={gpu} />;
 }
 

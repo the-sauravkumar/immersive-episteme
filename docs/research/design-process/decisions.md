@@ -1740,3 +1740,57 @@ researchers' decisions:
   should describe `layout.exhibitMount` (outside this track's files; a change is requested).
 - **Paper implications:** the Methods describe each exhibit as a plate on a reading stand at a
   fixed height and distance, identical across traditions.
+
+## DR-046: Integration of the Final Fix Tracks: Figure Balance per Layer and the Museum's Device Backstop (Adopted under the lead's delegation; merge of the back-end and 3D tracks)
+
+- **Context:** merging the back-end track (DR-025 to DR-042) and the 3D track (DR-024, DR-043 to
+  DR-045) left open contract needs between them. Two are protocol choices:
+  1. **Figure balance.** The parity engine's critical check `a.figures` balanced figures per
+     section and claimed that this also balanced every knowledge layer. Under the one section map
+     (DR-024) section 6, "Science and environment", holds the science types and environmental
+     conditions, which `exposureLayerOf` counts in the overview layer. Two traditions could then
+     have the same figures per section while one shows its figure in the Science layer and the
+     other in Overview.
+  2. **The museum's device backstop (study-01).** DR-029 added `reportMuseumUnavailable` for a GPU
+     that fails after the device check passed, but nothing in the museum called it, and the museum
+     still kept its own copy of the software-renderer rule.
+- **Options (1):** (a) keep section balance only and correct the comment; (b) also require
+  balance per layer; (c) split section 6 into two sections. (c) undoes DR-024's seven rooms per
+  wing. (a) leaves a possible per-layer exposure difference unchecked.
+- **Decision (1): (b).** `figureBalance` also counts figures per knowledge layer (by the layer of
+  each figure's own concept type) and reports `figures_unbalanced_layer` in the same critical
+  check. If an unbalanced section already explains a layer's imbalance, the layer is not
+  reported a second time. On the curated content the three study traditions pass both rules
+  (`tests/unit/research/parity-figure-balance.test.ts`, real content case: no issues).
+- **Decision (2):** the museum takes `isSoftwareRenderer` and `museumCanRender` from
+  `src/features/study/gpu-acceptance.ts`, so the device check and the museum apply one rule. In
+  study mode its no-WebGL screen reports the failure once and follows the engine's outcome, as the
+  device check does: excluded goes to `/study/complete?status=excluded` (the device check's own
+  message, more specific than `ended`), and retry, reassigned or ignored go back to
+  `/study/session`. While the report is pending the action reads "Recording this device" and is
+  disabled. Demo and preview visitors are never reported.
+- **Found at verification:**
+  - A layout with no rooms crashed the museum to the framework's blank error page. The walking
+    grid's bounds were infinite: `RangeError: Invalid typed array length: Infinity`. Under
+    SwiftShader the no-WebGL screen had always hidden this; on the GPU the e2e fixture's placeholder
+    manifest reached it. The museum now shows its designed failure screen ("The museum could not
+    load", with the study's policy action) for such a layout. An activated study cannot have one,
+    so participants are unaffected; staff previews and fixtures no longer crash.
+  - The study-journey and telemetry e2e specs forced SwiftShader. Under the device rule above, an
+    immersive participant on SwiftShader correctly stops at the device check. With `PW_GPU` set,
+    the specs now keep the hardware GPU. The journey spec now also checks the step gate in both
+    conditions: `/learn/<own condition>` redirects to the onboarding before learning and to the
+    post-test after it, and the learning clock stays unset before the learning step.
+- **Not adopted:** re-fetching figures inside a running museum when a photo is withdrawn
+  mid-session. A study pins its release and its figures are frozen with it (DR-037), so in a study
+  the figure set cannot change during a session; outside a study the difference lasts only until
+  the next load.
+- **Equivalence check:** content, exposure, citations and ease once a concept is open are
+  unchanged. The layer rule can only make the two conditions' figure exposure more equal. It is a
+  check on the content, which both conditions share. The backstop applies only to the immersive
+  condition, because only that condition can fail on graphics. It applies the same policy as the
+  device check, which runs before allocation is revealed. Tradition salience is unchanged. The
+  only new telemetry is the existing `study.webgl_failed` journal entry, which is now reachable.
+- **Paper implications:** report figure balance as "equal per section and per knowledge layer
+  across the study traditions". Report runtime WebGL failures under the preregistered failure
+  policy, with their count per condition.

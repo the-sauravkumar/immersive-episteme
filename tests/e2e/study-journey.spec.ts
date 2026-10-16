@@ -26,7 +26,11 @@ import { PHASE_TEXT } from "../../src/features/learning/strings";
 import { E2E_STUDY_CODE, backdateFamiliarisation, closeDb, db, ensureE2eStudy, participantByCode } from "./study-fixtures";
 
 // Headless Chromium only exposes WebGL through SwiftShader when asked to.
-test.use({ launchOptions: { args: ["--enable-unsafe-swiftshader", "--use-angle=swiftshader"] } });
+// The study device check refuses a software renderer for the immersive condition (DR-029,
+// gpu-acceptance.ts), so an immersive participant passes it only on a hardware GPU: with PW_GPU set,
+// the config's GPU launch (playwright.config.ts) is kept. Without it, headless Chromium exposes WebGL
+// only through SwiftShader, which reaches the device check but not the immersive condition.
+if (!process.env.PW_GPU) test.use({ launchOptions: { args: ["--enable-unsafe-swiftshader", "--use-angle=swiftshader"] } });
 test.describe.configure({ mode: "serial", timeout: 300_000 });
 // A dev server compiles each route on first visit; allow for it.
 const expect = baseExpect.configure({ timeout: 60_000 });
@@ -124,6 +128,8 @@ async function answerQuestionnaire(page: Page, path: RegExp) {
  * ::before), against the page's --ground. `checked` is the label digit of the chosen option, or null.
  */
 async function expectRadioMarks(page: Page, checked: string | null) {
+  // The questionnaire streams in after the step shell ("Loading your session…"): wait for its radios.
+  await expect(page.locator("input.ie-check[type=radio]").first()).toBeVisible();
   const marks = await page.locator("input.ie-check[type=radio]").evaluateAll((els) => {
     const probe = document.createElement("div");
     probe.style.background = "var(--ground)";
@@ -239,6 +245,11 @@ test("journey for each condition: blind pre-test, allocation, learning entry and
     // The other condition is refused and sent back to the current step.
     await page.goto(learnPath === "/learn/2d" ? "/learn/immersive" : "/learn/2d");
     await page.waitForURL((u) => u.pathname === "/study/task", { timeout: 60_000 });
+    // Its own condition is closed before the learning step too (step gate, DR-029): the content never
+    // renders and the learning clock does not start during the onboarding.
+    await page.goto(learnPath);
+    await page.waitForURL((u) => u.pathname === "/study/task", { timeout: 60_000 });
+    expect(await learningStarted(code)).toBe(false);
 
     // Onboarding -> the assigned condition (the guard lets the participant in). The time rule names
     // the Finish control by the label the StudyBar shows (strings.ts), and the step offers withdrawal.
@@ -252,6 +263,9 @@ test("journey for each condition: blind pre-test, allocation, learning entry and
     await page.goto("/study/session");
     await answerQuestionnaire(page, /\/study\/questionnaire\/after-learning$/);
     await expect(page).toHaveURL(/\/study\/post-test$/);
+    // After learning has ended the learning pages are closed: no open-book tab during the post-test (DR-029).
+    await page.goto(learnPath);
+    await page.waitForURL((u) => u.pathname === "/study/post-test", { timeout: 60_000 });
 
     if (!completed) {
       await page.getByLabel("Demo option A").check();
