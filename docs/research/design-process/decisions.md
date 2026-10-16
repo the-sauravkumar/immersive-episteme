@@ -3212,3 +3212,29 @@ novice met, and none touches the sheet.
   - `measurements.json`;
   - the preview scripts.
 - **Server note:** a production server serves locally stored media only when `MEDIA_LOCAL_DIR` is set explicitly. Without it the figure route fails with "Media storage: set MEDIA_S3_BUCKET (or MEDIA_LOCAL_DIR explicitly) in production", and the image box stays empty.
+
+## DR-072: The Parity Run of Record at the Published Tip: 66 Runs, 1,803 Check Results, None Failed (Adopted under the lead's delegation; overnight phase)
+
+- **Context:** the stored interface parity report (`analysis/parity/interface-parity.json`) was
+  measured at `f108a4aaf379` (DR-062 era). Since then the merge fixes, the invite-header change
+  (DR-067), the dependency and warning changes (DR-068) and the photo and walkthrough work
+  (DR-069 to DR-071) landed. The Equivalence Monitor reads this file, so it must describe the
+  code that is published.
+- **How it was run:** a fresh production build (`next build`, `NODE_OPTIONS=--max-old-space-size=6144`)
+  of `f819fc36ee7c` with a clean tree, served by `next start` on :3300 (the only server), then
+  `PORT=3300 playwright test tests/e2e/parity.spec.ts --project chromium --workers 1` with
+  `--global-timeout` of 8 hours, `PARITY_QUICK` and `PARITY_TRADITIONS` unset (all combinations).
+  Full Chromium, headless; the renderer string was checked before the run and is recorded in the
+  report: `ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F9D) Direct3D11 vs_5_0 ps_5_0, D3D11)`.
+  Liveness was checked every 3 minutes (log length and the browser's CPU time, both growing).
+- **Result:** 1 test passed in 38.8 min. The report, commit `f819fc36ee7c` (no `+uncommitted`),
+  holds 66 runs (5 viewports x 4 themes x 3 traditions, plus the 1024 x 768 and 1920 x 1080 layout
+  runs), 33 checks and 1,803 check results, 0 failed. 123 results are partial: P23, P24 and P29
+  list their by-design not-measured parts, as in the previous run. Counts are identical to the
+  previous run of record; the diff is 328 changed lines of measured values and identifiers.
+- **One label to read with care:** the report's `environment` text says "dev server". It is fixed
+  text in `tests/e2e/parity.spec.ts`; this run, like the previous one, was against a production
+  build. Left unchanged here (changing the spec would change the commit the report names).
+- **Equivalence check:** (1) content, (2) exposure, (3) citations, (4) ease once a concept is
+  open, (5) navigation, (6) salience, (7) telemetry: all unchanged; only the measurement file
+  changes. The parity run itself is the check of 1 to 6 at every viewport and theme.

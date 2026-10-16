@@ -1,7 +1,7 @@
 {
- "runId": "parity-2026-10-16T08:10:08.358Z",
- "commit": "f108a4aaf379",
- "generatedAt": "2026-10-16T08:10:08.430Z",
+ "runId": "parity-2026-10-16T20:12:47.317Z",
+ "commit": "f819fc36ee7c",
+ "generatedAt": "2026-10-16T20:12:47.398Z",
  "environment": "headless Chromium, WebGL renderer ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F9D) Direct3D11 vs_5_0 ps_5_0, D3D11); dev server, demo session; one browser, one worker",
  "notes": [
   "Study mode is light only (DR-019): the 60 main runs (5 viewports x 4 themes x 3 traditions) request four themes, but only two take effect (light, and light with high contrast); dark and high-contrast dark runs record the effective theme they measured.",
@@ -10,7 +10,7 @@
   "P15: 2D is the load CLS without recent input; 3D is every layout shift during the keyboard-triggered panel open. DESIGN.md 12.4 states 0.00 (two decimals): a value below 0.005 rounds to 0.00 and passes; the unrounded value is recorded.",
   "P22-P24 ran with the guidance fixture (a demo study copying the demo protocol with the hybrid guidance on and a demo hint). The stall cue is measured in the 1280 x 800 runs, on freshly loaded pages with a 10 s stall time.",
   "P23 and P24 list the parts that a working demo session cannot show (onboarding, which is off in both conditions; StateMessage unavailable, error and loading; Display Settings, which is not in either learning shell) as not measured, so these checks show as partial, never as passed.",
-  "P26 (3D) reads every room plaque of the three study traditions' wings, and the hall door into each, from the museum probe, once at 1280 x 800: plaque size, and contrast at the 2.5 m signage distance (paper 90th and ink 1st luminance percentile, as immersive-rendering.spec.ts), and the shared-map section of every wing room a plaque marks (DR-024: no wing room outside the one section map). The plaque part is reported in the 1280 x 800 runs only; the other runs compare the 2D cards, index rows and comparison headings and the 3D panel titles.",
+  "P26 (3D) reads every room plaque of the three study traditions' wings, and the hall door into each, from the museum probe, once at 1280 x 800: plaque size, and contrast at the 2.5 m signage distance (paper 90th and ink 1st luminance percentile, as immersive-rendering.spec.ts), and the shared-map section of every wing room a plaque marks (DR-024: no wing room outside the one section map). The plaque part is reported in the 1280 x 800 runs only; the other runs compare the 2D cards, index rows and comparison rows and the 3D panel titles.",
   "P28 and P30 also run at 1024 x 768 and 1920 x 1080 in light (6 layout-only runs). P28's 3D default at docked widths is the museum's first-load state at 1280 x 800 (the panel opens rows through the rail afterwards); below 1280 px it is the state after a row choice, which closes the drawer.",
   "P29 runs once per tradition at 1280 x 800 light: no rail or index string repeats eight consecutive words of a claim; every 3D Plan room that is a section carries the number and name of that section in the 2D index of its tradition (the hall: of every tradition), from the one shared section map (DR-024), and each wing's rooms are listed in the index's order. In-scene lettering is checked by the 3D track's rendering spec.",
   "P33 counts visible, uncovered controls, headings, images, canvases, badges and status messages on the first screen, each once; the claim text is not counted. Pass: the sheet's count equal in both, each total <= 30, and the totals within 6 (project limits, visual-system.md 2D-C)."
@@ -65,8 +65,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -146,8 +146,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) f086ec05; edge 690",
-     "value3d": "1 figure(s) f086ec05; edge 690",
+     "value2d": "1 figure(s) 32c14c7b; edge 690",
+     "value3d": "1 figure(s) 32c14c7b; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -245,7 +245,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -347,8 +347,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -428,8 +428,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) f086ec05; edge 690",
-     "value3d": "1 figure(s) f086ec05; edge 690",
+     "value2d": "1 figure(s) 32c14c7b; edge 690",
+     "value3d": "1 figure(s) 32c14c7b; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -527,7 +527,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -629,8 +629,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -710,8 +710,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) f086ec05; edge 690",
-     "value3d": "1 figure(s) f086ec05; edge 690",
+     "value2d": "1 figure(s) 32c14c7b; edge 690",
+     "value3d": "1 figure(s) 32c14c7b; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -809,7 +809,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -911,8 +911,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -992,8 +992,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) f086ec05; edge 690",
-     "value3d": "1 figure(s) f086ec05; edge 690",
+     "value2d": "1 figure(s) 32c14c7b; edge 690",
+     "value3d": "1 figure(s) 32c14c7b; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -1091,7 +1091,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -1193,8 +1193,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -1274,8 +1274,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ae885e2c; edge 734",
-     "value3d": "1 figure(s) ae885e2c; edge 734",
+     "value2d": "1 figure(s) 0a09e932; edge 734",
+     "value3d": "1 figure(s) 0a09e932; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -1373,7 +1373,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -1475,8 +1475,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -1556,8 +1556,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ae885e2c; edge 734",
-     "value3d": "1 figure(s) ae885e2c; edge 734",
+     "value2d": "1 figure(s) 0a09e932; edge 734",
+     "value3d": "1 figure(s) 0a09e932; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -1655,7 +1655,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -1757,8 +1757,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -1838,8 +1838,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ae885e2c; edge 734",
-     "value3d": "1 figure(s) ae885e2c; edge 734",
+     "value2d": "1 figure(s) 0a09e932; edge 734",
+     "value3d": "1 figure(s) 0a09e932; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -1937,7 +1937,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -2039,8 +2039,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -2120,8 +2120,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ae885e2c; edge 734",
-     "value3d": "1 figure(s) ae885e2c; edge 734",
+     "value2d": "1 figure(s) 0a09e932; edge 734",
+     "value3d": "1 figure(s) 0a09e932; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -2219,7 +2219,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -2321,8 +2321,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -2402,8 +2402,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 4294801b; edge 766",
-     "value3d": "1 figure(s) 4294801b; edge 766",
+     "value2d": "1 figure(s) 9a027d1d; edge 766",
+     "value3d": "1 figure(s) 9a027d1d; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -2465,8 +2465,8 @@
     {
      "id": "P21",
      "label": "Figure counts per section across the study traditions",
-     "value2d": "balanced: process 2/2/2; science 1/1/1",
-     "value3d": "balanced: process 2/2/2; science 1/1/1",
+     "value2d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
+     "value3d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
      "delta": "same bundle",
      "tolerance": "equal per section",
      "passed": true
@@ -2519,7 +2519,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -2630,8 +2630,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -2711,8 +2711,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 4294801b; edge 766",
-     "value3d": "1 figure(s) 4294801b; edge 766",
+     "value2d": "1 figure(s) 9a027d1d; edge 766",
+     "value3d": "1 figure(s) 9a027d1d; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -2810,7 +2810,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -2921,8 +2921,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -3002,8 +3002,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 4294801b; edge 766",
-     "value3d": "1 figure(s) 4294801b; edge 766",
+     "value2d": "1 figure(s) 9a027d1d; edge 766",
+     "value3d": "1 figure(s) 9a027d1d; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -3101,7 +3101,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -3212,8 +3212,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -3293,8 +3293,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 4294801b; edge 766",
-     "value3d": "1 figure(s) 4294801b; edge 766",
+     "value2d": "1 figure(s) 9a027d1d; edge 766",
+     "value3d": "1 figure(s) 9a027d1d; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -3392,7 +3392,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -3503,8 +3503,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -3584,8 +3584,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 4294801b; edge 766",
-     "value3d": "1 figure(s) 4294801b; edge 766",
+     "value2d": "1 figure(s) 9a027d1d; edge 766",
+     "value3d": "1 figure(s) 9a027d1d; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -3647,8 +3647,8 @@
     {
      "id": "P21",
      "label": "Figure counts per section across the study traditions",
-     "value2d": "balanced: process 2/2/2; science 1/1/1",
-     "value3d": "balanced: process 2/2/2; science 1/1/1",
+     "value2d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
+     "value3d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
      "delta": "same bundle",
      "tolerance": "equal per section",
      "passed": true
@@ -3700,8 +3700,8 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
-     "value3d": "panel titles equal (3); plaques 2.2 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.62 of 16, machilipatnam-kalamkari 20.62 of 16, sanganeri 20.62 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
+     "value3d": "panel titles equal (3); plaques 1.7 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.87 of 16, machilipatnam-kalamkari 20.87 of 16, sanganeri 20.74 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
      "passed": true
@@ -3823,8 +3823,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -3904,8 +3904,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 4294801b; edge 766",
-     "value3d": "1 figure(s) 4294801b; edge 766",
+     "value2d": "1 figure(s) 9a027d1d; edge 766",
+     "value3d": "1 figure(s) 9a027d1d; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -4002,8 +4002,8 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
-     "value3d": "panel titles equal (3); plaques 2.2 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.62 of 16, machilipatnam-kalamkari 20.62 of 16, sanganeri 20.62 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
+     "value3d": "panel titles equal (3); plaques 1.7 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.87 of 16, machilipatnam-kalamkari 20.87 of 16, sanganeri 20.74 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
      "passed": true
@@ -4113,8 +4113,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -4194,8 +4194,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 4294801b; edge 766",
-     "value3d": "1 figure(s) 4294801b; edge 766",
+     "value2d": "1 figure(s) 9a027d1d; edge 766",
+     "value3d": "1 figure(s) 9a027d1d; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -4292,8 +4292,8 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
-     "value3d": "panel titles equal (3); plaques 2.2 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.62 of 16, machilipatnam-kalamkari 20.62 of 16, sanganeri 20.62 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
+     "value3d": "panel titles equal (3); plaques 1.7 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.87 of 16, machilipatnam-kalamkari 20.87 of 16, sanganeri 20.74 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
      "passed": true
@@ -4403,8 +4403,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -4484,8 +4484,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 4294801b; edge 766",
-     "value3d": "1 figure(s) 4294801b; edge 766",
+     "value2d": "1 figure(s) 9a027d1d; edge 766",
+     "value3d": "1 figure(s) 9a027d1d; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -4582,8 +4582,8 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
-     "value3d": "panel titles equal (3); plaques 2.2 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.62 of 16, machilipatnam-kalamkari 20.62 of 16, sanganeri 20.62 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
+     "value3d": "panel titles equal (3); plaques 1.7 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.87 of 16, machilipatnam-kalamkari 20.87 of 16, sanganeri 20.74 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
      "passed": true
@@ -4693,8 +4693,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -4774,8 +4774,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 4294801b; edge 766",
-     "value3d": "1 figure(s) 4294801b; edge 766",
+     "value2d": "1 figure(s) 9a027d1d; edge 766",
+     "value3d": "1 figure(s) 9a027d1d; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -4873,7 +4873,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -4984,8 +4984,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -5065,8 +5065,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 4294801b; edge 766",
-     "value3d": "1 figure(s) 4294801b; edge 766",
+     "value2d": "1 figure(s) 9a027d1d; edge 766",
+     "value3d": "1 figure(s) 9a027d1d; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -5164,7 +5164,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -5275,8 +5275,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -5356,8 +5356,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 4294801b; edge 766",
-     "value3d": "1 figure(s) 4294801b; edge 766",
+     "value2d": "1 figure(s) 9a027d1d; edge 766",
+     "value3d": "1 figure(s) 9a027d1d; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -5455,7 +5455,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -5566,8 +5566,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "39b30370 (2 claims, 2 records)",
-     "value3d": "39b30370 (2 claims, 2 records)",
+     "value2d": "5614089e (2 claims, 2 records)",
+     "value3d": "5614089e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -5647,8 +5647,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 4294801b; edge 766",
-     "value3d": "1 figure(s) 4294801b; edge 766",
+     "value2d": "1 figure(s) 9a027d1d; edge 766",
+     "value3d": "1 figure(s) 9a027d1d; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -5746,7 +5746,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -5919,8 +5919,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -6000,8 +6000,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) a204c023; edge 690",
-     "value3d": "1 figure(s) a204c023; edge 690",
+     "value2d": "1 figure(s) 6634e26d; edge 690",
+     "value3d": "1 figure(s) 6634e26d; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -6099,7 +6099,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -6201,8 +6201,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -6282,8 +6282,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) a204c023; edge 690",
-     "value3d": "1 figure(s) a204c023; edge 690",
+     "value2d": "1 figure(s) 6634e26d; edge 690",
+     "value3d": "1 figure(s) 6634e26d; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -6381,7 +6381,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -6483,8 +6483,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -6564,8 +6564,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) a204c023; edge 690",
-     "value3d": "1 figure(s) a204c023; edge 690",
+     "value2d": "1 figure(s) 6634e26d; edge 690",
+     "value3d": "1 figure(s) 6634e26d; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -6663,7 +6663,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -6765,8 +6765,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -6846,8 +6846,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) a204c023; edge 690",
-     "value3d": "1 figure(s) a204c023; edge 690",
+     "value2d": "1 figure(s) 6634e26d; edge 690",
+     "value3d": "1 figure(s) 6634e26d; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -6945,7 +6945,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -7047,8 +7047,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -7128,8 +7128,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) f444c62a; edge 734",
-     "value3d": "1 figure(s) f444c62a; edge 734",
+     "value2d": "1 figure(s) d641b064; edge 734",
+     "value3d": "1 figure(s) d641b064; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -7227,7 +7227,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -7329,8 +7329,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -7410,8 +7410,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) f444c62a; edge 734",
-     "value3d": "1 figure(s) f444c62a; edge 734",
+     "value2d": "1 figure(s) d641b064; edge 734",
+     "value3d": "1 figure(s) d641b064; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -7509,7 +7509,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -7611,8 +7611,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -7692,8 +7692,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) f444c62a; edge 734",
-     "value3d": "1 figure(s) f444c62a; edge 734",
+     "value2d": "1 figure(s) d641b064; edge 734",
+     "value3d": "1 figure(s) d641b064; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -7791,7 +7791,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -7893,8 +7893,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -7974,8 +7974,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) f444c62a; edge 734",
-     "value3d": "1 figure(s) f444c62a; edge 734",
+     "value2d": "1 figure(s) d641b064; edge 734",
+     "value3d": "1 figure(s) d641b064; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -8073,7 +8073,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -8175,8 +8175,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -8256,8 +8256,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 643d27b5; edge 766",
-     "value3d": "1 figure(s) 643d27b5; edge 766",
+     "value2d": "1 figure(s) ca4e6973; edge 766",
+     "value3d": "1 figure(s) ca4e6973; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -8319,8 +8319,8 @@
     {
      "id": "P21",
      "label": "Figure counts per section across the study traditions",
-     "value2d": "balanced: process 2/2/2; science 1/1/1",
-     "value3d": "balanced: process 2/2/2; science 1/1/1",
+     "value2d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
+     "value3d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
      "delta": "same bundle",
      "tolerance": "equal per section",
      "passed": true
@@ -8373,7 +8373,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -8484,8 +8484,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -8565,8 +8565,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 643d27b5; edge 766",
-     "value3d": "1 figure(s) 643d27b5; edge 766",
+     "value2d": "1 figure(s) ca4e6973; edge 766",
+     "value3d": "1 figure(s) ca4e6973; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -8664,7 +8664,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -8775,8 +8775,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -8856,8 +8856,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 643d27b5; edge 766",
-     "value3d": "1 figure(s) 643d27b5; edge 766",
+     "value2d": "1 figure(s) ca4e6973; edge 766",
+     "value3d": "1 figure(s) ca4e6973; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -8955,7 +8955,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -9066,8 +9066,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -9147,8 +9147,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 643d27b5; edge 766",
-     "value3d": "1 figure(s) 643d27b5; edge 766",
+     "value2d": "1 figure(s) ca4e6973; edge 766",
+     "value3d": "1 figure(s) ca4e6973; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -9246,7 +9246,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -9357,8 +9357,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -9438,8 +9438,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 643d27b5; edge 766",
-     "value3d": "1 figure(s) 643d27b5; edge 766",
+     "value2d": "1 figure(s) ca4e6973; edge 766",
+     "value3d": "1 figure(s) ca4e6973; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -9501,8 +9501,8 @@
     {
      "id": "P21",
      "label": "Figure counts per section across the study traditions",
-     "value2d": "balanced: process 2/2/2; science 1/1/1",
-     "value3d": "balanced: process 2/2/2; science 1/1/1",
+     "value2d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
+     "value3d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
      "delta": "same bundle",
      "tolerance": "equal per section",
      "passed": true
@@ -9554,8 +9554,8 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
-     "value3d": "panel titles equal (3); plaques 2.2 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.62 of 16, machilipatnam-kalamkari 20.62 of 16, sanganeri 20.62 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
+     "value3d": "panel titles equal (3); plaques 1.7 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.87 of 16, machilipatnam-kalamkari 20.87 of 16, sanganeri 20.74 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
      "passed": true
@@ -9677,8 +9677,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -9758,8 +9758,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 643d27b5; edge 766",
-     "value3d": "1 figure(s) 643d27b5; edge 766",
+     "value2d": "1 figure(s) ca4e6973; edge 766",
+     "value3d": "1 figure(s) ca4e6973; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -9856,8 +9856,8 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
-     "value3d": "panel titles equal (3); plaques 2.2 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.62 of 16, machilipatnam-kalamkari 20.62 of 16, sanganeri 20.62 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
+     "value3d": "panel titles equal (3); plaques 1.7 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.87 of 16, machilipatnam-kalamkari 20.87 of 16, sanganeri 20.74 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
      "passed": true
@@ -9967,8 +9967,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -10048,8 +10048,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 643d27b5; edge 766",
-     "value3d": "1 figure(s) 643d27b5; edge 766",
+     "value2d": "1 figure(s) ca4e6973; edge 766",
+     "value3d": "1 figure(s) ca4e6973; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -10146,8 +10146,8 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
-     "value3d": "panel titles equal (3); plaques 2.2 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.62 of 16, machilipatnam-kalamkari 20.62 of 16, sanganeri 20.62 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
+     "value3d": "panel titles equal (3); plaques 1.7 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.87 of 16, machilipatnam-kalamkari 20.87 of 16, sanganeri 20.74 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
      "passed": true
@@ -10257,8 +10257,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -10338,8 +10338,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 643d27b5; edge 766",
-     "value3d": "1 figure(s) 643d27b5; edge 766",
+     "value2d": "1 figure(s) ca4e6973; edge 766",
+     "value3d": "1 figure(s) ca4e6973; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -10436,8 +10436,8 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
-     "value3d": "panel titles equal (3); plaques 2.2 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.62 of 16, machilipatnam-kalamkari 20.62 of 16, sanganeri 20.62 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
+     "value3d": "panel titles equal (3); plaques 1.7 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.87 of 16, machilipatnam-kalamkari 20.87 of 16, sanganeri 20.74 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
      "passed": true
@@ -10547,8 +10547,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -10628,8 +10628,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 643d27b5; edge 766",
-     "value3d": "1 figure(s) 643d27b5; edge 766",
+     "value2d": "1 figure(s) ca4e6973; edge 766",
+     "value3d": "1 figure(s) ca4e6973; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -10727,7 +10727,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -10838,8 +10838,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -10919,8 +10919,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 643d27b5; edge 766",
-     "value3d": "1 figure(s) 643d27b5; edge 766",
+     "value2d": "1 figure(s) ca4e6973; edge 766",
+     "value3d": "1 figure(s) ca4e6973; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -11018,7 +11018,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -11129,8 +11129,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -11210,8 +11210,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 643d27b5; edge 766",
-     "value3d": "1 figure(s) 643d27b5; edge 766",
+     "value2d": "1 figure(s) ca4e6973; edge 766",
+     "value3d": "1 figure(s) ca4e6973; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -11309,7 +11309,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -11420,8 +11420,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "7b1d8b45 (3 claims, 3 records)",
-     "value3d": "7b1d8b45 (3 claims, 3 records)",
+     "value2d": "495b2793 (3 claims, 3 records)",
+     "value3d": "495b2793 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -11501,8 +11501,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 643d27b5; edge 766",
-     "value3d": "1 figure(s) 643d27b5; edge 766",
+     "value2d": "1 figure(s) ca4e6973; edge 766",
+     "value3d": "1 figure(s) ca4e6973; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -11600,7 +11600,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -11773,8 +11773,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -11854,8 +11854,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) f62037d4; edge 690",
-     "value3d": "1 figure(s) f62037d4; edge 690",
+     "value2d": "1 figure(s) 1cfe7722; edge 690",
+     "value3d": "1 figure(s) 1cfe7722; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -11953,7 +11953,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -12055,8 +12055,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -12136,8 +12136,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) f62037d4; edge 690",
-     "value3d": "1 figure(s) f62037d4; edge 690",
+     "value2d": "1 figure(s) 1cfe7722; edge 690",
+     "value3d": "1 figure(s) 1cfe7722; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -12235,7 +12235,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -12337,8 +12337,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -12418,8 +12418,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) f62037d4; edge 690",
-     "value3d": "1 figure(s) f62037d4; edge 690",
+     "value2d": "1 figure(s) 1cfe7722; edge 690",
+     "value3d": "1 figure(s) 1cfe7722; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -12517,7 +12517,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -12619,8 +12619,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -12700,8 +12700,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) f62037d4; edge 690",
-     "value3d": "1 figure(s) f62037d4; edge 690",
+     "value2d": "1 figure(s) 1cfe7722; edge 690",
+     "value3d": "1 figure(s) 1cfe7722; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -12799,7 +12799,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -12901,8 +12901,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -12982,8 +12982,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 42ecfdad; edge 734",
-     "value3d": "1 figure(s) 42ecfdad; edge 734",
+     "value2d": "1 figure(s) 2ed960d3; edge 734",
+     "value3d": "1 figure(s) 2ed960d3; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -13081,7 +13081,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -13183,8 +13183,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -13264,8 +13264,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 42ecfdad; edge 734",
-     "value3d": "1 figure(s) 42ecfdad; edge 734",
+     "value2d": "1 figure(s) 2ed960d3; edge 734",
+     "value3d": "1 figure(s) 2ed960d3; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -13363,7 +13363,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -13465,8 +13465,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -13546,8 +13546,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 42ecfdad; edge 734",
-     "value3d": "1 figure(s) 42ecfdad; edge 734",
+     "value2d": "1 figure(s) 2ed960d3; edge 734",
+     "value3d": "1 figure(s) 2ed960d3; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -13645,7 +13645,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -13747,8 +13747,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -13828,8 +13828,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 42ecfdad; edge 734",
-     "value3d": "1 figure(s) 42ecfdad; edge 734",
+     "value2d": "1 figure(s) 2ed960d3; edge 734",
+     "value3d": "1 figure(s) 2ed960d3; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -13927,7 +13927,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison headings equal (36); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows not on screen; comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -14029,8 +14029,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -14110,8 +14110,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aef46376; edge 766",
-     "value3d": "1 figure(s) aef46376; edge 766",
+     "value2d": "1 figure(s) aecd5e60; edge 766",
+     "value3d": "1 figure(s) aecd5e60; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -14173,8 +14173,8 @@
     {
      "id": "P21",
      "label": "Figure counts per section across the study traditions",
-     "value2d": "balanced: process 2/2/2; science 1/1/1",
-     "value3d": "balanced: process 2/2/2; science 1/1/1",
+     "value2d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
+     "value3d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
      "delta": "same bundle",
      "tolerance": "equal per section",
      "passed": true
@@ -14227,7 +14227,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -14338,8 +14338,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -14419,8 +14419,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aef46376; edge 766",
-     "value3d": "1 figure(s) aef46376; edge 766",
+     "value2d": "1 figure(s) aecd5e60; edge 766",
+     "value3d": "1 figure(s) aecd5e60; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -14518,7 +14518,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -14629,8 +14629,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -14710,8 +14710,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aef46376; edge 766",
-     "value3d": "1 figure(s) aef46376; edge 766",
+     "value2d": "1 figure(s) aecd5e60; edge 766",
+     "value3d": "1 figure(s) aecd5e60; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -14809,7 +14809,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -14920,8 +14920,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -15001,8 +15001,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aef46376; edge 766",
-     "value3d": "1 figure(s) aef46376; edge 766",
+     "value2d": "1 figure(s) aecd5e60; edge 766",
+     "value3d": "1 figure(s) aecd5e60; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -15100,7 +15100,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -15211,8 +15211,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -15292,8 +15292,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aef46376; edge 766",
-     "value3d": "1 figure(s) aef46376; edge 766",
+     "value2d": "1 figure(s) aecd5e60; edge 766",
+     "value3d": "1 figure(s) aecd5e60; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -15355,8 +15355,8 @@
     {
      "id": "P21",
      "label": "Figure counts per section across the study traditions",
-     "value2d": "balanced: process 2/2/2; science 1/1/1",
-     "value3d": "balanced: process 2/2/2; science 1/1/1",
+     "value2d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
+     "value3d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
      "delta": "same bundle",
      "tolerance": "equal per section",
      "passed": true
@@ -15408,8 +15408,8 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
-     "value3d": "panel titles equal (3); plaques 2.2 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.62 of 16, machilipatnam-kalamkari 20.62 of 16, sanganeri 20.62 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
+     "value3d": "panel titles equal (3); plaques 1.7 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.87 of 16, machilipatnam-kalamkari 20.87 of 16, sanganeri 20.74 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
      "passed": true
@@ -15531,8 +15531,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -15612,8 +15612,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aef46376; edge 766",
-     "value3d": "1 figure(s) aef46376; edge 766",
+     "value2d": "1 figure(s) aecd5e60; edge 766",
+     "value3d": "1 figure(s) aecd5e60; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -15710,8 +15710,8 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
-     "value3d": "panel titles equal (3); plaques 2.2 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.62 of 16, machilipatnam-kalamkari 20.62 of 16, sanganeri 20.62 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
+     "value3d": "panel titles equal (3); plaques 1.7 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.87 of 16, machilipatnam-kalamkari 20.87 of 16, sanganeri 20.74 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
      "passed": true
@@ -15821,8 +15821,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -15902,8 +15902,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aef46376; edge 766",
-     "value3d": "1 figure(s) aef46376; edge 766",
+     "value2d": "1 figure(s) aecd5e60; edge 766",
+     "value3d": "1 figure(s) aecd5e60; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -16000,8 +16000,8 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
-     "value3d": "panel titles equal (3); plaques 2.2 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.62 of 16, machilipatnam-kalamkari 20.62 of 16, sanganeri 20.62 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
+     "value3d": "panel titles equal (3); plaques 1.7 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.87 of 16, machilipatnam-kalamkari 20.87 of 16, sanganeri 20.74 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
      "passed": true
@@ -16111,8 +16111,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -16192,8 +16192,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aef46376; edge 766",
-     "value3d": "1 figure(s) aef46376; edge 766",
+     "value2d": "1 figure(s) aecd5e60; edge 766",
+     "value3d": "1 figure(s) aecd5e60; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -16290,8 +16290,8 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
-     "value3d": "panel titles equal (3); plaques 2.2 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.62 of 16, machilipatnam-kalamkari 20.62 of 16, sanganeri 20.62 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
+     "value3d": "panel titles equal (3); plaques 1.7 x 0.46 m (48); lowest contrast at 2.5 m ajrakh 20.87 of 16, machilipatnam-kalamkari 20.87 of 16, sanganeri 20.74 of 16; wing rooms by section ajrakh 1,2,3,4,5,6,7; machilipatnam-kalamkari 1,2,3,4,5,6,7; sanganeri 1,2,3,4,5,6,7",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
      "passed": true
@@ -16401,8 +16401,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -16482,8 +16482,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aef46376; edge 766",
-     "value3d": "1 figure(s) aef46376; edge 766",
+     "value2d": "1 figure(s) aecd5e60; edge 766",
+     "value3d": "1 figure(s) aecd5e60; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -16581,7 +16581,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -16692,8 +16692,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -16773,8 +16773,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aef46376; edge 766",
-     "value3d": "1 figure(s) aef46376; edge 766",
+     "value2d": "1 figure(s) aecd5e60; edge 766",
+     "value3d": "1 figure(s) aecd5e60; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -16872,7 +16872,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -16983,8 +16983,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -17064,8 +17064,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aef46376; edge 766",
-     "value3d": "1 figure(s) aef46376; edge 766",
+     "value2d": "1 figure(s) aecd5e60; edge 766",
+     "value3d": "1 figure(s) aecd5e60; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -17163,7 +17163,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
@@ -17274,8 +17274,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "63d65237 (3 claims, 3 records)",
-     "value3d": "63d65237 (3 claims, 3 records)",
+     "value2d": "9a782ab0 (3 claims, 3 records)",
+     "value3d": "9a782ab0 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -17355,8 +17355,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aef46376; edge 766",
-     "value3d": "1 figure(s) aef46376; edge 766",
+     "value2d": "1 figure(s) aecd5e60; edge 766",
+     "value3d": "1 figure(s) aecd5e60; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -17454,7 +17454,7 @@
     {
      "id": "P26",
      "label": "Equal salience of the study traditions",
-     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison headings equal (39); titles equal",
+     "value2d": "catalogue cards equal (3 of 3); index rows equal (3 of 3); comparison rows equal, no tradition named (12); titles equal",
      "value3d": "panel titles equal (3); plaques: measured in the 1280 x 800 runs",
      "delta": "none",
      "tolerance": "identical across the three study traditions; plaques one size, each >= 4.5:1 at 2.5 m",
