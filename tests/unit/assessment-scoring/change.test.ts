@@ -41,8 +41,8 @@ describe("compareConceptMaps", () => {
 
   it("reports score deltas against a reference", () => {
     const d = (n: string) => r.scoreDeltas?.find((x) => x.metricName === n);
-    // pre valid: A>B, B>C = 2; post valid: A>B, B>D (optional) = 2
-    expect(d("cmap.valid_relationships")).toMatchObject({ pre: 2, post: 2, delta: 0 });
+    // pre valid: A>B, B>C = 2; post valid: A>B = 1 (B>D matches only an optional edge: neutral by default)
+    expect(d("cmap.valid_relationships")).toMatchObject({ pre: 2, post: 1, delta: -1 });
     // recall dl: pre 2/4, post 1/4
     expect(d("cmap.recall.dl")?.delta).toBeCloseTo(-0.25, 12);
   });

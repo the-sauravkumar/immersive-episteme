@@ -6,20 +6,26 @@
 import type { MatchLevel } from "../config";
 import type { ScoreItem } from "../types";
 
+/*
+ * 1.1.0 (final review scoring-05, -06): optionalMatch now defaults to "neutral", which changes the
+ * default output of every metric built on valid edges or on precision (valid_relationships,
+ * cross_category.valid, causal_chain_depth, precision, f1); cross_category.valid_normalised and
+ * causal_chain_depth_normalised are now coverage proportions bounded by 1.
+ */
 export const METRIC_VERSIONS = {
-  "cmap.valid_relationships": "1.0.0",
+  "cmap.valid_relationships": "1.1.0",
   "cmap.incorrect_relationships": "1.0.0",
   "cmap.missing_expected_relationships": "1.0.0",
   "cmap.direction_correctness": "1.0.0",
   "cmap.type_correctness": "1.0.0",
   "cmap.cross_category.total": "1.0.0",
-  "cmap.cross_category.valid": "1.0.0",
-  "cmap.cross_category.valid_normalised": "1.0.0",
-  "cmap.causal_chain_depth": "1.0.0",
-  "cmap.causal_chain_depth_normalised": "1.0.0",
-  "cmap.precision": "1.0.0",
+  "cmap.cross_category.valid": "1.1.0",
+  "cmap.cross_category.valid_normalised": "1.1.0",
+  "cmap.causal_chain_depth": "1.1.0",
+  "cmap.causal_chain_depth_normalised": "1.1.0",
+  "cmap.precision": "1.1.0",
   "cmap.recall": "1.0.0",
-  "cmap.f1": "1.0.0",
+  "cmap.f1": "1.1.0",
   "cmap.jaccard": "1.0.0",
   "cmap.degree_profile_similarity": "1.0.0",
   "cmap.edit_distance": "1.0.0",

@@ -19,7 +19,7 @@
  * `adjudicated_at` set. After finalising, the map no longer accepts rater or adjudicator edits:
  * a change is a new version.
  */
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import { z } from "zod";
 
 import {
@@ -136,7 +136,13 @@ export interface ReferenceWorkspace {
   ownSubmission: MapPayload | null;
   adjudicator: { id: string; name: string } | null;
   adjudications: Array<Adjudication & { decidedAt?: string }>;
+  /** Union universe: positive agreement and per-edge support (kappa is undefined there). */
   agreement: ReturnType<typeof raterAgreement> | null;
+  /**
+   * Kappa over a DEFINED universe (final review scoring-01): every possible edge over the item's
+   * concept set and relationship types. Null when the item has no relationship types.
+   */
+  kappaAgreement: ReturnType<typeof raterAgreement> | null;
   consensus: ConsensusResult | null;
   /** Edges written at finalisation. */
   finalEdges: Array<{ sourceConceptId: string; targetConceptId: string; relationshipTypeCode: string | null; directed: boolean; required: boolean; agreement: number | null; notes: string | null }>;
@@ -148,6 +154,8 @@ async function loadRef(q: Q, id: string): Promise<RefRow> {
   if (!r.rows[0]) throw new AssessmentError("not_found", "Reference map not found");
   return r.rows[0];
 }
+
+const fmt3 = (x: number | null | undefined) => (x === null || x === undefined ? "undefined" : x.toFixed(3));
 
 function raterInputs(rows: RaterRow[]): RaterMapInput[] {
   return rows.filter((r) => r.role === "rater").map((r) => ({ raterId: r.rater_id, conceptIds: r.submission.conceptIds ?? [], edges: r.submission.edges ?? [] }));
@@ -167,9 +175,14 @@ export async function getReferenceWorkspace(q: Q, id: string, viewerId: string):
   const adjudications = adjRow?.submission.adjudications ?? [];
   const options = { config: item.scoring };
   let agreement: ReferenceWorkspace["agreement"] = null;
+  let kappaAgreement: ReferenceWorkspace["kappaAgreement"] = null;
   let consensus: ConsensusResult | null = null;
   if (inputs.length >= 2) {
     agreement = raterAgreement(inputs, options);
+    const relationshipTypes = item.set.relationshipTypes.map((x) => x.code);
+    if (relationshipTypes.length > 0) {
+      kappaAgreement = raterAgreement(inputs, { ...options, universe: "all_possible", conceptIds: item.set.concepts.map((c) => c.conceptId), relationshipTypes });
+    }
     // A rater may revise their map after an adjudication; decisions on edges no rater proposes
     // any more are kept in storage but not applied.
     const candidates = new Set(buildConsensus(inputs, options).edges.map((e) => e.key));
@@ -192,6 +205,7 @@ export async function getReferenceWorkspace(q: Q, id: string, viewerId: string):
     adjudicator: adjRow ? { id: adjRow.rater_id, name: adjRow.name ?? adjRow.rater_id } : null,
     adjudications,
     agreement,
+    kappaAgreement,
     consensus,
     finalEdges: edges.rows.map((e) => ({
       sourceConceptId: e.source_concept_id,
@@ -283,7 +297,7 @@ export async function finaliseReferenceMap(pool: Pool, actorId: string, referenc
           [referenceMapId, e.source, e.target, e.type, e.directed, e.decision === "expected", e.agreement, `consensus:${e.decision}`],
         );
       }
-      const summary = `${notes?.trim() ? `${notes.trim()}\n` : ""}Consensus ${ws.consensus.metricVersion} (${String(ws.consensus.parameters.rule)}), ${ws.consensus.raterCount} raters, ${ws.consensus.edges.filter((e) => e.decidedBy === "adjudication").length} adjudicated edge(s); Fleiss kappa ${ws.agreement?.fleissKappa === null || ws.agreement === null ? "undefined" : ws.agreement.fleissKappa.toFixed(3)} (${String(ws.agreement?.parameters.level)}, ${String(ws.agreement?.parameters.universe)} universe).`;
+      const summary = `${notes?.trim() ? `${notes.trim()}\n` : ""}Consensus ${ws.consensus.metricVersion} (${String(ws.consensus.parameters.rule)}), ${ws.consensus.raterCount} raters, ${ws.consensus.edges.filter((e) => e.decidedBy === "adjudication").length} adjudicated edge(s); positive agreement ${fmt3(ws.agreement?.positiveAgreement)} (${String(ws.agreement?.parameters.level)}, union of proposed edges); Fleiss kappa ${fmt3(ws.kappaAgreement?.fleissKappa)} (${ws.kappaAgreement ? `${String(ws.kappaAgreement.parameters.level)}, all possible edges over the concept set and relationship types` : "not computed: no relationship types"}).`;
       await c.query(
         `UPDATE reference_maps SET status = CASE WHEN is_demo THEN 'draft'::reference_map_status ELSE 'adjudicated'::reference_map_status END,
                 adjudicated_by = $2, adjudicated_at = now(), adjudication_notes = $3 WHERE id = $1`,
@@ -297,9 +311,14 @@ export async function finaliseReferenceMap(pool: Pool, actorId: string, referenc
 }
 
 /** Locks an adjudicated (non-demo) reference map: immutable in the database from now on. */
-export async function lockReferenceMap(q: Q, actorId: string, referenceMapId: string): Promise<void> {
-  const ref = await loadRef(q, referenceMapId);
-  if (ref.status !== "adjudicated") throw new AssessmentError("invalid", ref.is_demo ? "Demo reference maps stay draft and cannot be locked." : "Only an adjudicated map can be locked.");
-  await q.query("UPDATE reference_maps SET status = 'locked' WHERE id = $1", [referenceMapId]);
-  await audit(q, { actorId, action: "reference_map.lock", entity: "reference_maps", entityId: referenceMapId });
+/** Locks an adjudicated map: checked, locked and audited in one transaction on the locked row (database-08). */
+export async function lockReferenceMap(pool: Pool | PoolClient, actorId: string, referenceMapId: string): Promise<void> {
+  assertUuid(referenceMapId, "Reference map");
+  await inTransaction(pool, async (q) => {
+    await q.query("SELECT 1 FROM reference_maps WHERE id = $1 FOR UPDATE", [referenceMapId]);
+    const ref = await loadRef(q, referenceMapId);
+    if (ref.status !== "adjudicated") throw new AssessmentError("invalid", ref.is_demo ? "Demo reference maps stay draft and cannot be locked." : "Only an adjudicated map can be locked.");
+    await q.query("UPDATE reference_maps SET status = 'locked' WHERE id = $1", [referenceMapId]);
+    await audit(q, { actorId, action: "reference_map.lock", entity: "reference_maps", entityId: referenceMapId });
+  });
 }

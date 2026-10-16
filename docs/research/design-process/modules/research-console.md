@@ -189,11 +189,20 @@ stored parity report in the development database (`parity_reports`, generator `p
   homogeneity-of-slopes check; a missing-data report (complete-case, no imputation); and an
   a-priori power helper. Every report carries an "EXPLORATORY" notice until the researchers
   approve the analysis plan.
-- The power helper reproduces the planned-sample facts of
-  `docs/research/technical-requirements.md` §4 exactly (test
-  `test_reproduces_the_planned_sample_facts`): at 20 per group, d = 0.45 gives 0.284 (79 per
-  group for 80%), d = 0.60 gives 0.456 (45), d = 0.64 gives 0.505 (40), d = 0.84 gives 0.735 (24).
-- **Evidence.** `analysis/tests/test_episteme_stats.py`: 11 tests, all passing.
+- The power reference in every report is the preregistered plan (study decision D4): a two-group
+  ANCOVA at ρ = 0.6, 51 analysable per group (test `test_reproduces_the_d4_ancova_plan`: n = 51,
+  29 and 17 per group for d = 0.45, 0.60 and 0.80; power 0.410 at 20 per group for d = 0.45;
+  minimum detectable d 0.73 at 20 per group). The concept note's t-test at 20 per group is kept
+  only as a labelled comparison and still reproduces `docs/research/technical-requirements.md`
+  §4 exactly (test `test_reproduces_the_planned_sample_facts`: d = 0.45 gives 0.284, 79 per
+  group for 80%). Until the final review (scoring-10) the report showed only the t-test plan.
+- The analysis table has one row per participant, as on the dashboard (final review scoring-02,
+  -03): a never-allocated session is counted as `unallocated`, not an error; after a WebGL
+  reassignment the pre-test on the abandoned session is the baseline of the 2D row. Concept-map
+  scores are read against the study's analysis reference map and the current metric version
+  (`study.analysisReferenceMaps` and `reproducibility.scoringMetricVersions` in the bundle;
+  scoring-04); a baseline and an outcome scored against different references are never paired.
+- **Evidence.** `analysis/tests/test_episteme_stats.py`: 21 tests, all passing.
 
 ### R10. Study configuration and versioning
 

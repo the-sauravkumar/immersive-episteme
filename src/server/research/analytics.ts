@@ -6,6 +6,7 @@
 import { EVENT_TYPE_REGISTRY } from "@/features/telemetry/contracts";
 import { KNOWLEDGE_CATEGORY_CODES } from "@/lib/validation/enums";
 
+import { ANALYSIS_REFERENCES_SQL } from "./analysis-reference";
 import { loadSnapshotFacts } from "./metrics/pipeline";
 import { visitSequence, type NavEvent } from "./metrics/navigation";
 import type { Q } from "./db";
@@ -101,17 +102,33 @@ export interface MetricDistribution {
 
 const ANALYSABLE = "NOT ss.excluded AND NOT ss.withdrawn";
 
-/** Outcome distributions from derived_scores (latest row per session, metric and version). */
+/**
+ * Outcome distributions from derived_scores: one value per analysable, allocated session and
+ * administration (latest row per session, metric, version, assessment and map phase).
+ *
+ * Final review scoring-07:
+ *  - response-level rows (item.key_match, rubric.rating.*) are left out: one session has one row
+ *    per item, so a per-session distribution would keep an arbitrary item (the per-item and
+ *    per-rubric statistics are on the dashboard);
+ *  - each administration is its own distribution: concept-map scores by map phase (one assessment
+ *    yields a pre and a post map), every other score by assessment kind, code and version, so the
+ *    pre-test, post-test and transfer totals are never pooled (prior knowledge vs outcome);
+ *  - concept-map scores are read against the study's analysis reference map only (scoring-04).
+ */
 export async function outcomeDistributions(q: Q, studyId: string, opts: { includeExcluded?: boolean } = {}): Promise<MetricDistribution[]> {
-  // Concept-map scores are kept apart by map phase: one assessment yields a pre and a post map,
-  // and pooling them would mix prior knowledge with the learning outcome.
   const r = await q.query<{ metric_name: string; metric_version: string; condition_id: string; value: number | null }>(
-    `SELECT DISTINCT ON (ds.session_id, ds.metric_name, ds.metric_version, ds.assessment_id, cm.phase)
-            CASE WHEN cm.phase IS NULL THEN ds.metric_name ELSE ds.metric_name || ' (' || cm.phase::text || ')' END AS metric_name,
+    `WITH ar AS (${ANALYSIS_REFERENCES_SQL})
+     SELECT DISTINCT ON (ds.session_id, ds.metric_name, ds.metric_version, ds.assessment_id, cm.phase)
+            CASE WHEN cm.phase IS NOT NULL THEN ds.metric_name || ' (' || cm.phase::text || ')'
+                 ELSE ds.metric_name || ' (' || a.kind::text || ' ' || a.code || ' v' || a.version || ')' END AS metric_name,
             ds.metric_version, ss.condition_id, ds.value
        FROM derived_scores ds JOIN study_sessions ss ON ss.id = ds.session_id
+       JOIN assessments a ON a.id = ds.assessment_id
        LEFT JOIN concept_maps cm ON cm.id = ds.concept_map_id
-      WHERE ss.study_id = $1 AND ($2 OR (${ANALYSABLE}))
+       LEFT JOIN ar ON ar.assessment_id = ds.assessment_id
+      WHERE ss.study_id = $1 AND ss.condition_id IS NOT NULL AND ($2 OR (${ANALYSABLE}))
+        AND ds.response_id IS NULL
+        AND (ds.concept_map_id IS NULL OR ds.reference_map_id IS NOT DISTINCT FROM ar.reference_map_id)
       ORDER BY ds.session_id, ds.metric_name, ds.metric_version, ds.assessment_id, cm.phase, ds.computed_at DESC`,
     [studyId, opts.includeExcluded ?? false],
   );

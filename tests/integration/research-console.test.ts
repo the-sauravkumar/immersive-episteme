@@ -14,16 +14,16 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { analysable } from "../../src/server/research/analysis-scope";
 import { studyOverview, transitionMatrices } from "../../src/server/research/analytics";
 import { ResearchActionError } from "../../src/server/research/db";
-import { buildExportBundle, bundleTableCsv, type ExportBundle } from "../../src/server/research/exports/build";
+import { buildExportBundle, buildExportBundleConsistent, bundleCsvZip, bundleTableCsv, type ExportBundle } from "../../src/server/research/exports/build";
 import { csvText, parseCsv } from "../../src/server/research/exports/csv";
 import { validateExportBundle } from "../../src/server/research/exports/validate";
 import { recomputeStudyMetrics, staleMetricSessions } from "../../src/server/research/metrics/pipeline";
 import { listParityReports } from "../../src/server/research/parity/store";
-import { addAnnotation, addDeviation, excludeSession, getSession, integrityFlags, listSessions } from "../../src/server/research/sessions";
+import { addAnnotation, addDeviation, excludeSession, getSession, integrityFlags, listAnnotations, listDeviations, listSessions } from "../../src/server/research/sessions";
 import { activateStudy, createStudy, getStudy, newStudyVersion, researchStudyConfigSchema, setBattery, updateStudy, type UpdateStudyInput } from "../../src/server/research/studies";
 import { compileAndStoreManifest } from "../../src/server/spatial/manifest-store";
 import { ingestTelemetryBatch } from "../../src/server/telemetry/ingest";
-import { TEST_URL, createRealGraph, createSession, createTestDatabase, createUser, one, withSettings, type TestDb } from "./schema-harness";
+import { TEST_URL, createRealGraph, createSession, createTestDatabase, createUser, one, recordConsent, withSettings, type TestDb } from "./schema-harness";
 
 describe.skipIf(!TEST_URL)("research console", () => {
   let t: TestDb;
@@ -158,7 +158,8 @@ describe.skipIf(!TEST_URL)("research console", () => {
     design: "between",
     snapshotId,
     manifestId,
-    config: researchStudyConfigSchema.parse({ traditionSlugs: ["rc-tradition"], ...config }),
+    // The journey matches the battery (one post-learning reconstruction): parity check d.journey.
+    config: researchStudyConfigSchema.parse({ traditionSlugs: ["rc-tradition"], steps: ["learning", "reconstruction"], ...config }),
   });
 
   it("creates a draft study with both conditions and records its configuration history", async () => {
@@ -195,9 +196,27 @@ describe.skipIf(!TEST_URL)("research console", () => {
     expect(reports[0]!.id).toBe(r.parityReportId);
     expect(reports[0]!.report.contentSet).toMatchObject({ concepts: 3, relationships: 1, claims: 3, sources: 1 });
     await expect(updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { mode: "fixed_time", minutes: 25 } }))).rejects.toBeInstanceOf(ResearchActionError);
+    // Activation gave the study a secret allocation seed (study-07): journalled only as a fingerprint.
+    const seed = (s?.config as { allocation: { seed?: string } }).allocation.seed!;
+    expect(seed).toMatch(/^[A-Za-z0-9_-]{43}$/);
+    const activation = await one<{ after: { allocationSeed: { generated: boolean; sha256Prefix: string } } }>(t.pool, "SELECT after FROM audit_log WHERE action = 'study.activate' AND entity_id = $1", [studyId]);
+    expect(activation.after.allocationSeed.generated).toBe(true);
+    expect(JSON.stringify(activation.after)).not.toContain(seed);
+    // While the study is open no export carries the seed.
+    const open = await buildExportBundle(t.pool, studyId, { scope: "identified", appBuild: "test" });
+    expect(JSON.stringify(open)).not.toContain(seed);
   });
 
   it("derives metrics from telemetry, recomputes idempotently and flags stale sessions", async () => {
+    // A participant still in (or dropped out during) the pre-test: allocation comes after it
+    // (D3), so the session has no condition. It must not break the recompute (final review
+    // telemetry-01: derived_metrics.condition_id is NOT NULL) and is not an analysable session.
+    const p0 = await one<{ id: string }>(t.pool, "INSERT INTO participants (study_id, code) VALUES ($1, 'P-RC00') RETURNING id", [studyId]);
+    await recordConsent(t.pool, p0.id);
+    await t.pool.query(
+      "INSERT INTO study_sessions (study_id, participant_id, period, app_build, status, started_at, last_activity_at) VALUES ($1, $2, 1, 'test', 'in_progress', now(), now())",
+      [studyId, p0.id],
+    );
     s2d = await createSession(t.pool, studyId, (await getStudy(t.pool, studyId))!.conditions.find((c) => c.interface === "conventional_2d")!.id, "P-RC01", 0);
     s3d = await createSession(t.pool, studyId, (await getStudy(t.pool, studyId))!.conditions.find((c) => c.interface === "immersive_3d")!.id, "P-RC02", 1);
     const [a, b] = conceptIds;
@@ -234,7 +253,7 @@ describe.skipIf(!TEST_URL)("research console", () => {
     );
     await t.pool.query("UPDATE concept_maps SET is_final = true, submitted_at = now(), revision = 2 WHERE id = $1", [map.id]);
 
-    expect((await staleMetricSessions(t.pool, studyId)).stale).toBe(2);
+    expect(await staleMetricSessions(t.pool, studyId)).toEqual({ stale: 2, total: 2 });
     const first = await recomputeStudyMetrics(t.pool, studyId);
     expect(first.rowsWritten).toBeGreaterThan(0);
     const second = await recomputeStudyMetrics(t.pool, studyId);
@@ -262,6 +281,19 @@ describe.skipIf(!TEST_URL)("research console", () => {
     const s = (await getSession(t.pool, s3d.sessionId))!;
     expect(s).toMatchObject({ excluded: true, deviations: 1, annotations: 1, events: 7, openGaps: 0, participantCode: "P-RC02" });
     expect(integrityFlags(s).map((f) => f.level)).toContain("error");
+    // Free text is identified-only (security-05): a pseudonymised viewer gets the category, the
+    // annotation and deviation text only when they wrote it; the audit log keeps the category.
+    expect(s.exclusionReason).toBe("technical_failure");
+    expect(JSON.stringify(integrityFlags(s))).not.toContain("Renderer crashed twice");
+    const identified = { identified: true, userId: null };
+    expect((await getSession(t.pool, s3d.sessionId, identified))!.exclusionReason).toBe("technical_failure: Renderer crashed twice");
+    const stranger = { identified: false, userId: "someone-else" };
+    expect((await listAnnotations(t.pool, s3d.sessionId, stranger))[0]!.body).toBeNull();
+    expect((await listDeviations(t.pool, { sessionId: s3d.sessionId, viewer: stranger }))[0]).toMatchObject({ category: "technical", description: null });
+    expect((await listAnnotations(t.pool, s3d.sessionId, { identified: false, userId: actor.userId }))[0]!.body).toBe("Participant asked about controls");
+    expect((await listDeviations(t.pool, { sessionId: s3d.sessionId, viewer: identified }))[0]!.description).toBe("Browser restarted once");
+    const excludeAudit = await one<{ reason: string }>(t.pool, "SELECT reason FROM audit_log WHERE action = 'session.exclude' AND entity_id = $1", [s3d.sessionId]);
+    expect(excludeAudit.reason).toBe("technical_failure");
     const list = await listSessions(t.pool, studyId);
     expect(list).toHaveLength(2);
     expect(analysable(list).map((x) => x.participantCode)).toEqual(["P-RC01"]);
@@ -273,7 +305,8 @@ describe.skipIf(!TEST_URL)("research console", () => {
   });
 
   it("exports pseudonymised data that re-imports with valid joins, checksums and recomputable metrics", async () => {
-    const bundle = await buildExportBundle(t.pool, studyId, { scope: "pseudonymised", appBuild: "test" });
+    // The download route's builder: one REPEATABLE READ, READ ONLY snapshot.
+    const bundle = await buildExportBundleConsistent(t.pool, studyId, { scope: "pseudonymised", appBuild: "test" });
     expect(Object.keys(bundle.tables)).not.toContain("consent_records");
     expect(Object.keys(bundle.tables)).not.toContain("annotations");
     expect(bundle.tables.sessions!.find((r) => r.participant_code === "P-RC02")).toMatchObject({ excluded: true, exclusion_category: "technical_failure", exclusion_reason: null });
@@ -297,6 +330,14 @@ describe.skipIf(!TEST_URL)("research console", () => {
         for (const [k, val] of Object.entries(bundle.tables[table]![i]!)) expect(row[k]).toBe(csvText(val));
       });
     }
+    // The all-tables ZIP holds the same CSV text and a manifest with the bundle's checksums.
+    const zip = Buffer.from(bundleCsvZip(bundle));
+    expect(zip.readUInt32LE(0)).toBe(0x04034b50);
+    const names: string[] = [];
+    for (let at = zip.readUInt32LE(zip.length - 6); zip.readUInt32LE(at) === 0x02014b50; at += 46 + zip.readUInt16LE(at + 28) + zip.readUInt16LE(at + 30) + zip.readUInt16LE(at + 32)) {
+      names.push(zip.subarray(at + 46, at + 46 + zip.readUInt16LE(at + 28)).toString("utf8"));
+    }
+    expect(names).toEqual(["manifest.json", ...Object.keys(bundle.tables).map((x) => `${x}.csv`)]);
   });
 
   it("detects tampering and stale metrics on re-import", async () => {
@@ -313,9 +354,16 @@ describe.skipIf(!TEST_URL)("research console", () => {
     expect(validateExportBundle(wrongMetric).errors.join("\n")).toMatch(/nav\.path_length#1: exported 99 but recomputed \d/);
   });
 
+  it("names the analysis reference maps and the current scoring versions (final review scoring-04)", async () => {
+    const bundle = await buildExportBundle(t.pool, studyId, { scope: "pseudonymised", appBuild: "test" });
+    // No reference map of this study's reconstruction assessment is finalised, so there is no analysis reference yet.
+    expect(bundle.study.analysisReferenceMaps).toEqual([]);
+    expect(bundle.reproducibility.scoringMetricVersions).toMatchObject({ "cmap.recall": "1.0.0", "cmap.precision": "1.1.0", "cmap.cross_category.valid_normalised": "1.1.0" });
+  });
+
   it("adds consent records and free text only to identified exports", async () => {
     const bundle = await buildExportBundle(t.pool, studyId, { scope: "identified", appBuild: "test" });
-    expect(bundle.tables.consent_records!.length).toBe(2);
+    expect(bundle.tables.consent_records!.length).toBe(3); // P-RC00 (unallocated), P-RC01, P-RC02
     expect(bundle.tables.annotations![0]).toMatchObject({ body: "Participant asked about controls" });
     expect(bundle.tables.sessions!.find((r) => r.participant_code === "P-RC02")!.exclusion_reason).toBe("technical_failure: Renderer crashed twice");
     expect(validateExportBundle(JSON.parse(JSON.stringify(bundle)) as ExportBundle).ok).toBe(true);
@@ -328,5 +376,7 @@ describe.skipIf(!TEST_URL)("research console", () => {
     expect(s.battery.map((b) => b.assessmentId)).toEqual([assessmentId]);
     expect(s.conditions).toHaveLength(2);
     expect((await getStudy(t.pool, studyId))!.status).toBe("active");
+    // The new version gets its own seed at its own activation (a copied seed would repeat the sequence).
+    expect((s.config as { allocation: { seed?: string } }).allocation.seed).toBeUndefined();
   });
 });

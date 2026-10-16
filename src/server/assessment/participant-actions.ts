@@ -12,6 +12,7 @@ import { PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
 import { resolveParticipantSession } from "@/server/auth/learning-decision";
 import { getStudySessionLookup } from "@/server/auth/study-session-port";
 import { getPool } from "@/server/db/client";
+import { currentReconstructionPhase } from "@/server/study/engine";
 
 import { AssessmentError } from "./common";
 import { saveParticipantMap } from "./participant-maps";
@@ -26,7 +27,8 @@ export async function saveReconstructionMap(itemId: string, payload: unknown, fi
   if (typeof itemId !== "string" || typeof final !== "boolean") return { ok: false, error: "Invalid request." };
   try {
     const { participantId, sessionId } = decision.participant;
-    await saveParticipantMap(getPool(), { participantId, sessionId }, { itemId, payload, final });
+    // Only while the matching reconstruction step is current (study engine, security-03).
+    await saveParticipantMap(getPool(), { participantId, sessionId }, { itemId, payload, final }, { currentPhase: (client) => currentReconstructionPhase(client, sessionId) });
     return { ok: true };
   } catch (err) {
     if (err instanceof AssessmentError) return { ok: false, error: err.message };

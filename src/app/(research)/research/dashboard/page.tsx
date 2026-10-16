@@ -39,6 +39,7 @@ import {
   type LayerDwell,
   type TraditionGain,
 } from "./_components/dashboard-extras";
+import { LiveSessionsTable } from "./_components/live-sessions";
 import { LiveStatus } from "./_components/live-status";
 import { breakableKey, conditionOrder, num, StatsTable } from "./_components/stats-table";
 
@@ -562,7 +563,6 @@ function TelemetrySection({
   demo: boolean;
 }) {
   const t = data.telemetry;
-  const name = (id: string) => data.conditions.find((c) => c.id === id)?.label ?? id;
   const panels = TIME_PANELS.map(([key, title]) => ({ title, groups: intervalGroups(t.summary.find((m) => m.key === key), data) }));
   return (
     <>
@@ -599,70 +599,15 @@ function TelemetrySection({
       </Section>
       <Section id="sessions" title="sessions" demo={demo} description="Per-session telemetry (in scope only). Open a session for its interaction timeline." actions={csv("dashboard_telemetry_sessions")}>
         {t.sessions.length ? (
-          <Table caption="Per-Session Telemetry" number={n.table()} hoverRows density="compact">
-            <TableHeader>
-              <TableRow>
-                <TableHead scope="col">Participant</TableHead>
-                <TableHead scope="col">Condition</TableHead>
-                <TableHead scope="col">Status</TableHead>
-                <TableHead scope="col" numeric>
-                  Events
-                </TableHead>
-                <TableHead scope="col" numeric>
-                  Exposure (min)
-                </TableHead>
-                <TableHead scope="col" numeric>
-                  Navigation (min)
-                </TableHead>
-                <TableHead scope="col" numeric>
-                  Pause (min)
-                </TableHead>
-                <TableHead scope="col" numeric>
-                  Concepts
-                </TableHead>
-                <TableHead scope="col" numeric>
-                  Coverage
-                </TableHead>
-                <TableHead scope="col" numeric>
-                  Relations
-                </TableHead>
-                <TableHead scope="col" numeric>
-                  Citations
-                </TableHead>
-                <TableHead scope="col" numeric>
-                  Guidance
-                </TableHead>
-                <TableHead scope="col">Timeline</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {t.sessions.map((s) => (
-                <TableRow key={s.sessionId}>
-                  <TableCell className="text-id">{s.participantCode}</TableCell>
-                  <TableCell className="whitespace-nowrap">{name(s.conditionId)}</TableCell>
-                  <TableCell className="whitespace-nowrap">{s.status.replace(/_/g, " ")}</TableCell>
-                  <TableCell numeric>{s.events}</TableCell>
-                  <TableCell numeric>{num(s.exposureMs / 60000, 2)}</TableCell>
-                  <TableCell numeric>{num(s.navigationMs / 60000, 2)}</TableCell>
-                  <TableCell numeric>{num(s.pauseMs / 60000, 2)}</TableCell>
-                  <TableCell numeric>{s.conceptsExposed}</TableCell>
-                  <TableCell numeric>{num(s.coverage, 2)}</TableCell>
-                  <TableCell numeric>{s.relationshipsFollowed}</TableCell>
-                  <TableCell numeric>{s.citationOpens}</TableCell>
-                  <TableCell numeric>{s.guidanceUses}</TableCell>
-                  <TableCell>
-                    {maySessions ? (
-                      <Link className={LINK_44} href={`/research/sessions/${s.sessionId}`}>
-                        Open<span className="sr-only"> the timeline of {s.participantCode}</span>
-                      </Link>
-                    ) : (
-                      "–"
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          // Updated in place by the live stream (./_components/live-sessions.tsx).
+          <LiveSessionsTable
+            studyId={data.study.id}
+            generatedAt={data.generatedAt}
+            rows={t.sessions}
+            conditionNames={Object.fromEntries(data.conditions.map((c) => [c.id, c.label]))}
+            maySessions={maySessions}
+            number={n.table()}
+          />
         ) : (
           <Empty>No sessions in scope yet.</Empty>
         )}

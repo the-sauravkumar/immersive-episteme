@@ -2,7 +2,11 @@
 
 /**
  * Structured claim editor. Each claim = one statement + the verbatim evidence quotation + one or
- * more citations, each with a page or locator (docs/research/citation-policy.md). There is no
+ * more citations, each with a page or locator (docs/research/citation-policy.md). A claim that
+ * cites more than one source asks for a verbatim quotation from EACH source, because every
+ * citation must carry its own quote (final review knowledge-06); passages imported from content/
+ * are kept while the claim text, source and locator are unchanged, so the field may stay empty
+ * for those. There is no
  * free-prose field: the learner-facing summary and body are generated from these claims on save
  * (content/FORMAT.md claims-only policy); the preview below shows exactly what learners will get.
  */
@@ -23,7 +27,8 @@ import { Disclosure } from "@/components/ui/disclosure";
 export interface ClaimDraft {
   text: string;
   quote: string;
-  sources: { sourceId: string; locator: string }[];
+  /** `quote`: the verbatim passage from this source (asked for when a claim has several sources). */
+  sources: { sourceId: string; locator: string; quote?: string }[];
 }
 
 export interface SourceChoice {
@@ -207,6 +212,35 @@ function ClaimRow({
             Add citation
           </Button>
         </div>
+        {claim.sources.length > 1 ? (
+          <div className="flex flex-col gap-3 border-t border-rule pt-3">
+            <p id={`${id}-percite-hint`} className="text-credit">
+              This claim cites {claim.sources.length} sources, so each citation needs its own verbatim quotation. Leave a field empty only if the citation already
+              has passages imported from content/ (they are kept while the statement, source and locator stay the same).
+            </p>
+            {claim.sources.map((s, j) => {
+              const n = wordCount(s.quote ?? "");
+              return (
+                <div key={j} className="flex flex-col gap-1.5">
+                  <Label htmlFor={`${id}-cq-${j}`}>{`Quotation from citation ${j + 1}`}</Label>
+                  <Textarea
+                    id={`${id}-cq-${j}`}
+                    value={s.quote ?? ""}
+                    onChange={(e) => setSource(j, { quote: e.target.value })}
+                    rows={2}
+                    aria-describedby={`${id}-percite-hint ${id}-cq-${j}-count`}
+                  />
+                  <p id={`${id}-cq-${j}-count`} className={n > MAX_QUOTE_WORDS ? "font-sans text-[0.9375rem] leading-5 font-semibold text-danger" : "text-credit"}>
+                    <span className="tabular-nums">
+                      {n} of {MAX_QUOTE_WORDS} words
+                    </span>
+                    {n > MAX_QUOTE_WORDS ? " (too long)" : ""}.
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
       </fieldset>
     </li>
   );

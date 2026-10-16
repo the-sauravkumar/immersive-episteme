@@ -20,6 +20,7 @@
  */
 import "server-only";
 
+import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import type { LearningTimeBudget } from "@/features/learning/time-budget";
@@ -27,6 +28,7 @@ import { serverEnv } from "@/lib/env";
 import type { LearningCondition } from "@/lib/permissions/learning";
 import { requireLearningAccess } from "@/server/auth/learning-access";
 import { getPool } from "@/server/db/client";
+import { learningStepIsCurrent } from "@/server/study/engine";
 
 import { pgLearningContextData, resolveLearningContext, resolvePracticeContext, type LearningContext, type PracticeContext } from "./context-data";
 
@@ -46,6 +48,9 @@ export {
  */
 export const getLearningContext = cache(async (condition: LearningCondition): Promise<LearningContext> => {
   const access = await requireLearningAccess(condition);
+  // A participant sees the content only while the learning step is current (and the learning
+  // clock starts only then): otherwise back to the hub, which shows the current step.
+  if (access.kind === "participant" && !(await learningStepIsCurrent(getPool(), access.sessionId))) redirect("/study/session");
   return resolveLearningContext(access, { data: pgLearningContextData(getPool()), appBuild: serverEnv().APP_BUILD_VERSION });
 });
 

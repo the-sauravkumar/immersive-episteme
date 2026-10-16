@@ -11,7 +11,14 @@
  *    (403 session_mismatch); an event whose own `sessionId` differs is quarantined.
  *  - Idempotency: `telemetry_batches.idempotency_key` (a replay returns the stored outcome with
  *    `replayed: true`) and `telemetry_events.event_id` (an event already stored, e.g. sent
- *    earlier by a page-exit beacon under another key, counts as a duplicate).
+ *    earlier by a page-exit beacon under another key, counts as a duplicate). A replay is
+ *    answered only when every event of the batch is already stored or quarantined: a stored key
+ *    arriving with OTHER events (two tabs of one session numbering the same seqs) is ingested
+ *    under a key derived from its event ids instead, so those events are never acknowledged
+ *    unseen (final review telemetry-02).
+ *  - One session's batches are serialised (transaction-scoped advisory lock), so concurrent
+ *    page-exit beacons see each other's events when gaps and out-of-order arrivals are computed
+ *    (final review database-03 / telemetry-06).
  *  - Every event is validated with `telemetryEventSchema`; invalid events, seq conflicts and
  *    database rule violations (scope/condition mismatch, concept not in the snapshot, events
  *    after the session ended, ...) go to `telemetry_quarantine` with the reason. Nothing is
@@ -20,7 +27,13 @@
  *    and `telemetry_events.server_ts`.
  *  - Sequence gaps: after the batch, missing seq ranges of the session (seq starts at 0) are
  *    upserted into `sequence_gaps` (kind `gap`; filled gaps get `resolved_at`), and an arrival
- *    below the session's previous maximum is recorded as `out_of_order`.
+ *    below the session's previous maximum is recorded as `out_of_order`. A seq the server
+ *    quarantined counts as received: a `gap` means transmission loss only, and the quarantine
+ *    count keeps the rejection (final review telemetry-07).
+ *  - Dashboard rollups: an event accepted for an ended session deletes that session's
+ *    `session_telemetry_rollups` row, because the rollup probes ended sessions by max(seq) only
+ *    and a late, lower seq would otherwise leave it stale (final review database-05 /
+ *    telemetry-08).
  *  - Demo and staff preview have no study session: the batch is validated and acknowledged
  *    (`persisted: false`, `nonExperimental: true`) but nothing is written.
  *  - Familiarisation practice (D5): a participant's practice pages send under their own telemetry
@@ -96,6 +109,15 @@ function acknowledgeWithoutStoring(batch: { sessionId: string; events: unknown[]
   };
 }
 
+/**
+ * Key for a batch whose client key collided with a stored batch holding other events: the
+ * client key (shortened to keep the 128-character key rule) plus a hash of the event ids.
+ */
+export function contentDerivedKey(key: string, eventIds: readonly string[]): string {
+  const h = sha256([...eventIds].sort().join(",")).slice(0, 16);
+  return `${key.slice(0, 128 - 18)}:x${h}`;
+}
+
 /** Validates and stores one batch for `principal`. `body` is the parsed JSON request body. */
 export async function ingestTelemetryBatch(
   pool: Pool,
@@ -120,176 +142,7 @@ export async function ingestTelemetryBatch(
 
   const client = await pool.connect();
   try {
-    const s = await client.query<SessionRow>(
-      `SELECT ss.study_id, ss.participant_id, ss.condition_id, ss.status, ss.withdrawn, p.status AS participant_status,
-              st.is_demo AS study_is_demo, st.config AS study_config
-         FROM study_sessions ss JOIN participants p ON p.id = ss.participant_id JOIN studies st ON st.id = ss.study_id
-        WHERE ss.id = $1`,
-      [principal.sessionId],
-    );
-    const session = s.rows[0];
-    if (!session || session.participant_id !== principal.participantId) {
-      return fail(401, "unauthenticated", "The participant session does not exist");
-    }
-    if (session.withdrawn || session.participant_status === "withdrawn" || session.participant_status === "excluded") {
-      return fail(410, "session_closed", "Telemetry is not accepted for a withdrawn or excluded participant");
-    }
-    if (session.condition_id === null) {
-      // Not allocated yet (allocation after the pre-test, D3): events carry a condition, so there
-      // is nothing they could be stored under. The study pages emit none before allocation.
-      return fail(403, "session_mismatch", "The participant session has no condition yet (not allocated)");
-    }
-    const cfg = studyConfigSchema.safeParse(session.study_config);
-    const nonExperimental = session.study_is_demo || (cfg.success && cfg.data.nonExperimental);
-
-    await client.query("BEGIN");
-    const ins = await client.query<{ id: string }>(
-      `INSERT INTO telemetry_batches (idempotency_key, session_id, schema_version, app_build, client_sent_at, received_at,
-                                      event_count, accepted_count, duplicate_count, quarantined_count, status, payload_sha256)
-       VALUES ($1, $2, $3, $4, $5, $6, 0, 0, 0, 0, 'accepted', $7)
-       ON CONFLICT (idempotency_key) DO NOTHING RETURNING id`,
-      [batch.idempotencyKey, principal.sessionId, batch.schemaVersion, batch.appBuild, batch.clientSentAt, receivedAt, sha256(canonicalJson(body))],
-    );
-    if (!ins.rows[0]) {
-      await client.query("ROLLBACK");
-      const prev = await client.query<{ id: string; session_id: string; status: "accepted" | "partial" | "rejected"; accepted_count: number; duplicate_count: number; quarantined_count: number }>(
-        "SELECT id, session_id, status, accepted_count, duplicate_count, quarantined_count FROM telemetry_batches WHERE idempotency_key = $1",
-        [batch.idempotencyKey],
-      );
-      const p = prev.rows[0]!;
-      if (p.session_id !== principal.sessionId) {
-        return fail(403, "session_mismatch", "This idempotency key belongs to another session");
-      }
-      return {
-        status: 200,
-        body: {
-          batchId: p.id,
-          status: p.status,
-          replayed: true,
-          accepted: p.accepted_count,
-          duplicates: p.duplicate_count,
-          quarantined: p.quarantined_count,
-          persisted: true,
-          nonExperimental,
-          gaps: await currentGaps(client, principal.sessionId),
-          serverReceivedAt: receivedAt.toISOString(),
-        },
-      };
-    }
-    const batchId = ins.rows[0].id;
-
-    const before = await client.query<{ max: number | null }>("SELECT max(seq) AS max FROM telemetry_events WHERE session_id = $1", [principal.sessionId]);
-    const previousMax = before.rows[0]?.max ?? null;
-
-    let accepted = 0;
-    let duplicates = 0;
-    let quarantined = 0;
-    const acceptedSeqs: number[] = [];
-    const seenIds = new Set<string>();
-
-    const quarantine = async (raw: unknown, reason: string, eventId: string | null) => {
-      quarantined++;
-      await client.query(
-        "INSERT INTO telemetry_quarantine (batch_id, session_id, event_id, reason, raw, received_at) VALUES ($1, $2, $3, $4, $5::jsonb, $6)",
-        [batchId, principal.sessionId, eventId, reason.slice(0, 1000), JSON.stringify(raw ?? null), receivedAt],
-      );
-    };
-
-    for (const raw of batch.events) {
-      const parsed = telemetryEventSchema.safeParse(raw);
-      const rawId = typeof (raw as { eventId?: unknown })?.eventId === "string" && /^[0-9a-f-]{36}$/i.test((raw as { eventId: string }).eventId) ? (raw as { eventId: string }).eventId : null;
-      if (!parsed.success) {
-        await quarantine(raw, `schema: ${parsed.error.issues.slice(0, 5).map((i) => `${i.path.join(".") || "(root)"} ${i.message}`).join("; ")}`, rawId);
-        continue;
-      }
-      const e: TelemetryEvent = parsed.data;
-      if (e.sessionId !== principal.sessionId) {
-        await quarantine(raw, "session_mismatch: event sessionId differs from the authenticated session", e.eventId);
-        continue;
-      }
-      if (seenIds.has(e.eventId)) {
-        duplicates++;
-        continue;
-      }
-      seenIds.add(e.eventId);
-
-      await client.query("SAVEPOINT ev");
-      try {
-        const r = await client.query(
-          `INSERT INTO telemetry_events (event_id, batch_id, schema_version, study_id, participant_id, session_id, condition_id,
-              client_ts, client_mono_ms, server_ts, seq, event_type_code, concept_id, category_code, tradition_id,
-              room_or_page_id, target, metadata, app_build, content_version)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18::jsonb, $19, $20)
-           ON CONFLICT DO NOTHING`,
-          [
-            e.eventId, batchId, e.schemaVersion, session.study_id, session.participant_id, principal.sessionId, session.condition_id,
-            e.clientTs, e.clientMonoMs ?? null, receivedAt, e.seq, e.type, e.conceptId ?? null, e.category ?? null, e.traditionId ?? null,
-            e.roomOrPageId ?? null, e.target ?? null, JSON.stringify(e.metadata), batch.appBuild, batch.contentVersion,
-          ],
-        );
-        await client.query("RELEASE SAVEPOINT ev");
-        if (r.rowCount === 1) {
-          accepted++;
-          acceptedSeqs.push(e.seq);
-          continue;
-        }
-        // Conflict: the same event already stored (duplicate) or another event holds this seq.
-        const existing = await client.query<{ event_id: string }>("SELECT event_id FROM telemetry_events WHERE event_id = $1", [e.eventId]);
-        if (existing.rows[0]) {
-          duplicates++;
-        } else {
-          await quarantine(raw, `seq_conflict: seq ${e.seq} is already used by another event of this session`, e.eventId);
-          await client.query(
-            `INSERT INTO sequence_gaps (session_id, kind, from_seq, to_seq, details) VALUES ($1, 'duplicate', $2, $2, $3::jsonb)
-             ON CONFLICT (session_id, kind, from_seq) DO UPDATE SET details = EXCLUDED.details, detected_at = now()`,
-            [principal.sessionId, e.seq, JSON.stringify({ eventId: e.eventId, batchId })],
-          );
-        }
-      } catch (err) {
-        await client.query("ROLLBACK TO SAVEPOINT ev");
-        const msg = err instanceof Error ? err.message : String(err);
-        await quarantine(raw, `rejected: ${msg}`, e.eventId);
-      }
-    }
-
-    // Out-of-order arrival: this batch carried seqs below what the session had already stored.
-    if (previousMax !== null && acceptedSeqs.some((q) => q < previousMax)) {
-      const lowest = Math.min(...acceptedSeqs);
-      await client.query(
-        `INSERT INTO sequence_gaps (session_id, kind, from_seq, to_seq, details) VALUES ($1, 'out_of_order', $2, $3, $4::jsonb)
-         ON CONFLICT (session_id, kind, from_seq) DO UPDATE SET to_seq = greatest(sequence_gaps.to_seq, EXCLUDED.to_seq), detected_at = now()`,
-        [principal.sessionId, lowest, previousMax, JSON.stringify({ batchId, previousMax })],
-      );
-    }
-    const gaps = await currentGaps(client, principal.sessionId);
-    await recordGaps(client, principal.sessionId, gaps);
-
-    const eventCount = batch.events.length;
-    const status = quarantined === 0 ? "accepted" : accepted + duplicates === 0 ? "rejected" : "partial";
-    await client.query(
-      "UPDATE telemetry_batches SET event_count = $2, accepted_count = $3, duplicate_count = $4, quarantined_count = $5, status = $6 WHERE id = $1",
-      [batchId, eventCount, accepted, duplicates, quarantined, status],
-    );
-    await client.query("UPDATE study_sessions SET last_activity_at = greatest(coalesce(last_activity_at, $2), $2) WHERE id = $1 AND status = 'in_progress'", [
-      principal.sessionId,
-      receivedAt,
-    ]);
-    await client.query("COMMIT");
-    return {
-      status: 200,
-      body: {
-        batchId,
-        status,
-        replayed: false,
-        accepted,
-        duplicates,
-        quarantined,
-        persisted: true,
-        nonExperimental,
-        gaps,
-        serverReceivedAt: receivedAt.toISOString(),
-      },
-    };
+    return await ingestOnClient(client, principal, batch, body, receivedAt, false);
   } catch (err) {
     await client.query("ROLLBACK").catch(() => undefined);
     throw err;
@@ -298,10 +151,240 @@ export async function ingestTelemetryBatch(
   }
 }
 
-/** Missing seq ranges of a session's stored events (seq numbering starts at 0). */
+type Batch = ReturnType<typeof telemetryBatchEnvelopeSchema.parse>;
+
+/** The stored path of `ingestTelemetryBatch` on one checked-out client (no transaction open on entry). */
+async function ingestOnClient(
+  client: PoolClient,
+  principal: Extract<TelemetryPrincipal, { kind: "participant" }>,
+  batch: Batch,
+  body: unknown,
+  receivedAt: Date,
+  rekeyed: boolean,
+): Promise<IngestOutcome> {
+  const s = await client.query<SessionRow>(
+    `SELECT ss.study_id, ss.participant_id, ss.condition_id, ss.status, ss.withdrawn, p.status AS participant_status,
+            st.is_demo AS study_is_demo, st.config AS study_config
+       FROM study_sessions ss JOIN participants p ON p.id = ss.participant_id JOIN studies st ON st.id = ss.study_id
+      WHERE ss.id = $1`,
+    [principal.sessionId],
+  );
+  const session = s.rows[0];
+  if (!session || session.participant_id !== principal.participantId) {
+    return fail(401, "unauthenticated", "The participant session does not exist");
+  }
+  if (session.withdrawn || session.participant_status === "withdrawn" || session.participant_status === "excluded") {
+    return fail(410, "session_closed", "Telemetry is not accepted for a withdrawn or excluded participant");
+  }
+  if (session.condition_id === null) {
+    // Not allocated yet (allocation after the pre-test, D3): events carry a condition, so there
+    // is nothing they could be stored under. The study pages emit none before allocation.
+    return fail(403, "session_mismatch", "The participant session has no condition yet (not allocated)");
+  }
+  const cfg = studyConfigSchema.safeParse(session.study_config);
+  const nonExperimental = session.study_is_demo || (cfg.success && cfg.data.nonExperimental);
+
+  await client.query("BEGIN");
+  // Serialise this session's batches until COMMIT / ROLLBACK. Under READ COMMITTED every later
+  // statement then sees the events of a batch that committed while this one waited, so two
+  // concurrent page-exit beacons cannot each miss the other's seqs (spurious open gaps).
+  await client.query("SELECT pg_advisory_xact_lock(hashtextextended('ie-telemetry:' || $1::text, 0))", [principal.sessionId]);
+  const ins = await client.query<{ id: string }>(
+    `INSERT INTO telemetry_batches (idempotency_key, session_id, schema_version, app_build, client_sent_at, received_at,
+                                    event_count, accepted_count, duplicate_count, quarantined_count, status, payload_sha256)
+     VALUES ($1, $2, $3, $4, $5, $6, 0, 0, 0, 0, 'accepted', $7)
+     ON CONFLICT (idempotency_key) DO NOTHING RETURNING id`,
+    [batch.idempotencyKey, principal.sessionId, batch.schemaVersion, batch.appBuild, batch.clientSentAt, receivedAt, sha256(canonicalJson(body))],
+  );
+  if (!ins.rows[0]) {
+    await client.query("ROLLBACK");
+    const prev = await client.query<{ id: string; session_id: string; status: "accepted" | "partial" | "rejected"; accepted_count: number; duplicate_count: number; quarantined_count: number }>(
+      "SELECT id, session_id, status, accepted_count, duplicate_count, quarantined_count FROM telemetry_batches WHERE idempotency_key = $1",
+      [batch.idempotencyKey],
+    );
+    const p = prev.rows[0]!;
+    if (p.session_id !== principal.sessionId) {
+      return fail(403, "session_mismatch", "This idempotency key belongs to another session");
+    }
+    // A replay must not acknowledge events the server never saw. The client key names a seq
+    // range, so a second tab of the session can send OTHER events under a stored key: ingest
+    // those under a key derived from their ids (an event on a used seq is then quarantined as
+    // seq_conflict, not lost). Once every event is stored or quarantined, it is a true replay.
+    const ids = batch.events
+      .map((raw) => (raw as { eventId?: unknown } | null)?.eventId)
+      .filter((id): id is string => typeof id === "string" && /^[0-9a-f-]{36}$/i.test(id));
+    if (!rekeyed && ids.length > 0) {
+      const unseen = await client.query<{ n: number }>(
+        `SELECT count(*)::int AS n FROM unnest($1::uuid[]) AS x
+          WHERE NOT EXISTS (SELECT 1 FROM telemetry_events te WHERE te.event_id = x)
+            AND NOT EXISTS (SELECT 1 FROM telemetry_quarantine tq WHERE tq.session_id = $2 AND tq.event_id = x)`,
+        [ids, principal.sessionId],
+      );
+      if (unseen.rows[0]!.n > 0) {
+        const key = contentDerivedKey(batch.idempotencyKey, ids);
+        return ingestOnClient(client, principal, { ...batch, idempotencyKey: key }, { ...(body as object), idempotencyKey: key }, receivedAt, true);
+      }
+    }
+    return {
+      status: 200,
+      body: {
+        batchId: p.id,
+        status: p.status,
+        replayed: true,
+        accepted: p.accepted_count,
+        duplicates: p.duplicate_count,
+        quarantined: p.quarantined_count,
+        persisted: true,
+        nonExperimental,
+        gaps: await currentGaps(client, principal.sessionId),
+        serverReceivedAt: receivedAt.toISOString(),
+      },
+    };
+  }
+  const batchId = ins.rows[0].id;
+
+  const before = await client.query<{ max: number | null }>("SELECT max(seq) AS max FROM telemetry_events WHERE session_id = $1", [principal.sessionId]);
+  const previousMax = before.rows[0]?.max ?? null;
+
+  let accepted = 0;
+  let duplicates = 0;
+  let quarantined = 0;
+  const acceptedSeqs: number[] = [];
+  const seenIds = new Set<string>();
+
+  const quarantine = async (raw: unknown, reason: string, eventId: string | null) => {
+    quarantined++;
+    await client.query(
+      "INSERT INTO telemetry_quarantine (batch_id, session_id, event_id, reason, raw, received_at) VALUES ($1, $2, $3, $4, $5::jsonb, $6)",
+      [batchId, principal.sessionId, eventId, reason.slice(0, 1000), JSON.stringify(raw ?? null), receivedAt],
+    );
+  };
+
+  for (const raw of batch.events) {
+    const parsed = telemetryEventSchema.safeParse(raw);
+    const rawId = typeof (raw as { eventId?: unknown })?.eventId === "string" && /^[0-9a-f-]{36}$/i.test((raw as { eventId: string }).eventId) ? (raw as { eventId: string }).eventId : null;
+    if (!parsed.success) {
+      await quarantine(raw, `schema: ${parsed.error.issues.slice(0, 5).map((i) => `${i.path.join(".") || "(root)"} ${i.message}`).join("; ")}`, rawId);
+      continue;
+    }
+    const e: TelemetryEvent = parsed.data;
+    if (e.sessionId !== principal.sessionId) {
+      await quarantine(raw, "session_mismatch: event sessionId differs from the authenticated session", e.eventId);
+      continue;
+    }
+    if (seenIds.has(e.eventId)) {
+      duplicates++;
+      continue;
+    }
+    seenIds.add(e.eventId);
+
+    await client.query("SAVEPOINT ev");
+    try {
+      const r = await client.query(
+        `INSERT INTO telemetry_events (event_id, batch_id, schema_version, study_id, participant_id, session_id, condition_id,
+            client_ts, client_mono_ms, server_ts, seq, event_type_code, concept_id, category_code, tradition_id,
+            room_or_page_id, target, metadata, app_build, content_version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18::jsonb, $19, $20)
+         ON CONFLICT DO NOTHING`,
+        [
+          e.eventId, batchId, e.schemaVersion, session.study_id, session.participant_id, principal.sessionId, session.condition_id,
+          e.clientTs, e.clientMonoMs ?? null, receivedAt, e.seq, e.type, e.conceptId ?? null, e.category ?? null, e.traditionId ?? null,
+          e.roomOrPageId ?? null, e.target ?? null, JSON.stringify(e.metadata), batch.appBuild, batch.contentVersion,
+        ],
+      );
+      await client.query("RELEASE SAVEPOINT ev");
+      if (r.rowCount === 1) {
+        accepted++;
+        acceptedSeqs.push(e.seq);
+        continue;
+      }
+      // Conflict: the same event already stored (duplicate) or another event holds this seq.
+      const existing = await client.query<{ event_id: string }>("SELECT event_id FROM telemetry_events WHERE event_id = $1", [e.eventId]);
+      if (existing.rows[0]) {
+        duplicates++;
+      } else {
+        await quarantine(raw, `seq_conflict: seq ${e.seq} is already used by another event of this session`, e.eventId);
+        await client.query(
+          `INSERT INTO sequence_gaps (session_id, kind, from_seq, to_seq, details) VALUES ($1, 'duplicate', $2, $2, $3::jsonb)
+           ON CONFLICT (session_id, kind, from_seq) DO UPDATE SET details = EXCLUDED.details, detected_at = now()`,
+          [principal.sessionId, e.seq, JSON.stringify({ eventId: e.eventId, batchId })],
+        );
+      }
+    } catch (err) {
+      await client.query("ROLLBACK TO SAVEPOINT ev");
+      const msg = err instanceof Error ? err.message : String(err);
+      await quarantine(raw, `rejected: ${msg}`, e.eventId);
+    }
+  }
+
+  // Out-of-order arrival: this batch carried seqs below what the session had already stored.
+  if (previousMax !== null && acceptedSeqs.some((q) => q < previousMax)) {
+    const lowest = Math.min(...acceptedSeqs);
+    await client.query(
+      `INSERT INTO sequence_gaps (session_id, kind, from_seq, to_seq, details) VALUES ($1, 'out_of_order', $2, $3, $4::jsonb)
+       ON CONFLICT (session_id, kind, from_seq) DO UPDATE SET to_seq = greatest(sequence_gaps.to_seq, EXCLUDED.to_seq), detected_at = now()`,
+      [principal.sessionId, lowest, previousMax, JSON.stringify({ batchId, previousMax })],
+    );
+  }
+  const gaps = await currentGaps(client, principal.sessionId);
+  await recordGaps(client, principal.sessionId, gaps);
+  if (accepted > 0) {
+    // An ended session's rollup is probed by max(seq) and status only, so a late, lower seq (a
+    // retried beacon chunk emitted before the end) would leave it stale for good: drop it, and
+    // the next dashboard load recomputes it. The status is read here, after the inserts: they
+    // hold a KEY SHARE lock on the session row, so completeSession / abandon (FOR UPDATE)
+    // cannot commit between this read and our COMMIT.
+    await client.query(
+      `DELETE FROM session_telemetry_rollups
+        WHERE session_id = $1 AND EXISTS (SELECT 1 FROM study_sessions WHERE id = $1 AND status IN ('completed', 'abandoned'))`,
+      [principal.sessionId],
+    );
+  }
+
+  const eventCount = batch.events.length;
+  const status = quarantined === 0 ? "accepted" : accepted + duplicates === 0 ? "rejected" : "partial";
+  await client.query(
+    "UPDATE telemetry_batches SET event_count = $2, accepted_count = $3, duplicate_count = $4, quarantined_count = $5, status = $6 WHERE id = $1",
+    [batchId, eventCount, accepted, duplicates, quarantined, status],
+  );
+  await client.query("UPDATE study_sessions SET last_activity_at = greatest(coalesce(last_activity_at, $2), $2) WHERE id = $1 AND status = 'in_progress'", [
+    principal.sessionId,
+    receivedAt,
+  ]);
+  await client.query("COMMIT");
+  return {
+    status: 200,
+    body: {
+      batchId,
+      status,
+      replayed: false,
+      accepted,
+      duplicates,
+      quarantined,
+      persisted: true,
+      nonExperimental,
+      gaps,
+      serverReceivedAt: receivedAt.toISOString(),
+    },
+  };
+}
+
+/**
+ * Missing seq ranges of a session (seq numbering starts at 0): seqs neither stored nor
+ * quarantined. A quarantined event (refused by a database rule, invalid) did reach the server,
+ * so its seq is not transmission loss; it is counted in the quarantine instead. Seqs of events
+ * quarantined as belonging to another session are not this session's and are ignored.
+ */
 export async function currentGaps(q: Pick<PoolClient, "query">, sessionId: string): Promise<{ fromSeq: number; toSeq: number }[]> {
   const r = await q.query<{ from_seq: number; to_seq: number }>(
-    `WITH s AS (SELECT seq, lag(seq) OVER (ORDER BY seq) AS prev FROM telemetry_events WHERE session_id = $1)
+    `WITH seen AS (
+       SELECT seq FROM telemetry_events WHERE session_id = $1
+       UNION
+       SELECT (raw->>'seq')::int FROM telemetry_quarantine
+        WHERE session_id = $1 AND jsonb_typeof(raw->'seq') = 'number' AND raw->>'seq' ~ '^[0-9]{1,9}$'
+          AND reason NOT LIKE 'session_mismatch%'
+     ),
+     s AS (SELECT seq, lag(seq) OVER (ORDER BY seq) AS prev FROM seen)
      SELECT 0 AS from_seq, min(seq) - 1 AS to_seq FROM s HAVING min(seq) > 0
      UNION ALL
      SELECT prev + 1, seq - 1 FROM s WHERE prev IS NOT NULL AND seq > prev + 1

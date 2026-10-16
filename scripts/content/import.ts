@@ -20,7 +20,7 @@ import { REPO_ROOT, arg, assertKnownArgs, flag, loadAndValidate } from "./_share
 
 assertKnownArgs({ values: ["content"], flags: ["test", "no-snapshot"] });
 
-const fmt = (c: TableCounts) => `+${c.inserted} ~${c.updated} =${c.unchanged}${c.keptAccepted ? ` kept-accepted ${c.keptAccepted}` : ""}`;
+const fmt = (c: TableCounts) => `+${c.inserted} ~${c.updated} =${c.unchanged}${c.keptAccepted ? ` kept-accepted ${c.keptAccepted}` : ""}${c.keptCurated ? ` kept-curator-state ${c.keptCurated}` : ""}`;
 
 async function main(): Promise<void> {
   const { url, label } = resolveDatabaseUrl();
@@ -44,7 +44,7 @@ async function main(): Promise<void> {
     console.log(`[content:import] relationships  ${fmt(s.relationships)} (pruned ${s.pruned.relationships})`);
     console.log(`[content:import] claim sources  +${s.claimSources.inserted} -${s.claimSources.pruned}; relationship sources +${s.relationshipSources.inserted} -${s.relationshipSources.pruned}; GI sources +${s.traditionSources.inserted} -${s.traditionSources.pruned}`);
     console.log(`[content:import] media          ${fmt(s.mediaCandidates)} (pruned ${s.mediaCandidates.pruned})`);
-    const stale = s.stale.concepts.length + s.stale.sources.length + s.stale.traditions.length;
+    const stale = s.stale.concepts.length + s.stale.sources.length + s.stale.traditions.length + s.stale.relationships.length;
     if (stale > 0) console.log(`[content:import] stale rows kept (no longer in content/): ${JSON.stringify(s.stale)}`);
     console.log(`[content:import] audit_log ${s.auditLogId}`);
 

@@ -35,7 +35,11 @@ function noFraming(response: NextResponse): NextResponse {
   return response;
 }
 
-/** /api/auth/*: pass through, minus spoofable client-IP headers when no proxy is trusted. */
+/**
+ * /api/auth/* and the study entry form (POST /study, Server Action enterStudy): pass through,
+ * minus spoofable client-IP headers when no proxy is trusted. Both key a rate limit on the client
+ * address (sign-in; enrolment, src/server/study/enrolment-throttle.ts, final review security-04).
+ */
 function authApi(request: NextRequest): NextResponse {
   if (clientIpPolicy().trustForwardedHeaders) return NextResponse.next();
   const headers = new Headers(request.headers);
@@ -47,6 +51,7 @@ export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   if (startsWithSegment(pathname, "/api/auth")) return authApi(request);
+  if (pathname === "/study" && request.method === "POST") return authApi(request);
 
   if (NO_FRAME_PAGES.includes(pathname)) return noFraming(NextResponse.next());
 
@@ -83,6 +88,7 @@ export const config = {
     "/research/:path*",
     "/admin/:path*",
     "/learn/:path*",
+    "/study",
     "/study/:path+",
     "/sign-in",
     "/sign-out",

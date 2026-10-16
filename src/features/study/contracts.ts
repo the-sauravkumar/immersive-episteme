@@ -104,7 +104,14 @@ export const studyConfigSchema = z.object({
        * `pre_test_score` the auto-scored pre-test total. Needs `algorithm = stratified_block`
        * and `point = after_pre_test`.
        */
-      stratifyBy: z.object({ source: z.enum(STRATUM_SOURCES), cutoff: z.number().finite() }).optional(),
+      stratifyBy: z
+        .object({
+          source: z.enum(STRATUM_SOURCES),
+          cutoff: z.number().finite(),
+          /** pre_map_recall: the reference map pinned at activation (set by activateStudy, never by hand). */
+          referenceMapId: z.uuid().optional(),
+        })
+        .optional(),
     })
     .default({ algorithm: "block", strata: [], point: "after_pre_test" }),
   /**
@@ -200,8 +207,20 @@ export const studyConfigSchema = z.object({
     })
     .default({ allowed: true }),
   device: z.object({ minViewport: z.object({ width: z.number().int().positive(), height: z.number().int().positive() }).optional() }).default({}),
-  /** Repeat enrolment from one browser: refused (true) or flagged in the journal (false; shared lab machines). */
-  enrolment: z.object({ blockRepeatBrowser: z.boolean().default(false) }).default({ blockRepeatBrowser: false }),
+  /**
+   * Enrolment. Repeat enrolment from one browser: refused (true) or flagged in the journal (false;
+   * shared lab machines). Limits against scripted enrolment (final review security-04; defaults in
+   * src/server/study/enrolment-throttle.ts): new enrolments per client address per 10 minutes and
+   * per study per hour, and an optional cap on participants. Demo studies are not throttled.
+   */
+  enrolment: z
+    .object({
+      blockRepeatBrowser: z.boolean().default(false),
+      maxPerAddressPer10Minutes: z.number().int().positive().max(10_000).optional(),
+      maxPerHour: z.number().int().positive().max(100_000).optional(),
+      maxParticipants: z.number().int().positive().optional(),
+    })
+    .default({ blockRepeatBrowser: false }),
   retentionDays: z.number().int().positive().optional(),
   notes: z.string().max(4000).optional(),
 });

@@ -8,7 +8,10 @@
  *    portrait and square photographs letterbox inside it (object-fit: contain), so every figure has
  *    the same footprint. No ticks, radius or shadow.
  *  - kind `diagram`: the graph-derived SVG (DR-018). kind `photo`: next/image with explicit size,
- *    the literal `sizes` below, eager for the first figure of a view and lazy otherwise.
+ *    the literal `sizes` below, eager for the first figure of a view and lazy otherwise, and
+ *    `unoptimized`: the browser loads /figures/<id> itself, so the licence gate of that route runs
+ *    on every cache miss and a withdrawn or expired photograph is never re-served from the image
+ *    optimiser's cache (final review knowledge-05; the files are already 768 px derivatives).
  *  - figcaption: "Fig. n" (600) and the caption in `text-caption`; the credit line in
  *    `text-credit` (a photo: "Photo: <credit>. Licence: <licence>", the licence linked when it
  *    has a URL); and ONE control, a 44 x 44 outline "Enlarge figure n" button in the caption row
@@ -91,6 +94,7 @@ export function KnowledgeFigure({ figure, number, first = false, className }: Kn
         width={figure.width}
         height={figure.height}
         sizes={FIGURE_SIZES}
+        unoptimized
         loading={first ? "eager" : "lazy"}
         decoding="async"
         className="h-full w-full object-contain"
@@ -111,7 +115,7 @@ export function KnowledgeFigure({ figure, number, first = false, className }: Kn
     const scale = Math.min(1, LIGHTBOX_MAX_EDGE / Math.max(figure.width, figure.height));
     const w = Math.round(figure.width * scale);
     const h = Math.round(figure.height * scale);
-    enlarged = <Image src={figure.src} alt={figure.alt} width={w} height={h} sizes={`${w}px`} loading="eager" decoding="async" className="mx-auto h-auto max-w-full" />;
+    enlarged = <Image src={figure.src} alt={figure.alt} width={w} height={h} sizes={`${w}px`} unoptimized loading="eager" decoding="async" className="mx-auto h-auto max-w-full" />;
   }
 
   return (

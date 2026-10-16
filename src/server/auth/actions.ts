@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 import { serverEnv } from "@/lib/env";
 import { isLearningCondition, LEARNING_ROUTE } from "@/lib/permissions/learning";
 
-import { DEMO_COOKIE, PARTICIPANT_COOKIE, SECURE_COOKIES } from "./cookie-names";
+import { DEMO_COOKIE, expiredCookie, PARTICIPANT_COOKIE, SECURE_COOKIES } from "./cookie-names";
 import { isPublicDemoEnabled } from "./demo-gate";
 import { DEMO_SESSION_TTL_SECONDS, signDemoSession } from "./demo-session";
 import { resolveParticipantSession } from "./learning-decision";
@@ -34,7 +34,7 @@ export async function startPublicDemo(formData: FormData): Promise<void> {
   if (participantCookie !== undefined) {
     const live = await resolveParticipantSession(participantCookie, { secret, lookup: getStudySessionLookup() });
     if (live.allowed) redirect("/study/session");
-    jar.delete({ name: PARTICIPANT_COOKIE, path: "/" });
+    jar.set(expiredCookie(PARTICIPANT_COOKIE));
   }
 
   if (!(await isPublicDemoEnabled())) redirect("/explore?demo=unavailable");
@@ -51,6 +51,6 @@ export async function startPublicDemo(formData: FormData): Promise<void> {
 }
 
 export async function endPublicDemo(): Promise<void> {
-  (await cookies()).delete({ name: DEMO_COOKIE, path: "/" });
+  (await cookies()).set(expiredCookie(DEMO_COOKIE));
   redirect("/explore");
 }

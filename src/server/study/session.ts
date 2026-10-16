@@ -10,16 +10,13 @@ import { cache } from "react";
 
 import { serverEnv } from "@/lib/env";
 import { LEARNING_ROUTE } from "@/lib/permissions/learning";
-import { SECURE_COOKIES } from "@/server/auth/cookie-names";
+import { expiredCookie, hostOnly, SECURE_COOKIES } from "@/server/auth/cookie-names";
 import { requireParticipantSession } from "@/server/auth/learning-access";
 import { getPool } from "@/server/db/client";
 
 import { practiceRoute, STEP_ROUTE, type StudyStep } from "./config";
 import { loadSessionState, syncPosition, type Position, type SessionState } from "./engine";
 import { ENROLMENT_TTL_SECONDS, HISTORY_TTL_SECONDS, signEnrolment, signHistory, verifyEnrolment, verifyHistory, type EnrolmentClaims, type HistoryEntries } from "./tokens";
-
-const isProduction = process.env.NODE_ENV === "production";
-const hostOnly = (name: string) => (isProduction ? `__Host-${name}` : name);
 
 /** Pre-allocation enrolment (between the study code and the consent decision). */
 export const ENROLMENT_COOKIE = hostOnly("ie_study_enrolment");
@@ -38,7 +35,7 @@ export async function setEnrolment(claims: EnrolmentClaims): Promise<void> {
 }
 
 export async function clearEnrolment(): Promise<void> {
-  (await cookies()).delete({ name: ENROLMENT_COOKIE, path: "/" });
+  (await cookies()).set(expiredCookie(ENROLMENT_COOKIE));
 }
 
 export async function readHistory(): Promise<HistoryEntries> {

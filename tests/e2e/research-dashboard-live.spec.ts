@@ -1,8 +1,13 @@
 /**
  * Research dashboard live updates (docs/research/design-process/modules/research-dashboard.md):
  * a telemetry event inserted AFTER the page has loaded appears without a manual reload, pushed
- * through NOTIFY → SSE → router.refresh(), in under 2 s (measured three times; the times are
- * printed), and the dashboard's responses (page, probe, stream, CSV) carry no-store.
+ * through NOTIFY → SSE → in-place rows update (router.refresh() follows for the rest of the page),
+ * in under 2 s (measured three times; the times are printed), and the dashboard's responses
+ * (page, probe, stream, CSV) carry no-store.
+ *
+ * The latency is timed IN the page (a MutationObserver stamps the moment the cell shows the new
+ * count), not by when a Playwright assertion next polls: toHaveText retries after 100, 250, 500
+ * and then every 1000 ms, which alone adds up to a second to a measured time.
  *
  * Runs against the dev server and database (PLAYWRIGHT_BASE_URL). Demo data only: the demo
  * fixture study of ./study-fixtures.ts, a throwaway researcher account (scripts/create-admin.ts),
@@ -92,6 +97,28 @@ test("new telemetry appears without a reload, and nothing is cached", async ({ p
   const latencies: number[] = [];
   for (let i = 0; i < 3; i++) {
     const eventId = randomUUID();
+    // Armed (awaited) before the insert; resolves with the browser's Date.now() (same machine
+    // clock) at the first DOM change that shows the expected count (15 s cap: then the assertion
+    // below fails).
+    await page.evaluate(
+      ([code, want]) => {
+        (window as unknown as { __shownAt: Promise<number> }).__shownAt = new Promise<number>((resolve) => {
+          const shows = () => [...document.querySelectorAll("tr")].some((tr) => tr.cells[0]?.textContent?.trim() === code && tr.cells[3]?.textContent?.trim() === want);
+          const obs = new MutationObserver(() => {
+            if (shows()) {
+              obs.disconnect();
+              resolve(Date.now());
+            }
+          });
+          obs.observe(document.body, { subtree: true, childList: true, characterData: true });
+          setTimeout(() => {
+            obs.disconnect();
+            resolve(Number.POSITIVE_INFINITY);
+          }, 15_000);
+        });
+      },
+      [session!.code, String(session!.events + i + 1)] as const,
+    );
     await db().query(
       `INSERT INTO telemetry_events (event_id, schema_version, study_id, participant_id, session_id, condition_id, client_ts, seq, event_type_code, metadata, app_build, content_version)
        VALUES ($1, 1, $2, $3, $4, $5, now(), $6, 'guidance_cue_used', '{"action": "dismissed"}', 'e2e', 'demo-snapshot-v1')`,
@@ -99,8 +126,9 @@ test("new telemetry appears without a reload, and nothing is cached", async ({ p
     );
     inserted.push(eventId);
     const t0 = Date.now();
+    const shownAt = await page.evaluate(() => (window as unknown as { __shownAt: Promise<number> }).__shownAt);
     await expect(eventsCell).toHaveText(String(session!.events + i + 1), { timeout: 15_000 });
-    latencies.push(Date.now() - t0);
+    latencies.push(Math.max(0, shownAt - t0));
     await page.waitForTimeout(1_500);
   }
   console.log(`insert-to-UI latency (ms): ${latencies.join(", ")}`);

@@ -142,11 +142,18 @@ export interface InterfaceParitySummary {
   headline: { viewport: string; theme: string };
   /** Every check of PARITY_CHECKS, in order, then any extra id the report carries. */
   checks: ParityCheckSummary[];
+  /** Every expected check (PARITY_CHECKS plus any extra id the report carries): the denominator of the run line. */
+  total: number;
   /** Checks measured in at least one run; how many pass, are partial (some part not measured) or fail. */
   measured: number;
   passing: number;
   partial: number;
   failing: number;
+  /**
+   * Expected checks no run measured (final review scoring-08): a stored report older than the
+   * suite never reads as full parity; the run line names these ids.
+   */
+  notMeasuredIds: string[];
 }
 
 export function summariseInterfaceParity(report: InterfaceParityReport): InterfaceParitySummary {
@@ -180,10 +187,12 @@ export function summariseInterfaceParity(report: InterfaceParityReport): Interfa
     runs: report.runs.length,
     headline: { viewport: viewportLabel(headline.viewport), theme: headline.theme },
     checks,
+    total: checks.length,
     measured: measured.length,
     passing: measured.filter((c) => c.status === "pass").length,
     partial: measured.filter((c) => c.status === "partial").length,
     failing: measured.filter((c) => c.status === "fail").length,
+    notMeasuredIds: checks.filter((c) => c.status === "not-measured").map((c) => c.id),
   };
 }
 

@@ -127,6 +127,32 @@ describe.skipIf(!TEST_URL)("admin services", () => {
     expect(counts.platform_admin).toBe(1);
   });
 
+  it("two admins locking each other at once leave one active admin (security-10)", async () => {
+    // Exactly two active admins for this case: admin_one is set aside meanwhile.
+    const a = await createUser(t.pool, "race_admin_a");
+    const b = await createUser(t.pool, "race_admin_b");
+    await grant(a, "platform_admin");
+    await grant(b, "platform_admin");
+    await t.pool.query("UPDATE users SET disabled_at = now() WHERE id = $1", [admin.userId]);
+    try {
+      for (let round = 0; round < 3; round++) {
+        await t.pool.query("UPDATE users SET disabled_at = NULL WHERE id = ANY($1::text[])", [[a, b]]);
+        const results = await Promise.allSettled([
+          lockStaffUser(t.pool, { userId: a, roles: ["platform_admin"] }, { userId: b, reason: "race a locks b" }),
+          lockStaffUser(t.pool, { userId: b, roles: ["platform_admin"] }, { userId: a, reason: "race b locks a" }),
+        ]);
+        expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+        const refused = results.find((r) => r.status === "rejected") as PromiseRejectedResult;
+        expect((refused.reason as CmsError).code).toBe("last_admin");
+        const active = await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM users WHERE id = ANY($1::text[]) AND disabled_at IS NULL", [[a, b]]);
+        expect(active.n).toBe(1);
+      }
+    } finally {
+      await t.pool.query("UPDATE users SET disabled_at = NULL WHERE id = $1", [admin.userId]);
+      await t.pool.query("UPDATE users SET disabled_at = now() WHERE id = ANY($1::text[])", [[a, b]]);
+    }
+  });
+
   it("refuses self-lock; locking ends sessions and unlocking restores", async () => {
     await expectCode(lockStaffUser(t.pool, admin, { userId: admin.userId, reason: "myself" }), "self_lock");
     const target = await createUser(t.pool, "lock_target");

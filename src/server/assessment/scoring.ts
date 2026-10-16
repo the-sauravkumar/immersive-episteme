@@ -33,6 +33,7 @@ import {
 import type { MapPayload } from "@/components/assessment/map-state";
 import { KEY_MATCH_METRIC, keyMatch } from "@/features/assessment/responses";
 import type { DerivedScore } from "@/features/research/contracts";
+import { neutraliseFormula } from "@/server/research/exports/csv";
 
 import { AssessmentError, assertUuid, audit, inTransaction, type Q } from "./common";
 import type { ConceptSet } from "./concept-set";
@@ -654,8 +655,9 @@ export function toCsv(columns: readonly string[], rows: ReadonlyArray<Record<str
   const cell = (v: unknown) => {
     if (v === null || v === undefined) return "";
     const s = v instanceof Date ? v.toISOString() : String(v);
-    // Neutralise spreadsheet formula injection and quote when needed.
-    const safe = /^[=+\-@\t\r]/.test(s) && !/^-?\d/.test(s) ? `'${s}` : s;
+    // Neutralise spreadsheet formula injection (the shared rule of the research exports: only a
+    // plain number may start with "-", so "-1+cmd|..." is neutralised) and quote when needed.
+    const safe = neutraliseFormula(s, v);
     return /[",\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
   };
   return [columns.join(","), ...rows.map((r) => columns.map((c) => cell(r[c])).join(","))].join("\r\n") + "\r\n";

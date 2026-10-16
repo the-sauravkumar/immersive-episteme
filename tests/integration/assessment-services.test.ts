@@ -233,7 +233,13 @@ run("assessment services", () => {
       { type: "add_edge", source: "c4", target: "c3", relationshipType: "SIMILAR_TO", via: "form" },
     ]);
     expect(s.edges.find((e) => e.relationshipType === "SIMILAR_TO")?.directed).toBe(false);
-    const r = await saveParticipantMap(t.pool, p1, { itemId, payload: toPayload(s), final: true });
+    // Step gate (security-03): while learning (no reconstruction step current) or from a stale
+    // pre-test tab, the post map can be neither created nor submitted; nothing is written.
+    for (const current of [null, "pre"] as const) {
+      await expectError(saveParticipantMap(t.pool, p1, { itemId, payload: toPayload(s), final: true }, { currentPhase: async () => current }), "conflict");
+    }
+    expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM concept_maps WHERE session_id = $1 AND phase = 'post'", [p1.sessionId])).n).toBe(0);
+    const r = await saveParticipantMap(t.pool, p1, { itemId, payload: toPayload(s), final: true }, { currentPhase: async () => "post" });
     expect(r.isFinal).toBe(true);
   });
 

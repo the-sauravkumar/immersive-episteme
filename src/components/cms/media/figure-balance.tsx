@@ -26,7 +26,7 @@ import { KNOWLEDGE_LAYERS, STUDY_TRADITION_SLUGS } from "@/features/learning/lab
 import { STUDY_FIGURE_CAP } from "@/features/media/contracts";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
-import { listIllustrationLinks } from "@/server/cms/media/service";
+import { listSnapshotFigureAssets } from "@/server/cms/media/service";
 import { buildReviewSnapshotFromDb } from "@/server/content/review-snapshot";
 import type { Q } from "@/server/cms/core";
 import { figureBalance, type FigureBalance } from "@/server/research/parity/engine";
@@ -228,23 +228,23 @@ function FigureBalanceStacked({
 type Source = "release" | "review";
 
 /** Loads the bundle a study would pin (latest published release) or the next release (review). */
-async function loadBundle(q: Q, source: Source): Promise<{ bundle: KnowledgeBundle; label: string } | null> {
+async function loadBundle(q: Q, source: Source): Promise<{ bundle: KnowledgeBundle; label: string; snapshotId: string | null } | null> {
   if (source === "release") {
-    const r = await q.query<{ payload: unknown; version_label: string }>(
-      `SELECT payload, version_label FROM content_snapshots
+    const r = await q.query<{ id: string; payload: unknown; version_label: string }>(
+      `SELECT id, payload, version_label FROM content_snapshots
         WHERE kind = 'release' AND status = 'published' AND NOT is_demo
         ORDER BY published_at DESC NULLS LAST, created_at DESC LIMIT 1`,
     );
     const row = r.rows[0];
     if (!row) return null;
     const parsed = knowledgeBundleSchema.safeParse(row.payload);
-    return parsed.success ? { bundle: parsed.data, label: row.version_label } : null;
+    return parsed.success ? { bundle: parsed.data, label: row.version_label, snapshotId: row.id } : null;
   }
   const built = await buildReviewSnapshotFromDb(q, {
     hasher: nodeSha256,
     generatedAt: new Date().toISOString(),
   }).catch(() => null);
-  return built?.ok ? { bundle: built.envelope.payload, label: built.envelope.versionLabel } : null;
+  return built?.ok ? { bundle: built.envelope.payload, label: built.envelope.versionLabel, snapshotId: null } : null;
 }
 
 const VIEW_LINK = cn(
@@ -272,7 +272,9 @@ export async function FigureBalanceSection({
   hrefFor: (v: { source: Source; diagrams: boolean }) => string;
 }) {
   const day = new Date().toISOString().slice(0, 10);
-  const [loaded, links] = await Promise.all([loadBundle(q, source), listIllustrationLinks(q)]);
+  const loaded = await loadBundle(q, source);
+  // A published release is judged on the figures frozen into it (DR-037); the review build on the live links.
+  const links = await listSnapshotFigureAssets(q, loaded?.snapshotId ?? null);
   const balance = loaded
     ? figureBalance(loaded.bundle, [...STUDY_TRADITION_SLUGS], {
         structureDiagrams: diagrams,

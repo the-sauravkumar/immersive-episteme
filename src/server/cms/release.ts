@@ -5,18 +5,28 @@
  * loadModelFromDb: every non-demo tradition, source, concept and relationship in the review
  * pipeline — under_review, needs_evidence, verified, published; draft, rejected and archived
  * rows are out). A release is therefore refused while anything in the pipeline is unaccepted:
- * curators either verify it or take it out of the pipeline (reject / archive / withdraw).
+ * curators either verify it or take it out of the pipeline (reject / archive / withdraw). Taking
+ * a TRADITION out of the pipeline means taking its concepts out too (REL005), and a source out
+ * of the pipeline must first stop being cited (REL004).
  *
  * Built with the existing snapshot builder (buildSnapshot kind "publishable", which refuses
  * with SNAP001 error-level integrity issues, SNAP002 unaccepted content, SNAP003 invalid bundle,
  * SNAP004 demo content). Added checks (CMS codes):
  *   REL001 a tradition row (traditions table) is not accepted (the database re-checks every
  *          snapshot item against its live row at publication);
- *   REL002 a claim or relationship citation lacks its page/locator or verbatim quotation.
+ *   REL002 a claim or relationship citation lacks its page/locator or verbatim quotation;
+ *   REL004 a claim or relationship in the pipeline cites a source outside it (draft, rejected or
+ *          archived): the loader cannot resolve that citation, so the release would silently
+ *          drop it (final review knowledge-03; cms-admin.md C7 "Nothing is silently omitted");
+ *   REL005 a concept in the pipeline belongs to a tradition outside it: the bundle would hold it
+ *          with no tradition, and the spatial compiler and the metrics would count it as shared
+ *          knowledge (final review knowledge-12).
  * Publication, in ONE transaction: verified → published for the included rows, rebuild the
  * bundle from the database (bound to database ids, with citation locators and quotations),
- * insert `content_snapshots` (kind release) + `snapshot_items` as draft, then UPDATE to
- * published — the 0005 trigger re-checks payload vs items vs live rows and freezes it.
+ * insert `content_snapshots` (kind release) + `snapshot_items` as draft, freeze the study
+ * photographs servable now into `snapshot_figures` (DR-037: a study shows exactly these, never a
+ * later caption, anchor, link or file), then UPDATE to published — the 0005 trigger re-checks
+ * payload vs items vs live rows and freezes it, and the 0019 trigger freezes its figures.
  */
 import type { Pool, PoolClient } from "pg";
 
@@ -31,7 +41,7 @@ import type { RelationshipTypeDefinition } from "@/features/knowledge/contracts"
 import { loadModelFromDb } from "@/server/content/review-snapshot";
 
 import { audit, CmsError, ensure, inActorTx, setChangeReason, type Actor, type Q } from "./core";
-import { stampFirstPublication } from "./media/service";
+import { freezeReleaseFigures, stampFirstPublication } from "./media/service";
 
 export interface ReleaseReadiness {
   ok: boolean;
@@ -71,9 +81,47 @@ async function pendingRows(q: Q): Promise<ReleaseReadiness["pending"]> {
        WHERE NOT r.is_demo AND r.verification_state IN ('under_review','needs_evidence') ORDER BY 3 LIMIT 50)
      UNION ALL
      (SELECT 'source', id::text, title, verification_state::text FROM sources
-       WHERE NOT is_demo AND verification_state IN ('under_review','needs_evidence') ORDER BY title LIMIT 50)`,
+       WHERE NOT is_demo AND verification_state IN ('under_review','needs_evidence') ORDER BY title LIMIT 50)
+     UNION ALL
+     (SELECT 'cited source outside the pipeline', s.id::text, s.title, s.verification_state::text FROM sources s
+       WHERE NOT s.is_demo AND s.verification_state NOT IN ${PIPELINE}
+         AND (EXISTS (SELECT 1 FROM concept_claim_sources cs JOIN concept_claims cc ON cc.id = cs.claim_id JOIN concepts c ON c.id = cc.concept_id
+                       WHERE cs.source_id = s.id AND NOT c.is_demo AND c.verification_state IN ${PIPELINE})
+           OR EXISTS (SELECT 1 FROM relationship_sources rs JOIN relationships r ON r.id = rs.relationship_id
+                       WHERE rs.source_id = s.id AND NOT r.is_demo AND r.verification_state IN ${PIPELINE}))
+       ORDER BY s.title LIMIT 50)
+     UNION ALL
+     (SELECT 'concept of a tradition outside the pipeline', c.id::text, c.key, c.verification_state::text
+        FROM concepts c JOIN traditions t ON t.id = c.tradition_id
+       WHERE NOT c.is_demo AND c.verification_state IN ${PIPELINE} AND t.verification_state NOT IN ${PIPELINE}
+       ORDER BY c.key LIMIT 50)`,
   );
   return r.rows;
+}
+
+/**
+ * REL004 and REL005: pipeline content that depends on rows outside the pipeline. The review
+ * snapshot loader keeps only pipeline rows, so without these checks a release would silently drop
+ * a citation (knowledge-03) or release a tradition's concepts with no tradition (knowledge-12).
+ */
+async function outsideDependencies(q: Q): Promise<SnapshotRefusal[]> {
+  const r = await q.query<{ claims: number; rels: number; orphans: number }>(
+    `SELECT
+       (SELECT count(DISTINCT cc.id)::int FROM concept_claims cc JOIN concepts c ON c.id = cc.concept_id
+          JOIN concept_claim_sources cs ON cs.claim_id = cc.id JOIN sources s ON s.id = cs.source_id
+         WHERE NOT c.is_demo AND c.verification_state IN ${PIPELINE} AND s.verification_state NOT IN ${PIPELINE}) AS claims,
+       (SELECT count(DISTINCT r.id)::int FROM relationships r JOIN relationship_sources rs ON rs.relationship_id = r.id
+          JOIN sources s ON s.id = rs.source_id
+         WHERE NOT r.is_demo AND r.verification_state IN ${PIPELINE} AND s.verification_state NOT IN ${PIPELINE}) AS rels,
+       (SELECT count(*)::int FROM concepts c JOIN traditions t ON t.id = c.tradition_id
+         WHERE NOT c.is_demo AND c.verification_state IN ${PIPELINE} AND t.verification_state NOT IN ${PIPELINE}) AS orphans`,
+  );
+  const { claims, rels, orphans } = r.rows[0]!;
+  const out: SnapshotRefusal[] = [];
+  if (claims > 0) out.push({ code: "REL004", message: `${claims} claim(s) cite a source that is draft, rejected or archived; the release would drop that citation. Verify the source or remove the citation.` });
+  if (rels > 0) out.push({ code: "REL004", message: `${rels} relationship(s) cite a source that is draft, rejected or archived; the release would drop that citation. Verify the source or remove the citation.` });
+  if (orphans > 0) out.push({ code: "REL005", message: `${orphans} concept(s) belong to a tradition that is draft, rejected or archived; take those concepts out of the pipeline too, or return the tradition to review.` });
+  return out;
 }
 
 async function citationGaps(q: Q): Promise<SnapshotRefusal[]> {
@@ -104,6 +152,7 @@ export async function releaseReadiness(q: Q): Promise<ReleaseReadiness> {
   const tr = await q.query<{ n: number }>(`SELECT count(*)::int AS n FROM traditions WHERE NOT is_demo AND verification_state IN ('under_review','needs_evidence')`);
   if (tr.rows[0]!.n > 0) refusals.push({ code: "REL001", message: `${tr.rows[0]!.n} tradition record(s) are not verified` });
   refusals.push(...(await citationGaps(q)));
+  refusals.push(...(await outsideDependencies(q)));
   if (model.concepts.length === 0) refusals.push({ code: "REL003", message: "Nothing to publish: no concept is in the review pipeline" });
   const integrity = { error: 0, warning: 0, info: 0 };
   for (const i of issues) integrity[i.severity]++;
@@ -239,6 +288,8 @@ export async function publishRelease(pool: Pool, actor: Actor, input: ReleaseInp
          FROM jsonb_to_recordset($2::jsonb) AS x(item_kind text, entity_ref text, entity_key text, item_sha256 text)`,
       [id, JSON.stringify(items.map((i) => ({ item_kind: i.itemKind, entity_ref: i.entityRef, entity_key: i.entityKey ?? null, item_sha256: i.itemSha256 })))],
     );
+    // DR-037: the study photographs are part of what the study pins (frozen before publication).
+    const figures = await freezeReleaseFigures(c, id);
     const pub = await c.query<{ payload_sha256: string; item_count: number }>(
       "UPDATE content_snapshots SET status = 'published', published_by = $2 WHERE id = $1 RETURNING payload_sha256, item_count",
       [id, actor.userId],
@@ -253,6 +304,7 @@ export async function publishRelease(pool: Pool, actor: Actor, input: ReleaseInp
         payloadSha256: pub.rows[0]!.payload_sha256,
         bundleSha256: hashCanonical(nodeSha256, payload),
         items: pub.rows[0]!.item_count,
+        figures,
         promoted,
         verificationCounts: built.snapshot.verificationCounts,
         integrity: built.snapshot.integrity,

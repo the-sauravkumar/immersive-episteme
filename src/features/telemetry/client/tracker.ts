@@ -15,7 +15,12 @@
  *  - on `pagehide` / `visibilitychange` to hidden the pending events are sent with
  *    `navigator.sendBeacon` (or `fetch(..., { keepalive: true })`). Those sends are
  *    fire-and-forget: the events stay in the outbox until a normal upload is acknowledged
- *    (the server deduplicates by idempotency key and eventId).
+ *    (the server deduplicates by idempotency key and eventId);
+ *  - a batch's idempotency key names its seq range AND a hash of its event ids, so two tabs of
+ *    one session that numbered the same seqs never share a key (a shared key would make the
+ *    server answer the second batch as a replay of the first: final review telemetry-02);
+ *  - a page that starts hidden (opened in a background tab) starts with timing paused;
+ *  - `flushNow()` delivers before the session ends (FinishForm) and reports what is left.
  *
  * Seq starts at 0 for a new session. Demo and preview sessions use the same path (the server
  * answers `persisted: false, nonExperimental: true`).
@@ -150,6 +155,13 @@ export interface TelemetryTracker extends EventHelpers {
   dispose(): void;
   /** Uploads everything that can be sent now (respects an active backoff). */
   flush(): Promise<void>;
+  /**
+   * Delivers now: ignores the client's own backoff for the first attempt, then retries (honouring
+   * Retry-After and the backoff) until the outbox is empty or `deadlineMs` (default 8 s) has
+   * passed. Resolves with the number of events still pending: `flush()` alone resolves without
+   * delivering anything during a backoff or after a failed upload.
+   */
+  flushNow(opts?: { deadlineMs?: number }): Promise<{ pending: number }>;
   /** Synchronous exit flush via sendBeacon / keepalive (what pagehide triggers). */
   flushOnExit(): void;
   getStats(): TelemetryStats;
@@ -161,9 +173,28 @@ export interface TelemetryTracker extends EventHelpers {
 
 const RETRYABLE = (status: number) => status === 408 || status === 429 || status >= 500;
 
-/** Stable idempotency key of a batch: same events (seq range) => same key. */
+/** 64-bit FNV-1a (two 32-bit lanes with different offset bases) as 16 hex characters. */
+function fnv1a64(text: string): string {
+  let a = 0x811c9dc5;
+  let b = 0x811c9dc5 ^ 0x5bd1e995;
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    a = Math.imul(a ^ c, 0x01000193);
+    b = Math.imul(b ^ c, 0x01000193);
+  }
+  return (a >>> 0).toString(16).padStart(8, "0") + (b >>> 0).toString(16).padStart(8, "0");
+}
+
+/**
+ * Stable idempotency key of a batch: same events => same key (a retry or a beacon of the same
+ * events is deduplicated). The seq range alone is not enough: a second tab of the session can
+ * give the same seqs to OTHER events, and the server would answer that batch as a replay and
+ * the tab would delete events never stored. The event-id hash makes such a batch a new batch,
+ * where an event on a used seq is quarantined as seq_conflict (kept, not lost).
+ */
 export function batchIdempotencyKey(sessionId: string, events: readonly TelemetryEvent[]): string {
-  return `b:${sessionId}:${events[0]!.seq}-${events[events.length - 1]!.seq}`;
+  const ids = events.map((e) => e.eventId).join(",");
+  return `b:${sessionId}:${events[0]!.seq}-${events[events.length - 1]!.seq}:${fnv1a64(ids)}`;
 }
 
 function parseRetryAfter(value: string | null, nowMs: number): number | null {
@@ -413,7 +444,11 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
     return rawTrack(type, ...args);
   };
 
-  const timing = createTimeAccountant({ track: rawTrack, monotonicNow });
+  // Interval ids must be unique within the session across page loads and tabs (the metrics match
+  // starts to ends by id): a random per-tracker prefix, not the page's performance.now().
+  const intervalPrefix = uuid().replace(/-/g, "").slice(0, 10);
+  let intervalCounter = 0;
+  const timing = createTimeAccountant({ track: rawTrack, monotonicNow, newId: () => `iv-${intervalPrefix}-${(intervalCounter++).toString(36)}` });
 
   function takeBatch(max: number): TelemetryEvent[] {
     return [...pending.keys()]
@@ -571,6 +606,20 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
     return draining;
   }
 
+  async function flushNow({ deadlineMs = 8_000 }: { deadlineMs?: number } = {}): Promise<{ pending: number }> {
+    const until = now() + deadlineMs;
+    // The caller is about to end the session: do not wait out the client's own backoff once.
+    attempt = 0;
+    nextAttemptAt = 0;
+    for (;;) {
+      await flush();
+      if (pending.size === 0) return { pending: 0 };
+      const wait = Math.max(0, nextAttemptAt - now());
+      if (now() + wait >= until) return { pending: pending.size };
+      await new Promise((resolve) => setTimeout(resolve, wait));
+    }
+  }
+
   /**
    * Synchronous exit flush: every event already staged (including intervals closed by the
    * pagehide / hide handler just before) goes out in successive beacons (fallback: keepalive
@@ -631,6 +680,11 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
     win?.addEventListener("blur", onBlur);
     win?.addEventListener("focus", onFocus);
     doc?.addEventListener("visibilitychange", onVisibility);
+    // A page opened in a background tab (middle click, ctrl-click) loads hidden and gets no
+    // visibilitychange until it is shown: start paused, so its intervals accrue no active time
+    // (final review telemetry-05). Focus is not read here: headless browsers and pages behind
+    // DevTools report hasFocus() false, which would leave timing paused until a focus event.
+    if (doc?.visibilityState === "hidden") timing.pause("hidden");
     return () => {
       win?.removeEventListener("pagehide", onPageHide);
       win?.removeEventListener("online", onOnline);
@@ -672,6 +726,7 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
       disposed = true;
     },
     flush,
+    flushNow,
     flushOnExit,
     getStats: () => stats,
     subscribe(listener) {

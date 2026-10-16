@@ -105,6 +105,8 @@ export function passingInput(): ParityInput {
         exposure: { mode: "fixed_time", minutes: 20, allowEarlyFinish: false },
         guidance: { policy: "none", cueEnabled: false },
         searchEnabled: false,
+        // The journey matches the battery (pre-test, learning, post-test): parity check d.journey.
+        steps: ["pre_test", "learning", "post_test"],
       },
       snapshotId: "00000000-0000-4000-8000-0000000000aa",
       manifestId: "00000000-0000-4000-8000-0000000000bb",
@@ -113,8 +115,8 @@ export function passingInput(): ParityInput {
         { id: "c3d", code: "immersive", label: "3D", interface: "immersive_3d", config: {} },
       ],
       battery: [
-        { assessmentId: "a-pre", code: "pre-test", version: 1, phase: "pre", position: 0, status: "locked", required: true },
-        { assessmentId: "a-post", code: "post-test", version: 1, phase: "post", position: 0, status: "locked", required: true },
+        { assessmentId: "a-pre", code: "pre-test", version: 1, kind: "pretest", phase: "pre", position: 0, status: "locked", required: true },
+        { assessmentId: "a-post", code: "post-test", version: 1, kind: "posttest", phase: "post", position: 0, status: "locked", required: true },
       ],
     },
     snapshot: { id: "00000000-0000-4000-8000-0000000000aa", versionLabel: bundle.versionLabel, status: "published", kind: "release", isDemo: false, payload: bundle },

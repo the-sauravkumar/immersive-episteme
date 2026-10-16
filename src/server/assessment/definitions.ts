@@ -10,7 +10,7 @@
  * Content: every prompt, option, answer key and rubric level is typed in by a researcher. The
  * platform seeds none (demo assessments only, `is_demo`, "Demo:" titles).
  */
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import { z } from "zod";
 
 import { answerKeySchema } from "@/features/assessment/responses";
@@ -288,22 +288,31 @@ export async function deleteItem(q: Q, assessmentId: string, itemId: string): Pr
   }
 }
 
-/** Publishes (locks) a draft version. Locked versions are immutable in the database. */
-export async function publishAssessment(q: Q, actorId: string, id: string): Promise<void> {
-  const current = await draftAssessment(q, id);
-  const items = await q.query<{ kind: string; config: unknown }>("SELECT kind, config FROM assessment_items WHERE assessment_id = $1", [id]);
-  if (items.rows.length === 0) throw new AssessmentError("invalid", "Add at least one item before publishing.");
-  if (current.kind === "reconstruction") {
-    const maps = items.rows.filter((i) => i.kind === "concept_map");
-    if (maps.length !== 1) throw new AssessmentError("invalid", "A reconstruction assessment has exactly one concept-map item.");
-    await checkConceptMapConfig(q, maps[0]!.config, current.isDemo);
-  }
-  try {
-    await q.query("UPDATE assessments SET status = 'locked', updated_at = now() WHERE id = $1", [id]);
-  } catch (err) {
-    mapDbError(err);
-  }
-  await audit(q, { actorId, action: "assessment.publish", entity: "assessments", entityId: id });
+/**
+ * Publishes (locks) a draft version. Locked versions are immutable in the database. One
+ * transaction with the assessment row locked: the items validated are the items locked (an item
+ * write waits for the row, migration 0018), and the lock and its audit row commit together
+ * (final review database-08).
+ */
+export async function publishAssessment(pool: Pool | PoolClient, actorId: string, id: string): Promise<void> {
+  assertUuid(id, "Assessment");
+  await inTransaction(pool, async (q) => {
+    await q.query("SELECT 1 FROM assessments WHERE id = $1 FOR UPDATE", [id]);
+    const current = await draftAssessment(q, id);
+    const items = await q.query<{ kind: string; config: unknown }>("SELECT kind, config FROM assessment_items WHERE assessment_id = $1", [id]);
+    if (items.rows.length === 0) throw new AssessmentError("invalid", "Add at least one item before publishing.");
+    if (current.kind === "reconstruction") {
+      const maps = items.rows.filter((i) => i.kind === "concept_map");
+      if (maps.length !== 1) throw new AssessmentError("invalid", "A reconstruction assessment has exactly one concept-map item.");
+      await checkConceptMapConfig(q, maps[0]!.config, current.isDemo);
+    }
+    try {
+      await q.query("UPDATE assessments SET status = 'locked', updated_at = now() WHERE id = $1", [id]);
+    } catch (err) {
+      mapDbError(err);
+    }
+    await audit(q, { actorId, action: "assessment.publish", entity: "assessments", entityId: id });
+  });
 }
 
 /** A new draft version (same code, next version number) copying metadata and items. */
@@ -347,16 +356,19 @@ export async function createRubric(q: Q, actorId: string, assessmentId: string, 
   return r.rows[0]!.id;
 }
 
-export async function lockRubric(q: Q, actorId: string, rubricId: string): Promise<void> {
+/** Locks a draft rubric; the lock and its audit row commit together (database-08). */
+export async function lockRubric(pool: Pool | PoolClient, actorId: string, rubricId: string): Promise<void> {
   assertUuid(rubricId, "Rubric");
-  try {
-    const r = await q.query("UPDATE scoring_rubrics SET status = 'locked' WHERE id = $1 AND status = 'draft'", [rubricId]);
-    if (!r.rowCount) throw new AssessmentError("not_found", "Draft rubric not found");
-  } catch (err) {
-    if (err instanceof AssessmentError) throw err;
-    mapDbError(err);
-  }
-  await audit(q, { actorId, action: "rubric.publish", entity: "scoring_rubrics", entityId: rubricId });
+  await inTransaction(pool, async (q) => {
+    try {
+      const r = await q.query("UPDATE scoring_rubrics SET status = 'locked' WHERE id = $1 AND status = 'draft'", [rubricId]);
+      if (!r.rowCount) throw new AssessmentError("not_found", "Draft rubric not found");
+    } catch (err) {
+      if (err instanceof AssessmentError) throw err;
+      mapDbError(err);
+    }
+    await audit(q, { actorId, action: "rubric.publish", entity: "scoring_rubrics", entityId: rubricId });
+  });
 }
 
 /** Relationship-type registry (vocabulary a concept-map item may offer). */

@@ -6,7 +6,7 @@ import { CATEGORIES, P1, pmap, R1, redge } from "./fixtures";
 
 const s = (r: ReturnType<typeof scoreConceptMap>, n: string) => getScore(r, n);
 
-describe("scoreConceptMap — worked example P1 vs R1 (defaults: directed_labelled, optional = valid)", () => {
+describe("scoreConceptMap — worked example P1 vs R1 (defaults: directed_labelled, optional = neutral)", () => {
   const r = scoreConceptMap(P1, R1, {}, { conceptCategories: CATEGORIES });
   const cls = Object.fromEntries(r.participantEdges.map((e) => [e.edgeKey, e.class]));
 
@@ -30,8 +30,8 @@ describe("scoreConceptMap — worked example P1 vs R1 (defaults: directed_labell
   });
 
   it("valid / incorrect / missing counts", () => {
-    // valid = e1, e4 (expected) + e5 (optional, counted valid) = 3
-    expect(s(r, "cmap.valid_relationships")).toBe(3);
+    // valid = e1, e4 (expected); e5 matches only the optional r5 and is neutral by default (pipeline 1.1.0)
+    expect(s(r, "cmap.valid_relationships")).toBe(2);
     // incorrect = e2 (direction), e3 (type), e6 (unsupported) = 3; e7/e9 excluded, e8 duplicate
     expect(s(r, "cmap.incorrect_relationships")).toBe(3);
     // expected r1..r4; r1 (e1) and r4 (e4) matched -> r2, r3 missing = 2; optional r5 never missing
@@ -51,25 +51,25 @@ describe("scoreConceptMap — worked example P1 vs R1 (defaults: directed_labell
   });
 
   it("precision / recall / F1 / Jaccard at three levels", () => {
-    // dl: P = 6 distinct keys, E = 4, O = {B>D#USES}
-    //   precision = |P∩(E∪O)|/|P| = 3/6; recall = 2/4; F1 = 0.5
+    // dl: P = 6 distinct keys, E = 4, O = {B>D#USES}; neutral: P\O = 5
+    //   precision = |(P\O)∩E|/|P\O| = 2/5; recall = 2/4; F1 = 2(2/5)(1/2)/(2/5+1/2) = 4/9
     //   Jaccard: P' = P\O = 5, |P'∩E| = 2, union = 5+4-2 = 7 -> 2/7
-    expect(s(r, "cmap.precision.dl")).toBeCloseTo(0.5, 12);
+    expect(s(r, "cmap.precision.dl")).toBeCloseTo(2 / 5, 12);
     expect(s(r, "cmap.recall.dl")).toBeCloseTo(0.5, 12);
-    expect(s(r, "cmap.f1.dl")).toBeCloseTo(0.5, 12);
+    expect(s(r, "cmap.f1.dl")).toBeCloseTo(4 / 9, 12);
     expect(s(r, "cmap.jaccard.dl")).toBeCloseTo(2 / 7, 12);
-    // du: P = {A>B, C>B, C>D, A~D, B>D, A>E}; P∩E = {A>B, C>D, A~D} = 3; P∩O = 1
-    //   precision = 4/6; recall = 3/4; F1 = 2(2/3)(3/4)/(2/3+3/4) = 1/(17/12) = 12/17
+    // du: P = {A>B, C>B, C>D, A~D, B>D, A>E}; P∩E = {A>B, C>D, A~D} = 3; O = {B>D}, P\O = 5
+    //   precision = 3/5; recall = 3/4; F1 = 2(3/5)(3/4)/(3/5+3/4) = (9/10)/(27/20) = 2/3
     //   Jaccard = 3 / (5 + 4 - 3) = 1/2
-    expect(s(r, "cmap.precision.du")).toBeCloseTo(4 / 6, 12);
+    expect(s(r, "cmap.precision.du")).toBeCloseTo(3 / 5, 12);
     expect(s(r, "cmap.recall.du")).toBeCloseTo(3 / 4, 12);
-    expect(s(r, "cmap.f1.du")).toBeCloseTo(12 / 17, 12);
+    expect(s(r, "cmap.f1.du")).toBeCloseTo(2 / 3, 12);
     expect(s(r, "cmap.jaccard.du")).toBeCloseTo(0.5, 12);
-    // uu: P = {A|B, B|C, C|D, A|D, B|D, A|E}; P∩E = 4; P∩O = 1
-    //   precision = 5/6; recall = 4/4; F1 = (10/6)/(11/6) = 10/11; Jaccard = 4/(5+4-4) = 4/5
-    expect(s(r, "cmap.precision.uu")).toBeCloseTo(5 / 6, 12);
+    // uu: P = {A|B, B|C, C|D, A|D, B|D, A|E}; P∩E = 4; O = {B|D}, P\O = 5
+    //   precision = 4/5; recall = 4/4; F1 = (8/5)/(9/5) = 8/9; Jaccard = 4/(5+4-4) = 4/5
+    expect(s(r, "cmap.precision.uu")).toBeCloseTo(4 / 5, 12);
     expect(s(r, "cmap.recall.uu")).toBe(1);
-    expect(s(r, "cmap.f1.uu")).toBeCloseTo(10 / 11, 12);
+    expect(s(r, "cmap.f1.uu")).toBeCloseTo(8 / 9, 12);
     expect(s(r, "cmap.jaccard.uu")).toBeCloseTo(0.8, 12);
   });
 
@@ -77,9 +77,10 @@ describe("scoreConceptMap — worked example P1 vs R1 (defaults: directed_labell
     // A materials, B process_stages, C production_outcomes, D materials, E tools
     // in-scope kept: e1 A-B ✓cross, e2 C-B cross, e3 C-D cross, e4 A-D same, e5 B-D ✓cross, e6 A-E cross
     expect(s(r, "cmap.cross_category.total")).toBe(5);
-    expect(s(r, "cmap.cross_category.valid")).toBe(2); // e1, e5
-    // reference expected cross: r1 A-B, r2 B-C, r3 C-D (r4 A-D is within materials) = 3 -> 2/3
-    expect(s(r, "cmap.cross_category.valid_normalised")).toBeCloseTo(2 / 3, 12);
+    expect(s(r, "cmap.cross_category.valid")).toBe(1); // e1 (e5 matches only the optional r5: neutral)
+    // reference expected cross: r1 A-B, r2 B-C, r3 C-D (r4 A-D is within materials) = 3;
+    // covered (not missing at dl): r1 only -> 1/3 (v1.1.0: covered expected edges, as recall)
+    expect(s(r, "cmap.cross_category.valid_normalised")).toBeCloseTo(1 / 3, 12);
   });
 
   it("causal-chain depth (valid causal edges only)", () => {
@@ -114,32 +115,75 @@ describe("scoreConceptMap — worked example P1 vs R1 (defaults: directed_labell
 });
 
 describe("configuration variants", () => {
-  it("optionalMatch = neutral removes optional matches from valid count and precision", () => {
-    const r = scoreConceptMap(P1, R1, { optionalMatch: "neutral" });
-    expect(getScore(r, "cmap.valid_relationships")).toBe(2);
+  it("optional matches are neutral by default (D2; pipeline 1.1.0)", () => {
+    expect(scoreConceptMap(P1, R1).parameters.optionalMatch).toBe("neutral");
+  });
+
+  it("optionalMatch = valid counts optional matches in the valid count and precision", () => {
+    const r = scoreConceptMap(P1, R1, { optionalMatch: "valid" }, { conceptCategories: CATEGORIES });
+    expect(getScore(r, "cmap.valid_relationships")).toBe(3); // e1, e4 + e5 (optional)
     expect(getScore(r, "cmap.incorrect_relationships")).toBe(3);
-    // dl: P\O = 5, hits on E = 2 -> 2/5
-    expect(getScore(r, "cmap.precision.dl")).toBeCloseTo(0.4, 12);
+    // dl: |P∩(E∪O)| / |P| = 3/6
+    expect(getScore(r, "cmap.precision.dl")).toBeCloseTo(0.5, 12);
+    // the coverage proportion does not reward the optional match: still 1/3 (final review scoring-05)
+    expect(getScore(r, "cmap.cross_category.valid")).toBe(2);
+    expect(getScore(r, "cmap.cross_category.valid_normalised")).toBeCloseTo(1 / 3, 12);
   });
 
   it("outOfScopeEdges = count_as_incorrect counts free-node and unknown-concept edges", () => {
     const r = scoreConceptMap(P1, R1, { outOfScopeEdges: "count_as_incorrect" });
     expect(getScore(r, "cmap.incorrect_relationships")).toBe(5); // + e7, e9
-    expect(getScore(r, "cmap.precision.dl")).toBeCloseTo(3 / 8, 12); // 3 / (6 + 2)
+    expect(getScore(r, "cmap.precision.dl")).toBeCloseTo(2 / 7, 12); // 2 / (5 + 2), optional neutral
     expect(getScore(r, "cmap.edit_distance")).toBe(5); // 3 + two deletes
   });
 
   it("validityLevel = directed_unlabelled accepts a wrong type", () => {
     const r = scoreConceptMap(P1, R1, { validityLevel: "directed_unlabelled" });
-    expect(getScore(r, "cmap.valid_relationships")).toBe(4); // e1 e3 e4 e5
+    expect(getScore(r, "cmap.valid_relationships")).toBe(3); // e1 e3 e4 (e5 optional-only: neutral)
     expect(getScore(r, "cmap.missing_expected_relationships")).toBe(1); // only r2 (B>C) unmatched in direction
   });
 
   it("validityLevel = undirected_unlabelled accepts a reversed edge", () => {
     const r = scoreConceptMap(P1, R1, { validityLevel: "undirected_unlabelled" });
-    expect(getScore(r, "cmap.valid_relationships")).toBe(5);
+    expect(getScore(r, "cmap.valid_relationships")).toBe(4); // e1 e2 e3 e4 (e5 optional-only: neutral)
     expect(getScore(r, "cmap.incorrect_relationships")).toBe(1); // e6
     expect(getScore(r, "cmap.missing_expected_relationships")).toBe(0);
+  });
+});
+
+describe("normalised coverage metrics stay proportions (final review scoring-05)", () => {
+  // Reference: A-CAUSES->B expected; B-CAUSES->C and C-CAUSES->D optional. Categories alternate,
+  // so every edge is cross-category. The participant draws all three edges.
+  const ref = { conceptIds: ["A", "B", "C", "D"], edges: [redge("A", "B", "CAUSES", "expected"), redge("B", "C", "CAUSES", "optional"), redge("C", "D", "CAUSES", "optional")] };
+  const cats = { A: "x", B: "y", C: "x", D: "y" };
+  const p = pmap([
+    ["e1", "A", "B", "CAUSES"],
+    ["e2", "B", "C", "CAUSES"],
+    ["e3", "C", "D", "CAUSES"],
+  ]);
+
+  for (const optionalMatch of ["valid", "neutral"] as const) {
+    it(`optionalMatch = ${optionalMatch}: cross_category.valid_normalised and causal_chain_depth_normalised are 1, never 3`, () => {
+      const r = scoreConceptMap(p, ref, { optionalMatch }, { conceptCategories: cats });
+      expect(getScore(r, "cmap.recall.dl")).toBe(1);
+      expect(getScore(r, "cmap.cross_category.valid_normalised")).toBe(1); // 1 covered of 1 expected cross edge
+      expect(getScore(r, "cmap.causal_chain_depth_normalised")).toBe(1); // covered expected chain 1 / reference 1
+    });
+  }
+
+  it("the raw causal depth still counts every valid edge", () => {
+    expect(getScore(scoreConceptMap(p, ref, { optionalMatch: "valid" }), "cmap.causal_chain_depth")).toBe(3);
+    expect(getScore(scoreConceptMap(p, ref), "cmap.causal_chain_depth")).toBe(1);
+  });
+
+  it("at a lenient validity level two edges on one expected pair cover it once", () => {
+    const q = pmap([
+      ["e1", "A", "B", "CAUSES"],
+      ["e2", "A", "B", "ENABLES"],
+    ]);
+    const r = scoreConceptMap(q, ref, { validityLevel: "undirected_unlabelled" }, { conceptCategories: cats });
+    expect(getScore(r, "cmap.cross_category.valid")).toBe(2);
+    expect(getScore(r, "cmap.cross_category.valid_normalised")).toBe(1);
   });
 });
 
@@ -210,7 +254,7 @@ describe("synonym / equivalence configuration", () => {
     expect(scoreConceptMap(P1, R1).participantEdges.find((e) => e.edgeKey === "e3")?.class).toBe("wrong_type");
     const r = scoreConceptMap(P1, R1, { typeEquivalences: [{ from: "ENABLES", to: "PRODUCES" }] });
     expect(r.participantEdges.find((e) => e.edgeKey === "e3")?.class).toBe("correct");
-    expect(getScore(r, "cmap.valid_relationships")).toBe(4);
+    expect(getScore(r, "cmap.valid_relationships")).toBe(3); // e1 e3 e4 (e5 optional: neutral)
   });
 
   it("reversing equivalence: A DEPENDS_ON B ≈ B ENABLES A only when configured", () => {

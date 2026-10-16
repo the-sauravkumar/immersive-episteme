@@ -31,6 +31,7 @@ import {
   smallint,
   text,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -172,6 +173,9 @@ export const consentRecords = pgTable(
     check("consent_records_sha_ck", sql`${t.consentTextSha256} ~ ${sql.raw(`'${SHA256_HEX_RE}'`)}`),
     check("consent_records_method_ck", sql`${t.method} IN ('on_screen', 'paper', 'verbal_witnessed')`),
     index("consent_records_participant_idx").on(t.participantId, t.recordedAt),
+    // One initial decision per enrolment (withdrawal is a later "withdrawn" row): the database
+    // backstop of recordConsent, against a double submit from two tabs (final review database-08).
+    uniqueIndex("consent_records_one_decision_uq").on(t.participantId).where(sql`decision IN ('granted', 'declined')`),
   ],
 );
 
@@ -359,3 +363,14 @@ export const sessionAnnotations = pgTable(
     index("session_annotations_session_idx").on(t.sessionId, t.createdAt),
   ],
 );
+
+/**
+ * Enrolment throttle (final review security-04): fixed-window counters of new enrolments per
+ * study and per client address (keys are sha256 values; no address is stored). Written only by
+ * src/server/study/enrolment-throttle.ts.
+ */
+export const studyEnrolmentThrottle = pgTable("study_enrolment_throttle", {
+  keySha256: text().primaryKey(),
+  attempts: integer().notNull(),
+  windowStartedAt: tsz().notNull(),
+});

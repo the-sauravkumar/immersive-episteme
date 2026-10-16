@@ -125,7 +125,7 @@ describe("telemetry tracker", () => {
     const batch = fetch.calls[0]!.batch;
     expect(batch.events.map((e) => e.seq)).toEqual([0, 1, 2]);
     expect(batch).toMatchObject({ sessionId: SESSION, schemaVersion: 1, appBuild: "test-build", contentVersion: "review-abc" });
-    expect(batch.idempotencyKey).toBe(`b:${SESSION}:0-2`);
+    expect(batch.idempotencyKey).toMatch(new RegExp(`^b:${SESSION}:0-2:[0-9a-f]{16}$`));
     expect(tracker.getStats()).toMatchObject({ acked: 3, pending: 0, persisted: true, nonExperimental: false });
   });
 
@@ -162,6 +162,63 @@ describe("telemetry tracker", () => {
     expect(new Set(fetch.calls.map((c) => c.batch.events[0]!.eventId)).size).toBe(1);
     expect(tracker.getStats()).toMatchObject({ retries: 2, acked: 2, pending: 0 });
     expect(await outbox.list(SESSION)).toHaveLength(0);
+  });
+
+  it("never lets two tabs that numbered the same seqs share an idempotency key (no replayed loss)", async () => {
+    // Both tabs of one session share the seq mark. Tab 1 has already uploaded seq 0; tab 2 starts
+    // from the shared mark, then both emit seq 1 with different events.
+    const marks = new Map<string, number>();
+    const seqMark: SeqMark = { get: (s) => marks.get(s) ?? null, set: (s, n) => void marks.set(s, n) };
+    // A server that answers a known key as a replay without looking at the events (ingest.ts).
+    const stored = new Map<string, string[]>();
+    const server = (calls: { batch: { idempotencyKey: string; events: { eventId: string }[] } }[]) => () => {
+      const b = calls[calls.length - 1]!.batch;
+      if (!stored.has(b.idempotencyKey)) stored.set(b.idempotencyKey, b.events.map((e) => e.eventId));
+    };
+    const tab1 = make([], { seqMark });
+    await tab1.tracker.pageEntered();
+    await tab1.tracker.flush();
+    const tab2 = make([], { seqMark });
+    const e2 = await tab2.tracker.pageEntered();
+    const e1 = await tab1.tracker.pageEntered();
+    expect([e1?.seq, e2?.seq]).toEqual([1, 1]);
+    await tab1.tracker.flush();
+    server(tab1.fetch.calls)();
+    await tab2.tracker.flush();
+    server(tab2.fetch.calls)();
+    const k1 = tab1.fetch.calls.at(-1)!.batch.idempotencyKey;
+    const k2 = tab2.fetch.calls.at(-1)!.batch.idempotencyKey;
+    expect(k1).not.toBe(k2);
+    // Every acknowledged event reached the server under its own key.
+    expect(stored.get(k2)).toEqual([e2!.eventId]);
+    // The same events always give the same key (retries and beacons are deduplicated).
+    const { batchIdempotencyKey } = await import("@/features/telemetry/client/tracker");
+    expect(batchIdempotencyKey(SESSION, [e2!])).toBe(k2);
+  });
+
+  it("flushNow delivers despite a running backoff and reports what it could not deliver", async () => {
+    const ok = make([503, 200], { baseRetryDelayMs: 30_000 });
+    await ok.tracker.pageEntered();
+    await ok.tracker.flush(); // 503: next attempt in 15-30 s
+    await ok.tracker.flush();
+    expect(ok.fetch.calls).toHaveLength(1); // flush() waits out the backoff
+    expect(await ok.tracker.flushNow()).toEqual({ pending: 0 });
+    expect(ok.fetch.calls).toHaveLength(2);
+
+    const down = make([503, 503, 503, 503, 503, 503, 503, 503], { baseRetryDelayMs: 1000 });
+    await down.tracker.sessionEnded({ metadata: { reason: "completed" } });
+    const result = down.tracker.flushNow({ deadlineMs: 5000 });
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(await result).toEqual({ pending: 1 });
+    expect(down.fetch.calls.length).toBeGreaterThan(1); // it retried within the deadline
+  });
+
+  it("gives intervals of two page loads created in the same millisecond different ids", () => {
+    // performance.now() restarts at every load; 812.3 and 812.9 both floor to 812.
+    const a = make([], { monotonicNow: () => 812.3 }).tracker.timing.beginNavigation();
+    const b = make([], { monotonicNow: () => 812.9 }).tracker.timing.beginNavigation();
+    expect(a).not.toBe(b);
+    expect(a).toMatch(/^iv-[0-9a-f]{10}-0$/);
   });
 
   it("honours Retry-After on 429", async () => {
@@ -270,6 +327,27 @@ describe("telemetry tracker", () => {
       await vi.advanceTimersByTimeAsync(0);
       // page_entered plus the timing_paused that hiding the tab logs (staged before the flush).
       expect(tracker.getStats()).toMatchObject({ acked: 2, pending: 0 });
+      tracker.stop();
+    });
+
+    it("starts paused when the page loads hidden (background tab), so hidden time is not active", async () => {
+      vi.useRealTimers();
+      let mono = 1000;
+      const { win, doc } = lifecycle();
+      doc.visibilityState = "hidden";
+      const { tracker, fetch } = make([], { lifecycle: { window: win, document: doc }, monotonicNow: () => mono });
+      tracker.start();
+      tracker.timing.beginNavigation();
+      expect(tracker.timing.paused()).toBe(true);
+      mono += 60_000; // a minute in the background
+      doc.visibilityState = "visible";
+      doc.dispatchEvent(new Event("visibilitychange"));
+      expect(tracker.timing.paused()).toBe(false);
+      mono += 2_000;
+      tracker.timing.end("closed");
+      await tracker.flush();
+      const ended = fetch.calls.flatMap((c) => c.batch.events).find((e) => e.type === "navigation_ended");
+      expect(ended?.metadata).toMatchObject({ activeMs: 2000, pausedMs: 60_000 });
       tracker.stop();
     });
 

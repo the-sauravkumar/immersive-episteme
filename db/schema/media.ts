@@ -29,6 +29,7 @@ import {
   index,
   integer,
   pgTable,
+  primaryKey,
   smallint,
   text,
   unique,
@@ -49,6 +50,7 @@ import {
   verificationStateEnum,
 } from "./_common";
 import { concepts, contentPackages, sources } from "./knowledge";
+import { contentSnapshots } from "./publishing";
 
 const SHA = sql.raw(`'${SHA256_HEX_RE}'`);
 const MIME = sql.raw(`'^[a-z]+/[a-z0-9][a-z0-9.+-]*$'`);
@@ -177,6 +179,52 @@ export const assetLinks = pgTable(
       foreignColumns: [concepts.id, concepts.isDemo],
     }).onDelete("cascade"),
     index("asset_links_concept_idx").on(t.conceptId, t.position),
+  ],
+);
+
+/**
+ * The study photographs frozen into a RELEASE snapshot (migration 0019; final review knowledge-01,
+ * database-01, security-02). `publishRelease` copies every illustration that is servable at
+ * publication, with exactly what a learner sees (the anchor claim index and the resolved caption,
+ * alt text, credit and licence lines, the pixel size and the file's sha256), while the snapshot is
+ * still a draft; publishing freezes the rows (triggers in 0019). The read model serves a released
+ * study's photographs only from here, so a caption edit, a re-anchored or new link, or a replaced
+ * file never changes what a running study shows. Only removals stay live: the licence (expiry,
+ * display cap, first-publication stamp) and a reviewer's withdrawal of the asset.
+ */
+export const snapshotFigures = pgTable(
+  "snapshot_figures",
+  {
+    snapshotId: uuid()
+      .notNull()
+      .references(() => contentSnapshots.id, { onDelete: "cascade" }),
+    conceptId: uuid().notNull(),
+    assetId: uuid()
+      .notNull()
+      .references(() => assets.id, { onDelete: "restrict" }),
+    /** The anchor claim index (zero-based) in the snapshot's own claim list. */
+    position: smallint().notNull(),
+    caption: text().notNull(),
+    altText: text().notNull(),
+    credit: text().notNull(),
+    licence: text().notNull(),
+    licenceUrl: text(),
+    width: integer().notNull(),
+    height: integer().notNull(),
+    /** sha256 of the file at publication; a different file is never shown under this record. */
+    sha256: text().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.snapshotId, t.conceptId, t.assetId] }),
+    check("snapshot_figures_position_ck", sql`${t.position} >= 0`),
+    check("snapshot_figures_dims_ck", sql`${t.width} > 0 AND ${t.height} > 0`),
+    check("snapshot_figures_sha_ck", sql`${t.sha256} ~ ${SHA}`),
+    check(
+      "snapshot_figures_text_ck",
+      sql`btrim(${t.caption}) <> '' AND btrim(${t.altText}) <> '' AND btrim(${t.credit}) <> '' AND btrim(${t.licence}) <> ''`,
+    ),
+    index("snapshot_figures_asset_idx").on(t.assetId),
   ],
 );
 

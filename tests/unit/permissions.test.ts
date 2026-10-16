@@ -61,6 +61,7 @@ const EXPECTED: Record<Role, Permission[]> = {
     "study.activate",
     "participants.manage",
     "participants.identify",
+    "participants.purge",
     "sessions.view",
     "sessions.annotate",
     "sessions.exclude",
@@ -211,6 +212,7 @@ describe("policy invariants", () => {
       "study.configure",
       "study.activate",
       "participants.identify",
+      "participants.purge",
       "exports.create",
       "exports.identified",
       "sessions.exclude",
@@ -220,8 +222,8 @@ describe("policy invariants", () => {
     expect(participantDataScope(admin)).toBe("pseudonymised");
   });
 
-  it("only the PI activates studies, excludes sessions and creates identified exports", () => {
-    for (const p of ["study.activate", "sessions.exclude", "exports.identified"] as const) {
+  it("only the PI activates studies, excludes sessions, creates identified exports and removes participant data", () => {
+    for (const p of ["study.activate", "sessions.exclude", "exports.identified", "participants.purge"] as const) {
       expect(ROLES.filter((r) => can({ roles: [r] }, p)), p).toEqual(["principal_investigator"]);
     }
   });

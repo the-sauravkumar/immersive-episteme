@@ -39,7 +39,7 @@ import {
   type TraditionSummary,
 } from "@/features/knowledge/read/view";
 import { STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
-import { listLearnerPhotoLinks } from "@/server/cms/media/service";
+import { listSnapshotPhotoLinks } from "@/server/cms/media/service";
 import { getPool } from "@/server/db/client";
 
 import { loadSnapshotPayload, searchSnapshotConcepts, MAX_QUERY_LENGTH } from "./snapshot-store";
@@ -200,16 +200,18 @@ const PHOTOS_BY_DEFAULT = true;
 
 /**
  * The study photographs servable today, by concept id, gated by the anchor claim's verification in
- * THIS snapshot (`photoFiguresOf`). Live media rows, so the cache entry lives for an hour (tag
- * `media-figures`, dropped by the media actions) rather than for the snapshot's lifetime, and the
- * learner route re-checks every request (licence expiry, approval) on its own.
+ * THIS snapshot (`photoFiguresOf`). A published release shows only the figures frozen into it at
+ * publication (DR-037, `listSnapshotPhotoLinks`): their anchor, caption, alt text and credit never
+ * change during a study. Removals stay live (an expired licence, a reviewer's withdrawal), so the
+ * cache entry lives for an hour (tag `media-figures`, dropped by the media actions) rather than
+ * for the snapshot's lifetime, and the learner route re-checks every request on its own.
  */
 async function photoFiguresByConcept(snapshotId: string, day: string): Promise<Map<string, PhotoFigure[]>> {
   "use cache";
   cacheTag(KNOWLEDGE_CACHE_TAG, snapshotCacheTag(snapshotId), MEDIA_FIGURES_CACHE_TAG);
   cacheLife("hours");
   const view = await viewFor(snapshotId);
-  const links = await listLearnerPhotoLinks(getPool(), day);
+  const links = await listSnapshotPhotoLinks(getPool(), snapshotId, day);
   const byConcept = new Map<string, PhotoFigure[]>();
   for (const conceptId of new Set(links.map((l) => l.conceptId))) {
     const concept = view.getConcept(conceptId);

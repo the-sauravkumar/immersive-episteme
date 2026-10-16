@@ -104,6 +104,17 @@ async function loadUser(q: Q, userId: string): Promise<{ id: string; email: stri
   return u;
 }
 
+/**
+ * Serialises every change that can reduce the set of active platform administrators (lock,
+ * revoke). Taken FIRST, before any row lock, so all admin mutations lock in the same order. Under
+ * READ COMMITTED the waiting transaction's next statement sees the committed change, so two
+ * admins locking (or revoking) each other at once cannot both pass the last-admin check
+ * (final review security-10).
+ */
+async function lockAdminHolders(c: PoolClient): Promise<void> {
+  await c.query("SELECT pg_advisory_xact_lock(hashtext('admin.platform_admin_holders'))");
+}
+
 async function activeAdminCount(q: Q, excludingUserId?: string): Promise<number> {
   const r = await q.query<{ n: number }>(
     `SELECT count(*)::int AS n FROM user_roles ur JOIN users u ON u.id = ur.user_id
@@ -118,6 +129,7 @@ export async function lockStaffUser(pool: Pool, actor: Actor, raw: z.input<typeo
   const input = lockInput.parse(raw);
   if (input.userId === actor.userId) throw new CmsError("self_lock", "You cannot lock your own account.", 409);
   return inActorTx(pool, actor, input.reason, async (c) => {
+    await lockAdminHolders(c);
     const u = await loadUser(c, input.userId);
     if (u.disabled_at) throw new CmsError("already_locked", "This account is already locked.", 409);
     const isAdmin = await c.query("SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'platform_admin'", [u.id]);
@@ -177,10 +189,10 @@ export async function revokeStaffRole(pool: Pool, actor: Actor, raw: z.input<typ
     throw new CmsError("self_revoke", "You cannot remove your own administrator role.", 409);
   }
   return inActorTx(pool, actor, null, async (c) => {
+    // Serialise concurrent revocations and locks so two admins cannot remove each other at once.
+    if (input.role === "platform_admin") await lockAdminHolders(c);
     await loadUser(c, input.userId);
     if (input.role === "platform_admin") {
-      // Serialise concurrent revocations so two admins cannot remove each other at once.
-      await c.query("SELECT pg_advisory_xact_lock(hashtext('admin.platform_admin_holders'))");
       if ((await activeAdminCount(c, input.userId)) === 0) {
         throw new CmsError("last_admin", "This is the last active platform administrator; the role cannot be removed.", 409);
       }

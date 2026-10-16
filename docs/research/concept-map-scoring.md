@@ -100,7 +100,7 @@ counted.
 
 ## 5. Metrics
 
-All metrics are `1.0.0`. Notation used in the formulas:
+Metrics are `1.0.0` unless marked `1.1.0` below (pipeline `cmap-scoring@1.1.0`, final review scoring-05 and -06). Notation used in the formulas:
 
 - *P*: the set of distinct in-scope participant keys at the level.
 - *E*: the expected reference keys.
@@ -109,20 +109,20 @@ All metrics are `1.0.0`. Notation used in the formulas:
 
 | Metric name | Definition | Measures | Limits |
 |---|---|---|---|
-| `cmap.valid_relationships` | Count of valid edges (§4). | AS-01 valid relations. | A raw count rewards drawing many edges. Read it next to the incorrect count and precision. |
+| `cmap.valid_relationships` (1.1.0) | Count of valid edges (§4). With the default `optionalMatch = neutral`, an edge matching only an optional edge is not valid. | AS-01 valid relations. | A raw count rewards drawing many edges. Read it next to the incorrect count and precision. |
 | `cmap.incorrect_relationships` | Count of incorrect edges; `details.byClass` splits them into wrong_type, wrong_direction and unsupported. | AS-02 incorrect relations. | An "incorrect" edge may be a defensible relation that the experts left out. The reference is not ground truth. |
 | `cmap.missing_expected_relationships` | Count of expected reference edges with no participant match at the validity level; `partialMatchLevel` shows near misses. | Omissions. | Depends on how complete the reference is. Optional and uncertain edges are never missing. |
 | `cmap.direction_correctness` | Among in-scope edges whose pair matches a reference edge (uu): the share that also match at du. | Directional understanding. | `null` if no pair matches. The denominator differs between participants. |
 | `cmap.type_correctness` | Among edges matching at du: the share that also match at dl. | Relationship-type understanding. | `null` if none matches at du. Sensitive to the synonym rules. |
-| `cmap.precision.{uu,du,dl}` | `optionalMatch=valid`: \|P∩(E∪O)\| / (\|P\|+X). `neutral`: \|(P∖O)∩E\| / (\|P∖O\|+X). | Share of the participant's links that are supported. | `null` for an empty participant map. |
+| `cmap.precision.{uu,du,dl}` (1.1.0; default `neutral`) | `optionalMatch=valid`: \|P∩(E∪O)\| / (\|P\|+X). `neutral`: \|(P∖O)∩E\| / (\|P∖O\|+X). | Share of the participant's links that are supported. | `null` for an empty participant map. |
 | `cmap.recall.{uu,du,dl}` | \|P∩E\| / \|E\| | Coverage of the expected structure (1 − missing rate). | `null` if the reference has no expected edges. |
-| `cmap.f1.{uu,du,dl}` | 2pr/(p+r). It is 0 if p+r = 0, 0 if P is empty and E is not, and `null` if recall is undefined. | Balance of precision and recall. | Hides which of the two drives the value. |
+| `cmap.f1.{uu,du,dl}` (1.1.0) | 2pr/(p+r). It is 0 if p+r = 0, 0 if P is empty and E is not, and `null` if recall is undefined. | Balance of precision and recall. | Hides which of the two drives the value. |
 | `cmap.jaccard.{uu,du,dl}` | \|P'∩E\| / (\|P'∪E\|+X), where P' = P∖O | Set overlap with the expected map; optional matches neither help nor hurt. | Like F1 it punishes extra and missing edges, but on a different scale. |
 | `cmap.cross_category.total` | In-scope edges whose two concepts have different knowledge categories. | AS-05 cross-category linking (attempted). | `null` without category data. Uncategorised endpoints are listed and not counted. |
-| `cmap.cross_category.valid` | The subset of those edges that are valid. | Correct cross-category linking. | As above. |
-| `cmap.cross_category.valid_normalised` | valid ÷ expected cross-category reference edges | Coverage of the expert's cross-category links. | `null` if the reference has none. |
-| `cmap.causal_chain_depth` | Number of edges on the longest simple directed path over **valid** participant edges whose canonical type is in `causalTypes` (§5.1). | AS-03 causal-chain depth. | Counts one chain only. A participant with two parallel chains of 2 scores 2. |
-| `cmap.causal_chain_depth_normalised` | participant depth ÷ reference depth (expected edges) | Depth relative to what the content supports. | `null` if the reference has no causal chain. |
+| `cmap.cross_category.valid` (1.1.0) | The subset of those edges that are valid. | Correct cross-category linking. | As above. |
+| `cmap.cross_category.valid_normalised` (1.1.0) | expected cross-category reference edges the participant matched (not missing at the validity level) ÷ expected cross-category reference edges | Coverage of the expert's cross-category links, in [0, 1]. | `null` if the reference has none. 1.0.0 divided the valid participant edges, which counted optional matches and could exceed 1. |
+| `cmap.causal_chain_depth` (1.1.0) | Number of edges on the longest simple directed path over **valid** participant edges whose canonical type is in `causalTypes` (§5.1). | AS-03 causal-chain depth. | Counts one chain only. A participant with two parallel chains of 2 scores 2. |
+| `cmap.causal_chain_depth_normalised` (1.1.0) | depth of the expected reference edges the participant matched ÷ depth of all expected reference edges | Depth relative to what the content supports, in [0, 1]. | `null` if the reference has no causal chain. 1.0.0 used the participant's depth over every valid edge, optional matches included, and could exceed 1. |
 | `cmap.degree_profile_similarity` | Bray–Curtis similarity (§5.2) | Structural shape, e.g. hubs, sources and sinks. | Ignores *which* concepts are linked. A map can be wrong edge-by-edge yet similar in shape. |
 | `cmap.edit_distance` | Minimum edit cost (§5.3) | Total transformation effort to reach the expected map. | Depends on the cost choices. |
 | `cmap.edit_distance_normalised` | cost ÷ (\|P\|·delete + \|E\|·insert) ∈ [0,1] | A comparable form of the above. | `null` when both maps are empty. |
@@ -174,9 +174,10 @@ This compares two submissions by concept id, with no reference involved.
 
 - **Items.** Items are candidate edges at a chosen level (default dl). Each rater includes an item or not.
 - **Universe.**
-  - `union` (the default): every edge proposed by at least one rater. There are no "both absent" items, so this choice is conservative.
+  - `union` (the default): every edge proposed by at least one rater. There are no "both absent" items, so kappa is degenerate, not conservative: for two raters pₒ − pₑ = −2bc/n² ≤ 0, so Cohen's κ (and Fleiss' κ, Scott's π for two raters) can never be positive however well the raters agree. Kappa is therefore not reported for this universe (`null` with `kappaUndefinedReason`); positive agreement is (final review scoring-01).
   - `all_possible`: every possible edge over the concept set, plus the relationship types at dl. Trivial agreed absences inflate percent agreement here.
   - Always report which universe was used.
+- **Positive agreement.** For a rater pair the Dice coefficient 2a/(2a+b+c); over all raters the proportion of specific positive agreement Σᵢsᵢ(sᵢ−1) / Σᵢsᵢ(n−1), which equals Dice for two raters. It ignores agreed absences, so it is the same in both universes. The reference workspace reports it over the union, and κ over all possible edges of the item's concept set and relationship types.
 - **Percent agreement.** This is Fleiss' P̄, the mean share of agreeing rater pairs per item. For two raters it equals the plain proportion of agreement.
 - **Fleiss' κ.** (P̄ − P̄e)/(1 − P̄e), with P̄e = Σⱼpⱼ². It is checked against Fleiss (1971) as reproduced on Wikipedia (κ ≈ 0.210).
 - **Cohen's κ for every rater pair.** (pₒ − pₑ)/(1 − pₑ). It is checked against a 2×2 textbook case (κ = 0.4).
@@ -211,7 +212,7 @@ stored score records the values that were actually used.
 1. **Primary metric and match level.** Which of these is the primary outcome: F1/recall at dl, the valid count, edit distance, or something else? This belongs in the statistical analysis plan, not in code.
 2. **Validity level.** Must an edge be correct in type (dl) to count as valid, or is pair-and-direction enough (du)? This depends on whether the editor offers typed links (Q-R4).
 3. **Synonym rules.** Which type equivalences are pedagogically acceptable, for example ENABLES ≈ PRODUCES, or DEPENDS_ON ≈ reversed ENABLES or REQUIRES? None is enabled by default.
-4. **Optional edges.** Should a match to an optional or uncertain edge count as valid, or be neutral?
+4. **Optional edges.** Decided (DR-040): a match to an optional or uncertain edge is neutral by default, as study decision D2 and the published definitions state. A study may still set `optionalMatch = valid`; every score stores the value it used.
 5. **Meaning of `required = false`.** It currently means optional, following the schema comment. If most expert edges should be expected, either set `required` explicitly or change `nonRequiredReferenceEdgeStatus`.
 6. **Out-of-scope edges.** Should edges to free nodes or concepts outside the reference set be excluded or counted as incorrect? This depends on whether the editor allows free nodes (`allowFreeNodes`).
 7. **Causal types and orientation.** Should EXPLAINS, SCIENTIFICALLY_EXPLAINED_BY, REQUIRES or DEPENDS_ON count towards causal chains? Q-R17 asks which types the content actually uses.

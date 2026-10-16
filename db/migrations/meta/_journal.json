@@ -127,6 +127,20 @@
       "when": 1792074192300,
       "tag": "0017_media_first_publication",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792116501608,
+      "tag": "0018_review_fix_study_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792117663711,
+      "tag": "0019_media_snapshot_figures",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,5 @@
 /**
- * Layer parity (DESIGN.md 9.6, 9.11 item 3, 12.1 rule 1; DR-021): for every concept the 3D museum
+ * Layer parity (DESIGN.md 9.6, 9.11 item 3, 12.1 rule 1; DR-034): for every concept the 3D museum
  * places, the 2D concept page builds the SAME LayerTabs, with the same concepts under each layer
  * in the same order, as the 3D information panel. 3D: the curated content compiled into a
  * manifest and read by `buildPanelModel`. 2D: `conceptLayers` over the read model of the same
@@ -88,7 +88,7 @@ describe("the 2D concept page has the 3D panel's layers", () => {
     expect(unsorted).toEqual([]);
   });
 
-  it("gives a concept a pager in 2D exactly when the 3D panel has one, with the same targets (DR-021)", async () => {
+  it("gives a concept a pager in 2D exactly when the 3D panel has one, with the same targets (DR-034)", async () => {
     const mismatches: string[] = [];
     let withPager = 0;
     for (const exhibit of model.exhibits) {

@@ -1,6 +1,6 @@
 /**
  * Server CSV of the dashboard's rows 3 and 4 (DESIGN.md 11.9): Figure 3 "Gain by Tradition"
- * (DR-022), Figure 4 "Dwell Time per Layer" and Table 2 "Per-Item Statistics". The same stored
+ * (DR-035), Figure 4 "Dwell Time per Layer" and Table 2 "Per-Item Statistics". The same stored
  * derived values and the same pure aggregations the dashboard draws
  * (src/app/(research)/research/dashboard/_components/dashboard-extras.ts), written with the same
  * `#` header line as the other dashboard tables: study, demo status, server time, dashboard

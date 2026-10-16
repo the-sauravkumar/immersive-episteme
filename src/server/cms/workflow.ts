@@ -88,6 +88,10 @@ export async function authorsOf(q: Q, kind: CmsEntityKind, id: string): Promise<
   return out;
 }
 
+/** The review pipeline (review-snapshot.ts REVIEW_SNAPSHOT_STATES): only these rows reach a snapshot. */
+const PIPELINE_SQL = "('under_review','needs_evidence','verified','published')";
+const PIPELINE_STATES: readonly VerificationState[] = ["under_review", "needs_evidence", "verified", "published"];
+
 export interface CitationProblem {
   code: string;
   message: string;
@@ -100,12 +104,14 @@ export interface CitationProblem {
 export async function citationProblems(q: Q, kind: CmsEntityKind, id: string): Promise<CitationProblem[]> {
   const out: CitationProblem[] = [];
   if (kind === "concept") {
-    const claims = await q.query<{ position: number; quote: string | null; n_sources: number; n_missing_locator: number; n_without_passage: number }>(
+    const claims = await q.query<{ position: number; quote: string | null; n_sources: number; n_missing_locator: number; n_without_passage: number; unusable: string[] | null }>(
       `SELECT cc.position, cc.quote,
               count(cs.source_id)::int AS n_sources,
               count(cs.source_id) FILTER (WHERE cs.locator IS NULL OR btrim(cs.locator) = '')::int AS n_missing_locator,
-              count(cs.source_id) FILTER (WHERE jsonb_array_length(cs.evidence) = 0)::int AS n_without_passage
-         FROM concept_claims cc LEFT JOIN concept_claim_sources cs ON cs.claim_id = cc.id
+              count(cs.source_id) FILTER (WHERE jsonb_array_length(cs.evidence) = 0)::int AS n_without_passage,
+              array_agg(coalesce(s.local_key, s.title) || ' (' || s.verification_state::text || ')' ORDER BY s.title)
+                FILTER (WHERE s.verification_state NOT IN ${PIPELINE_SQL}) AS unusable
+         FROM concept_claims cc LEFT JOIN concept_claim_sources cs ON cs.claim_id = cc.id LEFT JOIN sources s ON s.id = cs.source_id
         WHERE cc.concept_id = $1 GROUP BY cc.id ORDER BY cc.position`,
       [id],
     );
@@ -114,23 +120,36 @@ export async function citationProblems(q: Q, kind: CmsEntityKind, id: string): P
       const n = c.position + 1;
       if (c.n_sources === 0) out.push({ code: "claim_no_source", message: `Claim ${n} cites no source.` });
       if (c.n_missing_locator > 0) out.push({ code: "claim_no_locator", message: `Claim ${n}: ${c.n_missing_locator} citation(s) without a page or locator.` });
-      // A claim's evidence is either its own quote or, per citation, the located passages imported
-      // from content/ (FORMAT.md "Claim evidence"); a citation with neither has no evidence.
-      if ((!c.quote || !c.quote.trim()) && c.n_without_passage > 0) {
-        out.push({ code: "claim_no_quote", message: `Claim ${n}: ${c.n_without_passage} citation(s) without a verbatim evidence passage.` });
+      // Every citation needs its own verbatim quote (FORMAT.md "Claim evidence", citation-policy.md
+      // item 3): the located passages imported from content/, or one entered for that citation in
+      // the CMS. The claim's own quote stands in only for a claim with ONE source, because that is
+      // the only case the learner view can attach it to (view.ts; final review knowledge-06).
+      if (c.n_without_passage > 0 && (c.n_sources > 1 || !c.quote?.trim())) {
+        out.push({ code: "claim_no_quote", message: `Claim ${n}: ${c.n_without_passage} citation(s) without a verbatim evidence passage of their own.` });
+      }
+      // A citation of a source outside the review pipeline would be dropped from every snapshot
+      // without a trace (final review knowledge-03), so it blocks verification.
+      if (c.unusable?.length) {
+        out.push({ code: "claim_source_unusable", message: `Claim ${n} cites a source that is not in review or accepted: ${c.unusable.join(", ")}. Submit that source for review or remove the citation.` });
       }
     }
   } else if (kind === "relationship") {
-    const r = await q.query<{ requires_evidence: boolean; n: number; incomplete: number; provenance_kind: string }>(
+    const r = await q.query<{ requires_evidence: boolean; n: number; incomplete: number; provenance_kind: string; unusable: string[] | null }>(
       `SELECT rt.requires_evidence, r.provenance_kind,
               (SELECT count(*)::int FROM relationship_sources rs WHERE rs.relationship_id = r.id) AS n,
               (SELECT count(*)::int FROM relationship_sources rs WHERE rs.relationship_id = r.id
-                 AND (rs.locator IS NULL OR btrim(rs.locator) = '' OR rs.quote IS NULL OR btrim(rs.quote) = '')) AS incomplete
+                 AND (rs.locator IS NULL OR btrim(rs.locator) = '' OR rs.quote IS NULL OR btrim(rs.quote) = '')) AS incomplete,
+              (SELECT array_agg(coalesce(s.local_key, s.title) || ' (' || s.verification_state::text || ')' ORDER BY s.title)
+                 FROM relationship_sources rs JOIN sources s ON s.id = rs.source_id
+                WHERE rs.relationship_id = r.id AND s.verification_state NOT IN ${PIPELINE_SQL}) AS unusable
          FROM relationships r JOIN relationship_types rt ON rt.code = r.type_code WHERE r.id = $1`,
       [id],
     );
     const row = r.rows[0];
     if (row) {
+      if (row.unusable?.length) {
+        out.push({ code: "rel_source_unusable", message: `Cites a source that is not in review or accepted: ${row.unusable.join(", ")}. Submit that source for review or remove the citation.` });
+      }
       if (row.requires_evidence && row.n === 0) out.push({ code: "rel_no_source", message: "This relationship type requires evidence, but no source is cited." });
       if (row.incomplete > 0) out.push({ code: "rel_citation_incomplete", message: `${row.incomplete} citation(s) lack a page/locator or a verbatim quotation.` });
       if (row.provenance_kind === "unverified") out.push({ code: "provenance_unverified", message: 'Provenance kind "unverified" cannot be accepted.' });
@@ -207,16 +226,40 @@ export async function transition(pool: Pool, actor: Actor, input: TransitionInpu
     }
 
     await c.query(`UPDATE ${table} SET verification_state = $2 WHERE id = $1`, [input.entityId, input.to]);
+    const reopened = input.entityKind === "source" && !PIPELINE_STATES.includes(input.to) ? await reopenCitingContent(c, input.entityId) : null;
     await audit(c, actor, {
       action: `cms.review.${kind}`,
       entity: table,
       entityId: input.entityId,
       before: { state: from },
-      after: { state: input.to, evidenceChecked: checks },
+      after: { state: input.to, evidenceChecked: checks, ...(reopened ? { reopened } : {}) },
       reason: input.reason,
     });
     return { from, to: input.to, kind };
   });
+}
+
+/**
+ * A source that leaves the review pipeline (rejected, archived or withdrawn to draft) no longer
+ * supports what cites it: every accepted concept and relationship citing it goes back to review
+ * (final review knowledge-03, mirroring ie_evidence_changed), so no release can carry a claim
+ * whose citation it would drop. Runs in the transition's transaction; the verification_records
+ * trigger records each reopening with the transition's actor and reason.
+ */
+async function reopenCitingContent(c: Q, sourceId: string): Promise<{ concepts: number; relationships: number }> {
+  const concepts = await c.query(
+    `UPDATE concepts SET verification_state = 'under_review'
+      WHERE verification_state IN ('verified', 'published')
+        AND id IN (SELECT cc.concept_id FROM concept_claims cc JOIN concept_claim_sources cs ON cs.claim_id = cc.id WHERE cs.source_id = $1)`,
+    [sourceId],
+  );
+  const relationships = await c.query(
+    `UPDATE relationships SET verification_state = 'under_review'
+      WHERE verification_state IN ('verified', 'published')
+        AND id IN (SELECT relationship_id FROM relationship_sources WHERE source_id = $1)`,
+    [sourceId],
+  );
+  return { concepts: concepts.rowCount ?? 0, relationships: relationships.rowCount ?? 0 };
 }
 
 /** Which transitions the actor may attempt from `from` (for rendering buttons; the server re-checks). */

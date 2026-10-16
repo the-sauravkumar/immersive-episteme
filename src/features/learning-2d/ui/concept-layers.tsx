@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * The 2D placement of a concept's KnowledgeSheet WITH its layers (DESIGN.md 9.6, 9.11; DR-021):
+ * The 2D placement of a concept's KnowledgeSheet WITH its layers (DESIGN.md 9.6, 9.11; DR-034):
  * the shared `KnowledgeSheet` with the shared `LayerTabs`, holding the same layer state the 3D
  * information panel holds (which layer, which concept of that layer is shown). The server page
  * pre-renders every (layer, concept) view; this component only selects one, as the panel does:

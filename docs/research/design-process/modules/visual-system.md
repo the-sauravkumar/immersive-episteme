@@ -548,7 +548,7 @@ The 2D-only `claim-list.tsx`, `related-concepts.tsx`, `relation-details.tsx`, `p
   same on concept, tradition and practice pages.
 - **Concept page.**
   - The `KnowledgeSheet` sits directly under the chrome. There is no breadcrumb and no side rail.
-  - **LayerTabs, as in 3D (DR-021, below).** The sheet carries the same layers as the 3D panel
+  - **LayerTabs, as in 3D (DR-034, below).** The sheet carries the same layers as the 3D panel
     for the same concept, through the shared `LayerTabs`. One layer and one concept are shown at a
     time; a layer with several concepts shows the panel's chooser.
   - The shown concept's claims (with figures and comparison blocks) are the one `ExposureRegion`,
@@ -556,7 +556,7 @@ The 2D-only `claim-list.tsx`, `related-concepts.tsx`, `relation-details.tsx`, `p
     `<div>` (a measuring frame with data attributes, no role and no label). An earlier labelled
     `<section>` added a region landmark that the panel's field does not have, so screen-reader
     users met a different landmark tree for the same sheet.
-  - **A pager only on a sequence station (DR-021).** The 3D panel renders a `Pager` only for a
+  - **A pager only on a sequence station (DR-034).** The 3D panel renders a `Pager` only for a
     stop of an ordered sequence. 2D used to page every other concept through its template section
     ("Materials and Tools: previous and next", with the next concept's title), a 2D-only control
     and cue inside the equalised sheet that changed its length and Tab sequence (P18, P24, P25).
@@ -665,10 +665,11 @@ The 2D-only `claim-list.tsx`, `related-concepts.tsx`, `relation-details.tsx`, `p
   - On the other pages, which have no measured 3D counterpart, they stay at the top of the column.
   - So P6 and P8 no longer depend on whether a protocol sets prompts.
 
-### DR-021 (Proposed for the Decision Log): The Same Concept Layers and Pager in Both Conditions
+### DR-034 (Filed as the First DR-021): The Same Concept Layers and Pager in Both Conditions
 
-(Numbered DR-021 because DR-020 in the decision log is the photograph decision. Code and test
-comments cite DR-021.)
+(First numbered DR-021, because DR-020 in the decision log is the photograph decision. The decision
+log filed a second DR-021, the layout parity spread, in the same commit; this record was renumbered
+DR-034 by DR-039, and the code and test comments that meant it now cite DR-034.)
 
 - **Context.** The 2D concept page showed one layer (the concept's own claims). The 3D panel
   showed LayerTabs with the exhibit's attached concepts (artisan, science, explanation, compare
@@ -2797,8 +2798,9 @@ D3D11)`, and the report records it. `immersive-rendering.spec.ts` runs this way 
   - Dashboard: Table 1 comparator lines and the Figure 5 precision.
   - Public: the tradition plates' reserved title line and the Plate 1 position at tablet widths.
   - Museum: the minimap size and the panel framing.
-- `docs/research/design-process/decisions.md` has two DR-021, DR-022 and DR-023 entries (the
-  adopted ones and the proposed next-phase ones). The project lead should renumber one set.
+- `docs/research/design-process/decisions.md` had two DR-021, DR-022 and DR-023 entries (the
+  adopted ones and the proposed next-phase ones). Resolved by DR-039: the adopted ones are now
+  DR-034, DR-035 and DR-036; the next-phase ones keep their numbers.
 
 ## Atlas: Visual System and Controls (2D-A, DR-022)
 

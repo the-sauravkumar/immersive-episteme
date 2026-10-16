@@ -114,6 +114,11 @@ export function toResponseRaw(item: Pick<DeliveredItem, "kind">, value: AnswerVa
   return { value, itemKind: item.kind, assessmentVersion };
 }
 
+/** Does the item carry an answer key the shared rule scores (single/multiple choice, numeric)? */
+export function isKeyedItem(item: Pick<DeliveredItem, "kind" | "answerKey">): boolean {
+  return (item.kind === "single_choice" || item.kind === "multiple_choice" || item.kind === "numeric") && item.answerKey !== null && item.answerKey !== undefined;
+}
+
 /**
  * Objective score of an answered item: the shared key rule (`keyMatch`, metric
  * `item.key_match`), so the engine's immediate score and a later console re-run agree.
@@ -121,8 +126,7 @@ export function toResponseRaw(item: Pick<DeliveredItem, "kind">, value: AnswerVa
  */
 export function scoreItem(item: DeliveredItem, answer: ParsedAnswer, assessmentVersion = 1): 0 | 1 | null {
   if (answer.status !== "answered") return null;
-  if (item.kind !== "single_choice" && item.kind !== "multiple_choice" && item.kind !== "numeric") return null;
-  if (item.answerKey === null || item.answerKey === undefined) return null;
+  if (!isKeyedItem(item)) return null;
   const m = keyMatch(item.answerKey, toResponseRaw(item, answer.value, assessmentVersion));
   return m.value === 1 ? 1 : m.value === 0 ? 0 : null;
 }

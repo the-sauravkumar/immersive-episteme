@@ -1,7 +1,11 @@
 /**
- * GET /research/exports/download?study=<uuid>&scope=pseudonymised|identified&format=json|csv&table=<name>
+ * GET /research/exports/download?study=<uuid>&scope=pseudonymised|identified&format=json|csv|zip&table=<name>
  *
  * Builds the export on request (nothing is cached or written to disk) and records an audit row.
+ * The bundle is read in one database snapshot (`buildExportBundleConsistent`). `zip` serves every
+ * CSV table of that one bundle plus `manifest.json` (checksums, dictionary); a single-table CSV
+ * is built at its own moment, so separately downloaded CSV files must not be mixed during
+ * collection (final review telemetry-04).
  * The scope is decided on the server from the caller's permissions: an identified export needs
  * `exports.identified`; everyone else receives the pseudonymised scope or a 403.
  */
@@ -10,7 +14,7 @@ import { authorizeRequest } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 import { audit } from "@/server/research/db";
 import { ExportForbiddenError, resolveExportScope } from "@/server/research/exports/access";
-import { buildExportBundle, bundleTableCsv, type ExportScope } from "@/server/research/exports/build";
+import { buildExportBundleConsistent, bundleCsvZip, bundleTableCsv, type ExportScope } from "@/server/research/exports/build";
 import { TABLE_BY_NAME } from "@/server/research/exports/dictionary";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -21,7 +25,8 @@ export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const studyId = url.searchParams.get("study") ?? "";
   const requested: ExportScope = url.searchParams.get("scope") === "identified" ? "identified" : "pseudonymised";
-  const format = url.searchParams.get("format") === "csv" ? "csv" : "json";
+  const f = url.searchParams.get("format");
+  const format = f === "csv" || f === "zip" ? f : "json";
   const table = url.searchParams.get("table") ?? "";
   if (!UUID_RE.test(studyId)) return Response.json({ error: "invalid_study" }, { status: 400 });
   if (format === "csv" && !TABLE_BY_NAME.has(table)) return Response.json({ error: "invalid_table" }, { status: 400 });
@@ -38,17 +43,17 @@ export async function GET(request: Request): Promise<Response> {
   const slug = exists.rows[0]?.slug as string | undefined;
   if (!slug) return Response.json({ error: "not_found" }, { status: 404 });
 
-  const bundle = await buildExportBundle(pool, studyId, { scope, appBuild: serverEnv().APP_BUILD_VERSION });
+  const bundle = await buildExportBundleConsistent(pool, studyId, { scope, appBuild: serverEnv().APP_BUILD_VERSION });
   if (format === "csv" && !bundle.tables[table]) return Response.json({ error: "table_not_in_scope" }, { status: 403 });
   await audit(pool, { userId: auth.principal.userId }, "export.create", "study", studyId, {
     after: { scope, format, table: format === "csv" ? table : null, rows: Object.fromEntries(Object.entries(bundle.tables).map(([k, v]) => [k, v.length])) },
   });
   const stamp = bundle.generatedAt.replace(/[:.]/g, "-");
-  const body = format === "csv" ? bundleTableCsv(bundle, table) : JSON.stringify(bundle, null, 2);
-  const filename = format === "csv" ? `${slug}-${scope}-${table}-${stamp}.csv` : `${slug}-${scope}-${stamp}.json`;
-  return new Response(body, {
+  const body = format === "csv" ? bundleTableCsv(bundle, table) : format === "zip" ? bundleCsvZip(bundle) : JSON.stringify(bundle, null, 2);
+  const filename = format === "csv" ? `${slug}-${scope}-${table}-${stamp}.csv` : format === "zip" ? `${slug}-${scope}-csv-${stamp}.zip` : `${slug}-${scope}-${stamp}.json`;
+  return new Response(body as BodyInit, {
     headers: {
-      "Content-Type": format === "csv" ? "text/csv; charset=utf-8" : "application/json; charset=utf-8",
+      "Content-Type": format === "csv" ? "text/csv; charset=utf-8" : format === "zip" ? "application/zip" : "application/json; charset=utf-8",
       "Content-Disposition": `attachment; filename="${filename}"`,
       "Cache-Control": "no-store",
     },

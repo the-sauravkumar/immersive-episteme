@@ -5,6 +5,12 @@
  * Privacy: participants are identified only by their pseudonymous study code. No query here
  * returns consent records or access-token hashes; identifying linkage is the separate
  * `participants.identify` / `exports.identified` path (exports, principal investigator).
+ *
+ * Researcher free text (exclusion detail, annotation bodies, deviation descriptions and
+ * resolutions) may name a participant, so, as in the pseudonymised export, it reaches only
+ * identified-scope viewers (`participantDataScope` = "identified"); other roles get the category
+ * or kind and see their OWN notes. The SQL leaves the text out, so it never reaches the RSC
+ * payload (final review security-05). Callers that pass no viewer get the redacted form.
  */
 import { z } from "zod";
 
@@ -12,6 +18,14 @@ import { protocolDeviationInputSchema, sessionAnnotationInputSchema } from "@/fe
 
 import { audit, inTransaction, ResearchActionError, type Actor, type Q } from "./db";
 import type { Pool, PoolClient } from "pg";
+
+/** Who reads the free text: identified scope, and the staff user (their own notes stay visible). */
+export interface FreeTextViewer {
+  identified: boolean;
+  userId: string | null;
+}
+
+const REDACTED: FreeTextViewer = { identified: false, userId: null };
 
 export interface ParticipantRow {
   id: string;
@@ -60,6 +74,7 @@ export interface SessionIntegrity {
   device: Record<string, unknown>;
   withdrawn: boolean;
   excluded: boolean;
+  /** "category: detail" for identified-scope viewers; the category alone otherwise. */
   exclusionReason: string | null;
   nonExperimental: boolean;
   events: number;
@@ -73,6 +88,7 @@ export interface SessionIntegrity {
   appBuild: string;
 }
 
+// $2 = the viewer may read free text (identified scope).
 const SESSION_SELECT = `
   SELECT ss.id, ss.study_id AS "studyId", st.slug AS "studySlug", p.code AS "participantCode", sc.code AS "conditionCode",
          sc.interface::text AS "conditionInterface", ss.period, ss.status::text AS status,
@@ -81,7 +97,8 @@ const SESSION_SELECT = `
          to_json(ss.learning_started_at)#>>'{}' AS "learningStartedAt", to_json(ss.learning_ended_at)#>>'{}' AS "learningEndedAt",
          ss.interrupted, ss.interruption_count AS "interruptionCount",
          (SELECT count(*)::int FROM telemetry_events te WHERE te.session_id = ss.id AND te.event_type_code = 'session_resumed') AS resumes,
-         ss.device, ss.withdrawn, ss.excluded, ss.exclusion_reason AS "exclusionReason",
+         ss.device, ss.withdrawn, ss.excluded,
+         CASE WHEN $2::boolean THEN ss.exclusion_reason ELSE NULLIF(split_part(coalesce(ss.exclusion_reason, ''), ':', 1), '') END AS "exclusionReason",
          (st.is_demo OR coalesce((st.config->>'nonExperimental')::boolean, false)) AS "nonExperimental",
          (SELECT count(*)::int FROM telemetry_events te WHERE te.session_id = ss.id) AS events,
          (SELECT count(*)::int FROM telemetry_quarantine tq WHERE tq.session_id = ss.id) AS quarantined,
@@ -98,13 +115,13 @@ const SESSION_SELECT = `
     JOIN participants p ON p.id = ss.participant_id
     JOIN study_conditions sc ON sc.id = ss.condition_id`;
 
-export async function listSessions(q: Q, studyId: string): Promise<SessionIntegrity[]> {
-  const r = await q.query<SessionIntegrity>(`${SESSION_SELECT} WHERE ss.study_id = $1 ORDER BY p.code, ss.period`, [studyId]);
+export async function listSessions(q: Q, studyId: string, viewer: FreeTextViewer = REDACTED): Promise<SessionIntegrity[]> {
+  const r = await q.query<SessionIntegrity>(`${SESSION_SELECT} WHERE ss.study_id = $1 ORDER BY p.code, ss.period`, [studyId, viewer.identified]);
   return r.rows;
 }
 
-export async function getSession(q: Q, sessionId: string): Promise<SessionIntegrity | null> {
-  const r = await q.query<SessionIntegrity>(`${SESSION_SELECT} WHERE ss.id = $1`, [sessionId]);
+export async function getSession(q: Q, sessionId: string, viewer: FreeTextViewer = REDACTED): Promise<SessionIntegrity | null> {
+  const r = await q.query<SessionIntegrity>(`${SESSION_SELECT} WHERE ss.id = $1`, [sessionId, viewer.identified]);
   return r.rows[0] ?? null;
 }
 
@@ -128,25 +145,31 @@ export function integrityFlags(s: SessionIntegrity): { level: "error" | "warning
 export interface AnnotationRow {
   id: string;
   kind: string;
-  body: string;
+  /** Null when the viewer may not read it (not identified scope and not the author). */
+  body: string | null;
   authorId: string;
   createdAt: string;
 }
 
-export async function listAnnotations(q: Q, sessionId: string): Promise<AnnotationRow[]> {
+export async function listAnnotations(q: Q, sessionId: string, viewer: FreeTextViewer = REDACTED): Promise<AnnotationRow[]> {
   const r = await q.query<AnnotationRow>(
-    `SELECT id, kind, body, author_id AS "authorId", to_json(created_at)#>>'{}' AS "createdAt"
+    `SELECT id, kind, CASE WHEN $2::boolean OR author_id = $3 THEN body END AS body, author_id AS "authorId", to_json(created_at)#>>'{}' AS "createdAt"
        FROM session_annotations WHERE session_id = $1 ORDER BY created_at DESC`,
-    [sessionId],
+    [sessionId, viewer.identified, viewer.userId],
   );
   return r.rows;
 }
 
-export async function listDeviations(q: Q, opts: { sessionId?: string; studyId?: string }) {
-  const r = await q.query<{ id: string; category: string; severity: string; description: string; resolution: string | null; reportedAt: string; sessionId: string | null }>(
-    `SELECT id, category, severity::text AS severity, description, resolution, to_json(reported_at)#>>'{}' AS "reportedAt", session_id AS "sessionId"
+/** Deviations; description and resolution are null when the viewer may not read them (see the header). */
+export async function listDeviations(q: Q, opts: { sessionId?: string; studyId?: string; viewer?: FreeTextViewer }) {
+  const viewer = opts.viewer ?? REDACTED;
+  const r = await q.query<{ id: string; category: string; severity: string; description: string | null; resolution: string | null; reportedAt: string; sessionId: string | null }>(
+    `SELECT id, category, severity::text AS severity,
+            CASE WHEN $3::boolean OR reported_by = $4 THEN description END AS description,
+            CASE WHEN $3::boolean OR reported_by = $4 THEN resolution END AS resolution,
+            to_json(reported_at)#>>'{}' AS "reportedAt", session_id AS "sessionId"
        FROM protocol_deviations WHERE ($1::uuid IS NULL OR session_id = $1) AND ($2::uuid IS NULL OR study_id = $2) ORDER BY reported_at DESC`,
-    [opts.sessionId ?? null, opts.studyId ?? null],
+    [opts.sessionId ?? null, opts.studyId ?? null, viewer.identified, viewer.userId],
   );
   return r.rows;
 }
@@ -195,6 +218,8 @@ export async function excludeSession(pool: Pool | PoolClient, actor: Actor, inpu
     if (r.rows[0].excluded) throw new ResearchActionError("The session is already excluded.");
     const reason = `${e.category}: ${e.detail}`;
     await c.query("UPDATE study_sessions SET excluded = true, exclusion_reason = $2, excluded_by = $3, excluded_at = now() WHERE id = $1", [e.sessionId, reason, actor.userId]);
-    await audit(c, actor, "session.exclude", "study_session", e.sessionId, { after: { excluded: true, category: e.category }, reason });
+    // The audit log (read by platform admins, who have no identifying access) keeps the category
+    // only; the full reason stays in study_sessions.exclusion_reason, which is scoped (security-05).
+    await audit(c, actor, "session.exclude", "study_session", e.sessionId, { after: { excluded: true, category: e.category }, reason: e.category });
   });
 }

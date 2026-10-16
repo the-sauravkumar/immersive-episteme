@@ -1,4 +1,6 @@
-"""Missing-data report: what is absent, per condition, and why (never imputed here)."""
+"""Missing-data report: what is absent, per condition, and why (never imputed here).
+
+Counts are per analysable participant (the unit of analysis, see data.py), not per session."""
 
 from __future__ import annotations
 
@@ -11,8 +13,8 @@ def missing_report(bundle: dict[str, Any], table: AnalysisTable) -> dict[str, An
     t = bundle["tables"]
     per: dict[str, dict[str, int]] = {}
     for r in table.rows:
-        p = per.setdefault(r.condition, {"sessions": 0, "outcome_missing": 0, "baseline_missing": 0, "not_completed": 0})
-        p["sessions"] += 1
+        p = per.setdefault(r.condition, {"participants": 0, "outcome_missing": 0, "baseline_missing": 0, "not_completed": 0})
+        p["participants"] += 1
         if r.outcomes.get("outcome") is None:
             p["outcome_missing"] += 1
         if table.baseline_metric and r.outcomes.get("baseline") is None:
@@ -24,6 +26,7 @@ def missing_report(bundle: dict[str, Any], table: AnalysisTable) -> dict[str, An
     return {
         "set_aside_before_analysis": table.excluded,
         "per_condition": per,
+        "values_not_used": table.dropped_values,
         "telemetry": {
             "sessions_with_open_sequence_gaps": sum(1 for s in sessions if s["open_sequence_gaps"]),
             "sessions_with_quarantined_events": sum(1 for s in sessions if s["quarantined_events"]),

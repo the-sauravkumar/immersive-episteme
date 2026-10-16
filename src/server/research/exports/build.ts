@@ -12,14 +12,19 @@
  *    annotations and the free-text fields.
  * Participant-produced research data (responses, concept maps) is in both scopes.
  */
+import type { Pool } from "pg";
+
 import { canonicalHash } from "@/features/spatial/compiler/canonical";
+import { METRIC_VERSIONS } from "@/features/assessment/scoring/metrics/registry";
 import { EVENT_TYPE_REGISTRY } from "@/features/telemetry/contracts";
 
+import { analysisReferences, type AnalysisReference } from "../analysis-reference";
 import { METRIC_DEFINITIONS, METRICS_PIPELINE_VERSION } from "../metrics/session";
 import { PARITY_GENERATOR_VERSION } from "../parity/engine";
 import { ResearchActionError, type Q } from "../db";
 import { toCsv, type Row } from "./csv";
 import { EXPORT_TABLES, exportMetricRoles, TABLE_BY_NAME, type ExportMetricRoles, type TableSpec } from "./dictionary";
+import { buildZip } from "./zip";
 
 export const EXPORT_FORMAT = "immersive-episteme-research-export";
 export const EXPORT_SCHEMA_VERSION = 1;
@@ -40,12 +45,20 @@ export interface ExportBundle {
   exportSchemaVersion: number;
   scope: ExportScope;
   generatedAt: string;
-  study: { id: string; slug: string; title: string; status: string; protocolVersion: string; design: string; isDemo: boolean; config: unknown; snapshotId: string | null; manifestId: string | null; activatedAt: string | null; battery: unknown[] };
+  study: { id: string; slug: string; title: string; status: string; protocolVersion: string; design: string; isDemo: boolean; config: unknown; snapshotId: string | null; manifestId: string | null; activatedAt: string | null; battery: unknown[];
+    /**
+     * The study's analysis reference map per reconstruction assessment (final review scoring-04):
+     * analyses read concept-map scores against these maps only (src/server/research/analysis-reference.ts).
+     */
+    analysisReferenceMaps: AnalysisReference[];
+  };
   contentManifest: ContentManifest;
   reproducibility: {
     appBuild: string;
     exportSchemaVersion: number;
     metricsPipelineVersion: string;
+    /** Current version of every concept-map metric family; analyses read scores at these versions. */
+    scoringMetricVersions: Record<string, string>;
     parityGeneratorVersion: string;
     metricDefinitions: typeof METRIC_DEFINITIONS;
     eventTypes: { code: string; analyticConcept: string; scope: string; technical: boolean }[];
@@ -70,6 +83,40 @@ export function tableChecksum(rows: readonly Row[]): string {
   return canonicalHash(rows);
 }
 
+/**
+ * `buildExportBundle` inside one REPEATABLE READ, READ ONLY transaction: its ~16 queries then
+ * read ONE database snapshot, so during live collection no table can hold rows (events,
+ * responses, map edges) of a session or map that another table does not have yet, and every
+ * session's status matches its events (final review telemetry-04). Use this for downloads.
+ */
+export async function buildExportBundleConsistent(pool: Pool, studyId: string, opts: { scope: ExportScope; appBuild: string; now?: Date }): Promise<ExportBundle> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY");
+    const bundle = await buildExportBundle(client, studyId, opts);
+    await client.query("COMMIT");
+    return bundle;
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Allocation concealment (final review study-07): while a study is open, anyone who knew the seed
+ * could recompute the next assignment, so exports carry it only once the study is closed (the
+ * allocation audit stays reproducible from then on).
+ */
+function concealSeed(config: unknown, status: string): unknown {
+  if (status === "closed" || !config || typeof config !== "object") return config;
+  const c = config as Record<string, unknown>;
+  const allocation = c.allocation as Record<string, unknown> | undefined;
+  if (!allocation || !("seed" in allocation)) return config;
+  return { ...c, allocation: { ...allocation, seed: null } };
+}
+
 export async function buildExportBundle(q: Q, studyId: string, opts: { scope: ExportScope; appBuild: string; now?: Date }): Promise<ExportBundle> {
   const identified = opts.scope === "identified";
   const s = await q.query<Record<string, unknown>>(
@@ -90,7 +137,8 @@ export async function buildExportBundle(q: Q, studyId: string, opts: { scope: Ex
          FROM participants WHERE study_id = $1 ORDER BY code`,
     ),
     allocations: await rows(
-      `SELECT p.code AS participant_code, a.condition_id, a.period, a.content_set_code, a.algorithm::text AS algorithm, a.seed, a.sequence_index,
+      `SELECT p.code AS participant_code, a.condition_id, a.period, a.content_set_code, a.algorithm::text AS algorithm,
+              CASE WHEN (SELECT status FROM studies WHERE id = $1) = 'closed' THEN a.seed END AS seed, a.sequence_index,
               a.block_index, a.stratum, a.study_protocol_version, ${ts("a.allocated_at")} AS allocated_at
          FROM allocations a JOIN participants p ON p.id = a.participant_id WHERE a.study_id = $1 ORDER BY a.sequence_index, a.period`,
     ),
@@ -127,7 +175,12 @@ export async function buildExportBundle(q: Q, studyId: string, opts: { scope: Ex
         WHERE ss.study_id = $1 ORDER BY ds.session_id, ds.metric_name, ds.computed_at, ds.id`,
     ),
     responses: await rows(
-      `SELECT r.id AS response_id, r.session_id, p.code AS participant_code, r.assessment_id, r.item_id, ai.item_key, r.attempt, r.status::text AS status,
+      `SELECT r.id AS response_id, r.session_id, p.code AS participant_code, r.assessment_id, r.item_id, ai.item_key, r.attempt,
+              (SELECT al.after->>'step' FROM audit_log al
+                WHERE al.entity = 'study_session' AND al.entity_id = r.session_id::text AND al.action = 'study.assessment_submitted'
+                  AND al.after->>'assessmentId' = r.assessment_id::text AND (al.after->>'attempt')::int = r.attempt
+                LIMIT 1) AS step,
+              r.status::text AS status,
               r.raw, ${ts("r.presented_at")} AS presented_at, ${ts("r.answered_at")} AS answered_at, r.duration_ms
          FROM responses r JOIN study_sessions ss ON ss.id = r.session_id JOIN participants p ON p.id = r.participant_id
          JOIN assessment_items ai ON ai.id = r.item_id
@@ -192,17 +245,19 @@ export async function buildExportBundle(q: Q, studyId: string, opts: { scope: Ex
       protocolVersion: String(st.protocol_version),
       design: String(st.design),
       isDemo: Boolean(st.is_demo),
-      config: st.config,
+      config: concealSeed(st.config, String(st.status)),
       snapshotId: (st.snapshot_id as string | null) ?? null,
       manifestId: (st.manifest_id as string | null) ?? null,
       activatedAt: (st.activated_at as string | null) ?? null,
       battery,
+      analysisReferenceMaps: await analysisReferences(q, studyId),
     },
     contentManifest,
     reproducibility: {
       appBuild: opts.appBuild,
       exportSchemaVersion: EXPORT_SCHEMA_VERSION,
       metricsPipelineVersion: METRICS_PIPELINE_VERSION,
+      scoringMetricVersions: { ...METRIC_VERSIONS },
       parityGeneratorVersion: PARITY_GENERATOR_VERSION,
       metricDefinitions: METRIC_DEFINITIONS,
       eventTypes: EVENT_TYPE_REGISTRY.map((e) => ({ code: e.code, analyticConcept: e.analyticConcept, scope: e.scope, technical: "isTechnical" in e && e.isTechnical === true })),
@@ -254,6 +309,30 @@ async function loadContentManifest(q: Q, snapshotId: string | null, manifestId: 
       return a && b ? [{ id: r.id, sourceId: a, targetId: b, type: r.type, directed: directed.get(r.type) ?? true }] : [];
     }),
   };
+}
+
+/**
+ * Every table of a bundle as CSV in one ZIP, with `manifest.json` (the bundle without its rows:
+ * generatedAt, study, dictionary, reproducibility metadata and the per-table checksums). The
+ * files come from one bundle, hence one database snapshot; separately downloaded CSV files are
+ * built at separate moments and must not be mixed during collection.
+ */
+export function bundleCsvZip(bundle: ExportBundle): Uint8Array {
+  const names = Object.keys(bundle.tables).filter((t) => TABLE_BY_NAME.has(t));
+  const manifest = {
+    ...bundle,
+    tables: undefined, // the rows are the CSV files (JSON.stringify drops undefined)
+    csvFiles: names.map((t) => `${t}.csv`),
+    csvNotes: [
+      "Every CSV file in this archive was built from the same database snapshot (generatedAt).",
+      "checksums are sha256 of the canonical JSON of each table's rows (the JSON bundle), not of the CSV text.",
+      "A text cell a spreadsheet would read as a formula (starting with = + - @, tab or carriage return) begins with an added ' character; remove it when loading the data.",
+    ],
+  };
+  return buildZip(
+    [{ name: "manifest.json", data: JSON.stringify(manifest, null, 2) }, ...names.map((t) => ({ name: `${t}.csv`, data: bundleTableCsv(bundle, t) }))],
+    new Date(bundle.generatedAt),
+  );
 }
 
 /** One table of a bundle as CSV, columns in dictionary order. */

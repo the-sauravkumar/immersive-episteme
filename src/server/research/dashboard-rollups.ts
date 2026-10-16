@@ -12,9 +12,12 @@
  *    telemetry_events (session_id, seq), O(log n));
  *  - for a session still open (scheduled / in_progress) only: count(*) differs from `event_count`
  *    (index-only count over that session), which also catches a late, lower seq.
- * An ended session whose max(seq) is unchanged is never recomputed: the ingest trigger refuses
- * events emitted after the end, and a late page-exit batch carries the highest seq, so it changes
- * max(seq).
+ * An ended session whose max(seq) and status are unchanged is not probed further (no count).
+ * Events emitted before the end are still accepted after it, and a late batch can carry a LOWER
+ * seq (page-exit beacons are independent chunks; a failed chunk is re-sent later). Ingest
+ * therefore deletes an ended session's rollup row whenever it accepts an event for it
+ * (src/server/telemetry/ingest.ts), and the next refresh recomputes the row (final review
+ * database-05 / telemetry-08).
  *
  * Order matters for correctness under concurrent ingest: the watermark (max seq, count) is read
  * BEFORE the events, so a row can only under-state its watermark (and is then recomputed on the

@@ -11,7 +11,7 @@ import { z } from "zod";
 import { relationshipTypeCodeSchema } from "@/lib/validation/primitives";
 
 /** Version of the whole scoring pipeline (stored in derived_scores.pipeline_version). */
-export const SCORING_PIPELINE_VERSION = "cmap-scoring@1.0.0";
+export const SCORING_PIPELINE_VERSION = "cmap-scoring@1.1.0";
 
 /** The three edge match levels, from most lenient to strictest. */
 export const MATCH_LEVELS = ["undirected_unlabelled", "directed_unlabelled", "directed_labelled"] as const;
@@ -62,8 +62,11 @@ export const scoringConfigSchema = z
      * "valid" = counts as valid (precision numerator and denominator);
      * "neutral" = removed from precision, Jaccard and edit distance entirely.
      * Never counted in recall (optional edges are never missing).
+     * Default "neutral" (pipeline 1.1.0, final review scoring-06): study decision D2 and the
+     * published definitions (metric-definitions.ts) say optional edges are neutral; the 1.0.0
+     * default "valid" contradicted them. Every score stores the value it used.
      */
-    optionalMatch: z.enum(["valid", "neutral"]).default("valid"),
+    optionalMatch: z.enum(["valid", "neutral"]).default("neutral"),
     /**
      * Participant edges with an endpoint outside the reference concept set (free nodes, unknown
      * concepts, two nodes with the same concept): excluded from scoring, or counted as incorrect.

@@ -25,6 +25,24 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+describe("proxy: client IP headers on the study entry form (security-04)", () => {
+  it("drops client-supplied forwarding headers on POST /study when no reverse proxy is configured", () => {
+    vi.stubEnv("AUTH_TRUSTED_PROXIES", "");
+    vi.stubEnv("AUTH_CLIENT_IP_HEADER", "");
+    const f = forwarded(proxy(req("http://localhost:3000/study", { "x-forwarded-for": "203.0.113.9", "next-action": "abc" })));
+    expect(f.overridden).toContain("next-action");
+    expect(f.overridden).not.toContain("x-forwarded-for");
+  });
+
+  it("leaves GET /study and a trusted-proxy deployment untouched", () => {
+    vi.stubEnv("AUTH_TRUSTED_PROXIES", "");
+    vi.stubEnv("AUTH_CLIENT_IP_HEADER", "");
+    expect(forwarded(proxy(new NextRequest("http://localhost:3000/study", { headers: { "x-forwarded-for": "203.0.113.9" } }))).overridden).toEqual([]);
+    vi.stubEnv("AUTH_TRUSTED_PROXIES", "10.0.0.1");
+    expect(forwarded(proxy(req("http://localhost:3000/study", { "x-forwarded-for": "203.0.113.9" }))).overridden).toEqual([]);
+  });
+});
+
 describe("proxy: client IP headers on /api/auth", () => {
   it("drops client-supplied forwarding headers when no reverse proxy is configured", () => {
     vi.stubEnv("AUTH_TRUSTED_PROXIES", "");

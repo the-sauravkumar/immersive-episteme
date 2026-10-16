@@ -17,7 +17,7 @@
  * `concept_map_revisions` (every save). A final map is frozen by trigger. No score and no timing
  * is written here.
  */
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 import { MAP_FORMAT, extendsLog, type MapPayload } from "@/components/assessment/map-state";
 
@@ -120,8 +120,20 @@ export interface SaveMapResult {
   isFinal: boolean;
 }
 
+export interface SaveMapOptions {
+  /**
+   * The phase whose reconstruction step is the participant's CURRENT study step, or null when no
+   * reconstruction step is current; read on the save's own transaction, after the session row is
+   * locked. The participant action passes the study engine's answer, so a map can be saved or
+   * submitted only during its own step: not the post map during learning (open book), and not
+   * from a stale pre-test tab once learning has started (final review security-03). Omitted only
+   * by tests that drive the assessment services without the study engine.
+   */
+  currentPhase?: (client: PoolClient) => Promise<MapPhase | null>;
+}
+
 /** Autosave or final submission of the participant's own map for the current phase. */
-export async function saveParticipantMap(pool: Pool, who: ParticipantIdentity, input: SaveMapInput): Promise<SaveMapResult> {
+export async function saveParticipantMap(pool: Pool, who: ParticipantIdentity, input: SaveMapInput, opts: SaveMapOptions = {}): Promise<SaveMapResult> {
   const task = await loadReconstructionTask(pool, who);
   if (task.kind !== "task" || task.itemId !== input.itemId) {
     throw new AssessmentError("conflict", "This task is no longer current. Reload the page.");
@@ -131,6 +143,10 @@ export async function saveParticipantMap(pool: Pool, who: ParticipantIdentity, i
 
   try {
     return await inTransaction(pool, async (client) => {
+      if (opts.currentPhase) {
+        await client.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [who.sessionId]);
+        if ((await opts.currentPhase(client)) !== task.phase) throw new AssessmentError("conflict", "This task is no longer current. Reload the page.");
+      }
       const existing = await client.query<{ id: string; is_final: boolean; raw: unknown; nodes: unknown }>(
         "SELECT id, is_final, raw, nodes FROM concept_maps WHERE session_id = $1 AND item_id = $2 AND phase = $3 FOR UPDATE",
         [who.sessionId, task.itemId, task.phase],
