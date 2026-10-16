@@ -127,4 +127,49 @@ describe("interchange format contract (synthetic fixtures)", () => {
     expect(bad.success).toBe(false);
     expect(bad.error?.issues.map((i) => i.message)).toContain("Evidence cites S2, which the claim does not cite");
   });
+
+  describe("relationship evidence", () => {
+    const relWith = (evidence: unknown, sourceIds = ["S1"]) => ({
+      ...fileA,
+      relationships: [{ ...fileA.relationships[0]!, source_ids: sourceIds, evidence }],
+    });
+    const messages = (file: unknown) => {
+      const r = contentPackageFileSchema.safeParse(file);
+      return r.success ? [] : r.error.issues.map((i) => i.message);
+    };
+
+    it("is optional: a relationship without it parses with []", () => {
+      expect(contentPackageFileSchema.parse(fileA).relationships[0]!.evidence).toEqual([]);
+    });
+
+    it("keeps a located verbatim passage from one of the relationship's own sources", () => {
+      const r = contentPackageFileSchema.parse(relWith([{ source_id: "S1", locator: "PDF p. 1", quote: "a placeholder passage" }]));
+      expect(r.relationships[0]!.evidence).toEqual([{ source_id: "S1", locator: "PDF p. 1", quote: "a placeholder passage" }]);
+    });
+
+    it("refuses a passage from a source the relationship does not cite", () => {
+      expect(messages(relWith([{ source_id: "S2", locator: "PDF p. 1", quote: "a placeholder passage" }]))).toContain(
+        "Evidence cites S2, which the relationship does not cite",
+      );
+    });
+
+    it("refuses two passages for one source (a citation holds one locator and one quote)", () => {
+      const twice = [
+        { source_id: "S1", locator: "PDF p. 1", quote: "a placeholder passage" },
+        { source_id: "S1", locator: "PDF p. 2", quote: "another placeholder passage" },
+      ];
+      expect(messages(relWith(twice))).toContain("Evidence for S1 is given twice; a relationship citation holds one locator and one quote");
+    });
+
+    it.each([
+      ["a quote longer than 25 words", { source_id: "S1", locator: "PDF p. 1", quote: "w ".repeat(26) }],
+      ["a blank quote", { source_id: "S1", locator: "PDF p. 1", quote: "  " }],
+      ["a blank locator", { source_id: "S1", locator: " ", quote: "a placeholder passage" }],
+      ["a locator over 200 characters", { source_id: "S1", locator: "p".repeat(201), quote: "a placeholder passage" }],
+      ["a missing locator", { source_id: "S1", quote: "a placeholder passage" }],
+      ["a note (no column to store it)", { source_id: "S1", locator: "PDF p. 1", quote: "a placeholder passage", note: "check by hand" }],
+    ])("refuses %s", (_label, entry) => {
+      expect(contentPackageFileSchema.safeParse(relWith([entry])).success).toBe(false);
+    });
+  });
 });

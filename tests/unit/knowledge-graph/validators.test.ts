@@ -219,6 +219,30 @@ describe("provenance (4xx)", () => {
     expect(codes(run(validateProvenance, model).filter((i) => i.severity === "error"))).toEqual(["KG400", "KG401", "KG402", "KG403", "KG404", "KG411"]);
   });
 
+  it("resolves relationship evidence and refuses a passage from a source the relationship does not cite (KG412)", () => {
+    const f = alphaFile();
+    const r0 = relsOf(f)[0]!;
+    r0.evidence = [{ source_id: (r0.source_ids as string[])[0], locator: "PDF p. 1", quote: "a placeholder passage" }];
+    const model = load(f);
+    expect(model.relationships[0]!.evidence).toEqual([{ ref: `alpha#${(r0.source_ids as string[])[0]}`, locator: "PDF p. 1", quote: "a placeholder passage" }]);
+    expect(run(validateProvenance, model).filter((i) => i.severity !== "info")).toEqual([]);
+
+    // A model built in code (or a file that skipped the schema) is caught by the validator itself.
+    model.relationships[0]!.evidence = [{ ref: "alpha#S9", locator: "PDF p. 1", quote: "a placeholder passage" }];
+    const issues = run(validateProvenance, model).filter((i) => i.code === "KG412");
+    expect(issues).toHaveLength(1);
+    expect(issues[0]).toMatchObject({ severity: "error", detail: { ref: "alpha#S9" } });
+    expect(issues[0]!.message).toContain("evidence #0 quotes alpha#S9, which the relationship does not cite");
+  });
+
+  it("refuses relationship evidence from an uncited source at load time (KG100)", () => {
+    const f = alphaFile();
+    const r0 = relsOf(f)[0]!;
+    r0.evidence = [{ source_id: "S9", locator: "PDF p. 1", quote: "a placeholder passage" }];
+    const { issues } = loadContentFiles(files(f));
+    expect(codes(issues)).toEqual(["KG100"]);
+  });
+
   it("requires direct evidence for CAUSES", () => {
     const weak = alphaFile();
     relsOf(weak).push(rel("alpha.material.material-a", "CAUSES", `${A}.stage-three`, { provenance_kind: "hypothesis" }));

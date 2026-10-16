@@ -86,6 +86,12 @@ export interface GraphRelationship {
   verificationState: VerificationState;
   sourceRefs: SourceRef[];
   rawSourceIds: string[];
+  /**
+   * Located verbatim passages from content/ (FORMAT.md "Relationship evidence"), at most one per
+   * cited source. Absent on models built from the database, whose citations carry their locator
+   * and quote in relationship_sources instead.
+   */
+  evidence?: { ref: SourceRef; locator: string; quote: string }[];
 }
 
 export interface GraphMediaCandidate {

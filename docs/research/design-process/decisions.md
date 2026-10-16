@@ -1794,3 +1794,114 @@ researchers' decisions:
 - **Paper implications:** report figure balance as "equal per section and per knowledge layer
   across the study traditions". Report runtime WebGL failures under the preregistered failure
   policy, with their count per condition.
+
+## DR-047 (Number to Confirm at Merge): The Lead's Verification Route for the First Release, Relationship Evidence in content/, and Bagh, Bagru and Dabu Out of the Release Pipeline (Adopted on the project lead's authorisation)
+
+- **Context:**
+  - **No release is possible today.** A study needs a published release: a review snapshot can
+    never be published or pinned by a real study (migrations 0006 and 0007). A release is refused
+    while anything in the review pipeline is unaccepted (SNAP002, REL001), or while any claim or
+    relationship citation lacks a page/locator or a verbatim quotation (REL002).
+    - **The database today:** a read-only readiness check of the main database found all six
+      traditions, 442 concepts, 715 relationships and 112 sources unaccepted. No relationship
+      citation had a locator or a quote.
+    - **The format gap:** the content/ format could not carry relationship evidence at all.
+      Relationships listed only `source_ids`, so every imported relationship citation arrived
+      without a locator or quote, and no relationship could be verified
+      (`rel_citation_incomplete`).
+  - **Nobody else can verify in time.** DR-020 and its addendum assume that a second curator
+    verifies in the CMS. The project lead, Saurav Kumar, chose to take that responsibility
+    himself. The study is invite-only, login-gated and non-commercial, and the image permissions
+    are in hand. On that basis he told the build team to do everything needed ("DO IT ALL you need
+    to").
+- **Options:**
+  - **(a)** Wait for an independent human curator.
+  - **(b)** Verify on the lead's authority, on mechanical evidence, under his own account, with
+    the route stated in every verification record.
+  - **(c)** Run the study on the review snapshot. The database refuses this (0007).
+  - **(d)** Have the verification recorded under another person's account. Rejected outright:
+    the audit log must not show a sign-off that did not happen.
+- **Decision 1, the verification route: (b).**
+  - **Evidence:** a mechanical source check by Claude.
+    - **What it covered:** every concept, claim, quote and relationship of the three study
+      traditions.
+    - **What it checked against:** hash-checked archived copies of the sources (SHA-256 equal to
+      `content/review/source-manifest.tsv`).
+    - **How:** PDF quotes were matched page by page. Section locators were matched by heading
+      order. The tool and method are the same as in the earlier six-concept pass.
+  - **What may be accepted:**
+    - content whose quotes are verbatim at their locators and whose claims say no more than
+      their quotes ("pass");
+    - content that has been fixed. A fix may only add verbatim text from the same cited source,
+      or narrow a claim to what its source says. It never adds a new craft fact and never widens a
+      claim.
+  - **What leaves the release:** content in the "fail" group, and "fixable" content that has not
+    been fixed, is withdrawn or archived.
+  - **Who verifies:**
+    - **The account:** the transitions run through the CMS's own service functions
+      (`transition`, `reviewAsset`, `publishRelease`) under **Saurav Kumar's own curator
+      account**.
+    - **The reason:** every verification reason states "authorised by the project lead; based on
+      Claude's mechanical source check", with a link to the check sheet.
+    - **Edits in the CMS:** any such edit is made under an account named for what operates it
+      ("Claude (AI assistant, operated by Saurav Kumar)"), never under a colleague's name.
+  - **What the route does and does not establish:**
+    - **Separation of duties:** the code guarantees only that the verifying account did not author
+      the text. It does not supply a second human judgement.
+    - **`sources_consulted` and `quotes_verbatim`:** these ticks rest on the mechanical check.
+    - **`claims_supported` and `provenance_kind`:** these rest on the check's claim-width reading,
+      which an AI assistant did, and on the lead's acceptance of it.
+    - **No independent domain expert reviewed the content.**
+- **Decision 2: relationship evidence lives in content/.**
+  - **The format:** FORMAT v1 gains an optional per-relationship
+    `evidence: [{ source_id, locator, quote }]` (content/FORMAT.md, "Relationship evidence").
+    - Each `source_id` must be one of the relationship's `source_ids`.
+    - Each source gets at most one entry, because `relationship_sources` holds one locator and
+      one quote per citation.
+    - A quote has at most 25 words (`relationship_sources_quote_ck`), a locator at most 200
+      characters, and there is no `note`.
+  - **The checks:** the file schema refuses an entry for a source the relationship does not cite
+    (KG100). So does the graph validator (KG412), which also covers models built in code.
+  - **The importer** (`src/server/content/import-content.ts`):
+    - It writes the locator and quote into that citation, only for relationships that are not
+      accepted.
+    - It still never sets `verified` and never touches an accepted row.
+    - A citation with no passage in the file keeps the locator and quote it already has (for
+      example, one entered in the CMS), so a re-import never clears evidence.
+  - **Why the files and not the CMS alone:**
+    - the evidence is reviewable in git;
+    - the same mechanical tool can re-check it;
+    - a re-import cannot bring back an incomplete citation: an unsupported citation is removed
+      from the file's `source_ids`, so it is not re-added on import.
+  - **Ordering:** import the files before verifying relationships, because the importer leaves
+    accepted relationships alone.
+- **Decision 3: Bagh, Bagru and Dabu leave the release pipeline.**
+  - **Why:** they are not study traditions and were not source-checked.
+  - **`comparisons` leaves with them:** its concepts compare all six traditions. A simulation
+    that kept it found 37 KG109 errors, which refused the snapshot.
+  - **What is kept:** the `shared` craft-science package, which the study concepts link to.
+  - **Measured scope** (read-only simulation, before execution): 244 concepts and 421
+    relationships, 0 graph errors. Re-measure with `releaseReadiness()` when this is carried out.
+  - **How rows leave, all through `transition()`, in this order:**
+    1. under_review concepts and relationships are withdrawn to draft;
+    2. needs_evidence ones are archived, with the reason "outside the scope of release-1 (study
+       traditions only); not reviewed";
+    3. the three `traditions` rows are withdrawn (otherwise REL005);
+    4. their sources are withdrawn once nothing in the pipeline cites them (otherwise REL004 and
+       SNAP002).
+  - **Reversible, and nothing is deleted:**
+    - archived rows can be restored to draft;
+    - the importer keeps curator-decided states (DR-038), so a re-import does not bring them back;
+    - the three traditions stay in content/ and can go through review for a later release.
+- **Not adopted:**
+  - **An "unverified release" for the invite-only study:** no such path exists, and adding one
+    would undo DR-037 and DR-038.
+  - **Relaxing REL002 for relationships:** the citation standard requires a locator and a
+    verbatim quote for every citation.
+- **Paper implications:**
+  - **Methods:** describe this verification route as it is: a mechanical, AI-performed source
+    check, accepted by the project lead under his own account, with no independent expert review
+    (methods-notes.md §2, "Verification route for the study release").
+  - **Corpus:** report the study corpus as the three study traditions plus the shared
+    craft-science layer. Report Bagh, Bagru and Dabu as documented but outside the release.
+  - **Limitations:** list the absence of an independent human curator.

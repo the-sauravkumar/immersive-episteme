@@ -260,6 +260,7 @@ export function loadContentFiles(inputs: readonly ContentFileInput[]): LoadResul
         verificationState: r.verification_state,
         rawSourceIds: r.source_ids,
         sourceRefs: r.source_ids.map((id) => resolve(file.slug, id)),
+        evidence: r.evidence.map((e) => ({ ref: resolve(file.slug, e.source_id), locator: e.locator, quote: e.quote })),
       };
       model.relationships.push(rel);
     });

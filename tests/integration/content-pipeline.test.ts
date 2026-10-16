@@ -102,7 +102,7 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
         expect(second[k].updated, k).toBe(0);
       }
       expect(second.claimSources).toEqual({ inserted: 0, pruned: 0 });
-      expect(second.relationshipSources).toEqual({ inserted: 0, pruned: 0 });
+      expect(second.relationshipSources).toEqual({ inserted: 0, updated: 0, pruned: 0 });
       expect(second.pruned).toEqual({ claims: 0, relationships: 0 });
       const again = await snapshot();
       expect(again.created).toBe(false);
@@ -332,6 +332,97 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
       expect(await state()).toBe("under_review");
       await run(); // the files put the GI evidence back
       expect(await gi()).toEqual(before);
+    });
+
+    it("writes relationship evidence into its citation, keeps evidence the files do not carry, and never touches an accepted relationship", async () => {
+      // Placeholder passages only (throwaway database): no craft facts.
+      type Rel = (typeof loaded.model.relationships)[number];
+      // Edges and endpoints still under review in the database (earlier tests decided some rows),
+      // with real provenance, so one of them can be accepted below.
+      const conceptByKey = new Map(loaded.model.concepts.map((c) => [c.key, c]));
+      const dbState = new Map(
+        (await t.pool.query<{ key: string; s: string }>("SELECT key, verification_state::text AS s FROM concepts WHERE NOT is_demo")).rows.map((x) => [x.key, x.s]),
+      );
+      const relState = new Map(
+        (
+          await t.pool.query<{ k: string; s: string }>(
+            `SELECT s.key || '|' || x.type_code || '|' || tc.key AS k, x.verification_state::text AS s
+               FROM relationships x JOIN concepts s ON s.id = x.source_concept_id JOIN concepts tc ON tc.id = x.target_concept_id WHERE NOT x.is_demo`,
+          )
+        ).rows.map((x) => [x.k, x.s]),
+      );
+      const usable = loaded.model.relationships.filter(
+        (r) =>
+          r.sourceRefs.length > 0 &&
+          r.provenanceKind !== "unverified" &&
+          relState.get(`${r.source}|${r.type}|${r.target}`) === "under_review" &&
+          [r.source, r.target].every((k) => conceptByKey.get(k)?.provenanceKind !== "unverified" && dbState.get(k) === "under_review"),
+      );
+      // Three edges that share no endpoint, so accepting the third touches neither of the others.
+      const picked: Rel[] = [];
+      for (const r of usable) {
+        if (picked.every((p) => ![p.source, p.target].some((k) => k === r.source || k === r.target))) picked.push(r);
+        if (picked.length === 3) break;
+      }
+      expect(picked).toHaveLength(3);
+      const [a, b, accepted] = picked;
+      const citations = async (r: Rel) =>
+        (
+          await t.pool.query<{ ref: string; locator: string | null; quote: string | null }>(
+            `SELECT p.slug || '#' || so.local_key AS ref, rs.locator, rs.quote
+               FROM relationship_sources rs
+               JOIN relationships x ON x.id = rs.relationship_id
+               JOIN concepts s ON s.id = x.source_concept_id JOIN concepts tc ON tc.id = x.target_concept_id
+               JOIN sources so ON so.id = rs.source_id JOIN content_packages p ON p.id = so.package_id
+              WHERE s.key = $1 AND tc.key = $2 AND x.type_code = $3 ORDER BY 1`,
+            [r.source, r.target, r.type],
+          )
+        ).rows;
+      const withEvidence = (targets: Rel[], locator: string, quote: string) => ({
+        ...loaded.model,
+        relationships: loaded.model.relationships.map((r) => (targets.includes(r) ? { ...r, evidence: [{ ref: r.sourceRefs[0]!, locator, quote }] } : r)),
+      });
+
+      // 1. The file passage lands in that citation, and only there.
+      const s1 = await run(withEvidence([a!], "PDF p. 1", "a placeholder passage"));
+      expect(s1.relationshipSources).toEqual({ inserted: 0, updated: 1, pruned: 0 });
+      const aRows = await citations(a!);
+      expect(aRows.find((x) => x.ref === a!.sourceRefs[0])).toMatchObject({ locator: "PDF p. 1", quote: "a placeholder passage" });
+      expect(aRows.filter((x) => x.ref !== a!.sourceRefs[0]).every((x) => x.locator === null && x.quote === null)).toBe(true);
+
+      // 2. Unchanged files write nothing; a file without the passage never clears it, nor one a
+      //    curator entered in the CMS.
+      await t.pool.query(
+        `UPDATE relationship_sources rs SET locator = 'p. 2', quote = 'a curator placeholder'
+           FROM relationships x, concepts s, concepts tc
+          WHERE x.id = rs.relationship_id AND s.id = x.source_concept_id AND tc.id = x.target_concept_id
+            AND s.key = $1 AND tc.key = $2 AND x.type_code = $3`,
+        [b!.source, b!.target, b!.type],
+      );
+      expect((await run(withEvidence([a!], "PDF p. 1", "a placeholder passage"))).relationshipSources).toEqual({ inserted: 0, updated: 0, pruned: 0 });
+      expect((await run()).relationshipSources).toEqual({ inserted: 0, updated: 0, pruned: 0 });
+      expect((await citations(a!)).find((x) => x.ref === a!.sourceRefs[0])).toMatchObject({ locator: "PDF p. 1", quote: "a placeholder passage" });
+      expect((await citations(b!)).every((x) => x.locator === "p. 2" && x.quote === "a curator placeholder")).toBe(true);
+
+      // 3. A changed passage replaces the stored one.
+      expect((await run(withEvidence([a!], "PDF p. 3", "a corrected placeholder passage"))).relationshipSources).toEqual({ inserted: 0, updated: 1, pruned: 0 });
+      expect((await citations(a!)).find((x) => x.ref === a!.sourceRefs[0])).toMatchObject({ locator: "PDF p. 3", quote: "a corrected placeholder passage" });
+
+      // 4. An accepted relationship keeps the citations its reviewer checked.
+      const curator = await createUser(t.pool);
+      await withSettings(t.pool, { "app.actor_id": curator, "app.change_reason": "test: accepted" }, async (c) => {
+        await c.query("UPDATE concepts SET verification_state = 'verified' WHERE key = ANY($1::text[])", [[accepted!.source, accepted!.target]]);
+        await c.query(
+          `UPDATE relationships x SET verification_state = 'verified' FROM concepts s, concepts tc
+            WHERE s.id = x.source_concept_id AND tc.id = x.target_concept_id AND s.key = $1 AND tc.key = $2 AND x.type_code = $3`,
+          [accepted!.source, accepted!.target, accepted!.type],
+        );
+      });
+      const before = await citations(accepted!);
+      const s4 = await run(withEvidence([accepted!], "PDF p. 4", "a placeholder passage"));
+      expect(s4.relationshipSources.updated).toBe(0);
+      expect(s4.relationships.keptAccepted).toBeGreaterThanOrEqual(1);
+      expect(await citations(accepted!)).toEqual(before);
     });
   });
 });

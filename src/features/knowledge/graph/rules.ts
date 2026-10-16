@@ -58,6 +58,7 @@ export const RULES = {
   SOURCE_NOT_ARCHIVED: r("KG409", "warning", "Source URL missing from the source manifest"),
   QUALIFIED_SOURCE_MISMATCH: r("KG410", "warning", "Qualified source id does not match its origin file"),
   GI_UNKNOWN_SOURCE: r("KG411", "error", "GI record cites an unknown source"),
+  REL_EVIDENCE_UNLISTED_SOURCE: r("KG412", "error", "Relationship evidence quotes a source the relationship does not cite"),
   // 5xx duplicates
   DUPLICATE_TITLE: r("KG500", "error", "Same title and type twice in one file"),
   NEAR_DUPLICATE_TITLE: r("KG501", "warning", "Near-duplicate titles of the same type in one file"),
