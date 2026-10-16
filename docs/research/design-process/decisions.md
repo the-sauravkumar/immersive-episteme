@@ -3094,3 +3094,37 @@ novice met, and none touches the sheet.
   authentication" notice and git's default-branch hint during checkout.
 - **Results:** clean `npm ci` with no deprecation notices; lint, typecheck, 156 test files / 1897
   tests pass; `next build` reports no warnings.
+
+## DR-069: One Continuous Overview Video Instead of Five Clips; Local Test Admin Rotated Before Recording (Adopted on the project lead's instruction: "okay it shouldn't be longer than 15 to 20 mins"; walkthrough phase)
+
+- **Change of plan:** the lead asked for one demo video of about 15 minutes (hard maximum 20)
+  covering everything, instead of five clips. Clip 01 (welcome and access, recorded earlier) is kept
+  as an extra; clips 02 to 05 are not recorded.
+- **How it is recorded:** `walkthrough.mjs --overview` (local only, `D:\Work\IIT-KGP\Paper_1-walkthrough`,
+  never in this repository) records ONE take in ONE browser context on the production build, on the
+  NVIDIA GTX 1650 (renderer string checked first). It reuses the clip helpers in seven parts with
+  time budgets: invite and home (1.5 min), Explore in 2D with a concept, its citation, a figure and
+  a comparison (2.5), the 3D museum (3.5), the study in the 2D condition (3), the same study in the
+  3D condition, said to differ only in medium (2.5), the staff side (3), and the 2D pages at 390 px
+  (0.5). Optional steps of a part are dropped when the part is over budget or the take passes
+  17 minutes, and no part starts after 19 minutes. A part that fails is tried once more and, if it
+  fails again, is listed as a gap in `chapters.md`.
+- **Phone part in the same file:** the page is resized to 390 x 844 inside the take. Playwright's
+  recorder does not scale a smaller page up, so the phone view sits at the top left of the
+  1440 x 900 frame (checked on a test frame). This was preferred to a separate file because the lead
+  asked for one file where possible.
+- **Demo museum layout for the journey studies:** the helper `compile-demo-museum.ts` stored the
+  manifest as published before writing its element index, which the database refuses
+  ("spatial_elements of a published spatial manifest are immutable"). It now stores a draft, writes
+  the index and publishes it in the same transaction (demo rows only); the 3D journey now loads a
+  walkable placeholder museum.
+- **Local test admin rotated first:** the password of the local test admin was in pre-rewrite
+  history (DR-066), and the old value was no longer in any local file. Rather than recover it, the
+  password was rotated before recording (random 28 characters, Better Auth's own hash, all of the
+  account's sessions revoked) and the recording used the new one from the environment. The value is
+  stored only outside the repository; the memory note says where, never the value.
+- **Result of the recording (take 2 of 2, the one retry):** `00-overview.webm`, 15:39, 1440 x 900, plays (checked in Chromium; a sampled frame shows the caption bar). Parts 1, 2, 3, 6 and 7 are in it: 2D shows a citation, a figure (on a process step) and a comparison; 3D shows the lobby, a doorway walk, the Plan, the In This Room rail and an exhibit with its citation, but no figure. The two study-journey parts failed twice in
+  both takes at the same place: after the "questions before you start" page the walkthrough meets a
+  second page under the same heading, and the pre-test page then hands on to the device check
+  before the script answers it. Whether this is a walkthrough-script race or a study-engine
+  behaviour is not settled; it is deferred to the overnight diagnosis and was not changed here.
