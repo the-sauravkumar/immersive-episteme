@@ -93,7 +93,9 @@ def verify_bundle(bundle: dict[str, Any]) -> list[str]:
     for s in sessions.values():
         if s["participant_code"] not in participants:
             errors.append(f"session {s['session_id']} has an unknown participant")
-        if s["condition_id"] not in conditions:
+        # A NULL condition is "not allocated yet" (allocation follows the pre-test, D3), not a
+        # broken join key (final review scoring-02); such a session cannot store telemetry.
+        if s["condition_id"] is not None and s["condition_id"] not in conditions:
             errors.append(f"session {s['session_id']} has an unknown condition")
     seen: set[str] = set()
     for e in tables.get("events", []):

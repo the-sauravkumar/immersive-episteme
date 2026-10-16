@@ -3,14 +3,24 @@
  *
  * Each candidate edge (a key at the chosen match level) is an item; each rater either includes
  * it or not (binary category). The candidate universe is either
- *   "union"        : every edge proposed by at least one rater (default; no "both absent"
- *                    items, so kappa is conservative and percent agreement is not inflated), or
+ *   "union"        : every edge proposed by at least one rater (default). No item is rated
+ *                    "absent" by every rater, so the both-absent cell is empty and kappa is
+ *                    DEGENERATE, not conservative: for two raters po − pe = −2bc/n² ≤ 0, so
+ *                    Cohen's kappa (and Fleiss' kappa, which is Scott's pi for two raters) can
+ *                    never be positive however well the raters agree (final review scoring-01).
+ *                    Kappa is therefore not reported (null, with `kappaUndefinedReason`);
+ *                    positive agreement is reported instead, or
  *   "all_possible" : every possible edge over the concept set (and relationship types at the
  *                    labelled level), which adds many trivially agreed absences and inflates
- *                    percent agreement. Report which one was used.
+ *                    percent agreement; kappa is defined here. Report which one was used.
  *
  * Percent agreement = Fleiss' P̄ (mean over items of the share of agreeing rater pairs); for
  * two raters it is the plain proportion of items on which they agree.
+ * Positive (specific) agreement, any universe: for a rater pair the Dice coefficient
+ * 2a / (2a + b + c) (a = both include the edge, b and c = one only); overall, the proportion of
+ * specific positive agreement Σ_i s_i(s_i − 1) / Σ_i s_i(n − 1) over items (s_i raters include
+ * item i, n raters), which equals the Dice coefficient for two raters. It ignores agreed
+ * absences, so it does not depend on the universe.
  * Fleiss' kappa (Fleiss 1971): κ = (P̄ − P̄e) / (1 − P̄e), P̄e = Σ_j p_j².
  * Cohen's kappa for every rater pair: κ = (po − pe) / (1 − pe), pe = Σ_k pA(k)·pB(k).
  * Kappa is null when chance agreement is 1 (every rating identical) or there are no items.
@@ -91,9 +101,14 @@ export interface RaterAgreementResult {
   raters: string[];
   items: number;
   percentAgreement: number | null;
+  /** Null for the union universe (see the header); the reason is in `kappaUndefinedReason`. */
   fleissKappa: number | null;
   fleiss: ReturnType<typeof fleissKappa>;
-  pairwise: Array<{ raterA: string; raterB: string; cohensKappa: number | null; percentAgreement: number | null; n: number }>;
+  /** Why kappa is not reported, or null when it is (all_possible universe). */
+  kappaUndefinedReason: string | null;
+  /** Proportion of specific positive agreement over all raters (Dice for two raters); null without proposed edges. */
+  positiveAgreement: number | null;
+  pairwise: Array<{ raterA: string; raterB: string; cohensKappa: number | null; percentAgreement: number | null; positiveAgreement: number | null; n: number }>;
   perEdge: Array<{ key: string; support: number; proportion: number; raters: string[] }>;
 }
 
@@ -152,16 +167,32 @@ export function raterAgreement(raters: ReadonlyArray<RaterMapInput>, options: Ra
     const present = raterIds.filter((id) => sets.get(id)?.has(k)).length;
     return [present, raterIds.length - present];
   });
-  const fleiss = fleissKappa(counts);
+  // Kappa needs a both-absent category; the union universe has none (final review scoring-01).
+  const kappaUndefinedReason = universeKind === "union" ? "kappa is undefined without a both-absent category (union universe); report positive agreement" : null;
+  const computed = fleissKappa(counts);
+  const fleiss = kappaUndefinedReason ? { ...computed, kappa: null } : computed;
   const pairwise: RaterAgreementResult["pairwise"] = [];
   for (let i = 0; i < raterIds.length; i++) {
     for (let j = i + 1; j < raterIds.length; j++) {
       const a = raterIds[i]!;
       const b = raterIds[j]!;
       const c = cohensKappa(ratingsOf(a), ratingsOf(b));
-      pairwise.push({ raterA: a, raterB: b, cohensKappa: c.kappa, percentAgreement: c.po, n: c.n });
+      const sa = sets.get(a) ?? new Set<string>();
+      const sb = sets.get(b) ?? new Set<string>();
+      const both = [...sa].filter((k) => sb.has(k)).length;
+      const dice = sa.size + sb.size === 0 ? null : (2 * both) / (sa.size + sb.size);
+      pairwise.push({ raterA: a, raterB: b, cohensKappa: kappaUndefinedReason ? null : c.kappa, percentAgreement: c.po, positiveAgreement: dice, n: c.n });
     }
   }
+  // Specific positive agreement over all raters: agreeing ordered pairs on "present" / possible ones.
+  const n = raterIds.length;
+  let agreeing = 0;
+  let possible = 0;
+  for (const [present] of counts) {
+    agreeing += present! * (present! - 1);
+    possible += present! * (n - 1);
+  }
+  const positiveAgreement = possible === 0 ? null : agreeing / possible;
   const perEdge = proposed.map((key) => {
     const rs = raterIds.filter((id) => sets.get(id)?.has(key));
     return { key, support: rs.length, proportion: rs.length / raterIds.length, raters: rs };
@@ -175,6 +206,8 @@ export function raterAgreement(raters: ReadonlyArray<RaterMapInput>, options: Ra
     percentAgreement: fleiss.pBar,
     fleissKappa: fleiss.kappa,
     fleiss,
+    kappaUndefinedReason,
+    positiveAgreement,
     pairwise,
     perEdge,
   };

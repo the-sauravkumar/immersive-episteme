@@ -64,14 +64,22 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
                 : "Adds consent records, annotations and the free-text reasons. Handle under the approved data-protection plan."
             }
             actions={
-              <a className={LINK_BUTTON} href={href(scope, "json")} download>
-                <Download aria-hidden="true" />
-                Download the full bundle (JSON)
-              </a>
+              <>
+                <a className={LINK_BUTTON} href={href(scope, "json")} download>
+                  <Download aria-hidden="true" />
+                  Download the full bundle (JSON)
+                </a>
+                <a className={LINK_BUTTON} href={href(scope, "zip")} download>
+                  <Download aria-hidden="true" />
+                  Download every table (CSV, ZIP)
+                </a>
+              </>
             }
           >
             <p className="text-credit mb-4 max-w-[52rem]">
-              The bundle holds every table plus the study configuration snapshot, content and manifest hashes, the data dictionary, reproducibility metadata and per-table checksums.
+              The bundle holds every table plus the study configuration snapshot, content and manifest hashes, the data dictionary, reproducibility metadata and per-table checksums. Each
+              download reads the database at one moment. The ZIP holds every table as CSV from that one moment, with the same metadata in manifest.json; single-table CSV files below are
+              each built when downloaded, so do not combine them while data collection is running.
             </p>
             <Table caption={scope === "pseudonymised" ? "Pseudonymised Tables" : "Identified Tables"} number={++tableNo} hoverRows density="compact">
               <TableHeader>
@@ -107,7 +115,8 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
         title="Data dictionary"
         description={
           <>
-            Column definitions. CSV cells holding objects are JSON text; empty cells are null. Validate a downloaded bundle offline with{" "}
+            Column definitions. CSV cells holding objects are JSON text; empty cells are null. A text cell that a spreadsheet would read as a formula (starting with = + - @, a tab or a
+            carriage return) begins with an added &apos; so that it opens as text: remove it when loading the data. Validate a downloaded bundle offline with{" "}
             <code className="text-id">python -m episteme_stats validate bundle.json</code> (analysis/).
           </>
         }

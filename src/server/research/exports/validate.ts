@@ -66,7 +66,9 @@ export function validateExportBundle(bundle: ExportBundle): ExportValidation {
   }
   for (const r of t("sessions")) {
     if (!participants.has(str(r.participant_code))) err(`session ${str(r.session_id)} has unknown participant`);
-    if (!conditions.has(str(r.condition_id))) err(`session ${str(r.session_id)} has unknown condition`);
+    // A session opened at consent has no condition until it is allocated after the pre-test (D3):
+    // a participant still in, or dropped out during, the pre-test keeps condition_id null.
+    if (r.condition_id !== null && !conditions.has(str(r.condition_id))) err(`session ${str(r.session_id)} has unknown condition`);
   }
   const eventIds = new Set<string | null>();
   const seqKeys = new Set<string>();

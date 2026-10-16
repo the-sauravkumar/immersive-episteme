@@ -10,11 +10,25 @@
  * Wording (information sheet, consent, onboarding) always comes from the study config or the
  * condition config, written by the researchers. The engine never supplies it.
  */
+import { TASK_TEXT } from "@/features/learning/strings";
 import { STUDY_STEPS, studyConfigSchema, type InstrumentRef, type StudyConfig, type StudyStep } from "@/features/study/contracts";
 import type { LearningCondition } from "@/lib/permissions/learning";
 import { titleCase } from "@/lib/text/title-case";
 
 export { STUDY_STEPS, type StudyStep };
+
+/**
+ * Which study battery rows (study_assessments phase, assessments kind) each non-questionnaire
+ * assessment step delivers. Shared by the engine and the parity check, which refuses activation
+ * when a configured step has nothing to deliver (final review study-10).
+ */
+export const STEP_ASSESSMENTS: Partial<Record<StudyStep, { phase: "pre" | "post"; kind: string }>> = {
+  pre_test: { phase: "pre", kind: "pretest" },
+  pre_reconstruction: { phase: "pre", kind: "reconstruction" },
+  post_test: { phase: "post", kind: "posttest" },
+  reconstruction: { phase: "post", kind: "reconstruction" },
+  transfer: { phase: "post", kind: "transfer" },
+};
 
 /** Steps taken before allocation when `allocation.point = after_pre_test`: blind to condition. */
 export const BLIND_STEPS: readonly StudyStep[] = ["questionnaire_pre", "pre_test", "pre_reconstruction"];
@@ -192,7 +206,8 @@ export const STEP_LABEL: Record<StudyStep, string> = Object.fromEntries(
       ["pre_reconstruction", "Connect the concepts (before learning)"],
       ["familiarisation", "Practice with the controls"],
       ["onboarding", "Introduction to the learning task"],
-      ["learning", "Learning task"],
+      // The learning route shows this name too: one string for both (the shared table, P20).
+      ["learning", TASK_TEXT.label],
       ["questionnaire_post_learning", "Questions about the learning task"],
       ["post_test", "Questions after learning"],
       ["transfer", "Transfer task"],

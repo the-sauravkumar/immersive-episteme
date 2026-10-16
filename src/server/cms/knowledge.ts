@@ -176,6 +176,10 @@ export async function saveTradition(pool: Pool, actor: Actor, input: TraditionIn
 export async function setTraditionSource(pool: Pool, actor: Actor, input: z.infer<typeof traditionSourceSchema>): Promise<void> {
   ensure(actor, "content.edit");
   await inActorTx(pool, actor, null, async (c) => {
+    // The 0019 trigger (tradition_sources_evidence) reopens an accepted tradition as soon as its
+    // evidence row changes, so the reason must be set first; the explicit reopen below is kept as
+    // a belt-and-braces check and finds the tradition already under review.
+    await setChangeReason(c, "returned to review: tradition evidence changed");
     if (input.remove) {
       await c.query("DELETE FROM tradition_sources WHERE tradition_id = $1 AND source_id = $2 AND purpose = $3", [input.traditionId, input.sourceId, input.purpose]);
     } else {
@@ -187,7 +191,6 @@ export async function setTraditionSource(pool: Pool, actor: Actor, input: z.infe
     // A change of the evidence behind an accepted tradition sends it back to review.
     const t = await c.query<{ verification_state: string }>("SELECT verification_state FROM traditions WHERE id = $1", [input.traditionId]);
     if (t.rows[0] && ACCEPTED.has(t.rows[0].verification_state)) {
-      await setChangeReason(c, "returned to review: tradition evidence changed");
       await c.query("UPDATE traditions SET verification_state = 'under_review', updated_by = $2 WHERE id = $1", [input.traditionId, actor.userId]);
     }
     await audit(c, actor, {
@@ -245,6 +248,16 @@ export async function updateConcept(pool: Pool, actor: Actor, input: z.infer<typ
 /**
  * Replaces the concept's claims (positions 0..n-1) and their citations, then regenerates the
  * learner-facing summary/body from them. The quote and every locator are required (schemas.ts).
+ *
+ * Evidence per citation (final review knowledge-06): a citation keeps its located passages only
+ * while its claim text, source AND locator are unchanged (a new locator would contradict the kept
+ * passages' own locators); a citation may carry its own verbatim quote, stored as its passage.
+ *
+ * Figure anchors (final review knowledge-07): an illustration's `asset_links.position` is a claim
+ * index, so a reorder would silently move a photograph under another claim. Each anchor follows
+ * its claim's TEXT to the claim's new index; when that text is gone (reworded or deleted), the
+ * asset goes back to review, because the reviewed "caption restates its anchor claim" no longer
+ * holds. Both are audited.
  */
 export async function saveClaims(pool: Pool, actor: Actor, conceptId: string, claims: readonly z.infer<typeof cmsClaimSchema>[]): Promise<{ summary: string }> {
   ensure(actor, "content.edit");
@@ -270,24 +283,65 @@ export async function saveClaims(pool: Pool, actor: Actor, conceptId: string, cl
     // Located evidence passages (imported from content/) support a claim's exact wording: keep them
     // for a citation whose claim text and source are unchanged; a reworded claim loses them and
     // must be evidenced again.
-    const kept = await c.query<{ text: string; source_id: string; evidence: unknown }>(
-      `SELECT cc.text, cs.source_id::text AS source_id, cs.evidence
+    const kept = await c.query<{ text: string; source_id: string; locator: string | null; evidence: unknown }>(
+      `SELECT cc.text, cs.source_id::text AS source_id, cs.locator, cs.evidence
          FROM concept_claims cc JOIN concept_claim_sources cs ON cs.claim_id = cc.id
         WHERE cc.concept_id = $1 AND jsonb_array_length(cs.evidence) > 0`,
       [conceptId],
     );
-    const evidenceFor = new Map(kept.rows.map((k) => [`${k.text}|${k.source_id}`, JSON.stringify(k.evidence)]));
+    const evidenceKey = (text: string, sourceId: string, locator: string | null) => `${text}|${sourceId}|${(locator ?? "").trim()}`;
+    const evidenceFor = new Map(kept.rows.map((k) => [evidenceKey(k.text, k.source_id, k.locator), JSON.stringify(k.evidence)]));
+    // Illustration anchors, by the text of the claim they follow (knowledge-07).
+    const anchors = await c.query<{ id: string; asset_id: string; position: number; text: string | null }>(
+      `SELECT l.id, l.asset_id, l.position, cc.text
+         FROM asset_links l LEFT JOIN concept_claims cc ON cc.concept_id = l.concept_id AND cc.position = l.position
+        WHERE l.concept_id = $1 AND l.role = 'illustration' AND NOT l.is_demo
+        ORDER BY l.id FOR UPDATE OF l`,
+      [conceptId],
+    );
     await c.query("DELETE FROM concept_claims WHERE concept_id = $1", [conceptId]);
     for (const [i, cl] of claims.entries()) {
       const r = await c.query<{ id: string }>("INSERT INTO concept_claims (concept_id, position, text, quote) VALUES ($1, $2, $3, $4) RETURNING id", [conceptId, i, cl.text, cl.quote]);
       for (const s of cl.sources) {
+        // The curator's quote for this citation wins; else passages kept from an unchanged citation.
+        const own = s.quote ? JSON.stringify([{ locator: s.locator, quote: s.quote }]) : null;
         await c.query("INSERT INTO concept_claim_sources (claim_id, source_id, locator, evidence) VALUES ($1, $2, $3, $4::jsonb)", [
           r.rows[0]!.id,
           s.sourceId,
           s.locator,
-          evidenceFor.get(`${cl.text}|${s.sourceId}`) ?? "[]",
+          own ?? evidenceFor.get(evidenceKey(cl.text, s.sourceId, s.locator)) ?? "[]",
         ]);
       }
+    }
+    for (const a of anchors.rows) {
+      const next = a.text === null ? -1 : claims.findIndex((cl) => cl.text === a.text);
+      if (next === a.position) continue;
+      if (next >= 0) {
+        await c.query("UPDATE asset_links SET position = $2 WHERE id = $1", [a.id, next]);
+        await audit(c, actor, {
+          action: "media.anchor_followed_claim",
+          entity: "asset_links",
+          entityId: a.asset_id,
+          before: { conceptId, position: a.position },
+          after: { conceptId, position: next },
+          reason: "the anchor claim moved; the figure follows it",
+        });
+        continue;
+      }
+      const asset = await c.query<{ verification_state: string }>("SELECT verification_state::text FROM assets WHERE id = $1 FOR UPDATE", [a.asset_id]);
+      const state = asset.rows[0]?.verification_state;
+      if (state === "verified" || state === "published") {
+        await setChangeReason(c, "returned to review: its anchor claim was reworded or removed");
+        await c.query("UPDATE assets SET verification_state = 'under_review' WHERE id = $1", [a.asset_id]);
+      }
+      await audit(c, actor, {
+        action: "media.anchor_lost",
+        entity: "asset_links",
+        entityId: a.asset_id,
+        before: { conceptId, position: a.position, anchorClaim: a.text },
+        after: { verificationState: state === "verified" || state === "published" ? "under_review" : state },
+        reason: "the anchor claim was reworded or removed: re-anchor the figure and review it again",
+      });
     }
     const derived = deriveLearnerText(claims.map((cl) => ({ text: cl.text, sourceKeys: cl.sources.map((s) => byId.get(s.sourceId)!.local_key ?? s.sourceId) })));
     await c.query("UPDATE concepts SET summary = $2, body_md = $3, updated_by = $4 WHERE id = $1", [conceptId, derived.summary, derived.bodyMd, actor.userId]);

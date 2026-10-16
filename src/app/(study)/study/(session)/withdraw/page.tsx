@@ -9,7 +9,11 @@ import { getCurrentSession } from "@/server/study/session";
 
 export const metadata: Metadata = { title: titleCase("Withdraw from the study") };
 
-/** Withdrawal at any point of a session. Data already given is kept per the study's retention policy. */
+/**
+ * Withdrawal at any point of a session. Data already given is kept per the study's retention
+ * policy and removed on request or after it (the research team's purge, DR-030); what is kept for
+ * the audit record is said plainly.
+ */
 async function Withdraw() {
   const { state } = await getCurrentSession();
   const days = state.study.protocol.config.retentionDays;
@@ -18,9 +22,14 @@ async function Withdraw() {
       <div className="flex flex-col gap-4">
         <p className="text-reading max-w-[34rem] text-ink">You can stop taking part at any time without giving a reason. Your session will end now.</p>
         <p className="text-reading max-w-[34rem] text-ink">
-          Answers and records from this session up to now are not deleted automatically: they are kept as described in the information you agreed to
-          {days ? ` (retention period: ${days} days)` : ""}. If you want them removed, tell the facilitator your participant code{" "}
-          <span className="text-id whitespace-nowrap text-ink">{state.participantCode}</span>.
+          Your answers and records from this session up to now are kept as described in the information you agreed to
+          {days ? `, for ${days} days after your participation ends, and then removed` : ""}. If you want them removed sooner, tell the facilitator your participant code{" "}
+          <span className="text-id whitespace-nowrap text-ink">{state.participantCode}</span>: the research team then deletes your answers, maps and activity
+          records.
+        </p>
+        <p className="text-reading max-w-[34rem] text-ink">
+          Your participant code, your consent decisions and the group you were assigned to are kept, without your name, as the record that the study was run
+          correctly.
         </p>
       </div>
       <WithdrawForm />

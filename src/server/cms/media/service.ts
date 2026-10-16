@@ -8,7 +8,7 @@
  *  - Licence and provenance (a provenance kind plus a source URL or a cited source) are required
  *    on upload; images need alt text ("" only when explicitly marked decorative).
  *  - Review: uploaders submit (media.upload); reviewers (media.review) verify, ask for evidence or
- *    reject. Nobody verifies an asset they uploaded or last edited. Editing a verified asset sends
+ *    reject. Nobody verifies an asset they uploaded, edited or linked. Editing a verified asset sends
  *    it back to under_review (assets have no database trigger for this, unlike concepts).
  *  - Every mutation runs in `inActorTx` (verification_records get the actor) with an audit_log row.
  *  - Figure governance (DESIGN.md 9.9, 11.10, 16; DR-018, DR-020; migration 0016): images carry
@@ -24,11 +24,17 @@
  *    first publication (V&A: 60 months). It runs wherever an asset can become servable: a review
  *    that verifies it, a link to a concept, a metadata edit and a release publication
  *    (src/server/cms/release.ts). The learner route refuses a termed asset that has no stamp.
- *  - First publication (DR-020 addendum, migration 0017): `stampFirstPublication` records the day
- *    an asset first becomes servable, once, and sets the expiry of a licence term counted from
- *    first publication (V&A: 60 months). It runs wherever an asset can become servable: a review
- *    that verifies it, a link to a concept, a metadata edit and a release publication
- *    (src/server/cms/release.ts). The learner route refuses a termed asset that has no stamp.
+ *  - Frozen study figures (DR-037; migration 0019): `publishRelease` freezes every servable
+ *    illustration of the release's concepts into `snapshot_figures` (`freezeReleaseFigures`), and
+ *    a released snapshot's photographs are read only from there (`listSnapshotPhotoLinks`), so no
+ *    caption, anchor, link or file change reaches a running study. Only removals stay live: the
+ *    licence (expiry, display cap, first-publication stamp) and a reviewer's needs-evidence,
+ *    rejection or archive decision. A removal from the snapshot of an ACTIVE study is recorded as
+ *    a protocol deviation of that study in the same transaction (`recordFigureWithdrawals`).
+ *  - A link is learner-facing text (its caption override and anchor claim): creating or changing
+ *    one on an accepted asset sends the asset back to review, and the override obeys the caption
+ *    rules. Everyone who uploaded, edited or linked an asset is one of its authors and cannot
+ *    verify it (`assetAuthors`, the media counterpart of workflow.ts `authorsOf`).
  *
  * Not `server-only`: integration tests call it with their own pool and a local store.
  */
@@ -331,19 +337,23 @@ export async function updateAssetMetadata(pool: Pool, actor: Actor, input: { ass
     if (accepted) {
       await tx.query("SELECT set_config('app.change_reason', $1, true)", ["returned to review: metadata edited after acceptance"]);
     }
-    await tx.query(
-      `UPDATE assets SET title = $2, alt_text = $3, caption = $4, credit = $5, licence = $6, licence_url = $7, source_url = $8,
-                         source_id = $9, provenance_kind = $10::provenance_kind, verification_state = $11::verification_state, updated_by = $12,
-                         max_pixels = $13, licence_expires_on = $14::date, public_plate = $15,
-                         licence_term_months = COALESCE($16, licence_term_months)
-        WHERE id = $1`,
-      [
-        before.id, meta.title, alt, meta.caption, meta.credit, meta.licence, meta.licenceUrl, meta.sourceUrl, meta.sourceId, meta.provenanceKind, nextState, actor.userId,
-        meta.maxPixels, meta.licenceExpiresOn, meta.publicPlate, meta.licenceTermMonths,
-      ],
-    );
-    // An edit never moves the expiry past the end of a term already running from first publication.
-    await stampFirstPublication(tx, actor, { assetId: before.id });
+    // A frozen study figure keeps its reviewed text (DR-037); only a licence change (a lower
+    // display cap, an earlier expiry) can withdraw it, and that is recorded as a deviation.
+    await recordFigureWithdrawals(tx, actor, before.id, "its licence metadata was changed", async () => {
+      await tx.query(
+        `UPDATE assets SET title = $2, alt_text = $3, caption = $4, credit = $5, licence = $6, licence_url = $7, source_url = $8,
+                           source_id = $9, provenance_kind = $10::provenance_kind, verification_state = $11::verification_state, updated_by = $12,
+                           max_pixels = $13, licence_expires_on = $14::date, public_plate = $15,
+                           licence_term_months = COALESCE($16, licence_term_months)
+          WHERE id = $1`,
+        [
+          before.id, meta.title, alt, meta.caption, meta.credit, meta.licence, meta.licenceUrl, meta.sourceUrl, meta.sourceId, meta.provenanceKind, nextState, actor.userId,
+          meta.maxPixels, meta.licenceExpiresOn, meta.publicPlate, meta.licenceTermMonths,
+        ],
+      );
+      // An edit never moves the expiry past the end of a term already running from first publication.
+      await stampFirstPublication(tx, actor, { assetId: before.id });
+    });
     const after = await lockAsset(tx, before.id);
     await audit(tx, actor, { action: "media.asset_updated", entity: "assets", entityId: before.id, before: metaOf(before), after: metaOf(after), reason: accepted ? "edited after acceptance: returned to review" : null });
     return { returnedToReview: accepted };
@@ -389,6 +399,28 @@ export const assetReviewSchema = z
     }
   });
 
+/** Audit actions that make a user an author of an asset (its file, its text, or a link's text and anchor). */
+const ASSET_AUTHORING_ACTIONS = ["media.asset_uploaded", "media.asset_updated", "media.asset_linked"];
+
+/**
+ * Everyone who authored asset `a` (final review knowledge-10): its uploader and last editor, plus
+ * every user with an authoring audit row on it (an earlier edit, or a link that set its anchor or
+ * caption override). The media counterpart of workflow.ts `authorsOf`, so an earlier editor cannot
+ * verify the text they wrote just because someone else edited after them.
+ */
+export async function assetAuthors(q: Q, a: Pick<AssetRow, "id" | "created_by" | "updated_by">): Promise<Set<string>> {
+  const out = new Set<string>();
+  for (const v of [a.created_by, a.updated_by]) if (v) out.add(v);
+  const r = await q.query<{ actor_id: string }>(
+    `SELECT DISTINCT actor_id FROM audit_log
+      WHERE actor_kind = 'user' AND entity IN ('assets', 'asset_links') AND entity_id = $1
+        AND action = ANY($2::text[]) AND actor_id IS NOT NULL`,
+    [a.id, ASSET_AUTHORING_ACTIONS],
+  );
+  for (const row of r.rows) out.add(row.actor_id);
+  return out;
+}
+
 /** Reviewer decision on an asset under review. */
 export async function reviewAsset(pool: Pool, actor: Actor, raw: z.input<typeof assetReviewSchema>): Promise<void> {
   ensure(actor, "media.review");
@@ -400,8 +432,8 @@ export async function reviewAsset(pool: Pool, actor: Actor, raw: z.input<typeof 
       throw new CmsError("invalid_transition", `Only assets under review can be decided (this one is "${a.verification_state}").`, 409);
     }
     if (input.to === "verified") {
-      if (a.created_by === actor.userId || a.updated_by === actor.userId) {
-        throw new CmsError("self_verification", "You uploaded or last edited this asset; another reviewer must verify it.", 403);
+      if ((await assetAuthors(tx, a)).has(actor.userId)) {
+        throw new CmsError("self_verification", "You uploaded, edited or linked this asset; another reviewer must verify it.", 403);
       }
       const missing: string[] = [];
       if (!a.licence) missing.push("licence");
@@ -426,7 +458,10 @@ export async function reviewAsset(pool: Pool, actor: Actor, raw: z.input<typeof 
         }
       }
     }
-    await tx.query("UPDATE assets SET verification_state = $2::verification_state WHERE id = $1", [a.id, input.to]);
+    // Needs-evidence and rejection withdraw a figure frozen into a running study (DR-037).
+    await recordFigureWithdrawals(tx, actor, a.id, `a reviewer decided "${input.to}" (${reason ?? "no reason given"})`, () =>
+      tx.query("UPDATE assets SET verification_state = $2::verification_state WHERE id = $1", [a.id, input.to]),
+    );
     await audit(tx, actor, {
       action: "media.asset_reviewed",
       entity: "assets",
@@ -451,12 +486,24 @@ export const assetLinkSchema = z.object({
  * Links an asset to a concept. For an `illustration`, the position is the anchor claim index: it
  * must name an existing claim of the concept, and a concept takes at most one illustration (12.3
  * rule 9), so a second one is refused until the first link is removed.
+ *
+ * A link is learner-facing (final review knowledge-02, security-02): its caption override is
+ * printed under the figure and its anchor decides which claim the figure illustrates. So the
+ * override obeys the caption rules (at most 180 characters, never the alt text), and creating a
+ * link, moving its anchor or changing its override on an ACCEPTED asset sends the asset back to
+ * review: the review's "caption restates its anchor claim" check covered the old link only. Until
+ * it is verified again, no new release freezes it; releases already published keep their frozen
+ * figure (DR-037).
  */
-export async function linkAssetToConcept(pool: Pool, actor: Actor, raw: z.input<typeof assetLinkSchema>): Promise<void> {
+export async function linkAssetToConcept(pool: Pool, actor: Actor, raw: z.input<typeof assetLinkSchema>): Promise<{ returnedToReview: boolean }> {
   ensure(actor, "media.upload");
   const input = assetLinkSchema.parse(raw);
-  await inActorTx(pool, actor, null, async (tx) => {
-    await lockAsset(tx, input.assetId);
+  return inActorTx(pool, actor, null, async (tx) => {
+    const asset = await lockAsset(tx, input.assetId);
+    if (input.captionOverride !== null) {
+      const rule = captionProblem(input.captionOverride) ?? (asset.alt_text ? altTextProblem(asset.alt_text, input.captionOverride) : null);
+      if (rule) throw new CmsError("caption_rule", rule, 422, [{ code: "captionOverride", message: rule }]);
+    }
     const c = await tx.query<{ key: string; claims: number }>(
       "SELECT c.key, (SELECT count(*)::int FROM concept_claims cc WHERE cc.concept_id = c.id) AS claims FROM concepts c WHERE c.id = $1 AND NOT c.is_demo FOR UPDATE",
       [input.conceptId],
@@ -476,14 +523,34 @@ export async function linkAssetToConcept(pool: Pool, actor: Actor, raw: z.input<
         throw new CmsError("one_figure_per_concept", `This concept already has an illustration ("${other.rows[0].title}"). A study concept shows at most one figure: remove that link first.`, 409);
       }
     }
+    const prior = await tx.query<{ position: number; caption_override: string | null }>(
+      "SELECT position, caption_override FROM asset_links WHERE asset_id = $1 AND concept_id = $2 AND role = $3::asset_link_role",
+      [input.assetId, input.conceptId, input.role],
+    );
+    const before = prior.rows[0] ?? null;
+    const changed = !before || before.position !== input.position || (before.caption_override ?? null) !== input.captionOverride;
+    const accepted = asset.verification_state === "verified" || asset.verification_state === "published";
+    const returnedToReview = accepted && changed;
+    if (returnedToReview) {
+      await tx.query("SELECT set_config('app.change_reason', $1, true)", ["returned to review: a link (anchor claim or caption) was created or changed after acceptance"]);
+      await tx.query("UPDATE assets SET verification_state = 'under_review', updated_by = $2 WHERE id = $1", [asset.id, actor.userId]);
+    }
     await tx.query(
       `INSERT INTO asset_links (asset_id, concept_id, role, position, caption_override, is_demo)
        VALUES ($1, $2, $3::asset_link_role, $4, $5, false)
        ON CONFLICT (asset_id, concept_id, role) DO UPDATE SET position = EXCLUDED.position, caption_override = EXCLUDED.caption_override`,
       [input.assetId, input.conceptId, input.role, input.position, input.captionOverride],
     );
-    await audit(tx, actor, { action: "media.asset_linked", entity: "asset_links", entityId: input.assetId, after: { ...input, conceptKey: c.rows[0].key } });
+    await audit(tx, actor, {
+      action: "media.asset_linked",
+      entity: "asset_links",
+      entityId: input.assetId,
+      before: before ? { position: before.position, captionOverride: before.caption_override } : undefined,
+      after: { ...input, conceptKey: c.rows[0].key, verificationState: returnedToReview ? "under_review" : asset.verification_state },
+      reason: returnedToReview ? "link created or changed after acceptance: returned to review" : null,
+    });
     await stampFirstPublication(tx, actor, { assetId: input.assetId });
+    return { returnedToReview };
   });
 }
 
@@ -722,64 +789,97 @@ export interface LearnerFigureRef extends StoredAssetRef {
   height: number | null;
   maxPixels: number | null;
   licenceExpiresOn: string | null;
+  /** sha256 of the stored file: the figure route's ETag. */
+  sha256: string;
 }
 
 /**
  * The asset the learner and public figure route may serve (DESIGN.md 16), or null. Served only
  * when ALL hold on `day` (YYYY-MM-DD, the request date):
- *  - a real (non-demo) image, approved (verified or published);
+ *  - a real (non-demo) image;
  *  - its licence has not expired (`licence_expires_on` empty or on/after `day`);
  *  - the stored file is no larger than the licence's display cap (`max_pixels` on the long edge;
  *    the V&A terms allow 768 px), so the platform never publishes more pixels than permitted;
- *  - it has the credit, caption and alt text every figure prints (9.9, R-H5, honesty rule 13.3),
- *    so an asset approved before those became required is never shown without its credit line;
- *  - it is an `illustration` of a concept frozen into a published release snapshot (the bundle a
- *    study pins), or it is cleared for public plates;
  *  - a licence term counted from first publication has its first-publication day recorded
- *    (`stampFirstPublication`).
+ *    (`stampFirstPublication`);
+ *  - and EITHER it is approved (verified or published), has the credit, caption and alt text every
+ *    figure prints (9.9, R-H5, honesty rule 13.3), and is an `illustration` of a concept in a
+ *    published release snapshot or cleared for public plates; OR it is frozen into a published
+ *    release (`snapshot_figures`, DR-037) with this very file and has not been withdrawn by a
+ *    reviewer (an edit awaiting re-review does not withdraw the frozen, reviewed figure).
  * Anything else is indistinguishable from a missing asset (the route answers 404).
  */
 export async function loadLearnerFigure(q: Q, assetId: string, day: string): Promise<LearnerFigureRef | null> {
   if (!isUuid(assetId) || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
-  const r = await q.query<{ id: string; kind: string; title: string; storage_key: string; mime_type: string; byte_size: string | number; width: number | null; height: number | null; max_pixels: number | null; licence_expires_on: string | null }>(
-    `SELECT a.id, a.kind, a.title, a.storage_key, a.mime_type, a.byte_size, a.width, a.height, a.max_pixels, a.licence_expires_on::text AS licence_expires_on
+  const r = await q.query<{ id: string; kind: string; title: string; storage_key: string; mime_type: string; byte_size: string | number; width: number | null; height: number | null; max_pixels: number | null; licence_expires_on: string | null; sha256: string }>(
+    `SELECT a.id, a.kind, a.title, a.storage_key, a.mime_type, a.byte_size, a.width, a.height, a.max_pixels, a.licence_expires_on::text AS licence_expires_on, a.sha256
        FROM assets a
       WHERE a.id = $1
-        AND ${servableSql("$2::date", { requireStamp: true })}`,
+        AND ${servableSql("$2::date", { requireStamp: true, frozen: true })}`,
     [assetId, day],
   );
   const a = r.rows[0];
   return a
-    ? { id: a.id, kind: a.kind, title: a.title, storageKey: a.storage_key, mimeType: a.mime_type, byteSize: Number(a.byte_size), width: a.width, height: a.height, maxPixels: a.max_pixels, licenceExpiresOn: a.licence_expires_on }
+    ? { id: a.id, kind: a.kind, title: a.title, storageKey: a.storage_key, mimeType: a.mime_type, byteSize: Number(a.byte_size), width: a.width, height: a.height, maxPixels: a.max_pixels, licenceExpiresOn: a.licence_expires_on, sha256: a.sha256 }
     : null;
+}
+
+/** Asset states in which a figure frozen into a release is still shown: not withdrawn by a reviewer. */
+const FROZEN_SERVED_STATES = "('verified', 'published', 'under_review')";
+
+/** SQL: the licence permits showing asset `a` on `day` at a long edge of `edge` px. */
+function licenceSql(day: string, edge: string, requireStamp: boolean): string {
+  return `(a.licence_expires_on IS NULL OR a.licence_expires_on >= ${day})
+        AND (a.max_pixels IS NULL OR ${edge} <= a.max_pixels)
+        ${requireStamp ? "AND (a.licence_term_months IS NULL OR a.first_published_on IS NOT NULL)" : ""}`;
 }
 
 /**
  * SQL condition: asset `a` may be shown on `day` (a SQL date expression). With `requireStamp`, an
  * asset whose licence term runs from first publication must already carry its first-publication
  * day (the learner route and the read model); without it, the condition says whether the asset is
- * visible at all (used to stamp that day).
+ * visible at all (used to stamp that day). Without `frozen`, only the live path counts (an approved
+ * asset with its live text): that is what a review snapshot previews. With `frozen`, a figure frozen
+ * into a published release (DR-037) counts too: that is what the figure route may serve.
  */
-function servableSql(day: string, opts: { requireStamp: boolean }): string {
+function servableSql(day: string, opts: { requireStamp: boolean; frozen: boolean }): string {
+  const live = `(a.verification_state IN ('verified', 'published')
+          AND btrim(coalesce(a.credit, '')) <> ''
+          AND btrim(coalesce(a.caption, '')) <> ''
+          AND btrim(coalesce(a.alt_text, '')) <> ''
+          AND (
+            a.public_plate
+            OR EXISTS (
+              SELECT 1
+                FROM asset_links l
+                JOIN snapshot_items si ON si.item_kind = 'concept' AND si.entity_ref = l.concept_id::text
+                JOIN content_snapshots s ON s.id = si.snapshot_id
+               WHERE l.asset_id = a.id AND l.role = 'illustration' AND s.kind = 'release' AND s.status = 'published' AND NOT s.is_demo
+            )
+          ))`;
+  const frozen = `(a.verification_state IN ${FROZEN_SERVED_STATES}
+          AND EXISTS (
+            SELECT 1
+              FROM snapshot_figures f
+              JOIN content_snapshots s ON s.id = f.snapshot_id
+             WHERE f.asset_id = a.id AND f.sha256 = a.sha256 AND s.kind = 'release' AND s.status = 'published' AND NOT s.is_demo
+          ))`;
   return `NOT a.is_demo
         AND a.kind = 'image'
-        AND a.verification_state IN ('verified', 'published')
-        AND (a.licence_expires_on IS NULL OR a.licence_expires_on >= ${day})
-        AND (a.max_pixels IS NULL OR greatest(a.width, a.height) <= a.max_pixels)
-        ${opts.requireStamp ? "AND (a.licence_term_months IS NULL OR a.first_published_on IS NOT NULL)" : ""}
-        AND btrim(coalesce(a.credit, '')) <> ''
-        AND btrim(coalesce(a.caption, '')) <> ''
-        AND btrim(coalesce(a.alt_text, '')) <> ''
-        AND (
-          a.public_plate
-          OR EXISTS (
-            SELECT 1
-              FROM asset_links l
-              JOIN snapshot_items si ON si.item_kind = 'concept' AND si.entity_ref = l.concept_id::text
-              JOIN content_snapshots s ON s.id = si.snapshot_id
-             WHERE l.asset_id = a.id AND l.role = 'illustration' AND s.kind = 'release' AND s.status = 'published' AND NOT s.is_demo
-          )
-        )`;
+        AND ${licenceSql(day, "greatest(a.width, a.height)", opts.requireStamp)}
+        AND (${opts.frozen ? `${live} OR ${frozen}` : live})`;
+}
+
+/**
+ * SQL condition: the frozen figure `f` (a snapshot_figures row) of asset `a` is shown on `day`.
+ * Only removals are live (DR-037): the licence, a reviewer's withdrawal, and a changed file.
+ */
+function frozenServedSql(day: string): string {
+  return `NOT a.is_demo
+        AND a.kind = 'image'
+        AND a.sha256 = f.sha256
+        AND a.verification_state IN ${FROZEN_SERVED_STATES}
+        AND ${licenceSql(day, "greatest(f.width, f.height)", true)}`;
 }
 
 /** Today in UTC: the day the learner route judges licences on. */
@@ -798,7 +898,7 @@ export async function stampFirstPublication(q: Q, actor: Actor, opts: { assetId?
   const stamped = await q.query<{ id: string; first_published_on: string }>(
     `UPDATE assets a SET first_published_on = ${UTC_TODAY}
       WHERE a.first_published_on IS NULL ${only}
-        AND ${servableSql(UTC_TODAY, { requireStamp: false })}
+        AND ${servableSql(UTC_TODAY, { requireStamp: false, frozen: true })}
       RETURNING a.id, a.first_published_on::text AS first_published_on`,
     params,
   );
@@ -833,41 +933,181 @@ export async function stampFirstPublication(q: Q, actor: Actor, opts: { assetId?
   return stamped.rows.map((r) => r.id);
 }
 
+interface PhotoLinkRow {
+  asset_id: string; concept_id: string; role: string; position: number; width: number; height: number; alt_text: string; caption: string; credit: string; licence: string; licence_url: string | null;
+}
+
+const photoLinkOf = (x: PhotoLinkRow): IllustrationLink => ({
+  assetId: x.asset_id,
+  conceptId: x.concept_id,
+  role: x.role,
+  position: x.position,
+  src: `/figures/${x.asset_id}`,
+  width: x.width,
+  height: x.height,
+  altText: x.alt_text,
+  caption: x.caption,
+  credit: x.credit,
+  licence: x.licence,
+  licenceUrl: x.licence_url,
+});
+
 /**
- * Every illustration link the learner route would serve on `day`, with what a photo figure prints,
- * for the read model (src/server/knowledge/read-model.ts). The anchor-claim gate and the protocol
- * switch are applied there, against the snapshot both conditions read.
+ * Every illustration link the learner route would serve on `day` from LIVE rows, with what a photo
+ * figure prints. Used for snapshots that froze no figures (review builds); a published release's
+ * figures come from `listSnapshotPhotoLinks`. The anchor-claim gate and the protocol switch are
+ * applied in the read model (src/server/knowledge/read-model.ts), against the snapshot both
+ * conditions read.
  */
 export async function listLearnerPhotoLinks(q: Q, day: string): Promise<IllustrationLink[]> {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return [];
-  const r = await q.query<{
-    asset_id: string; concept_id: string; role: string; position: number; width: number; height: number; alt_text: string; caption: string; credit: string; licence: string; licence_url: string | null;
-  }>(
+  const r = await q.query<PhotoLinkRow>(
     `SELECT l.asset_id, l.concept_id, l.role::text AS role, l.position, a.width, a.height, a.alt_text, ${FIGURE_CAPTION_SQL} AS caption, a.credit, a.licence, a.licence_url
        FROM asset_links l JOIN assets a ON a.id = l.asset_id
       WHERE l.role = 'illustration' AND NOT l.is_demo AND a.width IS NOT NULL AND a.height IS NOT NULL
-        AND ${servableSql("$1::date", { requireStamp: true })}
+        AND ${servableSql("$1::date", { requireStamp: true, frozen: false })}
       ORDER BY l.concept_id, l.position, l.asset_id`,
     [day],
   );
-  return r.rows.map((x) => ({
-    assetId: x.asset_id,
-    conceptId: x.concept_id,
-    role: x.role,
-    position: x.position,
-    src: `/figures/${x.asset_id}`,
-    width: x.width,
-    height: x.height,
-    altText: x.alt_text,
-    caption: x.caption,
-    credit: x.credit,
-    licence: x.licence,
-    licenceUrl: x.licence_url,
-  }));
+  return r.rows.map(photoLinkOf);
 }
 
-/** One year: the learner figure route's cache lifetime for content-addressed files. */
-export const FIGURE_MAX_AGE = 31_536_000;
+/** Does `snapshotId` name a published, real release (the only snapshots that freeze figures)? */
+async function isPublishedRelease(q: Q, snapshotId: string): Promise<boolean> {
+  if (!isUuid(snapshotId)) return false;
+  const r = await q.query<{ ok: boolean }>(
+    "SELECT (kind = 'release' AND status = 'published' AND NOT is_demo) AS ok FROM content_snapshots WHERE id = $1",
+    [snapshotId],
+  );
+  return r.rows[0]?.ok ?? false;
+}
+
+/**
+ * The study photographs of snapshot `snapshotId` on `day` (DR-037). A published release shows
+ * exactly the figures frozen into it at publication (anchor, caption, alt, credit, licence, size),
+ * minus any removed since by the licence or a reviewer; nothing is ever added or changed. Any other
+ * snapshot (a review build) previews the live, approved links (`listLearnerPhotoLinks`).
+ */
+export async function listSnapshotPhotoLinks(q: Q, snapshotId: string, day: string): Promise<IllustrationLink[]> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return [];
+  if (!(await isPublishedRelease(q, snapshotId))) return listLearnerPhotoLinks(q, day);
+  const r = await q.query<PhotoLinkRow>(
+    `SELECT f.asset_id, f.concept_id, 'illustration' AS role, f.position, f.width, f.height, f.alt_text, f.caption, f.credit, f.licence, f.licence_url
+       FROM snapshot_figures f JOIN assets a ON a.id = f.asset_id
+      WHERE f.snapshot_id = $1 AND ${frozenServedSql("$2::date")}
+      ORDER BY f.concept_id, f.position, f.asset_id`,
+    [snapshotId, day],
+  );
+  return r.rows.map(photoLinkOf);
+}
+
+/** The shape of the parity engine's figure input (`ParityFigureAsset` in research/parity/engine.ts). */
+export interface FigureAssetRow {
+  assetId: string; conceptId: string; role: string; position: number; verificationState: string; isDemo: boolean; width: number | null; height: number | null; maxPixels: number | null; licenceExpiresOn: string | null;
+  credit: string | null; caption: string | null; altText: string | null;
+}
+
+/**
+ * The illustration links the parity engine judges for `snapshotId`: for a published release, its
+ * frozen figures (DR-037), reported as `published` while still shown (a reviewer's withdrawal or a
+ * changed file reports the live state, so the engine drops it like any unapproved asset); for any
+ * other snapshot, every live illustration link (`listIllustrationLinks`).
+ */
+export async function listSnapshotFigureAssets(q: Q, snapshotId: string | null): Promise<FigureAssetRow[]> {
+  if (!snapshotId || !(await isPublishedRelease(q, snapshotId))) return listIllustrationLinks(q);
+  const r = await q.query<FigureAssetRow>(
+    `SELECT f.asset_id AS "assetId", f.concept_id AS "conceptId", 'illustration' AS role, f.position,
+            CASE WHEN a.sha256 = f.sha256 AND a.verification_state IN ${FROZEN_SERVED_STATES} THEN 'published' ELSE a.verification_state::text END AS "verificationState",
+            a.is_demo AS "isDemo", f.width, f.height, a.max_pixels AS "maxPixels", a.licence_expires_on::text AS "licenceExpiresOn",
+            f.credit, f.caption, f.alt_text AS "altText"
+       FROM snapshot_figures f JOIN assets a ON a.id = f.asset_id
+      WHERE f.snapshot_id = $1
+      ORDER BY f.concept_id, f.position, f.asset_id`,
+    [snapshotId],
+  );
+  return r.rows;
+}
+
+/**
+ * Freezes the study photographs of draft release `snapshotId` (DR-037), inside `publishRelease`'s
+ * transaction after its snapshot items are inserted and before it is published: every real
+ * illustration link of a concept in the snapshot whose asset is servable today (approved, licence
+ * valid, within its display cap, with its credit, alt text and caption) and whose anchor names one
+ * of the concept's claims. The caption is the one learners see (the link's override, else the
+ * asset's). Returns the number of figures frozen.
+ */
+export async function freezeReleaseFigures(q: Q, snapshotId: string): Promise<number> {
+  const r = await q.query(
+    `INSERT INTO snapshot_figures (snapshot_id, concept_id, asset_id, position, caption, alt_text, credit, licence, licence_url, width, height, sha256)
+     SELECT si.snapshot_id, l.concept_id, a.id, l.position, btrim(${FIGURE_CAPTION_SQL}), btrim(a.alt_text), btrim(a.credit), btrim(a.licence), a.licence_url,
+            a.width, a.height, a.sha256
+       FROM snapshot_items si
+       JOIN asset_links l ON l.concept_id::text = si.entity_ref AND l.role = 'illustration' AND NOT l.is_demo
+       JOIN assets a ON a.id = l.asset_id
+      WHERE si.snapshot_id = $1 AND si.item_kind = 'concept'
+        AND NOT a.is_demo AND a.kind = 'image' AND a.verification_state IN ('verified', 'published')
+        AND a.width IS NOT NULL AND a.height IS NOT NULL
+        AND ${licenceSql(UTC_TODAY, "greatest(a.width, a.height)", false)}
+        AND btrim(coalesce(a.credit, '')) <> '' AND btrim(coalesce(a.alt_text, '')) <> '' AND btrim(coalesce(a.licence, '')) <> ''
+        AND btrim(coalesce(${FIGURE_CAPTION_SQL}, '')) <> ''
+        AND l.position < (SELECT count(*) FROM concept_claims cc WHERE cc.concept_id = l.concept_id)`,
+    [snapshotId],
+  );
+  return r.rowCount ?? 0;
+}
+
+interface FigureExposure {
+  studyId: string;
+  studySlug: string;
+  conceptKey: string;
+  served: boolean;
+}
+
+/** Active studies whose pinned release froze `assetId`, and whether each still shows it today. */
+async function frozenFigureExposure(q: Q, assetId: string): Promise<FigureExposure[]> {
+  const r = await q.query<{ study_id: string; slug: string; concept_key: string | null; concept_id: string; served: boolean }>(
+    `SELECT st.id AS study_id, st.slug, c.key AS concept_key, f.concept_id, (${frozenServedSql(UTC_TODAY)}) AS served
+       FROM studies st
+       JOIN snapshot_figures f ON f.snapshot_id = st.snapshot_id
+       JOIN assets a ON a.id = f.asset_id
+       LEFT JOIN concepts c ON c.id = f.concept_id
+      WHERE st.status = 'active' AND f.asset_id = $1
+      ORDER BY st.slug, c.key`,
+    [assetId],
+  );
+  return r.rows.map((x) => ({ studyId: x.study_id, studySlug: x.slug, conceptKey: x.concept_key ?? x.concept_id, served: x.served }));
+}
+
+/**
+ * Runs `change` (a mutation of asset `assetId` in the caller's transaction) and records, for every
+ * ACTIVE study whose frozen photograph the change withdrew, a major `content` protocol deviation
+ * and an audit row: earlier and later participants of that study now saw different materials.
+ * Nothing is refused: a licence or a reviewer may always withdraw a figure (DR-037).
+ */
+async function recordFigureWithdrawals<T>(q: Q, actor: Actor, assetId: string, why: string, change: () => Promise<T>): Promise<T> {
+  const before = await frozenFigureExposure(q, assetId);
+  const result = await change();
+  if (!before.some((b) => b.served)) return result;
+  const after = await frozenFigureExposure(q, assetId);
+  const stillShown = new Set(after.filter((x) => x.served).map((x) => `${x.studyId}|${x.conceptKey}`));
+  for (const b of before) {
+    if (!b.served || stillShown.has(`${b.studyId}|${b.conceptKey}`)) continue;
+    const description = `The study photograph (asset ${assetId}) on ${b.conceptKey} was withdrawn during data collection: ${why}. From now on participants in both conditions see no photograph on that concept; earlier participants saw it.`;
+    await q.query(
+      "INSERT INTO protocol_deviations (study_id, category, severity, description, reported_by) VALUES ($1, 'content', 'major', $2, $3)",
+      [b.studyId, description, actor.userId],
+    );
+    await audit(q, actor, { action: "media.figure_withdrawn", entity: "assets", entityId: assetId, after: { studyId: b.studyId, study: b.studySlug, conceptKey: b.conceptKey }, reason: why });
+  }
+  return result;
+}
+
+/**
+ * Five minutes: the learner figure route's cache lifetime (DR-037; final review knowledge-05). A
+ * withdrawal or an expired licence reaches every browser and shared cache within this time; the
+ * route revalidates with the file's sha256 as ETag, so a fresh copy costs a 304, not the bytes.
+ */
+export const FIGURE_MAX_AGE = 300;
 
 /** Seconds from `now` to the end of the licence's last day (UTC), at most FIGURE_MAX_AGE. */
 export function figureMaxAge(licenceExpiresOn: string | null, now: Date): number {

@@ -17,7 +17,9 @@
  *    AUTH_CLIENT_IP_HEADER). Without a proxy, src/proxy.ts strips client-supplied forwarding
  *    headers so Next.js fills in the socket address (src/lib/client-ip.ts).
  *  - Per-account throttle on /sign-in/email (./account-throttle.ts): at most 10 attempts per
- *    15 minutes per email, from any number of IPs, then a 15-minute lock (HTTP 429).
+ *    15 minutes per email, from any number of IPs, then a 15-minute lock (HTTP 429). A browser
+ *    that signed in to the account before (signed `known_device` cookie, 90 days) is counted in
+ *    its own bucket, so a stranger who locks the email does not lock out its owner (security-09).
  *  - Secure cookies in production (`__Secure-` prefix), httpOnly, SameSite=Lax.
  *  - 12h sessions refreshed hourly: a research console, not a consumer app.
  *  - The admin plugin is not used: it models a single `user.role` string, while this project
@@ -36,6 +38,7 @@ import {
   clearSignInAttempts,
   consumeSignInAttempt,
   DEFAULT_ACCOUNT_THROTTLE,
+  signInThrottleKey,
   type AccountThrottleOptions,
 } from "./account-throttle";
 import { AUTH_COOKIE_PREFIX } from "./cookie-names";
@@ -74,6 +77,13 @@ export type CreateAuthOptions = {
 };
 
 const SIGN_IN_PATH = "/sign-in/email";
+
+/**
+ * Signed "this browser signed in to this account before" cookie (OWASP device cookies). Its
+ * value is the account's throttle key (sha256 of the email), never the address itself.
+ */
+export const KNOWN_DEVICE_COOKIE = "known_device";
+const KNOWN_DEVICE_MAX_AGE = 60 * 60 * 24 * 90;
 
 export function createAuth(opts: CreateAuthOptions) {
   const { db } = opts;
@@ -126,7 +136,9 @@ export function createAuth(opts: CreateAuthOptions) {
         if (!throttle || ctx.path !== SIGN_IN_PATH) return;
         const email: unknown = (ctx.body as { email?: unknown } | undefined)?.email;
         if (typeof email !== "string" || email.length === 0) return;
-        const decision = await consumeSignInAttempt(db, email, throttle);
+        const device = ctx.context.createAuthCookie(KNOWN_DEVICE_COOKIE);
+        const known = (await ctx.getSignedCookie(device.name, ctx.context.secret)) === signInThrottleKey(email);
+        const decision = await consumeSignInAttempt(db, email, throttle, new Date(), known ? "known_device" : "account");
         if (!decision.allowed) {
           throw new APIError(
             "TOO_MANY_REQUESTS",
@@ -138,7 +150,10 @@ export function createAuth(opts: CreateAuthOptions) {
       after: createAuthMiddleware(async (ctx) => {
         if (!throttle || ctx.path !== SIGN_IN_PATH) return;
         const signedIn = ctx.context.newSession?.user.email;
-        if (signedIn) await clearSignInAttempts(db, signedIn);
+        if (!signedIn) return;
+        await clearSignInAttempts(db, signedIn);
+        const device = ctx.context.createAuthCookie(KNOWN_DEVICE_COOKIE, { maxAge: KNOWN_DEVICE_MAX_AGE });
+        await ctx.setSignedCookie(device.name, signInThrottleKey(signedIn), ctx.context.secret, device.attributes);
       }),
     },
     databaseHooks: {

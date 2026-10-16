@@ -5,9 +5,11 @@
  *
  * While the tab is visible the page holds one Server-Sent Events stream
  * (GET /api/research/dashboard/stream, same permission as the page). A `change` event (a commit
- * that touched the study, from PostgreSQL NOTIFY) schedules ONE page re-render REFRESH_DELAY_MS
- * later (router.refresh(); bursts of changes coalesce into one refresh, at most one per
- * REFRESH_DELAY_MS). On (re)connect the `ready` event carries the current fingerprint; if it
+ * that touched the study, from PostgreSQL NOTIFY) at once fetches the per-session telemetry rows
+ * and updates that table in place (./live-sessions.tsx: no router transition, so it shows within
+ * the 2 s target), and schedules ONE page re-render REFRESH_DELAY_MS later for everything else
+ * (router.refresh(); bursts of changes coalesce into one refresh, at most one per
+ * REFRESH_DELAY_MS, and into at most one rows fetch in flight plus one queued). On (re)connect the `ready` event carries the current fingerprint; if it
  * differs from the rendered one the page refreshes at once, so nothing missed while disconnected
  * is lost. The stream is closed while the tab is hidden and reopened when it becomes visible.
  *
@@ -23,6 +25,9 @@ import { CircleAlert, CircleCheck, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import type { SessionTelemetryRow } from "@/server/research/dashboard";
+
+import { publishLiveSessions } from "./live-sessions";
 
 export const REFRESH_DELAY_MS = 250;
 export const STALE_MS = 30_000;
@@ -48,6 +53,8 @@ export function LiveStatus({ studyId, serverTime, fingerprint }: { studyId: stri
   const lastOk = useRef<number | null>(null);
   const rendered = useRef(fingerprint);
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Rows fetch in flight, and whether another change arrived meanwhile. */
+  const pulling = useRef<{ again: boolean } | null>(null);
   const updatedAt = later(serverTime, confirmedAt);
 
   useEffect(() => {
@@ -73,6 +80,29 @@ export function LiveStatus({ studyId, serverTime, fingerprint }: { studyId: stri
     },
     [router],
   );
+
+  /** Fetches the per-session rows and publishes them (the in-place table update). */
+  const pullSessions = useCallback(async () => {
+    if (pulling.current) {
+      pulling.current.again = true;
+      return;
+    }
+    pulling.current = { again: false };
+    try {
+      do {
+        pulling.current.again = false;
+        const res = await fetch(`/api/research/dashboard?study=${encodeURIComponent(studyId)}&include=sessions`, { cache: "no-store", headers: { accept: "application/json" } });
+        if (!res.ok) break; // the page refresh still follows; the probe reports errors
+        const body = (await res.json()) as { serverTime: string; generatedAt: string; sessions: SessionTelemetryRow[] };
+        publishLiveSessions({ studyId, generatedAt: body.generatedAt, rows: body.sessions });
+        confirm(body.serverTime);
+      } while (pulling.current.again);
+    } catch {
+      // Network error: the scheduled router.refresh() is the fallback.
+    } finally {
+      pulling.current = null;
+    }
+  }, [confirm, studyId]);
 
   const poll = useCallback(
     async (force = false) => {
@@ -127,6 +157,7 @@ export function LiveStatus({ studyId, serverTime, fingerprint }: { studyId: stri
       });
       es.addEventListener("change", (e) => {
         confirm((JSON.parse((e as MessageEvent<string>).data) as { serverTime: string }).serverTime);
+        void pullSessions();
         scheduleRefresh();
       });
       es.addEventListener("ping", (e) => confirm((JSON.parse((e as MessageEvent<string>).data) as { serverTime: string }).serverTime));
@@ -161,7 +192,7 @@ export function LiveStatus({ studyId, serverTime, fingerprint }: { studyId: stri
       pending.current = null;
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [confirm, poll, scheduleRefresh, studyId]);
+  }, [confirm, poll, pullSessions, scheduleRefresh, studyId]);
 
   const label = stale ? "Stale" : mode === "live" ? "Live" : mode === "polling" ? "Polling" : "Connecting";
   // DESIGN.md 10 "Live status": token colour, an icon AND a word, plus an "as of" time in mono.

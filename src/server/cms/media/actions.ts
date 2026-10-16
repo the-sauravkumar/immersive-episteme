@@ -107,9 +107,9 @@ export async function linkAssetAction(_prev: ActionState, fd: FormData): Promise
     return { ok: false, error: msg, code: "anchor_claim", fieldErrors: { position: [msg] } };
   }
   return runAction("media.upload", assetLinkSchema, input, async ({ actor, pool }, data) => {
-    await linkAssetToConcept(pool, actor, data);
+    const r = await linkAssetToConcept(pool, actor, data);
     dropPhotoCache();
-    return "Linked to the concept.";
+    return r.returnedToReview ? "Linked. The asset was verified, so it is back under review." : "Linked to the concept.";
   });
 }
 

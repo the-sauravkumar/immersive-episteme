@@ -126,6 +126,16 @@ describe("journey rules", () => {
     expect(evaluateDevice({ ...r, webglVersion: 2 }, { condition: "2d", policy: "retry", minViewport: { width: 1400, height: 800 } })).toBe("viewport_too_small");
   });
 
+  it("refuses for the immersive condition exactly what the museum refuses: WebGL 1 and software renderers (study-01)", () => {
+    const r: DeviceReport = { viewport: { width: 1280, height: 800 }, webglVersion: 2, inputDevices: [] };
+    expect(evaluateDevice(r, { condition: "immersive", policy: "retry" })).toBe("passed");
+    expect(evaluateDevice({ ...r, softwareRenderer: false }, { condition: "immersive", policy: "retry" })).toBe("passed");
+    expect(evaluateDevice({ ...r, webglVersion: 1 }, { condition: "immersive", policy: "exclude" })).toBe("webgl_exclude");
+    expect(evaluateDevice({ ...r, softwareRenderer: true }, { condition: "immersive", policy: "reassign" })).toBe("webgl_reassign");
+    // The 2D condition needs no WebGL.
+    expect(evaluateDevice({ ...r, webglVersion: 1, softwareRenderer: true }, { condition: "2d", policy: "exclude" })).toBe("passed");
+  });
+
   it("decides resumes from the configured limits", () => {
     expect(resumeDecision({ allowed: true }, { interruptionCount: 9, gapSeconds: 99999 })).toEqual({ ok: true });
     expect(resumeDecision({ allowed: false }, { interruptionCount: 0, gapSeconds: 0 })).toEqual({ ok: false, reason: "resume_not_allowed" });

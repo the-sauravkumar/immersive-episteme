@@ -9,7 +9,7 @@ import { ConsolePage } from "@/components/shell/gates";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { can } from "@/lib/permissions/can";
+import { can, participantDataScope } from "@/lib/permissions/can";
 import { getStaffPrincipal } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 import { sessionTimeline } from "@/server/research/analytics";
@@ -21,6 +21,9 @@ import { annotateAction, deviationAction, excludeAction } from "../../actions";
 import { NativeSelect } from "@/components/ui/native-select";
 
 export const metadata: Metadata = { title: "Session" };
+
+/** Shown in place of researcher free text the viewer's role may not read (pseudonymised scope). */
+const FREE_TEXT_WITHHELD = "Text withheld: it may identify the participant and is shown only to roles with identifying access, and to its author.";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -53,13 +56,15 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
   const { sessionId } = await params;
   if (!UUID_RE.test(sessionId)) notFound();
   const pool = getPool();
-  const s = await getSession(pool, sessionId);
+  const principal = await getStaffPrincipal();
+  // Researcher free text reaches identified-scope roles only, plus each author's own notes (security-05).
+  const viewer = { identified: participantDataScope(principal) === "identified", userId: principal?.userId ?? null };
+  const s = await getSession(pool, sessionId, viewer);
   if (!s) notFound();
-  const [principal, timeline, annotations, deviations, metrics] = await Promise.all([
-    getStaffPrincipal(),
+  const [timeline, annotations, deviations, metrics] = await Promise.all([
     sessionTimeline(pool, sessionId),
-    listAnnotations(pool, sessionId),
-    listDeviations(pool, { sessionId }),
+    listAnnotations(pool, sessionId, viewer),
+    listDeviations(pool, { sessionId, viewer }),
     pool.query<{ metric_name: string; metric_version: string; value: number | null; computed_at: string }>(
       `SELECT metric_name, metric_version, value, to_json(computed_at)#>>'{}' AS computed_at FROM derived_metrics WHERE session_id = $1 ORDER BY metric_name`,
       [sessionId],
@@ -183,7 +188,7 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
                   {a.kind.replace(/_/g, " ")}, <Timestamp iso={a.createdAt} />
                 </>
               ),
-              body: <p className="whitespace-pre-wrap">{a.body}</p>,
+              body: a.body === null ? <p className="text-ink-2">{FREE_TEXT_WITHHELD}</p> : <p className="whitespace-pre-wrap">{a.body}</p>,
             }))}
           />
         )}
@@ -217,12 +222,15 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
                   {d.severity}, {d.category}, <Timestamp iso={d.reportedAt} />
                 </>
               ),
-              body: (
-                <>
-                  <p>{d.description}</p>
-                  {d.resolution ? <p className="text-ink-2">Resolution: {d.resolution}</p> : null}
-                </>
-              ),
+              body:
+                d.description === null ? (
+                  <p className="text-ink-2">{FREE_TEXT_WITHHELD}</p>
+                ) : (
+                  <>
+                    <p>{d.description}</p>
+                    {d.resolution ? <p className="text-ink-2">Resolution: {d.resolution}</p> : null}
+                  </>
+                ),
             }))}
           />
         )}

@@ -56,17 +56,53 @@ const raterA = { raterId: "r-a", edges: [redge("A", "B", "CAUSES", "expected"), 
 const raterB = { raterId: "r-b", edges: [redge("A", "B", "CAUSES", "expected"), redge("B", "C", "CAUSES", "expected"), redge("A", "D", "CAUSES", "expected")] };
 
 describe("raterAgreement", () => {
-  it("union universe, labelled level", () => {
+  it("union universe, labelled level: positive agreement, no kappa", () => {
     // items (sorted): A>B#CAUSES, A>D#CAUSES, B>C#CAUSES, C>D#PRODUCES
     // r-a: P A P P ; r-b: P P P A -> agree on 2 of 4 -> po = 0.5
-    // both mark 3/4 present: pe = (3/4)² + (1/4)² = 0.625 -> κ = (0.5-0.625)/0.375 = -1/3
+    // a = 2 shared, b = c = 1 -> Dice = 2·2 / (2·2 + 1 + 1) = 2/3
+    // Kappa would be (0.5 − 0.625)/0.375 = −1/3: no both-absent items, so it is never positive (scoring-01).
     const r = raterAgreement([raterB, raterA]);
     expect(r.items).toBe(4);
     expect(r.percentAgreement).toBeCloseTo(0.5, 12);
-    expect(r.fleissKappa).toBeCloseTo(-1 / 3, 12);
-    expect(r.pairwise).toEqual([{ raterA: "r-a", raterB: "r-b", cohensKappa: expect.closeTo(-1 / 3, 12), percentAgreement: 0.5, n: 4 }]);
+    expect(r.positiveAgreement).toBeCloseTo(2 / 3, 12);
+    expect(r.fleissKappa).toBeNull();
+    expect(r.fleiss.kappa).toBeNull();
+    expect(r.kappaUndefinedReason).toMatch(/both-absent/);
+    expect(r.pairwise).toEqual([{ raterA: "r-a", raterB: "r-b", cohensKappa: null, percentAgreement: 0.5, positiveAgreement: expect.closeTo(2 / 3, 12), n: 4 }]);
     expect(r.perEdge.find((e) => e.key === "A>B#CAUSES")).toMatchObject({ support: 2, proportion: 1 });
     expect(r.perEdge.find((e) => e.key === "A>D#CAUSES")).toMatchObject({ support: 1, proportion: 0.5, raters: ["r-b"] });
+  });
+
+  it("near-perfect agreement never reads as disagreement (final review scoring-01)", () => {
+    // 18 shared edges plus one unique edge per rater: po = 0.9 over the union, but kappa there
+    // would be −0.053. Positive agreement is 2·18 / (2·18 + 2) = 36/38.
+    const shared = Array.from({ length: 18 }, (_, i) => redge(`S${i}`, `T${i}`, "CAUSES", "expected"));
+    const a = { raterId: "a", edges: [...shared, redge("U", "V", "CAUSES", "expected")] };
+    const b = { raterId: "b", edges: [...shared, redge("W", "X", "CAUSES", "expected")] };
+    const r = raterAgreement([a, b]);
+    expect(r.positiveAgreement).toBeCloseTo(36 / 38, 12);
+    expect(r.pairwise[0]?.positiveAgreement).toBeCloseTo(36 / 38, 12);
+    expect(r.fleissKappa).toBeNull();
+    expect(r.pairwise[0]?.cohensKappa).toBeNull();
+    // Over a defined universe kappa is positive and close to positive agreement.
+    const k = raterAgreement([a, b], { level: "undirected_unlabelled", universe: "all_possible" });
+    expect(k.kappaUndefinedReason).toBeNull();
+    expect(k.fleissKappa!).toBeGreaterThan(0.9);
+    expect(k.pairwise[0]!.cohensKappa!).toBeGreaterThan(0.9);
+    expect(k.positiveAgreement).toBeCloseTo(36 / 38, 12); // independent of the universe
+  });
+
+  it("three-rater positive agreement is the pooled specific agreement", () => {
+    // items: X proposed by all 3 (s = 3), Y by 2, Z by 1 -> Σ s(s−1) = 6 + 2 + 0 = 8; Σ s(n−1) = 6 + 4 + 2 = 12
+    const x = redge("A", "B", "CAUSES", "expected");
+    const y = redge("B", "C", "CAUSES", "expected");
+    const z = redge("C", "D", "CAUSES", "expected");
+    const r = raterAgreement([
+      { raterId: "1", edges: [x, y, z] },
+      { raterId: "2", edges: [x, y] },
+      { raterId: "3", edges: [x] },
+    ]);
+    expect(r.positiveAgreement).toBeCloseTo(8 / 12, 12);
   });
 
   it("all-possible universe at the undirected level adds agreed absences", () => {

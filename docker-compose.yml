@@ -17,8 +17,13 @@ services:
       POSTGRES_DB: episteme
       TZ: UTC
       PGTZ: UTC
+    # Loopback only (final review security-11): the password above is committed, and a bare
+    # "5433:5432" publishes on every interface, which Docker Desktop's firewall rule lets other
+    # hosts on the same network reach. Both families, because Windows resolves localhost to ::1
+    # first. Apply with `docker compose up -d db` (the data volume is kept).
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
+      - "[::1]:5433:5432"
     volumes:
       # Postgres 18 images keep PGDATA under /var/lib/postgresql/18/docker; mount the parent.
       - episteme_pgdata:/var/lib/postgresql

@@ -70,7 +70,7 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
       c("period", "integer", "Period (1 for between-subjects)."),
       c("content_set_code", "text", "Content set of the period (within-subjects)."),
       c("algorithm", "text", "Allocation algorithm."),
-      c("seed", "text", "Allocation seed."),
+      c("seed", "text", "Allocation seed; empty until the study is closed (allocation concealment), as is the seed in the study configuration."),
       c("sequence_index", "integer", "Position in the allocation sequence."),
       c("block_index", "integer", "Block index, if blocked."),
       c("stratum", "text", "Stratum."),
@@ -84,7 +84,7 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
     columns: [
       c("session_id", "uuid", "Session id (join key)."),
       c("participant_code", "text", "Participant."),
-      c("condition_id", "uuid", "Condition."),
+      c("condition_id", "uuid", "Condition; empty until the participant is allocated (allocation follows the pre-test, D3)."),
       c("period", "integer", "Period."),
       c("status", "text", "scheduled | in_progress | completed | abandoned."),
       c("snapshot_id", "uuid", "Content snapshot used (equals the study's)."),
@@ -104,7 +104,7 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
       c("exclusion_category", "text", "Category of the exclusion reason."),
       c("exclusion_reason", "text", "Full exclusion reason (identified exports only; empty otherwise)."),
       c("non_experimental", "boolean", "Demo / pilot study: never analyse as experimental data."),
-      c("open_sequence_gaps", "integer", "Unresolved telemetry sequence gaps."),
+      c("open_sequence_gaps", "integer", "Unresolved telemetry sequence gaps (seq numbers never received; seqs that were received and quarantined are counted in quarantined_events, not here)."),
       c("quarantined_events", "integer", "Events quarantined at ingestion."),
     ],
   },
@@ -179,7 +179,8 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
       c("assessment_id", "uuid", "Assessment."),
       c("item_id", "uuid", "Item."),
       c("item_key", "text", "Item key."),
-      c("attempt", "integer", "Attempt number."),
+      c("attempt", "integer", "Administration number of this assessment for the participant (1, 2, ...), counted across sessions."),
+      c("step", "text", "Journey step the administration was given in (e.g. questionnaire_pre, questionnaire_post_learning); use it, not the attempt, to tell the SSQ before and after learning apart."),
       c("status", "text", "answered | skipped | timed_out."),
       c("raw", "json", "Answer exactly as submitted."),
       c("presented_at", "timestamp", "Item shown."),
@@ -364,7 +365,7 @@ export const DASHBOARD_EXTRA_TABLES: readonly (TableSpec & { name: DashboardExtr
   {
     name: "dashboard_tradition_gain",
     description:
-      "Knowledge-test gain by tradition (DR-022, descriptive, not a registered outcome): per session, post-test minus pre-test proportion of keyed items answered correctly, counting only items whose concept belongs to the tradition; summarised by tradition and condition.",
+      "Knowledge-test gain by tradition (DR-035, descriptive, not a registered outcome): per session, post-test minus pre-test proportion of keyed items answered correctly, counting only items whose concept belongs to the tradition; summarised by tradition and condition.",
     columns: [
       c("tradition_slug", "text", "Tradition (canonical order)."),
       c("tradition", "text", "Tradition display name."),

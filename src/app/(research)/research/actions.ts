@@ -18,6 +18,8 @@ import { recomputeStudyMetrics } from "@/server/research/metrics/pipeline";
 import { METRICS_PIPELINE_VERSION } from "@/server/research/metrics/session";
 import { runAndStoreParityReport } from "@/server/research/parity/store";
 import { addAnnotation, addDeviation, excludeSession } from "@/server/research/sessions";
+import { guidanceFromForm } from "@/server/research/study-form";
+import { purgeParticipantData, purgeRetentionDue } from "@/server/study/purge";
 import { activateStudy, closeStudy, createStudy, draftStudyConfigSchema, getStudy, newStudyVersion, setBattery, updateStudy } from "@/server/research/studies";
 
 import type { ActionState } from "./_components/action-state";
@@ -80,7 +82,7 @@ export async function updateStudyAction(studyId: string, _: ActionState, d: Form
           .filter(Boolean),
       },
       exposure: { mode: text(d, "exposureMode") || "self_paced", minutes: optInt(d, "exposureMinutes"), allowEarlyFinish: d.get("allowEarlyFinish") === "on" },
-      guidance: { policy: text(d, "guidancePolicy") || "none", cueEnabled: d.get("cueEnabled") === "on" },
+      guidance: guidanceFromForm(current.config.guidance, d),
       searchEnabled: d.get("searchEnabled") === "on",
       minimap: text(d, "minimap") || "toggle",
       webglFailurePolicy: text(d, "webglFailurePolicy") || "retry",
@@ -145,7 +147,7 @@ export async function activateStudyAction(studyId: string, _: ActionState): Prom
     const p = await assertPermission("study.activate");
     const r = await activateStudy(getPool(), { userId: p.userId }, studyId);
     refresh();
-    return r.activated ? ok("Study activated. Its protocol is now frozen.") : { status: "error", message: "Activation refused: the parity report has critical failures.", details: r.failures };
+    return r.activated ? ok("Study activated. Its protocol is now frozen.") : { status: "error", message: r.passed ? "Activation refused." : "Activation refused: the parity report has critical failures.", details: r.failures };
   } catch (err) {
     return fail(err);
   }
@@ -157,6 +159,35 @@ export async function closeStudyAction(studyId: string, _: ActionState, d: FormD
     await closeStudy(getPool(), { userId: p.userId }, studyId, text(d, "reason"));
     refresh();
     return ok("Study closed.");
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+/**
+ * Removes one participant's research data on their request (DR-030): the facilitator passes on
+ * the participant code; the principal investigator runs the removal with the reason.
+ */
+export async function purgeParticipantAction(studyId: string, _: ActionState, d: FormData): Promise<ActionState> {
+  try {
+    const p = await assertPermission("participants.purge");
+    if (d.get("confirm") !== "yes") return { status: "error", message: "Tick the box to confirm the removal. It cannot be undone." };
+    const r = await purgeParticipantData(getPool(), { studyId, participant: text(d, "participant"), reason: text(d, "reason"), actorId: p.userId, trigger: "request" });
+    refresh();
+    return ok(`Data of ${r.participantCode} removed (${plural(r.sessions, "session")}). The participant code, consent records and allocation are kept.`);
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+/** Removes the data of every participant whose retention period has passed (DR-030). */
+export async function purgeRetentionAction(studyId: string, _: ActionState, d: FormData): Promise<ActionState> {
+  try {
+    const p = await assertPermission("participants.purge");
+    if (d.get("confirm") !== "yes") return { status: "error", message: "Tick the box to confirm the removal. It cannot be undone." };
+    const r = await purgeRetentionDue(getPool(), { studyId, actorId: p.userId });
+    refresh();
+    return ok(r.length === 0 ? "No participant is past the retention period." : `Data of ${plural(r.length, "participant")} removed: ${r.map((x) => x.participantCode).join(", ")}.`);
   } catch (err) {
     return fail(err);
   }

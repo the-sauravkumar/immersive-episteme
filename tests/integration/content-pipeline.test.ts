@@ -265,5 +265,73 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
       expect(row.verification_state).toBe("verified");
       expect(row.title.endsWith("(edited)")).toBe(false);
     });
+
+    it("keeps a curator's review decision, and follows the files only for states the importer set (knowledge-04)", async () => {
+      const curator = await createUser(t.pool);
+      const materials = loaded.model.concepts.filter((c) => c.type === "process_stage" && c.verificationState === "under_review");
+      const [decided, fileDriven] = [materials[0]!.key, materials[1]!.key];
+      await withSettings(t.pool, { "app.actor_id": curator, "app.change_reason": "test: curator rejects" }, (c) =>
+        c.query("UPDATE concepts SET verification_state = 'rejected' WHERE key = $1", [decided]),
+      );
+      // The files now say needs_evidence for a row whose state the importer itself last set.
+      const changed = { ...loaded.model, concepts: loaded.model.concepts.map((c) => (c.key === fileDriven ? { ...c, verificationState: "needs_evidence" as const } : c)) };
+      const s = await run(changed);
+      const state = async (key: string) => (await one<{ s: string }>(t.pool, "SELECT verification_state::text AS s FROM concepts WHERE key = $1", [key])).s;
+      expect(await state(decided)).toBe("rejected");
+      expect(await state(fileDriven)).toBe("needs_evidence");
+      expect(s.concepts.keptCurated).toBeGreaterThanOrEqual(1);
+      await run(); // restore the file state for the tests below
+      expect(await state(fileDriven)).toBe("under_review");
+      expect(await state(decided)).toBe("rejected");
+    });
+
+    it("never prunes a CMS-authored edge or one a spatial manifest encodes; reports them as stale (knowledge-04)", async () => {
+      const curator = await createUser(t.pool);
+      // An edge a curator added in the CMS between two imported concepts (package = the source concept's).
+      const [a, b] = loaded.model.concepts.filter((c) => c.packageSlug === "ajrakh" && c.type === "process_stage");
+      const cms = await one<{ id: string }>(
+        t.pool,
+        `INSERT INTO relationships (source_concept_id, target_concept_id, type_code, package_id, provenance_kind, verification_state, created_by)
+         SELECT s.id, tc.id, 'SIMILAR_TO', s.package_id, 'historical_documentation', 'draft', $3
+           FROM concepts s, concepts tc WHERE s.key = $1 AND tc.key = $2 RETURNING id`,
+        [a!.key, b!.key, curator],
+      );
+      // An imported edge that the manifest compiled above encodes, then dropped from the files.
+      const enc = await one<{ source: string; target: string; type: string }>(
+        t.pool,
+        `SELECT s.key AS source, tc.key AS target, r.type_code AS type
+           FROM spatial_element_encodings e JOIN relationships r ON r.id = e.relationship_id
+           JOIN concepts s ON s.id = r.source_concept_id JOIN concepts tc ON tc.id = r.target_concept_id LIMIT 1`,
+      );
+      const dropped = { ...loaded.model, relationships: loaded.model.relationships.filter((r) => !(r.source === enc.source && r.target === enc.target && r.type === enc.type)) };
+      const s = await run(dropped);
+      expect(s.stale.relationships).toEqual(expect.arrayContaining([`${a!.key} SIMILAR_TO ${b!.key}`, `${enc.source} ${enc.type} ${enc.target}`]));
+      const left = await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM relationships WHERE id = $1", [cms.id]);
+      expect(left.n).toBe(1);
+      await t.pool.query("DELETE FROM relationships WHERE id = $1", [cms.id]);
+      await run();
+    });
+
+    it("leaves an accepted tradition's GI evidence alone, and any change to it reopens review (knowledge-09)", async () => {
+      const curator = await createUser(t.pool);
+      const pkg = loaded.model.packages.find((p) => p.kind === "tradition" && (p.gi?.sourceRefs.length ?? 0) > 0)!;
+      await withSettings(t.pool, { "app.actor_id": curator, "app.change_reason": "test: accepted" }, (c) =>
+        c.query("UPDATE traditions SET verification_state = 'verified' WHERE slug = $1", [pkg.slug]),
+      );
+      const gi = async () =>
+        (await t.pool.query<{ source_id: string }>("SELECT ts.source_id::text FROM tradition_sources ts JOIN traditions tr ON tr.id = ts.tradition_id WHERE tr.slug = $1 AND ts.purpose = 'gi' ORDER BY 1", [pkg.slug])).rows.map((r) => r.source_id);
+      const before = await gi();
+      expect(before.length).toBeGreaterThan(0);
+      const changed = { ...loaded.model, packages: loaded.model.packages.map((p) => (p.slug === pkg.slug ? { ...p, gi: p.gi ? { ...p.gi, sourceRefs: [] } : null } : p)) };
+      await run(changed);
+      expect(await gi()).toEqual(before);
+      const state = async () => (await one<{ s: string }>(t.pool, "SELECT verification_state::text AS s FROM traditions WHERE slug = $1", [pkg.slug])).s;
+      expect(await state()).toBe("verified");
+      // Any writer that changes the evidence of an accepted tradition sends it back to review (0019 trigger).
+      await t.pool.query("DELETE FROM tradition_sources ts USING traditions tr WHERE tr.id = ts.tradition_id AND tr.slug = $1 AND ts.purpose = 'gi'", [pkg.slug]);
+      expect(await state()).toBe("under_review");
+      await run(); // the files put the GI evidence back
+      expect(await gi()).toEqual(before);
+    });
   });
 });

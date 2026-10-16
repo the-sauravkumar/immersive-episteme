@@ -92,12 +92,15 @@ interface SessionRow {
   id: string;
   study_id: string;
   participant_id: string;
-  condition_id: string;
+  /** Null until the session is allocated (allocation after the pre-test, D3). */
+  condition_id: string | null;
   snapshot_id: string | null;
 }
 
 export async function computeStoredSession(q: Q, s: SessionRow): Promise<ComputedMetrics | null> {
-  if (!s.snapshot_id) return null;
+  // An unallocated session (still in, or dropped out during, the pre-test) has no condition and
+  // no learning telemetry: there is nothing to derive, and derived_metrics.condition_id is NOT NULL.
+  if (!s.snapshot_id || !s.condition_id) return null;
   const [events, facts, map] = await Promise.all([loadSessionEvents(q, s.id), loadSnapshotFacts(q, s.snapshot_id), loadFinalPostMap(q, s.id)]);
   return computeSessionMetrics({ events, concepts: facts.concepts, relationships: facts.relationships, map });
 }
@@ -108,40 +111,47 @@ export interface RecomputeSummary {
   unchanged: number;
 }
 
-/** Recomputes every session of a study; writes only rows whose inputs changed. */
+/**
+ * Recomputes every allocated session of a study; writes only rows whose inputs changed. Each
+ * session's rows are written by ONE statement, so a session is never left half-updated (the
+ * pool runs in autocommit), and a failure cannot leave a mix of old and new metric rows.
+ */
 export async function recomputeStudyMetrics(q: Q, studyId: string): Promise<RecomputeSummary> {
   const sessions = await q.query<SessionRow>(
-    "SELECT id, study_id, participant_id, condition_id, snapshot_id FROM study_sessions WHERE study_id = $1 ORDER BY id",
+    "SELECT id, study_id, participant_id, condition_id, snapshot_id FROM study_sessions WHERE study_id = $1 AND condition_id IS NOT NULL ORDER BY id",
     [studyId],
   );
   let rowsWritten = 0;
   let unchanged = 0;
   for (const s of sessions.rows) {
     const computed = await computeStoredSession(q, s);
-    if (!computed) continue;
-    for (const v of computed.values) {
-      const r = await q.query(
-        `INSERT INTO derived_metrics (study_id, participant_id, session_id, condition_id, metric_name, metric_version,
-                                      value, details, input_event_count, input_sha256, pipeline_version)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11)
-         ON CONFLICT (session_id, metric_name, metric_version) DO UPDATE
-           SET value = EXCLUDED.value, details = EXCLUDED.details, input_event_count = EXCLUDED.input_event_count,
-               input_sha256 = EXCLUDED.input_sha256, pipeline_version = EXCLUDED.pipeline_version, computed_at = now()
-         WHERE derived_metrics.input_sha256 <> EXCLUDED.input_sha256 OR derived_metrics.pipeline_version <> EXCLUDED.pipeline_version`,
-        [s.study_id, s.participant_id, s.id, s.condition_id, v.metricName, v.metricVersion, v.value, JSON.stringify(v.details), computed.inputEventCount, computed.inputSha256, METRICS_PIPELINE_VERSION],
-      );
-      if (r.rowCount) rowsWritten++;
-      else unchanged++;
-    }
+    if (!computed || computed.values.length === 0) continue;
+    const values = computed.values.map((v) => ({ metric_name: v.metricName, metric_version: v.metricVersion, value: v.value, details: v.details }));
+    const r = await q.query(
+      `INSERT INTO derived_metrics (study_id, participant_id, session_id, condition_id, metric_name, metric_version,
+                                    value, details, input_event_count, input_sha256, pipeline_version)
+       SELECT $1, $2, $3, $4, v.metric_name, v.metric_version, v.value, coalesce(v.details, '{}'::jsonb), $6, $7, $8
+         FROM jsonb_to_recordset($5::jsonb) AS v(metric_name text, metric_version text, value double precision, details jsonb)
+       ON CONFLICT (session_id, metric_name, metric_version) DO UPDATE
+         SET value = EXCLUDED.value, details = EXCLUDED.details, input_event_count = EXCLUDED.input_event_count,
+             input_sha256 = EXCLUDED.input_sha256, pipeline_version = EXCLUDED.pipeline_version, computed_at = now()
+       WHERE derived_metrics.input_sha256 <> EXCLUDED.input_sha256 OR derived_metrics.pipeline_version <> EXCLUDED.pipeline_version`,
+      [s.study_id, s.participant_id, s.id, s.condition_id, JSON.stringify(values), computed.inputEventCount, computed.inputSha256, METRICS_PIPELINE_VERSION],
+    );
+    rowsWritten += r.rowCount ?? 0;
+    unchanged += values.length - (r.rowCount ?? 0);
   }
   return { sessions: sessions.rowCount ?? 0, rowsWritten, unchanged };
 }
 
-/** Sessions whose stored metrics are missing or stale (input hash differs from the raw events). */
+/**
+ * Allocated sessions whose stored metrics are missing or stale (input hash differs from the raw
+ * events). Unallocated sessions have no metrics to derive and are not counted in `total`.
+ */
 export async function staleMetricSessions(q: Q, studyId: string): Promise<{ stale: number; total: number }> {
   const sessions = await q.query<{ id: string; stored: string | null }>(
     `SELECT ss.id, (SELECT dm.input_sha256 FROM derived_metrics dm WHERE dm.session_id = ss.id AND dm.metric_name = 'nav.path_length' LIMIT 1) AS stored
-       FROM study_sessions ss WHERE ss.study_id = $1`,
+       FROM study_sessions ss WHERE ss.study_id = $1 AND ss.condition_id IS NOT NULL`,
     [studyId],
   );
   let stale = 0;

@@ -26,9 +26,10 @@ export function assertUuid(value: string, what: string): void {
   if (!UUID_RE.test(value)) throw new AssessmentError("not_found", `${what} not found`);
 }
 
-/** Runs `fn` in one transaction on a dedicated client. */
-export async function inTransaction<T>(pool: Pool, fn: (client: PoolClient) => Promise<T>): Promise<T> {
-  const client = await pool.connect();
+/** Runs `fn` in one transaction on a dedicated client (a client passed in is used as is: its caller owns the transaction). */
+export async function inTransaction<T>(pool: Pool | PoolClient, fn: (client: PoolClient) => Promise<T>): Promise<T> {
+  if (typeof (pool as Pool).totalCount !== "number") return fn(pool as PoolClient);
+  const client = await (pool as Pool).connect();
   try {
     await client.query("BEGIN");
     const result = await fn(client);

@@ -39,12 +39,21 @@ export function ParityStatus({ passed, status, tone = "console", children }: { p
 }
 
 /**
- * "Interface parity run: commit abc123, 1280 x 800 light; 31 of 33 checks pass; 1 partly
- * measured, 1 fails". Partial and failing checks are always named as such, never folded into a pass.
+ * "Interface parity run: commit abc123, 1280 x 800 light; 27 of 33 checks pass; 6 not measured
+ * (P28, P29, P30, P31, P32, P33)". The denominator is every expected check, so a check no run
+ * measured is never left out of the count (final review scoring-08); partial, failing and
+ * unmeasured checks are always named as such, never folded into a pass. A report recorded from a
+ * working tree with uncommitted changes keeps that mark ("commit abc123 with uncommitted changes").
  */
 export function interfaceRunLine(s: InterfaceParitySummary): string {
-  const rest = [s.partial ? `${s.partial} partly measured` : null, s.failing ? `${s.failing} ${s.failing === 1 ? "fails" : "fail"}` : null].filter(Boolean);
-  return `Interface parity run: commit ${s.commit.slice(0, 7)}, ${s.headline.viewport} ${s.headline.theme}; ${s.passing} of ${s.measured} checks pass${rest.length ? `; ${rest.join(", ")}` : ""}`;
+  const rest = [
+    s.partial ? `${s.partial} partly measured` : null,
+    s.failing ? `${s.failing} ${s.failing === 1 ? "fails" : "fail"}` : null,
+    s.notMeasuredIds.length ? `${s.notMeasuredIds.length} not measured (${s.notMeasuredIds.join(", ")})` : null,
+  ].filter(Boolean);
+  const [sha = "", dirty] = s.commit.split("+");
+  const commit = `${sha.slice(0, 7)}${dirty ? " with uncommitted changes" : ""}`;
+  return `Interface parity run: commit ${commit}, ${s.headline.viewport} ${s.headline.theme}; ${s.passing} of ${s.total} checks pass${rest.length ? `; ${rest.join(", ")}` : ""}`;
 }
 
 function RunLine({ summary }: { summary: InterfaceParitySummary }) {

@@ -26,7 +26,7 @@ export const instant = false;
  * docked right at the 3D panel's x, width and top from 1024 px, with no breadcrumb: Close, in the
  * sheet's action slot as in 3D, returns to the section view; the rail ("In This Section") and the
  * index sit to its left. The sheet is the SAME component the 3D information panel places, with the same layers (LayerTabs:
- * the same layer list, concepts and order as the panel, DR-021), claims, figures, citations,
+ * the same layer list, concepts and order as the panel, DR-034), claims, figures, citations,
  * related concepts and pager (a sequence pager for a station only, as in the panel); only how a
  * link acts differs (here it navigates).
  *
@@ -162,7 +162,7 @@ function ConceptRelated({ entry, traditionNames, pageId }: { entry: LayerEntryDa
 
 /**
  * Previous / next along the ordered sequence a station belongs to, through the shared Pager with
- * its default label, as the panel's. Only stations have one (`pagerFor`, DR-021). A move logs the
+ * its default label, as the panel's. Only stations have one (`pagerFor`, DR-034). A move logs the
  * followed PRECEDES relationship; a move without one (a shared sequence step whose link is out of
  * scope) logs the pager item.
  */

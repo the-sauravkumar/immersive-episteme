@@ -22,6 +22,7 @@ import { createHash, randomInt } from "node:crypto";
 import type { Pool, PoolClient } from "pg";
 
 import { KEY_MATCH_METRIC } from "@/features/assessment/responses";
+import { museumCanRender } from "@/features/study/gpu-acceptance";
 import type { LearningCondition } from "@/lib/permissions/learning";
 import type { ConditionInterface } from "@/lib/validation/enums";
 import { AssessmentError } from "@/server/assessment/common";
@@ -30,10 +31,11 @@ import { conditionFromInterface } from "@/server/auth/study-session-port-types";
 import { LearningFinishRefusedError, recordLearningEnded } from "@/server/learning/context-data";
 
 import { drawCondition, type AllocatableCondition, type DrawAlgorithm } from "./allocation";
-import { isDeliverable, itemConfig, parseAnswer, scoreItem, toResponseRaw, type DeliveredItem, type ParsedAnswer } from "./answers";
+import { isDeliverable, isKeyedItem, itemConfig, parseAnswer, scoreItem, toResponseRaw, type DeliveredItem, type ParsedAnswer } from "./answers";
 import {
   BLIND_STEPS,
   instrumentsFor,
+  STEP_ASSESSMENTS,
   isQuestionnaireStep,
   parseStudyProtocol,
   StudyConfigError,
@@ -63,7 +65,9 @@ export type StudyEngineErrorCode =
   | "learning_not_started"
   | "familiarisation_not_finished"
   | "session_closed"
-  | "repeat_browser";
+  | "repeat_browser"
+  | "study_full"
+  | "enrolment_throttled";
 
 export class StudyEngineError extends Error {
   constructor(
@@ -222,7 +226,7 @@ export interface EnrolResult {
  * `previousParticipantIds` (participation-history cookie) flag or refuse a repeat enrolment.
  */
 export async function enrolParticipant(
-  q: Q,
+  pool: Pool | PoolClient,
   study: EnrollableStudy,
   opts: { stratum?: string | null; previousParticipantIds?: string[] } = {},
 ): Promise<EnrolResult> {
@@ -236,31 +240,41 @@ export async function enrolParticipant(
   const previous = opts.previousParticipantIds ?? [];
   let repeatOf: string | null = null;
   if (previous.length > 0) {
-    const r = await q.query<{ id: string }>(
+    const r = await pool.query<{ id: string }>(
       "SELECT id FROM participants WHERE study_id = $1 AND id = ANY($2::uuid[]) ORDER BY enrolled_at DESC LIMIT 1",
       [study.id, previous],
     );
     repeatOf = r.rows[0]?.id ?? null;
     if (repeatOf && study.protocol.config.enrolment.blockRepeatBrowser) {
-      await journal(q, { kind: "system" }, "study.repeat_enrolment_refused", "study", study.id, { previousParticipantId: repeatOf });
+      await journal(pool, { kind: "system" }, "study.repeat_enrolment_refused", "study", study.id, { previousParticipantId: repeatOf });
       throw new StudyEngineError("repeat_browser", "This browser has already been used to take part in this study.");
     }
   }
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const code = generateParticipantCode();
-    const r = await q.query<{ id: string }>(
-      "INSERT INTO participants (study_id, code, stratum) VALUES ($1, $2, $3) ON CONFLICT (study_id, code) DO NOTHING RETURNING id",
-      [study.id, code, stratum],
-    );
-    const id = r.rows[0]?.id;
-    if (!id) continue;
-    await journal(q, { kind: "participant", code }, "study.participant_enrolled", "participant", id, { studyId: study.id, stratum });
-    if (repeatOf) {
-      await journal(q, { kind: "system" }, "study.repeat_enrolment_detected", "participant", id, { studyId: study.id, previousParticipantId: repeatOf });
+  // The participant row and its journal entries commit together (database-08); the cap on
+  // participants is checked under a per-study lock so parallel enrolments cannot overshoot it.
+  return withTx(pool, async (c) => {
+    const cap = study.protocol.config.enrolment.maxParticipants;
+    if (cap !== undefined) {
+      await c.query("SELECT pg_advisory_xact_lock(hashtextextended('ie-enrolment:' || $1, 0))", [study.id]);
+      const n = (await c.query<{ n: number }>("SELECT count(*)::int AS n FROM participants WHERE study_id = $1", [study.id])).rows[0]!.n;
+      if (n >= cap) throw new StudyEngineError("study_full", "This study has all the participants it needs.");
     }
-    return { participantId: id, code, repeatOf };
-  }
-  throw new Error("could not generate a unique participant code");
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const code = generateParticipantCode();
+      const r = await c.query<{ id: string }>(
+        "INSERT INTO participants (study_id, code, stratum) VALUES ($1, $2, $3) ON CONFLICT (study_id, code) DO NOTHING RETURNING id",
+        [study.id, code, stratum],
+      );
+      const id = r.rows[0]?.id;
+      if (!id) continue;
+      await journal(c, { kind: "participant", code }, "study.participant_enrolled", "participant", id, { studyId: study.id, stratum });
+      if (repeatOf) {
+        await journal(c, { kind: "system" }, "study.repeat_enrolment_detected", "participant", id, { studyId: study.id, previousParticipantId: repeatOf });
+      }
+      return { participantId: id, code, repeatOf };
+    }
+    throw new Error("could not generate a unique participant code");
+  });
 }
 
 export interface ParticipantSummary {
@@ -305,23 +319,36 @@ export function consentTextSha256(text: string): string {
 
 /**
  * Records the consent decision for the consent version currently configured. One decision per
- * enrolment: a second decision is refused (a later withdrawal goes through `withdraw`).
+ * enrolment: a second decision is refused (a later withdrawal goes through `withdraw`). The check
+ * and the insert run in one transaction on the locked participant row, so a double submit from
+ * two tabs cannot record both "granted" and "declined"; the database refuses a second initial
+ * decision as well (migration 0018, final review database-08).
  */
 export async function recordConsent(
-  q: Q,
+  pool: Pool | PoolClient,
   input: { participantId: string; study: EnrollableStudy; decision: "granted" | "declined"; shownVersion: string },
 ): Promise<void> {
   const consent = input.study.protocol.config.consent;
   if (!consent) throw new StudyEngineError("study_misconfigured", "The study has no consent text configured.");
   if (input.shownVersion !== consent.version) throw new StudyEngineError("study_misconfigured", "The consent text changed; please read it again.");
-  const p = await loadParticipant(q, input.participantId);
-  if (!p || p.studyId !== input.study.id) throw new StudyEngineError("participant_not_found", "Participant not found.");
-  if (p.latestConsent) throw new StudyEngineError("consent_already_recorded", "A consent decision is already recorded.");
-  await q.query(
-    "INSERT INTO consent_records (participant_id, consent_version, consent_text_sha256, decision, method) VALUES ($1, $2, $3, $4, 'on_screen')",
-    [p.id, consent.version, consentTextSha256(consent.text), input.decision],
-  );
-  await journal(q, { kind: "participant", code: p.code }, "study.consent_recorded", "participant", p.id, { decision: input.decision, consentVersion: consent.version });
+  try {
+    await withTx(pool, async (c) => {
+      await c.query("SELECT 1 FROM participants WHERE id = $1 FOR UPDATE", [input.participantId]);
+      const p = await loadParticipant(c, input.participantId);
+      if (!p || p.studyId !== input.study.id) throw new StudyEngineError("participant_not_found", "Participant not found.");
+      if (p.latestConsent) throw new StudyEngineError("consent_already_recorded", "A consent decision is already recorded.");
+      await c.query(
+        "INSERT INTO consent_records (participant_id, consent_version, consent_text_sha256, decision, method) VALUES ($1, $2, $3, $4, 'on_screen')",
+        [p.id, consent.version, consentTextSha256(consent.text), input.decision],
+      );
+      await journal(c, { kind: "participant", code: p.code }, "study.consent_recorded", "participant", p.id, { decision: input.decision, consentVersion: consent.version });
+    });
+  } catch (err) {
+    if (err && typeof err === "object" && (err as { code?: string }).code === "23505") {
+      throw new StudyEngineError("consent_already_recorded", "A consent decision is already recorded.");
+    }
+    throw err;
+  }
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -337,7 +364,12 @@ export interface OpenedSession {
   created: boolean;
 }
 
-/** Seed recorded on every allocation: the configured one, else a documented derivation. */
+/**
+ * Seed recorded on every allocation: the configured one, else a documented derivation. Studies
+ * activated through the console always have a configured, secret seed (activateStudy generates
+ * one, final review study-07); the derivation only serves studies activated outside it (demo
+ * fixtures, legacy rows), and is predictable from the study id, so it gives no concealment.
+ */
 export function allocationSeed(study: Pick<EnrollableStudy, "id" | "protocolVersion" | "protocol">): string {
   return study.protocol.config.allocation.seed ?? `study:${study.id}:protocol:${study.protocolVersion}`;
 }
@@ -436,7 +468,9 @@ async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise
     record: {
       allocationId: a.rows[0]!.id,
       algorithm,
-      seed,
+      // The journal is readable by more roles than the allocations table: only a fingerprint.
+      seedSha256Prefix: sha256(seed).slice(0, 12),
+      seedSource: study.protocol.config.allocation.seed ? "configured" : "derived",
       sequenceIndex,
       stratum: ctx.stratum,
       stratumIndex: algorithm === "stratified_block" ? index : null,
@@ -488,38 +522,65 @@ export async function allocateAndOpenSession(pool: Pool | PoolClient, input: { p
   });
 }
 
-/** Sum of the keyed pre-test items of this session (item.key_match). Null when none is keyed. */
-async function preTestScore(q: Q, s: SessionState): Promise<{ score: number; keyedItems: number; assessments: string[] } | null> {
+/**
+ * Sum of the keyed pre-test items of this session (item.key_match). The keyed items are the ones
+ * the study DELIVERED with an answer key, so a skipped keyed item counts 0, exactly as it already
+ * does when only some are skipped (final review study-04: a participant who left every keyed item
+ * blank used to get no score and could never be allocated, which loses exactly the low-prior-
+ * knowledge participants the stratum is about). Null only when the pre-test has no keyed item at
+ * all: that is a configuration fault, refused at allocation.
+ */
+async function preTestScore(
+  q: Q,
+  s: SessionState,
+): Promise<{ score: number; keyedItems: number; answeredKeyedItems: number; skippedKeyedItems: number; assessments: string[] } | null> {
   const pre = await listStepAssessments(q, s, "pre_test");
-  if (pre.length === 0) return null;
+  const keyed = pre.flatMap((a) => a.items.filter(isKeyedItem));
+  if (keyed.length === 0) return null;
   const r = await q.query<{ total: number | null; n: number }>(
-    `SELECT sum(ds.value)::float8 AS total, count(*)::int AS n FROM derived_scores ds
-      WHERE ds.session_id = $1 AND ds.assessment_id = ANY($2::uuid[]) AND ds.metric_name = $3 AND ds.metric_version = $4 AND ds.value IS NOT NULL`,
-    [s.sessionId, pre.map((a) => a.id), KEY_MATCH_METRIC.name, KEY_MATCH_METRIC.version],
+    `SELECT sum(ds.value)::float8 AS total, count(*)::int AS n FROM derived_scores ds JOIN responses r ON r.id = ds.response_id
+      WHERE ds.session_id = $1 AND ds.assessment_id = ANY($2::uuid[]) AND r.item_id = ANY($5::uuid[])
+        AND ds.metric_name = $3 AND ds.metric_version = $4 AND ds.value IS NOT NULL`,
+    [s.sessionId, pre.map((a) => a.id), KEY_MATCH_METRIC.name, KEY_MATCH_METRIC.version, keyed.map((i) => i.id)],
   );
   const row = r.rows[0]!;
-  if (row.n === 0 || row.total === null) return null;
-  return { score: row.total, keyedItems: row.n, assessments: pre.map((a) => `${a.code}.v${a.version}`) };
+  return {
+    score: row.total ?? 0,
+    keyedItems: keyed.length,
+    answeredKeyedItems: row.n,
+    skippedKeyedItems: keyed.length - row.n,
+    assessments: pre.map((a) => `${a.code}.v${a.version}`),
+  };
 }
 
-/** cmap.recall.dl of the final pre map against the study's locked reference map (assessment services). */
-async function preMapRecall(q: Q, s: SessionState): Promise<{ score: number; conceptMapId: string; referenceMapId: string; referenceVersion: number } | { refused: string }> {
+/**
+ * cmap.recall.dl of the final pre map against the study's reference map (assessment services).
+ * The map is the one pinned at activation (`stratifyBy.referenceMapId`, final review database-02),
+ * so every participant of the study is stratified by the same rule. Studies activated before the
+ * pin existed fall back to the newest locked map not bound to another snapshot.
+ */
+async function preMapRecall(q: Q, s: SessionState): Promise<{ score: number; conceptMapId: string; referenceMapId: string; referenceVersion: number; referencePinned: boolean } | { refused: string }> {
   const pre = await listStepAssessments(q, s, "pre_reconstruction");
   if (pre.length !== 1) return { refused: `the pre_reconstruction step must have exactly one reconstruction assessment (found ${pre.length})` };
   const a = pre[0]!;
-  const ref = await q.query<{ id: string; version: number }>(
-    `SELECT id, version FROM reference_maps WHERE assessment_id = $1 AND status = 'locked' AND (snapshot_id IS NULL OR snapshot_id = $2)
-      ORDER BY version DESC LIMIT 1`,
-    [a.id, s.study.snapshotId],
-  );
-  if (!ref.rows[0]) return { refused: `no locked reference map for ${a.code} v${a.version} bound to the study snapshot` };
+  const pinned = s.study.protocol.config.allocation.stratifyBy?.referenceMapId;
+  const ref = pinned
+    ? await q.query<{ id: string; version: number }>("SELECT id, version FROM reference_maps WHERE id = $1 AND assessment_id = $2 AND status = 'locked'", [pinned, a.id])
+    : await q.query<{ id: string; version: number }>(
+        `SELECT id, version FROM reference_maps WHERE assessment_id = $1 AND status = 'locked' AND (snapshot_id IS NULL OR snapshot_id = $2)
+          ORDER BY version DESC LIMIT 1`,
+        [a.id, s.study.snapshotId],
+      );
+  if (!ref.rows[0]) {
+    return { refused: pinned ? `the reference map pinned at activation (${pinned}) is not a locked map of ${a.code} v${a.version}` : `no locked reference map for ${a.code} v${a.version}` };
+  }
   const map = await q.query<{ id: string }>("SELECT id FROM concept_maps WHERE session_id = $1 AND assessment_id = $2 AND phase = 'pre' AND is_final", [s.sessionId, a.id]);
   if (!map.rows[0]) return { refused: "no final pre-test concept map" };
   try {
     const scored = await scoreFinalMap(q, map.rows[0].id, ref.rows[0].id);
     const recall = scored.scores.find((x) => x.metricName === PRE_MAP_METRIC);
     if (!recall || recall.value === null) return { refused: `${PRE_MAP_METRIC} is undefined for this map and reference (no expected edges)` };
-    return { score: recall.value, conceptMapId: map.rows[0].id, referenceMapId: ref.rows[0].id, referenceVersion: ref.rows[0].version };
+    return { score: recall.value, conceptMapId: map.rows[0].id, referenceMapId: ref.rows[0].id, referenceVersion: ref.rows[0].version, referencePinned: !!pinned };
   } catch (err) {
     if (err instanceof AssessmentError) return { refused: `the pre map could not be scored: ${err.message}` };
     throw err;
@@ -556,14 +617,14 @@ export async function allocateSession(pool: Pool | PoolClient, sessionId: string
       let evidence: Record<string, unknown>;
       if (by.source === "pre_test_score") {
         const r = await preTestScore(c, s);
-        if (!r) return { refused: { source: by.source, reason: "the pre-test score cannot be computed (no keyed pre-test items were scored)" }, s };
+        if (!r) return { refused: { source: by.source, reason: "the pre-test score cannot be computed (the pre-test has no keyed items)" }, s };
         score = r.score;
-        evidence = { keyedItems: r.keyedItems, assessments: r.assessments, metric: KEY_MATCH_METRIC.name };
+        evidence = { keyedItems: r.keyedItems, answeredKeyedItems: r.answeredKeyedItems, skippedKeyedItems: r.skippedKeyedItems, assessments: r.assessments, metric: KEY_MATCH_METRIC.name };
       } else {
         const r = await preMapRecall(c, s);
         if ("refused" in r) return { refused: { source: by.source, reason: `the pre-test map recall cannot be computed (${r.refused})` }, s };
         score = r.score;
-        evidence = { metric: PRE_MAP_METRIC, conceptMapId: r.conceptMapId, referenceMapId: r.referenceMapId, referenceVersion: r.referenceVersion };
+        evidence = { metric: PRE_MAP_METRIC, conceptMapId: r.conceptMapId, referenceMapId: r.referenceMapId, referenceVersion: r.referenceVersion, referencePinned: r.referencePinned };
       }
       stratum = score <= by.cutoff ? "low" : "high";
       stratumSource = { source: by.source, score, cutoff: by.cutoff, rule: "low = score ≤ cutoff, else high", ...evidence };
@@ -681,8 +742,14 @@ export function completedSteps(s: Pick<SessionState, "journal">): Set<StudyStep>
   return done;
 }
 
+/**
+ * The LATEST device check passed. (A check is not repeated after it passes; only a WebGL failure
+ * reported by the museum afterwards, under the retry policy, records a later failed check that
+ * sends the participant back to the device check.)
+ */
 export function deviceCheckPassed(s: Pick<SessionState, "journal">): boolean {
-  return s.journal.some((e) => e.action === "study.device_checked" && e.after.outcome === "passed");
+  const checks = s.journal.filter((e) => e.action === "study.device_checked");
+  return checks.length > 0 && checks[checks.length - 1]!.after.outcome === "passed";
 }
 
 export type Position =
@@ -734,14 +801,8 @@ export async function touch(q: Q, sessionId: string): Promise<void> {
   await q.query("UPDATE study_sessions SET last_activity_at = now() WHERE id = $1", [sessionId]);
 }
 
-/** Which study_assessments rows each non-questionnaire assessment step delivers. */
-export const STEP_ASSESSMENTS: Partial<Record<StudyStep, { phase: "pre" | "post"; kind: string }>> = {
-  pre_test: { phase: "pre", kind: "pretest" },
-  pre_reconstruction: { phase: "pre", kind: "reconstruction" },
-  post_test: { phase: "post", kind: "posttest" },
-  reconstruction: { phase: "post", kind: "reconstruction" },
-  transfer: { phase: "post", kind: "transfer" },
-};
+/** Which study_assessments rows each non-questionnaire assessment step delivers (./config.ts). */
+export { STEP_ASSESSMENTS };
 
 export function isAssessmentStep(step: StudyStep): boolean {
   return !!STEP_ASSESSMENTS[step] || isQuestionnaireStep(step);
@@ -904,6 +965,35 @@ export async function syncPosition(q: Q, s: SessionState, opts: { arrivedAtHub?:
   }
 }
 
+/**
+ * The map phase of the participant's current reconstruction step ("pre" for pre_reconstruction,
+ * "post" for reconstruction), or null when neither is current or the session is closed. For the
+ * concept-map save (src/server/assessment/participant-actions.ts), on its transaction.
+ */
+export async function currentReconstructionPhase(q: Q, sessionId: string): Promise<"pre" | "post" | null> {
+  const s = await loadSessionState(q, sessionId);
+  if (!s || !isSessionOpen(s)) return null;
+  const pos = await syncPosition(q, s);
+  if (pos.kind !== "step") return null;
+  return pos.step === "pre_reconstruction" ? "pre" : pos.step === "reconstruction" ? "post" : null;
+}
+
+/**
+ * Server gate of the learning pages (/learn/<condition>): is the learning step the participant's
+ * current step? The learning context checks it before it renders any content or starts the
+ * learning clock, so content is never served before the practice and introduction, before the
+ * pre-test (allocation at enrolment), or after learning ended (final review study-02,
+ * security-06). A budget that ran out is ended here, by syncPosition, as on the hub.
+ */
+export async function learningStepIsCurrent(pool: Pool | PoolClient, sessionId: string): Promise<boolean> {
+  return withTx(pool, async (c) => {
+    const s = await loadSessionState(c, sessionId);
+    if (!s || !isSessionOpen(s)) return false;
+    const pos = await syncPosition(c, s);
+    return pos.kind === "step" && pos.step === "learning";
+  });
+}
+
 // ---------------------------------------------------------------------------------------------
 // Device check and the WebGL-failure policy
 // ---------------------------------------------------------------------------------------------
@@ -912,6 +1002,8 @@ export interface DeviceReport {
   viewport: { width: number; height: number };
   devicePixelRatio?: number;
   webglVersion: 1 | 2 | null;
+  /** WebGL runs on a software rasteriser (a boolean only: no renderer string is stored). */
+  softwareRenderer?: boolean;
   inputDevices: ("mouse" | "keyboard" | "touch" | "gamepad" | "xr")[];
   reducedMotion?: boolean;
   highContrast?: boolean;
@@ -933,7 +1025,9 @@ export function evaluateDevice(
 ): "passed" | "viewport_too_small" | "webgl_retry" | "webgl_exclude" | "webgl_reassign" {
   const min = ctx.minViewport;
   if (min && (report.viewport.width < min.width || report.viewport.height < min.height)) return "viewport_too_small";
-  if (ctx.condition === "immersive" && report.webglVersion === null) {
+  // The museum's own acceptance rule (WebGL 2 on a hardware renderer), so a device the museum
+  // would refuse fails here and the WebGL-failure policy applies (final review study-01).
+  if (ctx.condition === "immersive" && !museumCanRender(report)) {
     return ctx.policy === "exclude" ? "webgl_exclude" : ctx.policy === "reassign" ? "webgl_reassign" : "webgl_retry";
   }
   return "passed";
@@ -942,8 +1036,8 @@ export function evaluateDevice(
 /**
  * Records the device check in `study_sessions.device` (coarse covariates only, no fingerprint)
  * and applies the WebGL-failure policy (config `webglFailurePolicy`, Q-R10). It runs after
- * allocation (D3/D8), identically for both conditions; only a missing WebGL in the immersive
- * condition triggers the policy.
+ * allocation (D3/D8), identically for both conditions; only a device that cannot render the
+ * museum (no WebGL 2, or a software renderer) in the immersive condition triggers the policy.
  */
 export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: string, report: DeviceReport, opts: { appBuild: string }): Promise<DeviceOutcome> {
   return withTx(pool, async (c) => {
@@ -960,6 +1054,7 @@ export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: stri
       devicePixelRatio: report.devicePixelRatio,
       inputDevices: report.inputDevices,
       webglVersion: report.webglVersion,
+      softwareRenderer: report.softwareRenderer,
       reducedMotion: report.reducedMotion,
       highContrast: report.highContrast,
       contrastAccommodation: report.contrastAccommodation,
@@ -969,7 +1064,7 @@ export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: stri
     await c.query("UPDATE study_sessions SET device = $2::jsonb, last_activity_at = now() WHERE id = $1", [sessionId, JSON.stringify(device)]);
     const actor: Actor = { kind: "participant", code: s.participantCode };
     const outcome = verdict === "passed" ? "passed" : verdict === "viewport_too_small" || verdict === "webgl_retry" ? "retry" : verdict === "webgl_exclude" ? "excluded" : "reassigned";
-    await journal(c, actor, "study.device_checked", "study_session", sessionId, { outcome, verdict, attempt, webglVersion: report.webglVersion, viewport: report.viewport });
+    await journal(c, actor, "study.device_checked", "study_session", sessionId, { outcome, verdict, attempt, webglVersion: report.webglVersion, softwareRenderer: report.softwareRenderer ?? null, viewport: report.viewport });
 
     switch (verdict) {
       case "passed":
@@ -978,16 +1073,69 @@ export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: stri
         return { kind: "retry", reason: "viewport_too_small", minViewport };
       case "webgl_retry":
         return { kind: "retry", reason: "webgl_unavailable" };
-      case "webgl_exclude": {
-        const reason = "webgl_unavailable: excluded by webglFailurePolicy=exclude";
-        await c.query("UPDATE study_sessions SET excluded = true, exclusion_reason = $2, excluded_at = now(), status = 'abandoned' WHERE id = $1", [sessionId, reason]);
-        await c.query("UPDATE participants SET status = 'excluded', exclusion_reason = $2 WHERE id = $1", [s.participantId, reason]);
-        await journal(c, { kind: "system" }, "study.participant_excluded", "study_session", sessionId, { rule: "webglFailurePolicy", policy }, reason);
-        return { kind: "excluded" };
-      }
+      case "webgl_exclude":
+        return excludeForWebgl(c, s, policy);
       case "webgl_reassign":
         return reassignToConventional(c, s, device, opts.appBuild);
     }
+  });
+}
+
+async function excludeForWebgl(c: PoolClient, s: SessionState, policy: string): Promise<DeviceOutcome> {
+  const reason = "webgl_unavailable: excluded by webglFailurePolicy=exclude";
+  await c.query("UPDATE study_sessions SET excluded = true, exclusion_reason = $2, excluded_at = now(), status = 'abandoned' WHERE id = $1", [s.sessionId, reason]);
+  await c.query("UPDATE participants SET status = 'excluded', exclusion_reason = $2 WHERE id = $1", [s.participantId, reason]);
+  await journal(c, { kind: "system" }, "study.participant_excluded", "study_session", s.sessionId, { rule: "webglFailurePolicy", policy }, reason);
+  return { kind: "excluded" };
+}
+
+export type MuseumFailureOutcome = DeviceOutcome | { kind: "ignored" };
+
+/**
+ * Backstop for a GPU that fails AFTER the device check passed (driver crash, blocklisting, another
+ * browser): the museum's fallback screen reports it here in study mode (final review study-01).
+ * Recorded as `study.webgl_failed` and handled by the same policy as the device check:
+ *  - exclude: the session is excluded, as at the check;
+ *  - reassign: a 2D session is opened; only the condition-blind steps are carried over, so the
+ *    participant takes the 2D practice and introduction before learning in 2D;
+ *  - retry: a failed device check is recorded, so the participant is sent back to the check (the
+ *    journal entry flags the session's learning time, which may already be running).
+ * Ignored outside the immersive practice and learning steps, and for a 2D session.
+ */
+export async function recordMuseumWebglFailure(
+  pool: Pool | PoolClient,
+  sessionId: string,
+  gpu: { webglVersion: 1 | 2 | null; softwareRenderer: boolean },
+  opts: { appBuild: string },
+): Promise<MuseumFailureOutcome> {
+  return withTx(pool, async (c) => {
+    await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
+    const s = await loadSessionState(c, sessionId);
+    if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
+    if (s.condition !== "immersive") return { kind: "ignored" };
+    const pos = await syncPosition(c, s);
+    if (pos.kind !== "step" || (pos.step !== "familiarisation" && pos.step !== "learning")) return { kind: "ignored" };
+    const policy = s.study.protocol.config.webglFailurePolicy;
+    const learningStarted = !!s.learning.startedAt;
+    await journal(c, { kind: "participant", code: s.participantCode }, "study.webgl_failed", "study_session", sessionId, {
+      step: pos.step,
+      webglVersion: gpu.webglVersion,
+      softwareRenderer: gpu.softwareRenderer,
+      policy,
+      learningStarted,
+    });
+    if (policy === "exclude") return excludeForWebgl(c, s, policy);
+    if (policy === "reassign") return reassignToConventional(c, s, { ...s.device, runtimeWebglFailure: { step: pos.step, ...gpu } }, opts.appBuild, { carry: "blind" });
+    const attempt = s.journal.filter((e) => e.action === "study.device_checked").length + 1;
+    await journal(c, { kind: "participant", code: s.participantCode }, "study.device_checked", "study_session", sessionId, {
+      outcome: "retry",
+      verdict: "webgl_runtime_failure",
+      attempt,
+      webglVersion: gpu.webglVersion,
+      softwareRenderer: gpu.softwareRenderer,
+    });
+    await touch(c, sessionId);
+    return { kind: "retry", reason: "webgl_unavailable" };
   });
 }
 
@@ -997,7 +1145,13 @@ export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: stri
  * algorithm `manual`, recorded reason) and session for the 2D condition are created. The blind
  * steps already done (their data stay on the first session) are carried over in the journal.
  */
-async function reassignToConventional(c: PoolClient, s: SessionState, device: Record<string, unknown>, appBuild: string): Promise<DeviceOutcome> {
+async function reassignToConventional(
+  c: PoolClient,
+  s: SessionState,
+  device: Record<string, unknown>,
+  appBuild: string,
+  opts: { carry: "all" | "blind" } = { carry: "all" },
+): Promise<DeviceOutcome> {
   const target = await c.query<{ id: string; code: string }>(
     "SELECT id, code FROM study_conditions WHERE study_id = $1 AND interface = 'conventional_2d' ORDER BY position, code LIMIT 1",
     [s.study.id],
@@ -1025,6 +1179,7 @@ async function reassignToConventional(c: PoolClient, s: SessionState, device: Re
     allocationId: a.rows[0]!.id, algorithm: "manual", overrideReason: reason, fromSessionId: s.sessionId, conditionCode: target.rows[0].code, studyProtocolVersion: s.study.protocolVersion,
   });
   for (const step of completedSteps(s)) {
+    if (opts.carry === "blind" && !BLIND_STEPS.includes(step)) continue;
     await journal(c, { kind: "system" }, "study.step_completed", "study_session", newId, { step, carriedFrom: s.sessionId });
   }
   await journal(c, { kind: "system" }, "study.device_checked", "study_session", newId, { outcome: "passed", verdict: "passed", carriedFrom: s.sessionId });
@@ -1051,6 +1206,25 @@ export async function startAssessment(q: Q, s: SessionState, assessment: StepAss
   const presentedAt = r.rows[0]!.occurred_at;
   s.journal.push({ action: "study.assessment_started", after: { assessmentId: assessment.id, step }, occurredAt: presentedAt });
   return { presentedAt };
+}
+
+/**
+ * The presentation stamp of the participant's CURRENT step (the assessment form calls it once it
+ * is on screen). Refused (`not_current_step`) for any other step and on a closed session, under
+ * the same session lock as a submission: `startAssessment` keeps the first stamp, so a stamp
+ * forged for a later step would otherwise become its presented_at (final review study-09).
+ */
+export async function markAssessmentPresented(pool: Pool | PoolClient, input: { sessionId: string; step: StudyStep; assessmentId: string }): Promise<{ presentedAt: Date }> {
+  return withTx(pool, async (c) => {
+    await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [input.sessionId]);
+    const s = await loadSessionState(c, input.sessionId);
+    if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
+    const pos = await syncPosition(c, s);
+    if (pos.kind !== "step" || pos.step !== input.step) throw new StudyEngineError("not_current_step", "This part of the study is not the current step.");
+    const a = (await listStepAssessments(c, s, input.step)).find((x) => x.id === input.assessmentId);
+    if (!a) throw new StudyEngineError("not_current_step", "This assessment is not part of the current step.");
+    return startAssessment(c, s, a, input.step);
+  });
 }
 
 export interface SubmitResult {
@@ -1083,7 +1257,12 @@ export async function submitAssessment(
     if (!a) throw new StudyEngineError("not_current_step", "This assessment is not part of the current step.");
     if (submittedAssessments(s, input.step).has(a.id)) throw new StudyEngineError("already_submitted", "These answers were already submitted.");
     // A repeated administration (another step) is a new attempt; raw rows are never overwritten.
-    const attempt = s.journal.filter((e) => e.action === "study.assessment_submitted" && e.after.assessmentId === a.id).length + 1;
+    // Numbered per PARTICIPANT, not per session: after a reassignment (webglFailurePolicy =
+    // reassign) the second session's post-learning SSQ is attempt 2, not a second "attempt 1"
+    // (final review study-03). The journal entry also records the step.
+    const attempt = (
+      await c.query<{ next: number }>("SELECT coalesce(max(attempt), 0)::int + 1 AS next FROM responses WHERE participant_id = $1 AND assessment_id = $2", [s.participantId, a.id])
+    ).rows[0]!.next;
     const ready = stepReadiness(assessments);
     if (!ready.ready) throw new StudyEngineError("assessment_not_ready", ready.reasons.join("; "));
 
@@ -1310,7 +1489,11 @@ export async function withdraw(pool: Pool | PoolClient, input: { participantId: 
 }
 
 /** Ends the session as completed once every step is done. */
-export async function completeSession(pool: Pool | PoolClient, sessionId: string): Promise<void> {
+/**
+ * `telemetryPending`: client-reported count of telemetry events not delivered when the
+ * participant finished (null when unknown); kept in the `study.session_completed` journal entry.
+ */
+export async function completeSession(pool: Pool | PoolClient, sessionId: string, opts: { telemetryPending?: number | null } = {}): Promise<void> {
   await withTx(pool, async (c) => {
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
     const s = await loadSessionState(c, sessionId);
@@ -1321,7 +1504,10 @@ export async function completeSession(pool: Pool | PoolClient, sessionId: string
     if (pos.kind !== "finish") throw new StudyEngineError("not_current_step", "Some steps are not finished yet.");
     await c.query("UPDATE study_sessions SET status = 'completed', completed_at = now(), last_activity_at = now() WHERE id = $1", [sessionId]);
     await c.query("UPDATE participants SET status = 'completed' WHERE id = $1 AND status IN ('enrolled', 'active')", [s.participantId]);
-    await journal(c, { kind: "participant", code: s.participantCode }, "study.session_completed", "study_session", sessionId, { steps: s.study.protocol.steps });
+    await journal(c, { kind: "participant", code: s.participantCode }, "study.session_completed", "study_session", sessionId, {
+      steps: s.study.protocol.steps,
+      ...(opts.telemetryPending != null ? { telemetryPending: opts.telemetryPending } : {}),
+    });
   });
 }
 

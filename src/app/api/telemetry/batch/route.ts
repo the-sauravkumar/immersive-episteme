@@ -15,6 +15,7 @@ import { serverEnv } from "@/lib/env";
 import { DEMO_COOKIE, PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
 import { getStaffPrincipal } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
+import { readLimited } from "@/server/http/read-limited";
 import { ingestTelemetryBatch } from "@/server/telemetry/ingest";
 import { principalKey, resolveTelemetryPrincipal } from "@/server/telemetry/principal";
 import { TokenBucketLimiter } from "@/server/telemetry/rate-limit";
@@ -60,13 +61,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return error(429, "rate_limited", "Too many telemetry uploads", { "Retry-After": String(rate.retryAfterSeconds) });
   }
 
-  const text = await request.text();
-  if (new TextEncoder().encode(text).byteLength > MAX_BATCH_BYTES) {
-    return error(413, "payload_too_large", `Batches are limited to ${MAX_BATCH_BYTES} bytes`);
-  }
+  // Size-limited while it streams: Content-Length (checked above) is absent on a chunked request,
+  // and request.text() would buffer a body of any size before it could be measured.
+  const raw = request.body ? await readLimited(request.body, MAX_BATCH_BYTES) : new Uint8Array(0);
+  if (!raw) return error(413, "payload_too_large", `Batches are limited to ${MAX_BATCH_BYTES} bytes`);
   let body: unknown;
   try {
-    body = JSON.parse(text);
+    body = JSON.parse(new TextDecoder().decode(raw));
   } catch {
     return error(400, "invalid_json", "The body is not JSON");
   }

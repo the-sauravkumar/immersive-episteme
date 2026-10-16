@@ -11,6 +11,8 @@
  *   failure) and is stored with the decision; in the database (migration 0005), the snapshot must
  *   be published, the manifest published and compiled from it, the battery locked, etc.
  */
+import { createHash, randomBytes } from "node:crypto";
+
 import { z } from "zod";
 
 import { studyConfigSchema } from "@/features/study/contracts";
@@ -245,10 +247,61 @@ export async function activateStudy(pool: Pool | PoolClient, actor: Actor, study
     }
     const current = await loadParityInput(c, studyId);
     if (parityInputHash(current.study) !== stored.report.inputSha256) throw new ResearchActionError("The study changed while it was being checked; run the activation again.");
-    await c.query("UPDATE studies SET status = 'active', activated_by = $2, activated_at = now() WHERE id = $1", [studyId, actor.userId]);
-    await audit(c, actor, "study.activate", "study", studyId, { after: { status: "active", parityReportId: stored.id, parityInputSha256: stored.report.inputSha256 } });
+    const pins = await activationPins(c, studyId, current.study.config, current.study.snapshotId);
+    if ("refused" in pins) {
+      await audit(c, actor, "study.activation_refused", "study", studyId, { after: { parityReportId: stored.id, failures: [pins.refused] } });
+      return { activated: false, parityReportId: stored.id, passed: true, failures: [pins.refused] };
+    }
+    // The pins go into the config in the same statement that activates (the config is frozen afterwards).
+    await c.query("UPDATE studies SET config = $3::jsonb, status = 'active', activated_by = $2, activated_at = now() WHERE id = $1", [studyId, actor.userId, JSON.stringify(pins.config)]);
+    await audit(c, actor, "study.activate", "study", studyId, {
+      after: { status: "active", parityReportId: stored.id, parityInputSha256: stored.report.inputSha256, ...pins.recorded },
+    });
     return { activated: true, parityReportId: stored.id, passed: true, failures: [] };
   });
+}
+
+/**
+ * What activation fixes in the config before it freezes:
+ *  - a secret allocation seed when none is configured (final review study-07). The engine's
+ *    fallback seed is derived from the study id and protocol version, which staff can see, so
+ *    the allocation sequence would be predictable. Only a fingerprint is journalled, never the seed;
+ *    exports leave it out until the study is closed.
+ *  - the reference map that `stratifyBy: pre_map_recall` scores against (final review
+ *    database-02): the newest locked map at activation is pinned by id, so a map version locked
+ *    later cannot change the stratification rule part-way through the study.
+ */
+async function activationPins(
+  q: Q,
+  studyId: string,
+  rawConfig: unknown,
+  snapshotId: string | null,
+): Promise<{ config: Record<string, unknown>; recorded: Record<string, unknown> } | { refused: string }> {
+  const config = { ...(rawConfig as Record<string, unknown>) };
+  const allocation = { ...((config.allocation as Record<string, unknown> | undefined) ?? {}) };
+  const recorded: Record<string, unknown> = {};
+  if (typeof allocation.seed !== "string" || allocation.seed.length === 0) {
+    allocation.seed = randomBytes(32).toString("base64url");
+    recorded.allocationSeed = { generated: true, sha256Prefix: createHash("sha256").update(allocation.seed as string, "utf8").digest("hex").slice(0, 12) };
+  }
+  const by = allocation.stratifyBy as { source?: string; referenceMapId?: string } | undefined;
+  if (by?.source === "pre_map_recall" && !by.referenceMapId) {
+    const ref = await q.query<{ id: string; version: number; code: string }>(
+      `SELECT rm.id, rm.version, a.code FROM study_assessments sa
+         JOIN assessments a ON a.id = sa.assessment_id
+         JOIN reference_maps rm ON rm.assessment_id = a.id
+        WHERE sa.study_id = $1 AND sa.phase = 'pre' AND a.kind = 'reconstruction' AND rm.status = 'locked'
+          AND (rm.snapshot_id IS NULL OR rm.snapshot_id = $2)
+        ORDER BY rm.version DESC LIMIT 1`,
+      [studyId, snapshotId],
+    );
+    const r = ref.rows[0];
+    if (!r) return { refused: "Stratification by pre-map recall needs a locked reference map for the pre-learning reconstruction assessment." };
+    allocation.stratifyBy = { ...by, referenceMapId: r.id };
+    recorded.stratificationReferenceMap = { id: r.id, version: r.version, assessment: r.code };
+  }
+  config.allocation = allocation;
+  return { config, recorded };
 }
 
 export async function closeStudy(pool: Pool | PoolClient, actor: Actor, studyId: string, reason: string): Promise<void> {
@@ -259,6 +312,23 @@ export async function closeStudy(pool: Pool | PoolClient, actor: Actor, studyId:
     await c.query("UPDATE studies SET status = 'closed', closed_at = now() WHERE id = $1", [studyId]);
     await audit(c, actor, "study.close", "study", studyId, { after: { status: "closed" }, reason });
   });
+}
+
+/**
+ * The config of a new version without the pins activation set: the new version gets its own
+ * secret seed and its own reference map at its activation (reusing the seed would repeat the old
+ * version's allocation sequence).
+ */
+function withoutActivationPins(raw: unknown): unknown {
+  const config = { ...((raw as Record<string, unknown>) ?? {}) };
+  const allocation = { ...((config.allocation as Record<string, unknown> | undefined) ?? {}) };
+  delete allocation.seed;
+  if (allocation.stratifyBy && typeof allocation.stratifyBy === "object") {
+    const { referenceMapId: _pinned, ...by } = allocation.stratifyBy as Record<string, unknown>;
+    allocation.stratifyBy = by;
+  }
+  config.allocation = allocation;
+  return config;
 }
 
 /** Clones a study into a new draft protocol version (conditions, battery, config and pins). */
@@ -274,7 +344,7 @@ export async function newStudyVersion(pool: Pool | PoolClient, actor: Actor, stu
     const n = await c.query<{ id: string }>(
       `INSERT INTO studies (slug, title, description, protocol_version, design, snapshot_id, manifest_id, config, allow_unverified_content, is_demo, created_by)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11) RETURNING id`,
-      [slug, s.title, s.description, protocolVersion, s.design, s.snapshot_id, s.manifest_id, JSON.stringify(s.config), s.allow_unverified_content, s.is_demo, actor.userId],
+      [slug, s.title, s.description, protocolVersion, s.design, s.snapshot_id, s.manifest_id, JSON.stringify(withoutActivationPins(s.config)), s.allow_unverified_content, s.is_demo, actor.userId],
     );
     const id = n.rows[0]!.id;
     await c.query(

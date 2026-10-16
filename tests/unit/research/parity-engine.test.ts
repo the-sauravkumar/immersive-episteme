@@ -37,6 +37,30 @@ describe("parity engine", () => {
     expect(runParityChecks(changed).inputSha256).not.toBe(a.inputSha256);
   });
 
+  it("refuses a journey step with nothing to deliver and a broken protocol (study-05, study-10)", () => {
+    // A configured transfer step but no transfer assessment in the battery: used to pass silently and
+    // skip the step as "empty" for every participant.
+    const noTransfer = passingInput();
+    (noTransfer.study.config as { steps: string[] }).steps = ["pre_test", "learning", "post_test", "transfer"];
+    const r1 = runParityChecks(noTransfer);
+    expect(failedCritical(r1)).toEqual(["d.journey"]);
+    expect(checkOf(r1, "d.journey").issues.map((x) => x.code)).toEqual(["step_without_assessment"]);
+    // A pre-phase assessment of the wrong kind does not count for pre_test.
+    const wrongKind = passingInput();
+    wrongKind.study.battery[0]!.kind = "reconstruction";
+    expect(checkOf(runParityChecks(wrongKind), "d.journey").issues.map((x) => x.message).join(" ")).toMatch(/pre_test.*pre-phase pretest/);
+    // A questionnaire instrument missing from the battery.
+    const noSsq = passingInput();
+    Object.assign(noSsq.study.config as object, { steps: ["questionnaire_pre", "pre_test", "learning", "post_test"], questionnaires: { pre: ["ssq"], postLearning: [], end: [] } });
+    expect(checkOf(runParityChecks(noSsq), "d.journey").issues.map((x) => x.code)).toEqual(["instrument_not_in_battery"]);
+    // Hybrid guidance with cues but no hint text: the engine would refuse every enrolment.
+    const hybrid = passingInput();
+    (hybrid.study.config as { guidance: unknown }).guidance = { policy: "hybrid", cueEnabled: true };
+    const r4 = runParityChecks(hybrid);
+    expect(checkOf(r4, "d.journey").passed).toBe(false);
+    expect(checkOf(r4, "d.journey").issues[0]!.message).toMatch(/hintText/);
+  });
+
   it("detects a concept reachable in 2D with no exhibit (missing content)", () => {
     const i = passingInput();
     const els = elements(i);
@@ -117,6 +141,15 @@ describe("parity engine", () => {
     ];
     const e = checkOf(runParityChecks(budgets), "e.exposure");
     expect(e.issues.map((x) => x.code)).toEqual(["session_budget"]);
+  });
+
+  it("fails e.exposure when a fixed-time study allows early finish (final review scoring-09)", () => {
+    const early = passingInput();
+    (early.study.config as { exposure: Record<string, unknown> }).exposure = { mode: "fixed_time", minutes: 30, allowEarlyFinish: true };
+    const e = checkOf(runParityChecks(early), "e.exposure");
+    expect(e.passed).toBe(false);
+    expect(e.issues.map((x) => x.code)).toEqual(["exposure_early_finish"]);
+    expect(runParityChecks(early).passed).toBe(false);
   });
 
   it("detects 3D-only media, rewritten explanations and per-condition guidance", () => {

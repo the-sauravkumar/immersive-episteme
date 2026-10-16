@@ -3,6 +3,8 @@
  * store in a temp directory. Includes the figure governance of migration 0016 (DESIGN.md 9.9, 16;
  * DR-018, DR-020): the licence display cap, expiry and public-plate flag, the alt-text and caption
  * rules, illustration anchors (one per concept), and what the learner figure route may serve.
+ * Final review fixes (DR-037): link changes are reviewed, every author is barred from verifying,
+ * and a released study shows only the figures frozen into its release (withdrawals are deviations).
  */
 import { createHash } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
@@ -16,17 +18,21 @@ import {
   createAssetFromBytes,
   FIGURE_MAX_AGE,
   figureMaxAge,
+  freezeReleaseFigures,
   linkAssetToConcept,
   listIllustrationLinks,
+  listSnapshotFigureAssets,
+  listSnapshotPhotoLinks,
   loadLearnerFigure,
   MEDIA_EVIDENCE_CHECKS,
   reviewAsset,
   reviewMediaCandidate,
   submitAssetForReview,
+  unlinkAsset,
   updateAssetMetadata,
 } from "../../src/server/cms/media/service";
 import { createLocalStorage, type LocalMediaStorage } from "../../src/server/cms/media/storage";
-import { TEST_URL, addSnapshotItem, createRealGraph, createSnapshot, createTestDatabase, createUser, one, publishSnapshot, type TestDb } from "./schema-harness";
+import { TEST_URL, addSnapshotItem, createPublishedManifest, createRealGraph, createSnapshot, createStudy, createTestDatabase, createUser, one, publishSnapshot, type TestDb } from "./schema-harness";
 
 const be32 = (n: number) => [(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255];
 /** A PNG header with a given size plus `salt` bytes, so each test file has its own checksum. */
@@ -209,7 +215,9 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     await submitAssetForReview(t.pool, editor, { assetId: fig.id });
     await reviewAsset(t.pool, curator2, { assetId: fig.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
     expect(await loadLearnerFigure(t.pool, fig.id, day)).toBeNull(); // approved but used nowhere
-    await linkAssetToConcept(t.pool, editor, { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0 });
+    // A new link on an accepted asset is new learner-facing text: back to review, then verified again.
+    expect(await linkAssetToConcept(t.pool, editor, { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0 })).toEqual({ returnedToReview: true });
+    await reviewAsset(t.pool, curator2, { assetId: fig.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
     expect(await loadLearnerFigure(t.pool, fig.id, day)).toBeNull(); // the concept is in no published release
 
     const snap = await createSnapshot(t.pool, { label: "mfig-release-1", createdBy: curator.userId });
@@ -242,10 +250,110 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     await reviewAsset(t.pool, curator2, { assetId: plate.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
     expect(await loadLearnerFigure(t.pool, plate.id, day)).toMatchObject({ id: plate.id });
 
-    // The cache lifetime never outlives the licence.
+    // The cache lifetime is short (a withdrawal reaches every cache within minutes) and never outlives the licence.
+    expect(FIGURE_MAX_AGE).toBe(300);
     expect(figureMaxAge(null, new Date("2027-01-01T00:00:00Z"))).toBe(FIGURE_MAX_AGE);
-    expect(figureMaxAge("2030-12-31", new Date("2030-12-30T23:59:59Z"))).toBe(86_400);
+    expect(figureMaxAge("2030-12-31", new Date("2030-12-30T23:59:59Z"))).toBe(FIGURE_MAX_AGE);
+    expect(figureMaxAge("2030-12-31", new Date("2031-12-31T23:58:00Z"))).toBe(0);
+    expect(figureMaxAge("2030-12-31", new Date("2030-12-31T23:58:00Z"))).toBe(119);
     expect(figureMaxAge("2030-12-31", new Date("2031-02-01T00:00:00Z"))).toBe(0);
+  });
+
+  it("treats a link as learner-facing text: caption rules, and a changed link on an accepted asset goes back to review (knowledge-02)", async () => {
+    const g = await createRealGraph(t.pool, { prefix: "mrev", acceptBy: curator2.userId });
+    await t.pool.query("INSERT INTO concept_claims (concept_id, position, text) VALUES ($1, 1, 'Second claim')", [g.conceptIds[0]]);
+    const a = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(768, 512, 60), declaredMime: "image/png", metadata: META });
+    const link = (extra: Record<string, unknown> = {}) => linkAssetToConcept(t.pool, editor, { assetId: a.id, conceptId: g.conceptIds[0], role: "illustration", position: 0, ...extra });
+    // The override obeys the caption rules: at most 180 characters, never the alt text.
+    expect(await code(link({ captionOverride: "x".repeat(181) }))).toBe("caption_rule");
+    expect(await code(link({ captionOverride: META.altText }))).toBe("caption_rule");
+    expect(await link()).toEqual({ returnedToReview: false }); // a draft asset is reviewed later anyway
+    await submitAssetForReview(t.pool, editor, { assetId: a.id });
+    await reviewAsset(t.pool, curator2, { assetId: a.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
+    const state = async () => (await one<{ s: string }>(t.pool, "SELECT verification_state::text AS s FROM assets WHERE id = $1", [a.id])).s;
+
+    // Re-saving the same link changes nothing; a new caption or a new anchor sends the asset back.
+    expect(await link()).toEqual({ returnedToReview: false });
+    expect(await state()).toBe("verified");
+    expect(await link({ captionOverride: "Points to the second claim." })).toEqual({ returnedToReview: true });
+    expect(await state()).toBe("under_review");
+    await reviewAsset(t.pool, curator2, { assetId: a.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
+    expect(await link({ position: 1, captionOverride: "Points to the second claim." })).toEqual({ returnedToReview: true });
+    const audit = await one<{ before: { position: number }; reason: string }>(
+      t.pool,
+      "SELECT before, reason FROM audit_log WHERE action = 'media.asset_linked' AND entity_id = $1 ORDER BY occurred_at DESC, id DESC LIMIT 1",
+      [a.id],
+    );
+    expect(audit).toEqual({ before: { position: 0, captionOverride: "Points to the second claim." }, reason: "link created or changed after acceptance: returned to review" });
+  });
+
+  it("bars every earlier author of an asset from verifying it, not only the uploader and the last editor (knowledge-10)", async () => {
+    const curator3: Actor = { userId: await createUser(t.pool), roles: ["curator"] };
+    const a = await createAssetFromBytes(t.pool, curator3, storage, { bytes: png(768, 512, 70), declaredMime: "image/png", metadata: META });
+    await updateAssetMetadata(t.pool, curator, { assetId: a.id, metadata: { ...META, caption: "Caption written by the first curator" } });
+    await updateAssetMetadata(t.pool, editor, { assetId: a.id, metadata: { ...META, caption: "Caption written by the first curator." } });
+    await submitAssetForReview(t.pool, editor, { assetId: a.id });
+    const verify = (actor: Actor) => code(reviewAsset(t.pool, actor, { assetId: a.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] }));
+    // `curator` is neither the uploader (curator3) nor the last editor (editor), but wrote the caption.
+    expect(await verify(curator)).toBe("self_verification");
+    expect(await verify(curator3)).toBe("self_verification");
+    expect(await verify(curator2)).toBe("ok");
+  });
+
+  it("shows a released study only the figures frozen into its release; withdrawals are study deviations (knowledge-01, database-01, security-02)", async () => {
+    const g = await createRealGraph(t.pool, { prefix: "mfrz", acceptBy: curator2.userId });
+    const fig = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(768, 512, 80), declaredMime: "image/png", metadata: { ...META, maxPixels: "768" } });
+    await linkAssetToConcept(t.pool, editor, { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0 });
+    await submitAssetForReview(t.pool, editor, { assetId: fig.id });
+    await reviewAsset(t.pool, curator2, { assetId: fig.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
+    // A second approved image, linked to the other concept only AFTER the release is published.
+    const late = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(768, 512, 81), declaredMime: "image/png", metadata: META });
+    await submitAssetForReview(t.pool, editor, { assetId: late.id });
+    await reviewAsset(t.pool, curator2, { assetId: late.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
+
+    const snap = await createSnapshot(t.pool, { label: "mfrz-release-1", createdBy: curator.userId });
+    for (const id of g.conceptIds) await addSnapshotItem(t.pool, snap, "concept", id);
+    expect(await freezeReleaseFigures(t.pool, snap)).toBe(1);
+    await publishSnapshot(t.pool, snap, curator.userId);
+    const day = new Date().toISOString().slice(0, 10);
+    const frozen = { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0, caption: META.caption, altText: META.altText, credit: META.credit, licence: META.licence, width: 768, height: 512 };
+    expect(await listSnapshotPhotoLinks(t.pool, snap, day)).toEqual([expect.objectContaining(frozen)]);
+
+    // The frozen rows cannot be added to, changed or removed once the release is published.
+    await expect(t.pool.query("UPDATE snapshot_figures SET caption = 'x' WHERE snapshot_id = $1", [snap])).rejects.toThrow(/immutable/);
+    await expect(t.pool.query("DELETE FROM snapshot_figures WHERE snapshot_id = $1", [snap])).rejects.toThrow(/immutable/);
+    await expect(freezeReleaseFigures(t.pool, snap)).rejects.toThrow(/draft release snapshot/);
+
+    // Live edits do not reach the release: a new link, a new caption and anchor, an unlink.
+    await linkAssetToConcept(t.pool, editor, { assetId: late.id, conceptId: g.conceptIds[1], role: "illustration", position: 0 });
+    await reviewAsset(t.pool, curator2, { assetId: late.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
+    expect(await linkAssetToConcept(t.pool, editor, { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0, captionOverride: "An unreviewed caption." })).toEqual({ returnedToReview: true });
+    await t.pool.query("UPDATE assets SET caption = 'Changed live caption' WHERE id = $1", [fig.id]);
+    expect(await listSnapshotPhotoLinks(t.pool, snap, day)).toEqual([expect.objectContaining(frozen)]);
+    // ...and the route still serves the frozen figure while the edit awaits review.
+    expect(await loadLearnerFigure(t.pool, fig.id, day)).toMatchObject({ id: fig.id });
+    // The parity input is the frozen figure too (what participants will see).
+    expect(await listSnapshotFigureAssets(t.pool, snap)).toEqual([expect.objectContaining({ assetId: fig.id, caption: META.caption, verificationState: "published" })]);
+    const linkId = (await one<{ id: string }>(t.pool, "SELECT id FROM asset_links WHERE asset_id = $1", [late.id])).id;
+    await unlinkAsset(t.pool, editor, { linkId });
+    expect((await listSnapshotPhotoLinks(t.pool, snap, day)).map((l) => l.assetId)).toEqual([fig.id]);
+
+    // A study pinned to the release is collecting data; a reviewer withdraws the photograph.
+    const study = await createStudy(t.pool, { slug: "mfrz-study", snapshotId: snap, manifestId: await createPublishedManifest(t.pool, snap, { by: curator.userId }) });
+    await t.pool.query("UPDATE studies SET status = 'active' WHERE id = $1", [study.studyId]);
+    await reviewAsset(t.pool, curator2, { assetId: fig.id, to: "rejected", reason: "The museum asked us to stop using this image." });
+    expect(await listSnapshotPhotoLinks(t.pool, snap, day)).toEqual([]);
+    expect(await loadLearnerFigure(t.pool, fig.id, day)).toBeNull();
+    const dev = await one<{ category: string; severity: string; description: string; reported_by: string }>(
+      t.pool,
+      "SELECT category, severity, description, reported_by FROM protocol_deviations WHERE study_id = $1",
+      [study.studyId],
+    );
+    expect(dev).toMatchObject({ category: "content", severity: "major", reported_by: curator2.userId });
+    expect(dev.description).toMatch(/withdrawn during data collection.*rejected.*The museum asked us/);
+    // Rejecting it again later records nothing new: it is no longer shown.
+    const n = await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM protocol_deviations WHERE study_id = $1", [study.studyId]);
+    expect(n.n).toBe(1);
   });
 
   it("records licence decisions on imported media candidates (media.review only)", async () => {

@@ -10,7 +10,7 @@ import { cookies } from "next/headers";
 
 import { serverEnv } from "@/lib/env";
 
-import { PARTICIPANT_COOKIE, SECURE_COOKIES } from "./cookie-names";
+import { expiredCookie, PARTICIPANT_COOKIE, SECURE_COOKIES } from "./cookie-names";
 import {
   PARTICIPANT_SESSION_TTL_SECONDS,
   signParticipantSession,
@@ -41,7 +41,7 @@ export async function issueParticipantSessionCookie(
 }
 
 export async function clearParticipantSessionCookie(): Promise<void> {
-  (await cookies()).delete({ name: PARTICIPANT_COOKIE, path: "/" });
+  (await cookies()).set(expiredCookie(PARTICIPANT_COOKIE));
 }
 
 /** Raw cookie value (or undefined). Callers must verify it. */

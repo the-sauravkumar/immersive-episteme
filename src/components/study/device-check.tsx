@@ -27,6 +27,7 @@ import { readDisplayPreferences } from "@/components/shell/display-preferences";
 import { DisplaySettings } from "@/components/shell/display-settings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { isSoftwareRenderer } from "@/features/study/gpu-acceptance";
 import { titleCase } from "@/lib/text/title-case";
 import { submitDeviceCheck, type DeviceCheckResult } from "@/server/study/actions";
 
@@ -36,6 +37,8 @@ export interface ClientDeviceReport {
   viewport: { width: number; height: number };
   devicePixelRatio: number;
   webglVersion: 1 | 2 | null;
+  /** True when WebGL runs on a software rasteriser (only this flag is sent, never the renderer string). */
+  softwareRenderer: boolean;
   inputDevices: ("mouse" | "keyboard" | "touch")[];
   reducedMotion: boolean;
   highContrast: boolean;
@@ -55,6 +58,24 @@ export function detectWebgl(doc: Document = document): 1 | 2 | null {
   return null;
 }
 
+/**
+ * Does WebGL run on a software rasteriser? The same test as the museum's probe
+ * (@/features/study/gpu-acceptance), so the check refuses what the museum would refuse.
+ */
+export function detectSoftwareRenderer(doc: Document = document): boolean {
+  try {
+    const canvas = doc.createElement("canvas");
+    const gl = (canvas.getContext("webgl2") ?? canvas.getContext("webgl")) as WebGLRenderingContext | null;
+    if (!gl) return false;
+    const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+    const renderer = String(gl.getParameter(dbg ? dbg.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return isSoftwareRenderer(renderer);
+  } catch {
+    return false;
+  }
+}
+
 function browserFamily(ua: string): ClientDeviceReport["browserFamily"] {
   if (/Edg\//.test(ua)) return "edge";
   if (/Firefox\//.test(ua)) return "firefox";
@@ -72,6 +93,7 @@ export function collectDeviceReport(): ClientDeviceReport {
     viewport: { width: Math.max(1, Math.round(window.innerWidth)), height: Math.max(1, Math.round(window.innerHeight)) },
     devicePixelRatio: Math.min(8, Math.max(0.1, window.devicePixelRatio || 1)),
     webglVersion: detectWebgl(),
+    softwareRenderer: detectSoftwareRenderer(),
     inputDevices: inputs,
     reducedMotion: mq("(prefers-reduced-motion: reduce)"),
     highContrast: mq("(prefers-contrast: more)") || mq("(forced-colors: active)"),

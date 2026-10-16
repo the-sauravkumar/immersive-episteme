@@ -2,12 +2,28 @@
  * RFC 4180 CSV (comma, CRLF, double-quote escaping). Objects and arrays are written as JSON
  * text in one cell; null and undefined are empty cells. `parseCsv` reads the same dialect back
  * (used by the export round-trip validation).
+ *
+ * Spreadsheet formula injection: participants control some cells (telemetry `target` and
+ * `roomOrPageId`, free-text answers), and a spreadsheet evaluates a cell that starts with
+ * = + - @ TAB or CR even when it is quoted. Such a text cell is written with a leading `'`
+ * (OWASP "CSV injection"), so it opens as text. Numbers, and text that is a plain number
+ * ("-1.5"), are written unchanged. `parseCsv` does NOT strip the `'` (a stored value that really
+ * starts with `'` would become ambiguous); the export data dictionary tells analysts to remove
+ * it. The JSON bundle is unaffected.
  */
 export type Row = Record<string, unknown>;
 
+const FORMULA_START = /^[=+\-@\t\r]/;
+const PLAIN_NUMBER = /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/;
+
+/** `s` (the text of `v`) with a leading `'` when a spreadsheet would read it as a formula. */
+export function neutraliseFormula(s: string, v: unknown = s): string {
+  if (typeof v === "number" || typeof v === "bigint") return s;
+  return FORMULA_START.test(s) && !PLAIN_NUMBER.test(s) ? `'${s}` : s;
+}
+
 function cell(v: unknown): string {
-  if (v === null || v === undefined) return "";
-  const s = typeof v === "object" ? JSON.stringify(v) : String(v);
+  const s = csvText(v);
   return /[",\r\n]/.test(s) || s !== s.trim() ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
@@ -66,8 +82,8 @@ export function parseCsv(text: string): { columns: string[]; rows: Record<string
   return { columns, rows: body.map((r) => Object.fromEntries(columns.map((c, j) => [c, r[j] ?? ""]))) };
 }
 
-/** The CSV text a value becomes, for round-trip comparison. */
+/** The CSV text a value becomes (before quoting), for round-trip comparison. */
 export function csvText(v: unknown): string {
   if (v === null || v === undefined) return "";
-  return typeof v === "object" ? JSON.stringify(v) : String(v);
+  return neutraliseFormula(typeof v === "object" ? JSON.stringify(v) : String(v), v);
 }

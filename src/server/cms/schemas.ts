@@ -61,7 +61,22 @@ export const locatorSchema = z
   .min(1, 'Give the page (e.g. "p. 12 (PDF p. 4)") or, for unpaginated sources, a locator (e.g. "§ Process, para 3")')
   .max(200);
 
-export const claimCitationSchema = z.object({ sourceId: uuid, locator: locatorSchema });
+/**
+ * One citation of a claim. `quote` is the verbatim passage from THIS source (optional here; the
+ * review gate requires one per citation when a claim cites more than one source, because the
+ * claim's own quote can only be shown for a single-source claim; final review knowledge-06).
+ */
+export const claimCitationSchema = z.object({
+  sourceId: uuid,
+  locator: locatorSchema,
+  quote: z
+    .string()
+    .trim()
+    .optional()
+    .nullable()
+    .transform((v) => (v ? v : undefined))
+    .pipe(evidenceQuoteSchema.optional()),
+});
 
 export const cmsClaimSchema = z.object({
   text: required(4000, "Write the claim").refine((t) => !/\n\s*\n/.test(t), "One claim is one statement (no paragraphs)"),

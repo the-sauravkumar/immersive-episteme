@@ -11,10 +11,11 @@ import { getStaffPrincipal } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 import { listParityReports } from "@/server/research/parity/store";
 import { assessmentOptions, getStudy, pinOptions, snapshotTraditions, studyHistory, type StudyDetail } from "@/server/research/studies";
+import { listRetentionDue } from "@/server/study/purge";
 
 import { ActionForm } from "../../_components/action-form";
 import { CHECK_BOX, CHECK_ROW, DemoBadge, Empty, FieldLabel, FIELD_LABEL, LINK_44, Notice, PublishedBadge, Section, StatusBadge, SummaryList, TEXTAREA, Timestamp } from "../../_components/common";
-import { activateStudyAction, closeStudyAction, newVersionAction, runParityAction, setBatteryAction, updateStudyAction } from "../../actions";
+import { activateStudyAction, closeStudyAction, newVersionAction, purgeParticipantAction, purgeRetentionAction, runParityAction, setBatteryAction, updateStudyAction } from "../../actions";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Disclosure } from "@/components/ui/disclosure";
 
@@ -140,6 +141,8 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
         </Section>
       ) : null}
 
+      {can(principal, "participants.purge") && !draft ? <ParticipantData study={study} /> : null}
+
       <Section demo={study.isDemo} id="history" title="History" description="Append-only audit trail of this study (configuration versions, parity runs, activation).">
         {history.length === 0 ? (
           <Empty>No entries.</Empty>
@@ -163,6 +166,54 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
         )}
       </Section>
     </>
+  );
+}
+
+/**
+ * Removal of participant data (DR-030): on a participant's request, and after the retention
+ * period. Principal investigator only (participants.purge); every removal is journalled.
+ */
+async function ParticipantData({ study }: { study: StudyDetail }) {
+  const { retentionDays, due } = await listRetentionDue(getPool(), study.id);
+  return (
+    <Section
+      demo={study.isDemo}
+      id="participant-data"
+      title="Participant data"
+      description="Removes a participant's answers, concept maps, activity records and session rows. The participant code, consent records, allocation and audit journal are kept as the record that the study was run correctly. Removal cannot be undone."
+    >
+      <SummaryList
+        className="mb-6 max-w-[52rem]"
+        items={[
+          { label: "Retention period", value: retentionDays ? `${retentionDays} days after a participant's participation ends` : "Not set in the protocol" },
+          {
+            label: "Past the retention period",
+            value: due.length === 0 ? "No participant" : due.map((d) => d.participantCode).join(", "),
+          },
+        ]}
+      />
+      <div className="grid max-w-[60rem] gap-x-10 gap-y-8 md:grid-cols-2">
+        <ActionForm action={purgeRetentionAction.bind(null, study.id)} submitLabel="Remove data past the retention period" variant="destructive" className="flex flex-col gap-4">
+          <p className="text-body text-ink-2">Removes the data of every participant listed above, one by one, with the retention period as the recorded reason.</p>
+          <label className={CHECK_ROW}>
+            <input type="checkbox" name="confirm" value="yes" className={CHECK_BOX} />
+            I confirm the removal
+          </label>
+        </ActionForm>
+        <ActionForm action={purgeParticipantAction.bind(null, study.id)} submitLabel="Remove this participant's data" variant="destructive" className="flex flex-col gap-4">
+          <FieldLabel label="Participant code" hint="The code the participant gave the facilitator, for example P-ABC123DEFG.">
+            <Input name="participant" required maxLength={64} autoComplete="off" />
+          </FieldLabel>
+          <FieldLabel label="Reason" hint="For example: participant asked for removal on 16 October.">
+            <Input name="reason" required minLength={5} maxLength={500} />
+          </FieldLabel>
+          <label className={CHECK_ROW}>
+            <input type="checkbox" name="confirm" value="yes" className={CHECK_BOX} />
+            I confirm the removal
+          </label>
+        </ActionForm>
+      </div>
+    </Section>
   );
 }
 
@@ -310,6 +361,12 @@ function ConfigForm({
           ))}
         </NativeSelect>
       </FieldLabel>
+      <FieldLabel label="Stall cue after (s)" hint="Active seconds without a newly opened concept before the cue shows (D6; a pilot parameter, 10 to 1800).">
+        <Input name="stallSeconds" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={c.guidance.stallSeconds ?? ""} />
+      </FieldLabel>
+      <FieldLabel label="Hint text" className="md:col-span-2" hint="The on-demand hint both conditions show. Needed when the policy is hybrid and guidance cues are on.">
+        <textarea name="hintText" rows={3} maxLength={2000} defaultValue={c.guidance.hintText ?? ""} className={TEXTAREA} />
+      </FieldLabel>
       <FieldLabel label="Mini-map (3D)">
         <NativeSelect name="minimap" defaultValue={c.minimap}>
           {["toggle", "on", "off"].map((m) => (
@@ -328,7 +385,7 @@ function ConfigForm({
           ))}
         </NativeSelect>
       </FieldLabel>
-      <FieldLabel label="Data retention (days)">
+      <FieldLabel label="Data retention (days)" hint="After a participant's participation ends. The principal investigator removes the data once it has passed (Participant data section); it is not deleted automatically.">
         <Input name="retentionDays" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={c.retentionDays ?? ""} />
       </FieldLabel>
       <FieldLabel label="Consent version">
@@ -345,7 +402,7 @@ function ConfigForm({
         <div className="flex flex-wrap gap-x-6">
           <label className={CHECK_ROW}>
             <input type="checkbox" name="allowEarlyFinish" defaultChecked={c.exposure.allowEarlyFinish} className={CHECK_BOX} />
-            Allow finishing the learning phase early
+            Allow finishing the learning phase early (a fixed-time study with early finish fails the parity check and cannot be activated)
           </label>
           <label className={CHECK_ROW}>
             <input type="checkbox" name="cueEnabled" defaultChecked={c.guidance.cueEnabled} className={CHECK_BOX} />

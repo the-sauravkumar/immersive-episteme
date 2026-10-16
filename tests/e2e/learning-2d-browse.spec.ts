@@ -89,7 +89,7 @@ test("browse catalogue, tradition, concept and a related concept; telemetry reac
   // The sequence pager carries the shared default label, as the 3D panel's.
   await expect(page.getByRole("navigation", { name: "Previous and next" })).toBeVisible();
 
-  // LayerTabs, as in the 3D panel (DR-021): a process station has Overview and Process; the
+  // LayerTabs, as in the 3D panel (DR-034): a process station has Overview and Process; the
   // keyboard path from the h1 passes the selected tab first.
   const layers = page.getByRole("tablist", { name: "Information layers" });
   await expect(layers.getByRole("tab", { name: "Overview" })).toHaveAttribute("aria-selected", "true");
@@ -110,7 +110,7 @@ test("browse catalogue, tradition, concept and a related concept; telemetry reac
   const relatedTitle = (await related.textContent())!.trim();
   await related.click();
   await expect(page.getByRole("heading", { level: 1, name: relatedTitle })).toBeVisible(SLOW);
-  // A pager only on a station of an ordered sequence ("Step n of N"), as in the 3D panel (DR-021).
+  // A pager only on a station of an ordered sequence ("Step n of N"), as in the 3D panel (DR-034).
   const isStation = (await page.getByText(/step \d+ of \d+/i).count()) > 0;
   await expect(page.getByRole("navigation", { name: /previous and next/i })).toHaveCount(isStation ? 1 : 0);
 

@@ -11,7 +11,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import * as schema from "@db/schema";
 import { authRateLimits, authSignInThrottle, users } from "@db/schema/auth";
-import { signInThrottleKey } from "@/server/auth/account-throttle";
+import { clearSignInLock, knownDeviceThrottleKey, signInThrottleKey } from "@/server/auth/account-throttle";
 import { createStaffAccount } from "@/server/auth/bootstrap";
 import { createAuth, type Auth } from "@/server/auth/config";
 import { loadUserRoles, revokeRole } from "@/server/auth/roles-repository";
@@ -23,16 +23,16 @@ const RUN = Math.random().toString(36).slice(2, 10);
 const email = (name: string) => `${name}-${RUN}@auth-test.invalid`;
 const PASSWORD = "correct horse battery staple";
 
-function post(path: string, body: unknown, ip: string) {
+function post(path: string, body: unknown, ip: string, cookie?: string) {
   return new Request(`${BASE}/api/auth${path}`, {
     method: "POST",
-    headers: { "content-type": "application/json", origin: BASE, "x-forwarded-for": ip },
+    headers: { "content-type": "application/json", origin: BASE, "x-forwarded-for": ip, ...(cookie ? { cookie } : {}) },
     body: JSON.stringify(body),
   });
 }
 
 /** Every email these tests sign in with (their throttle rows are removed afterwards). */
-const THROTTLED_EMAILS = ["admin", "curator", "secure", "locked", "nobody", "target", "resets", ...Array.from({ length: 8 }, (_, i) => `rot${i}`)];
+const THROTTLED_EMAILS = ["admin", "curator", "secure", "locked", "nobody", "target", "resets", "owner", "unlocked", ...Array.from({ length: 8 }, (_, i) => `rot${i}`)];
 
 function sessionCookieFrom(res: Response): string {
   const raw = res.headers.getSetCookie().find((c) => c.includes("session_token="));
@@ -59,7 +59,7 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
     await db.delete(authRateLimits).where(like(authRateLimits.key, `%198.51.100.%`));
     await db
       .delete(authSignInThrottle)
-      .where(inArray(authSignInThrottle.emailSha256, THROTTLED_EMAILS.map((n) => signInThrottleKey(email(n)))));
+      .where(inArray(authSignInThrottle.emailSha256, THROTTLED_EMAILS.flatMap((n) => [signInThrottleKey(email(n)), knownDeviceThrottleKey(email(n))])));
     await pool.end();
   });
 
@@ -239,5 +239,45 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
     expect(ok.status).toBe(200);
     const left = await db.select().from(authSignInThrottle).where(eq(authSignInThrottle.emailSha256, signInThrottleKey(email("resets"))));
     expect(left).toHaveLength(0);
+  });
+
+  it("a stranger's lock does not shut out the owner's known browser (security-09)", async () => {
+    await createStaffAccount(auth, db, { email: email("owner"), name: "O", password: PASSWORD, role: "principal_investigator" });
+    // The owner signed in from this browser before: it now carries the signed known-device cookie.
+    const first = await auth.handler(post("/sign-in/email", { email: email("owner"), password: PASSWORD }, "198.51.100.170"));
+    expect(first.status).toBe(200);
+    const deviceRaw = first.headers.getSetCookie().find((c) => c.includes("known_device="));
+    expect(deviceRaw).toBeDefined();
+    expect(deviceRaw).toMatch(/HttpOnly/i);
+    expect(deviceRaw).not.toContain(email("owner"));
+    const device = deviceRaw!.split(";")[0]!;
+
+    // A stranger who only knows the email locks it from rotating IPs.
+    for (let i = 0; i < 11; i++) {
+      await auth.handler(post("/sign-in/email", { email: email("owner"), password: "wrong password entirely" }, `198.51.100.${171 + i}`));
+    }
+    const stranger = await auth.handler(post("/sign-in/email", { email: email("owner"), password: PASSWORD }, "198.51.100.190"));
+    expect(stranger.status).toBe(429);
+    // A forged or foreign device cookie does not help.
+    const forged = await auth.handler(post("/sign-in/email", { email: email("owner"), password: PASSWORD }, "198.51.100.192", `${device.split("=")[0]}=${signInThrottleKey(email("owner"))}.bad`));
+    expect(forged.status).toBe(429);
+    // The owner's browser is counted in its own bucket and still gets in with the right password.
+    const owner = await auth.handler(post("/sign-in/email", { email: email("owner"), password: PASSWORD }, "198.51.100.191", device));
+    expect(owner.status).toBe(200);
+  });
+
+  it("guessing from a known browser is still capped, and an administrator can clear a lock", async () => {
+    await createStaffAccount(auth, db, { email: email("unlocked"), name: "U", password: PASSWORD, role: "curator" });
+    const first = await auth.handler(post("/sign-in/email", { email: email("unlocked"), password: PASSWORD }, "198.51.100.200"));
+    const device = first.headers.getSetCookie().find((c) => c.includes("known_device="))!.split(";")[0]!;
+    const statuses: number[] = [];
+    for (let i = 0; i < 11; i++) {
+      const res = await auth.handler(post("/sign-in/email", { email: email("unlocked"), password: "wrong password entirely" }, `198.51.100.${201 + i}`, device));
+      statuses.push(res.status);
+    }
+    expect(statuses[10]).toBe(429);
+    expect((await clearSignInLock(db, email("unlocked"))).wasLocked).toBe(true);
+    const ok = await auth.handler(post("/sign-in/email", { email: email("unlocked"), password: PASSWORD }, "198.51.100.215", device));
+    expect(ok.status).toBe(200);
   });
 });

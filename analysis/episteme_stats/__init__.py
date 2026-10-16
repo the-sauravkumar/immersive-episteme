@@ -6,13 +6,13 @@ missing data and exclusions). Every report states this.
 
 Modules:
     bundle       load an export bundle, verify checksums and joins (mirrors the server validator)
-    data         analysis tables: one row per analysable session with outcomes and baselines
+    data         analysis tables: one row per analysable participant with outcomes and baselines
     describe     descriptive statistics per condition
     compare      two-group comparison with effect sizes and confidence intervals
     adjust       baseline (pre-test) adjusted comparison (ANCOVA by least squares)
     missing      missing-data report
     roles        preregistration role of a metric (primary cmap.recall.dl post, pre covariate; D2)
-    power        a-priori power and sample size for a two-sample t-test (noncentral t)
+    power        a-priori power: the D4 ANCOVA plan, with the concept note's t-test as a comparison
     __main__     command line: ``python -m episteme_stats report <bundle.json> --metric <name>``
 """
 

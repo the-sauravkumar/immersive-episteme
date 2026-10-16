@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { ConsolePage } from "@/components/shell/gates";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { participantDataScope } from "@/lib/permissions/can";
+import { getStaffPrincipal } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 import { integrityFlags, listSessions } from "@/server/research/sessions";
 import { listStudies } from "@/server/research/studies";
@@ -28,7 +30,9 @@ async function Sessions({ searchParams }: { searchParams: Promise<Record<string,
   const studies = await listStudies(pool);
   const study = pickStudy(studies, sp.study);
   if (!study) return <StudyPicker studies={studies} current={null} />;
-  const rows = await listSessions(pool, study.id);
+  const principal = await getStaffPrincipal();
+  // Exclusion detail reaches identified-scope roles only; others see the category (security-05).
+  const rows = await listSessions(pool, study.id, { identified: participantDataScope(principal) === "identified", userId: principal?.userId ?? null });
   return (
     <>
       <StudyPicker studies={studies} current={study.id} />

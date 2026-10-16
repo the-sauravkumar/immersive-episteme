@@ -93,7 +93,7 @@ describe("2D previous / next", () => {
     expect(pager.next?.relationshipId).toBe(link.relationshipId);
   });
 
-  it("gives a pager only to a station of an ordered sequence, as the 3D panel (DR-021)", () => {
+  it("gives a pager only to a station of an ordered sequence, as the 3D panel (DR-034)", () => {
     const tradition = view.getTradition("alpha")!;
     const chain = view.getProcessChain("alpha")!;
     const material = view.getConcept("alpha.material.material-a")!;

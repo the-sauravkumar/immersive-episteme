@@ -23,6 +23,7 @@ import { describe, type Descriptives } from "@/features/research/descriptive";
 import { DASHBOARD_METRICS_VERSION, metricDefinition, metricRole, metricVersionHeader, PRIMARY_OUTCOME } from "@/features/research/metric-definitions";
 import { numericAnswer, SCALES, scoreScale } from "@/features/research/scale-scores";
 
+import { ANALYSIS_REFERENCES_SQL } from "./analysis-reference";
 import { isAnalysable } from "./analysis-scope";
 import { studyConditions, type ConditionRef } from "./analytics";
 import { fullTelemetry, refreshRollups, type SessionTelemetry } from "./dashboard-rollups";
@@ -233,14 +234,19 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
          FROM participants p WHERE p.study_id = $1`,
       [studyId],
     ),
+    // Only scores against the study's analysis reference map and at the scoring library's current
+    // metric version (final review scoring-04): pre and post then share one expected-edge set.
     q.query<{ session_id: string; participant_id: string; phase: "pre" | "post"; metric_name: string; value: number | null; reference_map_id: string | null }>(
-      `SELECT DISTINCT ON (ds.concept_map_id, ds.metric_name) ds.session_id, ss.participant_id, cm.phase::text AS phase, ds.metric_name, ds.value, ds.reference_map_id
+      `WITH ar AS (${ANALYSIS_REFERENCES_SQL})
+       SELECT DISTINCT ON (ds.concept_map_id, ds.metric_name) ds.session_id, ss.participant_id, cm.phase::text AS phase, ds.metric_name, ds.value, ds.reference_map_id
          FROM study_sessions ss
          JOIN derived_scores ds ON ds.session_id = ss.id
          JOIN concept_maps cm ON cm.id = ds.concept_map_id AND cm.is_final
-        WHERE ss.study_id = $1 AND ds.metric_name = ANY($2::text[])
+         LEFT JOIN ar ON ar.assessment_id = ds.assessment_id
+        WHERE ss.study_id = $1 AND (ds.metric_name, ds.metric_version) IN (SELECT * FROM unnest($2::text[], $3::text[]))
+          AND ds.reference_map_id IS NOT DISTINCT FROM ar.reference_map_id
         ORDER BY ds.concept_map_id, ds.metric_name, ds.computed_at DESC`,
-      [studyId, STORED_MAP_METRICS],
+      [studyId, STORED_MAP_METRICS, STORED_MAP_METRICS.map((m) => metricDefinition(m).version)],
     ),
     q.query<{ session_id: string; participant_id: string; phase: "pre" | "post"; n: number }>(
       `SELECT cm.session_id, cm.participant_id, cm.phase::text AS phase, (SELECT count(*)::int FROM concept_map_edges e WHERE e.concept_map_id = cm.id) AS n
@@ -262,8 +268,14 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
         GROUP BY ds.session_id, a.code, a.version, a.kind`,
       [studyId],
     ),
-    q.query<{ session_id: string; code: string; attempt: number; item_key: string; raw: unknown }>(
-      `SELECT r.session_id, a.code, r.attempt, i.item_key, r.raw
+    // `step`: the journey step the administration was given in (the engine's
+    // study.assessment_submitted journal entry); null for rows written without the engine.
+    q.query<{ session_id: string; code: string; attempt: number; item_key: string; raw: unknown; step: string | null }>(
+      `SELECT r.session_id, a.code, r.attempt, i.item_key, r.raw,
+              (SELECT al.after->>'step' FROM audit_log al
+                WHERE al.entity = 'study_session' AND al.entity_id = r.session_id::text AND al.action = 'study.assessment_submitted'
+                  AND al.after->>'assessmentId' = r.assessment_id::text AND (al.after->>'attempt')::int = r.attempt
+                LIMIT 1) AS step
          FROM study_sessions ss
          JOIN responses r ON r.session_id = ss.id AND r.status = 'answered'
          JOIN assessments a ON a.id = r.assessment_id AND a.kind = 'questionnaire'
@@ -314,6 +326,18 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     const pid = idOfCode.get(s.participantCode);
     if (pid && sessionInfo.get(s.id)?.conditionId) participantSessions.set(pid, s.id);
   }
+  /**
+   * The analysed session of the participant who owns `sessionId` (null when out of scope).
+   * Condition-blind data (SSQ before learning, the pre-test) may sit on an earlier session that a
+   * reassignment closed; it belongs to the participant, analysed in the condition of their
+   * analysed session, not in the closed session's condition (final review study-03).
+   */
+  const analysedSessionOf = (sessionId: string): string | null => {
+    const code = sessionInfo.get(sessionId)?.participantCode;
+    const pid = code === undefined ? undefined : idOfCode.get(code);
+    const analysed = pid === undefined ? undefined : participantSessions.get(pid);
+    return analysed && inScope(analysed) ? analysed : null;
+  };
   const strataByCode = new Map(strata.rows.map((r) => [r.code, r.stratum]));
   const ancova: AncovaRow[] = [];
   const primaryVals = { pre: new Map<string, (number | null)[]>(), post: new Map<string, (number | null)[]>(), change: new Map<string, (number | null)[]>() };
@@ -325,15 +349,18 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     const cid = conditionOf(sessionId)!;
     const prim = metrics[PRIMARY_METRIC];
     if (prim) {
-      const pre = prim.pre?.value ?? null;
+      let pre = prim.pre?.value ?? null;
       const post = prim.post?.value ?? null;
       const sameRef = prim.pre && prim.post ? prim.pre.ref === prim.post.ref : true;
-      const change = pre !== null && post !== null && sameRef ? post - pre : null;
+      // Belt and braces: a pre score against another reference than the post score is never
+      // paired with it (it would be a different denominator), so it is treated as missing.
+      if (!sameRef) pre = null;
+      const change = pre !== null && post !== null ? post - pre : null;
       const refIds = [...new Set([prim.pre?.ref, prim.post?.ref].filter((x): x is string => !!x))];
       refIds.forEach((x) => refs.add(x));
       const cond = conditions.find((c) => c.id === cid)!;
       ancova.push({ participantCode: codeOfParticipant.get(pid) ?? "", conditionCode: cond.code, conditionInterface: cond.interface, stratum: strataByCode.get(codeOfParticipant.get(pid) ?? "") ?? null, pre, post, change, sessionId, referenceMapIds: refIds });
-      if (prim.pre) push(primaryVals.pre, cid, pre);
+      if (prim.pre && sameRef) push(primaryVals.pre, cid, pre);
       if (prim.post) push(primaryVals.post, cid, post);
       if (prim.pre && prim.post) push(primaryVals.change, cid, change);
     }
@@ -367,11 +394,12 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
   // ---- Knowledge test and transfer ---------------------------------------------------------
   const knowledgeVals = new Map<string, { row: Omit<MeasureRow, "byCondition">; vals: Map<string, (number | null)[]> }>();
   const addKnowledge = (key: string, r: { session_id: string; code: string; version: number; kind: string; value: number | null }) => {
-    if (!inScope(r.session_id)) return;
+    const analysed = analysedSessionOf(r.session_id);
+    if (!analysed) return;
     const phase = r.kind === "pretest" ? "pre" : "post";
     const id = `${key}|${r.code}@${r.version}`;
     const e = knowledgeVals.get(id) ?? knowledgeVals.set(id, { row: { key, version: metricDefinition(key).version, phase, label: `${r.code} v${r.version} (${r.kind})` }, vals: new Map() }).get(id)!;
-    push(e.vals, conditionOf(r.session_id)!, r.value === null ? null : Number(r.value));
+    push(e.vals, conditionOf(analysed)!, r.value === null ? null : Number(r.value));
   };
   keyed.rows.forEach((r) => addKnowledge("assessment.key_match_total", r));
   rubric.rows.forEach((r) => addKnowledge("rubric.rating.mean", r));
@@ -381,24 +409,27 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     .sort((a, b) => kindOrder(a.label) - kindOrder(b.label) || (a.key < b.key ? -1 : 1) || ((a.label ?? "") < (b.label ?? "") ? -1 : 1));
 
   // ---- Questionnaires ----------------------------------------------------------------------
-  const administrations = new Map<string, Map<string, number | null>>();
+  const administrations = new Map<string, { analysed: string; step: string | null; attempt: number; code: string; items: Map<string, number | null> }>();
   for (const r of answers.rows) {
-    if (!inScope(r.session_id)) continue;
+    const analysed = analysedSessionOf(r.session_id);
+    if (!analysed) continue;
     const k = `${r.session_id}|${r.code}|${r.attempt}`;
-    (administrations.get(k) ?? administrations.set(k, new Map()).get(k)!).set(r.item_key, numericAnswer(r.raw));
+    const a = administrations.get(k) ?? administrations.set(k, { analysed, step: r.step, attempt: r.attempt, code: r.code, items: new Map() }).get(k)!;
+    a.items.set(r.item_key, numericAnswer(r.raw));
   }
   const qVals = new Map<string, Map<string, (number | null)[]>>();
-  for (const [k, items] of administrations) {
-    const [sessionId, code, attemptText] = k.split("|") as [string, string, string];
-    const attempt = Number(attemptText);
-    const iface = conditions.find((c) => c.id === conditionOf(sessionId))?.interface;
+  for (const { analysed, step, attempt, code, items } of administrations.values()) {
+    const iface = conditions.find((c) => c.id === conditionOf(analysed))?.interface;
     for (const spec of SCALES.filter((s) => s.instrument === code)) {
       if (spec.interfaces && !spec.interfaces.includes(iface as never)) continue;
-      // SSQ: first administration before learning (pre), second after (post); others: first administration only.
-      const phase = spec.instrument === "ssq" ? (attempt === 1 ? "pre" : attempt === 2 ? "post" : null) : attempt === 1 ? "session" : null;
+      // SSQ: the administration before learning (pre) and the one after (post), told apart by the
+      // journey step it was given in; by the attempt number only for rows without a journal step.
+      // Others: the first administration only.
+      const ssqPhase = step === "questionnaire_pre" ? "pre" : step === "questionnaire_post_learning" ? "post" : step ? null : attempt === 1 ? "pre" : attempt === 2 ? "post" : null;
+      const phase = spec.instrument === "ssq" ? ssqPhase : attempt === 1 ? "session" : null;
       if (!phase) continue;
       const id = `${spec.name}|${phase}`;
-      push(qVals.get(id) ?? qVals.set(id, new Map()).get(id)!, conditionOf(sessionId)!, scoreScale(spec, items));
+      push(qVals.get(id) ?? qVals.set(id, new Map()).get(id)!, conditionOf(analysed)!, scoreScale(spec, items));
     }
   }
   const questionnaires: MeasureRow[] = SCALES.flatMap((spec) =>

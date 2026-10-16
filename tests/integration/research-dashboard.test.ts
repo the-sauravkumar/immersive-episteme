@@ -15,6 +15,7 @@ import type * as ProbeRoute from "../../src/app/api/research/dashboard/route";
 import { canAny } from "../../src/lib/permissions/can";
 import { consoleRoute } from "../../src/lib/permissions/console-routes";
 import type { StaffRole } from "../../src/lib/permissions/roles";
+import { analysisReferences } from "../../src/server/research/analysis-reference";
 import { outcomeDistributions } from "../../src/server/research/analytics";
 import { dashboardFingerprint, loadDashboard, type DashboardData, type MeasureRow } from "../../src/server/research/dashboard";
 import { parseCsv } from "../../src/server/research/exports/csv";
@@ -183,6 +184,82 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
     expect(d.some((x) => x.metricName === "cmap.recall.dl")).toBe(false);
     expect([...(post!.byCondition[c2d] ?? [])].sort()).toEqual([0.5, 0.6]);
     expect(pre!.byCondition[c2d]).toHaveLength(2);
+  });
+
+  it("the Analytics page keeps each administration apart and leaves item rows out (final review scoring-07)", async () => {
+    // A post-test total for P01 and two per-item rows (one per response) of the same submission.
+    const post = await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ('dash-kt2', 1, 'posttest', 'Post-test') RETURNING id");
+    await t.pool.query(
+      "INSERT INTO derived_scores (session_id, participant_id, assessment_id, metric_name, metric_version, value, pipeline_version) VALUES ($1, $2, $3, 'assessment.key_match_total', '1.0.0', 4, 'test')",
+      [s.P01!.sessionId, s.P01!.participantId, post.id],
+    );
+    const responses = (await t.pool.query<{ id: string }>("SELECT id FROM responses WHERE session_id = $1 ORDER BY id LIMIT 2", [s.P01!.sessionId])).rows;
+    for (const [i, r] of responses.entries()) {
+      await t.pool.query(
+        "INSERT INTO derived_scores (session_id, participant_id, assessment_id, response_id, metric_name, metric_version, value, pipeline_version) VALUES ($1, $2, $3, $4, 'item.key_match', '1.0.0', $5, 'test')",
+        [s.P01!.sessionId, s.P01!.participantId, post.id, r.id, i % 2],
+      );
+    }
+    const d = await outcomeDistributions(t.pool, studyId);
+    const named = (n: string) => d.find((x) => x.metricName === n);
+    expect([...(named("assessment.key_match_total (pretest dash-kt v1)")!.byCondition[c2d] ?? [])].sort()).toEqual([3, 5]);
+    expect(named("assessment.key_match_total (posttest dash-kt2 v1)")!.byCondition[c2d]).toEqual([4]);
+    expect(d.some((x) => x.metricName === "assessment.key_match_total")).toBe(false);
+    expect(d.some((x) => x.metricName.startsWith("item.key_match"))).toBe(false);
+  });
+
+  it("reads concept-map scores against the analysis reference and the current metric version only (final review scoring-04)", async () => {
+    // A newer pre score for P01 against another reference, and a newer post score at an old
+    // metric version: neither may replace the analysed values (pre 0.2, post 0.6). The CSV test
+    // below reloads the dashboard after these rows exist.
+    const curator = await createUser(t.pool);
+    const mapId = (await one<{ id: string }>(t.pool, "SELECT id FROM assessments WHERE code = 'dash-map'")).id;
+    const other = await one<{ id: string }>(
+      t.pool,
+      "INSERT INTO reference_maps (assessment_id, version, title, nodes, status, adjudicated_by, adjudicated_at) VALUES ($1, 9, 'Other reference', '[]'::jsonb, 'adjudicated', $2, now()) RETURNING id",
+      [mapId, curator],
+    );
+    const maps = (await t.pool.query<{ id: string; phase: string }>("SELECT id, phase::text AS phase FROM concept_maps WHERE session_id = $1", [s.P01!.sessionId])).rows;
+    const mapOf = (phase: string) => maps.find((m) => m.phase === phase)!.id;
+    await t.pool.query(
+      "INSERT INTO derived_scores (session_id, participant_id, assessment_id, concept_map_id, reference_map_id, metric_name, metric_version, value, pipeline_version, computed_at) VALUES ($1, $2, $3, $4, $5, 'cmap.recall.dl', '1.0.0', 0.99, 'test', now() + interval '1 hour')",
+      [s.P01!.sessionId, s.P01!.participantId, mapId, mapOf("pre"), other.id],
+    );
+    await t.pool.query(
+      "INSERT INTO derived_scores (session_id, participant_id, assessment_id, concept_map_id, metric_name, metric_version, value, pipeline_version, computed_at) VALUES ($1, $2, $3, $4, 'cmap.recall.dl', '0.9.0', 0.01, 'test', now() + interval '1 hour')",
+      [s.P01!.sessionId, s.P01!.participantId, mapId, mapOf("post")],
+    );
+    const fresh = (await loadDashboard(t.pool, studyId))!;
+    expect(fresh.primary.ancova.find((r) => r.participantCode === "P01")).toMatchObject({ pre: 0.2, post: 0.6, change: expect.closeTo(0.4, 10) });
+    const pre = (await outcomeDistributions(t.pool, studyId)).find((x) => x.metricName === "cmap.recall.dl (pre)")!;
+    expect([...(pre.byCondition[c2d] ?? [])].sort()).toEqual([0.2, 0.4]);
+  });
+
+  it("the analysis reference: the activation pin, else the newest locked map, else the newest finalised one (final review scoring-04)", async () => {
+    const curator = await createUser(t.pool);
+    const st = await createStudy(t.pool, { slug: "dash-refs" });
+    const a = await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ('dash-ref-map', 1, 'reconstruction', 'Map') RETURNING id");
+    await t.pool.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position) VALUES ($1, $2, 'pre', 0), ($1, $2, 'post', 0)", [st.studyId, a.id]);
+    const ref = async (version: number, finalised: boolean) =>
+      (
+        await one<{ id: string }>(
+          t.pool,
+          `INSERT INTO reference_maps (assessment_id, version, title, nodes, status, adjudicated_by, adjudicated_at)
+           VALUES ($1, $2, 'R', '[]'::jsonb, $3, $4, $5) RETURNING id`,
+          [a.id, version, finalised ? "adjudicated" : "draft", finalised ? curator : null, finalised ? new Date() : null],
+        )
+      ).id;
+    expect(await analysisReferences(t.pool, st.studyId)).toEqual([]);
+    const r1 = await ref(1, true);
+    expect(await analysisReferences(t.pool, st.studyId)).toEqual([{ assessmentId: a.id, referenceMapId: r1, version: 1, basis: "provisional" }]);
+    await t.pool.query("UPDATE reference_maps SET status = 'locked' WHERE id = $1", [r1]);
+    const r2 = await ref(2, true);
+    await ref(3, false);
+    // The locked v1 wins over the newer finalised v2 and the draft v3.
+    expect(await analysisReferences(t.pool, st.studyId)).toEqual([{ assessmentId: a.id, referenceMapId: r1, version: 1, basis: "locked" }]);
+    // A map pinned at activation wins over everything.
+    await t.pool.query("UPDATE studies SET config = $2::jsonb WHERE id = $1", [st.studyId, JSON.stringify({ allocation: { stratifyBy: { source: "pre_map_recall", cutoff: 0.5, referenceMapId: r2 } } })]);
+    expect(await analysisReferences(t.pool, st.studyId)).toEqual([{ assessmentId: a.id, referenceMapId: r2, version: 2, basis: "pinned" }]);
   });
 
   it("primary outcome: pre, post and change by condition, excluded session left out", () => {

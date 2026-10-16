@@ -12,7 +12,7 @@ import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { serverEnv } from "@/lib/env";
-import { PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
+import { expiredCookie, PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
 import { resolveParticipantSession } from "@/server/auth/learning-decision";
 import { getStudySessionLookup } from "@/server/auth/study-session-port";
 
@@ -35,6 +35,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const target = new URL("/study", request.url);
   if (reason) target.searchParams.set("reason", reason);
   const response = NextResponse.redirect(target);
-  if (cookie !== undefined) response.cookies.delete({ name: PARTICIPANT_COOKIE, path: "/" });
+  if (cookie !== undefined) response.cookies.set(expiredCookie(PARTICIPANT_COOKIE));
   return response;
 }

@@ -24,6 +24,8 @@ export const PERMISSIONS = [
   "participants.manage",
   /** Resolve a pseudonymous participant id to identifying/consent records. */
   "participants.identify",
+  /** Remove a participant's research data (on request, or after the retention period; DR-030). */
+  "participants.purge",
   "sessions.view",
   "sessions.annotate",
   "sessions.exclude",

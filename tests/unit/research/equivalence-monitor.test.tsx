@@ -13,7 +13,7 @@ import { render, screen, within } from "@testing-library/react";
 import { afterAll, describe, expect, it } from "vitest";
 
 import { EquivalenceMonitor, NO_PARITY_RUN } from "@/components/parity/equivalence-monitor";
-import { INTERFACE_PARITY_REPORT_PATH } from "@/features/research/interface-parity";
+import { INTERFACE_PARITY_REPORT_PATH, PARITY_CHECKS } from "@/features/research/interface-parity";
 import { readInterfaceParity } from "@/server/research/parity/summary";
 
 const roots: string[] = [];
@@ -85,7 +85,8 @@ describe("EquivalenceMonitor", () => {
   it("with a stored run: the run line and the real per-check values", async () => {
     const s = await readInterfaceParity(repo(FIXTURE));
     render(<EquivalenceMonitor interfaceParity={s} full numbers={{ interface: 1 }} />);
-    expect(screen.getByText(/Interface parity run: commit abcdef1, 1280 x 800 light; 1 of 2 checks pass/)).toBeTruthy();
+    // The denominator is every expected check, not only the measured ones (final review scoring-08).
+    expect(screen.getByText(new RegExp(`Interface parity run: commit abcdef1, 1280 x 800 light; 1 of ${PARITY_CHECKS.length} checks pass; 1 fails, ${PARITY_CHECKS.length - 2} not measured \\(P3, P4,`))).toBeTruthy();
     const table = screen.getByRole("table");
     const p2 = within(table).getByRole("row", { name: /^P2\b/ });
     expect(within(p2).getAllByRole("cell").map((c) => c.textContent)).toEqual(["P2", expect.any(String), "322", "320.5", "1.5", "1", "1 of 2", "Fail"]);
@@ -122,10 +123,39 @@ describe("a check with an unmeasured part is partial, never a pass", () => {
   it("names it in the run line and the table, with what was not measured", async () => {
     const s = await readInterfaceParity(repo(PARTIAL));
     render(<EquivalenceMonitor interfaceParity={s} full numbers={{ interface: 1 }} />);
-    expect(screen.getByText(/1 of 2 checks pass; 1 partly measured\b/)).toBeTruthy();
+    expect(screen.getByText(new RegExp(`1 of ${PARITY_CHECKS.length} checks pass; 1 partly measured, ${PARITY_CHECKS.length - 2} not measured`))).toBeTruthy();
     const row = within(screen.getByRole("table")).getByRole("row", { name: /^P23\b/ });
     expect(within(row).getByText("Partial")).toBeTruthy();
     expect(within(row).getByText(/Not measured: onboarding screens/)).toBeTruthy();
+  });
+});
+
+describe("a stored report older than the suite never reads as full parity (final review scoring-08)", () => {
+  // A report measuring P1-P27 only, every one passing, from a working tree with uncommitted changes.
+  const OLD = {
+    runId: "fixture-run-9",
+    commit: "92d2033faf0c+uncommitted",
+    runs: [
+      {
+        viewport: { width: 1280, height: 800 },
+        theme: "light",
+        traditionKey: "ajrakh",
+        checks: Array.from({ length: 27 }, (_, i) => ({ id: `P${i + 1}`, value2d: 1, value3d: 1, delta: 0, tolerance: 0, passed: true })),
+      },
+    ],
+  };
+
+  it("counts every expected check and names the ones no run measured", async () => {
+    const s = await readInterfaceParity(repo(OLD));
+    expect([s!.total, s!.measured, s!.passing]).toEqual([PARITY_CHECKS.length, 27, 27]);
+    expect(s!.notMeasuredIds).toEqual(PARITY_CHECKS.map((c) => c.id).filter((id) => Number(id.slice(1)) > 27));
+    render(<EquivalenceMonitor interfaceParity={s} />);
+    expect(
+      screen.getByText(
+        `Interface parity run: commit 92d2033 with uncommitted changes, 1280 x 800 light; 27 of 33 checks pass; 6 not measured (P28, P29, P30, P31, P32, P33).`,
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText(/27 of 27/)).toBeNull();
   });
 });
 

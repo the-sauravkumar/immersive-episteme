@@ -110,7 +110,7 @@ async function Workspace({ params }: { params: Promise<{ assessmentId: string; r
 
       {showResults ? (
         <>
-          <Section demo={ws.map.isDemo} id="agreement" title="Inter-rater agreement" description="Agreement over the candidate edges proposed by any rater.">
+          <Section demo={ws.map.isDemo} id="agreement" title="Inter-rater agreement" description="Positive agreement over the edges proposed by any rater. Kappa needs agreed absences, so it is computed over every possible edge of the item's concept set and relationship types.">
             {ws.agreement ? (
               <>
                 <StatRow
@@ -118,9 +118,13 @@ async function Workspace({ params }: { params: Promise<{ assessmentId: string; r
                   title="Agreement Summary"
                   items={[
                     { label: "Raters", value: ws.agreement.raters.length },
-                    { label: "Candidate edges", value: ws.agreement.items, note: `${String(ws.agreement.parameters.level)}, ${String(ws.agreement.parameters.universe)} universe` },
-                    { label: "Percent agreement", value: fmt(ws.agreement.percentAgreement) },
-                    { label: "Fleiss’ κ", value: fmt(ws.agreement.fleissKappa) },
+                    { label: "Proposed edges", value: ws.agreement.items, note: `${String(ws.agreement.parameters.level)}, union of the raters' edges` },
+                    { label: "Positive agreement", value: fmt(ws.agreement.positiveAgreement), note: "Dice for two raters" },
+                    {
+                      label: "Fleiss’ κ",
+                      value: fmt(ws.kappaAgreement?.fleissKappa),
+                      note: ws.kappaAgreement ? `over all ${ws.kappaAgreement.items} possible edges` : "not computed: the item has no relationship types",
+                    },
                   ]}
                 />
                 <Table caption="Pairwise Agreement" number={2}>
@@ -132,7 +136,7 @@ async function Workspace({ params }: { params: Promise<{ assessmentId: string; r
                         Items
                       </TableHead>
                       <TableHead scope="col" numeric>
-                        Agreement
+                        Positive agreement
                       </TableHead>
                       <TableHead scope="col" numeric>
                         Cohen’s κ
@@ -145,8 +149,8 @@ async function Workspace({ params }: { params: Promise<{ assessmentId: string; r
                         <TableCell>{ws.raters.find((r) => r.raterId === p.raterA)?.name ?? p.raterA}</TableCell>
                         <TableCell>{ws.raters.find((r) => r.raterId === p.raterB)?.name ?? p.raterB}</TableCell>
                         <TableCell numeric>{p.n}</TableCell>
-                        <TableCell numeric>{fmt(p.percentAgreement)}</TableCell>
-                        <TableCell numeric>{fmt(p.cohensKappa)}</TableCell>
+                        <TableCell numeric>{fmt(p.positiveAgreement)}</TableCell>
+                        <TableCell numeric>{fmt(ws.kappaAgreement?.pairwise.find((k) => k.raterA === p.raterA && k.raterB === p.raterB)?.cohensKappa)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

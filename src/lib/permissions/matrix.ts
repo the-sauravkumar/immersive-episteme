@@ -9,8 +9,8 @@
  *    identifying participant data. A person who is both holds two roles.
  *  - research_analyst is read-only and pseudonymised: no participants.identify, no
  *    exports.identified, no write permission of any kind.
- *  - Only the principal investigator activates studies, excludes sessions and creates
- *    identified exports.
+ *  - Only the principal investigator activates studies, excludes sessions, creates identified
+ *    exports and removes a participant's data (participants.purge, DR-030).
  *  - Every staff role may preview both learning conditions (always flagged non-experimental by
  *    the learning guard). participant/public reach them only through the condition guard.
  */
@@ -42,6 +42,7 @@ export const ROLE_PERMISSIONS = {
     "study.activate",
     "participants.manage",
     "participants.identify",
+    "participants.purge",
     "sessions.view",
     "sessions.annotate",
     "sessions.exclude",

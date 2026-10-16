@@ -12,17 +12,23 @@
  *    (package slug, tradition slug, concept key, (package, local source id), (concept,
  *    claim position), (source, target, type)), and an update only happens when a column
  *    actually differs. A second import of unchanged files writes nothing but the audit entry.
- *  - Review states are copied exactly from the files (`under_review` / `needs_evidence`;
- *    sources, which carry no state in FORMAT v1, are `under_review`). The importer never sets
- *    `verified` or `published`, and it never touches a row a curator has already accepted
- *    (verified/published): such rows, and their claims and evidence, are reported as
- *    `keptAccepted` and left as they are.
+ *  - Review states are copied from the files (`under_review` / `needs_evidence`; sources, which
+ *    carry no state in FORMAT v1, are `under_review`) only while the importer itself set the
+ *    current state: once a curator has decided a row's state (the latest verification_records
+ *    row has a user actor: needs evidence, rejected, archived, withdrawn, resubmitted), the next
+ *    import keeps it and reports it as `keptCurated` (final review knowledge-04). The importer
+ *    never sets `verified` or `published`, and it never touches a row a curator has already
+ *    accepted (verified/published): such rows, and their claims and evidence (including a
+ *    tradition's GI sources, knowledge-09), are reported as `keptAccepted` and left as they are.
  *  - `is_demo = false` everywhere (real content; demo rows are a separate seed).
  *  - Content removed from a file is pruned for the packages being imported: claims beyond the
  *    file's claim count, claim and relationship evidence links no longer cited, relationships
- *    and media candidates no longer listed. Concepts, sources and traditions that disappeared
- *    from the files are reported (`stale`), never deleted, because studies, telemetry and
- *    assessments may reference them.
+ *    and media candidates no longer listed. Only relationships the importer created are pruned:
+ *    one a curator authored in the CMS (`created_by` set), one held by a snapshot, and one a
+ *    spatial manifest encodes are reported (`stale.relationships`) and kept, so a re-import
+ *    never deletes curator work and never aborts on the manifests' foreign key (knowledge-04).
+ *    Concepts, sources and traditions that disappeared from the files are reported (`stale`),
+ *    never deleted, because studies, telemetry and assessments may reference them.
  *  - One transaction, plus one append-only `audit_log` row (actor_kind 'system').
  */
 import type { PoolClient } from "pg";
@@ -48,6 +54,8 @@ export interface TableCounts {
   updated: number;
   unchanged: number;
   keptAccepted: number;
+  /** Rows whose curator-decided review state differs from the file and was kept (knowledge-04). */
+  keptCurated: number;
 }
 
 export interface ImportSummary {
@@ -62,7 +70,7 @@ export interface ImportSummary {
   traditionSources: { inserted: number; pruned: number };
   mediaCandidates: TableCounts & { pruned: number };
   pruned: { claims: number; relationships: number };
-  stale: { concepts: string[]; sources: string[]; traditions: string[] };
+  stale: { concepts: string[]; sources: string[]; traditions: string[]; relationships: string[] };
   files: { path: string; slug: string; sha256: string | null }[];
   auditLogId: string;
 }
@@ -78,7 +86,18 @@ export class ContentImportRefused extends Error {
 }
 
 const ACCEPTED = ["verified", "published"];
-const zero = (): TableCounts => ({ inserted: 0, updated: 0, unchanged: 0, keptAccepted: 0 });
+const zero = (): TableCounts => ({ inserted: 0, updated: 0, unchanged: 0, keptAccepted: 0, keptCurated: 0 });
+
+/**
+ * SQL: the current review state of row `t` (a `kind` entity) was decided by a user, i.e. its latest
+ * verification_records row has an actor. The importer writes without one (actor_id NULL), so a
+ * state it set itself may still follow the files; a curator's decision may not (knowledge-04).
+ * verification_records ids are uuidv7, so the newest row sorts last by id.
+ */
+const curatorDecided = (kind: string) =>
+  `COALESCE((SELECT vr.actor_id IS NOT NULL FROM verification_records vr
+              WHERE vr.entity_kind = '${kind}' AND vr.entity_id = t.id
+              ORDER BY vr.created_at DESC, vr.id DESC LIMIT 1), false)`;
 
 /**
  * Upsert helper. `rows` are inserted through jsonb_to_recordset; on a conflict on `conflict`
@@ -93,6 +112,8 @@ async function upsert(
     conflict: string;
     update: readonly string[];
     guardAccepted?: boolean;
+    /** The verifiable entity kind: keep a curator-decided `verification_state` (knowledge-04). */
+    keepCuratedState?: "tradition" | "concept" | "relationship" | "source";
     rows: readonly Record<string, unknown>[];
     returning?: string;
   },
@@ -101,8 +122,13 @@ async function upsert(
   if (opts.rows.length === 0) return { counts, rows: [] };
   const cols = opts.columns.map(([n]) => n);
   const recordDef = opts.columns.map(([n, t]) => `"${n}" ${t}`).join(", ");
-  const setList = opts.update.map((c) => `"${c}" = EXCLUDED."${c}"`).join(", ");
-  const differs = `(${opts.update.map((c) => `t."${c}"`).join(", ")}) IS DISTINCT FROM (${opts.update.map((c) => `EXCLUDED."${c}"`).join(", ")})`;
+  // The value each column takes on update: the file's, except a curator-decided review state.
+  const next = (c: string) =>
+    c === "verification_state" && opts.keepCuratedState
+      ? `CASE WHEN ${curatorDecided(opts.keepCuratedState)} THEN t."verification_state" ELSE EXCLUDED."verification_state" END`
+      : `EXCLUDED."${c}"`;
+  const setList = opts.update.map((c) => `"${c}" = ${next(c)}`).join(", ");
+  const differs = `(${opts.update.map((c) => `t."${c}"`).join(", ")}) IS DISTINCT FROM (${opts.update.map(next).join(", ")})`;
   const guard = opts.guardAccepted ? ` AND t.verification_state NOT IN ('verified', 'published')` : "";
   const sql = `
     WITH input AS (SELECT * FROM jsonb_to_recordset($1::jsonb) AS x(${recordDef}))
@@ -242,6 +268,7 @@ async function importInTransaction(
       "verification_state",
     ],
     guardAccepted: true,
+    keepCuratedState: "tradition",
     rows: traditionPackages.map((p) => ({
       id: ids.tradition(p.slug),
       package_id: pkgId.get(p.slug),
@@ -268,6 +295,7 @@ async function importInTransaction(
   const traditionId = new Map(tradRows.rows.map((r) => [r.slug, r.id]));
   const traditions = tradRes.counts;
   traditions.keptAccepted = tradRows.rows.filter((r) => traditionPackages.some((p) => p.slug === r.slug) && ACCEPTED.includes(r.verification_state)).length;
+  traditions.keptCurated = tradRows.rows.filter((r) => traditionPackages.some((p) => p.slug === r.slug) && !ACCEPTED.includes(r.verification_state) && r.verification_state !== traditionState(r.slug)).length;
   traditions.unchanged = traditionPackages.length - traditions.inserted - traditions.updated - traditions.keptAccepted;
 
   // ---- sources ----------------------------------------------------------------------------
@@ -292,6 +320,7 @@ async function importInTransaction(
     conflict: "(package_id, local_key)",
     update: ["kind", "title", "author", "publisher", "year", "url", "accessed_on", "reliability", "notes", "verification_state"],
     guardAccepted: true,
+    keepCuratedState: "source",
     rows: model.sources.map((s) => ({
       id: ids.source(s.ref),
       package_id: pkgId.get(s.packageSlug),
@@ -317,6 +346,11 @@ async function importInTransaction(
   const sources = srcRes.counts;
   const importedRefs = new Set(model.sources.map((s) => s.ref));
   sources.keptAccepted = srcRows.rows.filter((r) => importedRefs.has(`${r.slug}#${r.local_key}`) && ACCEPTED.includes(r.verification_state)).length;
+  const fileSourceState = new Map(model.sources.map((x) => [x.ref, x.verificationState as string]));
+  sources.keptCurated = srcRows.rows.filter((r) => {
+    const want = fileSourceState.get(`${r.slug}#${r.local_key}`);
+    return want !== undefined && !ACCEPTED.includes(r.verification_state) && r.verification_state !== want;
+  }).length;
   sources.unchanged = model.sources.length - sources.inserted - sources.updated - sources.keptAccepted;
 
   // ---- concepts ---------------------------------------------------------------------------
@@ -342,6 +376,7 @@ async function importInTransaction(
     conflict: "(key)",
     update: ["slug", "type", "category_code", "tradition_id", "package_id", "title", "summary", "body_md", "local_terms", "compares", "provenance_kind", "verification_state"],
     guardAccepted: true,
+    keepCuratedState: "concept",
     rows: model.concepts.map((c) => ({
       id: ids.concept(c.key),
       key: c.key,
@@ -368,6 +403,11 @@ async function importInTransaction(
   const concepts = conRes.counts;
   const importedKeys = new Set(model.concepts.map((c) => c.key));
   concepts.keptAccepted = [...acceptedConcepts].filter((k) => importedKeys.has(k)).length;
+  const conceptStateByKey = new Map(conRows.rows.map((r) => [r.key, r.verification_state]));
+  concepts.keptCurated = model.concepts.filter((c) => {
+    const now = conceptStateByKey.get(c.key);
+    return now !== undefined && !ACCEPTED.includes(now) && now !== c.verificationState;
+  }).length;
   concepts.unchanged = model.concepts.length - concepts.inserted - concepts.updated - concepts.keptAccepted;
 
   // ---- claims (only for concepts that are not accepted) ------------------------------------
@@ -435,10 +475,15 @@ async function importInTransaction(
   );
 
   // ---- tradition sources (GI evidence) -----------------------------------------------------
-  const wantedTradSources = traditionPackages.flatMap((p) =>
+  // Only for traditions that are not accepted, like claims and relationship sources: an accepted
+  // tradition's GI evidence is what its reviewer checked (knowledge-09; the 0019 trigger would
+  // otherwise send it back to review).
+  const acceptedTraditions = new Set(tradRows.rows.filter((r) => ACCEPTED.includes(r.verification_state)).map((r) => r.slug));
+  const editableTradPkgs = traditionPackages.filter((p) => !acceptedTraditions.has(p.slug));
+  const wantedTradSources = editableTradPkgs.flatMap((p) =>
     [...new Set(p.gi?.sourceRefs ?? [])].map((ref) => ({ tradition_id: traditionId.get(p.slug)!, source_id: sourceId.get(ref)! })),
   );
-  const importedTraditionIds = traditionPackages.map((p) => traditionId.get(p.slug)!);
+  const importedTraditionIds = editableTradPkgs.map((p) => traditionId.get(p.slug)!);
   const prunedTradSources = await q.query(
     `DELETE FROM tradition_sources ts
       WHERE ts.tradition_id = ANY($1::uuid[]) AND ts.purpose = 'gi'
@@ -469,16 +514,27 @@ async function importInTransaction(
     is_demo: false,
   }));
   // Prune relationships of the imported packages that the files no longer list (before the
-  // upsert, so a re-typed or re-directed edge never trips the undirected/acyclic rules).
+  // upsert, so a re-typed or re-directed edge never trips the undirected/acyclic rules). Only
+  // edges the importer created (created_by NULL; the CMS always sets it) and that nothing holds:
+  // a snapshot item or a spatial manifest's encoding (ON DELETE restrict). Those are reported as
+  // stale instead (knowledge-04).
   const importedPkgIds = model.packages.map((p) => pkgId.get(p.slug)!);
-  const prunedRels = await q.query(
-    `DELETE FROM relationships r
-      WHERE r.package_id = ANY($1::uuid[]) AND NOT r.is_demo
+  const relGone = `r.package_id = ANY($1::uuid[]) AND NOT r.is_demo
         AND r.verification_state NOT IN ('verified', 'published')
         AND NOT EXISTS (SELECT 1 FROM jsonb_to_recordset($2::jsonb) AS x(source_concept_id uuid, target_concept_id uuid, type_code text)
-                         WHERE x.source_concept_id = r.source_concept_id AND x.target_concept_id = r.target_concept_id AND x.type_code = r.type_code)`,
-    [importedPkgIds, JSON.stringify(relInput.map(({ source_concept_id, target_concept_id, type_code }) => ({ source_concept_id, target_concept_id, type_code })))],
+                         WHERE x.source_concept_id = r.source_concept_id AND x.target_concept_id = r.target_concept_id AND x.type_code = r.type_code)`;
+  const relHeld = `(r.created_by IS NOT NULL
+        OR EXISTS (SELECT 1 FROM snapshot_items si WHERE si.item_kind = 'relationship' AND si.entity_ref = r.id::text)
+        OR EXISTS (SELECT 1 FROM spatial_element_encodings e WHERE e.relationship_id = r.id))`;
+  const relParams = [importedPkgIds, JSON.stringify(relInput.map(({ source_concept_id, target_concept_id, type_code }) => ({ source_concept_id, target_concept_id, type_code })))];
+  const staleRels = await q.query<{ label: string }>(
+    `SELECT s.key || ' ' || r.type_code || ' ' || tc.key AS label
+       FROM relationships r JOIN concepts s ON s.id = r.source_concept_id JOIN concepts tc ON tc.id = r.target_concept_id
+      WHERE ${relGone} AND ${relHeld}
+      ORDER BY 1`,
+    relParams,
   );
+  const prunedRels = await q.query(`DELETE FROM relationships r WHERE ${relGone} AND NOT ${relHeld}`, relParams);
   const relRes = await upsert(q, {
     table: "relationships",
     columns: [
@@ -498,6 +554,7 @@ async function importInTransaction(
     conflict: "(source_concept_id, target_concept_id, type_code)",
     update: ["package_id", "explanation", "conditions", "strength", "ordinal", "provenance_kind", "verification_state"],
     guardAccepted: true,
+    keepCuratedState: "relationship",
     rows: relInput,
   });
   const relRows = await q.query<{ id: string; source_concept_id: string; target_concept_id: string; type_code: string; verification_state: string }>(
@@ -509,6 +566,11 @@ async function importInTransaction(
   const relationships = relRes.counts;
   const importedRelIds = relInput.map((r) => relId.get(relKey(r.source_concept_id, r.target_concept_id, r.type_code))!);
   relationships.keptAccepted = importedRelIds.filter((id) => acceptedRels.has(id)).length;
+  const relStateById = new Map(relRows.rows.map((r) => [r.id, r.verification_state]));
+  relationships.keptCurated = relInput.filter((r, i) => {
+    const now = relStateById.get(importedRelIds[i]!);
+    return now !== undefined && !ACCEPTED.includes(now) && now !== r.verification_state;
+  }).length;
   relationships.unchanged = relInput.length - relationships.inserted - relationships.updated - relationships.keptAccepted;
 
   const editableRels = model.relationships
@@ -601,7 +663,7 @@ async function importInTransaction(
     traditionSources: { inserted: insTradSources.rowCount ?? 0, pruned: prunedTradSources.rowCount ?? 0 },
     mediaCandidates,
     pruned: { claims: prunedClaims.rowCount ?? 0, relationships: prunedRels.rowCount ?? 0 },
-    stale: { concepts: staleConcepts.sort(), sources: staleSources.sort(), traditions: staleTraditions.sort() },
+    stale: { concepts: staleConcepts.sort(), sources: staleSources.sort(), traditions: staleTraditions.sort(), relationships: staleRels.rows.map((r) => r.label) },
     files,
   };
   const audit = await q.query<{ id: string }>(

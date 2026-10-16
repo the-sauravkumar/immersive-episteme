@@ -157,7 +157,7 @@ export interface ConceptPageData {
   pager: Pager | null;
   comparison: ComparisonView | null;
   /**
-   * The concept's knowledge layers for the shared LayerTabs (DR-021): the same layers, concepts and
+   * The concept's knowledge layers for the shared LayerTabs (DR-034): the same layers, concepts and
    * order as the 3D information panel for this concept (`conceptLayers`).
    */
   layers: { id: KnowledgeLayerId; entries: LayerEntryData[] }[];

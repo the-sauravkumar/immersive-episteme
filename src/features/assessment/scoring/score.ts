@@ -41,24 +41,42 @@ export function scoreConceptMap(
     typeCorrectness(participantEdges, parameters),
   ];
 
-  const cc = crossCategory(participantEdges, ref, context.conceptCategories);
-  const ccDetails = { available: cc.available, total: cc.total, valid: cc.valid, uncategorised: cc.uncategorised, referenceExpectedCross: cc.referenceExpectedCross };
+  const cc = crossCategory(participantEdges, ref, context.conceptCategories, referenceEdges);
+  const ccDetails = {
+    available: cc.available,
+    total: cc.total,
+    valid: cc.valid,
+    uncategorised: cc.uncategorised,
+    referenceExpectedCross: cc.referenceExpectedCross,
+    referenceExpectedCrossMatched: cc.referenceExpectedCrossMatched,
+  };
   scores.push(
     scoreItem("cmap.cross_category.total", cc.available ? cc.total.length : null, parameters, ccDetails),
     scoreItem("cmap.cross_category.valid", cc.available ? cc.valid.length : null, parameters, ccDetails),
-    scoreItem("cmap.cross_category.valid_normalised", cc.available ? ratio(cc.valid.length, cc.referenceExpectedCross.length) : null, parameters, ccDetails),
+    scoreItem("cmap.cross_category.valid_normalised", cc.available ? ratio(cc.referenceExpectedCrossMatched.length, cc.referenceExpectedCross.length) : null, parameters, ccDetails),
   );
 
   const validKeys = new Set(participantEdges.filter((e) => e.valid && e.canonicalKey).map((e) => e.canonicalKey));
   const validEdges: CanonicalEdge[] = kept.filter((e) => validKeys.has(e.keys.directed_labelled));
   const pDepth = causalChainDepth(validEdges, config);
   const rDepth = causalChainDepth(ref.edges.filter((e) => e.expected), config);
-  const depthDetails = { participant: pDepth, reference: rDepth };
+  // The normalised depth compares like with like (final review scoring-05, v1.1.0): the longest
+  // chain of the EXPECTED reference edges the participant covered (not missing at the validity
+  // level, as recall counts them), against the longest chain of all expected reference edges.
+  // A subgraph's longest path is never longer, so the ratio stays in [0, 1] whatever
+  // optionalMatch or validityLevel is set to; v1.0.0 divided the participant's depth over every
+  // valid edge (optional-only matches included) and could exceed 1. The raw depth is unchanged.
+  const covered = new Set(referenceEdges.filter((r) => !r.missing).map((r) => r.canonicalKey));
+  const pExpectedDepth = causalChainDepth(
+    ref.edges.filter((e) => e.expected && covered.has(e.keys.directed_labelled)),
+    config,
+  );
+  const depthDetails = { participant: pDepth, coveredExpected: pExpectedDepth, reference: rDepth };
   scores.push(
     scoreItem("cmap.causal_chain_depth", pDepth.depth, parameters, depthDetails),
     scoreItem(
       "cmap.causal_chain_depth_normalised",
-      pDepth.depth === null || rDepth.depth === null ? null : ratio(pDepth.depth, rDepth.depth),
+      pExpectedDepth.depth === null || rDepth.depth === null ? null : ratio(pExpectedDepth.depth, rDepth.depth),
       parameters,
       depthDetails,
     ),

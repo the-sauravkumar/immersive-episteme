@@ -40,6 +40,7 @@ import { displayLongEdge, licenceValidOn, STUDY_FIGURE_CAP } from "@/features/me
 import { canonicalHash } from "@/features/spatial/compiler/canonical";
 import { selectScope } from "@/features/spatial/compiler/graph";
 import { studyConfigSchema } from "@/features/study/contracts";
+import { DEFAULT_QUESTIONNAIRES, DEFAULT_STEPS, isQuestionnaireStep, protocolIssues, QUESTIONNAIRE_CONFIG_KEY, STEP_ASSESSMENTS } from "@/server/study/config";
 
 export const PARITY_GENERATOR_VERSION = "parity/1.0.0";
 
@@ -91,7 +92,8 @@ export interface ParityStudyInput {
   snapshotId: string | null;
   manifestId: string | null;
   conditions: { id: string; code: string; label: string; interface: string; config: Record<string, unknown> }[];
-  battery: { assessmentId: string; code: string; version: number; phase: string; position: number; status: string; required: boolean }[];
+  /** `kind` is assessments.kind (pretest, posttest, transfer, reconstruction, questionnaire, ...). */
+  battery: { assessmentId: string; code: string; version: number; kind: string; phase: string; position: number; status: string; required: boolean }[];
 }
 
 export interface ParitySnapshotInput {
@@ -652,6 +654,31 @@ export function runParityChecks(input: ParityInput): ParityReport {
   const phases = new Set(study.battery.map((a) => a.phase));
   checks.push(check("d.protocol", "d", "Learning prompts, assessment battery and guidance policy are study-wide and identical", "critical", dIssues, { batteryItems: study.battery.length }));
 
+  // The journey the engine will run: its order rules (what the engine refuses at enrolment) and
+  // one battery assessment for every test step and every questionnaire instrument. Without this a
+  // study activated and then refused every enrolment, or skipped a configured test step silently
+  // as "empty" (final review study-05, study-10).
+  const jIssues: ParityIssue[] = [];
+  if (config) {
+    const steps = config.steps ?? DEFAULT_STEPS;
+    for (const message of protocolIssues(config, steps)) jIssues.push({ code: "protocol_rule", message });
+    const questionnaires = config.questionnaires ?? DEFAULT_QUESTIONNAIRES;
+    for (const step of steps) {
+      const spec = STEP_ASSESSMENTS[step];
+      if (spec && !study.battery.some((a) => a.phase === spec.phase && a.kind === spec.kind)) {
+        jIssues.push({ code: "step_without_assessment", message: `Step ${step} is in the journey but the battery has no ${spec.phase}-phase ${spec.kind} assessment.`, ref: step });
+      }
+      if (isQuestionnaireStep(step)) {
+        for (const ref of questionnaires[QUESTIONNAIRE_CONFIG_KEY[step]]) {
+          const r: { code: string; version?: number } = typeof ref === "string" ? { code: ref } : { code: ref.code, version: "version" in ref ? ref.version : undefined };
+          const found = study.battery.some((a) => a.kind === "questionnaire" && a.code === r.code && (r.version === undefined || a.version === r.version));
+          if (!found) jIssues.push({ code: "instrument_not_in_battery", message: `Instrument ${r.code}${r.version ? ` v${r.version}` : ""} of step ${step} is not in the battery.`, ref: step });
+        }
+      }
+    }
+  }
+  checks.push(check("d.journey", "d", "Every step of the journey can run: the order rules hold and each test step and questionnaire has its battery assessment", "critical", jIssues));
+
   const dWarn: ParityIssue[] = [];
   if (!phases.has("pre") || !phases.has("post")) dWarn.push({ code: "battery_incomplete", message: "The assessment battery has no pre- and/or post-learning assessment." });
   const cues = elements.filter((e) => e.kind === "cue").length;
@@ -668,6 +695,12 @@ export function runParityChecks(input: ParityInput): ParityReport {
   if (config) {
     if (config.exposure.mode !== "fixed_time") eIssues.push({ code: "exposure_not_fixed", message: "Exposure is self-paced; equal exposure (DR-015) needs exposure.mode = fixed_time with minutes." });
     else if (!config.exposure.minutes) eIssues.push({ code: "exposure_minutes", message: "A fixed_time study needs exposure.minutes." });
+    // Early finish lets time on task vary by participant (and possibly by condition: 3D navigation
+    // overhead counts toward the budget), so exposure is no longer held constant (D5, DR-015;
+    // final review scoring-09). Critical: activation is refused until it is switched off.
+    if (config.exposure.mode === "fixed_time" && config.exposure.allowEarlyFinish) {
+      eIssues.push({ code: "exposure_early_finish", message: "Early finish is allowed, so time on task is not held constant (D5, DR-015); set allowEarlyFinish = false." });
+    }
   } else eIssues.push({ code: "exposure_unknown", message: "Exposure settings cannot be read from an invalid configuration." });
   for (const c of study.conditions) if (c.config && "exposure" in c.config) eIssues.push({ code: "exposure_override", message: `Condition ${c.code} sets its own exposure.`, ref: c.id });
   const budgets = new Map<string, Set<number | null>>();

@@ -11,15 +11,18 @@ import { STUDY_LINK_CLASS } from "./step-footer";
 
 /**
  * Final confirmation. SESSION_COMPLETED is `session_ended` with reason `completed`, emitted and
- * flushed BEFORE the server marks the session completed (the database refuses events stamped
- * after a session ended).
+ * delivered BEFORE the server marks the session completed (the database refuses events stamped
+ * after a session ended, and completion clears the cookie the uploads authenticate with).
+ * `flushNow` retries for a few seconds; whatever it could not deliver is reported to the server,
+ * which records the count with the completion, so the loss shows in the data (final review
+ * telemetry-03). Completion is never blocked for good: a participant cannot get stuck here.
  */
 export function FinishForm() {
   const t = useTelemetry();
   const [state, action, pending] = useActionState(async (prev: FormState) => {
     await t.sessionEnded({ metadata: { reason: "completed" }, roomOrPageId: "study:finish" });
-    await t.flush();
-    return finishSession(prev);
+    const { pending: undelivered } = await t.flushNow();
+    return finishSession(prev, undelivered);
   }, {});
   // The button keeps focus while pending and after a refusal (aria-disabled, not disabled).
   const guard = useStudyFormGuard(state, pending);
