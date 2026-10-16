@@ -2960,3 +2960,26 @@ novice met, and none touches the sheet.
 - **Paper implications:** report the wing walk times and the 9.5% spread as the spatial balance
   of the three traditions. Report the section differences as a known asymmetry of the layout
   (Machilipatnam Kalamkari rooms nearer by up to 3.3 s), with the room-footprint cause.
+
+## DR-065: The Final Before/After Set: the Four Original Desktop Shots Against the Final Build, Phone Views Without an Original (Adopted under the lead's delegation; finish of the evening phase)
+
+- **Context:** the finish step asks for before/after images of the home page, a 2D concept, the 3D
+  lobby and a room, and the research dashboard at 1440 px, plus 390 px views of 2D, 3D and a
+  study page, labelled "BEFORE (original UI) | AFTER (final build)".
+- **Sources:**
+  - Before: the only original-UI shots are the four in `D:\Work\IIT-KGP\before-after_Paper_1`
+    (public home, 2D concept page, 3D lobby, research dashboard). Each is a 2928 x 972 composite
+    whose left panel is the original UI at 1440 x 900; that panel is cropped out unchanged.
+  - After: the production build of `bdd9aac` (`next start`), one full Chromium on the GTX 1650
+    (renderer "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 ... D3D11)", checked before the 3D shots),
+    DPR 1, 1440 x 900 and 390 x 844 (mobile emulation), high tier, the demo through the invite
+    cookie. The 2D concept is the original's concept (Dhamadka as the Historic Centre); the room
+    is the Ajrakh Process Sequence room. The dashboard was shot under a temporary
+    `e2e-*@example.test` researcher account, retired at the end of the run (`retireE2eStaff`).
+- **Decision:** no original exists for a wing room or for any phone width, so those panels say so
+  instead of substituting another view. The set (eight images) is kept outside the repository with
+  the other scratch evidence, not committed.
+- **Observation, not changed in this phase:** at 390 px the lobby spawn view shows the directory
+  sign wider than the screen (its left and right edges are cut off). Recorded for the 3D finish
+  pass; the 2D pages and the Plan list the same rooms.
+- **Equivalence check:** 1-7 unchanged; no code, content or telemetry changed.
