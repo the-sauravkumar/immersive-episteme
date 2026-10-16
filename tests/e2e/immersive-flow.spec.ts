@@ -13,7 +13,7 @@
  * `?allowSoftware=1` (honoured only outside study mode). Timing and image-quality checks live in
  * immersive-rendering.spec.ts (GPU, scripts/museum/playwright.gpu.config.ts).
  */
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "./fixtures";
 import sharp from "sharp";
 
 const MUSEUM = "/learn/immersive?allowSoftware=1&probe=1";

@@ -1950,3 +1950,44 @@ researchers' decisions:
   media store. No learning page, telemetry event or knowledge content changed.
 - **Paper implications:** report the hosting (Vercel `sin1`, Neon `aws-ap-southeast-1`,
   Cloudflare R2) and that study data were stored in Singapore.
+
+## DR-049 (number to confirm at merge): Playwright GPU Split: Low-Spec on the Intel GPU, Everything Else on the NVIDIA GPU (Adopted)
+
+- **Context:** this laptop has an NVIDIA GeForce GTX 1650 and an Intel Iris Xe. Windows' per-app
+  GPU preference (HKCU\Software\Microsoft\DirectX\UserGpuPreferences) picks the GPU per browser
+  executable and overrides Chromium's `--force_low_power_gpu` / `--force_high_performance_gpu`.
+  The full Chromium build is set to the NVIDIA GPU (`GpuPreference=2;`) and the headless shell to
+  the Intel GPU (`GpuPreference=1;`). So `PW_GPU=low`, which only added `--force_low_power_gpu` to
+  the full build, could not reach the Intel GPU. Also, the default run (no `PW_GPU`) rendered
+  every spec in software (SwiftShader), and no run checked which GPU it actually used.
+- **Options:** (a) keep the `PW_GPU` switch and only record the renderer; (b) one Playwright
+  project per GPU, with the browser build chosen to match the per-app preference, plus a fixture
+  that fails a run on the wrong GPU; (c) change the per-app preferences per run (a system setting,
+  not changed by the test suite).
+- **Decision: (b).** In `playwright.config.ts`, hardware mode is the local default:
+  - project `chromium`: every spec, on the full Chromium (`channel: "chromium"`), with
+    `--use-angle=d3d11 --enable-gpu --ignore-gpu-blocklist`; NVIDIA expected;
+  - project `low-spec`: the headless shell with the same flags; Intel expected; CPU x4 through
+    CDP (`Emulation.setCPUThrottlingRate`); 1366 x 768 at DPR 1. It runs
+    `immersive-rendering.spec.ts` (low tier, with `IE_GPU=1`) and `gpu-renderer.spec.ts`.
+  - `tests/e2e/fixtures.ts` is the shared `test` for every spec. Its automatic worker fixture reads
+    the unmasked renderer (`WEBGL_debug_renderer_info`). It fails the worker on the other GPU, on
+    SwiftShader or another software renderer, or when the renderer cannot be read. The message
+    names the expected GPU, the renderer found, and the registry setting to fix. Its `page`
+    fixture applies the project's CPU throttle. The rule is a pure module (`tests/e2e/gpu-mode.ts`)
+    with unit tests (`tests/unit/e2e/gpu-mode.test.ts`).
+  - CI (no GPU) and `PW_GPU=0` keep the previous software mode: one plain headless `chromium`
+    project with no GPU expectation. `study-journey` and `telemetry-learning` force SwiftShader
+    only in that mode.
+  - Workers: at most 2 locally (was half the cores), 1 on CI.
+- **Changed usage:** `PW_GPU=1` is no longer needed. `PW_GPU=low` is replaced by
+  `--project low-spec`. Earlier results that cite `PW_GPU=low`
+  (docs/architecture/immersive-rendering-results.md) ran on the full build. Their renderer
+  string, recorded with each run, shows which GPU they actually used.
+- **Not changed:** `scripts/museum/playwright.gpu.config.ts` (headed, `--force_*_gpu` flags) is
+  left as it is. Under the per-app preferences its `low` project also runs on the NVIDIA GPU. The
+  default config's `low-spec` project is now the route to the Intel GPU.
+- **Equivalence check:** test infrastructure only; no app code, content or telemetry changes. Both
+  conditions are tested in the same projects.
+- **Paper implications:** report the low-spec rendering checks as run on the integrated GPU, with
+  the renderer string verified by the suite, rather than only selected by flags.

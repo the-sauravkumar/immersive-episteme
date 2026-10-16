@@ -19,7 +19,8 @@
  * reached with Tab and must show the visible ring (an outline, not only the ground halo), in the
  * default display and in high contrast.
  */
-import { expect as baseExpect, test, type Page } from "@playwright/test";
+import { expect as baseExpect, test, type Page } from "./fixtures";
+import { hardwareGpu } from "./gpu-mode";
 
 import { PHASE_TEXT } from "../../src/features/learning/strings";
 
@@ -27,10 +28,11 @@ import { E2E_STUDY_CODE, backdateFamiliarisation, closeDb, db, ensureE2eStudy, p
 
 // Headless Chromium only exposes WebGL through SwiftShader when asked to.
 // The study device check refuses a software renderer for the immersive condition (DR-029,
-// gpu-acceptance.ts), so an immersive participant passes it only on a hardware GPU: with PW_GPU set,
-// the config's GPU launch (playwright.config.ts) is kept. Without it, headless Chromium exposes WebGL
-// only through SwiftShader, which reaches the device check but not the immersive condition.
-if (!process.env.PW_GPU) test.use({ launchOptions: { args: ["--enable-unsafe-swiftshader", "--use-angle=swiftshader"] } });
+// gpu-acceptance.ts), so an immersive participant passes it only on a hardware GPU: in hardware
+// mode (the local default, DR-049, number to confirm at merge) the project's GPU launch (playwright.config.ts) is kept. In
+// software mode (CI, PW_GPU=0) headless Chromium exposes WebGL only through SwiftShader, which
+// reaches the device check but not the immersive condition.
+if (!hardwareGpu()) test.use({ launchOptions: { args: ["--enable-unsafe-swiftshader", "--use-angle=swiftshader"] } });
 test.describe.configure({ mode: "serial", timeout: 300_000 });
 // A dev server compiles each route on first visit; allow for it.
 const expect = baseExpect.configure({ timeout: 60_000 });
