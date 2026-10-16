@@ -54,7 +54,10 @@ jobs:
         run: npm ci
 
       - name: Generate an ephemeral auth secret
-        run: echo "BETTER_AUTH_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")" >> "$GITHUB_ENV"
+        run: |
+          s=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")
+          echo "::add-mask::$s"
+          echo "BETTER_AUTH_SECRET=$s" >> "$GITHUB_ENV"
 
       - name: Create test database
         run: psql "postgres://episteme:episteme_ci_password@localhost:5432/episteme" -c "CREATE DATABASE episteme_test"
@@ -99,8 +102,22 @@ jobs:
   e2e:
     name: Playwright smoke
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 120
     needs: verify
+    services:
+      postgres:
+        image: pgvector/pgvector:pg18@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11
+        env:
+          POSTGRES_USER: episteme
+          POSTGRES_PASSWORD: episteme_ci_password
+          POSTGRES_DB: episteme
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U episteme -d episteme"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -113,13 +130,27 @@ jobs:
         run: npm ci
 
       - name: Generate an ephemeral auth secret
-        run: echo "BETTER_AUTH_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")" >> "$GITHUB_ENV"
+        run: |
+          s=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")
+          echo "::add-mask::$s"
+          echo "BETTER_AUTH_SECRET=$s" >> "$GITHUB_ENV"
+
+      - name: Create test database
+        run: psql "postgres://episteme:episteme_ci_password@localhost:5432/episteme" -c "CREATE DATABASE episteme_test"
+
+      - name: Bootstrap the database (migrations, seeds, content, review snapshot, manifests, demo study)
+        run: npx tsx scripts/dev/bootstrap.ts
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
       - name: Run e2e
-        run: npm run test:e2e
+        # Every spec except parity, design acceptance and alignment, which the parity job runs.
+        # The GPU specs (gpu-renderer, immersive-rendering) skip themselves without IE_GPU=1.
+        run: >-
+          npx playwright test --workers=2
+          smoke public-pages cms-guards learning-2d-browse immersive-flow study-journey
+          telemetry-learning assessment-concept-map research-dashboard-live exposure-parity
 
       - name: Upload report
         if: failure()
@@ -167,7 +198,10 @@ jobs:
         run: npm ci
 
       - name: Generate an ephemeral auth secret
-        run: echo "BETTER_AUTH_SECRET=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")" >> "$GITHUB_ENV"
+        run: |
+          s=$(node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))")
+          echo "::add-mask::$s"
+          echo "BETTER_AUTH_SECRET=$s" >> "$GITHUB_ENV"
 
       - name: Create test database
         run: psql "postgres://episteme:episteme_ci_password@localhost:5432/episteme" -c "CREATE DATABASE episteme_test"
