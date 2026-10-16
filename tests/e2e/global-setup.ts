@@ -8,7 +8,10 @@
  * are written: the plain one (`next dev`) and the `__Host-` one (`next start`, NODE_ENV=production;
  * Chromium accepts Secure cookies on http://localhost).
  *
- * Specs that test the gate itself start a context with `storageState: { cookies: [], origins: [] }`.
+ * The built-in `page` and `context` fixtures get it from playwright.config.ts `use.storageState`.
+ * A context a spec opens itself does not inherit `use`: open it with newContext() from fixtures.ts,
+ * which applies the same storage state. Specs that test the gate itself pass
+ * `storageState: { cookies: [], origins: [] }`.
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
@@ -19,8 +22,9 @@ import { Pool } from "pg";
 
 import { signInviteAccess } from "../../src/server/access/invite-cookie";
 import { generateInviteCode, hashInviteCode, inviteCodeHint, normaliseInviteCode } from "../../src/server/access/invite-code";
+import { INVITE_STORAGE_STATE } from "./invite-state";
 
-export const INVITE_STORAGE_STATE = "test-results/.auth/invite.json";
+export { INVITE_STORAGE_STATE };
 
 export default async function globalSetup(config: FullConfig): Promise<void> {
   loadEnv({ quiet: true });

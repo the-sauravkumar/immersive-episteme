@@ -19,7 +19,7 @@
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
 
-import { expect, test, type CDPSession, type Page } from "./fixtures";
+import { expect, newContext, test, type CDPSession, type Page } from "./fixtures";
 import sharp from "sharp";
 
 import { blockArtefactIndex, ssim } from "../../scripts/museum/ssim";
@@ -98,7 +98,7 @@ test.beforeAll(async ({ browser }, info) => {
   tier = (info.project.metadata?.tier as "high" | "low" | undefined) ?? "high";
   const throttle = Number(info.project.metadata?.cpuThrottle ?? (tier === "low" ? 4 : 1));
   mkdirSync(OUT, { recursive: true });
-  const ctx = await browser.newContext({
+  const ctx = await newContext(browser, {
     viewport: info.project.use.viewport ?? { width: 1280, height: 720 },
     deviceScaleFactor: info.project.use.deviceScaleFactor ?? 1,
   });

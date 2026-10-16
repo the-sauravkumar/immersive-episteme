@@ -17,6 +17,7 @@ import { parseMediaEnv, storedSha256 } from "@/server/cms/media/storage";
 import { resolveDatabaseUrl } from "../../scripts/db/_shared";
 import { inviteGateProblems } from "../../scripts/deploy/invite-gate";
 import { CATALOG, FORBIDDEN } from "../../scripts/deploy/lib/env-catalog";
+import { topologyChecks } from "../../scripts/deploy/lib/topology";
 
 const POOLED = "postgresql://episteme_app:pw@ep-cool-name-a1b2c3d4-pooler.ap-southeast-1.aws.neon.tech/episteme?sslmode=verify-full";
 const DIRECT = "postgresql://episteme_app:pw@ep-cool-name-a1b2c3d4.ap-southeast-1.aws.neon.tech/episteme?sslmode=verify-full";
@@ -123,10 +124,12 @@ describe("Invite gate before every production build (CLI deploys too)", () => {
     }
   });
 
-  it("vercel.json runs the guard before the build and puts functions in Singapore, next to Neon", () => {
+  it("vercel.json runs the guard before the build and has one function region, sin1 for the lead's Neon choice", () => {
     const vj = JSON.parse(readFileSync("vercel.json", "utf8")) as { buildCommand: string; regions: string[] };
     expect(vj.buildCommand).toBe("node scripts/deploy/invite-gate.ts --if-production && npm run build");
     expect(vj.regions).toEqual(["sin1"]);
+    // Provider-neutral: preflight derives the region from the database (tests/unit/deploy-topology.test.ts).
+    expect(topologyChecks({ DATABASE_URL: POOLED, DATABASE_URL_UNPOOLED: DIRECT }, vj.regions).functionRegion).toBe(vj.regions[0]);
   });
 });
 

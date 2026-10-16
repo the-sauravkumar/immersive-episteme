@@ -35,13 +35,13 @@ export const CATALOG: readonly CatalogEntry[] = [
   { name: "AUTH_CLIENT_IP_HEADER", kind: "config", need: "required", source: "x-forwarded-for (Vercel overwrites it; RESEARCH.md section 11)" },
   { name: "PUBLIC_DEMO", kind: "config", need: "optional", source: "auto (default)" },
   { name: "MEDIA_S3_BUCKET", kind: "config", need: "required", source: "Cloudflare R2 bucket name, private (RUNBOOK step 2); or the AWS S3 bucket" },
-  { name: "MEDIA_S3_REGION", kind: "config", need: "required", source: "auto for R2; ap-south-1 for AWS S3" },
+  { name: "MEDIA_S3_REGION", kind: "config", need: "required", source: "auto for R2; for AWS S3 the database's AWS region (ap-south-1 next to RDS)" },
   { name: "MEDIA_S3_ENDPOINT", kind: "config", need: "conditional", source: "R2 only: https://<account-id>.r2.cloudflarestorage.com (unset for AWS S3)" },
   { name: "MEDIA_S3_FORCE_PATH_STYLE", kind: "config", need: "conditional", source: "R2 only: true" },
   { name: "MEDIA_S3_ACCESS_KEY_ID", kind: "secret", need: "required", source: "R2 API token (Object Read & Write, this bucket only): Access Key ID; or the AWS IAM user's key" },
   { name: "MEDIA_S3_SECRET_ACCESS_KEY", kind: "secret", need: "required", source: "the same token's Secret Access Key" },
   { name: "AWS_ROLE_ARN", kind: "config", need: "conditional", source: "only after source change S5 (OIDC, Option A)" },
-  { name: "AWS_REGION", kind: "config", need: "conditional", source: "ap-south-1, only together with AWS_ROLE_ARN" },
+  { name: "AWS_REGION", kind: "config", need: "conditional", source: "the same as MEDIA_S3_REGION, only together with AWS_ROLE_ARN" },
 ] as const;
 
 /**

@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 import { DEFAULT_PROJECT, GPU_ARGS, hardwareGpu, LOW_SPEC, LOW_SPEC_PROJECT } from "./tests/e2e/gpu-mode";
+import { INVITE_STORAGE_STATE } from "./tests/e2e/invite-state";
 
 const PORT = Number(process.env.PORT ?? 3000);
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${PORT}`;
@@ -55,7 +56,7 @@ export default defineConfig({
   use: {
     baseURL,
     trace: "on-first-retry",
-    storageState: "test-results/.auth/invite.json",
+    storageState: INVITE_STORAGE_STATE,
   },
   projects,
   webServer: {

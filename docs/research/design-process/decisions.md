@@ -1950,6 +1950,17 @@ researchers' decisions:
   media store. No learning page, telemetry event or knowledge content changed.
 - **Paper implications:** report the hosting (Vercel `sin1`, Neon `aws-ap-southeast-1`,
   Cloudflare R2) and that study data were stored in Singapore.
+- **Addendum (2026-10-16, integration of the prepared branches): the provider stays the
+  deployer's choice.** The lead: "let him [Ankit] choose, he might choose AWS". The deploy kit no
+  longer assumes Neon. `scripts/deploy/lib/topology.ts` detects the setup from the production env
+  file, and preflight checks each provider as it is: RDS needs `ap-south-1`, functions in `bom1`
+  and `DATABASE_CA_PEM`; Neon needs the function region of its region (`sin1` for
+  `aws-ap-southeast-1`) and `DATABASE_URL_UNPOOLED`; R2 needs region `auto` and path-style
+  addressing; AWS S3 needs the bucket in the database's region. `vercel.json` carries one
+  `regions` value, `sin1` for the lead's Neon choice. Preflight prints the value the configured
+  database needs and FAILs in production on a mismatch, so a deployer who picks RDS sets
+  `"regions": ["bom1"]` and commits it before deploying. If RDS is chosen, the paper reports Mumbai
+  (`bom1`, `ap-south-1`) instead of Singapore.
 
 ## DR-049 (number to confirm at merge): Playwright GPU Split: Low-Spec on the Intel GPU, Everything Else on the NVIDIA GPU (Adopted)
 

@@ -5,7 +5,7 @@
  * with learning-page events stored and no event quarantined (in particular no `seq_conflict`,
  * docs/architecture/data-and-telemetry-layer.md §4b).
  */
-import { expect as baseExpect, test, type Page } from "./fixtures";
+import { expect as baseExpect, newContext, test, type Page } from "./fixtures";
 import { hardwareGpu } from "./gpu-mode";
 
 import { E2E_STUDY_CODE, backdateFamiliarisation, closeDb, db, ensureE2eStudy, participantByCode } from "./study-fixtures";
@@ -70,7 +70,7 @@ async function sessionTelemetry(sessionId: string) {
 test("learning-page telemetry is stored without conflicts in both conditions", async ({ browser }) => {
   const seen = new Set<string>();
   for (let attempt = 0; attempt < 10 && seen.size < 2; attempt++) {
-    const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const context = await newContext(browser, { viewport: { width: 1280, height: 800 } });
     const page = await context.newPage();
     const code = await toOnboarding(page);
     const row = await participantByCode(code);

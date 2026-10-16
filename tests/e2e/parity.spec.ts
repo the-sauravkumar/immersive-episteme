@@ -57,7 +57,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { expect, test, type BrowserContext, type Page } from "./fixtures";
+import { expect, newContext, test, type BrowserContext, type Page } from "./fixtures";
 import sharp from "sharp";
 
 import { knowledgeBundleSchema } from "@/features/knowledge/contracts";
@@ -727,7 +727,7 @@ async function figureBalanceCheck(): Promise<{ value: string; passed: boolean } 
 }
 
 test("interface parity P1-P33: 2D concept page vs 3D panel", async ({ browser }) => {
-  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const context = await newContext(browser, { viewport: { width: 1280, height: 800 } });
   await context.addInitScript({ content: PARITY_HELPERS });
   const runs: (InterfaceParityRun & { effectiveTheme: string; conceptKey: string; layoutOnly?: boolean })[] = [];
   const failures: string[] = [];

@@ -20,7 +20,7 @@
 import { existsSync } from "node:fs";
 import path from "node:path";
 
-import { expect, test, type Page } from "./fixtures";
+import { expect, newContext, test, type Page } from "./fixtures";
 import { config as loadEnv } from "dotenv";
 import { Pool } from "pg";
 
@@ -67,7 +67,7 @@ for (const viewport of [
   { width: 1280, height: 800 },
 ]) {
   test(`public pages at ${viewport.width} px: one h1, no overflow, 44 px targets, no placeholders`, async ({ browser }) => {
-    const ctx = await browser.newContext({ viewport });
+    const ctx = await newContext(browser, { viewport });
     const page = await ctx.newPage();
     for (const url of PAGES) {
       const r = await audit(page, url);
@@ -119,7 +119,7 @@ test("home page numbers are the live database counts", async ({ page }) => {
 });
 
 test("Figure 1 is a static indigo plate: no draw-on and nothing animates (DR-022)", async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+  const ctx = await newContext(browser, { viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
   const page = await ctx.newPage();
   await page.goto("/");
   await page.waitForLoadState("networkidle");
@@ -155,7 +155,7 @@ test("Explore cards align their actions and the Colophon shows only stored parit
 });
 
 test("no decorative graphics exist, and high contrast sets every rule in ink (DR-022)", async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const ctx = await newContext(browser, { viewport: { width: 1280, height: 800 } });
   await ctx.addInitScript(() => {
     try {
       localStorage.setItem("ie-display", JSON.stringify({ contrast: true, reduceMotion: false }));
@@ -177,7 +177,7 @@ test("no decorative graphics exist, and high contrast sets every rule in ink (DR
 // indigo outline, or the HC double ring (an outline of at least 2 px as well).
 for (const contrast of [false, true]) {
   test(`every focusable control on Home and Explore shows a focus ring${contrast ? " in high contrast" : ""}`, async ({ browser }) => {
-    const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const ctx = await newContext(browser, { viewport: { width: 1280, height: 800 } });
     if (contrast) {
       await ctx.addInitScript(() => {
         try {
@@ -217,7 +217,7 @@ for (const contrast of [false, true]) {
 const WIDTHS = [390, 768, 1024, 1280] as const;
 
 test("the home title block is left-aligned with nothing beside it, and Figure 1 follows in the first screens", async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const ctx = await newContext(browser, { viewport: { width: 1280, height: 800 } });
   const page = await ctx.newPage();
   await page.goto("/");
   const h1 = page.getByRole("heading", { level: 1, name: "Immersive Episteme" });
@@ -241,7 +241,7 @@ test("the home title block is left-aligned with nothing beside it, and Figure 1 
 });
 
 test("the tradition index rows are equal: one left edge and one title face per row", async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const ctx = await newContext(browser, { viewport: { width: 1280, height: 800 } });
   const page = await ctx.newPage();
   await page.goto("/");
   await expect(page.locator("[data-slot=tradition-index] > li").first()).toBeVisible();
@@ -261,7 +261,7 @@ test("the tradition index rows are equal: one left edge and one title face per r
 });
 
 test("the dataset table fits 390 px without scrolling its region", async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const ctx = await newContext(browser, { viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
   for (const url of ["/", "/about"]) {
     await page.goto(url);
@@ -277,7 +277,7 @@ test("the dataset table fits 390 px without scrolling its region", async ({ brow
 });
 
 test("the two Explore control tables end on one rule", async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const ctx = await newContext(browser, { viewport: { width: 1280, height: 800 } });
   const page = await ctx.newPage();
   await page.goto("/explore");
   const tables = page.locator("section[aria-labelledby=before-heading] table");

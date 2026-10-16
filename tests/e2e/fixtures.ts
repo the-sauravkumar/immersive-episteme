@@ -11,10 +11,15 @@
  *    (metadata.cpuThrottle, 4 in low-spec). Pages a spec opens itself with browser.newContext()
  *    are not throttled by this; such specs call applyProjectThrottle() (immersive-rendering.spec.ts
  *    already throttles its own page from the same metadata).
+ *  - newContext(browser, options): browser.newContext() with the invite cookie (S11). A context a
+ *    spec opens itself does not inherit the config's `use`, so without this it would land on the
+ *    invite gate. Every spec opens its own contexts through it; a gate test passes
+ *    `storageState: { cookies: [], origins: [] }` to start uninvited.
  */
-import { test as base, type Browser, type Page, type TestInfo } from "@playwright/test";
+import { test as base, type Browser, type BrowserContext, type Page, type TestInfo } from "@playwright/test";
 
 import { rendererMismatch, type ExpectedGpu } from "./gpu-mode";
+import { INVITE_STORAGE_STATE } from "./invite-state";
 
 export { expect } from "@playwright/test";
 export type { Browser, BrowserContext, CDPSession, Locator, Page, Request, Response } from "@playwright/test";
@@ -34,6 +39,22 @@ async function readRenderer(browser: Browser): Promise<string | null> {
   } finally {
     await ctx.close();
   }
+}
+
+type ContextOptions = NonNullable<Parameters<Browser["newContext"]>[0]>;
+
+/** The storage state the config gives the built-in fixtures (use.storageState), else the invite file. */
+function configuredStorageState(): ContextOptions["storageState"] {
+  try {
+    return base.info().project.use.storageState ?? INVITE_STORAGE_STATE;
+  } catch {
+    return INVITE_STORAGE_STATE; // outside a test or hook
+  }
+}
+
+/** browser.newContext() admitted through the invite gate; an explicit `storageState` wins. */
+export function newContext(browser: Browser, options: ContextOptions = {}): Promise<BrowserContext> {
+  return browser.newContext({ storageState: configuredStorageState(), ...options });
 }
 
 export async function applyProjectThrottle(page: Page, info: Pick<TestInfo, "project">): Promise<number> {

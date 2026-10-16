@@ -19,7 +19,7 @@
  * reached with Tab and must show the visible ring (an outline, not only the ground halo), in the
  * default display and in high contrast.
  */
-import { expect as baseExpect, test, type Page } from "./fixtures";
+import { expect as baseExpect, newContext, test, type Page } from "./fixtures";
 import { hardwareGpu } from "./gpu-mode";
 
 import { PHASE_TEXT } from "../../src/features/learning/strings";
@@ -230,7 +230,7 @@ test("journey for each condition: blind pre-test, allocation, learning entry and
   const displayMarkup = new Map<string, string>();
   let completed = false;
   for (let attempt = 0; attempt < 6 && (seen.size < 2 || !completed); attempt++) {
-    const context = await browser.newContext();
+    const context = await newContext(browser);
     const page = await context.newPage();
     const code = await enrolAndConsent(page);
     let markup = "";

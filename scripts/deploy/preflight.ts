@@ -24,8 +24,10 @@
  *              bucket refuses anonymous listing, and a CORS preflight from the production origin
  *              succeeds. Works for AWS S3 and S3-compatible stores (Cloudflare R2).
  *
- * Database: Neon in aws-ap-southeast-1 (decision record "Neon") or RDS. The function region in
- * vercel.json must sit next to the database (FUNCTION_REGION_FOR below).
+ * Providers: the deployer chooses Neon or Amazon RDS, and Cloudflare R2 or AWS S3. The env
+ * section detects the choice from the file (scripts/deploy/lib/topology.ts), checks each as it is,
+ * and prints the one `regions` value vercel.json must carry next to the database (bom1 for RDS in
+ * ap-south-1, sin1 for Neon in aws-ap-southeast-1); a different value FAILs in production.
  *  5. build    only with --build: `npm run build` with the file's variables. It overwrites
  *              .next, so run it only when no other heavy job is running.
  *
@@ -43,15 +45,12 @@ import { parseArgs } from "node:util";
 import { inviteGateProblems } from "./invite-gate";
 import { CATALOG, FORBIDDEN, envBytes, isVercelSystemName, readEnvFile, redactUrl, VERCEL_ENV_LIMIT_BYTES } from "./lib/env-catalog";
 import { Report, type Status } from "./lib/report";
+import { topologyChecks } from "./lib/topology";
 import { isPooledHost, serverEnvSchema } from "../../src/lib/env";
 import { clientIpPolicy } from "../../src/lib/client-ip";
 import { mediaUploadOrigin } from "../../src/lib/security/csp";
 import { parseMediaEnv } from "../../src/server/cms/media/storage";
 
-/** Vercel function region next to each supported database region (https://vercel.com/docs/regions). */
-const FUNCTION_REGION_FOR: Readonly<Record<string, string>> = { "ap-southeast-1": "sin1", "ap-south-1": "bom1" };
-/** Neon aws-ap-southeast-1 (Singapore): Neon has no region in India. */
-const EXPECTED_FUNCTION_REGION = "sin1";
 /** sslmode values that verify the server: pg-connection-string treats `require` as verify-full. */
 const VERIFYING_SSLMODES = new Set(["verify-full", "require"]);
 
@@ -193,7 +192,6 @@ function checkDbUrl(name: string, url: string): URL | null {
 }
 const pooledU = dbUrl ? checkDbUrl("DATABASE_URL", dbUrl) : null;
 const directU = fileEnv.DATABASE_URL_UNPOOLED ? checkDbUrl("DATABASE_URL_UNPOOLED", fileEnv.DATABASE_URL_UNPOOLED) : null;
-const dbHost = pooledU?.hostname ?? "";
 if (pooledU) {
   if (isPooledHost(dbUrl!) && !directU) {
     report.add("env", "direct URL for LISTEN/migrations", rule(false), "DATABASE_URL is a -pooler host: set DATABASE_URL_UNPOOLED (Neon's pooler does not support LISTEN/NOTIFY)");
@@ -208,13 +206,20 @@ if (pooledU) {
     report.add("env", "direct URL for LISTEN/migrations", "INFO", "DATABASE_URL is a direct host; it serves the pool and LISTEN");
   }
 }
-const isRds = dbHost.endsWith(".rds.amazonaws.com");
-const isNeon = dbHost.endsWith(".neon.tech");
-if (dbHost) {
-  const dbRegion = Object.keys(FUNCTION_REGION_FOR).find((r) => dbHost.includes(`.${r}.`)) ?? null;
-  const ok = dbRegion !== null && FUNCTION_REGION_FOR[dbRegion] === EXPECTED_FUNCTION_REGION;
-  report.add("env", "database next to functions", ok ? "PASS" : PROD ? "WARN" : "INFO", `database region ${dbRegion ?? "unknown"}${isNeon ? " (Neon)" : isRds ? " (RDS)" : ""}; vercel.json functions run in ${EXPECTED_FUNCTION_REGION}`);
+let vercelJson: { regions?: string[]; installCommand?: string; framework?: string; ignoreCommand?: string; buildCommand?: string } | null = null;
+try {
+  vercelJson = JSON.parse(readRepo("vercel.json") ?? "null");
+} catch {
+  vercelJson = null;
 }
+// Provider-neutral topology: database, media store and the function region they need.
+const topology = topologyChecks(fileEnv, vercelJson?.regions);
+for (const row of topology.rows) {
+  report.add("env", row.check, row.level === "info" ? "INFO" : row.ok ? "PASS" : row.level === "rule" ? rule(false) : PROD ? "WARN" : "INFO", row.detail);
+}
+const isRds = topology.db?.provider === "rds";
+const isNeon = topology.db?.provider === "neon";
+if (topology.functionRegion) console.log(`[preflight] this setup needs vercel.json "regions": ["${topology.functionRegion}"]`);
 
 const caPem = fileEnv.DATABASE_CA_PEM;
 let caCerts: X509Certificate[] = [];
@@ -227,8 +232,6 @@ if (caPem) {
   } catch (e) {
     report.add("env", "DATABASE_CA_PEM parses", "FAIL", errText(e));
   }
-} else if (isRds) {
-  report.add("env", "DATABASE_CA_PEM present", rule(false), "RDS root CA is not in Node's default store (RESEARCH.md s8); put the ap-south-1 bundle here");
 } else if (isNeon) {
   report.add("env", "DATABASE_CA_PEM not needed", "PASS", "Neon's certificate chains to ISRG Root X1, which is in Node's default store");
 }
@@ -245,18 +248,7 @@ report.add(
 );
 
 if (media?.MEDIA_S3_BUCKET || PROD) {
-  if (media?.MEDIA_S3_ENDPOINT) {
-    const endpoint = new URL(media.MEDIA_S3_ENDPOINT);
-    report.add("env", "MEDIA_S3_ENDPOINT https", rule(endpoint.protocol === "https:"), endpoint.origin);
-    if (endpoint.hostname.endsWith(".r2.cloudflarestorage.com")) {
-      report.add("env", "R2: MEDIA_S3_REGION auto", rule(media.MEDIA_S3_REGION === "auto"), `MEDIA_S3_REGION=${media.MEDIA_S3_REGION}`);
-      report.add("env", "R2: path-style", rule(media.MEDIA_S3_FORCE_PATH_STYLE === "true"), `MEDIA_S3_FORCE_PATH_STYLE=${media.MEDIA_S3_FORCE_PATH_STYLE}`);
-    } else {
-      report.add("env", "S3-compatible store", "WARN", "endpoint is neither AWS nor Cloudflare R2: untested");
-    }
-  } else {
-    report.add("env", "MEDIA_S3_REGION ap-south-1", rule(media?.MEDIA_S3_REGION === "ap-south-1"), media?.MEDIA_S3_REGION ?? "(unset)");
-  }
+  // The store's own rules (R2 or AWS S3) are topology rows above.
   const keys = Boolean(fileEnv.MEDIA_S3_ACCESS_KEY_ID && fileEnv.MEDIA_S3_SECRET_ACCESS_KEY);
   const oidcInCode = (readRepo("src/server/cms/media/storage.ts") ?? "").includes("AWS_ROLE_ARN");
   const oidc = oidcInCode && Boolean(fileEnv.AWS_ROLE_ARN);
@@ -267,7 +259,6 @@ if (media?.MEDIA_S3_BUCKET || PROD) {
     keys ? "MEDIA_S3_* keys set (Option B)" : oidc ? "AWS_ROLE_ARN (OIDC, Option A)" : "without them the SDK picks up Vercel's placeholder AWS_* values (RESEARCH.md s9)",
   );
   if (fileEnv.AWS_ROLE_ARN && !oidcInCode) report.add("env", "AWS_ROLE_ARN usable", "WARN", "storage.ts does not read AWS_ROLE_ARN yet (source change S5)");
-  if (fileEnv.AWS_ROLE_ARN) report.add("env", "AWS_REGION with OIDC", rule(fileEnv.AWS_REGION === "ap-south-1"), "Vercel sets AWS_REGION to the execution region unless set (RESEARCH.md s9)");
 }
 const cspOrigin = mediaUploadOrigin(asProduction);
 report.add("env", "CSP connect-src origin", cspOrigin ? "INFO" : rule(false), cspOrigin ? `${cspOrigin} (next.config headers read it at build time: set env vars BEFORE the build)` : "no S3 origin: CMS uploads would be blocked by the CSP");
@@ -311,13 +302,9 @@ if (args["skip-source"]) {
   const vi = readRepo(".vercelignore");
   pending(vi !== null && /^\/?\.env\s*$/m.test(vi), "WARN", "S9", ".vercelignore excludes .env");
 
-  let vj: { regions?: string[]; installCommand?: string; framework?: string; ignoreCommand?: string; buildCommand?: string } | null = null;
-  try {
-    vj = JSON.parse(readRepo("vercel.json") ?? "null");
-  } catch {
-    vj = null;
-  }
-  report.add("source", `vercel.json ${EXPECTED_FUNCTION_REGION} + npm ci`, vj?.regions?.join(",") === EXPECTED_FUNCTION_REGION && vj.installCommand === "npm ci" ? "PASS" : "FAIL", vj ? `regions=${vj.regions?.join(",")}, install=${vj.installCommand}` : "missing or invalid");
+  const vj = vercelJson;
+  // The region row is in the env section (topology), next to the database it depends on.
+  report.add("source", "vercel.json npm ci", vj?.installCommand === "npm ci" ? "PASS" : "FAIL", vj ? `install=${vj.installCommand}` : "missing or invalid");
   report.add("source", "vercel.json build runs the gate", /^node scripts\/deploy\/invite-gate\.ts --if-production && /.test(vj?.buildCommand ?? "") ? "PASS" : "FAIL", `buildCommand=${vj?.buildCommand ?? "(none)"} (guards Git and CLI builds)`);
   report.add("source", "vercel.json invite guard", /invite/i.test(vj?.ignoreCommand ?? "") && /VERCEL_ENV/.test(vj?.ignoreCommand ?? "") ? "PASS" : "FAIL", "ignoreCommand cancels production builds until src/proxy.ts has the invite gate");
   report.add("source", "lockfile tracked", git("ls-files", "--error-unmatch", "package-lock.json") !== null ? "PASS" : "FAIL", "npm ci needs package-lock.json in git");
