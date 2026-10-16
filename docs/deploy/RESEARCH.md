@@ -1,6 +1,8 @@
-# Deployment research: Vercel + lean AWS
+# Deployment research: Vercel with AWS, or with Neon and Cloudflare R2
 
 Research for deploying Immersive Episteme to Vercel (app) and lean AWS in `ap-south-1` (RDS PostgreSQL `db.t4g.micro` Single-AZ, one private S3 bucket, one IAM role or key-only IAM user, one AWS Budget). Nothing here was deployed or changed on any platform.
+
+**Two data options, the deployer chooses (DR-055).** Sections 1 to 17 cover Option A (AWS: RDS and S3 in `ap-south-1`, functions in `bom1`). The addendum at the end covers Option B (Neon in `aws-ap-southeast-1` and Cloudflare R2, functions in `sin1`). The deploy kit detects either from the production env file (`scripts/deploy/lib/topology.ts`), and `docs/deploy/RUNBOOK.md` gives both routes.
 
 **Method.** Every platform fact below is quoted verbatim from the official page named next to it (vercel.com/docs and vercel.com/kb, docs.aws.amazon.com, and the Next.js 16.4.0 docs shipped in `node_modules/next/dist/docs/`). Pages were read on 2026-10-16; the `last_updated` date that Vercel prints on each page is given where it exists. Statements marked **Measured** were checked in this repo or with a read-only download. Statements marked **Inference** are our reading of the quotes, not a documented fact.
 
@@ -434,3 +436,89 @@ https://docs.aws.amazon.com/AmazonS3/latest/userguide/cors.html:
 1. **Hobby or Pro** (§2): does anyone writing the code get paid for it? If yes, Vercel's definition points to Pro ($20/developer seat/month, Spend Management available).
 2. **OIDC dependency** (`@vercel/oidc-aws-credentials-provider`) and `@vercel/functions` (`attachDatabasePool`): approve, or launch on the key-only IAM user.
 3. **Dashboard usage pattern**: how many hours a month will researchers keep it open? This sizes the Provisioned Memory risk on Hobby (§4).
+
+---
+
+## Addendum: Neon and Cloudflare R2 (Option B)
+
+Read on 2026-10-16 on the vendors' official pages. Quotes are verbatim. Where a statement is an inference or was not verified, it says so. Section numbers are cited in RUNBOOK.md as "N§n". Decision: DR-055 (Neon + R2 is the lead's default; the deployer chooses between this option and the AWS option of sections 1 to 17). At the merge (DR-061) every vendor quote here was matched mechanically against the page text: the Neon pricing quotes and the end of the DPA quote were corrected to the page as served.
+
+### N§1. Neon Free Plan
+
+- https://neon.com/pricing, Free column of the plan comparison: "$0 /month"; Instant restore storage "Free with limited window/size"; History window ("For instant restore (configurable)") "Up to 6 hours or 1 GB of data changes"; Snapshots "1 snapshot"; Scheduled Backups: no entry for Free (Launch: "Daily/Weekly/Monthly"); Support Plans "Community (Discord)".
+- https://neon.com/docs/introduction/plans:
+  - "1 GB/project, 20 GB account total"
+  - "100 CU-hours/project/month (enough to run a 0.25 CU compute in a project for 400 hours/month)"
+  - "Up to 2 CU (8 GB RAM)"
+  - "Branch creation fails once you reach 10 branches per project."
+  - "5 GB per project included" (egress)
+- https://neon.com/docs/introduction/scale-to-zero: "Scale to zero is always enabled (computes suspend after 5 minutes of inactivity) and can't be disabled." A suspended compute "reactivates automatically within a few hundred milliseconds".
+- https://neon.com/docs/reference/glossary: "When a connection is made to an idle compute, the Activity Monitor reactivates the compute".
+- https://neon.com/docs/introduction/compute-lifecycle: LISTEN subscriptions "only exist for the duration of the current session".
+- **Not verified:** whether an idle LISTEN connection keeps the compute from suspending. Neon does not say. The dashboard's reconnect loop (`src/server/research/dashboard-live.ts`) re-runs LISTEN after a drop.
+
+### N§2. Pooled and Direct Connections
+
+- https://neon.com/docs/connect/connection-pooling:
+  - the pooler is "PgBouncer in transaction mode (`pool_mode=transaction`)";
+  - "Not supported with pooled connections" includes "`LISTEN` / `NOTIFY`";
+  - "| Schema migrations | Direct | Tools may not support transaction pooling |";
+  - "**10,000** = Maximum number of client connections PgBouncer can accept";
+  - "`max_prepared_statements=1000`".
+- https://neon.com/docs/guides/vercel-managed-integration: "| `DATABASE_URL_UNPOOLED` | Direct connection string |"; `DATABASE_URL` is the "Pooled connection string (PgBouncer)".
+- Code consequences:
+  - `src/lib/env.ts`: `DATABASE_URL_UNPOOLED` (optional; required in production when the `DATABASE_URL` host contains `-pooler.`, and must not itself be pooled); `directDatabaseUrl()`.
+  - `src/server/research/dashboard-service.ts`: LISTEN on `directDatabaseUrl(env)`.
+  - `scripts/db/_shared.ts` `resolveDatabaseUrl` and `drizzle.config.ts`: the direct URL for the main database.
+  - Session state through the pooler is safe: every `set_config` is transaction-local (`src/server/cms/core.ts:56,70`, `src/server/cms/media/service.ts:338,535`, `src/server/study/purge.ts:108`); no session `SET`, advisory lock, temp table or named prepared statement (code-compat notes).
+- **Inference, to verify live:** `pg_notify()` in the triggers of `db/migrations/0014_dashboard_notify.sql:20,24` runs inside the writer's transaction through the pooler and is delivered at commit to the LISTEN on the direct connection. Neon lists NOTIFY as unsupported on pooled connections, meaning sessions that wait for notifications; RUNBOOK 4.5 (by hand) tests it.
+
+### N§3. Regions
+
+- https://neon.com/docs/introduction/regions: lists AWS regions only (the Azure ones are "deprecated"); nearest to India: "AWS Asia Pacific (Singapore) — `aws-ap-southeast-1`"; "**You cannot change the region**" after creation. No region in India.
+- https://vercel.com/docs/regions: "| sin1 | ap-southeast-1 | Singapore |".
+- https://vercel.com/docs/functions/configuring-functions/region (updated 2026-08-11): default "*Washington, D.C., USA* (`iad1`) **for all new projects**"; "| Hobby | Single region |"; "Deploying to more regions than your plan allows causes the deployment to fail before the build step."
+- Consequence: `vercel.json` `regions: ["sin1"]`; preflight checks that the database host's region is `ap-southeast-1`.
+
+### N§4. Roles
+
+- https://neon.com/docs/manage/roles: "you can't connect using the Postgres `superuser` account like you can in a standalone Postgres installation." Console roles are members of `neon_superuser`, whose `CREATEDB` "Provides the ability to create databases." Roles made with `CREATE ROLE` get no `neon_superuser` membership; passwords need at least 60 bits of entropy (a 64-hex-digit password has 256).
+- **Not verified:** whether the owner role may run `CREATE EXTENSION` in a database owned by `episteme_app` (RUNBOOK B2 gives the fallback grant).
+
+### N§5. TLS
+
+- https://neon.com/docs/connect/connect-securely: "Neon requires that all connections use SSL/TLS encryption"; "Neon recommends that you always use `verify-full` mode"; "Neon uses the public ISRG Root X1 certificate issued by Let's Encrypt ... Typically, you do not need to download this file directly, as it is usually available in a root store on your operating system."
+- Local checks (code-compat notes): Node v24.21.0 `tls.rootCertificates` contains "CN=ISRG Root X1"; `node_modules/pg-connection-string/index.js:139-151` treats `sslmode=require` as verify-full and warns ("treated as aliases for 'verify-full'", line 222); `channel_binding=require` is ignored unless the `enableChannelBinding` option is set (`node_modules/pg/lib/client.js:87`).
+- Consequence: no `DATABASE_CA_PEM` on Neon; the RDS CA rule in `src/lib/env.ts` fires only for `.rds.amazonaws.com` hosts.
+
+### N§6. Backups
+
+- https://neon.com/docs/introduction/history-window: "Free plans cap retention at 6 hours (1 GB)".
+- Consequence: own `pg_dump` exports before migrations, after session days and weekly (RUNBOOK 8.2).
+
+### N§7. Cloudflare R2 (Media)
+
+- https://developers.cloudflare.com/r2/pricing/: free each month: storage "10 GB-month / month"; Class A "1 million requests / month"; Class B "10 million requests / month"; egress "Free"; "The free tier only applies to Standard storage".
+- https://developers.cloudflare.com/r2/buckets/public-buckets/: "By default, buckets are never publicly accessible and will always require explicit user permission to enable."
+- https://developers.cloudflare.com/r2/api/s3/api/ ("Last updated Oct 14, 2026"): "the region for an R2 bucket is `auto`"; "an empty value and `us-east-1` will alias to the `auto` region"; endpoint `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`; checksum table "| SHA-256 (`SHA256`) | ❌ | ✅ |" in the `FULL_OBJECT` / `COMPOSITE` columns; PutObject lists "✅ Content-MD5" only.
+- https://developers.cloudflare.com/r2/api/s3/presigned-urls/: presigned GET, HEAD, PUT and DELETE are supported.
+- https://developers.cloudflare.com/r2/buckets/cors/: "you still need to configure CORS when making requests from a browser".
+- Code consequence: `storedSha256()` in `src/server/cms/media/storage.ts` hashes the stored object on the server when `HeadObject` returns no single-part SHA-256 (bounded by the type's size limit); `finalizeAssetUpload` uses it.
+- **Not verified:** whether R2 accepts the signed `x-amz-checksum-sha256` header on a presigned single PUT. RUNBOOK 4.5 tests one upload.
+
+### N§8. Terms and Data Processing
+
+- https://neon.com/terms-of-service: now a Databricks "Product Specific Schedule (Neon)", "Last Updated: October 14, 2026", "subject to the terms of the then-current Databricks Master Cloud Services Agreement"; no academic or research clause found. The Master Cloud Services Agreement itself was not read.
+- https://neon.com/dpa returns the same Schedule; its subprocessor clause: "The Platform Services use Grafana Labs located in the United States for infrastructure services in addition to all other listed subprocessors" (the list itself was not read).
+- https://neon.com/docs/security/security-overview: data hosted in "Amazon's or Azure's secure data centers", "AES-256 encryption at rest"; lists SOC 2, ISO 27001/27701, GDPR and CCPA.
+- **Not verified:** which DPA now governs (an older Neon DPA of 20 Aug 2025 appears superseded).
+
+### N§9. Consent and Data Location (Repository Review)
+
+**No contradiction found.** No participant-facing or ethics text in the repository says where data is stored (India, AWS, Mumbai or IIT Kharagpur servers), and nothing promises encryption at rest.
+
+- The real consent and information-sheet text is entered per study in the console and stored in the database: `src/features/study/contracts.ts:190-192` ("Versioned consent text, shown verbatim; its sha256 is stored with the decision." ... "Participant information sheet shown before consent."). The only consent text in the repo is a test fixture (`tests/e2e/study-fixtures.ts:61`).
+- The CXA/ETH/01 protocol is not in the repo; data location is an open question: `docs/research/requirements-digest.md:363` ("Q-R11 | High | Ethics: consent wording, retention period, who may access raw data, is IP or device fingerprinting allowed, data location?").
+- Gap, not contradiction: `src/app/(public)/about/page.tsx:346` says "The privacy page describes what the platform records and where.", but `src/app/(public)/privacy/page.tsx` names no storage location.
+- Internal documents that now go out of date: `docs/deploy/aws-resources.md:13` (`ap-south-1` Mumbai) and DR-054 ("RDS and S3 in `ap-south-1`"); DR-055 now leaves the provider to the deployer.
+- **Action for the team (not done here, by design):** check the CXA/ETH/01 application and the consent text before any real participant data; with Neon, study data is stored in Singapore (`aws-ap-southeast-1`), and media in Cloudflare R2 (location "auto").

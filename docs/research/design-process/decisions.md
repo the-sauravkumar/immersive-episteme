@@ -14,6 +14,14 @@ same concept layers and pager), **DR-035** (the first DR-022, Dashboard Figure 3
 filed. In commits before the renumbering a bare DR-021, DR-022 or DR-023 may mean either record;
 read it by its topic.
 
+**Numbering note (DR-061).** Records prepared on side branches carried provisional numbers from
+DR-047 ("number to confirm at merge") while `main` filed its own DR-047 to DR-053. At the merge
+they became DR-054 (invite gate), DR-055 (Neon and R2, provider left to the deployer), DR-056 (GPU
+split), DR-057 (photo ingest), DR-058 (visual pass), DR-059 (verification route) and DR-060
+(unsupported links stay as needs_evidence). In branch commits before the merge (prep-all,
+prep-deploy, prep-gpu, prep-photos, prep-visual, prep-content) a DR-047 to DR-050 means one of
+these; read it by its topic.
+
 ---
 
 ## DR-001: One platform, two experimental conditions (Adopted)
@@ -2583,3 +2591,86 @@ novice met, and none touches the sheet.
     structurally equal.
   - **Limitations:** state that the structure of the process chains rests partly on curators'
     reading of the source's stage order, pending the PI's ruling.
+
+## DR-061: Integration of the Preparation Branches: Merge Order, DR Numbers, GPU Projects, the RTL Fixture and a Provider-Neutral Runbook (Adopted under the lead's delegation; merge of prep-all, prep-visual, prep-content and prep-verify)
+
+- **Context:** four branches were prepared from f108a4a while the final review fix round
+  (DR-047 to DR-053) landed on `main`. Each branch numbered its own records from DR-047 with
+  "number to confirm at merge", so the same numbers meant different decisions on `main` and on
+  the branches.
+- **Decision 1: merge order and numbers.** `prep-all`, `prep-visual`, `prep-content`,
+  `prep-verify`, each with `git merge --no-ff`. Provisional records were renumbered in merge
+  order, and only in the lines a branch brought in, so `main`'s DR-047 to DR-053 references keep
+  their meaning:
+
+  | Branch | Provisional | Now |
+  |---|---|---|
+  | prep-all | DR-047 invite gate | DR-054 |
+  | prep-all | DR-048 Neon and R2 | DR-055 |
+  | prep-all | DR-049 GPU split | DR-056 |
+  | prep-all | DR-050 photo ingest | DR-057 |
+  | prep-visual | DR-047 visual pass | DR-058 |
+  | prep-content | DR-047 verification route | DR-059 |
+  | content round 3 (scratch text, not on the branch) | DR-048 structure | DR-060 |
+
+  "Number to confirm at merge" is gone from code and documents. Dates were taken out of the
+  DR-055 and DR-060 headings and the DR-055 addendum label (access dates of quoted pages stay).
+  DR-055's heading now says what its addendum decided: Neon and R2 are the lead's default and the
+  provider is the deployer's choice. The production data path (`db:seed:reference`,
+  `content:bootstrap:remote` with its remote and migration guards, the `with-env` command guard;
+  commits 748675e and 6a05826) had no record of its own; it is recorded here and in the runbook
+  (section 5).
+- **Decision 2: both intents where the visual pass met the fix round.** Git merged `minimap.tsx`
+  and `labels.ts` without conflict; the result was read, not assumed:
+  - the plan drawing keeps DR-053's click-to-walk (`onRoom`) on the `PlanDrawing` that now draws
+    from `src/features/immersive/plan-drawing.ts` (DR-058, shared with the home page's Plate 1);
+  - the category signs keep DR-053's shrink-to-fit on one line, next to DR-058's new directory
+    heading kind and row arrows;
+  - DR-053's enter-cue rule (`enterCuesOnCrossing`, `museum-scene.tsx`) is untouched by the
+    visual pass, which changed only the directory geometry, door-sign width and finish values;
+  - the home-title e2e keeps the invite gate's `newContext` (DR-054) with DR-058's Plate 1 test.
+- **Decision 3: one GPU vocabulary, the DR-056 projects.** The visual pass's measurement text
+  assumed `PW_GPU=1` / `PW_GPU=low`. Current usage now names the projects: `--project chromium`
+  (full Chromium, NVIDIA GTX 1650) and `--project low-spec` (headless shell, Intel Iris Xe).
+  Changed: the rendering spec header (C2c with `-g "C2c"` on either project),
+  `exposure-parity.spec.ts` (it imported `@playwright/test` and opened a bare
+  `browser.newContext`, so it bypassed both the renderer check and the invite cookie; it now uses
+  `./fixtures` and `newContext`), the smoke script comment, the visual-system module, the runbook
+  and `immersive-rendering-results.md` (a project-based command block; runs recorded with
+  `PW_GPU` are kept as history, with their renderer strings).
+- **Decision 4: the Arabic-script check runs on a fixture.** Content round 2 dropped the only
+  Arabic-script quote (Ajrakh etymology, an unverified-kind source), so the old assertion "the
+  curated content has at least one run" could no longer hold. `tests/fixtures/arabic-script-quotes.json`
+  holds that quote verbatim (checked character for character against `main`'s content) with
+  its expected runs (sd, fa, fa); it is a test string, never imported. The test still checks
+  every Arabic-script quote content/ may hold for unchanged text, and the rendered
+  `<span lang dir="rtl">` stays covered in `citation-disclosure.test.tsx`.
+- **Decision 5: one provider-neutral runbook and research file.** `docs/deploy/RUNBOOK.md` is
+  the handover runbook (both options, Ankit chooses; section 0 asks for the ethics check of data
+  location first). The Neon and R2 notes join `docs/deploy/RESEARCH.md` as an addendum (N§1 to
+  N§9). Every quote in both was matched mechanically (normalised whitespace, markup stripped)
+  against saved vendor pages, the live pages fetched at merge, or the repository. Four did not
+  match and were corrected to the page text:
+  - Neon pricing: the Free column reads "$0 /month", Instant restore storage "Free with limited
+    window/size", History window "Up to 6 hours or 1 GB of data changes", Snapshots "1 snapshot",
+    Support "Community (Discord)"; the earlier "History window: 6 hours (1 GB limit)",
+    "Snapshots (manual): 1" and "Instant restore: -" are not on the page;
+  - AWS Free Tier FAQ: the sentence ends "continue using your account and associated services.";
+  - Vercel Spend Management: the sentence continues "so Vercel pauses your projects when the
+    amount is reached.";
+  - Neon DPA: the Grafana sentence continues "in addition to all other listed subprocessors", so
+    it is no longer called the "only location clause".
+- **Decision 6: the invite form's use limit is a numeric text field.** The merged checks found
+  one failure: the Atlas lint (DESIGN.md 9, `tests/unit/design/atlas-lint.test.ts`) refuses number
+  spinners, and the invite form (DR-054) used `type="number"`. It is now `type="text"
+  inputMode="numeric" pattern="[0-9]*"`, as the CMS's year and depth fields; the server schema
+  (`createInviteInput`) still refuses anything but a whole number from 1 to 100000.
+- **Not done here:** the e2e, rendering (C1 to C12, C2c) and low-spec runs, the parity run of
+  record, and the database steps. DR-058 stays "Proposed; adopted after the low-tier
+  measurement" until those runs. The local `vercel-deploy` skill (not in the repository) still
+  describes RDS and `bom1` only.
+- **Equivalence check:** (1) content: the merged content is round 3's (DR-060: structure equal
+  to `main`, text narrowed); (2) exposure: unchanged; (3) citations: unchanged by the merge; (4)
+  ease once a concept is open: unchanged; (5) navigation: DR-058 and DR-053 both kept, 3D only,
+  navigation-only, pending the GPU measurements; (6) salience: one parameter set across wings;
+  (7) telemetry: no event added or changed by the merge.

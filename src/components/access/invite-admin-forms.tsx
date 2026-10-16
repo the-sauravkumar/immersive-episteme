@@ -98,7 +98,7 @@ export function CreateInviteForm({ studies, origin }: { studies: StudyOption[]; 
             </NativeSelect>
           </FormField>
           <FormField id={ids.maxUses} name="maxUses" label="Use limit (optional)" hint="How many browsers may redeem it. Empty means no limit.">
-            <Input id={ids.maxUses} name="maxUses" type="number" inputMode="numeric" min={1} max={100000} step={1} aria-describedby={`${ids.maxUses}-hint ${ids.maxUses}-error`} />
+            <Input id={ids.maxUses} name="maxUses" type="text" inputMode="numeric" pattern="[0-9]*" aria-describedby={`${ids.maxUses}-hint ${ids.maxUses}-error`} />
           </FormField>
           <FormField id={ids.expiresOn} name="expiresOn" label="Last day to redeem (optional, UTC)" hint="It stops admitting new browsers after this day. Browsers that already used it stay in.">
             <Input id={ids.expiresOn} name="expiresOn" type="date" aria-describedby={`${ids.expiresOn}-hint ${ids.expiresOn}-error`} />
