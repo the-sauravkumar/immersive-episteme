@@ -162,3 +162,9 @@ study session and logged as a covariate [DR-013].
   stage order, pending the PI's ruling (DR-060; content/review/unsupported-relationships.json).
 - Bagh, Bagru and Dabu were documented but are outside the study release; they were not
   source-checked to the same standard.
+- The low-tier frame times come from the reference laptop's integrated GPU (Intel Iris Xe) with
+  the CPU throttled four times, through Chromium's headless shell. That route delivers frames at
+  60 Hz, so it cannot show differences below the 16.7 ms frame interval, and it stalled for 77 to
+  127 s two or three times per tour with the page idle, on the build before the visual pass as
+  well. The stalls are listed with each run and the tour no longer skips rooms over them, but
+  their cause is not known (DR-062).

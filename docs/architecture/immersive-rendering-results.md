@@ -283,3 +283,70 @@ The drawing buffer was 1280 x 623 at DPR 1. Nothing else ran on the machine.
 | Legibility | Card titles at least 21:1; 54 room plaques at 2.5 m, at least 19.56:1 |
 
 The numbers are in `analysis/out/museum/rendering-high.json`.
+
+## Merge Verification Run (DR-062): Production Build, GTX 1650 and Iris Xe
+
+The verification of `main` after the merge of the preparation branches (2515cda, DR-061), with
+the fixes of DR-062 applied. One production build (`next build` + `next start` on :3300 with
+`BETTER_AUTH_URL=http://localhost:3300 MEDIA_LOCAL_DIR=.data/media`), one worker, nothing else
+running during the measurements, every browser headless. Commands:
+
+```bash
+IE_GPU=1 IE_MEASURE_ALL=1 IE_RUN_ID=main-final-high PORT=3300 node node_modules/@playwright/test/cli.js test tests/e2e/immersive-rendering.spec.ts --project chromium --workers=1
+IE_GPU=1 IE_MEASURE_ALL=1 IE_RUN_ID=main-final-low PORT=3300 node node_modules/@playwright/test/cli.js test --project low-spec --workers=1
+```
+
+**Renderers recorded:** high tier `ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F9D) Direct3D11
+vs_5_0 ps_5_0, D3D11)`, full Chromium 156.0.8078.4, drawing buffer 1280 x 623 at DPR 1; low tier
+`ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 vs_5_0 ps_5_0, D3D11)`,
+headless shell 156.0.8078.4, CPU x4, drawing buffer 1366 x 671 at DPR 1.
+
+**Result:** GTX 1650 11 of 11 pass (the door-sign rule at 1440 x 900 stays `fixme`, DR-058).
+Iris Xe 12 of 12 pass, the renderer check included; C3 was run again on its own after its time
+limit was raised (two tours with stalls take longer than 30 min) and merged into the same run id.
+
+| Check | Budget | GTX 1650 (`main-final-high`) | Iris Xe (`main-final-low`) |
+|---|---|---|---|
+| C1, 98 viewpoints x 30 frames | ≤ 0.01% | 0 changed pixels | 0 changed pixels |
+| C1b shimmer spikes | 0 | 0 | 0 |
+| C2 clipped / crushed; plate ink; zones | ≤ 0.5%; ±15% | 0.26% / 0.14%; 0.57%; within 3.1% | 0.49% / 0.13%; 0.55%; within 3.1% |
+| C2b wing entrance rooms | ±5% | 168.4 / 173.4 / 166.7, at most 2.3% | 168.1 / 172.9 / 166.3, at most 2.3% |
+| C2c wall L(0.3)/L(1.9); L(3.0)/L(1.9) | 0.930 ± 0.015; 1.038 ± 0.015 | 0.930 to 0.935; 1.036 to 1.044 | 0.926 to 0.933; 1.036 to 1.040 |
+| C2c wall spread per orientation; a*, b* | ≤ 2 levels; ≤ 1.5 | at most 0.79; at most 0.29 | at most 0.79; at most 0.10 |
+| C2c ceiling near cove minus 2 m in; max | ≥ 12; < 250 | 13.0 to 17.9; 219.1 | 13.0 to 17.3; 219.0 |
+| C2c floor contact (five-column mean); floor C* | ≥ 22; 4 to 9 | 24.2 to 34.6; 4.9 to 5.5 | 24.3 to 35.6; 5.1 to 5.5 |
+| C2c reveal normal z / normal x; sill | 182 / 177.5 ± 4; 150 ± 5 | 181.7 to 182.0 / 177.2 to 177.5; 150.4 to 150.9 | 181.4 to 181.6 / 177.0 to 177.2; 149.9 to 150.5 |
+| C2c door frame (edge ≥ 2 px) | ≥ 3:1 | 5.99 to 6.04 (16 rooms read nearer the doorway) | 5.96 to 6.04 |
+| C2c directory at the spawn | ≥ 7:1; ≥ 0.0328 rad | 9.89:1; 0.0331 rad | 11.03:1; 0.0331 rad |
+| C3 p50 / p95 / p99, tours 1 and 2 | high 16.7 / 25 ms; low 33 / 50 ms | 6.9 / 7.1 / 7.2 and 6.9 / 7.1 / 7.2 ms | 16.7 / 16.8 / 16.8 ms on both tours |
+| C3 draw calls; triangles | high 250, 1.5 M; low 120, 400 k | 96; 46,315 | 96; 32,329 |
+| C3 rooms visited | 24 | 24 and 24 | 24 and 24 |
+| C4 frames over 50 ms; programs | high 0, low recorded; before = after | 0 (max 27.8 ms); 17 and 17 | 46 and 48 (stalls below); 17 and 17 |
+| C5, six room views | ≤ 0.2% | 0 differing pixels against the regenerated views | created, not kept (as before) |
+| C6 non-uniform scale, transparent overlap | 0, 0 | 0, 0 (105 meshes) | 0, 0 (105 meshes) |
+| C7, C8, C10 | as configured; restores; 0 / 0 | pass; 1 loss, restored; 0 / 0 | pass; 1 loss, restored; 0 / 0 |
+| C11 geometries and textures after tours 1 and 2; heap | equal; < 10% | 103 / 77 and 103 / 77; +0.09% | 93 / 62 and 93 / 62; -30% |
+| Texture memory during the tour | high 512 MB, low 192 MB | 38.5 MB + 33.5 MB render targets | 38.5 MB + 38.5 MB render targets |
+| C12 SSIM wall, floor colour | ≥ 0.98 | 0.9872, 0.9925 | 0.9872, 0.9925 |
+| Card titles; room plaques at 2.5 m | ≥ 4.5:1 | at least 21:1; 54 plaques, at least 20.26:1 | at least 21:1; 54 plaques, at least 20.50:1 |
+
+**Low-spec frame stalls.** On the headless shell the page received no animation frame for 77 to
+127 s, twice in tour 1 (at 295 and 529 s of tour time) and three times in tour 2 (at 179, 387 and
+567 s). A diagnostic tour showed the main thread idle through the gap, no WebGL context loss and
+no console message. The pre-change build (ec2c4f9) stalled the same way in the same session; the
+GTX 1650 runs never did. The tour now goes on from where the frames stopped (DR-062), so every room
+is measured; the stalls are in `c3.tour*.stalls`. The headless shell delivers frames at 60 Hz, so
+low-tier p50 and p95 sit on the 16.7 ms frame interval.
+
+**Against the pre-change build.** The same session, the same low-spec route, `-g "C3 frame"` on a
+production build of ec2c4f9: p95 16.8 ms on both tours (p99 33.3 and 33.2 ms), 98 draw calls,
+23,151 triangles; that tour still jumped over its stalls (22 and 23 of 24 rooms visited). The
+visual pass therefore adds +0.0 ms at p95 on the low tier, within what a 60 Hz frame clock can
+show.
+
+**First pass, before the fixes (build of 2515cda).** GTX 1650: C5 failed on all six views (the
+visual pass), C2c failed on the wall at 3.0 m (19 rooms), the reveals normal to x (14 doorways),
+floor contact (3 rooms) and the door frame (8 rooms), and C4 counted 16 programs before the
+first tour and 17 after. Iris Xe: C2c failed on floor contact (8 rooms), and C3/C11 on the
+geometry count after the tours. The causes and fixes are in DR-062. The numbers are in
+`analysis/out/museum/rendering-high.json` and `rendering-low.json`.

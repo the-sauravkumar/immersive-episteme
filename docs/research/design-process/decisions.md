@@ -2316,7 +2316,7 @@ novice met, and none touches the sheet.
 - **Paper implications:** report the credit and licence of each figure's source in the materials
   section. The photo set is still one V&A textile per tradition until kind A is proposed.
 
-## DR-058: Visual Pass: Visible Gallery Light, Finished Floor and Ceiling, Portal Reveals, a Directory Board, and a Plan Plate Beside the Home Title (Proposed; adopted after the low-tier measurement)
+## DR-058: Visual Pass: Visible Gallery Light, Finished Floor and Ceiling, Portal Reveals, a Directory Board, and a Plan Plate Beside the Home Title (Adopted under the lead's delegation after the low-tier measurement, DR-062; the C5 views await a human look)
 
 - **Context:** the finished 3D build reads flat. The wall wash fell only 3.5% at 0.3 m (rendered
   201.5 against 205) and rose only 4.8% at 3.1 m (212), both under the visible step for a gradual
@@ -2674,3 +2674,114 @@ novice met, and none touches the sheet.
   ease once a concept is open: unchanged; (5) navigation: DR-058 and DR-053 both kept, 3D only,
   navigation-only, pending the GPU measurements; (6) salience: one parameter set across wings;
   (7) telemetry: no event added or changed by the merge.
+
+## DR-062: Full Verification of `main` After the Merge: One Shader Compiled Late, C2c Targets and Samplers Corrected, a Tour That Does Not Jump Over Frame Stalls (Adopted under the lead's delegation; verification of 2515cda)
+
+- **Context:** one full verification of `main` after the merge (DR-061), in order: a production
+  build served on :3300 (one server), the integration tests, the e2e set on the `chromium`
+  project (NVIDIA GTX 1650, 2 workers), the rendering checks C1 to C12 and C2c on the GTX 1650
+  (1 worker), the `low-spec` project on the Intel Iris Xe, and the 7-point equivalence check.
+  Every browser was headless; each GPU run recorded its WebGL renderer string, and the suite's
+  fixture fails a run on any other GPU.
+- **First-pass results (build of 2515cda):**
+  - integration: 29 files, 280 tests, all pass;
+  - e2e, `chromium` project, 2 workers: 54 pass, 12 skipped (the GPU measurement checks, which
+    run only with `IE_GPU=1`), 1 fail: design-acceptance "performance at a 4x CPU throttle",
+    3D lightbox median 264 ms against 200 ms. Run alone (1 worker) it passed twice: 3D lightbox
+    medians 136 and 120 ms, citation record 104 and 96 ms, 2D 72 to 136 ms, LCP 604 to 688 ms.
+    The two workers share four cores, and the test itself notes that one sample at a 4x
+    throttle spreads from 104 to 224 ms with the machine's other work. Recorded as load, not
+    changed; a measurement of record for that test runs it alone;
+  - GTX 1650: 3 of 11 checks failed: C5 (all six room views changed, as the visual pass
+    intended), C2c (below) and C4 (16 programs before the first tour, 17 after);
+  - Iris Xe: C2c and C3/C11 failed (below).
+- **Decision 1: the unlettered-card program compiles before entry (C4).** The program the
+  pipeline's target needs for the unlettered cards (`panel-blank`, sRGB-linear output) was
+  compiled after entry, when the first wing room's blank cards were drawn: three.js's program
+  list at entry and after each room showed exactly that one program appearing. The pre-change
+  build (ec2c4f9) shows the same 16 to 17 on the Iris Xe, so it predates the merge. The fix
+  follows the existing lettering keeper: `precompileHighlightAndRoute` adds a 1 cm plane with the
+  shared card material below the floor for the entry pass only (`world.ts`, `blankKeeper`); the
+  material lives for the whole visit, so the program does too. Unit test in
+  `gallery-finish.test.ts`. After the fix: 17 programs before and after both tours on both GPUs.
+- **Decision 2: two C2c targets corrected to the spec's own arithmetic.** The C2c samplers (DR-058)
+  ran on a GPU for the first time here:
+  - wall at 3.0 m against 1.9 m: measured 1.036 to 1.044, target 1.025 +/- 0.015. The spec's wash
+    model gives 1.038 for the adopted wash (0.70 / 0.40 / 0.16 / 0.30) and 1.024 for the previous
+    one (0.86 / 0.22 / 0.10 / 0.32): the target was the old wash's value. Now 1.038 +/- 0.015;
+    the 0.3 m target (0.930, which the same model gives) is unchanged;
+  - reveals: measured 177.2 to 177.5 on reveal faces normal to x and 181.7 to 182.0 on those
+    normal to z, target 182 +/- 4. The fixed face shading darkens every face normal to x by
+    `xFacing` 0.95, walls included (C2c already checks the wall spread per orientation for this
+    reason); the same model gives 177.5. The probe now reports each reveal's normal, and the
+    target is 182 (normal z) or 177.5 (normal x), +/- 4. The shading stays, so a reveal keeps the
+    same step under the wall it sits in.
+  Both are unit-tested against the renderer's own arithmetic (`gallery-finish.test.ts`).
+- **Decision 3: the C2c samplers read only what the frame resolves.**
+  - Floor contact (target: 5 cm from the wall at least 22 levels under 1.5 m out). From the
+    centre of the deepest rooms (8.9 m to the wall) the 5 cm strip is about 0.55 px tall at
+    1366 x 671, and from 23 (GTX 1650) and 22 (Iris Xe) of the 24 `#wall` views it is under 2 px, so the near read blended the
+    floor with the skirting and the wall: on the
+    Iris Xe, with fewer accumulated TAA samples, 8 rooms read the near floor 11 to 16 levels
+    brighter than the far floor. On the GTX 1650 the one-column reads ran from 20.2 to 34.9 with
+    the floor grain (floorDetail 0.70) against a model value of about 27. Now the near and far
+    floor are each the mean of five columns 0.15 m apart (inside every clearance tier), and when
+    the strip is under `FLOOR_STRIP_RESOLVED_PX` (2 px) from the view, the same column is read
+    again from straight in front of the wall at the distance where it spans 2.5 px (about 4 m).
+    The one-column values are kept in the results.
+  - Door frame (target: at least 3:1 against the wall). Where the 20 mm edge spans 1.14 to 1.27 px
+    from the room centre, no pixel is wholly the edge and the darkest pixel read 2.3 to 3.7:1;
+    where it spans 1.64 px or more it read 5.92 to 6.04:1. A span of 2 px always contains a whole
+    pixel, so a jamb is now measured only at `DOOR_EDGE_RESOLVED_PX` (2 px) or wider, and when no
+    jamb is that wide from the view the edge is read again from the line to the doorway where it
+    spans about 2.5 px. The room-centre reading is kept as `viewRatio`. The edge colour is
+    unchanged since DR-023. That a 20 mm edge thins to about a pixel from the centre of a large
+    room is a property of the design, left for the human look at the visual pass.
+  After the change: floor contact 24.2 to 34.6 levels (GTX 1650) and 24.3 to 35.6 (Iris Xe);
+  door frame 5.96 to 6.04:1 on both. Unit tests in `probe-geometry.test.ts`. No target was loosened: the two corrections in
+  Decision 2 follow from arithmetic, and these change only where a sample is read.
+- **Decision 4: the probe tour does not jump over frame stalls; the low-spec stall is recorded.**
+  On the `low-spec` project (headless shell on the Iris Xe, CPU x4) the page received no
+  animation frame for 77 to 127 s, two or three times a tour. A diagnostic run showed the main
+  thread idle through the gap (no long task), no WebGL context loss and no console message; the
+  pre-change build stalled the same way (102 and 120 s), and the high tier (full Chromium on the
+  GTX 1650) never did. The tour's clock is wall time, so after a stall the visitor jumped ahead:
+  21 to 23 of 24 rooms were visited, residency built several rooms at once (199 draw calls in one
+  frame of one run) and C11 compared different end states (geometries 106 or 108 against 103, heap
+  +27%). The tour now advances by an ordinary frame over any gap longer than 1 s
+  (`TOUR_STALL_MS`), lists each stall, and keeps the gap in the frame deltas; the C3 test's limit
+  is 50 min. After the change both tours visit all 24 rooms, and C3, C4 and C11 pass. The cause of
+  the stall is not found: it is in the browser's frame production on this machine, not in the
+  page's JavaScript, and it needs a separate look before the low tier is used as evidence of
+  smoothness on integrated graphics.
+- **Decision 5: C5 baselines.** The six high-tier views were regenerated: the old and new images
+  and side-by-side pairs are kept for a human review (scratchpad
+  `final-review/baselines-for-review/`). Checked by eye: the differences are the visual pass's
+  (the wash gradient, the darker ceiling with the brighter cove band, the oak-toned floor, the
+  directory board with its heading and arrows, the narrower door signs and the reveals); nothing
+  else moved. The low-tier views were created again and, as before, not added to the repository.
+- **Decision 6: DR-058 is adopted.** Its stop rule did not trigger, so no visual parameter was
+  reverted: C2 clipped at most 0.26% (GTX 1650) and 0.49% (Iris Xe) against 0.5%; C2b within
+  2.3% against +/-5% on both; C1b no spike on either; low-tier p95 16.8 ms on both tours against
+  33 ms, and 16.8 ms on the pre-change build in the same session (+0.0 ms; the headless shell
+  delivers frames at 60 Hz, so both sit on the 16.7 ms frame interval, and a 1 ms difference
+  below that would not show). The Iris Xe clipping is close to its limit, so a later finish change
+  must be measured on the low tier first.
+- **Final results (production build with the fixes):** see `docs/architecture/immersive-rendering-results.md`,
+  "Merge Verification Run (DR-062)". GTX 1650 (run `main-final-high`): 11 of 11 pass, C5 with 0 differing pixels against the regenerated views; the door-sign rule at 1440 x 900 stays `fixme` (DR-058). Iris Xe (run
+  `main-final-low`): 12 of 12 pass after the C3 timeout change.
+- **After the fixes:** unit and component tests 158 files, 1,912 tests, all pass (4 workers);
+  ESLint and the typecheck pass; the 3D e2e set on the final build (immersive flow, parity quick,
+  exposure parity, the GPU renderer check, public pages, the study journey; 2 workers) 24 of 24
+  pass.
+- **Not done here:** the full parity run of record (the quick parity run passed in the e2e set;
+  the quick report is not kept, and `analysis/parity/interface-parity.json` is unchanged), the
+  database steps, and the cause of the low-spec stall.
+- **Equivalence check:** (1) content: unchanged; (2) exposure: unchanged (the keeper is drawn in
+  the entry pass only, under the floor, before the visitor can see anything); (3) citations:
+  unchanged; (4) ease once a concept is open: unchanged; (5) navigation: unchanged for the
+  participant; one fewer shader compile after entry in 3D, which removes a possible hitch and
+  handicaps neither condition; (6) salience: one parameter set, unchanged; (7) telemetry: no
+  event added or changed. The probe and the tests change only measurement (`?probe=1`, outside
+  study mode). Parity and immersive unit suites and the 3D e2e set were run after the changes
+  (results in the run section).

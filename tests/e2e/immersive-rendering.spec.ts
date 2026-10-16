@@ -40,17 +40,24 @@ test.describe.configure({ mode: MEASURE_ALL ? "default" : "serial", timeout: 30 
 const OUT = path.join(process.cwd(), "analysis/out/museum");
 const BASELINES = path.join(process.cwd(), "tests/e2e/immersive-baselines");
 
-/** C2c targets (DR-058 visual pass, spec §A1-A5): 8-bit sRGB luma levels, CIELAB D65, WCAG ratios, radians. */
+/**
+ * C2c targets (DR-058 visual pass, spec §A1-A5): 8-bit sRGB luma levels, CIELAB D65, WCAG ratios,
+ * radians. Corrected at the merge run (DR-062):
+ *  - `wallHigh` is the spec's own wash model at 3.0 m for the adopted wash (0.70 / 0.40 / 0.16 /
+ *    0.30): 212.8 / 205.0 = 1.038; the spec's 1.025 was the value of the previous wash (1.024);
+ *  - `reveal.xFacing`: a reveal face normal to x carries the fixed face shading `xFacing` 0.95, as
+ *    the walls do, so it renders at 177.5 (the same model), not 182.
+ */
 const C2C_TARGETS = {
   wallLow: { target: 0.93, tolerance: 0.015 },
-  wallHigh: { target: 1.025, tolerance: 0.015 },
+  wallHigh: { target: 1.038, tolerance: 0.015 },
   wallSpread: 2,
   wallNeutral: 1.5,
   ceilingDelta: 12,
   ceilingMax: 250,
   floorContactDelta: 22,
   floorChroma: [4, 9],
-  reveal: { target: 182, tolerance: 4 },
+  reveal: { target: 182, xFacing: 177.5, tolerance: 4 },
   threshold: { target: 150, tolerance: 5 },
   doorFrame: 3,
   directoryContrast: 7,
@@ -78,7 +85,7 @@ type Probe = {
   viewpoints(): Pose[];
   stability(p: Pose, n: number): Promise<{ pixels: number; changed: number[]; luminance: { mean: number; clippedFraction: number; crushedFraction: number; inkFraction?: number } }>;
   slowYaw(p: Pose, n: number, step: number): Promise<{ meanAbsDiffPerFrame: number[] }>;
-  tour(speed: number, turnRate: number): Promise<{ durationS: number; lengthM: number; unreachable: string[]; roomsVisited: string[]; programsBefore: number; programsAfter: number; frames: { t: number; calls: number; triangles: number; programs: number; moving: boolean }[]; rafDeltas: number[] }>;
+  tour(speed: number, turnRate: number): Promise<{ durationS: number; lengthM: number; unreachable: string[]; roomsVisited: string[]; programsBefore: number; programsAfter: number; frames: { t: number; calls: number; triangles: number; programs: number; moving: boolean }[]; rafDeltas: number[]; stalls?: { atS: number; gapS: number }[] }>;
   memory(): { geometries: number; textures: number; programs: number; jsHeap: number | null; letteringTexels: number; residentRooms: number };
   textureBytes(): { textures: number; renderTargets: number };
   sceneAudit(): { meshes: number; nonUniform: number; transparent: number; imagePlanesDeclared: number; imagePlanesDrawn: number };
@@ -100,17 +107,17 @@ type Probe = {
     normalAxis?: "x" | "z";
     wallDistance?: number;
     wall: { column: C2cColumn; pitch: number; turnedDeg: number; levels: number[]; ratioLow: number; ratioHigh: number; lab: C2cLab; bandSamples: number } | null;
-    floor: { column: C2cColumn; pitch: number; turnedDeg: number; near: number; far: number; delta: number; lab: C2cLab; regionSamples: number } | null;
+    floor: { column: C2cColumn; pitch: number; turnedDeg: number; near: number; far: number; delta: number; nearSamples?: number; farSamples?: number; columnDelta?: number; lab: C2cLab; regionSamples: number } | null;
     ceiling: { column: C2cColumn; pitch: number; turnedDeg: number; near: number; in: number; delta: number; max: number; gridSamples: number } | null;
     reasons?: { wall: string | null; floor: string | null; ceiling: string | null };
   }>;
   portalSurfaces(v: Pose): Promise<{
     portalId: string;
     reason: string | null;
-    reveal: { pitch: number | null; turnedDeg: number | null; jambs: { jamb: string; n: number; of: number; mean: number }[]; n: number; mean: number; reason: string | null } | null;
+    reveal: { pitch: number | null; turnedDeg: number | null; normalAxis: "x" | "z"; jambs: { jamb: string; n: number; of: number; mean: number }[]; n: number; mean: number; reason: string | null } | null;
     threshold: { pitch: number | null; turnedDeg: number | null; n: number; of: number; mean: number; reason: string | null } | null;
   }>;
-  doorFrame(v: Pose): Promise<{ roomId: string; portalId: string | null; reason: string | null; pitch?: number; turnedDeg?: number; jambs: { jamb: string; rows: number; widthPx: number; frameLuminance: number; wallLuminance: number; ratio: number; measured: boolean; reason: string | null }[]; ratio: number | null }>;
+  doorFrame(v: Pose): Promise<{ roomId: string; portalId: string | null; reason: string | null; pitch?: number; turnedDeg?: number; jambs: { jamb: string; rows: number; widthPx: number; frameLuminance: number; wallLuminance: number; ratio: number; measured: boolean; reason: string | null }[]; ratio: number | null; viewRatio?: number | null; closer?: { distance: number; scale: number } | null }>;
   directoryLegibility(p: Pose): Promise<{
     roomId: string;
     drawingBuffer: { width: number; height: number };
@@ -353,7 +360,10 @@ test("C2c finish on screen (DR-058): wall wash, ceiling cove, floor contact and 
   for (const v of vps.filter((x) => x.kind === "doorway")) portals.push(await call(page, "portalSurfaces", v));
   for (const p of portals) {
     expect.soft(p.reveal?.n ?? 0, `C2c reveal samples ${p.portalId}: ${p.reason ?? p.reveal?.reason ?? ""}`).toBeGreaterThan(0);
-    if (p.reveal && p.reveal.n > 0) expect.soft(Math.abs(p.reveal.mean - T.reveal.target), `C2c reveal ${p.portalId} = ${p.reveal.mean}`).toBeLessThanOrEqual(T.reveal.tolerance);
+    if (p.reveal && p.reveal.n > 0) {
+      const target = p.reveal.normalAxis === "x" ? T.reveal.xFacing : T.reveal.target;
+      expect.soft(Math.abs(p.reveal.mean - target), `C2c reveal ${p.portalId} (normal ${p.reveal.normalAxis}) = ${p.reveal.mean}`).toBeLessThanOrEqual(T.reveal.tolerance);
+    }
     if (p.threshold) {
       expect.soft(p.threshold.n, `C2c threshold samples ${p.portalId}: ${p.threshold.reason ?? ""}`).toBeGreaterThan(0);
       if (p.threshold.n > 0) expect.soft(Math.abs(p.threshold.mean - T.threshold.target), `C2c threshold ${p.portalId} = ${p.threshold.mean}`).toBeLessThanOrEqual(T.threshold.tolerance);
@@ -388,12 +398,16 @@ test("C2c finish on screen (DR-058): wall wash, ceiling cove, floor contact and 
       ceilingDelta: summary(rooms.flatMap((r) => (r.ceiling ? [r.ceiling.delta] : []))),
       ceilingMax: summary(rooms.flatMap((r) => (r.ceiling ? [r.ceiling.max] : []))),
       floorContactDelta: summary(rooms.flatMap((r) => (r.floor ? [r.floor.delta] : []))),
+      floorContactDeltaOneColumn: summary(rooms.flatMap((r) => (r.floor?.columnDelta != null ? [r.floor.columnDelta] : []))),
       floorChroma: summary(rooms.flatMap((r) => (r.floor ? [r.floor.lab.C] : []))),
       wallAbsA: summary(measured.map((r) => Math.abs(r.wall!.lab.a))),
       wallAbsB: summary(measured.map((r) => Math.abs(r.wall!.lab.b))),
       reveal: summary(portals.flatMap((p) => (p.reveal && p.reveal.n > 0 ? [p.reveal.mean] : []))),
+      revealByNormal: (["x", "z"] as const).map((axis) => ({ normalAxis: axis, ...summary(portals.flatMap((p) => (p.reveal && p.reveal.n > 0 && p.reveal.normalAxis === axis ? [p.reveal.mean] : []))) })),
       threshold: summary(portals.flatMap((p) => (p.threshold && p.threshold.n > 0 ? [p.threshold.mean] : []))),
       doorFrame: summary(doors.flatMap((d) => (d.ratio !== null ? [d.ratio] : []))),
+      doorFrameFromRoomCentre: summary(doors.flatMap((d) => (d.viewRatio != null ? [d.viewRatio] : []))),
+      doorFrameReadCloser: doors.filter((d) => d.closer).map((d) => ({ roomId: d.roomId, ...d.closer })),
       directoryMinContrast: directory?.minContrast ?? null,
       directoryMinTitleEmAngle: directory?.minTitleEmAngle ?? null,
       directoryMinTitleEmSubtended: directory?.minTitleEmSubtended ?? null,
@@ -436,6 +450,9 @@ test.fixme("Door signs at the spawn (1440 x 900): every plaque fully in view or 
 });
 
 test("C3 frame times, C4 hitches and shader compiles, C11 memory over two tours", async () => {
+  // Two tours of about 12 min each, plus any frame stalls, which the tour no longer jumps over
+  // (DR-062: on the low-spec route a tour can stall for two minutes): more than the 30 min default.
+  test.setTimeout(50 * 60_000);
   const gc = async () => {
     await cdp.send("HeapProfiler.collectGarbage");
     await page.waitForTimeout(500);
@@ -462,6 +479,7 @@ test("C3 frame times, C4 hitches and shader compiles, C11 memory over two tours"
       durationS: t.durationS,
       lengthM: t.lengthM,
       roomsVisited: t.roomsVisited.length,
+      stalls: t.stalls ?? [],
       unreachable: t.unreachable,
       frames: deltas.length,
       p50: pct(deltas, 50),

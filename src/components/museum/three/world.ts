@@ -115,6 +115,8 @@ export class MuseumWorld {
   private routeMesh: THREE.Mesh | null = null;
   /** Holds the lettering program for the whole visit (see precompileHighlightAndRoute). */
   private letteringKeeper: THREE.Mesh | null = null;
+  /** Draws the unlettered-card material in the entry pass (see precompileHighlightAndRoute). */
+  private blankKeeper: THREE.Mesh | null = null;
   stats: WorldStats = { architectureTriangles: 0, architectureMeshes: 0, residentRooms: 0, letteringTexels: 0 };
 
   private readonly doorSignsByRoom = new Map<string, SceneDoorSign[]>();
@@ -713,6 +715,20 @@ export class MuseumWorld {
       this.letteringKeeper.frustumCulled = false;
     }
     this.root.add(this.letteringKeeper);
+    // The unlettered-card material needs a program for the pipeline's own target too, and the
+    // entry pass compiles one only if some blank card is drawn in it, which the spawn view does not
+    // guarantee. In the merge run of 2515cda (DR-062) it compiled after entry, when the first wing
+    // room's blank cards were drawn (C4: 16 programs before the tour, 17 after). A tiny plane with the shared
+    // material, drawn below the floor in the entry pass only, compiles it there; the material lives
+    // for the whole visit, so the program does too.
+    if (!this.blankKeeper) {
+      const geo = new THREE.PlaneGeometry(0.01, 0.01);
+      this.owned.geometries.push(geo);
+      this.blankKeeper = new THREE.Mesh(geo, this.mats.panelBlank);
+      this.blankKeeper.position.set(this.model.spawn.x, -1, this.model.spawn.z);
+      this.blankKeeper.frustumCulled = false;
+    }
+    this.root.add(this.blankKeeper);
     this.setRoute([
       { x: this.model.spawn.x, z: this.model.spawn.z },
       { x: this.model.spawn.x + 0.5, z: this.model.spawn.z },
@@ -726,6 +742,7 @@ export class MuseumWorld {
     this.setHighlight(null, false);
     this.setRoute(null);
     if (this.letteringKeeper) this.root.remove(this.letteringKeeper);
+    if (this.blankKeeper) this.root.remove(this.blankKeeper);
   }
 
   dispose() {

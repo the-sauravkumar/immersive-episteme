@@ -27,7 +27,11 @@ import {
   columnPoints,
   doorEdgePoints,
   doorOfRoom,
+  DOOR_EDGE_RESOLVED_PX,
+  FLOOR_STRIP_RESOLVED_PX,
+  facePoint,
   fitView,
+  floorStripPx,
   labOfLinear,
   lumaLevels,
   mean,
@@ -41,6 +45,7 @@ import {
   srgb8ToLinear,
   thresholdPoints,
   viewTarget,
+  wallDistanceForStripPx,
 } from "./probe-geometry";
 import type { WebGLPipeline } from "./three/pipeline";
 import { GALLERY_FINISH, STUDY_RENDER_CONFIG, type LoadedTextures } from "./three/resources";
@@ -73,6 +78,8 @@ interface FrameRecord {
 }
 
 const nextFrame = () => new Promise<number>((r) => requestAnimationFrame(r));
+/** A frame gap longer than this is a stall: the tour does not jump ahead over it (see `tour`). */
+const TOUR_STALL_MS = 1000;
 
 const TONE: Record<number, string> = { [THREE.NoToneMapping]: "none", [THREE.NeutralToneMapping]: "neutral", [THREE.ACESFilmicToneMapping]: "aces", [THREE.AgXToneMapping]: "agx" };
 
@@ -456,12 +463,22 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
       const rafDeltas: number[] = [];
       const t0 = performance.now();
       let prevT = t0;
+      // Tour time advances with the frames, but a gap over TOUR_STALL_MS (no frame at all for
+      // that long) advances it by one ordinary frame only: the visitor then goes on from where the
+      // frames stopped instead of jumping ahead and skipping rooms. The gap itself stays in
+      // `rafDeltas` (C3/C4) and is listed in `stalls` (DR-062: the low-spec headless shell gave no
+      // frame for 90 to 125 s, once or twice a tour, with the main thread idle).
+      let tourT = 0;
+      const stalls: { atS: number; gapS: number }[] = [];
       const roomsVisited = new Set<string>();
       for (;;) {
         const now = await nextFrame();
-        rafDeltas.push(now - prevT);
+        const delta = now - prevT;
+        rafDeltas.push(delta);
         prevT = now;
-        const p = poseAt(segments, (now - t0) / 1000, speed, turnRate);
+        if (delta > TOUR_STALL_MS) stalls.push({ atS: Math.round(tourT * 10) / 10, gapS: Math.round(delta / 100) / 10 });
+        tourT += (delta > TOUR_STALL_MS ? 1000 / 60 : delta) / 1000;
+        const p = poseAt(segments, tourT, speed, turnRate);
         if (!p) break;
         host.setPose(p.x, p.z, p.yaw, p.pitch);
         if (host.roomId) roomsVisited.add(host.roomId);
@@ -479,6 +496,7 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
         programsAfter: host.renderer.info.programs?.length ?? 0,
         frames: records,
         rafDeltas,
+        stalls,
       };
     },
     /** C8: lose and restore the WebGL context. */
@@ -670,16 +688,61 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
       }
 
       // One pixel row at the near point: 5 cm of floor is 2 to 4 px deep from the room centre.
+      // `near` and `far` are means over the sampling column and the `floorAlong` columns (the grain
+      // moves one read by several levels); the column's own reads are kept as `columnNear/Far`.
       let floor: Record<string, unknown> | null = null;
       const fl = await firstClear((c) => {
         const pts = columnPoints(face, c);
-        return { essential: pts.floor, extra: pts.floorRegion };
+        return { essential: pts.floor, extra: [...pts.floorLine, ...pts.floorRegion] };
       }, { rx: 3, ry: 0 });
+      // From the centre of a deep room the 5 cm strip is under a pixel tall, so the near read blends
+      // the floor with the skirting and the wall (DR-062). Then the same column is read again from
+      // straight in front of it, at the distance where the strip spans about 2.5 px.
+      let floorCloser: { distance: number; stripPxAtView: number; stripPx: number } | null = null;
       if (fl.c && fl.r) {
-        const near = lumaOf(fl.r.samples, "floor@near");
-        const far = lumaOf(fl.r.samples, "floor@far");
-        const region = fl.r.samples.filter((s) => s.key.startsWith("floorRegion:"));
-        floor = { column: column(fl.c), pitch: fl.r.pitch, turnedDeg: fl.r.turnedDeg, near: round(near, 2), far: round(far, 2), delta: round(far - near, 2), lab: roundLab(labOfLinear(meanLinear(region))), regionSamples: region.filter(good).length };
+        const gl = host.renderer.getContext();
+        const focalPx = gl.drawingBufferHeight / 2 / Math.tan((host.camera.fov * Math.PI) / 360);
+        const perpendicular = face.depth - face.cameraDepth;
+        const atView = floorStripPx(focalPx, VISITOR.eyeHeight, perpendicular, C2C.floorNear);
+        if (atView < FLOOR_STRIP_RESOLVED_PX) {
+          const distance = wallDistanceForStripPx(focalPx, VISITOR.eyeHeight, C2C.floorNear, 2.5, perpendicular);
+          const at = facePoint(face, fl.c.lateral, face.depth - distance, 0);
+          const base: Pose = { ...view, x: at[0], z: at[2] };
+          const pts = columnPoints(face, fl.c);
+          const r = await readGroup(frameSource(base), base, pts.floor, [...pts.floorLine, ...pts.floorRegion], { rx: 3, ry: 0 });
+          if (r.ok && r.pitch !== null && r.turnedDeg !== null) {
+            fl.r = { ...r, pitch: r.pitch, turnedDeg: r.turnedDeg };
+            floorCloser = { distance: round(distance, 2), stripPxAtView: round(atView, 2), stripPx: round(floorStripPx(focalPx, VISITOR.eyeHeight, distance, C2C.floorNear), 2) };
+          }
+        }
+      }
+      if (fl.c && fl.r) {
+        const samples = fl.r.samples;
+        const lineMean = (which: "near" | "far") => {
+          const ss = samples.filter((s) => (s.key === `floor@${which}` || s.key.startsWith(`floor@${which}:`)) && good(s));
+          return { mean: mean(ss.map((s) => s.luma!)), n: ss.length };
+        };
+        const near = lineMean("near");
+        const far = lineMean("far");
+        const columnNear = lumaOf(samples, "floor@near");
+        const columnFar = lumaOf(samples, "floor@far");
+        const region = samples.filter((s) => s.key.startsWith("floorRegion:"));
+        floor = {
+          column: column(fl.c),
+          pitch: fl.r.pitch,
+          turnedDeg: fl.r.turnedDeg,
+          near: round(near.mean, 2),
+          far: round(far.mean, 2),
+          delta: round(far.mean - near.mean, 2),
+          nearSamples: near.n,
+          farSamples: far.n,
+          columnNear: round(columnNear, 2),
+          columnFar: round(columnFar, 2),
+          columnDelta: round(columnFar - columnNear, 2),
+          lab: roundLab(labOfLinear(meanLinear(region))),
+          regionSamples: region.filter(good).length,
+          closer: floorCloser,
+        };
       }
 
       let ceiling: Record<string, unknown> | null = null;
@@ -724,7 +787,10 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
         return { jamb: j.jamb, n: ss.length, of: j.points.length, mean: round(mean(ss.map((s) => s.luma!)), 2) };
       });
       const seen = rv.samples.filter(good);
-      const reveal = { pitch: rv.pitch, turnedDeg: rv.turnedDeg, jambs, n: seen.length, mean: round(mean(seen.map((s) => s.luma!)), 2), reason: rv.pitch === null ? rv.reason : null };
+      // The reveal faces' normal runs along the opening (world.ts tints the faces along `alongAxis`):
+      // a face normal to x carries the fixed face shading `xFacing`, as the walls do.
+      const normalAxis: "x" | "z" = portal.axis === "z" ? "z" : "x";
+      const reveal = { pitch: rv.pitch, turnedDeg: rv.turnedDeg, normalAxis, jambs, n: seen.length, mean: round(mean(seen.map((s) => s.luma!)), 2), reason: rv.pitch === null ? rv.reason : null };
       const tp = thresholdPoints(portal.threshold).map((p, i) => ({ key: `threshold:${i}`, p }));
       let threshold: { pitch: number | null; turnedDeg: number | null; n: number; of: number; mean: number; reason: string | null } | null = null;
       if (tp.length) {
@@ -738,51 +804,89 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
      * C2c on a `room:<id>#door` view (spec §A4): the door frame against the wall. For each jamb and
      * height, the darkest pixel across the jamb's 20 mm room-facing edge (the frame's darkest part,
      * the edge colour) against the wall 0.25 m beyond the opening on the same face (5 x 5 median);
-     * WCAG ratio of the medians over the heights. A jamb whose edge is under 1 px wide on screen (seen
-     * edge-on) is reported and not measured.
+     * WCAG ratio of the medians over the heights. A jamb whose edge spans fewer than
+     * DOOR_EDGE_RESOLVED_PX on screen is reported and not measured; when no jamb is measurable from
+     * the view, the edge is read again from nearer the doorway (see below).
      */
     async doorFrame(view: Pose & { id?: string; roomId?: string }) {
       const roomId = view.roomId ?? viewTarget(view.id ?? "").target;
       const portal = doorOfRoom(host.model, roomId);
       if (!portal) return { roomId, portalId: null, reason: "room has no doorway", jambs: [], ratio: null };
-      const edges = doorEdgePoints(portal, view);
-      const pts = edges.flatMap((j) => j.rows.flatMap((r) => [r.edge[0], r.edge[1], r.wall]));
-      const dir = viewFor(view, pts);
-      if (!dir) return { roomId, portalId: portal.id, reason: "the door does not fit one frame", jambs: [], ratio: null };
-      const f = await frameSource(view)(dir.yaw, dir.pitch);
-      const meshes = visibleMeshes();
-      const lumAt = (x: number, y: number) => {
-        const i = (y * f.w + x) * 4;
-        return relativeLuminance(f.px[i]!, f.px[i + 1]!, f.px[i + 2]!);
-      };
-      const jambs = edges.map((j) => {
-        const rows: { y: number; widthPx: number; frame: number; wall: number }[] = [];
-        for (const r of j.rows) {
-          const a = toPixel(f, r.edge[0]);
-          const b = toPixel(f, r.edge[1]);
-          const mid: Vec3 = [(r.edge[0][0] + r.edge[1][0]) / 2, r.y, (r.edge[0][2] + r.edge[1][2]) / 2];
-          const wp = toPixel(f, r.wall);
-          if (!a?.inFrame || !b?.inFrame || !wp?.inFrame || occluded(f, mid, meshes) || occluded(f, r.wall, meshes)) continue;
-          const row = Math.floor((a.y + b.y) / 2);
-          let frame = Infinity;
-          for (let x = Math.max(0, Math.floor(Math.min(a.x, b.x)) - 1); x <= Math.min(f.w - 1, Math.ceil(Math.max(a.x, b.x)) + 1); x++) frame = Math.min(frame, lumAt(x, row));
-          const wl: number[] = [];
-          for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
-            const x = Math.floor(wp.x) + dx;
-            const y = Math.floor(wp.y) + dy;
-            if (x >= 0 && y >= 0 && x < f.w && y < f.h) wl.push(lumAt(x, y));
+      /** Reads every jamb from `base`; a jamb is measured when its edge spans at least DOOR_EDGE_RESOLVED_PX. */
+      const read = async (base: Pose) => {
+        const edges = doorEdgePoints(portal, base);
+        const pts = edges.flatMap((j) => j.rows.flatMap((r) => [r.edge[0], r.edge[1], r.wall]));
+        const dir = viewFor(base, pts);
+        if (!dir) return null;
+        const f = await frameSource(base)(dir.yaw, dir.pitch);
+        const meshes = visibleMeshes();
+        const lumAt = (x: number, y: number) => {
+          const i = (y * f.w + x) * 4;
+          return relativeLuminance(f.px[i]!, f.px[i + 1]!, f.px[i + 2]!);
+        };
+        const jambs = edges.map((j) => {
+          const rows: { y: number; widthPx: number; frame: number; wall: number }[] = [];
+          for (const r of j.rows) {
+            const a = toPixel(f, r.edge[0]);
+            const b = toPixel(f, r.edge[1]);
+            const mid: Vec3 = [(r.edge[0][0] + r.edge[1][0]) / 2, r.y, (r.edge[0][2] + r.edge[1][2]) / 2];
+            const wp = toPixel(f, r.wall);
+            if (!a?.inFrame || !b?.inFrame || !wp?.inFrame || occluded(f, mid, meshes) || occluded(f, r.wall, meshes)) continue;
+            const row = Math.floor((a.y + b.y) / 2);
+            let frame = Infinity;
+            for (let x = Math.max(0, Math.floor(Math.min(a.x, b.x)) - 1); x <= Math.min(f.w - 1, Math.ceil(Math.max(a.x, b.x)) + 1); x++) frame = Math.min(frame, lumAt(x, row));
+            const wl: number[] = [];
+            for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+              const x = Math.floor(wp.x) + dx;
+              const y = Math.floor(wp.y) + dy;
+              if (x >= 0 && y >= 0 && x < f.w && y < f.h) wl.push(lumAt(x, y));
+            }
+            rows.push({ y: r.y, widthPx: round(Math.abs(b.x - a.x), 2), frame, wall: median(wl) });
           }
-          rows.push({ y: r.y, widthPx: round(Math.abs(b.x - a.x), 2), frame, wall: median(wl) });
+          const widthPx = median(rows.map((r) => r.widthPx));
+          const frameL = median(rows.map((r) => r.frame));
+          const wallL = median(rows.map((r) => r.wall));
+          const measured = rows.length >= 2 && widthPx >= DOOR_EDGE_RESOLVED_PX;
+          const ratio = (Math.max(frameL, wallL) + 0.05) / (Math.min(frameL, wallL) + 0.05);
+          const reason = measured ? null : rows.length < 2 ? "edge not in view" : `edge under ${DOOR_EDGE_RESOLVED_PX} px wide`;
+          return { jamb: j.jamb, rows: rows.length, widthPx: round(widthPx, 2), frameLuminance: round(frameL, 4), wallLuminance: round(wallL, 4), ratio: round(ratio, 3), measured, reason };
+        });
+        const measured = jambs.filter((j) => j.measured);
+        return { pitch: round(dir.pitch, 4), turnedDeg: turnedDeg(base, dir.yaw), jambs, ratio: measured.length ? Math.min(...measured.map((j) => j.ratio)) : null };
+      };
+      const atView = await read(view);
+      if (!atView) return { roomId, portalId: portal.id, reason: "the door does not fit one frame", jambs: [], ratio: null };
+      // From the room centre the 20 mm edge can be narrower than 2 px; no pixel is then wholly the
+      // edge (anti-aliasing blends it with the reveal and the wall), so its colour cannot be read
+      // there. The room-centre reading is kept (`viewRatio`, `viewJambs`), and the edge is read
+      // again from a point on the line to the doorway where it spans about 2.5 px (DR-062).
+      let closer: { distance: number; scale: number; pitch: number; turnedDeg: number; jambs: typeof atView.jambs; ratio: number | null } | null = null;
+      if (atView.ratio === null) {
+        const seen = atView.jambs.filter((j) => j.rows >= 2 && j.widthPx > 0);
+        const door = doorEdgePoints(portal, view).flatMap((j) => j.rows.flatMap((r) => r.edge));
+        const cx = mean(door.map((p) => p[0]));
+        const cz = mean(door.map((p) => p[2]));
+        const d = Math.hypot(view.x - cx, view.z - cz);
+        if (seen.length && d > 0) {
+          const distance = Math.max(1, (d * Math.max(...seen.map((j) => j.widthPx))) / 2.5);
+          const base: Pose = { ...view, x: cx + ((view.x - cx) * distance) / d, z: cz + ((view.z - cz) * distance) / d };
+          const r = await read(base);
+          if (r) closer = { distance: round(distance, 2), scale: round(distance / d, 3), ...r };
         }
-        const widthPx = median(rows.map((r) => r.widthPx));
-        const frameL = median(rows.map((r) => r.frame));
-        const wallL = median(rows.map((r) => r.wall));
-        const measured = rows.length >= 2 && widthPx >= 1;
-        const ratio = (Math.max(frameL, wallL) + 0.05) / (Math.min(frameL, wallL) + 0.05);
-        return { jamb: j.jamb, rows: rows.length, widthPx: round(widthPx, 2), frameLuminance: round(frameL, 4), wallLuminance: round(wallL, 4), ratio: round(ratio, 3), measured, reason: measured ? null : rows.length < 2 ? "edge not in view" : "edge under 1 px wide" };
-      });
-      const measured = jambs.filter((j) => j.measured);
-      return { roomId, portalId: portal.id, pitch: round(dir.pitch, 4), turnedDeg: turnedDeg(view, dir.yaw), reason: measured.length ? null : "no jamb measurable", jambs, ratio: measured.length ? Math.min(...measured.map((j) => j.ratio)) : null };
+      }
+      const used = closer && closer.ratio !== null ? closer : atView;
+      return {
+        roomId,
+        portalId: portal.id,
+        pitch: used.pitch,
+        turnedDeg: used.turnedDeg,
+        reason: used.ratio !== null ? null : "no jamb measurable",
+        jambs: used.jambs,
+        ratio: used.ratio,
+        viewRatio: atView.ratio,
+        viewJambs: atView.jambs,
+        closer: closer ? { distance: closer.distance, scale: closer.scale } : null,
+      };
     },
     /**
      * C2c directory at a pose (spec §A5; the spec runs it at `spawnView()`): for the heading and each

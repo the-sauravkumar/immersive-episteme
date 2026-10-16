@@ -9,6 +9,10 @@ import { describe, expect, it } from "vitest";
 import {
   C2C,
   WALL_CLEARANCE,
+  DOOR_EDGE_RESOLVED_PX,
+  FLOOR_STRIP_RESOLVED_PX,
+  floorStripPx,
+  wallDistanceForStripPx,
   ceilingGrid,
   columnPoints,
   contrastRatio,
@@ -215,7 +219,7 @@ describe("room-wall views: the wall, floor and ceiling columns", () => {
           }
         }
         // Floor samples stand on no plinth, stand or collider.
-        for (const k of [...pts.floor, ...pts.floorRegion]) {
+        for (const k of [...pts.floor, ...pts.floorLine, ...pts.floorRegion]) {
           const [x, , z] = k.p;
           const on = [...model.colliders, ...model.exhibits.flatMap((e) => (e.plinth ? [e.plinth] : []))].find((b) => x > b.min[0] && x < b.max[0] && z > b.min[2] && z < b.max[2]);
           expect(on, `${v.id} ${k.key}`).toBeUndefined();
@@ -238,6 +242,17 @@ describe("room-wall views: the wall, floor and ceiling columns", () => {
     expect(face.depth - dep(pts.floor[0]!.p)).toBeCloseTo(C2C.floorNear, 9);
     expect(face.depth - dep(pts.floor[1]!.p)).toBeCloseTo(C2C.floorFar, 9);
     expect(pts.floor[0]!.p[1]).toBeCloseTo(face.floorY + 0.001, 9);
+    // The floor line (DR-062): near and far again at each `floorAlong` offset along the wall.
+    expect(pts.floorLine).toHaveLength(2 * C2C.floorAlong.length);
+    C2C.floorAlong.forEach((du, i) => {
+      const [n, f] = [pts.floorLine[2 * i]!, pts.floorLine[2 * i + 1]!];
+      expect(lat(n.p)).toBeCloseTo(c.lateral + du, 9);
+      expect(lat(f.p)).toBeCloseTo(c.lateral + du, 9);
+      expect(face.depth - dep(n.p)).toBeCloseTo(C2C.floorNear, 9);
+      expect(face.depth - dep(f.p)).toBeCloseTo(C2C.floorFar, 9);
+    });
+    // Inside the loosest tier's floor clearance, so the extra columns stand clear like the column.
+    expect(Math.max(...C2C.floorAlong.map(Math.abs))).toBeLessThan(Math.min(...WALL_CLEARANCE.tiers.map((t) => t.floor)));
     expect(pts.ceiling.map((k) => face.depth - dep(k.p))).toEqual([expect.closeTo(C2C.ceilingNear, 9), expect.closeTo(C2C.ceilingIn, 9)]);
     expect(pts.ceiling[0]!.p[1]).toBeCloseTo(face.ceilingY! - 0.001, 9);
     // "Within 0.3 m of the cove": the near ceiling point lies between the cove's inner edge and 0.3 m past it.
@@ -361,3 +376,24 @@ describe("doorways: reveals, sills and door edges", () => {
   });
 });
 
+describe("resolvable samples (DR-062)", () => {
+  // 1366 x 671 drawing buffer, 62 degree vertical field of view, eye 1.6 m.
+  const focal = 671 / 2 / Math.tan((62 * Math.PI) / 360);
+  it("puts the 5 cm floor strip under a pixel from 8.9 m and finds the distance where it spans 2.5 px", () => {
+    expect(floorStripPx(focal, 1.6, 8.9, C2C.floorNear)).toBeLessThan(1);
+    const d = wallDistanceForStripPx(focal, 1.6, C2C.floorNear, 2.5, 8.9);
+    expect(d).toBeLessThan(8.9);
+    expect(floorStripPx(focal, 1.6, d, C2C.floorNear)).toBeCloseTo(2.5, 6);
+    // Already resolved: the distance is kept.
+    expect(wallDistanceForStripPx(focal, 1.6, C2C.floorNear, 2.5, 3)).toBe(3);
+    expect(FLOOR_STRIP_RESOLVED_PX).toBeLessThan(2.5);
+  });
+  it("reads a door edge only when it spans at least 2 px, where one whole pixel is always inside it", () => {
+    expect(DOOR_EDGE_RESOLVED_PX).toBe(2);
+    for (const start of [0, 0.25, 0.5, 0.99]) {
+      // Whole pixels inside [start, start + 2]: at least one, wherever the span starts.
+      const whole = Math.floor(start + DOOR_EDGE_RESOLVED_PX) - Math.ceil(start);
+      expect(whole).toBeGreaterThanOrEqual(1);
+    }
+  });
+});

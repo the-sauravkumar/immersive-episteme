@@ -212,6 +212,12 @@ export const C2C = {
   wallBand: { y0: 1.55, y1: 2.25, halfWidth: 0.1 },
   floorNear: 0.05,
   floorFar: 1.5,
+  /**
+   * Extra floor columns either side of the sampling column (m along the wall), for the near and far
+   * reads: the floor's grain (floorDetail 0.70) moves a single 7 x 1 px read by several levels, so
+   * the contact delta is the mean over five columns (DR-062). Inside every tier's floor clearance.
+   */
+  floorAlong: [-0.3, -0.15, 0.15, 0.3],
   /** Floor region for the CIELAB check, past most of the contact shading. */
   floorRegion: { out0: 0.6, out1: 1.6, halfWidth: 0.2 },
   /** Ceiling "near the cove" (within 0.3 m of its inner edge) and "2 m in", from the wall face. */
@@ -356,7 +362,7 @@ export function planWallColumns(model: Pick<SceneModel, "rooms" | "portals" | "e
   return { face, columns };
 }
 
-/** The C2c points for one column: the wall at the three heights, the floor near and far, the ceiling near and in. */
+/** The C2c points for one column: the wall at the three heights, the floor near and far (and at `floorAlong` either side), the ceiling near and in. */
 export function columnPoints(face: WallFace, column: Pick<WallColumn, "lateral">) {
   const u = column.lateral;
   const wall = C2C.wallHeights.map((y) => ({ key: `wall@${y}`, p: wallPoint(face, u, y) }));
@@ -369,6 +375,11 @@ export function columnPoints(face: WallFace, column: Pick<WallColumn, "lateral">
     { key: "floor@near", p: floorPoint(face, u, C2C.floorNear) },
     { key: "floor@far", p: floorPoint(face, u, C2C.floorFar) },
   ];
+  const floorLine: { key: string; p: Vec3 }[] = [];
+  for (const du of C2C.floorAlong) {
+    floorLine.push({ key: `floor@near:${du}`, p: floorPoint(face, u + du, C2C.floorNear) });
+    floorLine.push({ key: `floor@far:${du}`, p: floorPoint(face, u + du, C2C.floorFar) });
+  }
   const floorRegion: { key: string; p: Vec3 }[] = [];
   for (const du of [-1, 0, 1]) for (let i = 0; i <= 4; i++) {
     const out = C2C.floorRegion.out0 + ((C2C.floorRegion.out1 - C2C.floorRegion.out0) * i) / 4;
@@ -380,7 +391,7 @@ export function columnPoints(face: WallFace, column: Pick<WallColumn, "lateral">
     { key: "ceiling@near", p: cNear },
     { key: "ceiling@in", p: cIn },
   ] : [];
-  return { wall, band, floor, floorRegion, ceiling };
+  return { wall, band, floor, floorLine, floorRegion, ceiling };
 }
 
 /**
@@ -486,6 +497,39 @@ export function doorEdgePoints(portal: Pick<ScenePortal, "linings" | "axis">, ca
     return { jamb, rows };
   });
 }
+
+/**
+ * The shortest on-screen height (px) at which the floor's near strip (the `C2C.floorNear` metres in
+ * front of the wall base) is read. Seen level from the room centre of a deep room the strip is under
+ * a pixel tall, so the near read blends the floor with the skirting and the wall (DR-062).
+ */
+export const FLOOR_STRIP_RESOLVED_PX = 2;
+
+/** On-screen height (px) of the floor between `out` m and the wall base, seen square-on from `distance` m (eye `eye` m, focal length `focalPx`). */
+export function floorStripPx(focalPx: number, eye: number, distance: number, out: number): number {
+  if (distance <= out) return Infinity;
+  return focalPx * (Math.atan(eye / (distance - out)) - Math.atan(eye / distance));
+}
+
+/** The largest square-on distance from the wall (at most `maxDistance`) at which that strip spans `px` (bisection; the height falls with distance). */
+export function wallDistanceForStripPx(focalPx: number, eye: number, out: number, px: number, maxDistance: number): number {
+  if (floorStripPx(focalPx, eye, maxDistance, out) >= px) return maxDistance;
+  let lo = out + 1e-3;
+  let hi = maxDistance;
+  for (let i = 0; i < 60; i++) {
+    const mid = (lo + hi) / 2;
+    if (floorStripPx(focalPx, eye, mid, out) >= px) lo = mid;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/**
+ * The narrowest on-screen width (px) at which the 20 mm door edge is read: a span of 2 px always
+ * covers at least one whole pixel, whatever its alignment, so the darkest pixel there is the edge's
+ * own colour and not a blend with the reveal or the wall (DR-062).
+ */
+export const DOOR_EDGE_RESOLVED_PX = 2;
 
 /** The portal a `room:<id>#door` view looks at (the same rule as tour-path.ts `viewpoints`). */
 export function doorOfRoom(model: Pick<SceneModel, "portals">, roomId: string): ScenePortal | null {

@@ -273,6 +273,34 @@ describe("gallery finish: the built museum", () => {
     expect(world.finish!.reveal).toBeCloseTo(plasterTint(F.revealSrgb) / wallWash(1.9, model.rooms[0]!.height), 9);
   });
 
+  it("draws the unlettered-card material in the entry pass, so its program compiles before entry (C4, DR-062)", () => {
+    const blanks = () => {
+      const out: THREE.Mesh[] = [];
+      world.root.traverse((o) => {
+        const m = o as THREE.Mesh;
+        if (m.isMesh && m.material === mats.panelBlank && !m.frustumCulled && m.visible) out.push(m);
+      });
+      return out;
+    };
+    world.precompileHighlightAndRoute();
+    expect(blanks().length).toBeGreaterThanOrEqual(1);
+    world.clearPrecompileHelpers();
+    expect(blanks()).toHaveLength(0);
+  });
+
+  it("gives the GPU check (C2c) the targets this arithmetic implies: the wall at 3.0 m, and a reveal facing x (DR-062)", () => {
+    const F = GALLERY_FINISH;
+    const H = model.rooms[0]!.height;
+    const wall = sceneValueFor(F.wallSrgb);
+    // The wall at 3.0 m against 1.9 m: 1.038 for the adopted wash (the spec's 1.025 was the old wash).
+    const high = rendered(wall * wallWash(3.0, H)) / rendered(wall * wallWash(1.9, H));
+    expect(high).toBeCloseTo(1.038, 2);
+    // A reveal face normal to x is shaded like an x-facing wall: 177.5, not 182.
+    const revealX = rendered(wall * world.finish!.reveal * wallWash(1.9, H) * faceShade([1, 0, 0]));
+    expect(revealX).toBeCloseTo(177.5, 0);
+    expect(rendered(wall * world.finish!.reveal * wallWash(1.9, H) * faceShade([0, 0, 1]))).toBeCloseTo(F.revealSrgb, 6);
+  });
+
   it("hangs the lobby directory on one board merged into the lobby's wall mesh (no new draw call), clickable as the directory", () => {
     const lobby = model.rooms.find((r) => r.id === "room:lobby")!;
     const walls = world.pickables.find((p) => p.mesh.name === `walls:${lobby.zoneId}`)!;
