@@ -2390,6 +2390,18 @@
       "source_ids": [
         "ajrakh:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+          "quote": "An indigo vat need only be made once, then used daily and ingredients replenished to keep the Vat active, sometimes for decades."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "once tle val is ready for usg it is kept 'alive' by constant addition of iadigo lime and jaggery."
+        }
       ]
     },
     {
@@ -2475,6 +2487,18 @@
       "source_ids": [
         "ajrakh:S1",
         "machilipatnam-kalamkari:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+          "quote": "The kut is a smooth finer paste made from jaggery, or molasses, in which scrap iron such as horse-hoes and besan (gram flour)"
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 8",
+          "quote": "Iron acetate is a fermented mixture of paddy husk , ironfilings , salt and jaggery."
+        }
       ]
     },
     {
@@ -2591,6 +2615,18 @@
       "source_ids": [
         "ajrakh:S1",
         "machilipatnam-kalamkari:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+          "quote": "Care must be taken not to mix this Pa with the areas printed in lime Khariyanu otherwise the lime will discharge the alum"
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 5",
+          "quote": "A mixture of iron in any form leads to darkening of the color and for this reason the iron implements and utensils are avoided."
+        }
       ]
     },
     {
@@ -2605,6 +2641,18 @@
       "source_ids": [
         "ajrakh:S1",
         "machilipatnam-kalamkari:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+          "quote": "presence of iron in the water supply dulls and darkens the final result."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 5",
+          "quote": "A mixture of iron in any form leads to darkening of the color and for this reason the iron implements and utensils are avoided."
+        }
       ]
     },
     {
@@ -2748,6 +2796,18 @@
       "source_ids": [
         "ajrakh:S9",
         "sanganeri:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S9",
+          "locator": "§ \"Everything was broken\"",
+          "quote": "But most of us shifted to working with chemicals and eventually stopped natural dyeing. Now we do it if there's a need or an order"
+        },
+        {
+          "source_id": "sanganeri:S4",
+          "locator": "PDF p. 5",
+          "quote": "that includes the usage of chemical dyes in abundance and the usage of natural dyes only for specific orders."
+        }
       ]
     },
     {
@@ -2776,6 +2836,18 @@
       "source_ids": [
         "ajrakh:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+          "quote": "then spread on the sandy banks of a river in the sun and regularly sprinkled with water to keep it moist throughout the day."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "In this process the fabrio is laid flat on a river bed, A mild solution ofcow dung and water is sprhkled over the fubric."
+        }
       ]
     },
     {
@@ -2790,6 +2862,18 @@
       "source_ids": [
         "ajrakh:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+          "quote": "the sun, moisture and various compound in the dung would have acted as a bleaching agent on the white areas of a design."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "The interaction of alkali (of cow dung) and thennal heat (sun ray) bleach the ground colour making it look white again."
+        }
       ]
     },
     {
@@ -2834,6 +2918,18 @@
       "source_ids": [
         "machilipatnam-kalamkari:S4",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 11",
+          "quote": "The portions not treated with alum imbibe a pinkish color."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "In order to make the ground look whitg again the fabric is sun-bleached."
+        }
       ]
     },
     {
@@ -2863,6 +2959,23 @@
         "machilipatnam-kalamkari:S4",
         "machilipatnam-kalamkari:S3",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 10",
+          "quote": "After block printing the cloth is kept for two to three days until dried."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S3",
+          "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+          "quote": "After printing with black and alum the cloth is dried under sun light for one day."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 10",
+          "quote": "The printed fabric is left for at least three-four days so that the print (mordant paste) penetrates"
+        }
       ]
     },
     {
@@ -2962,6 +3075,18 @@
       "source_ids": [
         "sanganeri:S10",
         "machilipatnam-kalamkari:S11"
+      ],
+      "evidence": [
+        {
+          "source_id": "sanganeri:S10",
+          "locator": "PDF p. 5",
+          "quote": "The water of the river „Saraswati‟, the soil, the sunshine, the humid air, and the availability of flowers"
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S11",
+          "locator": "§ \"Chintz hanging\"",
+          "quote": "These techniques are particularly associated with coastal south-east India (the so-called 'Coromandel Coast') because of the particularly favourable combination of chemicals in the local soil"
+        }
       ]
     },
     {
@@ -3049,6 +3174,18 @@
       "source_ids": [
         "sanganeri:S10",
         "machilipatnam-kalamkari:S15"
+      ],
+      "evidence": [
+        {
+          "source_id": "sanganeri:S10",
+          "locator": "PDF p. 10",
+          "quote": "Along with them there were some 300 Screen Printing units, which were the main source of the pollution."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S15",
+          "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra's Pedana\"",
+          "quote": "The chemicals used in the colours let out toxic effluents, which is contaminating the water table."
+        }
       ]
     },
     {
@@ -3195,6 +3332,23 @@
         "ajrakh:S1",
         "sanganeri:S1",
         "sanganeri:S10"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+          "quote": "When double sided Ajrakh is printed it is essential that the same outline design be printed on the reverse of the cloth."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 1",
+          "quote": "Itfut design is equally vividly seen on the underside ofthe cloth."
+        },
+        {
+          "source_id": "sanganeri:S10",
+          "locator": "PDF p. 5",
+          "quote": "„gurjan‟, „mango‟ and „teak‟ wood that the print appeared vividly at the backside."
+        }
       ]
     },
     {
@@ -3269,6 +3423,18 @@
       "source_ids": [
         "machilipatnam-kalamkari:S15",
         "sanganeri:S12"
+      ],
+      "evidence": [
+        {
+          "source_id": "machilipatnam-kalamkari:S15",
+          "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra's Pedana\"",
+          "quote": "There is a clear difference between block-printed and screen-printed Kalamkari. But at first sight, it is difficult to tell the difference."
+        },
+        {
+          "source_id": "sanganeri:S12",
+          "locator": "§ \"Textile mills pollute the waters\"",
+          "quote": "Screen printing was a cost effective, mechanical and faster way of printing by using synthetic dyes and chemicals for bleaching."
+        }
       ]
     },
     {
