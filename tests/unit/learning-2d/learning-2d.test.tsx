@@ -19,6 +19,7 @@ import type { GuidanceSettings } from "@/features/learning/settings";
 import type { LearningTimeBudget } from "@/features/learning/time-budget";
 import type { StudyBarIndex } from "@/features/learning-2d/navigation";
 import { href2d } from "@/features/learning-2d/routes";
+import { EPISTEMIC_SECTIONS } from "@/features/learning-2d/template";
 import { createVisitStore } from "@/features/learning-2d/visit-store";
 import { DisclosureSection } from "@/features/learning-2d/ui/disclosure-section";
 import { ConceptLayersSheet } from "@/features/learning-2d/ui/concept-layers";
@@ -291,7 +292,8 @@ describe("the 2D StudyBar group", () => {
       .getAllByRole("link")
       .filter((a) => /\/traditions\/[^#]+$/.test(a.getAttribute("href") ?? ""));
     expect(traditionLinks.map((a) => a.textContent)).toEqual(["Alpha", "Beta"]);
-    expect(within(dialog).getByRole("list", { name: "Alpha" }).querySelectorAll("a")).toHaveLength(10);
+    // One link per section of the shared section map (DR-024).
+    expect(within(dialog).getByRole("list", { name: "Alpha" }).querySelectorAll("a")).toHaveLength(EPISTEMIC_SECTIONS.length);
     await userEvent.keyboard("{Escape}");
     const kinds = (await h.events()).map((e) => e.type).filter((t) => /^(exposure|navigation)/.test(t));
     expect(kinds).toEqual(["navigation_started", "navigation_ended", "exposure_started", "exposure_ended", "navigation_started", "navigation_ended", "exposure_started"]);

@@ -5,17 +5,22 @@
  *
  *  - `Minimap`: bottom-left, a 192 x 192 px plan on opaque `--ground` with a 1 px `--rule-strong`
  *    border and the eyebrow "Plan". Rooms are 1.5 px `--ink` outlines, unfilled, labelled with their
- *    numbers (`tabular-nums`); the current room has a 2 px outline, an 8 px ink dot and the text
- *    "You Are Here". No fills, no tradition colour, and nothing moves: the dot marks the room, not
- *    the visitor's live position. A 44 px "Expand plan" button opens the full plan.
- *  - `PlanDialog`: the full plan with the same drawing and every room by number and name as a 44 px
- *    button that walks there (the keyboard route to any room). On a study route nothing may be
+ *    numbers (`tabular-nums`); the current room has a 2 px outline, an ink arrow and the text
+ *    "You Are Here". No fills, no tradition colour, and nothing slides: the arrow marks the room,
+ *    not the visitor's live position, and points the way the visitor faces in eight compass steps
+ *    (it turns only when the facing passes to another point), so the plan and the view can be
+ *    matched (novice walkthrough: the plan had no facing arrow). A 44 px "Expand plan" button opens
+ *    the full plan.
+ *  - `PlanDialog`: the full plan with the same drawing (each room also names itself on hover) and
+ *    every room by number and name as a 44 px button that walks there (the keyboard route to any room). On a study route nothing may be
  *    translucent or shadowed (4.6, 12.2 rule 6), so it opens over an opaque `--ground` backdrop on
  *    an unshadowed `--surface` sheet.
- * Rooms are numbered in reading order of the plan, the entrance first: then zone by zone (the
- * manifest's zone order), and within a zone top to bottom, then left to right. Numbers are at least
- * 10 px; a room too small to hold its number clear of the outline shows none (the full plan lists
- * every room by number and name).
+ * Rooms are numbered by the shared section map (DR-024): a wing room carries its section's number
+ * and the comparison hall the cross-tradition section's number, the same numbers and names the 2D
+ * index gives the same sections; the entrance lobby and the shared commons are no section and carry
+ * no number. The full plan lists the entrance first, then each wing in the canonical tradition order
+ * by section number, then the hall. Numbers are at least 10 px; a room too small to hold its number
+ * clear of the outline shows none (the full plan lists every room by number and name).
  * Hidden when the study sets `minimap: "off"`; the museum hides the minimap while the panel covers
  * the scene (under 1024 px).
  */
@@ -26,6 +31,8 @@ import type { CSSProperties } from "react";
 import { Dialog, DialogClose, DialogDescription, DialogHeader, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { roomAt, type SceneModel, type SceneRoom } from "@/features/immersive/scene-model";
+import { compareTraditionSlugs } from "@/features/learning/labels";
+import { sectionOfZoneGroup } from "@/features/learning/sections";
 import { PLAN_TEXT } from "@/features/learning/strings";
 import { titleCase } from "@/lib/text/title-case";
 
@@ -43,45 +50,59 @@ export function planDefaultOpen(minimap: "on" | "off" | "toggle"): boolean {
 const ROW_TOLERANCE_M = 1;
 /** Margin of the drawing around the rooms, in metres (room for the outline strokes). */
 const PLAN_PAD_M = 0.4;
+/** The eight compass points the heading arrow can show, for its accessible name. */
+const COMPASS = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"] as const;
+export function compassWord(deg: number): string {
+  return COMPASS[(((Math.round(deg / 45) % 8) + 8) % 8)]!;
+}
+/** The arrow's outline in CSS px, pointing up (north) about the room's mark: 14 px tall, 12 px wide. */
+const ARROW_PX = "M0,-8 L6,6 L0,3 L-6,6 Z";
+
 /** Smallest room number drawn, in CSS px. A number that cannot be set this large clear of its outline is omitted. */
 const MIN_LABEL_PX = 10;
 /** The minimap's drawing box inside its 192 x 192 frame (44 px header, 28 px legend, 8 px sides). */
 const MINIMAP_BOX = { w: 174, h: 118 } as const;
 
 /**
- * Rooms numbered 1..n in reading order of the plan (the same numbers on the minimap and the full
- * plan). The room the visitor enters by (the spawn) is 1, and the rest of its zone follows; then
- * zone by zone in the manifest's zone order (a room without a zone is its own group), and within a
- * zone row by row from the top (smaller z), each row from the left (smaller x).
+ * The plan's room numbers (the same on the minimap and the full plan): a room built for a section
+ * of the shared section map carries that section's number, so section n of a tradition is number n
+ * in its 2D index and room n of its museum wing (DR-024). Rooms that are no section (the entrance
+ * lobby, the shared commons) have none.
  */
-export function roomNumbers(model: Pick<SceneModel, "rooms"> & Partial<Pick<SceneModel, "spawn">>): Map<string, number> {
-  const groups = new Map<string, SceneRoom[]>();
-  for (const r of model.rooms) {
-    const key = r.zoneId ?? `room:${r.id}`;
-    const g = groups.get(key);
-    if (g) g.push(r);
-    else groups.set(key, [r]);
-  }
-  const entrance = model.spawn ? roomAt(model.rooms, model.spawn) : null;
-  const entranceKey = entrance ? (entrance.zoneId ?? `room:${entrance.id}`) : null;
-  const ordered = [...groups.entries()].sort(([a], [b]) => (a === entranceKey ? -1 : b === entranceKey ? 1 : 0));
-  const cx = (r: SceneRoom) => (r.bounds.minX + r.bounds.maxX) / 2;
-  const cz = (r: SceneRoom) => (r.bounds.minZ + r.bounds.maxZ) / 2;
+export function roomNumbers(model: Pick<SceneModel, "rooms">): Map<string, number> {
   const out = new Map<string, number>();
-  let n = 1;
-  for (const [key, rooms] of ordered) {
-    const byZ = [...rooms].sort((a, b) => cz(a) - cz(b) || cx(a) - cx(b));
-    const rows: SceneRoom[][] = [];
-    for (const r of byZ) {
-      const row = rows[rows.length - 1];
-      if (row && cz(r) - cz(row[0]!) <= ROW_TOLERANCE_M) row.push(r);
-      else rows.push([r]);
-    }
-    const seq = rows.flatMap((row) => row.sort((a, b) => cx(a) - cx(b)));
-    if (key === entranceKey && entrance) seq.sort((a, b) => (a.id === entrance.id ? -1 : b.id === entrance.id ? 1 : 0));
-    for (const r of seq) out.set(r.id, n++);
+  for (const r of model.rooms) {
+    const section = sectionOfZoneGroup(r.group);
+    if (section) out.set(r.id, section.number);
   }
   return out;
+}
+
+/** The name the plan gives a room: its section's title (as in the 2D index), else the room's own label. */
+export function planRoomName(room: Pick<SceneRoom, "id" | "group">, roomLabel: (roomId: string) => string): string {
+  return sectionOfZoneGroup(room.group)?.title ?? roomLabel(room.id);
+}
+
+/**
+ * The full plan's list order: the room the visitor enters by (the spawn) first; then each wing in
+ * the canonical tradition order (DR-019), its rooms by section number; then the other numbered
+ * rooms (the comparison hall) by number; then the rest in reading order of the plan (top to bottom,
+ * then left to right).
+ */
+export function planOrder(model: Pick<SceneModel, "rooms"> & Partial<Pick<SceneModel, "spawn">>): SceneRoom[] {
+  const numbers = roomNumbers(model);
+  const entrance = model.spawn ? roomAt(model.rooms, model.spawn) : null;
+  const cx = (r: SceneRoom) => (r.bounds.minX + r.bounds.maxX) / 2;
+  const cz = (r: SceneRoom) => (r.bounds.minZ + r.bounds.maxZ) / 2;
+  const rank = (r: SceneRoom) => (entrance && r.id === entrance.id ? 0 : r.traditionSlug && numbers.has(r.id) ? 1 : numbers.has(r.id) ? 2 : 3);
+  return [...model.rooms].sort((a, b) => {
+    const ra = rank(a);
+    const rb = rank(b);
+    if (ra !== rb) return ra - rb;
+    if (ra === 1) return compareTraditionSlugs(a.traditionSlug!, b.traditionSlug!) || numbers.get(a.id)! - numbers.get(b.id)!;
+    if (ra === 2) return numbers.get(a.id)! - numbers.get(b.id)!;
+    return Math.abs(cz(a) - cz(b)) > ROW_TOLERANCE_M ? cz(a) - cz(b) : cx(a) - cx(b);
+  });
 }
 
 /**
@@ -90,9 +111,13 @@ export function roomNumbers(model: Pick<SceneModel, "rooms"> & Partial<Pick<Scen
  * current room's 8 px dot sits under its number when the room is tall enough, beside it when it is
  * wide enough, and alone (without the number) otherwise.
  */
-function roomLabelLayout(r: SceneRoom, n: number, here: boolean, mpp: number, labelPx: number) {
+function roomLabelLayout(r: SceneRoom, n: number | undefined, here: boolean, mpp: number, labelPx: number) {
   const wPx = (r.bounds.maxX - r.bounds.minX) / mpp;
   const hPx = (r.bounds.maxZ - r.bounds.minZ) / mpp;
+  const cx0 = (r.bounds.minX + r.bounds.maxX) / 2;
+  const cz0 = (r.bounds.minZ + r.bounds.maxZ) / 2;
+  // A room that is no section has no number: only the current room's dot, centred.
+  if (n === undefined) return { fontPx: null, label: null, dot: here ? { x: cx0, y: cz0 } : null };
   const digits = String(n).length;
   // Digits are about 0.62 em wide and 0.73 em tall (lining); 3 px clearance on every side.
   const fit = Math.min(labelPx, (hPx - 6) / 0.73, (wPx - 6) / (digits * 0.62));
@@ -126,12 +151,31 @@ function planBox(model: SceneModel) {
  * The plan drawing fitted (meet) into a box of `boxPx` CSS px. Strokes, the dot and the numbers are
  * sized in CSS px through the metres per pixel of that fit.
  */
-function PlanDrawing({ model, roomId, boxPx, labelPx, className, style }: { model: SceneModel; roomId: string | null; boxPx: { w: number; h: number }; labelPx: number; className?: string; style?: CSSProperties }) {
+function PlanDrawing({
+  model,
+  roomId,
+  headingDeg,
+  boxPx,
+  labelPx,
+  className,
+  style,
+  roomTitle,
+}: {
+  model: SceneModel;
+  roomId: string | null;
+  headingDeg: number | null;
+  boxPx: { w: number; h: number };
+  labelPx: number;
+  className?: string;
+  style?: CSSProperties;
+  /** Full plan: each room's name, shown on hover (an SVG title). */
+  roomTitle?: (r: SceneRoom) => string;
+}) {
   const v = planBox(model);
   const mpp = Math.max(v.w / boxPx.w, v.h / boxPx.h);
   const numbers = roomNumbers(model);
   const current = roomId ? model.rooms.find((r) => r.id === roomId) : undefined;
-  const currentLayout = current ? roomLabelLayout(current, numbers.get(current.id) ?? 0, true, mpp, labelPx) : null;
+  const currentLayout = current ? roomLabelLayout(current, numbers.get(current.id), true, mpp, labelPx) : null;
   return (
     <svg viewBox={`${v.x} ${v.y} ${v.w} ${v.h}`} className={className} style={style} aria-hidden="true" focusable="false" data-slot="museum-plan-drawing">
       {model.rooms.map((r) => {
@@ -143,10 +187,12 @@ function PlanDrawing({ model, roomId, boxPx, labelPx, className, style }: { mode
             y={r.bounds.minZ}
             width={r.bounds.maxX - r.bounds.minX}
             height={r.bounds.maxZ - r.bounds.minZ}
-            fill="none"
+            fill={roomTitle ? "transparent" : "none"}
             style={{ stroke: "var(--ink)" }}
             strokeWidth={(here ? 2 : 1.5) * mpp}
-          />
+          >
+            {roomTitle ? <title>{roomTitle(r)}</title> : null}
+          </rect>
         );
       })}
       {model.portals.map((p) => (
@@ -154,7 +200,7 @@ function PlanDrawing({ model, roomId, boxPx, labelPx, className, style }: { mode
       ))}
       {model.rooms.map((r) => {
         const here = r.id === roomId;
-        const layout = roomLabelLayout(r, numbers.get(r.id) ?? 0, here, mpp, labelPx);
+        const layout = roomLabelLayout(r, numbers.get(r.id), here, mpp, labelPx);
         if (!layout.label || !layout.fontPx) return null;
         return (
           <text
@@ -171,7 +217,20 @@ function PlanDrawing({ model, roomId, boxPx, labelPx, className, style }: { mode
           </text>
         );
       })}
-      {currentLayout?.dot ? <circle cx={currentLayout.dot.x} cy={currentLayout.dot.y} r={4 * mpp} style={{ fill: "var(--ink)" }} /> : null}
+      {currentLayout?.dot ? (
+        headingDeg === null ? (
+          <circle cx={currentLayout.dot.x} cy={currentLayout.dot.y} r={4 * mpp} style={{ fill: "var(--ink)" }} />
+        ) : (
+          <path
+            d={ARROW_PX}
+            transform={`translate(${currentLayout.dot.x} ${currentLayout.dot.y}) rotate(${headingDeg}) scale(${mpp})`}
+            style={{ fill: "var(--ink)", stroke: "var(--ground)" }}
+            strokeWidth={1}
+            data-slot="museum-plan-heading"
+            data-heading={headingDeg}
+          />
+        )
+      ) : null}
     </svg>
   );
 }
@@ -180,8 +239,9 @@ function PlanDrawing({ model, roomId, boxPx, labelPx, className, style }: { mode
  * 192 x 192: the 44 px header (eyebrow and Expand plan), the drawing fitted to a 174 x 118 box, and
  * the dot's legend. The room's name is the StudyBar location; screen readers also get it here.
  */
-export function Minimap({ model, roomId, roomLabel, onExpand }: { model: SceneModel; roomId: string | null; roomLabel(roomId: string): string; onExpand(): void }) {
+export function Minimap({ model, roomId, headingDeg = null, roomLabel, onExpand }: { model: SceneModel; roomId: string | null; headingDeg?: number | null; roomLabel(roomId: string): string; onExpand(): void }) {
   const n = roomId ? roomNumbers(model).get(roomId) : undefined;
+  const room = roomId ? model.rooms.find((r) => r.id === roomId) : undefined;
   return (
     <section aria-label={PLAN_TEXT.plan} data-museum-keys="ui" data-slot="museum-minimap" className="flex size-48 flex-col border border-rule-strong bg-ground">
       <div className="flex h-11 shrink-0 items-center justify-between pl-3">
@@ -191,15 +251,17 @@ export function Minimap({ model, roomId, roomLabel, onExpand }: { model: SceneMo
         </Button>
       </div>
       <div className="flex min-h-0 flex-1 items-center justify-center px-2">
-        <PlanDrawing model={model} roomId={roomId} boxPx={MINIMAP_BOX} labelPx={11} className="block" style={{ width: MINIMAP_BOX.w, height: MINIMAP_BOX.h }} />
+        <PlanDrawing model={model} roomId={roomId} headingDeg={headingDeg} boxPx={MINIMAP_BOX} labelPx={11} className="block" style={{ width: MINIMAP_BOX.w, height: MINIMAP_BOX.h }} />
       </div>
       <p className="flex h-7 shrink-0 items-center gap-2 px-3 pb-2 text-[0.8125rem] leading-5 text-ink">
-        <span aria-hidden="true" className="inline-block size-2 shrink-0 rounded-full bg-ink" />
+        <HereMark headingDeg={headingDeg} />
         <span className="min-w-0">
           {PLAN_TEXT.youAreHere}
-          {roomId && n ? (
+          {room ? (
             <span className="sr-only">
-              : {n} {titleCase(roomLabel(roomId))}
+              : {n ? `${n} ` : ""}
+              {titleCase(planRoomName(room, roomLabel))}
+              {headingDeg !== null ? `, facing ${compassWord(headingDeg)}` : ""}
             </span>
           ) : null}
         </span>
@@ -208,11 +270,22 @@ export function Minimap({ model, roomId, roomLabel, onExpand }: { model: SceneMo
   );
 }
 
+/** The legend's mark: the arrow (pointing up, as on the plan when facing north) or, before the scene reports a heading, the dot. */
+function HereMark({ headingDeg }: { headingDeg: number | null }) {
+  if (headingDeg === null) return <span aria-hidden="true" className="inline-block size-2 shrink-0 rounded-full bg-ink" />;
+  return (
+    <svg aria-hidden="true" focusable="false" viewBox="-7 -9 14 16" className="size-3.5 shrink-0" style={{ fill: "var(--ink)" }}>
+      <path d={ARROW_PX} />
+    </svg>
+  );
+}
+
 export function PlanDialog({
   open,
   onOpenChange,
   model,
   roomId,
+  headingDeg = null,
   roomLabel,
   zoneLabel,
   onRoom,
@@ -221,12 +294,19 @@ export function PlanDialog({
   onOpenChange(open: boolean): void;
   model: SceneModel;
   roomId: string | null;
+  headingDeg?: number | null;
   roomLabel(roomId: string): string;
   zoneLabel(roomId: string): string | null;
   onRoom(roomId: string): void;
 }) {
+  const roomTitle = (r: SceneRoom) => {
+    const n = numbers.get(r.id);
+    const name = titleCase(planRoomName(r, roomLabel));
+    const zone = zoneLabel(r.id);
+    return `${n ? `${n}. ` : ""}${name}${zone && titleCase(zone) !== name ? `, ${titleCase(zone)}` : ""}`;
+  };
   const numbers = roomNumbers(model);
-  const rooms = [...model.rooms].sort((a, b) => (numbers.get(a.id) ?? 0) - (numbers.get(b.id) ?? 0));
+  const rooms = planOrder(model);
   const box = planBox(model);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -244,12 +324,13 @@ export function PlanDialog({
           </DialogHeader>
           <div className="grid items-start gap-6 md:grid-cols-[minmax(0,1fr)_18rem]">
             <div className="border border-rule bg-ground p-2">
-              <PlanDrawing model={model} roomId={roomId} boxPx={{ w: 480, h: (480 * box.h) / box.w }} labelPx={13} className="block h-auto w-full" style={{ aspectRatio: `${box.w} / ${box.h}` }} />
+              <PlanDrawing model={model} roomId={roomId} headingDeg={headingDeg} roomTitle={roomTitle} boxPx={{ w: 480, h: (480 * box.h) / box.w }} labelPx={13} className="block h-auto w-full" style={{ aspectRatio: `${box.w} / ${box.h}` }} />
             </div>
             <ol aria-label={PLAN_TEXT.roomsLabel} className="list-none">
               {rooms.map((r) => {
                 const here = r.id === roomId;
-                const name = titleCase(roomLabel(r.id));
+                const n = numbers.get(r.id);
+                const name = titleCase(planRoomName(r, roomLabel));
                 // The zone line only when it adds something ("Comparison Hall" is its own zone).
                 const zoneRaw = zoneLabel(r.id);
                 const zone = zoneRaw && titleCase(zoneRaw) !== name ? zoneRaw : null;
@@ -258,14 +339,16 @@ export function PlanDialog({
                     <button
                       type="button"
                       aria-current={here ? "location" : undefined}
-                      aria-label={`${numbers.get(r.id)}. ${name}${zone ? `, ${titleCase(zone)}` : ""}${here ? ` (${PLAN_TEXT.youAreHere})` : ""}. ${PLAN_TEXT.walkTo(name)}.`}
+                      data-section={sectionOfZoneGroup(r.group)?.id}
+                      data-tradition={r.traditionSlug ?? undefined}
+                      aria-label={`${n ? `${n}. ` : ""}${name}${zone ? `, ${titleCase(zone)}` : ""}${here ? ` (${PLAN_TEXT.youAreHere})` : ""}. ${PLAN_TEXT.walkTo(name)}.`}
                       onClick={() => {
                         onOpenChange(false);
                         onRoom(r.id);
                       }}
                       className="text-ui flex min-h-11 w-full items-start gap-3 py-2 text-left text-ink hover:bg-sunk"
                     >
-                      <span className="w-6 shrink-0 text-right text-ink-3 tabular-nums">{numbers.get(r.id)}</span>
+                      <span className="w-6 shrink-0 text-right text-ink-3 tabular-nums">{n ?? ""}</span>
                       <span className="min-w-0">
                         <span className={here ? "font-semibold" : undefined}>{name}</span>
                         {zone ? <span className="text-credit block">{titleCase(zone)}</span> : null}

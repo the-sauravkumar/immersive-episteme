@@ -106,7 +106,10 @@ describe("2D previous / next", () => {
   });
 
   it("orders the template sections and maps types to sections and exposure layers", () => {
-    expect(EPISTEMIC_SECTIONS.map((s) => s.id)).toEqual(["context", "materials-tools", "process", "artisan", "design", "outcomes", "science", "environment", "comparisons", "open-questions"]);
+    // The shared section map (DR-024): the concept note's template, open questions with the tradition's own sections, the cross-tradition section last.
+    expect(EPISTEMIC_SECTIONS.map((s) => s.id)).toEqual(["context", "materials-tools", "process", "artisan", "design-outcomes", "science", "open-questions", "comparisons"]);
+    expect(sectionOfType("environmental_condition").id).toBe("science");
+    expect(sectionOfType("outcome").id).toBe("design-outcomes");
     expect(sectionOfType("tradition").id).toBe("context");
     expect(sectionOfType("scientific_mechanism").id).toBe("science");
     expect(exposureLayerOf("artisan_decision")).toBe("artisan");

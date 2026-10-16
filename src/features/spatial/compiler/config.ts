@@ -9,6 +9,7 @@
  */
 import { z } from "zod";
 
+import { KNOWLEDGE_SECTIONS, typesOfSection } from "@/features/learning/sections";
 import type { MappingRuleSetConfig } from "@/features/spatial/contracts";
 import { CONCEPT_TYPES, KNOWLEDGE_CATEGORY_CODES, RELATIONSHIP_SEMANTICS } from "@/lib/validation/enums";
 
@@ -74,7 +75,11 @@ export const layoutConfigSchema = z
     aspectTolerance: positive.default(0.005),
     panelWidth: positive.default(1.0),
     panelBottom: positive.default(1.55),
-    panelTop: positive.default(2.25),
+    /**
+     * 2.35 (was 2.25, DR-043): the plate is 0.8 m tall so a sequence station's "Step n of N" line can be
+     * set at the title size (readable from across the room) without cutting a title line.
+     */
+    panelTop: positive.default(2.35),
     imageMaxWidth: positive.default(0.8),
     imageMaxHeight: positive.default(0.4),
     imageCenterY: positive.default(2.0),
@@ -83,6 +88,35 @@ export const layoutConfigSchema = z
      * "connection" places groups by cross-category relationship weight (seeded tie-breaks).
      */
     groupOrder: z.enum(["template", "connection"]).default("template"),
+    /**
+     * Building scheme (layout.ts). "row": the wings side by side along one comparison hall, the lobby
+     * at its west end (rule sets v1, v2). "hub": the entrance lobby is the hub, the wings open off
+     * its west, south and east walls at the same walking distance from the spawn, and the comparison
+     * hall lies north of it (rule set v3, DR-043).
+     */
+    building: z.enum(["row", "hub"]).default("row"),
+    /**
+     * Hub: the spawn's distance from the lobby's north wall, where the entrance directory hangs; the
+     * directory's reading distance (src/features/immersive/wayfinding.ts DIRECTORY.readingDistance),
+     * so a visitor reads it from the spawn without walking up to it.
+     */
+    hubSpawnDepth: positive.default(3.5),
+    /** Hub: wall kept free for the directory on the lobby's north wall (its rows plus clearance, m). */
+    hubDirectoryWidth: positive.default(3.4),
+    /**
+     * How an exhibit's plate is mounted (DR-045). "plinth": the plate hangs on the wall at
+     * panelBottom-panelTop above a solid plinth that fills the exhibit footprint (rule sets v1-v3).
+     * "stand": the plate stands on a reading stand at the front face of the same footprint, at
+     * standPanelBottom-standPanelTop, so it is 1.2 m (approachDistance) from the approach point
+     * instead of 1.95 m and centred near eye height; the footprint, approach point and every
+     * walking route are unchanged (rule set v4).
+     */
+    exhibitMount: z.enum(["plinth", "stand"]).default("plinth"),
+    /** Stand mount: the plate's lower and upper edge (m); 0.8 m tall like the wall plate. */
+    standPanelBottom: positive.default(1.15),
+    standPanelTop: positive.default(1.95),
+    /** Stand mount: the board that carries the plate overhangs it by this much on every side (m). */
+    standBoardMargin: positive.default(0.03),
     /**
      * Category signs share one band with the museum's doorway signs (src/features/immersive/
      * placement.ts DOOR_SIGN: door height + 0.08 m gap, 0.30 m tall), so all signage lines up.
@@ -96,22 +130,31 @@ export const layoutConfigSchema = z
   .strict();
 export type LayoutConfig = z.infer<typeof layoutConfigSchema>;
 
-/** Zone groups: the seven-part common template (requirements digest §3) plus open questions. */
-export const DEFAULT_ZONE_GROUPS = [
-  { id: "tradition_context", label: "Tradition and context", categories: ["tradition_identity", "geography_history"], scope: "wing" },
-  { id: "materials_tools", label: "Materials and tools", categories: ["materials", "tools"], scope: "wing" },
-  { id: "process_sequence", label: "Process sequence", categories: ["process_stages"], scope: "wing" },
-  { id: "artisan_decisions", label: "Artisan decisions", categories: ["artisan_knowledge", "tacit_decisions"], scope: "wing" },
-  { id: "design_outcomes", label: "Design and outcomes", categories: ["design_principles", "production_outcomes"], scope: "wing" },
-  { id: "science_technology", label: "Science and environment", categories: ["scientific_mechanisms", "environmental_conditions"], scope: "wing" },
-  { id: "open_questions", label: "Open questions and evidence", categories: ["open_questions", "supporting_evidence"], scope: "wing" },
-  { id: "cross_tradition_comparison", label: "Cross-tradition comparison", categories: ["cross_tradition_comparisons"], scope: "hall" },
-] as const;
+/**
+ * Zone groups, derived from THE section map shared with the 2D pages (src/features/learning/
+ * sections.ts, DR-024): one wing room per section, in the section order, named by the section
+ * title; the cross-tradition section is the comparison hall. A concept's room is chosen by its
+ * TYPE (`types`, the same mapping as the 2D `sectionOfType`), so every concept is in the same
+ * section in both conditions; `categories` only order the category runs inside a room.
+ */
+export const DEFAULT_ZONE_GROUPS = KNOWLEDGE_SECTIONS.map((s) => ({
+  id: s.zoneGroup,
+  label: s.title,
+  types: typesOfSection(s),
+  categories: [...s.categories],
+  scope: s.scope,
+}));
 
 export const zoneGroupSchema = z.object({
   id: z.string().regex(/^[a-z0-9_]{1,40}$/),
   label: z.string().min(1),
   categories: z.array(z.enum(KNOWLEDGE_CATEGORY_CODES)).min(1),
+  /**
+   * Concept types placed in this group. When any group of the rule set lists types, a concept's
+   * group is chosen by its type (DR-024: the 2D section of the type) and `categories` only order the
+   * runs inside the room; rule sets without types (version 1) group by category.
+   */
+  types: z.array(z.enum(CONCEPT_TYPES)).min(1).optional(),
   /** "wing": one room per tradition wing; "hall": the shared comparison hall. */
   scope: z.enum(["wing", "hall"]),
 });
@@ -129,7 +172,9 @@ export const categoryZoneParamsSchema = z.object({
 export function defaultRuleSetConfig(): MappingRuleSetConfig {
   return {
     schemaVersion: 1,
-    layout: {},
+    // Version 3 (DR-043): the hub building, so every wing is equally far from the spawn.
+    // Version 4 (DR-045): plates on identical reading stands instead of the wall above empty plinths.
+    layout: { building: "hub", exhibitMount: "stand" },
     rules: [
       {
         id: "containment.tradition-wing",
@@ -142,14 +187,14 @@ export function defaultRuleSetConfig(): MappingRuleSetConfig {
       {
         id: "classification.zone",
         description:
-          "Classification -> zone. Knowledge categories become distinguishable rooms inside each wing (grouped by the common template); each category keeps a contiguous, labelled wall run.",
+          "Classification -> zone. The sections of the common template (the section map shared with the 2D pages) become distinguishable rooms inside each wing; a concept's room follows its type, exactly as its 2D section does; each category keeps a contiguous, labelled wall run inside the room.",
         match: { conceptTypes: [...CONCEPT_TYPES] },
         emit: {
           kind: "room",
           encoding: "containment",
           params: {
             strategy: "category-zone",
-            groups: DEFAULT_ZONE_GROUPS.map((g) => ({ ...g, categories: [...g.categories] })),
+            groups: DEFAULT_ZONE_GROUPS.map((g) => ({ ...g, types: [...g.types], categories: [...g.categories] })),
             entranceGroup: "tradition_context",
             fallbackGroup: "open_questions",
             sharedZoneLabel: "Shared science commons",
@@ -249,7 +294,12 @@ export function defaultRuleSetConfig(): MappingRuleSetConfig {
   };
 }
 
+/**
+ * Version 2 (DR-024): zone groups derived from the shared section map; rooms chosen by concept type.
+ * Version 3 (DR-043): the hub building (`layout.building: "hub"`), wings equally far from the spawn.
+ * Version 4 (DR-045): plates on reading stands (`layout.exhibitMount: "stand"`).
+ */
 export const DEFAULT_RULE_SET = {
   name: "knowledge-to-space-default",
-  version: 1,
+  version: 4,
 } as const;

@@ -29,7 +29,7 @@ The run records the browser version and renderer string itself (`environment` in
 | C12 (encoder side) | SSIM at level 0 per channel against the authored 8-bit source: wall colour 0.9925 to 0.9956; wall normal 0.9948 to 0.9978; wall ARM 0.9935 to 0.9996; floor colour 0.9991 to 0.9999; floor normal 0.9942 to 0.9995; floor ARM 0.9917 to 1.0000. All are at least 0.98. Normal and ARM (non-colour) maps are included, as the lead required. | `ktx create --compare-ssim` output, `analysis/out/museum/encode-report.json` |
 | GPU texture memory (computed at 4x) | The 6 architecture maps take 33.6 MB as BC7/ASTC-class 8 bpp (5,592,405 bytes each with mips), against 134 MB as RGBA8. Lettering is R8 at about 5.6 MB per 2048 x 2048 page with mips, resident only for the visitor's room and rooms 2 doorways away. | arithmetic; measured resident totals come from C3/C11 (`textureBytes()`) |
 | C6 (manifest side) | 0 non-uniform scales in the manifest (the compiler's `render.textures` check). 0 text overlaps or clipping over 351 text planes. Image planes are not drawn (licence unreviewed; reported per element). | `tests/unit/immersive/placement.test.ts`, `scene-model.test.ts` |
-| Text placement and legibility (P1–P8) | See the module record, table I-P: one card band 1.55–2.25 m; 0 overlaps; maximum facing angle 0 degrees; smallest kicker angle 0.024209 rad (requirement 0.024033); 58 of 58 door-sign sides readable from 2.5 m. P4 even spacing: every gap between neighbouring cards on a run of wall is 1.20 m (spread 0.00 m over 87 walls), after compiler rule layout.even-spacing (spatial-compiler@1.1.0). Wayfinding order: 0 of 54 room pairs inverted against the 2D section order, after rule layout.template-order. Both are asserted in the test. | `npx vitest run tests/unit/immersive/placement.test.ts --reporter verbose` |
+| Text placement and legibility (P1–P8) | See the module record, table I-P: one card band 1.55–2.25 m; 0 overlaps; maximum facing angle 0 degrees; smallest kicker angle 0.024209 rad (requirement 0.024033); 58 of 58 door-sign sides readable from 2.5 m. P4 even spacing: every gap between neighbouring cards on a run of wall is 1.20 m (spread 0.00 m over 87 walls), after compiler rule layout.even-spacing (spatial-compiler@1.1.0). Wayfinding order (corrected, DR-043): the earlier "0 of 54 room pairs inverted" skipped equal-depth pairs and could not fail; now every pair of consecutive 2D sections is 1 doorway apart in every wing (spatial-compiler@1.3.0, serpentine grid). Both are asserted in the test. | `npx vitest run tests/unit/immersive/placement.test.ts --reporter verbose` |
 | Panel text equals the 2D read model | 254/254 concepts: identical claim text, order, citations, locators and quotes | `tests/unit/immersive/panel-content.test.ts`, `info-panel.test.tsx` |
 | Production CSP and WASM | **Fails as shipped.** WebAssembly is blocked in the page and in blob workers by `script-src 'self' 'unsafe-inline'`, so the KTX2 transcoder cannot run in a production build and the museum shows its failure screen. With `'wasm-unsafe-eval'` added, both are allowed. | `npx tsx scripts/museum/csp-wasm-check.ts` and `FIX=1 ...` (headless Chromium) |
 | Layout at 1280 x 800 and 390 x 844 | Screenshots checked by hand: the HUD, list, notes, the panel (side panel or bottom sheet), onboarding and door signs show no overflow or truncated titles after the fixes in the module record. The automated version is the e2e flow spec (not yet run). | headless Chromium with `?allowSoftware=1` against a development server |
@@ -196,3 +196,48 @@ renderer string recorded is "NVIDIA GeForce GTX 1650 ... Direct3D11").
   occur in the production build), 15 programs before and after (no shader compile during the
   tours); C11 memory flat (94 geometries, 72 textures, 6 resident rooms before and after both
   tours); plaques at 2.5 m at least 19.56:1. C12 wall colour 0.9746 still fails, as above.
+
+## Package 3D-3: Texture Re-Encode and Reading Stands (DR-044, DR-045), Production Build
+
+**How it was run.** `next build` + `next start` on :3300 (`BETTER_AUTH_URL=http://localhost:3300
+MEDIA_LOCAL_DIR=.data/media`), then `IE_GPU=1 PW_GPU=1 PORT=3300 IE_MEASURE_ALL=1
+IE_RUN_ID=3d-3-stand-2 node node_modules/@playwright/test/cli.js test
+tests/e2e/immersive-rendering.spec.ts --workers=1` (25.8 min, 10 of 10 passed). Renderer `ANGLE
+(NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F9D) Direct3D11 vs_5_0 ps_5_0, D3D11)`, 1280 x 720 at
+DPR 1. Manifest `01a142ea-b29b-7654-be07-1f2fd1bf4a6c` (`spatial-compiler@1.4.0`, `grid-wings@4`,
+rule set v4). A first run (`3d-3-stand-1`) created the six C5 baselines (accepted by eye; human
+review still owed) and failed C2 only, on plate ink at 12 approach views (see DR-045); the probe
+then counted exact-black ink apart and this run is the run of record.
+
+| Check | Budget | High tier (GTX 1650) | Status |
+|---|---|---|---|
+| C1 static frames, 98 viewpoints x 30 frames | ≤ 0.01% | 0 changed pixels | pass |
+| C1b shimmer spikes | 0 | 0 | pass |
+| C2 clipped / crushed; zone means | ≤ 0.5%; ±15% | 0.26% / 0.14% (plate ink up to 0.57%, counted apart); zones within 3.2% | pass |
+| C2b wing entrance rooms | ±5% | 171.0 / 175.7 / 169.4; at most 2.2% from the average | pass |
+| C3 p95 / p99, two tours of 24 rooms | 16.7 / 25 ms | 7.1 / 7.2 and 7.1 / 7.2 ms; at most 107 draw calls, 53,403 triangles | pass |
+| C4 frames over 50 ms; programs after entry | 0; none | 0 (max 20.9 and 27.8 ms); 17 before and after | pass |
+| C5 baselines (6 room views) | ≤ 0.2% | 0 differing pixels against the regenerated set | pass |
+| C6 non-uniform scale, transparent overlap | 0, 0 | 0, 0 (109 meshes; no image planes drawn) | pass |
+| C7 configuration | neutral, 1.0, TAA + output + SMAA | as configured | pass |
+| C8 context loss | restores, logs | restored, 1 event | pass |
+| C10 idle / hidden frames | 0 / 0 | 0 / 0 | pass |
+| C11 counts after a second tour; heap | equal; < 10% | 102 geometries, 81 textures throughout; heap +0.15% | pass |
+| C12 GPU texture SSIM | ≥ 0.98 | wall colour 0.9872 (was 0.9746), floor colour 0.9925; native resolution always | pass |
+| Texture memory | ≤ 512 MB (high), 192 MB (low) | 42.7 MB textures + 35.1 MB render targets (9 resident rooms) | pass |
+| First download | ≤ 25 MB | 8,074,954 bytes (two colour maps; +1,016,909 for the no-RDO wall map) | pass |
+| Card titles at the approach point (23) | ≥ 4.5:1 | at least 21:1 | pass |
+| Room plaques at 2.5 m (54) | ≥ 4.5:1 | at least 19.56:1; from the spawn at least 18.73:1 | pass |
+
+**Low tier (Iris Xe, CPU throttled x4), the first low-tier run.** Same build, `PW_GPU=low`
+(`--force_low_power_gpu`; renderer `ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49)
+Direct3D11 ...)`), tier low, run `3d-3-stand-low-1`, 10 of 10 passed (30.2 min). C3: tour 1 p50
+7.2 ms, p95 20.8 ms, p99 28.0 ms; tour 2 p50 13.7 ms, p95 27.5 ms, p99 41.4 ms (budget 33 / 50 ms);
+draw calls at most 98 (budget 120), triangles at most 23,151 (400,000). Frames over 50 ms are
+allowed on the low tier and recorded: 93 (max 132 ms) and 177 (max 173.6 ms). Memory: heap
+103 MB (budget 250 MB), +0.11% over two tours; textures 42.7 MB + 35.1 MB render targets (budget
+192 MB). C1 0 changed pixels; C2 0.44% / 0.12%; C2b within 2.1%; C12 identical textures and SSIM
+on both tiers; card titles at least 21:1, plaques at least 19.30:1. The six low-tier C5 baselines
+the run created are unreviewed and were not added to the repository (kept in the 3D-3 scratch
+folder). This is the integrated GPU of the reference machine with CPU throttling, not a separate
+low-spec machine; the tour-2 slowdown against tour 1 was not investigated.

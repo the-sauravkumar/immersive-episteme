@@ -8,6 +8,7 @@ import { CollisionWorld, ROUTE_PACE, VISITOR, createRouter, moveInputFromKeys, s
 import { DOOR_SIGN, doorSigns, emForDistance } from "@/features/immersive/placement";
 import { buildSceneModel, roomAt } from "@/features/immersive/scene-model";
 import { DIRECTORY, WAYFINDING_WORDS, directoryReadingPoint, doorwayAtWallHit, doorwayToRoomSeen, doorwayWalkTarget, entranceDirectory, farSide, forwardOf } from "@/features/immersive/wayfinding";
+import { layoutConfigSchema } from "@/features/spatial/compiler";
 import { compareStrings } from "@/features/spatial/compiler/prng";
 
 import { museumFixture } from "./fixtures";
@@ -22,14 +23,31 @@ describe("entrance directory", () => {
     expect(entranceDirectory(model)).toEqual(entranceDirectory(buildSceneModel(museumFixture().manifest.manifest)));
   });
 
-  it("lists every wing once, in canonical (slug) order, then the shared commons", () => {
+  it("lists every wing once, in canonical (slug) order, then the comparison hall and the shared commons", () => {
     const wings = model.zones.filter((z) => z.traditionSlug).sort((a, b) => compareStrings(a.traditionSlug!, b.traditionSlug!));
     const rows = directory!.rows;
     expect(rows.slice(0, wings.length).map((r) => r.zoneId)).toEqual(wings.map((z) => z.id));
-    expect(rows.slice(wings.length).every((r) => model.zones.find((z) => z.id === r.zoneId)!.traditionSlug === null)).toBe(true);
-    // The rows top to bottom follow the wing doorways left to right along the wall.
-    const doorX = rows.slice(0, wings.length).map((r) => model.portals.find((p) => p.id === r.portalId)!.position.x);
-    expect([...doorX].sort((a, b) => a - b)).toEqual(doorX);
+    expect(rows.slice(wings.length).map((r) => r.zoneId)).toEqual(["zone:comparison", "zone:shared"]);
+    // Each wing row walks into that wing's entrance room.
+    for (const r of rows.slice(0, wings.length)) expect(model.rooms.find((x) => x.id === r.toRoomId)?.zoneId).toBe(r.zoneId);
+  });
+
+  it("stands in the hub: every wing doorway is the same distance from the spawn (DR-043)", () => {
+    const wingRows = directory!.rows.filter((r) => model.zones.find((z) => z.id === r.zoneId)?.traditionSlug);
+    const d = wingRows.map((r) => {
+      const p = model.portals.find((x) => x.id === r.portalId)!;
+      return Math.hypot(p.position.x - model.spawn.x, p.position.z - model.spawn.z);
+    });
+    expect(d).toHaveLength(3);
+    expect(Math.max(...d) - Math.min(...d)).toBeLessThan(1e-6);
+    // ... and click-to-walk through each costs the same route length.
+    const router = createRouter(model.rooms, model.colliders);
+    const lengths = wingRows.map((r) => {
+      const t = doorwayWalkTarget(model, r.portalId, r.toRoomId, (q) => router.isFree(q))!;
+      const route = router.route(model.spawn, t.point)!;
+      return route.slice(1).reduce((s, p, i) => s + Math.hypot(p.x - route[i]!.x, p.z - route[i]!.z), 0);
+    });
+    expect(Math.max(...lengths) / Math.min(...lengths)).toBeLessThan(1.02);
   });
 
   it("gives every row the same size and type: no wing is more salient", () => {
@@ -39,21 +57,24 @@ describe("entrance directory", () => {
     for (let i = 1; i < ys.length; i++) expect(ys[i - 1]! - ys[i]!).toBeCloseTo(DIRECTORY.rowHeight + DIRECTORY.gap, 6);
   });
 
-  it("hangs facing the spawn, centred on the spawn axis, seen whole through the lobby doorway", () => {
+  it("hangs in the spawn's own room, facing the spawn on its axis, read from the spawn with no walk-up", () => {
     const f = forwardOf(model.spawn.yawDeg);
-    const via = model.portals.find((p) => p.id === directory!.viaPortalId)!;
     const s = directory!.rows[0]!.sign;
     const c = { x: (s.min[0] + s.max[0]) / 2, z: (s.min[2] + s.max[2]) / 2 };
     const lateral = (p: { x: number; z: number }) => (p.x - model.spawn.x) * -f.z + (p.z - model.spawn.z) * f.x;
     const depth = (p: { x: number; z: number }) => (p.x - model.spawn.x) * f.x + (p.z - model.spawn.z) * f.z;
     expect(Math.abs(lateral(c))).toBeLessThan(1e-6);
+    expect(directory!.viaPortalId).toBeNull();
+    expect(directory!.roomId).toBe(roomAt(model.rooms, model.spawn)!.id);
     // Facing back at the spawn.
     const n = { "+x": [1, 0], "-x": [-1, 0], "+z": [0, 1], "-z": [0, -1] }[s.facing as "+x"]!;
     expect(n[0]! * f.x + n[1]! * f.z).toBeCloseTo(-1, 9);
-    // Inside the doorway's opening as seen from the spawn (both edges of the stack).
-    const halfOpen = via.width / 2 - 0.02;
-    const k = depth(c) / depth(via.position);
-    expect(DIRECTORY.rowWidth / 2).toBeLessThan(halfOpen * k);
+    // At the reading distance (the compiler's hub spawn depth is the same number), less the wall's half thickness.
+    expect(layoutConfigSchema.parse({}).hubSpawnDepth).toBe(DIRECTORY.readingDistance);
+    expect(Math.abs(depth(c) - DIRECTORY.readingDistance)).toBeLessThan(0.11);
+    // The whole stack fits the 1280 x 800 view from the spawn (horizontal half-angle).
+    const hfov = 2 * Math.atan(Math.tan(((VISITOR.fov * Math.PI) / 180) / 2) * (1280 / 800));
+    expect(Math.atan(DIRECTORY.rowWidth / 2 / depth(c))).toBeLessThan(hfov / 2);
   });
 
   it("is legible (L1) at its reading distance and leaves its wall stretch free", () => {
@@ -72,8 +93,12 @@ describe("entrance directory", () => {
     }
     const bottom = Math.min(...directory!.rows.map((r) => r.sign.min[1]));
     const top = Math.max(...directory!.rows.map((r) => r.sign.max[1]));
-    expect(bottom).toBeGreaterThan(0.8);
-    expect(top).toBeLessThan(2.4);
+    expect(bottom).toBeGreaterThanOrEqual(DIRECTORY.minBottom - 1e-9);
+    // Five rows in the hub (three wings, the hall, the commons): lifted off the floor, still whole in the
+    // vertical view from the reading distance at eye height.
+    expect(top).toBeLessThan(2.6);
+    const half = ((VISITOR.fov * Math.PI) / 180) / 2;
+    for (const y of [bottom, top]) expect(Math.abs(Math.atan((y - VISITOR.eyeHeight) / DIRECTORY.readingDistance))).toBeLessThan(half);
   });
 
   it("has a free reading point in its room, on its axis, facing it, reachable from the spawn", () => {
@@ -102,20 +127,26 @@ describe("entrance directory", () => {
     expect(roomAt(model.rooms, narrow.point)?.id).toBe(directory!.roomId);
   });
 
-  it("says which doorway leads to each wing, counted from the directory along its wall", () => {
+  it("says which wall of the lobby each doorway is in, as one reads the directory", () => {
     const rows = directory!.rows;
-    const s0 = rows[0]!.sign;
-    const cx = (s0.min[0] + s0.max[0]) / 2;
-    const sameWall = model.portals.filter((p) => p.connects.includes(directory!.roomId) && Math.abs(p.position.z - s0.min[2]) < 0.5);
-    for (const r of rows) {
-      const p = model.portals.find((x) => x.id === r.portalId)!;
-      if (!sameWall.includes(p)) continue;
-      const side = p.position.x > cx ? "right" : "left";
-      const n = sameWall.filter((q) => (q.position.x > cx ? "right" : "left") === side && Math.abs(q.position.x - cx) <= Math.abs(p.position.x - cx)).length;
-      expect(r.direction).toBe(WAYFINDING_WORDS.doorway(n, side));
-    }
-    // Said by wall, with left and right as one enters (they still hold once the visitor turns away).
-    expect(rows.map((r) => r.direction)).toEqual(["Far wall, first doorway to the right", "Far wall, second doorway to the right", "Far wall, third doorway to the right", "Entrance wall, to the right"]);
+    // Said by wall, as one faces the directory: still true once the visitor turns to walk.
+    expect(rows.map((r) => r.direction)).toEqual([
+      "Doorway in the left wall",
+      "Doorway in the opposite wall",
+      "Doorway in the right wall",
+      "Doorways either side of this sign",
+      "Through the comparison hall",
+    ]);
+    // Left and right as one faces the directory.
+    const f = forwardOf(model.spawn.yawDeg);
+    const right = { x: -f.z, z: f.x };
+    const lat = (id: string) => {
+      const p = model.portals.find((x) => x.id === id)!;
+      return (p.position.x - model.spawn.x) * right.x + (p.position.z - model.spawn.z) * right.z;
+    };
+    expect(lat(rows[0]!.portalId)).toBeLessThan(0);
+    expect(lat(rows[2]!.portalId)).toBeGreaterThan(0);
+    expect(WAYFINDING_WORDS.inWall("left", 2, true)).toBe("Second doorway in the left wall");
   });
 });
 

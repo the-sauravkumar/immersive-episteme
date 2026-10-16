@@ -3,40 +3,21 @@
  * order. Every tradition page renders the same sections in the same order, so traditions are
  * presented identically and no section is promoted for one tradition only.
  *
- * Section order follows the 2D task brief: context, materials and tools, process, artisan
- * decisions, design principles, outcomes, science, environmental conditions, comparisons, open
- * questions. Section titles are interface labels, not craft content. The labels and the exposure
- * layer rule shared with the 3D museum live in src/features/learning/labels.ts.
- *
- * Client-safe (pure data).
+ * The sections are NOT defined here: they are the one section map shared with the 3D museum
+ * (src/features/learning/sections.ts, DR-024), so a tradition's 2D sections and its museum wing
+ * rooms have the same order, names and numbers, and every concept sits in the same section in
+ * both. This module keeps the 2D names of that map. Client-safe (pure data).
  */
+import { KNOWLEDGE_SECTIONS, sectionOfType as sharedSectionOfType, type KnowledgeSection, type KnowledgeSectionId } from "@/features/learning/sections";
 import type { ConceptType } from "@/lib/validation/enums";
 
-export interface EpistemicSection {
-  /** Stable id: DOM anchor and telemetry `layerId` (`section:<id>`). */
-  id: string;
-  title: string;
-  /** Concept types listed in this section, in this order. */
-  types: readonly ConceptType[];
-}
+export type EpistemicSection = KnowledgeSection;
 
-export const EPISTEMIC_SECTIONS = [
-  { id: "context", title: "Tradition and context", types: ["historical_context"] },
-  { id: "materials-tools", title: "Materials and tools", types: ["material", "tool"] },
-  { id: "process", title: "Process sequence", types: ["process_stage"] },
-  { id: "artisan", title: "Artisan decisions", types: ["artisan_decision"] },
-  { id: "design", title: "Design principles", types: ["design_principle"] },
-  { id: "outcomes", title: "Outcomes", types: ["outcome"] },
-  { id: "science", title: "Scientific explanations", types: ["scientific_mechanism", "explanation"] },
-  { id: "environment", title: "Environmental conditions", types: ["environmental_condition"] },
-  { id: "comparisons", title: "Comparisons", types: ["comparison"] },
-  { id: "open-questions", title: "Open questions", types: ["open_question"] },
-] as const satisfies readonly EpistemicSection[];
+export const EPISTEMIC_SECTIONS = KNOWLEDGE_SECTIONS;
 
-export type EpistemicSectionId = (typeof EPISTEMIC_SECTIONS)[number]["id"];
+export type EpistemicSectionId = KnowledgeSectionId;
 
 /** The section a concept type is listed under (the `tradition` overview concept opens the context section). */
 export function sectionOfType(type: ConceptType): EpistemicSection {
-  if (type === "tradition") return EPISTEMIC_SECTIONS[0];
-  return EPISTEMIC_SECTIONS.find((s) => (s.types as readonly ConceptType[]).includes(type)) ?? EPISTEMIC_SECTIONS[0];
+  return sharedSectionOfType(type);
 }

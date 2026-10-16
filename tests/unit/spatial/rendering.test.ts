@@ -147,10 +147,13 @@ describe("streaming units (immersive-rendering-quality.md §2a-2b)", () => {
   it("summarises each zone with its rooms, neighbouring zones and counts", () => {
     const wing = byId.get("zone:ajrakh")!.streaming as ZoneStreaming;
     expect(wing.roomIds.length).toBeGreaterThanOrEqual(5);
-    expect(wing.neighbours.map((n) => n.zoneId)).toEqual(["zone:comparison"]);
+    // Hub building (DR-043): every wing opens off the entrance lobby; the hall lies beyond it.
+    expect(wing.neighbours.map((n) => n.zoneId)).toEqual(["zone:entrance"]);
     expect(wing.counts.exhibits).toBeGreaterThan(50);
     const hall = byId.get("zone:comparison")!.streaming as ZoneStreaming;
-    expect(hall.neighbours.map((n) => n.zoneId)).toEqual(expect.arrayContaining(["zone:ajrakh", "zone:entrance", "zone:shared"]));
+    expect(hall.neighbours.map((n) => n.zoneId)).toEqual(expect.arrayContaining(["zone:entrance", "zone:shared"]));
+    const lobby = byId.get("zone:entrance")!.streaming as ZoneStreaming;
+    expect(lobby.neighbours.map((n) => n.zoneId)).toEqual(expect.arrayContaining(["zone:ajrakh", "zone:comparison", "zone:machilipatnam-kalamkari", "zone:sanganeri"]));
   });
 
   it("warns (without failing) when a unit exceeds the configured exhibit budget", () => {

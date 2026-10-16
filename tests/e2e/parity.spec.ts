@@ -61,6 +61,7 @@ import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 import sharp from "sharp";
 
 import { knowledgeBundleSchema } from "@/features/knowledge/contracts";
+import { KNOWLEDGE_SECTIONS, sectionOfZoneGroup } from "@/features/learning/sections";
 import * as strings from "@/features/learning/strings";
 import { interfaceParityReportSchema, PARITY_CHECKS, type InterfaceParityCheck, type InterfaceParityRun } from "@/features/research/interface-parity";
 import { studyConfigSchema } from "@/features/study/contracts";
@@ -363,10 +364,14 @@ async function railStringsShown(page: Page): Promise<string[]> {
   return strings;
 }
 
-async function railContentCheck(page2d: Page, page3d: Page, claims: readonly string[]): Promise<InterfaceParityCheck> {
+async function railContentCheck(page2d: Page, page3d: Page, claims: readonly string[], slug: string): Promise<InterfaceParityCheck> {
   const rail2 = await railStringsShown(page2d);
   const rail3 = await railStringsShown(page3d);
   const index = await parity<{ strings: string[]; sections: { tradition: string; number: string; title: string }[] } | null>(page2d, "indexStrings");
+  // The numbers: on a concept page the index recedes to the open section, so the full index (every
+  // tradition's numbered sections) is read on the tradition page, in a second tab of the same session.
+  const full = await fullIndexSections(page2d, slug);
+  if (index && full.length > 0) index.sections = full;
   const leaks2 = claimLeaks([...rail2, ...(index?.strings ?? [])], claims);
   const leaks3 = claimLeaks(rail3, claims);
   const rooms = await planRooms(page3d);
@@ -376,37 +381,82 @@ async function railContentCheck(page2d: Page, page3d: Page, claims: readonly str
   if (!index || index.sections.length === 0) notMeasured.push("2D index section numbers: the index is not on screen at this viewport");
   else if (!rooms) notMeasured.push("3D Plan room numbers: the Plan dialog did not open");
   else {
+    // One section map for both conditions (DR-024). Every Plan room that is a section must be listed
+    // in the 2D index of its tradition (the hall: of every tradition shown) under the same number AND
+    // the same name; every room's section id must be a section of the shared map; each wing's rooms
+    // must come in the 2D index's order; rooms that are no section (lobby, commons) carry no number.
     const key = (x: string) => x.toLowerCase().replace(/\s+/g, " ").trim();
-    const matched = index.sections.filter((sec) => rooms.some((r) => key(r.name) === key(sec.title)));
-    const wrong = matched.filter((sec) => !rooms.some((r) => key(r.name) === key(sec.title) && r.number === sec.number));
-    numbers = `${matched.length} of ${index.sections.length} sections matched to rooms by name, ${wrong.length} with another number`;
-    if (matched.length === 0) notMeasured.push("index-to-Plan numbers: no 2D section title matched a 3D room name");
-    numbersOk = wrong.length === 0;
+    const shown = [...new Set(index.sections.map((s) => s.tradition))];
+    const sectioned = rooms.filter((r) => r.section);
+    const problems: string[] = [];
+    for (const r of sectioned) {
+      const shared = KNOWLEDGE_SECTIONS.find((s) => s.id === r.section);
+      if (!shared) {
+        problems.push(`room "${r.name}" has unknown section ${r.section}`);
+        continue;
+      }
+      if (r.number !== String(shared.number) || key(r.name) !== key(shared.title)) problems.push(`room ${r.number} "${r.name}" is not section ${shared.number} "${shared.title}"`);
+      for (const t of r.tradition ? [r.tradition].filter((x) => shown.includes(x)) : shown) {
+        const sec = index.sections.find((s) => s.tradition === t && s.number === r.number);
+        if (!sec || key(sec.title) !== key(r.name)) problems.push(`${t}: 2D section ${r.number} is "${sec?.title ?? "missing"}", 3D room ${r.number} is "${r.name}"`);
+      }
+    }
+    for (const t of shown) {
+      const wing = sectioned.filter((r) => r.tradition === t).map((r) => Number(r.number));
+      if (wing.some((n, i) => i > 0 && n <= wing[i - 1]!)) problems.push(`${t}: the Plan lists the wing's rooms out of section order (${wing.join(", ")})`);
+    }
+    for (const r of rooms.filter((x) => !x.section)) if (r.number) problems.push(`room "${r.name}" is no section but carries number ${r.number}`);
+    const compared = sectioned.filter((r) => !r.tradition || shown.includes(r.tradition)).length;
+    numbers = `${compared} Plan rooms compared with ${index.sections.length} index sections by number and name, ${problems.length} differing${problems.length ? `: ${problems.slice(0, 2).join("; ")}` : ""}`;
+    if (compared === 0) notMeasured.push("index-to-Plan numbers: no Plan room of a tradition shown in the 2D index");
+    numbersOk = problems.length === 0 && compared > 0;
   }
   const c = check(
     "P29",
     short(`${rail2.length} rail and ${index?.strings.length ?? 0} index strings, ${leaks2.length} repeating claim text${leaks2.length ? `: ${leaks2.slice(0, 2).join("; ")}` : ""}`, 200),
     short(`${rail3.length} rail strings, ${leaks3.length} repeating claim text${leaks3.length ? `: ${leaks3.slice(0, 2).join("; ")}` : ""}; ${numbers}`, 200),
     leaks2.length + leaks3.length === 0 && numbersOk ? "none" : "claim text in navigation or numbers differ",
-    "no claim text; index numbers = Plan numbers",
+    "no claim text; index numbers and names = Plan numbers and names",
     rail2.length > 0 && rail3.length > 0 && leaks2.length === 0 && leaks3.length === 0 && numbersOk,
   );
   c.notMeasured = notMeasured;
   return c;
 }
 
-/** P29, 3D: the Plan dialog's numbered rooms, opened from the StudyBar and closed again. */
-async function planRooms(page: Page): Promise<{ number: string; name: string }[] | null> {
-  const plan = page.locator("[data-slot=study-bar]").getByRole("button", { name: /^Plan$/ }).first();
-  if ((await plan.count()) === 0 || !(await plan.isVisible())) return null;
-  await plan.click();
+/** P29, 2D: the index's numbered sections of every tradition, read on a tradition page (no concept open). */
+async function fullIndexSections(page: Page, slug: string): Promise<{ tradition: string; number: string; title: string }[]> {
+  const tab = await page.context().newPage();
+  try {
+    await tab.setViewportSize(page.viewportSize() ?? { width: 1280, height: 800 });
+    await tab.goto(`/learn/2d/traditions/${slug}`);
+    await tab.waitForLoadState("networkidle");
+    const r = await parity<{ sections: { tradition: string; number: string; title: string }[] } | null>(tab, "indexStrings");
+    return r?.sections ?? [];
+  } finally {
+    await tab.close();
+  }
+}
+
+/**
+ * P29, 3D: the Plan dialog's numbered rooms. The dialog opens from the minimap's "Expand plan"; with
+ * the protocol's minimap "toggle" the minimap is first shown by the StudyBar's Plan button.
+ */
+async function planRooms(page: Page): Promise<{ number: string; name: string; section: string; tradition: string }[] | null> {
+  const expand = page.locator("[data-slot=museum-minimap]").getByRole("button", { name: strings.PLAN_TEXT.expand });
+  if (!(await expand.isVisible().catch(() => false))) {
+    const plan = page.locator("[data-slot=study-bar]").getByRole("button", { name: /^Plan$/ }).first();
+    if ((await plan.count()) === 0 || !(await plan.isVisible())) return null;
+    await plan.click();
+  }
+  if (!(await expand.isVisible().catch(() => false))) return null;
+  await expand.click();
   const dialog = page.locator("[data-slot=museum-plan-dialog]");
   try {
     await expect(dialog).toBeVisible({ timeout: 10_000 });
   } catch {
     return null;
   }
-  const rooms = await parity<{ number: string; name: string }[] | null>(page, "planRooms");
+  const rooms = await parity<{ number: string; name: string; section: string; tradition: string }[] | null>(page, "planRooms");
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden({ timeout: 10_000 });
   return rooms;
@@ -460,6 +510,8 @@ interface PlaqueRow {
   tradition: string;
   size: string;
   ratio: number | null;
+  /** The shared-map section numbers of the wing rooms this doorway joins (DR-024); -1 for a wing room outside the map. */
+  sections: number[];
 }
 async function measurePlaques(page: Page): Promise<PlaqueRow[]> {
   type Probe = Record<string, (...a: unknown[]) => unknown>;
@@ -492,7 +544,9 @@ async function measurePlaques(page: Page): Promise<PlaqueRow[]> {
     if (!tradition) continue;
     await call("stability", v, 1);
     const rect = (await call<{ id: string; left: number; top: number; width: number; height: number }[]>("doorSignRects")).find((r) => r.id === v.id);
-    rows.push({ id: v.id, tradition, size: v.size ? `${v.size.w} x ${v.size.h} m` : "unknown", ratio: rect ? await ratioIn(await page.screenshot(), rect) : null });
+    // A wing room id is room:<slug>:<zone group>; its section comes from the shared section map.
+    const sections = [v.roomId, v.toRoomId].filter((id) => id.startsWith(`room:${tradition}:`)).map((id) => sectionOfZoneGroup(id.slice(`room:${tradition}:`.length))?.number ?? -1);
+    rows.push({ id: v.id, tradition, size: v.size ? `${v.size.w} x ${v.size.h} m` : "unknown", ratio: rect ? await ratioIn(await page.screenshot(), rect) : null, sections });
   }
   return rows;
 }
@@ -938,7 +992,7 @@ test("interface parity P1-P33: 2D concept page vs 3D panel", async ({ browser })
           // P29: rail and index strings are titles, types, steps and destinations, never claim text;
           // 2D index numbers equal the 3D Plan's room numbers (measured once per tradition, 1280 x 800 light).
           if (vp.width === 1280 && vp.height === 800 && theme.id === "light") {
-            checks.push(await railContentCheck(page2d, museum.page, [...m2.texts.claims, ...m3.texts.claims]));
+            checks.push(await railContentCheck(page2d, museum.page, [...m2.texts.claims, ...m3.texts.claims], slug));
           }
 
           // P20: one string table (static) and the rendered shared strings.
@@ -1042,10 +1096,13 @@ test("interface parity P1-P33: 2D concept page vs 3D panel", async ({ browser })
     const plaqueBy = ALL_STUDY_TRADITIONS.map((t) => {
       const rows = plaques.filter((p) => p.tradition === t);
       const ratios = rows.map((r) => r.ratio).filter((r): r is number => r !== null);
-      return { t, n: rows.length, min: ratios.length ? Math.min(...ratios) : null, unmeasured: rows.length - ratios.length };
+      // The wing's rooms by section (DR-024): every wing room is a section of the shared map (none is -1).
+      const sections = [...new Set(rows.flatMap((r) => r.sections))].sort((a, b) => a - b);
+      return { t, n: rows.length, min: ratios.length ? Math.min(...ratios) : null, unmeasured: rows.length - ratios.length, sections };
     });
-    const plaquesOk = plaques.length > 0 && plaqueSizes.length === 1 && plaqueBy.every((p) => p.n > 0 && p.unmeasured === 0 && p.min !== null && p.min >= 4.5);
-    const plaqueText = `plaques ${plaqueSizes.join(" / ") || "none"} (${plaques.length}); lowest contrast at 2.5 m ${plaqueBy.map((p) => `${p.t} ${p.min === null ? "–" : trunc2(p.min)} of ${p.n}${p.unmeasured ? `, ${p.unmeasured} unread` : ""}`).join(", ")}`;
+    const plaquesOk =
+      plaques.length > 0 && plaqueSizes.length === 1 && plaqueBy.every((p) => p.n > 0 && p.unmeasured === 0 && p.min !== null && p.min >= 4.5 && p.sections.length > 0 && !p.sections.includes(-1));
+    const plaqueText = `plaques ${plaqueSizes.join(" / ") || "none"} (${plaques.length}); lowest contrast at 2.5 m ${plaqueBy.map((p) => `${p.t} ${p.min === null ? "–" : trunc2(p.min)} of ${p.n}${p.unmeasured ? `, ${p.unmeasured} unread` : ""}`).join(", ")}; wing rooms by section ${plaqueBy.map((p) => `${p.t} ${p.sections.join(",") || "none"}`).join("; ")}`;
 
     // P17 across traditions, P23's stall cue and P26: finalised per viewport and theme.
     for (const run of runs) {
@@ -1115,9 +1172,9 @@ test("interface parity P1-P33: 2D concept page vs 3D panel", async ({ browser })
               "P15: 2D is the load CLS without recent input; 3D is every layout shift during the keyboard-triggered panel open. DESIGN.md 12.4 states 0.00 (two decimals): a value below 0.005 rounds to 0.00 and passes; the unrounded value is recorded.",
               `P22-P24 ran with the guidance fixture (a demo study copying the demo protocol with the hybrid guidance on and a demo hint)${fixture ? "" : ", which could not be installed: no demo study on the review snapshot"}. The stall cue is measured in the 1280 x 800 runs, on freshly loaded pages with a 10 s stall time.`,
               "P23 and P24 list the parts that a working demo session cannot show (onboarding, which is off in both conditions; StateMessage unavailable, error and loading; Display Settings, which is not in either learning shell) as not measured, so these checks show as partial, never as passed.",
-              "P26 (3D) reads every room plaque of the three study traditions' wings, and the hall door into each, from the museum probe, once at 1280 x 800: plaque size, and contrast at the 2.5 m signage distance (paper 90th and ink 1st luminance percentile, as immersive-rendering.spec.ts). The plaque part is reported in the 1280 x 800 runs only; the other runs compare the 2D cards, index rows and comparison headings and the 3D panel titles.",
+              "P26 (3D) reads every room plaque of the three study traditions' wings, and the hall door into each, from the museum probe, once at 1280 x 800: plaque size, and contrast at the 2.5 m signage distance (paper 90th and ink 1st luminance percentile, as immersive-rendering.spec.ts), and the shared-map section of every wing room a plaque marks (DR-024: no wing room outside the one section map). The plaque part is reported in the 1280 x 800 runs only; the other runs compare the 2D cards, index rows and comparison headings and the 3D panel titles.",
               "P28 and P30 also run at 1024 x 768 and 1920 x 1080 in light (6 layout-only runs). P28's 3D default at docked widths is the museum's first-load state at 1280 x 800 (the panel opens rows through the rail afterwards); below 1280 px it is the state after a row choice, which closes the drawer.",
-              "P29 runs once per tradition at 1280 x 800 light: no rail or index string repeats eight consecutive words of a claim; 2D index section numbers equal the 3D Plan's room numbers where names match. In-scene lettering is checked by the 3D track's rendering spec.",
+              "P29 runs once per tradition at 1280 x 800 light: no rail or index string repeats eight consecutive words of a claim; every 3D Plan room that is a section carries the number and name of that section in the 2D index of its tradition (the hall: of every tradition), from the one shared section map (DR-024), and each wing's rooms are listed in the index's order. In-scene lettering is checked by the 3D track's rendering spec.",
               `P33 counts visible, uncovered controls, headings, images, canvases, badges and status messages on the first screen, each once; the claim text is not counted. Pass: the sheet's count equal in both, each total <= ${ATTENTION_CAP}, and the totals within ${ATTENTION_GAP} (project limits, visual-system.md 2D-C).`,
             ],
             runs,

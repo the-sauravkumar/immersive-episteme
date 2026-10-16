@@ -128,7 +128,7 @@ async function main() {
       const srcPath = path.join(SOURCES, `${spec.name}-${m.role}.png`);
       writeFileSync(srcPath, src.png);
       const tmpOut = path.join(DOWNLOADS, `${spec.name}-${m.role}.ktx2`);
-      const out = execFileSync(ktx, ["create", ...KTX_ENCODE_ARGS(m.colorSpace), srcPath, tmpOut], { encoding: "utf8" });
+      const out = execFileSync(ktx, ["create", ...KTX_ENCODE_ARGS(m.colorSpace, m.rdo ?? true), srcPath, tmpOut], { encoding: "utf8" });
       const ktxBuf = readFileSync(tmpOut);
       const head = ktx2Header(ktxBuf);
       if (head.width !== src.width || head.height !== src.height) throw new Error(`${tmpOut}: level 0 ${head.width}x${head.height} != source ${src.width}x${src.height}`);
@@ -147,7 +147,7 @@ async function main() {
       };
       encodeReport.push({ asset: spec.name, role: m.role, ktxOutput: out.trim(), grade: src.grade });
       rows.push(
-        `| \`textures/${fileName}\` | ${info.name} (${m.map}, ${RESOLUTION}) | CC0 1.0 | ${Object.keys(info.authors).join(", ")} | https://polyhaven.com/a/${spec.polyHavenId} | ${file.url} | md5 \`${file.md5}\` (as published) | \`${hash}\` | ${head.width}x${head.height}, ${head.levels} mip levels, UASTC + zstd${src.grade ? `; colour graded to mean ${spec.gradeMeanSrgb} (per-channel gain ${src.grade.map((g) => g.toFixed(3)).join("/")})` : ""} |`,
+        `| \`textures/${fileName}\` | ${info.name} (${m.map}, ${RESOLUTION}) | CC0 1.0 | ${Object.keys(info.authors).join(", ")} | https://polyhaven.com/a/${spec.polyHavenId} | ${file.url} | md5 \`${file.md5}\` (as published) | \`${hash}\` | ${head.width}x${head.height}, ${head.levels} mip levels, UASTC${m.rdo === false ? " (no RDO)" : " + RDO"} + zstd${src.grade ? `; colour graded to mean ${spec.gradeMeanSrgb} (per-channel gain ${src.grade.map((g) => g.toFixed(3)).join("/")})` : ""} |`,
       );
     }
     index[spec.name] = entry;

@@ -47,6 +47,8 @@ export interface SceneRoom {
   zoneId: string | null;
   roomKind: string;
   traditionSlug: string | null;
+  /** The zone group the compiler built the room for: its section of the shared section map (DR-024), or null (lobby, commons). */
+  group: string | null;
   bounds: Rect;
   height: number;
   neighbours: { roomId: string; portalId: string }[];
@@ -82,7 +84,14 @@ export interface SceneExhibit {
   panel: ScenePlane;
   /** Image plane declared by the manifest, when there is an asset (see `report`). */
   image: ScenePlane | null;
+  /**
+   * The exhibit's footprint (the manifest's "plinth" collider). Plinth mount: a solid plinth below
+   * the wall plate. Stand mount (DR-045): the envelope of the reading stand, whose front face
+   * carries the plate; the renderer draws the stand inside it (three/world.ts).
+   */
   plinth: SceneBox | null;
+  /** How the plate is mounted (manifest `mount`; "plinth" for manifests compiled before layout grid-wings@4). */
+  mount: "plinth" | "stand";
   layers: Layer[];
   hotspots: Hotspot[];
   sequence: { pathId: string; index: number; count: number } | null;
@@ -298,6 +307,7 @@ export function buildSceneModel(manifest: Pick<CompiledManifest, "elements" | "c
       zoneId: e.parentId,
       roomKind: str(e.roomKind) ?? "room",
       traditionSlug: str(e.traditionSlug),
+      group: str(e.group),
       bounds: e.bounds as Rect,
       height: num(e.height, 3.2),
       neighbours: ((st.neighbours as SceneRoom["neighbours"]) ?? []).map((n) => ({ ...n })),
@@ -358,6 +368,7 @@ export function buildSceneModel(manifest: Pick<CompiledManifest, "elements" | "c
       panel,
       image,
       plinth: plinthC ? box(e.id, plinthC, true) : null,
+      mount: e.mount === "stand" && plinthC ? "stand" : "plinth",
       layers: ((e.layers as Layer[]) ?? []).map((l) => ({ ...l })),
       hotspots: ((e.hotspots as Hotspot[]) ?? []).map((h) => ({ ...h })),
       sequence: seq ? { pathId: seq.pathId, index: seq.index, count: seq.count } : null,

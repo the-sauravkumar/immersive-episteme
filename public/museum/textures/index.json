@@ -6,13 +6,13 @@
       "tileMetres": 3,
       "maps": {
         "color": {
-          "url": "/museum/textures/wall-color.b62d34f0.ktx2",
+          "url": "/museum/textures/wall-color.53c126ea.ktx2",
           "width": 2048,
           "height": 2048,
           "levels": 12,
           "colorSpace": "srgb",
-          "bytes": 2697552,
-          "sha256": "b62d34f0884de37887acef6f72471701beeb4e06533a2f87888961e7aca84fec",
+          "bytes": 3714461,
+          "sha256": "53c126ea67cc9d2bc9455c72e5cf48934837dc9eaa2d7f21ca4dc3130d123c2a",
           "sourceSha256": "863ff0a3fb33183078385a67aa0e8221f7e1a602c5f6c77f620dafda633786c5"
         },
         "normal": {

@@ -6,6 +6,7 @@
  * Each check is `{ id, label, passed, details: { severity, issues[] } }`. The manifest
  * passes when every check of severity "error" passes; "warning" checks report but never fail.
  */
+import { sectionOfType } from "@/features/learning/sections";
 import type { MappingRuleSetConfig } from "@/features/spatial/contracts";
 import { spatialManifestSchema } from "@/features/spatial/contracts";
 
@@ -40,6 +41,9 @@ export interface ValidationContext {
   conflicts: { relationshipId: string; type: string; ruleIds: string[] }[];
   resolution: ReadonlyMap<string, Resolution>;
   layoutIssues: readonly string[];
+  /** The building scheme the layout engine built, and why it departed from the configured one. */
+  building?: "hub" | "row";
+  layoutNotes?: readonly string[];
   unmappedCategory: readonly string[];
   assets: readonly ExhibitAsset[];
   relById: ReadonlyMap<string, GraphRelationship>;
@@ -375,6 +379,61 @@ export function validateCompiled(manifest: CompiledManifest, ctx: ValidationCont
     checks.push(check("navigation.reachability", "Every room, exhibit and doorway is reachable from the entrance", "error", issues));
   }
 
+  // 13b. Equal access to the traditions (DR-043; gate 1, tradition salience): the walking route from
+  // the spawn to each wing's entrance doorway. The hub building must keep the longest within 10% of
+  // the shortest (error); the row building reports the lengths (warning), since it cannot.
+  {
+    const issues: string[] = [];
+    const lengths: Record<string, number> = {};
+    const wingZones = els.filter((e) => e.kind === "zone" && typeof e.traditionSlug === "string");
+    if (spawn && wingZones.length > 1) {
+      const nav = new NavGrid(rooms.map((r) => r.bounds as Rect), colliders, cfg.visitorRadius, cfg.navResolution);
+      for (const z of wingZones) {
+        const entrance = rooms.find((r) => r.parentId === z.id && (r.grid as { slot?: number } | null)?.slot === 0);
+        const door = entrance ? byId.get(entrance.entranceDoorId as string) : undefined;
+        const at = door?.position as Point | undefined;
+        const route = at ? nav.route(spawn, at) : null;
+        if (!route) {
+          issues.push(`${z.id}: no walking route from the spawn to its entrance doorway`);
+          continue;
+        }
+        let len = 0;
+        let prev: Point = spawn;
+        for (const p of [...route, at!]) {
+          len += Math.hypot(p.x - prev.x, p.z - prev.z);
+          prev = p;
+        }
+        lengths[String(z.traditionSlug)] = Math.round(len * 100) / 100;
+      }
+      const vals = Object.values(lengths);
+      if (vals.length > 1) {
+        const ratio = Math.max(...vals) / Math.min(...vals);
+        if (ratio > 1.1) issues.push(`Walking routes from the spawn to the wing doorways differ by ${Math.round((ratio - 1) * 100)}% (${Object.entries(lengths).map(([k, v]) => `${k} ${v} m`).join(", ")}); limit 10%`);
+      }
+    }
+    checks.push(
+      check("navigation.wing-equidistance", "Every wing's entrance doorway is equally far from the spawn (within 10%)", (ctx.building ?? cfg.building) === "hub" ? "error" : "warning", issues, { lengths, building: ctx.building ?? cfg.building }),
+    );
+  }
+
+  // 13c. Consecutive sections one doorway apart (review finding spatial-3): inside each wing, the
+  // rooms of consecutive zone groups (in the rule set's group order) share a doorway, so walking
+  // outward from the entrance meets the sections in the 2D order without backtracking.
+  {
+    const issues: string[] = [];
+    const doorPairs = new Set(portals.map((p) => [...((p.connects as string[]) ?? [])].sort(compareStrings).join("|")));
+    for (const z of els.filter((e) => e.kind === "zone" && typeof e.traditionSlug === "string")) {
+      const wingRooms = rooms
+        .filter((r) => r.parentId === z.id && r.grid)
+        .sort((a, b) => (a.grid as { slot: number }).slot - (b.grid as { slot: number }).slot);
+      for (let i = 0; i + 1 < wingRooms.length; i++) {
+        const k = [wingRooms[i]!.id, wingRooms[i + 1]!.id].sort(compareStrings).join("|");
+        if (!doorPairs.has(k)) issues.push(`${wingRooms[i]!.id} and ${wingRooms[i + 1]!.id} (consecutive sections) share no doorway`);
+      }
+    }
+    checks.push(check("layout.section-adjacency", "Consecutive sections of a wing are one doorway apart", "error", issues));
+  }
+
   // 14. Inaccessible zones (topology).
   {
     const issues: string[] = [];
@@ -485,7 +544,9 @@ export function validateCompiled(manifest: CompiledManifest, ctx: ValidationCont
 
   // 18. Layout engine diagnostics and category mapping.
   checks.push(check("layout.engine", "Layout engine reported no construction problems", "error", [...ctx.layoutIssues]));
+  checks.push(check("layout.building", "The configured building scheme was built", "warning", [...(ctx.layoutNotes ?? [])], { building: ctx.building ?? cfg.building }));
   checks.push(check("rules.categories", "Every concept category is mapped to a zone group", "warning", ctx.unmappedCategory.map((k) => `${k}: category not in any zone group (fallback used)`)));
+  checks.push(sectionCheck(manifest, ctx));
 
   const conceptsPlaced = scope.concepts.filter((c) => exhibits.some((e) => e.conceptId === c.id)).length;
   const encoded = manifest.traceability.relationships.filter((r) => r.status === "encoded").length;
@@ -497,4 +558,39 @@ export function validateCompiled(manifest: CompiledManifest, ctx: ValidationCont
       relationships: { total: manifest.traceability.relationships.length, encoded },
     },
   };
+}
+
+/**
+ * rules.sections (DR-024): every exhibit stands in the room of its 2D section, the section map
+ * shared by both conditions (`sectionOfType`): a tradition's concept in its own wing's room of that
+ * section, a comparison in the comparison hall, a shared concept (no tradition) in the shared
+ * commons or the hall. An error for a rule set that places concepts by type (every default rule set
+ * from version 2); a warning for a version 1 rule set that places them by category, which reports
+ * where it disagrees with the 2D pages.
+ */
+function sectionCheck(manifest: CompiledManifest, ctx: ValidationContext): ValidationCheck {
+  const byId = new Map(manifest.elements.map((e) => [e.id, e]));
+  const zone = ctx.config.rules.find((r) => r.emit.params?.strategy === "category-zone");
+  const groups = (zone?.emit.params?.groups ?? []) as { types?: unknown[] }[];
+  const typed = groups.some((g) => Array.isArray(g.types) && g.types.length > 0);
+  const issues: string[] = [];
+  for (const e of manifest.elements) {
+    if (!isExhibit(e) || !e.conceptId) continue;
+    const c = ctx.scope.conceptById.get(e.conceptId);
+    if (!c) continue;
+    const room = e.parentId ? byId.get(e.parentId) : undefined;
+    const expected = sectionOfType(c.type);
+    const slug = ctx.scope.slugOf(c);
+    const group = typeof room?.group === "string" ? room.group : null;
+    const roomSlug = typeof room?.traditionSlug === "string" ? room.traditionSlug : null;
+    const where = room?.id ?? "no room";
+    if (expected.scope === "hall") {
+      if (room?.roomKind !== "hall") issues.push(`${c.key}: ${c.type} belongs to the "${expected.title}" section (the comparison hall) but stands in ${where}`);
+    } else if (slug === null) {
+      if (room?.roomKind !== "commons" && room?.roomKind !== "hall") issues.push(`${c.key}: a shared concept stands in ${where}`);
+    } else if (group !== expected.zoneGroup || roomSlug !== slug) {
+      issues.push(`${c.key}: ${c.type} is in the "${expected.title}" section of ${slug} in 2D but stands in ${where}`);
+    }
+  }
+  return check("rules.sections", "Every exhibit stands in the room of its 2D section (the shared section map)", typed ? "error" : "warning", issues);
 }

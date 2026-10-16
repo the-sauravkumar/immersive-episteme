@@ -426,14 +426,23 @@ export const PARITY_HELPERS = String.raw`
       return { strings: Array.prototype.map.call(index.querySelectorAll("a"), function (a) { return norm(a.textContent); }).filter(Boolean), sections: sections };
     },
 
-    /** P29, 3D: the Plan dialog's numbered rooms ({ number, name }), read while the dialog is open. */
+    /**
+     * P29, 3D: the Plan dialog's rooms ({ number, name, section, tradition }), read while the dialog is
+     * open. "section" and "tradition" are the button's data-section (the shared section map's id,
+     * DR-024) and data-tradition (the wing's slug); both empty for a room that is no section.
+     */
     planRooms: function () {
       var dlg = firstVisible("[data-slot=museum-plan-dialog]");
       if (!dlg) return null;
       return Array.prototype.map.call(dlg.querySelectorAll("ol > li > button"), function (b) {
         var spans = b.querySelectorAll(":scope > span");
         var nameEl = spans[1] ? spans[1].querySelector("span") : null;
-        return { number: spans[0] ? norm(spans[0].textContent) : "", name: nameEl ? norm(nameEl.textContent) : "" };
+        return {
+          number: spans[0] ? norm(spans[0].textContent) : "",
+          name: nameEl ? norm(nameEl.textContent) : "",
+          section: b.getAttribute("data-section") || "",
+          tradition: b.getAttribute("data-tradition") || "",
+        };
       });
     },
 

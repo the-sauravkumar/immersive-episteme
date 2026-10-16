@@ -57,11 +57,24 @@ export function farthestDistance(at: Point, p: Pick<ScenePlane, "min" | "max">):
   return d;
 }
 
-/** Type sizes (metres) applied to every exhibit panel, from the farthest approach distance. */
+/**
+ * The plate lettering is sized for at least this reading distance (m): the farthest approach
+ * distance of the wall-mounted plates (rule sets v1-v3, 2.1386 m). A plate on a reading stand
+ * (DR-045) is nearer its approach point (1.38 m at most); sized from that distance its type would
+ * shrink by a third and every gain in legibility would be lost. With this floor the plates are the
+ * same objects with the same lettering in both mounts, and the shorter distance goes to legibility.
+ */
+export const PLATE_TYPE_MIN_DISTANCE = 2.139;
+
+/** Type sizes (metres) applied to every exhibit panel, from the farthest approach distance (at least PLATE_TYPE_MIN_DISTANCE). */
 export function panelTypeScale(model: Pick<SceneModel, "exhibits">) {
   const dMax = Math.max(0, ...model.exhibits.map((e) => farthestDistance(e.approach, e.panel)));
-  const em = Math.ceil(emForDistance(dMax) * 1000) / 1000;
-  return { approachDistanceMax: dMax, kickerEm: em, footerEm: em, titleEm: Math.ceil(em * 1.9 * 1000) / 1000 };
+  const em = Math.ceil(emForDistance(Math.max(dMax, PLATE_TYPE_MIN_DISTANCE)) * 1000) / 1000;
+  const titleEm = Math.ceil(em * 1.9 * 1000) / 1000;
+  // The "Step n of N" line of a sequence station is set at the title size (open item: at the base
+  // size it was about 5 px tall from the room centre, so a room's order could not be read until the
+  // visitor walked up). Full ink on the unlit white plate, so its contrast is the plate's (>= 4.5:1).
+  return { approachDistanceMax: dMax, kickerEm: em, footerEm: em, titleEm, stepEm: titleEm };
 }
 
 /**
@@ -137,6 +150,27 @@ function frame(p: Pick<ScenePlane, "min" | "max" | "facing">) {
 
 const overlap1 = (a0: number, a1: number, b0: number, b1: number) => Math.min(a1, b1) - Math.max(a0, b0);
 
+/**
+ * Coordinate (along the facing axis) of the wall face a text plane stands in front of: the nearest
+ * wall face behind it that spans it. For a wall-mounted plane that is its own wall (wallOffset
+ * behind it); for a plate on a reading stand (DR-045) the wall behind the stand.
+ */
+function wallBehind(model: SceneModel, p: Pick<ScenePlane, "min" | "max" | "facing">): number {
+  const f = frame(p);
+  const n = NORMAL[p.facing][f.ax]!;
+  let best = f.at;
+  let bestD = Infinity;
+  for (const w of model.rooms.flatMap((r) => r.walls)) {
+    const face = n > 0 ? w.max[f.ax]! : w.min[f.ax]!;
+    const d = (f.at - face) * n;
+    if (d < -1e-6 || d >= bestD) continue;
+    if (overlap1(f.u0, f.u1, w.min[f.ua]!, w.max[f.ua]!) <= 1e-6) continue;
+    best = face;
+    bestD = d;
+  }
+  return best;
+}
+
 export interface PlacementReport {
   textPlanes: { panels: number; categorySigns: number; doorSigns: number };
   /** P1 eye-height band: distinct y ranges of panels and of signage. */
@@ -192,7 +226,7 @@ export function placementReport(model: SceneModel, world: CollisionWorld): Place
         if (along !== a.ua) return false;
         const wallAt = along === 2 ? p.position.x : p.position.z;
         const centre = along === 0 ? p.position.x : p.position.z;
-        return Math.abs(a.at - wallAt) <= 0.2 && centre > a.u1 && centre < b.u0;
+        return Math.abs(wallBehind(model, sorted[i - 1]!.plane) - wallAt) <= 0.2 && centre > a.u1 && centre < b.u0;
       });
       if (!doorBetween) gaps.push(b.u0 - a.u1);
     }
@@ -224,16 +258,18 @@ export function placementReport(model: SceneModel, world: CollisionWorld): Place
       const across = p.axis === "z" ? 0 : 2;
       if (along !== f.ua) continue;
       const wallAt = across === 0 ? p.position.x : p.position.z;
-      if (Math.abs(f.at - wallAt) > 0.2) continue;
+      if (Math.abs(wallBehind(model, t.plane) - wallAt) > 0.2) continue;
       const o0 = Math.min(p.opening.a[along === 0 ? "x" : "z"], p.opening.b[along === 0 ? "x" : "z"]);
       const o1 = Math.max(p.opening.a[along === 0 ? "x" : "z"], p.opening.b[along === 0 ? "x" : "z"]);
       if (overlap1(f.u0, f.u1, o0, o1) > 1e-6 && f.y0 < p.height) overlaps.push(`text over doorway: ${t.id} / ${p.id}`);
     }
   }
-  // Text clipping into geometry: every text plane must lie on a wall face (or lintel face) that covers it.
+  // Text clipping into geometry: every text plane must lie on a wall face (or lintel face, or the
+  // front of a reading stand, DR-045) that covers it.
   const faces = [
     ...model.rooms.flatMap((r) => r.walls),
     ...model.portals.flatMap((p) => (p.lintel ? [p.lintel] : [])),
+    ...model.exhibits.flatMap((e) => (e.mount === "stand" && e.plinth ? [e.plinth] : [])),
   ];
   for (const t of planes) {
     const f = frame(t.plane);
@@ -251,9 +287,10 @@ export function placementReport(model: SceneModel, world: CollisionWorld): Place
     for (const [s0, s1] of spans) if (s0 <= reach + 1e-6) reach = Math.max(reach, s1);
     if (reach < f.u1 - 1e-6) overlaps.push(`text not backed by the wall (clips or overhangs): ${t.id}`);
   }
-  // Plinths in front of panels must stay below them (label-exhibit).
+  // Plinths in front of wall panels must stay below them (label-exhibit). A reading stand carries
+  // its plate on its front face instead (checked above as the plate's backing).
   for (const e of model.exhibits) {
-    if (e.plinth && e.plinth.max[1] > e.panel.min[1] + 1e-6) overlaps.push(`plinth rises into its panel: ${e.id}`);
+    if (e.mount === "plinth" && e.plinth && e.plinth.max[1] > e.panel.min[1] + 1e-6) overlaps.push(`plinth rises into its panel: ${e.id}`);
   }
 
   // Facing and legibility at the approach point.

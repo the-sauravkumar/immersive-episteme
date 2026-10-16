@@ -4,9 +4,16 @@
  * (tests/unit/immersive/wayfinding.test.ts). Nothing here is hard-coded per layout, wing or
  * tradition: every position, name and direction comes from the compiled manifest.
  *
- * Directory (DR-023 lobby, fallback "directory wall only"): the spawn view looks through the lobby's
- * doorway, so the directory hangs on the first wall that view meets, on the spawn axis, facing the
- * spawn. It lists every wing in canonical order (zone slug order, which is also the wings' order
+ * Directory, hub building (DR-043): the spawn stands in the lobby at the directory's reading
+ * distance from the lobby's north wall, so the directory hangs on that wall, on the spawn axis,
+ * facing the spawn, and is read from where the visit starts with no walk-up. Its rows say which
+ * wall of the lobby each doorway is in ("Doorway in the left wall"), as one reads the directory, so
+ * a direction still holds once the visitor turns to walk; the comparison hall is "Doorways either
+ * side of this sign", and a room reached through the hall says so.
+ *
+ * Directory, row building (DR-023 lobby, fallback "directory wall only"): the spawn view looks
+ * through the lobby's doorway, so the directory hangs on the first wall that view meets, on the
+ * spawn axis, facing the spawn. It lists every wing in canonical order (zone slug order, which is also the wings' order
  * along the hall), then any shared, tradition-neutral room off the same room, one equal-size row
  * each: the destination's name and the doorway that leads to it, said by wall ("Far wall, second
  * doorway to the right"; "Entrance wall, to the right"): the far wall is the directory's own, the
@@ -39,6 +46,8 @@ export const DIRECTORY = {
   lineEm: 0.085,
   /** Wall left solid either side of the stack (corner, doorway reveal, exhibit panel). */
   clearance: 0.3,
+  /** Lowest row bottom (m): no row is read looking down at the floor. */
+  minBottom: 0.85,
   /** Floor in front of the stack kept free of plinths (m). */
   standOff: 0.6,
 } as const;
@@ -47,6 +56,12 @@ export const WAYFINDING_WORDS = {
   ordinal: ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"] as const,
   nth: (n: number) => (n <= 10 ? `${WAYFINDING_WORDS.ordinal[n - 1]!.toLowerCase()} doorway` : `doorway ${n}`),
   doorway: (n: number, side: "left" | "right") => `Far wall, ${WAYFINDING_WORDS.nth(n)} to the ${side}`,
+  /** Hub: a doorway in a side wall or the opposite wall of the directory's own room. */
+  inWall: (wall: "left" | "right" | "opposite", n: number, many: boolean) => (many ? `${titleWord(WAYFINDING_WORDS.nth(n))} in the ${wall} wall` : `Doorway in the ${wall} wall`),
+  /** Hub: a doorway in the directory's own wall. */
+  thisWall: (side: "left" | "right" | "both") => (side === "both" ? "Doorways either side of this sign" : `Doorway to the ${side} of this sign`),
+  /** Hub: a room reached through another room's doorway. */
+  through: (room: string) => `Through the ${room.toLowerCase()}`,
   behind: (n: number, side: "left" | "right", many: boolean) => (many ? `Entrance wall, ${WAYFINDING_WORDS.nth(n)} to the ${side}` : `Entrance wall, to the ${side}`),
   end: (side: "left" | "right") => `At the ${side} end`,
   ahead: "Straight ahead",
@@ -67,8 +82,8 @@ export interface DirectoryRow {
 export interface SceneDirectory {
   /** Room the directory hangs in (and is resident with). */
   roomId: string;
-  /** The lobby doorway the spawn view looks through. */
-  viaPortalId: string;
+  /** The lobby doorway the spawn view looks through (row building); null when it hangs in the spawn's own room (hub). */
+  viaPortalId: string | null;
   rows: DirectoryRow[];
 }
 
@@ -79,6 +94,7 @@ export interface DirectoryResult {
 }
 
 const FACING_EPS = 0.5;
+const titleWord = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** Unit forward vector (plan) of a manifest yaw in degrees (0 = north = -z, 90 = east). */
 export function forwardOf(yawDeg: number): Point {
@@ -98,8 +114,9 @@ export function doorwayNormal(portal: Pick<ScenePortal, "axis" | "position">, ro
 }
 
 /**
- * The directory: on the wall the spawn view meets through the lobby doorway, centred on the spawn
- * axis, facing the spawn. Returns null (with the reason) when that wall stretch is not free.
+ * The directory: on the wall the spawn axis meets, centred on it, facing the spawn: the spawn room's
+ * own wall when no doorway stands on the axis (hub), else the far wall of the room seen through the
+ * lobby doorway on the axis (row). Returns null (with the reason) when that wall stretch is not free.
  */
 export function entranceDirectory(model: Pick<SceneModel, "rooms" | "zones" | "portals" | "exhibits" | "labels" | "spawn">): DirectoryResult {
   const notes: string[] = [];
@@ -115,10 +132,10 @@ export function entranceDirectory(model: Pick<SceneModel, "rooms" | "zones" | "p
       return dot(rel, f) > 0 && Math.abs(dot(rel, right)) <= p.width / 2 - 0.1;
     })
     .sort((a, b) => dot(sub(a.position, model.spawn), f) - dot(sub(b.position, model.spawn), f))[0];
-  if (!via) return { directory: null, notes: ["no doorway on the spawn axis"] };
-  const roomId = via.connects[0] === spawnRoom.id ? via.connects[1] : via.connects[0];
+  const roomId = via ? (via.connects[0] === spawnRoom.id ? via.connects[1] : via.connects[0]) : spawnRoom.id;
   const room = model.rooms.find((r) => r.id === roomId);
-  if (!room) return { directory: null, notes: [`doorway ${via.id} leads to no room`] };
+  if (!room) return { directory: null, notes: [`doorway ${via?.id} leads to no room`] };
+  const inRoom = !via;
 
   // The wall the spawn axis meets on the far side of that room.
   const b = room.bounds;
@@ -128,7 +145,7 @@ export function entranceDirectory(model: Pick<SceneModel, "rooms" | "zones" | "p
     { t: tFor(b.maxZ, model.spawn.z, f.z), facing: "-z" as const },
     { t: tFor(b.minX, model.spawn.x, f.x), facing: "+x" as const },
     { t: tFor(b.maxX, model.spawn.x, f.x), facing: "-x" as const },
-  ].filter((h) => h.t > dot(sub(via.position, model.spawn), f) + 0.5 && Number.isFinite(h.t));
+  ].filter((h) => h.t > (via ? dot(sub(via.position, model.spawn), f) + 0.5 : 1e-6) && Number.isFinite(h.t));
   const hit = hits.sort((p, q) => p.t - q.t)[0];
   if (!hit) return { directory: null, notes: ["the spawn axis meets no far wall"] };
   const centre: Point = { x: model.spawn.x + f.x * hit.t, z: model.spawn.z + f.z * hit.t };
@@ -141,10 +158,14 @@ export function entranceDirectory(model: Pick<SceneModel, "rooms" | "zones" | "p
   // The wall face: the room-side face of the wall boxes on that edge, which must cover [u0, u1].
   const edge = alongX ? centre.z : centre.x;
   // Wall boxes belong to whichever room the compiler filed them under, so search every room.
+  // Only boxes that run along that edge (thin across it) and reach the directory's stretch: a wall
+  // of another room that merely crosses the edge's line is not this wall.
   const wallBoxes = model.rooms.flatMap((r) => r.walls).filter((w) => {
     const lo = alongX ? w.min[2] : w.min[0];
     const hi = alongX ? w.max[2] : w.max[0];
-    return lo - 1e-6 <= edge && edge <= hi + 1e-6;
+    const ulo = alongX ? w.min[0] : w.min[2];
+    const uhi = alongX ? w.max[0] : w.max[2];
+    return lo - 1e-6 <= edge && edge <= hi + 1e-6 && hi - lo <= 0.5 && uhi >= u0 - 1 && ulo <= u1 + 1;
   });
   const covered = (a: number, c: number) => {
     const spans = wallBoxes.map((w) => (alongX ? [w.min[0], w.max[0]] : [w.min[2], w.max[2]]) as [number, number]).sort((p, q) => p[0] - q[0]);
@@ -169,14 +190,16 @@ export function entranceDirectory(model: Pick<SceneModel, "rooms" | "zones" | "p
   ];
   if (blockers.length > 0) return { directory: null, notes: [`the wall ahead of the spawn is taken by ${blockers.join(", ")}`] };
 
-  // Rows: wings in canonical (slug) order, then shared rooms, each reached by a doorway of `room`.
+  // Rows: wings in canonical (slug) order, then shared rooms (the comparison hall when the directory
+  // is not in it, then the commons), each reached by a doorway of `room` or through the room next to it.
   const zoneOfRoom = new Map(model.rooms.map((r) => [r.id, r.zoneId]));
   const roomKind = new Map(model.rooms.map((r) => [r.id, r.roomKind]));
   const doorways = model.portals.filter((p) => p.connects.includes(room.id));
   const wings = model.zones.filter((z) => z.traditionSlug).sort((p, q) => compareStrings(p.traditionSlug!, q.traditionSlug!));
+  const sharedKinds = inRoom ? ["hall", "commons"] : ["commons"];
   const shared = model.zones
-    .filter((z) => !z.traditionSlug && z.roomIds.some((id) => roomKind.get(id) === "commons"))
-    .sort((p, q) => compareStrings(p.id, q.id));
+    .filter((z) => !z.traditionSlug && z.id !== room.zoneId && z.roomIds.some((id) => sharedKinds.includes(roomKind.get(id) ?? "")))
+    .sort((p, q) => sharedKinds.indexOf(roomKind.get(p.roomIds[0]!) ?? "") - sharedKinds.indexOf(roomKind.get(q.roomIds[0]!) ?? "") || compareStrings(p.id, q.id));
   const viewer = { f: { x: -(hit.facing === "+x" ? 1 : hit.facing === "-x" ? -1 : 0), z: -(hit.facing === "+z" ? 1 : hit.facing === "-z" ? -1 : 0) } };
   const vRight: Point = { x: -viewer.f.z, z: viewer.f.x };
   const directionTo = (target: ScenePortal): string => {
@@ -185,13 +208,33 @@ export function entranceDirectory(model: Pick<SceneModel, "rooms" | "zones" | "p
     const lat = dot(rel, vRight);
     const side: "left" | "right" = lat >= 0 ? "right" : "left";
     const sameSide = (p: ScenePortal) => (dot(sub(p.position, centre), vRight) >= 0 ? "right" : "left") === side;
+    const roomDepth = alongX ? b.maxZ - b.minZ : b.maxX - b.minX;
+    if (inRoom) {
+      // Side walls and the opposite wall of the directory's own room, as one faces the directory.
+      const wallOf = (p: ScenePortal): "left" | "right" | "opposite" | "this" => {
+        const r = sub(p.position, centre);
+        if (Math.abs(dot(r, viewer.f)) < FACING_EPS) return "this";
+        if (dot(r, viewer.f) <= -(roomDepth - FACING_EPS)) return "opposite";
+        return dot(r, vRight) >= 0 ? "right" : "left";
+      };
+      const wall = wallOf(target);
+      if (wall === "this") {
+        const zone = (p: ScenePortal) => zoneOfRoom.get(p.connects[0] === room.id ? p.connects[1] : p.connects[0]);
+        const sides = new Set(doorways.filter((p) => wallOf(p) === "this" && zone(p) === zone(target)).map((p) => (dot(sub(p.position, centre), vRight) >= 0 ? "right" : "left")));
+        return WAYFINDING_WORDS.thisWall(sides.size > 1 ? "both" : side);
+      }
+      // Counted from the directory's wall along that wall.
+      const onWall = doorways.filter((p) => wallOf(p) === wall);
+      const from = (p: ScenePortal) => (wall === "opposite" ? Math.abs(dot(sub(p.position, centre), vRight)) : -dot(sub(p.position, centre), viewer.f));
+      const before = onWall.filter((p) => p.id !== target.id && from(p) < from(target)).length;
+      return WAYFINDING_WORDS.inWall(wall, before + 1, onWall.length > 1);
+    }
     if (Math.abs(depth) < FACING_EPS) {
       const before = doorways.filter((p) => p.id !== target.id && Math.abs(dot(sub(p.position, centre), viewer.f)) < FACING_EPS && sameSide(p) && Math.abs(dot(sub(p.position, centre), vRight)) < Math.abs(lat)).length;
       return WAYFINDING_WORDS.doorway(before + 1, side);
     }
-    const roomDepth = alongX ? b.maxZ - b.minZ : b.maxX - b.minX;
     if (depth <= -(roomDepth - FACING_EPS)) {
-      const behind = doorways.filter((p) => p.id !== via.id && dot(sub(p.position, centre), viewer.f) <= -(roomDepth - FACING_EPS) && sameSide(p));
+      const behind = doorways.filter((p) => p.id !== via?.id && dot(sub(p.position, centre), viewer.f) <= -(roomDepth - FACING_EPS) && sameSide(p));
       const before = behind.filter((p) => p.id !== target.id && Math.abs(dot(sub(p.position, centre), vRight)) < Math.abs(lat)).length;
       return WAYFINDING_WORDS.behind(before + 1, side, behind.length > 1);
     }
@@ -208,7 +251,23 @@ export function entranceDirectory(model: Pick<SceneModel, "rooms" | "zones" | "p
       })
       .sort((p, q) => compareStrings(p.id, q.id))[0];
     if (!door) {
-      notes.push(`${z.id} has no doorway from ${room.id}; not listed`);
+      // Hub: a shared room reached through a room next to the directory's (the commons, beyond the
+      // hall). The row walks through that room's doorway into it.
+      const next = inRoom
+        ? model.portals
+            .filter((p) => z.roomIds.some((id) => p.connects.includes(id)))
+            .map((p) => ({ p, via: p.connects.find((id) => !z.roomIds.includes(id))! }))
+            .filter((x) => doorways.some((d) => d.connects.includes(x.via)))
+            .sort((a, c) => compareStrings(a.p.id, c.p.id))[0]
+        : undefined;
+      if (!next) {
+        notes.push(`${z.id} has no doorway from ${room.id}; not listed`);
+        continue;
+      }
+      const viaRoom = model.rooms.find((r) => r.id === next.via);
+      const viaZone = model.zones.find((zz) => zz.id === viaRoom?.zoneId);
+      const toRoomId = next.p.connects[0] === next.via ? next.p.connects[1] : next.p.connects[0];
+      rowsData.push({ id: `directory:${z.id}`, zoneId: z.id, title: z.label, direction: WAYFINDING_WORDS.through(viaZone?.label ?? next.via), portalId: next.p.id, toRoomId });
       continue;
     }
     const toRoomId = door.connects[0] === room.id ? door.connects[1] : door.connects[0];
@@ -217,15 +276,17 @@ export function entranceDirectory(model: Pick<SceneModel, "rooms" | "zones" | "p
   if (rowsData.length === 0) return { directory: null, notes: [...notes, "no wing is reached from the directory's room"] };
 
   const total = rowsData.length * DIRECTORY.rowHeight + (rowsData.length - 1) * DIRECTORY.gap;
-  const top = Math.min(room.height - 0.3, DIRECTORY.centreY + total / 2);
+  // Centred on eye height; a tall stack (the hub lists the hall and the commons too) is lifted so its
+  // lowest row stays at least `minBottom` off the floor, below the ceiling clearance.
+  const top = Math.min(room.height - 0.3, Math.max(DIRECTORY.centreY + total / 2, DIRECTORY.minBottom + total));
   const rows: DirectoryRow[] = rowsData.map((r, i) => {
     const y1 = Math.round((top - i * (DIRECTORY.rowHeight + DIRECTORY.gap)) * 1000) / 1000;
     const y0 = Math.round((y1 - DIRECTORY.rowHeight) * 1000) / 1000;
     const min: [number, number, number] = alongX ? [u - half, y0, plane] : [plane, y0, u - half];
     const max: [number, number, number] = alongX ? [u + half, y1, plane] : [plane, y1, u + half];
-    return { ...r, sign: { id: r.id, elementId: via.id, kind: "sign", facing: hit.facing, min, max, uv: "metre", wallOffset: DIRECTORY.offset, polygonOffset: { factor: -1, units: -1 }, aspectRatio: null, assetId: null } };
+    return { ...r, sign: { id: r.id, elementId: via?.id ?? room.id, kind: "sign", facing: hit.facing, min, max, uv: "metre", wallOffset: DIRECTORY.offset, polygonOffset: { factor: -1, units: -1 }, aspectRatio: null, assetId: null } };
   });
-  return { directory: { roomId: room.id, viaPortalId: via.id, rows }, notes };
+  return { directory: { roomId: room.id, viaPortalId: via?.id ?? null, rows }, notes };
 }
 
 /**

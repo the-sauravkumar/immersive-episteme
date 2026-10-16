@@ -208,6 +208,11 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
   const wingSlugs = [...new Set(layout.rooms.filter((r) => r.kind === "wing-room").map((r) => r.slug!))].sort(compareStrings);
   const tradName = (slug: string) => scope.traditionBySlug.get(slug)?.name ?? slug;
   const doorPoint = (d: DoorPlan): Point => (d.orient === "h" ? { x: d.center, z: d.c } : { x: d.c, z: d.center });
+  const hub = layout.building === "hub";
+  const SIDE_WORD = { w: "west", s: "south", e: "east" } as const;
+  const wingPlacement = hub
+    ? `The wings open off the entrance lobby in slug order (${wingSlugs.map((s) => `${s} ${SIDE_WORD[layout.wingSides.get(s)!]}`).join(", ")}), each doorway the same walking distance from the spawn (layout.building "hub", DR-043).`
+    : `Wings are laid out west to east in slug order (${wingSlugs.join(", ")}), each entered from the comparison hall (layout.building "row").`;
 
   // Chains -> station ids.
   const stationOf = new Map<string, { pathId: string; index: number; count: number; chainId: string }>();
@@ -240,7 +245,7 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
         minZ: Math.min(...rects.map((r) => r.minZ)),
         maxZ: Math.max(...rects.map((r) => r.maxZ)),
       }),
-      rationale: `Wing of the ${tradName(slug)} tradition: rule ${wingRule?.id ?? zoneRule.id} gives every selected tradition one wing so that concepts sharing a tradition share a region. Wings are laid out west to east in slug order (${wingSlugs.join(", ")}), each entered from the comparison hall.`,
+      rationale: `Wing of the ${tradName(slug)} tradition: rule ${wingRule?.id ?? zoneRule.id} gives every selected tradition one wing so that concepts sharing a tradition share a region. ${wingPlacement}`,
     });
   }
   add({
@@ -251,7 +256,9 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
     ruleId: comparisonRule?.id ?? circulationRule.id,
     label: "Comparison hall",
     bounds: roundRect(roomById.get("room:hall")!.rect),
-    rationale: `Connected comparison area: rule ${comparisonRule?.id ?? circulationRule.id} joins every wing entrance to one hall, so comparable traditions are physically connected and cross-tradition comparisons are juxtaposed between the wings they compare.`,
+    rationale: hub
+      ? `Connected comparison area: rule ${comparisonRule?.id ?? circulationRule.id} gives the cross-tradition comparisons one hall, entered from the entrance lobby that every wing opens off, so the compared traditions are one lobby apart and each comparison stands on the hall wall nearest (in plan) to the wings it compares.`
+      : `Connected comparison area: rule ${comparisonRule?.id ?? circulationRule.id} joins every wing entrance to one hall, so comparable traditions are physically connected and cross-tradition comparisons are juxtaposed between the wings they compare.`,
   });
   add({
     id: "zone:entrance",
@@ -272,7 +279,9 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
       ruleId: zoneRule.id,
       label: zoneParams.data.sharedZoneLabel,
       bounds: roundRect(roomById.get("room:commons")!.rect),
-      rationale: `Shared knowledge that belongs to no single tradition (rule ${zoneRule.id}); it opens onto the comparison hall so that it is equally close to every wing.`,
+      rationale: hub
+        ? `Shared knowledge that belongs to no single tradition (rule ${zoneRule.id}); it opens off the far end of the comparison hall, on the spawn's axis, so it lies in no wing's direction.`
+        : `Shared knowledge that belongs to no single tradition (rule ${zoneRule.id}); it opens onto the comparison hall next to the entrance lobby.`,
     });
   }
 
@@ -285,23 +294,37 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
     const d = round(r.rect.maxZ - r.rect.minZ);
     let rationale: string;
     let ruleId: string;
+    const sq = layout.minSide.get(r.id);
+    const sizing =
+      `${w} x ${d} m: ` +
+      (r.kind === "wing-room"
+        ? `its grid column's width and grid row's depth, each the largest any room in that column or row needs${sq !== undefined ? ` (this room alone needs a ${sq} m square for its ${r.conceptKeys.length} exhibits at ${cfg.exhibitSpacing} m spacing)` : ""}, grown while a room of the column or row was short of wall slots`
+        : `the smallest square (at least ${cfg.minRoomSize} m) whose wall slots hold its ${r.conceptKeys.length} exhibits at ${cfg.exhibitSpacing} m spacing`);
     if (r.kind === "wing-room") {
       ruleId = zoneRule.id;
+      const order =
+        cfg.groupOrder === "template"
+          ? `the rule set's group order [${layout.groupOrder.join(", ")}] (rule layout.template-order: the section order of the 2D tradition page), entrance group first`
+          : `the shared group order [${layout.groupOrder.join(", ")}], which places each group next to the already-placed groups it shares the most cross-category relationships with (rule ${crossRule?.id ?? "-"})${tiedGroupOrder ? "; equal scores were broken by the seeded PRNG" : ""}`;
       rationale =
-        `Zone "${r.label}": rule ${zoneRule.id} maps categories ${r.categories.join(", ")} to this room in the ${tradName(r.slug!)} wing. ` +
+        `Zone "${r.label}": rule ${zoneRule.id} places this section's concepts here, in the ${tradName(r.slug!)} wing: each concept by its type, the same section as on the 2D tradition page (DR-024); categories ${r.categories.join(", ")} keep labelled wall runs. ` +
         (r.grid!.slot === 0
-          ? `It is the wing's entrance room (entranceGroup), at grid row 0, column 0 next to the hall. `
-          : `Grid slot ${r.grid!.slot} (row ${r.grid!.row}, column ${r.grid!.col}) follows the shared group order [${layout.groupOrder.join(", ")}], which places each group next to the already-placed groups it shares the most cross-category relationships with (rule ${crossRule?.id ?? "-"})${tiedGroupOrder ? "; equal scores were broken by the seeded PRNG" : ""}. `) +
-        `${w} x ${d} m: the smallest grid-aligned size whose wall slots hold its ${r.conceptKeys.length} exhibits at ${cfg.exhibitSpacing} m spacing. ${r.depth} doorway(s) from the entrance.`;
+          ? `It is the wing's entrance room (entranceGroup), grid slot 0, entered from the ${hub ? "entrance lobby" : "comparison hall"}. `
+          : `Grid slot ${r.grid!.slot} (row ${r.grid!.row}, column ${r.grid!.col}, filled in serpentine order so consecutive slots share a wall and a circulation doorway) follows ${order}. `) +
+        `${sizing}. ${r.depth} doorway(s) from the entrance lobby.`;
     } else if (r.kind === "hall") {
       ruleId = comparisonRule?.id ?? circulationRule.id;
-      rationale = `Comparison hall (rule ${ruleId}): spans all wings so every wing entrance opens onto it; ${r.conceptKeys.length} comparison exhibit(s) stand on its walls nearest to the wings they compare. ${w} x ${d} m.`;
+      rationale = hub
+        ? `Comparison hall (rule ${ruleId}): north of the entrance lobby, entered by two doorways either side of the entrance directory; ${r.conceptKeys.length} comparison exhibit(s) stand on its wall slots nearest in plan to the wings they compare. ${w} x ${d} m: as wide as the lobby, and long enough for its exhibits and to clear the wings beside it.`
+        : `Comparison hall (rule ${ruleId}): spans all wings so every wing entrance opens onto it; ${r.conceptKeys.length} comparison exhibit(s) stand on its walls nearest to the wings they compare. ${w} x ${d} m.`;
     } else if (r.kind === "lobby") {
       ruleId = circulationRule.id;
-      rationale = `Entrance lobby (rule ${circulationRule.id}): contains the spawn point and opens onto the comparison hall.`;
+      rationale = hub
+        ? `Entrance lobby (rule ${circulationRule.id}), the hub: contains the spawn ${cfg.hubSpawnDepth} m from its north wall, where the entrance directory hangs, and opens to every wing (west, south and east) at the same distance from the spawn, and north to the comparison hall. ${w} x ${d} m: at least as wide as the west and east wings' entrance columns, as deep as the spawn's distance from the north wall plus half the width.`
+        : `Entrance lobby (rule ${circulationRule.id}): contains the spawn point and opens onto the comparison hall.`;
     } else {
       ruleId = zoneRule.id;
-      rationale = `Shared commons (rule ${zoneRule.id}): ${r.conceptKeys.length} shared concept(s) (no owning tradition), one doorway from the comparison hall, ${w} x ${d} m.`;
+      rationale = `Shared commons (rule ${zoneRule.id}): ${r.conceptKeys.length} shared concept(s) (no owning tradition), one doorway from the comparison hall. ${sizing}.`;
     }
     add({
       id: r.id,
@@ -341,7 +364,9 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
     label: "Entrance",
     position: { x: layout.spawn.x, y: 0, z: layout.spawn.z },
     spawn: layout.spawn,
-    rationale: `Spawn point at the centre of the entrance lobby, facing north towards the comparison hall (rule ${circulationRule.id}).`,
+    rationale: hub
+      ? `Spawn point on the entrance lobby's axis, ${cfg.hubSpawnDepth} m from the entrance directory on its north wall (the directory's reading distance), facing north towards it and the two doorways into the comparison hall; every wing doorway is the same distance away (rule ${circulationRule.id}).`
+      : `Spawn point at the centre of the entrance lobby, facing north towards the comparison hall (rule ${circulationRule.id}).`,
   });
 
   // Portals.
@@ -398,17 +423,29 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
   }
   const placementByKey = layout.placements;
   const assetById = new Map((input.assets ?? []).map((a) => [a.id, a]));
-  /** Wall text panel (always) and image plane (when the exhibit has an asset). */
+  /**
+   * Text panel (always) and image plane (when the exhibit has an asset). Plinth mount: on the wall,
+   * panelOffset proud of it. Stand mount (DR-045): panelOffset proud of the reading stand's board,
+   * whose face is the footprint's front face; `wallOffset` is the stand-off from that board.
+   */
+  const stand = cfg.exhibitMount === "stand";
+  const plateBottom = stand ? cfg.standPanelBottom : cfg.panelBottom;
+  const plateTop = stand ? cfg.standPanelTop : cfg.panelTop;
+  const boardOffset = stand ? cfg.wallGap + cfg.exhibitDepth : 0;
+  const imageCentreY = cfg.imageCenterY - cfg.panelBottom + plateBottom;
   const exhibitSurfaces = (id: string, pl: Placement, refs: { assetId: string; missing?: true }[]): Surface[] => {
     const u = pl.wall.u;
-    const out: Surface[] = [wallPlane(`${id}#panel`, "panel", pl.wall, cfg.panelOffset, u - cfg.panelWidth / 2, u + cfg.panelWidth / 2, cfg.panelBottom, cfg.panelTop)];
+    const out: Surface[] = [
+      wallPlane(`${id}#panel`, "panel", pl.wall, boardOffset + cfg.panelOffset, u - cfg.panelWidth / 2, u + cfg.panelWidth / 2, plateBottom, plateTop, { wallOffset: round(cfg.panelOffset, 4) }),
+    ];
     const asset = refs.map((r) => assetById.get(r.assetId)).find((a) => !!a);
     if (asset) {
       const aspect = asset.width && asset.height ? asset.width / asset.height : null;
       // Unknown aspect: the plane is a bounding box only; the loader must fit the image (reported as a warning).
       const { w, h } = aspect ? fitAspect(aspect, cfg.imageMaxWidth, cfg.imageMaxHeight) : { w: cfg.imageMaxWidth, h: cfg.imageMaxHeight };
       out.push(
-        wallPlane(`${id}#image`, "image", pl.wall, cfg.panelOffset + cfg.imageOffset, u - w / 2, u + w / 2, cfg.imageCenterY - h / 2, cfg.imageCenterY + h / 2, {
+        wallPlane(`${id}#image`, "image", pl.wall, boardOffset + cfg.panelOffset + cfg.imageOffset, u - w / 2, u + w / 2, imageCentreY - h / 2, imageCentreY + h / 2, {
+          wallOffset: round(cfg.panelOffset + cfg.imageOffset, 4),
           aspectRatio: aspect ? round(aspect, 6) : null,
           assetId: asset.id,
         }),
@@ -431,7 +468,7 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
         ? `the comparison hall (rule ${comparisonRule?.id ?? zoneRule.id}), on the wall slot nearest to the wing(s) it compares (${(scope.compares.get(c.key) ?? []).map((k) => scope.slugOf(scope.conceptByKey.get(k)!)).filter((s, i, arr) => s && arr.indexOf(s) === i).join(", ") || scope.slugOf(c) || "none"})`
         : room.kind === "commons"
           ? `the shared commons (rule ${zoneRule.id}) because it belongs to no single tradition and is linked to a selected one`
-          : `"${room.label}" because rule ${zoneRule.id} maps category ${c.category} to zone group ${room.groupId} of the ${tradName(room.slug!)} wing${wingRule ? ` (rule ${wingRule.id})` : ""}`;
+          : `"${room.label}" because rule ${zoneRule.id} maps ${zoneParams.data.groups.some((g) => g.types?.length) ? `type ${c.type}` : `category ${c.category}`} to zone group ${room.groupId} of the ${tradName(room.slug!)} wing${wingRule ? ` (rule ${wingRule.id})` : ""}`;
     add({
       id,
       kind: st ? "station" : "exhibit",
@@ -443,6 +480,7 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
       conceptType: c.type,
       category: c.category,
       display: c.type === "material" || c.type === "tool" ? "plinth" : "panel",
+      mount: cfg.exhibitMount,
       position: { x: pl.position.x, y: 0, z: pl.position.z },
       yawDeg: pl.yawDeg,
       wall: pl.side,
@@ -468,7 +506,7 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
       layers: [] as Layer[],
       rationale:
         `${c.title} (${c.type}, category ${c.category}) stands in ${where}. ` +
-        `It is on the ${SIDE_NAME[pl.side]} wall, position ${pl.order + 1} clockwise from the room entrance` +
+        `${stand ? "Its plate stands on a reading stand in front of" : "It is on"} the ${SIDE_NAME[pl.side]} wall, position ${pl.order + 1} clockwise from the room entrance` +
         (st ? `; stop ${st.index + 1} of ${st.count} on ${st.pathId} (rule ${sequenceRule?.id}), so consecutive process stages stand in consecutive slots` : "") +
         (tiedRooms.has(room.id) ? `; where several exhibits were equally associated, the slot order was broken by the seeded PRNG` : "") +
         ".",
@@ -740,7 +778,7 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
       length: round(polylineLength(waypoints)),
       broken,
       rationale:
-        `Ordered path (rule ${sequenceRule.id}): ${ch.relationshipIds.length} sequence link(s) form one chain, ordered ${ch.orderSource === "ordinal" ? "by PRECEDES ordinals 1.." + ch.relationshipIds.length : "topologically (no ordinals)"}. ` +
+        `Ordered path (rule ${sequenceRule.id}): ${ch.relationshipIds.length - ch.loopBacks.length} sequence link(s) form one chain, ordered ${ch.orderSource === "ordinal" ? "by PRECEDES ordinals 1.." + (ch.relationshipIds.length - ch.loopBacks.length) : "topologically (no ordinals)"}. ` +
         `Its ${keys.length} stations stand in consecutive wall slots and the routed path visits them in that order.` +
         (ch.loopBacks.length ? ` ${ch.loopBacks.length} declared repeat loop(s) return from a later station to an earlier one (recorded in loops).` : ""),
     });
@@ -792,7 +830,7 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
         waypoints: route ?? [],
         length: route ? round(polylineLength(route)) : null,
         broken: !route,
-        rationale: `Connected comparison zones (rule ${comparisonRule.id}): ${rels.length} cross-tradition SIMILAR_TO / CONTRASTS_WITH link(s) connect ${tradName(a)} and ${tradName(b)}; this route joins their wing entrances through the comparison hall, where ${comparing.length} comparison exhibit(s) about both stand.`,
+        rationale: `Connected comparison zones (rule ${comparisonRule.id}): ${rels.length} cross-tradition SIMILAR_TO / CONTRASTS_WITH link(s) connect ${tradName(a)} and ${tradName(b)}; this route joins their wing entrances ${hub ? "across the entrance lobby; the comparison hall north of it holds" : "through the comparison hall, where"} ${comparing.length} comparison exhibit(s) about both${hub ? "" : " stand"}.`,
       });
       for (const rel of rels) {
         encode(id, rel.id, comparisonRule.id, "juxtaposition", "comparison-zone");
@@ -932,6 +970,8 @@ function compileInternal(input: CompileInput): { result: CompileResult; ctx: Val
     conflicts,
     resolution,
     layoutIssues: layout.issues,
+    building: layout.building,
+    layoutNotes: layout.notes,
     unmappedCategory: layout.unmappedCategory,
     assets: input.assets ?? [],
     relById,

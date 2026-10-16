@@ -13,7 +13,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
-import { CollisionWorld, VISITOR, createRouter, facingExhibit, moveInputFromKeys, stepVisitor, yawFromDeg, type MoveInput, type VisitorState } from "@/features/immersive/navigation";
+import { CollisionWorld, VISITOR, compassPoint, createRouter, facingExhibit, moveInputFromKeys, stepVisitor, yawFromDeg, type MoveInput, type VisitorState } from "@/features/immersive/navigation";
 import { doorSigns, type SceneDoorSign } from "@/features/immersive/placement";
 import { TIERS, type QualityTier } from "@/features/immersive/quality";
 import { residentRooms, roomAt, type SceneModel, type SceneRoom } from "@/features/immersive/scene-model";
@@ -200,6 +200,8 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
     mouseLooking: boolean;
     /** The input method reported last (null at the start of a navigation interval). */
     lastMethod: InputMethod | null;
+    /** The compass point last reported to the Plan (headingChanged). */
+    headingDeg: number | null;
     /** Visited exhibits to apply once the world exists. */
     visited: string[];
   }>({
@@ -233,6 +235,7 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
     probeHook: null,
     poseOverride: false,
     lastMethod: null,
+    headingDeg: null,
     visited: [],
   });
 
@@ -354,15 +357,22 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
         await renderer.compileAsync(scene, camera);
         for (const t of [...materials.all.flatMap((m) => collectTextures(m))]) renderer.initTexture(t);
         if (cancelled) return;
-        world.clearPrecompileHelpers();
         applyCamera();
-        // One full accumulation pass behind the loading screen compiles the post-processing programs.
+        // One full accumulation pass behind the loading screen compiles the post-processing programs,
+        // and the programs the scene really uses: compileAsync compiles for the canvas output, but the
+        // pipeline draws into its own target with other output settings, so a tone-mapped material
+        // (the highlight and the route) gets a second program on first real use. The helpers stay in
+        // this pass for that reason and are cleared after it (C4: the hub tour showed the route's
+        // program compiling in the first process room).
         pipeline.render(true, 0);
         pipeline.render(false, 0);
+        world.clearPrecompileHelpers();
         renderer.info.reset();
         rt.ready = true;
         rt.lastMethod = null;
         if (rt.roomId) bridge.events.roomChanged(rt.roomId, null, null);
+        rt.headingDeg = compassPoint(rt.visitor.yaw);
+        bridge.events.headingChanged?.(rt.headingDeg);
         bridge.events.ready({ backend: "webgl2", tier, gpuRenderer, antialiasing: "TAARenderPass accumulation at rest + SMAA" });
         invalidate();
       } catch (e) {
@@ -925,6 +935,15 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
       invalidate();
     }
 
+    // Plan heading arrow: the facing quantised to the eight compass points (yaw 0 faces north, -z;
+    // positive yaw turns west), reported only when the point changes.
+    {
+      const deg = compassPoint(rt.visitor.yaw);
+      if (deg !== rt.headingDeg) {
+        rt.headingDeg = deg;
+        bridge.events.headingChanged?.(deg);
+      }
+    }
     // Room tracking with hysteresis: a new room counts once the visitor is past the wall face.
     const here = roomInside(model.rooms, rt.visitor, 0.12);
     if (here && here.id !== rt.roomId) {

@@ -42,6 +42,12 @@ export interface SceneEvents {
    * methods needs no handler.
    */
   inputMethodUsed?(method: InputMethod): void;
+  /**
+   * The visitor's facing changed to another of the eight compass points (degrees clockwise from
+   * north, a multiple of 45), for the Plan's heading arrow. Emitted at ready and on each change, so
+   * the overlays never re-render while the visitor turns within one point. Optional.
+   */
+  headingChanged?(degrees: number): void;
 }
 
 export interface SceneController {

@@ -71,7 +71,7 @@ All rules are applied uniformly from the manifest; none is tuned per exhibit. Me
 | P7 angular size | Every line subtends at least the angle of 16 px text at 1280 x 800 with a 62 degree vertical FOV (0.024033 rad). The em size is derived from the farthest approach distance (2.107 m): kicker and footer 0.051 m, title 0.097 m. | Smallest kicker 0.024209 rad and smallest title 0.046038 rad, both at least 0.024033. 0 failing. |
 | P8 door signage | Each doorway carries a sign on each lintel face naming the room it leads to (and the zone, when it changes), readable from 2.5 m with a clear line of sight | 29 doorways, 58 of 58 sides signed and readable; smallest angle 0.03595 rad. Superseded in size by I-W5 (2.2 x 0.46 m, name readable from 6 m). |
 | Contrast | WCAG 2.2 AA under the scene lighting, measured on the rendered frame at every exhibit approach | Pending GPU run. Design value: secondary lettering at 0.88 coverage gives about 5.3:1 by the shader's linear mix (`MUTED_COVERAGE` in `labels.ts`). The first value, 0.72, would have given about 3.0:1 and was changed. |
-| Wayfinding order | Wing room order against the 2D section order (context, materials and tools, process, artisan, design, outcomes, science, ...) | First measurement: 24 of 54 ordered room pairs inverted (greedy cross-category grouping). After the lead's compiler change (rule layout.template-order, the default; the old ordering stays available as `groupOrder: "connection"`): 0 of 54. **Met.** Door signs and the "In this room" doorway list still name every destination. |
+| Wayfinding order | Wing room order against the 2D section order (context, materials and tools, process, artisan, design, outcomes, science, ...) | First measurement: 24 of 54 ordered room pairs inverted (greedy cross-category grouping). After the lead's compiler change (rule layout.template-order, the default; the old ordering stays available as `groupOrder: "connection"`): 0 of 54. **Corrected (DR-043, review finding spatial-3):** that metric skipped pairs at equal doorway depth, which were exactly the consecutive sections, so it could not fail; in the row-major grid every second pair of consecutive sections was diagonal (up to 6 doorways apart in Sanganeri). Now measured on the doorway graph: consecutive sections are 1 doorway apart in every wing (serpentine grid, a circulation doorway between consecutive slots; compiler check `layout.section-adjacency`). **Met.** Door signs and the "In this room" doorway list still name every destination. |
 
 In-world text carries titles only: the exhibit title, its type, its step number and its
 tradition and category; category signs; door destinations. Claim text exists only in the
@@ -409,3 +409,133 @@ navigation (the manipulated variable) and adds no control; the directory words a
 not content. Tradition salience: the directory rows keep equal size and canonical order; the
 wing-distance confound is unchanged and open. Telemetry: a walk through a doorway seen beyond is a
 click (`input_method_used` "click") with the same room-entry events as any doorway walk.
+
+## One Section Map for Both Conditions (DR-024, package 3D-1)
+
+- **Problem:** wing rooms were chosen by knowledge category and 2D sections by concept type, so 4
+  study concepts sat in a different section per condition (one of them in the hall, outside its
+  wing), and the Plan's reading-order numbers could not match the 2D index (P29).
+- **Built:** `src/features/learning/sections.ts` is the one table (id, number, title, types, zone
+  group, scope). The 2D template re-exports it; the compiler's zone groups are derived from it (rule
+  set `knowledge-to-space-default` v2: a room is chosen by type; categories only order the wall
+  runs); the compiler check `rules.sections` fails a manifest with an exhibit outside its 2D
+  section's room. The Plan numbers a room by its section (wings 1-7, hall 8; lobby and commons no
+  number), names it by the section title, and lists the entrance, then each wing in the canonical
+  order, then the hall.
+- **Measured:** `tests/unit/immersive/section-map.test.ts` (every study wing room holds exactly its
+  2D section's concepts; the hall only comparisons; the four concepts moved; Plan numbers and names
+  equal the 2D index). Quick parity run on the production build (GTX 1650, 1280 x 800 light, three
+  traditions): P29 compared 22 Plan rooms with 24 index sections by number and name, 0 differing;
+  P26 reports wing rooms 1-7 in every study wing, none outside the map. C5: only the Sanganeri
+  artisan-decisions view changed (0.25% of pixels, the two moved concepts no longer on that wall);
+  its baseline was regenerated and checked by eye (no artefacts); the other five views pass.
+- **Test fix found on the way:** the minimap unit test read the Expand button's icon instead of the
+  plan drawing, so its 10 px number assertions never ran; it now reads the drawing.
+
+## Hub Building and Wayfinding (DR-043, package 3D-2)
+
+**Question.** How can the three tradition wings be equally far from where the visit starts, and
+which wayfinding frictions remain for a novice?
+
+| Decision | Reason | Alternative rejected |
+|---|---|---|
+| **The entrance lobby is the hub.** Wings open off its west, south and east walls (canonical order); the spawn stands 3.5 m from the north wall on the axis; the west and east doorways are level with the spawn and the lobby is 3.5 m plus half its width deep, so every wing doorway is half the lobby width away (`layout.building: "hub"`, rule set v3). | Only a point equidistant from three doorways removes the difference by construction; the row made the third wing 5.3 times as far as the first. | Counterbalanced wing order (removes it only on average); the hall as hub (opposite wing 1.4 times as far). |
+| **The directory hangs in the lobby, read from the spawn.** Wings in canonical order, then the hall and the commons; directions by lobby wall as one reads it ("Doorway in the left wall"). | No walk-up: the old walk-up left the visitor facing a bare wall with no floor in view (open item a). Wall words stay true once the visitor turns. | Directory on the hall's far wall (needed a walk-up, and from there the wings were unequal again). |
+| **Serpentine wing grid; a doorway between consecutive sections** (`layout.section-adjacency`). | Review spatial-3: in the row-major grid every second pair of sections was diagonal. | Keeping the BFS tree (up to 6 doorways between consecutive sections). |
+| **Door signs carry the section number** ("3. Process Sequence"). | Walkthrough: in the context room no sign named the process room (it is reached through section 2), and the novice turned six times before trying a doorway. With numbers, "2" visibly leads on to 3. The numbers are the 2D index's. | A "next" line on signs (more text on every sign). |
+| **Plan heading arrow** in eight compass steps; room names on hover in the full plan. | Open item (d). The arrow turns only when the facing passes to another point, so the Plan never animates. | A live position dot (motion in the overlay; the dot marks the room by design). |
+| **"Step n of N" at the title size,** on a plate 0.8 m tall (was 0.7 m). | Open item (e): at the base size the line was about 5 px from the room centre. Full ink on the unlit white plate, so its contrast is the plate's. Middle stations keep 5 title lines, first and last 4. | Enlarging inside 0.7 m (first and last stations would lose a title line). |
+| **Floor and ceiling bakes use every bounding wall** (`wallsBoundingRect`). | Review spatial-4: some wall bases in 20 of 24 rooms had no contact band. | Changing wall ownership in the compiler (would change streaming units and ids). |
+
+**Walking time to each wing (GTX 1650, production build, 1280 x 800).** A click on the wing's row of
+the directory at the spawn; three runs per wing, the wing order rotated; fresh page per run.
+
+| Wing | Enter the wing, median (s) | At rest inside, median (s) |
+|---|---|---|
+| Ajrakh (west) | 3.51 | 5.97 |
+| Machilipatnam Kalamkari (south) | 3.42 | 5.82 |
+| Sanganeri (east) | 3.42 | 5.82 |
+| Spread | 2.7% | 2.6% |
+
+Before (row building, from the directory): 5.9 / 19.3 / 31.4 s. Every arrival faced into the room.
+
+**Novice walkthrough, re-run (GTX 1650, production build, 1440 x 900, default controls only).** The
+same script and policy as package 3D-B (reads only on-screen words large enough to read; clicks the
+floor, a sign, a plate; drag-look), with one addition: the novice knows the target's section number,
+as the 2D index shows it, and takes a readable door sign whose number lies between its room's and the
+target's. Target: a mid-sequence process stage in each wing. A wrong turn is a room entered off the
+shortest doorway path. Times run from the first frame at the spawn and include the citation, the
+next-step pager and Finish.
+
+| Run | Target | Open (s) | Finish (s) | Clicks | Drags | Wrong turns | Rooms |
+|---|---|---|---|---|---|---|---|
+| Hub, before door numbers | Ajrakh, step 6 of 14 | 55.3 | 63.9 | 7 | 11 | 0 | lobby, context, materials, process |
+| Hub | Ajrakh, step 6 of 14 | 52.0 | 60.5 | 7 | 5 | 0 | lobby, context, materials, process |
+| Hub | Machilipatnam Kalamkari, step 6 of 12 | 32.4 | 40.3 | 6 | 0 | 0 | lobby, context, process (through materials) |
+| Hub | Sanganeri, step 6 of 12 | 39.8 | 48.0 | 7 | 1 | 0 | lobby, context, materials, process |
+| Row (3D-B, dev server) | Ajrakh / Kalamkari / Sanganeri | 43.6 / 52.3 / 68.5 | 50.9 / 59.6 / 78.8 | 8 / 7 / 8 | 5 / 5 / 5 | 0 | lobby, hall, context, process |
+
+The remaining spread between wings comes from where the target plate hangs in its room (drags to
+find it), not from the wing; the Ajrakh target is behind the visitor on arrival. The row runs were on
+the dev server, so absolute times are not comparable; wing against wing, the hub removed the 25 s
+difference.
+
+**Rendering checks after the change (GTX 1650, production build, `immersive-rendering.spec.ts`).**
+C1, C1b, C2 (wing entrance rooms within 2.2% of their mean), C5, C6, C7, C8 and C10 pass. C3 over two
+whole-museum tours (24 rooms, 1,226 m each): p95 7.1 ms, p99 7.2 ms, longest frame 27.5 ms, no frame
+over 50 ms. C4 first failed: one WebGL program compiled after entry (15 to 16), the route ribbon's.
+`compileAsync` compiles for the canvas output while the pipeline draws into its own target, so the
+tone-mapped highlight and route materials got their real program on first use, and the precompile
+helpers were cleared before the first real pass (and culled, being out of view). The helpers now stay,
+unculled, through that pass, and a keeper material holds the lettering program, which a residency swap
+could otherwise release and recompile. Re-run: no program added over the tour, C4 passes. Card titles
+at the approach point at least 20.5:1 (23 cards), door signs at 2.5 m at least 19.56:1 (54 signs); the
+card probe's title band now starts at 8% of the plate height (a one-line title on the 0.8 m plate ends
+above 20%). C12 still fails on the wall colour map (SSIM 0.9746 against 0.98), the known UASTC encode
+issue, unrelated to this change. The six C5 baselines were regenerated (every room view changed; old
+images kept in the scratch folder) and checked by eye: no artefacts; they need the human baseline
+review. Quick parity run (1280 x 800 light, three traditions): passed; P29 compared 22 Plan rooms with
+24 index sections by number and name, 0 differing; P33 default 18 against 18.
+
+**Remaining friction, not fixed:** in the process room the novice still turns to find a named plate
+(up to five 60-degree turns in Ajrakh); the "Start" and "Last step" foot lines keep the small size;
+the lobby is a plain room (the finish items of the review stay open).
+
+**Equivalence check.** Content: unchanged. Exposure: unchanged; navigation time to each tradition is
+now equal. Citations: unchanged. Ease once a concept is open: unchanged. Natural navigation only:
+every change is 3D navigation or wayfinding; door-sign numbers are the 2D index's numbers. Tradition
+salience: improved (equal distance, no wing in view at the start, canonical order). Telemetry: no
+new event; the Plan's heading is UI state only.
+
+## Finish and Rendering Quality (DR-044, DR-045, package 3D-3)
+
+**Question.** Can check C12 pass within the texture budget, and does replacing the empty plinths
+with reading stands make the plates easier to read without changing navigation?
+
+| Decision | Reason | Alternative rejected |
+|---|---|---|
+| **Wall colour map encoded without RDO** (KTX-Software 4.4.2, UASTC quality 2). | Offline proxy with the C12 metric: 0.9753 with RDO (reproduces the GPU failure), 0.9883 without; GPU 0.9872. +1.0 MB first download (8.07 MB of 25 MB). | RDO lambda 0.1 (same fidelity, a less simple setting); quality 3 or 4 (no gain; quality 4 took 226 s). |
+| **Plates on identical reading stands** at the front of the unchanged footprint, 1.15 to 1.95 m. | Plate subtends at least 1.63 times its height at the approach point and at least 1.05 times from the room centre; rendered 378 px against 232.5 px. Navigation byte-identical. | A sloped desk (foreshortened from across the room; not axis-aligned); a lower wall plate with new approach points (changes every route). |
+| **Lettering size fixed** (`PLATE_TYPE_MIN_DISTANCE`). | Sized from the nearer stand distance the type would shrink by a third and cancel the gain. | Re-deriving the type from the new distance. |
+| **C2 counts exact-black plate ink apart** (as exact-white paper). | The larger plates' ink alone passed 0.5% at 12 approach views; no tone-mapped surface renders below about sRGB 35. | Raising the C2 limit. |
+| **No baked lighting variation.** | Pattern behind the plates (detail near knowledge); per-wall light maps on low-spec machines; no gate gains. | Downlight scallops. |
+
+**Rendering, GTX 1650, production build (run `3d-3-stand-2`):** all ten checks pass; figures in
+DR-045 and `docs/architecture/immersive-rendering-results.md`.
+Low tier (Iris Xe, CPU x4, first run): all ten pass; p95 20.8 / 27.5 ms against 33 ms.
+
+**Novice walkthrough re-run (same script and targets as DR-043, GTX 1650, 1440 x 900):**
+
+| Wing | Open (s), stands | Open (s), plinths (DR-043) | Clicks | Drags | Wrong turns |
+|---|---|---|---|---|---|
+| Ajrakh | 47.1 | 52.0 | 7 | 5 | 0 |
+| Machilipatnam Kalamkari | 32.5 | 32.4 | 6 | 0 | 0 |
+| Sanganeri | 40.1 | 39.8 | 7 | 1 | 0 |
+
+The stands cost the novice nothing; the plate opened by a click on its centre at every approach
+point (23 of 23).
+
+**Equivalence check.** Content: unchanged (the same plates, titles, lettering and sheet). Exposure:
+unchanged (routes and arrivals identical). Citations: unchanged. Ease: no new control. Natural
+navigation only: 3D finish; the 2D condition has no plinths. Tradition salience: one stand for every
+wing; wing entrance means within 2.2%. Telemetry: unchanged.

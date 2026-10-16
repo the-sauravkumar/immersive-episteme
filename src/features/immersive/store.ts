@@ -46,6 +46,8 @@ export interface MuseumUiState {
   freeLook: boolean;
   /** Bumped when keyboard focus in the exhibit list previews an exhibit (highlight). */
   previewExhibitId: string | null;
+  /** The visitor's facing on the plan, in 45 degree steps clockwise from north (the Plan's arrow); null before the scene is ready. */
+  headingDeg: number | null;
 }
 
 export type MuseumStore = StoreApi<MuseumUiState>;
@@ -66,6 +68,7 @@ export function createMuseumStore(initial: Partial<MuseumUiState> = {}): MuseumS
     helpOpen: false,
     freeLook: false,
     previewExhibitId: null,
+    headingDeg: null,
     ...initial,
   }));
 }

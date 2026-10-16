@@ -4,7 +4,7 @@
  * Two layers:
  *  - Architecture, resident for the whole visit, with the gallery finish of DR-023 (one parameter
  *    set, resources.ts GALLERY_FINISH): walls, posts and lintels on a 25 mm shadow-gap skirting and
- *    running up into a 150 mm ceiling cove; plinths (chamfered) on a recessed toe; door openings
+ *    running up into a 150 mm ceiling cove; plinths or reading stands (DR-045), chamfered, on a recessed toe; door openings
  *    with plaster reveals and a 20 mm flush edge; thresholds; and per room the floor and ceiling
  *    with that room's normalised light map. All unlit (the finish's light is baked), merged per zone
  *    and material, so the whole building is a few dozen draw calls.
@@ -48,6 +48,56 @@ export interface WorldStats {
   letteringTexels: number;
 }
 
+/**
+ * The wall boxes that bound a room's interior rectangle (floor or ceiling rect, inside the wall
+ * faces): every box that touches it, whichever room the compiler filed the wall under (finding
+ * spatial-4). A wall of a neighbouring room that meets this room's wall from outside ends a wall's
+ * thickness from the rectangle and is not included.
+ */
+type Box3 = { min: Vec3; max: Vec3 };
+
+/**
+ * The reading stand of a stand-mounted exhibit (DR-045, finish F8b), inside its footprint: the board
+ * whose front face is the footprint's front face and overhangs the plate by the compiler's margin
+ * (the footprint's height above the plate), and the pedestal set behind the board, centred on the
+ * plate, from the floor to just above the board's lower edge (hidden behind it). Pure geometry from
+ * the scene model; one size for every exhibit.
+ */
+export function readingStandParts(
+  e: Pick<SceneExhibit, "panel" | "plinth">,
+  dims: { boardDepth: number; pedestalWidth: number; pedestalDepth: number } = GALLERY_FINISH.readingStand,
+): { board: Box3; pedestal: Box3 } | null {
+  const fp = e.plinth;
+  if (!fp) return null;
+  const p = e.panel;
+  const ax = p.facing === "+x" || p.facing === "-x" ? 0 : 2;
+  const ua = ax === 0 ? 2 : 0;
+  const sign = p.facing.startsWith("+") ? 1 : -1;
+  const front = sign > 0 ? fp.max[ax]! : fp.min[ax]!;
+  const margin = Math.max(0, fp.max[1] - p.max[1]);
+  const span = (a: number, b: number): [number, number] => (a < b ? [a, b] : [b, a]);
+  const box = (u: [number, number], y: [number, number], d: [number, number]): Box3 => {
+    const min: Vec3 = [0, y[0], 0];
+    const max: Vec3 = [0, y[1], 0];
+    min[ua] = u[0];
+    max[ua] = u[1];
+    min[ax] = d[0];
+    max[ax] = d[1];
+    return { min, max };
+  };
+  const uMid = (p.min[ua]! + p.max[ua]!) / 2;
+  const boardBottom = p.min[1] - margin;
+  const back = front - sign * dims.boardDepth;
+  const board = box([p.min[ua]! - margin, p.max[ua]! + margin], [boardBottom, p.max[1] + margin], span(front, back));
+  const pedestal = box([uMid - dims.pedestalWidth / 2, uMid + dims.pedestalWidth / 2], [0, boardBottom + 0.1], span(back, back - sign * dims.pedestalDepth));
+  return { board, pedestal };
+}
+
+export function wallsBoundingRect<B extends { min: readonly number[]; max: readonly number[] }>(walls: readonly B[], rect: { minX: number; maxX: number; minZ: number; maxZ: number }): B[] {
+  const e = 0.01;
+  return walls.filter((w) => w.min[0]! <= rect.maxX + e && w.max[0]! >= rect.minX - e && w.min[2]! <= rect.maxZ + e && w.max[2]! >= rect.minZ - e);
+}
+
 export class MuseumWorld {
   readonly root = new THREE.Group();
   private readonly architecture = new THREE.Group();
@@ -62,6 +112,8 @@ export class MuseumWorld {
   private readonly labelsByRoom = new Map<string, SceneLabel[]>();
   private highlightMesh: THREE.Mesh | null = null;
   private routeMesh: THREE.Mesh | null = null;
+  /** Holds the lettering program for the whole visit (see precompileHighlightAndRoute). */
+  private letteringKeeper: THREE.Mesh | null = null;
   stats: WorldStats = { architectureTriangles: 0, architectureMeshes: 0, residentRooms: 0, letteringTexels: 0 };
 
   private readonly doorSignsByRoom = new Map<string, SceneDoorSign[]>();
@@ -192,19 +244,32 @@ export class MuseumWorld {
           trims.tint = [1, 1, 1];
         }
       }
+      // F8: a body on a 30 mm toe recessed 20 mm: the plinth, or a reading stand's pedestal.
+      const onToe = (b: Box3, tint: [number, number, number]) => {
+        const t = F.plinthToe;
+        const [bx0, by0, bz0] = b.min;
+        const [bx1, by1, bz1] = b.max;
+        plinths.tint = tint;
+        addChamferedBox(plinths, { min: [bx0, by0 + t.height, bz0], max: [bx1, by1, bz1] }, PLINTH_CHAMFER, { height: H });
+        plinths.tint = toe;
+        addBox(plinths, { min: [bx0 + t.inset, by0, bz0 + t.inset], max: [bx1 - t.inset, by0 + t.height, bz1 - t.inset] }, { height: H }, { skipBottom: true, skipTop: true });
+        plinths.tint = [1, 1, 1];
+      };
+      const standTint = (b: Box3) => grey(plasterTint(F.plinthSrgb) / at((b.min[1] + b.max[1]) / 2));
       for (const r of rooms) {
         for (const e of this.exhibitsByRoom.get(r.id) ?? []) {
           if (!e.plinth) continue;
           const before = plinths.triangles;
-          // F8: a 30 mm toe recessed 20 mm under the plinth body.
-          const t = F.plinthToe;
-          const [bx0, by0, bz0] = e.plinth.min;
-          const [bx1, by1, bz1] = e.plinth.max;
-          plinths.tint = plinth;
-          addChamferedBox(plinths, { min: [bx0, by0 + t.height, bz0], max: [bx1, by1, bz1] }, PLINTH_CHAMFER, { height: H });
-          plinths.tint = toe;
-          addBox(plinths, { min: [bx0 + t.inset, by0, bz0 + t.inset], max: [bx1 - t.inset, by0 + t.height, bz1 - t.inset] }, { height: H }, { skipBottom: true, skipTop: true });
-          plinths.tint = [1, 1, 1];
+          const stand = e.mount === "stand" ? readingStandParts(e) : null;
+          if (stand) {
+            // F8b (DR-045): the pedestal on its toe, and the board that carries the plate.
+            onToe(stand.pedestal, standTint(stand.pedestal));
+            plinths.tint = standTint(stand.board);
+            addChamferedBox(plinths, stand.board, PLINTH_CHAMFER, { height: H });
+            plinths.tint = [1, 1, 1];
+          } else {
+            onToe(e.plinth, plinth);
+          }
           for (let i = before; i < plinths.triangles; i++) plinthOwners.push(e.id);
         }
       }
@@ -217,11 +282,18 @@ export class MuseumWorld {
 
     // Floors and ceilings (F4): one mesh each per room, with that room's light map normalised to
     // the one mean every room shares.
-    const plinthBoxes = this.model.exhibits.flatMap((e) => (e.plinth ? [e.plinth] : []));
+    // Contact shading from what stands on the floor: a plinth, or a reading stand's pedestal (DR-045).
+    const plinthBoxes = this.model.exhibits.flatMap((e) => (!e.plinth ? [] : e.mount === "stand" ? [readingStandParts(e)!.pedestal] : [e.plinth]));
+    // The compiler files a wall shared by two rooms under one of them only, so a room's own list
+    // misses walls that bound it (review finding spatial-4: up to 30% unevenness in contact shading
+    // within one room). Every wall box that touches the room's interior rectangle bounds it; a wall
+    // of the next room meeting this one from outside ends a wall's thickness away and is left out.
+    const allWalls = this.model.rooms.flatMap((r) => r.walls);
+    const boundingWalls = (rect: { minX: number; maxX: number; minZ: number; maxZ: number }) => wallsBoundingRect(allWalls, rect);
     for (const r of this.model.rooms) {
-      const wallBoxes = r.walls;
       if (r.floor) {
         const rect = { minX: r.floor.min[0], maxX: r.floor.max[0], minZ: r.floor.min[2], maxZ: r.floor.max[2] };
+        const wallBoxes = boundingWalls(rect);
         const bake = bakeRoomLight(rect, [...wallBoxes, ...plinthBoxes], { ...F.floorContact, sign: -1 });
         const light = roomLightTexture(bake, `light-floor:${r.id}`);
         const mat = withRoomLight(this.mats.floor, light);
@@ -235,7 +307,7 @@ export class MuseumWorld {
       }
       if (r.ceiling) {
         const rect = { minX: r.ceiling.min[0], maxX: r.ceiling.max[0], minZ: r.ceiling.min[2], maxZ: r.ceiling.max[2] };
-        const bake = bakeRoomLight(rect, wallBoxes, { ...F.ceilingCove, sign: 1 });
+        const bake = bakeRoomLight(rect, boundingWalls(rect), { ...F.ceilingCove, sign: 1 });
         const light = roomLightTexture(bake, `light-ceiling:${r.id}`);
         const mat = withRoomLight(this.mats.ceiling, light);
         this.lightMeans.push({ roomId: r.id, kind: "ceiling", mean: storedMean(light) });
@@ -365,7 +437,7 @@ export class MuseumWorld {
         const s = size(e.panel);
         const d = plaqueText(e, this.model);
         const mark = PLATE_VISITED_MARK && this.visited.has(e.id) ? PLAQUE_WORDS.visited : null;
-        return { id: e.id, kind: "panel" as const, widthM: s.w, heightM: s.h, kicker: d.kicker, title: e.label, footer: d.footer, mark, em: { kicker: ts.kickerEm, title: ts.titleEm, footer: ts.footerEm } };
+        return { id: e.id, kind: "panel" as const, widthM: s.w, heightM: s.h, kicker: d.kicker, title: e.label, footer: d.footer, mark, em: { kicker: d.kicker ? ts.stepEm : ts.kickerEm, title: ts.titleEm, footer: ts.footerEm } };
       }),
       ...labels.map((l) => {
         const s = size(l.sign);
@@ -580,15 +652,43 @@ export class MuseumWorld {
   precompileHighlightAndRoute() {
     const e = this.model.exhibits[0];
     if (e) this.setHighlight(e, true);
+    // The lettering program is shared by every atlas page, so it is released whenever residency
+    // swaps leave no page alive (all old pages disposed before the new ones upload) and compiled
+    // again on the next page: a program compile after entry (C4, hub building's tour). A keeper
+    // material with a 1-texel R8 map, compiled here and never disposed until the world is, holds
+    // the program for the whole visit.
+    if (!this.letteringKeeper) {
+      const tex = new THREE.DataTexture(new Uint8Array([0]), 1, 1, THREE.RedFormat, THREE.UnsignedByteType);
+      tex.internalFormat = "R8";
+      tex.colorSpace = THREE.NoColorSpace;
+      tex.generateMipmaps = true;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.needsUpdate = true;
+      const mat = panelMaterial();
+      mat.map = tex;
+      mat.name = "panel:keeper";
+      const geo = new THREE.PlaneGeometry(0.01, 0.01);
+      this.owned.textures.push(tex);
+      this.owned.materials.push(mat);
+      this.owned.geometries.push(geo);
+      this.letteringKeeper = new THREE.Mesh(geo, mat);
+      this.letteringKeeper.position.set(this.model.spawn.x, -1, this.model.spawn.z);
+      this.letteringKeeper.frustumCulled = false;
+    }
+    this.root.add(this.letteringKeeper);
     this.setRoute([
       { x: this.model.spawn.x, z: this.model.spawn.z },
       { x: this.model.spawn.x + 0.5, z: this.model.spawn.z },
     ]);
+    // Drawn even out of view, so the first real render pass compiles their programs too.
+    if (this.highlightMesh) this.highlightMesh.frustumCulled = false;
+    if (this.routeMesh) this.routeMesh.frustumCulled = false;
   }
 
   clearPrecompileHelpers() {
     this.setHighlight(null, false);
     this.setRoute(null);
+    if (this.letteringKeeper) this.root.remove(this.letteringKeeper);
   }
 
   dispose() {

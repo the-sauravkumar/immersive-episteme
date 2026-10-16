@@ -476,7 +476,8 @@ export function index2d(place: Place2d, index: StudyBarIndex): IndexTradition[] 
   const receded = place.conceptSlug !== null;
   return index.traditions.map((t) => {
     const own = place.traditionSlug === t.slug;
-    const sections = EPISTEMIC_SECTIONS.map((s, i) => ({ id: s.id, number: i + 1, title: s.title, href: href2d.traditionSection(t.slug, s.id), current: own && place.sectionId === s.id }));
+    // Numbers come from the shared section map (DR-024): the same numbers as the museum plan's rooms.
+    const sections = EPISTEMIC_SECTIONS.map((s) => ({ id: s.id, number: s.number, title: s.title, href: href2d.traditionSection(t.slug, s.id), current: own && place.sectionId === s.id }));
     return {
       slug: t.slug,
       name: t.name,

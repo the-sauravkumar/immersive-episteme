@@ -40,6 +40,7 @@ import { classifyTier, lockTier, probeGpu, type GpuInfo, type QualityTier } from
 import type { SceneCue, SceneExhibit, ScenePortal } from "@/features/immersive/scene-model";
 import { createMuseumStore, type CueNote } from "@/features/immersive/store";
 import type { MuseumPayload, PanelConcept } from "@/features/immersive/types";
+import { sectionOfZoneGroup } from "@/features/learning/sections";
 import type { LearningPrompt } from "@/features/learning/settings";
 import { MUSEUM_TEXT, railDetail } from "@/features/learning/strings";
 import { useContentExposure, useNavigationPhase, usePauseWhile, useTelemetry } from "@/features/telemetry/client/provider";
@@ -227,15 +228,21 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
     },
     [roomsById, traditionBySlug, zonesById],
   );
-  /** Doorway signs name where they lead: the room, under its zone when the doorway changes zone. */
+  /**
+   * Doorway signs name where they lead: the room, under its zone when the doorway changes zone. A
+   * room that is a section carries its section number ("3. Process Sequence"), the number the Plan
+   * and the 2D index give it (DR-024), so a visitor looking for section 3 sees that the doorway to
+   * section 2 leads on (novice walkthrough, hub building: the sections are one doorway apart in order).
+   */
   const describeDoor = useCallback(
     (s: SceneDoorSign) => {
       const from = zoneLabelOf(s.roomId);
       const to = zoneLabelOf(s.toRoomId);
-      const title = roomLabel(s.toRoomId);
-      return { kicker: to && to !== from && to !== title ? to : null, title };
+      const name = roomLabel(s.toRoomId);
+      const n = sectionOfZoneGroup(roomsById.get(s.toRoomId)?.group ?? null)?.number;
+      return { kicker: to && to !== from && to !== name ? to : null, title: n ? `${n}. ${name}` : name };
     },
-    [roomLabel, zoneLabelOf],
+    [roomLabel, roomsById, zoneLabelOf],
   );
 
   // ---------------------------------------------------------------------------------------
@@ -255,6 +262,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
     controller: null,
     events: {
       inputMethodUsed: (m: InputMethod) => latest.current?.inputMethodUsed?.(m),
+      headingChanged: (d: number) => latest.current?.headingChanged?.(d),
       progress: (...a) => latest.current?.progress(...a),
       ready: (...a) => latest.current?.ready(...a),
       failed: (...a) => latest.current?.failed(...a),
@@ -636,6 +644,9 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
     freeLookChanged(on) {
       store.setState({ freeLook: on });
     },
+    headingChanged(degrees) {
+      store.setState({ headingDeg: degrees });
+    },
     inputMethodUsed(method) {
       // Covariate: the scene reports the first move of each navigation interval and every switch
       // of method after it (bridge.ts); each report is one event, with the method used before.
@@ -1004,7 +1015,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
                 {/* Bottom left: the plan (DESIGN.md 11.6), hidden while the panel covers the scene. */}
                 {planShown ? (
                   <div className="pointer-events-auto absolute bottom-4 left-4 z-(--z-hud)" style={leftOverlayOffset ? { left: leftOverlayOffset } : undefined}>
-                    <Minimap model={model} roomId={ui.roomId} roomLabel={roomLabel} onExpand={() => setPlanOpen(true)} />
+                    <Minimap model={model} roomId={ui.roomId} headingDeg={ui.headingDeg} roomLabel={roomLabel} onExpand={() => setPlanOpen(true)} />
                   </div>
                 ) : null}
                 <div
@@ -1072,6 +1083,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
                   onOpenChange={setPlanOpen}
                   model={model}
                   roomId={ui.roomId}
+                  headingDeg={ui.headingDeg}
                   roomLabel={roomLabel}
                   zoneLabel={zoneLabelOf}
                   onRoom={(id) => {

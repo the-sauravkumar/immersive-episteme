@@ -1,28 +1,51 @@
 /**
  * Layout engine: zone groups -> rooms -> doorways -> walls -> exhibit slots.
  *
- * Plan (x east, z south; all room dimensions snap to `gridUnit`):
+ * Two building schemes (`layout.building`, versioned with the rule set):
  *
- *        wing A (slug order)   wing B              wing C
- *      +------+------+------+------+  ...      north: rooms of each wing on a
- *      | g3   | g4   | g3   | g4   |           `wingColumns`-wide grid, row 0
- *      +------+------+------+------+           touching the hall
- *      | g1   | g2   | g1   | g2   |
- *      +--||--+------+--||--+------+---------  z = 0  (one entrance per wing)
- *      |          comparison hall             |         comparison exhibits sit
- *      +---||---+-----||------+---------------+  z = hallDepth   near the wings they compare
- *      | lobby  | shared commons |
- *      +--------+----------------+
+ * "hub" (default rule set v3; DR-043). Plan, x east, z south, north up:
  *
- *  - Zone groups get grid slots in one shared order for all wings (so a category sits in the
- *    same relative place in every wing). Slot 0 is the entrance group; each later slot takes
- *    the group with the most cross-category relationships to its already-placed grid
- *    neighbours (rule cross-category.connection). Equal scores are broken by the seeded PRNG.
- *  - Doorways: a breadth-first spanning tree over the grid from the entrance room (rule
- *    layout.circulation) plus a doorway between every other pair of grid neighbours whose
- *    concepts are related (cross-category.connection).
- *  - Room sizes: the smallest square (>= minRoomSize) whose wall slots hold its exhibits;
- *    a grid column takes its widest room and a grid row its deepest, so walls stay aligned.
+ *                       +---------------+
+ *                       |   commons     |
+ *        wing A rooms   +------||-------+   wing C rooms
+ *        (col 1 north)  | comparison    |   (col 1 north)
+ *      +------+------+  |    hall       |  +------+------+
+ *      |      |  1   |  +-||-------||---+  |  1   |      |
+ *      |      |      =  | [directory]   |  =      |      |       = wing entrance doorway
+ *      +------+------+  |   spawn ^     |  +------+------+
+ *                       |               |
+ *                       +------||-------+
+ *                         |  1  |      |     wing B rooms (col 1 east)
+ *
+ *    The entrance lobby is the hub. The spawn stands on the lobby's axis, `hubSpawnDepth` (the
+ *    entrance directory's reading distance) from its north wall, facing north. The wings open off
+ *    the lobby's west, south and east walls (canonical slug order: first wing west, second south,
+ *    third east), each doorway level with the spawn (west, east) or on its axis (south), and the
+ *    lobby is as deep as `hubSpawnDepth` + half its width, so all three wing doorways are half the
+ *    lobby width from the spawn: the walking cost to every tradition is equal by construction. The
+ *    comparison hall lies north of the lobby, entered by two doorways at the quarter points
+ *    of the north wall either side of the directory; the shared commons opens off the hall's north
+ *    wall. A wing grid is rotated so its entrance room is centred on its doorway and its second
+ *    column runs away from the wing behind the spawn, so no two wings meet.
+ *
+ * "row" (rule sets v1, v2): the wings side by side along one long comparison hall, in slug order
+ *    west to east, the lobby off the hall's west end (DR-023 Addendum: walking time to the wings
+ *    5.9 / 19.3 / 31.4 s).
+ *
+ *  - Wing grid (both schemes): rooms take grid slots in one shared group order for all wings, on a
+ *    `wingColumns`-wide grid filled in serpentine order (row 0 left to right, row 1 right to
+ *    left, ...), so consecutive slots are always grid neighbours. Under the default `groupOrder`
+ *    "template" the order is the rule set's group order (the 2D section order, rule
+ *    layout.template-order); under "connection" each later slot takes the group with the most
+ *    cross-category relationships to its already-placed grid neighbours (rule
+ *    cross-category.connection; equal scores broken by the seeded PRNG).
+ *  - Doorways: a circulation doorway between every pair of consecutive slots (rule
+ *    layout.circulation), so walking from the entrance room meets the sections one doorway apart
+ *    in their order (review finding spatial-3), plus a doorway between every other pair of grid
+ *    neighbours whose concepts are related (cross-category.connection).
+ *  - Room sizes: each room first needs the smallest square (>= minRoomSize) whose wall slots hold
+ *    its exhibits; a grid column then takes its widest room and a grid row its deepest, so walls
+ *    stay aligned, and a column or row grows further while any of its rooms is short of slots.
  *  - Exhibits stand against walls in slots that keep `cornerClearance` and `doorClearance`
  *    free, ordered clockwise from the room's entrance doorway.
  */
@@ -83,7 +106,17 @@ export interface TieBreak {
   chosen: string;
 }
 
+export type WingSide = "w" | "s" | "e";
+
 export interface Layout {
+  /** The building scheme actually built ("hub" falls back to "row" for more than three wings). */
+  building: "hub" | "row";
+  /** Hub only: the lobby side each wing opens off (canonical slug order: west, south, east). */
+  wingSides: Map<string, WingSide>;
+  /** Departures from the configured scheme that still build (reported as a warning). */
+  notes: string[];
+  /** Side (m) of the smallest square each wing room or commons needs for its exhibits, before grid alignment. */
+  minSide: Map<string, number>;
   rooms: RoomPlan[];
   doors: DoorPlan[];
   walls: WallBuild;
@@ -283,6 +316,10 @@ export function planLayout(input: LayoutInput): Layout {
   const groupById = new Map(input.groups.map((g) => [g.id, g]));
   const groupOfCategory = new Map<string, ZoneGroup>();
   for (const g of input.groups) for (const c of g.categories) if (!groupOfCategory.has(c)) groupOfCategory.set(c, g);
+  // Rule sets that list types per group (version 2, DR-024) choose a concept's group by its TYPE,
+  // the same mapping as its 2D section; categories then only order the runs inside a room.
+  const groupOfType = new Map<string, ZoneGroup>();
+  for (const g of input.groups) for (const t of g.types ?? []) if (!groupOfType.has(t)) groupOfType.set(t, g);
   const fallback = groupById.get(input.fallbackGroup) ?? input.groups[0]!;
 
   // --- A. Concept -> group / home -----------------------------------------------------------
@@ -290,7 +327,7 @@ export function planLayout(input: LayoutInput): Layout {
   const home = new Map<string, string>(); // slug | "hall" | "commons"
   const unmappedCategory: string[] = [];
   for (const c of scope.concepts) {
-    let g = groupOfCategory.get(c.category);
+    let g = groupOfType.size > 0 ? (groupOfType.get(c.type) ?? groupOfCategory.get(c.category)) : groupOfCategory.get(c.category);
     if (!g) {
       unmappedCategory.push(c.key);
       g = fallback;
@@ -325,7 +362,13 @@ export function planLayout(input: LayoutInput): Layout {
   // --- C. Shared group order --------------------------------------------------------------
   const wingGroups = input.groups.filter((g) => g.scope === "wing" && scope.concepts.some((c) => groupOf.get(c.key) === g.id && home.get(c.key) !== "hall" && home.get(c.key) !== "commons"));
   const cols = cfg.wingColumns;
-  const slotRC = (i: number) => ({ row: Math.floor(i / cols), col: i % cols });
+  // Serpentine: row 0 left to right, row 1 right to left, ..., so slots i and i + 1 always share a
+  // wall (review finding spatial-3: row-major order made every second pair of sections diagonal).
+  const slotRC = (i: number) => {
+    const row = Math.floor(i / cols);
+    const c = i % cols;
+    return { row, col: row % 2 === 0 ? c : cols - 1 - c };
+  };
   const gridNeighbours = (i: number, n: number) => {
     const { row, col } = slotRC(i);
     const out: number[] = [];
@@ -373,7 +416,8 @@ export function planLayout(input: LayoutInput): Layout {
 
   // --- D. Rooms and door topology ---------------------------------------------------------
   const rooms: RoomPlan[] = [];
-  const doorTopo: { id: string; rooms: [string, string]; purpose: DoorPlan["purpose"]; relationshipIds: string[] }[] = [];
+  /** `at`: the doorway's centre along the shared wall when it is not the middle of the shared stretch. */
+  const doorTopo: { id: string; rooms: [string, string]; purpose: DoorPlan["purpose"]; relationshipIds: string[]; at?: number }[] = [];
   const doorId = (a: string, b: string) => {
     const [p, q] = [a, b].sort(compareStrings) as [string, string];
     return `portal:${p.slice(5)}--${q.slice(5)}`;
@@ -381,6 +425,19 @@ export function planLayout(input: LayoutInput): Layout {
   const conceptsIn = (pred: (c: GraphConcept) => boolean) => scope.concepts.filter(pred).map((c) => c.key);
 
   const wingInfo: { slug: string; roomIds: string[]; cols: number; rows: number }[] = [];
+  const wingSlugs = scope.selectedSlugs
+    .filter((s) => scope.traditionBySlug.has(s))
+    .filter((slug) => groupOrder.some((g) => scope.concepts.some((c) => home.get(c.key) === slug && groupOf.get(c.key) === g)));
+  // Hub: up to three wings, one per free lobby wall, in canonical (slug) order west, south, east;
+  // two wings take west and east, one wing west. More wings than lobby walls: the row building.
+  let building: Layout["building"] = cfg.building;
+  const notes: string[] = [];
+  if (building === "hub" && wingSlugs.length > 3) {
+    notes.push(`The hub building holds at most 3 wings (${wingSlugs.length} selected); built as a row, so the wings are not equally far from the spawn`);
+    building = "row";
+  }
+  const sideOrder: WingSide[] = wingSlugs.length === 3 ? ["w", "s", "e"] : wingSlugs.length === 2 ? ["w", "e"] : ["w"];
+  const wingSides = new Map<string, WingSide>(building === "hub" ? [...wingSlugs].sort(compareStrings).map((slug, i) => [slug, sideOrder[i]!] as const) : []);
   for (const slug of scope.selectedSlugs.filter((s) => scope.traditionBySlug.has(s))) {
     const present = groupOrder.filter((g) => scope.concepts.some((c) => home.get(c.key) === slug && groupOf.get(c.key) === g));
     if (present.length === 0) {
@@ -398,7 +455,7 @@ export function planLayout(input: LayoutInput): Layout {
         slug,
         groupId: g,
         label: `${scope.traditionBySlug.get(slug)!.name}: ${grp.label}`,
-        categories: [...grp.categories],
+        categories: roomCategories(grp.categories, conceptsIn((c) => home.get(c.key) === slug && groupOf.get(c.key) === g).map((k) => scope.conceptByKey.get(k)!.category)),
         conceptKeys: conceptsIn((c) => home.get(c.key) === slug && groupOf.get(c.key) === g),
         grid: { ...slotRC(i), slot: i },
         rect: { minX: 0, maxX: 0, minZ: 0, maxZ: 0 },
@@ -406,19 +463,10 @@ export function planLayout(input: LayoutInput): Layout {
         depth: 0,
       });
     });
-    // Spanning tree (BFS from slot 0, neighbours in slot order).
-    const inTree = new Set<number>([0]);
-    const queue = [0];
+    // Circulation: the path through the slots in order (each pair of consecutive slots shares a
+    // wall under the serpentine order), so consecutive sections are always one doorway apart.
     const treeEdges = new Set<string>();
-    while (queue.length) {
-      const i = queue.shift()!;
-      for (const j of gridNeighbours(i, n)) {
-        if (inTree.has(j)) continue;
-        inTree.add(j);
-        queue.push(j);
-        treeEdges.add(pairKey(String(i), String(j)));
-      }
-    }
+    for (let i = 0; i + 1 < n; i++) treeEdges.add(pairKey(String(i), String(i + 1)));
     for (let i = 0; i < n; i++) {
       for (const j of gridNeighbours(i, n)) {
         if (j <= i) continue;
@@ -433,7 +481,13 @@ export function planLayout(input: LayoutInput): Layout {
         });
       }
     }
-    doorTopo.push({ id: doorId(HALL_ID, roomIds[0]!), rooms: [HALL_ID, roomIds[0]!], purpose: "entrance", relationshipIds: [] });
+    if (building === "hub") {
+      // West and east doorways stand level with the spawn; the south doorway is on its axis.
+      const side = wingSides.get(slug)!;
+      doorTopo.push({ id: doorId(LOBBY_ID, roomIds[0]!), rooms: [LOBBY_ID, roomIds[0]!], purpose: "entrance", relationshipIds: [], at: side === "s" ? 0 : cfg.hubSpawnDepth });
+    } else {
+      doorTopo.push({ id: doorId(HALL_ID, roomIds[0]!), rooms: [HALL_ID, roomIds[0]!], purpose: "entrance", relationshipIds: [] });
+    }
     wingInfo.push({ slug, roomIds, cols: Math.min(cols, n), rows: Math.ceil(n / cols) });
   }
 
@@ -444,7 +498,10 @@ export function planLayout(input: LayoutInput): Layout {
     slug: null,
     groupId: input.groups.find((g) => g.scope === "hall")?.id ?? null,
     label: "Comparison hall",
-    categories: input.groups.filter((g) => g.scope === "hall").flatMap((g) => g.categories),
+    categories: roomCategories(
+      input.groups.filter((g) => g.scope === "hall").flatMap((g) => g.categories),
+      conceptsIn((c) => home.get(c.key) === "hall").map((k) => scope.conceptByKey.get(k)!.category),
+    ),
     conceptKeys: conceptsIn((c) => home.get(c.key) === "hall"),
     grid: null,
     rect: { minX: 0, maxX: 0, minZ: 0, maxZ: 0 },
@@ -465,7 +522,14 @@ export function planLayout(input: LayoutInput): Layout {
     entranceDoorId: null,
     depth: 0,
   });
-  doorTopo.push({ id: doorId(HALL_ID, LOBBY_ID), rooms: [HALL_ID, LOBBY_ID], purpose: "entrance", relationshipIds: [] });
+  if (building === "hub") {
+    // Two doorways into the hall at the quarter points of the lobby's north wall, either side of the
+    // directory on the spawn axis (their place follows the lobby width, set in the sizing loop).
+    doorTopo.push({ id: `${doorId(HALL_ID, LOBBY_ID)}:e`, rooms: [HALL_ID, LOBBY_ID], purpose: "entrance", relationshipIds: [] });
+    doorTopo.push({ id: `${doorId(HALL_ID, LOBBY_ID)}:w`, rooms: [HALL_ID, LOBBY_ID], purpose: "entrance", relationshipIds: [] });
+  } else {
+    doorTopo.push({ id: doorId(HALL_ID, LOBBY_ID), rooms: [HALL_ID, LOBBY_ID], purpose: "entrance", relationshipIds: [] });
+  }
   const commonsKeys = conceptsIn((c) => home.get(c.key) === "commons");
   if (commonsKeys.length > 0) {
     rooms.push({
@@ -496,7 +560,7 @@ export function planLayout(input: LayoutInput): Layout {
       if (!d.rooms.includes(roomId)) continue;
       const other = roomById.get(d.rooms[0] === roomId ? d.rooms[1] : d.rooms[0])!;
       if (r.kind === "wing-room") {
-        if (other.kind === "hall") out.push("s");
+        if (other.kind === "hall" || other.kind === "lobby") out.push("s");
         else if (other.grid!.row > r.grid!.row) out.push("n");
         else if (other.grid!.row < r.grid!.row) out.push("s");
         else out.push(other.grid!.col > r.grid!.col ? "e" : "w");
@@ -511,6 +575,7 @@ export function planLayout(input: LayoutInput): Layout {
   for (const r of rooms) {
     if (r.kind === "wing-room" || r.kind === "commons") size.set(r.id, squareSizeFor(r.conceptKeys.length, doorSidesOf(r.id), cfg));
   }
+  const minSide = new Map(size);
   const colW = new Map<string, number[]>();
   const rowD = new Map<string, number[]>();
   for (const w of wingInfo) {
@@ -530,27 +595,71 @@ export function planLayout(input: LayoutInput): Layout {
   const hallD = snapUp(cfg.hallDepth, cfg.gridUnit);
 
   let doors: DoorPlan[] = [];
+  let hubLobby: { Wl: number; Dl: number } | null = null;
   let slotsByRoom = new Map<string, Slot[]>();
   for (let iteration = 0; iteration < 200; iteration++) {
     // Positions.
-    let x = 0;
-    for (const w of wingInfo) {
-      const cw = colW.get(w.slug)!;
-      const rd = rowD.get(w.slug)!;
-      for (const id of w.roomIds) {
-        const r = roomById.get(id)!;
-        const x0 = x + cw.slice(0, r.grid!.col).reduce((s, v) => s + v, 0);
-        const zTop = -rd.slice(0, r.grid!.row + 1).reduce((s, v) => s + v, 0);
-        r.rect = { minX: x0, maxX: x0 + cw[r.grid!.col]!, minZ: zTop, maxZ: zTop + rd[r.grid!.row]! };
-      }
-      x += cw.reduce((s, v) => s + v, 0);
-    }
     const commons = roomById.get(COMMONS_ID);
     const commonsS = commons ? size.get(COMMONS_ID)! : 0;
-    const hallL = Math.max(x, lobbyW + commonsS) + hallExtra;
-    roomById.get(HALL_ID)!.rect = { minX: 0, maxX: hallL, minZ: 0, maxZ: hallD };
-    roomById.get(LOBBY_ID)!.rect = { minX: 0, maxX: lobbyW, minZ: hallD, maxZ: hallD + lobbyD };
-    if (commons) commons.rect = { minX: lobbyW, maxX: lobbyW + commonsS, minZ: hallD, maxZ: hallD + commonsS };
+    if (building === "hub") {
+      // Lobby: at least as wide as the entrance column of the west and east wings (so those wings end
+      // before the south wing begins) and as deep as the spawn's distance from the north wall plus
+      // half the width, so the three wing doorways are equally far from the spawn.
+      const zs = cfg.hubSpawnDepth;
+      const sideWings = wingInfo.filter((w) => wingSides.get(w.slug) !== "s");
+      // North wall: directory in the middle, a doorway (with its clearances) in each half.
+      const minNorth = cfg.hubDirectoryWidth + 4 * (cfg.doorWidth / 2 + cfg.doorClearance + cfg.wallThickness);
+      const Wl = snapUp(Math.max(lobbyW, minNorth, ...sideWings.map((w) => colW.get(w.slug)![0]!)), 2 * cfg.gridUnit);
+      const Dl = round(zs + Wl / 2);
+      roomById.get(LOBBY_ID)!.rect = { minX: -Wl / 2, maxX: Wl / 2, minZ: 0, maxZ: Dl };
+      hubLobby = { Wl, Dl };
+      for (const w of wingInfo) {
+        const cw = colW.get(w.slug)!;
+        const rd = rowD.get(w.slug)!;
+        const side = wingSides.get(w.slug)!;
+        const c0 = cw[0]!;
+        for (const id of w.roomIds) {
+          const r = roomById.get(id)!;
+          const lx0 = cw.slice(0, r.grid!.col).reduce((s, v) => s + v, 0);
+          const lx1 = lx0 + cw[r.grid!.col]!;
+          const d0 = rd.slice(0, r.grid!.row).reduce((s, v) => s + v, 0);
+          const d1 = d0 + rd[r.grid!.row]!;
+          if (side === "s") r.rect = { minX: -c0 / 2 + lx0, maxX: -c0 / 2 + lx1, minZ: Dl + d0, maxZ: Dl + d1 };
+          else {
+            // Across, the wing runs north from its entrance column; its rows run outward (west or east).
+            const minZ = zs + c0 / 2 - lx1;
+            const maxZ = zs + c0 / 2 - lx0;
+            r.rect = side === "w" ? { minX: -Wl / 2 - d1, maxX: -Wl / 2 - d0, minZ, maxZ } : { minX: Wl / 2 + d0, maxX: Wl / 2 + d1, minZ, maxZ };
+          }
+        }
+      }
+      // Hall north of the lobby, as wide as the lobby; the commons north of the hall, centred. A
+      // commons wider than the hall must clear the west and east wings, so the hall lengthens.
+      let hallLen = hallD + hallExtra;
+      if (commons && commonsS > Wl) {
+        const wingTop = Math.min(0, ...sideWings.flatMap((w) => w.roomIds.map((id) => roomById.get(id)!.rect.minZ)));
+        hallLen = Math.max(hallLen, snapUp(-wingTop, cfg.gridUnit));
+      }
+      roomById.get(HALL_ID)!.rect = { minX: -Wl / 2, maxX: Wl / 2, minZ: -hallLen, maxZ: 0 };
+      if (commons) commons.rect = { minX: -commonsS / 2, maxX: commonsS / 2, minZ: -hallLen - commonsS, maxZ: -hallLen };
+    } else {
+      let x = 0;
+      for (const w of wingInfo) {
+        const cw = colW.get(w.slug)!;
+        const rd = rowD.get(w.slug)!;
+        for (const id of w.roomIds) {
+          const r = roomById.get(id)!;
+          const x0 = x + cw.slice(0, r.grid!.col).reduce((s, v) => s + v, 0);
+          const zTop = -rd.slice(0, r.grid!.row + 1).reduce((s, v) => s + v, 0);
+          r.rect = { minX: x0, maxX: x0 + cw[r.grid!.col]!, minZ: zTop, maxZ: zTop + rd[r.grid!.row]! };
+        }
+        x += cw.reduce((s, v) => s + v, 0);
+      }
+      const hallL = Math.max(x, lobbyW + commonsS) + hallExtra;
+      roomById.get(HALL_ID)!.rect = { minX: 0, maxX: hallL, minZ: 0, maxZ: hallD };
+      roomById.get(LOBBY_ID)!.rect = { minX: 0, maxX: lobbyW, minZ: hallD, maxZ: hallD + lobbyD };
+      if (commons) commons.rect = { minX: lobbyW, maxX: lobbyW + commonsS, minZ: hallD, maxZ: hallD + commonsS };
+    }
 
     // Doorways: centred on the shared stretch of the two rooms' facing sides.
     doors = doorTopo.map((d) => {
@@ -572,7 +681,14 @@ export function planLayout(input: LayoutInput): Layout {
         hi = Math.min(a.maxZ, b.maxZ);
       }
       if (hi - lo < cfg.doorWidth + cfg.wallThickness) issues.push(`Doorway ${d.id}: shared wall too short (${round(hi - lo)} m)`);
-      return { ...d, orient, c: round(c), center: round((lo + hi) / 2), width: cfg.doorWidth };
+      // Hub lobby doorways into the hall: at the quarter points of the lobby's north wall.
+      const lobbyHall = hubLobby && d.rooms.includes(HALL_ID) && d.rooms.includes(LOBBY_ID);
+      const at = d.at ?? (lobbyHall ? (d.id.endsWith(":w") ? -1 : 1) * (hubLobby!.Wl / 4) : undefined);
+      const center = at ?? (lo + hi) / 2;
+      if (at !== undefined && (center - cfg.doorWidth / 2 - cfg.wallThickness / 2 < lo - 1e-6 || center + cfg.doorWidth / 2 + cfg.wallThickness / 2 > hi + 1e-6)) {
+        issues.push(`Doorway ${d.id}: its place (${round(center)}) is off the shared wall ${round(lo)}..${round(hi)}`);
+      }
+      return { id: d.id, rooms: d.rooms, purpose: d.purpose, relationshipIds: d.relationshipIds, orient, c: round(c), center: round(center), width: cfg.doorWidth };
     });
 
     // Slots and capacity check.
@@ -644,7 +760,7 @@ export function planLayout(input: LayoutInput): Layout {
     let slots = slotsByRoom.get(r.id)!;
     let ordered: { key: string; slot: Slot }[];
     if (r.kind === "hall") {
-      ordered = assignHall(r, slots, input, home, roomById);
+      ordered = assignHall(r, slots, input, home, roomById, building);
     } else {
       const entrance = r.entranceDoorId ? doorById.get(r.entranceDoorId) : undefined;
       const startParam = entrance ? doorParam(r.rect, entrance) : 0;
@@ -674,9 +790,16 @@ export function planLayout(input: LayoutInput): Layout {
   }
 
   const lobby = roomById.get(LOBBY_ID)!.rect;
-  const spawn = { x: round((lobby.minX + lobby.maxX) / 2), z: round((lobby.minZ + lobby.maxZ) / 2), yawDeg: 0 };
+  const spawn =
+    building === "hub"
+      ? { x: round((lobby.minX + lobby.maxX) / 2), z: round(lobby.minZ + cfg.hubSpawnDepth), yawDeg: 0 }
+      : { x: round((lobby.minX + lobby.maxX) / 2), z: round((lobby.minZ + lobby.maxZ) / 2), yawDeg: 0 };
 
   return {
+    building,
+    notes,
+    wingSides,
+    minSide,
     rooms: sortedRooms,
     doors: [...doors].sort((p, q) => compareStrings(p.id, q.id)),
     walls,
@@ -690,6 +813,17 @@ export function planLayout(input: LayoutInput): Layout {
     tieBreaks,
     issues,
   };
+}
+
+/**
+ * A room's categories: its group's categories in their order, then any other category of the
+ * concepts it holds (a room is chosen by type, so it may hold a concept of another category) in
+ * the vocabulary order. This is also the order of the category runs on its walls.
+ */
+function roomCategories(groupCategories: readonly string[], present: readonly string[]): string[] {
+  const extra = [...new Set(present)].filter((c) => !groupCategories.includes(c));
+  extra.sort((a, b) => KNOWLEDGE_CATEGORY_CODES.indexOf(a as never) - KNOWLEDGE_CATEGORY_CODES.indexOf(b as never));
+  return [...groupCategories, ...extra];
 }
 
 function doorParam(r: Rect, d: DoorPlan): number {
@@ -718,7 +852,9 @@ function placeOnSlot(key: string, roomId: string, slot: Slot, order: number, cfg
       id: `plinth:${key}`,
       kind: "plinth",
       min: [round(minX), 0, round(minZ)],
-      max: [round(maxX), round(cfg.exhibitHeight), round(maxZ)],
+      // A plinth fills the footprint to exhibitHeight; a reading stand's board reaches the plate's top
+      // edge plus its margin (DR-045), so the footprint's front face backs the whole plate.
+      max: [round(maxX), round(cfg.exhibitMount === "stand" ? cfg.standPanelTop + cfg.standBoardMargin : cfg.exhibitHeight), round(maxZ)],
     },
     approach: (() => {
       const p = at(cfg.wallGap + cfg.exhibitDepth + cfg.approachDistance);
@@ -812,30 +948,32 @@ function assignHall(
   input: LayoutInput,
   home: Map<string, string>,
   roomById: Map<string, RoomPlan>,
+  building: Layout["building"],
 ): { key: string; slot: Slot }[] {
-  const wingCenter = new Map<string, number>();
-  for (const room of roomById.values()) {
-    if (room.kind !== "wing-room") continue;
-    const cur = wingCenter.get(room.slug!);
-    const cx = rectCenter(room.rect).x;
-    wingCenter.set(room.slug!, cur === undefined ? cx : cur);
-  }
-  // Wing centre = mean of its rooms' x extents.
+  // Wing centre = the centre of the box round its rooms.
+  const wingCenter = new Map<string, Point>();
   for (const slug of new Set([...roomById.values()].filter((x) => x.kind === "wing-room").map((x) => x.slug!))) {
     const rs = [...roomById.values()].filter((x) => x.slug === slug);
-    wingCenter.set(slug, (Math.min(...rs.map((x) => x.rect.minX)) + Math.max(...rs.map((x) => x.rect.maxX))) / 2);
+    wingCenter.set(slug, {
+      x: (Math.min(...rs.map((x) => x.rect.minX)) + Math.max(...rs.map((x) => x.rect.maxX))) / 2,
+      z: (Math.min(...rs.map((x) => x.rect.minZ)) + Math.max(...rs.map((x) => x.rect.maxZ))) / 2,
+    });
   }
-  const target = (k: string): number => {
+  const target = (k: string): Point => {
     const c = input.scope.conceptByKey.get(k)!;
     const slugs = (input.scope.compares.get(k) ?? [])
       .map((ck) => home.get(ck))
       .filter((s): s is string => !!s && wingCenter.has(s));
     const own = input.scope.slugOf(c);
     const list = slugs.length > 0 ? slugs : own && wingCenter.has(own) ? [own] : [];
-    if (list.length === 0) return rectCenter(r.rect).x;
-    return list.reduce((s, x) => s + wingCenter.get(x)!, 0) / list.length;
+    if (list.length === 0) return rectCenter(r.rect);
+    return { x: list.reduce((s, x) => s + wingCenter.get(x)!.x, 0) / list.length, z: list.reduce((s, x) => s + wingCenter.get(x)!.z, 0) / list.length };
   };
-  const keys = [...r.conceptKeys].sort((a, b) => target(a) - target(b) || compareStrings(a, b));
+  // Row: the hall runs west to east past the wings, so only x counts. Hub: the wings stand round
+  // the lobby, so the slot nearest in plan to the centre of the wings compared.
+  const slotPoint = (s: Slot): Point => (s.side.orient === "h" ? { x: s.u, z: s.side.face } : { x: s.side.face, z: s.u });
+  const distance = (s: Slot, t: Point) => (building === "hub" ? Math.hypot(slotPoint(s).x - t.x, slotPoint(s).z - t.z) : Math.abs(slotPoint(s).x - t.x));
+  const keys = [...r.conceptKeys].sort((a, b) => target(a).x - target(b).x || target(a).z - target(b).z || compareStrings(a, b));
   const free = [...slots].sort((a, b) => a.param - b.param);
   const out: { key: string; slot: Slot }[] = [];
   for (const k of keys) {
@@ -843,8 +981,7 @@ function assignHall(
     let bestI = -1;
     let bestD = Infinity;
     free.forEach((s, i) => {
-      const x = s.side.orient === "h" ? s.u : s.side.face;
-      const d = Math.abs(x - t) + (s.side.side === "s" ? 0 : 0.001);
+      const d = distance(s, t) + (s.side.side === "s" ? 0 : 0.001);
       if (d < bestD - 1e-9) {
         bestD = d;
         bestI = i;

@@ -143,6 +143,7 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
     const hist = new Array<number>(256).fill(0);
     let sum = 0;
     let paper = 0;
+    let ink = 0;
     const n = px.length / 4;
     for (let i = 0; i < px.length; i += 4) {
       const y = Math.round(0.2126 * px[i]! + 0.7152 * px[i + 1]! + 0.0722 * px[i + 2]!);
@@ -151,10 +152,15 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
       // Plate paper is display-referred white (DR-023 F2), exactly 255 by design; a tone-mapped
       // surface never reaches it (Neutral maps scene value 1 to sRGB 240), so it is not a clipped highlight.
       if (px[i] === 255 && px[i + 1] === 255 && px[i + 2] === 255) paper++;
+      // Plate ink is display-referred black, exactly 0 by design (full ink on the unlit plate); the
+      // darkest tone-mapped surface (the shadow gap) renders at about sRGB 35, so exact black is
+      // lettering, not a crushed shadow. Counted apart, as paper is (DR-045: at the approach point a
+      // stand-mounted plate fills 2.6 times the area of a wall plate, so its ink alone passes 0.5%).
+      else if (px[i] === 0 && px[i + 1] === 0 && px[i + 2] === 0) ink++;
     }
     const clipped = (hist.slice(254).reduce((a, b) => a + b, 0) - paper) / n;
-    const crushed = hist.slice(0, 3).reduce((a, b) => a + b, 0) / n;
-    return { mean: sum / n, clippedFraction: clipped, crushedFraction: crushed, paperFraction: paper / n, histogram: hist };
+    const crushed = (hist.slice(0, 3).reduce((a, b) => a + b, 0) - ink) / n;
+    return { mean: sum / n, clippedFraction: clipped, crushedFraction: crushed, paperFraction: paper / n, inkFraction: ink / n, histogram: hist };
   }
 
   async function setPoseAndSettle(p: Pose) {
@@ -167,6 +173,10 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
     viewpoints: () => viewpoints(host.model, router),
     roomOrder: () => roomOrder(host.model, host.roomId ?? host.model.rooms[0]!.id),
     settle,
+    /** C4 diagnosis: the WebGL programs alive now (three.js name and cache key). */
+    programNames() {
+      return (host.renderer.info.programs ?? []).map((p) => `${p.name}|${String((p as unknown as { cacheKey?: string }).cacheKey ?? "")}`);
+    },
     memory() {
       const m = host.renderer.info.memory;
       const perf = performance as Performance & { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } };
@@ -212,7 +222,7 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
         changed.push(c);
       }
       const lum = luminance(first);
-      return { pixels: first.length / 4, changed, luminance: { mean: lum.mean, clippedFraction: lum.clippedFraction, crushedFraction: lum.crushedFraction } };
+      return { pixels: first.length / 4, changed, luminance: { mean: lum.mean, clippedFraction: lum.clippedFraction, crushedFraction: lum.crushedFraction, inkFraction: lum.inkFraction } };
     },
     /** Marks exhibits visited, as controller.setVisited does (screenshots of the in-world mark). */
     setVisited(ids: string[]) {
@@ -422,7 +432,9 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
         return out.sort((a, b) => a - b);
       };
       const q = (xs: number[], f: number) => xs[Math.min(xs.length - 1, Math.floor(f * xs.length))] ?? 0;
-      const title = band(0.2, 0.6);
+      // From 8%: the plate is 0.8 m tall (DR-043), so a one-line title ends above 20% of its height
+      // and a band from 20% held paper only. The step line (stations) is full ink as well.
+      const title = band(0.08, 0.6);
       const kicker = band(0.05, 0.16);
       const paper = q(title, 0.9);
       const ink = q(title, 0.01);

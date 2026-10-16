@@ -851,3 +851,311 @@ researchers' decisions:
   (three rotations, the 2D index order rotated with it so the order still matches across
   conditions) and log the rotation as a covariate. Until then, time-to-wing per tradition is
   reported as a covariate (DR-023 Addendum).
+
+## DR-024: One Section Map for Both Conditions (Adopted under the lead's delegation; methodologist sign-off with DR-021 before any participant data)
+
+- **Context:** the 2D tradition page listed ten sections chosen by concept TYPE
+  (`src/features/learning-2d/template.ts`), while the spatial compiler built seven wing rooms chosen
+  by knowledge CATEGORY (`DEFAULT_ZONE_GROUPS`), plus the comparison hall. The review found that four
+  study concepts sat in a different section in each condition (finding spatial-1, confirmed by
+  compiling the study manifest): `machilipatnam-kalamkari.historical_context.srikalahasti-style`
+  (2D Context, 3D the comparison hall, outside its own wing),
+  `machilipatnam-kalamkari.explanation.producer-communities-and-karkhanas` (2D Science, 3D Context),
+  and `sanganeri.historical_context.chhipa-community` and `.kharadi-block-makers` (2D Context, 3D
+  Artisan decisions). P29 could not hold either: the 2D index numbered ten sections per tradition
+  and the 3D Plan numbered every room of the building in reading order (the open item of the
+  DR-021 Addendum, Package 2D-B).
+- **Options:**
+  1. 3D follows the 2D ten sections (ten rooms per wing). Rejected: three more rooms and doorways
+     per wing raise the 3D navigation cost (gate 2) without any requirement asking for them, and
+     the template has seven parts, not ten.
+  2. Ask the curators to change the four concepts' categories. Rejected as the fix: it repairs this
+     content release only, and `content/` is not ours to edit; a later release could split again.
+  3. **One shared section map, placed by type, used by both conditions (chosen).**
+- **Decision:** `src/features/learning/sections.ts` (`KNOWLEDGE_SECTIONS`) is the single source of
+  truth. The 2D template re-exports it (`EPISTEMIC_SECTIONS` is the same array), and the compiler's
+  default zone groups are derived from it (`DEFAULT_ZONE_GROUPS`, rule set
+  `knowledge-to-space-default` version 2). The sections, in order:
+  1. Tradition and context (`tradition`, `historical_context`);
+  2. Materials and tools (`material`, `tool`);
+  3. Process sequence (`process_stage`);
+  4. Artisan decisions (`artisan_decision`);
+  5. Design and outcomes (`design_principle`, `outcome`);
+  6. Science and environment (`scientific_mechanism`, `explanation`, `environmental_condition`);
+  7. Open questions (`open_question`);
+  8. Cross-tradition comparison (`comparison`): in 2D the tradition page's comparisons section, in
+     3D the one comparison hall that joins the wings.
+- **Rules that follow from it:**
+  - A concept's section is `sectionOfType(type)` in both conditions. The compiler chooses a room by
+    type whenever the rule set's zone groups list types (version 2); categories now only order the
+    labelled category runs inside a room. A version 1 rule set (category-based) still compiles, for
+    stored manifests.
+  - The compiler check `rules.sections` fails a manifest (error) in which any exhibit stands outside
+    its 2D section's room: a tradition's concept outside its own wing's room, a comparison outside
+    the hall, a shared concept outside the commons or the hall. For a version 1 rule set it is a
+    warning that lists the disagreements.
+  - Numbers and names: section n has number n and the same title in the 2D index and on the museum
+    Plan. The Plan numbers a wing room by its section (each wing repeats 1-7, as each tradition's 2D
+    index does), the hall 8, and gives the entrance lobby and the shared commons no number (they are
+    no section; the 2D catalogue page has none either). The full Plan lists the entrance, then each
+    wing in the canonical tradition order (DR-019) by section number, then the hall. Room names in
+    the Plan are the section titles; the hall keeps "Comparison Hall" as its zone line and its
+    in-scene signs. This replaces the reading-order numbering of DESIGN.md 11.6.
+  - Ids are kept so telemetry and assets stay stable: 2D section ids (`#section-<id>`,
+    `section:<id>`) and 3D room ids (`room:<slug>:<zone group>`) are both columns of the one table.
+- **Rationale and evidence:**
+  - The order is the concept note's common epistemic template (requirements digest §3; Concept §6;
+    MP:278-286; TM:66-74). Its seven parts are kept in their order; open questions (the master
+    spec's rule that uncertainty is shown) is the only addition. It is placed seventh, with the
+    tradition's own knowledge, so a wing's rooms are numbered 1-7 without a gap and the section that
+    spans traditions comes last (8), matching the hall that sits between the wings. Placing it after
+    the comparison would leave a gap (no room 7 in any wing), which novices read as a missing room
+    (gate 2).
+  - Section 6 is named "Science and environment", the name the 3D rooms already carried, because it
+    holds the environmental conditions as well as the mechanisms and explanations; the concept
+    note's "scientific/technological knowledge: mechanisms, material treatments, process conditions"
+    covers both. Keeping the 3D names left every wing-room plaque text unchanged except "Open
+    questions" (no concept of the `supporting_evidence` category exists in the content).
+  - Type, not category, decides because type is single-valued, is what the 2D page has always used,
+    and is what `exposureLayerOf` already uses for per-layer exposure in both conditions. In the
+    current content the two disagree for 4 of the 442 concepts (a type-by-category count over `content/`).
+  - Equivalence (gate 1): the same concept now has the same section, the same section neighbours and
+    the same section label in both conditions; the manipulated difference stays navigation only.
+- **Measured:** `tests/unit/immersive/section-map.test.ts` compiles the study manifest from
+  `content/` and checks that every wing room holds exactly the concepts of the 2D section of the
+  same tradition (all study wing exhibits compared), that the hall holds the comparisons and nothing
+  else, that the four concepts above now sit in their 2D section's room, that `rules.sections`
+  passes with no issue, and that the Plan's numbers and names equal the 2D index's. Parity check P29
+  now compares every Plan room with the 2D index of its tradition by number AND name and requires
+  the index order; P26 reports each study wing's rooms by section and fails a wing room outside the
+  map. Quick parity run on the production build (GTX 1650, 1280 x 800 light, three study
+  traditions): P29 compared 22 Plan rooms with 24 index sections by number and name, 0 differing;
+  P26 found wing rooms 1-7 in every study wing and none outside the map; the run passed.
+- **Consequences:**
+  - 2D: "Design principles" and "Outcomes" become one section, "Design and outcomes";
+    "Environmental conditions" moves into "Science and environment"; "Comparisons" is renamed
+    "Cross-tradition comparison" and becomes section 8, after "Open questions" (7).
+  - 3D: the four concepts move to their 2D section's room (Srikalahasti style into the Machilipatnam
+    Kalamkari context room, out of the hall). Stored manifests compiled with rule set version 1 keep
+    the old placement; the demo study is re-pinned to a version 2 manifest. Of the six C5 rendering
+    baselines only the Sanganeri artisan-decisions view changed (0.25% of pixels: the two moved
+    concepts no longer stand on that wall); it was regenerated on the GTX 1650 and checked by eye, and
+    still needs the human baseline review the other C5 baselines are waiting for.
+  - Figure balance (`src/server/research/parity/engine.ts`) balances per section; section 6 now
+    mixes the science layer with environmental conditions (overview layer), so "section balance also
+    balances every layer" holds only per section until the engine also balances per layer
+    (requested from the back-end track).
+- **Paper implications:** the Methods describe one section structure for both conditions, taken from
+  the concept note's template, and state that the 3D building is generated from it; the four moved
+  concepts are a reported correction made before any participant data.
+
+## DR-043: Hub Building: Every Tradition Wing Equally Far From the Start (Adopted under the lead's delegation; resolves DR-023 Addendum B; methodologist sign-off with DR-021 before any participant data)
+
+- **Context (gate 1, tradition salience):** the compiler built the three wings side by side along
+  one 91.5 m comparison hall with the lobby at its west end. Walking from the entrance directory to
+  the wing doorways took 5.9 s (Ajrakh), 19.3 s (Machilipatnam Kalamkari) and 31.4 s (Sanganeri),
+  while every tradition is one link away in 2D. The DR-023 addenda left this open as a covariate and
+  recommended a hub. The review also confirmed three compiler findings: consecutive sections were
+  not adjacent rooms (spatial-3: up to 6 doorways apart in the Sanganeri wing, hidden by a test
+  metric that skipped exactly those pairs), floor contact shading was missing on walls filed under
+  a neighbouring room (spatial-4), and manifest rationales misdescribed the layout (spatial-5).
+- **Options:**
+  1. Keep the row and counterbalance wing order across participants. Rejected as the fix: it
+     averages the confound out across participants instead of removing it, needs a rotated 2D
+     index to keep the orders matched, and leaves every individual session unequal.
+  2. A lobby centred on the row of wings. Rejected: the middle wing becomes nearest.
+  3. The comparison hall as the hub, entered from a lobby on its fourth side. Rejected: from a
+     doorway on one side, the opposite wing is about 1.4 times as far as the side wings.
+  4. **The entrance lobby as the hub, the spawn equidistant from three wing doorways (chosen).**
+- **Decision (rule set `knowledge-to-space-default` version 3, `layout.building: "hub"`;
+  `spatial-compiler@1.3.0`, `LAYOUT_VERSION grid-wings@3`):**
+  - The wings open off the lobby's west, south and east walls in canonical (slug) order: Ajrakh
+    west, Machilipatnam Kalamkari south, Sanganeri east. The spawn stands on the lobby's axis
+    3.5 m from its north wall (`hubSpawnDepth`, the directory's reading distance), facing north.
+    The west and east doorways are level with the spawn and the south doorway is on its axis, and
+    the lobby is 3.5 m plus half its width deep, so all three doorways are half the lobby width
+    (5.5 m) from the spawn. Each wing grid is rotated so its entrance room is centred on its
+    doorway.
+  - The entrance directory hangs on the lobby's north wall, facing the spawn, read from the spawn
+    with no walk-up (removes the walk-up arrival in front of a bare wall, open item (a)). It lists
+    the wings in canonical order, then the comparison hall and the shared commons, in equal-size
+    rows. Its directions name the lobby wall, as one reads the directory: "Doorway in the left
+    wall", "... in the opposite wall", "... in the right wall", "Doorways either side of this
+    sign", "Through the comparison hall".
+  - The comparison hall lies north of the lobby, entered by two doorways at the quarter points of
+    the north wall, either side of the directory. Each comparison stands on the hall slot nearest,
+    in plan, to the wings it compares. The commons opens off the hall's far wall on the spawn axis,
+    in no wing's direction.
+  - At the spawn none of the three wing doorways is in view (they are at 90 and 180 degrees); the
+    view holds the directory and the hall. No tradition is seen first.
+  - Wing grids fill in serpentine order with a circulation doorway between consecutive slots, so
+    walking the sections in their 2D order is one doorway per section (spatial-3). New compiler
+    checks: `navigation.wing-equidistance` (routes from the spawn to the wing doorways within
+    10%; an error for a hub) and `layout.section-adjacency` (consecutive sections share a
+    doorway; error). More than three wings cannot form a hub; the compiler then builds the row and
+    warns (`layout.building`); the study selects three traditions (DR-017).
+  - Wayfinding and finish items in the same package: door signs carry the section number of the
+    room they lead to ("3. Process Sequence"), the number the Plan and the 2D index give it; the
+    Plan marks the current room with an arrow pointing the visitor's facing in eight compass steps
+    and names each room on hover; a sequence station's "Step n of N" line is set at the title size
+    on a plate 0.1 m taller (0.8 m), so no title loses a line; floor and ceiling bakes use every
+    wall that bounds a room (spatial-4); the manifest rationales describe the real algorithm
+    (spatial-5).
+- **Measured:**
+  - Compiler: route length from the spawn to each wing doorway 5.85 / 5.85 / 5.85 m; consecutive
+    sections 1 doorway apart in every wing (6 doorways for 7 sections). Floor contact bands on all
+    four sides of all 24 rooms (edge means 0.70 to 0.77 against 0.86 to 1.00 for the walls missing
+    before).
+  - GTX 1650, production build, 1280 x 800, a click on each wing's directory row at the spawn,
+    three runs per wing, wing order rotated: median time to enter the wing 3.51 s (Ajrakh),
+    3.42 s (Machilipatnam Kalamkari), 3.42 s (Sanganeri), a spread of 2.7%; to stand at rest
+    inside it 5.97 / 5.82 / 5.82 s, a spread of 2.6% (requirement: within 10%). Arrival faces into
+    the room in every run.
+  - Scripted novice, default controls (`modules/immersive-3d.md`, "Hub Building"): no wrong turns
+    in any wing.
+  - Rendering on the GTX 1650: C1-C8, C10 and both legibility checks pass after one fix (a late
+    program compile for the route ribbon, C4); C12 fails as before (wall colour encode, unrelated).
+    Quick parity run: passed (P29 0 differing, P33 18 against 18).
+- **Equivalence check:** content: unchanged (every concept stays in its section's room; the
+  section map, plate titles and claims are unchanged). Exposure and timing: navigation time to each
+  tradition is now equal by construction and by measurement; content exposure is untouched.
+  Citations: unchanged. Ease once a concept is open: unchanged (the sheet is the same; the plate's
+  step line is larger, and its wording is the 2D rail's). Natural navigation only: the building,
+  directory, door-sign numbers and Plan arrow are 3D navigation, the manipulated variable; the
+  section numbers are those the 2D index already shows. Tradition salience: the confound DR-023
+  recorded is removed; the order of wings is the canonical order of the 2D index. Telemetry: no new
+  event or field; `room_entered` still carries the tradition, and the old time-to-wing covariate
+  is still derivable.
+- **Consequences:** every stored manifest compiled under rule sets v1/v2 keeps the row building; the
+  dev database has a new manifest (`01a1427c-0769-7c55-86fe-79a1a46436e8`, valid) and the draft demo
+  study `demo-review-walkthrough` is re-pinned to it. The six C5 rendering baselines were
+  regenerated (every room view changed) and need the same human review as before. The files under
+  `analysis/out/spatial/` were recompiled. `docs/architecture/spatial-compiler.md` still describes
+  the row building and the old order metric (outside this track's files; a change is requested).
+- **Paper implications:** the Methods state that the 3D building places every tradition at the same
+  walking distance from the start (measured), that wings appear in the same canonical order as the
+  2D index, and that walking through a wing meets the sections in the 2D order one doorway apart.
+
+## DR-044: Wall Colour Texture Re-Encoded Without Rate-Distortion Optimisation (Adopted under the lead's delegation; package 3D-3)
+
+- **Context:** check C12 (texture fidelity, SSIM at least 0.98 against the authored source on the
+  GPU) failed for the wall colour map, 0.9746, in every run since the gallery finish. Earlier work
+  showed it was the encode, not the transcode (an uncompressed RGBA8 transcode measured 0.9753),
+  and named the fix (re-encode with KTX-Software 4.4.2), which was not installed.
+- **Tool:** KTX-Software v4.4.2 for Windows x64, the official release asset
+  `KTX-Software-4.4.2-Windows-x64.exe` from github.com/KhronosGroup/KTX-Software. Its sha256
+  `1f323b0f...2d2957fe` matches the digest GitHub publishes for the asset, and its Authenticode
+  signature is valid (The Khronos Group Inc). It was extracted, not installed, to `C:\Tools\KTX`
+  (not on PATH; called as `C:\Tools\KTX\bin\ktx.exe`; provenance in `C:\Tools\KTX\SOURCE.txt`).
+- **Measured offline first** (each variant encoded, level 0 transcoded to RGBA8 with `ktx extract`,
+  SSIM by the project's own `scripts/museum/ssim.ts`, the C12 metric). The shipped file reproduced
+  0.9753 exactly, so the proxy matches the earlier measurement.
+
+  | Wall colour encode | Bytes | SSIM (proxy) | Mean abs. error (sRGB levels) |
+  |---|---|---|---|
+  | UASTC quality 2, RDO lambda 0.5 (shipped) | 2,697,552 | 0.9753 | 0.947 |
+  | quality 2, RDO lambda 0.25 | 3,372,591 | 0.9863 | 0.684 |
+  | quality 2, RDO lambda 0.1 | 3,653,046 | 0.9882 | 0.626 |
+  | **quality 2, no RDO (chosen)** | **3,714,461** | **0.9883** | **0.624** |
+  | quality 3, no RDO | 3,715,147 | 0.9884 | 0.621 |
+  | quality 4, no RDO (226 s to encode) | 3,963,634 | 0.9882 | 0.631 |
+
+- **Decision:** the wall colour map is encoded without RDO (`rdo: false` on that map in
+  `scripts/museum/textures.config.ts`; the encoder arguments are otherwise unchanged). RDO is what
+  cost the fidelity on the near-flat plaster; quality levels above 2 add nothing. No-RDO is chosen
+  over lambda 0.1 because it is the simpler setting for the same fidelity (59 kB more). Every other
+  map keeps its encode, and because the encoder is deterministic their files and hashes are
+  byte-identical (only `wall-color.53c126ea.ktx2` changed).
+- **Budget:** the first download (the two colour maps the finish loads) is now 8,074,954 bytes,
+  against 25 MB; texture memory is unchanged (the GPU format and size are the same).
+- **Measured on the GPU (GTX 1650, production build):** C12 wall colour 0.9872 (was 0.9746), floor
+  colour 0.9925 (unchanged); block-artefact index 1.18 and 1.15. C12 passes.
+- **Equivalence check:** content, exposure, citations, ease and navigation: unchanged (a texture
+  encode, the same in every room). Tradition salience: unchanged (one plaster for the whole museum).
+
+## DR-045: Plates on Identical Reading Stands Instead of the Wall Above Empty Plinths (Adopted under the lead's delegation; package 3D-3; methodologist sign-off with DR-021 before any participant data)
+
+- **Context:** every exhibit was a 1.2 x 0.6 x 1.4 m white plinth with the plate on the wall above
+  it (1.55 to 2.35 m). The review found the plinths read as "objects missing" and the museum as an
+  unfinished greybox. The lead allowed replacing them with simple, identical lectern stands for the
+  plaques, **if it improves legibility**, with no decorative props near the knowledge, identical in
+  every wing, and nothing tradition-specific.
+- **Options:**
+  1. Keep the plinths. Rejected: the finding stands, and the plate is 1.95 m from where the visitor
+     stops.
+  2. A sloped lectern desk (plate tilted 30 degrees, about 1.1 m high). Rejected on geometry: the
+     scene's planes are axis-aligned, and a desk-angle plate is foreshortened from across a room,
+     where the sequence order ("Step n of N") must stay readable (DR-043).
+  3. No plinth, the plate lower on the wall, the approach point moved to it. Rejected: it changes
+     every approach point and so the walking routes and times, the measured navigation of DR-043.
+  4. **An upright reading stand at the front of the same footprint (chosen).**
+- **Decision (rule set `knowledge-to-space-default` version 4, `layout.exhibitMount: "stand"`;
+  `spatial-compiler@1.4.0`, `LAYOUT_VERSION grid-wings@4`):**
+  - The plate (the same 1.0 x 0.8 m plate, the same lettering) stands on a 40 mm plaster board at
+    the front face of the exhibit footprint, its edges at 1.15 and 1.95 m (centre 1.55 m, near the
+    1.62 m eye height). The board overhangs the plate by 30 mm and sits on a 360 x 240 mm pedestal
+    on the F8 recessed toe, in the plinth's plaster and tint (finish F8b,
+    `src/components/museum/three/resources.ts`). One size for every exhibit, room and wing.
+  - The footprint in plan, the exhibit position, the approach point, every room and doorway and the
+    spawn are unchanged (asserted byte-for-byte against the plinth mount in
+    `tests/unit/immersive/reading-stand.test.ts`), so every walking route, collision and arrival is
+    the same. Only the footprint's height changes (to the board's top, 1.98 m), and floor contact
+    shading comes from the pedestal instead of the plinth.
+  - The plate lettering keeps its size: the type is sized for at least the wall plates' farthest
+    approach distance (`PLATE_TYPE_MIN_DISTANCE` 2.139 m in `placement.ts`); sized from the nearer
+    stand distance it would have shrunk by a third and cancelled the gain.
+  - The placement audit treats the board as the plate's backing; the plinth-below-panel rule now
+    applies to wall-mounted plates only; doorway checks use the wall behind a stand. Rule sets
+    v1 to v3 still compile plinths.
+  - Rendering check C2 counts exact-black plate ink apart from crushed shadows, as it already did
+    for exact-white plate paper (the darkest scene surface renders at about sRGB 35). At the approach
+    point the larger plate's ink alone exceeded 0.5% (up to 0.72%, 12 of 98 views in the first run);
+    the ink fraction is recorded (`maxPlateInkFraction`).
+  - **Considered and not adopted: baked lighting variation** (for example scallops from downlights on
+    the walls). It would put a pattern behind the plates, which is decorative detail near knowledge;
+    it needs per-wall light maps (texture memory on low-spec machines); and no gate gains from it. The
+    finish keeps the uniform wash, cove and contact shading of DR-023.
+- **Measured (legibility):**
+  - Geometry, all 254 exhibits (unit test): at the approach point the plate subtends at least 1.63
+    times its former height and 1.59 times its width, and the title at least 1.55 times its angle.
+    From each room's centre every plate subtends at least 1.05 times its former height; its area is
+    larger for the median plate (1.17 times), and 6 plates near corners lose up to 2.4% of area
+    because they are seen more obliquely.
+  - Rendered, GTX 1650, production build, 1280 x 720, the same views before and after (the
+    manifest switched in the database): plate height at the approach point 378 px (was 232.5 px,
+    +63%), always fully in frame and clickable at its centre (23 of 23); from the 48 room-centre
+    views, median height of plates visible at their centre 55.6 px (was 50.9 px), 197 visible
+    plates (was 192); matched plate by plate, median 1.09 times, none smaller.
+- **Measured (rendering, all checks C1 to C12 on the GTX 1650, production build, run
+  `3d-3-stand-2`, 10 of 10 pass):** C1 0 changed pixels at 98 viewpoints; C1b 0 spikes; C2
+  clipped at most 0.26%, crushed at most 0.14% (plate ink up to 0.57%), zone means within 3.2%;
+  C2b wing entrance rooms 171.0 / 175.7 / 169.4 (8-bit luma), at most 2.2% from their average
+  (limit 5%); C3 two tours of 24 rooms, p50 6.9 ms, p95 7.1 ms, p99 7.2 ms, max 20.9 and 27.8 ms,
+  at most 107 draw calls and 53,403 triangles; C4 no frame over 50 ms, 17 programs before and after;
+  C5 the six regenerated baselines reproduce with 0 differing pixels; C6 0 non-uniform, 0
+  transparent; C8 restored and logged; C10 0 idle and 0 hidden frames; C11 102 geometries and 81
+  textures before and after both tours, heap +0.15%, textures 42.7 MB and render targets 35.1 MB;
+  C12 wall colour 0.9872, floor colour 0.9925; card titles at least 21:1, room plaques at 2.5 m at
+  least 19.56:1.
+- **Measured (low tier, first run):** Iris Xe with the CPU throttled x4, the same build: all ten
+  checks pass; p95 20.8 and 27.5 ms (budget 33), p99 28.0 and 41.4 ms (budget 50), heap 103 MB
+  (budget 250), textures 42.7 MB + 35.1 MB render targets (budget 192). Frames over 50 ms (allowed
+  on this tier) 93 and 177, at most 173.6 ms.
+- **Measured (ease, scripted novice walkthrough, GTX 1650, 1440 x 900, default controls only, the
+  same script and targets as DR-043):** time to open the target 47.1 s (Ajrakh, was 52.0),
+  32.5 s (Machilipatnam Kalamkari, was 32.4), 40.1 s (Sanganeri, was 39.8); the same clicks
+  (7 / 6 / 7) and drags (5 / 0 / 1), no wrong turns. Quick parity run (1280 x 800, 3 traditions):
+  99 checks, 0 failed; immersive flow e2e: 4 of 4 passed.
+- **Equivalence check:** content: unchanged (the same plates, titles and lettering; claims are in
+  the shared KnowledgeSheet). Exposure and timing: unchanged; every route and arrival is identical.
+  Citations: unchanged. Ease: no new control; the click target is the stand and its plate. Natural
+  navigation only: a 3D finish item; the 2D condition has no counterpart, as it has no plinths.
+  Tradition salience: the stand is identical in every wing; the wing entrance means stay within
+  2.2%. Telemetry: no change.
+- **Consequences:** a new manifest in the dev database (`01a142ea-b29b-7654-be07-1f2fd1bf4a6c`,
+  valid) and the draft demo study `demo-review-walkthrough` re-pinned to it. The six C5 baselines
+  were regenerated (every room view changed) and accepted by eye; they need the same human review as
+  before (the previous set is kept in the 3D-3 scratch folder). `docs/architecture/spatial-compiler.md`
+  should describe `layout.exhibitMount` (outside this track's files; a change is requested).
+- **Paper implications:** the Methods describe each exhibit as a plate on a reading stand at a
+  fixed height and distance, identical across traditions.

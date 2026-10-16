@@ -69,11 +69,12 @@ describe("validation catches injected faults", () => {
     const entrance = manifest.elements.find((e) => e.id === "room:demo-alpha:tradition_context")!;
     const door = manifest.elements.find((e) => e.id === entrance.entranceDoorId)!;
     const { a, b } = door.opening as { a: Point; b: Point };
+    // 0.1 m proud of the opening on every side, whichever way the doorway runs.
     const blocker: Collider = {
       id: "wall:injected",
       kind: "wall",
-      min: [Math.min(a.x, b.x), 0, Math.min(a.z, b.z) - 0.1],
-      max: [Math.max(a.x, b.x), 3, Math.max(a.z, b.z) + 0.1],
+      min: [Math.min(a.x, b.x) - 0.1, 0, Math.min(a.z, b.z) - 0.1],
+      max: [Math.max(a.x, b.x) + 0.1, 3, Math.max(a.z, b.z) + 0.1],
     };
     (entrance.colliders as Collider[]).push(blocker);
     // Re-validate the tampered manifest against the same inputs.

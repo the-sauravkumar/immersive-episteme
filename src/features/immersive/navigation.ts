@@ -248,6 +248,12 @@ export function moveInputFromKeys(keys: ReadonlySet<string>, mouseLookActive: bo
 
 export const yawFromDeg = (deg: number) => (-deg * Math.PI) / 180;
 
+/** A camera yaw as one of the eight compass points: degrees clockwise from north, a multiple of 45 (0..315). */
+export function compassPoint(yaw: number): number {
+  const deg = (-yaw * 180) / Math.PI;
+  return ((Math.round(deg / 45) * 45) % 360 + 360) % 360;
+}
+
 const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
 const cornerHit: CornerHit = { corner: false, vx: 0, vz: 0, boxX: 0, boxZ: 0 };
 const slipOut = { x: 0, z: 0 };

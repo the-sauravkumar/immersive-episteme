@@ -52,7 +52,7 @@ interface Pose {
 type Probe = {
   info(): Record<string, unknown> & { ready: boolean; tier: string; gpu: string; config: Record<string, unknown>; textures: { url: string; width: number; height: number; levels: number; format: number }[]; drawingBuffer: { width: number; height: number }; canvasCss: { width: number; height: number }; dpr: number; framesRendered: number };
   viewpoints(): Pose[];
-  stability(p: Pose, n: number): Promise<{ pixels: number; changed: number[]; luminance: { mean: number; clippedFraction: number; crushedFraction: number } }>;
+  stability(p: Pose, n: number): Promise<{ pixels: number; changed: number[]; luminance: { mean: number; clippedFraction: number; crushedFraction: number; inkFraction?: number } }>;
   slowYaw(p: Pose, n: number, step: number): Promise<{ meanAbsDiffPerFrame: number[] }>;
   tour(speed: number, turnRate: number): Promise<{ durationS: number; lengthM: number; unreachable: string[]; roomsVisited: string[]; programsBefore: number; programsAfter: number; frames: { t: number; calls: number; triangles: number; programs: number; moving: boolean }[]; rafDeltas: number[] }>;
   memory(): { geometries: number; textures: number; programs: number; jsHeap: number | null; letteringTexels: number; residentRooms: number };
@@ -165,18 +165,18 @@ test("C6 geometry: no non-uniform scale, no transparent overlap, image planes", 
 
 test("C1 static-frame stability, C2 luminance, C5 visual baseline at every viewpoint", async () => {
   const vps = await call(page, "viewpoints");
-  const rows: { id: string; zoneId: string | null; kind: string; maxChanged: number; changedFraction: number; mean: number; clipped: number; crushed: number }[] = [];
+  const rows: { id: string; zoneId: string | null; kind: string; maxChanged: number; changedFraction: number; mean: number; clipped: number; crushed: number; ink: number }[] = [];
   for (const v of vps) {
     const r = await call(page, "stability", v, 30);
     const maxChanged = Math.max(...r.changed);
-    rows.push({ id: v.id!, zoneId: v.zoneId ?? null, kind: v.kind!, maxChanged, changedFraction: maxChanged / r.pixels, mean: r.luminance.mean, clipped: r.luminance.clippedFraction, crushed: r.luminance.crushedFraction });
+    rows.push({ id: v.id!, zoneId: v.zoneId ?? null, kind: v.kind!, maxChanged, changedFraction: maxChanged / r.pixels, mean: r.luminance.mean, clipped: r.luminance.clippedFraction, crushed: r.luminance.crushedFraction, ink: r.luminance.inkFraction ?? 0 });
   }
   const museumMean = rows.reduce((s, r) => s + r.mean, 0) / rows.length;
   const zones = new Map<string, number[]>();
   for (const r of rows) (zones.get(r.zoneId ?? "none") ?? zones.set(r.zoneId ?? "none", []).get(r.zoneId ?? "none")!).push(r.mean);
   const zoneMeans = [...zones.entries()].map(([z, xs]) => ({ zone: z, mean: xs.reduce((a, b) => a + b, 0) / xs.length, deviation: xs.reduce((a, b) => a + b, 0) / xs.length / museumMean - 1 }));
   results.c1 = { viewpoints: rows.length, framesPerViewpoint: 30, worstChangedPixels: Math.max(...rows.map((r) => r.maxChanged)), worstChangedFraction: Math.max(...rows.map((r) => r.changedFraction)), failing: rows.filter((r) => r.changedFraction > 0.0001).map((r) => r.id) };
-  results.c2 = { museumMeanLuma: museumMean, maxClippedFraction: Math.max(...rows.map((r) => r.clipped)), maxCrushedFraction: Math.max(...rows.map((r) => r.crushed)), zoneMeans, viewpoints: rows };
+  results.c2 = { museumMeanLuma: museumMean, maxClippedFraction: Math.max(...rows.map((r) => r.clipped)), maxCrushedFraction: Math.max(...rows.map((r) => r.crushed)), maxPlateInkFraction: Math.max(...rows.map((r) => r.ink)), zoneMeans, viewpoints: rows };
   for (const r of rows) {
     expect.soft(r.changedFraction, `C1 ${r.id}`).toBeLessThanOrEqual(0.0001);
     expect.soft(r.clipped, `C2 clipped ${r.id}`).toBeLessThanOrEqual(0.005);

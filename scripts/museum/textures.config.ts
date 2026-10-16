@@ -19,6 +19,12 @@ export interface TextureMapSpec {
   /** Role in the PBR material. */
   role: "color" | "normal" | "orm";
   colorSpace: "srgb" | "linear";
+  /**
+   * UASTC rate-distortion optimisation (default true). Off for the wall colour map (DR-044): RDO
+   * on the near-flat plaster cost C12 (GPU SSIM 0.9746 < 0.98); without it the offline proxy
+   * (RGBA8 transcode, scripts/museum/ssim.ts) measures 0.9883, for 1.0 MB more download.
+   */
+  rdo?: boolean;
 }
 
 export interface TextureAssetSpec {
@@ -46,7 +52,7 @@ export const TEXTURE_ASSETS: TextureAssetSpec[] = [
     // darker so the lit wall stays below highlight clipping at the study exposure (C2).
     gradeMeanSrgb: "#e3ddd2",
     maps: [
-      { map: "Diffuse", role: "color", colorSpace: "srgb" },
+      { map: "Diffuse", role: "color", colorSpace: "srgb", rdo: false },
       { map: "nor_gl", role: "normal", colorSpace: "linear" },
       { map: "arm", role: "orm", colorSpace: "linear" },
     ],
@@ -68,9 +74,11 @@ export const TEXTURE_ASSETS: TextureAssetSpec[] = [
  * Rate-distortion optimisation (lambda 0.5, the mildest setting tried) lets Zstandard compress
  * the blocks: without it the six maps were 25.6 MB (over the 25 MB first-download budget, §2a);
  * with it see ASSETS.md. Level-0 SSIM against the source is printed per map by --compare-ssim
- * (analysis/out/museum/encode-report.json) and measured on the GPU by C12.
+ * (analysis/out/museum/encode-report.json) and measured on the GPU by C12. A map may switch RDO
+ * off (`rdo: false`): the wall colour does (DR-044), the only map whose GPU SSIM failed C12.
+ * Encoding is deterministic: maps whose arguments did not change keep their bytes and hashes.
  */
-export const KTX_ENCODE_ARGS = (colorSpace: "srgb" | "linear") => [
+export const KTX_ENCODE_ARGS = (colorSpace: "srgb" | "linear", rdo = true) => [
   "--format",
   colorSpace === "srgb" ? "R8G8B8_SRGB" : "R8G8B8_UNORM",
   "--assign-tf",
@@ -79,9 +87,7 @@ export const KTX_ENCODE_ARGS = (colorSpace: "srgb" | "linear") => [
   "uastc",
   "--uastc-quality",
   "2",
-  "--uastc-rdo",
-  "--uastc-rdo-l",
-  "0.5",
+  ...(rdo ? ["--uastc-rdo", "--uastc-rdo-l", "0.5"] : []),
   "--zstd",
   "20",
   "--generate-mipmap",

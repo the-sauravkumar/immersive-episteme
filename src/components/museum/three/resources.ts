@@ -79,6 +79,12 @@ export const GALLERY_FINISH = {
   /** F8: 30 mm high, 20 mm inset recessed toe under every plinth. */
   plinthToe: { height: 0.03, inset: 0.02 },
   /**
+   * F8b reading stand (DR-045, stand-mounted plates): a 40 mm plaster board, overhanging the plate by
+   * the compiler's standBoardMargin, on a 360 x 240 mm pedestal set behind it on the F8 toe. The
+   * same plaster and tint as a plinth; one size for every exhibit, wing and room.
+   */
+  readingStand: { boardDepth: 0.04, pedestalWidth: 0.36, pedestalDepth: 0.24 },
+  /**
    * F3 wall wash (a fraction of the card-band level): contact darkening at the skirting, flat
    * (within ±3%) across the card band, brighter towards the cove.
    */
