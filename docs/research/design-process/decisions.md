@@ -1871,3 +1871,82 @@ researchers' decisions:
 - **Paper implications:** report that access was by invitation (codes per cohort, revocable),
   identical for both conditions and before consent, and that no personal data is collected by the
   gate (codes are hashed; the cookie holds only the code's row id).
+
+## DR-048 (number to confirm at merge): Neon Free Postgres in Singapore and Cloudflare R2 for Media, Instead of RDS and S3 (Decided by the lead, 2026-10-16; deployment preparation, nothing deployed)
+
+- **Context:** DR-047 planned Vercel with RDS and S3 in `ap-south-1`. On 2026-10-16 the lead
+  chose "a free hosted Postgres such as Neon, which needs no AWS for now". The first deployment is
+  a Vercel CLI deploy on the Hobby plan. Vendor facts below were read on the vendors' pages on
+  2026-10-16 (notes: scratchpad `neon/neon-facts.md`, `code-compat.md`, `media-storage.md`).
+- **Database: Neon Free.**
+  - Plan: "$0/month"; "1 GB/project"; "100 CU-hours/project/month (enough to run a 0.25 CU
+    compute in a project for 400 hours/month)" (https://neon.com/docs/introduction/plans).
+  - "Scale to zero is always enabled (computes suspend after 5 minutes of inactivity) and can't
+    be disabled"; a suspended compute "reactivates automatically within a few hundred
+    milliseconds" (https://neon.com/docs/introduction/scale-to-zero).
+  - Backups: Free has "History window: 6 hours (1 GB limit)" and no instant restore
+    (https://neon.com/pricing). So the team keeps its own `pg_dump` exports of study data.
+- **Region: AWS Asia Pacific (Singapore), `aws-ap-southeast-1`; Vercel functions in `sin1`.**
+  - Neon has no region in India. Its region list names "AWS Asia Pacific (Singapore) —
+    `aws-ap-southeast-1`" and says "You cannot change the region" after creation
+    (https://neon.com/docs/introduction/regions).
+  - Vercel: "| sin1 | ap-southeast-1 | Singapore |" (https://vercel.com/docs/regions); Hobby may
+    use a "Single region" (https://vercel.com/docs/functions/configuring-functions/region).
+    `vercel.json` `regions` is now `["sin1"]` (was `bom1`).
+  - **Ethics:** participant data would be stored in Singapore, outside India. The repository
+    promises no storage location to participants (see Consequences), but the CXA/ETH/01 file and
+    the consent text the team enters must agree with this.
+- **Code changes (minimal):**
+  - **Pooled vs direct URL.** Neon's pooler is "PgBouncer in transaction mode
+    (`pool_mode=transaction`)", and "`LISTEN` / `NOTIFY`" is "Not supported with pooled
+    connections" (https://neon.com/docs/connect/connection-pooling). New optional
+    `DATABASE_URL_UNPOOLED` (Neon's own name: "| `DATABASE_URL_UNPOOLED` | Direct connection
+    string |", https://neon.com/docs/guides/vercel-managed-integration). The app pool keeps the
+    pooled `DATABASE_URL`; the dashboard LISTEN connection (`dashboard-service.ts`), the `db:*`
+    scripts (`scripts/db/_shared.ts resolveDatabaseUrl`) and `drizzle.config.ts` use the direct
+    URL ("| Schema migrations | Direct | Tools may not support transaction pooling |", same
+    page). In production `src/lib/env.ts` requires it when `DATABASE_URL` has `-pooler.` and
+    refuses a pooled value in it.
+  - **TLS.** "Neon requires that all connections use SSL/TLS encryption" and recommends
+    `verify-full` (https://neon.com/docs/connect/connect-securely). `sslmode=require` or
+    `verify-full` both verify in node-postgres (pg-connection-string treats `require` as
+    `verify-full`); the RDS CA rule (`DATABASE_CA_PEM`) still applies only to
+    `.rds.amazonaws.com` hosts.
+  - **pgvector 0.8.6.** Neon's PostgreSQL 18 ships 0.8.6 ("| pgvector | 0.8.0 | 0.8.0 | 0.8.0 |
+    0.8.0 | 0.8.6 |", https://neon.com/docs/extensions/pg-extensions); the pin was 0.8.7.
+    `EXPECTED_DB` now accepts both: the schema only installs the extension
+    (`db/migrations/0000_enable_extensions.sql`) and has no vector column or index.
+- **Media: Cloudflare R2, private bucket (no AWS).**
+  - Free tier "10 GB-month / month" storage, egress "Free"
+    (https://developers.cloudflare.com/r2/pricing/); "By default, buckets are never publicly
+    accessible" (https://developers.cloudflare.com/r2/buckets/public-buckets/); "the region for
+    an R2 bucket is `auto`" (https://developers.cloudflare.com/r2/api/s3/api/).
+  - The existing S3 adapter already takes `MEDIA_S3_ENDPOINT` and path-style addressing; the CSP
+    already derives the endpoint origin. One change: R2's checksum table lists SHA-256 only for
+    multipart uploads (same S3 API page), so `HeadObject` may return no single-part SHA-256 and
+    every upload would fail `checksum_mismatch`. `finalizeAssetUpload` now hashes the stored
+    object on the server when the store reports none (`storedSha256`, bounded by the type's size
+    limit). Figures still stream through `/figures` with the 768 px licence cap unchanged.
+  - Rejected: Vercel Blob (new SDK and a third adapter), Postgres `bytea` (migration, database
+    growth on a 1 GB plan), `public/` (bypasses licence gating).
+- **Invite gate before CLI deploys.** `vercel.json`'s `ignoreCommand` is documented for Git
+  commits ("for every commit pushed to your connected Git repository",
+  https://vercel.com/docs/project-configuration/project-settings), so it is not relied on for
+  `vercel deploy --prod`. `buildCommand` now runs `scripts/deploy/invite-gate.ts --if-production`
+  before `npm run build` on every Vercel build, and preflight FAILs in production on the same
+  check.
+- **Not verified (needs a live test on Neon):** whether `pg_notify` from triggers through the
+  pooled connection reaches the LISTEN on the direct connection (expected: NOTIFY is sent at
+  commit inside the writer's transaction); whether an idle LISTEN connection keeps the compute
+  awake (it would spend CU-hours); whether R2 accepts the signed `x-amz-checksum-sha256` header
+  on a presigned PUT.
+- **Consequences:** no participant-facing text in the repository names a storage location; the
+  privacy page does not either, while the about page says it "describes what the platform
+  records and where" (a gap, not a contradiction). The real consent text is entered per study in
+  the console and must be checked by the team against Singapore storage. DR-047's "RDS and S3 in
+  `ap-south-1`" no longer describes the first deployment; `docs/deploy/aws-resources.md` stays
+  for a later move to AWS.
+- **Equivalence check:** infrastructure only; both conditions read the same database and the same
+  media store. No learning page, telemetry event or knowledge content changed.
+- **Paper implications:** report the hosting (Vercel `sin1`, Neon `aws-ap-southeast-1`,
+  Cloudflare R2) and that study data were stored in Singapore.

@@ -9,15 +9,23 @@
  *              NODE_ENV=production, src/server/cms/media/storage.ts parseMediaEnv) plus the
  *              production rules from docs/deploy/RESEARCH.md (TLS, region, client-IP header,
  *              pool size, 64 KB limit, forbidden variables, secret reuse).
- *  2. source   whether the source changes the deploy depends on are in place (text checks of
- *              the files; they flip to PASS when the other workflow lands them) and the repo
- *              config (vercel.json, .gitignore, .vercelignore, lockfile, git state).
- *  3. db       connects with the same TLS settings production needs, inside a READ ONLY
- *              transaction: TLS in use, server and extension versions, non-superuser role,
- *              migrations current (same hashes drizzle's migrator computes), max_connections.
- *  4. s3       HeadBucket with the file's explicit keys (never the ambient AWS chain), expected
- *              bucket owner = the account in docs/deploy/aws-resources.md, the bucket refuses
- *              anonymous listing, and a CORS preflight from the production origin succeeds.
+ *  2. source   the invite gate (scripts/deploy/invite-gate.ts; FAIL in production, because a
+ *              `vercel deploy --prod` from this machine builds the local tree and vercel.json's
+ *              ignoreCommand is not relied on for CLI deploys), the other source changes the
+ *              deploy depends on, and the repo config (vercel.json, .gitignore, .vercelignore,
+ *              lockfile, git state).
+ *  3. db       connects to the DIRECT URL (DATABASE_URL_UNPOOLED, else DATABASE_URL) with the
+ *              TLS settings production uses, inside a READ ONLY transaction: TLS on the socket,
+ *              server and extension versions, non-superuser role, migrations current (same
+ *              hashes drizzle's migrator computes), max_connections; then one query through the
+ *              pooled DATABASE_URL when it differs.
+ *  4. s3       HeadBucket with the file's explicit keys (never the ambient AWS chain); on AWS
+ *              the expected bucket owner = the account in docs/deploy/aws-resources.md; the
+ *              bucket refuses anonymous listing, and a CORS preflight from the production origin
+ *              succeeds. Works for AWS S3 and S3-compatible stores (Cloudflare R2).
+ *
+ * Database: Neon in aws-ap-southeast-1 (decision record "Neon") or RDS. The function region in
+ * vercel.json must sit next to the database (FUNCTION_REGION_FOR below).
  *  5. build    only with --build: `npm run build` with the file's variables. It overwrites
  *              .next, so run it only when no other heavy job is running.
  *
@@ -32,12 +40,20 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
+import { inviteGateProblems } from "./invite-gate";
 import { CATALOG, FORBIDDEN, envBytes, isVercelSystemName, readEnvFile, redactUrl, VERCEL_ENV_LIMIT_BYTES } from "./lib/env-catalog";
 import { Report, type Status } from "./lib/report";
-import { serverEnvSchema } from "../../src/lib/env";
+import { isPooledHost, serverEnvSchema } from "../../src/lib/env";
 import { clientIpPolicy } from "../../src/lib/client-ip";
 import { mediaUploadOrigin } from "../../src/lib/security/csp";
 import { parseMediaEnv } from "../../src/server/cms/media/storage";
+
+/** Vercel function region next to each supported database region (https://vercel.com/docs/regions). */
+const FUNCTION_REGION_FOR: Readonly<Record<string, string>> = { "ap-southeast-1": "sin1", "ap-south-1": "bom1" };
+/** Neon aws-ap-southeast-1 (Singapore): Neon has no region in India. */
+const EXPECTED_FUNCTION_REGION = "sin1";
+/** sslmode values that verify the server: pg-connection-string treats `require` as verify-full. */
+const VERIFYING_SSLMODES = new Set(["verify-full", "require"]);
 
 // Snapshot before anything (scripts/db/_shared.ts, imported lazily below) loads the repo .env.
 const PARENT_ENV: NodeJS.ProcessEnv = { ...process.env };
@@ -151,22 +167,54 @@ if (authUrl) {
 }
 
 const dbUrl = fileEnv.DATABASE_URL;
-let dbHost = "";
-let sslmode: string | null = null;
-if (dbUrl) {
+/** The URL LISTEN and migrations use (src/lib/env.ts directDatabaseUrl). */
+const directUrl = fileEnv.DATABASE_URL_UNPOOLED ?? dbUrl;
+
+/** Checks one connection string's production rules; returns the parsed URL or null. */
+function checkDbUrl(name: string, url: string): URL | null {
   try {
-    const u = new URL(dbUrl);
-    dbHost = u.hostname;
-    sslmode = u.searchParams.get("sslmode");
-    report.add("env", "DATABASE_URL", "INFO", redactUrl(dbUrl));
-    report.add("env", "DATABASE_URL remote host", rule(!["localhost", "127.0.0.1", "::1", "db"].includes(dbHost)), dbHost);
-    report.add("env", "sslmode=verify-full", rule(sslmode === "verify-full"), `sslmode=${sslmode ?? "(none)"}${sslmode === "no-verify" ? " -- never use no-verify" : ""}`);
-    report.add("env", "app role in URL", rule(decodeURIComponent(u.username) === "episteme_app"), `user ${decodeURIComponent(u.username)} (production uses the non-superuser episteme_app)`);
+    const u = new URL(url);
+    const mode = u.searchParams.get("sslmode");
+    report.add("env", name, "INFO", redactUrl(url));
+    report.add("env", `${name} remote host`, rule(!["localhost", "127.0.0.1", "::1", "db"].includes(u.hostname)), u.hostname);
+    report.add(
+      "env",
+      `${name} sslmode verifies`,
+      rule(mode !== null && VERIFYING_SSLMODES.has(mode)),
+      `sslmode=${mode ?? "(none)"}${mode === "require" ? " (pg treats it as verify-full; write verify-full to avoid pg's warning)" : ""}${mode === "no-verify" ? " -- never use no-verify" : ""}`,
+    );
+    if (u.searchParams.has("channel_binding")) report.add("env", `${name} channel_binding`, "INFO", "ignored by node-postgres unless enableChannelBinding is set; may be removed");
+    report.add("env", `${name} app role`, rule(decodeURIComponent(u.username) === "episteme_app"), `user ${decodeURIComponent(u.username)} (production uses the non-superuser episteme_app, never the Neon owner role)`);
+    return u;
   } catch {
-    report.add("env", "DATABASE_URL", "FAIL", "unparseable");
+    report.add("env", name, "FAIL", "unparseable");
+    return null;
+  }
+}
+const pooledU = dbUrl ? checkDbUrl("DATABASE_URL", dbUrl) : null;
+const directU = fileEnv.DATABASE_URL_UNPOOLED ? checkDbUrl("DATABASE_URL_UNPOOLED", fileEnv.DATABASE_URL_UNPOOLED) : null;
+const dbHost = pooledU?.hostname ?? "";
+if (pooledU) {
+  if (isPooledHost(dbUrl!) && !directU) {
+    report.add("env", "direct URL for LISTEN/migrations", rule(false), "DATABASE_URL is a -pooler host: set DATABASE_URL_UNPOOLED (Neon's pooler does not support LISTEN/NOTIFY)");
+  } else if (directU) {
+    const matches =
+      !isPooledHost(fileEnv.DATABASE_URL_UNPOOLED!) &&
+      directU.hostname === pooledU.hostname.replace("-pooler.", ".") &&
+      directU.username === pooledU.username &&
+      directU.pathname === pooledU.pathname;
+    report.add("env", "direct URL matches DATABASE_URL", matches ? "PASS" : "FAIL", `${directU.hostname}${directU.pathname} as ${decodeURIComponent(directU.username)} (expected the pooled host without -pooler, same role and database)`);
+  } else {
+    report.add("env", "direct URL for LISTEN/migrations", "INFO", "DATABASE_URL is a direct host; it serves the pool and LISTEN");
   }
 }
 const isRds = dbHost.endsWith(".rds.amazonaws.com");
+const isNeon = dbHost.endsWith(".neon.tech");
+if (dbHost) {
+  const dbRegion = Object.keys(FUNCTION_REGION_FOR).find((r) => dbHost.includes(`.${r}.`)) ?? null;
+  const ok = dbRegion !== null && FUNCTION_REGION_FOR[dbRegion] === EXPECTED_FUNCTION_REGION;
+  report.add("env", "database next to functions", ok ? "PASS" : PROD ? "WARN" : "INFO", `database region ${dbRegion ?? "unknown"}${isNeon ? " (Neon)" : isRds ? " (RDS)" : ""}; vercel.json functions run in ${EXPECTED_FUNCTION_REGION}`);
+}
 
 const caPem = fileEnv.DATABASE_CA_PEM;
 let caCerts: X509Certificate[] = [];
@@ -181,6 +229,8 @@ if (caPem) {
   }
 } else if (isRds) {
   report.add("env", "DATABASE_CA_PEM present", rule(false), "RDS root CA is not in Node's default store (RESEARCH.md s8); put the ap-south-1 bundle here");
+} else if (isNeon) {
+  report.add("env", "DATABASE_CA_PEM not needed", "PASS", "Neon's certificate chains to ISRG Root X1, which is in Node's default store");
 }
 
 const pool = Number(fileEnv.DB_POOL_MAX ?? "10");
@@ -195,7 +245,18 @@ report.add(
 );
 
 if (media?.MEDIA_S3_BUCKET || PROD) {
-  report.add("env", "MEDIA_S3_REGION ap-south-1", rule(media?.MEDIA_S3_REGION === "ap-south-1"), media?.MEDIA_S3_REGION ?? "(unset)");
+  if (media?.MEDIA_S3_ENDPOINT) {
+    const endpoint = new URL(media.MEDIA_S3_ENDPOINT);
+    report.add("env", "MEDIA_S3_ENDPOINT https", rule(endpoint.protocol === "https:"), endpoint.origin);
+    if (endpoint.hostname.endsWith(".r2.cloudflarestorage.com")) {
+      report.add("env", "R2: MEDIA_S3_REGION auto", rule(media.MEDIA_S3_REGION === "auto"), `MEDIA_S3_REGION=${media.MEDIA_S3_REGION}`);
+      report.add("env", "R2: path-style", rule(media.MEDIA_S3_FORCE_PATH_STYLE === "true"), `MEDIA_S3_FORCE_PATH_STYLE=${media.MEDIA_S3_FORCE_PATH_STYLE}`);
+    } else {
+      report.add("env", "S3-compatible store", "WARN", "endpoint is neither AWS nor Cloudflare R2: untested");
+    }
+  } else {
+    report.add("env", "MEDIA_S3_REGION ap-south-1", rule(media?.MEDIA_S3_REGION === "ap-south-1"), media?.MEDIA_S3_REGION ?? "(unset)");
+  }
   const keys = Boolean(fileEnv.MEDIA_S3_ACCESS_KEY_ID && fileEnv.MEDIA_S3_SECRET_ACCESS_KEY);
   const oidcInCode = (readRepo("src/server/cms/media/storage.ts") ?? "").includes("AWS_ROLE_ARN");
   const oidc = oidcInCode && Boolean(fileEnv.AWS_ROLE_ARN);
@@ -234,7 +295,10 @@ if (args["skip-source"]) {
   const pending = (ok: boolean, status: Status, id: string, what: string) =>
     report.add("source", `${id} ${what}`, ok ? "PASS" : status, ok ? "" : "pending (docs/deploy/RESEARCH.md s13; RUNBOOK 'Source changes')");
 
-  pending(has("src/proxy.ts", /invite/i), PROD ? "FAIL" : "WARN", "S11", "invite-only gate");
+  // A CLI deploy builds the local tree, so the gate must be in these files now. vercel.json runs
+  // the same check as its buildCommand on Vercel.
+  const gate = inviteGateProblems(REPO);
+  report.add("source", "S11 invite-only gate", gate.length === 0 ? "PASS" : PROD ? "FAIL" : "WARN", gate.length === 0 ? "src/proxy.ts gates every page (scripts/deploy/invite-gate.ts)" : gate.join("; "));
   const caInCode = has("src/server/db/client.ts", /DATABASE_CA_PEM/) && has("src/lib/env.ts", /DATABASE_CA_PEM/);
   pending(caInCode, isRds && PROD ? "FAIL" : "WARN", "S3", "DATABASE_CA_PEM in pool");
   pending(has("src/app/api/research/dashboard/stream/route.ts", /export const maxDuration/), "WARN", "S1", "stream maxDuration");
@@ -247,13 +311,14 @@ if (args["skip-source"]) {
   const vi = readRepo(".vercelignore");
   pending(vi !== null && /^\/?\.env\s*$/m.test(vi), "WARN", "S9", ".vercelignore excludes .env");
 
-  let vj: { regions?: string[]; installCommand?: string; framework?: string; ignoreCommand?: string } | null = null;
+  let vj: { regions?: string[]; installCommand?: string; framework?: string; ignoreCommand?: string; buildCommand?: string } | null = null;
   try {
     vj = JSON.parse(readRepo("vercel.json") ?? "null");
   } catch {
     vj = null;
   }
-  report.add("source", "vercel.json bom1 + npm ci", vj?.regions?.join(",") === "bom1" && vj.installCommand === "npm ci" ? "PASS" : "FAIL", vj ? `regions=${vj.regions?.join(",")}, install=${vj.installCommand}` : "missing or invalid");
+  report.add("source", `vercel.json ${EXPECTED_FUNCTION_REGION} + npm ci`, vj?.regions?.join(",") === EXPECTED_FUNCTION_REGION && vj.installCommand === "npm ci" ? "PASS" : "FAIL", vj ? `regions=${vj.regions?.join(",")}, install=${vj.installCommand}` : "missing or invalid");
+  report.add("source", "vercel.json build runs the gate", /^node scripts\/deploy\/invite-gate\.ts --if-production && /.test(vj?.buildCommand ?? "") ? "PASS" : "FAIL", `buildCommand=${vj?.buildCommand ?? "(none)"} (guards Git and CLI builds)`);
   report.add("source", "vercel.json invite guard", /invite/i.test(vj?.ignoreCommand ?? "") && /VERCEL_ENV/.test(vj?.ignoreCommand ?? "") ? "PASS" : "FAIL", "ignoreCommand cancels production builds until src/proxy.ts has the invite gate");
   report.add("source", "lockfile tracked", git("ls-files", "--error-unmatch", "package-lock.json") !== null ? "PASS" : "FAIL", "npm ci needs package-lock.json in git");
   const dirty = git("status", "--porcelain");
@@ -267,20 +332,19 @@ if (args["skip-source"]) {
 // ---------------------------------------------------------------------------------------------
 if (args["skip-db"]) {
   report.add("db", "database", "SKIP", "--skip-db");
-} else if (!dbUrl) {
+} else if (!directUrl) {
   report.add("db", "database", "SKIP", "no DATABASE_URL");
 } else {
-  await checkDatabase(dbUrl);
+  await checkDatabase(directUrl);
+  if (dbUrl && dbUrl !== directUrl) await checkPooled(dbUrl);
 }
 
-async function checkDatabase(url: string): Promise<void> {
-  const { Pool } = await import("pg");
-  const shared = await import("../db/_shared"); // loads .env into process.env: restore after
-  for (const k of Object.keys(process.env)) if (!(k in PARENT_ENV)) delete process.env[k];
-  const { readMigrationFiles } = await import("drizzle-orm/migrator");
-
-  // pg lets URL parameters override an explicit `ssl` object, so strip sslmode/sslrootcert and
-  // pass TLS settings explicitly (the same shape source change S3 needs in src/server/db/client.ts).
+/**
+ * node-postgres settings with explicit TLS. pg lets URL parameters override an explicit `ssl`
+ * object, so sslmode/sslrootcert are stripped and TLS is passed explicitly (the same shape source
+ * change S3 uses in src/server/db/connection-config.ts).
+ */
+function tlsFor(url: string) {
   const u = new URL(url);
   const mode = u.searchParams.get("sslmode");
   const rootCertPath = u.searchParams.get("sslrootcert");
@@ -289,23 +353,54 @@ async function checkDatabase(url: string): Promise<void> {
   const wantTls = PROD || (mode !== null && mode !== "disable");
   const ca = caPem ?? (rootCertPath && existsSync(rootCertPath) ? readFileSync(rootCertPath, "utf8") : undefined);
   const ssl = wantTls ? { rejectUnauthorized: mode !== "no-verify", ...(ca ? { ca } : {}) } : false;
-  const db = new Pool({ connectionString: u.toString(), ssl, max: 1, connectionTimeoutMillis: 10_000, application_name: "immersive-episteme-preflight" });
+  return { connectionString: u.toString(), ssl, ca, wantTls };
+}
+
+/** The pooled URL answers one query (Neon's PgBouncer, transaction mode). */
+async function checkPooled(url: string): Promise<void> {
+  const { Client } = await import("pg");
+  const { connectionString, ssl } = tlsFor(url);
+  const c = new Client({ connectionString, ssl, connectionTimeoutMillis: 15_000, application_name: "immersive-episteme-preflight" });
+  try {
+    await c.connect();
+    await c.query("select 1");
+    report.add("db", "pooled DATABASE_URL answers", "PASS", new URL(url).hostname);
+  } catch (e) {
+    report.add("db", "pooled DATABASE_URL answers", "FAIL", errText(e));
+  } finally {
+    await c.end().catch(() => undefined);
+  }
+}
+
+async function checkDatabase(url: string): Promise<void> {
+  const { Pool } = await import("pg");
+  const shared = await import("../db/_shared"); // loads .env into process.env: restore after
+  for (const k of Object.keys(process.env)) if (!(k in PARENT_ENV)) delete process.env[k];
+  const { readMigrationFiles } = await import("drizzle-orm/migrator");
+
+  // A suspended Neon compute wakes on connect, hence the longer timeout.
+  const { connectionString, ssl, ca, wantTls } = tlsFor(url);
+  const host = new URL(url).hostname;
+  const db = new Pool({ connectionString, ssl, max: 1, connectionTimeoutMillis: 15_000, application_name: "immersive-episteme-preflight" });
 
   let client;
   try {
     client = await db.connect();
-    report.add("db", "connect", "PASS", `${dbHost}${wantTls ? `, TLS with ${ca ? "the given CA" : "Node's default CAs"}` : ", no TLS requested"}`);
+    report.add("db", "connect", "PASS", `${host} (direct)${wantTls ? `, TLS with ${ca ? "the given CA" : "Node's default CAs"}` : ", no TLS requested"}`);
   } catch (e) {
-    const tlsHint = /self.signed|certificate|CERT/i.test(String((e as Error).message)) ? " (certificate chain: set DATABASE_CA_PEM to the ap-south-1 bundle)" : "";
+    const tlsHint = /self.signed|certificate|CERT/i.test(String((e as Error).message)) ? (isRds ? " (certificate chain: set DATABASE_CA_PEM to the ap-south-1 bundle)" : " (certificate chain)") : "";
     report.add("db", "connect", "FAIL", `${errText(e)}${tlsHint}`);
     await db.end();
     return;
   }
   try {
     await client.query("BEGIN READ ONLY");
+    // TLS as this client's socket sees it. pg_stat_ssl describes the server's own hop, which
+    // behind Neon's proxy may be the proxy-to-compute connection, so it is information only.
+    const sock = (client as unknown as { connection?: { stream?: { encrypted?: boolean; getProtocol?: () => string | null } } }).connection?.stream;
+    report.add("db", "TLS in use", sock?.encrypted ? "PASS" : rule(false), sock?.encrypted ? `${sock.getProtocol?.() ?? "TLS"} on the client socket` : "plain TCP");
     const tls = await client.query<{ ssl: boolean; version: string | null }>("select ssl, version from pg_stat_ssl where pid = pg_backend_pid()");
-    const t = tls.rows[0];
-    report.add("db", "TLS in use", t?.ssl ? "PASS" : rule(false), t?.ssl ? `${t.version}` : "plain TCP");
+    report.add("db", "pg_stat_ssl (server side)", "INFO", tls.rows[0]?.ssl ? `${tls.rows[0].version}` : "no TLS on the server's own hop");
     if (isRds) {
       const force = await client.query<{ v: string | null }>("select current_setting('rds.force_ssl', true) as v");
       report.add("db", "rds.force_ssl = 1", rule(force.rows[0]?.v === "1"), `rds.force_ssl=${force.rows[0]?.v ?? "?"}`);
@@ -338,7 +433,7 @@ async function checkDatabase(url: string): Promise<void> {
     }
 
     const maxConn = await client.query<{ v: string }>("select current_setting('max_connections') as v");
-    report.add("db", "max_connections", "INFO", `${maxConn.rows[0]?.v}; each Vercel instance uses up to DB_POOL_MAX=${pool} + 1 LISTEN (RESEARCH.md s6)`);
+    report.add("db", "max_connections", "INFO", `${maxConn.rows[0]?.v}; each Vercel instance uses up to DB_POOL_MAX=${pool}${isNeon ? " (through the pooler)" : ""} + 1 direct LISTEN (RESEARCH.md s6)`);
   } catch (e) {
     report.add("db", "read-only checks", "FAIL", errText(e));
   } finally {
@@ -363,7 +458,9 @@ if (args["skip-s3"]) {
 
 async function checkS3(bucket: string, region: string): Promise<void> {
   const { S3Client, HeadBucketCommand } = await import("@aws-sdk/client-s3");
-  const account = /\| Account ID \| (\d{12}) \|/.exec(readRepo("docs/deploy/aws-resources.md") ?? "")?.[1];
+  // The expected-owner check is AWS-only: an S3-compatible store (R2) has no AWS account id.
+  const account = media?.MEDIA_S3_ENDPOINT ? undefined : /\| Account ID \| (\d{12}) \|/.exec(readRepo("docs/deploy/aws-resources.md") ?? "")?.[1];
+  const prefix = media?.MEDIA_S3_FORCE_PATH_STYLE === "true" ? `/${bucket}` : "";
   const s3 = new S3Client({
     region,
     endpoint: media?.MEDIA_S3_ENDPOINT,
@@ -379,14 +476,15 @@ async function checkS3(bucket: string, region: string): Promise<void> {
   const origin = mediaUploadOrigin(asProduction);
   if (!origin) return;
   try {
-    const anon = await fetch(`${origin}/?list-type=2&max-keys=1`, { method: "GET", signal: AbortSignal.timeout(10_000) });
-    report.add("s3", "anonymous listing refused", anon.status === 403 ? "PASS" : "FAIL", anon.status === 404 ? "HTTP 404: the bucket does not exist" : `HTTP ${anon.status} (Block Public Access must answer 403)`);
+    const anon = await fetch(`${origin}${prefix}/?list-type=2&max-keys=1`, { method: "GET", signal: AbortSignal.timeout(10_000) });
+    const refused = anon.status === 401 || anon.status === 403;
+    report.add("s3", "anonymous listing refused", refused ? "PASS" : anon.status === 200 ? "FAIL" : "WARN", anon.status === 404 ? "HTTP 404: the bucket does not exist" : `HTTP ${anon.status} (an unsigned listing must be refused with 401/403)`);
   } catch (e) {
     report.add("s3", "anonymous listing refused", "WARN", errText(e));
   }
   if (!appOrigin) return;
   try {
-    const pre = await fetch(`${origin}/preflight-probe`, {
+    const pre = await fetch(`${origin}${prefix}/preflight-probe`, {
       method: "OPTIONS",
       headers: { Origin: appOrigin, "Access-Control-Request-Method": "PUT", "Access-Control-Request-Headers": "content-type,x-amz-checksum-sha256" },
       signal: AbortSignal.timeout(10_000),

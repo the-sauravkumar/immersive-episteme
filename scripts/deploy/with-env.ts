@@ -7,7 +7,10 @@
  *
  * - The file's variables override the shell and the repo .env (scripts/db/_shared.ts loads .env
  *   with dotenv, which never overrides variables that are already set).
- * - DATABASE_CA_PEM is written to a temporary file and passed as NODE_EXTRA_CA_CERTS, so the
+ * - Database scripts connect to DATABASE_URL_UNPOOLED when the file sets it (Neon's direct
+ *   endpoint; scripts/db/_shared.ts resolveDatabaseUrl), because Neon's pooler runs PgBouncer in
+ *   transaction mode, which migration tools may not support.
+ * - DATABASE_CA_PEM (RDS only; unset on Neon) is written to a temporary file and passed as NODE_EXTRA_CA_CERTS, so the
  *   repo's scripts verify the RDS certificate (sslmode=verify-full) without code changes. The
  *   file is deleted afterwards (it holds the public CA, not a secret).
  * - Refuses commands that would put demo or reset data into production, or change its schema
@@ -55,6 +58,7 @@ if (fileEnv.DATABASE_CA_PEM) {
 
 console.log(`[with-env] ${joined}`);
 console.log(`[with-env] DATABASE_URL ${fileEnv.DATABASE_URL ? redactUrl(fileEnv.DATABASE_URL) : "(not set)"}${caDir ? " + RDS CA via NODE_EXTRA_CA_CERTS" : ""}`);
+if (fileEnv.DATABASE_URL_UNPOOLED) console.log(`[with-env] DATABASE_URL_UNPOOLED ${redactUrl(fileEnv.DATABASE_URL_UNPOOLED)} (used by the database scripts)`);
 // Windows: npm/npx are .cmd shims, which Node only starts through a shell; quote each argument
 // for cmd.exe so values with spaces (--name "Ada Admin") survive.
 const quote = (a: string) => (/[\s"&|<>^()%!]/.test(a) ? `"${a.replace(/"/g, '\\"')}"` : a);

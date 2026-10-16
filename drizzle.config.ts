@@ -14,7 +14,8 @@ export default defineConfig({
   strict: true,
   verbose: true,
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? "postgres://episteme:episteme_dev_password@localhost:5433/episteme",
+    // Direct connection when set (Neon's pooler runs in transaction mode; see scripts/db/_shared.ts).
+    url: process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL || "postgres://episteme:episteme_dev_password@localhost:5433/episteme",
   },
   migrations: {
     table: "__drizzle_migrations",

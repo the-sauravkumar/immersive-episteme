@@ -43,6 +43,14 @@ export const serverEnvSchema = z
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     DATABASE_URL: postgresUrl,
     /**
+     * Direct (unpooled) connection string, for the dashboard's LISTEN connection and for the
+     * migration/admin scripts (scripts/db/_shared.ts). Neon's pooled host (`-pooler.` in the host
+     * name) runs PgBouncer in transaction mode, which does not support LISTEN/NOTIFY
+     * (https://neon.com/docs/connect/connection-pooling). The Neon Vercel integration names this
+     * variable DATABASE_URL_UNPOOLED. Unset elsewhere: DATABASE_URL is used for everything.
+     */
+    DATABASE_URL_UNPOOLED: postgresUrl.optional(),
+    /**
      * PEM bundle of the CA that signs the database server certificate (RDS: the ap-south-1
      * bundle, about 4.6 KB). When set, the pool and the dashboard LISTEN connection verify the
      * server with exactly this CA and `sslmode`/`sslrootcert` are stripped from DATABASE_URL
@@ -91,6 +99,20 @@ export const serverEnvSchema = z
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV !== "production") return;
+    if (isPooledHost(env.DATABASE_URL) && !env.DATABASE_URL_UNPOOLED) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["DATABASE_URL_UNPOOLED"],
+        message: "is required in production when DATABASE_URL is a pooled (-pooler) host: LISTEN/NOTIFY needs a direct connection (see docs/deploy/RUNBOOK.md)",
+      });
+    }
+    if (env.DATABASE_URL_UNPOOLED && isPooledHost(env.DATABASE_URL_UNPOOLED)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["DATABASE_URL_UNPOOLED"],
+        message: "points at a pooled (-pooler) host; use the direct connection string",
+      });
+    }
     if (!env.DATABASE_CA_PEM && isRdsHost(env.DATABASE_URL)) {
       ctx.addIssue({
         code: "custom",
@@ -117,6 +139,23 @@ export function isRdsHost(url: string): boolean {
   } catch {
     return false;
   }
+}
+
+/** Host of a postgres URL is a connection-pooler endpoint (Neon: `ep-...-pooler.<region>.aws.neon.tech`). */
+export function isPooledHost(url: string): boolean {
+  try {
+    return /-pooler\./.test(new URL(url).hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The URL for connections that need a real session (LISTEN, migrations): DATABASE_URL_UNPOOLED
+ * when set, DATABASE_URL otherwise.
+ */
+export function directDatabaseUrl(env: Pick<ServerEnv, "DATABASE_URL" | "DATABASE_URL_UNPOOLED">): string {
+  return env.DATABASE_URL_UNPOOLED ?? env.DATABASE_URL;
 }
 
 /**

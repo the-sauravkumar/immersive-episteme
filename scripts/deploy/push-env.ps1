@@ -9,8 +9,9 @@
       vercel env add <NAME> <environment> --sensitive|--no-sensitive [--force] --yes
 
   writing the value to the CLI's standard input (no trailing newline). Values never appear on a
-  command line, in the console or in a temporary file. Secrets (DATABASE_URL, BETTER_AUTH_SECRET,
-  MEDIA_S3_ACCESS_KEY_ID, MEDIA_S3_SECRET_ACCESS_KEY) go in as Secret (--sensitive), the rest as
+  command line, in the console or in a temporary file. Secrets (DATABASE_URL, DATABASE_URL_UNPOOLED,
+  BETTER_AUTH_SECRET, MEDIA_S3_ACCESS_KEY_ID, MEDIA_S3_SECRET_ACCESS_KEY) go in as Secret
+  (--sensitive), the rest as
   Config (--no-sensitive). Flags as documented at https://vercel.com/docs/cli/env:
     "The `--sensitive` and `--no-sensitive` flags map to Secret and Config."
     "The `--force` option overwrites an existing environment variable of the same target without
@@ -18,6 +19,11 @@
 
   Refuses names that must never be on Vercel (NODE_ENV, TEST_DATABASE_URL, AUTH_TRUSTED_PROXIES,
   AWS_ACCESS_KEY_ID, ...), VERCEL_* system names and anything not in the catalogue.
+  MEDIA_S3_ENDPOINT and MEDIA_S3_FORCE_PATH_STYLE are accepted (Cloudflare R2).
+
+  Neon: add the database by signing up at neon.com, NOT through the Vercel Marketplace
+  integration, which writes its own DATABASE_URL (owner role) into every environment; this script
+  sets DATABASE_URL and DATABASE_URL_UNPOOLED for the episteme_app role instead.
 
   The Vercel CLI is pinned (vercel@60.1.3, published 2026-09-26; its `env add --help` lists
   --sensitive, --no-sensitive, --force, --value and --yes). Secrets are piped into this exact

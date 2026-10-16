@@ -15,7 +15,8 @@
  *                        docs/deployment-protection/methods-to-bypass-deployment-protection/
  *                        protection-bypass-automation).
  *
- * Checks: pages respond; security headers and CSP (with the S3 origin when --env-file is given);
+ * Checks: pages respond; security headers and CSP (with the media store origin, AWS S3 or
+ * Cloudflare R2, when --env-file is given);
  * the invite gate redirects every gated page and refuses an invalid code; staff sign-in, the auth
  * API and static assets stay reachable without an invite; staff areas redirect to sign-in; the
  * dashboard stream refuses anonymous callers; telemetry rejects bad input; every museum texture
@@ -151,9 +152,9 @@ if (signInCsp) {
   const connect = /connect-src ([^;]+)/.exec(signInCsp)?.[1] ?? "";
   if (args["env-file"]) {
     const expected = mediaUploadOrigin(readEnvFile(resolve(args["env-file"])));
-    report.add("headers", "CSP connect-src has S3", expected && connect.split(/\s+/).includes(expected) ? "PASS" : "FAIL", `expected ${expected ?? "(no bucket in file)"}; connect-src ${connect}`);
+    report.add("headers", "CSP connect-src has media store", expected && connect.split(/\s+/).includes(expected) ? "PASS" : "FAIL", `expected ${expected ?? "(no bucket in file)"}; connect-src ${connect}`);
   } else {
-    report.add("headers", "CSP connect-src", "INFO", `${connect} (pass --env-file to check the S3 origin)`);
+    report.add("headers", "CSP connect-src", "INFO", `${connect} (pass --env-file to check the media store origin)`);
   }
 }
 try {
