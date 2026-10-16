@@ -306,6 +306,7 @@ export const SCREEN_TEXT = {
   backToExplore: "Back to Explore",
   backToSession: "Back to the session",
   tellResearcher: "Tell the researcher and continue",
+  recordingDevice: "Recording this device",
   policy: {
     demo: "You can explore the same content in the conventional pages from Explore.",
     retry: "Please try again in an up-to-date Chrome, Edge or Firefox with hardware acceleration switched on. Your session is kept.",

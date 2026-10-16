@@ -172,6 +172,30 @@ describe("figure balance check (a.figures)", () => {
   });
 });
 
+describe("figure balance per knowledge layer (DR-024: a section can span two layers)", () => {
+  it("fails when the sections balance but one tradition's figure sits in another layer of the same section", () => {
+    const input = passingInput();
+    const bundle = structuredClone(bundleOf(input));
+    // "Science and environment" holds both the science types and environmental conditions (overview layer).
+    const beta = bundle.concepts.find((c) => c.key === "demo-beta.scientific_mechanism.bond")!;
+    beta.type = "environmental_condition";
+    const assets = [photo(input, "demo-alpha.scientific_mechanism.bond"), photo(input, "demo-beta.scientific_mechanism.bond")];
+    const fb = figureBalance(bundle, ["demo-alpha", "demo-beta"], { structureDiagrams: false, figureAssets: assets });
+    expect(fb.rows.find((r) => r.sectionId === "science")).toMatchObject({ balanced: true, counts: { "demo-alpha": 1, "demo-beta": 1 } });
+    expect(fb.layers.find((l) => l.layer === "science")).toMatchObject({ balanced: false, counts: { "demo-alpha": 1, "demo-beta": 0 } });
+    expect(fb.layers.find((l) => l.layer === "overview")).toMatchObject({ balanced: false, counts: { "demo-alpha": 0, "demo-beta": 1 } });
+    expect(fb.issues.map((x) => x.code)).toEqual(["figures_unbalanced_layer", "figures_unbalanced_layer"]);
+    expect(fb.issues[0]!.message).toContain("Overview layer is unbalanced");
+  });
+
+  it("does not report a layer twice when an unbalanced section already explains it", () => {
+    const input = passingInput();
+    const fb = figureBalance(bundleOf(input), ["demo-alpha", "demo-beta"], { structureDiagrams: false, figureAssets: [photo(input, "demo-alpha.tool.block")] });
+    expect(fb.issues.map((x) => x.code)).toEqual(["figures_unbalanced"]);
+    expect(fb.layers.find((l) => l.layer === "overview")?.balanced).toBe(false);
+  });
+});
+
 describe("figure governance rules", () => {
   it("keeps one study cap, equal to the lightbox cap", () => {
     expect(STUDY_FIGURE_CAP).toBe(LIGHTBOX_MAX_EDGE);

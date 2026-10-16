@@ -638,6 +638,10 @@ The chrome per 9.14 and 9.15; the spread per 6.2 once DR-021 lands. Page intros 
 
 The shared StudyBar and KnowledgeSheet (6.2, 6.3); the Plan with 1.5 px ink room outlines, tabular section numbers and "You are here"; all overlays opaque (`--ground` sheet; `--field` rail and Plan). The gallery finish, plaques and lobby are specified in DR-023 and `docs/research/design-process/modules/immersive-3d.md`.
 
+- **Plan numbering (DR-024):** a room's number is its section number in the one section map (`src/features/learning/sections.ts`), the same number the 2D index prints: rooms 1 to 7 in every wing, the Comparison Hall 8. The entrance lobby and the shared commons are not sections and carry no number. Rooms are named by section title. The plan's list reads the entrance, then each wing in the canonical tradition order, then the hall.
+- **Current room (DR-043):** marked by an arrow that shows the visitor's facing in eight compass steps (screen readers hear "facing east" and similar), not a dot; in the full plan each room's name also shows on hover.
+- **Door signs (DR-043):** carry the section number with the title ("3. Process Sequence"), the same number as the Plan and the 2D index. The lobby directory hangs on the lobby's north wall, read from the spawn: the three wings in canonical order, then the Comparison Hall, then the Shared Science Commons, each with the wall its doorway is in.
+
 ### 11.7 Study Pages (`/study/*`)
 
 The study shell (9.16). "Question 4 of 20" in tabular figures; the question in Atkinson 20/28 600. Options: full-row 56 px labels with the `ie-check` control, separated by 1 px `--rule`; selected = `--wash` and a check icon, **no bar**. Likert scales: a column per point with tabular numbers and end labels; stacked under 520 px. Numeric answers are text inputs with a numeric keyboard (9.6). The study-entry group is a radio list. Consent and withdrawal rows use the same option row. Errors use `StateMessage`; field errors per 9.6.

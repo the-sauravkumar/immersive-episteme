@@ -19,7 +19,7 @@
  */
 import { CircleHelp, Loader, MonitorX, Pause, Play, RotateCcw, TriangleAlert, type LucideIcon } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { StateMessage } from "@/components/knowledge/state-message";
 import { PhaseOnboarding } from "@/components/learning/onboarding";
@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import type { ImmersiveSettings } from "@/features/immersive/types";
 import { SCREEN_TEXT } from "@/features/learning/strings";
+import { reportMuseumUnavailable, type DeviceCheckResult } from "@/server/study/actions";
 
 
 /** Interface wording of the museum's own screens lives in src/features/learning/strings.ts (P20). */
@@ -227,12 +228,26 @@ function PolicyAction({ mode, settings, primary = false }: { mode: "study" | "de
 }
 
 /**
- * No WebGL 2: never a silent switch to the 2D condition. In a study the participant is sent back
- * to the session with the study's policy (Q-R10: exclude, retry or reassign), which the study
- * engine applies; demo visitors are pointed back to Explore.
+ * No WebGL 2 (or only a software renderer): never a silent switch to the 2D condition. In a study
+ * the screen reports the failure once to the engine (reportMuseumUnavailable, the runtime backstop
+ * of the device check, final review study-01), which applies the study's policy (Q-R10: exclude,
+ * retry or reassign); the action then follows the engine's outcome, exactly as after the device
+ * check. Demo visitors are pointed back to Explore.
  */
-export function WebGLFallback({ mode, settings, reason }: { mode: "study" | "demo" | "preview"; settings: ImmersiveSettings; reason: string }) {
+export function WebGLFallback({
+  mode,
+  settings,
+  reason,
+  report,
+}: {
+  mode: "study" | "demo" | "preview";
+  settings: ImmersiveSettings;
+  reason: string;
+  report: { webglVersion: 2 | null; softwareRenderer: boolean };
+}) {
   const policyText = mode !== "study" ? SCREEN_TEXT.policy.demo : SCREEN_TEXT.policy[settings.webglFailurePolicy];
+  const result = useStudyFailureReport(mode, report);
+  const next = result && studyFailureNext(result, settings.webglFailurePolicy);
   return (
     <div className="relative h-full w-full bg-ground">
       <StateScreen
@@ -250,9 +265,40 @@ export function WebGLFallback({ mode, settings, reason }: { mode: "study" | "dem
         }
       >
         <div className="mt-8">
-          <PolicyAction mode={mode} settings={settings} primary />
+          {mode !== "study" ? (
+            <PolicyAction mode={mode} settings={settings} primary />
+          ) : next === null ? (
+            <Button type="button" disabled>
+              <Loader aria-hidden="true" /> {SCREEN_TEXT.recordingDevice}
+            </Button>
+          ) : (
+            <Button asChild>
+              <Link href={next.href}>{next.label}</Link>
+            </Button>
+          )}
         </div>
       </StateScreen>
     </div>
   );
+}
+
+/** Where the participant goes after the engine has applied the WebGL-failure policy. */
+export function studyFailureNext(result: DeviceCheckResult, policy: ImmersiveSettings["webglFailurePolicy"]): { href: string; label: string } {
+  if (result.ok && result.outcome === "excluded") return { href: "/study/complete?status=excluded", label: SCREEN_TEXT.tellResearcher };
+  if (result.ok) return { href: "/study/session", label: SCREEN_TEXT.backToSession };
+  // The report failed (for example, a closed session): the session page shows the current state.
+  return { href: "/study/session", label: policy === "retry" ? SCREEN_TEXT.backToSession : SCREEN_TEXT.tellResearcher };
+}
+
+function useStudyFailureReport(mode: "study" | "demo" | "preview", report: { webglVersion: 2 | null; softwareRenderer: boolean }) {
+  const [result, setResult] = useState<DeviceCheckResult | null>(null);
+  const sent = useRef(false);
+  useEffect(() => {
+    if (mode !== "study" || sent.current) return;
+    sent.current = true; // once per mount, also under StrictMode's double effect
+    reportMuseumUnavailable({ webglVersion: report.webglVersion, softwareRenderer: report.softwareRenderer })
+      .then(setResult)
+      .catch(() => setResult({ ok: false, error: "unreachable" }));
+  }, [mode, report.webglVersion, report.softwareRenderer]);
+  return result;
 }

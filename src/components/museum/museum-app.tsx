@@ -37,6 +37,7 @@ import { UnverifiedContentNotice } from "@/components/learning/unverified-conten
 import { exposureFor, type PanelTab } from "@/features/immersive/panel-content";
 import type { SceneDoorSign } from "@/features/immersive/placement";
 import { classifyTier, lockTier, probeGpu, type GpuInfo, type QualityTier } from "@/features/immersive/quality";
+import { museumCanRender } from "@/features/study/gpu-acceptance";
 import type { SceneCue, SceneExhibit, ScenePortal } from "@/features/immersive/scene-model";
 import { createMuseumStore, type CueNote } from "@/features/immersive/store";
 import type { MuseumPayload, PanelConcept } from "@/features/immersive/types";
@@ -148,8 +149,11 @@ export function MuseumApp(props: MuseumAppProps) {
   // Probed once on the client; the server render shows the loading state.
   const gpu = useSyncExternalStore(noSubscribe, clientGpu, serverGpu);
   if (!gpu) return <LoadingScreen step="Checking this device" stepIndex={0} stepCount={4} loadedBytes={0} totalBytes={0} />;
-  if (!gpu.webgl2 || (gpu.software && !overrides(props.mode).allowSoftware)) {
-    return <WebGLFallback mode={props.mode} settings={props.payload.settings} reason={!gpu.webgl2 ? "no WebGL 2 context" : "software rendering only"} />;
+  // The device check's own rule (museumCanRender), so the check and the museum cannot drift
+  // (final review study-01); only the non-study allowSoftware debug switch lifts the software ban.
+  const report = { webglVersion: gpu.webgl2 ? (2 as const) : null, softwareRenderer: gpu.software };
+  if (!museumCanRender(report) && !(gpu.webgl2 && overrides(props.mode).allowSoftware)) {
+    return <WebGLFallback mode={props.mode} settings={props.payload.settings} report={report} reason={!gpu.webgl2 ? "no WebGL 2 context" : "software rendering only"} />;
   }
   return <MuseumRuntime {...props} gpu={gpu} />;
 }

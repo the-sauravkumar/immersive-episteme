@@ -34,10 +34,11 @@
 import { knowledgeBundleSchema, type KnowledgeBundle } from "@/features/knowledge/contracts";
 import { balanceDiagramSets, buildStructureDiagrams } from "@/features/knowledge/read/diagrams";
 import { photoGateOpen } from "@/features/knowledge/read/view";
-import { compareTraditionSlugs, exposureLayerOf, STUDY_TRADITION_SLUGS, type KnowledgeLayerId } from "@/features/learning/labels";
+import { compareTraditionSlugs, exposureLayerOf, KNOWLEDGE_LAYER_LABELS, KNOWLEDGE_LAYERS, STUDY_TRADITION_SLUGS, type KnowledgeLayerId } from "@/features/learning/labels";
 import { EPISTEMIC_SECTIONS, sectionOfType } from "@/features/learning-2d/template";
 import { displayLongEdge, licenceValidOn, STUDY_FIGURE_CAP } from "@/features/media/contracts";
 import { canonicalHash } from "@/features/spatial/compiler/canonical";
+import type { ConceptType } from "@/lib/validation/enums";
 import { selectScope } from "@/features/spatial/compiler/graph";
 import { studyConfigSchema } from "@/features/study/contracts";
 import { DEFAULT_QUESTIONNAIRES, DEFAULT_STEPS, isQuestionnaireStep, protocolIssues, QUESTIONNAIRE_CONFIG_KEY, STEP_ASSESSMENTS } from "@/server/study/config";
@@ -312,11 +313,20 @@ export interface FigureSectionRow {
   balanced: boolean;
 }
 
+/** Figures a learner sees per knowledge layer, per balance tradition slug. */
+export interface FigureLayerRow {
+  layer: KnowledgeLayerId;
+  counts: Record<string, number>;
+  balanced: boolean;
+}
+
 export interface FigureBalance {
   /** The traditions whose counts must be equal: the study traditions in scope, else every one in scope. */
   traditionSlugs: string[];
   traditionNames: Record<string, string>;
   rows: FigureSectionRow[];
+  /** The same counts per knowledge layer (exposureLayerOf the figure's concept type). */
+  layers: FigureLayerRow[];
   /** Every figure a learner sees, per tradition: kind, concept, section. */
   shown: { traditionSlug: string; conceptId: string; conceptKey: string; sectionId: string; kind: "diagram" | "photo"; ref: string }[];
   issues: ParityIssue[];
@@ -338,8 +348,12 @@ function sectionLayer(sectionId: string): KnowledgeLayerId {
  * The rule (12.3 rule 9) is per section: within each tradition-page section (the museum room), the
  * balance traditions show exactly the same number of figures. Sections are the EPISTEMIC_SECTIONS
  * of the 2D template (the science section holds both scientific mechanisms and explanations), and
- * the layer of a section is `exposureLayerOf` its concept types, so section balance also balances
- * every layer and the per-tradition total.
+ * a section's `layer` (the CMS table's grouping) is `exposureLayerOf` its first concept type.
+ * Since the one section map (DR-024) a section can span two layers: "Science and environment"
+ * holds the science types and environmental conditions (overview layer). Section balance therefore
+ * no longer implies layer balance, so layers are checked as well, by `exposureLayerOf` of each
+ * figure's own concept type (`figures_unbalanced_layer`). Either balance implies an equal
+ * per-tradition total.
  */
 export function figureBalance(
   bundle: KnowledgeBundle,
@@ -405,10 +419,13 @@ export function figureBalance(
   }
 
   const counts = new Map<string, Map<string, number>>(); // section -> slug -> n
-  const bump = (section: string, slug: string) => {
-    const row = counts.get(section) ?? new Map<string, number>();
-    row.set(slug, (row.get(slug) ?? 0) + 1);
-    counts.set(section, row);
+  const layerCounts = new Map<string, Map<string, number>>(); // layer -> slug -> n
+  const bump = (section: string, slug: string, type: ConceptType) => {
+    for (const [map, key] of [[counts, section], [layerCounts, exposureLayerOf(type)]] as const) {
+      const row = map.get(key) ?? new Map<string, number>();
+      row.set(slug, (row.get(slug) ?? 0) + 1);
+      map.set(key, row);
+    }
   };
   let diagrams = 0;
   let photos = 0;
@@ -420,7 +437,7 @@ export function figureBalance(
     const diagram = diagramByConcept.get(c.id);
     if (diagram) {
       photosHeldBack += candidates.length;
-      bump(diagram.section, slug);
+      bump(diagram.section, slug, c.type);
       shown.push({ traditionSlug: slug, conceptId: c.id, conceptKey: c.key, sectionId: diagram.section, kind: "diagram", ref: diagram.id });
       diagrams++;
       continue;
@@ -437,7 +454,7 @@ export function figureBalance(
       });
     }
     const section = sectionOfType(c.type).id;
-    bump(section, slug);
+    bump(section, slug, c.type);
     shown.push({ traditionSlug: slug, conceptId: c.id, conceptKey: c.key, sectionId: section, kind: "photo", ref: photo.assetId });
     photos++;
   }
@@ -453,7 +470,20 @@ export function figureBalance(
     const detail = balance.map((slug) => `${traditionNames[slug] ?? slug} ${r.counts[slug]}`).join(", ");
     issues.push({ code: "figures_unbalanced", message: `Section "${r.title}" is unbalanced (${detail}): every study tradition must show the same number of figures in each section.`, ref: r.sectionId });
   }
-  return { traditionSlugs: balance, traditionNames, rows, shown, issues, metrics: { diagrams, photos, photosHeldBack } };
+  const layers: FigureLayerRow[] = KNOWLEDGE_LAYERS.map(({ id }) => {
+    const row = layerCounts.get(id);
+    const byTradition = Object.fromEntries(balance.map((slug) => [slug, row?.get(slug) ?? 0]));
+    const values = Object.values(byTradition);
+    return { layer: id, counts: byTradition, balanced: values.every((v) => v === values[0]) };
+  });
+  // A layer imbalance that an unbalanced section already explains is not reported twice.
+  const explained = new Set(rows.filter((r) => !r.balanced).flatMap((r) => (EPISTEMIC_SECTIONS.find((x) => x.id === r.sectionId)?.types ?? []).map((t) => exposureLayerOf(t))));
+  for (const l of layers) {
+    if (l.balanced || explained.has(l.layer)) continue;
+    const detail = balance.map((slug) => `${traditionNames[slug] ?? slug} ${l.counts[slug]}`).join(", ");
+    issues.push({ code: "figures_unbalanced_layer", message: `The ${KNOWLEDGE_LAYER_LABELS[l.layer]} layer is unbalanced (${detail}): every study tradition must show the same number of figures in each knowledge layer.`, ref: l.layer });
+  }
+  return { traditionSlugs: balance, traditionNames, rows, layers, shown, issues, metrics: { diagrams, photos, photosHeldBack } };
 }
 
 function check(id: string, group: ParityGroup, label: string, severity: ParitySeverity, issues: ParityIssue[], metrics: Record<string, number> = {}): ParityCheck {

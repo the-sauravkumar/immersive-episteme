@@ -8,6 +8,8 @@
  * `hardwareConcurrency`, then LOCKED for the session (stored under the telemetry session id) and
  * logged once as a covariate (`render_quality_changed` from "unset").
  */
+import { isSoftwareRenderer } from "@/features/study/gpu-acceptance";
+
 export type QualityTier = "high" | "low";
 
 export interface TierConfig {
@@ -34,7 +36,6 @@ export interface GpuInfo {
   software: boolean;
 }
 
-const SOFTWARE = /swiftshader|llvmpipe|softpipe|microsoft basic render|software/i;
 const INTEGRATED = /intel|iris|uhd|hd graphics|mali|adreno|powervr|apple gpu|videocore|radeon\(tm\) graphics|vega \d+ graphics/i;
 
 export function probeGpu(): GpuInfo {
@@ -56,7 +57,8 @@ export function probeGpu(): GpuInfo {
   const nav = navigator as Navigator & { deviceMemory?: number };
   info.deviceMemory = typeof nav.deviceMemory === "number" ? nav.deviceMemory : null;
   info.cores = typeof nav.hardwareConcurrency === "number" ? nav.hardwareConcurrency : null;
-  info.software = !!info.renderer && SOFTWARE.test(info.renderer);
+  // The one software-renderer rule, shared with the study device check (final review study-01).
+  info.software = isSoftwareRenderer(info.renderer);
   return info;
 }
 

@@ -4,7 +4,7 @@
  *  - Previous / next on 2D concept pages. Process stages follow the tradition's process order
  *    (getProcessChain: PRECEDES by ordinal), and the link carries the PRECEDES relationship id so
  *    the move is logged as a typed relationship traversal, as walking a sequence path is in 3D.
- *    Other concepts have no pager, as in the 3D panel (DR-021).
+ *    Other concepts have no pager, as in the 3D panel (DR-034).
  *  - The parent of a concept page, where the sheet's Close leads (DR-021 decision 4; concept
  *    pages have no breadcrumb): the concept's section on its tradition page, or the comparisons
  *    page for a comparison.
@@ -120,7 +120,7 @@ export function processPager(chain: ProcessSequence, conceptId: string, section:
  * The sequence pager of a station of an ordered sequence (the tradition's process, or another
  * ordered sequence), exactly where the 3D panel shows its sequence pager. A concept that is not a
  * station has NO pager in either condition (the panel renders a Pager only for sequence stops), so
- * the shared sheet has the same length, controls and tab sequence for it in both (DR-021).
+ * the shared sheet has the same length, controls and tab sequence for it in both (DR-034).
  */
 export function pagerFor(
   concept: ConceptRef,
@@ -149,7 +149,7 @@ export function byCanonicalTradition<T>(items: readonly T[], slugOf: (item: T) =
 }
 
 // ---------------------------------------------------------------------------------------
-// Knowledge layers of a concept (DESIGN.md 9.6, 9.11 item 3; DR-021)
+// Knowledge layers of a concept (DESIGN.md 9.6, 9.11 item 3; DR-034)
 // ---------------------------------------------------------------------------------------
 
 /** A concept shown under a layer, with the relationship that attaches it (null for the concept itself). */

@@ -83,6 +83,7 @@ const balance = (counts: [string, number, number, number][]): FigureBalance => (
     counts: { ajrakh: a, "machilipatnam-kalamkari": m, sanganeri: s },
     balanced: a === m && m === s,
   })),
+  layers: [],
   shown: [],
   issues: [],
   metrics: { diagrams: 0, photos: 0, photosHeldBack: 0 },
