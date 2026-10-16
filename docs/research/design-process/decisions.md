@@ -2910,3 +2910,53 @@ novice met, and none touches the sheet.
   - Report each figure's source, credit and licence. State that the Machilipatnam block
     photograph is credited from the source's 2016 courtesy line until the archive confirms the
     photographer.
+
+## DR-064: Room Walk Times on the GTX 1650: the Three Wings Within 10%, the Same Section up to 23% Apart, the Layout Unchanged (Adopted under the lead's delegation; measurement of the main build)
+
+- **Context:** the evening checklist asks for the walk time from the lobby spawn to every room and
+  through each wing in its order, with the scene's own walk routes at the default speed. Target:
+  the three wings within 10% of each other, and the same section compared across traditions. A
+  wing out of tolerance is to be reported with a recommended layout change, not changed.
+- **Method:**
+  - `scripts/museum/walk-times.ts` loads the manifest the preview `/learn/immersive` shows
+    (`findPreviewContent`, review snapshot review-682504158e51). It routes with `createRouter`
+    exactly as `walkToRoom` and `walkThroughDoorway` do and advances the visitor with
+    `stepVisitor` at a fixed 60 Hz step until the visitor stops. The pace is the default
+    click-to-walk pace (1.35 m/s, brisk 2.3 m/s on long routes, `ROUTE_PACE`).
+  - A wing is walked from the spawn through its seven rooms in the Plan's order (`planOrder`, the
+    section order shared with the 2D pages), doorway to doorway.
+  - `scripts/museum/walk-times-browser.mjs` checks it in the real scene: production server, one
+    full Chromium on the GTX 1650 (renderer string "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 ...
+    D3D11)", checked before measuring), 1280 x 720 at DPR 1, high tier. For each of the 21 wing
+    rooms the visitor is put back on the spawn and the room's Plan row is clicked; the time runs
+    from the click to the last frame the visitor moved. All 21 agree with the simulation within
+    0.14 s (the browser is slightly shorter: the simulation counts the final settle step).
+- **Results** (`analysis/out/museum/walk-times.json`; table in
+  `modules/immersive-3d.md`, Room Walk Times):
+  - Wings: Ajrakh 52.8 s (76.5 m), Machilipatnam Kalamkari 48.2 s (66.1 m), Sanganeri 52.0 s
+    (74.9 m). Longest over shortest 9.5%, at most 5.5% from the mean. **Within tolerance.**
+  - Same section across traditions: longest over shortest 11% (tradition context, open
+    questions) to 23% (materials and tools). Machilipatnam Kalamkari is the nearest in every
+    section, by 0.7 to 3.3 s.
+  - Cause: the north wing's first two rooms measure 14 m along the walking direction where the
+    east and west wings' measure 18 m (materials and tools: 196 m² against 324 m²), so its routes
+    are about 10 m shorter. Section order and doorway count are
+    the same in all three wings.
+- **Decision:** no layout change. The wing target is met, and the brief forbids changing the layout
+  in this phase.
+- **Recommended layout change, for the PI, if section times must match** (not applied): give every
+  section the same footprint in all three wings (the largest of the three per section). The
+  compiler's grid-wings layout would then place mirror-equal wings around the lobby, and the walk
+  to the same section would differ only by the wings' distance from the spawn. Re-run both scripts
+  after any layout change.
+- **Equivalence check:**
+  1. Content: unchanged.
+  2. Exposure: unchanged.
+  3. Citations: unchanged.
+  4. Ease once a concept is open: unchanged.
+  5. Navigation: unchanged; this is a measurement only.
+  6. Salience: the wings' walk times are within 10%; the same section differs up to 23% (above).
+  7. Telemetry: nothing new is logged.
+- **Paper implications:** report the wing walk times and the 9.5% spread as the spatial balance
+  of the three traditions. Report the section differences as a known asymmetry of the layout
+  (Machilipatnam Kalamkari rooms nearer by up to 3.3 s), with the room-footprint cause.

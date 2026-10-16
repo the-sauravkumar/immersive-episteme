@@ -539,3 +539,46 @@ point (23 of 23).
 unchanged (routes and arrivals identical). Citations: unchanged. Ease: no new control. Natural
 navigation only: 3D finish; the 2D condition has no plinths. Tradition salience: one stand for every
 wing; wing entrance means within 2.2%. Telemetry: unchanged.
+
+## Room Walk Times (DR-064)
+
+Time from the lobby spawn (0, 3.5) to each room at the default click-to-walk pace (walking
+1.35 m/s, brisk 2.3 m/s on long routes), with the scene's own routes (`walkToRoom`, and
+`walkThroughDoorway` between consecutive rooms of a wing). Source: `scripts/museum/walk-times.ts`
+(the scene's router and `stepVisitor` at a fixed 60 Hz step, review snapshot review-682504158e51)
+and `scripts/museum/walk-times-browser.mjs` (production server, full Chromium on the GTX 1650:
+"ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 ... D3D11)", a Plan row click per room). The 21 wing rooms
+measured in the browser agree with the simulation within 0.14 s. Data:
+`analysis/out/museum/walk-times.json`.
+
+**Through each wing in its order** (spawn, then rooms 1 to 7 in the Plan's order, doorway to doorway):
+
+| Wing | Time (s) | Route (m) | Rooms |
+|---|---|---|---|
+| Ajrakh | 52.8 | 76.5 | 7 |
+| Machilipatnam Kalamkari | 48.2 | 66.1 | 7 |
+| Sanganeri | 52.0 | 74.9 | 7 |
+
+Spread: longest over shortest 9.5% (target: within 10%), at most 5.5% from the mean (51.0 s).
+**Within tolerance.**
+
+**The same section across traditions** (spawn to room centre, seconds; browser values within 0.14 s):
+
+| Section | Ajrakh | Machilipatnam Kalamkari | Sanganeri | Longest Over Shortest |
+|---|---|---|---|---|
+| Tradition Context | 9.0 | 8.3 | 9.1 | 11% |
+| Materials and Tools | 14.8 | 12.0 | 14.5 | 23% |
+| Process Sequence | 19.9 | 16.6 | 19.7 | 20% |
+| Artisan Decisions | 24.5 | 21.2 | 25.3 | 19% |
+| Design Outcomes | 28.3 | 26.5 | 30.7 | 16% |
+| Science and Technology | 25.0 | 21.7 | 24.8 | 15% |
+| Open Questions | 28.6 | 25.7 | 28.4 | 11% |
+
+Shared rooms: lobby 2.1 s, comparison hall 9.4 s, science commons 17.6 s.
+
+**Reading.** Every Machilipatnam Kalamkari room is the nearest of its section (by 0.7 to 3.3 s).
+The cause is geometry: the north wing's first two rooms measure 14 m along the walking direction
+where the east and west wings' measure 18 m (materials and tools: 196 m² against 324 m²), so its
+route is about 10 m shorter. The order of the sections and the number of doorways are the same in all three
+wings. The wings are within tolerance, so the layout is unchanged; the section differences and the
+recommended layout change are recorded in DR-064.

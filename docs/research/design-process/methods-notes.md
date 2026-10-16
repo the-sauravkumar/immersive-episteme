@@ -174,3 +174,10 @@ study session and logged as a covariate [DR-013].
   127 s two or three times per tour with the page idle, on the build before the visual pass as
   well. The stalls are listed with each run and the tour no longer skips rooms over them, but
   their cause is not known (DR-062).
+
+- **Room walk times (DR-064).** Walk time from the lobby spawn to every room and through each wing
+  in the Plan's order was computed with the scene's own router and `stepVisitor` at 60 Hz
+  (`scripts/museum/walk-times.ts`) and checked in the real scene on the GTX 1650 by a Plan row click
+  per room (`scripts/museum/walk-times-browser.mjs`; 21 rooms, within 0.14 s). Wings 48.2 to 52.8 s
+  (9.5% spread); the same section differs up to 23% across traditions. Data:
+  `analysis/out/museum/walk-times.json`.
