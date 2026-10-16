@@ -123,5 +123,282 @@
       "S6"
     ],
     "removal_reason": "No source attributes the pen-to-block shift to the trade; sources only record that blocks later took over."
+  },
+  {
+    "file": "traditions/ajrakh/tradition.json",
+    "source": "ajrakh.historical_context.barmer-practice",
+    "target": "ajrakh.tradition.kutch-ajrakh",
+    "type": "BELONGS_TO",
+    "explanation": "Ajrakh in Barmer, Rajasthan is part of the Kutch Ajrakh tradition.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S1",
+      "S6"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S1 p. 9 contrasts Kachchh with Barmer; no cited passage places Barmer practice inside the Kutch Ajrakh tradition."
+  },
+  {
+    "file": "traditions/ajrakh/tradition.json",
+    "source": "ajrakh.process_stage.kasano",
+    "target": "ajrakh.process_stage.khariyanu",
+    "type": "PRECEDES",
+    "explanation": "Sequential order in the GI method of production.",
+    "conditions": null,
+    "ordinal": 3,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. No S1 sentence orders kasano before khariyanu; only the section-heading order does (curator/PI may rule heading order is evidence)."
+  },
+  {
+    "file": "traditions/ajrakh/tradition.json",
+    "source": "ajrakh.process_stage.kut",
+    "target": "ajrakh.process_stage.pa",
+    "type": "PRECEDES",
+    "explanation": "Sequential order in the GI method of production.",
+    "conditions": null,
+    "ordinal": 5,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. No S1 sentence orders kut before pa; only the section-heading order does (curator/PI may rule heading order is evidence)."
+  },
+  {
+    "file": "traditions/ajrakh/tradition.json",
+    "source": "ajrakh.process_stage.khariyanu",
+    "target": "ajrakh.tool.tari-printing-tray",
+    "type": "USES",
+    "explanation": "The khariyanu stage uses this tool.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S1 describes the tari only in general terms (p. 5) and never names it for khariyanu."
+  },
+  {
+    "file": "traditions/ajrakh/tradition.json",
+    "source": "ajrakh.process_stage.pa",
+    "target": "ajrakh.tool.tari-printing-tray",
+    "type": "USES",
+    "explanation": "The pa stage uses this tool.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S1 describes the tari only in general terms (p. 5) and never names it for pa."
+  },
+  {
+    "file": "traditions/ajrakh/tradition.json",
+    "source": "ajrakh.artisan_decision.saaj-lather-judgement",
+    "target": "ajrakh.process_stage.saaj",
+    "type": "PRACTITIONER_EXPLAINS",
+    "explanation": "Lather and softness signal completion of saaj.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S1 gives 'a suitable level of saponification'; that lather and softness signal completion is not stated."
+  },
+  {
+    "file": "traditions/ajrakh/tradition.json",
+    "source": "ajrakh.environmental_condition.water-iron-content",
+    "target": "shared.scientific_mechanism.iron-tannin-black",
+    "type": "SCIENTIFICALLY_EXPLAINED_BY",
+    "explanation": "Iron in water darkens tannin-treated cloth (black spots), the same reaction exploited in kut.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1",
+      "S10"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S10 names iron spots but no tannin; S1 states the iron-tannic reaction only for kut."
+  },
+  {
+    "file": "traditions/machilipatnam-kalamkari/tradition.json",
+    "source": "machilipatnam-kalamkari.environmental_condition.coromandel-soil-water-plants",
+    "target": "machilipatnam-kalamkari.tradition.machilipatnam-kalamkari",
+    "type": "BELONGS_TO",
+    "explanation": "Coromandel soil, water and dye plants is documented as part of Machilipatnam block-printed kalamkari.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S11"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S11 never names Machilipatnam, Masulipatnam or Pedana."
+  },
+  {
+    "file": "traditions/machilipatnam-kalamkari/tradition.json",
+    "source": "machilipatnam-kalamkari.process_stage.block-carving",
+    "target": "machilipatnam-kalamkari.process_stage.scouring-dung-bleaching",
+    "type": "PRECEDES",
+    "explanation": "Sequential order of production stages as documented.",
+    "conditions": null,
+    "ordinal": 1,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S4"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. Only S4's stage list supports it, and that list is not in time order."
+  },
+  {
+    "file": "traditions/machilipatnam-kalamkari/tradition.json",
+    "source": "machilipatnam-kalamkari.process_stage.curing-drying",
+    "target": "machilipatnam-kalamkari.environmental_condition.sun-and-weather",
+    "type": "AFFECTED_BY",
+    "explanation": "Stage involves sun-drying and depends on weather.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S4"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S4 says the cloth is kept two to three days until dried, with no sun or weather."
+  },
+  {
+    "file": "traditions/machilipatnam-kalamkari/tradition.json",
+    "source": "machilipatnam-kalamkari.process_stage.soaping-finishing",
+    "target": "machilipatnam-kalamkari.outcome.colourfast-printed-textiles",
+    "type": "PRODUCES",
+    "explanation": "Final finished cloth.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S4",
+      "S3"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S4 credits fixing to the alum dip, not the soap wash; S3 has no fastness statement."
+  },
+  {
+    "file": "traditions/machilipatnam-kalamkari/tradition.json",
+    "source": "machilipatnam-kalamkari.scientific_mechanism.indigo-no-mordant",
+    "target": "shared.scientific_mechanism.indigo-vat-reduction",
+    "type": "SIMILAR_TO",
+    "explanation": "Indigo fixes by its own (vat) chemistry, not a mordant; vat process at Pedana not documented.",
+    "conditions": "Pedana prints indigo paste directly; reduction details not sourced.",
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S10"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S10 says nothing about vat reduction."
+  },
+  {
+    "file": "traditions/machilipatnam-kalamkari/tradition.json",
+    "source": "machilipatnam-kalamkari.process_stage.scouring-dung-bleaching",
+    "target": "shared.scientific_mechanism.sun-bleaching",
+    "type": "SCIENTIFICALLY_EXPLAINED_BY",
+    "explanation": "Cloth spread wet in sun as part of bleaching.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S4",
+      "S5"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S4 and S5 list sun drying and bleaching as separate steps; neither says the sun bleaches."
+  },
+  {
+    "file": "traditions/sanganeri/tradition.json",
+    "source": "sanganeri.process_stage.harda-treatment",
+    "target": "sanganeri.tool.mogri-mallet",
+    "type": "USES",
+    "explanation": "Dried harda cloth is beaten with a wooden mallet.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S1 p. 10 says 'a wooden mallet'; p. 13 defines the mogri for beating the folds of finished cloth, a different use."
+  },
+  {
+    "file": "traditions/sanganeri/tradition.json",
+    "source": "sanganeri.explanation.tapai-alkali-and-heat",
+    "target": "shared.scientific_mechanism.sun-bleaching",
+    "type": "SCIENTIFICALLY_EXPLAINED_BY",
+    "explanation": "Links the source's alkali-plus-heat account to the shared sun-bleaching mechanism.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S1 explains the bleaching by alkali and heat, not by the shared oxidation/light mechanism."
+  },
+  {
+    "file": "traditions/sanganeri/tradition.json",
+    "source": "sanganeri.process_stage.scouring",
+    "target": "sanganeri.environmental_condition.sun-and-semi-arid-climate",
+    "type": "DEPENDS_ON",
+    "explanation": "Traditional scouring repeats wetting and drying on open ground over days.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S1 has no semi-arid or climate statement, only 3 to 6 days of wetting and drying."
+  },
+  {
+    "file": "shared/craft-science.json",
+    "source": "shared.scientific_mechanism.mud-resist-barrier",
+    "target": "shared.scientific_mechanism.indigo-vat-reduction",
+    "type": "CONTRASTS_WITH",
+    "explanation": "Resist blocks dye physically, whereas indigo colours by redox; resist is applied before the vat so covered areas stay undyed except along cracks.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S10"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. S10 puts the two in sequence; the only contrast it draws is mordant-dyed vs resist-dyed."
+  },
+  {
+    "file": "comparisons.json",
+    "source": "machilipatnam-kalamkari.open_question.gi-year",
+    "target": "sanganeri.open_question.gi-registration-year",
+    "type": "SIMILAR_TO",
+    "explanation": "Secondary sources give several GI years that differ from the registry record.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "machilipatnam-kalamkari:S1",
+      "machilipatnam-kalamkari:S15",
+      "sanganeri:S2",
+      "sanganeri:S14"
+    ],
+    "removal_reason": "Round 2 source check (2026-10-16): unsupported. The juxtaposition is the curators' own, and the Sanganeri side rests on sanganeri:S14 (unverified kind)."
   }
 ]

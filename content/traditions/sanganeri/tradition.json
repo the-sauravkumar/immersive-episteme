@@ -183,7 +183,7 @@
       "url": "https://www.incredibleindia.gov.in/en/rajasthan/sanganeri-hand-block-printing",
       "accessed": "2026-10-14",
       "reliability": "low",
-      "notes": "Promotional tourism text; used only to document conflicting claims (founder Rana Sanga, river Saraswati radiance, late 16th-early 17th c. migration, GI 2010)."
+      "notes": "Promotional tourism text; used only to document conflicting claims (founder Rana Sanga, river Saraswati radiance, late 16th-early 17th c. migration, GI 2010). Page undated, no author; Wayback first capture 2024-10-05. Kind stays unverified; nothing in the study traditions cites it after round 2."
     },
     {
       "id": "S14",
@@ -195,7 +195,7 @@
       "url": "https://www.aiacaonline.org/craftkatha-pop-up/?p=4662",
       "accessed": "2026-10-14",
       "reliability": "low",
-      "notes": "Craft-organisation consumer page; states GI in 2023 (contradicts registry), 3-10 days per piece, 2-5 artisans, 'natural and azo-free dyes', craft origin 16th-17th century. Used only for conflict notes and present-day identification markers."
+      "notes": "Craft-organisation consumer page; states GI in 2023 (contradicts registry), 3-10 days per piece, 2-5 artisans, 'natural and azo-free dyes', craft origin 16th-17th century. Used only for conflict notes and present-day identification markers. Page undated, no author; media under /uploads/2025/12; no Wayback capture. Kind stays unverified; nothing in the study traditions cites it after round 2."
     },
     {
       "id": "S15",
@@ -384,7 +384,7 @@
       "category": "geography_history",
       "title": "Founding of Sanganer (early 16th century)",
       "summary": "Sanganer was founded by the Kachhwaha prince Sangaji in the early 16th century; the GI application (citing Hanuman Sharma) adds that he was the son of Prithviraj of Amber.",
-      "body_md": "Sanganer was founded by the Kachhwaha prince Sangaji in the early 16th century; the GI application (citing Hanuman Sharma) adds that he was the son of Prithviraj of Amber. [S1, S8]\n\nA government tourism page states instead that Sanganer was established by Rana Sanga, a Mewar Rajput. [S13]",
+      "body_md": "Sanganer was founded by the Kachhwaha prince Sangaji in the early 16th century; the GI application (citing Hanuman Sharma) adds that he was the son of Prithviraj of Amber. [S1, S8]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
       "verification_state": "needs_evidence",
@@ -415,24 +415,6 @@
               "source_id": "S1",
               "locator": "PDF p. 9",
               "quote": "Mr. Hanurnan Sharnra in his book sqg{ Trq .5T {frElir Yr< qR-qT IFFisfq 1s96 page nos. 45 & 46 mentioned that Saaganer was founded by Sangaji the son of lvlaharaj Prithviraj ji of Amber province-"
-            }
-          ]
-        },
-        {
-          "text": "A government tourism page states instead that Sanganer was established by Rana Sanga, a Mewar Rajput.",
-          "source_ids": [
-            "S13"
-          ],
-          "evidence": [
-            {
-              "source_id": "S13",
-              "locator": "§ \"The Enduring Appeal of Sanganeri Prints\"",
-              "quote": "The town of Sanganer was established by Rana Sanga, a Mewar Rajput, who turned it into one of the busiest art printing centres in entire India."
-            },
-            {
-              "source_id": "S13",
-              "locator": "§ \"Scan to chat\"",
-              "quote": "Terms of Use Privacy Policy Contact Us Help © Ministry of Tourism, Government of India. ×"
             }
           ]
         }
@@ -4225,7 +4207,7 @@
       "category": "open_questions",
       "title": "When did printing begin at Sanganer?",
       "summary": "No record of a Sanganer printing unit is traced before the early 18th century (the earliest cited are dastur-al-amal reports of 1703); the GI applicant infers printing was established by then.",
-      "body_md": "No record of a Sanganer printing unit is traced before the early 18th century (the earliest cited are dastur-al-amal reports of 1703); the GI applicant infers printing was established by then. [S1, S10]\n\nThe craft is widely believed to stem from mid-17th-century migrations from Gujarat. [S8, S9]\n\nNABARD describes the textiles as roughly 500 years old. [S3]\n\nSingh et al. (2000), quoted, say Sanganer prints have been renowned for at least 250 years. [S1, S10]\n\nTourism and craft-organisation pages date the craft to the late 16th or 16th-17th century. [S13, S14]",
+      "body_md": "No record of a Sanganer printing unit is traced before the early 18th century (the earliest cited are dastur-al-amal reports of 1703); the GI applicant infers printing was established by then. [S1, S10]\n\nThe craft is widely believed to stem from mid-17th-century migrations from Gujarat. [S8, S9]\n\nNABARD describes the textiles as roughly 500 years old. [S3]\n\nSingh et al. (2000), quoted, say Sanganer prints have been renowned for at least 250 years. [S1, S10]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
       "verification_state": "needs_evidence",
@@ -4314,25 +4296,6 @@
               "quote": "Singh et al, (2000) in Handcrafted Indian Textiles reports \"The block printed cottons of Sanganer, near Jaipur has been renowned for their precious pattern and coloring for at least two hundred and fifty years\"."
             }
           ]
-        },
-        {
-          "text": "Tourism and craft-organisation pages date the craft to the late 16th or 16th-17th century.",
-          "source_ids": [
-            "S13",
-            "S14"
-          ],
-          "evidence": [
-            {
-              "source_id": "S13",
-              "locator": "§ \"A Timeless Textile Tradition\"",
-              "quote": "The origin of the Sanganeri Hand Block Printing technique can be traced back to the late 16 th and early 17 th century, when the artisans of the Chippa community migrated from Gujarat to three areas in Rajasthan- Bagru, Sanganer and Jahota."
-            },
-            {
-              "source_id": "S14",
-              "locator": "§ \"CRAFT HISTORY\"",
-              "quote": "Emerging around the 16th-17th century, it developed under the patronage of the Jaipur royal court and the trade networks of the Mughal era."
-            }
-          ]
         }
       ],
       "prose_policy": "claims-only"
@@ -4341,9 +4304,9 @@
       "key": "sanganeri.open_question.founder-of-sanganer",
       "type": "open_question",
       "category": "open_questions",
-      "title": "Who founded Sanganer: Sangaji or Rana Sanga?",
+      "title": "Who founded Sanganer?",
       "summary": "Sanganer was founded by Sangaji, son of Prithviraj of Amber.",
-      "body_md": "Sanganer was founded by Sangaji, son of Prithviraj of Amber. [S1]\n\nGaatha states that the Kachhwaha Rajput prince Sangaji founded Sanganer in the early 16th century. [S8]\n\nSanganer was established by Rana Sanga, a Mewar Rajput. [S13]",
+      "body_md": "Sanganer was founded by Sangaji, son of Prithviraj of Amber. [S1]\n\nGaatha states that the Kachhwaha Rajput prince Sangaji founded Sanganer in the early 16th century. [S8]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
       "verification_state": "needs_evidence",
@@ -4373,19 +4336,6 @@
               "quote": "The Kachchwaha Rajput prince, Sangaji, founded Sanganer in the early 16th century and the little dwelling was thriving by the 17th century partially due to its strategic location on major trade routes ."
             }
           ]
-        },
-        {
-          "text": "Sanganer was established by Rana Sanga, a Mewar Rajput.",
-          "source_ids": [
-            "S13"
-          ],
-          "evidence": [
-            {
-              "source_id": "S13",
-              "locator": "§ \"The Enduring Appeal of Sanganeri Prints\"",
-              "quote": "The town of Sanganer was established by Rana Sanga, a Mewar Rajput, who turned it into one of the busiest art printing centres in entire India."
-            }
-          ]
         }
       ],
       "prose_policy": "claims-only"
@@ -4394,9 +4344,9 @@
       "key": "sanganeri.open_question.gi-registration-year",
       "type": "open_question",
       "category": "open_questions",
-      "title": "GI registration year: 2009, 2010 or 2023?",
+      "title": "GI registration year: 2009 or 2010?",
       "summary": "Application 147 is listed in the registry section for April 2009 to March 2010.",
-      "body_md": "Application 147 is listed in the registry section for April 2009 to March 2010. [S2]\n\nThe GI tag was received in 2009. [S3, S4]\n\nThe GI tag was received in 2010. [S9, S10]\n\nA craft-organisation page states the GI tag was received in 2023. [S14]",
+      "body_md": "Application 147 is listed in the registry section for April 2009 to March 2010. [S2]\n\nThe GI tag was received in 2009. [S3, S4]\n\nThe GI tag was received in 2010. [S9, S10]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
       "verification_state": "needs_evidence",
@@ -4456,19 +4406,6 @@
               "quote": "Efforts made by the CALICO to get block printing added under Geographical Identification Goods category had been successful in 2010 and now the block printers should be motivated to use Geographic Identification Certification."
             }
           ]
-        },
-        {
-          "text": "A craft-organisation page states the GI tag was received in 2023.",
-          "source_ids": [
-            "S14"
-          ],
-          "evidence": [
-            {
-              "source_id": "S14",
-              "locator": "§ \"WHAT MAKES IT UNIQUE:\"",
-              "quote": "Extremely fine motifs created with hand-carved wooden blocks Use of discharge printing and calico printing techniques Soft pastel colours with detailed outlines, unmatched by machine or screen prints Sun-bleaching process that gives the fabric its signature brightness Received a GI tag in 2023"
-            }
-          ]
         }
       ],
       "prose_policy": "claims-only"
@@ -4479,7 +4416,7 @@
       "category": "open_questions",
       "title": "Which river, and does the water really shape the colours?",
       "summary": "The riverbanks of the river Dhoondh were an asset to the dyers and bleachers.",
-      "body_md": "The riverbanks of the river Dhoondh were an asset to the dyers and bleachers. [S9]\n\nThe water of the river 'Saraswati' is credited with the characteristic shades or radiance. [S10, S13]\n\nSanganer's nallahs drain into the Dravyawati river. [S12]",
+      "body_md": "The riverbanks of the river Dhoondh were an asset to the dyers and bleachers. [S9]\n\nOne source credits the water of the river 'Saraswati', among other factors, with the characteristic shades and tints of the natural dyes. [S10]\n\nSanganer's nallahs drain into the Dravyawati river. [S12]",
       "local_terms": [],
       "provenance_kind": "hypothesis",
       "verification_state": "needs_evidence",
@@ -4498,26 +4435,15 @@
           ]
         },
         {
-          "text": "The water of the river 'Saraswati' is credited with the characteristic shades or radiance.",
+          "text": "One source credits the water of the river 'Saraswati', among other factors, with the characteristic shades and tints of the natural dyes.",
           "source_ids": [
-            "S10",
-            "S13"
+            "S10"
           ],
           "evidence": [
             {
               "source_id": "S10",
               "locator": "PDF p. 5",
               "quote": "The water of the river ,,Saraswati, the soil, the sunshine, the humid air, and the availability of flowers, leaves and herbs all contributed to the characteristic seasoning of the shades and tints produced by the natural dyes."
-            },
-            {
-              "source_id": "S10",
-              "locator": "PDF p. 3",
-              "quote": "King Sawai jai Singh has to be credited for settling a foundation to this Printing as he invited artists and craftsman from all over the country especially from Gujarat and Malwa to Sanganer, a place near Jaipur."
-            },
-            {
-              "source_id": "S13",
-              "locator": "§ \"A Timeless Textile Tradition\"",
-              "quote": "What makes Sanganeri prints different from Bagru and Jahota prints is the choice of motifs and the availability of abundant water supply from the river Saraswati, which helps impart a unique radiance to these fabrics."
             }
           ]
         },
@@ -4734,8 +4660,7 @@
       "verification_state": "needs_evidence",
       "source_ids": [
         "S1",
-        "S8",
-        "S13"
+        "S8"
       ],
       "evidence": [
         {
@@ -4744,9 +4669,9 @@
           "quote": "A town fowded by a Kacbhawaha prince Sangaji itr the early 16th cetrtury, Sanganer developed into a printing cefire in later centuries."
         },
         {
-          "source_id": "S13",
-          "locator": "§ \"The Enduring Appeal of Sanganeri Prints\"",
-          "quote": "The town of Sanganer was established by Rana Sanga, a Mewar Rajput"
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "The Kachchwaha Rajput prince, Sangaji, founded Sanganer in the early 16th century and the little dwelling was thriving by the 17th century"
         }
       ]
     },
@@ -4774,6 +4699,11 @@
           "source_id": "S9",
           "locator": "§ \"Sanganeri\"",
           "quote": "It has been conjectured that Sanganeri block-print may have benefited from the royal patronage of Sawai Jai Singh in the early eighteenth century."
+        },
+        {
+          "source_id": "S5",
+          "locator": "§ \"Object Type\"",
+          "quote": "renowned as a centre for high-quality block-printed cotton cloth which was established to serve the needs of the nearby Jaipur court."
         }
       ]
     },
@@ -4959,6 +4889,11 @@
           "source_id": "S1",
           "locator": "PDF p. 9, § 9.1 \"Production Steps\"",
           "quote": "Scouring (Pre processing of fabric before printing) locally called 'Tlari Sarana\" - Tannfu or preparing fabric for printing locally called '?eela Karna\" or Harda Rangai."
+        },
+        {
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "began with a rigorous scouring and bleaching procedure called Teluni, to emulsify the oils on the cotton threads. The cloth was treated with Harda"
         }
       ]
     },
@@ -4980,6 +4915,11 @@
           "source_id": "S1",
           "locator": "PDF p. 9, § 9.1 \"Production Steps\"",
           "quote": "Tannfu or preparing fabric for printing locally called '?eela Karna\" or Harda Rangai. - Printing witl mordant in salts locally called \"Chapai\"."
+        },
+        {
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "hence known as ‘pila-karna ‘. The craftsman then printed the black area of the design using the Syahi (ink) pinting paste"
         }
       ]
     },
@@ -5021,6 +4961,11 @@
           "source_id": "S1",
           "locator": "PDF p. 9, § 9.1 \"Production Steps\"",
           "quote": "Ageing before dyeing the fabric in natural dye locally called \"Sukhai'. - Iilashing or rernoval of excess mordant before dying localty called \"Khulai\"."
+        },
+        {
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "and the fabric was dried for a week. The fabric had to be thoroughly washed in order to remove the tree gum."
         }
       ]
     },
@@ -5042,6 +4987,11 @@
           "source_id": "S1",
           "locator": "PDF p. 9, § 9.1 \"Production Steps\"",
           "quote": "Iilashing or rernoval of excess mordant before dying localty called \"Khulai\". - Dyeing or fixing ofcolours after washing locally called *Rangai\"."
+        },
+        {
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "The fabric had to be thoroughly washed in order to remove the tree gum. The next step known as Ghan ki Rangai"
         }
       ]
     },
@@ -5063,6 +5013,11 @@
           "source_id": "S1",
           "locator": "PDF p. 9, § 9.1 \"Production Steps\"",
           "quote": "Dyeing or fixing ofcolours after washing locally called *Rangai\". - Sun Blerchiug or locally oalled \"Tapai\" to get white background of the fa.bric."
+        },
+        {
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "The printer washed the dyed fabric in the running river water and allowed to dry in the scorching sun with sprinkling of water"
         }
       ]
     },
@@ -5290,20 +5245,12 @@
           "source_id": "S1",
           "locator": "PDF p. 10, § 9.2 \"Tannin\"",
           "quote": "Washed fabric is treated with myrobalan (harda) which contains tannic acid"
+        },
+        {
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "The cloth was treated with Harda, which functions as a pre-mordant link between the fibers and the various other ingredients."
         }
-      ]
-    },
-    {
-      "source": "sanganeri.process_stage.harda-treatment",
-      "target": "sanganeri.tool.mogri-mallet",
-      "type": "USES",
-      "explanation": "Dried harda cloth is beaten with a wooden mallet.",
-      "conditions": null,
-      "ordinal": null,
-      "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
-      "source_ids": [
-        "S1"
       ]
     },
     {
@@ -5324,6 +5271,11 @@
           "source_id": "S1",
           "locator": "PDF p. 10, § 9.2 \"Printing (mordanting)\"",
           "quote": "The fabric is printed with two mordant-ferrous ('ry\"h*r) made out of rusted horse shoe nails"
+        },
+        {
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "The craftsman then printed the black area of the design using the Syahi (ink) pinting paste prepared using scrap iron, horseshoes and Gur (jaggery)"
         }
       ]
     },
@@ -5345,6 +5297,11 @@
           "source_id": "S1",
           "locator": "PDF p. 10, § 9.2 \"Printing (mordanting)\"",
           "quote": "As it immediately shows a black impressioq it is easy for anotler prhter to place the filler block ('dalla) with beggar"
+        },
+        {
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "The begar paste was then applied using a ‘Datta’ block to fill in the ‘Rekh’ (the outlining block)"
         }
       ]
     },
@@ -5359,14 +5316,18 @@
       "verification_state": "under_review",
       "source_ids": [
         "S1",
-        "S8",
-        "S10"
+        "S8"
       ],
       "evidence": [
         {
           "source_id": "S1",
           "locator": "PDF p. 10, § 9.2 \"Printing (mordanting)\"",
           "quote": "Uzually ferrous is printed with the outline block ('reAh')."
+        },
+        {
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "The begar paste was then applied using a ‘Datta’ block to fill in the ‘Rekh’ (the outlining block)"
         }
       ]
     },
@@ -5448,6 +5409,11 @@
           "source_id": "S1",
           "locator": "PDF p. 11",
           "quote": "'Dluwadi phool', a local flower is boiled along with alizarin to avoid patches and staining."
+        },
+        {
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "Red dye matter along with Shakur ka phool or dhaura ka phool was added with drop of castor or sesame oil."
         }
       ]
     },
@@ -5469,6 +5435,11 @@
           "source_id": "S1",
           "locator": "PDF p. 11",
           "quote": "Dyeing is carried out in large copper vessels ('tonbri ) which are heared by wood fire."
+        },
+        {
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "The next step known as Ghan ki Rangai involves use of a copper vessel ‘Tamda’ on a Bhatti."
         }
       ]
     },
@@ -5811,19 +5782,6 @@
       ]
     },
     {
-      "source": "sanganeri.explanation.tapai-alkali-and-heat",
-      "target": "shared.scientific_mechanism.sun-bleaching",
-      "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Links the source's alkali-plus-heat account to the shared sun-bleaching mechanism.",
-      "conditions": null,
-      "ordinal": null,
-      "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
-      "source_ids": [
-        "S1"
-      ]
-    },
-    {
       "source": "sanganeri.process_stage.dabu-resist-printing",
       "target": "sanganeri.explanation.dabu-mechanical-resist",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
@@ -6061,6 +6019,11 @@
           "source_id": "S1",
           "locator": "PDF p. 10, § 9.2 \"Ageing\"",
           "quote": "The printed fabric is left for at least three-four days so that the print (mordant paste) penetrates into the fiber structure."
+        },
+        {
+          "source_id": "S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "and the fabric was dried for a week."
         }
       ]
     },
@@ -6355,19 +6318,6 @@
       ]
     },
     {
-      "source": "sanganeri.process_stage.scouring",
-      "target": "sanganeri.environmental_condition.sun-and-semi-arid-climate",
-      "type": "DEPENDS_ON",
-      "explanation": "Traditional scouring repeats wetting and drying on open ground over days.",
-      "conditions": null,
-      "ordinal": null,
-      "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
-      "source_ids": [
-        "S1"
-      ]
-    },
-    {
       "source": "sanganeri.historical_context.screen-printing-shift",
       "target": "sanganeri.environmental_condition.effluent-and-water-pollution",
       "type": "ENABLES",
@@ -6385,6 +6335,11 @@
           "source_id": "S10",
           "locator": "PDF p. 10, § \"Social environmental issues\"",
           "quote": "mass production of the goods resulted into flooding of that area with hazardous effluents that were let out in the open."
+        },
+        {
+          "source_id": "S12",
+          "locator": "§ \"Textile mills pollute the waters\"",
+          "quote": "The effluents from these industrial units were released untreated into the nallahs causing water pollution."
         }
       ]
     },
@@ -6450,25 +6405,19 @@
       "source": "sanganeri.open_question.founder-of-sanganer",
       "target": "sanganeri.historical_context.founding-of-sanganer",
       "type": "BELONGS_TO",
-      "explanation": "Dispute over the founder.",
+      "explanation": "Question about the founder of Sanganer.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
       "verification_state": "needs_evidence",
       "source_ids": [
-        "S1",
-        "S13"
+        "S1"
       ],
       "evidence": [
         {
           "source_id": "S1",
           "locator": "PDF p. 7, § 8.8",
           "quote": "Sanganer was founded by Sangaji the son of Maharaj Prithvirajji of Amber province"
-        },
-        {
-          "source_id": "S13",
-          "locator": "§ \"The Enduring Appeal of Sanganeri Prints\"",
-          "quote": "The town of Sanganer was established by Rana Sanga, a Mewar Rajput"
         }
       ]
     },
@@ -6484,8 +6433,7 @@
       "source_ids": [
         "S2",
         "S3",
-        "S9",
-        "S14"
+        "S9"
       ],
       "evidence": [
         {
@@ -6502,11 +6450,6 @@
           "source_id": "S9",
           "locator": "§ \"Sanganeri\"",
           "quote": "In 2010, it received the Geographical Indication (GI) tag from the Government of India."
-        },
-        {
-          "source_id": "S14",
-          "locator": "§ \"WHAT MAKES IT UNIQUE:\"",
-          "quote": "Received a GI tag in 2023"
         }
       ]
     },
@@ -6522,8 +6465,7 @@
       "source_ids": [
         "S9",
         "S10",
-        "S12",
-        "S13"
+        "S12"
       ],
       "evidence": [
         {
@@ -6540,11 +6482,6 @@
           "source_id": "S12",
           "locator": "§ \"Textile mills pollute the waters\"",
           "quote": "These units discharge 17-18 million litres (MLD) of untreated chemical water per day into the nallahs which drain into the Dravyawati river."
-        },
-        {
-          "source_id": "S13",
-          "locator": "§ \"A Timeless Textile Tradition\"",
-          "quote": "the availability of abundant water supply from the river Saraswati, which helps impart a unique radiance to these fabrics."
         }
       ]
     },
