@@ -9,7 +9,7 @@ import { KNOWLEDGE_CATEGORY_CODES } from "@/lib/validation/enums";
 import { ANALYSIS_REFERENCES_SQL } from "./analysis-reference";
 import { loadSnapshotFacts } from "./metrics/pipeline";
 import { visitSequence, type NavEvent } from "./metrics/navigation";
-import type { Q } from "./db";
+import { queryAll, type Q } from "./db";
 
 export interface ConditionRef {
   id: string;
@@ -44,23 +44,23 @@ export interface StudyOverview {
 }
 
 export async function studyOverview(q: Q, studyId: string): Promise<StudyOverview> {
-  const [flag, enrol, alloc, sess, excl, dev, tel] = await Promise.all([
-    q.query<{ ne: boolean }>("SELECT (is_demo OR coalesce((config->>'nonExperimental')::boolean, false)) AS ne FROM studies WHERE id = $1", [studyId]),
-    q.query<{ status: string; n: number }>("SELECT status::text AS status, count(*)::int AS n FROM participants WHERE study_id = $1 GROUP BY 1 ORDER BY 1", [studyId]),
-    q.query<{ conditionId: string; n: number }>(`SELECT condition_id AS "conditionId", count(*)::int AS n FROM allocations WHERE study_id = $1 GROUP BY 1`, [studyId]),
-    q.query<{ conditionId: string; status: string; n: number }>(
+  const [flag, enrol, alloc, sess, excl, dev, tel] = await queryAll(q, [
+    () => q.query<{ ne: boolean }>("SELECT (is_demo OR coalesce((config->>'nonExperimental')::boolean, false)) AS ne FROM studies WHERE id = $1", [studyId]),
+    () => q.query<{ status: string; n: number }>("SELECT status::text AS status, count(*)::int AS n FROM participants WHERE study_id = $1 GROUP BY 1 ORDER BY 1", [studyId]),
+    () => q.query<{ conditionId: string; n: number }>(`SELECT condition_id AS "conditionId", count(*)::int AS n FROM allocations WHERE study_id = $1 GROUP BY 1`, [studyId]),
+    () => q.query<{ conditionId: string; status: string; n: number }>(
       `SELECT condition_id AS "conditionId", status::text AS status, count(*)::int AS n FROM study_sessions WHERE study_id = $1 GROUP BY 1, 2`,
       [studyId],
     ),
-    q.query<{ excluded: number; withdrawn: number }>(
+    () => q.query<{ excluded: number; withdrawn: number }>(
       "SELECT count(*) FILTER (WHERE excluded)::int AS excluded, count(*) FILTER (WHERE withdrawn)::int AS withdrawn FROM study_sessions WHERE study_id = $1",
       [studyId],
     ),
-    q.query<{ severity: string; category: string; n: number }>(
+    () => q.query<{ severity: string; category: string; n: number }>(
       "SELECT severity::text AS severity, category, count(*)::int AS n FROM protocol_deviations WHERE study_id = $1 GROUP BY 1, 2 ORDER BY 1, 2",
       [studyId],
     ),
-    q.query<StudyOverview["telemetry"][number]>(
+    () => q.query<StudyOverview["telemetry"][number]>(
       `SELECT ss.condition_id AS "conditionId", count(*)::int AS sessions,
               count(*) FILTER (WHERE ev.n > 0)::int AS "sessionsWithEvents",
               coalesce(sum(ev.n), 0)::int AS events,

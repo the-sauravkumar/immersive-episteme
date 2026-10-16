@@ -249,7 +249,8 @@ export function getMediaStorage(source: Record<string, string | undefined> = pro
       throw new Error("Media storage: set MEDIA_S3_BUCKET (or MEDIA_LOCAL_DIR explicitly) in production");
     }
     const dir = env.MEDIA_LOCAL_DIR ?? join(".data", "media");
-    storage = createLocalStorage(isAbsolute(dir) ? dir : join(process.cwd(), dir));
+    // A runtime data directory, never part of the build output.
+    storage = createLocalStorage(isAbsolute(dir) ? dir : join(/*turbopackIgnore: true*/ process.cwd(), dir));
   }
   if (source === process.env) cached = storage;
   return storage;

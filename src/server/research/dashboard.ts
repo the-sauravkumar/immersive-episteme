@@ -27,7 +27,7 @@ import { ANALYSIS_REFERENCES_SQL } from "./analysis-reference";
 import { isAnalysable } from "./analysis-scope";
 import { studyConditions, type ConditionRef } from "./analytics";
 import { fullTelemetry, refreshRollups, type SessionTelemetry } from "./dashboard-rollups";
-import type { Q } from "./db";
+import { queryAll, type Q } from "./db";
 import { toCsv } from "./exports/csv";
 import { DASHBOARD_TABLE_BY_NAME, type DashboardTableName } from "./exports/dictionary";
 import { loadSnapshotFacts } from "./metrics/pipeline";
@@ -217,9 +217,9 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
   if (!study) return null;
   // The fingerprint is read FIRST: a change committed during the load makes the next check differ.
   const fp = opts.fingerprint ?? (await dashboardFingerprint(q, studyId));
-  const [conditions, sessionRows, strata, mapScores, edges, keyed, rubric, answers, gaps, quarantine] = await Promise.all([
-    studyConditions(q, studyId),
-    q.query<SessionRow>(
+  const [conditions, sessionRows, strata, mapScores, edges, keyed, rubric, answers, gaps, quarantine] = await queryAll(q, [
+    () => studyConditions(q, studyId),
+    () => q.query<SessionRow>(
       `SELECT ss.id, p.code AS "participantCode", ss.condition_id AS "conditionId", ss.period, ss.status::text AS status, ss.excluded,
               ss.exclusion_reason AS "exclusionReason", ss.withdrawn, ss.interrupted, ss.interruption_count AS "interruptionCount",
               ss.device->'check'->>'verdict' AS verdict,
@@ -229,14 +229,14 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
         WHERE ss.study_id = $1`,
       [studyId],
     ),
-    q.query<{ id: string; code: string; stratum: string | null }>(
+    () => q.query<{ id: string; code: string; stratum: string | null }>(
       `SELECT p.id, p.code, coalesce((SELECT a.stratum FROM allocations a WHERE a.participant_id = p.id ORDER BY a.period DESC, a.allocated_at DESC LIMIT 1), p.stratum) AS stratum
          FROM participants p WHERE p.study_id = $1`,
       [studyId],
     ),
     // Only scores against the study's analysis reference map and at the scoring library's current
     // metric version (final review scoring-04): pre and post then share one expected-edge set.
-    q.query<{ session_id: string; participant_id: string; phase: "pre" | "post"; metric_name: string; value: number | null; reference_map_id: string | null }>(
+    () => q.query<{ session_id: string; participant_id: string; phase: "pre" | "post"; metric_name: string; value: number | null; reference_map_id: string | null }>(
       `WITH ar AS (${ANALYSIS_REFERENCES_SQL})
        SELECT DISTINCT ON (ds.concept_map_id, ds.metric_name) ds.session_id, ss.participant_id, cm.phase::text AS phase, ds.metric_name, ds.value, ds.reference_map_id
          FROM study_sessions ss
@@ -248,20 +248,20 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
         ORDER BY ds.concept_map_id, ds.metric_name, ds.computed_at DESC`,
       [studyId, STORED_MAP_METRICS, STORED_MAP_METRICS.map((m) => metricDefinition(m).version)],
     ),
-    q.query<{ session_id: string; participant_id: string; phase: "pre" | "post"; n: number }>(
+    () => q.query<{ session_id: string; participant_id: string; phase: "pre" | "post"; n: number }>(
       `SELECT cm.session_id, cm.participant_id, cm.phase::text AS phase, (SELECT count(*)::int FROM concept_map_edges e WHERE e.concept_map_id = cm.id) AS n
          FROM study_sessions ss JOIN concept_maps cm ON cm.session_id = ss.id AND cm.is_final
         WHERE ss.study_id = $1 AND EXISTS (SELECT 1 FROM derived_scores d WHERE d.session_id = cm.session_id AND d.concept_map_id = cm.id AND d.metric_name = $2)`,
       [studyId, PRIMARY_METRIC],
     ),
-    q.query<{ session_id: string; code: string; version: number; kind: string; value: number | null }>(
+    () => q.query<{ session_id: string; code: string; version: number; kind: string; value: number | null }>(
       `SELECT DISTINCT ON (ds.session_id, ds.assessment_id) ds.session_id, a.code, a.version, a.kind::text AS kind, ds.value
          FROM study_sessions ss JOIN derived_scores ds ON ds.session_id = ss.id JOIN assessments a ON a.id = ds.assessment_id
         WHERE ss.study_id = $1 AND ds.metric_name = $2
         ORDER BY ds.session_id, ds.assessment_id, ds.computed_at DESC`,
       [studyId, metricDefinition("assessment.key_match_total").key],
     ),
-    q.query<{ session_id: string; code: string; version: number; kind: string; value: number }>(
+    () => q.query<{ session_id: string; code: string; version: number; kind: string; value: number }>(
       `SELECT ds.session_id, a.code, a.version, a.kind::text AS kind, avg(ds.value)::float8 AS value
          FROM study_sessions ss JOIN derived_scores ds ON ds.session_id = ss.id JOIN assessments a ON a.id = ds.assessment_id
         WHERE ss.study_id = $1 AND ds.metric_name LIKE 'rubric.rating.r%' AND ds.value IS NOT NULL
@@ -270,7 +270,7 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     ),
     // `step`: the journey step the administration was given in (the engine's
     // study.assessment_submitted journal entry); null for rows written without the engine.
-    q.query<{ session_id: string; code: string; attempt: number; item_key: string; raw: unknown; step: string | null }>(
+    () => q.query<{ session_id: string; code: string; attempt: number; item_key: string; raw: unknown; step: string | null }>(
       `SELECT r.session_id, a.code, r.attempt, i.item_key, r.raw,
               (SELECT al.after->>'step' FROM audit_log al
                 WHERE al.entity = 'study_session' AND al.entity_id = r.session_id::text AND al.action = 'study.assessment_submitted'
@@ -283,13 +283,13 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
         WHERE ss.study_id = $1 AND a.code = ANY($2::text[])`,
       [studyId, [...new Set(SCALES.map((s) => s.instrument))]],
     ),
-    q.query<{ kind: string; open: number; resolved: number; missing: number }>(
+    () => q.query<{ kind: string; open: number; resolved: number; missing: number }>(
       `SELECT g.kind::text AS kind, count(*) FILTER (WHERE g.resolved_at IS NULL)::int AS open, count(*) FILTER (WHERE g.resolved_at IS NOT NULL)::int AS resolved,
               coalesce(sum(g.to_seq - g.from_seq + 1) FILTER (WHERE g.resolved_at IS NULL AND g.kind = 'gap'), 0)::int AS missing
          FROM study_sessions ss JOIN sequence_gaps g ON g.session_id = ss.id WHERE ss.study_id = $1 GROUP BY 1 ORDER BY 1`,
       [studyId],
     ),
-    q.query<{ reason: string; n: number; unresolved: number }>(
+    () => q.query<{ reason: string; n: number; unresolved: number }>(
       `SELECT split_part(tq.reason, ':', 1) AS reason, count(*)::int AS n, count(*) FILTER (WHERE tq.resolved_at IS NULL)::int AS unresolved
          FROM study_sessions ss JOIN telemetry_quarantine tq ON tq.session_id = ss.id WHERE ss.study_id = $1 GROUP BY 1 ORDER BY 1`,
       [studyId],
