@@ -21,6 +21,9 @@
  * no number. The full plan lists the entrance first, then each wing in the canonical tradition order
  * by section number, then the hall. Numbers are at least 10 px; a room too small to hold its number
  * clear of the outline shows none (the full plan lists every room by number and name).
+ * The pure plan code (numbers, order, number fitting, the drawing's extent) lives in
+ * src/features/immersive/plan-drawing.ts, which the home page's Plate 1 draws from too (DR-047,
+ * number to confirm at merge), so the two plans can never differ.
  * Hidden when the study sets `minimap: "off"`; the museum hides the minimap while the panel covers
  * the scene (under 1024 px).
  */
@@ -30,12 +33,13 @@ import type { CSSProperties } from "react";
 
 import { Dialog, DialogClose, DialogDescription, DialogHeader, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { roomAt, type SceneModel, type SceneRoom } from "@/features/immersive/scene-model";
-import { compareTraditionSlugs } from "@/features/learning/labels";
+import { ARROW_PX, compassWord, planBox, planOrder, planRoomName, roomLabelLayout, roomNumbers } from "@/features/immersive/plan-drawing";
+import type { SceneModel, SceneRoom } from "@/features/immersive/scene-model";
 import { sectionOfZoneGroup } from "@/features/learning/sections";
 import { PLAN_TEXT } from "@/features/learning/strings";
 import { titleCase } from "@/lib/text/title-case";
 
+export { compassWord, planOrder, planRoomName, roomNumbers } from "@/features/immersive/plan-drawing";
 
 /**
  * Whether the plan is shown when the museum opens: it follows the protocol's `minimap` setting
@@ -46,106 +50,8 @@ export function planDefaultOpen(minimap: "on" | "off" | "toggle"): boolean {
   return minimap === "on";
 }
 
-/** Centres closer than this (metres) along z share a row of the plan. */
-const ROW_TOLERANCE_M = 1;
-/** Margin of the drawing around the rooms, in metres (room for the outline strokes). */
-const PLAN_PAD_M = 0.4;
-/** The eight compass points the heading arrow can show, for its accessible name. */
-const COMPASS = ["north", "north-east", "east", "south-east", "south", "south-west", "west", "north-west"] as const;
-export function compassWord(deg: number): string {
-  return COMPASS[(((Math.round(deg / 45) % 8) + 8) % 8)]!;
-}
-/** The arrow's outline in CSS px, pointing up (north) about the room's mark: 14 px tall, 12 px wide. */
-const ARROW_PX = "M0,-8 L6,6 L0,3 L-6,6 Z";
-
-/** Smallest room number drawn, in CSS px. A number that cannot be set this large clear of its outline is omitted. */
-const MIN_LABEL_PX = 10;
 /** The minimap's drawing box inside its 192 x 192 frame (44 px header, 28 px legend, 8 px sides). */
 const MINIMAP_BOX = { w: 174, h: 118 } as const;
-
-/**
- * The plan's room numbers (the same on the minimap and the full plan): a room built for a section
- * of the shared section map carries that section's number, so section n of a tradition is number n
- * in its 2D index and room n of its museum wing (DR-024). Rooms that are no section (the entrance
- * lobby, the shared commons) have none.
- */
-export function roomNumbers(model: Pick<SceneModel, "rooms">): Map<string, number> {
-  const out = new Map<string, number>();
-  for (const r of model.rooms) {
-    const section = sectionOfZoneGroup(r.group);
-    if (section) out.set(r.id, section.number);
-  }
-  return out;
-}
-
-/** The name the plan gives a room: its section's title (as in the 2D index), else the room's own label. */
-export function planRoomName(room: Pick<SceneRoom, "id" | "group">, roomLabel: (roomId: string) => string): string {
-  return sectionOfZoneGroup(room.group)?.title ?? roomLabel(room.id);
-}
-
-/**
- * The full plan's list order: the room the visitor enters by (the spawn) first; then each wing in
- * the canonical tradition order (DR-019), its rooms by section number; then the other numbered
- * rooms (the comparison hall) by number; then the rest in reading order of the plan (top to bottom,
- * then left to right).
- */
-export function planOrder(model: Pick<SceneModel, "rooms"> & Partial<Pick<SceneModel, "spawn">>): SceneRoom[] {
-  const numbers = roomNumbers(model);
-  const entrance = model.spawn ? roomAt(model.rooms, model.spawn) : null;
-  const cx = (r: SceneRoom) => (r.bounds.minX + r.bounds.maxX) / 2;
-  const cz = (r: SceneRoom) => (r.bounds.minZ + r.bounds.maxZ) / 2;
-  const rank = (r: SceneRoom) => (entrance && r.id === entrance.id ? 0 : r.traditionSlug && numbers.has(r.id) ? 1 : numbers.has(r.id) ? 2 : 3);
-  return [...model.rooms].sort((a, b) => {
-    const ra = rank(a);
-    const rb = rank(b);
-    if (ra !== rb) return ra - rb;
-    if (ra === 1) return compareTraditionSlugs(a.traditionSlug!, b.traditionSlug!) || numbers.get(a.id)! - numbers.get(b.id)!;
-    if (ra === 2) return numbers.get(a.id)! - numbers.get(b.id)!;
-    return Math.abs(cz(a) - cz(b)) > ROW_TOLERANCE_M ? cz(a) - cz(b) : cx(a) - cx(b);
-  });
-}
-
-/**
- * Number size and placement inside a room, in CSS px of the drawing: at most `labelPx`, at least
- * `MIN_LABEL_PX`, with 3 px clearance from the outline; a number that does not fit is omitted. The
- * current room's 8 px dot sits under its number when the room is tall enough, beside it when it is
- * wide enough, and alone (without the number) otherwise.
- */
-function roomLabelLayout(r: SceneRoom, n: number | undefined, here: boolean, mpp: number, labelPx: number) {
-  const wPx = (r.bounds.maxX - r.bounds.minX) / mpp;
-  const hPx = (r.bounds.maxZ - r.bounds.minZ) / mpp;
-  const cx0 = (r.bounds.minX + r.bounds.maxX) / 2;
-  const cz0 = (r.bounds.minZ + r.bounds.maxZ) / 2;
-  // A room that is no section has no number: only the current room's dot, centred.
-  if (n === undefined) return { fontPx: null, label: null, dot: here ? { x: cx0, y: cz0 } : null };
-  const digits = String(n).length;
-  // Digits are about 0.62 em wide and 0.73 em tall (lining); 3 px clearance on every side.
-  const fit = Math.min(labelPx, (hPx - 6) / 0.73, (wPx - 6) / (digits * 0.62));
-  const fontPx = fit >= MIN_LABEL_PX ? fit : null;
-  const cx = (r.bounds.minX + r.bounds.maxX) / 2;
-  const cz = (r.bounds.minZ + r.bounds.maxZ) / 2;
-  if (!here) return { fontPx, label: fontPx ? { x: cx, y: cz } : null, dot: null };
-  if (!fontPx) return { fontPx: null, label: null, dot: { x: cx, y: cz } };
-  const numW = digits * 0.62 * fontPx;
-  const numH = 0.73 * fontPx;
-  // Number over dot: number, 4 px gap, 8 px dot, centred as one block.
-  if (hPx >= numH + 4 + 8 + 6) {
-    const block = numH + 4 + 8;
-    return { fontPx, label: { x: cx, y: cz - (block / 2 - numH / 2) * mpp }, dot: { x: cx, y: cz + (block / 2 - 4) * mpp } };
-  }
-  // Number beside dot.
-  if (wPx >= numW + 4 + 8 + 6) {
-    const block = numW + 4 + 8;
-    return { fontPx, label: { x: cx - (block / 2 - numW / 2) * mpp, y: cz }, dot: { x: cx + (block / 2 - 4) * mpp, y: cz } };
-  }
-  return { fontPx: null, label: null, dot: { x: cx, y: cz } };
-}
-
-/** The drawing's extent in metres: the museum's bounds plus a margin for the strokes. */
-function planBox(model: SceneModel) {
-  const b = model.bounds;
-  return { x: b.minX - PLAN_PAD_M, y: b.minZ - PLAN_PAD_M, w: b.maxX - b.minX + 2 * PLAN_PAD_M, h: b.maxZ - b.minZ + 2 * PLAN_PAD_M };
-}
 
 /**
  * The plan drawing fitted (meet) into a box of `boxPx` CSS px. Strokes, the dot and the numbers are

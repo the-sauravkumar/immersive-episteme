@@ -5,7 +5,8 @@
  *  - Architecture, resident for the whole visit, with the gallery finish of DR-023 (one parameter
  *    set, resources.ts GALLERY_FINISH): walls, posts and lintels on a 25 mm shadow-gap skirting and
  *    running up into a 150 mm ceiling cove; plinths or reading stands (DR-045), chamfered, on a recessed toe; door openings
- *    with plaster reveals and a 20 mm flush edge; thresholds; and per room the floor and ceiling
+ *    with plaster reveals a step under the wall and a 20 mm flush edge; stone-sill thresholds; the
+ *    lobby directory's plaster board (DR-047, number to confirm at merge); and per room the floor and ceiling
  *    with that room's normalised light map. All unlit (the finish's light is baked), merged per zone
  *    and material, so the whole building is a few dozen draw calls.
  *  - Lettering, streamed per room (the manifest's streaming units): the panel and sign atlases,
@@ -17,7 +18,7 @@ import * as THREE from "three";
 
 import { CATEGORY_SIGN_EM_FRACTION, DOOR_SIGN, doorSigns, panelTypeScale, type SceneDoorSign } from "@/features/immersive/placement";
 import { PLAQUE_WORDS, PLATE_VISITED_MARK, plaqueText } from "@/features/immersive/plaque-text";
-import { DIRECTORY, entranceDirectory, type DirectoryRow } from "@/features/immersive/wayfinding";
+import { DIRECTORY, directoryArrow, entranceDirectory, type DirectoryRow, type SceneDirectory } from "@/features/immersive/wayfinding";
 import type { SceneExhibit, SceneLabel, SceneModel, ScenePlane, SceneRoom } from "@/features/immersive/scene-model";
 import type { Vec3 } from "@/features/spatial/compiler/types";
 
@@ -120,6 +121,9 @@ export class MuseumWorld {
   /** The entrance directory rows (wayfinding.ts), by the room they hang in. */
   private readonly directoryByRoom = new Map<string, DirectoryRow[]>();
   readonly directoryRows: readonly DirectoryRow[];
+  /** The directory board's heading strip and board (null without a directory). */
+  private readonly directoryHeading: SceneDirectory["heading"] | null;
+  private readonly directoryBoard: { roomId: string; box: SceneDirectory["board"] } | null;
   private readonly typeScale: ReturnType<typeof panelTypeScale>;
   /** The room whose lettering is being drawn across frames (stepLettering). */
   private job: { roomId: string; job: AtlasJob } | null = null;
@@ -128,7 +132,7 @@ export class MuseumWorld {
   /** Exhibits marked visited (setVisited); their plates carry the "Visited" mark. */
   private visited = new Set<string>();
   /** The finish tints actually used (relative to the wall), for the probe and the record. */
-  finish: { wallTint: number; shadow: number; plinth: number; cove: number; doorEdge: [number, number, number]; threshold: number } | null = null;
+  finish: { wallTint: number; shadow: number; plinth: number; cove: number; doorEdge: [number, number, number]; reveal: number; threshold: number } | null = null;
   /** Mean of every room's stored floor and ceiling light map (F4: one mean for all rooms). */
   readonly lightMeans: { roomId: string; kind: "floor" | "ceiling"; mean: number }[] = [];
 
@@ -141,6 +145,8 @@ export class MuseumWorld {
     this.typeScale = panelTypeScale(model);
     const directory = entranceDirectory(model).directory;
     this.directoryRows = directory?.rows ?? [];
+    this.directoryHeading = directory?.heading ?? null;
+    this.directoryBoard = directory ? { roomId: directory.roomId, box: directory.board } : null;
     if (directory) this.directoryByRoom.set(directory.roomId, [...directory.rows]);
     for (const d of doorSigns(model)) (this.doorSignsByRoom.get(d.roomId) ?? this.doorSignsByRoom.set(d.roomId, []).get(d.roomId)!).push(d);
     this.root.name = "museum";
@@ -181,8 +187,12 @@ export class MuseumWorld {
     const edgeRgb = plasterTintRgb(F.doorEdge);
     const edge = (y: number): [number, number, number] => [edgeRgb[0] / at(y), edgeRgb[1] / at(y), edgeRgb[2] / at(y)];
     const cove = grey(preToneMap(F.coveLinear) / wallScene / at(H));
-    const threshold = grey(plasterTint(F.floorSrgb) / at(0));
-    this.finish = { wallTint: 1, shadow: shadow[0], plinth: plinth[0], cove: cove[0], doorEdge: edgeRgb, threshold: threshold[0] };
+    // F7: the reveal (lining face into the opening) at `revealSrgb` where it is lit like the card
+    // band, and the threshold a stone sill at `thresholdSrgb` (a horizontal top: the face shading's
+    // `top` is divided out too).
+    const reveal = (y: number) => grey(plasterTint(F.revealSrgb) / at(y));
+    const threshold = grey(plasterTint(F.thresholdSrgb) / at(0) / F.faceShade.top);
+    this.finish = { wallTint: 1, shadow: shadow[0], plinth: plinth[0], cove: cove[0], doorEdge: edgeRgb, reveal: reveal(1.9)[0], threshold: threshold[0] };
 
     const zones = new Map<string, SceneRoom[]>();
     for (const r of this.model.rooms) (zones.get(r.zoneId ?? "none") ?? zones.set(r.zoneId ?? "none", []).get(r.zoneId ?? "none")!).push(r);
@@ -232,11 +242,13 @@ export class MuseumWorld {
         if (roomZone.get(p.connects[0]) !== zoneId) continue;
         if (p.lintel) addBox(walls, { min: p.lintel.min, max: [p.lintel.max[0], reach(p.lintel), p.lintel.max[2]] }, { height: H });
         // F7: plaster reveals with a 20 mm flush edge: a lining's faces towards the rooms are the
-        // edge colour, its face into the opening (and the head's soffit) plaster.
+        // edge colour, its faces along the opening the reveal plaster (a step under the wall), and
+        // the head's soffit the wall plaster under the face shading's `down`.
         const roomAxis = p.axis === "z" ? 0 : 2;
+        const alongAxis = p.axis === "z" ? 2 : 0;
         for (const l of p.linings) {
           const mid = (l.min[1] + l.max[1]) / 2;
-          addBox(trims, l, { height: H }, { skipBottom: true, tintFor: (n) => (Math.abs(n[roomAxis]) > 0.5 ? edge(mid) : null) });
+          addBox(trims, l, { height: H }, { skipBottom: true, tintFor: (n) => (Math.abs(n[roomAxis]) > 0.5 ? edge(mid) : Math.abs(n[alongAxis]) > 0.5 ? reveal(mid) : null) });
         }
         if (p.threshold) {
           trims.tint = threshold;
@@ -273,8 +285,21 @@ export class MuseumWorld {
           for (let i = before; i < plinths.triangles; i++) plinthOwners.push(e.id);
         }
       }
+      // The lobby directory's board (DR-047): the reading-stand board's plaster tint and chamfer,
+      // behind the heading and rows. Merged into the zone's wall mesh (the same plaster material;
+      // the lobby has no plinths, so its own mesh would be a new draw call); a click on it is a
+      // click on the directory.
+      let board: [number, number] | null = null;
+      const b = this.directoryBoard;
+      if (b && rooms.some((r) => r.id === b.roomId)) {
+        const from = walls.triangles;
+        walls.tint = standTint(b.box);
+        addChamferedBox(walls, b.box, PLINTH_CHAMFER, { height: H });
+        walls.tint = [1, 1, 1];
+        board = [from, walls.triangles];
+      }
       const wm = this.addMesh(this.architecture, walls.build(`walls:${zoneId}`), this.mats.wall, `walls:${zoneId}`);
-      if (wm) this.pickables.push({ mesh: wm, ownerOf: () => ({ kind: "wall", id: zoneId }) });
+      if (wm) this.pickables.push({ mesh: wm, ownerOf: (f) => (board && f >= board[0] && f < board[1] ? { kind: "sign", id: "directory:board" } : { kind: "wall", id: zoneId }) });
       const pm = this.addMesh(this.architecture, plinths.build(`plinths:${zoneId}`), this.mats.plinth, `plinths:${zoneId}`);
       if (pm) this.pickables.push({ mesh: pm, ownerOf: (f) => (plinthOwners[f] ? { kind: "exhibit", id: plinthOwners[f]! } : null) });
       this.addMesh(this.architecture, trims.build(`trims:${zoneId}`), this.mats.trim, `trims:${zoneId}`);
@@ -331,7 +356,7 @@ export class MuseumWorld {
         addAtlasPlane(blank, l.sign, full);
         owners.push(`sign:${l.id}`, `sign:${l.id}`);
       }
-      for (const d of [...(this.doorSignsByRoom.get(r.id) ?? []), ...(this.directoryByRoom.get(r.id) ?? [])]) {
+      for (const d of [...(this.doorSignsByRoom.get(r.id) ?? []), ...this.directorySigns(r.id)]) {
         addAtlasPlane(blank, d.sign, full);
         owners.push(`sign:${d.id}`, `sign:${d.id}`);
       }
@@ -342,6 +367,12 @@ export class MuseumWorld {
         this.pickables.push({ mesh: bm, ownerOf: (f) => ownerAt(owners, f) });
       }
     }
+  }
+
+  /** The directory's heading and rows hanging in a room (empty for every other room). */
+  private directorySigns(roomId: string): { id: string; sign: ScenePlane }[] {
+    const rows = this.directoryByRoom.get(roomId) ?? [];
+    return rows.length > 0 && this.directoryHeading ? [this.directoryHeading, ...rows] : rows;
   }
 
   /** Builds lettering for rooms entering `want` and disposes it for rooms leaving. Returns true if anything changed. */
@@ -444,9 +475,15 @@ export class MuseumWorld {
         const em = s.h * CATEGORY_SIGN_EM_FRACTION;
         return { id: `sign:${l.id}`, kind: "sign" as const, widthM: s.w, heightM: s.h, kicker: null, title: l.label, footer: null, em: { kicker: em, title: em, footer: em } };
       }),
+      ...this.directorySigns(roomId)
+        .filter((d) => d.id === this.directoryHeading?.id)
+        .map((d) => {
+          const s = size(d.sign);
+          return { id: `sign:${d.id}`, kind: "heading" as const, widthM: s.w, heightM: s.h, kicker: null, title: this.directoryHeading!.title, footer: null, em: { kicker: DIRECTORY.headingEm, title: DIRECTORY.headingEm, footer: DIRECTORY.headingEm } };
+        }),
       ...(this.directoryByRoom.get(roomId) ?? []).map((d) => {
         const s = size(d.sign);
-        return { id: `sign:${d.id}`, kind: "directory" as const, widthM: s.w, heightM: s.h, kicker: null, title: d.title, footer: d.direction, em: { kicker: DIRECTORY.lineEm, title: DIRECTORY.titleEm, footer: DIRECTORY.lineEm } };
+        return { id: `sign:${d.id}`, kind: "directory" as const, widthM: s.w, heightM: s.h, kicker: null, title: d.title, footer: d.direction, arrow: { kind: directoryArrow(d), sizeM: DIRECTORY.arrowSize }, em: { kicker: DIRECTORY.lineEm, title: DIRECTORY.titleEm, footer: DIRECTORY.lineEm } };
       }),
       ...doors.map((d) => {
         const s = size(d.sign);
@@ -519,7 +556,7 @@ export class MuseumWorld {
   private installLettering(roomId: string, atlas: LabelAtlas | null) {
     const exhibits = this.exhibitsByRoom.get(roomId) ?? [];
     const labels = this.labelsByRoom.get(roomId) ?? [];
-    const doors = [...(this.doorSignsByRoom.get(roomId) ?? []), ...(this.directoryByRoom.get(roomId) ?? [])];
+    const doors = [...(this.doorSignsByRoom.get(roomId) ?? []), ...this.directorySigns(roomId)];
     const entry: RoomLettering = { meshes: [], materials: [], textures: [], geometries: [] };
     const pick: Pickable[] = [];
     if (atlas) {

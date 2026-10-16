@@ -5,9 +5,9 @@
 import { describe, expect, it } from "vitest";
 
 import { CollisionWorld, ROUTE_PACE, VISITOR, createRouter, moveInputFromKeys, stepVisitor, type VisitorState } from "@/features/immersive/navigation";
-import { DOOR_SIGN, doorSigns, emForDistance } from "@/features/immersive/placement";
+import { DOOR_SIGN, doorSignWidth, doorSigns, emAngle, emForDistance, pixelAngle } from "@/features/immersive/placement";
 import { buildSceneModel, roomAt } from "@/features/immersive/scene-model";
-import { DIRECTORY, WAYFINDING_WORDS, directoryReadingPoint, doorwayAtWallHit, doorwayToRoomSeen, doorwayWalkTarget, entranceDirectory, farSide, forwardOf } from "@/features/immersive/wayfinding";
+import { DIRECTORY, WAYFINDING_WORDS, directoryArrow, directoryReadingPoint, doorwayAtWallHit, doorwayToRoomSeen, doorwayWalkTarget, entranceDirectory, farSide, forwardOf } from "@/features/immersive/wayfinding";
 import { layoutConfigSchema } from "@/features/spatial/compiler";
 import { compareStrings } from "@/features/spatial/compiler/prng";
 
@@ -69,9 +69,10 @@ describe("entrance directory", () => {
     // Facing back at the spawn.
     const n = { "+x": [1, 0], "-x": [-1, 0], "+z": [0, 1], "-z": [0, -1] }[s.facing as "+x"]!;
     expect(n[0]! * f.x + n[1]! * f.z).toBeCloseTo(-1, 9);
-    // At the reading distance (the compiler's hub spawn depth is the same number), less the wall's half thickness.
+    // At the reading distance (the compiler's hub spawn depth is the same number), less the wall's
+    // half thickness and the board the rows hang on (DR-047).
     expect(layoutConfigSchema.parse({}).hubSpawnDepth).toBe(DIRECTORY.readingDistance);
-    expect(Math.abs(depth(c) - DIRECTORY.readingDistance)).toBeLessThan(0.11);
+    expect(Math.abs(depth(c) - DIRECTORY.readingDistance)).toBeLessThan(0.11 + DIRECTORY.board.depth + DIRECTORY.offset);
     // The whole stack fits the 1280 x 800 view from the spawn (horizontal half-angle).
     const hfov = 2 * Math.atan(Math.tan(((VISITOR.fov * Math.PI) / 180) / 2) * (1280 / 800));
     expect(Math.atan(DIRECTORY.rowWidth / 2 / depth(c))).toBeLessThan(hfov / 2);
@@ -92,13 +93,99 @@ describe("entrance directory", () => {
       expect(e.panel.facing !== s0.facing || Math.abs(e.panel.min[2] - s0.min[2]) > 0.2 || overlap <= 0, e.id).toBe(true);
     }
     const bottom = Math.min(...directory!.rows.map((r) => r.sign.min[1]));
-    const top = Math.max(...directory!.rows.map((r) => r.sign.max[1]));
+    const top = directory!.heading.sign.max[1];
     expect(bottom).toBeGreaterThanOrEqual(DIRECTORY.minBottom - 1e-9);
-    // Five rows in the hub (three wings, the hall, the commons): lifted off the floor, still whole in the
-    // vertical view from the reading distance at eye height.
-    expect(top).toBeLessThan(2.6);
+    // Five rows in the hub (three wings, the hall, the commons) under the heading: lifted off the
+    // floor, under the ceiling clearance, still whole in the vertical view from the reading distance
+    // at eye height.
+    const room = model.rooms.find((r) => r.id === directory!.roomId)!;
+    expect(top).toBeLessThanOrEqual(room.height - 0.3 + 1e-9);
     const half = ((VISITOR.fov * Math.PI) / 180) / 2;
     for (const y of [bottom, top]) expect(Math.abs(Math.atan((y - VISITOR.eyeHeight) / DIRECTORY.readingDistance))).toBeLessThan(half);
+  });
+
+  it("hangs the heading and rows on one board: the board shows between them, not the wall (DR-047)", () => {
+    const d = directory!;
+    const strips = [d.heading, ...d.rows].map((r) => r.sign);
+    expect(d.heading.title).toBe("Directory");
+    expect(d.heading.id).toBe("directory:heading");
+    // One plane, one width, every gap the board's.
+    expect(new Set(strips.map((s) => `${s.facing}|${s.min[2]}|${s.min[0]}|${s.max[0]}`)).size).toBe(1);
+    for (let i = 1; i < strips.length; i++) expect(strips[i - 1]!.min[1] - strips[i]!.max[1]).toBeCloseTo(DIRECTORY.gap, 6);
+    expect(d.heading.sign.max[1] - d.heading.sign.min[1]).toBeCloseTo(DIRECTORY.headingHeight, 6);
+    // The board runs `margin` past the stack on every side, `board.depth` off the wall, with the
+    // strips `offset` proud of its face.
+    const b = d.board;
+    const m = DIRECTORY.board.margin;
+    const s0 = strips[0]!;
+    expect(b.min[0]).toBeCloseTo(s0.min[0] - m, 6);
+    expect(b.max[0]).toBeCloseTo(s0.max[0] + m, 6);
+    expect(b.max[1]).toBeCloseTo(d.heading.sign.max[1] + m, 6);
+    expect(b.min[1]).toBeCloseTo(Math.min(...strips.map((s) => s.min[1])) - m, 6);
+    expect(b.max[2] - b.min[2]).toBeCloseTo(DIRECTORY.board.depth, 6);
+    const n = s0.facing === "+z" ? 1 : -1;
+    const face = n > 0 ? b.max[2] : b.min[2];
+    expect((s0.min[2] - face) * n).toBeCloseTo(DIRECTORY.offset, 6);
+    for (const s of strips) expect(s.wallOffset).toBeCloseTo(DIRECTORY.board.depth + DIRECTORY.offset, 9);
+    // Inside the solid wall stretch the directory checks (clearance either side) and under the cove.
+    expect(b.max[0] - b.min[0]).toBeLessThan(DIRECTORY.rowWidth + 2 * DIRECTORY.clearance);
+    const room = model.rooms.find((r) => r.id === d.roomId)!;
+    expect(b.max[1]).toBeLessThan(room.height);
+    // The paper on the board (plinth plaster, sRGB 226) is 1.30:1.
+    const lin = (v: number) => ((v / 255 + 0.055) / 1.055) ** 2.4;
+    expect((1 + 0.05) / (lin(226) + 0.05)).toBeCloseTo(1.3, 1);
+  });
+
+  it("keeps the floor in front of the board free of plinths (stand-off) and the board off the walking area", () => {
+    const d = directory!;
+    const s0 = d.rows[0]!.sign;
+    const n = s0.facing === "+z" ? 1 : -1;
+    const front = n > 0 ? d.board.max[2] : d.board.min[2];
+    expect(DIRECTORY.board.depth).toBeLessThan(DIRECTORY.standOff);
+    for (const e of model.exhibits) {
+      if (e.roomId !== d.roomId || !e.plinth) continue;
+      const overlap = Math.min(d.board.max[0], e.plinth.max[0]) - Math.max(d.board.min[0], e.plinth.min[0]);
+      if (overlap <= 0) continue;
+      const near = n > 0 ? e.plinth.min[2] : e.plinth.max[2];
+      expect((near - front) * n, e.id).toBeGreaterThanOrEqual(DIRECTORY.standOff);
+    }
+    // The spawn stands well in front of the board.
+    expect(Math.abs(model.spawn.z - front)).toBeGreaterThan(DIRECTORY.standOff);
+  });
+
+  it("gives every row one arrow for the way its words give, the same size and weight in every row", () => {
+    const d = directory!;
+    expect(d.rows.map((r) => directoryArrow(r))).toEqual(["left", "back", "right", "left-right", "up"]);
+    expect(d.rows.map((r) => r.way)).toEqual([
+      { wall: "left", side: "left" },
+      { wall: "opposite", side: null },
+      { wall: "right", side: "right" },
+      { wall: "this", side: "both" },
+      { wall: "through", side: null },
+    ]);
+    // The pure mapping, every way.
+    expect(directoryArrow({ way: { wall: "this", side: "left" } })).toBe("left");
+    expect(directoryArrow({ way: { wall: "this", side: "right" } })).toBe("right");
+    expect(directoryArrow({ way: { wall: "far", side: "right" } })).toBe("right");
+    expect(directoryArrow({ way: { wall: "far", side: "left" } })).toBe("left");
+    expect(directoryArrow({ way: { wall: "entrance", side: "left" } })).toBe("back");
+    expect(directoryArrow({ way: { wall: "end", side: "right" } })).toBe("right");
+    expect(directoryArrow({ way: { wall: "ahead", side: null } })).toBe("up");
+    // Straight on is never also the way back: no two opposite directions share an arrow.
+    expect(directoryArrow({ way: { wall: "opposite", side: null } })).not.toBe(directoryArrow({ way: { wall: "through", side: null } }));
+    // The arrow column fits the row with a 5 cm pad above and below.
+    expect(DIRECTORY.arrowSize).toBeLessThanOrEqual(DIRECTORY.rowHeight - 2 * 0.05 + 1e-9);
+  });
+
+  it("is legible from the spawn: the title em subtends at least 0.0328 rad (about 25 px at 1440 x 900)", () => {
+    const s = directory!.rows[0]!.sign;
+    const c = { x: (s.min[0] + s.max[0]) / 2, z: (s.min[2] + s.max[2]) / 2 };
+    const d = Math.hypot(c.x - model.spawn.x, c.z - model.spawn.z);
+    expect(emAngle(DIRECTORY.titleEm, d)).toBeGreaterThanOrEqual(0.0328);
+    // 0.0328 rad is 24.6 px at the centre of a 900 px tall, 62 degree view (the spec's "27 px" was
+    // a slip); the rows at the spawn give 0.0343 rad, 25.7 px.
+    expect(emAngle(DIRECTORY.titleEm, d)).toBeGreaterThanOrEqual(pixelAngle(25, 900, VISITOR.fov));
+    expect(Math.min(DIRECTORY.titleEm, DIRECTORY.lineEm, DIRECTORY.headingEm)).toBeGreaterThanOrEqual(emForDistance(DIRECTORY.readingDistance));
   });
 
   it("has a free reading point in its room, on its axis, facing it, reachable from the spawn", () => {
@@ -183,11 +270,21 @@ describe("click-to-walk through doorways", () => {
     if (!near) expect(doorwayAtWallHit(model, mid)).toBeNull();
   });
 
-  it("door signs are legible from mid-room (name from 6 m, zone line from 4.4 m) and one size everywhere", () => {
+  it("door signs are legible from mid-room (name from 6 m, zone line from 4.4 m), sized by their opening, and one size everywhere", () => {
     expect(DOOR_SIGN.titleEm).toBeGreaterThanOrEqual(emForDistance(DOOR_SIGN.readFrom));
     expect(DOOR_SIGN.kickerEm).toBeGreaterThanOrEqual(emForDistance(4.4));
+    // Width = clamp(opening + 2 x 0.10, 1.40, 2.20) (DR-047), centred on the opening.
+    expect(doorSignWidth(1.5)).toBeCloseTo(1.7, 9);
+    expect(doorSignWidth(0.9)).toBeCloseTo(1.4, 9);
+    expect(doorSignWidth(2.4)).toBeCloseTo(2.2, 9);
+    for (const d of doorSigns(model)) {
+      const p = model.portals.find((x) => x.id === d.portalId)!;
+      const along = p.axis === "z" ? 2 : 0;
+      expect(d.sign.max[along]! - d.sign.min[along]!).toBeCloseTo(doorSignWidth(p.width), 6);
+      expect((d.sign.max[along]! + d.sign.min[along]!) / 2).toBeCloseTo(along === 2 ? p.position.z : p.position.x, 6);
+    }
     const sizes = new Set(doorSigns(model).map((d) => [Math.max(d.sign.max[0] - d.sign.min[0], d.sign.max[2] - d.sign.min[2]), d.sign.max[1] - d.sign.min[1]].map((v) => v.toFixed(3)).join("x")));
-    expect([...sizes]).toEqual([`${DOOR_SIGN.width.toFixed(3)}x${DOOR_SIGN.height.toFixed(3)}`]);
+    expect([...sizes]).toEqual([`${doorSignWidth(model.portals[0]!.width).toFixed(3)}x${DOOR_SIGN.height.toFixed(3)}`]);
   });
 
   it("walks through the doorway when the click lands on the next room's far wall, seen through it", () => {

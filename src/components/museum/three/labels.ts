@@ -24,6 +24,7 @@
  * RGBA texture per label (4 bytes -> 1 byte per texel), and the same text is always available
  * in the DOM (exhibit list and information panel), never only in the 3D scene.
  */
+import type { DirectoryArrow } from "@/features/immersive/wayfinding";
 import { titleCase } from "@/lib/text/title-case";
 import * as THREE from "three";
 
@@ -42,9 +43,10 @@ export interface LabelItem {
   id: string;
   /**
    * panel: exhibit card; sign: category sign (one line); door: doorway sign (where it leads);
-   * directory: one row of the entrance directory (the destination, and the doorway to it).
+   * directory: one row of the entrance directory (the destination, and the doorway to it);
+   * heading: the directory board's heading ("Directory"), one left-aligned line.
    */
-  kind: "panel" | "sign" | "door" | "directory";
+  kind: "panel" | "sign" | "door" | "directory" | "heading";
   /** Type sizes in metres (em), from the legibility rule (src/features/immersive/placement.ts). */
   em: { kicker: number; title: number; footer: number };
   widthM: number;
@@ -54,6 +56,8 @@ export interface LabelItem {
   footer: string | null;
   /** A quiet mark at the plate's foot, right-aligned ("Visited"); plates only. */
   mark?: string | null;
+  /** Directory rows: the arrow drawn in the leading column (`directoryArrow`), and its square's side in metres. */
+  arrow?: { kind: DirectoryArrow; sizeM: number } | null;
 }
 
 export interface AtlasRect {
@@ -160,6 +164,67 @@ function wrapLines(ctx: CanvasRenderingContext2D, s: number, text: string, maxWi
   return lines;
 }
 
+/**
+ * A direction arrow as a vector path (no font glyph, so it is the same in every face), drawn as
+ * coverage in a `size`-texel square at (x, y): a stroke a tenth of the square wide with a solid
+ * head. `back` is a turn-back arrow (a doorway behind the reader).
+ */
+export function drawArrow(ctx: CanvasRenderingContext2D, kind: DirectoryArrow, x: number, y: number, size: number) {
+  const S = (v: number) => v * size;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = "#fff";
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = size * 0.1;
+  ctx.lineCap = "butt";
+  ctx.lineJoin = "round";
+  const head = (tx: number, ty: number, dx: number, dy: number, len = 0.34, hw = 0.25) => {
+    const bx = tx - dx * len;
+    const by = ty - dy * len;
+    ctx.beginPath();
+    ctx.moveTo(S(tx), S(ty));
+    ctx.lineTo(S(bx - dy * hw), S(by + dx * hw));
+    ctx.lineTo(S(bx + dy * hw), S(by - dx * hw));
+    ctx.closePath();
+    ctx.fill();
+  };
+  const line = (pts: [number, number][]) => {
+    ctx.beginPath();
+    pts.forEach(([px, py], i) => (i === 0 ? ctx.moveTo(S(px), S(py)) : ctx.lineTo(S(px), S(py))));
+    ctx.stroke();
+  };
+  switch (kind) {
+    case "right":
+      line([[0.06, 0.5], [0.62, 0.5]]);
+      head(0.94, 0.5, 1, 0);
+      break;
+    case "left":
+      line([[0.94, 0.5], [0.38, 0.5]]);
+      head(0.06, 0.5, -1, 0);
+      break;
+    case "up":
+      line([[0.5, 0.94], [0.5, 0.38]]);
+      head(0.5, 0.06, 0, -1);
+      break;
+    case "left-right":
+      line([[0.3, 0.5], [0.7, 0.5]]);
+      head(0.02, 0.5, -1, 0, 0.3);
+      head(0.98, 0.5, 1, 0, 0.3);
+      break;
+    case "back":
+      // Up the right, over the top, and back down the left: turn round.
+      ctx.beginPath();
+      ctx.moveTo(S(0.72), S(0.94));
+      ctx.lineTo(S(0.72), S(0.42));
+      ctx.arc(S(0.5), S(0.42), S(0.22), 0, Math.PI, true);
+      ctx.lineTo(S(0.28), S(0.64));
+      ctx.stroke();
+      head(0.28, 0.96, 0, 1, 0.34, 0.22);
+      break;
+  }
+  ctx.restore();
+}
+
 function drawItem(ctx: CanvasRenderingContext2D, item: LabelItem, x: number, y: number, w: number, h: number) {
   const sans = sansFamily();
   const W = LETTERING_WEIGHT;
@@ -176,22 +241,35 @@ function drawItem(ctx: CanvasRenderingContext2D, item: LabelItem, x: number, y: 
     ctx.restore();
     return;
   }
+  if (item.kind === "heading") {
+    // The directory board's heading: one line in 700, left-aligned on the rows' pad.
+    const size = px(item.em.title);
+    const s = setFace(ctx, W.title, size, sans, LETTERING_OPSZ_PX.plaque);
+    const pad = px(0.05);
+    fillAt(ctx, wrapLines(ctx, s, titleCase(item.title), w - 2 * pad, 1)[0] ?? "", pad, (h + size * 0.7) / 2, s);
+    ctx.restore();
+    return;
+  }
   if (item.kind === "directory") {
-    // Left-aligned on a fixed pad: the destination in 700 on the first line, the doorway that
-    // leads there in 600 on the second, at the same place in every row so the rows align. A name
-    // wider than the row is set smaller to fit on its line (never cut): measured in the browser.
+    // The arrow in the leading column (same size and weight in every row), then, left-aligned on a
+    // fixed column: the destination in 700 on the first line, the doorway that leads there in 600
+    // on the second, at the same place in every row so the rows align. A name wider than the row
+    // is set smaller to fit on its line (never cut): measured in the browser.
     const pad = px(0.05);
     const t = px(item.em.title);
     const f = px(item.em.footer);
+    const a = item.arrow ? px(item.arrow.sizeM) : 0;
+    if (item.arrow) drawArrow(ctx, item.arrow.kind, pad, Math.round((h - a) / 2), a);
+    const tx = item.arrow ? pad + a + pad : pad;
     const name = titleCase(item.title);
     let ts = setFace(ctx, W.title, t, sans, LETTERING_OPSZ_PX.plaque);
-    const room = w - 2 * pad;
+    const room = w - tx - pad;
     const wide = measure(ctx, name, ts);
     if (wide > room) ts *= room / wide;
-    fillAt(ctx, name, pad, pad + t * 0.85, ts);
+    fillAt(ctx, name, tx, pad + t * 0.85, ts);
     if (item.footer) {
       const fs = setFace(ctx, W.line, f, sans, LETTERING_OPSZ_PX.plaque);
-      fillAt(ctx, wrapLines(ctx, fs, item.footer, room, 1)[0] ?? "", pad, h - pad - Math.round(f * 0.2), fs);
+      fillAt(ctx, wrapLines(ctx, fs, item.footer, room, 1)[0] ?? "", tx, h - pad - Math.round(f * 0.2), fs);
     }
     ctx.restore();
     return;

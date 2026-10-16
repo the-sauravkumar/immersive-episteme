@@ -2,7 +2,10 @@
  * Public home (DESIGN.md 10.1, DR-022). In order:
  *  1. the title block, left-aligned on columns 1 to 7: the h1 in Anek Latin `text-display-1`, the
  *     deck, ONE primary action ("Explore the demo") and a text link ("Read the method"). No
- *     eyebrow, no hero card or plate beside it (the "headline + two buttons + card" formula);
+ *     eyebrow and no hero card (the "headline + two buttons + card" formula). Beside it on lg and
+ *     up, columns 8 to 12: Plate 1, the plan of the compiled demo museum drawn by the 3D plan's
+ *     own code, never taller than the title block (DR-047, number to confirm at merge, amends
+ *     DR-022 for this block only: data, not decoration). Hidden below lg;
  *  2. Figure 1, "One Knowledge Model, Two Conditions", full grid width on one indigo plate with live
  *     counts: the single place where the public pages spend their boldness. Static. Its text
  *     equivalents follow: the count list, the two conditions as text and the booktabs table;
@@ -24,6 +27,7 @@ import { DatasetTable } from "@/components/public/dataset-table";
 import { FigureOneCountList, FigureOneDiagram } from "@/components/public/figure-one";
 import { IdenticalDiffersTable } from "@/components/public/identical-differs-table";
 import { InstitutionStrip } from "@/components/public/institution-strip";
+import { MuseumPlanPlate, MuseumPlanPlateFrame } from "@/components/public/museum-plan-plate";
 import { TraditionIndex } from "@/components/public/tradition-plates";
 import { Button } from "@/components/ui/button";
 import { INSTITUTION } from "@/config/institution";
@@ -133,9 +137,9 @@ const CONDITIONS = [
 export default function HomePage() {
   return (
     <div className="flex flex-col gap-24 max-xs:gap-16">
-      {/* 1. Title block on columns 1-7, left-aligned; nothing beside it. */}
-      <section aria-labelledby="home-title" className="grid lg:grid-cols-12 lg:gap-x-6">
-        <div className="flex flex-col gap-6 pt-4 lg:col-span-7">
+      {/* 1. Title block on columns 1-7, left-aligned; Plate 1 on columns 8-12 from lg (DR-047). */}
+      <section aria-labelledby="home-title" className="grid lg:grid-cols-12 lg:grid-rows-[auto_auto] lg:gap-x-6">
+        <div className="flex flex-col gap-6 pt-4 lg:col-span-7 lg:col-start-1 lg:row-start-1">
           <h1 id="home-title" className="text-display-1 text-ink">
             Immersive Episteme
           </h1>
@@ -151,6 +155,9 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
+        <Suspense fallback={<MuseumPlanPlateFrame plan={null} />}>
+          <MuseumPlanPlate />
+        </Suspense>
       </section>
 
       {/* 2. Figure 1 on the indigo plate, then its text equivalents. */}

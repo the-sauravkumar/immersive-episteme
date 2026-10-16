@@ -1794,3 +1794,76 @@ researchers' decisions:
 - **Paper implications:** report figure balance as "equal per section and per knowledge layer
   across the study traditions". Report runtime WebGL failures under the preregistered failure
   policy, with their count per condition.
+
+## DR-047 (number to confirm at merge): Visual Pass: Visible Gallery Light, Finished Floor and Ceiling, Portal Reveals, a Directory Board, and a Plan Plate Beside the Home Title (Proposed; adopted after the low-tier measurement)
+
+- **Context:** the finished 3D build reads flat. The wall wash fell only 3.5% at 0.3 m (rendered
+  201.5 against 205) and rose only 4.8% at 3.1 m (212), both under the visible step for a gradual
+  gradient. The ceiling was a uniform slab (sRGB 196, cove up-light 0.16). The floor grain had no
+  hue (the neutral gain removes all of the map's chroma). The directory was five loose white rows on
+  bare wall, with no heading and directions in words only. Door openings were holes with a hairline
+  edge, and the fixed 2.2 m door signs ran 0.35 m past a 1.5 m opening. The home title block left
+  columns 8 to 12 empty at 1024 px and wider.
+- **Decision (3D, one parameter set, no zone, tradition or room key; `GALLERY_FINISH`):**
+  - Wall wash `0.70 / 0.40 / 0.16 / 0.30` (floor, floor falloff, cove, cove falloff). Rendered:
+    176.8 at 0.05 m, 190.6 at 0.3 m, 201.0 at 0.8 m, 205.0 at 1.9 m, 209.0 at 2.8 m, 215.8 at
+    3.1 m, 219.8 at 3.2 m. The card band stays flat (1.13%; within 0.57% of the band level) and the
+    cove slot (`coveLinear` 0.72) is unchanged, so clipping cannot rise from the wash.
+  - Ceiling sRGB 188 with the cove up-light `0.32 / 0.70`: stored edge/centre 1.239; every room's
+    edge texels (within 0.2 m of an edge) are 1.258 to 1.265 times its centre texels (more than
+    2 m in). Every room's floor and ceiling mean stays 1 (within 1%).
+  - Floor detail 0.70 and a new `floorChroma` 0.30: the floor shader mixes 0.30 of the map's own
+    hue back in around the same luminance (`chromaGain`, luminance exactly 1; program key
+    `ie-floor-v2`, still one floor program). Computed floor mean: CIELAB L* 42.4, a* 1.3, b* 5.1,
+    C* 5.3, at sRGB 100. Walls stay neutral (a*, b* 0).
+  - Floor contact `0.42 / 0.40`: one wall gives 0.63 at 5 cm and 0.88 at 0.5 m before
+    normalising; room edges sit at 0.61 to 0.69 of the room mean.
+  - Portals: reveal faces (the lining faces along the opening) at sRGB 182; the soffit keeps the
+    wall plaster under the face shading `down` (about 165); the 20 mm `#3f454c` edge is unchanged;
+    the threshold is a stone sill at sRGB 150 (0.5 x the wall's linear luminance), its tint divided
+    by the wash at the floor and the top face shading. Door-sign width = clamp(opening + 2 x 0.10,
+    1.40, 2.20) m, centred (1.70 m on the study's 1.5 m openings); the type is unchanged.
+  - Lobby directory: one plaster board (the reading-stand board's tint and chamfer, 40 mm deep,
+    0.12 m past the stack on every side) behind a "Directory" heading strip (0.18 m, em 0.13) and
+    the rows (0.36 m, gap 0.012 m, title em 0.115, line em 0.085), all 3 mm proud of the board.
+    Each row leads with a 0.20 m vector arrow from `directoryArrow` (wayfinding.ts): left and right
+    for the side walls, both ways for "Doorways either side of this sign", up (straight on) for
+    "Through the comparison hall", and a turn-back arrow for the opposite wall. The spec had "up"
+    for the opposite wall too; the opposite wall is behind the reader, and one arrow for two opposite
+    ways would mislead, so it was changed. The board is merged into the lobby's wall mesh (the same
+    plaster material): the lobby has no plinths, so a plinth mesh there would have been a new draw
+    call. A click on the board is a click on the directory.
+  - Baked only: no new material, program, light, post pass, render target or prop.
+- **Decision (home):** Plate 1, the plan of the museum the public demo walks (the demo study's
+  manifest on the newest review snapshot, found as the demo finds it), in columns 8 to 12 at lg and
+  up, drawn by the 3D plan's own code (`src/features/immersive/plan-drawing.ts`, which the minimap
+  now imports): 1.5 px ink outlines, doorway gaps, every exhibit as a 3 px ink-2 square, section
+  numbers of at least 12 px on the wing rooms, "Entrance" and "Comparison Hall" on leaders, and one
+  2 px indigo route from the spawn to each wing's doorway (all three 5.5 m in the study layout). The
+  drawing fills the title block's row and never makes it taller; the caption sits under it; hidden
+  below lg. Amends DR-022 for the home title block only.
+- **Rationale:** ERCO (uniform wall washing; a visible source at the cove); Smithsonian Guidelines
+  (limit level changes: means stay normalised, C2b +/-5%); Mayer's coherence principle (data, not
+  decoration, beside the title).
+- **Found while implementing:**
+  - At the 1440 x 900 spawn the two hall door signs on the directory wall are cut by the frame even
+    at the new width (computed projection: west sign -74 to 301 px, east 1139 to 1514 px; at 2.2 m
+    they were -129 to 356 and 1084 to 1569). They would have to be about 1.0 m wide to fit, under
+    the 1.4 m minimum, so the "fully inside or fully outside" target is impossible in this hub
+    layout at this width. Left to a compiler DR on the spawn pose; the spawn is not moved here.
+  - The spec's legibility target "0.0328 rad, at least 27 px at 1440 x 900" mixes two numbers:
+    0.0328 rad is 24.6 px at the centre of a 900 px, 62 degree view. The rows give 0.0343 rad
+    (25.7 px) from the spawn, now that they hang 43 mm off the wall.
+- **Checks:** unit (finish targets, lightMeans 1 +/- 1%, ceiling edge/centre >= 1.20, floor
+  chroma and wall neutrality, reveal and sill tints, directory board, heading, arrows and
+  stand-off, door-sign width, plan drawing and plate); GPU C1 to C12 plus the new finish targets
+  on the GTX 1650 and the Iris Xe low tier (p95 <= 33 ms, and <= +1 ms against a same-session
+  baseline); C5 baselines re-approved after a human look; public-pages, design-acceptance and
+  alignment e2e; the 7-point equivalence check.
+- **Stop rule:** if C2 clipping exceeds 0.5%, C2b leaves +/-5%, the low-tier p95 exceeds 33 ms or
+  C1b shimmer appears, that parameter alone goes back to its previous value and is re-measured.
+  Budget is not traded for looks.
+- **Equivalence:** a navigation-only change in 3D; no content, citation or telemetry change; equal
+  salience across wings (one parameter set, equal rows and arrows). Methodologist sign-off with
+  DR-021/DR-023 before participant data. The home plate is a public page, not a study condition,
+  and ships in the same release as the 3D change (DR-023's release-together rule).
