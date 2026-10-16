@@ -16,79 +16,20 @@
  *     never be published, so no study can be activated on it). The demo and staff preview of
  *     /learn/* use it to pick the manifest and the traditions (src/server/learning/context-data.ts).
  *
+ * Steps 3-6 live in scripts/content/public-demo.ts, shared with `npm run content:bootstrap:remote`
+ * (production: no migrations of a test database, no demo seed, no users).
+ *
  * Refuses to run against a non-local database. Prints the real row counts at the end.
  */
 import { drizzle } from "drizzle-orm/node-postgres";
-import type { PoolClient } from "pg";
 
 import { seeds } from "../../db/seeds";
-import { nodeSha256 } from "../../src/features/knowledge/graph/hash-node";
-import { importContent } from "../../src/server/content/import-content";
-import { storeReviewSnapshot } from "../../src/server/content/review-snapshot";
-import { compileAndStoreManifest, type StoredManifest } from "../../src/server/spatial/manifest-store";
-import { REPO_ROOT, loadAndValidate } from "../content/_shared";
+import { buildPublicDemo, counts } from "../content/public-demo";
 import { isLocalHost, makePool, redact, runMigrations } from "../db/_shared";
 
-export const SHORTLIST = ["ajrakh", "sanganeri", "machilipatnam-kalamkari"] as const;
-export const DEMO_REVIEW_STUDY_SLUG = "demo-review-walkthrough";
+export { DEMO_REVIEW_STUDY_SLUG, SHORTLIST } from "../content/public-demo";
 
 const log = (msg: string) => console.log(`[dev:bootstrap] ${msg}`);
-
-async function ensureDemoStudy(client: PoolClient, snapshotId: string, manifest: StoredManifest): Promise<string> {
-  const config = {
-    traditionSlugs: [...SHORTLIST],
-    nonExperimental: true,
-    searchEnabled: true,
-    notes:
-      "Development demo pinned to the REVIEW snapshot (content not verified by a curator). Never experimental, " +
-      "never activatable: review snapshots cannot be published.",
-  };
-  const existing = await client.query<{ id: string; status: string }>("SELECT id, status FROM studies WHERE slug = $1", [DEMO_REVIEW_STUDY_SLUG]);
-  let id = existing.rows[0]?.id;
-  if (!id) {
-    const r = await client.query<{ id: string }>(
-      `INSERT INTO studies (slug, title, description, protocol_version, design, snapshot_id, manifest_id, config, allow_unverified_content, is_demo)
-       VALUES ($1, $2, $3, 'demo-1', 'between', $4, $5, $6::jsonb, true, true) RETURNING id`,
-      [
-        DEMO_REVIEW_STUDY_SLUG,
-        "Demo: Review-content walkthrough (non-experimental)",
-        "Demo study for development and the public demo. Not a real study; its data is never experimental.",
-        snapshotId,
-        manifest.id,
-        JSON.stringify(config),
-      ],
-    );
-    id = r.rows[0]!.id;
-  } else if (existing.rows[0]!.status === "draft") {
-    await client.query("UPDATE studies SET snapshot_id = $2, manifest_id = $3, config = $4::jsonb WHERE id = $1", [id, snapshotId, manifest.id, JSON.stringify(config)]);
-  } else {
-    throw new Error(`${DEMO_REVIEW_STUDY_SLUG} is ${existing.rows[0]!.status}; expected draft`);
-  }
-  await client.query(
-    `INSERT INTO study_conditions (study_id, code, label, interface, position)
-     VALUES ($1, 'conventional', 'Conventional 2D pages', 'conventional_2d', 0), ($1, 'immersive', 'Immersive 3D museum', 'immersive_3d', 1)
-     ON CONFLICT (study_id, code) DO NOTHING`,
-    [id],
-  );
-  return id;
-}
-
-async function counts(client: PoolClient): Promise<Record<string, string>> {
-  const tables = [
-    "content_packages", "traditions", "sources", "concepts", "concept_claims", "concept_claim_sources", "relationships",
-    "relationship_sources", "tradition_sources", "media_candidates", "content_snapshots", "snapshot_items", "mapping_rule_sets",
-    "spatial_manifests", "spatial_elements", "spatial_element_encodings", "studies", "study_conditions", "event_types", "audit_log",
-  ];
-  const out: Record<string, string> = {};
-  for (const t of tables) {
-    const r = await client.query<{ all: number; real: number | null }>(
-      `SELECT count(*)::int AS all, ${["mapping_rule_sets", "content_packages", "traditions", "sources", "concepts", "concept_claims", "concept_claim_sources", "relationships", "relationship_sources", "tradition_sources", "media_candidates", "content_snapshots", "snapshot_items", "spatial_manifests", "studies"].includes(t) ? "count(*) FILTER (WHERE NOT is_demo)::int" : "NULL::int"} AS real FROM ${t}`,
-    );
-    const row = r.rows[0]!;
-    out[t] = row.real === null ? `${row.all}` : `${row.all} (real ${row.real}, demo ${row.all - row.real})`;
-  }
-  return out;
-}
 
 async function main(): Promise<void> {
   const mainUrl = process.env.DATABASE_URL;
@@ -117,25 +58,7 @@ async function main(): Promise<void> {
       log(`seed ${seed.name} ok`);
     }
 
-    const { model, report } = loadAndValidate(`${REPO_ROOT}/content`);
-    const s = await importContent(client, { model, issues: report.issues, hasher: nodeSha256, invokedBy: "npm run dev:bootstrap" });
-    log(
-      `content import: concepts +${s.concepts.inserted} ~${s.concepts.updated} =${s.concepts.unchanged}; relationships +${s.relationships.inserted} ~${s.relationships.updated} =${s.relationships.unchanged}; ` +
-        `sources +${s.sources.inserted} =${s.sources.unchanged}; media +${s.mediaCandidates.inserted} =${s.mediaCandidates.unchanged}`,
-    );
-
-    const snap = await storeReviewSnapshot(client, { hasher: nodeSha256 });
-    log(`review snapshot ${snap.created ? "created" : "unchanged"}: id ${snap.id} label ${snap.versionLabel} payload_sha256 ${snap.payloadSha256} items ${snap.itemCount}`);
-
-    const combined = await compileAndStoreManifest(client, { snapshotId: snap.id, traditions: [...SHORTLIST] });
-    const manifests = [combined];
-    for (const t of SHORTLIST) manifests.push(await compileAndStoreManifest(client, { snapshotId: snap.id, traditions: [t] }));
-    for (const m of manifests) {
-      log(`manifest [${m.traditions.join("+")}] ${m.created ? "created" : "unchanged"}: id ${m.id} status ${m.status} manifest_hash ${m.manifestHash} (${m.elements} elements)`);
-    }
-
-    const studyId = await ensureDemoStudy(client, snap.id, combined);
-    log(`demo study ${DEMO_REVIEW_STUDY_SLUG}: id ${studyId} (is_demo, non-experimental, draft) snapshot ${snap.id} manifest ${combined.id}`);
+    await buildPublicDemo(client, { invokedBy: "npm run dev:bootstrap", log });
 
     log("row counts:");
     for (const [t, n] of Object.entries(await counts(client))) log(`  ${t.padEnd(26)} ${n}`);

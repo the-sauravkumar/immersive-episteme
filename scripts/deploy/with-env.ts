@@ -14,7 +14,10 @@
  *   repo's scripts verify the RDS certificate (sslmode=verify-full) without code changes. The
  *   file is deleted afterwards (it holds the public CA, not a secret).
  * - Refuses commands that would put demo or reset data into production, or change its schema
- *   outside the migration history (db:seed, db:reset, dev:bootstrap, --test, drizzle-kit push/drop).
+ *   outside the migration history (db:seed, db:reset, dev:bootstrap, --test, drizzle-kit push/drop;
+ *   lib/command-guard.ts). It lets through the production data path: `npm run db:seed:reference`
+ *   (reference data only) and `npm run content:bootstrap:remote -- --i-understand-this-is-remote`
+ *   (the public demo museum; no users, no participants, no demo seed).
  * - Before the FIRST `db:migrate`, run preflight: its read-only `server + extensions` row checks
  *   PostgreSQL 18 and the pinned extension versions, while `runMigrations` in
  *   scripts/db/_shared.ts checks them only AFTER applying the migrations.
@@ -25,6 +28,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
+import { refusalReason } from "./lib/command-guard";
 import { FORBIDDEN, readEnvFile, redactUrl } from "./lib/env-catalog";
 
 const argv = process.argv.slice(2);
@@ -36,10 +40,9 @@ if (sep < 0 || fileIdx < 0 || fileIdx > sep || !argv[fileIdx + 1]) {
 }
 const command = argv.slice(sep + 1);
 const joined = command.join(" ");
-// drizzle-kit push/drop would change the production schema outside the migration history.
-const BLOCKED = [/db:seed/, /db:reset/, /dev:bootstrap/, /scripts[\\/]db[\\/](seed|reset)/, /(^|\s)--test(\s|$)/, /drizzle-kit\s+(push|drop)/];
-if (command.length === 0 || BLOCKED.some((re) => re.test(joined))) {
-  console.error(`Refused: "${joined}" must never run against production (demo/reset data, the test database, or schema changes outside the migrations).`);
+const refused = refusalReason(command);
+if (refused) {
+  console.error(`Refused: "${joined}" must never run against production (${refused}).`);
   process.exit(2);
 }
 

@@ -1,6 +1,7 @@
 /**
  * Reference-data seed (idempotent upserts): knowledge categories, relationship types and
- * telemetry event types. Not demo data: real content needs these too.
+ * telemetry event types. Not demo data: real content needs these too. Run alone (production) by
+ * `npm run db:seed:reference` (scripts/db/seed-reference.ts).
  */
 import { sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
@@ -40,6 +41,11 @@ export async function seedReferenceData(db: NodePgDatabase): Promise<void> {
           isCore: sql`excluded.is_core`,
           updatedAt: sql`now()`,
         },
+        // Only rows whose definition changed, so a re-run (db:seed:reference) leaves updated_at alone.
+        setWhere: sql`(relationship_types.label, relationship_types.inverse_label, relationship_types.description, relationship_types.semantics,
+          relationship_types.directed, relationship_types.allows_cycles, relationship_types.ordered, relationship_types.requires_evidence, relationship_types.is_core)
+          IS DISTINCT FROM (excluded.label, excluded.inverse_label, excluded.description, excluded.semantics,
+          excluded.directed, excluded.allows_cycles, excluded.ordered, excluded.requires_evidence, excluded.is_core)`,
       });
 
     await tx
