@@ -7,7 +7,7 @@
  *  - missingReferenceCodes: the reference rows the content and telemetry need (db:seed:reference).
  *  - pendingMigrations: the database must carry every migration in db/migrations/meta/_journal.json.
  */
-import { isLocalHost } from "../db/_shared";
+import { connectionHost, isLocalHost } from "../db/_shared";
 
 export const REMOTE_CONFIRM_FLAG = "--i-understand-this-is-remote";
 const KNOWN_ARGS = new Set([REMOTE_CONFIRM_FLAG]);
@@ -28,7 +28,8 @@ export function decideBootstrapTarget(url: string, argv: readonly string[]): Tar
   let database = "";
   try {
     const u = new URL(url);
-    host = u.hostname;
+    // The host pg connects to: a `host` query parameter overrides the URL's host name.
+    host = connectionHost(url);
     database = decodeURIComponent(u.pathname.replace(/^\//, ""));
   } catch {
     return { ok: false, host, database, remote: true, message: "Refused: the database URL cannot be parsed." };

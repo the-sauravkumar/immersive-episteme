@@ -39,9 +39,22 @@ export function redact(url: string): string {
   }
 }
 
+/**
+ * The host node-postgres will actually connect to. pg (pg-connection-string `parse`) lets a `host`
+ * query parameter (when not empty) override the URL's host name, so `postgres://u:p@localhost/db?host=remote.example`
+ * connects to remote.example: every local/remote decision must use this, not `URL.hostname`.
+ * IPv6 brackets are removed, as pg does.
+ */
+export function connectionHost(url: string): string {
+  const u = new URL(url);
+  const fromQuery = u.searchParams.get("host");
+  return (fromQuery || u.hostname).replace(/^\[(.+)\]$/, "$1").toLowerCase();
+}
+
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "db"]);
+
 export function isLocalHost(url: string): boolean {
-  const host = new URL(url).hostname;
-  return host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "db";
+  return LOCAL_HOSTS.has(connectionHost(url));
 }
 
 export function makePool(url: string): Pool {

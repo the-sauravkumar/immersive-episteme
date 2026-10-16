@@ -10,6 +10,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { decideBootstrapTarget, missingReferenceCodes, pendingMigrations, REMOTE_CONFIRM_FLAG } from "../../scripts/content/remote-guard";
+import { isLocalHost } from "../../scripts/db/_shared";
 import { refusalReason } from "../../scripts/deploy/lib/command-guard";
 
 const NEON = "postgresql://episteme_app:pw@ep-cool-name-a1b2c3d4.ap-southeast-1.aws.neon.tech/episteme?sslmode=verify-full";
@@ -43,6 +44,12 @@ describe("with-env command guard", () => {
     "npx tsx scripts/db/seed.ts",
     "npx tsx scripts/db/seed",
     "npx tsx scripts\\db\\reset.ts",
+    // Path spellings the file system resolves to the same script (Windows is case-insensitive).
+    "npx tsx scripts/db/../db/seed.ts",
+    "npx tsx ./scripts/./db/seed.ts",
+    "npx tsx Scripts\\DB\\Seed.ts",
+    "npx tsx scripts/content/../dev/bootstrap.ts",
+    "npx tsx SCRIPTS/DEV/BOOTSTRAP.TS",
     "npm run db:seed:reference -- --test",
     "npm run db:migrate -- --test",
     "npx drizzle-kit push",
@@ -78,6 +85,20 @@ describe("content:bootstrap:remote target guard", () => {
   it("runs on a local database without the confirmation", () => {
     expect(decideBootstrapTarget(LOCAL, [])).toMatchObject({ ok: true, remote: false, host: "localhost" });
     expect(decideBootstrapTarget("postgres://u:p@127.0.0.1:5433/x", [])).toMatchObject({ ok: true, remote: false });
+  });
+
+  it("judges the host pg connects to: a `host` query parameter overrides the URL's host name", () => {
+    // pg-connection-string: `?host=` replaces the host name, so this URL connects to Neon.
+    const disguised = "postgres://u:p@localhost:5433/episteme?host=ep-cool-name-a1b2c3d4.ap-southeast-1.aws.neon.tech";
+    const d = decideBootstrapTarget(disguised, []);
+    expect(d).toMatchObject({ ok: false, remote: true, host: "ep-cool-name-a1b2c3d4.ap-southeast-1.aws.neon.tech" });
+    expect(isLocalHost(disguised)).toBe(false);
+    // The reverse and the pg edge cases.
+    expect(isLocalHost("postgres://u:p@ep-x.neon.tech/db?host=localhost")).toBe(true);
+    expect(isLocalHost("postgres://u:p@localhost/db?host=")).toBe(true);
+    expect(isLocalHost("postgres://u:p@[::1]:5433/db")).toBe(true);
+    expect(isLocalHost("postgres://u:p@LOCALHOST/db")).toBe(true);
+    expect(isLocalHost("postgres://u:p@localhost.evil.example/db")).toBe(false);
   });
 
   it("refuses unknown arguments, --test and near-miss spellings even with the confirmation", () => {

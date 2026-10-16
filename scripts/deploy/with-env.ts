@@ -24,7 +24,7 @@
  * Values are never printed.
  */
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -50,6 +50,20 @@ const fileEnv = readEnvFile(resolve(argv[fileIdx + 1]!));
 const env: Record<string, string | undefined> = { ...process.env };
 for (const [k, v] of Object.entries(fileEnv)) if (!(k in FORBIDDEN)) env[k] = v; // ADMIN_PASSWORD comes from the shell, never the file
 delete env.TEST_DATABASE_URL;
+// The database scripts prefer DATABASE_URL_UNPOOLED (scripts/db/_shared.ts resolveDatabaseUrl). When the
+// production file does not set it (RDS), a value left in the shell or in the repo .env (dotenv fills
+// only unset variables) would silently send the command to THAT database instead of DATABASE_URL.
+if (!fileEnv.DATABASE_URL_UNPOOLED) {
+  delete env.DATABASE_URL_UNPOOLED;
+  const repoEnv = resolve(".env");
+  if (existsSync(repoEnv) && readEnvFile(repoEnv).DATABASE_URL_UNPOOLED) {
+    console.error(
+      "Refused: the repo .env sets DATABASE_URL_UNPOOLED and the production env file does not, so the database " +
+        "scripts would connect to the .env value. Set DATABASE_URL_UNPOOLED in the production file, or remove it from .env.",
+    );
+    process.exit(2);
+  }
+}
 
 let caDir: string | null = null;
 if (fileEnv.DATABASE_CA_PEM) {
