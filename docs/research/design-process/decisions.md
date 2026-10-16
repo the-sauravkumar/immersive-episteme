@@ -1794,3 +1794,48 @@ researchers' decisions:
 - **Paper implications:** report figure balance as "equal per section and per knowledge layer
   across the study traditions". Report runtime WebGL failures under the preregistered failure
   policy, with their count per condition.
+
+## DR-047 (number to confirm at merge): Photo Ingest per Source: Credit, Licence and Conditions for Non-V&A Photographs; Kind A Held (Adopted under the lead's delegation; no photograph added)
+
+- **Context:** `scripts/content/ingest-study-photos.ts` applied the V&A terms only. Kind A of the
+  process-photo proposal (carved wooden printing blocks) can be completed from three other
+  sources: Rick Bradley (Flickr, CC BY 2.0) for Ajrakh, Sahapedia (CC BY-NC-SA 4.0 with written
+  permission, `docs/research/sahapedia-image-permission-reply.md`) for Machilipatnam Kalamkari, and
+  Eric Parker (Flickr, CC BY-NC 2.0) for Sanganeri. PARI granted photos 04, 06 and 07 by Rahul
+  Maganti (`docs/research/pari-image-permission-reply.md`) for later kinds.
+- **Options:** (a) one script per source; (b) one script with a per-source table of credit,
+  licence and conditions, chosen by a `source` field on each proposal; (c) free-text credit in each
+  proposal. (c) lets a mistyped credit through, and (a) duplicates the pipeline steps.
+- **Decision: (b).** `PHOTO_SOURCES` holds, for each source:
+  - the licence the proposal must state, and the site its record page must be on;
+  - the credit:
+    - V&A: unchanged, "© Victoria and Albert Museum, London", plus "(cropped)" when a crop is noted;
+    - Rick Bradley: `Photo: Rick Bradley, "<record title>", Flickr, CC BY 2.0`;
+    - Eric Parker: `Photo: Eric Parker, Flickr, CC BY-NC 2.0`;
+    - Sahapedia: `Photo: <name> / Sahapedia, CC BY-NC-SA 4.0`, the name Sahapedia confirms;
+    - PARI: exactly "Photo: Rahul Maganti / People's Archive of Rural India (PARI). CC BY-NC-ND 4.0,
+      used with permission." (third reply).
+  - **Same for every source:** a 768 px cap and a 60-month term from first publication
+    (`licenceTermMonths`; `stampFirstPublication` sets `licenceExpiresOn` from it, so the five
+    years run from first publication, as both permissions say). Never a public plate.
+  - **Refusals:**
+    - a crop or edit note on Sahapedia or PARI, which must be shown uncropped and unaltered;
+    - a missing or placeholder photographer ("[Photographer's Name]") on every source that credits
+      one;
+    - on PARI, Rick Bradley and Eric Parker, any photographer other than the one the licence or
+      permission covers.
+  - An entry with no `source` field that names the V&A keeps the V&A terms. The three DR-020
+    plans are byte-identical to the earlier script's (compared as JSON).
+- **Kind A proposals:** `content/review/process-photo-proposals.json` holds the three photographs
+  with status **held**, which the ingest skips. Until curation verifies the anchor claims, each
+  caption is the record's own wording, with the project's inference in square brackets
+  ("Printing blocks, [Ajrakhpur], [Kutch]."). The captions add no craft fact. They are held until
+  all of these hold:
+  - Sahapedia sends the photographer's name;
+  - curation verifies the anchor claims of all three tool concepts (DR-020 claim gate);
+  - Eric Parker confirms authorship;
+  - the 768 px derivatives are made (resizing only for Sahapedia) and their SHA-256 recorded.
+  The alt texts are drafted from the verifiers' descriptions, so a curator checks them against
+  the files before a status changes to proposed.
+- **Paper implications:** report the credit and licence of each figure's source in the materials
+  section. The photo set is still one V&A textile per tradition until kind A is proposed.
