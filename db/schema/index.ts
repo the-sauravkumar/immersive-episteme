@@ -21,3 +21,4 @@ export * from "./study";
 export * from "./assessment";
 export * from "./telemetry";
 export * from "./audit";
+export * from "./access";

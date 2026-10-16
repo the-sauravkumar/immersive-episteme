@@ -1,19 +1,32 @@
 /**
- * src/proxy.ts: client-IP header stripping on /api/auth/* (sign-in rate-limit keys) and the
- * Content-Security-Policy on the responses the proxy creates itself.
+ * src/proxy.ts: client-IP header stripping on /api/auth/* (sign-in rate-limit keys), the
+ * Content-Security-Policy on the responses the proxy creates itself, and the invite gate (S11).
  */
 import { NextRequest } from "next/server";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { clientIpPolicy } from "@/lib/client-ip";
 import { contentSecurityPolicy } from "@/lib/security/csp";
+import { signInviteAccess } from "@/server/access/invite-cookie";
+import { INVITE_COOKIE } from "@/server/auth/cookie-names";
 import { proxy } from "@/proxy";
 
 const SIGN_IN = "http://localhost:3000/api/auth/sign-in/email";
+const SECRET = "proxy-test-secret-abcdefghijklmnopqrstuvwxyz-0123456789";
+const INVITE_ID = "0190f3a4-1b2c-7d3e-8f40-123456789abc";
+
+/** A Cookie header carrying a valid invite cookie. */
+async function invited(): Promise<Record<string, string>> {
+  return { cookie: `${INVITE_COOKIE}=${await signInviteAccess(INVITE_ID, SECRET)}` };
+}
 
 function req(url: string, headers: Record<string, string> = {}) {
   return new NextRequest(url, { method: "POST", headers });
 }
+
+beforeEach(() => {
+  vi.stubEnv("BETTER_AUTH_SECRET", SECRET);
+});
 
 /** Request headers the proxy forwards: Next encodes them as x-middleware-request-* overrides. */
 function forwarded(res: Response): { overridden: string[]; value: (name: string) => string | null } {
@@ -26,28 +39,31 @@ afterEach(() => {
 });
 
 describe("proxy: client IP headers on the study entry form (security-04)", () => {
-  it("drops client-supplied forwarding headers on POST /study when no reverse proxy is configured", () => {
+  it("drops client-supplied forwarding headers on POST /study when no reverse proxy is configured", async () => {
     vi.stubEnv("AUTH_TRUSTED_PROXIES", "");
     vi.stubEnv("AUTH_CLIENT_IP_HEADER", "");
-    const f = forwarded(proxy(req("http://localhost:3000/study", { "x-forwarded-for": "203.0.113.9", "next-action": "abc" })));
+    const f = forwarded(await proxy(req("http://localhost:3000/study", { ...(await invited()), "x-forwarded-for": "203.0.113.9", "next-action": "abc" })));
     expect(f.overridden).toContain("next-action");
     expect(f.overridden).not.toContain("x-forwarded-for");
   });
 
-  it("leaves GET /study and a trusted-proxy deployment untouched", () => {
+  it("leaves GET /study and a trusted-proxy deployment untouched", async () => {
     vi.stubEnv("AUTH_TRUSTED_PROXIES", "");
     vi.stubEnv("AUTH_CLIENT_IP_HEADER", "");
-    expect(forwarded(proxy(new NextRequest("http://localhost:3000/study", { headers: { "x-forwarded-for": "203.0.113.9" } }))).overridden).toEqual([]);
+    const cookie = await invited();
+    const get = await proxy(new NextRequest("http://localhost:3000/study", { headers: { ...cookie, "x-forwarded-for": "203.0.113.9" } }));
+    expect(get.status).toBe(200);
+    expect(forwarded(get).overridden).toEqual([]);
     vi.stubEnv("AUTH_TRUSTED_PROXIES", "10.0.0.1");
-    expect(forwarded(proxy(req("http://localhost:3000/study", { "x-forwarded-for": "203.0.113.9" }))).overridden).toEqual([]);
+    expect(forwarded(await proxy(req("http://localhost:3000/study", { ...cookie, "x-forwarded-for": "203.0.113.9" }))).overridden).toEqual([]);
   });
 });
 
 describe("proxy: client IP headers on /api/auth", () => {
-  it("drops client-supplied forwarding headers when no reverse proxy is configured", () => {
+  it("drops client-supplied forwarding headers when no reverse proxy is configured", async () => {
     vi.stubEnv("AUTH_TRUSTED_PROXIES", "");
     vi.stubEnv("AUTH_CLIENT_IP_HEADER", "");
-    const res = proxy(req(SIGN_IN, { "x-forwarded-for": "203.0.113.9", "x-real-ip": "203.0.113.9", "content-type": "application/json" }));
+    const res = await proxy(req(SIGN_IN, { "x-forwarded-for": "203.0.113.9", "x-real-ip": "203.0.113.9", "content-type": "application/json" }));
     const f = forwarded(res);
     expect(f.overridden.length).toBeGreaterThan(0);
     expect(f.overridden).not.toContain("x-forwarded-for");
@@ -56,9 +72,9 @@ describe("proxy: client IP headers on /api/auth", () => {
     expect(f.value("x-forwarded-for")).toBeNull();
   });
 
-  it("passes forwarding headers through unchanged behind a configured proxy", () => {
+  it("passes forwarding headers through unchanged behind a configured proxy", async () => {
     vi.stubEnv("AUTH_TRUSTED_PROXIES", "10.0.0.5");
-    const res = proxy(req(SIGN_IN, { "x-forwarded-for": "198.51.100.7, 10.0.0.5" }));
+    const res = await proxy(req(SIGN_IN, { "x-forwarded-for": "198.51.100.7, 10.0.0.5" }));
     expect(res.headers.get("x-middleware-override-headers")).toBeNull();
   });
 
@@ -89,8 +105,8 @@ describe("Content-Security-Policy", () => {
     expect(contentSecurityPolicy({ frameAncestors: "self", dev: true })).toContain("'unsafe-eval'");
   });
 
-  it("is sent on the proxy's own redirect to /sign-in", () => {
-    const res = proxy(new NextRequest("http://localhost:3000/admin"));
+  it("is sent on the proxy's own redirect to /sign-in", async () => {
+    const res = await proxy(new NextRequest("http://localhost:3000/admin"));
     expect(res.status).toBe(307);
     expect(res.headers.get("content-security-policy")).toContain("object-src 'none'");
     expect(res.headers.get("content-security-policy")).toContain("frame-ancestors 'none'");

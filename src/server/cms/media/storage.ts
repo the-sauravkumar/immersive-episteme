@@ -4,6 +4,9 @@
  *  - S3-compatible (production): selected when MEDIA_S3_BUCKET is set. Browsers upload directly
  *    with a short-lived presigned PUT that signs the object's SHA-256 (`x-amz-checksum-sha256`),
  *    so the store itself refuses bytes that do not match the checksum the server recorded.
+ *    Stores that do not return a single-part SHA-256 on HeadObject (Cloudflare R2 lists SHA-256
+ *    only for multipart uploads: https://developers.cloudflare.com/r2/api/s3/api/) are checked by
+ *    hashing the stored object on the server instead (`storedSha256`).
  *  - Local disk (development fallback): MEDIA_LOCAL_DIR, default `.data/media` under the working
  *    directory. Refused in production unless MEDIA_LOCAL_DIR is set explicitly.
  *
@@ -11,12 +14,15 @@
  * the client and identical bytes share one object.
  *
  * Environment (validated here; not part of src/lib/env.ts yet):
- *   MEDIA_S3_BUCKET, MEDIA_S3_REGION (default us-east-1), MEDIA_S3_ENDPOINT (optional, e.g. MinIO),
- *   MEDIA_S3_ACCESS_KEY_ID, MEDIA_S3_SECRET_ACCESS_KEY (optional: default AWS credential chain),
+ *   MEDIA_S3_BUCKET, MEDIA_S3_REGION (default us-east-1; "auto" for R2), MEDIA_S3_ENDPOINT
+ *   (optional: MinIO, or https://<account-id>.r2.cloudflarestorage.com for Cloudflare R2),
+ *   MEDIA_S3_ACCESS_KEY_ID, MEDIA_S3_SECRET_ACCESS_KEY (optional outside production: default AWS
+ *   credential chain; required in production, see assertExplicitS3Credentials),
  *   MEDIA_S3_FORCE_PATH_STYLE ("true" for MinIO-style endpoints), MEDIA_LOCAL_DIR.
  *
  * Not `server-only` (integration tests use the local store).
  */
+import { createHash } from "node:crypto";
 import { mkdir, readFile, rename, stat, writeFile } from "node:fs/promises";
 import { dirname, isAbsolute, join, resolve, sep } from "node:path";
 
@@ -91,6 +97,8 @@ export interface S3MediaStorage {
   presignPut(key: string, opts: { mime: string; byteSize: number; sha256: string }): Promise<PresignedUpload>;
   head(key: string): Promise<StoredObjectInfo | null>;
   readHead(key: string, bytes?: number): Promise<Uint8Array>;
+  /** SHA-256 (lowercase hex) of the stored object, computed here; refuses objects over `maxBytes`. */
+  sha256Of(key: string, maxBytes: number): Promise<string>;
   presignGet(key: string, opts: { mime: string; disposition: string }): Promise<string>;
 }
 
@@ -171,6 +179,17 @@ export function createS3Storage(env: MediaEnv): S3MediaStorage {
       const r = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key, Range: `bytes=0-${bytes - 1}` }));
       return r.Body ? await r.Body.transformToByteArray() : new Uint8Array();
     },
+    async sha256Of(key, maxBytes) {
+      const r = await client.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+      const hash = createHash("sha256");
+      let total = 0;
+      for await (const chunk of (r.Body ?? []) as AsyncIterable<Uint8Array>) {
+        total += chunk.byteLength;
+        if (total > maxBytes) throw new CmsError("too_large", "The stored file is larger than allowed.", 422);
+        hash.update(chunk);
+      }
+      return hash.digest("hex");
+    },
     async presignGet(key, { mime, disposition }) {
       return getSignedUrl(
         client,
@@ -181,6 +200,40 @@ export function createS3Storage(env: MediaEnv): S3MediaStorage {
   };
 }
 
+/**
+ * The stored object's SHA-256: the store's own single-part checksum when it reports one (AWS S3,
+ * MinIO), otherwise a hash of the stored bytes computed on the server (Cloudflare R2), so the
+ * upload is still verified byte for byte. `maxBytes` bounds the download (the type's size limit).
+ */
+export async function storedSha256(
+  storage: Pick<S3MediaStorage, "sha256Of">,
+  key: string,
+  info: StoredObjectInfo,
+  maxBytes: number,
+): Promise<string> {
+  if (info.sha256) return info.sha256;
+  if (info.byteSize > maxBytes) throw new CmsError("too_large", "The stored file is larger than allowed.", 422);
+  return storage.sha256Of(key, maxBytes);
+}
+
+/**
+ * Production must name its S3 credentials (source change S5; docs/deploy/RESEARCH.md s9). Without
+ * the MEDIA_S3_* keys the SDK falls back to the default credential chain, which on Vercel reads
+ * the platform's placeholder AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY ("not usable as AWS
+ * credentials"), so uploads and figures would fail at request time with a confusing signature
+ * error. Refuse instead, with a message that names the fix. OIDC (`AWS_ROLE_ARN` with
+ * @vercel/oidc-aws-credentials-provider) is not wired yet: it is a new dependency that needs the
+ * lead's approval, so `AWS_ROLE_ARN` alone does not satisfy this check.
+ */
+export function assertExplicitS3Credentials(env: MediaEnv, source: Record<string, string | undefined> = process.env): void {
+  if (env.NODE_ENV !== "production") return;
+  if (env.MEDIA_S3_ACCESS_KEY_ID && env.MEDIA_S3_SECRET_ACCESS_KEY) return;
+  const hint = source.AWS_ROLE_ARN ? " AWS_ROLE_ARN is set, but OIDC credentials are not supported by this build yet." : "";
+  throw new Error(
+    `Media storage: set MEDIA_S3_ACCESS_KEY_ID and MEDIA_S3_SECRET_ACCESS_KEY in production; the default AWS credential chain is refused (on VERCEL it holds placeholder values).${hint}`,
+  );
+}
+
 let cached: MediaStorage | undefined;
 
 /** The configured store (memoised). */
@@ -189,6 +242,7 @@ export function getMediaStorage(source: Record<string, string | undefined> = pro
   const env = parseMediaEnv(source);
   let storage: MediaStorage;
   if (env.MEDIA_S3_BUCKET) {
+    assertExplicitS3Credentials(env, source);
     storage = createS3Storage(env);
   } else {
     if (env.NODE_ENV === "production" && !env.MEDIA_LOCAL_DIR) {

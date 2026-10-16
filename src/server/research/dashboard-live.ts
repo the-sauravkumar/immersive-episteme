@@ -14,6 +14,8 @@
  */
 import { Client } from "pg";
 
+import type { PgConnectionConfig } from "@/server/db/connection-config";
+
 export const DASHBOARD_CHANNEL = "ie_dashboard";
 
 type Listener = (studyId: string) => void;
@@ -30,7 +32,8 @@ export class DashboardNotifier {
   connected = false;
 
   constructor(
-    private readonly connectionString: string,
+    /** DATABASE_URL, or the TLS-pinned settings from pgConnectionConfig (source change S3). */
+    private readonly connection: string | PgConnectionConfig,
     private readonly log: Pick<Console, "error" | "warn"> = console,
   ) {}
 
@@ -44,7 +47,8 @@ export class DashboardNotifier {
   }
 
   private async connect(): Promise<void> {
-    const c = new Client({ connectionString: this.connectionString, application_name: "ie-dashboard-listener", keepAlive: true });
+    const base = typeof this.connection === "string" ? { connectionString: this.connection } : this.connection;
+    const c = new Client({ ...base, application_name: "ie-dashboard-listener", keepAlive: true });
     c.on("notification", (m) => {
       if (m.channel === DASHBOARD_CHANNEL && m.payload) this.bump(m.payload);
     });
@@ -140,8 +144,8 @@ export class DashboardNotifier {
 type LiveGlobal = typeof globalThis & { __episteme_dashboard_notifier?: DashboardNotifier };
 
 /** The process-wide notifier (DATABASE_URL), created lazily. */
-export function getDashboardNotifier(connectionString: string): DashboardNotifier {
+export function getDashboardNotifier(connection: string | PgConnectionConfig): DashboardNotifier {
   const g = globalThis as LiveGlobal;
-  g.__episteme_dashboard_notifier ??= new DashboardNotifier(connectionString);
+  g.__episteme_dashboard_notifier ??= new DashboardNotifier(connection);
   return g.__episteme_dashboard_notifier;
 }

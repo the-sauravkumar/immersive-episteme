@@ -49,7 +49,7 @@ import { ASSET_LINK_ROLES, PROVENANCE_KINDS, type VerificationState } from "@/li
 
 import { audit, CmsError, ensure, inActorTx, isUuid, type Actor, type Q } from "../core";
 import { ALLOWED_MEDIA, ALLOWED_MIMES, checkUpload, isAllowedMime, SNIFF_BYTES, type AllowedMime, type CheckedUpload } from "./sniff";
-import { storageKeyFor, type LocalMediaStorage, type S3MediaStorage } from "./storage";
+import { storageKeyFor, storedSha256, type LocalMediaStorage, type S3MediaStorage } from "./storage";
 
 const optionalText = (max: number) =>
   z
@@ -274,7 +274,9 @@ export async function finalizeAssetUpload(
   const storageKey = storageKeyFor(input.sha256, declared);
   const info = await storage.head(storageKey);
   if (!info) throw new CmsError("upload_missing", "The upload did not reach storage. Upload the file again.", 422);
-  if (info.sha256 !== input.sha256) throw new CmsError("checksum_mismatch", "Storage did not confirm the file's SHA-256 checksum.", 422);
+  // R2 reports no single-part SHA-256: hash the stored bytes instead (bounded by the type's limit).
+  const stored = await storedSha256(storage, storageKey, info, ALLOWED_MEDIA[declared].maxBytes);
+  if (stored !== input.sha256) throw new CmsError("checksum_mismatch", "Storage did not confirm the file's SHA-256 checksum.", 422);
   const head = await storage.readHead(storageKey);
   const checked = checkUpload({ declaredMime: declared, byteSize: info.byteSize, head });
   return insertAsset(pool, actor, { checked, sha256: input.sha256, byteSize: info.byteSize, storageKey, meta, via: "s3" });

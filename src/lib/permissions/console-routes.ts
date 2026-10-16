@@ -66,6 +66,7 @@ export const CONSOLE_ROUTES = {
   admin: [
     { path: "/admin", label: "Overview", anyOf: ADMIN_ANY, nav: true },
     { path: "/admin/users", label: "Users", anyOf: ["admin.users"], nav: true },
+    { path: "/admin/access", label: "Access", anyOf: ["admin.users"], nav: true },
     { path: "/admin/roles", label: "Roles", anyOf: ["admin.roles"], nav: true },
     { path: "/admin/settings", label: "Settings", anyOf: ["admin.settings"], nav: true },
     { path: "/admin/audit", label: "Audit Log", anyOf: ["admin.audit"], nav: true },

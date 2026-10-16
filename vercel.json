@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "npm ci",
+  "buildCommand": "node scripts/deploy/invite-gate.ts --if-production && npm run build",
+  "ignoreCommand": "node -e \"let s='';try{s=require('fs').readFileSync('src/proxy.ts','utf8')}catch{}const gated=/invite/i.test(s);if(process.env.VERCEL_ENV==='production'&&!gated){console.log('Production build CANCELED: invite-only gate (S11) not in src/proxy.ts. See docs/deploy/RUNBOOK.md.');process.exit(0)}process.exit(1)\"",
+  "regions": ["sin1"],
+  "functions": {
+    "src/app/api/research/dashboard/stream/route.ts": {
+      "maxDuration": "max"
+    }
+  }
+}

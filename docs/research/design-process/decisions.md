@@ -1794,3 +1794,159 @@ researchers' decisions:
 - **Paper implications:** report figure balance as "equal per section and per knowledge layer
   across the study traditions". Report runtime WebGL failures under the preregistered failure
   policy, with their count per condition.
+
+## DR-047 (number to confirm at merge): Always-On Invite Gate and Deployment Source Changes for Vercel (Adopted under the lead's delegation; deployment preparation, nothing deployed)
+
+- **Context:** the platform is to run on Vercel with RDS and S3 in `ap-south-1`
+  (docs/deploy/RESEARCH.md, RUNBOOK.md). The lead's rule is that the site is **always
+  invite-only, with no open mode**. Vercel cannot provide that: Password Protection is a paid
+  add-on that Hobby lacks, and Vercel Authentication admits only Vercel team members
+  (RESEARCH.md s15). RESEARCH.md s13 also lists source changes S1 to S12 that the deployment
+  needs; S4 (`@vercel/functions`) and OIDC for S3 (`@vercel/oidc-aws-credentials-provider`) add
+  dependencies and wait for the lead's approval.
+- **Options (gate):**
+  1. A shared site password in an environment variable. Rejected: one secret for everyone, no
+     per-cohort revocation or use counts, and a change needs a redeploy.
+  2. An "open mode" switch for demos. Rejected: the lead ruled it out, and a switch left on would
+     expose the study.
+  3. Invite codes in the database, administered in the console, redeemed once into a signed
+     cookie. **Adopted.**
+- **Decision (gate, S11):**
+  - Admin -> Access (`admin.users`) creates codes with a label, an optional use limit, an
+    optional last day and an optional study; lists them with their use counts and status; and
+    revokes them with a typed confirmation. Every create and revoke writes an audit row (with the
+    code's 4-character hint, never the code).
+  - Codes are 20 Crockford base32 symbols (100 random bits). Only a SHA-256 of the normalised code
+    is stored (migration 0020, `invite_codes`), so a code is shown once, at creation. Redemption
+    is one conditional `UPDATE` (not revoked, not expired, under the limit), so concurrent
+    redemptions cannot exceed the limit, and a refusal never says why.
+  - `?invite=<code>` on any gated URL, or the `/invite` form, sets a signed (HMAC, purpose
+    `site-invite/v1`, `BETTER_AUTH_SECRET`), httpOnly, SameSite=Lax cookie (`__Host-` and Secure
+    in production) valid for 30 days, then returns to the same URL without the code.
+  - `src/proxy.ts` now matches every path except `/api` (other than `/api/auth`), `/_next/static`,
+    `/_next/image`, `/museum` and the root files, verifies the cookie's signature without a
+    database round trip, and redirects to `/invite?next=...` (403 for non-GET). Exempt:
+    `/invite`, `/sign-in`, `/sign-out`, `/forbidden`, `/console`, `/api/*` (their handlers already
+    refuse callers without a participant, demo or staff session) and static assets. Staff pass
+    with a session cookie; staff areas still redirect to `/sign-in`.
+  - Server-side half: `enterStudy` and `startPublicDemo`, the only actions that create a study or
+    demo session, call `requireSiteAccess`: a verified staff session, or a verified invite
+    cookie whose code is not revoked. So a forged staff cookie or a revoked code can never start
+    a session.
+  - **Revocation** applies at once to new redemptions and to browsers that already used the code
+    (at their next study or demo start). **Expiry** only ends redemption: a cookie issued before
+    the last day stays valid for its 30 days, so a participant is not shut out mid-session when
+    a cohort's sign-up window closes.
+  - **Study links** carry the invite: creating a code for a study shows the participant link
+    `/study?code=<slug>&invite=<code>`, so participants see no extra step. The gate sits before
+    consent and allocation and is identical in both conditions.
+- **Decision (other source changes):**
+  - **S3:** `DATABASE_CA_PEM` (required in production on an `.rds.amazonaws.com` host). When it is
+    set, the pool and the dashboard's LISTEN connection strip `sslmode`/`sslrootcert` from the URL
+    and pass `ssl: { ca, rejectUnauthorized: true }`, because node-postgres lets URL parameters
+    override an explicit `ssl` object. Without it, nothing changes locally.
+  - **S1:** the dashboard stream declares `maxDuration = 300` (the Hobby maximum) and closes itself
+    15 s before it; EventSource reconnects after `retry: 3000`, and the `ready` fingerprint
+    catches changes made in between.
+  - **S5:** in production, media storage refuses to run without the `MEDIA_S3_*` keys instead of
+    falling back to Vercel's placeholder `AWS_*` values. `AWS_ROLE_ARN` alone is refused too,
+    until OIDC is approved and wired.
+  - **S6/S7:** `images.localPatterns` limited to `/figures/**` with no query, `minimumCacheTTL`
+    60 s (figures were already `unoptimized`); `/figures/<id>` now answers `private` instead of
+    `public`, so no shared cache serves a licensed image past the gate; content-hashed museum
+    textures are `public, max-age=31536000, immutable`.
+  - **S8** `!.env.production.example` in `.gitignore`; **S9** a root `.vercelignore`; **S10**
+    `engines.node` `24.x`; **S12** `APP_BUILD_VERSION` defaults to the short
+    `VERCEL_GIT_COMMIT_SHA` when it is unset (an explicit value still wins).
+  - **Not done:** S4 and OIDC (dependencies awaiting approval); S2 was already in place.
+- **Consequences:** every Playwright spec now needs an invite. `tests/e2e/global-setup.ts`
+  creates one `Demo:` code per run in the development database and writes a storage state with
+  the signed cookie. Specs that test the gate itself must start from an empty storage state.
+  Rotating `BETTER_AUTH_SECRET` also signs out every invite cookie. The production
+  `APP_BUILD_VERSION` set by hand (RUNBOOK step 7) should be removed so S12 applies.
+- **Equivalence check:** the gate is condition-blind: it runs before consent and allocation, both
+  conditions are behind the same cookie, and no learning page, telemetry event or knowledge
+  content changed. The checks of the 7-point 2D/3D list are unaffected; the parity and e2e suites
+  must be rerun after merge with the new global setup.
+- **Paper implications:** report that access was by invitation (codes per cohort, revocable),
+  identical for both conditions and before consent, and that no personal data is collected by the
+  gate (codes are hashed; the cookie holds only the code's row id).
+
+## DR-048 (number to confirm at merge): Neon Free Postgres in Singapore and Cloudflare R2 for Media, Instead of RDS and S3 (Decided by the lead, 2026-10-16; deployment preparation, nothing deployed)
+
+- **Context:** DR-047 planned Vercel with RDS and S3 in `ap-south-1`. On 2026-10-16 the lead
+  chose "a free hosted Postgres such as Neon, which needs no AWS for now". The first deployment is
+  a Vercel CLI deploy on the Hobby plan. Vendor facts below were read on the vendors' pages on
+  2026-10-16 (notes: scratchpad `neon/neon-facts.md`, `code-compat.md`, `media-storage.md`).
+- **Database: Neon Free.**
+  - Plan: "$0/month"; "1 GB/project"; "100 CU-hours/project/month (enough to run a 0.25 CU
+    compute in a project for 400 hours/month)" (https://neon.com/docs/introduction/plans).
+  - "Scale to zero is always enabled (computes suspend after 5 minutes of inactivity) and can't
+    be disabled"; a suspended compute "reactivates automatically within a few hundred
+    milliseconds" (https://neon.com/docs/introduction/scale-to-zero).
+  - Backups: Free has "History window: 6 hours (1 GB limit)" and no instant restore
+    (https://neon.com/pricing). So the team keeps its own `pg_dump` exports of study data.
+- **Region: AWS Asia Pacific (Singapore), `aws-ap-southeast-1`; Vercel functions in `sin1`.**
+  - Neon has no region in India. Its region list names "AWS Asia Pacific (Singapore) —
+    `aws-ap-southeast-1`" and says "You cannot change the region" after creation
+    (https://neon.com/docs/introduction/regions).
+  - Vercel: "| sin1 | ap-southeast-1 | Singapore |" (https://vercel.com/docs/regions); Hobby may
+    use a "Single region" (https://vercel.com/docs/functions/configuring-functions/region).
+    `vercel.json` `regions` is now `["sin1"]` (was `bom1`).
+  - **Ethics:** participant data would be stored in Singapore, outside India. The repository
+    promises no storage location to participants (see Consequences), but the CXA/ETH/01 file and
+    the consent text the team enters must agree with this.
+- **Code changes (minimal):**
+  - **Pooled vs direct URL.** Neon's pooler is "PgBouncer in transaction mode
+    (`pool_mode=transaction`)", and "`LISTEN` / `NOTIFY`" is "Not supported with pooled
+    connections" (https://neon.com/docs/connect/connection-pooling). New optional
+    `DATABASE_URL_UNPOOLED` (Neon's own name: "| `DATABASE_URL_UNPOOLED` | Direct connection
+    string |", https://neon.com/docs/guides/vercel-managed-integration). The app pool keeps the
+    pooled `DATABASE_URL`; the dashboard LISTEN connection (`dashboard-service.ts`), the `db:*`
+    scripts (`scripts/db/_shared.ts resolveDatabaseUrl`) and `drizzle.config.ts` use the direct
+    URL ("| Schema migrations | Direct | Tools may not support transaction pooling |", same
+    page). In production `src/lib/env.ts` requires it when `DATABASE_URL` has `-pooler.` and
+    refuses a pooled value in it.
+  - **TLS.** "Neon requires that all connections use SSL/TLS encryption" and recommends
+    `verify-full` (https://neon.com/docs/connect/connect-securely). `sslmode=require` or
+    `verify-full` both verify in node-postgres (pg-connection-string treats `require` as
+    `verify-full`); the RDS CA rule (`DATABASE_CA_PEM`) still applies only to
+    `.rds.amazonaws.com` hosts.
+  - **pgvector 0.8.6.** Neon's PostgreSQL 18 ships 0.8.6 ("| pgvector | 0.8.0 | 0.8.0 | 0.8.0 |
+    0.8.0 | 0.8.6 |", https://neon.com/docs/extensions/pg-extensions); the pin was 0.8.7.
+    `EXPECTED_DB` now accepts both: the schema only installs the extension
+    (`db/migrations/0000_enable_extensions.sql`) and has no vector column or index.
+- **Media: Cloudflare R2, private bucket (no AWS).**
+  - Free tier "10 GB-month / month" storage, egress "Free"
+    (https://developers.cloudflare.com/r2/pricing/); "By default, buckets are never publicly
+    accessible" (https://developers.cloudflare.com/r2/buckets/public-buckets/); "the region for
+    an R2 bucket is `auto`" (https://developers.cloudflare.com/r2/api/s3/api/).
+  - The existing S3 adapter already takes `MEDIA_S3_ENDPOINT` and path-style addressing; the CSP
+    already derives the endpoint origin. One change: R2's checksum table lists SHA-256 only for
+    multipart uploads (same S3 API page), so `HeadObject` may return no single-part SHA-256 and
+    every upload would fail `checksum_mismatch`. `finalizeAssetUpload` now hashes the stored
+    object on the server when the store reports none (`storedSha256`, bounded by the type's size
+    limit). Figures still stream through `/figures` with the 768 px licence cap unchanged.
+  - Rejected: Vercel Blob (new SDK and a third adapter), Postgres `bytea` (migration, database
+    growth on a 1 GB plan), `public/` (bypasses licence gating).
+- **Invite gate before CLI deploys.** `vercel.json`'s `ignoreCommand` is documented for Git
+  commits ("for every commit pushed to your connected Git repository",
+  https://vercel.com/docs/project-configuration/project-settings), so it is not relied on for
+  `vercel deploy --prod`. `buildCommand` now runs `scripts/deploy/invite-gate.ts --if-production`
+  before `npm run build` on every Vercel build, and preflight FAILs in production on the same
+  check.
+- **Not verified (needs a live test on Neon):** whether `pg_notify` from triggers through the
+  pooled connection reaches the LISTEN on the direct connection (expected: NOTIFY is sent at
+  commit inside the writer's transaction); whether an idle LISTEN connection keeps the compute
+  awake (it would spend CU-hours); whether R2 accepts the signed `x-amz-checksum-sha256` header
+  on a presigned PUT.
+- **Consequences:** no participant-facing text in the repository names a storage location; the
+  privacy page does not either, while the about page says it "describes what the platform
+  records and where" (a gap, not a contradiction). The real consent text is entered per study in
+  the console and must be checked by the team against Singapore storage. DR-047's "RDS and S3 in
+  `ap-south-1`" no longer describes the first deployment; `docs/deploy/aws-resources.md` stays
+  for a later move to AWS.
+- **Equivalence check:** infrastructure only; both conditions read the same database and the same
+  media store. No learning page, telemetry event or knowledge content changed.
+- **Paper implications:** report the hosting (Vercel `sin1`, Neon `aws-ap-southeast-1`,
+  Cloudflare R2) and that study data were stored in Singapore.

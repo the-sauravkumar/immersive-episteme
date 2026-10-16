@@ -1,0 +1,26 @@
+# Files a Vercel CLI deploy must never upload (source change S9; docs/deploy/RESEARCH.md s14).
+# The CLI uploads everything except a fixed default list, which does not include .env. Git-based
+# deploys build the pushed commit and do not read this file's exclusions for secrets, but keep it
+# so a CLI fallback deploy is safe. content/ stays: the build reads it.
+
+# Secrets and local environment
+.env
+.env.*
+.vercel
+.claude/settings.local.json
+
+# Local data, caches and generated output
+.data/
+.tmp/
+.cache/
+.codegraph/
+analysis/out/
+content/.source-cache/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Test-only assets (visual baselines)
+tests/e2e/immersive-baselines/

@@ -9,13 +9,18 @@ import { Pool } from "pg";
 
 export const MIGRATIONS_FOLDER = fileURLToPath(new URL("../../db/migrations", import.meta.url));
 
-/** `--test` targets TEST_DATABASE_URL; otherwise DATABASE_URL. */
+/**
+ * `--test` targets TEST_DATABASE_URL; otherwise DATABASE_URL_UNPOOLED when set (the direct
+ * connection on Neon: "Schema migrations | Direct | Tools may not support transaction pooling",
+ * https://neon.com/docs/connect/connection-pooling), else DATABASE_URL.
+ */
 export function resolveDatabaseUrl(argv: readonly string[] = process.argv): {
   url: string;
   label: "test" | "main";
 } {
   const useTest = argv.includes("--test");
-  const url = useTest ? process.env.TEST_DATABASE_URL : process.env.DATABASE_URL;
+  const direct = process.env.DATABASE_URL_UNPOOLED?.trim() ? process.env.DATABASE_URL_UNPOOLED : undefined;
+  const url = useTest ? process.env.TEST_DATABASE_URL : (direct ?? process.env.DATABASE_URL);
   const name = useTest ? "TEST_DATABASE_URL" : "DATABASE_URL";
   if (!url) {
     throw new Error(`${name} is not set. Copy .env.example to .env (see README).`);
@@ -48,10 +53,14 @@ export function makePool(url: string): Pool {
  * pin the image by digest). Generated columns hash `jsonb::text` (ie_jsonb_sha256) and the
  * schema relies on PostgreSQL 18 `uuidv7()`, so a different server major or extension version
  * must be a deliberate upgrade: update these together with the image digest.
+ *
+ * vector accepts 0.8.6 as well: Neon's PostgreSQL 18 ships pgvector 0.8.6
+ * (https://neon.com/docs/extensions/pg-extensions), and the schema only installs the extension
+ * (0000_enable_extensions.sql) with no vector column or index (DR "Neon", docs/research/design-process/decisions.md).
  */
 export const EXPECTED_DB = {
   serverMajor: 18,
-  extensions: { vector: "0.8.7", pg_trgm: "1.6", pgcrypto: "1.4" } as Record<string, string>,
+  extensions: { vector: ["0.8.7", "0.8.6"], pg_trgm: ["1.6"], pgcrypto: ["1.4"] } as Record<string, readonly string[]>,
 } as const;
 
 /** Throws when the connected server or extensions differ from EXPECTED_DB. */
@@ -59,8 +68,9 @@ export function assertDbVersions(serverVersionNum: number, extensions: Record<st
   const problems: string[] = [];
   const major = Math.floor(serverVersionNum / 10000);
   if (major !== EXPECTED_DB.serverMajor) problems.push(`PostgreSQL ${major} (expected ${EXPECTED_DB.serverMajor})`);
-  for (const [name, version] of Object.entries(EXPECTED_DB.extensions)) {
-    if (extensions[name] !== version) problems.push(`${name} ${extensions[name] ?? "missing"} (expected ${version})`);
+  for (const [name, versions] of Object.entries(EXPECTED_DB.extensions)) {
+    const got = extensions[name];
+    if (got === undefined || !versions.includes(got)) problems.push(`${name} ${got ?? "missing"} (expected ${versions.join(" or ")})`);
   }
   if (problems.length > 0) {
     throw new Error(

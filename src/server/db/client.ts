@@ -12,6 +12,8 @@ import { Pool } from "pg";
 import * as schema from "@db/schema";
 import { serverEnv } from "@/lib/env";
 
+import { pgConnectionConfig } from "./connection-config";
+
 export type Database = NodePgDatabase<typeof schema>;
 
 type DbGlobal = typeof globalThis & {
@@ -24,7 +26,8 @@ const g = globalThis as DbGlobal;
 function createPool(): Pool {
   const env = serverEnv();
   const pool = new Pool({
-    connectionString: env.DATABASE_URL,
+    // TLS pinned to DATABASE_CA_PEM when set (RDS), the URL as written otherwise.
+    ...pgConnectionConfig(env.DATABASE_URL, env.DATABASE_CA_PEM),
     max: env.DB_POOL_MAX,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,

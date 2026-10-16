@@ -8,7 +8,7 @@
  *             migration 0014, delivered through the process-wide LISTEN connection);
  *  - `ping`   { serverTime, listening }  every 25 s (heartbeat; the client's stale timer).
  * `text/event-stream`, `Cache-Control: no-store`; the subscription and timer end when the client
- * disconnects. No database work per event: the client re-renders the page, and the request
+ * disconnects, or when the server closes the stream 15 s before `maxDuration` (S1). No database work per event: the client re-renders the page, and the request
  * coalescer (src/server/research/dashboard-cache.ts) computes once for all viewers.
  */
 import { authorizeRequest } from "@/server/auth/staff";
@@ -19,6 +19,21 @@ import { dashboardNotifier } from "@/server/research/dashboard-service";
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const NO_STORE = { "Cache-Control": "no-store" };
 const HEARTBEAT_MS = 25_000;
+
+/**
+ * Vercel ends a function at its max duration with a 504 (FUNCTION_INVOCATION_TIMEOUT), streamed
+ * responses included (docs/deploy/RESEARCH.md s4; source change S1). 300 s is the Hobby maximum and
+ * the default on every plan; settings in the function code take priority over vercel.json. Must
+ * stay a literal: Next.js reads it statically from the build output.
+ */
+export const maxDuration = 300;
+/**
+ * The stream closes itself this long before maxDuration, so the cut is a clean end of stream and
+ * not a 504: EventSource reconnects after `retry: 3000`, and the `ready` fingerprint on the new
+ * connection catches any change made in between (live-status.tsx re-renders on a mismatch).
+ */
+const STREAM_CLOSE_MARGIN_MS = 15_000;
+const STREAM_LIFETIME_MS = maxDuration * 1000 - STREAM_CLOSE_MARGIN_MS;
 
 export async function GET(request: Request): Promise<Response> {
   const auth = await authorizeRequest("analytics.view");
@@ -47,11 +62,14 @@ export async function GET(request: Request): Promise<Response> {
       };
       const unsubscribe = notifier.subscribe(studyId, () => send("change", { serverTime: new Date().toISOString() }));
       const heartbeat = setInterval(() => send("ping", { serverTime: new Date().toISOString(), listening: notifier.connected }), HEARTBEAT_MS);
+      // Planned end before the platform limit (the client reconnects by itself).
+      const lifetime = setTimeout(() => cleanup(), STREAM_LIFETIME_MS);
       cleanup = () => {
         if (!open) return;
         open = false;
         unsubscribe();
         clearInterval(heartbeat);
+        clearTimeout(lifetime);
         request.signal.removeEventListener("abort", cleanup);
         try {
           controller.close();
