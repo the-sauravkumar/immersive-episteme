@@ -4736,6 +4736,20 @@
       ]
     },
     {
+      "source": "ajrakh.historical_context.barmer-practice",
+      "target": "ajrakh.tradition.kutch-ajrakh",
+      "type": "BELONGS_TO",
+      "explanation": "Ajrakh in Barmer, Rajasthan is part of the Kutch Ajrakh tradition.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1",
+        "S6"
+      ]
+    },
+    {
       "source": "ajrakh.historical_context.gi-registration",
       "target": "ajrakh.tradition.kutch-ajrakh",
       "type": "BELONGS_TO",
@@ -6138,12 +6152,25 @@
       ]
     },
     {
+      "source": "ajrakh.process_stage.kasano",
+      "target": "ajrakh.process_stage.khariyanu",
+      "type": "PRECEDES",
+      "explanation": "Sequential order in the GI method of production.",
+      "conditions": null,
+      "ordinal": 3,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
       "source": "ajrakh.process_stage.khariyanu",
       "target": "ajrakh.process_stage.kut",
       "type": "PRECEDES",
       "explanation": "Sequential order in the GI method of production.",
       "conditions": null,
-      "ordinal": 1,
+      "ordinal": 4,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6158,12 +6185,25 @@
       ]
     },
     {
+      "source": "ajrakh.process_stage.kut",
+      "target": "ajrakh.process_stage.pa",
+      "type": "PRECEDES",
+      "explanation": "Sequential order in the GI method of production.",
+      "conditions": null,
+      "ordinal": 5,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
       "source": "ajrakh.process_stage.pa",
       "target": "ajrakh.process_stage.gach",
       "type": "PRECEDES",
       "explanation": "Sequential order in the GI method of production.",
       "conditions": null,
-      "ordinal": 1,
+      "ordinal": 6,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6183,7 +6223,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order in the GI method of production.",
       "conditions": null,
-      "ordinal": 2,
+      "ordinal": 7,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6203,7 +6243,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order in the GI method of production.",
       "conditions": null,
-      "ordinal": 3,
+      "ordinal": 8,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6223,7 +6263,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order in the GI method of production.",
       "conditions": "Order follows GI Journal 188 method section; see open_question.stage-order-red-indigo.",
-      "ordinal": 4,
+      "ordinal": 9,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6243,7 +6283,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order in the GI method of production.",
       "conditions": "Order follows GI Journal 188 method section; see open_question.stage-order-red-indigo.",
-      "ordinal": 5,
+      "ordinal": 10,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6263,7 +6303,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order in the GI method of production.",
       "conditions": null,
-      "ordinal": 6,
+      "ordinal": 11,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6283,7 +6323,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order in the GI method of production.",
       "conditions": null,
-      "ordinal": 7,
+      "ordinal": 12,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6303,7 +6343,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order in the GI method of production.",
       "conditions": null,
-      "ordinal": 8,
+      "ordinal": 13,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6758,6 +6798,32 @@
       ]
     },
     {
+      "source": "ajrakh.process_stage.khariyanu",
+      "target": "ajrakh.tool.tari-printing-tray",
+      "type": "USES",
+      "explanation": "The khariyanu stage uses this tool.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
+      "source": "ajrakh.process_stage.pa",
+      "target": "ajrakh.tool.tari-printing-tray",
+      "type": "USES",
+      "explanation": "The pa stage uses this tool.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
       "source": "ajrakh.process_stage.indigo-dyeing",
       "target": "ajrakh.tool.underground-indigo-vat",
       "type": "USES",
@@ -7015,6 +7081,19 @@
           "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
           "quote": "Each design is a set of four to six blocks."
         }
+      ]
+    },
+    {
+      "source": "ajrakh.artisan_decision.saaj-lather-judgement",
+      "target": "ajrakh.process_stage.saaj",
+      "type": "PRACTITIONER_EXPLAINS",
+      "explanation": "Lather and softness signal completion of saaj.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1"
       ]
     },
     {
@@ -7783,6 +7862,20 @@
           "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
           "quote": "the sun, moisture and various compound in the dung would have acted as a bleaching agent on the white areas of a design."
         }
+      ]
+    },
+    {
+      "source": "ajrakh.environmental_condition.water-iron-content",
+      "target": "shared.scientific_mechanism.iron-tannin-black",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Iron in water darkens tannin-treated cloth (black spots), the same reaction exploited in kut.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1",
+        "S10"
       ]
     },
     {

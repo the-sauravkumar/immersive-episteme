@@ -5254,6 +5254,19 @@
       ]
     },
     {
+      "source": "sanganeri.process_stage.harda-treatment",
+      "target": "sanganeri.tool.mogri-mallet",
+      "type": "USES",
+      "explanation": "Dried harda cloth is beaten with a wooden mallet.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1"
+      ]
+    },
+    {
       "source": "sanganeri.process_stage.mordant-printing",
       "target": "sanganeri.material.syahi-iron-black",
       "type": "USES",
@@ -5779,6 +5792,19 @@
           "locator": "PDF p. 11",
           "quote": "The interaction of alkali (of cow dung) and thennal heat (sun ray) bleach the ground colour making it look white again."
         }
+      ]
+    },
+    {
+      "source": "sanganeri.explanation.tapai-alkali-and-heat",
+      "target": "shared.scientific_mechanism.sun-bleaching",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Links the source's alkali-plus-heat account to the shared sun-bleaching mechanism.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1"
       ]
     },
     {
@@ -6315,6 +6341,19 @@
           "locator": "PDF p. 10, § 9.2 \"Washing\"",
           "quote": "The printed fabric is washed in running water to rmove excess mordants."
         }
+      ]
+    },
+    {
+      "source": "sanganeri.process_stage.scouring",
+      "target": "sanganeri.environmental_condition.sun-and-semi-arid-climate",
+      "type": "DEPENDS_ON",
+      "explanation": "Traditional scouring repeats wetting and drying on open ground over days.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S1"
       ]
     },
     {

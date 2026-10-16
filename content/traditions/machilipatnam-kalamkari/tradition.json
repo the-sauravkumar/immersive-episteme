@@ -5790,6 +5790,19 @@
       ]
     },
     {
+      "source": "machilipatnam-kalamkari.environmental_condition.coromandel-soil-water-plants",
+      "target": "machilipatnam-kalamkari.tradition.machilipatnam-kalamkari",
+      "type": "BELONGS_TO",
+      "explanation": "Coromandel soil, water and dye plants is documented as part of Machilipatnam block-printed kalamkari.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S11"
+      ]
+    },
+    {
       "source": "machilipatnam-kalamkari.environmental_condition.effluent-pollution",
       "target": "machilipatnam-kalamkari.tradition.machilipatnam-kalamkari",
       "type": "BELONGS_TO",
@@ -6036,12 +6049,25 @@
       ]
     },
     {
+      "source": "machilipatnam-kalamkari.process_stage.block-carving",
+      "target": "machilipatnam-kalamkari.process_stage.scouring-dung-bleaching",
+      "type": "PRECEDES",
+      "explanation": "Sequential order of production stages as documented.",
+      "conditions": null,
+      "ordinal": 1,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S4"
+      ]
+    },
+    {
       "source": "machilipatnam-kalamkari.process_stage.scouring-dung-bleaching",
       "target": "machilipatnam-kalamkari.process_stage.myrobalan-treatment",
       "type": "PRECEDES",
       "explanation": "Sequential order of production stages as documented.",
       "conditions": null,
-      "ordinal": 1,
+      "ordinal": 2,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6073,7 +6099,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order of production stages as documented.",
       "conditions": null,
-      "ordinal": 2,
+      "ordinal": 3,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6105,7 +6131,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order of production stages as documented.",
       "conditions": "Craftmark contradicts itself: its numbered stage list puts outline block printing first, but its printing section says \"First the background is printed followed by the printing of the outline and the motifs\", with the background printed in alum and the outline in iron acetate.",
-      "ordinal": 3,
+      "ordinal": 4,
       "provenance_kind": "historical_documentation",
       "verification_state": "needs_evidence",
       "source_ids": [
@@ -6125,7 +6151,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order of production stages as documented.",
       "conditions": "Iron/alum print order may vary by design (see open question).",
-      "ordinal": 4,
+      "ordinal": 5,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6151,7 +6177,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order of production stages as documented.",
       "conditions": null,
-      "ordinal": 5,
+      "ordinal": 6,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6177,7 +6203,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order of production stages as documented.",
       "conditions": null,
-      "ordinal": 6,
+      "ordinal": 7,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6203,7 +6229,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order of production stages as documented.",
       "conditions": null,
-      "ordinal": 7,
+      "ordinal": 8,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6223,7 +6249,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order of production stages as documented.",
       "conditions": null,
-      "ordinal": 8,
+      "ordinal": 9,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6243,7 +6269,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order of production stages as documented.",
       "conditions": null,
-      "ordinal": 9,
+      "ordinal": 10,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6269,7 +6295,7 @@
       "type": "PRECEDES",
       "explanation": "Sequential order of production stages as documented.",
       "conditions": null,
-      "ordinal": 10,
+      "ordinal": 11,
       "provenance_kind": "historical_documentation",
       "verification_state": "under_review",
       "source_ids": [
@@ -6916,6 +6942,19 @@
       ]
     },
     {
+      "source": "machilipatnam-kalamkari.process_stage.curing-drying",
+      "target": "machilipatnam-kalamkari.environmental_condition.sun-and-weather",
+      "type": "AFFECTED_BY",
+      "explanation": "Stage involves sun-drying and depends on weather.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S4"
+      ]
+    },
+    {
       "source": "machilipatnam-kalamkari.process_stage.post-dye-sun-drying",
       "target": "machilipatnam-kalamkari.environmental_condition.sun-and-weather",
       "type": "AFFECTED_BY",
@@ -7073,6 +7112,20 @@
           "locator": "PDF p. 11",
           "quote": "The portions not treated with alum imbibe a pinkish color."
         }
+      ]
+    },
+    {
+      "source": "machilipatnam-kalamkari.process_stage.soaping-finishing",
+      "target": "machilipatnam-kalamkari.outcome.colourfast-printed-textiles",
+      "type": "PRODUCES",
+      "explanation": "Final finished cloth.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S4",
+        "S3"
       ]
     },
     {
@@ -7409,6 +7462,33 @@
           "locator": "PDF p. 4",
           "quote": "A mordant is a substance that has the affinity for both fiber and dyestuff and which fixes the color on the material."
         }
+      ]
+    },
+    {
+      "source": "machilipatnam-kalamkari.scientific_mechanism.indigo-no-mordant",
+      "target": "shared.scientific_mechanism.indigo-vat-reduction",
+      "type": "SIMILAR_TO",
+      "explanation": "Indigo fixes by its own (vat) chemistry, not a mordant; vat process at Pedana not documented.",
+      "conditions": "Pedana prints indigo paste directly; reduction details not sourced.",
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S10"
+      ]
+    },
+    {
+      "source": "machilipatnam-kalamkari.process_stage.scouring-dung-bleaching",
+      "target": "shared.scientific_mechanism.sun-bleaching",
+      "type": "SCIENTIFICALLY_EXPLAINED_BY",
+      "explanation": "Cloth spread wet in sun as part of bleaching.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S4",
+        "S5"
       ]
     },
     {

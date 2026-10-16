@@ -3382,6 +3382,21 @@
       ]
     },
     {
+      "source": "machilipatnam-kalamkari.open_question.gi-year",
+      "target": "sanganeri.open_question.gi-registration-year",
+      "type": "SIMILAR_TO",
+      "explanation": "Secondary sources give several GI years that differ from the registry record.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "machilipatnam-kalamkari:S1",
+        "machilipatnam-kalamkari:S15",
+        "sanganeri:S2"
+      ]
+    },
+    {
       "source": "bagru.historical_context.market-change-and-imitation",
       "target": "sanganeri.historical_context.screen-printing-shift",
       "type": "SIMILAR_TO",

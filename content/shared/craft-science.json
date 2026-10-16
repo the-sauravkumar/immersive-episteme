@@ -2237,6 +2237,19 @@
       ]
     },
     {
+      "source": "shared.scientific_mechanism.mud-resist-barrier",
+      "target": "shared.scientific_mechanism.indigo-vat-reduction",
+      "type": "CONTRASTS_WITH",
+      "explanation": "Resist blocks dye physically, whereas indigo colours by redox; resist is applied before the vat so covered areas stay undyed except along cracks.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "needs_evidence",
+      "source_ids": [
+        "S10"
+      ]
+    },
+    {
       "source": "shared.scientific_mechanism.thickened-print-paste-rheology",
       "target": "shared.material.gum-arabic-or-natural-gum",
       "type": "DEPENDS_ON",
