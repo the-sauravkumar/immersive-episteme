@@ -33,7 +33,7 @@ import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Browser, type BrowserContext, type Page, type Request, type Response } from "@playwright/test";
+import { expect, test, type Browser, type BrowserContext, type Page, type Request, type Response } from "./fixtures";
 
 import { CONCEPT_TYPES } from "@/lib/validation/enums";
 

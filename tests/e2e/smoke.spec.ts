@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 test("home page renders with tokens and security headers", async ({ page }) => {
   const response = await page.goto("/");

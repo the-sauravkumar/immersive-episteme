@@ -18,8 +18,8 @@
  *    carries a knowledge figure (so P14 compares a real figure), else the first station.
  *  - P19, P20 and P21 are properties of the code and of the study bundle, not of a viewport; they
  *    are measured once and recorded in the 1280 x 800 light run of each tradition.
- *  - The museum runs headless, on SwiftShader by default or on the discrete GPU with PW_GPU=1
- *    (playwright.config.ts); the renderer string is recorded. `?allowSoftware=1&probe=1` is honoured only
+ *  - The museum runs headless on the discrete GPU (playwright.config.ts, DR-047), or on SwiftShader
+ *    in software mode (CI, PW_GPU=0); the renderer string is recorded. `?allowSoftware=1&probe=1` is honoured only
  *    outside study mode. No timing check here depends on GPU speed except P16, which measures
  *    figure decode only.
  *  - Guidance fixture (P22-P24): the demo learning routes read the protocol settings of the newest
@@ -57,7 +57,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { expect, test, type BrowserContext, type Page } from "@playwright/test";
+import { expect, test, type BrowserContext, type Page } from "./fixtures";
 import sharp from "sharp";
 
 import { knowledgeBundleSchema } from "@/features/knowledge/contracts";

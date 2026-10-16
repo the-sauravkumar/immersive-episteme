@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 /**
  * CMS / admin surfaces are staff-only: without a session the proxy redirects to sign-in before

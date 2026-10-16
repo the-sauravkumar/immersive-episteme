@@ -6,23 +6,26 @@
  *   IE_GPU=1 IE_BASE_URL=http://localhost:3000 npx playwright test -c scripts/museum/playwright.gpu.config.ts --project high
  *   IE_GPU=1 ... --project low      (C9: integrated GPU, low tier forced, CPU x4)
  *
- * Or headless on the discrete GPU through the default config (playwright.config.ts, PW_GPU=1: full
- * Chromium, ANGLE on Direct3D 11), which this machine reaches without a window:
+ * Or headless through the default config (playwright.config.ts, DR-047), which this machine reaches
+ * without a window: project "chromium" = full Chromium on the NVIDIA GPU (high tier); project
+ * "low-spec" = the headless shell on the Intel GPU, low tier, CPU x4, 1366 x 768 at DPR 1. The
+ * fixture in fixtures.ts fails the run if the renderer is not that GPU.
  *
- *   IE_GPU=1 PW_GPU=1 PORT=3300 node node_modules/@playwright/test/cli.js test tests/e2e/immersive-rendering.spec.ts --workers=1
+ *   IE_GPU=1 PORT=3300 node node_modules/@playwright/test/cli.js test tests/e2e/immersive-rendering.spec.ts --project chromium --workers=1
+ *   IE_GPU=1 PORT=3300 node node_modules/@playwright/test/cli.js test tests/e2e/immersive-rendering.spec.ts --project low-spec --workers=1
  *
- * Skipped unless IE_GPU=1: the default headless shell has no GPU (SwiftShader).
+ * Skipped unless IE_GPU=1 (a measurement run, not a functional test).
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
 
-import { expect, test, type CDPSession, type Page } from "@playwright/test";
+import { expect, test, type CDPSession, type Page } from "./fixtures";
 import sharp from "sharp";
 
 import { blockArtefactIndex, ssim } from "../../scripts/museum/ssim";
 
 test.skip(process.env.IE_GPU !== "1", "GPU measurement run only (IE_GPU=1, scripts/museum/playwright.gpu.config.ts)");
-// The GPU config sets 30 min per test; the same budget under the default config (PW_GPU=1).
+// The GPU config sets 30 min per test; the same budget under the default config.
 // Serial by default. With IE_MEASURE_ALL=1 a failing check does not skip the checks after it (the
 // worker restarts and reloads the museum; the results of one run are merged by IE_RUN_ID), so a
 // baseline run records every check.
@@ -89,11 +92,16 @@ let tier: "high" | "low" = "high";
 const telemetry: { type: string; metadata?: Record<string, unknown> }[] = [];
 
 test.beforeAll(async ({ browser }, info) => {
-  // Project metadata (scripts/museum/playwright.gpu.config.ts), else PW_GPU=low (headless, integrated GPU, CPU x4).
-  tier = (info.project.metadata?.tier as "high" | "low" | undefined) ?? (process.env.PW_GPU === "low" ? "low" : "high");
+  // Project metadata: playwright.config.ts (chromium = high, low-spec = low, CPU x4) or
+  // scripts/museum/playwright.gpu.config.ts. The viewport and DPR are the project's (low-spec:
+  // 1366 x 768 at DPR 1), else 1280 x 720 at DPR 1.
+  tier = (info.project.metadata?.tier as "high" | "low" | undefined) ?? "high";
   const throttle = Number(info.project.metadata?.cpuThrottle ?? (tier === "low" ? 4 : 1));
   mkdirSync(OUT, { recursive: true });
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
+  const ctx = await browser.newContext({
+    viewport: info.project.use.viewport ?? { width: 1280, height: 720 },
+    deviceScaleFactor: info.project.use.deviceScaleFactor ?? 1,
+  });
   page = await ctx.newPage();
   page.on("request", (req) => {
     if (req.url().includes("/api/telemetry/batch") && req.method() === "POST") {

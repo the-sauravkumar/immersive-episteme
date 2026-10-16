@@ -16,7 +16,7 @@
 import { execFileSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
 import { closeDb, db, ensureE2eStudy, retireE2eStaff } from "./study-fixtures";
 

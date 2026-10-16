@@ -15,7 +15,7 @@
 import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 
-import { expect, test, type Browser, type Page } from "@playwright/test";
+import { expect, test, type Browser, type Page } from "./fixtures";
 
 import { E2E_STUDY_CODE, closeDb, ensureE2eStudy, retireE2eStaff } from "./study-fixtures";
 
