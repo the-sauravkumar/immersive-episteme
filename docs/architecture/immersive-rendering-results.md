@@ -241,3 +241,32 @@ on both tiers; card titles at least 21:1, plaques at least 19.30:1. The six low-
 the run created are unreviewed and were not added to the repository (kept in the 3D-3 scratch
 folder). This is the integrated GPU of the reference machine with CPU throttling, not a separate
 low-spec machine; the tour-2 slowdown against tour 1 was not investigated.
+
+## Final Merge Run: Back-End and 3D Fix Tracks Together, Production Build, GTX 1650
+
+The run id is `merge-final`, at commit `f108a4a`, the merge of the back-end fixes (DR-025 to
+DR-042) with DR-024 and DR-043 to DR-045, plus DR-046. The run used a production build on :3300
+and headless Chromium 156 on the NVIDIA GPU (`PW_GPU=1 IE_GPU=1 IE_MEASURE_ALL=1`). The renderer
+string was "ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F9D) Direct3D11 vs_5_0 ps_5_0, D3D11)".
+The drawing buffer was 1280 x 623 at DPR 1. Nothing else ran on the machine.
+
+**Result: 10 of 10 pass.**
+
+| Check | Result |
+|---|---|
+| C1 | 0 changed pixels at 98 viewpoints, 30 frames each |
+| C1b | 0 spikes |
+| C2 | Clipped at most 0.26%, crushed at most 0.14%, plate ink at most 0.57% |
+| C2b | Wing entrance rooms 171.0 / 175.7 / 169.4 |
+| C3 | Two tours of 24 rooms (1,226 m each): p50 6.9 / 6.9 ms, p95 7.2 / 7.1 ms, p99 7.3 / 7.3 ms, max 42.1 and 27.8 ms; at most 98 draw calls and 46,299 triangles |
+| C4 | No frame over 50 ms; 17 programs before and after |
+| C5 | The six baselines reproduce |
+| C6 | Pass |
+| C7 | Pass |
+| C8 | Context lost once, restored and logged |
+| C10 | 0 idle and 0 hidden frames |
+| C11 | 102 geometries and 81 textures before and after both tours; heap +0.12%; textures 42.7 MB, render targets 35.1 MB |
+| C12 | Wall colour SSIM 0.9872, a pass |
+| Legibility | Card titles at least 21:1; 54 room plaques at 2.5 m, at least 19.56:1 |
+
+The numbers are in `analysis/out/museum/rendering-high.json`.
