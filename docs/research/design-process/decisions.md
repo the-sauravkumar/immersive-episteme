@@ -3178,3 +3178,37 @@ novice met, and none touches the sheet.
 - **Server note:** the production server for recording must be started with
   `BETTER_AUTH_URL=http://localhost:3300`; without it staff sign-in is refused as an invalid origin
   (shown to the user as "do not match an active staff account"). RUN.md now says so.
+
+## DR-071: Photo Placement Previewed on a Throwaway Copy of the Database; the Real Database and the Gate Unchanged (Adopted on the project lead's question: "once deployed, will the photos be in every tradition in 2D and 3D, in which section, with screenshots of where they will be")
+
+- **Decision:** answer the question with preview screenshots from a throwaway copy of the database (`CREATE DATABASE episteme_photo_preview TEMPLATE episteme`), dropped afterwards.
+  - On `episteme` itself, no release was published and no `first_published_on` was set.
+  - No gate, read model or protocol switch was changed. DR-063 stands.
+  - This follows the "Never" rule of the `enable-study-photos` skill.
+- **What was bypassed, in the copy only:**
+  - **Readiness refused**, as expected, because of the open PI rulings:
+    - SNAP002: unaccepted traditions, concepts, relationships and sources;
+    - REL001;
+    - REL002: 312 relationship citations without a locator or quotation.
+  - **Taken out of the pipeline:** 1 concept and 4 relationships, all Dabu, which the database refuses to accept because their provenance is "unverified".
+  - **Set to `verified` by direct SQL:** every other pending row, as Saurav, with a preview reason. This skipped the per-row curator verification.
+  - **Release:** `publishRelease` ran from a copy of `src/server/cms/release.ts` whose only change logs the readiness refusal instead of throwing it.
+  - **Unchanged:** the promotion, the snapshot builder (kind "publishable", passed), the database publication triggers, `freezeReleaseFigures` (6 figures) and `stampFirstPublication` (6 assets).
+- **Manifests:** four spatial manifests were compiled from that release with `compileAndStoreManifest`; all four were valid. The three-tradition manifest is identical, element for element, to the one the staff preview uses: 457 elements with the same ids, parent rooms and positions.
+- **Result:** one production server ran on the copy, viewed in full Chromium on the NVIDIA GTX 1650 at 1440 x 900, with the renderer string checked.
+  - **Placement:** every study tradition shows two photographs in both conditions, in the same numbered sections.
+    - Section 1, "Tradition and Context": the V&A textile on the historical-context concept.
+    - Section 2, "Materials and Tools": the printing blocks on the tool concept.
+  - **2D:** the photo is on the concept page.
+  - **3D:** the photo is on the exhibit panel in the room of the same name.
+  - **Measured on all six:** each photo loaded (natural size equal to the stored 768 px derivative). The caption, credit, licence, alt text, source and displayed size (542 x 360.7 px) are identical in 2D and 3D.
+- **Checks on `episteme`, before and after:**
+  - published real releases: 0 → 0;
+  - assets with `first_published_on`: 0 → 0.
+- **Evidence:** in `D:\Work\IIT-KGP\Paper_1-artifacts\photo-placement\` (outside the repository):
+  - `PHOTO-PLACEMENT.md`;
+  - the screenshots for each tradition;
+  - the contact sheets;
+  - `measurements.json`;
+  - the preview scripts.
+- **Server note:** a production server serves locally stored media only when `MEDIA_LOCAL_DIR` is set explicitly. Without it the figure route fails with "Media storage: set MEDIA_S3_BUCKET (or MEDIA_LOCAL_DIR explicitly) in production", and the image box stays empty.
