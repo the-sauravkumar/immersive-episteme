@@ -21,7 +21,7 @@ import { slugSchema } from "@/lib/validation/primitives";
 
 import { parityInputHash } from "./parity/engine";
 import { loadParityInput, runAndStoreParityReport } from "./parity/store";
-import { audit, inTransaction, ResearchActionError, type Actor, type Q } from "./db";
+import { audit, inTransaction, queryAll, ResearchActionError, type Actor, type Q } from "./db";
 import type { Pool, PoolClient } from "pg";
 
 /** Inclusion / exclusion criteria: part of the shared study contract. */
@@ -116,9 +116,9 @@ export async function getStudy(q: Q, studyId: string): Promise<StudyDetail | nul
   const s = r.rows[0];
   if (!s) return null;
   const parsed = draftStudyConfigSchema.safeParse(s.config ?? {});
-  const [conds, battery] = await Promise.all([
-    q.query<StudyDetail["conditions"][number]>("SELECT id, code, label, interface::text AS interface FROM study_conditions WHERE study_id = $1 ORDER BY position, code", [studyId]),
-    q.query<StudyDetail["battery"][number]>(
+  const [conds, battery] = await queryAll(q, [
+    () => q.query<StudyDetail["conditions"][number]>("SELECT id, code, label, interface::text AS interface FROM study_conditions WHERE study_id = $1 ORDER BY position, code", [studyId]),
+    () => q.query<StudyDetail["battery"][number]>(
       `SELECT sa.assessment_id AS "assessmentId", a.code, a.version, a.title, a.kind::text AS kind, a.status::text AS status,
               sa.phase::text AS phase, sa.position, sa.required
          FROM study_assessments sa JOIN assessments a ON a.id = sa.assessment_id WHERE sa.study_id = $1

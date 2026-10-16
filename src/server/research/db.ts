@@ -25,6 +25,27 @@ export async function inTransaction<T>(pool: Pool | PoolClient, fn: (c: PoolClie
   }
 }
 
+/** True for a pg Pool, false for a single client (the same test `inTransaction` uses). */
+function isPool(q: Q): boolean {
+  return "connect" in q && typeof (q as Pool).totalCount === "number";
+}
+
+/**
+ * Runs independent queries: concurrently on a pool (each takes its own connection), one after
+ * another on a single client. pg queues concurrent queries on one client but deprecates it
+ * ("removed in pg@9.0"), and a client inside a transaction must not be shared anyway.
+ */
+export async function queryAll<const T extends readonly (() => unknown)[]>(
+  q: Q,
+  fns: T,
+): Promise<{ -readonly [K in keyof T]: Awaited<ReturnType<T[K]>> }> {
+  type Out = { -readonly [K in keyof T]: Awaited<ReturnType<T[K]>> };
+  if (isPool(q)) return (await Promise.all(fns.map((f) => f()))) as Out;
+  const out: unknown[] = [];
+  for (const f of fns) out.push(await f());
+  return out as Out;
+}
+
 export interface Actor {
   userId: string;
 }

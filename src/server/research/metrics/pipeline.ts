@@ -7,7 +7,7 @@
 import type { MapEdgeInput, SnapshotRelationship } from "./correspondence";
 import type { ConceptFacts, NavEvent } from "./navigation";
 import { computeSessionMetrics, METRICS_PIPELINE_VERSION, metricInputHash, type ComputedMetrics } from "./session";
-import type { Q } from "../db";
+import { queryAll, type Q } from "../db";
 
 export interface SnapshotFacts {
   concepts: Map<string, ConceptFacts & { key: string; title: string; type: string }>;
@@ -101,7 +101,8 @@ export async function computeStoredSession(q: Q, s: SessionRow): Promise<Compute
   // An unallocated session (still in, or dropped out during, the pre-test) has no condition and
   // no learning telemetry: there is nothing to derive, and derived_metrics.condition_id is NOT NULL.
   if (!s.snapshot_id || !s.condition_id) return null;
-  const [events, facts, map] = await Promise.all([loadSessionEvents(q, s.id), loadSnapshotFacts(q, s.snapshot_id), loadFinalPostMap(q, s.id)]);
+  const snapshotId = s.snapshot_id;
+  const [events, facts, map] = await queryAll(q, [() => loadSessionEvents(q, s.id), () => loadSnapshotFacts(q, snapshotId), () => loadFinalPostMap(q, s.id)]);
   return computeSessionMetrics({ events, concepts: facts.concepts, relationships: facts.relationships, map });
 }
 

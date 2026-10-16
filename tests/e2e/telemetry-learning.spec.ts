@@ -68,6 +68,7 @@ async function sessionTelemetry(sessionId: string) {
 }
 
 test("learning-page telemetry is stored without conflicts in both conditions", async ({ browser }) => {
+  test.skip(!hardwareGpu(), "needs a hardware GPU: the study device check refuses software renderers for the 3D condition (DR-029), and CI runners only have SwiftShader; run locally (DR-056)");
   const seen = new Set<string>();
   for (let attempt = 0; attempt < 10 && seen.size < 2; attempt++) {
     const context = await newContext(browser, { viewport: { width: 1280, height: 800 } });

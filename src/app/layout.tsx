@@ -23,6 +23,9 @@ const atkinson = Atkinson_Hyperlegible_Next({
   style: ["normal"],
   display: "swap",
   variable: "--font-atkinson",
+  // Next.js has no fallback metrics for this family, so it cannot build an adjusted fallback face
+  // (it skipped it with a build warning). The fallback stack is globals.css --sans-stack.
+  adjustFontFallback: false,
 });
 
 export const metadata: Metadata = {

@@ -1,0 +1,8 @@
+{
+  "name": "@esbuild-kit/esm-loader",
+  "version": "2.6.5-stub.0",
+  "description": "Empty stand-in for drizzle-kit's unused, deprecated dependency (merged into tsx). drizzle-kit 0.31.x lists it but never loads it; see docs/decisions (DR on deprecated dependencies).",
+  "private": true,
+  "license": "MIT",
+  "main": "index.js"
+}

@@ -14,14 +14,15 @@ import path from "node:path";
 
 import { INTERFACE_PARITY_REPORT_PATH, parseInterfaceParityReport, summariseInterfaceParity, type InterfaceParitySummary } from "@/features/research/interface-parity";
 
-import type { Q } from "../db";
+import { queryAll, type Q } from "../db";
 import { listParityReports } from "./store";
 
 /** The stored interface parity report under `root` (the repository root), summarised, or null. */
 export async function readInterfaceParity(root: string = process.cwd()): Promise<InterfaceParitySummary | null> {
   let text: string;
   try {
-    text = await readFile(path.join(root, ...INTERFACE_PARITY_REPORT_PATH.split("/")), "utf8");
+    // next.config.ts outputFileTracingIncludes ships the report; `root` is chosen at run time.
+    text = await readFile(path.join(/*turbopackIgnore: true*/ root, ...INTERFACE_PARITY_REPORT_PATH.split("/")), "utf8");
   } catch {
     return null;
   }
@@ -56,8 +57,9 @@ export interface ContentParityRow {
 
 /** Latest stored content parity report for each given study, in the order given. */
 export async function contentParityRows(q: Q, studies: readonly { id: string; title: string; slug: string; status: string; isDemo: boolean }[]): Promise<ContentParityRow[]> {
-  return Promise.all(
-    studies.map(async (s): Promise<ContentParityRow> => {
+  return queryAll(
+    q,
+    studies.map((s) => async (): Promise<ContentParityRow> => {
       const [r] = await listParityReports(q, s.id, 1);
       return {
         studyId: s.id,

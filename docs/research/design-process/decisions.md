@@ -3023,3 +3023,74 @@ novice met, and none touches the sheet.
   the GitHub repository as `origin`.
 - **Equivalence check:** 1-7 unchanged; the published tree equals the verified build's tree, and
   only the two files above (`.gitleaksignore`, `commit-map.txt`) and this record were added.
+
+## DR-067: Study Invite Links Carry the Code and Target to the Redeem Route in Request Headers (Adopted; walkthrough phase)
+
+- **Found by:** the walkthrough recording. Opening a study link `/study?code=<study slug>&invite=<code>`
+  showed "Code Not Accepted"
+  (`D:\Work\IIT-KGP\Paper_1-walkthrough\recordings\by-clip\02-a1\20261016-2226\failures\02-study-2d-01-open-the-study-link.png`).
+- **Cause:** the proxy (`src/proxy.ts`) answered `?invite=` with `NextResponse.rewrite()` to
+  `/invite/redeem?code=…&next=…`, but a rewrite keeps the ORIGINAL query string. The redeem route
+  therefore read `code` from the study link (the study slug) as the invite code and refused it, and
+  it never saw `next`, so every invite link also lost its target page. Links without a `code`
+  parameter of their own still worked, which is why the gate tests did not catch it.
+- **Decision:** the proxy sets the invite code and the target as URI-encoded request headers on its
+  rewrite (`x-invite-redeem-code`, `x-invite-redeem-next`, `src/lib/access/invite-paths.ts`); the
+  redeem route reads them first and falls back to the query. A client sending these headers itself
+  gains nothing: the code is still checked by `redeemInvite`, and the target still goes through
+  `inviteNextPath`, which only accepts same-site paths.
+- **Tests:** `tests/unit/proxy-invite-gate.test.ts` asserts both headers on the rewrite of a study
+  link; unit and integration suites pass (156 files, 1897 tests).
+
+## DR-068: Deprecation and Build Warnings Removed; One Unfixable Advisory Recorded (Adopted on the project lead's instruction: "fix all the deprecated warnings as well")
+
+- **ESLint 9 to 10.13.0.** `eslint@9.39.5` is deprecated on npm ("This version is no longer
+  supported"). The installed Next.js docs (`node_modules/next/dist/docs/01-app/03-api-reference/05-config/03-eslint.md`)
+  state "`eslint-config-next` supports ESLint 9 and ESLint 10", and that some bundled plugins
+  "don't list ESLint 10 in their peer dependencies yet": eslint-plugin-react 7.37.5,
+  eslint-plugin-import 2.32.0 and eslint-plugin-jsx-a11y 6.10.2 (their latest releases) declare at
+  most `^9`. Their peer range is satisfied with npm `overrides` (`"eslint": "$eslint"`), not
+  `--legacy-peer-deps`. Checked: the full lint passes, and a probe file still draws a finding from
+  each plugin (react-hooks, typescript-eslint, @next/next, jsx-a11y, the DESIGN.md 15 rules).
+- **`@esbuild-kit/esm-loader` and `@esbuild-kit/core-utils`** (deprecated, "Merged into tsx") came
+  only from drizzle-kit 0.31.11, the latest stable release. drizzle-kit lists the loader but its
+  bundles (`bin.cjs`, `api.js`) never reference it, so an `overrides` entry points it at an empty
+  local package, `tools/npm-stubs/esbuild-kit-esm-loader`, whose entry point throws if anything
+  ever loads it. Both deprecated packages are gone from the lockfile. Drop the stub when
+  drizzle-kit 1.0 is stable.
+- **pg: "Calling client.query() when the client is already executing a query is deprecated and
+  will be removed in pg@9.0".** Seven research services ran independent queries with `Promise.all`
+  on a `Q` that may be a single client (a transaction, or the integration tests' client).
+  `queryAll` (`src/server/research/db.ts`) now runs them concurrently on a pool (each query gets its
+  own connection) and one after another on a single client. Results are unchanged; the suites pass
+  with `--trace-deprecation` and print no deprecation.
+- **Build: "Dynamic filesystem access causes tracing of the whole project"** (four places). Paths
+  chosen at run time are marked `/*turbopackIgnore: true*/` (the media directory, the migrations
+  journal, the parity report root), and the two data files the server reads are listed in
+  `outputFileTracingIncludes` (`next.config.ts`). Checked in `.next/server/app/**/*.nft.json`: the
+  journal and the report are traced for /admin, /research, /research/dashboard and /.
+- **Build: "Failed to find font override values for font `Atkinson Hyperlegible Next`".** Next.js
+  has no fallback metrics for this family, so no adjusted fallback face was ever generated.
+  `adjustFontFallback: false` states that, and because Turbopack still reports the lookup, exactly
+  that notice is filtered with `turbopack.ignoreIssue` (title match only for this family). Moving the
+  font to `next/font/local` was rejected: Google serves it as two unicode-range files (Latin and
+  Latin Extended), which `next/font/local` cannot reproduce, and diacritics would fall back.
+- **npm 11 install-script notice** for `unrs-resolver` (from eslint-import-resolver-typescript): its
+  postinstall only downloads a native binding when the platform package is missing. Recorded as an
+  explicit `allowScripts` denial; the resolver works (lint above).
+- **Not fixable: GHSA-vfj7-8cjw-p6xm** (`braces` <= 3.0.3, uncontrolled recursion, high). It is
+  the single root of all 9 audit entries. The advisory lists no patched version and 3.0.3 is the
+  latest on npm. `npm audit fix --force` would downgrade eslint-config-next to 14.2.35 and shadcn to
+  1.0.0, so it was not run. Exploiting it needs attacker-supplied brace patterns; `braces` runs only
+  in development tools (the shadcn CLI, eslint-plugin-next, ts-morph), never on visitor input, and
+  `src/` does not import it. `shadcn` moved to devDependencies (the app only imports its CSS, at
+  build time), so `npm audit --omit=dev` reports 0 vulnerabilities. Re-check when braces publishes
+  a fix.
+- **CI:** the three e2e tests that need a 3D participant to pass the study device check
+  (study-journey, telemetry-learning, exposure-parity) now skip on runners without a hardware GPU,
+  with the reason in the skip. The device check correctly refuses SwiftShader (DR-029), and GitHub's
+  standard runners have no GPU; the tests keep running locally on the GTX 1650 (DR-056).
+- **Left as they are (not ours, not deprecations):** the Postgres container's initdb "trust
+  authentication" notice and git's default-branch hint during checkout.
+- **Results:** clean `npm ci` with no deprecation notices; lint, typecheck, 156 test files / 1897
+  tests pass; `next build` reports no warnings.

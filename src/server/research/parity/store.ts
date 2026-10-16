@@ -6,7 +6,7 @@
 import { listSnapshotFigureAssets } from "@/server/cms/media/service";
 
 import { runParityChecks, type ParityInput, type ParityReport } from "./engine";
-import { audit, ResearchActionError, type Actor, type Q } from "../db";
+import { audit, queryAll, ResearchActionError, type Actor, type Q } from "../db";
 
 export async function loadParityInput(q: Q, studyId: string): Promise<ParityInput> {
   const s = await q.query<{
@@ -21,24 +21,24 @@ export async function loadParityInput(q: Q, studyId: string): Promise<ParityInpu
   }>("SELECT id, slug, protocol_version, design, is_demo, config, snapshot_id, manifest_id FROM studies WHERE id = $1", [studyId]);
   const study = s.rows[0];
   if (!study) throw new ResearchActionError("Study not found");
-  const [conditions, battery, snapshot, manifest, budgets, figures] = await Promise.all([
-    q.query<{ id: string; code: string; label: string; interface: string; config: Record<string, unknown> }>(
+  const [conditions, battery, snapshot, manifest, budgets, figures] = await queryAll(q, [
+    () => q.query<{ id: string; code: string; label: string; interface: string; config: Record<string, unknown> }>(
       "SELECT id, code, label, interface::text, config FROM study_conditions WHERE study_id = $1 ORDER BY position, code",
       [studyId],
     ),
-    q.query<{ assessmentId: string; code: string; version: number; kind: string; phase: string; position: number; status: string; required: boolean }>(
+    () => q.query<{ assessmentId: string; code: string; version: number; kind: string; phase: string; position: number; status: string; required: boolean }>(
       `SELECT sa.assessment_id AS "assessmentId", a.code, a.version, a.kind::text AS kind, sa.phase::text AS phase, sa.position, a.status::text AS status, sa.required
          FROM study_assessments sa JOIN assessments a ON a.id = sa.assessment_id
         WHERE sa.study_id = $1 ORDER BY sa.phase, sa.position`,
       [studyId],
     ),
-    study.snapshot_id
+    () => study.snapshot_id
       ? q.query<{ id: string; versionLabel: string; status: string; kind: string; isDemo: boolean; payload: unknown }>(
           `SELECT id, version_label AS "versionLabel", status::text AS status, kind, is_demo AS "isDemo", payload FROM content_snapshots WHERE id = $1`,
           [study.snapshot_id],
         )
       : null,
-    study.manifest_id
+    () => study.manifest_id
       ? q.query<{ id: string; snapshotId: string; status: string; traditions: string[]; manifestHash: string; ruleSetConfig: unknown; validation: { passed?: boolean } | null; manifest: unknown }>(
           `SELECT m.id, m.snapshot_id AS "snapshotId", m.status::text AS status, m.traditions, m.manifest_hash AS "manifestHash",
                   r.config AS "ruleSetConfig", m.validation, m.manifest
@@ -46,7 +46,7 @@ export async function loadParityInput(q: Q, studyId: string): Promise<ParityInpu
           [study.manifest_id],
         )
       : null,
-    q.query<{ interface: string; learningBudgetSeconds: number | null }>(
+    () => q.query<{ interface: string; learningBudgetSeconds: number | null }>(
       `SELECT DISTINCT sc.interface::text AS interface, ss.learning_budget_seconds AS "learningBudgetSeconds"
          FROM study_sessions ss JOIN study_conditions sc ON sc.id = ss.condition_id
         WHERE ss.study_id = $1 AND ss.learning_started_at IS NOT NULL`,
@@ -56,7 +56,7 @@ export async function loadParityInput(q: Q, studyId: string): Promise<ParityInpu
     // snapshot shows. A published release is judged on its FROZEN figures (DR-037), so the report
     // describes exactly what participants will see; any other snapshot on every live illustration
     // link with its asset's licence governance (migration 0016).
-    listSnapshotFigureAssets(q, study.snapshot_id),
+    () => listSnapshotFigureAssets(q, study.snapshot_id),
   ]);
   const m = manifest?.rows[0];
   return {

@@ -19,6 +19,7 @@
  * refuses software rendering in study mode, and the demo opts in with allowSoftware=1 otherwise).
  */
 import { expect, newContext, test, type Page } from "./fixtures";
+import { hardwareGpu } from "./gpu-mode";
 
 const MUSEUM = "/learn/immersive?allowSoftware=1&probe=1";
 
@@ -91,6 +92,7 @@ test.describe.configure({ mode: "serial" });
 test.setTimeout(15 * 60_000);
 
 test("the same script gives the same exposure and navigation intervals in 2D and 3D (DR-050)", async ({ browser }) => {
+  test.skip(!hardwareGpu(), "needs a hardware GPU: the study device check refuses software renderers for the 3D condition (DR-029), and CI runners only have SwiftShader; run locally (DR-056)");
   const context = await newContext(browser, { viewport: { width: 1280, height: 800 } });
 
   // ----- 3D -----

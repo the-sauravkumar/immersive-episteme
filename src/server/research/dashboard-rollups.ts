@@ -26,7 +26,7 @@
 import type { TelemetryEvent } from "@/features/telemetry/contracts";
 import { computeTimingMetrics, TIMING_METRICS_VERSION } from "@/features/telemetry/metrics";
 
-import type { Q } from "./db";
+import { queryAll, type Q } from "./db";
 
 /** Bump the suffix when the rollup's own derivation changes; the timing version is included. */
 export const ROLLUP_VERSION = `timing-${TIMING_METRICS_VERSION}/rollup-1`;
@@ -185,7 +185,7 @@ export async function refreshRollups(q: Q, studyId: string, sessions: readonly R
   const open = sessions.filter((s) => !ENDED.has(s.status)).map((s) => s.id);
   const ended = sessions.filter((s) => ENDED.has(s.status)).map((s) => s.id);
   // Watermarks first (see the header), then the events of the sessions that changed.
-  const [wOpen, wEnded] = await Promise.all([watermarks(q, open, true), watermarks(q, ended, false)]);
+  const [wOpen, wEnded] = await queryAll(q, [() => watermarks(q, open, true), () => watermarks(q, ended, false)]);
   const stale: { id: string; status: string; eventCount: number; lastSeq: number }[] = [];
   for (const s of sessions) {
     const w = (ENDED.has(s.status) ? wEnded : wOpen).get(s.id) ?? { eventCount: 0, lastSeq: -1 };
@@ -266,6 +266,6 @@ export async function refreshRollups(q: Q, studyId: string, sessions: readonly R
 /** The same figures computed from ALL events, without the rollup table (reference path, tests). */
 export async function fullTelemetry(q: Q, sessions: readonly RollupSession[], scope: ReadonlyMap<string, unknown> | null): Promise<Map<string, SessionTelemetry>> {
   const ids = sessions.map((s) => s.id);
-  const [w, events] = await Promise.all([watermarks(q, ids, true), fetchEvents(q, ids)]);
+  const [w, events] = await queryAll(q, [() => watermarks(q, ids, true), () => fetchEvents(q, ids)]);
   return new Map(ids.map((id) => [id, computeSessionTelemetry(events.get(id) ?? [], scope, { eventCount: w.get(id)?.eventCount ?? 0, lastSeq: w.get(id)?.lastSeq ?? -1 })]));
 }

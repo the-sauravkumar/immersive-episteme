@@ -75,7 +75,8 @@ export async function getHealthReport(
   });
 
   const migrations = await check(async () => {
-    const journal = JSON.parse(await readFile(journalPath, "utf8")) as { entries: { tag: string }[] };
+    // The path is chosen at run time; next.config.ts outputFileTracingIncludes ships the journal.
+    const journal = JSON.parse(await readFile(/*turbopackIgnore: true*/ journalPath, "utf8")) as { entries: { tag: string }[] };
     const r = await pool.query<{ n: number }>("SELECT count(*)::int AS n FROM drizzle.__drizzle_migrations");
     const applied = r.rows[0]!.n;
     return { applied, expected: journal.entries.length, pendingTags: journal.entries.slice(applied).map((e) => e.tag) };
@@ -117,7 +118,8 @@ export async function getHealthReport(
     const config = mediaStorageConfig(opts.env ?? process.env);
     let localDirWritable: boolean | null = null;
     if (config.mode === "local") {
-      const dir = isAbsolute(config.localDir) ? config.localDir : join(cwd, config.localDir);
+      // A runtime data directory, never part of the build output.
+      const dir = isAbsolute(config.localDir) ? config.localDir : join(/*turbopackIgnore: true*/ cwd, config.localDir);
       localDirWritable = await access(dir, constants.W_OK).then(
         () => true,
         () => false,

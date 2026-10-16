@@ -67,6 +67,18 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // Server-only native-ish packages that must not be bundled.
   serverExternalPackages: ["pg"],
+  // Data files read at run time from paths the build cannot trace (their reads are marked
+  // turbopackIgnore): the migrations journal (/admin health) and the interface parity report
+  // (research pages and the public dataset figures).
+  outputFileTracingIncludes: {
+    "/*": ["./db/migrations/meta/_journal.json", "./analysis/parity/interface-parity.json"],
+  },
+  turbopack: {
+    // src/app/layout.tsx sets adjustFontFallback: false for Atkinson Hyperlegible Next (Next.js has
+    // no fallback metrics for it), but Turbopack still looks the metrics up and reports the miss.
+    // Only that exact notice is filtered; any other font issue still shows.
+    ignoreIssue: [{ path: /.*/, title: /^Failed to find font override values for font `Atkinson Hyperlegible Next`/ }],
+  },
   /*
    * Image optimiser (source change S6; docs/deploy/RESEARCH.md s12). KnowledgeFigure renders every
    * figure `unoptimized`, so the browser fetches /figures/<id> itself and the licence gate of that

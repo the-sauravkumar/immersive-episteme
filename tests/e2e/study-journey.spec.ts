@@ -226,6 +226,7 @@ async function throughPractice(page: Page, code: string, condition: "conventiona
 }
 
 test("journey for each condition: blind pre-test, allocation, learning entry and back, completion", async ({ browser }) => {
+  test.skip(!hardwareGpu(), "needs a hardware GPU: the study device check refuses software renderers for the 3D condition (DR-029), and CI runners only have SwiftShader; run locally (DR-056)");
   const seen = new Set<string>();
   const displayMarkup = new Map<string, string>();
   let completed = false;
