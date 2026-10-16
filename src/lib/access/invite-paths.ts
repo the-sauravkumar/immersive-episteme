@@ -12,6 +12,14 @@ export const INVITE_PATH = "/invite";
 export const INVITE_PARAM = "invite";
 /** Route handler that redeems a code from a URL (the proxy rewrites `?invite=` requests to it). */
 export const INVITE_REDEEM_PATH = "/invite/redeem";
+/**
+ * Request headers the proxy sets on its rewrite to the redeem route (DR-067). A proxy rewrite keeps
+ * the ORIGINAL query string, so the redeem route cannot read the rewrite URL's `code` and `next`:
+ * on `/study?code=<slug>&invite=<code>` it read the study slug as the invite code and refused it,
+ * and on every link it lost the target page. The values are URI-encoded (headers are ASCII only).
+ */
+export const INVITE_REDEEM_CODE_HEADER = "x-invite-redeem-code";
+export const INVITE_REDEEM_NEXT_HEADER = "x-invite-redeem-next";
 
 /**
  * Reachable without an invite. Staff areas (/cms, /research, /admin) are not listed: the proxy

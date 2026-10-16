@@ -83,6 +83,10 @@ describe("invite gate (S11)", () => {
     expect(rewrite.searchParams.get("code")).toBe("ABCD-EFGH");
     expect(rewrite.searchParams.get("next")).toBe("/study?code=demo-x");
     expect(res.headers.get("set-cookie")).toBeNull();
+    // The rewrite keeps the original query (where `code` is the study slug), so the redeem route
+    // reads the invite and the target from request headers (DR-067).
+    expect(res.headers.get("x-middleware-request-x-invite-redeem-code")).toBe(encodeURIComponent("ABCD-EFGH"));
+    expect(res.headers.get("x-middleware-request-x-invite-redeem-next")).toBe(encodeURIComponent("/study?code=demo-x"));
   });
 
   it("drops ?invite= without redeeming it again when the browser is already admitted", async () => {
