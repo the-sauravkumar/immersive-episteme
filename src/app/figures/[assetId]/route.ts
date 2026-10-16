@@ -14,11 +14,12 @@
  * frozen into a published release and not withdrawn (DR-037). Anything else answers 404 (an
  * unservable asset is indistinguishable from a missing one).
  *
- * Caching: `public, max-age=300, must-revalidate` (FIGURE_MAX_AGE), never longer than the time left
+ * Caching: `private, max-age=300, must-revalidate` (FIGURE_MAX_AGE), never longer than the time left
  * in the licence, with the file's sha256 as a strong ETag, so a withdrawal or an expiry reaches
  * every browser and shared cache within five minutes, and a revalidation of an unchanged figure is
  * a 304 (the gate is checked first, every time). Content type from the database row, nosniff,
- * sandbox CSP. The proxy matcher does not cover /figures, so no redirect applies.
+ * sandbox CSP. The invite gate in src/proxy.ts covers /figures like every page (S11): a visitor
+ * without an invite is redirected to /invite before this handler runs.
  */
 import { connection, NextResponse, type NextRequest } from "next/server";
 
@@ -43,7 +44,9 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/figures/[ass
     "Content-Type": asset.mimeType,
     "Content-Disposition": "inline",
     "X-Content-Type-Options": "nosniff",
-    "Cache-Control": `public, max-age=${maxAge}, must-revalidate`,
+    // `private`: the site is invite-only (S11), so no shared cache (CDN, proxy) may keep a copy
+    // and hand it to a visitor who never passed the gate; the browser cache still applies.
+    "Cache-Control": `private, max-age=${maxAge}, must-revalidate`,
     ETag: etag,
     "Content-Security-Policy": "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; sandbox",
   };

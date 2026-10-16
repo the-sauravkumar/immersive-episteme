@@ -42,6 +42,19 @@ export const serverEnvSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     DATABASE_URL: postgresUrl,
+    /**
+     * PEM bundle of the CA that signs the database server certificate (RDS: the ap-south-1
+     * bundle, about 4.6 KB). When set, the pool and the dashboard LISTEN connection verify the
+     * server with exactly this CA and `sslmode`/`sslrootcert` are stripped from DATABASE_URL
+     * (src/server/db/connection-config.ts). Required in production on an RDS host, because the
+     * RDS root CA is not in Node's default store (docs/deploy/RESEARCH.md s8, source change S3).
+     */
+    DATABASE_CA_PEM: z
+      .string()
+      .optional()
+      // A value pasted with literal "\n" sequences (one-line env files) becomes a real PEM.
+      .transform((v) => (v && v.trim() ? v.replace(/\\n/g, "\n").trim() : undefined))
+      .refine((v) => v === undefined || /-----BEGIN CERTIFICATE-----[\s\S]+-----END CERTIFICATE-----/.test(v), "must be a PEM certificate bundle"),
     TEST_DATABASE_URL: postgresUrl.optional(),
     BETTER_AUTH_SECRET: z
       .string()
@@ -78,6 +91,13 @@ export const serverEnvSchema = z
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV !== "production") return;
+    if (!env.DATABASE_CA_PEM && isRdsHost(env.DATABASE_URL)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["DATABASE_CA_PEM"],
+        message: "is required in production for an RDS database (the ap-south-1 CA bundle; see docs/deploy/RUNBOOK.md)",
+      });
+    }
     const s = env.BETTER_AUTH_SECRET;
     if (s.length < MIN_PRODUCTION_SECRET_LENGTH || new Set(s).size < MIN_PRODUCTION_SECRET_DISTINCT_CHARS) {
       ctx.addIssue({
@@ -90,11 +110,33 @@ export const serverEnvSchema = z
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
+/** Host of a postgres URL ends in `.rds.amazonaws.com` (Amazon RDS). */
+export function isRdsHost(url: string): boolean {
+  try {
+    return new URL(url).hostname.toLowerCase().endsWith(".rds.amazonaws.com");
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * APP_BUILD_VERSION when it is not set explicitly: the short SHA of the commit Vercel built
+ * (`VERCEL_GIT_COMMIT_SHA`, available at build and run time), so study records name the exact
+ * deployed commit without a manual step (source change S12). An explicit value wins; without
+ * either the schema default "dev" applies.
+ */
+export function withBuildVersion(source: Record<string, string | undefined>): Record<string, string | undefined> {
+  if (source.APP_BUILD_VERSION?.trim()) return source;
+  const sha = source.VERCEL_GIT_COMMIT_SHA?.trim().toLowerCase();
+  if (sha && /^[0-9a-f]{7,40}$/.test(sha)) return { ...source, APP_BUILD_VERSION: sha.slice(0, 7) };
+  return source.APP_BUILD_VERSION === "" ? { ...source, APP_BUILD_VERSION: undefined } : source;
+}
+
 let cached: ServerEnv | undefined;
 
 /** Parse `source` (default `process.env`) or throw one readable error listing every problem. */
 export function parseServerEnv(source: NodeJS.ProcessEnv | Record<string, string | undefined>): ServerEnv {
-  const result = serverEnvSchema.safeParse(source);
+  const result = serverEnvSchema.safeParse(withBuildVersion(source));
   if (!result.success) {
     const issues = result.error.issues
       .map((i) => `  - ${i.path.join(".") || "(root)"}: ${i.message}`)

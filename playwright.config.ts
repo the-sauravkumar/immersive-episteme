@@ -24,9 +24,12 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
+  // The site is always invite-only (S11): every spec starts with a valid invite cookie.
+  globalSetup: "./tests/e2e/global-setup.ts",
   use: {
     baseURL,
     trace: "on-first-retry",
+    storageState: "test-results/.auth/invite.json",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"], ...(GPU ? GPU_LAUNCH : {}) } }],
   webServer: {

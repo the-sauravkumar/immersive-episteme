@@ -8,6 +8,7 @@ import "server-only";
 
 import { serverEnv } from "@/lib/env";
 import { getPool } from "@/server/db/client";
+import { pgConnectionConfig } from "@/server/db/connection-config";
 
 import { dashboardFingerprint, loadDashboard } from "./dashboard";
 import { DashboardCoalescer, type Served } from "./dashboard-cache";
@@ -16,7 +17,9 @@ import { getDashboardNotifier, type DashboardNotifier } from "./dashboard-live";
 type ServiceGlobal = typeof globalThis & { __episteme_dashboard_coalescer?: DashboardCoalescer };
 
 export function dashboardNotifier(): DashboardNotifier {
-  const n = getDashboardNotifier(serverEnv().DATABASE_URL);
+  const env = serverEnv();
+  // The LISTEN connection is not pooled: it needs the same TLS settings as the pool (S3).
+  const n = getDashboardNotifier(pgConnectionConfig(env.DATABASE_URL, env.DATABASE_CA_PEM));
   n.ensure();
   return n;
 }

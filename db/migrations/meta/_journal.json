@@ -141,6 +141,13 @@
       "when": 1792117663711,
       "tag": "0019_media_snapshot_figures",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792133016761,
+      "tag": "0020_invite_codes",
+      "breakpoints": true
     }
   ]
 }

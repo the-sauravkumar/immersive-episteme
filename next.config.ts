@@ -38,6 +38,13 @@ const transcoderWorker = [
   { key: "Content-Security-Policy", value: "default-src 'none'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'" },
 ];
 
+/**
+ * Content-hashed museum textures (`<name>.<8 hex>.ktx2`, public/museum/textures, ASSETS.md): a
+ * new texture gets a new name, so browsers may keep each file for a year without revalidating.
+ * Unhashed public files keep the platform default (revalidate). Source change S6/S7.
+ */
+const immutableAsset = [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }];
+
 const NO_FRAME_SOURCES = [
   "/admin",
   "/admin/:path*",
@@ -60,6 +67,19 @@ const nextConfig: NextConfig = {
   partialPrefetching: true,
   // Server-only native-ish packages that must not be bundled.
   serverExternalPackages: ["pg"],
+  /*
+   * Image optimiser (source change S6; docs/deploy/RESEARCH.md s12). KnowledgeFigure renders every
+   * figure `unoptimized`, so the browser fetches /figures/<id> itself and the licence gate of that
+   * route runs on every request; the optimiser keeps its own copy (on Vercel up to 31 days, across
+   * redeploys) and could outlive a withdrawal or a licence end. Lock it down anyway, so a future
+   * <Image> without `unoptimized` cannot turn arbitrary local paths or query strings into cached
+   * transforms: only /figures/<id> without a query, and the shortest cache the docs recommend.
+   */
+  images: {
+    localPatterns: [{ pathname: "/figures/**", search: "" }],
+    remotePatterns: [],
+    minimumCacheTTL: 60,
+  },
   async headers() {
     // Later entries override earlier ones for the same header key, so each response carries
     // exactly one CSP.
@@ -67,6 +87,7 @@ const nextConfig: NextConfig = {
       { source: "/:path*", headers: securityHeaders },
       ...NO_FRAME_SOURCES.map((source) => ({ source, headers: noFraming })),
       { source: "/museum/basis/ktx2-worker-boot.js", headers: transcoderWorker },
+      { source: "/museum/textures/:file([A-Za-z0-9_-]+\\.[0-9a-f]{8}\\.ktx2)", headers: immutableAsset },
     ];
   },
 };

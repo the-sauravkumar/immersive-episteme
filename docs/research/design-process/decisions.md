@@ -1794,3 +1794,80 @@ researchers' decisions:
 - **Paper implications:** report figure balance as "equal per section and per knowledge layer
   across the study traditions". Report runtime WebGL failures under the preregistered failure
   policy, with their count per condition.
+
+## DR-047 (number to confirm at merge): Always-On Invite Gate and Deployment Source Changes for Vercel (Adopted under the lead's delegation; deployment preparation, nothing deployed)
+
+- **Context:** the platform is to run on Vercel with RDS and S3 in `ap-south-1`
+  (docs/deploy/RESEARCH.md, RUNBOOK.md). The lead's rule is that the site is **always
+  invite-only, with no open mode**. Vercel cannot provide that: Password Protection is a paid
+  add-on that Hobby lacks, and Vercel Authentication admits only Vercel team members
+  (RESEARCH.md s15). RESEARCH.md s13 also lists source changes S1 to S12 that the deployment
+  needs; S4 (`@vercel/functions`) and OIDC for S3 (`@vercel/oidc-aws-credentials-provider`) add
+  dependencies and wait for the lead's approval.
+- **Options (gate):**
+  1. A shared site password in an environment variable. Rejected: one secret for everyone, no
+     per-cohort revocation or use counts, and a change needs a redeploy.
+  2. An "open mode" switch for demos. Rejected: the lead ruled it out, and a switch left on would
+     expose the study.
+  3. Invite codes in the database, administered in the console, redeemed once into a signed
+     cookie. **Adopted.**
+- **Decision (gate, S11):**
+  - Admin -> Access (`admin.users`) creates codes with a label, an optional use limit, an
+    optional last day and an optional study; lists them with their use counts and status; and
+    revokes them with a typed confirmation. Every create and revoke writes an audit row (with the
+    code's 4-character hint, never the code).
+  - Codes are 20 Crockford base32 symbols (100 random bits). Only a SHA-256 of the normalised code
+    is stored (migration 0020, `invite_codes`), so a code is shown once, at creation. Redemption
+    is one conditional `UPDATE` (not revoked, not expired, under the limit), so concurrent
+    redemptions cannot exceed the limit, and a refusal never says why.
+  - `?invite=<code>` on any gated URL, or the `/invite` form, sets a signed (HMAC, purpose
+    `site-invite/v1`, `BETTER_AUTH_SECRET`), httpOnly, SameSite=Lax cookie (`__Host-` and Secure
+    in production) valid for 30 days, then returns to the same URL without the code.
+  - `src/proxy.ts` now matches every path except `/api` (other than `/api/auth`), `/_next/static`,
+    `/_next/image`, `/museum` and the root files, verifies the cookie's signature without a
+    database round trip, and redirects to `/invite?next=...` (403 for non-GET). Exempt:
+    `/invite`, `/sign-in`, `/sign-out`, `/forbidden`, `/console`, `/api/*` (their handlers already
+    refuse callers without a participant, demo or staff session) and static assets. Staff pass
+    with a session cookie; staff areas still redirect to `/sign-in`.
+  - Server-side half: `enterStudy` and `startPublicDemo`, the only actions that create a study or
+    demo session, call `requireSiteAccess`: a verified staff session, or a verified invite
+    cookie whose code is not revoked. So a forged staff cookie or a revoked code can never start
+    a session.
+  - **Revocation** applies at once to new redemptions and to browsers that already used the code
+    (at their next study or demo start). **Expiry** only ends redemption: a cookie issued before
+    the last day stays valid for its 30 days, so a participant is not shut out mid-session when
+    a cohort's sign-up window closes.
+  - **Study links** carry the invite: creating a code for a study shows the participant link
+    `/study?code=<slug>&invite=<code>`, so participants see no extra step. The gate sits before
+    consent and allocation and is identical in both conditions.
+- **Decision (other source changes):**
+  - **S3:** `DATABASE_CA_PEM` (required in production on an `.rds.amazonaws.com` host). When it is
+    set, the pool and the dashboard's LISTEN connection strip `sslmode`/`sslrootcert` from the URL
+    and pass `ssl: { ca, rejectUnauthorized: true }`, because node-postgres lets URL parameters
+    override an explicit `ssl` object. Without it, nothing changes locally.
+  - **S1:** the dashboard stream declares `maxDuration = 300` (the Hobby maximum) and closes itself
+    15 s before it; EventSource reconnects after `retry: 3000`, and the `ready` fingerprint
+    catches changes made in between.
+  - **S5:** in production, media storage refuses to run without the `MEDIA_S3_*` keys instead of
+    falling back to Vercel's placeholder `AWS_*` values. `AWS_ROLE_ARN` alone is refused too,
+    until OIDC is approved and wired.
+  - **S6/S7:** `images.localPatterns` limited to `/figures/**` with no query, `minimumCacheTTL`
+    60 s (figures were already `unoptimized`); `/figures/<id>` now answers `private` instead of
+    `public`, so no shared cache serves a licensed image past the gate; content-hashed museum
+    textures are `public, max-age=31536000, immutable`.
+  - **S8** `!.env.production.example` in `.gitignore`; **S9** a root `.vercelignore`; **S10**
+    `engines.node` `24.x`; **S12** `APP_BUILD_VERSION` defaults to the short
+    `VERCEL_GIT_COMMIT_SHA` when it is unset (an explicit value still wins).
+  - **Not done:** S4 and OIDC (dependencies awaiting approval); S2 was already in place.
+- **Consequences:** every Playwright spec now needs an invite. `tests/e2e/global-setup.ts`
+  creates one `Demo:` code per run in the development database and writes a storage state with
+  the signed cookie. Specs that test the gate itself must start from an empty storage state.
+  Rotating `BETTER_AUTH_SECRET` also signs out every invite cookie. The production
+  `APP_BUILD_VERSION` set by hand (RUNBOOK step 7) should be removed so S12 applies.
+- **Equivalence check:** the gate is condition-blind: it runs before consent and allocation, both
+  conditions are behind the same cookie, and no learning page, telemetry event or knowledge
+  content changed. The checks of the 7-point 2D/3D list are unaffected; the parity and e2e suites
+  must be rerun after merge with the new global setup.
+- **Paper implications:** report that access was by invitation (codes per cohort, revocable),
+  identical for both conditions and before consent, and that no personal data is collected by the
+  gate (codes are hashed; the cookie holds only the code's row id).

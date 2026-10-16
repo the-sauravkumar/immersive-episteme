@@ -12,7 +12,8 @@
  *
  * Environment (validated here; not part of src/lib/env.ts yet):
  *   MEDIA_S3_BUCKET, MEDIA_S3_REGION (default us-east-1), MEDIA_S3_ENDPOINT (optional, e.g. MinIO),
- *   MEDIA_S3_ACCESS_KEY_ID, MEDIA_S3_SECRET_ACCESS_KEY (optional: default AWS credential chain),
+ *   MEDIA_S3_ACCESS_KEY_ID, MEDIA_S3_SECRET_ACCESS_KEY (optional outside production: default AWS
+ *   credential chain; required in production, see assertExplicitS3Credentials),
  *   MEDIA_S3_FORCE_PATH_STYLE ("true" for MinIO-style endpoints), MEDIA_LOCAL_DIR.
  *
  * Not `server-only` (integration tests use the local store).
@@ -181,6 +182,24 @@ export function createS3Storage(env: MediaEnv): S3MediaStorage {
   };
 }
 
+/**
+ * Production must name its S3 credentials (source change S5; docs/deploy/RESEARCH.md s9). Without
+ * the MEDIA_S3_* keys the SDK falls back to the default credential chain, which on Vercel reads
+ * the platform's placeholder AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY ("not usable as AWS
+ * credentials"), so uploads and figures would fail at request time with a confusing signature
+ * error. Refuse instead, with a message that names the fix. OIDC (`AWS_ROLE_ARN` with
+ * @vercel/oidc-aws-credentials-provider) is not wired yet: it is a new dependency that needs the
+ * lead's approval, so `AWS_ROLE_ARN` alone does not satisfy this check.
+ */
+export function assertExplicitS3Credentials(env: MediaEnv, source: Record<string, string | undefined> = process.env): void {
+  if (env.NODE_ENV !== "production") return;
+  if (env.MEDIA_S3_ACCESS_KEY_ID && env.MEDIA_S3_SECRET_ACCESS_KEY) return;
+  const hint = source.AWS_ROLE_ARN ? " AWS_ROLE_ARN is set, but OIDC credentials are not supported by this build yet." : "";
+  throw new Error(
+    `Media storage: set MEDIA_S3_ACCESS_KEY_ID and MEDIA_S3_SECRET_ACCESS_KEY in production; the default AWS credential chain is refused (on VERCEL it holds placeholder values).${hint}`,
+  );
+}
+
 let cached: MediaStorage | undefined;
 
 /** The configured store (memoised). */
@@ -189,6 +208,7 @@ export function getMediaStorage(source: Record<string, string | undefined> = pro
   const env = parseMediaEnv(source);
   let storage: MediaStorage;
   if (env.MEDIA_S3_BUCKET) {
+    assertExplicitS3Credentials(env, source);
     storage = createS3Storage(env);
   } else {
     if (env.NODE_ENV === "production" && !env.MEDIA_LOCAL_DIR) {
