@@ -48,6 +48,19 @@ IE_GPU=1 npx playwright test -c scripts/museum/playwright.gpu.config.ts --projec
 npx playwright test tests/e2e/immersive-flow.spec.ts                                       # functional flow, 2D/3D DOM text equality, 390/1280 layout
 ```
 
+Headless through the default config since DR-056 (the route this machine uses; one server on
+:3300, one worker, renderer string checked by the suite before any measurement):
+
+```bash
+IE_GPU=1 PORT=3300 node node_modules/@playwright/test/cli.js test tests/e2e/immersive-rendering.spec.ts --project chromium --workers=1   # high tier, GTX 1650 (full Chromium)
+IE_GPU=1 PORT=3300 node node_modules/@playwright/test/cli.js test tests/e2e/immersive-rendering.spec.ts --project low-spec --workers=1   # low tier, Iris Xe (headless shell), CPU x4
+```
+
+Add `-g "C2c"` for the visual-pass finish checks alone (DR-058). The runs recorded below that cite
+`PW_GPU=1` or `PW_GPU=low` predate DR-056: `PW_GPU=1` is what the `chromium` project now does, and
+`PW_GPU=low` is replaced by `--project low-spec`; each run's recorded renderer string shows the GPU
+it used.
+
 The first run writes the C5 baselines (`tests/e2e/immersive-baselines/<tier>/`, 640 x 360);
 they need a human review before they count as approved.
 
@@ -106,8 +119,8 @@ table shows the run after the matte-print change (run id `wp8-fix-1792062394`, 2
   plaque now reads at least 5.16:1, and the lowest plaque of each study tradition is 5.16 to
   5.65. The same change applies to the unlettered stand-in cards, so lettering residency never
   changes a card's brightness. Interface parity check P26 now reads these plaques itself.
-- **Low tier.** `PW_GPU=low` selects the Iris Xe with the same command, at CPU x4. It has not been
-  run in this pass.
+- **Low tier.** Not run in this pass. (`PW_GPU=low` was meant to select the Iris Xe at CPU x4;
+  since DR-056 the route is `--project low-spec`.)
 
 ## 5. Known deviations, before measurement
 

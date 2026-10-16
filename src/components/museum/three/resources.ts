@@ -58,16 +58,26 @@ export const GALLERY_FINISH = {
   wallSrgb: 205,
   /** F1b: matte floor mean, at most 0.3 x the wall luminance (here 0.21 x; Smithsonian contrast 79%). */
   floorSrgb: 100,
-  /** Floor colour-map detail kept (0 = flat, 1 = the map's own contrast): no high-contrast plank lines. */
-  floorDetail: 0.55,
-  /** Ceiling mean (F4), a little under the washed walls. */
-  ceilingSrgb: 196,
+  /** Floor colour-map detail kept (0 = flat, 1 = the map's own contrast): grain that reads, no high-contrast plank lines. */
+  floorDetail: 0.7,
+  /**
+   * Floor hue kept (0 = neutral grey, 1 = the map's own chroma), mixed back in around the same
+   * luminance (`chromaGain`): a muted oak (CIELAB C* 4 to 9, b* > 0), not grey vinyl. Walls and
+   * ceilings stay neutral (DR-023: no warm cast on the walls).
+   */
+  floorChroma: 0.3,
+  /** Ceiling mean (F4), a step under the washed walls, so the cove band reads as the source. */
+  ceilingSrgb: 188,
   /** Plinth body: the same plaster, a step lighter than the wall so the stand reads as an object. */
   plinthSrgb: 226,
   /** F6 shadow-gap skirting and F8 plinth toe: rendered sRGB 35 to 45. */
   shadowSrgb: 40,
   /** F7 door edge colour (rendered as given: 5.79 to 6.40:1 against walls of 200 to 210). */
   doorEdge: "#3f454c",
+  /** F7 reveal: the lining face into the opening, a plaster step under the wall, so the opening reads as a deep reveal and not a cut. */
+  revealSrgb: 182,
+  /** F7 threshold: a stone sill across the wall thickness, lighter than the floor (0.5 x the wall's linear luminance), under the 20 mm edge in weight. */
+  thresholdSrgb: 150,
   /** F5 cove slot surface: below 0.8 linear after exposure, so it never clips (C2). */
   coveLinear: 0.72,
   /** F5: 150 mm ceiling cove, recessed `rise` above the ceiling plane. */
@@ -86,12 +96,13 @@ export const GALLERY_FINISH = {
   readingStand: { boardDepth: 0.04, pedestalWidth: 0.36, pedestalDepth: 0.24 },
   /**
    * F3 wall wash (a fraction of the card-band level): contact darkening at the skirting, flat
-   * (within ±3%) across the card band, brighter towards the cove.
+   * (within ±3%) across the card band, brighter towards the cove. Visible falloff (DR-058):
+   * rendered 176.8 at 0.05 m, 190.6 at 0.3 m, 205 at 1.9 m, 215.8 at 3.1 m.
    */
-  wash: { floor: 0.86, floorFalloff: 0.22, cove: 0.1, coveFalloff: 0.32 },
+  wash: { floor: 0.7, floorFalloff: 0.4, cove: 0.16, coveFalloff: 0.3 },
   /** F4 floor contact shading (walls and plinths) and the ceiling's cove up-light, before normalising. */
-  floorContact: { strength: 0.32, falloff: 0.3, texelsPerMetre: 16 },
-  ceilingCove: { strength: 0.16, falloff: 0.55, texelsPerMetre: 8 },
+  floorContact: { strength: 0.42, falloff: 0.4, texelsPerMetre: 16 },
+  ceilingCove: { strength: 0.32, falloff: 0.7, texelsPerMetre: 8 },
   /**
    * Fixed per-face shading (baked into vertex colours, identical in every room): a soffit is
    * darker than a wall, a horizontal top a touch lighter, and walls facing east or west a touch
@@ -430,6 +441,19 @@ function panelBlankMaterial(): THREE.MeshBasicMaterial {
   return m;
 }
 
+/** Rec. 709 luminance weights (linear sRGB); the floor shader uses the same three numbers. */
+export const LUMA = [0.2126, 0.7152, 0.0722] as const;
+
+/**
+ * Per-channel gain that puts `chroma` of a map's own hue back on a neutral surface around the same
+ * luminance (the floor, F1b): mix(1, mean / Y(mean), chroma). Its luminance is exactly 1 for any
+ * `chroma`, so the floor's mean stays at `floorSrgb`.
+ */
+export function chromaGain(mean: readonly number[], chroma: number): [number, number, number] {
+  const y = LUMA[0] * mean[0]! + LUMA[1] * mean[1]! + LUMA[2] * mean[2]!;
+  return [0, 1, 2].map((i) => 1 + chroma * (mean[i]! / y - 1)) as [number, number, number];
+}
+
 /** Material colour that turns a map of linear mean `mean` into a neutral grey of scene value `v`. */
 function neutralGain(mean: readonly number[], v: number): THREE.Color {
   return new THREE.Color().setRGB(v / mean[0]!, v / mean[1]!, v / mean[2]!, THREE.LinearSRGBColorSpace);
@@ -465,7 +489,8 @@ function plasterMaterial(tex: LoadedTextures, profile: THREE.DataTexture): THREE
 
 /**
  * A floor or ceiling material for one room (F4): the colour map with a neutral gain to the finish
- * mean, that room's normalised light map, and (floor) the map's contrast reduced to `floorDetail`.
+ * mean, that room's normalised light map, and (floor) the map's contrast reduced to `floorDetail`
+ * with `floorChroma` of its own hue mixed back in (`chromaGain`, luminance unchanged).
  * All rooms share one program (the onBeforeCompile and its cache key are set on every instance).
  */
 export function roomSurfaceMaterial(kind: "floor" | "ceiling", tex: LoadedTextures, light: THREE.Texture | null): THREE.MeshBasicMaterial {
@@ -482,14 +507,22 @@ export function roomSurfaceMaterial(kind: "floor" | "ceiling", tex: LoadedTextur
   if (floor) {
     const uMean = new THREE.Vector3(mean[0], mean[1], mean[2]);
     const detail = { value: GALLERY_FINISH.floorDetail };
+    const chroma = { value: GALLERY_FINISH.floorChroma };
     m.onBeforeCompile = (shader) => {
       shader.uniforms.uMapMean = { value: uMean };
       shader.uniforms.uDetail = detail;
+      shader.uniforms.uChroma = chroma;
+      // The neutral gain (material colour) divides each channel by the map's mean; mixing `uChroma`
+      // of mean / Y(mean) back in restores that much of the map's hue at the same luminance
+      // (chromaGain, unit-tested).
       shader.fragmentShader = shader.fragmentShader
-        .replace("#include <common>", "#include <common>\nuniform vec3 uMapMean;\nuniform float uDetail;")
-        .replace("#include <map_fragment>", "#ifdef USE_MAP\n  vec4 sampledDiffuseColor = texture2D( map, vMapUv );\n  diffuseColor.rgb *= mix( uMapMean, sampledDiffuseColor.rgb, uDetail );\n#endif");
+        .replace("#include <common>", "#include <common>\nuniform vec3 uMapMean;\nuniform float uDetail;\nuniform float uChroma;")
+        .replace(
+          "#include <map_fragment>",
+          "#ifdef USE_MAP\n  vec4 sampledDiffuseColor = texture2D( map, vMapUv );\n  diffuseColor.rgb *= mix( uMapMean, sampledDiffuseColor.rgb, uDetail ) * mix( vec3( 1.0 ), uMapMean / dot( uMapMean, vec3( 0.2126, 0.7152, 0.0722 ) ), uChroma );\n#endif",
+        );
     };
-    m.customProgramCacheKey = () => "ie-floor-v1";
+    m.customProgramCacheKey = () => "ie-floor-v2";
   }
   return m;
 }

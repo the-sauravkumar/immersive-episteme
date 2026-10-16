@@ -6,16 +6,44 @@
  * present so a study session can be audited (C7). The controlling probe `window.__museumProbe`
  * (teleport, forced frames, pixel readback, scripted path, context loss) is installed only when
  * `enabled` (never in study mode: see the page).
+ *
+ * C2c (DR-058 visual pass): `roomSurfaces`, `portalSurfaces`, `doorFrame` and
+ * `directoryLegibility` read the finish off the rendered frame at world points chosen by the pure
+ * probe-geometry.ts (projected with the camera that drew the frame, occlusion checked by a ray).
  */
 import * as THREE from "three";
 
-import { createRouter } from "@/features/immersive/navigation";
+import { VISITOR, createRouter } from "@/features/immersive/navigation";
+import { emAngle } from "@/features/immersive/placement";
 import type { QualityTier } from "@/features/immersive/quality";
 import type { SceneModel } from "@/features/immersive/scene-model";
 import { buildTour, poseAt, roomOrder, segmentDuration, tourLength, viewpoints, type Pose } from "@/features/immersive/tour-path";
+import { DIRECTORY, entranceDirectory } from "@/features/immersive/wayfinding";
+import type { Vec3 } from "@/features/spatial/compiler/types";
 
+import {
+  C2C,
+  ceilingGrid,
+  columnPoints,
+  doorEdgePoints,
+  doorOfRoom,
+  fitView,
+  labOfLinear,
+  lumaLevels,
+  mean,
+  median,
+  ndcRectToPixels,
+  planWallColumns,
+  relativeLuminance,
+  revealPoints,
+  signContrast,
+  signInset,
+  srgb8ToLinear,
+  thresholdPoints,
+  viewTarget,
+} from "./probe-geometry";
 import type { WebGLPipeline } from "./three/pipeline";
-import { STUDY_RENDER_CONFIG, type LoadedTextures } from "./three/resources";
+import { GALLERY_FINISH, STUDY_RENDER_CONFIG, type LoadedTextures } from "./three/resources";
 import type { MuseumWorld } from "./three/world";
 
 export interface ProbeHost {
@@ -166,6 +194,148 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
   async function setPoseAndSettle(p: Pose) {
     host.setPose(p.x, p.z, p.yaw, p.pitch);
     await settle();
+  }
+
+  // ---- C2c surface samplers (DR-058 visual pass): world points projected into the rendered frame.
+
+  /** One rendered frame at a pose, with the camera that drew it (for projecting world points). */
+  interface Frame {
+    px: Uint8Array;
+    w: number;
+    h: number;
+    camera: THREE.PerspectiveCamera;
+    eye: THREE.Vector3;
+    yaw: number;
+    pitch: number;
+  }
+  interface Sample {
+    key: string;
+    inFrame: boolean;
+    occluded: boolean;
+    /** Drawing-buffer pixel (column, row from the bottom). */
+    pixel: [number, number] | null;
+    /** Median, min and max 8-bit sRGB luma of the patch. */
+    luma: number | null;
+    lumaMin: number | null;
+    lumaMax: number | null;
+    /** Mean display-linear RGB of the patch. */
+    linear: Vec3 | null;
+  }
+  const raycaster = new THREE.Raycaster();
+
+  /**
+   * Frames from one viewpoint's position, one per direction (the baked surfaces render the same
+   * whichever way the camera looks: unlit, no exposure adaptation).
+   */
+  function frameSource(base: Pose) {
+    const frames = new Map<string, Frame>();
+    return async (yaw: number, pitch: number): Promise<Frame> => {
+      const k = `${yaw.toFixed(5)}|${pitch.toFixed(5)}`;
+      const hit = frames.get(k);
+      if (hit) return hit;
+      await setPoseAndSettle({ ...base, yaw, pitch });
+      const px = await grab();
+      const gl = host.renderer.getContext();
+      const camera = host.camera.clone();
+      camera.updateMatrixWorld(true);
+      const f: Frame = { px, w: gl.drawingBufferWidth, h: gl.drawingBufferHeight, camera, eye: camera.getWorldPosition(new THREE.Vector3()), yaw, pitch };
+      frames.set(k, f);
+      return f;
+    };
+  }
+
+  /** Drawing-buffer position of a world point in a frame (null behind the camera). */
+  function toPixel(f: Frame, p: Vec3): { x: number; y: number; inFrame: boolean } | null {
+    const v = new THREE.Vector3(p[0], p[1], p[2]).applyMatrix4(f.camera.matrixWorldInverse);
+    if (v.z > -f.camera.near) return null;
+    v.applyMatrix4(f.camera.projectionMatrix);
+    const x = ((v.x + 1) / 2) * f.w;
+    const y = ((v.y + 1) / 2) * f.h;
+    return { x, y, inFrame: x >= 0 && x < f.w && y >= 0 && y < f.h };
+  }
+
+  /** Visible meshes, the occluders of a sample point. */
+  function visibleMeshes(): THREE.Object3D[] {
+    const meshes: THREE.Object3D[] = [];
+    host.scene.traverseVisible((o) => {
+      if ((o as THREE.Mesh).isMesh) meshes.push(o);
+    });
+    return meshes;
+  }
+
+  /** Something drawn between the eye and the point (other than the surface the point lies on, 1 cm tolerance). */
+  function occluded(f: Frame, p: Vec3, meshes: THREE.Object3D[]): boolean {
+    const target = new THREE.Vector3(p[0], p[1], p[2]);
+    const dir = target.clone().sub(f.eye);
+    const dist = dir.length();
+    raycaster.set(f.eye, dir.normalize());
+    raycaster.near = 0;
+    raycaster.far = Math.max(0, dist - 0.01);
+    return raycaster.intersectObjects(meshes, false).length > 0;
+  }
+
+  function samplePoint(f: Frame, key: string, p: Vec3, patch: { rx: number; ry: number }, meshes: THREE.Object3D[]): Sample {
+    const at = toPixel(f, p);
+    if (!at || !at.inFrame) return { key, inFrame: false, occluded: false, pixel: null, luma: null, lumaMin: null, lumaMax: null, linear: null };
+    const ix = Math.floor(at.x);
+    const iy = Math.floor(at.y);
+    const lumas: number[] = [];
+    const lin: Vec3 = [0, 0, 0];
+    for (let dy = -patch.ry; dy <= patch.ry; dy++) {
+      for (let dx = -patch.rx; dx <= patch.rx; dx++) {
+        const x = ix + dx;
+        const y = iy + dy;
+        if (x < 0 || y < 0 || x >= f.w || y >= f.h) continue;
+        const i = (y * f.w + x) * 4;
+        const r = f.px[i]!;
+        const g = f.px[i + 1]!;
+        const b = f.px[i + 2]!;
+        lumas.push(lumaLevels(r, g, b));
+        lin[0] += srgb8ToLinear(r);
+        lin[1] += srgb8ToLinear(g);
+        lin[2] += srgb8ToLinear(b);
+      }
+    }
+    const n = lumas.length;
+    return {
+      key,
+      inFrame: true,
+      occluded: occluded(f, p, meshes),
+      pixel: [ix, iy],
+      luma: median(lumas),
+      lumaMin: Math.min(...lumas),
+      lumaMax: Math.max(...lumas),
+      linear: [lin[0] / n, lin[1] / n, lin[2] / n],
+    };
+  }
+
+  const good = (s: Sample) => s.inFrame && !s.occluded && s.luma !== null;
+  const meanLinear = (ss: Sample[]): Vec3 => {
+    const ok = ss.filter((s) => good(s) && s.linear);
+    return [mean(ok.map((s) => s.linear![0])), mean(ok.map((s) => s.linear![1])), mean(ok.map((s) => s.linear![2]))];
+  };
+  const round = (v: number, d = 3) => (Number.isFinite(v) ? Math.round(v * 10 ** d) / 10 ** d : v);
+  const roundLab = (l: { L: number; a: number; b: number; C: number }) => ({ L: round(l.L, 2), a: round(l.a, 2), b: round(l.b, 2), C: round(l.C, 2) });
+  const lumaOf = (ss: Sample[], key: string) => ss.find((s) => s.key === key)?.luma ?? NaN;
+
+  /** The direction that frames the points from the pose's position (probe-geometry.ts `fitView`). */
+  const viewFor = (base: Pose, points: Vec3[]) => fitView(base, VISITOR.eyeHeight, points, host.camera.fov, host.camera.aspect, { limit: VISITOR.pitchLimit });
+  const turnedDeg = (base: Pose, yaw: number) => round((Math.atan2(Math.sin(yaw - base.yaw), Math.cos(yaw - base.yaw)) * 180) / Math.PI, 1);
+
+  /**
+   * Reads `essential` points (every one must be in frame and unoccluded) and `extra` points (used
+   * where visible) in one frame: at the pose's own direction, else tilted, else turned towards the
+   * points (`fitView`); `pitch` and `turnedDeg` report which.
+   */
+  async function readGroup(frameAt: (yaw: number, pitch: number) => Promise<Frame>, base: Pose, essential: { key: string; p: Vec3 }[], extra: { key: string; p: Vec3 }[], patch: { rx: number; ry: number }) {
+    const fitOn = essential.length ? essential : extra;
+    const dir = viewFor(base, fitOn.map((e) => e.p));
+    if (!dir) return { ok: false, reason: "the points do not fit one frame", pitch: null, turnedDeg: null, samples: [] as Sample[] };
+    const f = await frameAt(dir.yaw, dir.pitch);
+    const meshes = visibleMeshes();
+    const samples = [...essential, ...extra].map((e) => samplePoint(f, e.key, e.p, patch, meshes));
+    const bad = samples.slice(0, essential.length).filter((s) => !good(s));
+    return { ok: bad.length === 0, reason: bad.length ? bad.map((b) => `${b.key} ${b.inFrame ? "occluded" : "out of frame"}`).join("; ") : null, pitch: round(dir.pitch, 4), turnedDeg: turnedDeg(base, dir.yaw), samples };
   }
 
   const probe = {
@@ -441,6 +611,241 @@ export function installProbe(host: ProbeHost, enabled: boolean): () => void {
       const muted = q(kicker, 0.01);
       const ratio = (a: number, b: number) => (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
       return { screenRect: { x0, x1, yb, yt }, paperLuminance: paper, inkLuminance: ink, mutedLuminance: muted, titleContrast: ratio(paper, ink), kickerContrast: ratio(paper, muted) };
+    },
+    /**
+     * C2c on a `room:<id>#wall` view (DR-058 visual pass, spec §A1-A3): on the wall the view faces,
+     * at the column nearest the view axis that is clear of plates, signs, doorways and anything on
+     * the floor (probe-geometry.ts `planWallColumns`), reads
+     *  - the wall at 0.3, 1.9 and 3.0 m (8-bit sRGB luma) and the CIELAB of the card band;
+     *  - the floor 5 cm and 1.5 m from the wall and the CIELAB of the floor 0.6-1.6 m out;
+     *  - the ceiling 0.25 m and 2 m from the wall, and the brightest pixel of the ceiling in view.
+     * Each group is read in one frame from the viewpoint's position, at its own direction or tilted
+     * or turned until the group's points fit (the baked surfaces do not change with the direction;
+     * `pitch` and `turnedDeg` report it).
+     */
+    async roomSurfaces(view: Pose & { id?: string; roomId?: string }) {
+      const roomId = view.roomId ?? viewTarget(view.id ?? "").target;
+      const plan = planWallColumns(host.model, roomId, view);
+      if ("reason" in plan) return { roomId, viewId: view.id ?? null, reason: plan.reason, wall: null, floor: null, ceiling: null };
+      const { face, columns } = plan;
+      const frameAt = frameSource(view);
+      const column = (c: (typeof columns)[number]) => ({ lateral: c.lateral, offset: c.offset, tier: c.tier });
+      /** The first column (of at most C2C.maxColumns that one direction can frame) whose group reads clear. */
+      const firstClear = async (points: (c: (typeof columns)[number]) => { essential: { key: string; p: Vec3 }[]; extra: { key: string; p: Vec3 }[] }, patch: { rx: number; ry: number }) => {
+        let reason = "no column that one direction can frame";
+        let framed = 0;
+        for (const c of columns) {
+          if (framed >= C2C.maxColumns) break;
+          const { essential, extra } = points(c);
+          const r = await readGroup(frameAt, view, essential, extra, patch);
+          if (r.pitch === null) continue;
+          framed++;
+          if (r.ok) return { c, r, reason: null };
+          reason = r.reason ?? reason;
+        }
+        return { c: null, r: null, reason };
+      };
+
+      let wall: Record<string, unknown> | null = null;
+      const w = await firstClear((c) => {
+        const pts = columnPoints(face, c);
+        return { essential: pts.wall, extra: pts.band };
+      }, { rx: 3, ry: 1 });
+      if (w.c && w.r) {
+        const pts = columnPoints(face, w.c);
+        const samples = w.r.samples;
+        const [l03, l19, l30] = pts.wall.map((p) => lumaOf(samples, p.key)) as [number, number, number];
+        const band = samples.filter((s) => s.key.startsWith("band:"));
+        wall = {
+          column: column(w.c),
+          pitch: w.r.pitch,
+          turnedDeg: w.r.turnedDeg,
+          heights: C2C.wallHeights,
+          levels: [round(l03, 2), round(l19, 2), round(l30, 2)],
+          ratioLow: round(l03 / l19, 4),
+          ratioHigh: round(l30 / l19, 4),
+          lab: roundLab(labOfLinear(meanLinear(band))),
+          bandSamples: band.filter(good).length,
+        };
+      }
+
+      // One pixel row at the near point: 5 cm of floor is 2 to 4 px deep from the room centre.
+      let floor: Record<string, unknown> | null = null;
+      const fl = await firstClear((c) => {
+        const pts = columnPoints(face, c);
+        return { essential: pts.floor, extra: pts.floorRegion };
+      }, { rx: 3, ry: 0 });
+      if (fl.c && fl.r) {
+        const near = lumaOf(fl.r.samples, "floor@near");
+        const far = lumaOf(fl.r.samples, "floor@far");
+        const region = fl.r.samples.filter((s) => s.key.startsWith("floorRegion:"));
+        floor = { column: column(fl.c), pitch: fl.r.pitch, turnedDeg: fl.r.turnedDeg, near: round(near, 2), far: round(far, 2), delta: round(far - near, 2), lab: roundLab(labOfLinear(meanLinear(region))), regionSamples: region.filter(good).length };
+      }
+
+      let ceiling: Record<string, unknown> | null = null;
+      const cl =
+        face.ceilingY === null
+          ? { c: null, r: null, reason: "room has no ceiling" }
+          : await firstClear((c) => ({ essential: columnPoints(face, c).ceiling, extra: ceilingGrid(face, c, { cove: GALLERY_FINISH.cove.width, maxOut: 3.5, halfWidth: 1, step: 0.25 }) }), { rx: 3, ry: 0 });
+      if (cl.c && cl.r) {
+        const near = lumaOf(cl.r.samples, "ceiling@near");
+        const inner = lumaOf(cl.r.samples, "ceiling@in");
+        const seen = cl.r.samples.filter(good);
+        ceiling = { column: column(cl.c), pitch: cl.r.pitch, turnedDeg: cl.r.turnedDeg, near: round(near, 2), in: round(inner, 2), delta: round(near - inner, 2), max: Math.max(...seen.map((s) => s.lumaMax!)), gridSamples: seen.length - 2 };
+      }
+      return {
+        roomId,
+        viewId: view.id ?? null,
+        facing: face.facing,
+        normalAxis: face.normalAxis,
+        wallDistance: round(face.depth - face.cameraDepth),
+        columnsAvailable: columns.length,
+        wall,
+        floor,
+        ceiling,
+        reasons: { wall: w.reason, floor: fl.reason, ceiling: cl.reason },
+      };
+    },
+    /**
+     * C2c on a `<portal>#through` view (spec §A4): the mean 8-bit sRGB luma of each jamb's reveal
+     * (the lining face along the opening, 0.8-1.9 m, 20-80% of the wall thickness) and of the
+     * threshold sill (inset 20%), each from the points that are in view and unoccluded.
+     */
+    async portalSurfaces(view: Pose & { id?: string }) {
+      const portalId = viewTarget(view.id ?? "").target;
+      const portal = host.model.portals.find((p) => p.id === portalId);
+      if (!portal) return { portalId, reason: "no such doorway", reveal: null, threshold: null };
+      const frameAt = frameSource(view);
+      const jambPoints = revealPoints(portal);
+      const all = jambPoints.flatMap((j) => j.points.map((p, i) => ({ key: `reveal:${j.jamb}:${i}`, p })));
+      const rv = await readGroup(frameAt, view, [], all, { rx: 1, ry: 1 });
+      const jambs = jambPoints.map((j) => {
+        const ss = rv.samples.filter((s) => s.key.startsWith(`reveal:${j.jamb}:`) && good(s));
+        return { jamb: j.jamb, n: ss.length, of: j.points.length, mean: round(mean(ss.map((s) => s.luma!)), 2) };
+      });
+      const seen = rv.samples.filter(good);
+      const reveal = { pitch: rv.pitch, turnedDeg: rv.turnedDeg, jambs, n: seen.length, mean: round(mean(seen.map((s) => s.luma!)), 2), reason: rv.pitch === null ? rv.reason : null };
+      const tp = thresholdPoints(portal.threshold).map((p, i) => ({ key: `threshold:${i}`, p }));
+      let threshold: { pitch: number | null; turnedDeg: number | null; n: number; of: number; mean: number; reason: string | null } | null = null;
+      if (tp.length) {
+        const th = await readGroup(frameAt, view, [], tp, { rx: 1, ry: 1 });
+        const ss = th.samples.filter(good);
+        threshold = { pitch: th.pitch, turnedDeg: th.turnedDeg, n: ss.length, of: tp.length, mean: round(mean(ss.map((s) => s.luma!)), 2), reason: th.pitch === null ? th.reason : null };
+      }
+      return { portalId, reason: null, reveal, threshold };
+    },
+    /**
+     * C2c on a `room:<id>#door` view (spec §A4): the door frame against the wall. For each jamb and
+     * height, the darkest pixel across the jamb's 20 mm room-facing edge (the frame's darkest part,
+     * the edge colour) against the wall 0.25 m beyond the opening on the same face (5 x 5 median);
+     * WCAG ratio of the medians over the heights. A jamb whose edge is under 1 px wide on screen (seen
+     * edge-on) is reported and not measured.
+     */
+    async doorFrame(view: Pose & { id?: string; roomId?: string }) {
+      const roomId = view.roomId ?? viewTarget(view.id ?? "").target;
+      const portal = doorOfRoom(host.model, roomId);
+      if (!portal) return { roomId, portalId: null, reason: "room has no doorway", jambs: [], ratio: null };
+      const edges = doorEdgePoints(portal, view);
+      const pts = edges.flatMap((j) => j.rows.flatMap((r) => [r.edge[0], r.edge[1], r.wall]));
+      const dir = viewFor(view, pts);
+      if (!dir) return { roomId, portalId: portal.id, reason: "the door does not fit one frame", jambs: [], ratio: null };
+      const f = await frameSource(view)(dir.yaw, dir.pitch);
+      const meshes = visibleMeshes();
+      const lumAt = (x: number, y: number) => {
+        const i = (y * f.w + x) * 4;
+        return relativeLuminance(f.px[i]!, f.px[i + 1]!, f.px[i + 2]!);
+      };
+      const jambs = edges.map((j) => {
+        const rows: { y: number; widthPx: number; frame: number; wall: number }[] = [];
+        for (const r of j.rows) {
+          const a = toPixel(f, r.edge[0]);
+          const b = toPixel(f, r.edge[1]);
+          const mid: Vec3 = [(r.edge[0][0] + r.edge[1][0]) / 2, r.y, (r.edge[0][2] + r.edge[1][2]) / 2];
+          const wp = toPixel(f, r.wall);
+          if (!a?.inFrame || !b?.inFrame || !wp?.inFrame || occluded(f, mid, meshes) || occluded(f, r.wall, meshes)) continue;
+          const row = Math.floor((a.y + b.y) / 2);
+          let frame = Infinity;
+          for (let x = Math.max(0, Math.floor(Math.min(a.x, b.x)) - 1); x <= Math.min(f.w - 1, Math.ceil(Math.max(a.x, b.x)) + 1); x++) frame = Math.min(frame, lumAt(x, row));
+          const wl: number[] = [];
+          for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+            const x = Math.floor(wp.x) + dx;
+            const y = Math.floor(wp.y) + dy;
+            if (x >= 0 && y >= 0 && x < f.w && y < f.h) wl.push(lumAt(x, y));
+          }
+          rows.push({ y: r.y, widthPx: round(Math.abs(b.x - a.x), 2), frame, wall: median(wl) });
+        }
+        const widthPx = median(rows.map((r) => r.widthPx));
+        const frameL = median(rows.map((r) => r.frame));
+        const wallL = median(rows.map((r) => r.wall));
+        const measured = rows.length >= 2 && widthPx >= 1;
+        const ratio = (Math.max(frameL, wallL) + 0.05) / (Math.min(frameL, wallL) + 0.05);
+        return { jamb: j.jamb, rows: rows.length, widthPx: round(widthPx, 2), frameLuminance: round(frameL, 4), wallLuminance: round(wallL, 4), ratio: round(ratio, 3), measured, reason: measured ? null : rows.length < 2 ? "edge not in view" : "edge under 1 px wide" };
+      });
+      const measured = jambs.filter((j) => j.measured);
+      return { roomId, portalId: portal.id, pitch: round(dir.pitch, 4), turnedDeg: turnedDeg(view, dir.yaw), reason: measured.length ? null : "no jamb measurable", jambs, ratio: measured.length ? Math.min(...measured.map((j) => j.ratio)) : null };
+    },
+    /**
+     * C2c directory at a pose (spec §A5; the spec runs it at `spawnView()`): for the heading and each
+     * row, paper/ink contrast in its screen rectangle from the rendered frame (the plaque method), and
+     * the angle its title em subtends from the eye (placement.ts `emAngle` at the eye-to-centre
+     * distance, plus the angle actually subtended by a vertical em at the sign's centre).
+     */
+    async directoryLegibility(pose: Pose) {
+      const dir = entranceDirectory(host.model).directory;
+      if (!dir) return null;
+      const f = await frameSource(pose)(pose.yaw, pose.pitch);
+      const signs = [{ id: dir.heading.id, kind: "heading" as const, em: DIRECTORY.headingEm, plane: dir.heading.sign }, ...dir.rows.map((r) => ({ id: r.id, kind: "row" as const, em: DIRECTORY.titleEm, plane: r.sign }))];
+      const rows = signs.map((s) => {
+        const { min, max } = s.plane;
+        const corners: Vec3[] = [
+          [min[0], min[1], min[2]],
+          [max[0], max[1], max[2]],
+          [min[0], max[1], min[2]],
+          [max[0], min[1], max[2]],
+        ];
+        const ndc = corners.map((c) => new THREE.Vector3(...c).project(f.camera));
+        const behind = corners.some((c) => new THREE.Vector3(...c).applyMatrix4(f.camera.matrixWorldInverse).z > -f.camera.near);
+        const rect = behind ? null : ndcRectToPixels(ndc, f.w, f.h);
+        let contrast: ReturnType<typeof signContrast> = null;
+        if (rect) {
+          const r = signInset(rect);
+          const ls: number[] = [];
+          for (let y = r.y0; y <= r.y1; y++) for (let x = r.x0; x <= r.x1; x++) {
+            const i = (y * f.w + x) * 4;
+            ls.push(relativeLuminance(f.px[i]!, f.px[i + 1]!, f.px[i + 2]!));
+          }
+          contrast = signContrast(ls);
+        }
+        const c = new THREE.Vector3((min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2);
+        const d = c.distanceTo(f.eye);
+        const top = c.clone().add(new THREE.Vector3(0, s.em / 2, 0));
+        const bottom = c.clone().add(new THREE.Vector3(0, -s.em / 2, 0));
+        const subtended = top.clone().sub(f.eye).angleTo(bottom.clone().sub(f.eye));
+        const pt = top.clone().project(f.camera);
+        const pb = bottom.clone().project(f.camera);
+        return {
+          id: s.id,
+          kind: s.kind,
+          rect,
+          contrast: contrast ? round(contrast.ratio, 2) : null,
+          paper: contrast ? round(contrast.paper, 4) : null,
+          ink: contrast ? round(contrast.ink, 4) : null,
+          distance: round(d),
+          em: s.em,
+          emAngle: round(emAngle(s.em, d), 5),
+          emSubtended: round(subtended, 5),
+          emPx: round((Math.abs(pt.y - pb.y) / 2) * f.h, 2),
+        };
+      });
+      const lettered = rows.filter((r) => r.kind === "row");
+      return {
+        roomId: dir.roomId,
+        drawingBuffer: { width: f.w, height: f.h },
+        rows,
+        minContrast: Math.min(...rows.map((r) => r.contrast ?? 0)),
+        minTitleEmAngle: Math.min(...lettered.map((r) => r.emAngle)),
+        minTitleEmSubtended: Math.min(...lettered.map((r) => r.emSubtended)),
+      };
     },
   };
   w.__museumProbe = probe;

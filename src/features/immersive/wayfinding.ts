@@ -21,6 +21,11 @@
  * also as one reads the directory, so a direction still holds once the visitor has turned away
  * from it (novice walkthrough: "on the right" alone was ambiguous). The words are wayfinding copy, not craft
  * facts: the names are the zone labels the door signs already carry (immersive-3d P8).
+ *
+ * Directory board (DR-058): the rows hang on one plaster board (the
+ * reading-stand board finish), under a "Directory" heading, so the stack reads as one object and not
+ * as loose strips on the wall; each row leads with a drawn arrow (`directoryArrow`) for the way its
+ * words give. Every row keeps the same size, type and weight (DR-043: equal salience).
  */
 import { compareStrings } from "@/features/spatial/compiler/prng";
 import type { Point } from "@/features/spatial/compiler/types";
@@ -35,20 +40,31 @@ import { roomAt, type SceneModel, type ScenePlane, type ScenePortal, type SceneR
  */
 export const DIRECTORY = {
   rowWidth: 2.8,
-  rowHeight: 0.3,
-  gap: 0.04,
+  rowHeight: 0.36,
+  /** Between rows (and under the heading): the board shows through, not the wall. */
+  gap: 0.012,
+  /** The "Directory" heading strip at the top of the stack, as wide as a row. */
+  headingHeight: 0.18,
+  headingEm: 0.13,
+  /** The arrow in each row's leading column: a square of this side (m), drawn as a vector path. */
+  arrowSize: 0.2,
+  /**
+   * The plaster board behind the stack (the reading-stand board, F8b): `depth` off the wall and
+   * `margin` past the heading and rows on every side.
+   */
+  board: { depth: 0.04, margin: 0.12 },
   /** Centre height of the row stack (eye height of the reference visitor). */
   centreY: VISITOR.eyeHeight,
-  /** Proud of the wall face, as the door signs. */
+  /** Proud of the board face, as the door signs are of the lintel. */
   offset: 0.003,
   readingDistance: 3.5,
-  titleEm: 0.1,
+  titleEm: 0.115,
   lineEm: 0.085,
   /** Wall left solid either side of the stack (corner, doorway reveal, exhibit panel). */
   clearance: 0.3,
   /** Lowest row bottom (m): no row is read looking down at the floor. */
   minBottom: 0.85,
-  /** Floor in front of the stack kept free of plinths (m). */
+  /** Floor in front of the board kept free of plinths (m). */
   standOff: 0.6,
 } as const;
 
@@ -65,7 +81,48 @@ export const WAYFINDING_WORDS = {
   behind: (n: number, side: "left" | "right", many: boolean) => (many ? `Entrance wall, ${WAYFINDING_WORDS.nth(n)} to the ${side}` : `Entrance wall, to the ${side}`),
   end: (side: "left" | "right") => `At the ${side} end`,
   ahead: "Straight ahead",
+  /** The heading of the directory board (wayfinding copy, Title Case). */
+  heading: "Directory",
 } as const;
+
+/**
+ * The way a row's words point, as one faces the directory: the wall the doorway is in (hub: `left`,
+ * `right`, `opposite`, `this` with the side or `both`; `through` another room), or, in the row
+ * building, the far wall, the entrance wall, a room end or straight ahead.
+ */
+export interface DirectoryWay {
+  wall: "left" | "right" | "opposite" | "this" | "through" | "far" | "entrance" | "end" | "ahead";
+  side: "left" | "right" | "both" | null;
+}
+
+/** The arrow drawn in a row's leading column. */
+export type DirectoryArrow = "left" | "right" | "up" | "left-right" | "back";
+
+/**
+ * The arrow for a row (pure; drawn in labels.ts): left or right for a side wall; both ways for
+ * doorways either side of the sign; up (straight on) for a room reached through the room beyond
+ * the sign; a turn-back arrow for a doorway behind the reader (the opposite or entrance wall), so it
+ * never shares the straight-on arrow with a room that lies ahead.
+ */
+export function directoryArrow(row: Pick<DirectoryRow, "way">): DirectoryArrow {
+  const { wall, side } = row.way;
+  switch (wall) {
+    case "left":
+    case "right":
+      return wall;
+    case "this":
+      return side === "both" ? "left-right" : side === "right" ? "right" : "left";
+    case "through":
+    case "ahead":
+      return "up";
+    case "opposite":
+    case "entrance":
+      return "back";
+    case "far":
+    case "end":
+      return side === "right" ? "right" : "left";
+  }
+}
 
 export interface DirectoryRow {
   id: string;
@@ -73,6 +130,8 @@ export interface DirectoryRow {
   zoneId: string;
   title: string;
   direction: string;
+  /** Which way the direction points (for the row's arrow, `directoryArrow`). */
+  way: DirectoryWay;
   /** The doorway that leads there from the directory's room, and the room behind it. */
   portalId: string;
   toRoomId: string;
@@ -84,6 +143,10 @@ export interface SceneDirectory {
   roomId: string;
   /** The lobby doorway the spawn view looks through (row building); null when it hangs in the spawn's own room (hub). */
   viaPortalId: string | null;
+  /** The "Directory" heading strip over the rows (the same paper and plane as the rows). */
+  heading: { id: string; title: string; sign: ScenePlane };
+  /** The plaster board behind the heading and rows, from the wall face out `DIRECTORY.board.depth`. */
+  board: { min: [number, number, number]; max: [number, number, number] };
   rows: DirectoryRow[];
 }
 
@@ -179,13 +242,14 @@ export function entranceDirectory(model: Pick<SceneModel, "rooms" | "zones" | "p
   if (wallBoxes.length === 0 || !covered(u0, u1)) return { directory: null, notes: [`the wall ahead of the spawn in ${room.id} is not solid across ${(u1 - u0).toFixed(2)} m`] };
   const into = hit.facing === "+z" || hit.facing === "+x" ? 1 : -1;
   const faceCoord = into > 0 ? Math.max(...wallBoxes.map((w) => (alongX ? w.max[2] : w.max[0]))) : Math.min(...wallBoxes.map((w) => (alongX ? w.min[2] : w.min[0])));
-  const plane = Math.round((faceCoord + into * DIRECTORY.offset) * 1e6) / 1e6;
 
   // Nothing else may hang on, or stand in front of, that stretch.
   const onWall = (p: Pick<ScenePlane, "min" | "max" | "facing">) => p.facing === hit.facing && Math.abs((alongX ? p.min[2] : p.min[0]) - faceCoord) < 0.2;
   const uOverlap = (p: { min: readonly number[]; max: readonly number[] }) => Math.min(u1, alongX ? p.max[0]! : p.max[2]!) - Math.max(u0, alongX ? p.min[0]! : p.min[2]!) > 0;
+  // The floor `standOff` in front of the board's face is kept free of plinths.
+  const clearOf = DIRECTORY.board.depth + DIRECTORY.standOff;
   const blockers = [
-    ...model.exhibits.filter((e) => e.roomId === room.id && ((onWall(e.panel) && uOverlap(e.panel)) || (e.plinth && uOverlap(e.plinth) && Math.abs((alongX ? (into > 0 ? e.plinth.min[2] : e.plinth.max[2]) : into > 0 ? e.plinth.min[0] : e.plinth.max[0]) - faceCoord) < DIRECTORY.standOff))).map((e) => e.id),
+    ...model.exhibits.filter((e) => e.roomId === room.id && ((onWall(e.panel) && uOverlap(e.panel)) || (e.plinth && uOverlap(e.plinth) && Math.abs((alongX ? (into > 0 ? e.plinth.min[2] : e.plinth.max[2]) : into > 0 ? e.plinth.min[0] : e.plinth.max[0]) - faceCoord) < clearOf))).map((e) => e.id),
     ...model.labels.filter((l) => l.roomId === room.id && onWall(l.sign) && uOverlap(l.sign)).map((l) => l.id),
   ];
   if (blockers.length > 0) return { directory: null, notes: [`the wall ahead of the spawn is taken by ${blockers.join(", ")}`] };
@@ -202,7 +266,7 @@ export function entranceDirectory(model: Pick<SceneModel, "rooms" | "zones" | "p
     .sort((p, q) => sharedKinds.indexOf(roomKind.get(p.roomIds[0]!) ?? "") - sharedKinds.indexOf(roomKind.get(q.roomIds[0]!) ?? "") || compareStrings(p.id, q.id));
   const viewer = { f: { x: -(hit.facing === "+x" ? 1 : hit.facing === "-x" ? -1 : 0), z: -(hit.facing === "+z" ? 1 : hit.facing === "-z" ? -1 : 0) } };
   const vRight: Point = { x: -viewer.f.z, z: viewer.f.x };
-  const directionTo = (target: ScenePortal): string => {
+  const directionTo = (target: ScenePortal): { text: string; way: DirectoryWay } => {
     const rel = sub(target.position, centre);
     const depth = dot(rel, viewer.f);
     const lat = dot(rel, vRight);
@@ -221,24 +285,25 @@ export function entranceDirectory(model: Pick<SceneModel, "rooms" | "zones" | "p
       if (wall === "this") {
         const zone = (p: ScenePortal) => zoneOfRoom.get(p.connects[0] === room.id ? p.connects[1] : p.connects[0]);
         const sides = new Set(doorways.filter((p) => wallOf(p) === "this" && zone(p) === zone(target)).map((p) => (dot(sub(p.position, centre), vRight) >= 0 ? "right" : "left")));
-        return WAYFINDING_WORDS.thisWall(sides.size > 1 ? "both" : side);
+        const s = sides.size > 1 ? "both" : side;
+        return { text: WAYFINDING_WORDS.thisWall(s), way: { wall: "this", side: s } };
       }
       // Counted from the directory's wall along that wall.
       const onWall = doorways.filter((p) => wallOf(p) === wall);
       const from = (p: ScenePortal) => (wall === "opposite" ? Math.abs(dot(sub(p.position, centre), vRight)) : -dot(sub(p.position, centre), viewer.f));
       const before = onWall.filter((p) => p.id !== target.id && from(p) < from(target)).length;
-      return WAYFINDING_WORDS.inWall(wall, before + 1, onWall.length > 1);
+      return { text: WAYFINDING_WORDS.inWall(wall, before + 1, onWall.length > 1), way: { wall, side: wall === "opposite" ? null : wall } };
     }
     if (Math.abs(depth) < FACING_EPS) {
       const before = doorways.filter((p) => p.id !== target.id && Math.abs(dot(sub(p.position, centre), viewer.f)) < FACING_EPS && sameSide(p) && Math.abs(dot(sub(p.position, centre), vRight)) < Math.abs(lat)).length;
-      return WAYFINDING_WORDS.doorway(before + 1, side);
+      return { text: WAYFINDING_WORDS.doorway(before + 1, side), way: { wall: "far", side } };
     }
     if (depth <= -(roomDepth - FACING_EPS)) {
       const behind = doorways.filter((p) => p.id !== via?.id && dot(sub(p.position, centre), viewer.f) <= -(roomDepth - FACING_EPS) && sameSide(p));
       const before = behind.filter((p) => p.id !== target.id && Math.abs(dot(sub(p.position, centre), vRight)) < Math.abs(lat)).length;
-      return WAYFINDING_WORDS.behind(before + 1, side, behind.length > 1);
+      return { text: WAYFINDING_WORDS.behind(before + 1, side, behind.length > 1), way: { wall: "entrance", side } };
     }
-    return Math.abs(lat) < FACING_EPS ? WAYFINDING_WORDS.ahead : WAYFINDING_WORDS.end(side);
+    return Math.abs(lat) < FACING_EPS ? { text: WAYFINDING_WORDS.ahead, way: { wall: "ahead", side: null } } : { text: WAYFINDING_WORDS.end(side), way: { wall: "end", side } };
   };
 
   const listed = [...wings, ...shared];
@@ -267,26 +332,45 @@ export function entranceDirectory(model: Pick<SceneModel, "rooms" | "zones" | "p
       const viaRoom = model.rooms.find((r) => r.id === next.via);
       const viaZone = model.zones.find((zz) => zz.id === viaRoom?.zoneId);
       const toRoomId = next.p.connects[0] === next.via ? next.p.connects[1] : next.p.connects[0];
-      rowsData.push({ id: `directory:${z.id}`, zoneId: z.id, title: z.label, direction: WAYFINDING_WORDS.through(viaZone?.label ?? next.via), portalId: next.p.id, toRoomId });
+      rowsData.push({ id: `directory:${z.id}`, zoneId: z.id, title: z.label, direction: WAYFINDING_WORDS.through(viaZone?.label ?? next.via), way: { wall: "through", side: null }, portalId: next.p.id, toRoomId });
       continue;
     }
     const toRoomId = door.connects[0] === room.id ? door.connects[1] : door.connects[0];
-    rowsData.push({ id: `directory:${z.id}`, zoneId: z.id, title: z.label, direction: directionTo(door), portalId: door.id, toRoomId });
+    const d = directionTo(door);
+    rowsData.push({ id: `directory:${z.id}`, zoneId: z.id, title: z.label, direction: d.text, way: d.way, portalId: door.id, toRoomId });
   }
   if (rowsData.length === 0) return { directory: null, notes: [...notes, "no wing is reached from the directory's room"] };
 
-  const total = rowsData.length * DIRECTORY.rowHeight + (rowsData.length - 1) * DIRECTORY.gap;
+  // The stack: the heading, then one row per destination, each `gap` under the one above.
+  const total = DIRECTORY.headingHeight + rowsData.length * (DIRECTORY.gap + DIRECTORY.rowHeight);
   // Centred on eye height; a tall stack (the hub lists the hall and the commons too) is lifted so its
   // lowest row stays at least `minBottom` off the floor, below the ceiling clearance.
   const top = Math.min(room.height - 0.3, Math.max(DIRECTORY.centreY + total / 2, DIRECTORY.minBottom + total));
-  const rows: DirectoryRow[] = rowsData.map((r, i) => {
-    const y1 = Math.round((top - i * (DIRECTORY.rowHeight + DIRECTORY.gap)) * 1000) / 1000;
-    const y0 = Math.round((y1 - DIRECTORY.rowHeight) * 1000) / 1000;
+  const mm = (v: number) => Math.round(v * 1000) / 1000;
+  // The heading and rows stand `offset` proud of the board, which stands `board.depth` off the wall.
+  const plane = Math.round((faceCoord + into * (DIRECTORY.board.depth + DIRECTORY.offset)) * 1e6) / 1e6;
+  const strip = (id: string, y0: number, y1: number): ScenePlane => {
     const min: [number, number, number] = alongX ? [u - half, y0, plane] : [plane, y0, u - half];
     const max: [number, number, number] = alongX ? [u + half, y1, plane] : [plane, y1, u + half];
-    return { ...r, sign: { id: r.id, elementId: via?.id ?? room.id, kind: "sign", facing: hit.facing, min, max, uv: "metre", wallOffset: DIRECTORY.offset, polygonOffset: { factor: -1, units: -1 }, aspectRatio: null, assetId: null } };
+    return { id, elementId: via?.id ?? room.id, kind: "sign", facing: hit.facing, min, max, uv: "metre", wallOffset: DIRECTORY.board.depth + DIRECTORY.offset, polygonOffset: { factor: -1, units: -1 }, aspectRatio: null, assetId: null };
+  };
+  const headingId = "directory:heading";
+  const heading = { id: headingId, title: WAYFINDING_WORDS.heading, sign: strip(headingId, mm(top - DIRECTORY.headingHeight), mm(top)) };
+  const rowsTop = top - DIRECTORY.headingHeight - DIRECTORY.gap;
+  const rows: DirectoryRow[] = rowsData.map((r, i) => {
+    const y1 = mm(rowsTop - i * (DIRECTORY.rowHeight + DIRECTORY.gap));
+    return { ...r, sign: strip(r.id, mm(y1 - DIRECTORY.rowHeight), y1) };
   });
-  return { directory: { roomId: room.id, viaPortalId: via?.id ?? null, rows }, notes };
+  // The board: `margin` past the stack on every side, from the wall face to `board.depth` off it.
+  const bottom = rows[rows.length - 1]!.sign.min[1];
+  const m = DIRECTORY.board.margin;
+  const front = faceCoord + into * DIRECTORY.board.depth;
+  const [d0, d1] = faceCoord < front ? [faceCoord, front] : [front, faceCoord];
+  const board = {
+    min: (alongX ? [u - half - m, mm(bottom - m), d0] : [d0, mm(bottom - m), u - half - m]) as [number, number, number],
+    max: (alongX ? [u + half + m, mm(top + m), d1] : [d1, mm(top + m), u + half + m]) as [number, number, number],
+  };
+  return { directory: { roomId: room.id, viaPortalId: via?.id ?? null, heading, board, rows }, notes };
 }
 
 /**

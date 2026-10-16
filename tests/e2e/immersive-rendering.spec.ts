@@ -15,12 +15,16 @@
  *   IE_GPU=1 PORT=3300 node node_modules/@playwright/test/cli.js test tests/e2e/immersive-rendering.spec.ts --project low-spec --workers=1
  *
  * Skipped unless IE_GPU=1 (a measurement run, not a functional test).
+ *
+ * C2c alone (DR-058 visual pass): add `-g "C2c"` to either command.
  */
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
 
 import { expect, newContext, test, type CDPSession, type Page } from "./fixtures";
 import sharp from "sharp";
+
+import { C2C, spread } from "@/components/museum/probe-geometry";
 
 import { blockArtefactIndex, ssim } from "../../scripts/museum/ssim";
 
@@ -35,6 +39,23 @@ test.describe.configure({ mode: MEASURE_ALL ? "default" : "serial", timeout: 30 
 
 const OUT = path.join(process.cwd(), "analysis/out/museum");
 const BASELINES = path.join(process.cwd(), "tests/e2e/immersive-baselines");
+
+/** C2c targets (DR-058 visual pass, spec §A1-A5): 8-bit sRGB luma levels, CIELAB D65, WCAG ratios, radians. */
+const C2C_TARGETS = {
+  wallLow: { target: 0.93, tolerance: 0.015 },
+  wallHigh: { target: 1.025, tolerance: 0.015 },
+  wallSpread: 2,
+  wallNeutral: 1.5,
+  ceilingDelta: 12,
+  ceilingMax: 250,
+  floorContactDelta: 22,
+  floorChroma: [4, 9],
+  reveal: { target: 182, tolerance: 4 },
+  threshold: { target: 150, tolerance: 5 },
+  doorFrame: 3,
+  directoryContrast: 7,
+  directoryTitleEm: 0.0328,
+} as const;
 
 /** Budgets (immersive-rendering-quality.md §2a low tier, §2c high tier). */
 const BUDGET = {
@@ -70,7 +91,38 @@ type Probe = {
   doorSignViews(distance: number): (Pose & { id: string; roomId: string; toRoomId: string; size: { w: number; h: number } })[];
   spawnView(): Pose;
   doorSignRects(): { id: string; toRoomId: string; left: number; top: number; width: number; height: number }[];
+  /** C2c samplers (probe.ts). */
+  roomSurfaces(v: Pose): Promise<{
+    roomId: string;
+    viewId: string | null;
+    reason?: string;
+    facing?: string;
+    normalAxis?: "x" | "z";
+    wallDistance?: number;
+    wall: { column: C2cColumn; pitch: number; turnedDeg: number; levels: number[]; ratioLow: number; ratioHigh: number; lab: C2cLab; bandSamples: number } | null;
+    floor: { column: C2cColumn; pitch: number; turnedDeg: number; near: number; far: number; delta: number; lab: C2cLab; regionSamples: number } | null;
+    ceiling: { column: C2cColumn; pitch: number; turnedDeg: number; near: number; in: number; delta: number; max: number; gridSamples: number } | null;
+    reasons?: { wall: string | null; floor: string | null; ceiling: string | null };
+  }>;
+  portalSurfaces(v: Pose): Promise<{
+    portalId: string;
+    reason: string | null;
+    reveal: { pitch: number | null; turnedDeg: number | null; jambs: { jamb: string; n: number; of: number; mean: number }[]; n: number; mean: number; reason: string | null } | null;
+    threshold: { pitch: number | null; turnedDeg: number | null; n: number; of: number; mean: number; reason: string | null } | null;
+  }>;
+  doorFrame(v: Pose): Promise<{ roomId: string; portalId: string | null; reason: string | null; pitch?: number; turnedDeg?: number; jambs: { jamb: string; rows: number; widthPx: number; frameLuminance: number; wallLuminance: number; ratio: number; measured: boolean; reason: string | null }[]; ratio: number | null }>;
+  directoryLegibility(p: Pose): Promise<{
+    roomId: string;
+    drawingBuffer: { width: number; height: number };
+    rows: { id: string; kind: "heading" | "row"; contrast: number | null; paper: number | null; ink: number | null; distance: number; em: number; emAngle: number; emSubtended: number; emPx: number }[];
+    minContrast: number;
+    minTitleEmAngle: number;
+    minTitleEmSubtended: number;
+  } | null>;
 };
+
+type C2cColumn = { lateral: number; offset: number; tier: number };
+type C2cLab = { L: number; a: number; b: number; C: number };
 
 /** Calls `window.__museumProbe[method](...args)` in the page (no eval: works under the production CSP). */
 function call<M extends keyof Probe>(page: Page, method: M, ...args: Parameters<Probe[M]>): Promise<Awaited<ReturnType<Probe[M]>>> {
@@ -238,6 +290,149 @@ test("C1b slow yaw: no isolated shimmer spikes", async () => {
   }
   results.c1b = { viewpoints: rows.length, framesEach: 60, stepDeg: 0.1, totalSpikes: rows.reduce((s, r) => s + r.spikes, 0), rows };
   for (const r of rows) expect.soft(r.spikes, `C1b ${r.id}`).toBe(0);
+});
+
+/**
+ * C2c (DR-058 visual pass, spec §A1-A5): the finish as rendered, read
+ * off the frame at world points (probe.ts `roomSurfaces`, `portalSurfaces`, `doorFrame`,
+ * `directoryLegibility`; the points from probe-geometry.ts, unit-tested). Values are 8-bit sRGB
+ * luma ("levels"), CIELAB D65 of the mean display-linear colour, and WCAG ratios.
+ *
+ *  - room:*#wall: wall L(0.3)/L(1.9) = 0.930 ± 0.015 and L(3.0)/L(1.9) = 1.025 ± 0.015, with a
+ *    spread across rooms of at most 2 levels at each height; ceiling within 0.3 m of the cove at
+ *    least 12 levels above the ceiling 2 m in, and nothing on the ceiling at or above 250; floor
+ *    5 cm from the wall at least 22 levels below the floor 1.5 m out; floor C* 4-9 with b* > 0;
+ *    walls |a*|, |b*| <= 1.5.
+ *  - <portal>#through: reveal mean 182 ± 4; threshold mean 150 ± 5.
+ *  - room:*#door: the frame at least 3:1 against the wall.
+ *  - Directory at the spawn: paper/ink at least 7:1 on every row and the heading; the title em
+ *    subtends at least 0.0328 rad (placement.ts `emAngle` at the eye-to-row distance).
+ *
+ * The cross-room spread is taken per wall orientation: `faceShade.xFacing` (0.95, resources.ts)
+ * shades walls facing east or west by design (DR-023 F7: corners read without light), about 5
+ * levels under north/south walls, identically in every room. The all-room spread is recorded too.
+ */
+test("C2c finish on screen (DR-058): wall wash, ceiling cove, floor contact and hue, reveals and sills, door frames, the directory at the spawn", async () => {
+  const T = C2C_TARGETS;
+  const vps = await call(page, "viewpoints");
+
+  // Rooms: wall, floor, ceiling.
+  const rooms: Awaited<ReturnType<Probe["roomSurfaces"]>>[] = [];
+  for (const v of vps.filter((x) => x.kind === "room-wall")) rooms.push(await call(page, "roomSurfaces", v));
+  for (const r of rooms) {
+    const id = r.viewId ?? r.roomId;
+    expect.soft(r.wall, `C2c wall measured ${id}: ${r.reason ?? r.reasons?.wall ?? ""}`).not.toBeNull();
+    expect.soft(r.floor, `C2c floor measured ${id}: ${r.reason ?? r.reasons?.floor ?? ""}`).not.toBeNull();
+    expect.soft(r.ceiling, `C2c ceiling measured ${id}: ${r.reason ?? r.reasons?.ceiling ?? ""}`).not.toBeNull();
+    if (r.wall) {
+      expect.soft(Math.abs(r.wall.ratioLow - T.wallLow.target), `C2c wall L(0.3)/L(1.9) ${id} = ${r.wall.ratioLow}`).toBeLessThanOrEqual(T.wallLow.tolerance);
+      expect.soft(Math.abs(r.wall.ratioHigh - T.wallHigh.target), `C2c wall L(3.0)/L(1.9) ${id} = ${r.wall.ratioHigh}`).toBeLessThanOrEqual(T.wallHigh.tolerance);
+      expect.soft(Math.abs(r.wall.lab.a), `C2c wall a* ${id}`).toBeLessThanOrEqual(T.wallNeutral);
+      expect.soft(Math.abs(r.wall.lab.b), `C2c wall b* ${id}`).toBeLessThanOrEqual(T.wallNeutral);
+    }
+    if (r.ceiling) {
+      expect.soft(r.ceiling.delta, `C2c ceiling near cove minus 2 m in ${id}`).toBeGreaterThanOrEqual(T.ceilingDelta);
+      expect.soft(r.ceiling.max, `C2c ceiling max ${id}`).toBeLessThan(T.ceilingMax);
+    }
+    if (r.floor) {
+      expect.soft(r.floor.delta, `C2c floor 1.5 m minus 5 cm ${id}`).toBeGreaterThanOrEqual(T.floorContactDelta);
+      expect.soft(r.floor.lab.C, `C2c floor C* ${id}`).toBeGreaterThanOrEqual(T.floorChroma[0]);
+      expect.soft(r.floor.lab.C, `C2c floor C* ${id}`).toBeLessThanOrEqual(T.floorChroma[1]);
+      expect.soft(r.floor.lab.b, `C2c floor b* ${id}`).toBeGreaterThan(0);
+    }
+  }
+  // One profile everywhere: the spread across rooms at each height, per wall orientation.
+  const measured = rooms.filter((r) => r.wall);
+  const spreadOf = (rs: typeof measured) => C2C.wallHeights.map((y, i) => ({ y, spread: spread(rs.map((r) => r.wall!.levels[i]!)) }));
+  const byOrientation = (["x", "z"] as const).map((axis) => ({ normalAxis: axis, rooms: measured.filter((r) => r.normalAxis === axis).length, heights: spreadOf(measured.filter((r) => r.normalAxis === axis)) }));
+  for (const o of byOrientation) for (const h of o.heights) expect.soft(h.spread, `C2c wall spread at ${h.y} m, walls facing ${o.normalAxis}`).toBeLessThanOrEqual(T.wallSpread);
+  expect.soft(measured.length, "C2c rooms with a wall measurement").toBe(rooms.length);
+
+  // Doorways seen through: reveal and sill.
+  const portals: Awaited<ReturnType<Probe["portalSurfaces"]>>[] = [];
+  for (const v of vps.filter((x) => x.kind === "doorway")) portals.push(await call(page, "portalSurfaces", v));
+  for (const p of portals) {
+    expect.soft(p.reveal?.n ?? 0, `C2c reveal samples ${p.portalId}: ${p.reason ?? p.reveal?.reason ?? ""}`).toBeGreaterThan(0);
+    if (p.reveal && p.reveal.n > 0) expect.soft(Math.abs(p.reveal.mean - T.reveal.target), `C2c reveal ${p.portalId} = ${p.reveal.mean}`).toBeLessThanOrEqual(T.reveal.tolerance);
+    if (p.threshold) {
+      expect.soft(p.threshold.n, `C2c threshold samples ${p.portalId}: ${p.threshold.reason ?? ""}`).toBeGreaterThan(0);
+      if (p.threshold.n > 0) expect.soft(Math.abs(p.threshold.mean - T.threshold.target), `C2c threshold ${p.portalId} = ${p.threshold.mean}`).toBeLessThanOrEqual(T.threshold.tolerance);
+    }
+  }
+
+  // Door frames from the room centre.
+  const doors: Awaited<ReturnType<Probe["doorFrame"]>>[] = [];
+  for (const v of vps.filter((x) => x.kind === "room-door")) doors.push(await call(page, "doorFrame", v));
+  for (const d of doors) {
+    expect.soft(d.ratio, `C2c door frame measured ${d.roomId}: ${d.reason ?? ""}`).not.toBeNull();
+    if (d.ratio !== null) expect.soft(d.ratio, `C2c door frame vs wall ${d.roomId}`).toBeGreaterThanOrEqual(T.doorFrame);
+  }
+
+  // The directory at the spawn.
+  const directory = await call(page, "directoryLegibility", await call(page, "spawnView"));
+  expect.soft(directory, "C2c directory present").not.toBeNull();
+  if (directory) {
+    for (const r of directory.rows) expect.soft(r.contrast ?? 0, `C2c directory paper/ink ${r.id}`).toBeGreaterThanOrEqual(T.directoryContrast);
+    expect.soft(directory.minTitleEmAngle, "C2c directory title em at the spawn (rad)").toBeGreaterThanOrEqual(T.directoryTitleEm);
+  }
+
+  const summary = (xs: number[]) => (xs.length ? { min: Math.min(...xs), max: Math.max(...xs) } : null);
+  results.c2c = {
+    targets: T,
+    summary: {
+      roomsMeasured: { wall: measured.length, floor: rooms.filter((r) => r.floor).length, ceiling: rooms.filter((r) => r.ceiling).length, of: rooms.length },
+      wallRatioLow: summary(measured.map((r) => r.wall!.ratioLow)),
+      wallRatioHigh: summary(measured.map((r) => r.wall!.ratioHigh)),
+      wallSpreadByOrientation: byOrientation,
+      wallSpreadAllRooms: spreadOf(measured),
+      ceilingDelta: summary(rooms.flatMap((r) => (r.ceiling ? [r.ceiling.delta] : []))),
+      ceilingMax: summary(rooms.flatMap((r) => (r.ceiling ? [r.ceiling.max] : []))),
+      floorContactDelta: summary(rooms.flatMap((r) => (r.floor ? [r.floor.delta] : []))),
+      floorChroma: summary(rooms.flatMap((r) => (r.floor ? [r.floor.lab.C] : []))),
+      wallAbsA: summary(measured.map((r) => Math.abs(r.wall!.lab.a))),
+      wallAbsB: summary(measured.map((r) => Math.abs(r.wall!.lab.b))),
+      reveal: summary(portals.flatMap((p) => (p.reveal && p.reveal.n > 0 ? [p.reveal.mean] : []))),
+      threshold: summary(portals.flatMap((p) => (p.threshold && p.threshold.n > 0 ? [p.threshold.mean] : []))),
+      doorFrame: summary(doors.flatMap((d) => (d.ratio !== null ? [d.ratio] : []))),
+      directoryMinContrast: directory?.minContrast ?? null,
+      directoryMinTitleEmAngle: directory?.minTitleEmAngle ?? null,
+      directoryMinTitleEmSubtended: directory?.minTitleEmSubtended ?? null,
+    },
+    rooms,
+    portals,
+    doors,
+    directory,
+  };
+});
+
+/**
+ * Door signs at the spawn (DR-058 visual pass, spec §A4): at `spawnView()` at 1440 x 900, every
+ * plaque from `doorSignRects()` lies fully inside the view or fully outside it (`doorSignRects`
+ * already leaves out those fully outside, so each one returned must lie fully inside).
+ *
+ * fixme: a known layout limitation, left to a compiler DR. The spec foresaw that the hub layout may
+ * make this impossible at this width and forbids moving the spawn in the visual pass ("report it
+ * and leave the spawn pose to a compiler DR"); the plaques' widths (doorSignWidth) are already as
+ * narrow as the rule allows. Remove the fixme when that DR changes the spawn or the hub; the body
+ * then runs as written.
+ */
+test.fixme("Door signs at the spawn (1440 x 900): every plaque fully in view or fully out of it", async () => {
+  const before = page.viewportSize();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  try {
+    await page.waitForFunction(() => {
+      const c = document.querySelector("canvas");
+      return !!c && Math.round(c.getBoundingClientRect().width) === 1440;
+    });
+    await call(page, "stability", await call(page, "spawnView"), 1);
+    const box = (await page.locator("canvas").first().boundingBox())!;
+    const rects = await call(page, "doorSignRects");
+    const cut = rects.filter((r) => r.left < box.x - 0.5 || r.top < box.y - 0.5 || r.left + r.width > box.x + box.width + 0.5 || r.top + r.height > box.y + box.height + 0.5);
+    results.spawnDoorSigns = { viewport: { width: 1440, height: 900 }, canvas: box, plaques: rects.length, cut: cut.map((r) => r.id), rects };
+    expect(cut.map((r) => r.id)).toEqual([]);
+  } finally {
+    if (before) await page.setViewportSize(before);
+  }
 });
 
 test("C3 frame times, C4 hitches and shader compiles, C11 memory over two tours", async () => {

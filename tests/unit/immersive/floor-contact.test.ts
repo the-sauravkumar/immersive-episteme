@@ -36,11 +36,12 @@ describe("floor contact shading (finding spatial-4)", () => {
       const owned = edgeMeans(bakeRoomLight(rect, r.walls, opts));
       if (Math.max(owned.n, owned.s, owned.w, owned.e) > 0.8) ownedShort++;
       report[r.id] = [fixed.n, fixed.s, fixed.w, fixed.e].map((v) => v.toFixed(2)).join("/");
-      // Every edge runs along a wall (broken only by doorways): a contact band on all four.
-      for (const [side, v] of Object.entries(fixed)) expect(v, `${r.id} ${side}`).toBeLessThan(0.8);
+      // Every edge runs along a wall (broken only by doorways): a contact band on all four. With the
+      // DR-058 contact (0.42 over 0.40 m) the edge texels sit at 0.61 to 0.69 of the room's mean.
+      for (const [side, v] of Object.entries(fixed)) expect(v, `${r.id} ${side}`).toBeLessThan(0.72);
       // And the four edges agree within a room (the doorways are the only difference).
       const vals = Object.values(fixed);
-      expect(Math.max(...vals) - Math.min(...vals), r.id).toBeLessThan(0.15);
+      expect(Math.max(...vals) - Math.min(...vals), r.id).toBeLessThan(0.1);
     }
     console.log(JSON.stringify({ edgeMeansNSWE: report, roomsShortOfWallsWithOwnListOnly: ownedShort }));
     // The defect the fix removes is present in the compiler's per-room lists.

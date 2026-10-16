@@ -2711,9 +2711,11 @@ dependency of the redesign.
 
 #### GPU Runs Without a Window
 
-`playwright.config.ts` takes `PW_GPU=1`. Headless Chromium then uses the full build (channel
-"chromium") with ANGLE on Direct3D 11 and the discrete GPU. `PW_GPU=low` selects the integrated
-GPU. The default projects are unchanged, so CI keeps SwiftShader. The WebGL renderer measured in
+At the time of this pass `playwright.config.ts` took `PW_GPU=1` (full Chromium, channel
+"chromium", ANGLE on Direct3D 11, the discrete GPU) and `PW_GPU=low` for the integrated GPU.
+DR-056 replaced both with two projects, which are now the local default: `chromium` (full
+Chromium on the NVIDIA GPU) and `low-spec` (the headless shell on the Intel GPU). CI and
+`PW_GPU=0` keep SwiftShader. The WebGL renderer measured in
 the parity run is `ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F9D) Direct3D11 vs_5_0 ps_5_0,
 D3D11)`, and the report records it. `immersive-rendering.spec.ts` runs this way with `IE_GPU=1`
 (results in `docs/architecture/immersive-rendering-results.md`).
@@ -2786,8 +2788,8 @@ D3D11)`, and the report records it. `immersive-rendering.spec.ts` runs this way 
 - A production-build measurement of interaction latency (citation record, lightbox) and of the
   rendering checks.
 - Rendering on the high tier: C1 residual change at rest, C4 hitches, C12 wall-map SSIM, and the
-  two Tradition Context plaques under 4.5:1 at 2.5 m. The low tier (`PW_GPU=low`) has not been
-  run. The C5 baselines in `tests/e2e/immersive-baselines/high/` need a human review.
+  two Tradition Context plaques under 4.5:1 at 2.5 m. The low tier (`PW_GPU=low` then, `--project low-spec`
+  since DR-056) has not been run. The C5 baselines in `tests/e2e/immersive-baselines/high/` need a human review.
 - Onboarding stays off in both conditions (lead decision). The engine's `d.protocol` blocks any
   per-condition `onboarding` text (see above).
 - A language field for local terms (content curation).

@@ -14,11 +14,11 @@
  * 1.5 s (the script's waits are the same; the tolerance covers the walk-free open and the
  * overlays' animation).
  *
- * Machine limits: one worker, one browser; run against the production server on :3300 with
- * PW_GPU=1 (the museum refuses software rendering in study mode; the demo opts in with
- * allowSoftware=1 otherwise).
+ * Machine limits: one worker, one browser; run against the production server on :3300 on the
+ * "chromium" project (full Chromium on the NVIDIA GPU, playwright.config.ts, DR-056; the museum
+ * refuses software rendering in study mode, and the demo opts in with allowSoftware=1 otherwise).
  */
-import { expect, test, type Page } from "@playwright/test";
+import { expect, newContext, test, type Page } from "./fixtures";
 
 const MUSEUM = "/learn/immersive?allowSoftware=1&probe=1";
 
@@ -91,7 +91,7 @@ test.describe.configure({ mode: "serial" });
 test.setTimeout(15 * 60_000);
 
 test("the same script gives the same exposure and navigation intervals in 2D and 3D (DR-050)", async ({ browser }) => {
-  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const context = await newContext(browser, { viewport: { width: 1280, height: 800 } });
 
   // ----- 3D -----
   const page3d = await context.newPage();

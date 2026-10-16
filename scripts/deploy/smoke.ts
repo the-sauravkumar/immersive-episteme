@@ -258,7 +258,7 @@ if (args["no-browser"]) {
 
 async function browserChecks(): Promise<void> {
   const { chromium } = await import("@playwright/test");
-  // Same launch as playwright.config.ts with PW_GPU=1: full Chromium, ANGLE on D3D11, discrete GPU.
+  // Same launch as the "chromium" project of playwright.config.ts (DR-056): full Chromium, ANGLE on D3D11, discrete GPU.
   const gpu = !args["no-gpu"];
   let browser;
   try {

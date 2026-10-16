@@ -79,13 +79,20 @@ export function panelTypeScale(model: Pick<SceneModel, "exhibits">) {
 
 /**
  * Door-sign geometry: proud of the lintel, centred over the opening, between head lining and ceiling;
- * one size for every doorway. Sized by the 3D-B novice walkthrough: at 0.1 m the room name was legible
- * only from about 4 m, so a visitor stepping into a wing room could not read which doorway led on
- * (the far signs were 12 to 16 m away) and tried rooms at random. The name now meets L1 from 6 m and
- * the zone line from 4.4 m; the sign runs 0.35 m onto the wall either side of a 1.5 m opening, inside
- * the compiler's 0.6 m door clearance, so it never meets a panel.
+ * one height and type for every doorway. Sized by the 3D-B novice walkthrough: at 0.1 m the room name
+ * was legible only from about 4 m, so a visitor stepping into a wing room could not read which
+ * doorway led on (the far signs were 12 to 16 m away) and tried rooms at random. The name meets L1
+ * from 6 m and the zone line from 4.4 m. Width (DR-058): the opening
+ * plus `overhang` either side, between `minWidth` and `width` (`doorSignWidth`), so the sign reads
+ * as part of the portal and is not wider than it by a metre (at the 1440 x 900 spawn the fixed
+ * 2.2 m signs were cut by the frame); the widest stays inside the compiler's 0.6 m door clearance.
  */
-export const DOOR_SIGN = { offset: 0.003, height: 0.46, width: 2.2, gapAboveOpening: 0.08, kickerEm: 0.106, titleEm: 0.15, readFrom: 6 } as const;
+export const DOOR_SIGN = { offset: 0.003, height: 0.46, width: 2.2, minWidth: 1.4, overhang: 0.1, gapAboveOpening: 0.08, kickerEm: 0.106, titleEm: 0.15, readFrom: 6 } as const;
+
+/** A door sign's width for an opening of `openingWidth` metres: clamp(opening + 2 x overhang, minWidth, width). */
+export function doorSignWidth(openingWidth: number): number {
+  return Math.round(Math.min(DOOR_SIGN.width, Math.max(DOOR_SIGN.minWidth, openingWidth + 2 * DOOR_SIGN.overhang)) * 1000) / 1000;
+}
 /** Category signs (manifest `label` elements): one line of capitals at 30% of the sign height. */
 export const CATEGORY_SIGN_EM_FRACTION = 0.3;
 
@@ -105,7 +112,7 @@ export function doorSigns(model: Pick<SceneModel, "portals" | "rooms">): SceneDo
   const out: SceneDoorSign[] = [];
   for (const p of model.portals) {
     if (!p.lintel) continue;
-    const w = DOOR_SIGN.width;
+    const w = doorSignWidth(p.width);
     const y0 = p.height + DOOR_SIGN.gapAboveOpening;
     const y1 = y0 + DOOR_SIGN.height;
     if (y1 > p.lintel.max[1] - 0.02 || w <= 0) continue;
