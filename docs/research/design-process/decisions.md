@@ -3128,3 +3128,53 @@ novice met, and none touches the sheet.
   second page under the same heading, and the pre-test page then hands on to the device check
   before the script answers it. Whether this is a walkthrough-script race or a study-engine
   behaviour is not settled; it is deferred to the overnight diagnosis and was not changed here.
+
+## DR-070: The Overview Video Re-Recorded Complete; the Journey Failure Was the Walkthrough Script, Not the Study Engine; Study Photographs Shown Only in the Staff Part (Adopted on the project lead's instruction: "I need a single video which include everything and also the chapter approaches"; walkthrough phase)
+
+- **Diagnosis of the DR-069 journey failure (script, not engine):** a reproduction against the
+  local production build sampled the URL and the visible level-1 heading every 50 ms after the
+  "Questions Before You Start" submit. The address passes `/study/session`, shows
+  `/study/questionnaire/before` again for a moment while the old page is still on screen, and
+  settles on `/study/pre-test` about 1.1 s after the click. The walkthrough read that transient
+  address, ran its questionnaire handler a second time on what was by then the pre-test, and so
+  answered the pre-test with the wrong handler; the engine then moved on to the device check and
+  the pre-test handler timed out. The participant journal of the failed take confirms the engine
+  was correct: the questionnaire was started and submitted once, the pre-test once (1 answered,
+  1 skipped: the questionnaire handler fills radio buttons only), then allocation. A real
+  participant sees each page once. No engine change and no regression test were needed.
+- **Script fix (local, `D:\Work\IIT-KGP\Paper_1-walkthrough\walkthrough.mjs`, never in this
+  repository):** the journey acts only on a study page whose path and visible heading agree and
+  stay unchanged for 1.5 s, and does not treat the page it has just submitted as shown again unless
+  it stays for 15 s. A test recording of the 2D journey then ran from the study link to
+  completion (pre-test 2 answered, three questionnaires, post-test, transfer, session completed).
+- **Study photographs are not shown to learners in the video:** the six photographs reach the
+  2D and 3D learner pages only from a published real release (`servableSql`, DR-037, kept by
+  DR-063, because publishing starts the licence terms). The recording publishes nothing and does
+  not touch the gate. The 2D and 3D parts show the graph-derived diagram on the first process step
+  (Ajrakh, step 1 of 14, the same figure in both conditions) and a caption says the photographs are
+  shown to participants once the release is approved. The staff part shows them where staff see
+  them: the CMS media library (credits, licences, size cap, Verified state), one photograph in
+  detail (credit, licence, "uploaded by Photo ingest (automated)", its linked concept and anchor
+  claim), and that concept's CMS page (`ajrakh.tool.wooden-blocks`: Verified, claims and evidence,
+  proof). The audit log confirms the uploader/reviewer split (uploaded, linked and submitted by the
+  ingest account; reviewed by a curator).
+- **Phone part:** the phone view is now a 390 x 720 phone screen centred in the 1440 x 900 frame
+  (the real site in a same-origin frame, which the learner pages allow), instead of a small page in
+  the top-left corner.
+- **Chapters:** every part opens on a title caption; the take writes `chapters.json` (part start
+  times in ms, any failed attempts), and `make-chapters.mjs` makes the mp4 with one chapter marker
+  per part and one file per part (re-encoded, frame-accurate), cutting out a failed attempt if
+  there is one. ffmpeg is the BtbN Windows build `n9.0.2-28-g669f5ab083` (win64-gpl 9.0, release
+  `autobuild-2026-10-16-13-04`), zip SHA-256
+  `191415610e7ec846f9f01f68cabe8f9d8a5f49c9bcc1379df00b025433b5844c`, matching the release's
+  `checksums.sha256`; unpacked to `C:\Tools\ffmpeg\n9.0.2-28-g669f5ab083` and called by full path.
+- **Result (take 20261017-0018, one take, no retries):** 16:33, 1440 x 900, on the NVIDIA GTX 1650
+  (renderer string checked; museum tier high). All seven parts complete, no gaps, no failed steps:
+  Invite and Home 1:29, Explore in 2D 2:36, The 3D Museum 2:18, The Study in the 2D Condition 3:44,
+  The Study in the 3D Condition 2:45, The Staff Side 2:56, On a Phone 0:42. `00-overview.mp4`
+  (H.264, +faststart, no audio, as recorded) has 7 chapter markers whose start times match the
+  take; the seven per-part files match their chapter lengths within 1 s and start on their title
+  captions; all files decode without errors. The videos stay on D: only.
+- **Server note:** the production server for recording must be started with
+  `BETTER_AUTH_URL=http://localhost:3300`; without it staff sign-in is refused as an invalid origin
+  (shown to the user as "do not match an active staff account"). RUN.md now says so.
