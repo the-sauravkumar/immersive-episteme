@@ -28,7 +28,15 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { INVITE_PARAM, INVITE_REDEEM_PATH, invitePath, isInviteExemptPath, withoutInviteParam } from "@/lib/access/invite-paths";
+import {
+  INVITE_PARAM,
+  INVITE_REDEEM_CODE_HEADER,
+  INVITE_REDEEM_NEXT_HEADER,
+  INVITE_REDEEM_PATH,
+  invitePath,
+  isInviteExemptPath,
+  withoutInviteParam,
+} from "@/lib/access/invite-paths";
 import { clientIpPolicy, stripClientIpHeaders } from "@/lib/client-ip";
 import { contentSecurityPolicy, isDevBuild } from "@/lib/security/csp";
 import { verifyInviteAccess } from "@/server/access/invite-cookie";
@@ -103,7 +111,11 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     const redeem = new URL(INVITE_REDEEM_PATH, request.url);
     redeem.searchParams.set("code", code);
     redeem.searchParams.set("next", target);
-    return NextResponse.rewrite(redeem);
+    // The rewrite keeps the original query, so code and target travel as request headers (DR-067).
+    const headers = new Headers(request.headers);
+    headers.set(INVITE_REDEEM_CODE_HEADER, encodeURIComponent(code));
+    headers.set(INVITE_REDEEM_NEXT_HEADER, encodeURIComponent(target));
+    return NextResponse.rewrite(redeem, { request: { headers } });
   }
   if (!invited) {
     if (readOnly) return NextResponse.redirect(new URL(invitePath(`${pathname}${search}`), request.url));

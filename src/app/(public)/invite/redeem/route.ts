@@ -9,7 +9,7 @@
  */
 import { NextResponse, type NextRequest } from "next/server";
 
-import { INVITE_PARAM, inviteNextPath, invitePath } from "@/lib/access/invite-paths";
+import { INVITE_PARAM, INVITE_REDEEM_CODE_HEADER, INVITE_REDEEM_NEXT_HEADER, inviteNextPath, invitePath } from "@/lib/access/invite-paths";
 import { serverEnv } from "@/lib/env";
 import { INVITE_ACCESS_TTL_SECONDS, INVITE_COOKIE, signInviteAccess } from "@/server/access/invite-cookie";
 import { redeemInvite } from "@/server/access/invites";
@@ -18,8 +18,9 @@ import { getPool } from "@/server/db/client";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const params = request.nextUrl.searchParams;
-  const code = params.get("code") ?? params.get(INVITE_PARAM);
-  const next = inviteNextPath(params.get("next"));
+  // From the proxy's rewrite: headers first, because a rewrite keeps the original query (DR-067).
+  const code = fromHeader(request, INVITE_REDEEM_CODE_HEADER) ?? params.get("code") ?? params.get(INVITE_PARAM);
+  const next = inviteNextPath(fromHeader(request, INVITE_REDEEM_NEXT_HEADER) ?? params.get("next"));
   const redirectTo = (path: string) => {
     const res = NextResponse.redirect(new URL(path, request.url), 303);
     res.headers.set("Cache-Control", "no-store");
@@ -34,4 +35,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const res = redirectTo(next);
   res.cookies.set(INVITE_COOKIE, token, { httpOnly: true, secure: SECURE_COOKIES, sameSite: "lax", path: "/", maxAge: INVITE_ACCESS_TTL_SECONDS });
   return res;
+}
+
+/** A URI-encoded value the proxy put in a request header, or null (absent or not decodable). */
+function fromHeader(request: NextRequest, name: string): string | null {
+  const raw = request.headers.get(name);
+  if (raw === null) return null;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return null;
+  }
 }
