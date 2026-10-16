@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { CollisionWorld, ROUTE_PACE, VISITOR, createRouter, moveInputFromKeys, stepVisitor, type VisitorState } from "@/features/immersive/navigation";
 import { DOOR_SIGN, doorSigns, emForDistance } from "@/features/immersive/placement";
 import { buildSceneModel, roomAt } from "@/features/immersive/scene-model";
-import { DIRECTORY, WAYFINDING_WORDS, directoryReadingPoint, doorwayAtWallHit, doorwayWalkTarget, entranceDirectory, farSide, forwardOf } from "@/features/immersive/wayfinding";
+import { DIRECTORY, WAYFINDING_WORDS, directoryReadingPoint, doorwayAtWallHit, doorwayToRoomSeen, doorwayWalkTarget, entranceDirectory, farSide, forwardOf } from "@/features/immersive/wayfinding";
 import { compareStrings } from "@/features/spatial/compiler/prng";
 
 import { museumFixture } from "./fixtures";
@@ -114,7 +114,8 @@ describe("entrance directory", () => {
       const n = sameWall.filter((q) => (q.position.x > cx ? "right" : "left") === side && Math.abs(q.position.x - cx) <= Math.abs(p.position.x - cx)).length;
       expect(r.direction).toBe(WAYFINDING_WORDS.doorway(n, side));
     }
-    expect(rows.map((r) => r.direction)).toEqual(["First doorway on the right", "Second doorway on the right", "Third doorway on the right", "Behind you, on the right"]);
+    // Said by wall, with left and right as one enters (they still hold once the visitor turns away).
+    expect(rows.map((r) => r.direction)).toEqual(["Far wall, first doorway to the right", "Far wall, second doorway to the right", "Far wall, third doorway to the right", "Entrance wall, to the right"]);
   });
 });
 
@@ -156,6 +157,36 @@ describe("click-to-walk through doorways", () => {
     expect(DOOR_SIGN.kickerEm).toBeGreaterThanOrEqual(emForDistance(4.4));
     const sizes = new Set(doorSigns(model).map((d) => [Math.max(d.sign.max[0] - d.sign.min[0], d.sign.max[2] - d.sign.min[2]), d.sign.max[1] - d.sign.min[1]].map((v) => v.toFixed(3)).join("x")));
     expect([...sizes]).toEqual([`${DOOR_SIGN.width.toFixed(3)}x${DOOR_SIGN.height.toFixed(3)}`]);
+  });
+
+  it("walks through the doorway when the click lands on the next room's far wall, seen through it", () => {
+    let checked = 0;
+    for (const p of model.portals) {
+      for (const from of p.connects) {
+        const to = p.connects[0] === from ? p.connects[1] : p.connects[0];
+        const stand = doorwayWalkTarget(model, p.id, from, (q) => router.isFree(q));
+        const room = model.rooms.find((r) => r.id === to)!;
+        if (!stand) continue;
+        // The far wall of `to` straight through the doorway from where the visitor stands.
+        const dir = { x: p.position.x - stand.point.x, z: p.position.z - stand.point.z };
+        const len = Math.hypot(dir.x, dir.z);
+        const u = { x: dir.x / len, z: dir.z / len };
+        const b = room.bounds;
+        const tx = u.x > 1e-9 ? (b.maxX - p.position.x) / u.x : u.x < -1e-9 ? (b.minX - p.position.x) / u.x : Infinity;
+        const tz = u.z > 1e-9 ? (b.maxZ - p.position.z) / u.z : u.z < -1e-9 ? (b.minZ - p.position.z) / u.z : Infinity;
+        const t = Math.min(tx, tz);
+        const wall = { x: p.position.x + u.x * t, z: p.position.z + u.z * t };
+        const seen = doorwayToRoomSeen(model, from, stand.point, wall);
+        expect(seen?.toRoomId, `${p.id} ${from} -> ${to}`).toBe(to);
+        expect(seen!.portal.connects).toContain(from);
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(10);
+    // A wall of the visitor's own room is not a doorway beyond.
+    const r0 = model.rooms[0]!;
+    const inside = { x: (r0.bounds.minX + r0.bounds.maxX) / 2, z: (r0.bounds.minZ + r0.bounds.maxZ) / 2 };
+    expect(doorwayToRoomSeen(model, r0.id, inside, { x: r0.bounds.maxX, z: inside.z })).toBeNull();
   });
 
   it("every door sign leads to the room it names", () => {

@@ -63,10 +63,10 @@ describe("rail2d (In This Section)", () => {
     expect(rail.destinations.map((d) => d.title)).toEqual(["Alpha", "Beta"]);
   });
 
-  it("outside a section has no rows: a tradition page leads to its sections, the index pages to the traditions", () => {
+  it("outside a section has no rows: a tradition page leads to the other traditions (its sections are on the page and in the index), the index pages to the traditions", () => {
     const tradition = rail2d(place2d(href2d.tradition("alpha"), "", index), index, new Set());
     expect(tradition.items).toEqual([]);
-    expect(tradition.destinations.map((d) => d.key)).toEqual(["section:materials-tools", "section:process"]);
+    expect(tradition.destinations.map((d) => d.key)).toEqual(["tradition:beta"]);
     const catalogue = rail2d(place2d(href2d.catalogue(), "", index), index, new Set());
     expect(catalogue.items).toEqual([]);
     expect(catalogue.destinations.map((d) => d.href)).toEqual([href2d.tradition("alpha"), href2d.tradition("beta")]);
@@ -83,10 +83,10 @@ describe("index2d (the field)", () => {
     expect(idx[0]!.sections.some((s) => s.current)).toBe(false);
   });
 
-  it("recedes while a concept is open: only the concept's tradition keeps its sections (one focus)", () => {
+  it("recedes while a concept is open: the traditions and only the concept's own section (one focus)", () => {
     const idx = index2d(place2d(href2d.concept("alpha-m1"), "", index), index);
-    expect(idx.map((t) => t.sections.length)).toEqual([EPISTEMIC_SECTIONS.length, 0]);
-    expect(idx[0]!.sections.find((s) => s.current)?.id).toBe("materials-tools");
+    expect(idx.map((t) => t.sections.length)).toEqual([1, 0]);
+    expect(idx[0]!.sections.map((s) => [s.id, s.number, s.current])).toEqual([["materials-tools", 2, true]]);
     const shared = index2d(place2d(href2d.concept("shared-c1"), "", index), index);
     expect(shared.map((t) => t.sections.length)).toEqual([0, 0]);
   });

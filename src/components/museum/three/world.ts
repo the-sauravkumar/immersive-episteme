@@ -16,7 +16,7 @@
 import * as THREE from "three";
 
 import { CATEGORY_SIGN_EM_FRACTION, DOOR_SIGN, doorSigns, panelTypeScale, type SceneDoorSign } from "@/features/immersive/placement";
-import { PLAQUE_WORDS, plaqueText } from "@/features/immersive/plaque-text";
+import { PLAQUE_WORDS, PLATE_VISITED_MARK, plaqueText } from "@/features/immersive/plaque-text";
 import { DIRECTORY, entranceDirectory, type DirectoryRow } from "@/features/immersive/wayfinding";
 import type { SceneExhibit, SceneLabel, SceneModel, ScenePlane, SceneRoom } from "@/features/immersive/scene-model";
 import type { Vec3 } from "@/features/spatial/compiler/types";
@@ -293,13 +293,18 @@ export class MuseumWorld {
   }
 
   /**
-   * Marks exhibits as visited: their plates gain the quiet "Visited" mark (the same kind of marking
-   * the 2D condition shows on visited links). Rebuilds the lettering of resident rooms whose marks
+   * Marks exhibits as visited. While PLATE_VISITED_MARK is on, their plates gain the quiet "Visited"
+   * mark; it is off in every build (DR-021 Addendum B: visits are marked on the rail in both conditions). Rebuilds the lettering of resident rooms whose marks
    * changed; other rooms pick the marks up when their lettering is next built. Returns true if any
    * resident lettering was rebuilt (the caller re-renders).
    */
   setVisited(exhibitIds: readonly string[]): boolean {
     const next = new Set(exhibitIds);
+    // No plate shows the mark (PLATE_VISITED_MARK, DR-021 Addendum B): keep the set, rebuild nothing.
+    if (!PLATE_VISITED_MARK) {
+      this.visited = next;
+      return false;
+    }
     const changedRooms = new Set<string>();
     for (const id of new Set([...next, ...this.visited])) {
       if (next.has(id) === this.visited.has(id)) continue;
@@ -359,7 +364,7 @@ export class MuseumWorld {
       ...exhibits.map((e) => {
         const s = size(e.panel);
         const d = plaqueText(e, this.model);
-        const mark = this.visited.has(e.id) ? PLAQUE_WORDS.visited : null;
+        const mark = PLATE_VISITED_MARK && this.visited.has(e.id) ? PLAQUE_WORDS.visited : null;
         return { id: e.id, kind: "panel" as const, widthM: s.w, heightM: s.h, kicker: d.kicker, title: e.label, footer: d.footer, mark, em: { kicker: ts.kickerEm, title: ts.titleEm, footer: ts.footerEm } };
       }),
       ...labels.map((l) => {

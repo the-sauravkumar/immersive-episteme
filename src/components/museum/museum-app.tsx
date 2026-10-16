@@ -44,6 +44,7 @@ import type { LearningPrompt } from "@/features/learning/settings";
 import { MUSEUM_TEXT, railDetail } from "@/features/learning/strings";
 import { useContentExposure, useNavigationPhase, usePauseWhile, useTelemetry } from "@/features/telemetry/client/provider";
 import type { InputMethod, NavigationSource } from "@/features/telemetry/contracts";
+import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
 import type { KnowledgeCategoryCode } from "@/lib/validation/enums";
 
@@ -60,15 +61,6 @@ const MUSEUM_SCENE_ID = "museum-scene";
 /** Id of the museum's PlaceRail ("In This Room"), the target of its StudyBar button. */
 const MUSEUM_RAIL_ID = "museum-rail";
 
-/**
- * How the visitor moved, as the bridge reports it (contract with the 3D track: `inputMethodUsed`,
- * method = INPUT_METHODS). "keys" is walking or turning with the keyboard; the others are pointer
- * input. Each switch of method is logged as `input_method_used` (a 3D covariate).
- */
-/** The bridge's events plus the input-method report the 3D track adds (optional until it lands). */
-type SceneEventsWithInput = SceneEvents & { inputMethodUsed?(method: InputMethod): void };
-/** The controller plus the visited marks the 3D track adds (optional until it lands). */
-type ControllerWithVisited = { setVisited?(exhibitIds: string[]): void };
 
 /** The panel docks beside the scene at 1024 px and wider (DESIGN.md 6, 11.6); below, it covers it. */
 const DOCKED_QUERY = "(min-width: 1024px)";
@@ -235,20 +227,6 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
     },
     [roomsById, traditionBySlug, zonesById],
   );
-  /**
-   * Wall plates carry the concept title only (DESIGN.md 11.6): no kicker or footer line. Secondary
-   * lettering at reduced ink coverage measured 3.1:1 under the scene lighting (WCAG 1.4.3 needs
-   * 4.5:1), and the type, step, tradition and category are in the panel's header and metadata,
-   * identical to the 2D sheet.
-   */
-  const describe = useCallback(
-    (): { kicker: string | null; footer: string | null } => ({
-      kicker: null,
-      footer: null,
-    }),
-    [],
-  );
-
   /** Doorway signs name where they lead: the room, under its zone when the doorway changes zone. */
   const describeDoor = useCallback(
     (s: SceneDoorSign) => {
@@ -272,7 +250,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
   });
   const loggedTier = useRef(false);
   // Scene -> overlay events go through a stable proxy to the latest handlers (set after render).
-  const latest = useRef<SceneEventsWithInput | null>(null);
+  const latest = useRef<SceneEvents | null>(null);
   const [bridgeObj] = useState<MuseumBridge>(() => ({
     controller: null,
     events: {
@@ -289,7 +267,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
       contextLost: (...a) => latest.current?.contextLost(...a),
       contextRestored: (...a) => latest.current?.contextRestored(...a),
       freeLookChanged: (...a) => latest.current?.freeLookChanged(...a),
-    } as SceneEventsWithInput,
+    },
   }));
   /** The scene's controller (installed by the canvas; null while it loads). */
   const ctl = useCallback(() => bridgeObj.controller, [bridgeObj]);
@@ -337,6 +315,8 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
     });
     ctl()?.setPanelInset(0);
     ctl()?.setHighlight(s.hoverExhibitId, false);
+    // Closing a concept starts a new navigation interval: the next move is reported as a switch.
+    ctl()?.startNavigationInterval();
   }, [concepts, conceptContext, exhibitsById, store, t, ctl]);
 
   /** Escape or Close: close the panel and return focus to what opened it. */
@@ -391,12 +371,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
         panelConceptId: e.conceptId,
         note: null,
       });
-      setVisitedExhibits((prev) => {
-        if (prev.has(exhibitId)) return prev;
-        const next = new Set(prev).add(exhibitId);
-        (ctl() as ControllerWithVisited | null)?.setVisited?.([...next]);
-        return next;
-      });
+      setVisitedExhibits((prev) => (prev.has(exhibitId) ? prev : new Set(prev).add(exhibitId)));
       visits.current.layerSince = performance.now();
       void t.informationLayerOpened({
         ...conceptContext(c),
@@ -568,7 +543,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
   );
 
   // Scene events (latest handlers; installed after each render).
-  const handlers: SceneEventsWithInput = {
+  const handlers: SceneEvents = {
     progress(step, stepIndex, loadedBytes, totalBytes) {
       store.setState({
         loading: { step, stepIndex, stepCount: 4, loadedBytes, totalBytes },
@@ -662,16 +637,34 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
       store.setState({ freeLook: on });
     },
     inputMethodUsed(method) {
+      // Covariate: the scene reports the first move of each navigation interval and every switch
+      // of method after it (bridge.ts); each report is one event, with the method used before.
       const previous = lastInput.current;
       lastInput.current = method;
-      // Covariate: one event per switch of method (consecutive uses of one method are one run).
-      if (previous === method) return;
       void t.inputMethodUsed({ metadata: previous ? { method, previous } : { method }, ...roomContext(store.getState().roomId) });
     },
   };
   useLayoutEffect(() => {
     latest.current = handlers;
   });
+  // The camera frames an exhibit clear of the PlaceRail while it is shown (docked or drawer).
+  useEffect(() => {
+    if (ui.phase === "loading") return;
+    const sync = () => {
+      const railEl = rail.shown ? document.getElementById(MUSEUM_RAIL_ID) : null;
+      const w = sceneRef.current?.clientWidth || window.innerWidth;
+      ctl()?.setRailInset(railEl ? Math.min(0.5, railEl.getBoundingClientRect().width / Math.max(1, w)) : 0);
+    };
+    sync();
+    window.addEventListener("resize", sync);
+    return () => window.removeEventListener("resize", sync);
+  }, [rail.shown, ui.phase, attempt, ctl]);
+  // The scene keeps the rail's visited set (controller.setVisited), also after a reload of the scene
+  // (a new attempt starts with none). The plates show no mark (PLATE_VISITED_MARK, DR-021 Addendum B).
+  useEffect(() => {
+    if (ui.phase === "loading") return;
+    ctl()?.setVisited([...visitedExhibits]);
+  }, [visitedExhibits, ui.phase, attempt, ctl]);
 
   // Exposure / navigation / pause accounting (shared hooks, identical rules to 2D).
   const panelConcept = ui.panelConceptId ? concepts[ui.panelConceptId] : undefined;
@@ -808,7 +801,8 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
     if (cue.effect.type === "announce") {
       const z = model.zones.find((x) => x.conceptId === cue.conceptId);
       const name = z?.traditionSlug ? traditionNames[z.traditionSlug] : cue.effect.text;
-      return { text: `Entering ${name}`, detail: null, action: null };
+      // Tradition names are names: Title Case, as in the 2D index, the signs and the sheet.
+      return { text: `Entering ${titleCase(name ?? "")}`, detail: null, action: null };
     }
     if (cue.effect.type === "name-prerequisite") {
       const dep = exhibitsById.get(cue.effect.dependentElementId);
@@ -850,27 +844,22 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
     store.setState({ phase: "exploring" });
   }, [store, onboardingKey]);
 
-  // The shell may show a notice above the museum: fit the museum to the space below it, so no
-  // overlay is pushed off screen. Also measures the chrome over the top of the museum, which the
-  // camera crops out of its virtual frame (MuseumSceneProps.cropTop).
+  // The shell may show a notice above the museum. The museum fills the space below it through CSS
+  // (the immersive <main> is a flex column and this root is `flex-1 min-h-0`, learning-shell.tsx),
+  // so a notice that streams in after the museum mounts (a soft navigation from /explore) still
+  // leaves the whole museum on screen; measuring with JS missed that, as the root's size never
+  // changed. Measured here: the chrome over the top of the museum, which the camera crops out of
+  // its virtual frame (MuseumSceneProps.cropTop).
   const chromeRef = useRef<HTMLDivElement>(null);
   const [cropTop, setCropTop] = useState(0);
   useLayoutEffect(() => {
-    const el = rootRef.current;
-    if (!el) return;
-    const fit = () => {
-      el.style.height = `${Math.max(0, window.innerHeight - el.getBoundingClientRect().top)}px`;
-      setCropTop(Math.round(chromeRef.current?.getBoundingClientRect().height ?? 0));
-    };
+    const chrome = chromeRef.current;
+    if (!chrome) return;
+    const fit = () => setCropTop(Math.round(chrome.getBoundingClientRect().height));
     fit();
     const ro = new ResizeObserver(fit);
-    if (el.parentElement) ro.observe(el.parentElement);
-    if (chromeRef.current) ro.observe(chromeRef.current);
-    window.addEventListener("resize", fit);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("resize", fit);
-    };
+    ro.observe(chrome);
+    return () => ro.disconnect();
   }, [ctl]);
 
   const running = ui.phase === "exploring" || ui.phase === "paused" || ui.phase === "context-lost";
@@ -879,8 +868,9 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
   const panelCovers = panelOpen && !docked;
   const roomName = ui.roomId ? roomLabel(ui.roomId) : MUSEUM_TEXT.museum;
   const zoneName = zoneLabelOf(ui.roomId);
-  // The room first, so a phone that truncates the line still shows where the visitor is.
-  const location = zoneName && zoneName !== roomName ? `${roomName}, ${zoneName}` : roomName;
+  // The room first, so a phone that truncates the line still shows where the visitor is. The zone is
+  // left out when the room's name already says it ("Entrance lobby", not "Entrance lobby, Entrance").
+  const location = zoneName && !roomName.toLowerCase().includes(zoneName.toLowerCase()) ? `${roomName}, ${zoneName}` : roomName;
   // The room name is the view's h1 while no concept is open; the panel title is the h1 once it opens.
   const locationAs = running ? (panelOpen ? "live" : "h1") : "text";
   const planShown = ui.mapOpen && settings.minimap !== "off" && !panelCovers;
@@ -903,7 +893,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
 
   return (
     <LearningPhaseContent>
-      <div ref={rootRef} className="relative h-full w-full overflow-hidden bg-ground" data-testid="museum-root" data-phase={ui.phase}>
+      <div ref={rootRef} className="relative min-h-0 w-full flex-1 overflow-hidden bg-ground" data-testid="museum-root" data-phase={ui.phase}>
         {/*
           The canvas starts below the opaque chrome; nothing sits over it but the overlays. The
           camera renders the lower part of a virtual frame as tall as the museum (cropTop), so the
@@ -913,7 +903,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
           uncomposited in Chromium.)
         */}
         <div className={cn("absolute inset-x-0 bottom-0", SCENE_TOP)} data-slot="museum-canvas">
-          <MuseumCanvas key={attempt} model={model} tier={locked.tier} bridge={bridgeObj} describe={describe} describeDoor={describeDoor} probe={ov.probe} gpuRenderer={gpu.renderer} cropTop={cropTop} frameTop={frameTop} />
+          <MuseumCanvas key={attempt} model={model} tier={locked.tier} bridge={bridgeObj} describeDoor={describeDoor} probe={ov.probe} gpuRenderer={gpu.renderer} cropTop={cropTop} frameTop={frameTop} />
         </div>
         {/* Above the panel and the scene screens, so the Hint panel opens over them as it does in 2D. */}
         <div ref={chromeRef} className="absolute inset-x-0 top-0 z-[calc(var(--z-modal)+1)]" data-slot="museum-chrome">
@@ -1047,6 +1037,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
                       onMouseLeave={() => previewExhibit(null)}
                       onClick={() => {
                         rail.chosen();
+                        ctl()?.noteInputMethod("list");
                         selectExhibit(item.key, "rail");
                       }}
                     >
@@ -1064,7 +1055,9 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
                           rail.chosen();
                           if (store.getState().panelExhibitId) closePanel();
                           pendingSource.current = "rail";
-                          ctl()?.walkToRoom(p.connects.find((r) => r !== ui.roomId) ?? p.connects[0]);
+                          ctl()?.noteInputMethod("list");
+                          const to = p.connects.find((r) => r !== ui.roomId) ?? p.connects[0];
+                          if (!ctl()?.walkThroughDoorway(p.id, to)) ctl()?.walkToRoom(to);
                         }}
                       >
                         {content}
@@ -1084,6 +1077,7 @@ function MuseumRuntime({ payload, mode, telemetrySessionId, onboardingKey, unver
                   onRoom={(id) => {
                     if (store.getState().panelExhibitId) closePanel();
                     pendingSource.current = "plan";
+                    ctl()?.noteInputMethod("list");
                     ctl()?.walkToRoom(id);
                   }}
                 />

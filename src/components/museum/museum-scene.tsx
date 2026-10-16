@@ -16,9 +16,9 @@ import * as THREE from "three";
 import { CollisionWorld, VISITOR, createRouter, facingExhibit, moveInputFromKeys, stepVisitor, yawFromDeg, type MoveInput, type VisitorState } from "@/features/immersive/navigation";
 import { doorSigns, type SceneDoorSign } from "@/features/immersive/placement";
 import { TIERS, type QualityTier } from "@/features/immersive/quality";
-import { residentRooms, roomAt, type SceneExhibit, type SceneModel, type SceneRoom } from "@/features/immersive/scene-model";
+import { residentRooms, roomAt, type SceneModel, type SceneRoom } from "@/features/immersive/scene-model";
 import { plaqueText } from "@/features/immersive/plaque-text";
-import { directoryReadingPoint, doorwayAtWallHit, doorwayWalkTarget, entranceDirectory, farSide } from "@/features/immersive/wayfinding";
+import { directoryReadingPoint, doorwayAtWallHit, doorwayToRoomSeen, doorwayWalkTarget, entranceDirectory, farSide } from "@/features/immersive/wayfinding";
 
 import type { InputMethod, MuseumBridge } from "./bridge";
 import { installProbe, type ProbeHost } from "./probe";
@@ -46,11 +46,6 @@ export interface MuseumSceneProps {
   model: SceneModel;
   tier: QualityTier;
   bridge: MuseumBridge;
-  /**
-   * Unused: plate lines come from `plaqueText` (features/immersive/plaque-text.ts), the one source
-   * both conditions share. Kept optional so an existing host compiles.
-   */
-  describe?: (e: SceneExhibit) => { kicker: string | null; footer: string | null };
   describeDoor: (s: SceneDoorSign) => { kicker: string | null; title: string };
   probe: boolean;
   gpuRenderer: string | null;
@@ -62,7 +57,7 @@ export interface MuseumSceneProps {
   cropTop: number;
   /**
    * Where the scene left free by the overlays starts, in CSS px below the canvas top (under the
-   * "In this room" toggle). Read when the docked panel's inset is set: the exhibit is then framed
+   * learning-task prompts, `[data-slot=museum-hud-left]`). Read when the docked panel's inset is set: the exhibit is then framed
    * at the centre of the free area left of the panel and below that row.
    */
   frameTop: () => number;
@@ -186,6 +181,8 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
     lastPose: string;
     onArrive: (() => void) | null;
     panelInset: number;
+    /** Fraction of the canvas width the PlaceRail covers at the left (setRailInset). */
+    railInset: number;
     /** frameTop() when the inset was set: the framing does not follow later overlay changes. */
     panelFrameTop: number;
     panelInsetY: number;
@@ -201,8 +198,8 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
     setFreeLook: ((on: boolean) => void) | null;
     /** Right-button mouse look is held. */
     mouseLooking: boolean;
-    /** Input methods already reported in this navigation interval. */
-    methodsUsed: Set<InputMethod>;
+    /** The input method reported last (null at the start of a navigation interval). */
+    lastMethod: InputMethod | null;
     /** Visited exhibits to apply once the world exists. */
     visited: string[];
   }>({
@@ -222,6 +219,7 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
     lastPose: "",
     onArrive: null,
     panelInset: 0,
+    railInset: 0,
     panelFrameTop: 0,
     panelInsetY: 0,
     hoverQueued: null,
@@ -234,16 +232,19 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
     framesRendered: 0,
     probeHook: null,
     poseOverride: false,
-    methodsUsed: new Set(),
+    lastMethod: null,
     visited: [],
   });
 
-  /** Reports the first use of an input method in the current navigation interval. */
+  /**
+   * Reports a switch of input method: the first move of a navigation interval, then every change
+   * to another method (consecutive uses of one method are one report).
+   */
   const noteMethod = useCallback(
     (m: InputMethod) => {
-      const used = runtime.current.methodsUsed;
-      if (used.has(m)) return;
-      used.add(m);
+      const rt = runtime.current;
+      if (rt.lastMethod === m) return;
+      rt.lastMethod = m;
       bridge.events.inputMethodUsed?.(m);
     },
     [bridge],
@@ -259,15 +260,16 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
 
   /**
    * The lens shift that frames the exhibit beside the docked panel: the optical axis at the centre
-   * of the free area, left of the panel (`panelInset` of the width) and below the overlay row
-   * (`panelFrameTop`). The vertical shift is capped at a quarter of the canvas height.
+   * of the free area, between the PlaceRail (`railInset` of the width, when shown) and the panel
+   * (`panelInset` of the width), and below the overlay row (`panelFrameTop`). The vertical shift is
+   * capped at a quarter of the canvas height. With no panel docked the lens is never shifted.
    */
   const lensTarget = useCallback(() => {
     const rt = runtime.current;
     const c = crop.current;
     if (rt.panelInset <= 0 || c.aspect <= 0 || c.fullHeight <= c.top) return { x: 0, y: 0 };
     const visible = c.fullHeight - c.top;
-    const x = -(rt.panelInset * c.aspect * c.fullHeight) / 2;
+    const x = ((rt.railInset - rt.panelInset) * c.aspect * c.fullHeight) / 2;
     // The unshifted axis meets the canvas at fullHeight / 2 - top (the virtual frame's centre).
     const y = Math.min(visible * 0.25, Math.max(0, (rt.panelFrameTop + visible) / 2 - (c.fullHeight / 2 - c.top)));
     return { x, y };
@@ -359,7 +361,7 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
         pipeline.render(false, 0);
         renderer.info.reset();
         rt.ready = true;
-        rt.methodsUsed.clear();
+        rt.lastMethod = null;
         if (rt.roomId) bridge.events.roomChanged(rt.roomId, null, null);
         bridge.events.ready({ backend: "webgl2", tier, gpuRenderer, antialiasing: "TAARenderPass accumulation at rest + SMAA" });
         invalidate();
@@ -470,6 +472,17 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
         }
         invalidate();
       },
+      setRailInset(fraction) {
+        const next = Math.max(0, Math.min(0.5, fraction));
+        if (Math.abs(next - rt.railInset) < 1e-4) return;
+        rt.railInset = next;
+        // Only a docked panel's framing uses the rail inset; a walk eases it in on its way.
+        if (rt.panelInset > 0 && rt.visitor.route.length === 0 && rt.visitor.routeYaw === null) {
+          const t = lensTarget();
+          applyLens(t.x, t.y);
+        }
+        invalidate();
+      },
       setPanelInsetBottom(fraction) {
         const off = (f: number) => Math.atan(f * Math.tan(((camera.fov * Math.PI) / 180) / 2));
         const before = off(rt.panelInsetY);
@@ -507,7 +520,7 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
         }
       },
       startNavigationInterval() {
-        rt.methodsUsed.clear();
+        rt.lastMethod = null;
       },
       noteInputMethod(method) {
         noteMethod(method);
@@ -705,6 +718,12 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
       const p = doorwayAtWallHit(model, hit.point);
       return p ? { portalId: p.id, toRoomId: farSide(model, p, rt.roomId, rt.visitor) } : null;
     }
+    /** A wall or sign of the next room seen through a doorway: that doorway (walk through it). */
+    function doorwayBeyond(hit: { owner: { kind: string; id: string }; point: THREE.Vector3 }): { portalId: string; toRoomId: string } | null {
+      if (hit.owner.kind !== "wall" && hit.owner.kind !== "sign") return null;
+      const d = doorwayToRoomSeen(model, rt.roomId, rt.visitor, { x: hit.point.x, z: hit.point.z });
+      return d ? { portalId: d.portal.id, toRoomId: d.toRoomId } : null;
+    }
     rt.doorwayOf = doorwayOf;
     /** A click at a point: open the exhibit under it, walk through the doorway it shows, or walk to the floor point. */
     function activate(clientX: number, clientY: number) {
@@ -727,8 +746,9 @@ export function MuseumScene({ model, tier, bridge, describeDoor, probe, gpuRende
           invalidate();
         }
       } else if (hit.owner.kind === "sign" || hit.owner.kind === "wall") {
-        // A door sign, a directory row or a doorway frame: walk through into the room beyond.
-        const door = doorwayOf(hit);
+        // A door sign, a directory row or a doorway frame: walk through into the room beyond. A wall
+        // or sign of the next room seen through a doorway walks through that doorway too.
+        const door = doorwayOf(hit) ?? doorwayBeyond(hit);
         if (door && bridge.controller?.walkThroughDoorway(door.portalId, door.toRoomId)) {
           bridge.events.manualMove();
           noteMethod("click");

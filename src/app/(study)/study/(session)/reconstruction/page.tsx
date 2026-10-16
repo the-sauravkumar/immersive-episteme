@@ -88,7 +88,7 @@ async function Reconstruction() {
   if (task.kind === "none") {
     return (
       <>
-        <PageHeader eyebrow={PHASE_LABEL[task.phase]} title="Connect the concepts" />
+        <PageHeader title="Connect the concepts" />
         <BackToSession title="No task here">There is no concept-map task at this point of the study.</BackToSession>
       </>
     );
@@ -96,10 +96,11 @@ async function Reconstruction() {
   return (
     <>
       <PageHeader
-        eyebrow={PHASE_LABEL[task.phase]}
         title="Connect the concepts"
         description={
           <div className="flex flex-col gap-3">
+            {/* Which of the two maps this is, as a plain sentence (DR-022: no eyebrows). */}
+            <p>{PHASE_LABEL[task.phase]}.</p>
             <p className="text-reading whitespace-pre-line text-ink">{task.prompt}</p>
             <p>
               Move the concepts anywhere you like. Add a relationship with the form below the map, or by dragging from the dot under one

@@ -14,7 +14,7 @@ import * as THREE from "three";
 import { VISITOR, yawFromDeg } from "@/features/immersive/navigation";
 import type { SceneDoorSign } from "@/features/immersive/placement";
 import { TIERS, type QualityTier } from "@/features/immersive/quality";
-import type { SceneExhibit, SceneModel } from "@/features/immersive/scene-model";
+import type { SceneModel } from "@/features/immersive/scene-model";
 
 import type { MuseumBridge } from "./bridge";
 import { MuseumScene } from "./museum-scene";
@@ -24,8 +24,6 @@ export interface MuseumCanvasProps {
   model: SceneModel;
   tier: QualityTier;
   bridge: MuseumBridge;
-  /** Unused (plate lines come from plaqueText); optional so an existing host compiles. */
-  describe?: (e: SceneExhibit) => { kicker: string | null; footer: string | null };
   describeDoor: (s: SceneDoorSign) => { kicker: string | null; title: string };
   probe: boolean;
   gpuRenderer: string | null;

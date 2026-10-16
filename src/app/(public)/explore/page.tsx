@@ -42,12 +42,14 @@ const OPTIONS = [
 /** The controls of each condition, from the shared onboarding wording (strings.ts) and the museum's controls help. */
 const CONTROLS: Record<"2d" | "immersive", readonly [string, string][]> = {
   "2d": [
-    ["See where you are", "In This Section, on the left, and the index beside it"],
+    ["See where you are", "In This Section, in the top bar"],
+    ["See every section", "The index, on the left"],
+    ["Go to another section", "Its row in the index"],
     ["Open a concept", "Select its link"],
     ["Close a concept", "Close, at the top of the concept"],
     ["Related concepts", "Links at the end of each page"],
     ["Neighbouring concepts", "Previous and Next"],
-    ["Open a source record", "Source, under a statement; Escape closes it"],
+    ["Open a source record", "The number in brackets after a statement; Escape closes it"],
     ["Enlarge a figure", "Enlarge, under the figure; Close or Escape returns"],
   ],
   immersive: [
@@ -55,10 +57,10 @@ const CONTROLS: Record<"2d" | "immersive", readonly [string, string][]> = {
     ["See this room's exhibits", "In This Room, in the top bar"],
     ["Walk", "W and S, or the Up and Down arrow keys"],
     ["Turn", "A and D, or the Left and Right arrow keys"],
-    ["Look around", "Drag with the mouse or a finger"],
+    ["Look around", "Drag, hold the right button, or press L"],
     ["Open an exhibit", "A wall panel, or the In This Room list"],
     ["Close an exhibit", "Close, at the top of the panel, or Escape"],
-    ["Open a source record", "Source, under a statement; Escape closes it"],
+    ["Open a source record", "The number in brackets after a statement; Escape closes it"],
     ["Enlarge a figure", "Enlarge, under the figure; Close or Escape returns"],
   ],
 };
@@ -77,11 +79,13 @@ async function UnavailableNotice({ searchParams }: { searchParams: PageProps<"/e
 }
 
 /**
- * Row height of the two side-by-side tables (md and wider): room for two lines in every row, so a
- * task that wraps in one condition's table never pushes its rows below the other's and both tables
- * end on one rule (no cell runs to three lines from 768 px; asserted in public-pages.spec.ts).
+ * Row height of the two side-by-side tables (md and wider): room for two lines in every row (two
+ * 20 px lines, 16 px of padding and the 1 px row rule), so a task that wraps in one condition's
+ * table never pushes its rows below the other's and both tables end on one rule. Only the shared
+ * rows (the source record and the figure, worded identically in both tables) run to three lines at
+ * 768 px, and they do so in both (asserted in public-pages.spec.ts).
  */
-const ROW_H = "h-11 md:h-14";
+const ROW_H = "h-11 md:h-[3.625rem]";
 
 function ControlsTable({ condition, number }: { condition: "2d" | "immersive"; number: number }) {
   const title = condition === "2d" ? "Controls of the Conventional Pages" : "Controls of the Immersive Museum";
@@ -131,7 +135,7 @@ export default function ExplorePage({ searchParams }: PageProps<"/explore">) {
             {titleCase("What is the same")}
           </p>
           <p className="text-lead mt-1">
-            Same claims, citations, figures, typefaces, controls and timer. Different: how you move through the knowledge.
+            Same claims, citations, figures, type and timer. Only how you move through the knowledge differs.
           </p>
         </section>
 

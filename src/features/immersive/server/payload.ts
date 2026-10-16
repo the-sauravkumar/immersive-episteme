@@ -6,7 +6,7 @@
 import "server-only";
 
 import type { SourceView } from "@/features/knowledge/read/view";
-import { getComparisons, getConcept, getFiguresByConcept, getRelatedConcepts, listTraditions } from "@/server/knowledge/read-model";
+import { figureOptionsOf, getComparisons, getConcept, getFiguresByConcept, getRelatedConcepts, listTraditions } from "@/server/knowledge/read-model";
 import type { LearningContext } from "@/server/learning/context";
 import { getManifest } from "@/server/spatial/manifests";
 
@@ -53,9 +53,10 @@ export async function buildMuseumPayload(ctx: Pick<LearningContext, "snapshotId"
     concepts[id] = toPanelConcept(detail, related, sources, comparisons.get(id) ?? null, (cid) => placed.has(cid));
   }
   const traditions = (await listTraditions(ctx.snapshotId)).map((t) => ({ id: t.id, slug: t.slug, name: t.name }));
-  // Figures: the same call, with the same arguments, as the 2D concept page (DESIGN.md 9.9,
-  // DR-018), kept to the concepts the panel can show.
-  const allFigures = await getFiguresByConcept(ctx.snapshotId, { traditionSlugs: ctx.traditionSlugs ?? null, structureDiagrams: ctx.settings.figures.structureDiagrams });
+  // Figures: the same call, with the same options helper, as the 2D concept page (DESIGN.md 9.9,
+  // DR-018, DR-020: figures.photos switches photos off in both conditions together, and both share
+  // one cache entry), kept to the concepts the panel can show.
+  const allFigures = await getFiguresByConcept(ctx.snapshotId, figureOptionsOf(ctx));
   const figures = Object.fromEntries(Object.entries(allFigures).filter(([id]) => id in concepts).sort((a, b) => (a[0] < b[0] ? -1 : 1)));
 
   return {

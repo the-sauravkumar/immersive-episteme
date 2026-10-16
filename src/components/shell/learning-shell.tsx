@@ -41,7 +41,7 @@ export function LearningShell({ condition, children }: { condition: LearningCond
       )}
     >
       <DisplayPreferencesSync zone="study" />
-      <main id="main" tabIndex={-1} className={cn("outline-none", condition === "immersive" ? "h-full w-full" : "flex-1")}>
+      <main id="main" tabIndex={-1} className={cn("outline-none", condition === "immersive" ? "flex h-full w-full flex-col" : "flex-1")}>
         {children}
       </main>
     </div>

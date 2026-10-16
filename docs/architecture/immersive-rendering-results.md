@@ -167,3 +167,32 @@ paper rendered at 240).
   re-encode the wall colour without RDO (`scripts/museum/build-textures.ts` with KTX-Software
   4.4.2, not installed here).
 - The low tier (Iris Xe) is not run in this pass.
+
+## Merge Run: Production Build, GTX 1650
+
+The first run of the merged step (2D and 3D tracks together) against a production build
+(`next build` + `next start`), headless Chromium on the NVIDIA GPU (`PW_GPU=1 IE_GPU=1`; the
+renderer string recorded is "NVIDIA GeForce GTX 1650 ... Direct3D11").
+
+- **The museum did not load in a production build.** Beyond WebAssembly (the row above), the Basis
+  transcoder's embind glue compiles its invokers with `new Function`, and a blob worker inherits
+  the page's script-src, which has no 'unsafe-eval' outside development. The museum stayed on
+  "Loading surfaces, 0.0 of 6.7 MB". Fixed without loosening the page policy: the transcoder runs
+  in a same-origin bootstrap worker (`public/museum/basis/ktx2-worker-boot.js`) served with its own
+  narrow policy (`default-src 'none'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'`,
+  next.config.ts), and `src/components/museum/three/ktx2-worker.ts` makes KTX2Loader start its
+  workers there with the worker source the loader itself composes. Measured after the fix: ready
+  at 390 x 844 and 1280 x 720 in the production build.
+- **C5 baselines regenerated.** The merged overlays differ from the 3D track's baselines: the
+  old "In This Room" toggle drawn over the canvas is gone (the PlaceRail is collapsed by default)
+  and the lettering is set in Atkinson Hyperlegible Next. The old and new baselines were compared
+  by eye before the new ones were accepted; the architecture and lighting are unchanged.
+- **Results:** C1, C2, C5 (against the new baselines), C3/C4/C11 (two full tours), C6, C7, C8,
+  C10, card and plaque legibility: pass. **C12 wall colour 0.9746: fail**, the same value and cause
+  as above (the encode; re-encoding needs KTX-Software, not installed).
+- **Re-run after the merge fixes (run id `merge-final-1`, production build on :3300, GTX 1650,
+  ANGLE Direct3D11):** 9 of 10 pass. C3 two tours of 24 rooms each: p50 6.9 ms, p95 7.1 ms, p99
+  7.2 ms, max 34.9 and 35.2 ms, no frame over 50 ms (C4; the dev-server hitch of 62.5 ms does not
+  occur in the production build), 15 programs before and after (no shader compile during the
+  tours); C11 memory flat (94 geometries, 72 textures, 6 resident rooms before and after both
+  tours); plaques at 2.5 m at least 19.56:1. C12 wall colour 0.9746 still fails, as above.

@@ -35,10 +35,11 @@ export interface SceneEvents {
   /** Free mouse look switched on or off (by the user, Esc, a panel or a pause). */
   freeLookChanged(on: boolean): void;
   /**
-   * The first use of an input method in the current navigation interval: emitted once per method
-   * per interval. An interval starts when the scene is ready and again on every
-   * `controller.startNavigationInterval()` (the overlays call it when a concept closes). Optional,
-   * so a host that does not log look methods needs no handler.
+   * A switch of input method: emitted for the first move of a navigation interval and then each
+   * time the visitor changes to another method (consecutive uses of one method are one report). An
+   * interval starts when the scene is ready and again on every `controller.startNavigationInterval()`
+   * (the overlays call it when a concept closes). Optional, so a host that does not log look
+   * methods needs no handler.
    */
   inputMethodUsed?(method: InputMethod): void;
 }
@@ -60,6 +61,12 @@ export interface SceneController {
   setRoute(points: readonly { x: number; z: number }[] | null): void;
   /** Fraction of the canvas width covered by the information panel (the exhibit is framed beside it). */
   setPanelInset(fraction: number): void;
+  /**
+   * Fraction of the canvas width covered by the PlaceRail at the left (0 when hidden). While a
+   * panel is docked, the exhibit is framed at the centre of the free area between the rail and the
+   * panel; with no panel open the view is never shifted, so showing the rail moves nothing.
+   */
+  setRailInset(fraction: number): void;
   /** Fraction of the canvas height covered by the bottom sheet (narrow screens). */
   setPanelInsetBottom(fraction: number): void;
   stop(): void;
@@ -74,7 +81,7 @@ export interface SceneController {
   setVisited(exhibitIds: string[]): void;
   /** Starts a new navigation interval: every input method counts as unused again. */
   startNavigationInterval(): void;
-  /** Reports an input method the overlays saw (a rail or list row: "list"); emitted once per interval like the scene's own. */
+  /** Reports an input method the overlays saw (a rail or Plan row: "list"); reported on a switch like the scene's own. */
   noteInputMethod(method: InputMethod): void;
 }
 

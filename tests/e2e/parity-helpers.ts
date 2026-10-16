@@ -69,6 +69,36 @@ export const PARITY_HELPERS = String.raw`
     return parse(cs.color);
   };
   var htmlAncestor = function (el) { var e = el; while (e && e instanceof SVGElement) e = e.parentElement; return e; };
+  /**
+   * The ground under SVG text (a figure's lettering): the first filled SVG shape drawn under the
+   * text's centre (a diagram box), over the CSS background of the figure; text that sits on no
+   * shape is read against the CSS background alone. CSS backgrounds alone miss the box a label
+   * sits in (white lettering in a dark box read as white on the grey figure mat, 1.11:1).
+   */
+  var svgTextBg = function (el) {
+    var base = effectiveBg(htmlAncestor(el));
+    var svg = el.ownerSVGElement || el.closest("svg");
+    if (!svg) return base;
+    var r = el.getBoundingClientRect();
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    // Geometric, so it also works below the fold (elementsFromPoint only sees the viewport): the
+    // last filled shape before the text in paint order whose box holds the text's centre.
+    var shapes = svg.querySelectorAll("rect, circle, ellipse, polygon, path");
+    var under = null;
+    for (var i = 0; i < shapes.length; i++) {
+      var sh = shapes[i];
+      if (!(sh.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)) continue;
+      var b = sh.getBoundingClientRect();
+      if (cx < b.left || cx > b.right || cy < b.top || cy > b.bottom) continue;
+      var cs = getComputedStyle(sh);
+      var f = parse(cs.fill);
+      if (!f) continue;
+      f.a *= parseFloat(cs.fillOpacity || "1") * (parseFloat(cs.opacity) || 1);
+      if (f.a > 0) under = f;
+    }
+    return under ? over(under, base) : base;
+  };
+
 
   var lineRects = function (el) {
     var range = document.createRange();
@@ -104,7 +134,18 @@ export const PARITY_HELPERS = String.raw`
   var sheetOf = function (side) {
     return side === "3d" ? firstVisible("#museum-panel [data-slot=knowledge-sheet]") : firstVisible("main [data-slot=knowledge-sheet]");
   };
-  var scrollerOf = function (side) { return side === "3d" ? document.getElementById("museum-panel") : null; };
+  /**
+   * The sheet's scroll container, found as SheetProgress finds it: the nearest scrollable ancestor
+   * (the 3D panel; the 2D sheet column from 1024 px, DR-021), else the window (null).
+   */
+  var scrollerOf = function (side) {
+    var sheet = sheetOf(side);
+    for (var p = sheet ? sheet.parentElement : null; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
+      var o = getComputedStyle(p).overflowY;
+      if (o === "auto" || o === "scroll") return p;
+    }
+    return side === "3d" ? document.getElementById("museum-panel") : null;
+  };
 
   var groundColour = function () {
     var probe = document.createElement("div");
@@ -210,7 +251,7 @@ export const PARITY_HELPERS = String.raw`
         if (!pe || !visible(pe)) continue;
         var fg = textColour(pe);
         if (!fg) continue;
-        var bg = effectiveBg(htmlAncestor(pe));
+        var bg = pe instanceof SVGElement ? svgTextBg(pe) : effectiveBg(htmlAncestor(pe));
         var opacity = 1;
         for (var e2 = pe; e2 && e2.nodeType === 1; e2 = e2.parentElement) opacity *= parseFloat(getComputedStyle(e2).opacity) || 1;
         var fgc = over({ r: fg.r, g: fg.g, b: fg.b, a: fg.a * opacity }, bg);
@@ -347,7 +388,9 @@ export const PARITY_HELPERS = String.raw`
       var r = rail.getBoundingClientRect();
       var cs = getComputedStyle(rail);
       var rows = Array.prototype.slice.call(rail.querySelectorAll("[data-slot=rail-items] > li > *, [data-slot=rail-destinations] > li > *")).filter(visible);
-      var row = rows[0] || null;
+      // A row that is not the current one: the current row is set in 700 on --wash in both, and
+      // which row is current (first or not) follows the order of the section or room, not the rail.
+      var row = rows.filter(function (el) { return !el.matches("[aria-current]"); })[0] || rows[0] || null;
       var rcs = row ? getComputedStyle(row) : null;
       var minRow = rows.reduce(function (m, el) { return Math.min(m, el.getBoundingClientRect().height); }, Infinity);
       info.geometry = {
@@ -540,9 +583,18 @@ export const PARITY_HELPERS = String.raw`
 
     /** Layout-shift score since the observer started (all entries, and excluding recent input). */
     startShift: function () {
-      window.__shift = { all: 0, noInput: 0 };
+      window.__shift = { all: 0, noInput: 0, sources: [] };
       var po = new PerformanceObserver(function (list) {
-        list.getEntries().forEach(function (e) { window.__shift.all += e.value; if (!e.hadRecentInput) window.__shift.noInput += e.value; });
+        list.getEntries().forEach(function (e) {
+          window.__shift.all += e.value;
+          if (!e.hadRecentInput) window.__shift.noInput += e.value;
+          // What moved (for the report when P15 fails): the element's slot or tag, and its move.
+          (e.sources || []).slice(0, 3).forEach(function (src) {
+            var n = src.node && src.node.nodeType === 1 ? src.node : src.node && src.node.parentElement;
+            var slot = n && n.closest ? n.closest("[data-slot]") : null;
+            if (window.__shift.sources.length < 6) window.__shift.sources.push((slot ? slot.getAttribute("data-slot") : n ? n.tagName.toLowerCase() : "?") + " " + Math.round(src.previousRect.y) + "->" + Math.round(src.currentRect.y) + (e.hadRecentInput ? " (input)" : ""));
+          });
+        });
       });
       po.observe({ type: "layout-shift", buffered: false });
       window.__shiftObserver = po;

@@ -38,7 +38,7 @@ test.beforeAll(async () => {
 });
 test.afterAll(async () => {
   // Retire this run's account and any left by earlier runs (locked, roles removed, sessions ended).
-  await retireE2eStaff();
+  await retireE2eStaff(undefined, [STAFF]);
   await closeDb();
 });
 
@@ -123,7 +123,8 @@ test("card actions in one row share a baseline at 1280 px", async ({ browser }) 
   const { ctx, page } = await context(browser, DESKTOP);
 
   await page.goto("/");
-  await expectActionsAligned(page, 'section[aria-labelledby="conditions-heading"] [data-slot="card"]', 'a[href="/explore"]');
+  // The two conditions are parallel items of equal weight (Atlas: unboxed, one rule above each).
+  await expectActionsAligned(page, 'section[aria-labelledby="conditions-heading"] ul[aria-label="The two conditions"] > li', 'a[href="/explore"]');
 
   await page.goto("/explore");
   await expectActionsAligned(page, '[data-slot="card"]', 'button[type="submit"]');
@@ -134,6 +135,8 @@ test("card actions in one row share a baseline at 1280 px", async ({ browser }) 
   // Study entry: label and field share the left edge; Continue ends on the field's right edge
   // (DESIGN.md 11.7: the primary action sits right, on the study column's edge).
   await page.goto("/study");
+  // boundingBox() does not wait: the form streams in behind Suspense, so wait for it first.
+  await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
   const label = (await page.getByText("Study code", { exact: true }).boundingBox())!;
   const field = (await page.getByLabel("Study code").boundingBox())!;
   const go = (await page.getByRole("button", { name: "Continue" }).boundingBox())!;

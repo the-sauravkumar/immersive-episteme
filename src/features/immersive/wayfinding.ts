@@ -8,15 +8,18 @@
  * doorway, so the directory hangs on the first wall that view meets, on the spawn axis, facing the
  * spawn. It lists every wing in canonical order (zone slug order, which is also the wings' order
  * along the hall), then any shared, tradition-neutral room off the same room, one equal-size row
- * each: the destination's name and the doorway that leads to it, said from where a reader stands
- * facing the directory ("Second doorway on the right"). The words are wayfinding copy, not craft
+ * each: the destination's name and the doorway that leads to it, said by wall ("Far wall, second
+ * doorway to the right"; "Entrance wall, to the right"): the far wall is the directory's own, the
+ * entrance wall the one the visitor came through, and left and right are as one enters, which is
+ * also as one reads the directory, so a direction still holds once the visitor has turned away
+ * from it (novice walkthrough: "on the right" alone was ambiguous). The words are wayfinding copy, not craft
  * facts: the names are the zone labels the door signs already carry (immersive-3d P8).
  */
 import { compareStrings } from "@/features/spatial/compiler/prng";
 import type { Point } from "@/features/spatial/compiler/types";
 
 import { VISITOR } from "./navigation";
-import type { SceneModel, ScenePlane, ScenePortal, SceneRoom } from "./scene-model";
+import { roomAt, type SceneModel, type ScenePlane, type ScenePortal, type SceneRoom } from "./scene-model";
 
 /**
  * Directory geometry and type. Reading distance: a visitor stepping into the room from the lobby
@@ -42,8 +45,9 @@ export const DIRECTORY = {
 
 export const WAYFINDING_WORDS = {
   ordinal: ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"] as const,
-  doorway: (n: number, side: "left" | "right") => `${n <= 10 ? WAYFINDING_WORDS.ordinal[n - 1] : `Doorway ${n}`}${n <= 10 ? " doorway" : ""} on the ${side}`,
-  behind: (n: number, side: "left" | "right", many: boolean) => (many ? `Behind you, ${WAYFINDING_WORDS.doorway(n, side).toLowerCase()}` : `Behind you, on the ${side}`),
+  nth: (n: number) => (n <= 10 ? `${WAYFINDING_WORDS.ordinal[n - 1]!.toLowerCase()} doorway` : `doorway ${n}`),
+  doorway: (n: number, side: "left" | "right") => `Far wall, ${WAYFINDING_WORDS.nth(n)} to the ${side}`,
+  behind: (n: number, side: "left" | "right", many: boolean) => (many ? `Entrance wall, ${WAYFINDING_WORDS.nth(n)} to the ${side}` : `Entrance wall, to the ${side}`),
   end: (side: "left" | "right") => `At the ${side} end`,
   ahead: "Straight ahead",
 } as const;
@@ -259,6 +263,38 @@ export function doorwayAtWallHit(model: Pick<SceneModel, "portals" | "rooms">, h
     if (across <= 0.2 && along <= p.width / 2 + margin) return p;
   }
   return null;
+}
+
+/**
+ * A click on a surface of the next room, seen through a doorway (its far wall, a sign on it): the
+ * doorway of the visitor's room that leads there, so the click walks the visitor through it
+ * instead of doing nothing (novice walkthrough). The hit is read 0.2 m back towards the visitor,
+ * inside the room the wall faces; of several doorways into that room, the one nearest the line of
+ * sight. Null when the surface belongs to the visitor's own room or to a room no doorway of it
+ * reaches.
+ */
+export function doorwayToRoomSeen(
+  model: Pick<SceneModel, "rooms" | "portals">,
+  fromRoomId: string | null,
+  visitor: Point,
+  hit: Point,
+): { portal: ScenePortal; toRoomId: string } | null {
+  if (!fromRoomId) return null;
+  const ray = sub(hit, visitor);
+  const len = Math.hypot(ray.x, ray.z);
+  if (len < 1e-6) return null;
+  const back = { x: hit.x - (ray.x / len) * 0.2, z: hit.z - (ray.z / len) * 0.2 };
+  const seen = roomAt(model.rooms, back);
+  if (!seen || seen.id === fromRoomId) return null;
+  const doors = model.portals.filter((p) => p.connects.includes(fromRoomId) && p.connects.includes(seen.id));
+  if (doors.length === 0) return null;
+  // Distance from each doorway to the visitor-to-hit segment.
+  const offLine = (p: ScenePortal) => {
+    const t = Math.max(0, Math.min(1, dot(sub(p.position, visitor), ray) / (len * len)));
+    return Math.hypot(visitor.x + ray.x * t - p.position.x, visitor.z + ray.z * t - p.position.z);
+  };
+  const portal = [...doors].sort((a, b) => offLine(a) - offLine(b) || compareStrings(a.id, b.id))[0]!;
+  return { portal, toRoomId: seen.id };
 }
 
 /** The room on the other side of a doorway from `fromRoomId` (or from the point, if not one of its rooms). */

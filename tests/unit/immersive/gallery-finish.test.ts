@@ -147,7 +147,7 @@ describe("gallery finish: the built museum", () => {
     expect(world.stats.architectureTriangles).toBeLessThan(100_000);
   });
 
-  it("marks visited plates without touching the architecture", () => {
+  it("keeps the visited set without a plate mark or an architecture change (PLATE_VISITED_MARK off)", () => {
     const before = world.stats.architectureTriangles;
     const id = model.exhibits[0]!.id;
     expect(world.setVisited([id])).toBe(false); // no lettering resident in this test: nothing rebuilt

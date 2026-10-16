@@ -126,7 +126,7 @@ export function KnowledgeSheet({
       <dl aria-label={SHEET_TEXT.metaLabel} data-slot="sheet-meta" className="mt-6 grid grid-cols-1 gap-x-4 xs:grid-cols-[9rem_minmax(0,1fr)]">
         {concept.tradition ? (
           <MetaRow label={SHEET_TEXT.meta.tradition}>
-            <TraditionName traditionKey={concept.tradition.slug}>{concept.tradition.name}</TraditionName>
+            <TraditionName traditionKey={concept.tradition.slug}>{titleCase(concept.tradition.name)}</TraditionName>
           </MetaRow>
         ) : null}
         <MetaRow label={SHEET_TEXT.meta.category}>{CATEGORY_LABELS[concept.category]}</MetaRow>

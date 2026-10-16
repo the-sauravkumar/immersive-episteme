@@ -100,7 +100,7 @@ test.beforeAll(async () => {
 });
 test.afterAll(async () => {
   // Throwaway accounts are retired after the run, so no usable test login accumulates.
-  await retireE2eStaff();
+  await retireE2eStaff(undefined, [STAFF]);
   await closeDb();
 });
 
@@ -168,9 +168,21 @@ async function consolePaths(page: Page): Promise<string[]> {
  * back-dated as study-journey.spec.ts does. Returns the participant code.
  */
 async function studyJourney(page: Page, visit: (path: string) => Promise<void>): Promise<string> {
+  let previousTitle = "";
   const step = async (path: RegExp) => {
     await page.waitForURL(path, { timeout: 120_000 });
     await page.waitForLoadState("networkidle");
+    // After a server-action redirect the URL changes before the new page commits its <title> (a
+    // soft navigation: the previous step's title stays, then the new one replaces it). Audit the
+    // page once it carries its own title (every study step has a distinct one), and fail here if
+    // it never gets one.
+    await expect
+      .poll(async () => {
+        const t = await page.title();
+        return t !== "" && t !== previousTitle;
+      }, { message: `document title on ${page.url()} (previous step: "${previousTitle}")`, timeout: 15_000 })
+      .toBe(true);
+    previousTitle = await page.title();
     await visit(new URL(page.url()).pathname);
   };
   const answer = async () => {
@@ -711,17 +723,37 @@ test("performance at a 4x CPU throttle: LCP <= 2.5 s; opening a citation record 
     await page.waitForTimeout(600);
     return page.evaluate(() => Math.max(0, ...(window as unknown as { __events: number[] }).__events));
   };
+  /**
+   * Each interaction is measured three times and judged by its median: one sample at a 4x throttle
+   * on the shared test machine spread from 104 to 224 ms for the same click (merge-stage runs), so
+   * a single sample measured the machine's other work more than the interface. All samples are
+   * recorded in the annotation.
+   */
+  const RUNS = 3;
+  const median = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]!;
   const measureBoth = async (page: Page, root: string, side: string) => {
     const note = page.locator(`${root} ol[aria-label='Statements'] [data-slot=citation-marker]`).first();
-    const rec = await latency(page, () => note.click());
-    await note.click();
-    const enlarge = page.locator(`${root}`).getByRole("button", { name: /^Enlarge figure 1$/ }).first();
-    let box = 0;
-    if ((await enlarge.count()) > 0) {
-      box = await latency(page, () => enlarge.click());
-      await page.keyboard.press("Escape");
+    const recs: number[] = [];
+    for (let i = 0; i < RUNS; i++) {
+      recs.push(await latency(page, () => note.click()));
+      await note.click();
+      await page.waitForTimeout(300);
     }
-    test.info().annotations.push({ type: "INP", description: `${side}: citation record ${Math.round(rec)} ms, lightbox ${Math.round(box)} ms (4x CPU, dev server)` });
+    const rec = median(recs);
+    const enlarge = page.locator(`${root}`).getByRole("button", { name: /^Enlarge figure 1$/ }).first();
+    const boxes: number[] = [];
+    if ((await enlarge.count()) > 0) {
+      for (let i = 0; i < RUNS; i++) {
+        boxes.push(await latency(page, () => enlarge.click()));
+        await page.keyboard.press("Escape");
+        await page.waitForTimeout(300);
+      }
+    }
+    const box = boxes.length > 0 ? median(boxes) : 0;
+    test.info().annotations.push({
+      type: "INP",
+      description: `${side}: citation record ${Math.round(rec)} ms (runs ${recs.map(Math.round).join(", ")}), lightbox ${Math.round(box)} ms (runs ${boxes.map(Math.round).join(", ")}) (4x CPU)`,
+    });
     if (rec > 200) found.push(`${side}: citation record ${Math.round(rec)} ms`);
     if (box > 200) found.push(`${side}: lightbox ${Math.round(box)} ms`);
   };
@@ -781,7 +813,10 @@ async function focusAudit(page: Page, fromTop = true): Promise<string[]> {
       if (el.hasAttribute("data-focus-audit-first")) return { done: true } as const; // wrapped around
       if (isFirst) el.setAttribute("data-focus-audit-first", "");
       if (el.tagName === dev) return { done: false, skip: true } as const;
-      const cs = getComputedStyle(el);
+      // The FileInput's native input is transparent over its "Choose file" face, and globals.css
+      // draws the ring on that face (`.ie-file__input:focus-visible + .ie-file__button`).
+      const face = el.matches(".ie-file__input:focus-visible") ? el.nextElementSibling : null;
+      const cs = getComputedStyle(face ?? el);
       // The ring is the outline (DESIGN.md 9.1: 2 px indigo; HC 3 px black or white). The 4 px halo
       // box-shadow alone is the ground colour and is not a visible indicator, so it does not count.
       // A date input's picker button sits in the input's shadow tree: the input matches

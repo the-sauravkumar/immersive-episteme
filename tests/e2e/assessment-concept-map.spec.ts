@@ -141,7 +141,7 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  if (pool) await retireE2eStaff(pool);
+  if (pool) await retireE2eStaff(pool, [RESEARCHER, `e2e-rater-${tag}@example.test`]);
   await pool?.end();
 });
 
@@ -160,7 +160,13 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   // --- Participant -------------------------------------------------------------------------
   const participant = await browser.newContext();
   const token = await signParticipantSession({ participantId: ids.participant, sessionId: ids.session, condition: "2d" }, process.env.BETTER_AUTH_SECRET!);
-  await participant.addCookies([{ name: "ie_study_session", value: token, url: baseURL! }]);
+  // The server reads `ie_study_session` in development and `__Host-ie_study_session` in a
+  // production build (src/server/auth/cookie-names.ts); set both so the spec runs against either.
+  const host = new URL(baseURL!).hostname;
+  await participant.addCookies([
+    { name: "ie_study_session", value: token, url: baseURL! },
+    { name: "__Host-ie_study_session", value: token, domain: host, path: "/", secure: true, httpOnly: true, sameSite: "Lax" },
+  ]);
   const page = await participant.newPage();
   await page.goto("/study/reconstruction");
   await expect(page.getByRole("heading", { level: 1, name: "Connect the concepts" })).toBeVisible();
@@ -208,7 +214,11 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toContainText("2 relationships");
   await dialog.getByRole("button", { name: "Submit map" }).click();
-  await expect(page.getByText("Submitted. Thank you.")).toBeVisible();
+  // The submission locks the editor ("Submitted. Thank you.") and returns straight to the session
+  // hub (reconstruction-task.tsx). In a production build the hub can replace the page before the
+  // status line is ever painted, so the hub is the observable end state.
+  await page.waitForURL((u) => u.pathname === "/study/session");
+  await expect(page.getByRole("heading", { level: 1, name: "Your Session" })).toBeVisible();
 
   const stored = await one<{ is_final: boolean; raw: { editLog: Array<{ op: string; via: string }> }; edges: string }>(
     "SELECT is_final, raw, (SELECT count(*) FROM concept_map_edges e WHERE e.concept_map_id = cm.id) AS edges FROM concept_maps cm WHERE session_id = $1 AND phase = 'pre'",

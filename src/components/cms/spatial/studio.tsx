@@ -39,6 +39,7 @@ import { PROTECTED_ELEMENT_FIELDS } from "@/server/cms/spatial/pointer";
 import { ManifestActionForm } from "./manifest-action-form";
 import { ActionForm } from "@/components/cms/action-form";
 import { inCanonicalOrder } from "@/features/learning/labels";
+import { plural } from "@/lib/text/plural";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -517,7 +518,7 @@ export function TraceabilityInspector({
         </div>
       </div>
 
-      <Disclosure summary={<>Gaps: {gaps.concepts.length} concept(s) not placed, {gaps.relationships.length} relationship(s) not encoded</>}>
+      <Disclosure summary={<>Gaps: {plural(gaps.concepts.length, "concept")} not placed, {plural(gaps.relationships.length, "relationship")} not encoded</>}>
         <div className="text-body mt-2 grid gap-4 md:grid-cols-2">
           <ul className="list-disc pl-5">
             {gaps.concepts.map((c) => (

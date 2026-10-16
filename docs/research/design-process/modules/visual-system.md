@@ -2819,7 +2819,7 @@ gallery finish (DR-023) and the layout parity spread (DR-021) are recorded in th
   alias of `--ground` in every block (no second paper). `--font-inter` and `--font-source-serif`
   resolve to `--font-atkinson`, because `src/components/museum/three/labels.ts` (3D track) reads
   them from `<html>`; both conditions therefore letter in one face until that file reads the new
-  variable.
+  variable. (Merge: labels.ts now falls back to `--font-atkinson` and both aliases are removed.)
 - **Faces:** `Atkinson_Hyperlegible_Next` (latin, normal, `--font-atkinson`) in the root layout;
   `Anek_Latin` (latin, `axes: ["wdth"]`, `--font-anek`) only in the public layout, on a
   `display: contents` wrapper so the variable reaches the public shell. Display utilities fall back
@@ -2936,8 +2936,10 @@ identical by construction; only what a navigation control does differs (12.1 rul
   right from 1024 px; the field (the index) next; the rail last in the DOM, fixed at the left.
 - **Index** (the 2D field): the study's traditions in the canonical order, each with its ten
   numbered sections (names only), then the browse pages. It is a list, never a spatial map. While a
-  concept is open it recedes: only the concept's own tradition keeps its sections, the others show
-  their names only (one focus, the cognitive-load rule). Below 1024 px the index is the body of the
+  concept is open it recedes: the traditions show their names only, the concept's own tradition
+  keeps just the concept's section (the "You are here" row), and the browse pages are left out
+  (one focus, the cognitive-load rule; tightened at the merge after P33 measured it, see "Merge
+  Stage: Verified on a Production Build"). Below 1024 px the index is the body of the
   StudyBar's Contents sheet, which shows only there.
 - **3D** (`museum-app.tsx`): the old "In this room" box is replaced by the rail (rows walk to the
   exhibit, doorways walk to the next room, focus or hover previews the exhibit). The rail no longer
@@ -2954,8 +2956,8 @@ identical by construction; only what a navigation control does differs (12.1 rul
   index, pager, link, close), `room_entered` (3D: rail, plan, scene, keyboard, link, pager),
   `exhibit_selected` and `content_item_selected` carry an optional `source`. 2D carries it through
   the visit memory to the next page's entry; 3D sets it when the move starts and logs it on arrival.
-  Keyboard versus scene in 3D needs the 3D track's `inputMethodUsed` bridge event; until it lands,
-  scene moves are logged as "scene".
+  Keyboard versus scene in 3D comes from the 3D track's `inputMethodUsed` bridge event (wired at the
+  merge; see immersive-3d.md, "Merge of the 2D and 3D Tracks").
 
 ### Choices Made While Building It
 
@@ -3113,3 +3115,82 @@ that need them?
 | Natural navigation only | Unchanged; the onboarding and practice wording describe each condition's own navigation at equal length. |
 | Tradition salience | One photograph per study tradition, the same kind (textile), the same section (context), the same 768 px cap and credit, and the same gate and switch for all three. |
 | Telemetry and covariates | `input_method_used` is new and 3D-only, like `room_entered`: it records how the 3D controls were used, a covariate with no 2D counterpart. Every existing event is unchanged. |
+
+## Merge Stage: Verified on a Production Build
+
+**Question.** Do the merged 2D and 3D tracks hold their parity and accessibility checks on a
+production build (`next build` + `next start`), and what has to change where they do not?
+
+| Decision | Reason | Alternative rejected |
+|---|---|---|
+| **The 2D index recedes further while a concept is open:** the traditions show their names only, the concept's own tradition keeps just the concept's section (the "You are here" row), and the browse pages are left out. | P33, first measured run: 2D 34 to 36 elements competing with the open sheet against 3D 25 to 27 (navigation 23 against 11), over the limit of 30 and the gap of 6. The rail already lists the section's concepts, so the index's ten sections and the browse list repeated wayfinding beside the sheet (the lead's one-focus rule). After the change, over all 66 runs: 2D 13 to 29, 3D 14 to 30, largest gap 2; the sheet count is equal in every run. The limits (30, gap 6) are kept as set. | Hiding the index while a concept is open (rejected: the tradition names and the "You are here" row keep the participant oriented at no measured cost). Raising the P33 limits (rejected: the measured excess was the clutter the rule exists to catch). |
+| **Parity measurement fixes** (tests only; no interface change): P10 reads SVG figure lettering against the diagram box it sits in, not the figure mat; P25 and P8 find the 2D sheet's own scroll container (the sheet column scrolls inside from 1024 px, DR-021); P26 compares index rows without their height, which follows the length of each tradition's curated name; P28 leaves out the CSS position scheme (fixed in 2D, absolute in the full-viewport museum, the same x, width and top) and reads the type of a row that is not the current one; P15 applies the CLS rule (shifts within 500 ms of the participant's input excluded) to the 3D panel open, as to the 2D load. | Each was a measurement error found on the first browser run of P28 to P33 (2D-C had no browser): white lettering in a dark diagram box measured 1.11:1; the 2D progress bar was read on the window; Sanganeri's one-line name failed P26; the current row (700) was compared with a plain row (600). The only 3D panel-open shifts were the rail drawer's rows closing under the participant's own keypress (logged with their sources), never the sheet. | — |
+| **Keyboard focus audit understands the FileInput:** the native file input is transparent over its "Choose file" face and the ring is drawn on that face (`.ie-file__input:focus-visible + .ie-file__button`). | The audit read the input's own outline and reported "no focus indicator" on `/cms/media`, which only rendered once the production server was given `MEDIA_LOCAL_DIR`. | — |
+| **Interaction latency is the median of three runs** in the 4x-throttle performance check (budget unchanged: 200 ms). | One sample spread from 104 to 224 ms for the same citation click in back-to-back runs on this machine; every sample is recorded in the annotation. | A higher budget (rejected). |
+
+**Measured on the production build (GTX 1650, headless Chromium on Direct3D 11).** Interface parity
+P1 to P33: 66 runs (5 viewports, 4 themes, 3 traditions, plus layout-only runs), 1803 checks,
+0 failed (`analysis/parity/interface-parity.json`). Performance at 4x CPU (medians): 2D citation
+record and lightbox, and 3D the same, under 200 ms; see the run log for the samples.
+
+**Open after the merge (measured, not fixed).**
+- Research dashboard live update (`research-dashboard-live.spec.ts`, target under 2 s): 2.3 to
+  4.0 s on the production build (1.4 to 3.7 s on the dev server in earlier runs, see above and research-dashboard.md RD6). Measured
+  parts: the SSE `change` event reaches the page 2 to 47 ms after the NOTIFY, the refresh's RSC
+  response ends 200 to 300 ms after it starts, and `loadDashboard` takes 18 to 55 ms; the table
+  then commits about 1.5 s after the response with the main thread idle (no long task over
+  80 ms). The wait is on the client router's side, not the server or the database. A research
+  console view, outside both learning conditions.
+- C12 wall colour (3D, KTX-Software re-encode) and the study photo ingest: see
+  `docs/architecture/immersive-rendering-results.md` and DR-020.
+
+**Equivalence check.** Content: unchanged (no claim, title or source text changed). Exposure and
+timing: unchanged. Citation access: unchanged. Ease once a concept is open: the sheet is
+unchanged; the 2D field beside it is quieter, which brings the 2D attention count to the 3D one
+(P33). Natural navigation only: the change is in the 2D navigation field, the manipulated
+variable, and it reduces rather than adds; every section is still one step away (the tradition
+name, then its section). Tradition salience: the three tradition names stay in canonical order
+in equal rows; only the concept's own tradition shows its "You are here" row, as before.
+Telemetry and covariates: unchanged (index moves still log `source: "index"`).
+
+## Review Fix Round: Radio Marks, Rail Default, Figures, Copy and the Research Console
+
+**Question.** What does the independent review of step 3 require on the 2D and shared side, and
+what changes once each finding is fixed?
+
+| Decision | Reason | Alternative rejected |
+|---|---|---|
+| **The indeterminate skin is checkbox-only** (`.ie-check[type="checkbox"]:indeterminate`). An unanswered radio is an empty ring on `--ground`; only the chosen radio shows the dot. The study journey now asserts this on every questionnaire, before and after an answer (computed background against `--ground`, and the scale of the dot). | Blocker: a radio group with nothing chosen matches `:indeterminate`, so the shared rule painted every unanswered radio as a solid indigo disc (measured `rgb(36,64,110)` on `/study/questionnaire/before`). Participants could not tell answered from unanswered in any questionnaire, test or withdrawal form. The journeys called `.check()` and never looked. | None. |
+| **The museum fills the space under the notice through CSS:** the immersive `<main>` is a flex column and the museum root is `flex-1 min-h-0`. The JavaScript height measurement is gone; only the chrome height for the camera crop is still measured. | On a soft navigation from Explore the notice streamed in after the museum had measured itself (900 px instead of 860), so the fixed root scrolled by 40 px and hid the "not study data" strip and End demo. Nothing re-measured, because the observed sizes never changed. | Observing the notice too and re-fitting on the next frame (rejected: a second measurement path for what layout already does). |
+| **The 2D rail is collapsed by default, as the 3D rail is** (DR-021 Addendum B). P28 expects "closed" in both; P33 is checked in both default states and again with the rail shown in both. The 2D onboarding line and the Explore controls list now say "In This Section, in the top bar" and "The index, on the left". | In each condition's default flow the 2D sheet had the 14-row rail beside it and the 3D sheet did not: 28 against 16 elements competing for attention at 1440 x 900 (26 against 16 at 1280 x 720). The parity test had hidden this by opening the 3D rail first. | Opening the 3D rail by default (rejected: it reverses the lead's decision 2 and puts a list over the 3D scene by default). |
+| **A tradition page's rail leads to the other traditions,** not to the page's ten sections. | The rail's "Leads To" repeated the index beside it row for row, and the page column lists the sections too. | Hiding the rail's list on tradition pages (rejected: the rail would then be empty). |
+| **Visits are marked on the rail only, in both conditions** (no "Visited" on the 3D plates). | The plate word was in full ink and always in view in 3D; the 2D mark is a quiet check on a rail that is now collapsed by default. "Mirrored in both, or in neither": outside the rail it is now neither. | Visible "Visited" marks on every 2D concept link (rejected: a new cue near content in both conditions, added only to match a 3D-only surface). |
+| **Diagrams stay readable on phones:** in the lightbox a diagram is never drawn narrower than 692 px, so its smallest lettering (10 units in a 576-unit viewBox) is 12 px or more; on a phone that region scrolls sideways and is keyboard-focusable and named. The Enlarge button shows its word "Enlarge" beside the icon (the start of its accessible name). Measured: smallest lightbox lettering 14.6 px at 1440 and 1280, 13.2 px at 390, no page overflow. | At 390 px the inline diagram lettering rendered at about 6 px, and Enlarge did not help because the lightbox was the same width. The sheet column (34rem) is narrower than the 576-unit diagram at every width, so the inline lettering is always under 12 px and the way to read it should say so. Shared component, so equal in both conditions. | A separate vertical-list diagram layout for narrow columns (rejected for this round: a second drawing to keep equivalent; the lightbox route keeps one). |
+| **One casing rule:** tradition names are names, in Title Case everywhere (index, signs, the sheet's Tradition line, and the 3D "Entering ..." note); metadata labels are in sentence case in both places ("Also known as", "GI status", as the sheet's "Local terms"). The 3D location leaves out a zone that the room name already says ("Entrance Lobby", not "Entrance Lobby, Entrance"). Counts read "442 concepts", never "concept(s)". Explore now says "Same claims, citations, figures, type and timer. Only how you move through the knowledge differs." | Review: the same name was in two casings across the conditions, and the Explore line claimed the same controls, which 3D does not have (Plan, Pause, Controls help). | None. |
+| **Research pages default to a real study, then to a demo study that is not a test fixture** (a slug with an `e2e` part, or of the audit fixture families `demo-audit-map-`, `demo-rev-map-`, `demo-w4-onb-` and `demo-parity-`, is never the default; it stays selectable; unit test `tests/unit/research/pick-study.test.tsx`). The 8 unresolved `seq_conflict` quarantine rows are resolved with a note, not deleted. | The dashboard opened on "Demo: assessment E2E" and Admin showed "Quarantine: Attention" for fixture noise. All 8 rows are automated-test fixture sessions; in each, the reused seq had been taken by the previous page's `timing_paused` event, the case the client's seq handoff and `localStorage` seq mark now cover. No conflict arrived in the 570 batches received after them. | Deleting the rows (rejected: the quarantine is an audit trail). |
+
+**Measured on the production build (GTX 1650, headless Chromium on Direct3D 11).**
+- P33, both default states (quick parity run, 1280 x 800 light, three traditions): 2D 18 / 16 / 16
+  against 3D 18 / 17 / 16; with the rail shown in both, 27 / 25 / 25 against 27 / 26 / 25; the sheet
+  count equal in every pair. The same count at 1440 x 900 and 1280 x 720 on the Saaj concept: 2D 17
+  (sheet 9, chrome 4, navigation 4) against 3D 17 (sheet 9, chrome 7, navigation 1); at 390 x 844,
+  14 against 15. Quick parity run: 99 checks, 0 failed (P28 "default closed" in both; P29 reads the
+  rail with it shown).
+- Museum entry by soft navigation from Explore (1440 x 900): notice 0 to 40, museum 40 to 900, root
+  not scrolled, End demo visible; the same after a reload.
+- Radios on `/study/questionnaire/before`: all five on `rgb(255, 255, 255)` with no dot before an
+  answer; after "3", only that one shows the dot.
+- No horizontal overflow at 390, 1280 or 1440 px on the Explore, index, tradition, concept and 3D
+  pages shot for this round.
+
+**Not changed in this round (recorded).** The 2D index numbers ten sections while the 3D Plan
+numbers seven rooms per wing (P29, a protocol change; DR-021 Addendum, "Open"). The wing
+distances in 3D (DR-023 Addendum B).
+
+**Equivalence check.** Content: unchanged (no claim, title, source or figure changed; the tradition
+name in the sheet's metadata line now has the same casing as in the index and signs). Exposure and
+timing: unchanged. Citation access: unchanged. Ease once a concept is open: rails collapsed in both
+by default, P33 measured in both default states and with the rail shown. Natural navigation only:
+each condition keeps its own navigation, and the rail is one button away in both. Tradition
+salience: unchanged in 2D; in 3D the wing-distance confound stays open (DR-023 Addendum B).
+Telemetry and covariates: unchanged (rail use is still logged with `source: "rail"` in both).

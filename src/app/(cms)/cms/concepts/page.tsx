@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { KNOWLEDGE_CATEGORIES } from "@db/seeds/reference-data";
 import { CONCEPT_TYPE_LABELS } from "@/features/learning/labels";
 import { canAny } from "@/lib/permissions/can";
+import { plural } from "@/lib/text/plural";
 import { CONCEPT_TYPES, PROVENANCE_KINDS, VERIFICATION_STATES } from "@/lib/validation/enums";
 import { requirePermission } from "@/server/auth/staff";
 import { createConceptAction } from "@/server/cms/actions";
@@ -95,7 +96,7 @@ async function Concepts({ searchParams }: { searchParams: Promise<SearchParams> 
       {list.rows.length === 0 ? (
         <Empty>No concepts match.</Empty>
       ) : (
-        <Table density="compact" hoverRows caption={<>{list.total} concept(s). “Incomplete” counts claims without a verbatim quotation or a page/locator for every citation; such concepts cannot be verified.</>}>
+        <Table density="compact" hoverRows caption={<>{plural(list.total, "concept")}. “Incomplete” counts claims without a verbatim quotation or a page/locator for every citation; such concepts cannot be verified.</>}>
           <TableHeader>
             <TableRow>
               <TableHead scope="col">Concept</TableHead>

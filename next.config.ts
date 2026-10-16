@@ -29,6 +29,15 @@ const noFraming = [
   { key: "Content-Security-Policy", value: contentSecurityPolicy({ frameAncestors: "none", dev }) },
 ];
 
+/**
+ * The KTX2 transcoder's bootstrap worker (src/components/museum/three/ktx2-worker.ts): a dedicated
+ * worker takes the policy delivered with its own script, so only this worker may evaluate code (the
+ * transcoder's embind glue uses `new Function`). It fetches nothing and loads no other script.
+ */
+const transcoderWorker = [
+  { key: "Content-Security-Policy", value: "default-src 'none'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'" },
+];
+
 const NO_FRAME_SOURCES = [
   "/admin",
   "/admin/:path*",
@@ -57,6 +66,7 @@ const nextConfig: NextConfig = {
     return [
       { source: "/:path*", headers: securityHeaders },
       ...NO_FRAME_SOURCES.map((source) => ({ source, headers: noFraming })),
+      { source: "/museum/basis/ktx2-worker-boot.js", headers: transcoderWorker },
     ];
   },
 };

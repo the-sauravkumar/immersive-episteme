@@ -40,7 +40,9 @@ test.afterAll(async () => {
 
 /**
  * Presses Tab until `target` has focus, then requires the visible focus ring: `:focus-visible`
- * matches and the outline is drawn (style not none, at least 2 px; 3 px in high contrast).
+ * matches and the outline is drawn (style not none). `minWidth` is the ring's whole band: the
+ * outline plus the inner contrasting band the Atlas two-tone ring draws as a box-shadow in its
+ * offset (2 px + 2 px in every theme, globals.css and DESIGN.md "Two-tone focus ring"); at least 2 px, 3 px in high contrast.
  */
 async function expectFocusRing(page: Page, target: ReturnType<Page["locator"]>, minWidth = 2) {
   for (let i = 0; i < 40; i++) {
@@ -49,7 +51,14 @@ async function expectFocusRing(page: Page, target: ReturnType<Page["locator"]>, 
   }
   const ring = await target.evaluate((el) => {
     const cs = getComputedStyle(el);
-    return { focused: el === document.activeElement, visible: el.matches(":focus-visible"), style: cs.outlineStyle, width: parseFloat(cs.outlineWidth) };
+    // The inner band: the spread of a zero-offset, zero-blur box-shadow ("<colour> 0px 0px 0px 2px").
+    const spread = /0px 0px 0px (\d+(?:\.\d+)?)px/.exec(cs.boxShadow);
+    return {
+      focused: el === document.activeElement,
+      visible: el.matches(":focus-visible"),
+      style: cs.outlineStyle,
+      width: parseFloat(cs.outlineWidth) + (spread ? parseFloat(spread[1]!) : 0),
+    };
   });
   expect(ring.focused && ring.visible).toBe(true);
   expect(ring.style).not.toBe("none");
@@ -100,9 +109,39 @@ async function enrolAndConsent(page: Page, opts: { contrast?: boolean } = {}): P
 /** The demo questionnaire (one 5-point item) on whichever questionnaire page is showing. */
 async function answerQuestionnaire(page: Page, path: RegExp) {
   await expect(page).toHaveURL(path);
+  // Unanswered radios read as unanswered: an empty ring on --ground with no dot (a radio group with
+  // nothing chosen matches :indeterminate, which must not paint it as selected). Once one is
+  // chosen, only that radio shows the dot.
+  await expectRadioMarks(page, null);
   await page.getByLabel(/^3/).check();
+  await expectRadioMarks(page, "3");
   await expectFocusRing(page, page.getByRole("button", { name: "Submit answers" }));
   await page.getByRole("button", { name: "Submit answers" }).click();
+}
+
+/**
+ * The radios of the questionnaire as drawn: each one's background and the scale of its dot (the
+ * ::before), against the page's --ground. `checked` is the label digit of the chosen option, or null.
+ */
+async function expectRadioMarks(page: Page, checked: string | null) {
+  const marks = await page.locator("input.ie-check[type=radio]").evaluateAll((els) => {
+    const probe = document.createElement("div");
+    probe.style.background = "var(--ground)";
+    document.body.append(probe);
+    const ground = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return els.map((el) => {
+      const cs = getComputedStyle(el);
+      const dot = getComputedStyle(el, "::before").transform;
+      const label = (el.closest("label")?.textContent ?? "").trim();
+      return { label, onGround: cs.backgroundColor === ground, dot: dot !== "none" && !/^matrix\(0, 0, 0, 0/.test(dot) };
+    });
+  });
+  expect(marks.length).toBeGreaterThan(1);
+  for (const m of marks) {
+    const isChosen = checked !== null && m.label.startsWith(checked);
+    expect(m, `radio "${m.label}"`).toEqual({ label: m.label, onGround: true, dot: isChosen });
+  }
 }
 
 /** The display step's markup with React's generated ids normalised (they are not content). */
@@ -268,7 +307,7 @@ test("withdraws at any point and keeps the record; the high-contrast choice is r
   await expect(page.getByText(/Tick the box to confirm that you want to withdraw/)).toBeVisible();
   await expect.poll(() => focusedId(page)).toBe("confirm");
   await page.getByLabel("I want to withdraw from the study now.").check();
-  // High contrast: the outline and destructive buttons show the 3 px black ring of the double ring.
+  // High contrast: the outline and destructive buttons show the full two-tone ring (4 px band).
   await expectFocusRing(page, page.getByRole("link", { name: "Go back to the study" }), 3);
   await expectFocusRing(page, page.getByRole("button", { name: "Withdraw from the study" }), 3);
   await page.getByRole("button", { name: "Withdraw from the study" }).click();

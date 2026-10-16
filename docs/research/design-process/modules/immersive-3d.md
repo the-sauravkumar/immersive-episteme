@@ -264,10 +264,10 @@ props, no new post pass, no imagery on the walls.
 | I-G3 | **Plates, plaques and signs are display-referred white and black.** The label materials are unlit and write alpha 0; the pipeline's OutputPass tone maps by alpha, so label pixels skip the tone mapping. The TAA pass clears with alpha 0 so the flag survives accumulation. | three applies `toneMapped: false` only when a material renders straight to the canvas; here the scene renders into the composer's linear target, so a white plate first rendered at sRGB 240 (measured). After the change: paper 255, measured. Plate to wall 1.58:1 at 205 (F2 floor 1.5). | Paper pushed to scene value about 15 so the tone mapping returns near-white (rejected: glyph edges would bloom to white and thin the strokes). |
 | I-G4 | **Junctions:** 150 mm ceiling cove 80 mm deep (walls run up into it; the slot and its lip are the cove surface); a 25 mm high, 15 mm deep shadow-gap skirting under every wall and post; door openings with plaster reveals and a 20 mm flush edge (linings 20 mm deep, flush with both wall faces, no architrave); a 30 mm toe recessed 20 mm under every plinth; door thresholds at the floor value. | DESIGN-v2 §11 F5 to F8. `scene-model.test.ts` still finds no overlapping linings; C1 (below) finds no flicker. | Proud dark linings (removed: 8.8 to 9.4:1, the most salient objects in view, gallery3d S6). |
 | I-G5 | **Wall wash and room light maps.** One 1 x 256 profile over the room height: flat within 0.5% across the 1.55 to 2.25 m card band, 0.86 at the skirting, up to 1.10 at the cove. Floors: contact shading from walls and plinths; ceilings: the cove's up-light near the walls. Each map is normalised so its mean is exactly 1. | `gallery-finish.test.ts`: the card band is flat within 3%; every room's stored floor and ceiling mean is within 1% of the others; every wall, plinth and reveal mesh references the one profile instance. | A 64 x 256 half-float profile (the proposal's estimate): u is unused and 8 bits with 2x headroom interpolate without banding, so 1 x 256 RGBA8. |
-| I-G6 | **Plate lines from one shared function.** `src/features/immersive/plaque-text.ts` gives "Step n of N" above the title of every sequence station and "Start" or "Last step" under the first and last; other plates show the title only. The scene uses it directly (the host's `describe` prop is now ignored), so the 2D rail can show the same words. | `plaque-text.test.ts`: one Start and one Last step per ordered path; every sequence numbered 1..N without gaps; step 1 is the first station clockwise from the room's entrance doorway (found by breadth-first search from the lobby) and later steps follow round the room without reversal; a continuation into another room passes through a doorway between the two. | Kicker in capitals with letter-spacing (removed: "no uppercase eyebrows"). |
+| I-G6 | **Plate lines from one shared function.** `src/features/immersive/plaque-text.ts` gives "Step n of N" above the title of every sequence station and "Start" or "Last step" under the first and last; other plates show the title only. The scene uses it directly (the host's `describe` prop was removed at the merge), so the 2D rail can show the same words. | `plaque-text.test.ts`: one Start and one Last step per ordered path; every sequence numbered 1..N without gaps; step 1 is the first station clockwise from the room's entrance doorway (found by breadth-first search from the lobby) and later steps follow round the room without reversal; a continuation into another room passes through a doorway between the two. | Kicker in capitals with letter-spacing (removed: "no uppercase eyebrows"). |
 | I-G7 | **Visited marking.** `controller.setVisited(ids)` adds the word "Visited" at the foot of each visited plate (right-aligned, 600 weight, full ink), the in-world form of the 2D visited marking. Resident rooms are redrawn at once; others when they next load. | Same kind of mark in both conditions is a 2D-side contract (see the 2D track). | A coloured tick or a tinted plate (rejected: colour would be a new accent near content). |
-| I-G8 | **Lettering face.** The atlas reads the page's `--font-sans` token (Atkinson Hyperlegible Next once DR-022 lands), titles 700 and secondary lines 600; category signs in Title Case, no capitals or tracking. | The 2D page and the 3D lettering always use the same face. | The serif display face (removed with DR-022). |
-| I-G9 | **Look-method telemetry contract.** The scene emits `inputMethodUsed(method)` (keys, drag, rmb, freelook, click; "list" through `controller.noteInputMethod`) on the first use of each method per navigation interval; `controller.startNavigationInterval()` resets it. | The event is optional on `SceneEvents`, so a host without a handler still compiles. | — |
+| I-G8 | **Lettering face.** The atlas reads the page's `--font-sans` token (Atkinson Hyperlegible Next), falling back to `--font-atkinson`, titles 700 and secondary lines 600; category signs in Title Case, no capitals or tracking. | The 2D page and the 3D lettering always use the same face. | The serif display face (removed with DR-022). |
+| I-G9 | **Look-method telemetry contract.** The scene emits `inputMethodUsed(method)` (keys, drag, rmb, freelook, click; "list" through `controller.noteInputMethod`) for the first move of each navigation interval and on every switch of method after it; `controller.startNavigationInterval()` starts a new interval. (Changed at the merge from "once per method per interval"; see the merge section below.) | The event is optional on `SceneEvents`, so a host without a handler still compiles. | — |
 
 ### Rendering checks fixed in this package
 
@@ -315,7 +315,7 @@ wing, tradition or room key.
 | I-W6 | **Brisk pace on long click-to-walk routes.** A route walks at the keys' Shift pace (2.3 m/s) and eases to the walking pace (1.35 m/s) over the last 3 to 8 m; short routes stay at the walking pace. | The 63 m walk from the directory to the far wing took 45 s at the walking pace; it takes 31 s now. Unit test on `stepVisitor`. | A faster pace (rejected: comfort, and it would hide the distance asymmetry below rather than fix it). |
 | I-W7 | **Visited marking.** `controller.setVisited(exhibitIds)` puts a quiet "Visited" at the foot of each visited plate, the in-world form of the 2D visited links. | Screenshot in package 3D-A. | — |
 | I-W8 | **No in-world image planes in study builds.** `IN_WORLD_IMAGES = false` in `scene-model.ts`. The compiler may declare an image surface; the scene model reports it as not drawn whatever its licence or review state, and the renderer has no image-plane path. Images appear only inside the KnowledgeSheet (DR-020 addendum). | `image-planes.test.ts` compiles the study manifest with a reviewed, licensed figure for one concept of each tradition, then checks the report, the built museum's meshes, materials and textures, and that no vertex lies on an image surface. | — |
-| I-W9 | **Look-method telemetry.** The bridge emits `inputMethodUsed(keys, drag, rmb, freelook, click, list)` once per method per navigation interval (package 3D-A). Clicks on signs and doorway frames count as "click". | — | — |
+| I-W9 | **Look-method telemetry.** The bridge emits `inputMethodUsed(keys, drag, rmb, freelook, click, list)` on the first move of a navigation interval and on each switch of method (package 3D-A, switch rule set at the merge). Clicks on signs and doorway frames count as "click". | — | — |
 
 ### Novice Walkthrough (GTX 1650, Default Controls Only)
 
@@ -360,3 +360,52 @@ order across participants, or reporting time-to-wing per tradition as a covariat
   because the L1 rule is set for 1280 x 800.
 - The walkthrough ran on the dev server, so its times include compile-on-visit stalls. It is a
   relative measure: before against after, and wing against wing.
+
+## Merge of the 2D and 3D Tracks: Contracts Wired
+
+**Question.** How do the two tracks' scene contracts meet in the one museum host
+(`src/components/museum/museum-app.tsx`) without changing what either condition shows?
+
+| Decision | Reason | Alternative rejected |
+|---|---|---|
+| **Input-method reports are switches.** The scene reports the first move of each navigation interval and then every change of method (keys, drag, rmb, freelook, click, list); a run of one method is one report. The host logs each report as `input_method_used` with the method before it as `previous`, and calls `startNavigationInterval()` when a concept closes. Rail and Plan rows report "list" through `noteInputMethod`. | The telemetry contract (2D track) defined the event as a switch, and the host infers keyboard against scene as the navigation source of a room entry from the latest method. With "first use per interval" the latest report could be stale (keys, then drag, then keys again reports nothing for the second keys run). The switch stream still gives the per-interval set: every interval starts with a report. | Keeping "once per method per interval" and logging a second event for the source (rejected: two events for one fact). |
+| **Visited marks follow the rail's state.** The host keeps one visited set (the rail's marks) and mirrors it with `controller.setVisited` whenever it changes and after a scene reload, instead of calling the controller inside a state updater. | One source of truth for both marks; a reloaded scene (a new attempt) gets its marks back. | — |
+| **Exhibit framing clears the rail.** New `controller.setRailInset(fraction)`: while a panel is docked, the exhibit is framed at the centre of the free area between the PlaceRail and the panel. With no panel open the lens is never shifted, so showing or hiding the rail moves nothing while the visitor walks. The host measures the rail's width when it is shown (docked or drawer) and on resize. | With the rail open an exhibit could be framed partly behind it (2D-B contract need). | Shifting the view whenever the rail is shown (rejected: the whole scene would jump when the rail is toggled). |
+| **Plate lines.** `plaqueText` is called by the world itself, so the host's unused `describe` prop is removed from the canvas and the scene. | One source for the plate lines in both conditions. | — |
+| **Rail doorway rows walk through the doorway** (`walkThroughDoorway`, falling back to `walkToRoom`), the same walk a click on the doorway makes. | The visitor ends inside the next room facing into it, as with the scene's own doorway click. | — |
+| **The 3D practice room carries the practice instruction and a practice citation.** The first panel line is `PRACTICE_TEXT.tryControls.immersive`; the practice statements cite the same platform practice source the 2D practice cites, so the instruction "open a citation number" can be followed in both. | 2D-D left the 3D line to the merge; without a citation the 3D practice could not practise the marker. | — |
+| **The lettering reads `--font-atkinson`** as its fallback; the `--font-inter` and `--font-source-serif` aliases are removed from `globals.css`. | 2D-A contract need. | — |
+
+**Equivalence check.** Content: unchanged (no claim, title or plate wording changed; the practice
+room is not learning content). Exposure and timing: unchanged. Citation access: unchanged in the
+study; the 3D practice now practises it as the 2D practice does. Ease once a concept is open: the
+exhibit is framed clear of the rail, so the sheet and the exhibit are not covered; no sheet change.
+Natural navigation only: no new control. Tradition salience: unchanged; the wing-distance finding
+above stays open. Telemetry: `input_method_used` keeps its name and fields; its rule is now stated
+as "first move of an interval, then each switch", and its registry description says so.
+
+## Review Fix Round: Wayfinding Words, Walking Through Doorways, Plates
+
+**Question.** Which of the review's 3D findings can be fixed without a change to the building
+scheme, and what stays open?
+
+| Decision | Reason | Alternative rejected |
+|---|---|---|
+| **Directory directions are said by wall:** "Far wall, first doorway to the right", "Entrance wall, to the right". The far wall is the directory's own, the entrance wall the one the visitor came through; left and right are as one enters, which is also as one reads the directory. | Novice walkthrough: "First doorway on the right" and "Behind you, on the right" only made sense while facing the directory. Naming the wall keeps a direction true after the visitor turns away. | Compass words (rejected: the museum has no north for a visitor). |
+| **A click on the next room's wall or sign, seen through a doorway, walks through that doorway** (`doorwayToRoomSeen`: the hit is read 0.2 m back towards the visitor; of several doorways into that room, the one nearest the line of sight). Unit test: every doorway in both directions, clicked from the walk-through point on the far wall straight through it. | The review clicked the far wall through a doorway and nothing happened; only the frame, its sign or a plaque responded. | Walking to the clicked wall point (rejected: a wall point is not walkable; the doorway walk already ends inside the room, facing into it). |
+| **No "Visited" on the plates** (`PLATE_VISITED_MARK = false`; DR-021 Addendum B). The plate keeps its title, step and Start or Last step lines. | The full-ink word was a stronger, always-visible revisit cue in 3D only. | None. |
+| **The museum's height comes from CSS** (flex column, `flex-1 min-h-0`), so a notice that arrives after the museum mounts never pushes the scene or the strip off screen. | Soft navigation from Explore left the root scrolled by 40 px (review). | None. |
+
+**Not changed in this round (recorded, minor).** The visitor still arrives at the hall directory
+facing it (a); the Plan still shows numbers without names or a facing arrow (d); the "Step n of N"
+line keeps its size (e); a plaque clicked through a doorway still takes a long walk and arrives at
+an angle (f); and the finish items (plinths, lobby, plaster specks, baked lighting variation) are
+as they were. Each needs a scene or Plan change with rendering re-baselines on the GTX 1650 and
+Iris Xe; they are listed for the next 3D package. The wing distances stay open (DR-023 Addendum B).
+
+**Equivalence check.** Content: unchanged. Exposure and timing: unchanged. Citation access:
+unchanged. Ease once a concept is open: unchanged. Natural navigation only: the doorway click is 3D
+navigation (the manipulated variable) and adds no control; the directory words are wayfinding copy,
+not content. Tradition salience: the directory rows keep equal size and canonical order; the
+wing-distance confound is unchanged and open. Telemetry: a walk through a doorway seen beyond is a
+click (`input_method_used` "click") with the same room-entry events as any doorway walk.

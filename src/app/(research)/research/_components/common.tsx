@@ -145,9 +145,21 @@ export function StudyPicker({ studies, current, extra }: { studies: StudySummary
 }
 
 /** The study chosen by `?study=` or the first non-demo study. */
+/**
+ * A study inserted by automated tests or audit scripts, never the default view (it stays
+ * selectable): any slug with an `e2e` part, and the fixture families "demo-audit-map-…",
+ * "demo-rev-map-…", "demo-w4-onb-…" and "demo-parity-…".
+ */
+export const isTestFixtureStudy = (s: Pick<StudySummary, "slug">) => /(^|-)e2e(-|$)/.test(s.slug) || /^demo-(audit-map|rev-map|w4-onb|parity)-/.test(s.slug);
+
+/**
+ * The study a research page shows: the requested one; else the newest real study; else the newest
+ * demo study that is not an automated-test fixture; else the newest study of any kind. `studies`
+ * comes newest first.
+ */
 export function pickStudy(studies: StudySummary[], requested: string | string[] | undefined): StudySummary | null {
   const id = typeof requested === "string" ? requested : null;
-  return studies.find((s) => s.id === id) ?? studies.find((s) => !s.isDemo) ?? studies[0] ?? null;
+  return studies.find((s) => s.id === id) ?? studies.find((s) => !s.isDemo) ?? studies.find((s) => !isTestFixtureStudy(s)) ?? studies[0] ?? null;
 }
 
 // ---------------------------------------------------------------------------------------------

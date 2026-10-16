@@ -92,7 +92,7 @@ describe.skipIf(!TEST_URL)("learning settings, scope rule and practice", () => {
       webglFailurePolicy: "exclude",
       guidance: { policy: "hybrid", cueEnabled: true, stallSeconds: 90, hintText: "Test hint written by the researchers." },
       learningPrompts: CONFIG.learningPrompts,
-      figures: { structureDiagrams: true },
+      figures: { structureDiagrams: true, photos: true },
     };
     expect(a.settings).toEqual(expected);
     expect(b.settings).toEqual(a.settings);

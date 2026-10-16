@@ -62,3 +62,13 @@ cosmetic: the server refuses regardless.
 - Platform settings are read-only (no settings table).
 - The S3 upload path is untested against a real bucket. Browser uploads in S3 mode also need the
   bucket origin in the CSP `connect-src`.
+
+## Graph Canvas Out of the Tab Order (Merge of the 2D and 3D Tracks)
+
+| Decision | Reason | Alternative rejected |
+|---|---|---|
+| The React Flow nodes and edges on `/cms/relations` are no longer Tab stops (`nodesFocusable={false}`, `edgesFocusable={false}`); the canvas stays a pointer aid, and the form and edge table remain the keyboard and screen-reader path (C10). | On the production build the canvas put every edge and node in the Tab order: 2128 focus-audit findings at 1280 and 390 px and about 300 targets under 44 px (edges 7 to 29 px tall), all in front of the accessible table that does the same work. | Enlarging the edge hit areas to 44 px (rejected: overlapping hit areas on a dense graph, and the stops would still precede the table). |
+
+Local production runs of the media library need `MEDIA_LOCAL_DIR` set explicitly (for example
+`.data/media`); without it `/cms/media` refuses to start the local store in production, by design
+(`src/server/cms/media/storage.ts`).

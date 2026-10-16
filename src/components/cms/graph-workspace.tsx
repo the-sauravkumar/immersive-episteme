@@ -150,7 +150,7 @@ export function GraphWorkspace({
   return (
     <div className="flex flex-col gap-6">
       <div
-        className="h-[32rem] overflow-hidden rounded-card border border-rule-strong bg-ground [&_.react-flow\_\_attribution]:bg-ground! [&_.react-flow\_\_attribution]:p-0! [&_.react-flow\_\_attribution_a]:inline-flex! [&_.react-flow\_\_attribution_a]:min-h-11! [&_.react-flow\_\_attribution_a]:items-center! [&_.react-flow\_\_attribution_a]:px-3! [&_.react-flow\_\_attribution_a]:text-ink-3! [&_.react-flow\_\_node:focus-visible]:outline-2! [&_.react-flow\_\_node:focus-visible]:outline-offset-2! [&_.react-flow\_\_node:focus-visible]:outline-indigo! [&_.react-flow\_\_node:focus-visible]:outline-solid! [&_.react-flow\_\_edge:focus-visible_.react-flow\_\_edge-path]:stroke-indigo! [&_.react-flow\_\_edge:focus-visible_.react-flow\_\_edge-path]:stroke-3!"
+        className="h-[32rem] overflow-hidden rounded-card border border-rule-strong bg-ground [&_.react-flow\_\_attribution]:bg-ground! [&_.react-flow\_\_attribution]:p-0! [&_.react-flow\_\_attribution_a]:inline-flex! [&_.react-flow\_\_attribution_a]:min-h-11! [&_.react-flow\_\_attribution_a]:items-center! [&_.react-flow\_\_attribution_a]:px-3! [&_.react-flow\_\_attribution_a]:text-ink-3!"
         role="region"
         aria-label="Relationship graph canvas (visual aid; use the forms and table below for keyboard access)"
       >
@@ -165,13 +165,17 @@ export function GraphWorkspace({
             onConnect={onConnect}
             onEdgeClick={(_, e) => openEdge(e.id)}
             nodesDraggable
+            // The canvas is a pointer aid (C10, cms-admin.md): keyboard and screen-reader users act
+            // through the form and the edge table, so nodes and edges are not Tab stops (dozens of
+            // small stops inside the canvas, each under 44 px, would sit in front of that table).
+            nodesFocusable={false}
+            edgesFocusable={false}
             fitView
             minZoom={0.1}
             attributionPosition="bottom-right"
             // React Flow's stylesheet is unlayered and beats Tailwind's layered utilities, so the 44 px
-            // targets (DESIGN.md 9.1) and the focus ring it removes from nodes (`outline: none`; edges
-            // get an indigo 3 px stroke instead) are set with `!`; `\_` keeps the underscores in its
-            // class names.
+            // targets of its controls (DESIGN.md 9.1) are set with `!`; `\_` keeps the underscores in
+            // its class names.
           >
             <Background color="var(--rule)" />
             <Controls

@@ -9,6 +9,8 @@
  * Node-only (name-based ids use node:crypto); the practice page builds it on the server.
  */
 import { nameBasedUuid } from "@/features/knowledge/graph/hash";
+import type { SourceView } from "@/features/knowledge/read/view";
+import { PRACTICE_TEXT } from "@/features/learning/strings";
 import { nodeSha256 } from "@/features/knowledge/graph/hash-node";
 import { compileSpatialManifest, DEFAULT_RULE_SET, defaultRuleSetConfig, ruleSetUuid, type CompilerGraph } from "@/features/spatial/compiler";
 import type { ConceptType, KnowledgeCategoryCode } from "@/lib/validation/enums";
@@ -51,11 +53,39 @@ const REL_TYPES = {
   USES: { label: "uses", inverseLabel: "is used in", semantics: "compositional", directed: true, ordered: false, allowsCycles: true },
 } as const;
 
-/** Interface text of every practice panel (no craft content). */
+/**
+ * Interface text of every practice panel (no craft content). The first line is the museum's
+ * practice instruction (PRACTICE_TEXT.tryControls, the counterpart of the 2D practice page's
+ * line); the statements after it carry the practice source, so a citation number can be opened
+ * here as in the 2D practice.
+ */
 export const PRACTICE_CLAIMS = [
-  "Practice text. In the learning task, this panel shows what the sources say about the exhibit.",
+  PRACTICE_TEXT.tryControls.immersive,
+  "Practice text. In the learning task, this panel shows what the sources say about the exhibit. Select the number in brackets after a statement to see where it comes from.",
   "Practice text. Use the tabs and the connections below to move between related exhibits.",
 ] as const;
+
+/** The practice "source": the platform itself, so nothing about the craft is stated or cited (as in the 2D practice). */
+export const PRACTICE_SOURCE_ID = "practice-source";
+const PRACTICE_SOURCE: SourceView = {
+  id: PRACTICE_SOURCE_ID,
+  label: "Immersive Episteme",
+  kind: "unverified",
+  title: "Practice source (not part of the learning content)",
+  author: null,
+  publisher: "Immersive Episteme",
+  year: null,
+  url: null,
+  accessedOn: null,
+  reliability: null,
+  verificationState: "draft",
+};
+const PRACTICE_EVIDENCE = {
+  sourceId: PRACTICE_SOURCE_ID,
+  locator: "Practice room",
+  quote: "Practice quotation. In the learning task, this box shows the source's own words for the statement above it.",
+  passages: [],
+};
 
 function practiceGraph(): CompilerGraph {
   const traditionId = id("tradition");
@@ -132,7 +162,7 @@ export function buildPracticeRoom(): Omit<MuseumPayload, "settings"> {
       localTerms: [],
       // Shown as the panel badge ("Practice").
       verificationState: "practice",
-      claims: PRACTICE_CLAIMS.map((text, i) => ({ id: id("claim", c.key, String(i)), position: i, text, evidence: [] })),
+      claims: PRACTICE_CLAIMS.map((text, i) => ({ id: id("claim", c.key, String(i)), position: i, text, evidence: i === 0 ? [] : [PRACTICE_EVIDENCE] })),
       comparison: null,
       related: [...related.entries()].map(([semantics, relations]) => ({ semantics: semantics as PanelRelation["semantics"], relations })),
     };
@@ -143,7 +173,7 @@ export function buildPracticeRoom(): Omit<MuseumPayload, "settings"> {
     snapshotId: id("snapshot", PRACTICE_VERSION_LABEL),
     scene,
     concepts,
-    sources: {},
+    sources: { [PRACTICE_SOURCE_ID]: PRACTICE_SOURCE },
     traditions: graph.traditions.map((t) => ({ id: t.id, slug: t.slug, name: t.name })),
     missingConceptIds: [],
   };

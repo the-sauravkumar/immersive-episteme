@@ -34,10 +34,13 @@ test("browse catalogue, tradition, concept and a related concept; telemetry reac
   await page.getByRole("button", { name: "Open conventional pages" }).click();
   await expect(page).toHaveURL(/\/learn\/2d$/, SLOW);
   await expect(page.getByRole("heading", { level: 1, name: "Craft Traditions" })).toBeVisible(SLOW);
-  // The 2D navigation (DR-021): the shared PlaceRail "In This Section" docked at the left from
-  // 1280 px, the index in the field, and the StudyBar's condition group (Contents below 1024 px only).
+  // The 2D navigation (DR-021): the shared PlaceRail "In This Section", collapsed by default as the
+  // 3D rail is (DR-021 Addendum B) and shown from its StudyBar button, the index in the field, and
+  // the StudyBar's condition group (Contents below 1024 px only).
   const bar = page.locator("[data-slot=study-bar]");
-  await expect(page.getByRole("navigation", { name: "In This Section" })).toBeVisible();
+  const railButton = bar.locator("[data-slot=rail-button]");
+  await expect(page.getByRole("navigation", { name: "In This Section" })).toBeHidden();
+  await expect(railButton).toHaveAttribute("aria-expanded", "false");
   await expect(page.locator("[data-slot=study-index]")).toBeVisible();
   await expect(bar.getByRole("button", { name: "Contents" })).toBeHidden();
 
@@ -66,8 +69,12 @@ test("browse catalogue, tradition, concept and a related concept; telemetry reac
   await expect(page.getByRole("navigation", { name: "breadcrumb" })).toHaveCount(0);
   await expect(bar.getByRole("link", { name: /^Up to/ })).toHaveCount(0);
   await expect(page.locator("[data-slot=sheet-action]").getByRole("link", { name: "Close" })).toHaveAttribute("href", /#section-process$/);
-  // The rail lists the section's concepts with this one marked "You are here".
+  // The rail stays collapsed until asked for; shown, it lists the section's concepts with this one
+  // marked "You are here".
+  await expect(page.getByRole("navigation", { name: "In This Section" })).toBeHidden();
+  await railButton.click();
   await expect(page.getByRole("navigation", { name: "In This Section" }).locator("[aria-current=location]")).toContainText(stepTitle);
+  await page.getByRole("navigation", { name: "In This Section" }).locator("[data-slot=rail-hide]").click();
   const claims = page.getByRole("list", { name: "Statements" });
   await expect(claims.getByRole("listitem").first()).toBeVisible();
   // Numbered citation markers [n] after each claim (DR-022 Addendum A), collapsed until asked for;

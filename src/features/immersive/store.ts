@@ -44,7 +44,6 @@ export interface MuseumUiState {
   helpOpen: boolean;
   /** Free mouse look is on (cursor captured, crosshair shown). */
   freeLook: boolean;
-  listOpen: boolean;
   /** Bumped when keyboard focus in the exhibit list previews an exhibit (highlight). */
   previewExhibitId: string | null;
 }
@@ -66,7 +65,6 @@ export function createMuseumStore(initial: Partial<MuseumUiState> = {}): MuseumS
     mapOpen: false,
     helpOpen: false,
     freeLook: false,
-    listOpen: false,
     previewExhibitId: null,
     ...initial,
   }));

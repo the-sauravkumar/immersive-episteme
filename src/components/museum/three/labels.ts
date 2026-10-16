@@ -9,8 +9,8 @@
  *
  * Exhibit plates (DR-023 F2): one size for every exhibit, black ink on white paper inside a thin ink
  * frame, the concept title in 700. A sequence station also carries "Step n of N" above the title
- * and "Start" or "Last step" under it (`plaque-text.ts`, the same words as the 2D rail), and a
- * visited plate the word "Visited" at its foot (the in-world form of the 2D visited marking). Room
+ * and "Start" or "Last step" under it (`plaque-text.ts`, the same words as the 2D rail). A visited
+ * mark at the foot is supported but off in every build (`PLATE_VISITED_MARK`, DR-021 Addendum B). Room
  * plaques over doorways name the room they lead to (two lines when there is no zone line), under
  * the zone they lead into when the doorway changes zone. Category signs are one line in Title Case:
  * no capitals or letter-spacing (no uppercase eyebrows).
@@ -78,9 +78,9 @@ function cssFamily(variable: string, fallback: string): string {
 
 /**
  * The study typeface: the theme's `--font-sans` token (a full font stack), falling back to the
- * next/font variable when the token is absent. The 2D page sets its text in the same token.
+ * Atkinson Hyperlegible Next next/font variable (`--font-atkinson`) when the token is absent. The 2D page sets its text in the same token.
  */
-const sansFamily = () => cssFamily("--font-sans", "") || cssFamily("--font-inter", "sans-serif");
+const sansFamily = () => cssFamily("--font-sans", "") || cssFamily("--font-atkinson", "sans-serif");
 
 /** Weights the lettering draws: secondary lines 600, titles 700. */
 export const LETTERING_WEIGHT = { line: 600, title: 700 } as const;

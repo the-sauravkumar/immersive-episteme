@@ -13,13 +13,18 @@
  *    `text-credit` (a photo: "Photo: <credit>. Licence: <licence>", the licence linked when it
  *    has a URL); and ONE control, a 44 x 44 outline "Enlarge figure n" button in the caption row
  *    (the image itself is not a second trigger).
- *  - The lightbox shows the same media capped at 768 px on its long edge.
+ *  - The lightbox shows the same media capped at 768 px on its long edge. A diagram there is never
+ *    drawn narrower than `DIAGRAM_READABLE_MIN_PX`, so its smallest lettering stays at 12 px or more
+ *    on a phone (the region scrolls sideways, keyboard-focusable). The Enlarge button shows its word
+ *    as well as its icon: the sheet column is narrower than the 576-unit diagram at every width, so
+ *    the inline lettering is under 12 px and Enlarge is the way to read it.
  */
 import { Maximize2 } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
 
 import { figureLabel } from "@/components/brand/numbering";
+import { DIAGRAM_WIDTH } from "@/features/knowledge/read/diagrams";
 import { Button } from "@/components/ui/button";
 import type { KnowledgeFigureData } from "@/features/knowledge/read/view";
 import { FIGURE_TEXT } from "@/features/learning/strings";
@@ -30,6 +35,12 @@ import { StructureDiagramSvg } from "./structure-diagram";
 
 /** `sizes` of study figures: a literal (var() is invalid in sizes), the same in both conditions. */
 export const FIGURE_SIZES = "(min-width: 1024px) 544px, calc(100vw - 32px)";
+
+/**
+ * The narrowest a diagram is drawn in the lightbox: its smallest lettering (10 user units, the
+ * densest layout's labels in a 576-unit viewBox) then renders at 12 px.
+ */
+export const DIAGRAM_READABLE_MIN_PX = Math.ceil((DIAGRAM_WIDTH * 12) / 10);
 
 export interface KnowledgeFigureProps {
   figure: KnowledgeFigureData;
@@ -89,8 +100,11 @@ export function KnowledgeFigure({ figure, number, first = false, className }: Kn
   let enlarged = media;
   if (figure.kind === "diagram") {
     enlarged = (
-      <div className="aspect-[3/2] w-full border border-rule bg-sunk">
-        <StructureDiagramSvg diagram={figure.diagram} label={figure.alt} />
+      // A scrollable region on narrow screens: focusable and named, so it scrolls from the keyboard.
+      <div className="w-full overflow-x-auto overscroll-x-contain" tabIndex={0} role="group" aria-label={FIGURE_TEXT.lightboxLabel(number)} data-slot="figure-scroll">
+        <div className="aspect-[3/2] w-full border border-rule bg-sunk" style={{ minWidth: DIAGRAM_READABLE_MIN_PX }}>
+          <StructureDiagramSvg diagram={figure.diagram} label={figure.alt} />
+        </div>
       </div>
     );
   } else {
@@ -109,8 +123,10 @@ export function KnowledgeFigure({ figure, number, first = false, className }: Kn
         <div className="min-w-0 flex-1">
           <Caption figure={figure} number={number} />
         </div>
-        <Button ref={enlargeRef} type="button" variant="outline" size="icon" aria-label={FIGURE_TEXT.enlarge(number)} onClick={() => setOpen(true)} className="shrink-0">
+        {/* Icon and word ("Enlarge", the start of its accessible name), the same in both conditions. */}
+        <Button ref={enlargeRef} type="button" variant="outline" aria-label={FIGURE_TEXT.enlarge(number)} onClick={() => setOpen(true)} className="shrink-0 gap-2 px-3">
           <Maximize2 aria-hidden="true" />
+          {FIGURE_TEXT.enlargeWord}
         </Button>
       </figcaption>
       <FigureLightbox

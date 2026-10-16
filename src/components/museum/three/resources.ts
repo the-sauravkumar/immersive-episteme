@@ -30,6 +30,8 @@ import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
 
 import type { Rect, Vec3 } from "@/features/spatial/compiler/types";
 
+import { runInBootWorker } from "./ktx2-worker";
+
 /** The study build's fixed render configuration (C7 asserts the live renderer equals this). */
 export const STUDY_RENDER_CONFIG = {
   outputColorSpace: "srgb",
@@ -208,7 +210,12 @@ let ktx2: KTX2Loader | null = null;
  * times the memory): the residual is the UASTC encode itself (results document, C12).
  */
 export function ktx2Loader(renderer: THREE.WebGLRenderer): KTX2Loader {
-  if (!ktx2) ktx2 = new KTX2Loader().setTranscoderPath("/museum/basis/").detectSupport(renderer);
+  if (!ktx2) {
+    ktx2 = new KTX2Loader().setTranscoderPath("/museum/basis/").detectSupport(renderer);
+    // The transcoder needs eval for its embind glue: run it in the bootstrap worker, which has its
+    // own policy, instead of a blob worker under the page's (ktx2-worker.ts).
+    runInBootWorker(ktx2, KTX2Loader as unknown as Parameters<typeof runInBootWorker>[1]);
+  }
   return ktx2;
 }
 

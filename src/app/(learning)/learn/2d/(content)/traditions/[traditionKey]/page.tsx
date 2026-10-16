@@ -26,7 +26,8 @@ export const instant = false;
 
 /**
  * Tradition page (DESIGN.md 11.5): the common epistemic template in fixed order, in the sheet-width
- * column. The header carries a labelled metadata list (Also Known As, Region, GI Status). The
+ * column. The header carries a labelled metadata list (Also known as, Region, GI status; labels in
+ * sentence case, as the sheet's "Local terms"). The
  * tradition's overview concept (its sourced claims, through the shared ClaimList) is the page's one
  * content region, with its Geographical Indication record as a list, not a run-on line. Every
  * other section is a 56 px disclosure of concept links (process stages as an ordered list), with no
@@ -70,9 +71,9 @@ async function Tradition({ params }: { params: PageProps<"/learn/2d/traditions/[
           <PageMeta
             label="About this tradition"
             rows={[
-              { label: "Also Known As", values: tradition.altNames },
+              { label: "Also known as", values: tradition.altNames },
               { label: "Region", values: region ? [region] : [] },
-              { label: "GI Status", values: gi ? [giStatus(gi.registered)] : [] },
+              { label: "GI status", values: gi ? [giStatus(gi.registered)] : [] },
             ]}
           />
         }
@@ -92,10 +93,10 @@ async function Tradition({ params }: { params: PageProps<"/learn/2d/traditions/[
               <PageMeta
                 label="Geographical Indication record"
                 rows={[
-                  { label: "GI Application", values: gi.applicationNo ? [gi.applicationNo] : [] },
-                  { label: "GI Year", values: gi.year ? [<span key="y" className="tabular-nums">{gi.year}</span>] : [] },
+                  { label: "GI application", values: gi.applicationNo ? [gi.applicationNo] : [] },
+                  { label: "GI year", values: gi.year ? [<span key="y" className="tabular-nums">{gi.year}</span>] : [] },
                   // The full source title (a short label would cut it mid-word, 9.8).
-                  { label: "GI Source", values: gi.sources.map((s) => (s.year ? `${s.title} (${s.year})` : s.title)) },
+                  { label: "GI source", values: gi.sources.map((s) => (s.year ? `${s.title} (${s.year})` : s.title)) },
                 ]}
               />
             </div>

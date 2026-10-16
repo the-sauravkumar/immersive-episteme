@@ -17,6 +17,14 @@ export interface PlaqueText {
   footer: string | null;
 }
 
+/**
+ * Visited marks on the in-world plates: off (DR-021 Addendum B). The 2D condition marks a visit
+ * only on the rail row (a quiet check), and the rail is collapsed by default in both conditions, so
+ * a "Visited" lettered on the plate in full ink made the cue stronger and always on screen in 3D
+ * only. Visits are marked on the rail, the same way, in both; never on the plates.
+ */
+export const PLATE_VISITED_MARK = false;
+
 export const PLAQUE_WORDS = {
   step: (n: number, of: number) => `Step ${n} of ${of}`,
   start: "Start",

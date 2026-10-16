@@ -66,6 +66,8 @@ export const CITATION_TEXT = {
 /** Knowledge figures and the lightbox (DESIGN.md 9.9). */
 export const FIGURE_TEXT = {
   enlarge: (n: number) => `Enlarge figure ${n}`,
+  /** The Enlarge button's visible word (the start of its accessible name). */
+  enlargeWord: "Enlarge",
   lightboxLabel: (n: number) => `Figure ${n}, enlarged`,
   close: "Close",
   /** Credit line of a graph-derived diagram (DR-018). */
@@ -165,7 +167,7 @@ export const ONBOARDING_TEXT = {
   citation: "After every statement, a number in brackets such as [1] opens where it comes from, with the exact quote. Select it again or press Escape to close it.",
   figure: "Enlarge, under a figure, shows it full size. Close or Escape takes you back.",
   movement: {
-    "2d": "In This Section, on the left, lists the concepts of the section you are in, and the index beside it lists every section. Select a concept to open it, and Close to put it away. Its links lead to related concepts, and Previous and Next to its neighbours.",
+    "2d": "In This Section, in the top bar, lists the concepts of the section you are in, and the index on the left lists every section. Select a concept to open it, and Close to put it away. Its links lead to related concepts, and Previous and Next to its neighbours.",
     // The one key map and all three look methods, each named once and equally (no method first as "the" way).
     immersive: "Walk with W and S or ↑ and ↓; turn with A and D or ← and →. To look around, drag with the mouse, hold the right button, or press L for free look. Plan, in the top bar, shows the rooms. Select an exhibit to open its panel.",
   },
@@ -324,7 +326,7 @@ export const SCREEN_TEXT = {
     freeLook: "Look without holding a button",
     freeLookHow: "Press L, then move the mouse or touchpad; a click acts on the crosshair. Esc or L to stop",
     go: "Go somewhere",
-    goHow: "Click or tap the floor",
+    goHow: "Click or tap the floor. Click a doorway or its sign to walk through it, or the directory to walk up and read it",
     exhibits: "Exhibits",
     exhibitsHow: "Click a wall panel, or use “In This Room” to choose one with the keyboard",
     close: "Close a panel",

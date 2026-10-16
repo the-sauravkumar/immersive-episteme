@@ -116,10 +116,14 @@ test.describe("immersive museum flow", () => {
       await p.stability(v, 1);
       return v.id.replace(/#approach$/, "");
     });
-    const list = page.getByRole("button", { name: /In This Room/ });
-    await list.focus();
-    await page.keyboard.press("Enter");
-    const item = page.locator(`#museum-room-contents li button[data-exhibit-id="${exhibitId}"]`);
+    // The shared PlaceRail ("In This Room") is collapsed by default in 3D (DR-021): open it from
+    // the StudyBar with the keyboard, then choose the exhibit's row.
+    const list = page.locator("[data-slot=study-bar] [data-slot=rail-button]");
+    if ((await list.getAttribute("aria-expanded")) !== "true") {
+      await list.focus();
+      await page.keyboard.press("Enter");
+    }
+    const item = page.locator(`#museum-rail li button[data-exhibit-id="${exhibitId}"]`);
     await item.focus();
     await page.keyboard.press("Enter");
     const panel = page.locator("[data-slot=museum-info-panel]");
@@ -128,11 +132,10 @@ test.describe("immersive museum flow", () => {
     // The shared sheet, opaque --ground, no glass, focus on its h1 (P4, P27).
     await expect(panel.locator("[data-slot=knowledge-sheet]")).toHaveCount(1);
     const surface = await panel.evaluate((el) => ({ bg: getComputedStyle(el).backgroundColor, filter: getComputedStyle(el).backdropFilter }));
-    expect(surface).toEqual({ bg: "rgb(245, 241, 232)", filter: "none" });
+    expect(surface).toEqual({ bg: "rgb(255, 255, 255)", filter: "none" });
     await expect(panel.locator("[data-slot=knowledge-sheet] h1")).toBeFocused();
-    // The reserved action slot is empty in 3D as in 2D; Close is the panel's last control (P13).
-    await expect(panel.locator("[data-slot=sheet-action] > *")).toHaveCount(0);
-    await expect(panel.getByRole("button", { name: "Close" })).toBeVisible();
+    // Close sits in the sheet's action slot in 3D as in 2D (DR-021); P13 counts it on both sides.
+    await expect(panel.locator("[data-slot=sheet-action]").getByRole("button", { name: "Close" })).toBeVisible();
     const stops3d = await tabStopsToFirstNote(page);
 
     // Same claims-only text, same order, as the 2D concept page for the same concept.

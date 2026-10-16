@@ -94,11 +94,6 @@
     sans-serif;
   --code-stack: ui-monospace, "Cascadia Code", Consolas, monospace;
   --arabic-stack: "Segoe UI", "Noto Naskh Arabic", "Geeza Pro", sans-serif;
-  /* Retired family variables, kept as aliases of Atkinson for the 3D lettering atlas
-     (src/components/museum/three/labels.ts reads them from <html>) until it reads --font-atkinson.
-     Both conditions therefore letter in the one face (DR-022, DR-023 F2). */
-  --font-inter: var(--font-atkinson);
-  --font-source-serif: var(--font-atkinson);
 }
 
 /* ---- Dark theme (DESIGN.md 4.2). Public and console only; never applied in study (DR-019). ---- */
@@ -710,14 +705,16 @@
     transform: scale(0);
   }
   .ie-check:checked,
-  .ie-check:indeterminate {
+  .ie-check[type="checkbox"]:indeterminate {
     border-color: var(--indigo);
     background: var(--indigo);
   }
   .ie-check:checked::before {
     transform: scale(1);
   }
-  .ie-check:indeterminate::before {
+  /* Indeterminate is checkbox-only: a radio group with nothing chosen also matches
+     :indeterminate, and must read as unanswered (empty ring), never as selected. */
+  .ie-check[type="checkbox"]:indeterminate::before {
     clip-path: inset(42% 8%);
     transform: scale(1);
   }

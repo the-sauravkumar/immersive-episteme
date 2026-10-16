@@ -42,7 +42,7 @@ test.afterAll(async () => {
       c.release();
     }
   }
-  await retireE2eStaff();
+  await retireE2eStaff(undefined, [STAFF]);
   await closeDb();
 });
 

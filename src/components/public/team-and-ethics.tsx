@@ -29,7 +29,7 @@ export function TeamList({ institution, className }: { institution: InstitutionC
           {a.orcid ? (
             <>
               {", ORCID "}
-              <a href={orcidUrl(a.orcid)} className={cn(LINK, "text-id whitespace-nowrap")} rel="noopener noreferrer" target="_blank">
+              <a href={orcidUrl(a.orcid)} className={cn(LINK, "text-id inline-flex min-h-11 items-center whitespace-nowrap")} rel="noopener noreferrer" target="_blank">
                 {a.orcid}
               </a>
             </>

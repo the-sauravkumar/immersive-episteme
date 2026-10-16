@@ -447,7 +447,9 @@ export function rail2d(place: Place2d, index: StudyBarIndex, visitedPageIds: Rea
   if (place.sectionId && !place.traditionSlug) {
     return { items: (sectionsOf(SHARED_SECTIONS)[place.sectionId] ?? []).map(rowOf), destinations: traditionsAsDestinations() };
   }
-  if (place.traditionSlug) return { items: [], destinations: otherSections(place.traditionSlug, null) };
+  // A tradition page lists its sections in its own column and in the index beside it: the rail
+  // leads to the other traditions instead of repeating the sections a third time.
+  if (place.traditionSlug) return { items: [], destinations: traditionsAsDestinations().filter((d) => d.key !== `tradition:${place.traditionSlug}`) };
   return { items: [], destinations: traditionsAsDestinations() };
 }
 
@@ -468,18 +470,19 @@ export interface IndexTradition {
  * own tradition keeps its sections; the others show their names only (a shared concept: names only).
  */
 export function index2d(place: Place2d, index: StudyBarIndex): IndexTradition[] {
+  // While a concept is open the index recedes to the traditions and the concept's own section (the
+  // "You are here" row): the rail already lists that section's concepts, so the sheet stays the one
+  // focus (cognitive-load rule; parity check P33 counts what competes with it in both conditions).
   const receded = place.conceptSlug !== null;
   return index.traditions.map((t) => {
     const own = place.traditionSlug === t.slug;
-    const expanded = !receded || own;
+    const sections = EPISTEMIC_SECTIONS.map((s, i) => ({ id: s.id, number: i + 1, title: s.title, href: href2d.traditionSection(t.slug, s.id), current: own && place.sectionId === s.id }));
     return {
       slug: t.slug,
       name: t.name,
       href: href2d.tradition(t.slug),
       current: own && place.sectionId === null && place.conceptSlug === null,
-      sections: expanded
-        ? EPISTEMIC_SECTIONS.map((s, i) => ({ id: s.id, number: i + 1, title: s.title, href: href2d.traditionSection(t.slug, s.id), current: own && place.sectionId === s.id }))
-        : [],
+      sections: !receded ? sections : own ? sections.filter((s) => s.current) : [],
     };
   });
 }

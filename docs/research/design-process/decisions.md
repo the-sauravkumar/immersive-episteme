@@ -748,3 +748,106 @@ researchers' decisions:
   dot that joined them is gone).
 - **Paper:** report the three photo concepts by key, as above, with DR-020's note that all three
   are context figures.
+
+## DR-020 Addendum B: No In-World Image Planes in Study Builds (3D Track, Package 3D-B)
+
+- **Decision:** images (the graph-derived diagrams and the study photographs) appear only inside
+  the KnowledgeSheet, through the shared `KnowledgeFigure`, identically in both conditions. The
+  museum never draws an image on a wall: `IN_WORLD_IMAGES = false` in
+  `src/features/immersive/scene-model.ts`. The compiler may still declare an image surface; the
+  scene model reports it as not drawn whatever its licence or review state, and the renderer has no
+  image-plane path.
+- **Check:** `tests/unit/immersive/image-planes.test.ts` compiles the study manifest with a
+  reviewed, licensed figure for one concept of each tradition and asserts that no image mesh,
+  material, texture or vertex on an image surface exists in the built museum.
+- **Why:** an image on a wall would be a second, condition-specific exposure of the same figure
+  (gate 1, equivalence), and a decorative element near knowledge content.
+
+## DR-023 Addendum: Lobby Directory Adopted; Wing Distances Measured (3D Track, Package 3D-B; Merge)
+
+- **Lobby:** the symmetric lobby was attempted and rejected as not clean. With three wings the
+  symmetric axis falls on the middle wing's door, which centres one tradition, and the change needs
+  a republished manifest. The fallback of DR-023 was adopted: a directory wall on the spawn axis
+  (`src/features/immersive/wayfinding.ts`, `entranceDirectory`) listing the wings in canonical
+  order and then the shared commons, in equal-size rows, each with its doorway direction. Clicking
+  a row, a door sign or a doorway frame walks the visitor through the doorway (a walk, never a
+  teleport).
+- **Finding (gate 1, open):** the wings are not equally far from the entrance. The compiler places
+  the wings in slug order along the hall with the lobby at its west end; directory to wing doorway
+  took 5.9 s (Ajrakh), 19.3 s (Machilipatnam Kalamkari) and 31.4 s (Sanganeri) at the click-to-walk
+  pace. The 2D index lists the traditions in the same canonical order, so the order is matched
+  across conditions; the distance exists only in 3D, where it is navigation time, which is already
+  recorded apart from content exposure (DR-015).
+- **Decision for the pilot (taken at the merge, with the 3D track's recommendation):** keep the
+  layout and report time-to-wing per tradition as a covariate. It needs no new event:
+  `room_entered` carries the room and its `traditionId`, so the time from the session start (or the
+  directory) to the first entry into each wing is derived from the stored events.
+- **Recommended before the main study (lead and methodologist decide):** equalise the distances
+  with a compiler change under DR-010 (the lobby centred on the wing span with two doorways
+  flanking the directory, a `LAYOUT_VERSION` bump, updated `tests/unit/spatial` and a republished
+  study manifest), or counterbalance the wing order across participants. Either must be decided
+  before participant data.
+
+## DR-022 Addendum C: Contracts Wired at the Merge of the 2D and 3D Tracks
+
+- **Input method covariate:** the scene reports the first move of each navigation interval and
+  every switch of method after it (keys, drag, rmb, freelook, click; "list" from rail and Plan
+  rows); the host logs each report as `input_method_used` with the method before it. A navigation
+  interval restarts when a concept closes. Details: `modules/immersive-3d.md`, "Merge of the 2D and
+  3D Tracks".
+- **Visited marks** are one state, shown on the rail in both conditions and mirrored on the 3D
+  plates with the same word, "Visited".
+- **Figures:** the 3D payload uses `figureOptionsOf(ctx)`, the helper the 2D pages use, so
+  `figures.photos` switches photographs off in both conditions together.
+- **Practice:** the 3D practice room shows the practice instruction (`PRACTICE_TEXT.tryControls`)
+  and cites the same platform practice source as the 2D practice, so both practices teach the
+  citation marker.
+- **Study photo derivatives:** the three 768 px V&A derivatives in `scripts/content/study-photos/`
+  stay committed (the repository is private, the ingest reads them, and they are at the 768 px
+  display cap of DR-020). The originals stay outside the repository.
+
+## DR-021 Addendum B: Both Rails Collapsed by Default; Visits Marked on the Rail Only (Review Fix Round; Proposed with DR-021)
+
+- **Finding (independent review, gate 1):** P33's "largest gap 2" held only because the parity
+  test opened the 3D rail before opening an exhibit. In each condition's default flow it did not:
+  a 3D visitor who clicks a plaque keeps "In This Room" collapsed (the lead's DR-021 default),
+  while a 2D visitor saw the 14-row "In This Section" rail beside the sheet. Counted with P33's
+  own method: 2D 28 against 3D 16 at 1440 x 900, 26 against 16 at 1280 x 720, a gap of 10 to 12
+  against the limit of 6. The open concept is the part of the two conditions that must be equal.
+- **Decision:** the 2D rail is **collapsed by default** too, at every width, as the 3D rail is
+  (the lead's decision 2 is kept; the 2D side follows it). In both conditions the StudyBar button of
+  the same name shows it, Hide collapses it, and the choice holds across moves. P28 now expects
+  "closed" in both; P33 is measured in both default states (2D opened by a link, 3D with the rail
+  collapsed as after a plaque click) and again with the rail shown in both, and each state must
+  meet the limits.
+- **Visited marks (revises DR-022 Addendum C):** a visit is marked on the rail row in both
+  conditions (a quiet check and the visually hidden word), and never on the 3D plates
+  (`PLATE_VISITED_MARK = false`). The plate word "Visited" was always in view and in full ink in
+  3D only, a stronger cue for revisiting than the 2D rail's check, which is now collapsed by
+  default. The user's rule was "mirrored in both conditions, or in neither"; outside the rail it
+  is now neither.
+- **Tradition page rail:** on a 2D tradition page the rail leads to the other traditions instead of
+  listing the page's ten sections a third time (they are in the page column and the index).
+- **Help copy:** the 2D onboarding and the Explore control list say where the rail is now
+  ("In This Section, in the top bar"; the index "on the left").
+- **Measured:** see `modules/visual-system.md`, "Review Fix Round".
+- **Risk:** a 2D participant may use the rail less than before; rail use is logged per condition
+  (navigation `source`), so it can be modelled, as for 3D.
+
+## DR-023 Addendum B: Wing Distances Still Unequal; Recommended Route (Review Fix Round; Open, for the Lead and the Methodologist)
+
+- **Status:** unchanged in this round. Walking time from the directory to the three wing doorways
+  stays 5.9 / 19.3 / 31.4 s (Ajrakh, Machilipatnam Kalamkari, Sanganeri, click-to-walk pace), an
+  open confound for tradition salience in 3D (gate 1), while every tradition is one link away in
+  2D.
+- **Why not fixed here:** with three wings side by side along one hall, no lobby position makes the
+  three distances equal (a centred lobby makes the middle wing nearest). Equal distances need a
+  different building scheme: a hub (the comparison hall at the centre with the wings opening off
+  three sides of it at the same distance from the entrance), which changes the compiler under
+  DR-010 (`LAYOUT_VERSION` bump), the stored study manifests, the rendering baselines and the
+  wayfinding words. That is a protocol change, not a fix-round edit.
+- **Recommended route (to decide before participant data):** the hub layout, so the access cost is
+  equal by construction. If the layout must stay, counterbalance the wing order across participants
+  (three rotations, the 2D index order rotated with it so the order still matches across
+  conditions) and log the rotation as a covariate. Until then, time-to-wing per tradition is
+  reported as a covariate (DR-023 Addendum).

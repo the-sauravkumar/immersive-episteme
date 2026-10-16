@@ -31,16 +31,20 @@ export async function closeDb(): Promise<void> {
 }
 
 /**
- * Retires the throwaway staff accounts the e2e specs create (every `e2e-*@example.test` row, the
- * password-less "E2E second rater" rows included): locked, roles removed and sessions ended, so no
+ * Retires the throwaway staff accounts the e2e specs create (the calling spec's own, plus every
+ * `e2e-*@example.test` row over an hour old, the password-less "E2E second rater" rows included): locked, roles removed and sessions ended, so no
  * usable test login accumulates and none counts as a role holder on /admin/roles. The rows stay,
  * because audit entries and adjudications may reference them. Call it from a spec's afterAll.
  */
-export async function retireE2eStaff(client: Pick<Pool, "query"> = db()): Promise<void> {
-  const mine = "SELECT id FROM users WHERE email LIKE 'e2e-%@example.test'";
-  await client.query(`UPDATE users SET disabled_at = now() WHERE id IN (${mine}) AND disabled_at IS NULL`);
-  await client.query(`DELETE FROM user_roles WHERE user_id IN (${mine})`);
-  await client.query(`DELETE FROM auth_sessions WHERE user_id IN (${mine})`);
+export async function retireE2eStaff(client: Pick<Pool, "query"> = db(), own: readonly string[] = []): Promise<void> {
+  // This spec's own accounts, and any left by earlier runs (over an hour old). Accounts another
+  // spec running in parallel created a moment ago are left alone: retiring them mid-test signed
+  // that spec's staff out (workers > 1).
+  const mine =
+    "SELECT id FROM users WHERE email LIKE 'e2e-%@example.test' AND (email = ANY($1::text[]) OR created_at < now() - interval '1 hour')";
+  await client.query(`UPDATE users SET disabled_at = now() WHERE id IN (${mine}) AND disabled_at IS NULL`, [own]);
+  await client.query(`DELETE FROM user_roles WHERE user_id IN (${mine})`, [own]);
+  await client.query(`DELETE FROM auth_sessions WHERE user_id IN (${mine})`, [own]);
 }
 
 /**

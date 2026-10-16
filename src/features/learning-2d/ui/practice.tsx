@@ -64,6 +64,9 @@ const PRACTICE_CONTENTS: readonly ContentsGroup[] = [
 
 const EMPTY_INDEX: StudyBarIndex = { traditions: [], concepts: {}, parents: [] };
 
+/** The practice item: the one concept the practice sheet shows (step 2 of the practice steps). */
+const ITEM_ID = "practice-item";
+
 /** The practice rail: the practice steps (the item is the current one), then the practice sections. */
 const PRACTICE_RAIL: Rail2dModel = {
   items: [1, 2, 3].map((n) => ({
@@ -87,8 +90,6 @@ const PRACTICE_INDEX: IndexTradition[] = [
     sections: SECTIONS.map((s, i) => ({ id: s.id, number: i + 1, title: s.title, href: href2d.practice(s.id), current: false })),
   },
 ];
-
-const ITEM_ID = "practice-item";
 
 /** The practice "source": the platform itself, so nothing about the craft is stated or cited. */
 const PRACTICE_SOURCE: Citation = {

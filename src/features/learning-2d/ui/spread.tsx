@@ -4,8 +4,9 @@
  * The 2D spread (DR-021, DESIGN.md 7.2 to 7.4): the 2D counterpart of the museum's layout, the
  * same geometry in both conditions.
  *
- *  - From 1280 px: the shared PlaceRail ("In This Section") docked at x = 0 (open by default; Hide
- *    collapses it), the field with the index, and the sheet column docked right at the 3D panel's
+ *  - From 1280 px: the shared PlaceRail ("In This Section") docked at x = 0 (collapsed by default,
+ *    as the 3D "In This Room" rail; the StudyBar button shows it and Hide collapses it again; DR-021
+ *    Addendum B), the field with the index, and the sheet column docked right at the 3D panel's
  *    x, width and top (`SHEET_DOCK_CLASS`), each scrolling on its own below the chrome.
  *  - 1024 to 1279 px: the same, with the rail as a non-modal drawer over the field, opened from the
  *    StudyBar button "In This Section" (as "In This Room" in 3D).
@@ -13,7 +14,7 @@
  *    scene there); the index moves into the StudyBar's Contents sheet, the rail stays a drawer.
  *
  * The index is a list, never a spatial map: the study's traditions with their numbered sections.
- * While a concept is open it recedes (only the concept's own tradition keeps its sections), so
+ * While a concept is open it recedes (the traditions, and only the concept's own section under its tradition), so
  * the sheet is the single focus (cognitive-load rule). Rail and index moves are logged with their
  * navigation source ("rail", "index") on the next page's entry.
  */
@@ -42,8 +43,10 @@ const RailContext = createContext<PlaceRailState | null>(null);
 
 /** Holds the 2D rail's open state for the StudyBar button and the spread (siblings in the frame). */
 export function Rail2dProvider({ children }: { children: ReactNode }) {
-  // Open by default from 1280 px in 2D (DR-021); the 3D rail is collapsed by default (lead decision).
-  const state = usePlaceRail(RAIL_ID, true);
+  // Collapsed by default in both conditions (DR-021 Addendum B): the 3D rail is collapsed by default
+  // (lead decision), so the 2D rail is too, and a concept opened from the default state of either
+  // condition has the same competing elements beside it (P33).
+  const state = usePlaceRail(RAIL_ID, false);
   return <RailContext.Provider value={state}>{children}</RailContext.Provider>;
 }
 
@@ -125,7 +128,9 @@ export function Learning2dSpread({ index, prompts, children, railOverride, field
         className={cn("hidden bg-field lg:block lg:min-w-0 lg:flex-1 lg:overflow-y-auto lg:overscroll-contain", rail?.wideOpen && "min-[80rem]:pl-[min(18rem,85vw)]")}
       >
         {prompts ? <div className="px-6 pt-6">{prompts}</div> : null}
-        {fieldOverride ?? <StudyIndex traditions={index2d(place, index)} pathname={pathname} browse />}
+        {/* While a concept is open the browse pages recede with the sections (index2d): the field then
+            lists only where the participant is, so the open sheet is the one focus (P33). */}
+        {fieldOverride ?? <StudyIndex traditions={index2d(place, index)} pathname={pathname} browse={place.conceptSlug === null} />}
       </div>
 
       {/* The shared PlaceRail, last in the DOM as in the museum (fixed at the left edge). */}
