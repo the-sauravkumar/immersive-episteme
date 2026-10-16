@@ -1,0 +1,7 @@
+# gitleaks findings reviewed and accepted (DR-066). Both are the same made-up BETTER_AUTH_SECRET
+# in unit-test fixtures (production-shaped env objects with example.org URLs); it matches no
+# real environment file. Format: commit:file:rule:line for history, file:rule:line for the tree.
+da45e019c19a0265bcaf1c785887a2d93e10a6b7:tests/unit/deploy-neon.test.ts:generic-api-key:26
+950ba21ff611bf934d02147408f19f8a0fd2b47e:tests/unit/deploy-source-changes.test.ts:generic-api-key:20
+tests/unit/deploy-source-changes.test.ts:generic-api-key:20
+tests/unit/deploy-neon.test.ts:generic-api-key:27

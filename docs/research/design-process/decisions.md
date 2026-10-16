@@ -2983,3 +2983,43 @@ novice met, and none touches the sheet.
   sign wider than the screen (its left and right edges are cut off). Recorded for the 3D finish
   pass; the 2D pages and the Plan list the same rooms.
 - **Equivalence check:** 1-7 unchanged; no code, content or telemetry changed.
+
+## DR-066: Publishing to a Public GitHub Repository: One File Removed From History, Author Email Mapped to the GitHub Noreply Address, a Clean Secret Scan (Adopted on the project lead's instruction; publish phase)
+
+- **Context:** the lead's words: "our job is till creating a Git repo, pushing this code there",
+  "repo will be public and nothing will be held back" and "things are pushed on git repo you
+  create". The pre-push scan had found two things in history that a public repository must not
+  carry: the local test admin password in `_audit_shots.mjs` (added in `c43554a`, deleted in
+  `78c59c2`), and a personal email address as author and committer of every commit (the standing
+  rule allows only the institutional contact).
+- **Backup first:** `git bundle create D:\Work\IIT-KGP\Paper_1-artifacts\pre-rewrite.bundle --all`;
+  `git bundle verify` reports a complete history (43 commits, `c8bcb12` at the tip). The original
+  history stays recoverable from that file.
+- **Rewrite, in a fresh clone** (`git clone --no-local`), with git-filter-repo a40bce548d2c:
+  - `--invert-paths --path _audit_shots.mjs`: the file is gone from every commit;
+  - `--mailmap`: author and committer email of all 43 commits mapped to
+    `123621147+the-sauravkumar@users.noreply.github.com` (the id from `gh api user`); names kept.
+    No git config identity was changed.
+  - The tip tree is byte-identical to the original tip (`c973d0f`, same tree id), so no code,
+    content or test changed. Every commit id changed; `commit-map.txt` beside this file maps the
+    ids cited in earlier records to the published ones.
+- **Secret scan of the rewritten clone:**
+  - gitleaks 8.30.1, the official Windows x64 release, SHA-256 checked against the release's
+    checksums file (`d29144de...afc4e`, OK), kept in `C:\Tools\gitleaks\8.30.1`.
+    `gitleaks git --log-opts=--all` and `gitleaks dir` each reported two findings, both the
+    same made-up `BETTER_AUTH_SECRET` in the unit-test fixtures `tests/unit/deploy-neon.test.ts`
+    and `tests/unit/deploy-source-changes.test.ts` (example.org URLs; it matches no real
+    environment file). They are listed in `.gitleaksignore` with this reason; with it, both scans
+    report no leaks.
+  - All 3038 objects searched for the old test admin password and for the personal mail domain:
+    no match.
+  - Left in, by the lead's "nothing will be held back": the IIT AWS account id in the runbook
+    (an identifier, not a credential) and the organisational contact addresses of the image
+    providers in the permission letters.
+- **Repository:** public `the-sauravkumar/immersive-episteme`, `main` pushed from the rewritten
+  clone, with a description and topics. No collaborator was added (Ankit's GitHub username is not
+  known) and no Vercel project was connected. The local working repository was reset to the
+  rewritten `main` only after `git diff` against the old tip showed no difference, and now has
+  the GitHub repository as `origin`.
+- **Equivalence check:** 1-7 unchanged; the published tree equals the verified build's tree, and
+  only the two files above (`.gitleaksignore`, `commit-map.txt`) and this record were added.
