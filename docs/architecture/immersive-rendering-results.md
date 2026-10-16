@@ -350,3 +350,63 @@ floor contact (3 rooms) and the door frame (8 rooms), and C4 counted 16 programs
 first tour and 17 after. Iris Xe: C2c failed on floor contact (8 rooms), and C3/C11 on the
 geometry count after the tours. The causes and fixes are in DR-062. The numbers are in
 `analysis/out/museum/rendering-high.json` and `rendering-low.json`.
+
+## Low-Spec Frame Stalls: Diagnosis (DR-073)
+
+The C3 frame stalls on the low-spec project (DR-062, "Low-spec frame stalls") were diagnosed with
+five single tours, the same route as C3 (`__museumProbe.tour(2.5, π/2)`). Each ran on a
+production build of `065e05a` on :3300, one browser at a time, nothing else measuring. The
+diagnostic script samples the page's own rAF counter every 2 s and asks the page a question at
+each sample, to see whether the main thread answers. Every 16 s it records the browser processes'
+working sets and the Windows `GPU Process Memory` counters. At each stall it records the GPU
+engine counters. The renderer string was read before each tour. The script and the JSON results
+are outside the repository (`Paper_1-artifacts\scratchpad-archive\overnight2\diag`).
+
+| Run | Browser build, GPU | CPU throttle | Tour (s) | Rooms | Stalls (s) | Longest frame gap |
+|---|---|---|---|---|---|---|
+| A | headless shell, Iris Xe | 4 | 1,011 | 24 | 5 (92, 62, 58, 45, 47) | 92.2 s |
+| B | headless shell, Iris Xe | 1 | 1,008 | 24 | 8 (72, 45, 48, 40, 9, 13, 53, 20) | 72.4 s |
+| C | full Chromium, GTX 1650 | 4 | 708 | 24 | 0 | 222 ms |
+| D | full Chromium (a copy of the same build, no GPU preference, so Windows gives it the Iris Xe) | 4 | 708 | 24 | 0 | 250 ms |
+| E | headless shell, Iris Xe, with GPU memory counters | 4 | 1,004 | 24 | 3 (109, 89, 98) | 108.9 s |
+
+The renderer strings were `ANGLE (Intel, Intel(R) Iris(R) Xe Graphics (0x00009A49) Direct3D11 ...)` for A, B, D and E, and
+`ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F9D) Direct3D11 ...)` for C. A tour without
+stalls takes 708 s. With stalls it takes longer, because the tour waits out each gap (DR-062).
+
+**What is true during a stall** (A, B, E):
+- **The page is not the cause:**
+  - the page stays visible and focused;
+  - it answers within 5 to 42 ms throughout;
+  - its timers keep running;
+  - no long task is recorded during a gap;
+  - there is no console message and no context loss.
+  Only animation frames stop.
+- **The GPU is saturated:** the Iris Xe's 3D engine for the headless shell's GPU process reads 88% to 120% at the start of every stall.
+- **The GPU process barely runs:** its CPU time grows by less than 2 s per stall, so it is waiting on the GPU.
+
+**The trigger is the headless shell's GPU memory** (E, the `Shared Usage` counter of its GPU
+process; A and B show the same pattern in the process working set):
+- While frames are produced, shared GPU memory grows steadily, about 15 to 18 MB/s: 620 MB at
+  the start, 1.3 GB at 57 s, 2.3 GB at 111 s and 3.9 GB at 218 s.
+- Each stall begins when it reaches about 4.4 GB: 4,407, 4,390 and 4,410 MB at the three stalls.
+- After each stall it is back at 2.5 to 3.0 GB, and the climb starts again.
+- The page's own textures and render targets are 77 MB (the table above). So the growth is not
+  the scene's data; it is held by the browser's GPU process.
+
+**Full Chromium does not grow or stall.**
+- C, on the GTX 1650: the GPU process working set stays at 270 to 290 MB, shared usage at 63 to
+  65 MB and dedicated usage at 169 to 217 MB, for the whole tour.
+- D, on the same Iris Xe with the same page, throttle and route: no stall, longest gap 250 ms,
+  about 73 frames per second.
+- The CPU throttle is not the cause either: B, with no throttle, stalls like A.
+
+**Conclusion.**
+- **What it is:** the low-spec stall is a property of the measurement browser (the Playwright headless shell build on the Iris Xe) on this machine, not of the museum. That build's GPU process accumulates shared GPU memory at about 16 MB/s until about 4.4 GB, and the integrated GPU then spends 40 to 110 s with its 3D engine saturated before memory falls and frames resume.
+- **Which part of the browser:** not established. The measurements narrow it to the headless shell's frame production path (the headless shell has no display compositor). Neither the page's JavaScript nor its GPU resources are responsible.
+- **What a participant gets:** a participant's browser is a full Chromium-family build, as in D, which did not stall.
+
+**Not changed:** no rendering parameter and no test project were changed.
+- **The option:** the low-spec project could run a copy of the full Chromium build that Windows gives the Iris Xe (as D did), instead of the headless shell, so that its frame gaps measure the page.
+- **What it needs first:** a decision (DR-073) and a re-run of the low-tier set.
+- **Until then:** low-tier C3 and C4 frame-gap numbers measure the headless shell, not the museum. The p50 and p95 values between stalls (16.7 / 16.8 ms) are unaffected.

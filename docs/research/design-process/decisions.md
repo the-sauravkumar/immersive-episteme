@@ -3238,3 +3238,37 @@ novice met, and none touches the sheet.
 - **Equivalence check:** (1) content, (2) exposure, (3) citations, (4) ease once a concept is
   open, (5) navigation, (6) salience, (7) telemetry: all unchanged; only the measurement file
   changes. The parity run itself is the check of 1 to 6 at every viewport and theme.
+
+## DR-073: The Low-Spec Frame Stalls Come From the Headless Shell's GPU Memory, Not the Museum; the Test Harness Is Not Changed Yet (Adopted under the lead's delegation; overnight diagnosis)
+
+- **Context:**
+  - On the `low-spec` project (Playwright's headless shell on the Iris Xe), the page received no animation frame for 40 to 120 s, two to five times per C3 tour.
+  - The pre-change build showed the same (DR-062), and the GTX 1650 never did.
+  - The cause was deferred to this phase.
+- **Method:** five single tours on the C3 route, one at a time, on a production build of `065e05a`.
+  The renderer string was read before each tour. Results and method are in
+  `docs/architecture/immersive-rendering-results.md`, "Low-Spec Frame Stalls: Diagnosis".
+- **Findings:**
+  1. During a stall the page stays visible and focused, answers within 42 ms and keeps its timers
+     running, and no long task is recorded. Only animation frames stop.
+  2. The headless shell's GPU process holds shared GPU memory that grows by about 16 MB/s while
+     frames are produced. Each stall begins when it reaches about 4.4 GB (4,407, 4,390 and
+     4,410 MB). During the stall the Iris Xe's 3D engine is saturated (88% to 120%) and the GPU
+     process barely runs. Afterwards memory is at 2.5 to 3.0 GB, and the climb starts again.
+  3. The museum's own textures and render targets are 77 MB.
+  4. The full Chromium build on the same Iris Xe, with the same page, throttle 4 and route, did not
+     stall: 24 rooms, longest frame gap 250 ms. It is a copy of the installed build with no Windows
+     GPU preference, which Windows gives the Iris Xe.
+  5. With no CPU throttle, the headless shell still stalls, so the CPU throttle is not the cause.
+  6. On the GTX 1650, the full build's GPU memory stays flat (shared 63 to 65 MB, dedicated 169 to 217 MB).
+- **Decision:**
+  - The stall is recorded as an artefact of the measurement browser on this machine, not a property of the museum. The exact component inside the headless shell is not established.
+  - No rendering parameter and no test project was changed.
+  - Low-tier frame-gap figures (C3 stalls, C4 frames over 50 ms) measured on the headless shell describe that browser. They are not evidence about smoothness on integrated graphics.
+  - The p50 and p95 values between stalls (16.7 / 16.8 ms) stand.
+- **Recommended route, for the lead (not applied):**
+  - **Change:** move the `low-spec` project from the headless shell to a separate copy of the full Chromium build that Windows maps to the Iris Xe (a `GpuPreference=1;` entry for that copy, or no entry, as here), keeping CPU x4 and 1366 x 768.
+  - **Then:** re-run the low-tier set and C3 as the run of record.
+  - **DR-056:** its rule ("low-spec on the Iris Xe") is kept; only the browser build changes.
+- **Equivalence check:** (1) to (7) unchanged. This is a diagnosis and a documentation change only;
+  no code, content, exposure or telemetry changed.
