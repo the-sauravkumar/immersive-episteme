@@ -3,7 +3,7 @@
  * catalogue -> tradition -> concept -> related concept, citations disclose inline, and the
  * telemetry batches reach POST /api/telemetry/batch and are acknowledged.
  */
-import { expect, test, type Request } from "@playwright/test";
+import { expect, test, type Request } from "./fixtures";
 
 // The dev server compiles each route on first visit.
 test.setTimeout(180_000);

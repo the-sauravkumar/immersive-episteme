@@ -12,7 +12,7 @@
 import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 
-import { expect, test, type Page } from "@playwright/test";
+import { expect, newContext, test, type Page } from "./fixtures";
 import { config as loadEnv } from "dotenv";
 import { Pool } from "pg";
 
@@ -158,7 +158,7 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   const [s1, s2, s3] = ids.titles as [string, string, string];
 
   // --- Participant -------------------------------------------------------------------------
-  const participant = await browser.newContext();
+  const participant = await newContext(browser);
   const token = await signParticipantSession({ participantId: ids.participant, sessionId: ids.session, condition: "2d" }, process.env.BETTER_AUTH_SECRET!);
   // The server reads `ie_study_session` in development and `__Host-ie_study_session` in a
   // production build (src/server/auth/cookie-names.ts); set both so the spec runs against either.
@@ -231,7 +231,7 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   await participant.close();
 
   // --- Researcher --------------------------------------------------------------------------
-  const staff = await browser.newContext();
+  const staff = await newContext(browser);
   const r = await staff.newPage();
   await r.goto("/sign-in");
   await r.getByLabel("Email").fill(RESEARCHER);

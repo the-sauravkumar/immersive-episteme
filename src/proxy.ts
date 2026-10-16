@@ -13,13 +13,26 @@
  * configured (src/lib/client-ip.ts): otherwise a client could choose its own sign-in
  * rate-limit bucket by sending a fresh `X-Forwarded-For` on every attempt. With the header
  * gone, Next.js fills `x-forwarded-for` from the socket address.
+ *
+ * INVITE GATE (deployment source change S11; docs/deploy/RUNBOOK.md "Invite-only access"). The site
+ * is always invite-only; there is no open mode. Every page outside the exempt list
+ * (src/lib/access/invite-paths.ts: /invite, /sign-in, /sign-out, /forbidden, /console, /api, static
+ * assets) needs either an invite cookie whose HMAC signature verifies here (no database round
+ * trip) or a staff session cookie (presence only; staff areas redirect to /sign-in as before, so
+ * staff never need a code). Without one, GET/HEAD redirect to /invite?next=<path> and other
+ * methods get 403. `?invite=<code>` on any gated URL is rewritten to the redeem route
+ * (/invite/redeem), which sets the cookie and redirects to the same URL without the code. The
+ * server-side half (src/server/access/site-access.ts) re-checks with the database where sessions
+ * are created. The gate runs before consent and allocation and is identical in both conditions.
  */
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { INVITE_PARAM, INVITE_REDEEM_PATH, invitePath, isInviteExemptPath, withoutInviteParam } from "@/lib/access/invite-paths";
 import { clientIpPolicy, stripClientIpHeaders } from "@/lib/client-ip";
 import { contentSecurityPolicy, isDevBuild } from "@/lib/security/csp";
-import { AUTH_COOKIE_PREFIX, DEMO_COOKIE, PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
+import { verifyInviteAccess } from "@/server/access/invite-cookie";
+import { AUTH_COOKIE_PREFIX, DEMO_COOKIE, INVITE_COOKIE, PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
 
 const STAFF_PREFIXES = ["/cms", "/research", "/admin"];
 const NO_FRAME_PAGES = ["/sign-in", "/sign-out", "/forbidden"];
@@ -47,11 +60,22 @@ function authApi(request: NextRequest): NextResponse {
   return NextResponse.next({ request: { headers } });
 }
 
-export function proxy(request: NextRequest) {
+/** A signed, unexpired invite cookie (signature only: revocation is checked server-side). */
+async function hasInviteCookie(request: NextRequest): Promise<boolean> {
+  const token = request.cookies.get(INVITE_COOKIE)?.value;
+  if (!token) return false;
+  // Read directly (not serverEnv()): the proxy must not fail on unrelated variables. No secret
+  // means no valid cookie (fail closed).
+  const verified = await verifyInviteAccess(token, process.env.BETTER_AUTH_SECRET ?? "");
+  return verified.ok;
+}
+
+const NO_STORE = { "Cache-Control": "no-store" };
+
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   const { pathname, search } = request.nextUrl;
 
   if (startsWithSegment(pathname, "/api/auth")) return authApi(request);
-  if (pathname === "/study" && request.method === "POST") return authApi(request);
 
   if (NO_FRAME_PAGES.includes(pathname)) return noFraming(NextResponse.next());
 
@@ -65,6 +89,29 @@ export function proxy(request: NextRequest) {
     }
     return NextResponse.next();
   }
+
+  if (isInviteExemptPath(pathname)) return NextResponse.next();
+
+  // ---- Invite gate (S11) -----------------------------------------------------------------------
+  const invited = hasStaffCookie || (await hasInviteCookie(request));
+  const readOnly = request.method === "GET" || request.method === "HEAD";
+  const code = request.nextUrl.searchParams.get(INVITE_PARAM);
+  if (code !== null && readOnly) {
+    const target = withoutInviteParam(request.nextUrl);
+    // Already admitted: drop the code from the address without counting another use.
+    if (invited) return NextResponse.redirect(new URL(target, request.url));
+    const redeem = new URL(INVITE_REDEEM_PATH, request.url);
+    redeem.searchParams.set("code", code);
+    redeem.searchParams.set("next", target);
+    return NextResponse.rewrite(redeem);
+  }
+  if (!invited) {
+    if (readOnly) return NextResponse.redirect(new URL(invitePath(`${pathname}${search}`), request.url));
+    return new NextResponse("An invite is required.", { status: 403, headers: { ...NO_STORE, "Content-Type": "text/plain; charset=utf-8" } });
+  }
+
+  // The study entry form (POST /study, Server Action enterStudy): see authApi.
+  if (pathname === "/study" && request.method === "POST") return authApi(request);
 
   if (startsWithSegment(pathname, "/learn")) {
     const any =
@@ -81,17 +128,11 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
+/*
+ * Every path except /api (other than /api/auth), Next's static output, the image optimiser, the
+ * museum assets and the root files: the invite gate covers every page and route handler outside
+ * those (S11). Matcher values must be literals (statically analysed at build time).
+ */
 export const config = {
-  matcher: [
-    "/api/auth/:path*",
-    "/cms/:path*",
-    "/research/:path*",
-    "/admin/:path*",
-    "/learn/:path*",
-    "/study",
-    "/study/:path+",
-    "/sign-in",
-    "/sign-out",
-    "/forbidden",
-  ],
+  matcher: ["/api/auth/:path*", "/((?!api/|_next/static/|_next/image|museum/|favicon.ico|robots.txt).*)"],
 };

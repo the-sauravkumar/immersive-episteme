@@ -33,7 +33,7 @@ import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Browser, type BrowserContext, type Page, type Request, type Response } from "@playwright/test";
+import { expect, newContext, test, type Browser, type BrowserContext, type Page, type Request, type Response } from "./fixtures";
 
 import { CONCEPT_TYPES } from "@/lib/validation/enums";
 
@@ -105,7 +105,7 @@ test.afterAll(async () => {
 });
 
 async function themed(browser: Browser, viewport: { width: number; height: number }, theme: { dark: boolean; hc: boolean }, extra: Parameters<Browser["newContext"]>[0] = {}): Promise<BrowserContext> {
-  const ctx = await browser.newContext({ viewport, ...extra });
+  const ctx = await newContext(browser, { viewport, ...extra });
   await ctx.addInitScript((t) => {
     try {
       localStorage.setItem("ie-display", JSON.stringify({ contrast: t.hc, reduceMotion: false }));
@@ -347,7 +347,7 @@ test("no horizontal scroll at 390 px and at 1280 px with 200% zoom (640 CSS px)"
     ["390", PHONE, 1],
     ["1280@200%", ZOOM_200, 2],
   ] as const) {
-    const anon = await browser.newContext({ viewport, deviceScaleFactor: scale });
+    const anon = await newContext(browser, { viewport, deviceScaleFactor: scale });
     const p = await anon.newPage();
     for (const path of [...PUBLIC, "/study"]) {
       await settle(p, path);
@@ -362,7 +362,7 @@ test("no horizontal scroll at 390 px and at 1280 px with 200% zoom (640 CSS px)"
       if (o > 0) found.push(`${label} ${path}: ${o} px`);
     }
     await anon.close();
-    const staff = await browser.newContext({ viewport, deviceScaleFactor: scale });
+    const staff = await newContext(browser, { viewport, deviceScaleFactor: scale });
     const s = await staff.newPage();
     await signIn(s);
     for (const path of await consolePaths(s)) {
@@ -415,7 +415,7 @@ async function smallTargets(page: Page): Promise<string[]> {
 test("every interactive element is at least 44 x 44 px (study, public, console, CMS, admin)", async ({ browser }) => {
   const found: string[] = [];
   for (const viewport of [DESKTOP, PHONE]) {
-    const anon = await browser.newContext({ viewport });
+    const anon = await newContext(browser, { viewport });
     const p = await anon.newPage();
     for (const path of [...PUBLIC, "/study"]) {
       await settle(p, path);
@@ -427,7 +427,7 @@ test("every interactive element is at least 44 x 44 px (study, public, console, 
       for (const t of await smallTargets(p)) found.push(`${viewport.width} ${path}: ${t}`);
     }
     await anon.close();
-    const staff = await browser.newContext({ viewport });
+    const staff = await newContext(browser, { viewport });
     const s = await staff.newPage();
     await signIn(s);
     for (const path of await consolePaths(s)) {
@@ -462,7 +462,7 @@ async function clipped(page: Page, root: string): Promise<string[]> {
 }
 
 test("text spacing override causes no clipping on the concept page in both conditions (R-A8)", async ({ browser }) => {
-  const ctx = await browser.newContext({ viewport: DESKTOP });
+  const ctx = await newContext(browser, { viewport: DESKTOP });
   const p = await ctx.newPage();
   await startDemo(p);
   const concept = (await studyPaths(p))[2]!;
@@ -543,7 +543,7 @@ async function openInMuseum(page: Page, key: string): Promise<boolean> {
 
 test("motion: zero transitions on study routes (P12); reduced motion leaves public pages still and Figure 1 drawn", async ({ browser }) => {
   const found: string[] = [];
-  const ctx = await browser.newContext({ viewport: DESKTOP });
+  const ctx = await newContext(browser, { viewport: DESKTOP });
   const p = await ctx.newPage();
   await startDemo(p);
   const motion = () =>
@@ -564,7 +564,7 @@ test("motion: zero transitions on study routes (P12); reduced motion leaves publ
   }
   await ctx.close();
 
-  const rm = await browser.newContext({ viewport: DESKTOP, reducedMotion: "reduce" });
+  const rm = await newContext(browser, { viewport: DESKTOP, reducedMotion: "reduce" });
   const q = await rm.newPage();
   for (const path of PUBLIC) {
     await settle(q, path);
@@ -582,7 +582,7 @@ test("motion: zero transitions on study routes (P12); reduced motion leaves publ
 
 test("fonts: at most 2 preloaded files and 176,000 bytes preloaded, at most 230,000 bytes of fonts, no third-party host", async ({ browser }) => {
   const found: string[] = [];
-  const ctx = await browser.newContext({ viewport: DESKTOP });
+  const ctx = await newContext(browser, { viewport: DESKTOP });
   const p = await ctx.newPage();
   await startDemo(p);
   const concept = (await studyPaths(p))[2]!;
@@ -630,7 +630,7 @@ test("fonts: at most 2 preloaded files and 176,000 bytes preloaded, at most 230,
 
 test("images and layout shift on study routes: figure and page budgets, lightbox media only on open, CLS 0", async ({ browser }) => {
   const found: string[] = [];
-  const ctx = await browser.newContext({ viewport: DESKTOP });
+  const ctx = await newContext(browser, { viewport: DESKTOP });
   const p = await ctx.newPage();
   await startDemo(p);
   const paths = await studyPaths(p);
@@ -687,7 +687,7 @@ test("images and layout shift on study routes: figure and page budgets, lightbox
 
 test("performance at a 4x CPU throttle: LCP <= 2.5 s; opening a citation record and the lightbox <= 200 ms in both conditions", async ({ browser }) => {
   const found: string[] = [];
-  const ctx = await browser.newContext({ viewport: DESKTOP });
+  const ctx = await newContext(browser, { viewport: DESKTOP });
   const p = await ctx.newPage();
   await startDemo(p);
   const concept = (await studyPaths(p))[2]!;
@@ -893,7 +893,7 @@ test("focus: a visible indicator on every Tab stop, never hidden under sticky ch
 
 test("keyboard: LayerTabs arrows, record and lightbox Escape restore focus, skip link in both conditions", async ({ browser }) => {
   const found: string[] = [];
-  const ctx = await browser.newContext({ viewport: DESKTOP });
+  const ctx = await newContext(browser, { viewport: DESKTOP });
   const p = await ctx.newPage();
   await startDemo(p);
   const paths = await studyPaths(p);

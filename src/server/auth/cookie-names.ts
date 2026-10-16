@@ -20,6 +20,9 @@ export const PARTICIPANT_COOKIE = hostOnly("ie_study_session");
 /** Signed public-demo cookie (non-experimental exploration started from /explore). */
 export const DEMO_COOKIE = hostOnly("ie_demo");
 
+/** Signed invite cookie: this browser redeemed a valid invite code (site gate, src/server/access). */
+export const INVITE_COOKIE = hostOnly("ie_invite");
+
 export const SECURE_COOKIES = isProduction;
 
 /**

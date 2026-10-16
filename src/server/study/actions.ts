@@ -12,6 +12,7 @@ import { z } from "zod";
 import { clientIpPolicy } from "@/lib/client-ip";
 import { serverEnv } from "@/lib/env";
 import { LEARNING_ROUTE } from "@/lib/permissions/learning";
+import { requireSiteAccess } from "@/server/access/site-access";
 import { PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
 import { resolveParticipantSession } from "@/server/auth/learning-decision";
 import { requireParticipantSession } from "@/server/auth/learning-access";
@@ -103,6 +104,8 @@ export async function enterStudy(_prev: FormState, formData: FormData): Promise<
   const code = String(formData.get("studyCode") ?? "");
   const stratum = formData.get("stratum");
   if (!code.trim()) return { fieldErrors: { studyCode: "Enter the study code." } };
+  // Invite gate, server side (S11): enrolment is the first step that writes study data.
+  await requireSiteAccess("/study");
   const pool = getPool();
   let target = "/study/consent";
   try {

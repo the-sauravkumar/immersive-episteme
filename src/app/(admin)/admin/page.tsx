@@ -34,6 +34,7 @@ export default function Page() {
 /** What each admin section holds (the sidebar shows only the names). */
 const SECTION_NOTES: Record<string, string> = {
   "/admin/users": "Staff accounts: create, lock and unlock them, and add or remove roles.",
+  "/admin/access": "Invite codes for the invite-only site: create them, see their use counts and revoke them.",
   "/admin/roles": "The role and permission matrix, the policy behind it and who holds each role.",
   "/admin/settings": "The effective platform configuration, fixed by the deployment.",
   "/admin/audit": "The append-only record of privileged actions, with filters.",

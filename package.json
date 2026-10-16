@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=24 <25",
+    "node": "24.x",
     "npm": ">=11"
   },
   "scripts": {
@@ -22,11 +22,13 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/db/migrate.ts",
     "db:seed": "tsx scripts/db/seed.ts",
+    "db:seed:reference": "tsx scripts/db/seed-reference.ts",
     "db:reset": "tsx scripts/db/reset.ts",
     "db:studio": "drizzle-kit studio",
     "create-admin": "tsx scripts/create-admin.ts",
     "check": "npm run typecheck && npm run lint && npm run test",
     "content:import": "tsx scripts/content/import.ts",
+    "content:bootstrap:remote": "tsx scripts/content/bootstrap-remote.ts",
     "spatial:compile": "tsx scripts/spatial/publish-manifest.ts",
     "dev:bootstrap": "npm run db:up && tsx scripts/dev/bootstrap.ts"
   },

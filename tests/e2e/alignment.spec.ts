@@ -15,7 +15,7 @@
 import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 
-import { expect, test, type Browser, type Page } from "@playwright/test";
+import { expect, newContext, test, type Browser, type Page } from "./fixtures";
 
 import { E2E_STUDY_CODE, closeDb, ensureE2eStudy, retireE2eStaff } from "./study-fixtures";
 
@@ -115,7 +115,7 @@ async function expectNoHorizontalOverflow(page: Page, path: string) {
 }
 
 async function context(browser: Browser, viewport: { width: number; height: number }) {
-  const ctx = await browser.newContext({ viewport });
+  const ctx = await newContext(browser, { viewport });
   return { ctx, page: await ctx.newPage() };
 }
 
