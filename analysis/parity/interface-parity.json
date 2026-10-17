@@ -1,8 +1,8 @@
 {
- "runId": "parity-2026-10-16T20:12:47.317Z",
- "commit": "f819fc36ee7c",
- "generatedAt": "2026-10-16T20:12:47.398Z",
- "environment": "headless Chromium, WebGL renderer ANGLE (NVIDIA, NVIDIA GeForce GTX 1650 (0x00001F9D) Direct3D11 vs_5_0 ps_5_0, D3D11); dev server, demo session; one browser, one worker",
+ "runId": "parity-2026-10-16T22:57:54.781Z",
+ "commit": "3b512cfd21ac",
+ "generatedAt": "2026-10-16T22:57:55.086Z",
+ "environment": "headless Chromium, WebGL renderer ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver); dev server, demo session; one browser, one worker",
  "notes": [
   "Study mode is light only (DR-019): the 60 main runs (5 viewports x 4 themes x 3 traditions) request four themes, but only two take effect (light, and light with high contrast); dark and high-contrast dark runs record the effective theme they measured.",
   "P19, P20 (string table) and P21 are measured once and recorded in the 1280 x 800 light run of each tradition.",
@@ -65,8 +65,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -146,8 +146,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 32c14c7b; edge 690",
-     "value3d": "1 figure(s) 32c14c7b; edge 690",
+     "value2d": "1 figure(s) 795bab73; edge 690",
+     "value3d": "1 figure(s) 795bab73; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -209,8 +209,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/cf427435",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/cf427435",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/09736cfd",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/09736cfd",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -281,8 +281,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -347,8 +347,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -428,8 +428,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 32c14c7b; edge 690",
-     "value3d": "1 figure(s) 32c14c7b; edge 690",
+     "value2d": "1 figure(s) 795bab73; edge 690",
+     "value3d": "1 figure(s) 795bab73; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -491,8 +491,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/cf427435",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/cf427435",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/09736cfd",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/09736cfd",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -563,8 +563,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -629,8 +629,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -710,8 +710,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 32c14c7b; edge 690",
-     "value3d": "1 figure(s) 32c14c7b; edge 690",
+     "value2d": "1 figure(s) 795bab73; edge 690",
+     "value3d": "1 figure(s) 795bab73; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -773,8 +773,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/66d7a8b5",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/66d7a8b5",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/c92956fd",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/c92956fd",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -845,8 +845,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -911,8 +911,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -992,8 +992,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 32c14c7b; edge 690",
-     "value3d": "1 figure(s) 32c14c7b; edge 690",
+     "value2d": "1 figure(s) 795bab73; edge 690",
+     "value3d": "1 figure(s) 795bab73; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -1055,8 +1055,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/66d7a8b5",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/66d7a8b5",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/c92956fd",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/c92956fd",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -1127,8 +1127,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -1193,8 +1193,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -1274,8 +1274,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 0a09e932; edge 734",
-     "value3d": "1 figure(s) 0a09e932; edge 734",
+     "value2d": "1 figure(s) e379eb3a; edge 734",
+     "value3d": "1 figure(s) e379eb3a; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -1337,8 +1337,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -1409,8 +1409,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -1475,8 +1475,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -1556,8 +1556,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 0a09e932; edge 734",
-     "value3d": "1 figure(s) 0a09e932; edge 734",
+     "value2d": "1 figure(s) e379eb3a; edge 734",
+     "value3d": "1 figure(s) e379eb3a; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -1619,8 +1619,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -1691,8 +1691,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -1757,8 +1757,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -1838,8 +1838,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 0a09e932; edge 734",
-     "value3d": "1 figure(s) 0a09e932; edge 734",
+     "value2d": "1 figure(s) e379eb3a; edge 734",
+     "value3d": "1 figure(s) e379eb3a; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -1901,8 +1901,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -1973,8 +1973,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -2039,8 +2039,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -2120,8 +2120,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 0a09e932; edge 734",
-     "value3d": "1 figure(s) 0a09e932; edge 734",
+     "value2d": "1 figure(s) e379eb3a; edge 734",
+     "value3d": "1 figure(s) e379eb3a; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -2183,8 +2183,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -2255,8 +2255,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -2321,8 +2321,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -2402,8 +2402,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 9a027d1d; edge 766",
-     "value3d": "1 figure(s) 9a027d1d; edge 766",
+     "value2d": "1 figure(s) 53724cc5; edge 766",
+     "value3d": "1 figure(s) 53724cc5; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -2465,8 +2465,8 @@
     {
      "id": "P21",
      "label": "Figure counts per section across the study traditions",
-     "value2d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
-     "value3d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
+     "value2d": "balanced: process 2/2/2; science 1/1/1",
+     "value3d": "balanced: process 2/2/2; science 1/1/1",
      "delta": "same bundle",
      "tolerance": "equal per section",
      "passed": true
@@ -2483,8 +2483,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -2564,8 +2564,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -2630,8 +2630,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -2711,8 +2711,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 9a027d1d; edge 766",
-     "value3d": "1 figure(s) 9a027d1d; edge 766",
+     "value2d": "1 figure(s) 53724cc5; edge 766",
+     "value3d": "1 figure(s) 53724cc5; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -2774,8 +2774,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -2855,8 +2855,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -2921,8 +2921,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -3002,8 +3002,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 9a027d1d; edge 766",
-     "value3d": "1 figure(s) 9a027d1d; edge 766",
+     "value2d": "1 figure(s) 53724cc5; edge 766",
+     "value3d": "1 figure(s) 53724cc5; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -3065,8 +3065,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -3146,8 +3146,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -3212,8 +3212,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -3293,8 +3293,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 9a027d1d; edge 766",
-     "value3d": "1 figure(s) 9a027d1d; edge 766",
+     "value2d": "1 figure(s) 53724cc5; edge 766",
+     "value3d": "1 figure(s) 53724cc5; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -3356,8 +3356,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -3437,8 +3437,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -3503,8 +3503,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -3584,8 +3584,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 9a027d1d; edge 766",
-     "value3d": "1 figure(s) 9a027d1d; edge 766",
+     "value2d": "1 figure(s) 53724cc5; edge 766",
+     "value3d": "1 figure(s) 53724cc5; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -3647,8 +3647,8 @@
     {
      "id": "P21",
      "label": "Figure counts per section across the study traditions",
-     "value2d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
-     "value3d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
+     "value2d": "balanced: process 2/2/2; science 1/1/1",
+     "value3d": "balanced: process 2/2/2; science 1/1/1",
      "delta": "same bundle",
      "tolerance": "equal per section",
      "passed": true
@@ -3665,8 +3665,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c | stall d591323d/d55567e4",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c | stall d591323d/d55567e4",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64 | stall d591323d/8936c7df",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64 | stall d591323d/8936c7df",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -3757,8 +3757,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -3823,8 +3823,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -3904,8 +3904,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 9a027d1d; edge 766",
-     "value3d": "1 figure(s) 9a027d1d; edge 766",
+     "value2d": "1 figure(s) 53724cc5; edge 766",
+     "value3d": "1 figure(s) 53724cc5; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -3967,8 +3967,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c | stall d591323d/d55567e4",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c | stall d591323d/d55567e4",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64 | stall d591323d/8936c7df",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64 | stall d591323d/8936c7df",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -4047,8 +4047,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -4113,8 +4113,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -4194,8 +4194,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 9a027d1d; edge 766",
-     "value3d": "1 figure(s) 9a027d1d; edge 766",
+     "value2d": "1 figure(s) 53724cc5; edge 766",
+     "value3d": "1 figure(s) 53724cc5; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -4257,8 +4257,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0 | stall d591323d/441d4471",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0 | stall d591323d/441d4471",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688 | stall d591323d/220993c6",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688 | stall d591323d/220993c6",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -4337,8 +4337,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -4403,8 +4403,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -4484,8 +4484,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 9a027d1d; edge 766",
-     "value3d": "1 figure(s) 9a027d1d; edge 766",
+     "value2d": "1 figure(s) 53724cc5; edge 766",
+     "value3d": "1 figure(s) 53724cc5; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -4547,8 +4547,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0 | stall d591323d/441d4471",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0 | stall d591323d/441d4471",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688 | stall d591323d/220993c6",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688 | stall d591323d/220993c6",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -4627,8 +4627,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -4693,8 +4693,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -4774,8 +4774,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 9a027d1d; edge 766",
-     "value3d": "1 figure(s) 9a027d1d; edge 766",
+     "value2d": "1 figure(s) 53724cc5; edge 766",
+     "value3d": "1 figure(s) 53724cc5; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -4837,8 +4837,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -4918,8 +4918,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -4984,8 +4984,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -5065,8 +5065,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 9a027d1d; edge 766",
-     "value3d": "1 figure(s) 9a027d1d; edge 766",
+     "value2d": "1 figure(s) 53724cc5; edge 766",
+     "value3d": "1 figure(s) 53724cc5; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -5128,8 +5128,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -5209,8 +5209,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -5275,8 +5275,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -5356,8 +5356,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 9a027d1d; edge 766",
-     "value3d": "1 figure(s) 9a027d1d; edge 766",
+     "value2d": "1 figure(s) 53724cc5; edge 766",
+     "value3d": "1 figure(s) 53724cc5; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -5419,8 +5419,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -5500,8 +5500,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -5566,8 +5566,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "5614089e (2 claims, 2 records)",
-     "value3d": "5614089e (2 claims, 2 records)",
+     "value2d": "617c805e (2 claims, 2 records)",
+     "value3d": "617c805e (2 claims, 2 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -5647,8 +5647,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 9a027d1d; edge 766",
-     "value3d": "1 figure(s) 9a027d1d; edge 766",
+     "value2d": "1 figure(s) 53724cc5; edge 766",
+     "value3d": "1 figure(s) 53724cc5; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -5710,8 +5710,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -5791,8 +5791,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "ed242bd8 | Close 110.9x44 c717dbad",
-     "value3d": "ed242bd8 | Close 110.9x44 c717dbad",
+     "value2d": "ed242bd8 | Close 115x44 c717dbad",
+     "value3d": "ed242bd8 | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -5901,8 +5901,8 @@
     {
      "id": "P3",
      "label": "Number of rendered lines per claim",
-     "value2d": "3,4,2",
-     "value3d": "3,4,2",
+     "value2d": "3,4,3",
+     "value3d": "3,4,3",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -5919,8 +5919,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -6000,8 +6000,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 6634e26d; edge 690",
-     "value3d": "1 figure(s) 6634e26d; edge 690",
+     "value2d": "1 figure(s) 50a26e75; edge 690",
+     "value3d": "1 figure(s) 50a26e75; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -6063,8 +6063,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/cf427435",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/cf427435",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/09736cfd",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/09736cfd",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -6135,8 +6135,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -6183,8 +6183,8 @@
     {
      "id": "P3",
      "label": "Number of rendered lines per claim",
-     "value2d": "3,4,2",
-     "value3d": "3,4,2",
+     "value2d": "3,4,3",
+     "value3d": "3,4,3",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -6201,8 +6201,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -6282,8 +6282,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 6634e26d; edge 690",
-     "value3d": "1 figure(s) 6634e26d; edge 690",
+     "value2d": "1 figure(s) 50a26e75; edge 690",
+     "value3d": "1 figure(s) 50a26e75; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -6345,8 +6345,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/cf427435",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/cf427435",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/09736cfd",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/09736cfd",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -6417,8 +6417,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -6465,8 +6465,8 @@
     {
      "id": "P3",
      "label": "Number of rendered lines per claim",
-     "value2d": "3,4,2",
-     "value3d": "3,4,2",
+     "value2d": "3,4,3",
+     "value3d": "3,4,3",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -6483,8 +6483,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -6564,8 +6564,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 6634e26d; edge 690",
-     "value3d": "1 figure(s) 6634e26d; edge 690",
+     "value2d": "1 figure(s) 50a26e75; edge 690",
+     "value3d": "1 figure(s) 50a26e75; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -6627,8 +6627,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/66d7a8b5",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/66d7a8b5",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/c92956fd",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/c92956fd",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -6699,8 +6699,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -6747,8 +6747,8 @@
     {
      "id": "P3",
      "label": "Number of rendered lines per claim",
-     "value2d": "3,4,2",
-     "value3d": "3,4,2",
+     "value2d": "3,4,3",
+     "value3d": "3,4,3",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -6765,8 +6765,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -6846,8 +6846,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 6634e26d; edge 690",
-     "value3d": "1 figure(s) 6634e26d; edge 690",
+     "value2d": "1 figure(s) 50a26e75; edge 690",
+     "value3d": "1 figure(s) 50a26e75; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -6909,8 +6909,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/66d7a8b5",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/66d7a8b5",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/c92956fd",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/c92956fd",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -6981,8 +6981,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -7047,8 +7047,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -7128,8 +7128,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) d641b064; edge 734",
-     "value3d": "1 figure(s) d641b064; edge 734",
+     "value2d": "1 figure(s) 3151499c; edge 734",
+     "value3d": "1 figure(s) 3151499c; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -7191,8 +7191,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -7263,8 +7263,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -7329,8 +7329,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -7410,8 +7410,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) d641b064; edge 734",
-     "value3d": "1 figure(s) d641b064; edge 734",
+     "value2d": "1 figure(s) 3151499c; edge 734",
+     "value3d": "1 figure(s) 3151499c; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -7473,8 +7473,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -7545,8 +7545,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -7611,8 +7611,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -7692,8 +7692,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) d641b064; edge 734",
-     "value3d": "1 figure(s) d641b064; edge 734",
+     "value2d": "1 figure(s) 3151499c; edge 734",
+     "value3d": "1 figure(s) 3151499c; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -7755,8 +7755,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -7827,8 +7827,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -7893,8 +7893,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -7974,8 +7974,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) d641b064; edge 734",
-     "value3d": "1 figure(s) d641b064; edge 734",
+     "value2d": "1 figure(s) 3151499c; edge 734",
+     "value3d": "1 figure(s) 3151499c; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -8037,8 +8037,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -8109,8 +8109,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -8175,8 +8175,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -8256,8 +8256,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ca4e6973; edge 766",
-     "value3d": "1 figure(s) ca4e6973; edge 766",
+     "value2d": "1 figure(s) c55d6b8b; edge 766",
+     "value3d": "1 figure(s) c55d6b8b; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -8319,8 +8319,8 @@
     {
      "id": "P21",
      "label": "Figure counts per section across the study traditions",
-     "value2d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
-     "value3d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
+     "value2d": "balanced: process 2/2/2; science 1/1/1",
+     "value3d": "balanced: process 2/2/2; science 1/1/1",
      "delta": "same bundle",
      "tolerance": "equal per section",
      "passed": true
@@ -8337,8 +8337,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -8418,8 +8418,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -8484,8 +8484,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -8565,8 +8565,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ca4e6973; edge 766",
-     "value3d": "1 figure(s) ca4e6973; edge 766",
+     "value2d": "1 figure(s) c55d6b8b; edge 766",
+     "value3d": "1 figure(s) c55d6b8b; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -8628,8 +8628,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -8709,8 +8709,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -8775,8 +8775,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -8856,8 +8856,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ca4e6973; edge 766",
-     "value3d": "1 figure(s) ca4e6973; edge 766",
+     "value2d": "1 figure(s) c55d6b8b; edge 766",
+     "value3d": "1 figure(s) c55d6b8b; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -8919,8 +8919,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -9000,8 +9000,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -9066,8 +9066,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -9147,8 +9147,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ca4e6973; edge 766",
-     "value3d": "1 figure(s) ca4e6973; edge 766",
+     "value2d": "1 figure(s) c55d6b8b; edge 766",
+     "value3d": "1 figure(s) c55d6b8b; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -9210,8 +9210,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -9291,8 +9291,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -9357,8 +9357,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -9438,8 +9438,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ca4e6973; edge 766",
-     "value3d": "1 figure(s) ca4e6973; edge 766",
+     "value2d": "1 figure(s) c55d6b8b; edge 766",
+     "value3d": "1 figure(s) c55d6b8b; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -9501,8 +9501,8 @@
     {
      "id": "P21",
      "label": "Figure counts per section across the study traditions",
-     "value2d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
-     "value3d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
+     "value2d": "balanced: process 2/2/2; science 1/1/1",
+     "value3d": "balanced: process 2/2/2; science 1/1/1",
      "delta": "same bundle",
      "tolerance": "equal per section",
      "passed": true
@@ -9519,8 +9519,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c | stall d591323d/d55567e4",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c | stall d591323d/d55567e4",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64 | stall d591323d/8936c7df",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64 | stall d591323d/8936c7df",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -9611,8 +9611,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -9677,8 +9677,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -9758,8 +9758,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ca4e6973; edge 766",
-     "value3d": "1 figure(s) ca4e6973; edge 766",
+     "value2d": "1 figure(s) c55d6b8b; edge 766",
+     "value3d": "1 figure(s) c55d6b8b; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -9821,8 +9821,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c | stall d591323d/d55567e4",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c | stall d591323d/d55567e4",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64 | stall d591323d/8936c7df",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64 | stall d591323d/8936c7df",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -9901,8 +9901,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -9967,8 +9967,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -10048,8 +10048,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ca4e6973; edge 766",
-     "value3d": "1 figure(s) ca4e6973; edge 766",
+     "value2d": "1 figure(s) c55d6b8b; edge 766",
+     "value3d": "1 figure(s) c55d6b8b; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -10111,8 +10111,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0 | stall d591323d/441d4471",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0 | stall d591323d/441d4471",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688 | stall d591323d/220993c6",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688 | stall d591323d/220993c6",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -10191,8 +10191,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -10257,8 +10257,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -10338,8 +10338,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ca4e6973; edge 766",
-     "value3d": "1 figure(s) ca4e6973; edge 766",
+     "value2d": "1 figure(s) c55d6b8b; edge 766",
+     "value3d": "1 figure(s) c55d6b8b; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -10401,8 +10401,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0 | stall d591323d/441d4471",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0 | stall d591323d/441d4471",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688 | stall d591323d/220993c6",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688 | stall d591323d/220993c6",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -10481,8 +10481,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -10547,8 +10547,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -10628,8 +10628,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ca4e6973; edge 766",
-     "value3d": "1 figure(s) ca4e6973; edge 766",
+     "value2d": "1 figure(s) c55d6b8b; edge 766",
+     "value3d": "1 figure(s) c55d6b8b; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -10691,8 +10691,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -10772,8 +10772,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -10838,8 +10838,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -10919,8 +10919,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ca4e6973; edge 766",
-     "value3d": "1 figure(s) ca4e6973; edge 766",
+     "value2d": "1 figure(s) c55d6b8b; edge 766",
+     "value3d": "1 figure(s) c55d6b8b; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -10982,8 +10982,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -11063,8 +11063,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -11129,8 +11129,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -11210,8 +11210,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ca4e6973; edge 766",
-     "value3d": "1 figure(s) ca4e6973; edge 766",
+     "value2d": "1 figure(s) c55d6b8b; edge 766",
+     "value3d": "1 figure(s) c55d6b8b; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -11273,8 +11273,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -11354,8 +11354,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -11420,8 +11420,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "495b2793 (3 claims, 3 records)",
-     "value3d": "495b2793 (3 claims, 3 records)",
+     "value2d": "7b088c53 (3 claims, 3 records)",
+     "value3d": "7b088c53 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -11501,8 +11501,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) ca4e6973; edge 766",
-     "value3d": "1 figure(s) ca4e6973; edge 766",
+     "value2d": "1 figure(s) c55d6b8b; edge 766",
+     "value3d": "1 figure(s) c55d6b8b; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -11564,8 +11564,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -11645,8 +11645,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "30d4348e | Close 110.9x44 c717dbad",
-     "value3d": "30d4348e | Close 110.9x44 c717dbad",
+     "value2d": "30d4348e | Close 115x44 c717dbad",
+     "value3d": "30d4348e | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -11773,8 +11773,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -11854,8 +11854,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 1cfe7722; edge 690",
-     "value3d": "1 figure(s) 1cfe7722; edge 690",
+     "value2d": "1 figure(s) 124afb62; edge 690",
+     "value3d": "1 figure(s) 124afb62; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -11917,8 +11917,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/cf427435",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/cf427435",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/09736cfd",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/09736cfd",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -11989,8 +11989,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -11998,8 +11998,8 @@
     {
      "id": "P33",
      "label": "Elements competing for attention with the open concept",
-     "value2d": "default 13 (sheet 7, chrome 6, navigation 0); rail shown 18 (sheet 1, chrome 6, navigation 11)",
-     "value3d": "default 14 (sheet 7, chrome 7, navigation 0); rail shown 19 (sheet 1, chrome 7, navigation 11)",
+     "value2d": "default 13 (sheet 7, chrome 6, navigation 0); rail shown 17 (sheet 1, chrome 6, navigation 10)",
+     "value3d": "default 14 (sheet 7, chrome 7, navigation 0); rail shown 18 (sheet 1, chrome 7, navigation 10)",
      "delta": 1,
      "tolerance": "both states: sheet equal; each total <= 30; gap <= 6",
      "passed": true
@@ -12055,8 +12055,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -12136,8 +12136,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 1cfe7722; edge 690",
-     "value3d": "1 figure(s) 1cfe7722; edge 690",
+     "value2d": "1 figure(s) 124afb62; edge 690",
+     "value3d": "1 figure(s) 124afb62; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -12199,8 +12199,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/cf427435",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/cf427435",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/09736cfd",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/09736cfd",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -12271,8 +12271,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -12280,8 +12280,8 @@
     {
      "id": "P33",
      "label": "Elements competing for attention with the open concept",
-     "value2d": "default 13 (sheet 7, chrome 6, navigation 0); rail shown 18 (sheet 1, chrome 6, navigation 11)",
-     "value3d": "default 14 (sheet 7, chrome 7, navigation 0); rail shown 19 (sheet 1, chrome 7, navigation 11)",
+     "value2d": "default 13 (sheet 7, chrome 6, navigation 0); rail shown 17 (sheet 1, chrome 6, navigation 10)",
+     "value3d": "default 14 (sheet 7, chrome 7, navigation 0); rail shown 18 (sheet 1, chrome 7, navigation 10)",
      "delta": 1,
      "tolerance": "both states: sheet equal; each total <= 30; gap <= 6",
      "passed": true
@@ -12337,8 +12337,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -12418,8 +12418,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 1cfe7722; edge 690",
-     "value3d": "1 figure(s) 1cfe7722; edge 690",
+     "value2d": "1 figure(s) 124afb62; edge 690",
+     "value3d": "1 figure(s) 124afb62; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -12481,8 +12481,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/66d7a8b5",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/66d7a8b5",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/c92956fd",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/c92956fd",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -12553,8 +12553,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -12562,8 +12562,8 @@
     {
      "id": "P33",
      "label": "Elements competing for attention with the open concept",
-     "value2d": "default 13 (sheet 7, chrome 6, navigation 0); rail shown 18 (sheet 1, chrome 6, navigation 11)",
-     "value3d": "default 14 (sheet 7, chrome 7, navigation 0); rail shown 19 (sheet 1, chrome 7, navigation 11)",
+     "value2d": "default 13 (sheet 7, chrome 6, navigation 0); rail shown 17 (sheet 1, chrome 6, navigation 10)",
+     "value3d": "default 14 (sheet 7, chrome 7, navigation 0); rail shown 18 (sheet 1, chrome 7, navigation 10)",
      "delta": 1,
      "tolerance": "both states: sheet equal; each total <= 30; gap <= 6",
      "passed": true
@@ -12619,8 +12619,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -12700,8 +12700,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 1cfe7722; edge 690",
-     "value3d": "1 figure(s) 1cfe7722; edge 690",
+     "value2d": "1 figure(s) 124afb62; edge 690",
+     "value3d": "1 figure(s) 124afb62; edge 690",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -12763,8 +12763,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/66d7a8b5",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/66d7a8b5",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/c92956fd",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/c92956fd",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -12835,8 +12835,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -12844,8 +12844,8 @@
     {
      "id": "P33",
      "label": "Elements competing for attention with the open concept",
-     "value2d": "default 13 (sheet 7, chrome 6, navigation 0); rail shown 18 (sheet 1, chrome 6, navigation 11)",
-     "value3d": "default 14 (sheet 7, chrome 7, navigation 0); rail shown 19 (sheet 1, chrome 7, navigation 11)",
+     "value2d": "default 13 (sheet 7, chrome 6, navigation 0); rail shown 17 (sheet 1, chrome 6, navigation 10)",
+     "value3d": "default 14 (sheet 7, chrome 7, navigation 0); rail shown 18 (sheet 1, chrome 7, navigation 10)",
      "delta": 1,
      "tolerance": "both states: sheet equal; each total <= 30; gap <= 6",
      "passed": true
@@ -12901,8 +12901,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -12982,8 +12982,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 2ed960d3; edge 734",
-     "value3d": "1 figure(s) 2ed960d3; edge 734",
+     "value2d": "1 figure(s) cfad7013; edge 734",
+     "value3d": "1 figure(s) cfad7013; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -13045,8 +13045,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -13117,8 +13117,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -13183,8 +13183,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -13264,8 +13264,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 2ed960d3; edge 734",
-     "value3d": "1 figure(s) 2ed960d3; edge 734",
+     "value2d": "1 figure(s) cfad7013; edge 734",
+     "value3d": "1 figure(s) cfad7013; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -13327,8 +13327,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -13399,8 +13399,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -13465,8 +13465,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -13546,8 +13546,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 2ed960d3; edge 734",
-     "value3d": "1 figure(s) 2ed960d3; edge 734",
+     "value2d": "1 figure(s) cfad7013; edge 734",
+     "value3d": "1 figure(s) cfad7013; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -13609,8 +13609,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -13681,8 +13681,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -13747,8 +13747,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -13828,8 +13828,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) 2ed960d3; edge 734",
-     "value3d": "1 figure(s) 2ed960d3; edge 734",
+     "value2d": "1 figure(s) cfad7013; edge 734",
+     "value3d": "1 figure(s) cfad7013; edge 734",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -13891,8 +13891,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -13963,8 +13963,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -14029,8 +14029,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -14110,8 +14110,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aecd5e60; edge 766",
-     "value3d": "1 figure(s) aecd5e60; edge 766",
+     "value2d": "1 figure(s) 4fa16da0; edge 766",
+     "value3d": "1 figure(s) 4fa16da0; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -14173,8 +14173,8 @@
     {
      "id": "P21",
      "label": "Figure counts per section across the study traditions",
-     "value2d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
-     "value3d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
+     "value2d": "balanced: process 2/2/2; science 1/1/1",
+     "value3d": "balanced: process 2/2/2; science 1/1/1",
      "delta": "same bundle",
      "tolerance": "equal per section",
      "passed": true
@@ -14191,8 +14191,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -14272,8 +14272,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -14338,8 +14338,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -14419,8 +14419,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aecd5e60; edge 766",
-     "value3d": "1 figure(s) aecd5e60; edge 766",
+     "value2d": "1 figure(s) 4fa16da0; edge 766",
+     "value3d": "1 figure(s) 4fa16da0; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -14482,8 +14482,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -14563,8 +14563,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -14629,8 +14629,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -14710,8 +14710,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aecd5e60; edge 766",
-     "value3d": "1 figure(s) aecd5e60; edge 766",
+     "value2d": "1 figure(s) 4fa16da0; edge 766",
+     "value3d": "1 figure(s) 4fa16da0; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -14773,8 +14773,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -14854,8 +14854,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -14920,8 +14920,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -15001,8 +15001,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aecd5e60; edge 766",
-     "value3d": "1 figure(s) aecd5e60; edge 766",
+     "value2d": "1 figure(s) 4fa16da0; edge 766",
+     "value3d": "1 figure(s) 4fa16da0; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -15064,8 +15064,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -15145,8 +15145,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -15211,8 +15211,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -15292,8 +15292,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aecd5e60; edge 766",
-     "value3d": "1 figure(s) aecd5e60; edge 766",
+     "value2d": "1 figure(s) 4fa16da0; edge 766",
+     "value3d": "1 figure(s) 4fa16da0; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -15355,8 +15355,8 @@
     {
      "id": "P21",
      "label": "Figure counts per section across the study traditions",
-     "value2d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
-     "value3d": "balanced: context 1/1/1; materials-tools 1/1/1; process 2/2/2; science 1/1/1",
+     "value2d": "balanced: process 2/2/2; science 1/1/1",
+     "value3d": "balanced: process 2/2/2; science 1/1/1",
      "delta": "same bundle",
      "tolerance": "equal per section",
      "passed": true
@@ -15373,8 +15373,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c | stall d591323d/d55567e4",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c | stall d591323d/d55567e4",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64 | stall d591323d/8936c7df",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64 | stall d591323d/8936c7df",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -15465,8 +15465,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -15531,8 +15531,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -15612,8 +15612,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aecd5e60; edge 766",
-     "value3d": "1 figure(s) aecd5e60; edge 766",
+     "value2d": "1 figure(s) 4fa16da0; edge 766",
+     "value3d": "1 figure(s) 4fa16da0; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -15675,8 +15675,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c | stall d591323d/d55567e4",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c | stall d591323d/d55567e4",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64 | stall d591323d/8936c7df",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64 | stall d591323d/8936c7df",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -15755,8 +15755,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -15821,8 +15821,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -15902,8 +15902,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aecd5e60; edge 766",
-     "value3d": "1 figure(s) aecd5e60; edge 766",
+     "value2d": "1 figure(s) 4fa16da0; edge 766",
+     "value3d": "1 figure(s) 4fa16da0; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -15965,8 +15965,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0 | stall d591323d/441d4471",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0 | stall d591323d/441d4471",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688 | stall d591323d/220993c6",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688 | stall d591323d/220993c6",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -16045,8 +16045,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -16111,8 +16111,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -16192,8 +16192,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aecd5e60; edge 766",
-     "value3d": "1 figure(s) aecd5e60; edge 766",
+     "value2d": "1 figure(s) 4fa16da0; edge 766",
+     "value3d": "1 figure(s) 4fa16da0; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -16255,8 +16255,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0 | stall d591323d/441d4471",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0 | stall d591323d/441d4471",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688 | stall d591323d/220993c6",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688 | stall d591323d/220993c6",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -16335,8 +16335,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -16401,8 +16401,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -16482,8 +16482,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aecd5e60; edge 766",
-     "value3d": "1 figure(s) aecd5e60; edge 766",
+     "value2d": "1 figure(s) 4fa16da0; edge 766",
+     "value3d": "1 figure(s) 4fa16da0; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -16545,8 +16545,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -16626,8 +16626,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -16635,8 +16635,8 @@
     {
      "id": "P33",
      "label": "Elements competing for attention with the open concept",
-     "value2d": "default 16 (sheet 7, chrome 5, navigation 4); rail shown 27 (sheet 7, chrome 4, navigation 16)",
-     "value3d": "default 17 (sheet 7, chrome 8, navigation 2); rail shown 28 (sheet 7, chrome 7, navigation 14)",
+     "value2d": "default 16 (sheet 7, chrome 5, navigation 4); rail shown 26 (sheet 7, chrome 4, navigation 15)",
+     "value3d": "default 17 (sheet 7, chrome 8, navigation 2); rail shown 27 (sheet 7, chrome 7, navigation 13)",
      "delta": 1,
      "tolerance": "both states: sheet equal; each total <= 30; gap <= 6",
      "passed": true
@@ -16692,8 +16692,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -16773,8 +16773,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aecd5e60; edge 766",
-     "value3d": "1 figure(s) aecd5e60; edge 766",
+     "value2d": "1 figure(s) 4fa16da0; edge 766",
+     "value3d": "1 figure(s) 4fa16da0; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -16836,8 +16836,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
-     "value3d": "hint 81faacb8/47aed284 | timer 2ecab495/e111fd6c",
+     "value2d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
+     "value3d": "hint 81faacb8/2d66985c | timer 2ecab495/4b56dd64",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -16917,8 +16917,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -16926,8 +16926,8 @@
     {
      "id": "P33",
      "label": "Elements competing for attention with the open concept",
-     "value2d": "default 16 (sheet 7, chrome 5, navigation 4); rail shown 27 (sheet 7, chrome 4, navigation 16)",
-     "value3d": "default 17 (sheet 7, chrome 8, navigation 2); rail shown 28 (sheet 7, chrome 7, navigation 14)",
+     "value2d": "default 16 (sheet 7, chrome 5, navigation 4); rail shown 26 (sheet 7, chrome 4, navigation 15)",
+     "value3d": "default 17 (sheet 7, chrome 8, navigation 2); rail shown 27 (sheet 7, chrome 7, navigation 13)",
      "delta": 1,
      "tolerance": "both states: sheet equal; each total <= 30; gap <= 6",
      "passed": true
@@ -16983,8 +16983,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -17064,8 +17064,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aecd5e60; edge 766",
-     "value3d": "1 figure(s) aecd5e60; edge 766",
+     "value2d": "1 figure(s) 4fa16da0; edge 766",
+     "value3d": "1 figure(s) 4fa16da0; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -17127,8 +17127,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -17208,8 +17208,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -17217,8 +17217,8 @@
     {
      "id": "P33",
      "label": "Elements competing for attention with the open concept",
-     "value2d": "default 16 (sheet 7, chrome 5, navigation 4); rail shown 27 (sheet 7, chrome 4, navigation 16)",
-     "value3d": "default 17 (sheet 7, chrome 8, navigation 2); rail shown 28 (sheet 7, chrome 7, navigation 14)",
+     "value2d": "default 16 (sheet 7, chrome 5, navigation 4); rail shown 26 (sheet 7, chrome 4, navigation 15)",
+     "value3d": "default 17 (sheet 7, chrome 8, navigation 2); rail shown 27 (sheet 7, chrome 7, navigation 13)",
      "delta": 1,
      "tolerance": "both states: sheet equal; each total <= 30; gap <= 6",
      "passed": true
@@ -17274,8 +17274,8 @@
     {
      "id": "P5",
      "label": "Text of claims, citation records, captions, credits and alt text",
-     "value2d": "9a782ab0 (3 claims, 3 records)",
-     "value3d": "9a782ab0 (3 claims, 3 records)",
+     "value2d": "bf98c848 (3 claims, 3 records)",
+     "value3d": "bf98c848 (3 claims, 3 records)",
      "delta": "none",
      "tolerance": 0,
      "passed": true
@@ -17355,8 +17355,8 @@
     {
      "id": "P14",
      "label": "Figure slots: count, order, source, alt, caption, credit, size",
-     "value2d": "1 figure(s) aecd5e60; edge 766",
-     "value3d": "1 figure(s) aecd5e60; edge 766",
+     "value2d": "1 figure(s) 4fa16da0; edge 766",
+     "value3d": "1 figure(s) 4fa16da0; edge 766",
      "delta": "none",
      "tolerance": "equal; 3:2; edge <= 768",
      "passed": true
@@ -17418,8 +17418,8 @@
     {
      "id": "P23",
      "label": "Shared component markup: hint, timer, onboarding, messages, settings",
-     "value2d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
-     "value3d": "hint 81faacb8/62eb9a12 | timer 2ecab495/8bfcbfb0",
+     "value2d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
+     "value3d": "hint 81faacb8/fc249372 | timer 2ecab495/0c916688",
      "delta": "none",
      "tolerance": 0,
      "passed": true,
@@ -17499,8 +17499,8 @@
     {
      "id": "P32",
      "label": "Sheet header and its Close control",
-     "value2d": "053189eb | Close 110.9x44 c717dbad",
-     "value3d": "053189eb | Close 110.9x44 c717dbad",
+     "value2d": "053189eb | Close 115x44 c717dbad",
+     "value3d": "053189eb | Close 115x44 c717dbad",
      "delta": "none",
      "tolerance": "identical; accessible name \"Close\"",
      "passed": true
@@ -17508,8 +17508,8 @@
     {
      "id": "P33",
      "label": "Elements competing for attention with the open concept",
-     "value2d": "default 16 (sheet 7, chrome 5, navigation 4); rail shown 27 (sheet 7, chrome 4, navigation 16)",
-     "value3d": "default 17 (sheet 7, chrome 8, navigation 2); rail shown 28 (sheet 7, chrome 7, navigation 14)",
+     "value2d": "default 16 (sheet 7, chrome 5, navigation 4); rail shown 26 (sheet 7, chrome 4, navigation 15)",
+     "value3d": "default 17 (sheet 7, chrome 8, navigation 2); rail shown 27 (sheet 7, chrome 7, navigation 13)",
      "delta": 1,
      "tolerance": "both states: sheet equal; each total <= 30; gap <= 6",
      "passed": true
