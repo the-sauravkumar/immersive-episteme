@@ -71,7 +71,7 @@ const nextConfig: NextConfig = {
   // turbopackIgnore): the migrations journal (/admin health) and the interface parity report
   // (research pages and the public dataset figures).
   outputFileTracingIncludes: {
-    "/*": ["./db/migrations/meta/_journal.json", "./analysis/parity/interface-parity.json"],
+    "/*": ["./db/migrations/meta/_journal.json", "./analysis/parity/interface-parity.json", "./content/study/*.template.json"],
   },
   turbopack: {
     // src/app/layout.tsx sets adjustFontFallback: false for Atkinson Hyperlegible Next (Next.js has

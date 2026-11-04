@@ -90,7 +90,7 @@ async function Hub({ searchParams }: { searchParams: PageProps<"/study/session">
 
   const telemetry = { sessionId: state.sessionId, contentVersion: state.snapshotLabel ?? "none", appBuild: serverEnv().APP_BUILD_VERSION, mode: "study" as const };
   const remainingMinutes =
-    state.learning.endsAt && state.learning.endsAt > state.now ? Math.ceil((state.learning.endsAt.getTime() - state.now.getTime()) / 60_000) : null;
+    state.learning.endsAt && state.learning.endsAt > state.now && !state.study.protocol.config.exposure.requireEveryStage ? Math.ceil((state.learning.endsAt.getTime() - state.now.getTime()) / 60_000) : null;
 
   return (
     <TelemetryProvider config={telemetry}>

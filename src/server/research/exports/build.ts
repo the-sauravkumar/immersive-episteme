@@ -145,7 +145,7 @@ export async function buildExportBundle(q: Q, studyId: string, opts: { scope: Ex
     sessions: await rows(
       `SELECT ss.id AS session_id, p.code AS participant_code, ss.condition_id, ss.period, ss.status::text AS status, ss.snapshot_id, ss.manifest_id,
               ss.app_build, ss.compiler_version, ${ts("ss.started_at")} AS started_at, ${ts("ss.completed_at")} AS completed_at,
-              ${ts("ss.learning_started_at")} AS learning_started_at, ss.learning_budget_seconds, ${ts("ss.learning_ended_at")} AS learning_ended_at,
+              ${ts("ss.learning_started_at")} AS learning_started_at, ss.learning_budget_seconds, ${ts("ss.learning_ended_at")} AS learning_ended_at, ss.tradition_order,
               ss.interrupted, ss.interruption_count, ss.device, ss.withdrawn, ss.excluded, ${category("ss.exclusion_reason")} AS exclusion_category,
               CASE WHEN $2 THEN ss.exclusion_reason END AS exclusion_reason,
               (st.is_demo OR coalesce((st.config->>'nonExperimental')::boolean, false)) AS non_experimental,
@@ -197,6 +197,30 @@ export async function buildExportBundle(q: Q, studyId: string, opts: { scope: Ex
               e.relationship_type_code, e.label, e.directed
          FROM concept_map_edges e JOIN concept_maps cm ON cm.id = e.concept_map_id JOIN study_sessions ss ON ss.id = cm.session_id
         WHERE ss.study_id = $1 ORDER BY e.concept_map_id, e.edge_key`,
+    ),
+    stage_visits: await rows(
+      `SELECT v.session_id, p.code AS participant_code, v.tradition_key, v.stage_key, v.stage_number, v.visit_index, ${ts("v.entered_at")} AS entered_at, ${ts("v.left_at")} AS left_at, v.active_ms
+         FROM stage_visits v JOIN study_sessions ss ON ss.id = v.session_id JOIN participants p ON p.id = ss.participant_id
+        WHERE ss.study_id = $1 ORDER BY v.session_id, v.visit_index`,
+    ),
+    learning_ends: await rows(
+      `SELECT al.entity_id::uuid AS session_id, p.code AS participant_code, al.after->>'reason' AS reason, (al.after->>'stagesRequired')::int AS stages_required,
+              (al.after->>'stagesVisited')::int AS stages_visited, al.after->'unvisited' AS unvisited
+         FROM audit_log al JOIN study_sessions ss ON ss.id::text = al.entity_id::text JOIN participants p ON p.id = ss.participant_id
+        WHERE al.entity = 'study_session' AND al.action = 'study.step_completed' AND al.after->>'step' = 'learning' AND ss.study_id = $1 ORDER BY p.code`,
+    ),
+    delayed_test_schedule: await rows(
+      `SELECT d.session_id, p.code AS participant_code, ${ts("d.scheduled_at")} AS scheduled_at, ${ts("d.opens_at")} AS opens_at, ${ts("d.due_at")} AS due_at, ${ts("d.closes_at")} AS closes_at,
+              ${ts("d.returned_at")} AS returned_at, ${ts("d.completed_at")} AS completed_at,
+              CASE WHEN d.completed_at IS NOT NULL THEN 'completed' WHEN d.missed_at IS NOT NULL OR now() > d.closes_at THEN 'missed'
+                   WHEN d.returned_at IS NOT NULL THEN 'returned' WHEN now() >= d.opens_at THEN 'due' ELSE 'waiting' END AS status
+         FROM delayed_test_schedule d JOIN participants p ON p.id = d.participant_id WHERE d.study_id = $1 ORDER BY d.due_at, p.code`,
+    ),
+    test_item_targets: await rows(
+      `SELECT a.id AS assessment_id, a.code AS assessment_code, i.item_key, a.config->>'testType' AS test_type, i.config#>>'{target,tradition}' AS tradition_key,
+              i.config#>>'{target,stageKey}' AS stage_key, i.config#>>'{target,objectKey}' AS object_key
+         FROM study_assessments sa JOIN assessments a ON a.id = sa.assessment_id JOIN assessment_items i ON i.assessment_id = a.id
+        WHERE sa.study_id = $1 AND a.config ? 'testType' ORDER BY a.code, i.position`,
     ),
     deviations: await rows(
       `SELECT d.session_id, p.code AS participant_code, d.category, d.severity::text AS severity, ${ts("d.reported_at")} AS reported_at,

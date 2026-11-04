@@ -14,7 +14,6 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import type { KnowledgeBundle } from "@/features/knowledge/contracts";
 import { photoFiguresOf, photoGateOpen, resolveConceptFigures, type DiagramFigure, type IllustrationLink } from "@/features/knowledge/read/view";
 import { STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
 import { studyConfigSchema } from "@/features/study/contracts";
@@ -22,7 +21,7 @@ import { learningSettingsOf } from "@/features/learning/settings";
 import { figureBalance, type ParityFigureAsset } from "@/server/research/parity/engine";
 
 import { anchorPosition, creditOf, jpegSize, planStudyPhotos, VA_CREDIT, VA_MAX_PIXELS, VA_TERM_MONTHS } from "../../../scripts/content/ingest-study-photos";
-import { passingInput } from "../research/fixtures";
+import { demoBundle } from "../research/fixtures";
 
 const ROOT = join(__dirname, "..", "..", "..");
 
@@ -81,8 +80,7 @@ describe("protocol switch figures.photos", () => {
   });
 
   it("is applied by the parity engine's figure balance, as is the gate", () => {
-    const input = passingInput();
-    const bundle = input.snapshot!.payload as KnowledgeBundle;
+    const bundle = demoBundle();
     const slugs = [...new Set(bundle.traditions.map((t) => t.slug))];
     const key = (slug: string) => `${slug}.tool.block`;
     const assets: ParityFigureAsset[] = slugs.map((slug, i) => ({

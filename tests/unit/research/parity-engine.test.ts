@@ -1,183 +1,118 @@
-/**
- * Parity engine (src/server/research/parity/engine.ts): a matched configuration passes, and each
- * injected mismatch is detected by the check that owns it.
- */
 import { describe, expect, it } from "vitest";
 
-import { runParityChecks, textResidue, type ParityInput, type ParityReport } from "@/server/research/parity/engine";
+import { runParityChecks, type DoorTraditionView, type ParityInput } from "@/server/research/parity/engine";
 
-import { demoManifest, passingInput } from "./fixtures";
+import { passingInput } from "./fixtures";
 
-type El = { id: string; kind: string; conceptId?: string | null; label?: string | null; assetRefs?: unknown[]; effect?: Record<string, unknown>; hotspots?: { label: string }[] };
-const elements = (i: ParityInput) => (i.manifest!.manifest as { elements: El[] }).elements;
-const checkOf = (r: ParityReport, id: string) => {
-  const c = r.checks.find((x) => x.id === id);
-  if (!c) throw new Error(`no check ${id}`);
-  return c;
+const failingCodes = (input: ParityInput, id: string): string[] => {
+  const check = runParityChecks(input).checks.find((c) => c.id === id);
+  if (!check) throw new Error(`no check ${id}`);
+  return check.issues.map((issue) => issue.code);
 };
-const failedCritical = (r: ParityReport) => r.checks.filter((c) => !c.passed && c.severity === "critical").map((c) => c.id);
 
-describe("parity engine", () => {
-  it("passes a matched configuration with every critical check green", () => {
-    expect(demoManifest().validation.passed).toBe(true);
-    const r = runParityChecks(passingInput());
-    expect(failedCritical(r)).toEqual([]);
-    expect(r.passed).toBe(true);
-    expect(r.contentSet.concepts).toBeGreaterThan(10);
-    expect(checkOf(r, "b.coverage").metrics).toMatchObject({ concepts2d: r.contentSet.concepts, exhibits3d: r.contentSet.concepts });
-    expect(checkOf(r, "c.citations").metrics.citations2d).toBe(checkOf(r, "c.citations").metrics.citations3d);
+const writable = <T>(value: unknown): T => value as T;
+
+function mutableStage(input: ParityInput, door: "2d" | "immersive") {
+  const tradition = input.doors.find((d) => d.door === door)!.traditions[0] as DoorTraditionView & { stages: Record<string, unknown>[] };
+  return tradition.stages[0]!;
+}
+
+describe("content parity from one template", () => {
+  it("passes when both doors are generated from the same templates", () => {
+    const report = runParityChecks(passingInput());
+    expect(report.checks.filter((c) => !c.passed)).toEqual([]);
+    expect(report.passed).toBe(true);
+    expect(report.contentSet).toEqual({ stages: 4, items: 4, products: 2, sources: 1 });
   });
 
-  it("is deterministic and keyed to the study inputs", () => {
-    const a = runParityChecks(passingInput());
-    const b = runParityChecks(passingInput());
-    expect(JSON.stringify(a)).toBe(JSON.stringify(b));
-    const changed = passingInput();
-    (changed.study.config as { exposure: { minutes: number } }).exposure.minutes = 25;
-    expect(runParityChecks(changed).inputSha256).not.toBe(a.inputSha256);
+  it("checks no wing, room, manifest or exhibit any more", () => {
+    const ids = runParityChecks(passingInput()).checks.map((c) => c.id);
+    expect(ids).toEqual(["base.snapshot", "base.config", "t.template", "t.reachable", "t.stages", "t.words", "t.models", "t.files", "d.protocol", "d.journey", "d.review", "e.exposure"]);
   });
 
-  it("refuses a journey step with nothing to deliver and a broken protocol (study-05, study-10)", () => {
-    // A configured transfer step but no transfer assessment in the battery: used to pass silently and
-    // skip the step as "empty" for every participant.
-    const noTransfer = passingInput();
-    (noTransfer.study.config as { steps: string[] }).steps = ["pre_test", "learning", "post_test", "transfer"];
-    const r1 = runParityChecks(noTransfer);
-    expect(failedCritical(r1)).toEqual(["d.journey"]);
-    expect(checkOf(r1, "d.journey").issues.map((x) => x.code)).toEqual(["step_without_assessment"]);
-    // A pre-phase assessment of the wrong kind does not count for pre_test.
-    const wrongKind = passingInput();
-    wrongKind.study.battery[0]!.kind = "reconstruction";
-    expect(checkOf(runParityChecks(wrongKind), "d.journey").issues.map((x) => x.message).join(" ")).toMatch(/pre_test.*pre-phase pretest/);
-    // A questionnaire instrument missing from the battery.
-    const noSsq = passingInput();
-    Object.assign(noSsq.study.config as object, { steps: ["questionnaire_pre", "pre_test", "learning", "post_test"], questionnaires: { pre: ["ssq"], postLearning: [], end: [] } });
-    expect(checkOf(runParityChecks(noSsq), "d.journey").issues.map((x) => x.code)).toEqual(["instrument_not_in_battery"]);
-    // Hybrid guidance with cues but no hint text: the engine would refuse every enrolment.
-    const hybrid = passingInput();
-    (hybrid.study.config as { guidance: unknown }).guidance = { policy: "hybrid", cueEnabled: true };
-    const r4 = runParityChecks(hybrid);
-    expect(checkOf(r4, "d.journey").passed).toBe(false);
-    expect(checkOf(r4, "d.journey").issues[0]!.message).toMatch(/hintText/);
+  it("fails a door with its stages in another order", () => {
+    const input = passingInput();
+    const view = input.doors[1]!.traditions[0]! as unknown as { stages: unknown[] };
+    view.stages.reverse();
+    expect(failingCodes(input, "t.stages")).toContain("stage_order");
   });
 
-  it("detects a concept reachable in 2D with no exhibit (missing content)", () => {
-    const i = passingInput();
-    const els = elements(i);
-    const victim = els.find((e) => e.kind === "exhibit" && e.conceptId)!;
-    i.manifest!.manifest = { ...(i.manifest!.manifest as object), elements: els.filter((e) => e !== victim) };
-    const r = runParityChecks(i);
-    expect(r.passed).toBe(false);
-    const b = checkOf(r, "b.coverage");
-    expect(b.passed).toBe(false);
-    expect(b.issues.map((x) => [x.code, x.ref])).toContainEqual(["missing_exhibit", victim.conceptId]);
-    expect(checkOf(r, "a.claims").passed).toBe(false);
+  it("fails one changed character of a caption, a label or a source reference", () => {
+    const caption = passingInput();
+    mutableStage(caption, "immersive").caption = "Sample Text caption 1.";
+    expect(failingCodes(caption, "t.words")).toEqual(["caption_text"]);
+    const label = passingInput();
+    writable<{ label: string }[]>(mutableStage(label, "2d").items)[0]!.label = "Other";
+    expect(failingCodes(label, "t.words")).toEqual(["label_text"]);
+    const source = passingInput();
+    writable<{ locator: string }[]>(mutableStage(source, "2d").sources)[0]!.locator = "p. 2";
+    expect(failingCodes(source, "t.words")).toEqual(["source_refs"]);
   });
 
-  it("detects an exhibit for a concept outside the 2D content set (extra content)", () => {
-    const i = passingInput();
-    const bundle = i.snapshot!.payload as { concepts: { id: string; traditionId: string | null; type: string }[] };
-    // A third tradition's concept is in the snapshot but not selected by the study.
-    const outside = { ...bundle.concepts[0]!, id: "11111111-1111-4111-8111-111111111111", key: "demo-gamma.material.dye", slug: "demo-gamma-material-dye", traditionId: null, type: "material" };
-    bundle.concepts.push(outside as never);
-    elements(i).push({ id: "exhibit:demo-gamma.material.dye", kind: "exhibit", conceptId: outside.id, label: (outside as unknown as { title: string }).title, assetRefs: [] });
-    const r = runParityChecks(i);
-    expect(checkOf(r, "b.coverage").issues.map((x) => x.code)).toContain("extra_exhibit");
+  it("fails an item shown with another model, one item with two model ids, and an unknown model", () => {
+    const shown = passingInput();
+    writable<{ modelId: string }[]>(mutableStage(shown, "immersive").items)[0]!.modelId = "barrel";
+    expect(failingCodes(shown, "t.models")).toEqual(["model_differs"]);
+    const twice = passingInput();
+    const second = writable<{ items: { key: string }[] }>(twice.templates[0]!.stages[1]);
+    second.items[0]!.key = twice.templates[0]!.stages[0]!.items[0]!.key;
+    expect(failingCodes(twice, "t.models")).toContain("item_many_models");
+    const unknown = passingInput();
+    (unknown.templates[0]!.stages[0]!.items[0] as { modelId: string }).modelId = "no-such-model";
+    expect(failingCodes(unknown, "t.models")).toContain("model_unknown");
   });
 
-  it("detects extra 3D-only instructional text", () => {
-    const i = passingInput();
-    elements(i).push({ id: "label:hint", kind: "label", conceptId: null, label: "Notice how the mordant fixes the colour here" });
-    const r = runParityChecks(i);
-    const f = checkOf(r, "f.text");
-    expect(f.passed).toBe(false);
-    expect(f.issues[0]!.message).toMatch(/notice/);
-    expect(r.passed).toBe(false);
+  it("fails a cloth state or product image that resolves to two files or to no file", () => {
+    const two = passingInput();
+    mutableStage(two, "immersive").clothFile = "/walkthrough/other.jpg";
+    (two.fileHashes as Record<string, string>)["/walkthrough/other.jpg"] = "another-hash";
+    expect(failingCodes(two, "t.files")).toEqual(["file_hash_differs"]);
+    const none = passingInput();
+    const file = mutableStage(none, "2d").clothFile as string;
+    (none.fileHashes as Record<string, string | null>)[file] = null;
+    expect(failingCodes(none, "t.files")).toContain("file_missing");
   });
 
-  it("detects 3D-only text added to an otherwise allowed label", () => {
-    const i = passingInput();
-    const hot = elements(i).find((e) => e.hotspots?.length)!;
-    hot.hotspots![0]!.label = `${hot.hotspots![0]!.label} - remember this for the test`;
-    expect(checkOf(runParityChecks(i), "f.text").passed).toBe(false);
+  it("refuses activation while a door cannot be reached", () => {
+    const missing = passingInput();
+    missing.doors = missing.doors.filter((d) => d.door !== "immersive");
+    expect(failingCodes(missing, "t.reachable")).toEqual(["door_unavailable"]);
+    expect(runParityChecks(missing).passed).toBe(false);
+    const closed = passingInput();
+    closed.doors = closed.doors.map((d) => (d.door === "2d" ? { ...d, reachable: false } : d));
+    expect(failingCodes(closed, "t.reachable")).toEqual(["door_unreachable"]);
   });
 
-  it("accepts snapshot strings and the compiler's interface words but not other words", () => {
-    const phrases = ["Demo: dye", "Demo: block"];
-    expect(textResidue("Inspect Demo: dye", phrases)).toEqual([]);
-    expect(textResidue("Why: Demo: dye -> Demo: block", phrases)).toEqual([]);
-    expect(textResidue("Demo: dyes", phrases)).toEqual(["demo", "dyes"]);
-    expect(textResidue("Look closely at Demo: dye", phrases)).toEqual(["look", "closely", "at"]);
+  it("fails a tradition with no template and a caption with no source", () => {
+    const missing = passingInput();
+    missing.templates = missing.templates.slice(1);
+    expect(failingCodes(missing, "t.template")).toEqual(["template_missing"]);
+    const unsourced = passingInput();
+    writable<{ sources: unknown[] }>(unsourced.templates[0]!.stages[0]!.caption).sources = [];
+    expect(failingCodes(unsourced, "t.template")).toEqual(["caption_unsourced"]);
   });
 
-  it("detects differing citation coverage", () => {
-    const i = passingInput();
-    // The shared mechanism is the only concept citing source B; drop its exhibit.
-    const els = elements(i);
-    const shared = els.find((e) => e.kind === "exhibit" && typeof e.id === "string" && e.id.includes("demo-shared"))!;
-    i.manifest!.manifest = { ...(i.manifest!.manifest as object), elements: els.filter((e) => e !== shared) };
-    const c = checkOf(runParityChecks(i), "c.citations");
-    expect(c.passed).toBe(false);
-    expect(c.issues.map((x) => x.code)).toContain("sources_2d_only");
-    expect(c.metrics.sources2d).toBe(2);
-    expect(c.metrics.sources3d).toBe(1);
+  it("accepts self-paced learning with the cap and refuses fixed time, no cap or optional stages", () => {
+    const withExposure = (exposure: Record<string, unknown>) => {
+      const input = passingInput();
+      (input.study.config as Record<string, unknown>).exposure = exposure;
+      return failingCodes(input, "e.exposure");
+    };
+    expect(withExposure({ mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true })).toEqual([]);
+    expect(withExposure({ mode: "fixed_time", minutes: 30, requireEveryStage: true })).toEqual(["exposure_not_self_paced"]);
+    expect(withExposure({ mode: "self_paced", requireEveryStage: true })).toEqual(["exposure_no_cap"]);
+    expect(withExposure({ mode: "self_paced", minutes: 30 })).toEqual(["exposure_stages_optional"]);
+    const budget = passingInput();
+    budget.sessionBudgets = [{ interface: "immersive_3d", learningBudgetSeconds: 1200 }];
+    expect(failingCodes(budget, "e.exposure")).toEqual(["session_budget"]);
   });
 
-  it("detects unequal exposure (per-condition override, self-paced, mismatched session budgets)", () => {
+  it("refuses per-door settings and a concept map before learning", () => {
     const override = passingInput();
-    override.study.conditions[1]!.config = { exposure: { minutes: 30 } };
-    const r1 = runParityChecks(override);
-    expect(checkOf(r1, "e.exposure").issues.map((x) => x.code)).toContain("exposure_override");
-    expect(checkOf(r1, "d.protocol").passed).toBe(false);
-
-    const selfPaced = passingInput();
-    (selfPaced.study.config as { exposure: unknown }).exposure = { mode: "self_paced" };
-    expect(checkOf(runParityChecks(selfPaced), "e.exposure").issues.map((x) => x.code)).toEqual(["exposure_not_fixed"]);
-
-    const budgets = passingInput();
-    budgets.sessionBudgets = [
-      { interface: "conventional_2d", learningBudgetSeconds: 1200 },
-      { interface: "immersive_3d", learningBudgetSeconds: 1500 },
-    ];
-    const e = checkOf(runParityChecks(budgets), "e.exposure");
-    expect(e.issues.map((x) => x.code)).toEqual(["session_budget"]);
-  });
-
-  it("fails e.exposure when a fixed-time study allows early finish (final review scoring-09)", () => {
-    const early = passingInput();
-    (early.study.config as { exposure: Record<string, unknown> }).exposure = { mode: "fixed_time", minutes: 30, allowEarlyFinish: true };
-    const e = checkOf(runParityChecks(early), "e.exposure");
-    expect(e.passed).toBe(false);
-    expect(e.issues.map((x) => x.code)).toEqual(["exposure_early_finish"]);
-    expect(runParityChecks(early).passed).toBe(false);
-  });
-
-  it("detects 3D-only media, rewritten explanations and per-condition guidance", () => {
-    const media = passingInput();
-    elements(media).find((e) => e.kind === "exhibit")!.assetRefs = [{ assetId: "22222222-2222-4222-8222-222222222222", kind: "image", uri: "x" }];
-    expect(checkOf(runParityChecks(media), "a.media").issues.map((x) => x.code)).toEqual(["media_3d_only"]);
-
-    const expl = passingInput();
-    const cue = elements(expl).find((e) => e.kind === "cue" && e.effect && typeof e.effect.explanation === "string")!;
-    expect(cue).toBeDefined();
-    cue.effect!.explanation = "A different explanation";
-    const r = runParityChecks(expl);
-    expect(checkOf(r, "a.relationships").issues.map((x) => x.code)).toContain("explanation_mismatch");
-    expect(checkOf(r, "f.text").passed).toBe(false);
-
-    const guidance = passingInput();
-    guidance.study.conditions[1]!.config = { guidance: { policy: "guided" } };
-    expect(checkOf(runParityChecks(guidance), "d.protocol").issues.map((x) => x.code)).toContain("condition_override");
-  });
-
-  it("fails the base checks for an unpublished or review snapshot and a foreign manifest", () => {
-    const i = passingInput();
-    i.snapshot!.kind = "review";
-    i.snapshot!.status = "draft";
-    i.manifest!.snapshotId = "00000000-0000-4000-8000-0000000000cc";
-    i.manifest!.traditions = ["demo-alpha"];
-    const r = runParityChecks(i);
-    expect(checkOf(r, "base.snapshot").issues.map((x) => x.code).sort()).toEqual(["snapshot_not_published", "snapshot_not_release"]);
-    expect(checkOf(r, "base.manifest").issues.map((x) => x.code).sort()).toEqual(["manifest_snapshot", "manifest_traditions"]);
+    override.study.conditions[1]!.config = { exposure: { minutes: 5 } };
+    expect(failingCodes(override, "d.protocol")).toEqual(expect.arrayContaining(["condition_override", "condition_config_differs"]));
+    const map = passingInput();
+    map.study.battery.push({ assessmentId: "a-map", code: "pre-map", version: 1, kind: "reconstruction", phase: "pre", position: 1, status: "locked", required: true });
+    expect(failingCodes(map, "d.journey")).toContain("pre_concept_map");
   });
 });

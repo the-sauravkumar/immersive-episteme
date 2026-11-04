@@ -1,9 +1,8 @@
 "use client";
 
 /**
- * Display and device check: the first page after allocation, the same for both conditions. It
- * takes no condition input at all, so it renders identically whichever condition the participant
- * is allocated to (DESIGN.md 18 WP4).
+ * Display and device check: the page before allocation, the same for everyone. It takes no
+ * condition input and no condition exists yet, so it can imply no door.
  *
  *  1. Display (DR-019, DESIGN.md 4.5, 9.19; WP4 task 2 "once"): the High contrast accommodation
  *     is offered ONCE, on the consent page (`StudyDisplayChoice`, the shared Display Settings
