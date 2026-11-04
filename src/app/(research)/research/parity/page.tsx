@@ -33,7 +33,7 @@ export default function Page({ searchParams }: PageProps<"/research/parity">) {
     <ConsolePage
       path="/research/parity"
       title="Parity checks"
-      description="The Equivalence Monitor: the interface parity run committed by CI, and the machine-readable content parity report of a study configuration. Critical content failures block activation."
+      description="The Equivalence Monitor: the machine-readable content parity report of a study configuration. Critical content failures block activation."
     >
       <Parity searchParams={searchParams} />
     </ConsolePage>
@@ -49,7 +49,7 @@ async function Parity({ searchParams }: { searchParams: Promise<Record<string, s
       id="interface"
       eyebrow="Equivalence Monitor"
       title="Interface parity"
-      description="Checks P1-P33 (DESIGN.md 12.4) compare the 2D concept page with the 3D panel for one concept per study tradition, at five viewports and two effective themes (light, and light with high contrast): study routes force light, so the dark and high-contrast dark requests measure light and light with high contrast (DR-019). Values come only from the stored run in analysis/parity/interface-parity.json; the row shows the first failing run, otherwise 1280 x 800 light."
+      description="The suite that compared the earlier interfaces was removed with them (DR-076) and nothing writes analysis/parity/interface-parity.json now. There is no current run unless that file is present."
     >
       <EquivalenceMonitor interfaceParity={iface} full numbers={{ interface: 1 }} />
     </Section>

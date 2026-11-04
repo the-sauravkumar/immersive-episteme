@@ -7,7 +7,7 @@
  *    Delta, Tolerance, Runs, Status (icon plus "Pass", "Partial" or "Fail"). "Partial" means the
  *    measured parts passed but a part of the check was not measured; the parts are listed under the
  *    check's description, so an unmeasured part never reads as a pass. With no stored run it renders
- *    the sentence "No parity run recorded yet." and nothing else: never sample values.
+ *    the sentence "There is no current interface parity run." and nothing else: never sample values.
  *  - Content parity (optional): the latest stored engine report per study.
  *
  * `tone="console"` colours the status words with --ok/--danger (console only, DESIGN.md 4.2);
@@ -22,7 +22,7 @@ import { formatParityValue, type InterfaceParitySummary, type ParityCheckStatus 
 import type { ContentParityRow } from "@/server/research/parity/summary";
 import { cn } from "@/lib/utils";
 
-export const NO_PARITY_RUN = "No parity run recorded yet.";
+export const NO_PARITY_RUN = "There is no current interface parity run.";
 
 type Tone = "console" | "neutral";
 

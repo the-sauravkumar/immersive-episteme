@@ -344,19 +344,14 @@ export async function studyHistory(q: Q, studyId: string): Promise<HistoryEntry[
   return r.rows;
 }
 
-/** Snapshots and manifests a draft study may pin (the parity report judges whether they are usable). */
+/** Snapshots a draft study may pin (the parity report judges whether they are usable). */
 export async function pinOptions(q: Q, isDemo: boolean) {
   const snaps = await q.query<{ id: string; versionLabel: string; status: string; kind: string; isDemo: boolean }>(
     `SELECT id, version_label AS "versionLabel", status::text AS status, kind, is_demo AS "isDemo" FROM content_snapshots
       WHERE ($1 OR (kind = 'release' AND NOT is_demo)) ORDER BY created_at DESC LIMIT 50`,
     [isDemo],
   );
-  const mans = await q.query<{ id: string; snapshotId: string; status: string; traditions: string[]; compilerVersion: string }>(
-    `SELECT id, snapshot_id AS "snapshotId", status::text AS status, traditions, compiler_version AS "compilerVersion"
-       FROM spatial_manifests WHERE snapshot_id = ANY($1::uuid[]) ORDER BY created_at DESC`,
-    [snaps.rows.map((s) => s.id)],
-  );
-  return { snapshots: snaps.rows, manifests: mans.rows };
+  return { snapshots: snaps.rows };
 }
 
 export async function assessmentOptions(q: Q, isDemo: boolean) {

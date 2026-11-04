@@ -35,7 +35,7 @@ import {
   loadStudy,
   recordConsent,
   recordDeviceCheck,
-  recordMuseumWebglFailure,
+  recordWalkthroughWebglFailure,
   resumeSession,
   returnForDelayedTest,
   markAssessmentPresented,
@@ -228,16 +228,16 @@ export async function submitDeviceCheck(report: unknown): Promise<DeviceCheckRes
 }
 
 /**
- * The museum's fallback screen (study mode) reports that this browser cannot render the museum
- * after the device check passed (final review study-01). The engine applies the study's
+ * The walkthrough (study mode) reports that this browser cannot render it after the device check
+ * passed. The engine applies the study's
  * WebGL-failure policy; the client then goes to /study/session, which shows where to continue.
  */
-export async function reportMuseumUnavailable(report: unknown): Promise<DeviceCheckResult> {
+export async function reportWalkthroughUnavailable(report: unknown): Promise<DeviceCheckResult> {
   const participant = await requireParticipantSession();
   const parsed = z.object({ webglVersion: z.union([z.literal(1), z.literal(2), z.null()]), softwareRenderer: z.boolean() }).safeParse(report);
   if (!parsed.success) return { ok: false, error: "The check could not be read. Please try again." };
   try {
-    const outcome = await recordMuseumWebglFailure(getPool(), participant.sessionId, parsed.data, { appBuild: appBuild() });
+    const outcome = await recordWalkthroughWebglFailure(getPool(), participant.sessionId, parsed.data, { appBuild: appBuild() });
     if (outcome.kind === "ignored") return { ok: true, outcome: "passed" };
     if (outcome.kind === "reassigned") {
       await issueParticipantSessionCookie({ participantId: participant.participantId, sessionId: outcome.sessionId, condition: outcome.condition });

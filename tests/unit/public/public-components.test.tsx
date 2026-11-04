@@ -5,7 +5,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { ConditionSchematic, pageMiniature, planMiniature, SCHEMATIC_BOX } from "@/components/public/condition-schematic";
+import { ConditionSchematic, pageMiniature, routeMiniature, SCHEMATIC_BOX } from "@/components/public/condition-schematic";
 import { FIGURE_ONE_TALL, FIGURE_ONE_WIDE, FigureOneCountList, FigureOneDiagram } from "@/components/public/figure-one";
 import { InstitutionStrip, NO_INSTITUTION } from "@/components/public/institution-strip";
 import { TraditionIndex, type TraditionIndexData } from "@/components/public/tradition-plates";
@@ -62,8 +62,8 @@ describe("Condition schematics", () => {
       [144, 112],
     ] as const) {
       const page = indigoArea(pageMiniature("p", 0, 0, w, h));
-      const plan = indigoArea(planMiniature("q", 0, 0, w, h));
-      expect(Math.abs(page - plan) / page, `${w} x ${h}`).toBeLessThan(0.05);
+      const route = indigoArea(routeMiniature("q", 0, 0, w, h));
+      expect(Math.abs(page - route) / page, `${w} x ${h}`).toBeLessThan(0.05);
     }
   });
 });

@@ -97,7 +97,7 @@ function placementItem(object: PlacedObject, turn: number, prefix: string): Draf
     itemKey: `${prefix}.${object.template.tradition}.${object.stage.number}.${turn}`.slice(0, 64),
     kind: "single_choice",
     prompt: `At which stage of ${object.template.traditionName} is ${object.item.label} used?`,
-    config: { kind: "single_choice", options: stageOptions(object.template), shuffle: false, image: { path: stillPath(object.item.modelId), alt: object.item.label }, target: placedTarget(object) },
+    config: { kind: "single_choice", options: stageOptions(object.template), shuffle: true, image: { path: stillPath(object.item.modelId), alt: object.item.label }, target: placedTarget(object) },
     answerKey: { optionId: `s${object.stage.number}` },
   };
 }
@@ -106,7 +106,7 @@ const asSample = (item: DraftItem): DraftItem => ({ ...item, config: { ...item.c
 
 function withDontKnow(item: DraftItem): DraftItem {
   const config = item.config as { options: { id: string; label: string }[] };
-  return { ...item, config: { ...item.config, shuffle: false, options: [...config.options, DONT_KNOW_OPTION] } };
+  return { ...item, config: { ...item.config, shuffle: true, options: [...config.options, DONT_KNOW_OPTION] } };
 }
 
 function sequenceItem(template: StageTemplate, stages: readonly TemplateStage[], suffix: string): DraftItem {
@@ -128,7 +128,7 @@ function clothItem(template: StageTemplate, stages: readonly TemplateStage[], su
       kind: "matching",
       pairs: stages.map((stage) => ({ id: `p${stage.number}`, image: { path: clothStatePath(stage.clothStateId), alt: "The cloth after a stage" } })),
       options: stageOptions(template),
-      shuffle: false,
+      shuffle: true,
       target: { tradition: template.tradition },
     },
     answerKey: { matches: Object.fromEntries(stages.map((stage) => [`p${stage.number}`, `s${stage.number}`])) },
@@ -261,7 +261,8 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
         pre.push(item ? withDontKnow(item) : null);
       }
     });
-    objects.filter((object) => !named.includes(object)).forEach((object, turn) => {
+    const placedInPreTest = new Set(objects.slice(0, PRE_ITEMS_PER_TRADITION));
+    objects.filter((object) => !named.includes(object) && !placedInPreTest.has(object)).forEach((object, turn) => {
       const item = identificationItem(object, pool, turn, "id");
       if (item && turn < STAND_IN_ITEMS_PER_TRADITION) (turn % 3 === 2 ? standIn.delayed : standIn.immediate).push(asSample(item));
     });

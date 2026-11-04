@@ -3,11 +3,11 @@
  *
  *  - Content parity: the latest STORED report per study from `parity_reports` (the engine in
  *    ./engine.ts, via the existing store); nothing is generated here.
- *  - Interface parity: the report CI commits at `analysis/parity/interface-parity.json`
- *    (`tests/e2e/parity.spec.ts`, WP8), parsed strictly; absent or malformed means null.
+ *  - Interface parity: a stored report at `analysis/parity/interface-parity.json`, parsed
+ *    strictly; absent or malformed means null. Nothing writes this report now (DR-076).
  *
- * Neither source ever falls back to sample values: no stored run means "No parity run recorded
- * yet" on every surface that shows the monitor.
+ * Neither source ever falls back to sample values: no stored run means "There is no current
+ * interface parity run" on every surface that shows the monitor.
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";

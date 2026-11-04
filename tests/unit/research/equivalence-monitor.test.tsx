@@ -1,6 +1,6 @@
 /**
  * The Equivalence Monitor on /research and /research/parity (DESIGN.md 10, 11.8; 18 WP5
- * acceptance): with no stored interface parity report it says "No parity run recorded yet." and
+ * acceptance): with no stored interface parity report it says there is no current interface parity run and
  * nothing else; with a report file present it shows that report's real values; there is no
  * sample-data path. The report is read from `analysis/parity/interface-parity.json` under a
  * repository root, here a temporary directory holding a fixture.

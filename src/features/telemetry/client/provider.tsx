@@ -8,11 +8,8 @@
  * `useTelemetry()` THROWS outside a provider: a page that should be instrumented but is not is a
  * bug that must surface in development, not a silent gap in the research data.
  */
-import { createContext, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useSyncExternalStore, type ReactNode } from "react";
 
-import type { ExposureLayer, NavigationSurface } from "@/features/telemetry/contracts";
-
-import type { IntervalContext } from "./timing";
 import { createTelemetryTracker, type TelemetryStats, type TelemetryTracker, type TelemetryTrackerOptions } from "./tracker";
 
 export type TelemetryConfig = TelemetryTrackerOptions;
@@ -26,11 +23,17 @@ export function TelemetryProvider({ config, children }: { config: TelemetryConfi
   // double effect run is safe).
   // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberately keyed on the session identity only
   const tracker = useMemo(() => createTelemetryTracker(config), [sessionId, contentVersion, appBuild, mode, endpoint]);
+  const running = useRef<TelemetryTracker | null>(null);
   useEffect(() => {
+    running.current = tracker;
     tracker.start();
     return () => {
-      tracker.flushOnExit();
-      tracker.stop();
+      running.current = null;
+      queueMicrotask(() => {
+        if (running.current === tracker) return;
+        tracker.flushOnExit();
+        tracker.stop();
+      });
     };
   }, [tracker]);
   return <TelemetryContext.Provider value={tracker}>{children}</TelemetryContext.Provider>;
@@ -45,38 +48,6 @@ export function useTelemetry(): UseTelemetry {
   }
   const stats = useSyncExternalStore(tracker.subscribe, tracker.getStats, tracker.getStats);
   return useMemo(() => ({ ...tracker, stats }), [tracker, stats]);
-}
-
-/**
- * Marks a concept's content as exposed while the calling component is mounted and `active`
- * (2D: the concept page/section is in view; 3D: the information panel is open). Switching
- * concept or layer closes the previous interval and opens a new one. Only one interval is ever
- * open: a later exposure or navigation interval closes this one.
- */
-export function useContentExposure(conceptId: string | null, layer: ExposureLayer, opts: { active?: boolean; context?: IntervalContext } = {}): void {
-  const { timing } = useTrackerOrThrow();
-  const active = opts.active ?? true;
-  const { traditionId, roomOrPageId, target, category } = opts.context ?? {};
-  useEffect(() => {
-    if (!active || !conceptId) return;
-    const id = timing.beginExposure(conceptId, layer, { traditionId, roomOrPageId, target, category });
-    return () => timing.endIf(id, "closed");
-  }, [timing, active, conceptId, layer, traditionId, roomOrPageId, target, category]);
-}
-
-/**
- * Marks navigation (3D walking with no panel open; 2D menus, catalogue, map, search results)
- * while mounted and `active`.
- */
-export function useNavigationPhase(surface: NavigationSurface, opts: { active?: boolean; context?: IntervalContext } = {}): void {
-  const { timing } = useTrackerOrThrow();
-  const active = opts.active ?? true;
-  const { traditionId, roomOrPageId, target, category } = opts.context ?? {};
-  useEffect(() => {
-    if (!active) return;
-    const id = timing.beginNavigation(surface, { traditionId, roomOrPageId, target, category });
-    return () => timing.endIf(id, "closed");
-  }, [timing, active, surface, traditionId, roomOrPageId, target, category]);
 }
 
 /**

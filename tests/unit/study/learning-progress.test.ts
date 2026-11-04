@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { bindLearningTelemetry, finishLearning, LEARNING_PROGRESS_ENDPOINT, learningProgressRequestSchema, reportMovement, reportObjectDwell, reportPathSample, reportStageEntered, reportStageLeft, reportViewpointChanges, reportWrongTurn } from "@/features/study/learning-progress";
+import { bindLearningTelemetry, closeOpenStop, finishLearning, LEARNING_PROGRESS_ENDPOINT, learningProgressRequestSchema, logStageLeft, registerOpenStop, reportMovement, reportObjectDwell, reportPathSample, reportStageEntered, reportViewpointChanges, reportWrongTurn, sendStageLeft, unbindLearningTelemetry } from "@/features/study/learning-progress";
 
 const stage = { traditionKey: "ajrakh", stageKey: "s1", stageNumber: 1 };
 
@@ -38,19 +38,46 @@ describe("learning progress client", () => {
     expect(await finishLearning()).toEqual({ ok: false, reason: "unavailable", unvisited: [] });
   });
 
-  it("sends a stage exit with keepalive and whole milliseconds", () => {
+  it("sends a stage exit with keepalive and whole milliseconds, and says when it did not arrive", async () => {
     respond({ ok: true });
-    reportStageLeft(stage, 1234.6);
+    logStageLeft(stage, 1234.6);
     expect(sink).toHaveBeenCalledWith("stage_left", { metadata: { ...stage, activeMs: 1235 }, roomOrPageId: "stage:ajrakh:s1" });
+    expect(await sendStageLeft(stage, 1234.6)).toBe(true);
     const init = fetchMock.mock.calls[0]![1];
     expect(init.keepalive).toBe(true);
     expect(JSON.parse(init.body)).toEqual({ kind: "stage_left", stage, activeMs: 1235 });
+    fetchMock.mockRejectedValue(new Error("offline"));
+    expect(await sendStageLeft(stage, 1)).toBe(false);
+  });
+
+  it("treats a server that no longer knows the participant as the end of learning", async () => {
+    respond({ error: "unauthenticated" });
+    expect(await reportStageEntered(stage)).toEqual({ ok: false, reason: "not_learning", expected: null });
+  });
+
+  it("keeps a newer sink when an older one is released, and closes only the registered stop", () => {
+    const newer = vi.fn();
+    bindLearningTelemetry(newer);
+    unbindLearningTelemetry(sink);
+    reportWrongTurn(stage);
+    expect(newer).toHaveBeenCalledTimes(1);
+    const first = vi.fn();
+    const second = vi.fn();
+    const releaseFirst = registerOpenStop(first);
+    const releaseSecond = registerOpenStop(second);
+    releaseFirst();
+    closeOpenStop();
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledTimes(1);
+    releaseSecond();
+    closeOpenStop();
+    expect(second).toHaveBeenCalledTimes(1);
   });
 
   it("passes the Door 2 measures to telemetry and leaves empty reports out", () => {
     reportObjectDwell(stage, { objectKey: "block", dwellMs: 10.4, closestM: 1.5 });
-    reportPathSample("ajrakh", [[1, 2, 3]]);
-    reportPathSample("ajrakh", []);
+    reportPathSample("ajrakh", "walk1", [[1, 2, 3]]);
+    reportPathSample("ajrakh", "walk1", []);
     reportViewpointChanges(stage, 2);
     reportViewpointChanges(stage, 0);
     reportWrongTurn(stage);

@@ -37,7 +37,7 @@
               "label": "I do not know"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/wash-tank.jpg",
             "alt": "The object to name"
@@ -101,7 +101,7 @@
               "label": "I do not know"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/mallet.jpg",
             "alt": "Washing Paddle"
@@ -165,7 +165,7 @@
               "label": "I do not know"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/lump-basket.jpg",
             "alt": "Neerani"
@@ -209,7 +209,7 @@
               "label": "I do not know"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/spoon.jpg",
             "alt": "The object to name"
@@ -273,7 +273,7 @@
               "label": "I do not know"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/lump-basket.jpg",
             "alt": "Cow Or Buffalo Dung"
@@ -337,7 +337,7 @@
               "label": "I do not know"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/cloth-bale.jpg",
             "alt": "Unbleached Cotton"
@@ -401,7 +401,7 @@
               "label": "I do not know"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/mallet.jpg",
             "alt": "Block-Carving Chisels"
@@ -465,7 +465,7 @@
               "label": "I do not know"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/cloth-bale.jpg",
             "alt": "Base Fabric: Cotton, Mulmul And Silk"
@@ -502,30 +502,30 @@
           "options": [
             {
               "id": "o1",
-              "label": "Washing Paddle"
+              "label": "Cotton Base Cloth"
             },
             {
               "id": "o2",
-              "label": "Copper Dye Pot And Stirring Sticks"
+              "label": "Alum"
             },
             {
               "id": "o3",
-              "label": "Underground Indigo Vat"
+              "label": "Camel Dung"
             },
             {
               "id": "o4",
-              "label": "Washing Tanks / River Washing"
+              "label": "Dhawri / Tamarisk Galls"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/mallet.jpg",
+            "path": "/walkthrough/stills/cloth-bale.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "ajrakh",
             "stageKey": "ajrakh.scouring-and-washing",
-            "objectKey": "ajrakh.tool.dhoki-paddle"
+            "objectKey": "ajrakh.material.cotton-cloth"
           },
           "sampleText": true
         },
@@ -535,48 +535,7 @@
         "position": 0
       },
       {
-        "itemKey": "id.ajrakh.1.1",
-        "kind": "single_choice",
-        "prompt": "What is this called?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "o1",
-              "label": "Neerani"
-            },
-            {
-              "id": "o2",
-              "label": "Cotton Base Cloth"
-            },
-            {
-              "id": "o3",
-              "label": "Dusting Agents"
-            },
-            {
-              "id": "o4",
-              "label": "Gach Mud Resist"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/lump-basket.jpg",
-            "alt": "The object to name"
-          },
-          "target": {
-            "tradition": "ajrakh",
-            "stageKey": "ajrakh.scouring-and-washing",
-            "objectKey": "ajrakh.material.neerani-scouring-mix"
-          },
-          "sampleText": true
-        },
-        "answerKey": {
-          "optionId": "o1"
-        },
-        "position": 1
-      },
-      {
-        "itemKey": "id.ajrakh.2.3",
+        "itemKey": "id.ajrakh.2.1",
         "kind": "single_choice",
         "prompt": "What is this called?",
         "config": {
@@ -588,15 +547,15 @@
             },
             {
               "id": "o2",
-              "label": "Gach Mud Resist"
+              "label": "Cotton Base Cloth"
             },
             {
               "id": "o3",
-              "label": "Indigo"
+              "label": "Dhawri / Tamarisk Galls"
             },
             {
               "id": "o4",
-              "label": "Fermented Iron-Jaggery Black Paste"
+              "label": "Gach Mud Resist"
             }
           ],
           "shuffle": true,
@@ -614,10 +573,10 @@
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 2
+        "position": 1
       },
       {
-        "itemKey": "id.ajrakh.3.4",
+        "itemKey": "id.ajrakh.3.3",
         "kind": "single_choice",
         "prompt": "What is this called?",
         "config": {
@@ -625,7 +584,212 @@
           "options": [
             {
               "id": "o1",
+              "label": "Fermented Iron-Jaggery Black Paste"
+            },
+            {
+              "id": "o2",
+              "label": "Dhawri / Tamarisk Galls"
+            },
+            {
+              "id": "o3",
+              "label": "Dusting Agents"
+            },
+            {
+              "id": "o4",
+              "label": "Harde"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.outline-and-black-printing",
+            "objectKey": "ajrakh.material.kut-iron-paste"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 2
+      },
+      {
+        "itemKey": "id.ajrakh.4.4",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Alum"
+            },
+            {
+              "id": "o2",
+              "label": "Indigo"
+            },
+            {
+              "id": "o3",
+              "label": "Fermented Iron-Jaggery Black Paste"
+            },
+            {
+              "id": "o4",
               "label": "Khariyanu Resist Paste"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.alum-and-mud-resist-printing",
+            "objectKey": "ajrakh.material.alum"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 3
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.4.0",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Mordant/Colour Printing Pad"
+            },
+            {
+              "id": "o2",
+              "label": "Copper Dye Pot And Stirring Sticks"
+            },
+            {
+              "id": "o3",
+              "label": "Washing Paddle"
+            },
+            {
+              "id": "o4",
+              "label": "Underground Indigo Vat"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/printing-tray.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.tool.printing-pad-tray"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 4
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.4.1",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Printing Table With Gunny And Damp Cloth"
+            },
+            {
+              "id": "o2",
+              "label": "Washing Paddle"
+            },
+            {
+              "id": "o3",
+              "label": "Underground Indigo Vat"
+            },
+            {
+              "id": "o4",
+              "label": "Washing Tanks / River Washing"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/printing-table.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.tool.printing-table"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 5
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.4.3",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Iron Acetate Black Mordant"
+            },
+            {
+              "id": "o2",
+              "label": "Dhawri / Tamarisk Galls"
+            },
+            {
+              "id": "o3",
+              "label": "Dusting Agents"
+            },
+            {
+              "id": "o4",
+              "label": "Gach Mud Resist"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.material.kasim-iron-acetate"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 6
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.4.4",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Gum"
             },
             {
               "id": "o2",
@@ -646,173 +810,9 @@
             "alt": "The object to name"
           },
           "target": {
-            "tradition": "ajrakh",
-            "stageKey": "ajrakh.outline-and-black-printing",
-            "objectKey": "ajrakh.material.lime-gum-resist"
-          },
-          "sampleText": true
-        },
-        "answerKey": {
-          "optionId": "o1"
-        },
-        "position": 3
-      },
-      {
-        "itemKey": "id.machilipatnam-kalamkari.2.0",
-        "kind": "single_choice",
-        "prompt": "What is this called?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "o1",
-              "label": "Cow Or Buffalo Dung"
-            },
-            {
-              "id": "o2",
-              "label": "Alum"
-            },
-            {
-              "id": "o3",
-              "label": "Cotton Base Cloth"
-            },
-            {
-              "id": "o4",
-              "label": "Dusting Agents"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/lump-basket.jpg",
-            "alt": "The object to name"
-          },
-          "target": {
-            "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.scouring-and-dung-bleaching",
-            "objectKey": "machilipatnam-kalamkari.material.cow-dung"
-          },
-          "sampleText": true
-        },
-        "answerKey": {
-          "optionId": "o1"
-        },
-        "position": 4
-      },
-      {
-        "itemKey": "id.machilipatnam-kalamkari.2.1",
-        "kind": "single_choice",
-        "prompt": "What is this called?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "o1",
-              "label": "Unbleached Cotton"
-            },
-            {
-              "id": "o2",
-              "label": "Camel Dung"
-            },
-            {
-              "id": "o3",
-              "label": "Dhawri / Tamarisk Galls"
-            },
-            {
-              "id": "o4",
-              "label": "Dusting Agents"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/cloth-bale.jpg",
-            "alt": "The object to name"
-          },
-          "target": {
-            "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.scouring-and-dung-bleaching",
-            "objectKey": "machilipatnam-kalamkari.material.kora-cotton-cloth"
-          },
-          "sampleText": true
-        },
-        "answerKey": {
-          "optionId": "o1"
-        },
-        "position": 5
-      },
-      {
-        "itemKey": "id.machilipatnam-kalamkari.4.3",
-        "kind": "single_choice",
-        "prompt": "What is this called?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "o1",
-              "label": "Printing Table With Gunny And Damp Cloth"
-            },
-            {
-              "id": "o2",
-              "label": "Washing Tanks / River Washing"
-            },
-            {
-              "id": "o3",
-              "label": "Hand-Carved Wooden Printing Blocks"
-            },
-            {
-              "id": "o4",
-              "label": "Boiling Vessels And Fire-Places"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/printing-table.jpg",
-            "alt": "The object to name"
-          },
-          "target": {
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
-            "objectKey": "machilipatnam-kalamkari.tool.printing-table"
-          },
-          "sampleText": true
-        },
-        "answerKey": {
-          "optionId": "o1"
-        },
-        "position": 6
-      },
-      {
-        "itemKey": "id.machilipatnam-kalamkari.4.4",
-        "kind": "single_choice",
-        "prompt": "What is this called?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "o1",
-              "label": "Carved Wooden Printing Blocks"
-            },
-            {
-              "id": "o2",
-              "label": "Boiling Vessels And Fire-Places"
-            },
-            {
-              "id": "o3",
-              "label": "Date-Palm Brush And Kalam"
-            },
-            {
-              "id": "o4",
-              "label": "Mordant/Colour Printing Pad"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/carved-block.jpg",
-            "alt": "The object to name"
-          },
-          "target": {
-            "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
-            "objectKey": "machilipatnam-kalamkari.tool.teak-printing-blocks"
+            "objectKey": "machilipatnam-kalamkari.material.gum-binder"
           },
           "sampleText": true
         },
@@ -822,7 +822,7 @@
         "position": 7
       },
       {
-        "itemKey": "id.sanganeri.1.0",
+        "itemKey": "id.sanganeri.2.0",
         "kind": "single_choice",
         "prompt": "What is this called?",
         "config": {
@@ -830,30 +830,30 @@
           "options": [
             {
               "id": "o1",
-              "label": "Block-Carving Chisels"
+              "label": "Myrobalan"
             },
             {
               "id": "o2",
-              "label": "Copper Dye Pot And Stirring Sticks"
+              "label": "Camel Dung"
             },
             {
               "id": "o3",
-              "label": "Underground Indigo Vat"
+              "label": "Cotton Base Cloth"
             },
             {
               "id": "o4",
-              "label": "Washing Tanks / River Washing"
+              "label": "Dhawri / Tamarisk Galls"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/mallet.jpg",
+            "path": "/walkthrough/stills/powder-bowl.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "sanganeri",
-            "stageKey": "sanganeri.block-carving",
-            "objectKey": "sanganeri.tool.kalam-chisels"
+            "stageKey": "sanganeri.scouring-and-harda-pre-treatment",
+            "objectKey": "sanganeri.material.harda-myrobalan"
           },
           "sampleText": true
         },
@@ -863,48 +863,7 @@
         "position": 8
       },
       {
-        "itemKey": "id.sanganeri.2.1",
-        "kind": "single_choice",
-        "prompt": "What is this called?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "o1",
-              "label": "Base Fabric: Cotton, Mulmul And Silk"
-            },
-            {
-              "id": "o2",
-              "label": "Camel Dung"
-            },
-            {
-              "id": "o3",
-              "label": "Dhawri / Tamarisk Galls"
-            },
-            {
-              "id": "o4",
-              "label": "Dusting Agents"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/cloth-bale.jpg",
-            "alt": "The object to name"
-          },
-          "target": {
-            "tradition": "sanganeri",
-            "stageKey": "sanganeri.scouring-and-harda-pre-treatment",
-            "objectKey": "sanganeri.material.cotton-mulmul"
-          },
-          "sampleText": true
-        },
-        "answerKey": {
-          "optionId": "o1"
-        },
-        "position": 9
-      },
-      {
-        "itemKey": "id.sanganeri.3.3",
+        "itemKey": "id.sanganeri.3.1",
         "kind": "single_choice",
         "prompt": "What is this called?",
         "config": {
@@ -916,15 +875,15 @@
             },
             {
               "id": "o2",
-              "label": "Washing Tanks / River Washing"
+              "label": "Washing Paddle"
             },
             {
               "id": "o3",
-              "label": "Boiling Vessels And Fire-Places"
+              "label": "Underground Indigo Vat"
             },
             {
               "id": "o4",
-              "label": "Date-Palm Brush And Kalam"
+              "label": "Washing Tanks / River Washing"
             }
           ],
           "shuffle": true,
@@ -942,6 +901,47 @@
         "answerKey": {
           "optionId": "o1"
         },
+        "position": 9
+      },
+      {
+        "itemKey": "id.sanganeri.3.3",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Colour Tray With Jute-And-Cotton Pad"
+            },
+            {
+              "id": "o2",
+              "label": "Washing Tanks / River Washing"
+            },
+            {
+              "id": "o3",
+              "label": "Hand-Carved Wooden Printing Blocks"
+            },
+            {
+              "id": "o4",
+              "label": "Boiling Vessels And Fire-Places"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/printing-tray.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
+            "objectKey": "sanganeri.tool.colour-tray"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
         "position": 10
       },
       {
@@ -953,30 +953,30 @@
           "options": [
             {
               "id": "o1",
-              "label": "Printing Table With Padded Surface"
+              "label": "Fermented Iron Black"
             },
             {
               "id": "o2",
-              "label": "Hand-Carved Wooden Printing Blocks"
+              "label": "Dusting Agents"
             },
             {
               "id": "o3",
-              "label": "Boiling Vessels And Fire-Places"
+              "label": "Harde"
             },
             {
               "id": "o4",
-              "label": "Date-Palm Brush And Kalam"
+              "label": "Indigo"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/printing-table.jpg",
+            "path": "/walkthrough/stills/paste-bowl.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "sanganeri",
             "stageKey": "sanganeri.printing-the-mordants-and-ageing",
-            "objectKey": "sanganeri.tool.printing-table-and-pad"
+            "objectKey": "sanganeri.material.syahi-iron-black"
           },
           "sampleText": true
         },
@@ -1041,7 +1041,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/cloth-bale.jpg",
             "alt": "Cotton Base Cloth"
@@ -1101,7 +1101,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/powder-bowl.jpg",
             "alt": "Harde"
@@ -1161,7 +1161,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/paste-bowl.jpg",
             "alt": "Fermented Iron-Jaggery Black Paste"
@@ -1221,7 +1221,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/powder-bowl.jpg",
             "alt": "Alum"
@@ -1281,7 +1281,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/paste-bowl.jpg",
             "alt": "Gach Mud Resist"
@@ -1341,7 +1341,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/powder-bowl.jpg",
             "alt": "Dusting Agents"
@@ -1401,7 +1401,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/liquid-pot.jpg",
             "alt": "Indigo"
@@ -1461,7 +1461,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/wash-tank.jpg",
             "alt": "Washing Tanks / River Washing"
@@ -1521,7 +1521,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/lump-basket.jpg",
             "alt": "Indian Madder"
@@ -1581,7 +1581,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/liquid-pot.jpg",
             "alt": "Synthetic Alizarin"
@@ -1641,7 +1641,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/printing-tray.jpg",
             "alt": "Mordant/Colour Printing Pad"
@@ -1701,7 +1701,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/printing-table.jpg",
             "alt": "Printing Table With Gunny And Damp Cloth"
@@ -1761,7 +1761,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/liquid-pot.jpg",
             "alt": "Iron Acetate Black Mordant"
@@ -1821,7 +1821,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/paste-bowl.jpg",
             "alt": "Gum"
@@ -1881,7 +1881,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/lump-basket.jpg",
             "alt": "Alizarin, Madder And Chay Root"
@@ -1941,7 +1941,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/lump-basket.jpg",
             "alt": "Dye-Bath Plant Additives"
@@ -2001,7 +2001,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/paste-bowl.jpg",
             "alt": "Rice Starch"
@@ -2061,7 +2061,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/liquid-pot.jpg",
             "alt": "Indigo"
@@ -2121,7 +2121,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/powder-bowl.jpg",
             "alt": "Myrobalan"
@@ -2181,7 +2181,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/carved-block.jpg",
             "alt": "Block Set: Rekh (Outline), Datta (Filler) And Background Blocks"
@@ -2241,7 +2241,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/printing-tray.jpg",
             "alt": "Colour Tray With Jute-And-Cotton Pad"
@@ -2301,7 +2301,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/paste-bowl.jpg",
             "alt": "Fermented Iron Black"
@@ -2361,7 +2361,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/liquid-pot.jpg",
             "alt": "Madder / Alizarin Dye Bath"
@@ -2421,7 +2421,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/lump-basket.jpg",
             "alt": "Dhawai Flowers"
@@ -2481,7 +2481,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/powder-bowl.jpg",
             "alt": "Sawdust"
@@ -2541,7 +2541,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/dye-vat.jpg",
             "alt": "Indigo Vat"
@@ -2601,7 +2601,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/liquid-pot.jpg",
             "alt": "Turmeric And Pomegranate-Rind Yellow"
@@ -2661,7 +2661,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/powder-bowl.jpg",
             "alt": "Alum"
@@ -2971,7 +2971,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "target": {
             "tradition": "ajrakh"
           }
@@ -3068,7 +3068,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "target": {
             "tradition": "machilipatnam-kalamkari"
           }
@@ -3165,7 +3165,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "target": {
             "tradition": "sanganeri"
           }
@@ -3625,7 +3625,7 @@
     "paged": false,
     "items": [
       {
-        "itemKey": "id.ajrakh.1.2",
+        "itemKey": "id.ajrakh.3.2",
         "kind": "single_choice",
         "prompt": "What is this called?",
         "config": {
@@ -3633,30 +3633,30 @@
           "options": [
             {
               "id": "o1",
-              "label": "Cotton Base Cloth"
+              "label": "Khariyanu Resist Paste"
             },
             {
               "id": "o2",
-              "label": "Dhawri / Tamarisk Galls"
+              "label": "Cotton Base Cloth"
             },
             {
               "id": "o3",
-              "label": "Dusting Agents"
+              "label": "Dhawri / Tamarisk Galls"
             },
             {
               "id": "o4",
-              "label": "Gach Mud Resist"
+              "label": "Dusting Agents"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/cloth-bale.jpg",
+            "path": "/walkthrough/stills/paste-bowl.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "ajrakh",
-            "stageKey": "ajrakh.scouring-and-washing",
-            "objectKey": "ajrakh.material.cotton-cloth"
+            "stageKey": "ajrakh.outline-and-black-printing",
+            "objectKey": "ajrakh.material.lime-gum-resist"
           },
           "sampleText": true
         },
@@ -3666,7 +3666,7 @@
         "position": 0
       },
       {
-        "itemKey": "id.ajrakh.3.5",
+        "itemKey": "id.ajrakh.4.5",
         "kind": "single_choice",
         "prompt": "What is this called?",
         "config": {
@@ -3674,7 +3674,7 @@
           "options": [
             {
               "id": "o1",
-              "label": "Fermented Iron-Jaggery Black Paste"
+              "label": "Tamarind Seed Paste"
             },
             {
               "id": "o2",
@@ -3696,8 +3696,8 @@
           },
           "target": {
             "tradition": "ajrakh",
-            "stageKey": "ajrakh.outline-and-black-printing",
-            "objectKey": "ajrakh.material.kut-iron-paste"
+            "stageKey": "ajrakh.alum-and-mud-resist-printing",
+            "objectKey": "ajrakh.material.tamarind-seed-paste"
           },
           "sampleText": true
         },
@@ -3715,7 +3715,89 @@
           "options": [
             {
               "id": "o1",
+              "label": "Carved Wooden Printing Blocks"
+            },
+            {
+              "id": "o2",
+              "label": "Underground Indigo Vat"
+            },
+            {
+              "id": "o3",
+              "label": "Washing Tanks / River Washing"
+            },
+            {
+              "id": "o4",
+              "label": "Boiling Vessels And Fire-Places"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/carved-block.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.tool.teak-printing-blocks"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 2
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.6.5",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Boiling Vessels And Fire-Places"
+            },
+            {
+              "id": "o2",
               "label": "Mordant/Colour Printing Pad"
+            },
+            {
+              "id": "o3",
+              "label": "Printing Table With Gunny And Damp Cloth"
+            },
+            {
+              "id": "o4",
+              "label": "Carved Wooden Printing Blocks"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/boiling-vessel.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
+            "objectKey": "machilipatnam-kalamkari.tool.boiling-vessels-and-ovens"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 3
+      },
+      {
+        "itemKey": "id.sanganeri.3.2",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Printing Table With Padded Surface"
             },
             {
               "id": "o2",
@@ -3732,95 +3814,13 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/printing-tray.jpg",
-            "alt": "The object to name"
-          },
-          "target": {
-            "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
-            "objectKey": "machilipatnam-kalamkari.tool.printing-pad-tray"
-          },
-          "sampleText": true
-        },
-        "answerKey": {
-          "optionId": "o1"
-        },
-        "position": 2
-      },
-      {
-        "itemKey": "id.machilipatnam-kalamkari.4.5",
-        "kind": "single_choice",
-        "prompt": "What is this called?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "o1",
-              "label": "Iron Acetate Black Mordant"
-            },
-            {
-              "id": "o2",
-              "label": "Gach Mud Resist"
-            },
-            {
-              "id": "o3",
-              "label": "Harde"
-            },
-            {
-              "id": "o4",
-              "label": "Fermented Iron-Jaggery Black Paste"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/liquid-pot.jpg",
-            "alt": "The object to name"
-          },
-          "target": {
-            "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
-            "objectKey": "machilipatnam-kalamkari.material.kasim-iron-acetate"
-          },
-          "sampleText": true
-        },
-        "answerKey": {
-          "optionId": "o1"
-        },
-        "position": 3
-      },
-      {
-        "itemKey": "id.sanganeri.2.2",
-        "kind": "single_choice",
-        "prompt": "What is this called?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "o1",
-              "label": "Myrobalan"
-            },
-            {
-              "id": "o2",
-              "label": "Dhawri / Tamarisk Galls"
-            },
-            {
-              "id": "o3",
-              "label": "Gach Mud Resist"
-            },
-            {
-              "id": "o4",
-              "label": "Indigo"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "path": "/walkthrough/stills/printing-table.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "sanganeri",
-            "stageKey": "sanganeri.scouring-and-harda-pre-treatment",
-            "objectKey": "sanganeri.material.harda-myrobalan"
+            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
+            "objectKey": "sanganeri.tool.printing-table-and-pad"
           },
           "sampleText": true
         },
@@ -3838,30 +3838,30 @@
           "options": [
             {
               "id": "o1",
-              "label": "Colour Tray With Jute-And-Cotton Pad"
+              "label": "Alum Mordant Paste"
             },
             {
               "id": "o2",
-              "label": "Boiling Vessels And Fire-Places"
+              "label": "Harde"
             },
             {
               "id": "o3",
-              "label": "Date-Palm Brush And Kalam"
+              "label": "Indigo"
             },
             {
               "id": "o4",
-              "label": "Printing Table With Gunny And Damp Cloth"
+              "label": "Indian Madder"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/printing-tray.jpg",
+            "path": "/walkthrough/stills/paste-bowl.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "sanganeri",
             "stageKey": "sanganeri.printing-the-mordants-and-ageing",
-            "objectKey": "sanganeri.tool.colour-tray"
+            "objectKey": "sanganeri.material.begar-alum-mordant"
           },
           "sampleText": true
         },
@@ -3926,7 +3926,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/paste-bowl.jpg",
             "alt": "Khariyanu Resist Paste"
@@ -3986,7 +3986,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/paste-bowl.jpg",
             "alt": "Tamarind Seed Paste"
@@ -4046,7 +4046,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/dye-vat.jpg",
             "alt": "Underground Indigo Vat"
@@ -4106,7 +4106,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/boiling-vessel.jpg",
             "alt": "Copper Dye Pot And Stirring Sticks"
@@ -4166,7 +4166,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/lump-basket.jpg",
             "alt": "Dhawri / Tamarisk Galls"
@@ -4226,7 +4226,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/carved-block.jpg",
             "alt": "Carved Wooden Printing Blocks"
@@ -4286,7 +4286,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/boiling-vessel.jpg",
             "alt": "Boiling Vessels And Fire-Places"
@@ -4346,7 +4346,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/spoon.jpg",
             "alt": "Date-Palm Brush And Kalam"
@@ -4406,7 +4406,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/printing-table.jpg",
             "alt": "Printing Table With Padded Surface"
@@ -4466,7 +4466,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/paste-bowl.jpg",
             "alt": "Alum Mordant Paste"
@@ -4526,7 +4526,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/paste-bowl.jpg",
             "alt": "Mud Resist Paste"
@@ -4586,7 +4586,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/liquid-pot.jpg",
             "alt": "Indigo"
@@ -4814,7 +4814,7 @@
               "label": "Final Wash And Finishing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "target": {
             "tradition": "ajrakh"
           }
@@ -4903,7 +4903,7 @@
               "label": "Soaping And Final Sun-Drying"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "target": {
             "tradition": "machilipatnam-kalamkari"
           }
@@ -4992,7 +4992,7 @@
               "label": "Final Washing"
             }
           ],
-          "shuffle": false,
+          "shuffle": true,
           "target": {
             "tradition": "sanganeri"
           }
