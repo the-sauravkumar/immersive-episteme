@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { CurvedWords, PaintedWords } from "../domain/yard-plan";
+import { softenWhenFar } from "./material-library";
 
 const COLOURS: Record<PaintedWords["colour"], string> = { ink: "#14234e", lime: "#efe7d2", caption: "#0a1636", sample: "#8d1c14" };
 
@@ -156,7 +157,7 @@ function paintLayer(words: Pick<PaintedWords, "lines" | "height" | "colour" | "w
 }
 
 const paintMaterial = (texture: THREE.Texture) =>
-  new THREE.MeshStandardMaterial({ map: texture, transparent: true, depthWrite: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4, envMapIntensity: 0.3 });
+  softenWhenFar(new THREE.MeshStandardMaterial({ map: texture, transparent: true, depthWrite: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4, envMapIntensity: 0.3 }));
 
 export function paintWords(parent: THREE.Object3D, words: PaintedWords, maxWidthMetres: number | null = null): { width: number; height: number; mesh: THREE.Mesh } {
   const layer = paintLayer(words, maxWidthMetres);

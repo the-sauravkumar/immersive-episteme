@@ -27,13 +27,18 @@ export interface ScanTextures {
   readonly tileMetres: number;
 }
 
-function preventTiling(material: THREE.MeshStandardMaterial): void {
+const ANTI_TILE = "#include <map_fragment>\nvec3 mean = textureLod(map, vMapUv, 12.0).rgb;\nfloat meanTone = max(dot(mean, vec3(0.33)), 0.02);\nfloat toneA = dot(textureLod(map, vMapUv * 0.137 + vec2(0.31, 0.17), 5.0).rgb, vec3(0.33));\nfloat toneB = dot(textureLod(map, vMapUv.yx * 0.0531, 4.0).rgb, vec3(0.33));\ndiffuseColor.rgb *= clamp(mix(1.0, (toneA + toneB) / (2.0 * meanTone), 0.7), 0.72, 1.28);";
+
+const FAR_PRINT = ["#ifdef USE_MAP", "vec4 sampledDiffuseColor = texture2D(map, vMapUv, 0.6);", "diffuseColor *= sampledDiffuseColor;", "#endif"].join("\n");
+const FAR_WEAVE = ["#include <normal_fragment_maps>", "#ifdef USE_NORMALMAP_TANGENTSPACE", "normal = normalize(tbn * ((texture2D(normalMap, vNormalMapUv, 1.2).xyz * 2.0 - 1.0) * vec3(normalScale, 1.0)));", "#endif"].join("\n");
+
+export function softenWhenFar<T extends THREE.Material>(material: T, antiTile = false): T {
   material.onBeforeCompile = (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace(
-      "#include <map_fragment>",
-      "#include <map_fragment>\nvec3 mean = textureLod(map, vMapUv, 12.0).rgb;\nfloat meanTone = max(dot(mean, vec3(0.33)), 0.02);\nfloat toneA = dot(textureLod(map, vMapUv * 0.137 + vec2(0.31, 0.17), 5.0).rgb, vec3(0.33));\nfloat toneB = dot(textureLod(map, vMapUv.yx * 0.0531, 4.0).rgb, vec3(0.33));\ndiffuseColor.rgb *= clamp(mix(1.0, (toneA + toneB) / (2.0 * meanTone), 0.7), 0.72, 1.28);",
-    );
+    const tiled = antiTile ? shader.fragmentShader.replace("#include <map_fragment>", ANTI_TILE) : shader.fragmentShader;
+    shader.fragmentShader = tiled.replace("#include <map_fragment>", FAR_PRINT).replace("#include <normal_fragment_maps>", FAR_WEAVE);
   };
+  material.customProgramCacheKey = () => (antiTile ? "far-anti-tile" : "far");
+  return material;
 }
 
 export class MaterialLibrary {
@@ -100,8 +105,7 @@ export class MaterialLibrary {
     });
     if (Array.isArray(options.tint)) material.color.setRGB(options.tint[0]!, options.tint[1]!, options.tint[2]!);
     else if (typeof options.tint === "number") material.color.set(options.tint);
-    if (options.antiTile) preventTiling(material);
-    return material;
+    return softenWhenFar(material, options.antiTile ?? false);
   }
 
   async clothMaterial(file: string, options: { wet?: boolean; tint?: number; metresPerRepeat?: number; width?: number } = {}): Promise<THREE.MeshStandardMaterial> {
@@ -111,7 +115,7 @@ export class MaterialLibrary {
     const normal = weave.normal.clone();
     normal.repeat.set((options.metresPerRepeat ?? 3.46) / weave.tileMetres, (options.width ?? 1.5) / weave.tileMetres);
     normal.needsUpdate = true;
-    return new THREE.MeshStandardMaterial({
+    return softenWhenFar(new THREE.MeshStandardMaterial({
       map: colour,
       color: options.tint ?? 0xffffff,
       normalMap: normal,
@@ -120,7 +124,7 @@ export class MaterialLibrary {
       metalness: 0,
       side: THREE.DoubleSide,
       envMapIntensity: 0.22,
-    });
+    }));
   }
 
   async rawCottonMaterial(): Promise<THREE.MeshStandardMaterial> {
@@ -132,7 +136,7 @@ export class MaterialLibrary {
       texture.repeat.set(3.46 / weave.tileMetres, 1.5 / weave.tileMetres);
       texture.needsUpdate = true;
     }
-    return new THREE.MeshStandardMaterial({ map: colour, normalMap: normal, roughnessMap: roughness, roughness: 1, color: 0xffffff, side: THREE.DoubleSide, envMapIntensity: 0.12 });
+    return softenWhenFar(new THREE.MeshStandardMaterial({ map: colour, normalMap: normal, roughnessMap: roughness, roughness: 1, color: 0xffffff, side: THREE.DoubleSide, envMapIntensity: 0.12 }));
   }
 
   async photo(file: string): Promise<THREE.Texture> {
@@ -151,6 +155,7 @@ export class MaterialLibrary {
         node.castShadow = true;
         node.receiveShadow = true;
         const material = node.material as THREE.MeshStandardMaterial;
+        softenWhenFar(material);
         this.kept.add(node.geometry);
         this.kept.add(material);
         for (const texture of [material.map, material.normalMap, material.roughnessMap]) {
