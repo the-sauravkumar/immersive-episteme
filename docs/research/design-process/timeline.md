@@ -28,3 +28,14 @@ In order of occurrence. "Lead" is the project lead. Commits are on branch `main`
 | 22 | Condition-equivalence module built: server-timed learning budget, one shared time accountant (exposure, navigation, pauses; reconciles exactly), lossless exit flush, shared citation disclosure, versioned timing metrics kept out of outcome tables. | `modules/condition-equivalence.md` |
 | 23 | Study engine moved to Concept Note rev2: two doors, the note's step order, self-paced learning with a server cap and every stage required, new test item types generated from the stage templates, delayed test, Door 2 behavioural logging, parity from one template, analysis on H1 to H3. | DR-074 |
 | 24 | Both doors wired into the study from one template, the old doors and the spatial compiler deleted, and the whole journey run through both doors on a production build. | DR-076 |
+
+## 2026-11-04: Door 2 Whole-Route Faults
+
+Walking every station, rather than the first three, exposed faults the single-scene checks could not see.
+
+- The hill ring sat at a fixed world position with radius 130 m, and the route reached it at Station 4, where a strip painted over the walls and shed. The hills now follow the walker. Reported by the cut-over agent from a journey capture.
+- A freeze of about 1.4 s on the legs to Stations 4, 5 and 6 was traced by Chrome trace to a blocked `DXGISwapChainImageBacking::Present`. Shader compilation, video memory and first-time model loads were each tested and rejected. The cause was the water canvas, which ran one blur pass per ellipse for 700 ellipses. Worst frame on those legs after the fix: 73 to 90 ms on the GTX 1650, still over the 50 ms budget.
+- Yards left behind were never released: geometries reached 907 and textures 169. Both now stay flat, near 280 and 85.
+- Guided turning compared raw yaw, so a turn that crossed the wrap never ended and the camera kept overriding the look input. Back also stopped short during arrival and walked forward before turning. All fixed and covered by `npm run walkthrough:route`.
+- Pan shimmer, pixels with 4 or more reversals, budget 0.5%: vat 2.18 to 0.93, table 0.77 to 0.41, wash 2.69 to 0.81. Vat and wash remain over budget. Close-up sharpness was compared by eye at 4K and held.
+- Not measured: the Iris Xe timing on the new scenes. Claude Code stopped the run for low memory about 20 s after launch, before the page reported ready.

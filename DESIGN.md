@@ -314,6 +314,7 @@ Nobody reports 3D or interface work as done without this. Agents state which ite
 
 - [ ] **Scene check, every scene: zero hits.** `npm run walkthrough:check`. Cloth against every solid and the ground; solid against solid except declared contacts; everything inside its yard and clear of the boundary walls; textiles clear of each other. It must also report hits when a fault is planted, in the same run.
 - [ ] Hex and font scans of new interface code find only Sections 4 and 5. Scan for `Inter`, `Space Grotesk`, `backdrop-filter`, `box-shadow`, `border-radius` except radios, and emoji: none.
+- [ ] **Whole route walked, every station looked at.** `npm run walkthrough:route` with the lab running on the walk entry. A single scene near the origin proves nothing about a route that runs 380 m: anything placed in world coordinates must be checked at the far end. Frame gaps are read from this run, not from the first three stations. A yard left behind must release what it owns.
 - [ ] Rule 1 statistics, rendered paint contrast and Section 8.3 floors pass per scene, using the longest real caption and name.
 - [ ] Scene audit: no text-bearing mesh without another job. Every painted name fully on its surface, not covered by cloth or an object.
 - [ ] Parity report: same words, model ids and file hashes, per stage and tradition.
