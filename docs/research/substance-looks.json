@@ -1,0 +1,2861 @@
+[
+  {
+    "key": "ajrakh-neerani-scouring-mix",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.scouring-and-washing"
+    ],
+    "label": "Neerani",
+    "localName": null,
+    "form": "liquid",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#4A3A28",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional. No source gives the colour of the emulsion or of its lather. It contains camel dung, so it takes the cow-dung row's dark brown, stated as provisional.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "frothy lather over an oily emulsion",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+        "quote": "This is a thoroughly emulsified mixture of castor oil, soda ash and camel dung.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+        "quote": "By the final cycle of the Saaj process the neerani mixture has produced a rich lather on the cloth.",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-camel-dung",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.scouring-and-washing",
+      "ajrakh.dung-soak-and-sun-bleaching"
+    ],
+    "label": "Camel Dung",
+    "localName": null,
+    "form": "other",
+    "status": "needs-lead",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#4A3A28",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional. No source describes camel dung's colour or its form as held. It takes the cow-dung row's dark brown, stated as provisional.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "unknown",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": []
+  },
+  {
+    "key": "ajrakh-cotton-cloth",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.scouring-and-washing"
+    ],
+    "label": "Cotton Base Cloth",
+    "localName": null,
+    "form": "cloth",
+    "status": "sourced",
+    "colourWords": "unscoured cotton with a dull yellowish look, called grey cloth, ending bright white and soft after scouring",
+    "colourHex": "#D8D1B8",
+    "renderHex": "#D8D1B8",
+    "renderBasis": "evidence",
+    "renderNote": null,
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "matte woven cotton",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+        "quote": "The artisans procure cotton fabric ranging from 60's to 120's count",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+        "quote": "These impurities give the cloth a dull yellowish look, earning it the name \"grey cloth\".",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+        "quote": "usually by the third or fourth steeping the dung and oil mixture emulsifies to produce a rich lather, which leaves the cloth bright white and soft",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-harde-myrobalan",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.harde-pre-mordanting"
+    ],
+    "label": "Harde",
+    "localName": null,
+    "form": "powder",
+    "status": "sourced",
+    "colourWords": "dried myrobalan fruit powder, light brown dry and yellow once wetted to a paste",
+    "colourHex": "#B8985A",
+    "renderHex": "#B8985A",
+    "renderBasis": "evidence",
+    "renderNote": null,
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "fine powder",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+        "quote": "is dipped in the solution of harda powder (Terminalia chebula) and cold water.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+        "quote": "Harde, a yellow astringent paste made from the dried powdered fruits of the Myroballan tree, Terminalia Chebula.",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Journal of Pharmacognosy and Phytochemistry 2019, 8(5), study of the stages of Haritaki",
+        "locator": "https://www.phytojournal.com/archives/2019/vol8issue5/PartAJ/8-5-108-864.pdf; \"Organoleptic properties\" of the powder; accessed 2026-11-04",
+        "quote": "Organoleptic properties Colour : Light Brown Odour : slightly pungent but Not characteristic Taste : astringent Texture : Fine Powder",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Journal of Pharmacognosy and Phytochemistry 2019, 8(5), study of the stages of Haritaki",
+        "locator": "https://www.phytojournal.com/archives/2019/vol8issue5/PartAJ/8-5-108-864.pdf; \"Organoleptic properties\" of the powder; accessed 2026-11-04",
+        "quote": "Organoleptic properties Colour : Light Brown Odour : slightly pungent but Not characteristic Taste : astringent Texture : Fine Powder",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-lime-gum-resist",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.outline-and-black-printing"
+    ],
+    "label": "Khariyanu Resist Paste",
+    "localName": null,
+    "form": "paste",
+    "status": "inferred",
+    "colourWords": "white lime with tree gum of unnamed species. No source describes the mixed paste, so the colour is taken from the ingredients. FAO's gum sentence is about A. senegal as a solid, pale white to orange-brown, and the Ajrakh GI says only tree gum.",
+    "colourHex": "#EDE9DD",
+    "renderHex": "#EDE9DD",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "smooth, thick, lump-free wet paste",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+        "quote": "a resist paste containing lime and tree gum",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+        "quote": "The tree gum, which would earlier be brought to the Khatris by the Maldhari communities, is soaked in water and sieved a number of times to ensure the paste is smooth and lump free.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+        "quote": "For finer outlines this paste must be thicker.",
+        "supports": "surface"
+      },
+      {
+        "kind": "web",
+        "source": "FAO/JECFA, Calcium hydroxide monograph (Additive-086)",
+        "locator": "https://www.fao.org/fileadmin/user_upload/jecfa_additives/docs/Monograph1/Additive-086.pdf; DESCRIPTION; accessed 2026-11-04",
+        "quote": "White powder",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "FAO, Gum arabic, monograph (X3860E)",
+        "locator": "https://www.fao.org/3/x3860e/X3860E20.htm; description; accessed 2026-11-04",
+        "quote": "Gum arabic ( A. senegal ) is a pale white to orange-brown solid, which breaks with a glassy fracture.",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-kut-iron-paste",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.outline-and-black-printing"
+    ],
+    "label": "Fermented Iron-Jaggery Black Paste",
+    "localName": "Kut",
+    "form": "paste",
+    "status": "inferred",
+    "colourWords": "no source gives the colour in the bowl. The GI colour is what kut develops on harde cloth, a low-reliability blog calls a different recipe black when boiled, and the very dark hex is by analogy with kasim, a like iron-jaggery ferment from another craft.",
+    "colourHex": "#2B211B",
+    "renderHex": "#2B211B",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "smooth fine wet paste",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [
+      "The GI (PDF p. 6) describes a fermented paste of jaggery, iron and besan. dranshublog describes drained liquid boiled with tamarind seed powder."
+    ],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+        "quote": "The kut is a smooth finer paste made from jaggery, or molasses, in which scrap iron such as horse-hoes and besan (gram flour) have been fermented for ten to fifteen days.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+        "quote": "kut develops a deep fast chocolate-black colour as the iron particles in the kut paste oxidise with the tannic acid.",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "The revival of Ajrakh (dranshublog.com, low reliability)",
+        "locator": "https://dranshublog.com/the-revival-of-ajrakh; process list; accessed 2026-11-04",
+        "quote": "When boiled together, a black colour is obtained which is used to print on the cloth.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 85 (PDF p. 101)",
+        "quote": "With each passing day the solution looks darker and towards the end of two weeks the solution turns dark black.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+        "quote": "The kut is a smooth finer paste made from jaggery, or molasses, in which scrap iron such as horse-hoes and besan (gram flour) have been fermented for ten to fifteen days.",
+        "supports": "surface"
+      },
+      {
+        "kind": "web",
+        "source": "The revival of Ajrakh (dranshublog.com, low reliability)",
+        "locator": "https://dranshublog.com/the-revival-of-ajrakh; process list; accessed 2026-11-04",
+        "quote": "This liquid is drained off and added to tamarind seed powder.",
+        "supports": "context"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-alum",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.alum-and-mud-resist-printing"
+    ],
+    "label": "Alum",
+    "localName": "Fatakdi",
+    "form": "crystals",
+    "status": "sourced",
+    "colourWords": "colourless transparent crystals, or white when powdered; before it is suspended in the pa paste",
+    "colourHex": "#EEF0EC",
+    "renderHex": "#EEF0EC",
+    "renderBasis": "evidence",
+    "renderNote": null,
+    "transparency": "clear",
+    "transparencyBasis": "evidence",
+    "surface": "glassy crystalline, matte as powder",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [
+      "FAO's monograph is potassium alum, while dranshublog calls Ajrakh's alum aluminium sulphate. The craft's alum type is not established."
+    ],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 5",
+        "quote": "Dry alum crystals are pounded to powder.",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "FAO/JECFA, Aluminium potassium sulfate, Combined Compendium monograph (additive-014)",
+        "locator": "https://fao.org/fileadmin/user_upload/jecfa_additives/docs/monograph3/additive-014.pdf; DESCRIPTION; accessed 2026-11-04",
+        "quote": "Large, transparent crystals or crystalline fragments, or white crystalline powder",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "FAO/JECFA, Aluminium potassium sulfate, Combined Compendium monograph (additive-014)",
+        "locator": "https://fao.org/fileadmin/user_upload/jecfa_additives/docs/monograph3/additive-014.pdf; DESCRIPTION; accessed 2026-11-04",
+        "quote": "Large, transparent crystals or crystalline fragments, or white crystalline powder",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 75 — Bagh Prints of Madhya Pradesh (Logo), GI Application No. 505 (pp. 6–18) (bagh S1, Government of India, Intellectual Property India)",
+        "locator": "PDF p. 13",
+        "quote": "Alum is colourless - it produces red when boiled with alizarine and dhavdakaphool.",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "FAO/JECFA, Aluminium potassium sulfate, Combined Compendium monograph (additive-014)",
+        "locator": "https://fao.org/fileadmin/user_upload/jecfa_additives/docs/monograph3/additive-014.pdf; DESCRIPTION; accessed 2026-11-04",
+        "quote": "Large, transparent crystals or crystalline fragments, or white crystalline powder",
+        "supports": "transparency"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-tamarind-seed-paste",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.alum-and-mud-resist-printing"
+    ],
+    "label": "Tamarind Seed Paste",
+    "localName": "Kachika",
+    "form": "paste",
+    "status": "needs-lead",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#D9CBAA",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional pale tan. The only pale evidence is a supplier sheet for a dry powder, and a blog says this paste is red, so the lead should decide.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "sticky wet paste",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [
+      "A supplier sheet (low reliability) gives dry tamarind kernel powder as off-white, and states neither roasted nor unroasted. The row is a boiled paste from roasted seed (GI p. 6).",
+      "dranshublog (low reliability) says the same printing paste is red: boiled with alum, tinted traditionally with geru or red clay, today with a chemical dye. A pale paste may be wrong for the printed paste."
+    ],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+        "quote": "Alum is suspended in a sticky paste of boiled powder from roasted and ground tamarind seeds (locally known as kachika).",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "Sri Balasanka Mill, Tamarind Kernel Powder (TradeIndia supplier listing, low reliability)",
+        "locator": "https://www.tradeindia.com/products/tamarind-kernel-powder-5838849.html; test report; accessed 2026-11-04",
+        "quote": "Color (Physical Appearance) : Off White (High Color)",
+        "supports": "context"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+        "quote": "Alum is suspended in a sticky paste of boiled powder from roasted and ground tamarind seeds (locally known as kachika).",
+        "supports": "surface"
+      },
+      {
+        "kind": "web",
+        "source": "The revival of Ajrakh (dranshublog.com, low reliability)",
+        "locator": "https://dranshublog.com/the-revival-of-ajrakh; process list; accessed 2026-11-04",
+        "quote": "Tamarind seed powder is boiled along with alum (aluminium sulphate) to produce a red paste.",
+        "supports": "context"
+      },
+      {
+        "kind": "web",
+        "source": "The revival of Ajrakh (dranshublog.com, low reliability)",
+        "locator": "https://dranshublog.com/the-revival-of-ajrakh; process list; accessed 2026-11-04",
+        "quote": "Traditionally geru or red clay was used but these days a non-toxic chemical dye is preferred.",
+        "supports": "context"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-gach-mud-resist",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.alum-and-mud-resist-printing"
+    ],
+    "label": "Gach Mud Resist",
+    "localName": null,
+    "form": "paste",
+    "status": "inferred",
+    "colourWords": "clay paste. The GI names the clay lal mitti and one low-reliability blog says red clay, for the version with alum. No source states the shade of either paste. This one row covers both gach pastes: half has alum, and dhori gach does not.",
+    "colourHex": "#8E5A40",
+    "renderHex": "#8E5A40",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "smooth fine wet mud",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+        "quote": "a smooth fine paste is mixed from tree gum (Guar ka godh), clay (lal mitti), water and millet flour.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+        "quote": "This paste is called dhori gach and does not contain alum.",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "The revival of Ajrakh (dranshublog.com, low reliability)",
+        "locator": "https://dranshublog.com/the-revival-of-ajrakh; process list; accessed 2026-11-04",
+        "quote": "A paste of alum, boiled millet flour, red clay and gum arabica is used to print the design.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+        "quote": "a smooth fine paste is mixed from tree gum (Guar ka godh), clay (lal mitti), water and millet flour.",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-dusting-agents",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.alum-and-mud-resist-printing"
+    ],
+    "label": "Dusting Agents",
+    "localName": null,
+    "form": "powder",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#B59A6E",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional wood-dust tan. The sources name saw dust, powdered cow dung or rice husk, and give no colour.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "dry loose dust",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+        "quote": "Saw dust or finely powdered cow dung is sprinkled over immediately after printing these two gach pastes, to prevent the wet day from smudging.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+        "quote": "are dusted with ground cow dung or rice husk to protect against the indigo dye which is used later.",
+        "supports": "form"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-indigo",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.indigo-dyeing"
+    ],
+    "label": "Indigo",
+    "localName": null,
+    "form": "powder",
+    "status": "sourced",
+    "colourWords": "dark blue passing into violet-purple, with a copper lustre where rubbed; the dry dyestuff, not the vat liquor",
+    "colourHex": "#1F2A55",
+    "renderHex": "#1F2A55",
+    "renderBasis": "evidence",
+    "renderNote": null,
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "dull matte, coppery where rubbed",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+        "quote": "Natural Indigo is purchased in blocks or cakes, ground to a powder and soaked before fermenting in an underground vat",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "Andrew Ure, A Dictionary of Arts, Manufactures, and Mines (transcription on Coloriasto)",
+        "locator": "https://coloriasto.blogspot.com/2011/04/dictionary-of-arts-indigo.html; \"Properties of Indigo\"; accessed 2026-11-04",
+        "quote": "It possesses a dark blue color, passing into violet-purple, is void of taste and smell, dull, but by rubbing with a smooth hard body, it assumes the lustre and hue of copper.",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Andrew Ure, A Dictionary of Arts, Manufactures, and Mines (transcription on Coloriasto)",
+        "locator": "https://coloriasto.blogspot.com/2011/04/dictionary-of-arts-indigo.html; \"Properties of Indigo\"; accessed 2026-11-04",
+        "quote": "It possesses a dark blue color, passing into violet-purple, is void of taste and smell, dull, but by rubbing with a smooth hard body, it assumes the lustre and hue of copper.",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-madder",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.red-dyeing"
+    ],
+    "label": "Indian Madder",
+    "localName": null,
+    "form": "roots",
+    "status": "sourced",
+    "colourWords": "dried Rubia cordifolia roots, reddish-brown or dark brown outside",
+    "colourHex": "#7E4632",
+    "renderHex": "#7E4632",
+    "renderBasis": "evidence",
+    "renderNote": null,
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "dry wrinkled root",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+        "quote": "This dye extracted from these long thin roots links to the alum mordant on the cotton fibres",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "Hong Kong Chinese Materia Medica Standards vol. 5, Rubiae Radix et Rhizoma",
+        "locator": "https://www.cmro.gov.hk/hkcmms/vol5/pdf_e/Rubiae_Radix_et_Rhizoma_v5_e.pdf; \"Description\"; accessed 2026-11-04",
+        "quote": "Roots cylindrical, slightly curved, 3.5-24 cm long, 1-10 mm in diameter, externally reddish-brown or dark brown, with fine longitudinal wrinkles",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Hong Kong Chinese Materia Medica Standards vol. 5, Rubiae Radix et Rhizoma",
+        "locator": "https://www.cmro.gov.hk/hkcmms/vol5/pdf_e/Rubiae_Radix_et_Rhizoma_v5_e.pdf; \"Description\"; accessed 2026-11-04",
+        "quote": "Roots cylindrical, slightly curved, 3.5-24 cm long, 1-10 mm in diameter, externally reddish-brown or dark brown, with fine longitudinal wrinkles",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-synthetic-alizarin",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.red-dyeing"
+    ],
+    "label": "Synthetic Alizarin",
+    "localName": null,
+    "form": "crystals",
+    "status": "sourced",
+    "colourWords": "orange or red crystalline dye",
+    "colourHex": "#C4481F",
+    "renderHex": "#C4481F",
+    "renderBasis": "evidence",
+    "renderNote": null,
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "crystalline",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+        "quote": "Alizarin crystals or the crushed and steeped roots of majeeta or Indian Madder are gently heated in a large copper pot.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+        "quote": "Derived from coal tar this crystalline red dye rapidly superseded madder",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Wikipedia, Alizarin",
+        "locator": "https://en.wikipedia.org/wiki/Alizarin; infobox Appearance; accessed 2026-11-04",
+        "quote": "orange-red crystals or powder",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+        "quote": "Alizarin crystals or the crushed and steeped roots of majeeta or Indian Madder are gently heated in a large copper pot.",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-dhawri-tamarisk",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.red-dyeing"
+    ],
+    "label": "Dhawri / Tamarisk Galls",
+    "localName": "Dhaori Na Phool",
+    "form": "flowers",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#8A5A46",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional dull red-brown for a dried flower. No source gives this material's colour, and its identity is in conflict.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "dry",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [
+      "The GI calls this material galls of tamarisk (PDF p. 4) and dried tamarisk flowers (PDF p. 8). Bagh S5 identifies dhavdi flowers as Woodfordia fruticosa."
+    ],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+        "quote": "if colour spreads into the white areas a handful of dried tamansk flowers are added.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 4",
+        "quote": "Red color: This color comes from alum as mordant and dhaori na phool (galls of tamarisk).",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+        "quote": "if colour spreads into the white areas a handful of dried tamansk flowers are added.",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-scouring-rinse-water",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.scouring-and-washing"
+    ],
+    "label": "Scouring And Washing",
+    "localName": null,
+    "form": "liquid",
+    "status": "partial",
+    "colourWords": "clean water, as the source says. Clean is not a colour statement, so there is no tint.",
+    "colourHex": null,
+    "renderHex": "#EEF1EC",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional clear water. Rendered as a transparent surface, not an opaque colour. The blue-grey look the lead rejected must not return.",
+    "transparency": "clear",
+    "transparencyBasis": "inferred",
+    "surface": "wet, soapy where it meets the cloth",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+        "quote": "Clean water is used to work this soap through the cloth, cleaning out the impurities.",
+        "supports": "form"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-harde-bath",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.harde-pre-mordanting"
+    ],
+    "label": "Harde Pre-Mordanting",
+    "localName": null,
+    "form": "liquid",
+    "status": "inferred",
+    "colourWords": "harde powder in cold water. No source describes the liquid. The GI calls the paste yellow and says the dried cloth gets a crude cream colour, and the yellowish pulp is from another craft whose source calls the material flowers. The hex is inferred.",
+    "colourHex": "#AD9048",
+    "renderHex": "#AD9048",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+        "quote": "is dipped in the solution of harda powder (Terminalia chebula) and cold water.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+        "quote": "The cloth when dried gets a crude cream colour.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+        "quote": "Harde, a yellow astringent paste made from the dried powdered fruits of the Myroballan tree, Terminalia Chebula.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 5",
+        "quote": "yellowish myrobalan pulp",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-indigo-vat",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.indigo-dyeing"
+    ],
+    "label": "Underground Indigo Vat",
+    "localName": "Kun",
+    "form": "liquid",
+    "status": "inferred",
+    "colourWords": "reduced vat liquor, amber to yellowish-green, not blue, with a coppery scum and a bubble flower; from general indigo dyeing guides, not an Indian workshop source. The hex is one reading of a wide range. One low-reliability Ajrakh account says the colour is best when it turns yellow.",
+    "colourHex": "#7C7A36",
+    "renderHex": "#7C7A36",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "evidence",
+    "surface": "wet with a metallic coppery scum and bubbles",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": "underground vat",
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+        "quote": "ground to a powder and soaked before fermenting in an underground vat consisting strong alkaline lime powder, dates and carbonate of soda",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "Maiwa Handprints, Natural Dyes - Indigo",
+        "locator": "https://maiwahandprints.blogspot.com/2013/08/natural-dyes-indigo.html; opening section; accessed 2026-11-04",
+        "quote": "When fiber is added to an indigo vat (which is an amber or yellowish-green colour)",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Botanical Colors, Indigo Shibori Kit instructions",
+        "locator": "https://botanicalcolors.com/wp-content/uploads/2015/01/Indigo-Shibori-Kit.pdf; \"Making The Indigo Vat\"; accessed 2026-11-04",
+        "quote": "The vat is ready when it has turned greenish yellow",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Botanical Colors, Indigo Shibori Kit instructions",
+        "locator": "https://botanicalcolors.com/wp-content/uploads/2015/01/Indigo-Shibori-Kit.pdf; \"Making The Indigo Vat\"; accessed 2026-11-04",
+        "quote": "The vat should have a murky, yellowish color.",
+        "supports": "transparency"
+      },
+      {
+        "kind": "web",
+        "source": "Botanical Colors, Indigo Shibori Kit instructions",
+        "locator": "https://botanicalcolors.com/wp-content/uploads/2015/01/Indigo-Shibori-Kit.pdf; \"Making The Indigo Vat\"; accessed 2026-11-04",
+        "quote": "Again, look for the indigo flower and coppery scum developing.",
+        "supports": "surface"
+      },
+      {
+        "kind": "web",
+        "source": "The revival of Ajrakh (dranshublog.com, low reliability)",
+        "locator": "https://dranshublog.com/the-revival-of-ajrakh; process list; accessed 2026-11-04",
+        "quote": "The colour is best when it turns yellow.",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-washing-tank-water",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.washing-out-resists"
+    ],
+    "label": "Washing Tanks / River Washing",
+    "localName": null,
+    "form": "liquid",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#EEF1EC",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional clear water. No source gives the colour of this water. Rendered as a transparent surface. The source says it carries washed-out paste, so a clear surface is a neutral starting point only.",
+    "transparency": "clear",
+    "transparencyBasis": "inferred",
+    "surface": "wet, carrying loosened clay",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": "washing tanks",
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+        "quote": "Through washing and beating at the washing tanks removed the resist paste, the loose indigo dye, and the tamarind seed paste from the cloth.",
+        "supports": "form"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-red-dye-bath",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.red-dyeing"
+    ],
+    "label": "Copper Dye Pot And Stirring Sticks",
+    "localName": null,
+    "form": "liquid",
+    "status": "inferred",
+    "colourWords": "red dye bath; no source describes the colour of the hot liquid. Red is the dye's purpose and its result on the cloth, so the hex is inferred and is the least supported in the sheet. The Ajrakh GI calls alizarin a crystalline red dye, and the phrase 'red colouring' is from the Sanganeri GI, another craft.",
+    "colourHex": "#7F2A1D",
+    "renderHex": "#7F2A1D",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet, gently heated",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": "large copper pot",
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+        "quote": "Alizarin crystals or the crushed and steeped roots of majeeta or Indian Madder are gently heated in a large copper pot.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "Alizarine Bath: - This is red colouring dye bath prepared by using vegetable dyes",
+        "supports": "context"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+        "quote": "Derived from coal tar this crystalline red dye rapidly superseded madder",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+        "quote": "Alizarin crystals or the crushed and steeped roots of majeeta or Indian Madder are gently heated in a large copper pot.",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-camel-dung-solution",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.dung-soak-and-sun-bleaching"
+    ],
+    "label": "Dung Soak And Sun-Bleaching",
+    "localName": null,
+    "form": "liquid",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#4A3A28",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional. No source gives the colour of this solution. It takes the cow-dung row's dark brown, stated as provisional.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+        "quote": "The dyed cloth would be soaked in a solution of camel dung",
+        "supports": "form"
+      }
+    ]
+  },
+  {
+    "key": "ajrakh-final-wash-water",
+    "traditions": [
+      "ajrakh"
+    ],
+    "stages": [
+      "ajrakh.final-wash-and-finishing"
+    ],
+    "label": "Final Wash And Finishing",
+    "localName": null,
+    "form": "liquid",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#EEF1EC",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional clear water. No source gives the colour of this water. Rendered as a transparent surface.",
+    "transparency": "clear",
+    "transparencyBasis": "inferred",
+    "surface": "cool wet",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+        "quote": "It is usually done early in the morning when the water is cool",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+        "quote": "It is usually done early in the morning when the water is cool",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-cow-dung",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.scouring-and-harda-pre-treatment",
+      "sanganeri.sun-bleaching"
+    ],
+    "label": "Cow Dung",
+    "localName": null,
+    "form": "other",
+    "status": "inferred",
+    "colourWords": "dung ranging greenish to blackish, darkening in air, usually dark brown; a general description of cow dung, not this craft and not the state as held.",
+    "colourHex": "#4A3A28",
+    "renderHex": "#4A3A28",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred from a general encyclopaedia description of cow dung. This hex is the provisional brown other dung rows borrow.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "moist, fibrous",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 11",
+        "quote": "A mild solution ofcow dung and water is sprhkled over the fubric.",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "Wikipedia, Cow dung",
+        "locator": "https://en.wikipedia.org/wiki/Cow_dung; lead section; accessed 2026-11-04",
+        "quote": "The colour ranges from greenish to blackish, often darkening soon after exposure to air",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Wikipedia, Cow dung",
+        "locator": "https://en.wikipedia.org/wiki/Cow_dung; section \"Fertilizer\"; accessed 2026-11-04",
+        "quote": "Cow dung, which is usually a dark brown colour",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-cotton-mulmul",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.scouring-and-harda-pre-treatment"
+    ],
+    "label": "Base Fabric: Cotton, Mulmul And Silk",
+    "localName": null,
+    "form": "cloth",
+    "status": "inferred",
+    "colourWords": "the Sanganeri GI calls the unbleached cloth grey cloth and gives no shade. The colour is inferred from the Ajrakh GI's account of grey cloth as dull yellowish, another craft. 'Gossamer white' describes finished printed turbans, not this cloth at scouring.",
+    "colourHex": "#D8D1B8",
+    "renderHex": "#D8D1B8",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "fine matte woven",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 2",
+        "quote": "Sanganeri lland Block Printing Textiles are mostly on cotto cloths and sooetimes on ,otton x silk.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "used to desize and partially bleach the grey cloth.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Syahi Begar | Sanganer Print (sanganeri S8, Gaatha)",
+        "locator": "§ \"Syahi Begar\"",
+        "quote": "The 'Syahi Begar' black and red designs on gossamer white cloth adorned the Safa turbans",
+        "supports": "context"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+        "quote": "These impurities give the cloth a dull yellowish look, earning it the name \"grey cloth\".",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-harda-myrobalan",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.scouring-and-harda-pre-treatment"
+    ],
+    "label": "Myrobalan",
+    "localName": "Harda",
+    "form": "powder",
+    "status": "sourced",
+    "colourWords": "light brown dried myrobalan powder, leaving a yellowish tinge on cloth",
+    "colourHex": "#B8985A",
+    "renderHex": "#B8985A",
+    "renderBasis": "evidence",
+    "renderNote": null,
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "fine powder",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "It is made ofharda powder.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Syahi Begar | Sanganer Print (sanganeri S8, Gaatha)",
+        "locator": "§ \"Syahi Begar\"",
+        "quote": "It left a yellowish tinge to the fabric, hence known as 'pila-karna '.",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Journal of Pharmacognosy and Phytochemistry 2019, 8(5), study of the stages of Haritaki",
+        "locator": "https://www.phytojournal.com/archives/2019/vol8issue5/PartAJ/8-5-108-864.pdf; \"Organoleptic properties\" of the powder; accessed 2026-11-04",
+        "quote": "Organoleptic properties Colour : Light Brown Odour : slightly pungent but Not characteristic Taste : astringent Texture : Fine Powder",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Journal of Pharmacognosy and Phytochemistry 2019, 8(5), study of the stages of Haritaki",
+        "locator": "https://www.phytojournal.com/archives/2019/vol8issue5/PartAJ/8-5-108-864.pdf; \"Organoleptic properties\" of the powder; accessed 2026-11-04",
+        "quote": "Organoleptic properties Colour : Light Brown Odour : slightly pungent but Not characteristic Taste : astringent Texture : Fine Powder",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-syahi-iron-black",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.printing-the-mordants-and-ageing"
+    ],
+    "label": "Fermented Iron Black",
+    "localName": "Syahi",
+    "form": "paste",
+    "status": "inferred",
+    "colourWords": "no source gives the colour in the bowl. The Sanganeri GI says syahi develops a deep black in combination with harda, which describes tannin-treated cloth, so the paste need not be black before printing. The very dark hex is by analogy with kasim, another craft.",
+    "colourHex": "#241C18",
+    "renderHex": "#241C18",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "wet gum paste",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": "earthenware vessel",
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "Syahi Paste: - Syahi is essentially a fermented solution of iron and fermenting agent molasses fiiggery, gur) and gum.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Syahi Begar | Sanganer Print (sanganeri S8, Gaatha)",
+        "locator": "§ \"Syahi Begar\"",
+        "quote": "Syahi (ink) pinting paste prepared using scrap iron, horseshoes and Gur (jaggery) in an earthenware vessel.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "Syahi in combination witl harda develops into a deep black colour.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 85 (PDF p. 101)",
+        "quote": "With each passing day the solution looks darker and towards the end of two weeks the solution turns dark black.",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-begar-alum-mordant",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.printing-the-mordants-and-ageing"
+    ],
+    "label": "Alum Mordant Paste",
+    "localName": "Begar",
+    "form": "paste",
+    "status": "inferred",
+    "colourWords": "nearly transparent sticky gum and alum paste, tinted by a pinch of red ochre. The tint is sourced, but no source gives a shade or opacity, so the terracotta hex is inferred.",
+    "colourHex": "#B4674A",
+    "renderHex": "#B4674A",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "evidence",
+    "surface": "sticky wet paste",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Syahi Begar | Sanganer Print (sanganeri S8, Gaatha)",
+        "locator": "§ \"Syahi Begar\"",
+        "quote": "Alum was mixed with sticky tree gum paste",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Syahi Begar | Sanganer Print (sanganeri S8, Gaatha)",
+        "locator": "§ \"Syahi Begar\"",
+        "quote": "a pinch of Geru red ochre to bring out colour in the otherwise transparent paste.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Syahi Begar | Sanganer Print (sanganeri S8, Gaatha)",
+        "locator": "§ \"Syahi Begar\"",
+        "quote": "Alum was mixed with sticky tree gum paste",
+        "supports": "surface"
+      },
+      {
+        "kind": "project-source",
+        "source": "Syahi Begar | Sanganer Print (sanganeri S8, Gaatha)",
+        "locator": "§ \"Syahi Begar\"",
+        "quote": "a pinch of Geru red ochre to bring out colour in the otherwise transparent paste.",
+        "supports": "transparency"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-madder-alizarin",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.washing-and-alizarin-dyeing"
+    ],
+    "label": "Madder / Alizarin Dye Bath",
+    "localName": null,
+    "form": "liquid",
+    "status": "inferred",
+    "colourWords": "red colouring dye bath, mixed to a required reddish hue; this row is also the liquid in the boil stage. no source describes the colour of the hot liquid. Red is the dye's purpose and its result on the cloth, so the hex is inferred and is the least supported in the sheet.",
+    "colourHex": "#7F2A1D",
+    "renderHex": "#7F2A1D",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet, on a furnace",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": "copper vessel",
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "Alizarine Bath: - This is red colouring dye bath prepared by using vegetable dyes",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Syahi Begar | Sanganer Print (sanganeri S8, Gaatha)",
+        "locator": "§ \"Syahi Begar\"",
+        "quote": "The next step known as Ghan ki Rangai involves use of a copper vessel 'Tamda' on a Bhatti.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "Alizarine and \"dhawai ka phool\" @hawai Flower Wood Fordia Floribun<la) are mixed in specific ratios in water and mixture kept for required hours to g* required reddish hue.",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-dhawai-phool",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.washing-and-alizarin-dyeing"
+    ],
+    "label": "Dhawai Flowers",
+    "localName": null,
+    "form": "flowers",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#8A5A46",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional dull red-brown for a dried flower. 'Bright red' describes flowers on the living plant, and nothing cited describes the dried material as used.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "small dry florets",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "Alizarine and \"dhawai ka phool\" @hawai Flower Wood Fordia Floribun<la) are mixed in specific ratios in water",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "Woodfordia fruticosa medicinal plant profile (dairyknowledge.in)",
+        "locator": "https://dairyknowledge.in/sites/default/files/102_Woodfordia_fruticosa.pdf; botanical description; accessed 2026-11-04",
+        "quote": "Flowers : Numerous, bright red, in dense, axillary, paniculate cymose clusters.",
+        "supports": "context"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-dabu-resist-paste",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.dabu-resist-printing"
+    ],
+    "label": "Mud Resist Paste",
+    "localName": "Dabu",
+    "form": "paste",
+    "status": "inferred",
+    "colourWords": "no source gives the colour of the mixed paste. The only 'black' is a low-reliability blog on dabu in Rajasthan glossing one ingredient, kali mitti, as black clay. Lime and flour are also in the paste, so the dark hex is inferred.",
+    "colourHex": "#3D342C",
+    "renderHex": "#3D342C",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "thick, sticky, wet",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "Dabu paste is prepared by mixing *Kali mittf', lime (Bidhan) wheai flour and gurn",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 11",
+        "quote": "Since the resist paste'dlwbu'is thick and sticky no sharp definitioas are achieved.",
+        "supports": "surface"
+      },
+      {
+        "kind": "project-source",
+        "source": "Mud In Textiles: The Art Of Block Printing in Rajasthan (dabu S17, Enroute Indian History (blog))",
+        "locator": "§ \"Mud In Textiles: The Art Of Block Printing in Rajasthan\"",
+        "quote": "Kalidar Dabu - Here, chuna (calcium hydroxide) and beedan (moth-eaten wheat flour) are mixed with kali mitti (black clay) soaked in water",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-sawdust",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.dabu-resist-printing"
+    ],
+    "label": "Sawdust",
+    "localName": null,
+    "form": "powder",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#B59A6E",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional wood-dust tan. No source gives the colour of the sawdust.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "dry loose dust",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 11",
+        "quote": "It is applied with wooden block on the fabric and saw dus is sprinkled over it.",
+        "supports": "form"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-indigo",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.indigo-dyeing"
+    ],
+    "label": "Indigo",
+    "localName": "Neel",
+    "form": "powder",
+    "status": "inferred",
+    "colourWords": "blue colouring matter in the GI, sold today as synthetic granules, whose look nothing cited describes. The shade is inferred from Ure's account of commercial natural indigo. Dry dyestuff, not the vat liquor.",
+    "colourHex": "#1C2A5C",
+    "renderHex": "#1C2A5C",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "granular",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "Nowadays synthetic indigo granules available in market are used.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "Indrgo blue (nil) is a blue colouring matt€r extracted from nil plants (Indigofera tinctoria).",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Andrew Ure, A Dictionary of Arts, Manufactures, and Mines (transcription on Coloriasto)",
+        "locator": "https://coloriasto.blogspot.com/2011/04/dictionary-of-arts-indigo.html; \"Properties of Indigo\"; accessed 2026-11-04",
+        "quote": "It possesses a dark blue color, passing into violet-purple, is void of taste and smell, dull, but by rubbing with a smooth hard body, it assumes the lustre and hue of copper.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "Nowadays synthetic indigo granules available in market are used.",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-haldi-naspal-yellow",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.yellow-dyeing-and-alum-post-mordanting"
+    ],
+    "label": "Turmeric And Pomegranate-Rind Yellow",
+    "localName": null,
+    "form": "liquid",
+    "status": "inferred",
+    "colourWords": "yellow dye by name. No source gives the liquid's shade. 'Deep orange-yellow' describes ground turmeric powder, and turmeric dispersed in water changes with acidity, so the hex is inferred.",
+    "colourHex": "#D6A224",
+    "renderHex": "#D6A224",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 12",
+        "quote": "The dye extracted ftom turmeric and pomegranate peals is very fugitive",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 9",
+        "quote": "Dyeing rith yellow dye locally called *Ilaldi Naspal Putai\".",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Wikipedia, Turmeric",
+        "locator": "https://en.wikipedia.org/wiki/Turmeric; lead section; accessed 2026-11-05",
+        "quote": "they are ground into a deep orange-yellow shelf-stable spice powder",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Wikipedia, Turmeric",
+        "locator": "https://en.wikipedia.org/wiki/Turmeric; section \"Indicator\"; accessed 2026-11-05",
+        "quote": "Turmeric dispersed in water is yellow under acid and red under alkaline conditions",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-alum-fitkari",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.yellow-dyeing-and-alum-post-mordanting"
+    ],
+    "label": "Alum",
+    "localName": "Fitkari",
+    "form": "crystals",
+    "status": "sourced",
+    "colourWords": "colourless transparent crystals, or white when powdered; dry, before dilution",
+    "colourHex": "#EEF0EC",
+    "renderHex": "#EEF0EC",
+    "renderBasis": "evidence",
+    "renderNote": null,
+    "transparency": "clear",
+    "transparencyBasis": "evidence",
+    "surface": "glassy crystalline, matte as powder",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "web",
+        "source": "FAO/JECFA, Aluminium potassium sulfate, Combined Compendium monograph (additive-014)",
+        "locator": "https://fao.org/fileadmin/user_upload/jecfa_additives/docs/monograph3/additive-014.pdf; DESCRIPTION; accessed 2026-11-04",
+        "quote": "Large, transparent crystals or crystalline fragments, or white crystalline powder",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "FAO/JECFA, Aluminium potassium sulfate, Combined Compendium monograph (additive-014)",
+        "locator": "https://fao.org/fileadmin/user_upload/jecfa_additives/docs/monograph3/additive-014.pdf; DESCRIPTION; accessed 2026-11-04",
+        "quote": "Large, transparent crystals or crystalline fragments, or white crystalline powder",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 75 — Bagh Prints of Madhya Pradesh (Logo), GI Application No. 505 (pp. 6–18) (bagh S1, Government of India, Intellectual Property India)",
+        "locator": "PDF p. 13",
+        "quote": "Alum is colourless - it produces red when boiled with alizarine and dhavdakaphool.",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "FAO/JECFA, Aluminium potassium sulfate, Combined Compendium monograph (additive-014)",
+        "locator": "https://fao.org/fileadmin/user_upload/jecfa_additives/docs/monograph3/additive-014.pdf; DESCRIPTION; accessed 2026-11-04",
+        "quote": "Large, transparent crystals or crystalline fragments, or white crystalline powder",
+        "supports": "transparency"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-harda-bath",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.scouring-and-harda-pre-treatment"
+    ],
+    "label": "Scouring And Harda Pre-Treatment",
+    "localName": null,
+    "form": "liquid",
+    "status": "inferred",
+    "colourWords": "harda powder in water. The Sanganeri GI says it gives the fabric a creamish yellow colour, a result on cloth. No source describes the liquid, so yellowish is inferred, by analogy with myrobalan pulp in another craft.",
+    "colourHex": "#AD9048",
+    "renderHex": "#AD9048",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "It is made ofharda powder.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 14",
+        "quote": "This is used to give creamish yellow colour to the fabric.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Syahi Begar | Sanganer Print (sanganeri S8, Gaatha)",
+        "locator": "§ \"Syahi Begar\"",
+        "quote": "It left a yellowish tinge to the fabric, hence known as 'pila-karna '.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 5",
+        "quote": "yellowish myrobalan pulp",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-cow-dung-solution",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.sun-bleaching"
+    ],
+    "label": "Sun-Bleaching",
+    "localName": null,
+    "form": "liquid",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#4A3A28",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional. No source gives the colour of this solution. It takes the cow-dung row's dark brown, stated as provisional.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 11",
+        "quote": "A mild solution ofcow dung and water is sprhkled over the fubric.",
+        "supports": "form"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-indigo-vat",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.indigo-dyeing"
+    ],
+    "label": "Indigo Vat",
+    "localName": null,
+    "form": "liquid",
+    "status": "inferred",
+    "colourWords": "reduced vat liquor, amber to yellowish-green, not blue, with a coppery scum and a bubble flower; from general indigo dyeing guides, not an Indian workshop source. The hex is one reading of a wide range.",
+    "colourHex": "#7C7A36",
+    "renderHex": "#7C7A36",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "evidence",
+    "surface": "wet with a metallic coppery scum and bubbles",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": "indigo tank",
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 11",
+        "quote": "The process to start a new indigo tank is tedious and complicated but once tle val is ready for usg it is kept 'alive' by constant addition of iadigo lime and jaggery.",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "Maiwa Handprints, Natural Dyes - Indigo",
+        "locator": "https://maiwahandprints.blogspot.com/2013/08/natural-dyes-indigo.html; opening section; accessed 2026-11-04",
+        "quote": "When fiber is added to an indigo vat (which is an amber or yellowish-green colour)",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Botanical Colors, Indigo Shibori Kit instructions",
+        "locator": "https://botanicalcolors.com/wp-content/uploads/2015/01/Indigo-Shibori-Kit.pdf; \"Making The Indigo Vat\"; accessed 2026-11-04",
+        "quote": "The vat is ready when it has turned greenish yellow",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Botanical Colors, Indigo Shibori Kit instructions",
+        "locator": "https://botanicalcolors.com/wp-content/uploads/2015/01/Indigo-Shibori-Kit.pdf; \"Making The Indigo Vat\"; accessed 2026-11-04",
+        "quote": "The vat should have a murky, yellowish color.",
+        "supports": "transparency"
+      },
+      {
+        "kind": "web",
+        "source": "Botanical Colors, Indigo Shibori Kit instructions",
+        "locator": "https://botanicalcolors.com/wp-content/uploads/2015/01/Indigo-Shibori-Kit.pdf; \"Making The Indigo Vat\"; accessed 2026-11-04",
+        "quote": "Again, look for the indigo flower and coppery scum developing.",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-alum-post-mordant-bath",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.yellow-dyeing-and-alum-post-mordanting"
+    ],
+    "label": "Yellow Dyeing And Alum Post-Mordanting",
+    "localName": null,
+    "form": "liquid",
+    "status": "inferred",
+    "colourWords": "dilute alum in water, transparent and colourless in Kalamkari and Bagh accounts of alum. No Sanganeri source describes this bath, so the transparency is inferred from another craft.",
+    "colourHex": null,
+    "renderHex": "#EEF1EC",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional clear water. Only the slight tint of a clear surface is provisional; there is no colour to source.",
+    "transparency": "clear",
+    "transparencyBasis": "evidence",
+    "surface": "wet, clear",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": "big copper vessel",
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 12",
+        "quote": "ln this process the fab'ric is dipped in a big copper vessel filled with water and diluted",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 39 (PDF p. 55)",
+        "quote": "Alum mordant is a transparent solution which is used to obtain a range of colors including various tones of red.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 75 — Bagh Prints of Madhya Pradesh (Logo), GI Application No. 505 (pp. 6–18) (bagh S1, Government of India, Intellectual Property India)",
+        "locator": "PDF p. 13",
+        "quote": "Alum is colourless - it produces red when boiled with alizarine and dhavdakaphool.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 39 (PDF p. 55)",
+        "quote": "Alum mordant is a transparent solution which is used to obtain a range of colors including various tones of red.",
+        "supports": "transparency"
+      }
+    ]
+  },
+  {
+    "key": "sanganeri-final-wash-water",
+    "traditions": [
+      "sanganeri"
+    ],
+    "stages": [
+      "sanganeri.final-washing"
+    ],
+    "label": "Final Washing",
+    "localName": null,
+    "form": "liquid",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#EEF1EC",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional clear water. No source gives the colour of this water. Rendered as a transparent surface. The source says the resist softens in this tank, so a clear surface is a neutral starting point only.",
+    "transparency": "clear",
+    "transparencyBasis": "inferred",
+    "surface": "wet, carrying softened resist",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": "big tanks",
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case) (sanganeri S1, Filed under the Geographical Indications of Goods (Registration & Protection) Act, 1999; PDF hosted by oriGIn)",
+        "locator": "PDF p. 12",
+        "quote": "In this process the fabric is left in big tanks for at lest 3 to 4 hours till the resist paste becomes smooth.",
+        "supports": "form"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-cow-dung",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.scouring-and-dung-bleaching"
+    ],
+    "label": "Cow Or Buffalo Dung",
+    "localName": null,
+    "form": "other",
+    "status": "inferred",
+    "colourWords": "dung ranging greenish to blackish, darkening in air, usually dark brown; a general description of cow dung, not this craft and not the state as held. The cited colour sentences are about cow dung; nothing cited describes buffalo dung.",
+    "colourHex": "#4A3A28",
+    "renderHex": "#4A3A28",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred from a general encyclopaedia description of cow dung. This hex is the provisional brown other dung rows borrow.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "moist, fibrous",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 6",
+        "quote": "The unbleached material/cloth/gray cloth is soaked in a solution of buffalo or cow dung and water for 5 to 10 minutes.",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "Wikipedia, Cow dung",
+        "locator": "https://en.wikipedia.org/wiki/Cow_dung; lead section; accessed 2026-11-04",
+        "quote": "The colour ranges from greenish to blackish, often darkening soon after exposure to air",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Wikipedia, Cow dung",
+        "locator": "https://en.wikipedia.org/wiki/Cow_dung; section \"Fertilizer\"; accessed 2026-11-04",
+        "quote": "Cow dung, which is usually a dark brown colour",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-kora-cotton-cloth",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.scouring-and-dung-bleaching"
+    ],
+    "label": "Unbleached Cotton",
+    "localName": null,
+    "form": "cloth",
+    "status": "inferred",
+    "colourWords": "kora, unbleached grey cloth. No Kalamkari source gives the shade. The colour is inferred from the Ajrakh GI's account of grey cloth as dull yellowish, another craft.",
+    "colourHex": "#D8D1B8",
+    "renderHex": "#D8D1B8",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "matte woven cotton",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 3",
+        "quote": "The base on which Kalamkari printing and dyeing is carried out on is kora (unbleached) long cloth of 20 or 60 counts.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 6",
+        "quote": "The unbleached material/cloth/gray cloth is soaked in a solution of buffalo or cow dung and water for 5 to 10 minutes.",
+        "supports": "context"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy) (ajrakh S1, Geographical Indications Registry, Chennai (IP India))",
+        "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+        "quote": "These impurities give the cloth a dull yellowish look, earning it the name \"grey cloth\".",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-myrobalan-karakkaya",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.myrobalan-treatment"
+    ],
+    "label": "Myrobalan",
+    "localName": "Karakkaya",
+    "form": "powder",
+    "status": "inferred",
+    "colourWords": "powdered dried karakkaya. Light brown describes Terminalia chebula fruit powder, while S4 calls this material flowers. Yellowish describes the wet pulp. The hex is inferred.",
+    "colourHex": "#B8985A",
+    "renderHex": "#B8985A",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "pounded powder",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": "stone pot, for pounding",
+    "conflicts": [
+      "S4 (PDF p. 5) calls karakkaya dried flowers and says myrobalan flowers are crushed. S6 (PDF p. 6) and the Ajrakh GI use Terminalia chebula, whose dried fruit the Ajrakh GI names."
+    ],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 5",
+        "quote": "This is prepared from the dried flowers called karakkaya (in Telugu) or myrobalan.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 5",
+        "quote": "Water is added to the powdered karakkaya",
+        "supports": "surface"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 5",
+        "quote": "The flowers are put into a stone pot and pounded with a wooden rod.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 5",
+        "quote": "Myrobalan flowers are crushed and mixed with water to get a yellowish myrobalan pulp",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Journal of Pharmacognosy and Phytochemistry 2019, 8(5), study of the stages of Haritaki",
+        "locator": "https://www.phytojournal.com/archives/2019/vol8issue5/PartAJ/8-5-108-864.pdf; \"Organoleptic properties\" of the powder; accessed 2026-11-04",
+        "quote": "Organoleptic properties Colour : Light Brown Odour : slightly pungent but Not characteristic Taste : astringent Texture : Fine Powder",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Retracing Kalamkari's journey: from classic to a contemporary textile art (machilipatnam-kalamkari S6, The Chitrolekha Journal on Art and Design, Vol. 2 No. 2 (CC BY-NC 4.0), doi:10.21659/cjad.22.v2n201)",
+        "locator": "PDF p. 6",
+        "quote": "After this the fabric is treated in Myrobalan (Terminalia chebula) solution",
+        "supports": "context"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-myrobalan-solution",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.second-printing"
+    ],
+    "label": "Myrobalan",
+    "localName": "Karakkaya",
+    "form": "liquid",
+    "status": "inferred",
+    "colourWords": "prepared myrobalan solution, brushed on as the yellow colour. S4 calls the applied colour yellow without describing the liquid in the pot, so the hex is inferred, shared with the other myrobalan baths.",
+    "colourHex": "#AD9048",
+    "renderHex": "#AD9048",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [
+      "S4 (PDF p. 5) calls karakkaya dried flowers and says myrobalan flowers are crushed. S6 (PDF p. 6) and the Ajrakh GI use Terminalia chebula, whose dried fruit the Ajrakh GI names."
+    ],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 12",
+        "quote": "This is the only stage where a brush (made of date-palm stick) is used to apply the yellow color (prepared myrobalan solution).",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 12",
+        "quote": "This is the only stage where a brush (made of date-palm stick) is used to apply the yellow color (prepared myrobalan solution).",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-kasim-iron-acetate",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.printing-iron-and-alum-mordants"
+    ],
+    "label": "Iron Acetate Black Mordant",
+    "localName": "Kasim",
+    "form": "liquid",
+    "status": "sourced",
+    "colourWords": "dark black fermented iron solution; darkens over two weeks",
+    "colourHex": "#17130F",
+    "renderHex": "#17130F",
+    "renderBasis": "evidence",
+    "renderNote": null,
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "wet, thin",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": "large earthen pot or barrel-shaped stone pot; the sources conflict",
+    "conflicts": [
+      "Sengupta (p. 85) says large earthen pots. S4 (PDF p. 4) says a barrel-shaped stone pot, 90 per cent below the ground."
+    ],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 85 (PDF p. 101)",
+        "quote": "The solution is prepared in large earthen pots, also used for storing drinking water across India.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 4",
+        "quote": "The cleaned strips are placed in a barrelshaped stone pot.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 4",
+        "quote": "The stone pot should be securely covered and should be 90 per cent below the ground level.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 85 (PDF p. 101)",
+        "quote": "With each passing day the solution looks darker and towards the end of two weeks the solution turns dark black.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 4",
+        "quote": "Iron acetate is used for obtaining the black color on the fabric.",
+        "supports": "context"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-gum-binder",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.printing-iron-and-alum-mordants"
+    ],
+    "label": "Gum",
+    "localName": null,
+    "form": "paste",
+    "status": "inferred",
+    "colourWords": "the Kalamkari sources do not name the gum's species. FAO's pale white to orange-brown is A. senegal as a solid, used as a proxy for both species and state, so the hex is inferred.",
+    "colourHex": "#D7B57A",
+    "renderHex": "#D7B57A",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "sticky wet, glassy when dry",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 6",
+        "quote": "All other colors are obtained by mixing them with gum.",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "FAO, Gum arabic, monograph (X3860E)",
+        "locator": "https://www.fao.org/3/x3860e/X3860E20.htm; description; accessed 2026-11-04",
+        "quote": "Gum arabic ( A. senegal ) is a pale white to orange-brown solid, which breaks with a glassy fracture.",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-alum-karam-printing-paste",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.printing-iron-and-alum-mordants"
+    ],
+    "label": "Alum",
+    "localName": "Karam",
+    "form": "paste",
+    "status": "inferred",
+    "colourWords": "transparent alum solution with gum, tinted red by a temporary colourant so the printer can see it. The tint is sourced, but no source gives a shade or opacity, so the hex is inferred.",
+    "colourHex": "#B86A52",
+    "renderHex": "#B86A52",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "evidence",
+    "surface": "wet paste on a tray pad",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": "colour tray",
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "One District One Product — Krishna district (Pedana Kalamkari) (machilipatnam-kalamkari S3, Government of Andhra Pradesh (krishna.ap.gov.in))",
+        "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+        "quote": "printing paste is taken in colour tray.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "One District One Product — Krishna district (Pedana Kalamkari) (machilipatnam-kalamkari S3, Government of Andhra Pradesh (krishna.ap.gov.in))",
+        "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+        "quote": "The Alum red tinted printing paste",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 39 (PDF p. 55)",
+        "quote": "Alum mordant is a transparent solution which is used to obtain a range of colors including various tones of red.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 79 (PDF p. 95)",
+        "quote": "However, additional temporary colorants are used with the dye solution for the workers' convenience.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 39 (PDF p. 55)",
+        "quote": "Alum mordant is a transparent solution which is used to obtain a range of colors including various tones of red.",
+        "supports": "transparency"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-alum-karam",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.alum-fixing-dip"
+    ],
+    "label": "Alum",
+    "localName": "Karam",
+    "form": "crystals",
+    "status": "sourced",
+    "colourWords": "colourless transparent crystals, or white when pounded; dry, before the dip",
+    "colourHex": "#EEF0EC",
+    "renderHex": "#EEF0EC",
+    "renderBasis": "evidence",
+    "renderNote": null,
+    "transparency": "clear",
+    "transparencyBasis": "evidence",
+    "surface": "glassy crystalline, matte as powder",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 5",
+        "quote": "Dry alum crystals are pounded to powder.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 12",
+        "quote": "The alum solution is made by adding cool water to pounded alum crystals.",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "FAO/JECFA, Aluminium potassium sulfate, Combined Compendium monograph (additive-014)",
+        "locator": "https://fao.org/fileadmin/user_upload/jecfa_additives/docs/monograph3/additive-014.pdf; DESCRIPTION; accessed 2026-11-04",
+        "quote": "Large, transparent crystals or crystalline fragments, or white crystalline powder",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Geographical Indications Journal No. 75 — Bagh Prints of Madhya Pradesh (Logo), GI Application No. 505 (pp. 6–18) (bagh S1, Government of India, Intellectual Property India)",
+        "locator": "PDF p. 13",
+        "quote": "Alum is colourless - it produces red when boiled with alizarine and dhavdakaphool.",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "FAO/JECFA, Aluminium potassium sulfate, Combined Compendium monograph (additive-014)",
+        "locator": "https://fao.org/fileadmin/user_upload/jecfa_additives/docs/monograph3/additive-014.pdf; DESCRIPTION; accessed 2026-11-04",
+        "quote": "Large, transparent crystals or crystalline fragments, or white crystalline powder",
+        "supports": "transparency"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-alizarin",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying"
+    ],
+    "label": "Alizarin, Madder And Chay Root",
+    "partOfTemplateLabel": "Alizarin, Madder And Chay Root",
+    "localName": null,
+    "form": "powder",
+    "status": "sourced",
+    "colourWords": "orange-red crystals or powder, a general description of alizarin; Sengupta saw it used as a powder and S4 dissolves it to a solution.",
+    "colourHex": "#C4481F",
+    "renderHex": "#C4481F",
+    "renderBasis": "evidence",
+    "renderNote": null,
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "crystals or powder",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 81 (PDF p. 97)",
+        "quote": "Subramanyam took a handful of alizarin powder in a plastic mug and slowly diluted the powder in warm water.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 72 (PDF p. 88)",
+        "quote": "Chaya roots are no longer used by the contemporary dyers whereas alizarin--chemically synthesized from madder--is widely used at least since the 1980s.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 10",
+        "quote": "An alizerine solution is made by dissolving it in cold water.",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "Wikipedia, Alizarin",
+        "locator": "https://en.wikipedia.org/wiki/Alizarin; infobox Appearance; accessed 2026-11-05",
+        "quote": "orange-red crystals or powder",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Wikipedia, Alizarin",
+        "locator": "https://en.wikipedia.org/wiki/Alizarin; infobox Appearance; accessed 2026-11-05",
+        "quote": "orange-red crystals or powder",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-madder-root",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying"
+    ],
+    "label": "Madder Root",
+    "partOfTemplateLabel": "Alizarin, Madder And Chay Root",
+    "localName": null,
+    "form": "roots",
+    "status": "inferred",
+    "colourWords": "dried madder root, reddish-brown or dark brown outside, from a standard for Rubia cordifolia. S4 names rubia tinctoria among historic sources of red, so the species differs and the hex is inferred.",
+    "colourHex": "#7E4632",
+    "renderHex": "#7E4632",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "dry wrinkled root",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 2",
+        "quote": "The madder root, rubia, widely used in India and chay (chay is oldenlandia), the root of oldenlandia umbellata, were highly estimated as fine sources of red in the south.",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "Hong Kong Chinese Materia Medica Standards vol. 5, Rubiae Radix et Rhizoma",
+        "locator": "https://www.cmro.gov.hk/hkcmms/vol5/pdf_e/Rubiae_Radix_et_Rhizoma_v5_e.pdf; \"Description\"; accessed 2026-11-04",
+        "quote": "Roots cylindrical, slightly curved, 3.5-24 cm long, 1-10 mm in diameter, externally reddish-brown or dark brown, with fine longitudinal wrinkles",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Hong Kong Chinese Materia Medica Standards vol. 5, Rubiae Radix et Rhizoma",
+        "locator": "https://www.cmro.gov.hk/hkcmms/vol5/pdf_e/Rubiae_Radix_et_Rhizoma_v5_e.pdf; \"Description\"; accessed 2026-11-04",
+        "quote": "Roots cylindrical, slightly curved, 3.5-24 cm long, 1-10 mm in diameter, externally reddish-brown or dark brown, with fine longitudinal wrinkles",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-chay-root",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying"
+    ],
+    "label": "Chay Root",
+    "partOfTemplateLabel": "Alizarin, Madder And Chay Root",
+    "localName": null,
+    "form": "roots",
+    "status": "sourced",
+    "colourWords": "dried chay root, yellowish grey after drying and orangish when fresh. Historic only: The Chaya roots sentence is Sengupta p. 72: they are no longer used by contemporary dyers.",
+    "colourHex": "#A39B78",
+    "renderHex": "#A39B78",
+    "renderBasis": "evidence",
+    "renderNote": null,
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "dry root",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 66 (PDF p. 82)",
+        "quote": "Chaya roots are usually 25-36 cm long and 3-6 cm in diameter.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 66 (PDF p. 82)",
+        "quote": "When fresh, the roots are orangish in tone; after drying, they turn yellowish gray.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 72 (PDF p. 88)",
+        "quote": "Chaya roots are no longer used by the contemporary dyers whereas alizarin--chemically synthesized from madder--is widely used at least since the 1980s.",
+        "supports": "context"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-dye-bath-plant-additives",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying"
+    ],
+    "label": "Dye-Bath Plant Additives",
+    "localName": null,
+    "form": "other",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#7E7148",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional dried-leaf tone. Sengupta says the leaves look similar to bay leaves and gives no colour.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "dry leaf",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 81 (PDF p. 97)",
+        "quote": "After Mastan translated my questions about the boiling process to Subramanyam, he pointed to a heap of dried leaves at the corner of the room and explained its utility.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 81 (PDF p. 97)",
+        "quote": "These leaves are locally known as jaji ku (Memecylon edule) and look similar to bay leaves.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 81 (PDF p. 97)",
+        "quote": "After Mastan translated my questions about the boiling process to Subramanyam, he pointed to a heap of dried leaves at the corner of the room and explained its utility.",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-rice-starch",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.second-printing"
+    ],
+    "label": "Rice Starch",
+    "localName": null,
+    "form": "liquid",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#EFEBDF",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional pale tone. No source gives the colour of this strained gruel with buffalo milk. A food-blog line about rinsing raw rice was removed because it describes another state.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet, slightly thick",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 12",
+        "quote": "For yellow, the fabric is dipped in prepared starch (boiled rice water).",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 5",
+        "quote": "The liquid is then filtered into another vessel.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 12",
+        "quote": "Fresh buffalo milk is also added to the starch solution to prevent the colors from running.",
+        "supports": "form"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-indigo",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.second-printing"
+    ],
+    "label": "Indigo",
+    "localName": null,
+    "form": "paste",
+    "status": "inferred",
+    "colourWords": "indigo from cakes in rice starch, blue. Ure describes the dry dyestuff, not a wet paste, and one account says today's synthetic is lighter in shade without giving a value, so the hex is a guess.",
+    "colourHex": "#27407A",
+    "renderHex": "#27407A",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "opaque",
+    "transparencyBasis": "inferred",
+    "surface": "wet paste",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 6",
+        "quote": "Indigo is obtained from indigo cakes. It is mixed with rice starch and not gum for printing purposes.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Retracing Kalamkari's journey: from classic to a contemporary textile art (machilipatnam-kalamkari S6, The Chitrolekha Journal on Art and Design, Vol. 2 No. 2 (CC BY-NC 4.0), doi:10.21659/cjad.22.v2n201)",
+        "locator": "PDF p. 6",
+        "quote": "Indigo dye is no longer used, instead a synthetic one is used which is lighter in shade.",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Andrew Ure, A Dictionary of Arts, Manufactures, and Mines (transcription on Coloriasto)",
+        "locator": "https://coloriasto.blogspot.com/2011/04/dictionary-of-arts-indigo.html; \"Properties of Indigo\"; accessed 2026-11-04",
+        "quote": "It possesses a dark blue color, passing into violet-purple, is void of taste and smell, dull, but by rubbing with a smooth hard body, it assumes the lustre and hue of copper.",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-dung-bath",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.scouring-and-dung-bleaching"
+    ],
+    "label": "Scouring / Dung Bleaching",
+    "localName": null,
+    "form": "liquid",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#4A3A28",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional. No source gives the colour of this solution. It takes the cow-dung row's dark brown, stated as provisional.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 6",
+        "quote": "The unbleached material/cloth/gray cloth is soaked in a solution of buffalo or cow dung and water for 5 to 10 minutes.",
+        "supports": "form"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-myrobalan-bath",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.myrobalan-treatment"
+    ],
+    "label": "Myrobalan Treatment",
+    "localName": "Karakkaya",
+    "form": "liquid",
+    "status": "inferred",
+    "colourWords": "filtered myrobalan solution. The quotes describe the pulp before extraction and the cloth after the dip, not the liquid, so the hex is inferred and matches the other myrobalan baths.",
+    "colourHex": "#AD9048",
+    "renderHex": "#AD9048",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": "a vessel",
+    "conflicts": [
+      "S4 (PDF p. 5) calls karakkaya dried flowers and says myrobalan flowers are crushed. S6 (PDF p. 6) and the Ajrakh GI use Terminalia chebula, whose dried fruit the Ajrakh GI names."
+    ],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "One District One Product — Krishna district (Pedana Kalamkari) (machilipatnam-kalamkari S3, Government of Andhra Pradesh (krishna.ap.gov.in))",
+        "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+        "quote": "Myrobalan treatment: The required quantity of Myrobalan (karakayya) solution is taken in to a vessel.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 5",
+        "quote": "Myrobalan flowers are crushed and mixed with water to get a yellowish myrobalan pulp",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 6",
+        "quote": "After the dip, the fabric obtains a yellowish color.",
+        "supports": "colour"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-degumming-wash-water",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.curing-and-degumming-wash"
+    ],
+    "label": "Drying / Curing And Degumming Wash",
+    "localName": null,
+    "form": "liquid",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#EEF1EC",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional clear water. No source gives the colour of this water. Rendered as a transparent surface.",
+    "transparency": "clear",
+    "transparencyBasis": "inferred",
+    "surface": "wet, flowing",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 10",
+        "quote": "It is washed in flowing water to remove the gum and any unwanted mordant",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 10",
+        "quote": "It is washed in flowing water to remove the gum and any unwanted mordant",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-red-dye-bath",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying"
+    ],
+    "label": "Boiling Vessels And Fire-Places",
+    "localName": null,
+    "form": "liquid",
+    "status": "inferred",
+    "colourWords": "alizarin and jajaku leaves in boiling water; no source describes the colour of the hot liquid. Red is the dye's purpose and its result on the cloth, so the hex is inferred and is the least supported in the sheet.",
+    "colourHex": "#7F2A1D",
+    "renderHex": "#7F2A1D",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred. See colourWords: the evidence does not describe this material in this state.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet, boiling",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": "copper pot on a brick fireplace",
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 10",
+        "quote": "A copper pot with water is placed on a brick fireplace.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 10",
+        "quote": "The alizerine solution and jajaku leaves are added to the boiling water.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 10",
+        "quote": "1. Water + alizerine--------------Red",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 10",
+        "quote": "The alizerine solution and jajaku leaves are added to the boiling water.",
+        "supports": "surface"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-alum-dip-bath",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.alum-fixing-dip"
+    ],
+    "label": "Alum Fixing Dip",
+    "localName": "Karam",
+    "form": "liquid",
+    "status": "sourced",
+    "colourWords": "alum in cool water, a transparent solution; excess yellow runs off into it during the dip.",
+    "colourHex": null,
+    "renderHex": "#EEF1EC",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional clear water. Only the slight tint of a clear surface is provisional. A trace of yellow from the run-off is sourced in words but has no shade, so none is added.",
+    "transparency": "clear",
+    "transparencyBasis": "evidence",
+    "surface": "wet, clear",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 12",
+        "quote": "The alum solution is made by adding cool water to pounded alum crystals.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 39 (PDF p. 55)",
+        "quote": "Alum mordant is a transparent solution which is used to obtain a range of colors including various tones of red.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 12",
+        "quote": "The excess yellow color runs off and all the colors are fixed.",
+        "supports": "colour"
+      },
+      {
+        "kind": "project-source",
+        "source": "Sengupta Rajarshi, 2019, Making Kalamkari Textiles: Artisans and Agency in Coromandel, India, PhD dissertation, University of British Columbia (archived copy in Paper_1-artifacts/scratchpad-archive/process-photos/masters/ubc-thesis-pdf)",
+        "locator": "p. 39 (PDF p. 55)",
+        "quote": "Alum mordant is a transparent solution which is used to obtain a range of colors including various tones of red.",
+        "supports": "transparency"
+      }
+    ]
+  },
+  {
+    "key": "machilipatnam-kalamkari-soap-water",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.soaping-and-final-sun-drying"
+    ],
+    "label": "Soaping And Final Sun-Drying",
+    "localName": null,
+    "form": "liquid",
+    "status": "partial",
+    "colourWords": null,
+    "colourHex": null,
+    "renderHex": "#EEF1EC",
+    "renderBasis": "provisional",
+    "renderNote": "Provisional clear water for a wash, though it is soapy. No source gives its colour.",
+    "transparency": "translucent",
+    "transparencyBasis": "inferred",
+    "surface": "wet, soapy",
+    "surfaceBasis": "evidence",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 13",
+        "quote": "The cloth is kept in soap water for a few minutes and then washed and dried in the sunlight.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 13",
+        "quote": "The cloth is kept in soap water for a few minutes and then washed and dried in the sunlight.",
+        "supports": "surface"
+      }
+    ]
+  }
+]
