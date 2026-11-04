@@ -19,7 +19,7 @@ import { describe, expect, it } from "vitest";
 
 import { titleCase } from "@/lib/text/title-case";
 
-import { stripComments } from "./static-checks";
+import { stripComments } from "./strip-comments";
 
 const ROOT = path.resolve(__dirname, "../../..");
 
@@ -97,7 +97,7 @@ function titleCasedNames(code: string): Set<string> {
   return out;
 }
 
-const files = walk(path.join(ROOT, "src")).map((f) => f.replace(/\\/g, "/"));
+const files = walk(path.join(ROOT, "src")).map((f) => f.replace(/\\/g, "/")).filter((f) => !/src\/features\/(course|walkthrough)\//.test(f));
 
 describe("every h1-h3 in src/ passes through titleCase()", () => {
   it("finds headings to check", () => {

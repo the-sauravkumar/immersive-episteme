@@ -1,4 +1,30 @@
+@font-face {
+  font-family: Eczar;
+  src: url("/walkthrough/fonts/Eczar-400-800.woff2") format("woff2");
+  font-weight: 400 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: Mukta;
+  src: url("/walkthrough/fonts/Mukta-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: Mukta;
+  src: url("/walkthrough/fonts/Mukta-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: Mukta;
+  src: url("/walkthrough/fonts/Mukta-600.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+
 .walking {
+  color-scheme: dark;
   --vat: #0e1626;
   --vat-2: #16264e;
   --line: #2c3850;
@@ -16,6 +42,13 @@
   --off-bg: #262f42;
   --off-fg: #99a0ad;
   --plaster: #c8bfae;
+  --wall-ink: #101d42;
+  --hall-paint: #7a1610;
+  --product-rail: #6b5238;
+  --raised-hover: #21356a;
+  --backdrop: rgba(6, 10, 20, 0.78);
+  --disp: Eczar, "Iowan Old Style", Georgia, serif;
+  --body: Mukta, "Segoe UI", system-ui, sans-serif;
   --s1: 4px;
   --s2: 8px;
   --s3: 12px;
@@ -35,11 +68,33 @@
   --rule: var(--line);
   --rule-strong: var(--lime-dim);
   --indigo: var(--turmeric);
+  --indigo-hover: var(--turmeric-hi);
+  --primary: var(--turmeric);
+  --primary-foreground: var(--vat);
+  --radius: 0px;
+  --radius-control: 0px;
+  --radius-badge: 0px;
+  --still-ground: #d2c4b6;
+  --sans-stack: var(--body);
   --on-indigo: var(--vat);
 
   background: var(--vat);
   color: var(--lime);
-  font-family: Mukta, "Segoe UI", system-ui, sans-serif;
+  font-family: var(--body);
+}
+
+.walking button,
+.walking input:not([type="radio"]),
+.walking select,
+.walking textarea,
+.walking [data-slot="button"] {
+  border-radius: 0;
+}
+
+.walking button,
+.walking [data-slot="button"] {
+  font-family: var(--disp);
+  font-weight: 700;
 }
 
 body:has(.walking) {
@@ -50,7 +105,7 @@ body:has(.walking) {
 .walking h2,
 .walking h3,
 .walking-heading {
-  font-family: Eczar, "Iowan Old Style", Georgia, serif;
+  font-family: var(--disp);
   font-weight: 700;
 }
 
@@ -60,7 +115,7 @@ body:has(.walking) {
   border: 2px solid var(--lime);
   background: transparent;
   color: var(--lime);
-  font-family: Eczar, "Iowan Old Style", Georgia, serif;
+  font-family: var(--disp);
   font-size: 19px;
   font-weight: 700;
   line-height: 1;
@@ -68,7 +123,7 @@ body:has(.walking) {
 }
 
 .walking-button:hover {
-  background: #21356a;
+  background: var(--raised-hover);
 }
 
 .walking-button:focus-visible,
@@ -152,8 +207,8 @@ select.walking-field {
   display: block;
   width: 100%;
   max-width: 420px;
-  aspect-ratio: 3 / 2;
-  object-fit: contain;
+  height: auto;
+  aspect-ratio: auto;
   background: var(--plaster);
 }
 
@@ -162,7 +217,7 @@ select.walking-field {
   padding: 2px var(--s2);
   background: var(--madder);
   color: var(--lime);
-  font-family: Eczar, "Iowan Old Style", Georgia, serif;
+  font-family: var(--disp);
   font-size: 14px;
   font-weight: 700;
 }
@@ -173,7 +228,7 @@ select.walking-field {
   max-width: 960px;
   aspect-ratio: 8 / 5;
   background-color: var(--plaster);
-  background-image: url("/walkthrough/plaster.jpg");
+  background-image: url("/walkthrough/course/plaster.jpg");
   background-size: cover;
   touch-action: none;
   cursor: crosshair;
@@ -196,9 +251,9 @@ select.walking-field {
   bottom: var(--s4, 16px);
   z-index: 50;
   padding: 12px 16px;
-  background: #e4dcc6;
-  color: #14213f;
-  font-family: Mukta, "Segoe UI", system-ui, sans-serif;
+  background: var(--cotton);
+  color: var(--stamp);
+  font-family: var(--body);
   font-size: 18px;
 }
 

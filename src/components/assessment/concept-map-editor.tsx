@@ -142,7 +142,7 @@ export function ConceptMapEditor({
         data-slot="map-canvas-region"
         className={
           participant
-            ? "[--bw:min(72rem,calc(100vw-2rem))] xs:[--bw:min(72rem,calc(100vw-3rem))] mx-[min(0px,calc((100%-var(--bw))/2))] w-[max(100%,var(--bw))]"
+            ? "[--bw:min(72rem,calc(100vw-2rem))] xs:[--bw:min(72rem,calc(100vw-3rem))] w-[max(100%,var(--bw))]"
             : undefined
         }
       >

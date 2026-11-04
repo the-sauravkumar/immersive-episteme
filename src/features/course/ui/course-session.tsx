@@ -14,7 +14,7 @@ import { ProgressBar } from "./progress-bar";
 import { StagePanel, panelImageSources } from "./stage-panel";
 import { preloadImages, usePanelImages } from "./use-panel-images";
 
-import "./tokens.css";
+import "@/styles/walking-tokens.css";
 import "./course.css";
 
 export interface CourseStageEvent {
@@ -27,7 +27,7 @@ export interface CourseStageEvent {
 export interface CourseSessionProps {
   readonly templates: readonly StageTemplate[];
   readonly reviewMarks?: boolean;
-  readonly onStageEntered?: (event: CourseStageEvent) => void;
+  readonly onStageEntered?: (event: CourseStageEvent) => boolean | void | Promise<boolean>;
   readonly onStageLeft?: (event: CourseStageEvent & { readonly dwellMs: number }) => void;
   readonly onBackStep?: (event: { readonly from: CourseStageEvent; readonly to: CourseStageEvent }) => void;
   readonly onSourceOpened?: (event: CourseStageEvent) => void;
@@ -39,6 +39,8 @@ function stageEvent(templates: readonly StageTemplate[], at: CoursePanelRef): Co
   const stage = at.isProduct ? null : template.stages[at.panel]!;
   return { tradition: template.tradition, stageKey: stage?.key ?? null, stageNumber: stage?.number ?? null, panel: at.isProduct ? "product" : "stage" };
 }
+
+const panelRefOf = ({ state }: CourseSessionModel): CoursePanelRef => ({ tradition: state.tradition, panel: state.panel, isProduct: isProductPanel(state) });
 
 function imagesFor(template: StageTemplate, panel: number): readonly string[] {
   return panel < template.stages.length ? panelImageSources(stagePanelModel(template, panel)) : productImageSources(template);
@@ -56,13 +58,15 @@ export function CourseSession({ templates, reviewMarks = false, onStageEntered, 
   }, [onStageEntered, onStageLeft, onBackStep, onFinished]);
 
   const emit = useCallback(
-    (events: readonly CourseEvent[]) => {
+    (events: readonly CourseEvent[]): readonly Promise<boolean>[] => {
+      const admissions: Promise<boolean>[] = [];
       for (const event of events) {
-        if (event.type === "entered") handlers.current.onStageEntered?.(stageEvent(templates, event.at));
+        if (event.type === "entered") admissions.push(Promise.resolve(handlers.current.onStageEntered?.(stageEvent(templates, event.at)) ?? true));
         if (event.type === "left") handlers.current.onStageLeft?.({ ...stageEvent(templates, event.at), dwellMs: event.dwellMs });
         if (event.type === "back-step") handlers.current.onBackStep?.({ from: stageEvent(templates, event.from), to: stageEvent(templates, event.to) });
         if (event.type === "finished") handlers.current.onFinished?.();
       }
+      return admissions;
     },
     [templates],
   );
@@ -79,12 +83,20 @@ export function CourseSession({ templates, reviewMarks = false, onStageEntered, 
   const headingFocus = useRef(false);
   const dispatch = useCallback(
     (action: CourseAction) => {
-      const step = stepCourse(modelRef.current, action, Date.now());
-      if (step.model === modelRef.current) return;
+      const previous = modelRef.current;
+      const step = stepCourse(previous, action, Date.now());
+      if (step.model === previous) return;
       modelRef.current = step.model;
       headingFocus.current = true;
       setModel(step.model);
-      emit(step.events);
+      const admissions = emit(step.events);
+      void Promise.all(admissions).then((results) => {
+        if (results.every(Boolean) || modelRef.current !== step.model) return;
+        const restored = { ...previous, enteredAtMs: Date.now() };
+        modelRef.current = restored;
+        setModel(restored);
+        emit([{ type: "entered", at: panelRefOf(restored) }]);
+      });
     },
     [emit],
   );
@@ -120,7 +132,7 @@ export function CourseSession({ templates, reviewMarks = false, onStageEntered, 
   const forwardDetail = onProduct ? (nextTemplate ? nextTemplate.traditionName : null) : nextStage ? `${nextStage.number} ${nextStage.name}` : PRODUCT_TITLE;
 
   return (
-    <div className="course walking-tokens" data-course-root="" data-tradition={template.tradition} data-panel={onProduct ? "product" : state.panel + 1}>
+    <div className="course walking" data-course-root="" data-tradition={template.tradition} data-panel={onProduct ? "product" : state.panel + 1}>
       <div className="course-frame">
       {onProduct ? (
         <ProductPanel template={template} imageStatus={images.status} controls={controls} onSourcesOpened={sourceOpened} />

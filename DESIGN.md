@@ -84,7 +84,7 @@ Strong colour in the world comes from the cloth and the dye. The interface has o
 | `--wall-ink` | `#101D42` | Number and name paint, Door 2 | 9.02 on plaster |
 | `--hall-paint` | `#7A1610` | Hall lettering | 5.91 on plaster |
 
-**Named extras:** danger hover `#C63A2E`; danger pressed and wall Sample Text `#8D1C14` (4.99 on plaster); raised hover `#21356A`; Door 1 product rail `#6B5238`; caption paint `#0A1636` (9.75 on plaster); table row hover `rgba(22,38,78,.55)`; dialog backdrop `rgba(6,10,20,.78)`.
+**Named extras:** Door 1 object cell ground `#D2C4B6`, the corner colour of the stills, so a still does not read as a pasted patch; danger hover `#C63A2E`; danger pressed and wall Sample Text `#8D1C14` (4.99 on plaster); raised hover `#21356A`; Door 1 product rail `#6B5238`; caption paint `#0A1636` (9.75 on plaster); table row hover `rgba(22,38,78,.55)`; dialog backdrop `rgba(6,10,20,.78)`.
 
 **Scene constants:** live in `src/features/walkthrough/scene/constants.ts`.
 

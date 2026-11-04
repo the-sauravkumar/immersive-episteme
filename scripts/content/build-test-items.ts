@@ -23,7 +23,7 @@ function unseenFrom(key: string, file: TraditionFile): UnseenTradition {
     .filter((concept) => concept.type === "process_stage")
     .map((concept) => ({
       key: concept.key,
-      title: concept.title,
+      title: concept.title.replace(/^\d+\.\s*/, ""),
       summary: concept.summary,
       tools: file.relationships.filter((link) => link.type === "USES" && link.source === concept.key && TOOL_TYPES.has(byKey.get(link.target)?.type ?? "")).map((link) => byKey.get(link.target)!.title),
     }));

@@ -210,11 +210,6 @@ describe.skipIf(!TEST_URL)("schema: publishing and study integrity", () => {
       );
 
       const snap = await publishedRealSnapshot("v-study-2");
-      const noManifest = await createStudy(t.pool, { slug: "no-manifest", snapshotId: snap });
-      await expect(t.pool.query("UPDATE studies SET status = 'active' WHERE id = $1", [noManifest.studyId])).rejects.toThrow(
-        /needs a spatial manifest/,
-      );
-
       const manifest = await createPublishedManifest(t.pool, snap, { by: curator });
       const { studyId, conditionIds } = await createStudy(t.pool, { slug: "real-study-2", snapshotId: snap, manifestId: manifest });
       await t.pool.query("UPDATE studies SET status = 'active' WHERE id = $1", [studyId]);

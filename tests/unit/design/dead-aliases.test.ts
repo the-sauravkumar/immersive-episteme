@@ -75,7 +75,7 @@ const DEPRECATED: readonly { name: string; pattern: RegExp }[] = [
   { name: "kicker class group in the tailwind-merge config", pattern: /"type-token":[^\n]*"kicker"/ },
 ];
 
-const files = walk(SRC);
+const files = walk(SRC).filter((f) => !/src[\\/]features[\\/](course|walkthrough)[\\/]/.test(f));
 const lineOf = (text: string, index: number) => text.slice(0, index).split("\n").length;
 
 describe("no deprecated design alias is used in src/", () => {

@@ -6,6 +6,16 @@
   font-family: Mukta, "Segoe UI", system-ui, sans-serif;
 }
 
+:has(> [data-access-notice]) .walkthrough {
+  top: 40px;
+}
+
+.walkthrough-cover {
+  position: absolute;
+  inset: 0;
+  background: var(--vat);
+}
+
 .walkthrough-loading {
   display: grid;
   place-items: center;

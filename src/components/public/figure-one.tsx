@@ -73,8 +73,8 @@ function wide(counts: FigureOneCounts | null): { nodes: DiagramNode[]; edges: Di
   const nodes = [...clusterNodes(counts, 16, 80, 312), ...pageMiniature("f1-page", 608, 24, 232, 140), ...planMiniature("f1-plan", 608, 236, 232, 140)];
   const edges: DiagramEdge[] = [
     { id: "bracket", d: "M336 80 H344 V320 H336" },
-    { id: "branch-2d", d: "M344 200 H472 V94 H600", arrow: true, label: { text: "2D: conventional pages", x: 724, y: 190 } },
-    { id: "branch-3d", d: "M344 200 H472 V306 H600", arrow: true, label: { text: "3D: immersive museum", x: 724, y: 402 } },
+    { id: "branch-2d", d: "M344 200 H472 V94 H600", arrow: true, label: { text: "2D: visual course", x: 724, y: 190 } },
+    { id: "branch-3d", d: "M344 200 H472 V306 H600", arrow: true, label: { text: "3D: walkthrough", x: 724, y: 402 } },
   ];
   return { nodes, edges };
 }

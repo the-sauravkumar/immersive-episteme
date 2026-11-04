@@ -1,0 +1,5210 @@
+[
+  {
+    "code": "test-pre",
+    "kind": "pretest",
+    "phase": "pre",
+    "position": 0,
+    "title": "Questions Before Learning",
+    "description": "Choose I do not know if you do not know. It is fine not to know.",
+    "testType": "pre_test",
+    "paged": true,
+    "items": [
+      {
+        "itemKey": "pre.id.ajrakh.6.0",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Washing Tanks / River Washing"
+            },
+            {
+              "id": "o2",
+              "label": "Copper Dye Pot And Stirring Sticks"
+            },
+            {
+              "id": "o3",
+              "label": "Washing Paddle"
+            },
+            {
+              "id": "o4",
+              "label": "Underground Indigo Vat"
+            },
+            {
+              "id": "dont-know",
+              "label": "I do not know"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/wash-tank.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.washing-out-resists",
+            "objectKey": "ajrakh.tool.washing-tanks"
+          }
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "pre.place.ajrakh.1.0",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Washing Paddle used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            },
+            {
+              "id": "dont-know",
+              "label": "I do not know"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/mallet.jpg",
+            "alt": "Washing Paddle"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.scouring-and-washing",
+            "objectKey": "ajrakh.tool.dhoki-paddle"
+          }
+        },
+        "answerKey": {
+          "optionId": "s1"
+        },
+        "position": 1
+      },
+      {
+        "itemKey": "pre.place.ajrakh.1.1",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Neerani used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            },
+            {
+              "id": "dont-know",
+              "label": "I do not know"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/lump-basket.jpg",
+            "alt": "Neerani"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.scouring-and-washing",
+            "objectKey": "ajrakh.material.neerani-scouring-mix"
+          }
+        },
+        "answerKey": {
+          "optionId": "s1"
+        },
+        "position": 2
+      },
+      {
+        "itemKey": "pre.id.machilipatnam-kalamkari.7.0",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Date-Palm Brush And Kalam"
+            },
+            {
+              "id": "o2",
+              "label": "Copper Dye Pot And Stirring Sticks"
+            },
+            {
+              "id": "o3",
+              "label": "Washing Paddle"
+            },
+            {
+              "id": "o4",
+              "label": "Underground Indigo Vat"
+            },
+            {
+              "id": "dont-know",
+              "label": "I do not know"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/spoon.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.second-printing",
+            "objectKey": "machilipatnam-kalamkari.tool.date-palm-brush-and-kalam"
+          }
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 3
+      },
+      {
+        "itemKey": "pre.place.machilipatnam-kalamkari.2.0",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Cow Or Buffalo Dung used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            },
+            {
+              "id": "dont-know",
+              "label": "I do not know"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/lump-basket.jpg",
+            "alt": "Cow Or Buffalo Dung"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.scouring-and-dung-bleaching",
+            "objectKey": "machilipatnam-kalamkari.material.cow-dung"
+          }
+        },
+        "answerKey": {
+          "optionId": "s2"
+        },
+        "position": 4
+      },
+      {
+        "itemKey": "pre.place.machilipatnam-kalamkari.2.1",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Unbleached Cotton used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            },
+            {
+              "id": "dont-know",
+              "label": "I do not know"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/cloth-bale.jpg",
+            "alt": "Unbleached Cotton"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.scouring-and-dung-bleaching",
+            "objectKey": "machilipatnam-kalamkari.material.kora-cotton-cloth"
+          }
+        },
+        "answerKey": {
+          "optionId": "s2"
+        },
+        "position": 5
+      },
+      {
+        "itemKey": "pre.place.sanganeri.1.0",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Block-Carving Chisels used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            },
+            {
+              "id": "dont-know",
+              "label": "I do not know"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/mallet.jpg",
+            "alt": "Block-Carving Chisels"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.block-carving",
+            "objectKey": "sanganeri.tool.kalam-chisels"
+          }
+        },
+        "answerKey": {
+          "optionId": "s1"
+        },
+        "position": 6
+      },
+      {
+        "itemKey": "pre.place.sanganeri.2.1",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Base Fabric: Cotton, Mulmul And Silk used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            },
+            {
+              "id": "dont-know",
+              "label": "I do not know"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/cloth-bale.jpg",
+            "alt": "Base Fabric: Cotton, Mulmul And Silk"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.scouring-and-harda-pre-treatment",
+            "objectKey": "sanganeri.material.cotton-mulmul"
+          }
+        },
+        "answerKey": {
+          "optionId": "s2"
+        },
+        "position": 7
+      }
+    ]
+  },
+  {
+    "code": "test-identification",
+    "kind": "posttest",
+    "phase": "post",
+    "position": 0,
+    "title": "Name The Object",
+    "description": null,
+    "testType": "identification",
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "id.ajrakh.1.0",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Washing Paddle"
+            },
+            {
+              "id": "o2",
+              "label": "Copper Dye Pot And Stirring Sticks"
+            },
+            {
+              "id": "o3",
+              "label": "Underground Indigo Vat"
+            },
+            {
+              "id": "o4",
+              "label": "Washing Tanks / River Washing"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/mallet.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.scouring-and-washing",
+            "objectKey": "ajrakh.tool.dhoki-paddle"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "id.ajrakh.1.1",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Neerani"
+            },
+            {
+              "id": "o2",
+              "label": "Cotton Base Cloth"
+            },
+            {
+              "id": "o3",
+              "label": "Dusting Agents"
+            },
+            {
+              "id": "o4",
+              "label": "Gach Mud Resist"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/lump-basket.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.scouring-and-washing",
+            "objectKey": "ajrakh.material.neerani-scouring-mix"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 1
+      },
+      {
+        "itemKey": "id.ajrakh.2.3",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Harde"
+            },
+            {
+              "id": "o2",
+              "label": "Gach Mud Resist"
+            },
+            {
+              "id": "o3",
+              "label": "Indigo"
+            },
+            {
+              "id": "o4",
+              "label": "Fermented Iron-Jaggery Black Paste"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.harde-pre-mordanting",
+            "objectKey": "ajrakh.material.harde-myrobalan"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 2
+      },
+      {
+        "itemKey": "id.ajrakh.3.4",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Khariyanu Resist Paste"
+            },
+            {
+              "id": "o2",
+              "label": "Dusting Agents"
+            },
+            {
+              "id": "o3",
+              "label": "Harde"
+            },
+            {
+              "id": "o4",
+              "label": "Indigo"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.outline-and-black-printing",
+            "objectKey": "ajrakh.material.lime-gum-resist"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 3
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.2.0",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Cow Or Buffalo Dung"
+            },
+            {
+              "id": "o2",
+              "label": "Alum"
+            },
+            {
+              "id": "o3",
+              "label": "Cotton Base Cloth"
+            },
+            {
+              "id": "o4",
+              "label": "Dusting Agents"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/lump-basket.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.scouring-and-dung-bleaching",
+            "objectKey": "machilipatnam-kalamkari.material.cow-dung"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 4
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.2.1",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Unbleached Cotton"
+            },
+            {
+              "id": "o2",
+              "label": "Camel Dung"
+            },
+            {
+              "id": "o3",
+              "label": "Dhawri / Tamarisk Galls"
+            },
+            {
+              "id": "o4",
+              "label": "Dusting Agents"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/cloth-bale.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.scouring-and-dung-bleaching",
+            "objectKey": "machilipatnam-kalamkari.material.kora-cotton-cloth"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 5
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.4.3",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Printing Table With Gunny And Damp Cloth"
+            },
+            {
+              "id": "o2",
+              "label": "Washing Tanks / River Washing"
+            },
+            {
+              "id": "o3",
+              "label": "Hand-Carved Wooden Printing Blocks"
+            },
+            {
+              "id": "o4",
+              "label": "Boiling Vessels And Fire-Places"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/printing-table.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.tool.printing-table"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 6
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.4.4",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Carved Wooden Printing Blocks"
+            },
+            {
+              "id": "o2",
+              "label": "Boiling Vessels And Fire-Places"
+            },
+            {
+              "id": "o3",
+              "label": "Date-Palm Brush And Kalam"
+            },
+            {
+              "id": "o4",
+              "label": "Mordant/Colour Printing Pad"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/carved-block.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.tool.teak-printing-blocks"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 7
+      },
+      {
+        "itemKey": "id.sanganeri.1.0",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Block-Carving Chisels"
+            },
+            {
+              "id": "o2",
+              "label": "Copper Dye Pot And Stirring Sticks"
+            },
+            {
+              "id": "o3",
+              "label": "Underground Indigo Vat"
+            },
+            {
+              "id": "o4",
+              "label": "Washing Tanks / River Washing"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/mallet.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.block-carving",
+            "objectKey": "sanganeri.tool.kalam-chisels"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 8
+      },
+      {
+        "itemKey": "id.sanganeri.2.1",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Base Fabric: Cotton, Mulmul And Silk"
+            },
+            {
+              "id": "o2",
+              "label": "Camel Dung"
+            },
+            {
+              "id": "o3",
+              "label": "Dhawri / Tamarisk Galls"
+            },
+            {
+              "id": "o4",
+              "label": "Dusting Agents"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/cloth-bale.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.scouring-and-harda-pre-treatment",
+            "objectKey": "sanganeri.material.cotton-mulmul"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 9
+      },
+      {
+        "itemKey": "id.sanganeri.3.3",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Block Set: Rekh (Outline), Datta (Filler) And Background Blocks"
+            },
+            {
+              "id": "o2",
+              "label": "Washing Tanks / River Washing"
+            },
+            {
+              "id": "o3",
+              "label": "Boiling Vessels And Fire-Places"
+            },
+            {
+              "id": "o4",
+              "label": "Date-Palm Brush And Kalam"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/carved-block.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
+            "objectKey": "sanganeri.tool.rekh-datta-gadh-block-set"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 10
+      },
+      {
+        "itemKey": "id.sanganeri.3.4",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Printing Table With Padded Surface"
+            },
+            {
+              "id": "o2",
+              "label": "Hand-Carved Wooden Printing Blocks"
+            },
+            {
+              "id": "o3",
+              "label": "Boiling Vessels And Fire-Places"
+            },
+            {
+              "id": "o4",
+              "label": "Date-Palm Brush And Kalam"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/printing-table.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
+            "objectKey": "sanganeri.tool.printing-table-and-pad"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 11
+      }
+    ]
+  },
+  {
+    "code": "test-stage-placement",
+    "kind": "posttest",
+    "phase": "post",
+    "position": 1,
+    "title": "Find The Stage",
+    "description": null,
+    "testType": "stage_placement",
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "place.ajrakh.1.2",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Cotton Base Cloth used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/cloth-bale.jpg",
+            "alt": "Cotton Base Cloth"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.scouring-and-washing",
+            "objectKey": "ajrakh.material.cotton-cloth"
+          }
+        },
+        "answerKey": {
+          "optionId": "s1"
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "place.ajrakh.2.3",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Harde used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "alt": "Harde"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.harde-pre-mordanting",
+            "objectKey": "ajrakh.material.harde-myrobalan"
+          }
+        },
+        "answerKey": {
+          "optionId": "s2"
+        },
+        "position": 1
+      },
+      {
+        "itemKey": "place.ajrakh.3.5",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Fermented Iron-Jaggery Black Paste used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "alt": "Fermented Iron-Jaggery Black Paste"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.outline-and-black-printing",
+            "objectKey": "ajrakh.material.kut-iron-paste"
+          }
+        },
+        "answerKey": {
+          "optionId": "s3"
+        },
+        "position": 2
+      },
+      {
+        "itemKey": "place.ajrakh.4.6",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Alum used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "alt": "Alum"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.alum-and-mud-resist-printing",
+            "objectKey": "ajrakh.material.alum"
+          }
+        },
+        "answerKey": {
+          "optionId": "s4"
+        },
+        "position": 3
+      },
+      {
+        "itemKey": "place.ajrakh.4.8",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Gach Mud Resist used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "alt": "Gach Mud Resist"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.alum-and-mud-resist-printing",
+            "objectKey": "ajrakh.material.gach-mud-resist"
+          }
+        },
+        "answerKey": {
+          "optionId": "s4"
+        },
+        "position": 4
+      },
+      {
+        "itemKey": "place.ajrakh.4.9",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Dusting Agents used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "alt": "Dusting Agents"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.alum-and-mud-resist-printing",
+            "objectKey": "ajrakh.material.dusting-agents"
+          }
+        },
+        "answerKey": {
+          "optionId": "s4"
+        },
+        "position": 5
+      },
+      {
+        "itemKey": "place.ajrakh.5.11",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Indigo used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "alt": "Indigo"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.indigo-dyeing",
+            "objectKey": "ajrakh.material.indigo"
+          }
+        },
+        "answerKey": {
+          "optionId": "s5"
+        },
+        "position": 6
+      },
+      {
+        "itemKey": "place.ajrakh.6.12",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Washing Tanks / River Washing used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/wash-tank.jpg",
+            "alt": "Washing Tanks / River Washing"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.washing-out-resists",
+            "objectKey": "ajrakh.tool.washing-tanks"
+          }
+        },
+        "answerKey": {
+          "optionId": "s6"
+        },
+        "position": 7
+      },
+      {
+        "itemKey": "place.ajrakh.7.14",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Indian Madder used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/lump-basket.jpg",
+            "alt": "Indian Madder"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.red-dyeing",
+            "objectKey": "ajrakh.material.madder"
+          }
+        },
+        "answerKey": {
+          "optionId": "s7"
+        },
+        "position": 8
+      },
+      {
+        "itemKey": "place.ajrakh.7.15",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Synthetic Alizarin used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "alt": "Synthetic Alizarin"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.red-dyeing",
+            "objectKey": "ajrakh.material.synthetic-alizarin"
+          }
+        },
+        "answerKey": {
+          "optionId": "s7"
+        },
+        "position": 9
+      },
+      {
+        "itemKey": "place.machilipatnam-kalamkari.4.2",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Mordant/Colour Printing Pad used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/printing-tray.jpg",
+            "alt": "Mordant/Colour Printing Pad"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.tool.printing-pad-tray"
+          }
+        },
+        "answerKey": {
+          "optionId": "s4"
+        },
+        "position": 10
+      },
+      {
+        "itemKey": "place.machilipatnam-kalamkari.4.3",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Printing Table With Gunny And Damp Cloth used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/printing-table.jpg",
+            "alt": "Printing Table With Gunny And Damp Cloth"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.tool.printing-table"
+          }
+        },
+        "answerKey": {
+          "optionId": "s4"
+        },
+        "position": 11
+      },
+      {
+        "itemKey": "place.machilipatnam-kalamkari.4.5",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Iron Acetate Black Mordant used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "alt": "Iron Acetate Black Mordant"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.material.kasim-iron-acetate"
+          }
+        },
+        "answerKey": {
+          "optionId": "s4"
+        },
+        "position": 12
+      },
+      {
+        "itemKey": "place.machilipatnam-kalamkari.4.6",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Gum used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "alt": "Gum"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.material.gum-binder"
+          }
+        },
+        "answerKey": {
+          "optionId": "s4"
+        },
+        "position": 13
+      },
+      {
+        "itemKey": "place.machilipatnam-kalamkari.6.8",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Alizarin, Madder And Chay Root used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/lump-basket.jpg",
+            "alt": "Alizarin, Madder And Chay Root"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
+            "objectKey": "machilipatnam-kalamkari.material.alizarin-and-red-roots"
+          }
+        },
+        "answerKey": {
+          "optionId": "s6"
+        },
+        "position": 14
+      },
+      {
+        "itemKey": "place.machilipatnam-kalamkari.6.9",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Dye-Bath Plant Additives used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/lump-basket.jpg",
+            "alt": "Dye-Bath Plant Additives"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
+            "objectKey": "machilipatnam-kalamkari.material.dye-bath-plant-additives"
+          }
+        },
+        "answerKey": {
+          "optionId": "s6"
+        },
+        "position": 15
+      },
+      {
+        "itemKey": "place.machilipatnam-kalamkari.7.11",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Rice Starch used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "alt": "Rice Starch"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.second-printing",
+            "objectKey": "machilipatnam-kalamkari.material.rice-starch"
+          }
+        },
+        "answerKey": {
+          "optionId": "s7"
+        },
+        "position": 16
+      },
+      {
+        "itemKey": "place.machilipatnam-kalamkari.7.12",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Indigo used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "alt": "Indigo"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.second-printing",
+            "objectKey": "machilipatnam-kalamkari.material.indigo"
+          }
+        },
+        "answerKey": {
+          "optionId": "s7"
+        },
+        "position": 17
+      },
+      {
+        "itemKey": "place.sanganeri.2.2",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Myrobalan used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "alt": "Myrobalan"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.scouring-and-harda-pre-treatment",
+            "objectKey": "sanganeri.material.harda-myrobalan"
+          }
+        },
+        "answerKey": {
+          "optionId": "s2"
+        },
+        "position": 18
+      },
+      {
+        "itemKey": "place.sanganeri.3.3",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Block Set: Rekh (Outline), Datta (Filler) And Background Blocks used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/carved-block.jpg",
+            "alt": "Block Set: Rekh (Outline), Datta (Filler) And Background Blocks"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
+            "objectKey": "sanganeri.tool.rekh-datta-gadh-block-set"
+          }
+        },
+        "answerKey": {
+          "optionId": "s3"
+        },
+        "position": 19
+      },
+      {
+        "itemKey": "place.sanganeri.3.5",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Colour Tray With Jute-And-Cotton Pad used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/printing-tray.jpg",
+            "alt": "Colour Tray With Jute-And-Cotton Pad"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
+            "objectKey": "sanganeri.tool.colour-tray"
+          }
+        },
+        "answerKey": {
+          "optionId": "s3"
+        },
+        "position": 20
+      },
+      {
+        "itemKey": "place.sanganeri.3.6",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Fermented Iron Black used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "alt": "Fermented Iron Black"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
+            "objectKey": "sanganeri.material.syahi-iron-black"
+          }
+        },
+        "answerKey": {
+          "optionId": "s3"
+        },
+        "position": 21
+      },
+      {
+        "itemKey": "place.sanganeri.4.8",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Madder / Alizarin Dye Bath used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "alt": "Madder / Alizarin Dye Bath"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.washing-and-alizarin-dyeing",
+            "objectKey": "sanganeri.material.madder-alizarin"
+          }
+        },
+        "answerKey": {
+          "optionId": "s4"
+        },
+        "position": 22
+      },
+      {
+        "itemKey": "place.sanganeri.4.9",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Dhawai Flowers used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/lump-basket.jpg",
+            "alt": "Dhawai Flowers"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.washing-and-alizarin-dyeing",
+            "objectKey": "sanganeri.material.dhawai-phool"
+          }
+        },
+        "answerKey": {
+          "optionId": "s4"
+        },
+        "position": 23
+      },
+      {
+        "itemKey": "place.sanganeri.6.11",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Sawdust used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "alt": "Sawdust"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.dabu-resist-printing",
+            "objectKey": "sanganeri.material.sawdust"
+          }
+        },
+        "answerKey": {
+          "optionId": "s6"
+        },
+        "position": 24
+      },
+      {
+        "itemKey": "place.sanganeri.7.12",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Indigo Vat used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/dye-vat.jpg",
+            "alt": "Indigo Vat"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.indigo-dyeing",
+            "objectKey": "sanganeri.tool.indigo-vat"
+          }
+        },
+        "answerKey": {
+          "optionId": "s7"
+        },
+        "position": 25
+      },
+      {
+        "itemKey": "place.sanganeri.8.14",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Turmeric And Pomegranate-Rind Yellow used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "alt": "Turmeric And Pomegranate-Rind Yellow"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.yellow-dyeing-and-alum-post-mordanting",
+            "objectKey": "sanganeri.material.haldi-naspal-yellow"
+          }
+        },
+        "answerKey": {
+          "optionId": "s8"
+        },
+        "position": 26
+      },
+      {
+        "itemKey": "place.sanganeri.8.15",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Alum used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "alt": "Alum"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.yellow-dyeing-and-alum-post-mordanting",
+            "objectKey": "sanganeri.material.alum-fitkari"
+          }
+        },
+        "answerKey": {
+          "optionId": "s8"
+        },
+        "position": 27
+      }
+    ]
+  },
+  {
+    "code": "test-sequence",
+    "kind": "posttest",
+    "phase": "post",
+    "position": 2,
+    "title": "Put The Stages In Order",
+    "description": null,
+    "testType": "sequence",
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "seq.ajrakh.all",
+        "kind": "ranking",
+        "prompt": "Put these stages of Ajrakh in process order.",
+        "config": {
+          "kind": "ranking",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "target": {
+            "tradition": "ajrakh"
+          }
+        },
+        "answerKey": {
+          "order": [
+            "s1",
+            "s2",
+            "s3",
+            "s4",
+            "s5",
+            "s6",
+            "s7",
+            "s8",
+            "s9"
+          ]
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "seq.machilipatnam-kalamkari.all",
+        "kind": "ranking",
+        "prompt": "Put these stages of Machilipatnam Kalamkari in process order.",
+        "config": {
+          "kind": "ranking",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "target": {
+            "tradition": "machilipatnam-kalamkari"
+          }
+        },
+        "answerKey": {
+          "order": [
+            "s1",
+            "s2",
+            "s3",
+            "s4",
+            "s5",
+            "s6",
+            "s7",
+            "s8",
+            "s9"
+          ]
+        },
+        "position": 1
+      },
+      {
+        "itemKey": "seq.sanganeri.all",
+        "kind": "ranking",
+        "prompt": "Put these stages of Sanganeri in process order.",
+        "config": {
+          "kind": "ranking",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "target": {
+            "tradition": "sanganeri"
+          }
+        },
+        "answerKey": {
+          "order": [
+            "s1",
+            "s2",
+            "s3",
+            "s4",
+            "s5",
+            "s6",
+            "s7",
+            "s8",
+            "s9"
+          ]
+        },
+        "position": 2
+      }
+    ]
+  },
+  {
+    "code": "test-cloth-state",
+    "kind": "posttest",
+    "phase": "post",
+    "position": 3,
+    "title": "Match The Cloth",
+    "description": null,
+    "testType": "cloth_state",
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "cloth.ajrakh.a",
+        "kind": "matching",
+        "prompt": "Each image shows the cloth in Ajrakh after one stage. Choose the stage for each.",
+        "config": {
+          "kind": "matching",
+          "pairs": [
+            {
+              "id": "p1",
+              "image": {
+                "path": "/walkthrough/cloth/ajrakh-01.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p3",
+              "image": {
+                "path": "/walkthrough/cloth/ajrakh-03.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p5",
+              "image": {
+                "path": "/walkthrough/cloth/ajrakh-05.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p7",
+              "image": {
+                "path": "/walkthrough/cloth/ajrakh-07.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p9",
+              "image": {
+                "path": "/walkthrough/cloth/ajrakh-09.jpg",
+                "alt": "The cloth after a stage"
+              }
+            }
+          ],
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "target": {
+            "tradition": "ajrakh"
+          }
+        },
+        "answerKey": {
+          "matches": {
+            "p1": "s1",
+            "p3": "s3",
+            "p5": "s5",
+            "p7": "s7",
+            "p9": "s9"
+          }
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "cloth.machilipatnam-kalamkari.a",
+        "kind": "matching",
+        "prompt": "Each image shows the cloth in Machilipatnam Kalamkari after one stage. Choose the stage for each.",
+        "config": {
+          "kind": "matching",
+          "pairs": [
+            {
+              "id": "p1",
+              "image": {
+                "path": "/walkthrough/cloth/machilipatnam-kalamkari-01.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p3",
+              "image": {
+                "path": "/walkthrough/cloth/machilipatnam-kalamkari-03.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p5",
+              "image": {
+                "path": "/walkthrough/cloth/machilipatnam-kalamkari-05.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p7",
+              "image": {
+                "path": "/walkthrough/cloth/machilipatnam-kalamkari-07.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p9",
+              "image": {
+                "path": "/walkthrough/cloth/machilipatnam-kalamkari-09.jpg",
+                "alt": "The cloth after a stage"
+              }
+            }
+          ],
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "target": {
+            "tradition": "machilipatnam-kalamkari"
+          }
+        },
+        "answerKey": {
+          "matches": {
+            "p1": "s1",
+            "p3": "s3",
+            "p5": "s5",
+            "p7": "s7",
+            "p9": "s9"
+          }
+        },
+        "position": 1
+      },
+      {
+        "itemKey": "cloth.sanganeri.a",
+        "kind": "matching",
+        "prompt": "Each image shows the cloth in Sanganeri after one stage. Choose the stage for each.",
+        "config": {
+          "kind": "matching",
+          "pairs": [
+            {
+              "id": "p1",
+              "image": {
+                "path": "/walkthrough/cloth/sanganeri-01.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p3",
+              "image": {
+                "path": "/walkthrough/cloth/sanganeri-03.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p5",
+              "image": {
+                "path": "/walkthrough/cloth/sanganeri-05.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p7",
+              "image": {
+                "path": "/walkthrough/cloth/sanganeri-07.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p9",
+              "image": {
+                "path": "/walkthrough/cloth/sanganeri-09.jpg",
+                "alt": "The cloth after a stage"
+              }
+            }
+          ],
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "target": {
+            "tradition": "sanganeri"
+          }
+        },
+        "answerKey": {
+          "matches": {
+            "p1": "s1",
+            "p3": "s3",
+            "p5": "s5",
+            "p7": "s7",
+            "p9": "s9"
+          }
+        },
+        "position": 2
+      }
+    ]
+  },
+  {
+    "code": "test-attribution",
+    "kind": "posttest",
+    "phase": "post",
+    "position": 4,
+    "title": "Name The Tradition",
+    "description": null,
+    "testType": "attribution",
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "attr.ajrakh.immediate",
+        "kind": "single_choice",
+        "prompt": "Which tradition does this finished textile come from?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "ajrakh",
+              "label": "Ajrakh"
+            },
+            {
+              "id": "machilipatnam-kalamkari",
+              "label": "Machilipatnam Kalamkari"
+            },
+            {
+              "id": "sanganeri",
+              "label": "Sanganeri"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/products/ajrakh-p1.jpg",
+            "alt": "A finished textile"
+          },
+          "target": {
+            "tradition": "ajrakh"
+          }
+        },
+        "answerKey": {
+          "optionId": "ajrakh"
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "attr.machilipatnam-kalamkari.immediate",
+        "kind": "single_choice",
+        "prompt": "Which tradition does this finished textile come from?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "ajrakh",
+              "label": "Ajrakh"
+            },
+            {
+              "id": "machilipatnam-kalamkari",
+              "label": "Machilipatnam Kalamkari"
+            },
+            {
+              "id": "sanganeri",
+              "label": "Sanganeri"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/products/machilipatnam-kalamkari-p1.jpg",
+            "alt": "A finished textile"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari"
+          }
+        },
+        "answerKey": {
+          "optionId": "machilipatnam-kalamkari"
+        },
+        "position": 1
+      },
+      {
+        "itemKey": "attr.sanganeri.immediate",
+        "kind": "single_choice",
+        "prompt": "Which tradition does this finished textile come from?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "ajrakh",
+              "label": "Ajrakh"
+            },
+            {
+              "id": "machilipatnam-kalamkari",
+              "label": "Machilipatnam Kalamkari"
+            },
+            {
+              "id": "sanganeri",
+              "label": "Sanganeri"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/products/sanganeri-p1.jpg",
+            "alt": "A finished textile"
+          },
+          "target": {
+            "tradition": "sanganeri"
+          }
+        },
+        "answerKey": {
+          "optionId": "sanganeri"
+        },
+        "position": 2
+      }
+    ]
+  },
+  {
+    "code": "test-transfer",
+    "kind": "transfer",
+    "phase": "post",
+    "position": 5,
+    "title": "A Tradition You Have Not Seen",
+    "description": null,
+    "testType": "transfer",
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "transfer.bagru.order",
+        "kind": "ranking",
+        "prompt": "Predict the order of these stages of Bagru hand block printing.",
+        "config": {
+          "kind": "ranking",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring (hari sarana / teluni)"
+            },
+            {
+              "id": "s2",
+              "label": "Harda treatment (peela karna)"
+            },
+            {
+              "id": "s3",
+              "label": "Mordant printing (chhapai) with syahi and begar"
+            },
+            {
+              "id": "s4",
+              "label": "Ageing / drying (sukhai)"
+            },
+            {
+              "id": "s5",
+              "label": "Washing off excess mordant (khulai)"
+            },
+            {
+              "id": "s6",
+              "label": "Dyeing in alizarin/madder (rangai, bhatti)"
+            },
+            {
+              "id": "s7",
+              "label": "Resist printing with dabu (dabu chhapai)"
+            },
+            {
+              "id": "s8",
+              "label": "Indigo dyeing (neel rangai)"
+            },
+            {
+              "id": "s9",
+              "label": "Yellow over-dyeing by sponging (haldi-naspal putai / potai)"
+            },
+            {
+              "id": "s10",
+              "label": "Alum after-mordanting (fitkari rangai)"
+            },
+            {
+              "id": "s11",
+              "label": "Final washing (dhulai) and finishing"
+            }
+          ],
+          "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.\nMordant printing (chhapai) with syahi and begar: The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar.\nResist printing with dabu (dabu chhapai): Dabu is applied with a wooden block, sawdust is sprinkled over it, and the fabric is dried in the sun before dipping in indigo.\nWashing off excess mordant (khulai): The printed fabric is washed in running water to remove excess mordant before dyeing.\nFinal washing (dhulai) and finishing: The fabric is left in tanks 3-4 hours until the resist softens, then beaten on a flat stone slab where water flows.\nAlum after-mordanting (fitkari rangai): The fabric is dipped for a few minutes in diluted alum, squeezed, dried flat, then stored folded in dark places for at least 3-4 days so the yellow sets.\nYellow over-dyeing by sponging (haldi-naspal putai / potai): Before yellow dyeing, the fabric is again printed with dabu to retain some blue areas.\nScouring (hari sarana / teluni): Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water.\nIndigo dyeing (neel rangai): The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly.\nHarda treatment (peela karna): Harda powder is mixed with water, the cloth submerged, squeezed and dried flat; then folded and beaten to remove excess harda. This is called peela karna.\nDyeing in alizarin/madder (rangai, bhatti): The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous).\nAgeing / drying (sukhai): Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
+          "sampleText": true,
+          "target": {
+            "tradition": "bagru"
+          }
+        },
+        "answerKey": {
+          "order": [
+            "s1",
+            "s2",
+            "s3",
+            "s4",
+            "s5",
+            "s6",
+            "s7",
+            "s8",
+            "s9",
+            "s10",
+            "s11"
+          ]
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "transfer.bagru.next",
+        "kind": "single_choice",
+        "prompt": "Which stage comes straight after Dyeing in alizarin/madder (rangai, bhatti)?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Resist printing with dabu (dabu chhapai)"
+            },
+            {
+              "id": "o2",
+              "label": "Scouring (hari sarana / teluni)"
+            },
+            {
+              "id": "o3",
+              "label": "Harda treatment (peela karna)"
+            },
+            {
+              "id": "o4",
+              "label": "Mordant printing (chhapai) with syahi and begar"
+            }
+          ],
+          "shuffle": true,
+          "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.\nMordant printing (chhapai) with syahi and begar: The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar.\nResist printing with dabu (dabu chhapai): Dabu is applied with a wooden block, sawdust is sprinkled over it, and the fabric is dried in the sun before dipping in indigo.\nWashing off excess mordant (khulai): The printed fabric is washed in running water to remove excess mordant before dyeing.\nFinal washing (dhulai) and finishing: The fabric is left in tanks 3-4 hours until the resist softens, then beaten on a flat stone slab where water flows.\nAlum after-mordanting (fitkari rangai): The fabric is dipped for a few minutes in diluted alum, squeezed, dried flat, then stored folded in dark places for at least 3-4 days so the yellow sets.\nYellow over-dyeing by sponging (haldi-naspal putai / potai): Before yellow dyeing, the fabric is again printed with dabu to retain some blue areas.\nScouring (hari sarana / teluni): Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water.\nIndigo dyeing (neel rangai): The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly.\nHarda treatment (peela karna): Harda powder is mixed with water, the cloth submerged, squeezed and dried flat; then folded and beaten to remove excess harda. This is called peela karna.\nDyeing in alizarin/madder (rangai, bhatti): The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous).\nAgeing / drying (sukhai): Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
+          "sampleText": true,
+          "target": {
+            "tradition": "bagru"
+          }
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 1
+      },
+      {
+        "itemKey": "transfer.bagru.tool",
+        "kind": "single_choice",
+        "prompt": "Which of these is used at Resist printing with dabu (dabu chhapai)?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Bagru dabu (black-clay resist paste)"
+            },
+            {
+              "id": "o2",
+              "label": "Scouring agents: cow dung, soda/soap, sesame oil (telkhar)"
+            },
+            {
+              "id": "o3",
+              "label": "Cotton cloth (latha, mulmul, handloom)"
+            },
+            {
+              "id": "o4",
+              "label": "Harda (myrobalan, Terminalia chebula)"
+            }
+          ],
+          "shuffle": true,
+          "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.\nMordant printing (chhapai) with syahi and begar: The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar.\nResist printing with dabu (dabu chhapai): Dabu is applied with a wooden block, sawdust is sprinkled over it, and the fabric is dried in the sun before dipping in indigo.\nWashing off excess mordant (khulai): The printed fabric is washed in running water to remove excess mordant before dyeing.\nFinal washing (dhulai) and finishing: The fabric is left in tanks 3-4 hours until the resist softens, then beaten on a flat stone slab where water flows.\nAlum after-mordanting (fitkari rangai): The fabric is dipped for a few minutes in diluted alum, squeezed, dried flat, then stored folded in dark places for at least 3-4 days so the yellow sets.\nYellow over-dyeing by sponging (haldi-naspal putai / potai): Before yellow dyeing, the fabric is again printed with dabu to retain some blue areas.\nScouring (hari sarana / teluni): Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water.\nIndigo dyeing (neel rangai): The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly.\nHarda treatment (peela karna): Harda powder is mixed with water, the cloth submerged, squeezed and dried flat; then folded and beaten to remove excess harda. This is called peela karna.\nDyeing in alizarin/madder (rangai, bhatti): The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous).\nAgeing / drying (sukhai): Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
+          "sampleText": true,
+          "target": {
+            "tradition": "bagru"
+          }
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 2
+      }
+    ]
+  },
+  {
+    "code": "test-concept-map",
+    "kind": "reconstruction",
+    "phase": "post",
+    "position": 6,
+    "title": "Link The Process",
+    "description": null,
+    "testType": null,
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "map.ajrakh",
+        "kind": "concept_map",
+        "prompt": "Link the stages, tools and materials of Ajrakh.",
+        "config": {
+          "kind": "concept_map",
+          "conceptKeys": [
+            "ajrakh.process_stage.saaj",
+            "ajrakh.process_stage.kasano",
+            "ajrakh.process_stage.khariyanu",
+            "ajrakh.process_stage.pa",
+            "ajrakh.process_stage.indigo-dyeing",
+            "ajrakh.process_stage.resist-washing",
+            "ajrakh.process_stage.red-dyeing",
+            "ajrakh.process_stage.tapano",
+            "ajrakh.process_stage.vichharnu",
+            "ajrakh.tool.dhoki-paddle",
+            "ajrakh.material.neerani-scouring-mix",
+            "ajrakh.material.camel-dung",
+            "ajrakh.material.cotton-cloth",
+            "ajrakh.material.harde-myrobalan",
+            "ajrakh.tool.wooden-blocks",
+            "ajrakh.material.lime-gum-resist",
+            "ajrakh.material.kut-iron-paste",
+            "ajrakh.material.alum",
+            "ajrakh.material.tamarind-seed-paste",
+            "ajrakh.material.gach-mud-resist",
+            "ajrakh.material.dusting-agents",
+            "ajrakh.tool.underground-indigo-vat",
+            "ajrakh.material.indigo",
+            "ajrakh.tool.washing-tanks",
+            "ajrakh.tool.copper-dye-pot",
+            "ajrakh.material.madder",
+            "ajrakh.material.synthetic-alizarin",
+            "ajrakh.material.dhawri-tamarisk"
+          ],
+          "allowFreeNodes": false,
+          "relationshipTypes": [],
+          "directed": true
+        },
+        "answerKey": null,
+        "position": 0
+      },
+      {
+        "itemKey": "map.machilipatnam-kalamkari",
+        "kind": "concept_map",
+        "prompt": "Link the stages, tools and materials of Machilipatnam Kalamkari.",
+        "config": {
+          "kind": "concept_map",
+          "conceptKeys": [
+            "machilipatnam-kalamkari.process_stage.block-carving",
+            "machilipatnam-kalamkari.process_stage.scouring-dung-bleaching",
+            "machilipatnam-kalamkari.process_stage.myrobalan-treatment",
+            "machilipatnam-kalamkari.process_stage.mordant-printing-kasim",
+            "machilipatnam-kalamkari.process_stage.curing-drying",
+            "machilipatnam-kalamkari.process_stage.alizarin-boiling",
+            "machilipatnam-kalamkari.process_stage.second-printing",
+            "machilipatnam-kalamkari.process_stage.alum-fixing-dip",
+            "machilipatnam-kalamkari.process_stage.soaping-finishing",
+            "machilipatnam-kalamkari.material.cow-dung",
+            "machilipatnam-kalamkari.material.kora-cotton-cloth",
+            "machilipatnam-kalamkari.material.myrobalan-karakkaya",
+            "machilipatnam-kalamkari.tool.printing-pad-tray",
+            "machilipatnam-kalamkari.tool.printing-table",
+            "machilipatnam-kalamkari.tool.teak-printing-blocks",
+            "machilipatnam-kalamkari.material.kasim-iron-acetate",
+            "machilipatnam-kalamkari.material.gum-binder",
+            "machilipatnam-kalamkari.material.alum-karam",
+            "machilipatnam-kalamkari.tool.boiling-vessels-and-ovens",
+            "machilipatnam-kalamkari.material.alizarin-and-red-roots",
+            "machilipatnam-kalamkari.material.dye-bath-plant-additives",
+            "machilipatnam-kalamkari.tool.date-palm-brush-and-kalam",
+            "machilipatnam-kalamkari.material.rice-starch",
+            "machilipatnam-kalamkari.material.indigo"
+          ],
+          "allowFreeNodes": false,
+          "relationshipTypes": [],
+          "directed": true
+        },
+        "answerKey": null,
+        "position": 1
+      },
+      {
+        "itemKey": "map.sanganeri",
+        "kind": "concept_map",
+        "prompt": "Link the stages, tools and materials of Sanganeri.",
+        "config": {
+          "kind": "concept_map",
+          "conceptKeys": [
+            "sanganeri.process_stage.block-carving",
+            "sanganeri.process_stage.scouring",
+            "sanganeri.process_stage.mordant-printing",
+            "sanganeri.process_stage.washing-excess-mordant",
+            "sanganeri.process_stage.sun-bleaching",
+            "sanganeri.process_stage.dabu-resist-printing",
+            "sanganeri.process_stage.indigo-dyeing",
+            "sanganeri.process_stage.yellow-dyeing",
+            "sanganeri.process_stage.final-washing",
+            "sanganeri.tool.kalam-chisels",
+            "sanganeri.material.cow-dung",
+            "sanganeri.material.cotton-mulmul",
+            "sanganeri.material.harda-myrobalan",
+            "sanganeri.tool.rekh-datta-gadh-block-set",
+            "sanganeri.tool.printing-table-and-pad",
+            "sanganeri.tool.colour-tray",
+            "sanganeri.material.syahi-iron-black",
+            "sanganeri.material.begar-alum-mordant",
+            "sanganeri.tool.copper-dye-vessel",
+            "sanganeri.material.madder-alizarin",
+            "sanganeri.material.dhawai-phool",
+            "sanganeri.material.dabu-resist-paste",
+            "sanganeri.material.sawdust",
+            "sanganeri.tool.indigo-vat",
+            "sanganeri.material.indigo",
+            "sanganeri.material.haldi-naspal-yellow",
+            "sanganeri.material.alum-fitkari"
+          ],
+          "allowFreeNodes": false,
+          "relationshipTypes": [],
+          "directed": true
+        },
+        "answerKey": null,
+        "position": 2
+      }
+    ]
+  },
+  {
+    "code": "test-layout-sketch",
+    "kind": "sketch",
+    "phase": "post",
+    "position": 7,
+    "title": "Sketch The Layout",
+    "description": null,
+    "testType": null,
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "layout.sketch",
+        "position": 0,
+        "kind": "sketch",
+        "prompt": "From memory, sketch the layout of what you went through. Show its parts and how they connect.",
+        "config": {
+          "kind": "sketch"
+        },
+        "answerKey": null
+      }
+    ]
+  },
+  {
+    "code": "test-identification-delayed",
+    "kind": "posttest",
+    "phase": "follow_up",
+    "position": 0,
+    "title": "Name The Object",
+    "description": null,
+    "testType": "identification",
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "id.ajrakh.1.2",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Cotton Base Cloth"
+            },
+            {
+              "id": "o2",
+              "label": "Dhawri / Tamarisk Galls"
+            },
+            {
+              "id": "o3",
+              "label": "Dusting Agents"
+            },
+            {
+              "id": "o4",
+              "label": "Gach Mud Resist"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/cloth-bale.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.scouring-and-washing",
+            "objectKey": "ajrakh.material.cotton-cloth"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "id.ajrakh.3.5",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Fermented Iron-Jaggery Black Paste"
+            },
+            {
+              "id": "o2",
+              "label": "Harde"
+            },
+            {
+              "id": "o3",
+              "label": "Indigo"
+            },
+            {
+              "id": "o4",
+              "label": "Indian Madder"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.outline-and-black-printing",
+            "objectKey": "ajrakh.material.kut-iron-paste"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 1
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.4.2",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Mordant/Colour Printing Pad"
+            },
+            {
+              "id": "o2",
+              "label": "Underground Indigo Vat"
+            },
+            {
+              "id": "o3",
+              "label": "Washing Tanks / River Washing"
+            },
+            {
+              "id": "o4",
+              "label": "Hand-Carved Wooden Printing Blocks"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/printing-tray.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.tool.printing-pad-tray"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 2
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.4.5",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Iron Acetate Black Mordant"
+            },
+            {
+              "id": "o2",
+              "label": "Gach Mud Resist"
+            },
+            {
+              "id": "o3",
+              "label": "Harde"
+            },
+            {
+              "id": "o4",
+              "label": "Fermented Iron-Jaggery Black Paste"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.material.kasim-iron-acetate"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 3
+      },
+      {
+        "itemKey": "id.sanganeri.2.2",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Myrobalan"
+            },
+            {
+              "id": "o2",
+              "label": "Dhawri / Tamarisk Galls"
+            },
+            {
+              "id": "o3",
+              "label": "Gach Mud Resist"
+            },
+            {
+              "id": "o4",
+              "label": "Indigo"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.scouring-and-harda-pre-treatment",
+            "objectKey": "sanganeri.material.harda-myrobalan"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 4
+      },
+      {
+        "itemKey": "id.sanganeri.3.5",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Colour Tray With Jute-And-Cotton Pad"
+            },
+            {
+              "id": "o2",
+              "label": "Boiling Vessels And Fire-Places"
+            },
+            {
+              "id": "o3",
+              "label": "Date-Palm Brush And Kalam"
+            },
+            {
+              "id": "o4",
+              "label": "Printing Table With Gunny And Damp Cloth"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/printing-tray.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
+            "objectKey": "sanganeri.tool.colour-tray"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 5
+      }
+    ]
+  },
+  {
+    "code": "test-stage-placement-delayed",
+    "kind": "posttest",
+    "phase": "follow_up",
+    "position": 1,
+    "title": "Find The Stage",
+    "description": null,
+    "testType": "stage_placement",
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "place.ajrakh.3.4",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Khariyanu Resist Paste used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "alt": "Khariyanu Resist Paste"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.outline-and-black-printing",
+            "objectKey": "ajrakh.material.lime-gum-resist"
+          }
+        },
+        "answerKey": {
+          "optionId": "s3"
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "place.ajrakh.4.7",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Tamarind Seed Paste used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "alt": "Tamarind Seed Paste"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.alum-and-mud-resist-printing",
+            "objectKey": "ajrakh.material.tamarind-seed-paste"
+          }
+        },
+        "answerKey": {
+          "optionId": "s4"
+        },
+        "position": 1
+      },
+      {
+        "itemKey": "place.ajrakh.5.10",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Underground Indigo Vat used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/dye-vat.jpg",
+            "alt": "Underground Indigo Vat"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.indigo-dyeing",
+            "objectKey": "ajrakh.tool.underground-indigo-vat"
+          }
+        },
+        "answerKey": {
+          "optionId": "s5"
+        },
+        "position": 2
+      },
+      {
+        "itemKey": "place.ajrakh.7.13",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Copper Dye Pot And Stirring Sticks used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/boiling-vessel.jpg",
+            "alt": "Copper Dye Pot And Stirring Sticks"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.red-dyeing",
+            "objectKey": "ajrakh.tool.copper-dye-pot"
+          }
+        },
+        "answerKey": {
+          "optionId": "s7"
+        },
+        "position": 3
+      },
+      {
+        "itemKey": "place.ajrakh.7.16",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Dhawri / Tamarisk Galls used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/lump-basket.jpg",
+            "alt": "Dhawri / Tamarisk Galls"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.red-dyeing",
+            "objectKey": "ajrakh.material.dhawri-tamarisk"
+          }
+        },
+        "answerKey": {
+          "optionId": "s7"
+        },
+        "position": 4
+      },
+      {
+        "itemKey": "place.machilipatnam-kalamkari.4.4",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Carved Wooden Printing Blocks used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/carved-block.jpg",
+            "alt": "Carved Wooden Printing Blocks"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.tool.teak-printing-blocks"
+          }
+        },
+        "answerKey": {
+          "optionId": "s4"
+        },
+        "position": 5
+      },
+      {
+        "itemKey": "place.machilipatnam-kalamkari.6.7",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Boiling Vessels And Fire-Places used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/boiling-vessel.jpg",
+            "alt": "Boiling Vessels And Fire-Places"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
+            "objectKey": "machilipatnam-kalamkari.tool.boiling-vessels-and-ovens"
+          }
+        },
+        "answerKey": {
+          "optionId": "s6"
+        },
+        "position": 6
+      },
+      {
+        "itemKey": "place.machilipatnam-kalamkari.7.10",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Date-Palm Brush And Kalam used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/spoon.jpg",
+            "alt": "Date-Palm Brush And Kalam"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.second-printing",
+            "objectKey": "machilipatnam-kalamkari.tool.date-palm-brush-and-kalam"
+          }
+        },
+        "answerKey": {
+          "optionId": "s7"
+        },
+        "position": 7
+      },
+      {
+        "itemKey": "place.sanganeri.3.4",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Printing Table With Padded Surface used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/printing-table.jpg",
+            "alt": "Printing Table With Padded Surface"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
+            "objectKey": "sanganeri.tool.printing-table-and-pad"
+          }
+        },
+        "answerKey": {
+          "optionId": "s3"
+        },
+        "position": 8
+      },
+      {
+        "itemKey": "place.sanganeri.3.7",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Alum Mordant Paste used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "alt": "Alum Mordant Paste"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
+            "objectKey": "sanganeri.material.begar-alum-mordant"
+          }
+        },
+        "answerKey": {
+          "optionId": "s3"
+        },
+        "position": 9
+      },
+      {
+        "itemKey": "place.sanganeri.6.10",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Mud Resist Paste used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "alt": "Mud Resist Paste"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.dabu-resist-printing",
+            "objectKey": "sanganeri.material.dabu-resist-paste"
+          }
+        },
+        "answerKey": {
+          "optionId": "s6"
+        },
+        "position": 10
+      },
+      {
+        "itemKey": "place.sanganeri.7.13",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Indigo used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "alt": "Indigo"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.indigo-dyeing",
+            "objectKey": "sanganeri.material.indigo"
+          }
+        },
+        "answerKey": {
+          "optionId": "s7"
+        },
+        "position": 11
+      }
+    ]
+  },
+  {
+    "code": "test-sequence-delayed",
+    "kind": "posttest",
+    "phase": "follow_up",
+    "position": 2,
+    "title": "Put The Stages In Order",
+    "description": null,
+    "testType": "sequence",
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "seq.ajrakh.short",
+        "kind": "ranking",
+        "prompt": "Put these stages of Ajrakh in process order.",
+        "config": {
+          "kind": "ranking",
+          "options": [
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            }
+          ],
+          "target": {
+            "tradition": "ajrakh"
+          }
+        },
+        "answerKey": {
+          "order": [
+            "s2",
+            "s4",
+            "s6",
+            "s8"
+          ]
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "seq.machilipatnam-kalamkari.short",
+        "kind": "ranking",
+        "prompt": "Put these stages of Machilipatnam Kalamkari in process order.",
+        "config": {
+          "kind": "ranking",
+          "options": [
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            }
+          ],
+          "target": {
+            "tradition": "machilipatnam-kalamkari"
+          }
+        },
+        "answerKey": {
+          "order": [
+            "s2",
+            "s4",
+            "s6",
+            "s8"
+          ]
+        },
+        "position": 1
+      },
+      {
+        "itemKey": "seq.sanganeri.short",
+        "kind": "ranking",
+        "prompt": "Put these stages of Sanganeri in process order.",
+        "config": {
+          "kind": "ranking",
+          "options": [
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            }
+          ],
+          "target": {
+            "tradition": "sanganeri"
+          }
+        },
+        "answerKey": {
+          "order": [
+            "s2",
+            "s4",
+            "s6",
+            "s8"
+          ]
+        },
+        "position": 2
+      }
+    ]
+  },
+  {
+    "code": "test-cloth-state-delayed",
+    "kind": "posttest",
+    "phase": "follow_up",
+    "position": 3,
+    "title": "Match The Cloth",
+    "description": null,
+    "testType": "cloth_state",
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "cloth.ajrakh.b",
+        "kind": "matching",
+        "prompt": "Each image shows the cloth in Ajrakh after one stage. Choose the stage for each.",
+        "config": {
+          "kind": "matching",
+          "pairs": [
+            {
+              "id": "p2",
+              "image": {
+                "path": "/walkthrough/cloth/ajrakh-02.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p4",
+              "image": {
+                "path": "/walkthrough/cloth/ajrakh-04.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p6",
+              "image": {
+                "path": "/walkthrough/cloth/ajrakh-06.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p8",
+              "image": {
+                "path": "/walkthrough/cloth/ajrakh-08.jpg",
+                "alt": "The cloth after a stage"
+              }
+            }
+          ],
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": false,
+          "target": {
+            "tradition": "ajrakh"
+          }
+        },
+        "answerKey": {
+          "matches": {
+            "p2": "s2",
+            "p4": "s4",
+            "p6": "s6",
+            "p8": "s8"
+          }
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "cloth.machilipatnam-kalamkari.b",
+        "kind": "matching",
+        "prompt": "Each image shows the cloth in Machilipatnam Kalamkari after one stage. Choose the stage for each.",
+        "config": {
+          "kind": "matching",
+          "pairs": [
+            {
+              "id": "p2",
+              "image": {
+                "path": "/walkthrough/cloth/machilipatnam-kalamkari-02.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p4",
+              "image": {
+                "path": "/walkthrough/cloth/machilipatnam-kalamkari-04.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p6",
+              "image": {
+                "path": "/walkthrough/cloth/machilipatnam-kalamkari-06.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p8",
+              "image": {
+                "path": "/walkthrough/cloth/machilipatnam-kalamkari-08.jpg",
+                "alt": "The cloth after a stage"
+              }
+            }
+          ],
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": false,
+          "target": {
+            "tradition": "machilipatnam-kalamkari"
+          }
+        },
+        "answerKey": {
+          "matches": {
+            "p2": "s2",
+            "p4": "s4",
+            "p6": "s6",
+            "p8": "s8"
+          }
+        },
+        "position": 1
+      },
+      {
+        "itemKey": "cloth.sanganeri.b",
+        "kind": "matching",
+        "prompt": "Each image shows the cloth in Sanganeri after one stage. Choose the stage for each.",
+        "config": {
+          "kind": "matching",
+          "pairs": [
+            {
+              "id": "p2",
+              "image": {
+                "path": "/walkthrough/cloth/sanganeri-02.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p4",
+              "image": {
+                "path": "/walkthrough/cloth/sanganeri-04.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p6",
+              "image": {
+                "path": "/walkthrough/cloth/sanganeri-06.jpg",
+                "alt": "The cloth after a stage"
+              }
+            },
+            {
+              "id": "p8",
+              "image": {
+                "path": "/walkthrough/cloth/sanganeri-08.jpg",
+                "alt": "The cloth after a stage"
+              }
+            }
+          ],
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": false,
+          "target": {
+            "tradition": "sanganeri"
+          }
+        },
+        "answerKey": {
+          "matches": {
+            "p2": "s2",
+            "p4": "s4",
+            "p6": "s6",
+            "p8": "s8"
+          }
+        },
+        "position": 2
+      }
+    ]
+  },
+  {
+    "code": "test-attribution-delayed",
+    "kind": "posttest",
+    "phase": "follow_up",
+    "position": 4,
+    "title": "Name The Tradition",
+    "description": null,
+    "testType": "attribution",
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "attr.ajrakh.delayed",
+        "kind": "single_choice",
+        "prompt": "Which tradition does this finished textile come from?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "ajrakh",
+              "label": "Ajrakh"
+            },
+            {
+              "id": "machilipatnam-kalamkari",
+              "label": "Machilipatnam Kalamkari"
+            },
+            {
+              "id": "sanganeri",
+              "label": "Sanganeri"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/products/ajrakh-p6.jpg",
+            "alt": "A finished textile"
+          },
+          "target": {
+            "tradition": "ajrakh"
+          }
+        },
+        "answerKey": {
+          "optionId": "ajrakh"
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "attr.machilipatnam-kalamkari.delayed",
+        "kind": "single_choice",
+        "prompt": "Which tradition does this finished textile come from?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "ajrakh",
+              "label": "Ajrakh"
+            },
+            {
+              "id": "machilipatnam-kalamkari",
+              "label": "Machilipatnam Kalamkari"
+            },
+            {
+              "id": "sanganeri",
+              "label": "Sanganeri"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/products/machilipatnam-kalamkari-p6.jpg",
+            "alt": "A finished textile"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari"
+          }
+        },
+        "answerKey": {
+          "optionId": "machilipatnam-kalamkari"
+        },
+        "position": 1
+      },
+      {
+        "itemKey": "attr.sanganeri.delayed",
+        "kind": "single_choice",
+        "prompt": "Which tradition does this finished textile come from?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "ajrakh",
+              "label": "Ajrakh"
+            },
+            {
+              "id": "machilipatnam-kalamkari",
+              "label": "Machilipatnam Kalamkari"
+            },
+            {
+              "id": "sanganeri",
+              "label": "Sanganeri"
+            }
+          ],
+          "shuffle": false,
+          "image": {
+            "path": "/walkthrough/products/sanganeri-p3.jpg",
+            "alt": "A finished textile"
+          },
+          "target": {
+            "tradition": "sanganeri"
+          }
+        },
+        "answerKey": {
+          "optionId": "sanganeri"
+        },
+        "position": 2
+      }
+    ]
+  },
+  {
+    "code": "test-transfer-delayed",
+    "kind": "posttest",
+    "phase": "follow_up",
+    "position": 5,
+    "title": "A Tradition You Have Not Seen",
+    "description": null,
+    "testType": "transfer",
+    "paged": false,
+    "items": [
+      {
+        "itemKey": "transfer.dabu.next",
+        "kind": "single_choice",
+        "prompt": "Which stage comes straight after Sun-drying the resist?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Dip-dyeing (usually indigo)"
+            },
+            {
+              "id": "o2",
+              "label": "Collecting and soaking the mud"
+            },
+            {
+              "id": "o3",
+              "label": "Preparing the resist paste"
+            },
+            {
+              "id": "o4",
+              "label": "Washing / scouring the cloth"
+            }
+          ],
+          "shuffle": true,
+          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo): The cloth is dip-dyed after the paste hardens.\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth: The fabric is first washed to remove impurities that could block dyeing.\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying: The cloth turns green, then deepens to indigo as it oxidises in air.\nPreparing the resist paste: The paste is kneaded by stamping over several days, then strained before use.\nOptional pre-printing of colour (naphthol red): Naphthol is printed on areas to be red, sun-dried, then dipped in red salt.\nRepeating resist-dye cycles (double/triple dabu): The resist-and-dye sequence is repeated through a dye bath for each colour needed.\nBlock-printing the resist: Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric.\nSun-drying the resist: The fabric is sun-dried until the paste hardens.\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
+          "sampleText": true,
+          "target": {
+            "tradition": "dabu"
+          }
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "transfer.dabu.tool",
+        "kind": "single_choice",
+        "prompt": "Which of these is used at Dip-dyeing (usually indigo)?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Indigo"
+            },
+            {
+              "id": "o2",
+              "label": "Mud / black clay (kali mitti)"
+            },
+            {
+              "id": "o3",
+              "label": "Lime (chuna, calcium hydroxide)"
+            },
+            {
+              "id": "o4",
+              "label": "Natural gum (gond)"
+            }
+          ],
+          "shuffle": true,
+          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo): The cloth is dip-dyed after the paste hardens.\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth: The fabric is first washed to remove impurities that could block dyeing.\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying: The cloth turns green, then deepens to indigo as it oxidises in air.\nPreparing the resist paste: The paste is kneaded by stamping over several days, then strained before use.\nOptional pre-printing of colour (naphthol red): Naphthol is printed on areas to be red, sun-dried, then dipped in red salt.\nRepeating resist-dye cycles (double/triple dabu): The resist-and-dye sequence is repeated through a dye bath for each colour needed.\nBlock-printing the resist: Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric.\nSun-drying the resist: The fabric is sun-dried until the paste hardens.\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
+          "sampleText": true,
+          "target": {
+            "tradition": "dabu"
+          }
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 1
+      }
+    ]
+  }
+]

@@ -117,6 +117,7 @@ async function Reconstruction() {
       ) : (
         <>
           <ReconstructionTask
+            key={task.itemId}
             itemId={task.itemId}
             concepts={task.set.concepts}
             relationshipTypes={task.set.relationshipTypes}

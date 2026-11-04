@@ -38,13 +38,25 @@ export function bindLearningTelemetry(next: TelemetrySink | null): void {
 
 const stagePage = (stage: Pick<StageRef, "traditionKey" | "stageKey">) => `stage:${stage.traditionKey}:${stage.stageKey}`;
 
-async function post<T>(body: LearningProgressRequest, keepalive = false): Promise<T | null> {
+let lastPost: Promise<unknown> = Promise.resolve();
+let inFlight = 0;
+
+async function send<T>(body: LearningProgressRequest, keepalive: boolean): Promise<T | null> {
   try {
     const response = await fetch(LEARNING_PROGRESS_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), keepalive, credentials: "same-origin" });
     return (await response.json()) as T;
   } catch {
     return null;
   }
+}
+
+function post<T>(body: LearningProgressRequest, keepalive = false): Promise<T | null> {
+  inFlight += 1;
+  const next = (inFlight === 1 ? send<T>(body, keepalive) : lastPost.then(() => send<T>(body, keepalive))).finally(() => {
+    inFlight -= 1;
+  });
+  lastPost = next;
+  return next;
 }
 
 export async function reportStageEntered(stage: StageRef): Promise<StageEntryOutcome> {
@@ -57,6 +69,10 @@ export function reportStageLeft(stage: StageRef, activeMs: number): void {
   const whole = Math.max(0, Math.round(activeMs));
   sink?.("stage_left", { metadata: { ...stage, activeMs: whole }, roomOrPageId: stagePage(stage) });
   void post({ kind: "stage_left", stage, activeMs: whole }, true);
+}
+
+export function reportSourceOpened(stage: StageRef): void {
+  sink?.("source_opened", { metadata: { ...stage }, roomOrPageId: stagePage(stage) });
 }
 
 export function reportObjectDwell(stage: StageRef, dwell: ObjectDwell): void {

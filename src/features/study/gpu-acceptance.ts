@@ -1,7 +1,6 @@
 /**
  * The ONE rule for "can this browser show the 3D museum?", shared by the study device check
  * (src/components/study/device-check.tsx, evaluated by the engine) and the museum's own probe
- * (src/features/immersive/quality.ts, src/components/museum/museum-app.tsx).
  *
  * Final review study-01: the device check used to pass any WebGL (1 or 2) and could not see a
  * software renderer, while the museum refuses both in study mode. An immersive participant on a

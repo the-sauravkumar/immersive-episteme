@@ -5,7 +5,7 @@ import { expect, test } from "./fixtures";
  * any page code runs, and the pages are never framed. (Role-level refusals are covered by the
  * integration tests of the CMS and admin services.)
  */
-const PROTECTED = ["/cms", "/cms/relations", "/cms/datasets", "/cms/review", "/cms/spatial", "/cms/media", "/admin", "/admin/users", "/admin/audit"];
+const PROTECTED = ["/cms", "/cms/relations", "/cms/datasets", "/cms/review", "/cms/media", "/admin", "/admin/users", "/admin/audit"];
 
 for (const path of PROTECTED) {
   test(`anonymous ${path} is redirected to sign-in`, async ({ request }) => {

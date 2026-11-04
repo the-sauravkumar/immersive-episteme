@@ -39,12 +39,6 @@ export function isQuestionnaireStep(step: StudyStep): step is QuestionnaireStep 
   return (QUESTIONNAIRE_STEPS as readonly string[]).includes(step);
 }
 
-/**
- * The content-free practice pages /learn/2d/practice and /learn/immersive/practice (D5) exist,
- * so a protocol may use the familiarisation step.
- */
-export const PRACTICE_ROUTES_AVAILABLE = true;
-
 export const DEFAULT_STEPS: readonly StudyStep[] = [
   "questionnaire_pre",
   "pre_test",
@@ -61,9 +55,6 @@ export const DEFAULT_STEPS: readonly StudyStep[] = [
   "delayed_test",
 ];
 
-/** D5: minutes of content-free practice for a new study (the lower end of the adopted 5–10; a pilot parameter). */
-export const DEFAULT_FAMILIARISATION_MINUTES = 5;
-
 export const DEFAULT_QUESTIONNAIRES = {
   pre: ["background"],
   postLearning: ["common-questions", { code: "mps-physical-presence", conditions: ["immersive"] }, { code: "ssq", conditions: ["immersive"] }],
@@ -77,7 +68,6 @@ export const DEFAULT_PRE_TEST_CUTOFF = 2;
 export const NEW_STUDY_CONFIG = {
   exposure: { mode: "self_paced", minutes: LEARNING_CAP_MINUTES, allowEarlyFinish: true, requireEveryStage: true },
   allocation: { algorithm: "stratified_block", blockSize: 4, point: "after_pre_test", strata: [], stratifyBy: { source: "pre_test_score", cutoff: DEFAULT_PRE_TEST_CUTOFF } },
-  familiarisation: { minutes: DEFAULT_FAMILIARISATION_MINUTES },
   steps: [...DEFAULT_STEPS],
   questionnaires: DEFAULT_QUESTIONNAIRES,
 } as const;
@@ -139,10 +129,6 @@ export function protocolIssues(config: StudyConfig, steps: readonly StudyStep[])
     issues.push("allocation.algorithm stratified_block after the pre-test needs allocation.stratifyBy");
   }
 
-  if (has("familiarisation")) {
-    if (!PRACTICE_ROUTES_AVAILABLE) issues.push("steps: familiarisation is not available yet (the /learn/<condition>/practice pages do not exist)");
-    if (!config.familiarisation) issues.push("familiarisation: set familiarisation.minutes (5–10) to use the familiarisation step");
-  }
   // D6: the hybrid guidance's always-available hint shows researcher-written text, the same in both conditions.
   if (config.guidance.policy === "hybrid" && config.guidance.cueEnabled && !config.guidance.hintText) {
     issues.push("guidance: a hybrid policy with cueEnabled needs guidance.hintText (the hint both conditions show)");

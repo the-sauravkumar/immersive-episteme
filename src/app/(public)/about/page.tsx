@@ -77,8 +77,8 @@ function flowDiagram(vertical: boolean): {
       label: s.label,
     }));
     const lx = 4 * (w + gap);
-    nodes.push({ id: "learn-2d", x: lx, y: 16, width: lw, height: 64, fill: "indigo", label: ["Learning:", "2D pages"] });
-    nodes.push({ id: "learn-3d", x: lx, y: 140, width: lw, height: 64, fill: "indigo", label: ["Learning:", "3D museum"] });
+    nodes.push({ id: "learn-2d", x: lx, y: 16, width: lw, height: 64, fill: "indigo", label: ["Learning:", "visual course"] });
+    nodes.push({ id: "learn-3d", x: lx, y: 140, width: lw, height: 64, fill: "indigo", label: ["Learning:", "walkthrough"] });
     nodes.push({ id: "after", x: lx + lw + gap, y: 78, width: w, height: 64, fill: "sunk", label: ["After", "learning"] });
     const edges: DiagramEdge[] = [0, 1, 2].map((i) => ({
       id: `e${i}`,
@@ -103,8 +103,8 @@ function flowDiagram(vertical: boolean): {
     fill: s.id === "allocation" ? "wash" : "sunk",
     label: s.label,
   }));
-  nodes.push({ id: "learn-2d", x: 8, y: 392, width: 144, height: 64, fill: "indigo", label: ["Learning:", "2D pages"] });
-  nodes.push({ id: "learn-3d", x: 168, y: 392, width: 144, height: 64, fill: "indigo", label: ["Learning:", "3D museum"] });
+  nodes.push({ id: "learn-2d", x: 8, y: 392, width: 144, height: 64, fill: "indigo", label: ["Learning:", "visual course"] });
+  nodes.push({ id: "learn-3d", x: 168, y: 392, width: 144, height: 64, fill: "indigo", label: ["Learning:", "walkthrough"] });
   nodes.push({ id: "after", x: 80, y: 512, width: 160, height: 64, fill: "sunk", label: ["After", "learning"] });
   const edges: DiagramEdge[] = [0, 1, 2].map((i) => ({
     id: `e${i}`,
@@ -141,7 +141,7 @@ function StepList() {
     ["Before learning, blind to condition", BEFORE],
     ["Allocation to one condition", null],
     ["Practice and introduction, in the allocated condition", PREPARE],
-    ["Learning, in 2D pages or the 3D museum", ["learning"]],
+    ["Learning, in the visual course or the walkthrough", ["learning"]],
     ["After learning", AFTER],
   ];
   return (
@@ -230,7 +230,7 @@ async function ImageCreditsLive() {
             <span className="text-credit">
               {c.credit}. Licence:{" "}
               {c.licenceUrl ? (
-                <a href={c.licenceUrl} className={LINK} rel="noopener noreferrer" target="_blank">
+                <a href={c.licenceUrl} className={`${LINK} inline-flex min-h-11 items-center`} rel="noopener noreferrer" target="_blank">
                   {c.licence}
                 </a>
               ) : (
@@ -251,14 +251,13 @@ export default function AboutPage() {
       <PageHeader
         className="mb-0"
         title="About the project"
-        description="A research platform comparing how people learn craft knowledge through conventional pages and through a spatially organised museum."
+        description="A research platform comparing how people learn a craft process through a visual course and through a walk along a route of working yards."
       />
       <EditorialFrame>
         <EditorialSection id="purpose" title="Purpose">
           <EditorialRow>
             <Prose>
-              Immersive Episteme asks whether learning the same cited knowledge in a walkable 3D museum differs from learning it in conventional 2D
-              pages. Both conditions are built from one knowledge model, one study engine and one set of assessments, so that a difference in results
+              Immersive Episteme asks whether learning the same cited process as a route of working yards differs from learning it as a sequence of panels. Both conditions are built from one knowledge model, one study engine and one set of assessments, so that a difference in results
               can be traced to the way the knowledge is organised in space, not to its content or to the quality of the interface.
             </Prose>
           </EditorialRow>

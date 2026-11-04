@@ -25,7 +25,6 @@ import { listParityReports } from "../../src/server/research/parity/store";
 import { setStageTemplateSource } from "../../src/server/study/stage-templates";
 import { addAnnotation, addDeviation, excludeSession, getSession, integrityFlags, listAnnotations, listDeviations, listSessions } from "../../src/server/research/sessions";
 import { activateStudy, createStudy, getStudy, newStudyVersion, researchStudyConfigSchema, setBattery, updateStudy, type UpdateStudyInput } from "../../src/server/research/studies";
-import { compileAndStoreManifest } from "../../src/server/spatial/manifest-store";
 import { ingestTelemetryBatch } from "../../src/server/telemetry/ingest";
 import { TEST_URL, createRealGraph, createSession, createTestDatabase, createUser, one, recordConsent, withSettings, type TestDb } from "./schema-harness";
 
@@ -34,7 +33,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
   let actor: { userId: string };
   let studyId: string;
   let snapshotId: string;
-  let manifestId: string;
   let conceptIds: [string, string];
   let relationshipId: string;
   let assessmentId: string;
@@ -43,7 +41,7 @@ describe.skipIf(!TEST_URL)("research console", () => {
   let s2d: Awaited<ReturnType<typeof createSession>>;
   let s3d: Awaited<ReturnType<typeof createSession>>;
 
-  const SHARED_FILE = "/museum/textures/floor-color.3b88b65a.ktx2";
+  const SHARED_FILE = "/walkthrough/course/plaster.jpg";
   const template = {
     tradition: "rc-tradition",
     traditionName: "Sample Text",
@@ -52,10 +50,10 @@ describe.skipIf(!TEST_URL)("research console", () => {
     stages: [{ number: 1, key: "s1", sourceStageKeys: [], name: "Sample Text", localName: null, kind: "table", caption: { text: "Sample Text", sources: [{ sourceId: "S1", title: "Sample Text", locator: "p. 1", quote: "Sample Text" }] }, items: [{ key: "i1", role: "tool", label: "Sample Text", localName: null, modelId: "bucket" }], clothStateId: "c1" }],
   } as unknown as StageTemplate;
 
+  const realBuilders = { ...DOOR_VIEW_BUILDERS };
   afterAll(() => {
     setStageTemplateSource(null);
-    delete DOOR_VIEW_BUILDERS["2d"];
-    delete DOOR_VIEW_BUILDERS.immersive;
+    Object.assign(DOOR_VIEW_BUILDERS, realBuilders);
   });
 
   beforeAll(async () => {
@@ -149,14 +147,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
     }
     await t.pool.query("UPDATE content_snapshots SET status = 'published', published_by = $2 WHERE id = $1", [snapshotId, curator]);
 
-    const client = await t.pool.connect();
-    try {
-      const m = await compileAndStoreManifest(client, { snapshotId, traditions: [String(tr.slug)] });
-      manifestId = m.id;
-    } finally {
-      client.release();
-    }
-    await t.pool.query("UPDATE spatial_manifests SET status = 'published', published_by = $2 WHERE id = $1", [manifestId, curator]);
 
     // A locked post-learning concept-map assessment for the battery.
     const a = await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ('rc-map', 1, 'reconstruction', 'Reconstruction') RETURNING id");
@@ -178,9 +168,9 @@ describe.skipIf(!TEST_URL)("research console", () => {
     title: "Research console study",
     description: null,
     protocolVersion: "p1",
+    manifestId: null,
     design: "between",
     snapshotId,
-    manifestId,
     // The journey matches the battery (one post-learning reconstruction): parity check d.journey.
     config: researchStudyConfigSchema.parse({ traditionSlugs: ["rc-tradition"], steps: ["learning", "reconstruction"], ...config }),
   });
@@ -395,7 +385,7 @@ describe.skipIf(!TEST_URL)("research console", () => {
   it("versions a frozen study into a new draft", async () => {
     const id = await newStudyVersion(t.pool, actor, studyId, { slug: "rc-study-v2", protocolVersion: "p2" });
     const s = (await getStudy(t.pool, id))!;
-    expect(s).toMatchObject({ status: "draft", protocolVersion: "p2", snapshotId, manifestId });
+    expect(s).toMatchObject({ status: "draft", protocolVersion: "p2", snapshotId });
     expect(s.battery.map((b) => b.assessmentId)).toEqual([assessmentId]);
     expect(s.conditions).toHaveLength(2);
     expect((await getStudy(t.pool, studyId))!.status).toBe("active");

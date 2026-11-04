@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
+import { HELP_LINES, HELP_TITLE, PAUSE_TEXT, PAUSE_TITLE, RESUME_LABEL, SOURCES_AND_CREDITS_LABEL, SOURCES_LABEL } from "@/features/process/domain/guidance";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
 import { buildRoute, type RouteStation } from "../domain/route-plan";
 import { WalkRuntime } from "../infrastructure/walk-runtime";
-import "@/features/course/ui/tokens.css";
+import "@/styles/walking-tokens.css";
 import "./walkthrough.css";
 
 export interface WalkStop {
@@ -22,7 +23,6 @@ export interface WalkthroughSessionEvents {
   readonly onObjectDwell: (stop: WalkStop, objectKey: string, dwellMs: number, closestMetres: number) => void;
   readonly onPathSample: (traditionKey: string, points: readonly (readonly [number, number, number])[]) => void;
   readonly onWrongTurn: (stop: WalkStop) => void;
-  readonly onBackStep: () => void;
   readonly onSourceOpened: (stop: WalkStop) => void;
   readonly onFinished: () => void;
 }
@@ -40,6 +40,7 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
   const [stationIndex, setStationIndex] = useState(0);
   const [reached, setReached] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [ready, setReady] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const host = useRef<HTMLDivElement>(null);
@@ -54,21 +55,26 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
   useEffect(() => {
     const element = host.current;
     if (!element) return;
+    setReady(false);
     const tradition = template.tradition;
     const texturesFor = (station: RouteStation) => station.textiles.map((textile) => ({ file: textile.product.file, name: textile.product.name, x: textile.x, z: textile.z, width: textile.width, height: textile.height, label: textile.label }));
     const stopOf = (station: RouteStation): WalkStop => ({ traditionKey: tradition, stageKey: station.stopKey, stageNumber: station.stopNumber });
     const path: [number, number, number][] = [];
+    let open: { stop: WalkStop; enteredAt: number } | null = null;
     const flushPath = () => {
       if (path.length > 0) eventsRef.current.onPathSample(tradition, path.splice(0));
     };
     const instance = new WalkRuntime(element, route, texturesFor, {
       onStationEntered(station, index) {
+        setReady(true);
         setStationIndex(index);
         setReached((value) => Math.max(value, index));
-        eventsRef.current.onStageEntered(stopOf(station));
+        open = { stop: stopOf(station), enteredAt: performance.now() };
+        eventsRef.current.onStageEntered(open.stop);
       },
       onStationLeft(station, _index, activeMs, walkingMs, viewpointChanges) {
         flushPath();
+        open = null;
         eventsRef.current.onStageLeft(stopOf(station), activeMs);
         eventsRef.current.onMovement(stopOf(station), walkingMs, Math.max(0, activeMs - walkingMs));
         eventsRef.current.onViewpointChanges(stopOf(station), viewpointChanges);
@@ -77,7 +83,7 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
         eventsRef.current.onObjectDwell(stopOf(station), itemKey, seconds * 1000, nearest);
       },
       onPath(x, z) {
-        path.push([x, 0, z]);
+        path.push([performance.now(), x, z]);
         if (path.length >= 40) flushPath();
       },
       onWrongTurn(station) {
@@ -90,6 +96,8 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
     window.addEventListener("resize", resize);
     return () => {
       window.removeEventListener("resize", resize);
+      flushPath();
+      if (open) eventsRef.current.onStageLeft(open.stop, performance.now() - open.enteredAt);
       instance.dispose();
       runtime.current = null;
     };
@@ -112,7 +120,6 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
     const down = (event: KeyboardEvent) => {
       if (event.code === "KeyB") {
         runtime.current?.walkTo(Math.max(0, (runtime.current?.stationIndex ?? 0) - 1));
-        eventsRef.current.onBackStep();
         return;
       }
       if (KEY_MOVES[event.code]) {
@@ -157,7 +164,7 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
   }, [atHall, events, lastTradition, stationIndex]);
 
   return (
-    <div className="walkthrough walking-tokens" data-slot="walkthrough-session">
+    <div className="walkthrough walking" data-slot="walkthrough-session">
       <div
         ref={host}
         className="walkthrough-view"
@@ -178,6 +185,7 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
           runtime.current?.endLook();
         }}
       />
+      {ready ? null : <div className="walkthrough-cover walkthrough-loading" role="status">Opening The Yard</div>}
       <div className="walkthrough-plate walkthrough-route">
         <ol className="walkthrough-map" aria-label={`Route of ${route.length} stations`}>
           {route.map((entry, index) => (
@@ -190,29 +198,26 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
         </p>
       </div>
       <div className="walkthrough-tools">
-        <button type="button" disabled={!stage} onClick={() => {
+        <button type="button" onClick={() => {
           setSourcesOpen(true);
           if (station) events.onSourceOpened({ traditionKey: template.tradition, stageKey: station.stopKey, stageNumber: station.stopNumber });
         }}>
           Sources
         </button>
-        <button type="button" onClick={() => setHelpOpen(true)}>Help</button>
-        <button type="button" onClick={() => setPaused((value) => !value)}>{paused ? "Carry On" : "Pause"}</button>
+        <button type="button" onClick={() => setHelpOpen(true)}>{HELP_TITLE}</button>
+        <button type="button" onClick={() => setPaused(true)}>Pause</button>
       </div>
       <div className="walkthrough-move">
-        <button type="button" disabled={stationIndex === 0} onClick={() => {
-          runtime.current?.walkTo(stationIndex - 1);
-          events.onBackStep();
-        }}>
+        <button type="button" disabled={!ready || stationIndex === 0} onClick={() => runtime.current?.walkTo(stationIndex - 1)}>
           Back
         </button>
-        <button type="button" className="walkthrough-next" onClick={onwards}>
+        <button type="button" className="walkthrough-next" disabled={!ready} onClick={onwards}>
           {atHall ? (lastTradition ? "Questions" : "Next Tradition") : "Walk On"}
         </button>
       </div>
       {sourcesOpen && stage ? (
-        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label="Sources Behind This Caption">
-          <h2>Sources Behind This Caption</h2>
+        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={SOURCES_LABEL}>
+          <h2>{SOURCES_LABEL}</h2>
           <p>{stage.caption.text}</p>
           <ul>
             {stage.caption.sources.map((source) => (
@@ -224,10 +229,33 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
           <button type="button" onClick={() => setSourcesOpen(false)}>Close</button>
         </div>
       ) : null}
+      {sourcesOpen && !stage ? (
+        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={SOURCES_AND_CREDITS_LABEL}>
+          <h2>{SOURCES_AND_CREDITS_LABEL}</h2>
+          <ul>
+            {template.products.map((product) => (
+              <li key={product.id}>
+                <b>{product.name}</b>, {product.holder}
+              </li>
+            ))}
+          </ul>
+          <button type="button" onClick={() => setSourcesOpen(false)}>Close</button>
+        </div>
+      ) : null}
+      {paused ? (
+        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={PAUSE_TITLE}>
+          <h2>{PAUSE_TITLE}</h2>
+          <p>{PAUSE_TEXT}</p>
+          <button type="button" onClick={() => setPaused(false)}>{RESUME_LABEL}</button>
+        </div>
+      ) : null}
       {helpOpen ? (
-        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label="Help">
-          <h2>Help</h2>
+        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={HELP_TITLE}>
+          <h2>{HELP_TITLE}</h2>
           <p>Walk with W, A, S and D or the arrow keys. Drag to look around. Walk On takes you to the next station, and B or Back takes you back along the route. Follow the cloth.</p>
+          {HELP_LINES.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
           <button type="button" onClick={() => setHelpOpen(false)}>Close</button>
         </div>
       ) : null}

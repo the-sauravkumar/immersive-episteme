@@ -44,7 +44,7 @@ import { AUTH_COOKIE_PREFIX, DEMO_COOKIE, INVITE_COOKIE, PARTICIPANT_COOKIE } fr
 
 const STAFF_PREFIXES = ["/cms", "/research", "/admin"];
 const NO_FRAME_PAGES = ["/sign-in", "/sign-out", "/forbidden"];
-const PUBLIC_STUDY_PAGES = ["/study/consent", "/study/complete", "/study/exit"];
+const PUBLIC_STUDY_PAGES = ["/study/consent", "/study/complete", "/study/exit", "/study/return"];
 
 function startsWithSegment(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
@@ -141,10 +141,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 }
 
 /*
- * Every path except /api (other than /api/auth), Next's static output, the image optimiser, the
- * museum assets and the root files: the invite gate covers every page and route handler outside
+ * Every path except /api (other than /api/auth), Next's static output, the image optimiser and the
+ * root files: the invite gate covers every page and route handler outside
  * those (S11). Matcher values must be literals (statically analysed at build time).
  */
 export const config = {
-  matcher: ["/api/auth/:path*", "/((?!api/|_next/static/|_next/image|museum/|favicon.ico|robots.txt).*)"],
+  matcher: ["/api/auth/:path*", "/((?!api/|_next/static/|_next/image|favicon.ico|robots.txt).*)"],
 };

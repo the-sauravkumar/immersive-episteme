@@ -83,7 +83,7 @@ test.beforeAll(async () => {
   const config = {
     traditionSlugs: ["demo-tradition-a"],
     nonExperimental: true,
-    steps: ["pre_reconstruction", "learning"],
+    steps: ["learning", "reconstruction"],
     exposure: { mode: "self_paced" },
   };
   ids.study = (
@@ -95,7 +95,7 @@ test.beforeAll(async () => {
   ).id;
   const c2d = await one<{ id: string }>("INSERT INTO study_conditions (study_id, code, label, interface, position) VALUES ($1, 'conventional', 'Demo: 2D', 'conventional_2d', 0) RETURNING id", [ids.study]);
   await pool.query("INSERT INTO study_conditions (study_id, code, label, interface, position) VALUES ($1, 'immersive', 'Demo: 3D', 'immersive_3d', 1)", [ids.study]);
-  await pool.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position) VALUES ($1, $2, 'pre', 0)", [ids.study, ids.assessment]);
+  await pool.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position) VALUES ($1, $2, 'post', 0)", [ids.study, ids.assessment]);
   await pool.query("UPDATE studies SET status = 'active' WHERE id = $1", [ids.study]);
 
   ids.code = `E2E-${tag}`;
@@ -112,6 +112,8 @@ test.beforeAll(async () => {
       [ids.study, ids.participant, c2d.id, alloc.id],
     )
   ).id;
+  await pool.query("UPDATE study_sessions SET learning_started_at = now() - interval '5 minutes' WHERE id = $1", [ids.session]);
+  await pool.query("UPDATE study_sessions SET learning_ended_at = now() WHERE id = $1", [ids.session]);
   await pool.query(
     "INSERT INTO audit_log (actor_kind, actor_id, action, entity, entity_id, after) VALUES ('participant', $1, 'study.device_checked', 'study_session', $2, $3)",
     [ids.code, ids.session, JSON.stringify({ outcome: "passed" })],
@@ -170,7 +172,7 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   const page = await participant.newPage();
   await page.goto("/study/reconstruction");
   await expect(page.getByRole("heading", { level: 1, name: "Connect the concepts" })).toBeVisible();
-  await expect(page.getByText("Before the learning task")).toBeVisible();
+  await expect(page.getByText("After the learning task")).toBeVisible();
   await expect(page.locator(".react-flow__node")).toHaveCount(3);
   // Withdrawal at any point (S16): the same footer link as every other in-session step.
   await expect(page.getByRole("link", { name: "Withdraw from the study" })).toBeVisible();
@@ -221,7 +223,7 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   await expect(page.getByRole("heading", { level: 1, name: "Your Session" })).toBeVisible();
 
   const stored = await one<{ is_final: boolean; raw: { editLog: Array<{ op: string; via: string }> }; edges: string }>(
-    "SELECT is_final, raw, (SELECT count(*) FROM concept_map_edges e WHERE e.concept_map_id = cm.id) AS edges FROM concept_maps cm WHERE session_id = $1 AND phase = 'pre'",
+    "SELECT is_final, raw, (SELECT count(*) FROM concept_map_edges e WHERE e.concept_map_id = cm.id) AS edges FROM concept_maps cm WHERE session_id = $1 AND phase = 'post'",
     [ids.session],
   );
   expect(stored.is_final).toBe(true);

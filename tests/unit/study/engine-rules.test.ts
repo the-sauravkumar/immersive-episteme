@@ -6,8 +6,6 @@ import type { StudySessionLookup, StudySessionRecord } from "../../../src/server
 import {
   DEFAULT_STEPS,
   NEW_STUDY_CONFIG,
-  PRACTICE_ROUTES_AVAILABLE,
-  StudyConfigError,
   instrumentsFor,
   parseStudyProtocol,
   protocolIssues,
@@ -23,7 +21,7 @@ const P = "0190a3c2-1111-7000-8000-000000000001";
 const S = "0190a3c2-2222-7000-8000-000000000002";
 
 const issuesOf = (raw: Record<string, unknown>) => {
-  const cfg = studyConfigSchema.parse({ familiarisation: { minutes: 5 }, ...raw });
+  const cfg = studyConfigSchema.parse(raw);
   return protocolIssues(cfg, cfg.steps ?? DEFAULT_STEPS);
 };
 
@@ -33,11 +31,9 @@ describe("study protocol config (Concept Note rev2, section 7)", () => {
       "questionnaire_pre", "pre_test", "entrance", "familiarisation", "onboarding", "learning",
       "questionnaire_post_learning", "post_test", "transfer", "reconstruction", "layout_sketch", "questionnaire_end", "delayed_test",
     ]);
-    expect(PRACTICE_ROUTES_AVAILABLE).toBe(true);
-    const p = parseStudyProtocol({ familiarisation: { minutes: 5 } });
+    const p = parseStudyProtocol({});
     expect(p.steps).toEqual(DEFAULT_STEPS);
     // The default order needs the practice minutes: refused loudly, never silently dropped.
-    expect(() => parseStudyProtocol({})).toThrow(/familiarisation.minutes/);
     expect(p.config.allocation.point).toBe("after_pre_test");
     expect(p.config.resume).toEqual({ allowed: true });
   });
@@ -46,7 +42,6 @@ describe("study protocol config (Concept Note rev2, section 7)", () => {
     const p = parseStudyProtocol(NEW_STUDY_CONFIG);
     expect(p.config.exposure).toEqual({ mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true });
     expect(p.config.delayedTest).toEqual({ opensAfterDays: 6, dueAfterDays: 7, closesAfterDays: 14 });
-    expect(p.config.familiarisation).toEqual({ minutes: 5 });
     expect(p.steps.indexOf("familiarisation")).toBe(p.steps.indexOf("onboarding") - 1);
     expect(p.config.allocation).toMatchObject({ algorithm: "stratified_block", blockSize: 4, point: "after_pre_test", stratifyBy: { source: "pre_test_score" } });
   });
@@ -91,10 +86,8 @@ describe("study protocol config (Concept Note rev2, section 7)", () => {
     expect(() => studyConfigSchema.parse({ delayedTest: { opensAfterDays: 8, dueAfterDays: 7, closesAfterDays: 14 } })).toThrow();
   });
 
-  it("accepts the familiarisation step with 5–10 practice minutes and refuses it without", () => {
-    expect(issuesOf({ steps: ["familiarisation", "onboarding", "learning"], familiarisation: { minutes: 5 } })).toEqual([]);
-    expect(() => studyConfigSchema.parse({ familiarisation: { minutes: 12 } })).toThrow();
-    expect(() => parseStudyProtocol({ steps: ["familiarisation", "onboarding", "learning"] })).toThrow(StudyConfigError);
+  it("accepts the familiarisation step with no minimum time", () => {
+    expect(issuesOf({ steps: ["familiarisation", "onboarding", "learning"] })).toEqual([]);
   });
 
   it("needs the researchers' hint text for hybrid guidance (D6)", () => {

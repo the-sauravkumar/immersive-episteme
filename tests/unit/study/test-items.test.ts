@@ -16,7 +16,7 @@ function template(tradition: TraditionKey): StageTemplate {
     items: [{ key: `${tradition}.tool.t${number}`, role: "tool", label: `${tradition} Tool ${number}`, localName: null, modelId: `${tradition}-model-${number}` }],
     clothStateId: `${tradition}-c${number}`,
   }));
-  return { tradition, traditionName: `${tradition} Name`, rawClothStateId: "raw", stages, products: [{ id: "p1", file: `walkthrough/${tradition}-1.jpg`, name: "Sample Text", holder: "Sample Text" }, { id: "p2", file: `/walkthrough/${tradition}-2.jpg`, name: "Sample Text", holder: "Sample Text" }] };
+  return { tradition, traditionName: `${tradition} Name`, rawClothStateId: "raw", stages, products: [{ id: "p1", file: `walkthrough/${tradition}-1.jpg`, name: "Sample Text", holder: "Sample Text", widthPx: 100, heightPx: 100 }, { id: "p2", file: `/walkthrough/${tradition}-2.jpg`, name: "Sample Text", holder: "Sample Text", widthPx: 100, heightPx: 100 }] };
 }
 
 const unseen = (key: string): UnseenTradition => ({

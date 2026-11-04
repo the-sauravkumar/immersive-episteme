@@ -14,7 +14,6 @@ import { importContent, ContentImportRefused, type ImportSummary } from "../../s
 import { storeReviewSnapshot, type StoredReviewSnapshot } from "../../src/server/content/review-snapshot";
 import { loadSnapshotPayload, searchSnapshotConcepts, SnapshotNotReadableError, latestReviewSnapshotId } from "../../src/server/knowledge/snapshot-store";
 import { pgLearningContextData, resolveLearningContext } from "../../src/server/learning/context-data";
-import { compileAndStoreManifest, loadManifest } from "../../src/server/spatial/manifest-store";
 import { REPO_ROOT, loadAndValidate } from "../../scripts/content/_shared";
 import { TEST_URL, createSnapshot, createStudy, createTestDatabase, createUser, one, withSettings, type TestDb } from "./schema-harness";
 
@@ -198,59 +197,14 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
     });
   });
 
-  describe("spatial manifests and learning context", () => {
-    it("compiles, stores and reloads a manifest idempotently, with its element index", async () => {
-      const c = await t.pool.connect();
-      try {
-        const m = await compileAndStoreManifest(c, { snapshotId: snap.id, traditions: SHORTLIST });
-        expect(m).toMatchObject({ created: true, status: "valid", validationPassed: true, traditions: [...SHORTLIST].sort() });
-        expect(m.manifestHash).toMatch(/^[0-9a-f]{64}$/);
-        expect(m.elements).toBeGreaterThan(0);
-        const again = await compileAndStoreManifest(c, { snapshotId: snap.id, traditions: [...SHORTLIST].reverse() });
-        expect(again).toMatchObject({ created: false, id: m.id, manifestHash: m.manifestHash });
-        const single = await compileAndStoreManifest(c, { snapshotId: snap.id, traditions: ["ajrakh"] });
-        expect(single.id).not.toBe(m.id);
-        const rec = await loadManifest(t.pool, m.id);
-        expect(rec?.manifest.snapshotVersion).toBe(snap.versionLabel);
-        expect(rec?.validation.compilerManifestHash).toBe(m.compilerManifestHash);
-        // Images come only from the snapshot's asset links (what 2D can show), never from
-        // unreviewed media candidates, although those are in the database (parity check a.media).
-        const candidates = await t.pool.query<{ n: number }>("SELECT count(*)::int AS n FROM media_candidates WHERE NOT is_demo");
-        expect(candidates.rows[0]!.n).toBeGreaterThan(0);
-        const linked = new Set((await loadSnapshotPayload(t.pool, snap.id)).concepts.flatMap((x) => x.assetIds));
-        const shown = rec!.manifest.elements.flatMap((e) => ((e.assetRefs as { assetId: string; missing?: true }[] | undefined) ?? []).filter((r) => !r.missing).map((r) => r.assetId));
-        expect(shown.filter((id) => !linked.has(id))).toEqual([]);
-        // A non-demo study can never pin it (the manifest must come from the study snapshot, which cannot be a review snapshot).
-        await expect(createStudy(t.pool, { slug: "real-manifest", manifestId: m.id })).rejects.toThrow(/snapshot/);
-        await expect(createStudy(t.pool, { slug: "real-manifest-2", snapshotId: snap.id, manifestId: m.id })).rejects.toThrow(/review snapshot/);
-      } finally {
-        c.release();
-      }
-    });
-
-    it("gives demo and preview the newest review snapshot, non-experimental and unverified", async () => {
+  describe("learning context", () => {
+    it("gives demo and preview the newest review snapshot", async () => {
       expect(await latestReviewSnapshotId(t.pool)).toBe(snap.id);
-      const m = await one<{ id: string }>(t.pool, "SELECT id FROM spatial_manifests WHERE snapshot_id = $1 AND cardinality(traditions) = 3", [snap.id]);
-      await t.pool.query("UPDATE studies SET manifest_id = $2, config = $3::jsonb WHERE slug = 'demo-on-review' AND snapshot_id = $1", [
-        snap.id,
-        m.id,
-        JSON.stringify({ traditionSlugs: SHORTLIST, nonExperimental: true }),
-      ]);
       const data = pgLearningContextData(t.pool);
       const demo = await resolveLearningContext({ kind: "demo", experimental: false, condition: "immersive", demoId: "demo1234567890abcdef" }, { data, appBuild: "test" });
-      expect(demo).toMatchObject({
-        mode: "demo",
-        snapshotId: snap.id,
-        contentVersion: snap.versionLabel,
-        manifestId: m.id,
-        sessionId: null,
-        participantPseudonym: null,
-        nonExperimental: true,
-        unverifiedContent: true,
-        traditionSlugs: SHORTLIST,
-      });
+      expect(demo).toMatchObject({ mode: "demo", contentVersion: snap.versionLabel, sessionId: null });
       const preview = await resolveLearningContext({ kind: "staff_preview", experimental: false, condition: "2d", userId: "u1" }, { data, appBuild: "test" });
-      expect(preview).toMatchObject({ mode: "preview", snapshotId: snap.id, nonExperimental: true });
+      expect(preview).toMatchObject({ mode: "preview", contentVersion: snap.versionLabel });
       expect(preview.telemetrySessionId).toMatch(/^[0-9a-f-]{36}$/);
     });
 
@@ -285,7 +239,7 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
       expect(await state(decided)).toBe("rejected");
     });
 
-    it("never prunes a CMS-authored edge or one a spatial manifest encodes; reports them as stale (knowledge-04)", async () => {
+    it("never prunes a CMS-authored edge; reports it as stale (knowledge-04)", async () => {
       const curator = await createUser(t.pool);
       // An edge a curator added in the CMS between two imported concepts (package = the source concept's).
       const [a, b] = loaded.model.concepts.filter((c) => c.packageSlug === "ajrakh" && c.type === "process_stage");
@@ -296,16 +250,8 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
            FROM concepts s, concepts tc WHERE s.key = $1 AND tc.key = $2 RETURNING id`,
         [a!.key, b!.key, curator],
       );
-      // An imported edge that the manifest compiled above encodes, then dropped from the files.
-      const enc = await one<{ source: string; target: string; type: string }>(
-        t.pool,
-        `SELECT s.key AS source, tc.key AS target, r.type_code AS type
-           FROM spatial_element_encodings e JOIN relationships r ON r.id = e.relationship_id
-           JOIN concepts s ON s.id = r.source_concept_id JOIN concepts tc ON tc.id = r.target_concept_id LIMIT 1`,
-      );
-      const dropped = { ...loaded.model, relationships: loaded.model.relationships.filter((r) => !(r.source === enc.source && r.target === enc.target && r.type === enc.type)) };
-      const s = await run(dropped);
-      expect(s.stale.relationships).toEqual(expect.arrayContaining([`${a!.key} SIMILAR_TO ${b!.key}`, `${enc.source} ${enc.type} ${enc.target}`]));
+      const s = await run();
+      expect(s.stale.relationships).toEqual(expect.arrayContaining([`${a!.key} SIMILAR_TO ${b!.key}`]));
       const left = await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM relationships WHERE id = $1", [cms.id]);
       expect(left.n).toBe(1);
       await t.pool.query("DELETE FROM relationships WHERE id = $1", [cms.id]);

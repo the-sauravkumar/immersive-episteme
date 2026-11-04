@@ -8,7 +8,7 @@
  * exported derived metric from the exported raw events, content facts and concept maps
  * (value and input hash must match).
  */
-import { canonicalHash } from "@/features/spatial/compiler/canonical";
+import { canonicalHash } from "@/lib/canonical-hash";
 
 import type { MapEdgeInput } from "../metrics/correspondence";
 import type { ConceptFacts } from "../metrics/navigation";

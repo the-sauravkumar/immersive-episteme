@@ -17,7 +17,7 @@ import { ProofFrame } from "@/components/cms/proof-frame";
 import { ClaimList, KnowledgeSheet } from "@/components/knowledge";
 import type { FigureBalance } from "@/server/research/parity/engine";
 
-import { fixtureView } from "../learning-2d/harness";
+import { fixtureView } from "../knowledge/harness";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/cms/concepts/x", useRouter: () => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }) }));
 vi.mock("next/link", () => ({ default: ({ href, children, ...rest }: { href: string; children: ReactNode }) => <a href={href} {...rest}>{children}</a> }));

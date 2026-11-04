@@ -31,7 +31,6 @@ import {
   findEnrollableStudy,
   completeFamiliarisation,
   openSessionAfterConsent,
-  startFamiliarisation,
   loadParticipant,
   loadStudy,
   recordConsent,
@@ -78,7 +77,7 @@ function messageFor(err: unknown): string {
       case "learning_not_started":
         return "Open the learning task first.";
       case "familiarisation_not_finished":
-        return "The practice time has not ended yet.";
+        return "Open the practice first.";
       case "allocation_refused":
         return "This study cannot continue right now. Please tell the facilitator.";
       case "study_full":
@@ -330,18 +329,6 @@ export async function startLearning(_prev: FormState): Promise<FormState> {
 
 // ---- familiarisation (for the /learn/<condition>/practice pages, D5) -------------------------
 
-/** The practice page opened: returns the configured minutes and the server start time. */
-export async function beginFamiliarisation(): Promise<{ ok: true; startedAt: string; minutes: number } | { ok: false; error: string }> {
-  const participant = await requireParticipantSession();
-  try {
-    const r = await startFamiliarisation(getPool(), participant.sessionId);
-    return { ok: true, startedAt: r.startedAt.toISOString(), minutes: r.minutes };
-  } catch (err) {
-    return { ok: false, error: messageFor(err) };
-  }
-}
-
-/** Practice time over: complete the step and go on (refused before the configured minutes). */
 export async function endFamiliarisation(_prev: FormState): Promise<FormState> {
   const participant = await requireParticipantSession();
   try {

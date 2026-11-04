@@ -75,6 +75,7 @@ export const EVENT_TYPE_REGISTRY = [
   { code: "citation_closed", label: "Citation closed", description: "The citation was closed (metadata.openMs).", analyticConcept: "citation_used", scope: "both", requirementRefs: [] },
   { code: "stage_entered", label: "Stage entered", description: "The participant entered a process stage or the product stop, in either door (metadata.traditionKey, stageKey, stageNumber, visitCount, backStep).", analyticConcept: "stage_accessed", scope: "both", requirementRefs: ["NOTE-8"] },
   { code: "stage_left", label: "Stage left", description: "The participant left a stage (metadata.activeMs excludes paused time).", analyticConcept: "stage_left", scope: "both", requirementRefs: ["NOTE-8"] },
+  { code: "source_opened", label: "Sources opened", description: "The participant opened the sources behind a caption or the product credits, in either door (metadata.traditionKey, stageKey, stageNumber).", analyticConcept: "source_opened", scope: "both", requirementRefs: ["NOTE-8"] },
   { code: "object_dwell", label: "Object dwell", description: "Time near one labelled object in Door 2 (metadata.objectKey, dwellMs, closestM, the approach distance).", analyticConcept: "object_dwell", scope: "immersive_3d", requirementRefs: ["NOTE-8"] },
   { code: "path_sampled", label: "Path sampled", description: "A batch of walked positions in Door 2 (metadata.points as [ms, x, z]).", analyticConcept: "path", scope: "immersive_3d", requirementRefs: ["NOTE-8"] },
   { code: "viewpoint_changed", label: "Viewpoint changed", description: "Changes of view direction in Door 2 since the last report (metadata.count).", analyticConcept: "viewpoint_change", scope: "immersive_3d", requirementRefs: ["NOTE-8"] },
@@ -216,6 +217,7 @@ export const EVENT_METADATA_SCHEMAS = {
   citation_closed: z.strictObject({ sourceId: uuidSchema, claimIndex: count, openMs: durationMs.optional() }),
   stage_entered: z.strictObject({ ...stageRef, visitCount: count.optional(), backStep: z.boolean().optional() }),
   stage_left: z.strictObject({ ...stageRef, activeMs: durationMs }),
+  source_opened: z.strictObject({ ...stageRef }),
   object_dwell: z.strictObject({ ...stageRef, objectKey: shortCode, dwellMs: durationMs, closestM: z.number().nonnegative().max(1000) }),
   path_sampled: z.strictObject({ traditionKey: shortCode, points: z.array(z.tuple([monoMs, z.number().finite(), z.number().finite()])).min(1).max(120) }),
   viewpoint_changed: z.strictObject({ traditionKey: shortCode, stageKey: shortCode, count }),
@@ -354,8 +356,6 @@ export const telemetryIngestResponseSchema = z.object({
   quarantined: z.number().int().nonnegative(),
   persisted: z.boolean(),
   nonExperimental: z.boolean(),
-  /** A participant's familiarisation practice batch (D5): acknowledged, never stored. */
-  practice: z.boolean().optional(),
   gaps: z.array(sequenceGapSchema),
   serverReceivedAt: z.iso.datetime({ offset: true }),
 });

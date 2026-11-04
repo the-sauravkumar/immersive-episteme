@@ -43,7 +43,6 @@ describe("focus ring", () => {
     //  - a menu or select item that draws the 2 px indigo inset bar on focus instead;
     //  - an entry in EXPLICIT below, each with its reason.
     const EXPLICIT: Record<string, { count: number; reason: string }> = {
-      "src/components/museum/overlays/minimap.tsx": { count: 1, reason: "Radix Dialog Content: a tabindex=-1 focus container set by Radix; its controls draw the global ring" },
     };
     const BARE = /(?<![\w:-])outline-(?:none|hidden)(?![\w-])/g;
     const INSET_BAR = "focus:shadow-[inset_2px_0_0_var(--indigo)]";

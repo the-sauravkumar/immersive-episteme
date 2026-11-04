@@ -21,7 +21,7 @@ import { readContentDirectory } from "@/features/knowledge/graph/load-content-di
 import { validateContentFiles } from "@/features/knowledge/graph/report";
 import { buildSnapshot } from "@/features/knowledge/graph/snapshot";
 import { parseSourceManifest } from "@/features/knowledge/graph/source-manifest";
-import { EPISTEMIC_SECTIONS } from "@/features/learning-2d/template";
+import { EPISTEMIC_SECTIONS } from "@/features/learning/epistemic-sections";
 import { STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
 import { altTextProblem, captionProblem, displayLongEdge, licenceValidOn, STUDY_FIGURE_CAP } from "@/features/media/contracts";
 import { LIGHTBOX_MAX_EDGE } from "@/components/knowledge/figure-lightbox";

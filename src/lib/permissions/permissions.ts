@@ -14,9 +14,6 @@ export const PERMISSIONS = [
   "media.upload",
   "media.review",
   // Spatial compiler
-  "spatial.compile",
-  "spatial.publish",
-  "spatial.override",
   // Study engine
   "study.view",
   "study.configure",

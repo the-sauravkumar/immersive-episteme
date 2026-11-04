@@ -1455,24 +1455,20 @@ export async function submitAssessment(
 // Familiarisation, onboarding and learning
 // ---------------------------------------------------------------------------------------------
 
-/** The practice page opened (server time); idempotent. For the /learn/<condition>/practice pages. */
-export async function startFamiliarisation(pool: Pool | PoolClient, sessionId: string): Promise<{ startedAt: Date; minutes: number }> {
+export async function startFamiliarisation(pool: Pool | PoolClient, sessionId: string): Promise<{ startedAt: Date }> {
   return withTx(pool, async (c) => {
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
     const pos = await syncPosition(c, s);
     if (pos.kind !== "step" || pos.step !== "familiarisation") throw new StudyEngineError("not_current_step", "Familiarisation is not the current step.");
-    const minutes = s.study.protocol.config.familiarisation?.minutes;
-    if (!minutes) throw new StudyEngineError("study_misconfigured", "familiarisation.minutes is not set.");
     const prior = s.journal.find((e) => e.action === "study.familiarisation_started");
-    if (prior) return { startedAt: prior.occurredAt, minutes };
-    await journal(c, { kind: "participant", code: s.participantCode }, "study.familiarisation_started", "study_session", sessionId, { minutes });
+    if (prior) return { startedAt: prior.occurredAt };
+    await journal(c, { kind: "participant", code: s.participantCode }, "study.familiarisation_started", "study_session", sessionId, {});
     await touch(c, sessionId);
-    return { startedAt: s.now, minutes };
+    return { startedAt: s.now };
   });
 }
 
-/** Ends familiarisation once its configured minutes have passed (server clock). Not learning time. */
 export async function completeFamiliarisation(pool: Pool | PoolClient, sessionId: string): Promise<void> {
   await withTx(pool, async (c) => {
     const s = await loadSessionState(c, sessionId);
@@ -1480,11 +1476,8 @@ export async function completeFamiliarisation(pool: Pool | PoolClient, sessionId
     const pos = await syncPosition(c, s);
     if (pos.kind !== "step" || pos.step !== "familiarisation") return;
     const started = s.journal.find((e) => e.action === "study.familiarisation_started");
-    const minutes = s.study.protocol.config.familiarisation?.minutes ?? 0;
-    if (!started || s.now.getTime() - started.occurredAt.getTime() < minutes * 60_000) {
-      throw new StudyEngineError("familiarisation_not_finished", "The practice time has not ended yet.");
-    }
-    await markStepCompleted(c, s, "familiarisation", { minutes });
+    if (!started) throw new StudyEngineError("familiarisation_not_finished", "Open the practice first.");
+    await markStepCompleted(c, s, "familiarisation", { elapsedMs: s.now.getTime() - started.occurredAt.getTime() });
     await touch(c, sessionId);
   });
 }

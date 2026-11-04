@@ -65,7 +65,7 @@ describe("invite cookie", () => {
 
 describe("invite gate paths", () => {
   it("exempts sign-in, the invite page, staff home, APIs and static assets only", () => {
-    for (const p of ["/invite", "/invite/redeem", "/sign-in", "/sign-out", "/forbidden", "/console", "/api/auth/ok", "/api/telemetry/batch", "/_next/static/x.js", "/museum/textures/a.ktx2", "/favicon.ico"]) {
+    for (const p of ["/invite", "/invite/redeem", "/sign-in", "/sign-out", "/forbidden", "/console", "/api/auth/ok", "/api/telemetry/batch", "/_next/static/x.js", "/favicon.ico"]) {
       expect(isInviteExemptPath(p), p).toBe(true);
     }
     for (const p of ["/", "/explore", "/study", "/study/consent", "/learn/2d", "/learn/immersive", "/about", "/figures/x", "/invitex", "/museumx", "/apix"]) {

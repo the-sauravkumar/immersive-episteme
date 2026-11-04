@@ -103,6 +103,7 @@ export interface TelemetryTrackerOptions {
   endpoint?: string;
   /** Defaults to `openDefaultOutbox()` (IndexedDB, localStorage, memory). */
   storage?: Outbox | Promise<Outbox>;
+  firstSeq?: number;
   /**
    * Hands the seq counter from one tracker of a session to the next one in the same page
    * (client-side navigation unmounts one provider and mounts another before the first one's
@@ -338,7 +339,7 @@ export function createTelemetryTracker(options: TelemetryTrackerOptions): Teleme
         // so its events are in the outbox (or at least its counter is known) before we resume.
         const prior = handoffEntry();
         await prior?.writes.catch(() => undefined);
-        nextSeq = Math.max(nextSeq, prior?.nextSeq ?? 0, seqMark?.get(sessionId) ?? 0);
+        nextSeq = Math.max(nextSeq, options.firstSeq ?? 0, prior?.nextSeq ?? 0, seqMark?.get(sessionId) ?? 0);
         outbox = await (options.storage ?? openDefaultOutbox());
         const stored = await outbox.list(sessionId);
         for (const e of stored) pending.set(e.seq, e);

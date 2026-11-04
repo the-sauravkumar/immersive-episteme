@@ -6,7 +6,7 @@
  * Families: time accounting, navigation, stage and walk behaviour (./stage.ts), and
  * navigation-to-map correspondence. All go to derived_metrics, never to derived_scores.
  */
-import { canonicalHash } from "@/features/spatial/compiler/canonical";
+import { canonicalHash } from "@/lib/canonical-hash";
 import type { TelemetryEvent } from "@/features/telemetry/contracts";
 import { computeTimingMetrics, TIMING_METRIC_DEFINITIONS } from "@/features/telemetry/metrics";
 

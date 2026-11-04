@@ -7,6 +7,7 @@ export interface PanelObject {
   readonly role: ItemRole;
   readonly label: string;
   readonly localName: string | null;
+  readonly modelId: string;
   readonly stillSrc: string;
 }
 
@@ -19,6 +20,7 @@ export interface StagePanelModel {
   readonly caption: string;
   readonly sources: readonly SourceRef[];
   readonly objects: readonly PanelObject[];
+  readonly clothStateId: string;
   readonly clothBeforeSrc: string;
   readonly clothAfterSrc: string;
   readonly clothLabel: string;
@@ -57,8 +59,10 @@ export function stagePanelModel(template: StageTemplate, stageIndex: number): St
       role: item.role,
       label: item.label,
       localName: item.localName,
+      modelId: item.modelId,
       stillSrc: stillPath(item.modelId),
     })),
+    clothStateId: stage.clothStateId,
     clothBeforeSrc: clothStatePath(previous ? previous.clothStateId : template.rawClothStateId),
     clothAfterSrc: clothStatePath(stage.clothStateId),
     clothLabel: CLOTH_AFTER_LABEL,
@@ -88,7 +92,8 @@ export function practicePanelModel(stepIndex: number): StagePanelModel {
     localName: null,
     caption,
     sources: [],
-    objects: [{ key: "practice-object", role: "tool", label: PRACTICE_OBJECT_LABEL, localName: null, stillSrc: stillPath(PRACTICE_MODEL) }],
+    objects: [{ key: "practice-object", role: "tool", label: PRACTICE_OBJECT_LABEL, localName: null, modelId: PRACTICE_MODEL, stillSrc: stillPath(PRACTICE_MODEL) }],
+    clothStateId: PRACTICE_CLOTH_STATE,
     clothBeforeSrc: clothStatePath(PRACTICE_CLOTH_STATE),
     clothAfterSrc: clothStatePath(PRACTICE_CLOTH_STATE),
     clothLabel: CLOTH_AFTER_LABEL,

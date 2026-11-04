@@ -162,7 +162,7 @@ export default function ColophonPage() {
         <EditorialSection id="order" title="Fixed order">
           <EditorialRow>
             <Prose>
-              The conventional pages are always shown first and on the left, and the immersive museum second, on Explore and in Figure 1. Traditions
+              The visual course is always shown first and on the left, and the walkthrough second, on Explore and in Figure 1. Traditions
               are always listed in one alphabetical order, the same in both conditions.
             </Prose>
           </EditorialRow>
@@ -171,10 +171,8 @@ export default function ColophonPage() {
         <EditorialSection id="parity" title="Equivalence of the conditions">
           <EditorialRow>
             <Prose>
-              Each check compares a concept page in the conventional pages with the same concept in the museum&rsquo;s information panel, at four
-              screen sizes. Study pages are always light, so of the four display themes requested only two take effect: light, and light with high
-              contrast. A check marked partial passed in every part that was measured, but has a part that was not measured; that part is named
-              under it.
+              The doors are compared from one stage template: the same stages, words, sources, model ids and file hashes. No run of the rebuilt
+              doors is stored here yet.
             </Prose>
           </EditorialRow>
           <Suspense fallback={<Prose className="text-ink-2">Reading the latest parity run…</Prose>}>

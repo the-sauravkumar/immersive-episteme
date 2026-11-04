@@ -18,7 +18,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 
 import { expect, test } from "./fixtures";
 
-import { closeDb, db, ensureE2eStudy, retireE2eStaff } from "./study-fixtures";
+import { closeDb, db, ensureDemoStudy, JOURNEY_STUDY, retireE2eStaff } from "./study-fixtures";
 
 test.describe.configure({ timeout: 300_000 });
 test.use({ navigationTimeout: 180_000 });
@@ -52,7 +52,8 @@ test.afterAll(async () => {
 });
 
 test("new telemetry appears without a reload, and nothing is cached", async ({ page }) => {
-  const studyId = await ensureE2eStudy();
+  ensureDemoStudy(JOURNEY_STUDY, 30);
+  const studyId = (await db().query<{ id: string }>("SELECT id FROM studies WHERE slug = $1", [JOURNEY_STUDY])).rows[0]!.id;
   const s = await db().query<{ id: string; participant_id: string; condition_id: string; code: string; next_seq: number; events: number }>(
     `SELECT ss.id, ss.participant_id, ss.condition_id, p.code,
             coalesce((SELECT max(seq) + 1 FROM telemetry_events te WHERE te.session_id = ss.id), 0) AS next_seq,

@@ -180,8 +180,6 @@ export const studyConfigSchema = z.object({
   questionnaires: z
     .object({ pre: z.array(instrumentRefSchema).default([]), postLearning: z.array(instrumentRefSchema).default([]), end: z.array(instrumentRefSchema).default([]) })
     .optional(),
-  /** Content-free practice of the assigned pathway's controls (D5); not learning time. */
-  familiarisation: z.object({ minutes: z.number().int().min(5).max(10) }).optional(),
   resume: z
     .object({
       allowed: z.boolean().default(true),
