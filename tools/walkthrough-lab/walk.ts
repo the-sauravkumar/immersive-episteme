@@ -19,6 +19,9 @@ const runtime = new WalkRuntime(host, route, texturesFor, {
     log.push({ event: "left", station: index, at: performance.now(), detail: { activeMs, walkingMs, viewpoints } });
   },
   onObjectDwell() {},
+  onContextLost() {
+    log.push({ event: "contextLost", station: runtime.stationIndex, at: performance.now() });
+  },
   onPath() {},
   onWrongTurn(station) {
     log.push({ event: "wrongTurn", station: route.indexOf(station), at: performance.now() });
