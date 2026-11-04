@@ -1,5 +1,7 @@
 import { StudyShell } from "@/components/shell/study-shell";
 
+import "@/styles/walking-tokens.css";
+
 /*
  * The focus ring of the study pages is the global one (globals.css, DESIGN.md 9.1, R-A5): the
  * primitives no longer carry `outline-none`, so the former study-only stopgap rule is gone.

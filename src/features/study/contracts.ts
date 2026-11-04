@@ -41,17 +41,12 @@ export const conditionCodeSchema = z.string().regex(/^[a-z][a-z0-9_]{0,47}$/);
 export const periodCodeSchema = z.string().regex(/^[a-z0-9][a-z0-9_.-]{0,63}$/, "lowercase letters, digits, '.', '_' or '-'");
 
 export const ALLOCATION_POINTS = ["enrolment", "after_pre_test"] as const;
-export const STRATUM_SOURCES = ["pre_map_recall", "pre_test_score"] as const;
+export const STRATUM_SOURCES = ["pre_test_score"] as const;
 
-/**
- * Journey steps after consent (study engine). Device check and allocation are not configurable
- * steps: allocation follows the last condition-blind step (or consent), the device check follows
- * allocation, and completion follows the last step.
- */
 export const STUDY_STEPS = [
   "questionnaire_pre",
   "pre_test",
-  "pre_reconstruction",
+  "entrance",
   "familiarisation",
   "onboarding",
   "learning",
@@ -59,7 +54,9 @@ export const STUDY_STEPS = [
   "post_test",
   "transfer",
   "reconstruction",
+  "layout_sketch",
   "questionnaire_end",
+  "delayed_test",
 ] as const;
 export type StudyStep = (typeof STUDY_STEPS)[number];
 
@@ -93,41 +90,27 @@ export const studyConfigSchema = z.object({
       strata: z.array(z.string().min(1)).default([]),
       /** Randomisation seed, recorded on every allocation (study engine). Keep it secret for concealment. */
       seed: z.string().min(1).max(128).optional(),
-      /**
-       * When the participant is allocated (study decision D3): after the condition-blind
-       * pre-allocation steps (questionnaire_pre, pre_test, pre_reconstruction), or at consent.
-       */
       point: z.enum(ALLOCATION_POINTS).default("after_pre_test"),
-      /**
-       * Stratum from the pre-test (D3): "low" (score ≤ cutoff) or "high". `pre_map_recall` is
-       * `cmap.recall.dl` of the final pre map against the study's locked reference map;
-       * `pre_test_score` the auto-scored pre-test total. Needs `algorithm = stratified_block`
-       * and `point = after_pre_test`.
-       */
-      stratifyBy: z
-        .object({
-          source: z.enum(STRATUM_SOURCES),
-          cutoff: z.number().finite(),
-          /** pre_map_recall: the reference map pinned at activation (set by activateStudy, never by hand). */
-          referenceMapId: z.uuid().optional(),
-        })
-        .optional(),
+      stratifyBy: z.object({ source: z.enum(STRATUM_SOURCES), cutoff: z.number().finite() }).optional(),
     })
     .default({ algorithm: "block", strata: [], point: "after_pre_test" }),
-  /**
-   * Learning-phase exposure (Q-R9). `fixed_time`: every session of BOTH conditions gets the same
-   * `minutes`; the server stamps the learning clock (study_sessions.learning_*, migration 0009)
-   * and the learning context exposes it as `learningTime`.
-   */
   exposure: z
     .object({
       mode: z.enum(["fixed_time", "self_paced"]).default("self_paced"),
       minutes: z.number().int().positive().optional(),
-      /** fixed_time only: may a participant end the learning phase before the budget runs out? Same for both conditions. */
       allowEarlyFinish: z.boolean().default(false),
+      requireEveryStage: z.boolean().default(false),
     })
     .refine((e) => e.mode !== "fixed_time" || e.minutes !== undefined, { path: ["minutes"], message: "A fixed_time study needs exposure.minutes" })
-    .default({ mode: "self_paced", allowEarlyFinish: false }),
+    .default({ mode: "self_paced", allowEarlyFinish: false, requireEveryStage: false }),
+  delayedTest: z
+    .object({
+      opensAfterDays: z.number().int().min(1).max(60).default(6),
+      dueAfterDays: z.number().int().min(1).max(60).default(7),
+      closesAfterDays: z.number().int().min(1).max(90).default(14),
+    })
+    .refine((d) => d.opensAfterDays <= d.dueAfterDays && d.dueAfterDays <= d.closesAfterDays, { message: "The delayed test window must open, fall due and close in that order" })
+    .default({ opensAfterDays: 6, dueAfterDays: 7, closesAfterDays: 14 }),
   /**
    * Guidance, identical in both conditions and not manipulated (Q-R5, study decision D6). With
    * `policy = "hybrid"` and `cueEnabled`, both conditions show the same on-demand hint

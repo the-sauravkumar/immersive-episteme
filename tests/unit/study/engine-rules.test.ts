@@ -4,7 +4,6 @@ import { resolveLearningAccess, resolveParticipantSession } from "../../../src/s
 import { signParticipantSession, verifyParticipantSession } from "../../../src/server/auth/participant-session-token";
 import type { StudySessionLookup, StudySessionRecord } from "../../../src/server/auth/study-session-port-types";
 import {
-  D8_STEPS,
   DEFAULT_STEPS,
   NEW_STUDY_CONFIG,
   PRACTICE_ROUTES_AVAILABLE,
@@ -13,29 +12,28 @@ import {
   parseStudyProtocol,
   protocolIssues,
 } from "../../../src/server/study/config";
-import { evaluateDevice, generateParticipantCode, positionOf, resumeDecision, type DeviceReport } from "../../../src/server/study/engine";
+import { delayedAvailability, evaluateDevice, generateParticipantCode, learningMayEnd, positionOf, resumeDecision, type DeviceReport } from "../../../src/server/study/engine";
 import { INSTRUMENT_DEFINITIONS, displayedText, instrumentBlocker, neutralise } from "../../../src/server/study/instruments";
 import { addHistory, signEnrolment, signHistory, verifyEnrolment, verifyHistory } from "../../../src/server/study/tokens";
 import { studyConfigSchema } from "../../../src/features/study/contracts";
+import { titleCase } from "../../../src/lib/text/title-case";
 
 const SECRET = "x".repeat(48);
 const P = "0190a3c2-1111-7000-8000-000000000001";
 const S = "0190a3c2-2222-7000-8000-000000000002";
 
-/** Familiarisation minutes are set unless a test overrides them (the D8 default order includes the step). */
 const issuesOf = (raw: Record<string, unknown>) => {
   const cfg = studyConfigSchema.parse({ familiarisation: { minutes: 5 }, ...raw });
   return protocolIssues(cfg, cfg.steps ?? DEFAULT_STEPS);
 };
 
-describe("study protocol config (D3, D5, D8)", () => {
-  it("defaults to the D8 order, familiarisation included now that its practice routes exist", () => {
-    expect(D8_STEPS).toEqual([
-      "questionnaire_pre", "pre_test", "pre_reconstruction", "familiarisation", "onboarding", "learning",
-      "questionnaire_post_learning", "post_test", "transfer", "reconstruction", "questionnaire_end",
+describe("study protocol config (Concept Note rev2, section 7)", () => {
+  it("defaults to the note's order, with no concept map before learning", () => {
+    expect(DEFAULT_STEPS).toEqual([
+      "questionnaire_pre", "pre_test", "entrance", "familiarisation", "onboarding", "learning",
+      "questionnaire_post_learning", "post_test", "transfer", "reconstruction", "layout_sketch", "questionnaire_end", "delayed_test",
     ]);
     expect(PRACTICE_ROUTES_AVAILABLE).toBe(true);
-    expect(DEFAULT_STEPS).toEqual(D8_STEPS);
     const p = parseStudyProtocol({ familiarisation: { minutes: 5 } });
     expect(p.steps).toEqual(DEFAULT_STEPS);
     // The default order needs the practice minutes: refused loudly, never silently dropped.
@@ -44,12 +42,13 @@ describe("study protocol config (D3, D5, D8)", () => {
     expect(p.config.resume).toEqual({ allowed: true });
   });
 
-  it("gives new studies the adopted defaults: 30 fixed minutes, no early finish, allocation after the pre-test", () => {
+  it("gives new studies the adopted defaults: self-paced, a 30-minute cap, every stage, balanced by the pre-test", () => {
     const p = parseStudyProtocol(NEW_STUDY_CONFIG);
-    expect(p.config.exposure).toEqual({ mode: "fixed_time", minutes: 30, allowEarlyFinish: false });
+    expect(p.config.exposure).toEqual({ mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true });
+    expect(p.config.delayedTest).toEqual({ opensAfterDays: 6, dueAfterDays: 7, closesAfterDays: 14 });
     expect(p.config.familiarisation).toEqual({ minutes: 5 });
     expect(p.steps.indexOf("familiarisation")).toBe(p.steps.indexOf("onboarding") - 1);
-    expect(p.config.allocation).toMatchObject({ algorithm: "block", blockSize: 4, point: "after_pre_test" });
+    expect(p.config.allocation).toMatchObject({ algorithm: "stratified_block", blockSize: 4, point: "after_pre_test", stratifyBy: { source: "pre_test_score" } });
   });
 
   it("rejects anything between learning and questionnaire_post_learning", () => {
@@ -74,10 +73,22 @@ describe("study protocol config (D3, D5, D8)", () => {
     expect(issuesOf({ allocation: { algorithm: "block", stratifyBy: { source: "pre_test_score", cutoff: 3 } } })).toContain(
       "allocation.stratifyBy needs allocation.algorithm = stratified_block",
     );
-    expect(issuesOf({ steps: ["pre_test", "onboarding", "learning"], allocation: { algorithm: "stratified_block", stratifyBy: { source: "pre_map_recall", cutoff: 0.2 } } })).toContain(
-      "allocation.stratifyBy pre_map_recall needs the pre_reconstruction step",
+    expect(issuesOf({ steps: ["onboarding", "learning"], allocation: { algorithm: "stratified_block", stratifyBy: { source: "pre_test_score", cutoff: 2 } } })).toContain(
+      "allocation.stratifyBy pre_test_score needs the pre_test step",
     );
+    expect(() => studyConfigSchema.parse({ allocation: { algorithm: "stratified_block", stratifyBy: { source: "pre_map_recall", cutoff: 0.2 } } })).toThrow();
+    expect(() => studyConfigSchema.parse({ steps: ["pre_reconstruction"] })).toThrow();
     expect(issuesOf({ allocation: { algorithm: "stratified_block" } })).toContain("allocation.algorithm stratified_block after the pre-test needs allocation.stratifyBy");
+  });
+
+  it("keeps the delayed test last, SUS before it, and the common questions before the test", () => {
+    const tail = ["onboarding", "learning", "questionnaire_post_learning", "post_test", "questionnaire_end"];
+    expect(issuesOf({ steps: [...tail, "delayed_test"] })).toEqual([]);
+    expect(issuesOf({ steps: [...tail] })).toEqual([]);
+    expect(issuesOf({ steps: ["onboarding", "learning", "questionnaire_post_learning", "delayed_test", "questionnaire_end"] })).toContain("steps: delayed_test must be the last step");
+    expect(issuesOf({ steps: ["entrance", "familiarisation", "onboarding", "learning"] })).toEqual([]);
+    expect(issuesOf({ steps: ["familiarisation", "entrance", "onboarding", "learning"] })).toContain("steps: entrance must come before familiarisation");
+    expect(() => studyConfigSchema.parse({ delayedTest: { opensAfterDays: 8, dueAfterDays: 7, closesAfterDays: 14 } })).toThrow();
   });
 
   it("accepts the familiarisation step with 5–10 practice minutes and refuses it without", () => {
@@ -93,47 +104,56 @@ describe("study protocol config (D3, D5, D8)", () => {
     expect(issuesOf({ guidance: { policy: "hybrid", cueEnabled: true, hintText: "Researcher text." } })).toEqual([]);
   });
 
-  it("filters questionnaire instruments by condition (presence for the 3D group only)", () => {
+  it("gives both doors the common questions, and presence and motion sickness to Door 2 only", () => {
     const p = parseStudyProtocol(NEW_STUDY_CONFIG);
-    expect(instrumentsFor(p, "questionnaire_post_learning", "2d").map((r) => r.code)).toEqual(["cognitive-load", "ssq"]);
-    expect(instrumentsFor(p, "questionnaire_post_learning", "immersive").map((r) => r.code)).toEqual(["cognitive-load", "ssq", "mps-physical-presence"]);
-    expect(instrumentsFor(p, "questionnaire_post_learning", null).map((r) => r.code)).toEqual(["cognitive-load", "ssq"]);
-    expect(instrumentsFor(p, "questionnaire_pre", null).map((r) => r.code)).toEqual(["ssq"]);
+    expect(instrumentsFor(p, "questionnaire_post_learning", "2d").map((r) => r.code)).toEqual(["common-questions"]);
+    expect(instrumentsFor(p, "questionnaire_post_learning", "immersive").map((r) => r.code)).toEqual(["common-questions", "mps-physical-presence", "ssq"]);
+    expect(instrumentsFor(p, "questionnaire_pre", null).map((r) => r.code)).toEqual(["background"]);
     expect(instrumentsFor(p, "questionnaire_end", "2d").map((r) => r.code)).toEqual(["sus"]);
   });
 });
 
 describe("journey rules", () => {
   const steps = DEFAULT_STEPS;
-  const blind = ["questionnaire_pre", "pre_test", "pre_reconstruction"] as const;
-  it("runs the blind steps, then allocation, then the device check, then the rest", () => {
+  const blind = ["questionnaire_pre", "pre_test"] as const;
+  it("runs the blind steps, then the device check, then allocation, then the entrance and the rest", () => {
     expect(positionOf({ steps, blind, done: new Set(), allocated: false, devicePassed: false })).toMatchObject({ kind: "step", step: "questionnaire_pre" });
-    expect(positionOf({ steps, blind, done: new Set(blind), allocated: false, devicePassed: false })).toEqual({ kind: "allocation" });
-    expect(positionOf({ steps, blind, done: new Set(blind), allocated: true, devicePassed: false })).toEqual({ kind: "device_check" });
-    expect(positionOf({ steps, blind, done: new Set(blind), allocated: true, devicePassed: true })).toMatchObject({ step: "familiarisation" });
-    expect(positionOf({ steps, blind, done: new Set([...blind, "familiarisation"]), allocated: true, devicePassed: true })).toMatchObject({ step: "onboarding" });
+    expect(positionOf({ steps, blind, done: new Set(blind), allocated: false, devicePassed: false })).toEqual({ kind: "device_check" });
+    expect(positionOf({ steps, blind, done: new Set(blind), allocated: false, devicePassed: true })).toEqual({ kind: "allocation" });
+    expect(positionOf({ steps, blind, done: new Set(blind), allocated: true, devicePassed: true })).toMatchObject({ step: "entrance" });
+    expect(positionOf({ steps, blind, done: new Set([...blind, "entrance"]), allocated: true, devicePassed: true })).toMatchObject({ step: "familiarisation" });
     expect(positionOf({ steps, blind, done: new Set(steps), allocated: true, devicePassed: true })).toEqual({ kind: "finish" });
     // Allocation at enrolment: device check first.
     expect(positionOf({ steps, blind: [], done: new Set(), allocated: true, devicePassed: false })).toEqual({ kind: "device_check" });
   });
 
-  it("applies the WebGL policy only to the immersive condition", () => {
+  it("applies one device rule to everyone, before any door is known", () => {
     const r: DeviceReport = { viewport: { width: 1280, height: 800 }, webglVersion: null, inputDevices: [] };
-    expect(evaluateDevice(r, { condition: "2d", policy: "exclude" })).toBe("passed");
-    expect(evaluateDevice(r, { condition: "immersive", policy: "exclude" })).toBe("webgl_exclude");
-    expect(evaluateDevice(r, { condition: "immersive", policy: "reassign" })).toBe("webgl_reassign");
-    expect(evaluateDevice(r, { condition: "immersive", policy: "retry" })).toBe("webgl_retry");
-    expect(evaluateDevice({ ...r, webglVersion: 2 }, { condition: "2d", policy: "retry", minViewport: { width: 1400, height: 800 } })).toBe("viewport_too_small");
+    expect(evaluateDevice(r, { policy: "exclude" })).toBe("webgl_exclude");
+    expect(evaluateDevice(r, { policy: "reassign" })).toBe("webgl_retry");
+    expect(evaluateDevice(r, { policy: "retry" })).toBe("webgl_retry");
+    expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "retry", minViewport: { width: 1400, height: 800 } })).toBe("viewport_too_small");
+    expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "retry" })).toBe("passed");
+    expect(evaluateDevice({ ...r, webglVersion: 1 }, { policy: "exclude" })).toBe("webgl_exclude");
+    expect(evaluateDevice({ ...r, webglVersion: 2, softwareRenderer: true }, { policy: "retry" })).toBe("webgl_retry");
   });
 
-  it("refuses for the immersive condition exactly what the museum refuses: WebGL 1 and software renderers (study-01)", () => {
-    const r: DeviceReport = { viewport: { width: 1280, height: 800 }, webglVersion: 2, inputDevices: [] };
-    expect(evaluateDevice(r, { condition: "immersive", policy: "retry" })).toBe("passed");
-    expect(evaluateDevice({ ...r, softwareRenderer: false }, { condition: "immersive", policy: "retry" })).toBe("passed");
-    expect(evaluateDevice({ ...r, webglVersion: 1 }, { condition: "immersive", policy: "exclude" })).toBe("webgl_exclude");
-    expect(evaluateDevice({ ...r, softwareRenderer: true }, { condition: "immersive", policy: "reassign" })).toBe("webgl_reassign");
-    // The 2D condition needs no WebGL.
-    expect(evaluateDevice({ ...r, webglVersion: 1, softwareRenderer: true }, { condition: "2d", policy: "exclude" })).toBe("passed");
+  it("ends learning only when the cap has passed, or when every required stage was visited", () => {
+    const at = (exposure: Record<string, unknown>, endsAt: Date | null) => ({ learning: { startedAt: new Date(0), endsAt, endedAt: null }, now: new Date(1000), study: { protocol: { config: { exposure } } } }) as unknown as Parameters<typeof learningMayEnd>[0];
+    const future = new Date(5000);
+    const guarded = { allowEarlyFinish: true, requireEveryStage: true };
+    expect(learningMayEnd(at(guarded, future), false)).toBe(false);
+    expect(learningMayEnd(at(guarded, future), true)).toBe(true);
+    expect(learningMayEnd(at(guarded, new Date(500)), false)).toBe(true);
+    expect(learningMayEnd(at({ allowEarlyFinish: false, requireEveryStage: false }, future), true)).toBe(false);
+    expect(learningMayEnd(at({ allowEarlyFinish: false, requireEveryStage: false }, null), true)).toBe(true);
+  });
+
+  it("opens the delayed test only inside its window", () => {
+    const schedule = { opensAt: new Date(1000), closesAt: new Date(3000) };
+    expect(delayedAvailability(schedule, new Date(999))).toBe("early");
+    expect(delayedAvailability(schedule, new Date(2000))).toBe("open");
+    expect(delayedAvailability(schedule, new Date(3001))).toBe("closed");
   });
 
   it("decides resumes from the configured limits", () => {
@@ -173,8 +193,12 @@ describe("instrument definitions (D7)", () => {
     expect(by("umux-lite").items.map((i) => i.original)).toEqual(["This system's capabilities meet my requirements.", "This system is easy to use."]);
     const mps = by("mps-physical-presence");
     expect([mps.conditions, mps.items.length, mps.responseScale.anchorsVerified]).toEqual([["immersive"], 5, false]);
+    expect(ssq.conditions).toEqual(["immersive"]);
+    expect(by("common-questions").items.map((i) => i.key)).toEqual(["common.mental_effort", "common.navigation_effort", "common.comfort", "common.engagement"]);
+    expect(by("common-questions").responseScale.points).toBe(7);
+    expect(by("background").items.every((i) => (i.choices?.length ?? 0) >= 2)).toBe(true);
     expect(INSTRUMENT_DEFINITIONS.every((d) => d.pending.length === 0)).toBe(true);
-    expect(INSTRUMENT_DEFINITIONS.map((d) => d.name)).toEqual(["Cognitive Load Scale", "Physical Presence Scale", "System Usability Scale", "Simulator Sickness Questionnaire", "UMUX-LITE"]);
+    expect(INSTRUMENT_DEFINITIONS.map((d) => d.name)).toEqual([titleCase("about you"), titleCase("questions about the learning task"), "Cognitive Load Scale", "Physical Presence Scale", "System Usability Scale", "Simulator Sickness Questionnaire", "UMUX-LITE"]);
   });
 
   it("refuses instruments with pending or unsourced wording", () => {

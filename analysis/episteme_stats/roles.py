@@ -1,18 +1,11 @@
-"""Preregistration roles of the metrics in an export bundle (stdlib only).
-
-The bundle carries ``metricRoles`` (src/server/research/exports/dictionary.ts, from the shared
-definitions table src/features/research/metric-definitions.ts): the primary outcome of study
-decision D2 (``cmap.recall.dl`` on the post-learning map, ANCOVA with the pre-test score as
-covariate) and a role per metric. A metric the bundle does not list is exploratory. Older
-bundles without ``metricRoles`` fall back to the same D2 rule, stated here once.
-"""
-
 from __future__ import annotations
 
 from typing import Any
 
-PRIMARY_OUTCOME = {"metric": "cmap.recall.dl", "phase": "post", "covariate": {"metric": "cmap.recall.dl", "phase": "pre"}, "model": "ANCOVA", "decision": "D2"}
-SECONDARY_OUTCOMES = ("cmap.recall.du", "cmap.precision.dl", "cmap.edges_drawn", "cmap.incorrect_relationships", "cmap.f1.dl", "cmap.cross_category.valid_normalised", "cmap.valid_relationships")
+PRIMARY_OUTCOMES = ("test.sequence", "test.stage_placement")
+PRE_TEST_COVARIATE = {"metric": "test.pre_test", "phase": "pre"}
+PRIMARY_OUTCOME = {"metric": PRIMARY_OUTCOMES[0], "metrics": list(PRIMARY_OUTCOMES), "phase": "post", "delayedPhase": "follow_up", "covariate": PRE_TEST_COVARIATE, "model": "ANCOVA", "delayedModel": "Mixed model, time by condition", "decision": "Concept Note rev2, H1"}
+SECONDARY_OUTCOMES = ("test.identification", "test.cloth_state", "test.attribution", "test.transfer", "cmap.recall.dl", "common.mental_effort", "common.navigation_effort", "common.comfort", "common.engagement", "stage.total_ms")
 
 
 def primary_outcome(bundle: dict[str, Any]) -> dict[str, Any]:
@@ -24,7 +17,7 @@ def metric_role(bundle: dict[str, Any], metric: str) -> str:
     roles = (bundle.get("metricRoles") or {}).get("roles")
     if roles is not None:
         return next((r["role"] for r in roles if r["metric"] == metric), "exploratory")
-    if metric == PRIMARY_OUTCOME["metric"]:
+    if metric in PRIMARY_OUTCOMES:
         return "primary"
     return "secondary" if metric in SECONDARY_OUTCOMES else "exploratory"
 

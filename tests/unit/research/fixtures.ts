@@ -1,11 +1,8 @@
-/**
- * Research-console fixtures: a complete knowledge bundle built from the spatial tests' synthetic
- * demo graph (demo keys and "Demo:" titles, no craft facts), a manifest compiled from it with the
- * default rule set, and a parity input for a study that should pass every critical check.
- */
-import { compileSpatialManifest, defaultRuleSetConfig, deterministicUuid, type CompileResult } from "@/features/spatial/compiler";
 import type { KnowledgeBundle } from "@/features/knowledge/contracts";
-import type { ParityInput } from "@/server/research/parity/engine";
+import { clothStatePath } from "@/features/process/domain/asset-catalogue";
+import type { StageTemplate, TraditionKey } from "@/features/process/domain/stage-template";
+import { compileSpatialManifest, deterministicUuid, type CompileResult } from "@/features/spatial/compiler";
+import type { DoorTraditionView, DoorView, ParityInput } from "@/server/research/parity/engine";
 
 import { syntheticGraph, syntheticInput } from "../spatial/fixtures";
 
@@ -89,10 +86,40 @@ export function demoManifest(): CompileResult {
 
 export const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x)) as T;
 
-/** A study configuration that passes every critical parity check. */
+const TRADITIONS: TraditionKey[] = ["ajrakh", "sanganeri"];
+
+export function fixtureTemplate(tradition: TraditionKey): StageTemplate {
+  return {
+    tradition,
+    traditionName: `Sample Text ${tradition}`,
+    rawClothStateId: `${tradition}-raw`,
+    products: [{ id: `${tradition}-product`, file: `/walkthrough/products/${tradition}.jpg`, name: "Sample Text", holder: "Sample Text" }],
+    stages: [1, 2].map((number) => ({
+      number,
+      key: `${tradition}-s${number}`,
+      sourceStageKeys: [`${tradition}.process_stage.s${number}`],
+      name: `Sample Text Stage ${number}`,
+      localName: null,
+      kind: "table" as const,
+      caption: { text: `Sample Text caption ${number}`, sources: [{ sourceId: "S1", title: "Sample Text", locator: "p. 1", quote: "Sample Text" }] },
+      items: [{ key: `${tradition}-tool-${number}`, role: "tool" as const, label: `Sample Text Tool ${tradition} ${number}`, localName: null, modelId: number === 1 ? "bucket" : "mallet" }],
+      clothStateId: `${tradition}-c${number}`,
+    })),
+  };
+}
+
+export function doorTradition(template: StageTemplate): DoorTraditionView {
+  return {
+    tradition: template.tradition,
+    stages: template.stages.map((stage) => ({ number: stage.number, key: stage.key, name: stage.name, caption: stage.caption.text, sources: stage.caption.sources, items: stage.items, clothStateId: stage.clothStateId, clothFile: clothStatePath(stage.clothStateId) })),
+    products: template.products.map((product) => ({ id: product.id, file: product.file })),
+  };
+}
+
 export function passingInput(): ParityInput {
-  const bundle = demoBundle();
-  const m = demoManifest();
+  const templates = TRADITIONS.map(fixtureTemplate);
+  const doors: DoorView[] = (["2d", "immersive"] as const).map((door) => ({ door, reachable: true, traditions: templates.map(doorTradition) }));
+  const files = doors.flatMap((door) => door.traditions.flatMap((tradition) => [...tradition.stages.map((stage) => stage.clothFile), ...tradition.products.map((product) => product.file)]));
   return clone({
     study: {
       id: "00000000-0000-4000-8000-000000000001",
@@ -101,15 +128,13 @@ export function passingInput(): ParityInput {
       design: "between",
       isDemo: false,
       config: {
-        traditionSlugs: ["demo-alpha", "demo-beta"],
-        exposure: { mode: "fixed_time", minutes: 20, allowEarlyFinish: false },
+        traditionSlugs: TRADITIONS,
+        exposure: { mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true },
         guidance: { policy: "none", cueEnabled: false },
-        searchEnabled: false,
-        // The journey matches the battery (pre-test, learning, post-test): parity check d.journey.
         steps: ["pre_test", "learning", "post_test"],
       },
       snapshotId: "00000000-0000-4000-8000-0000000000aa",
-      manifestId: "00000000-0000-4000-8000-0000000000bb",
+      manifestId: null,
       conditions: [
         { id: "c2d", code: "conventional", label: "2D", interface: "conventional_2d", config: {} },
         { id: "c3d", code: "immersive", label: "3D", interface: "immersive_3d", config: {} },
@@ -119,17 +144,10 @@ export function passingInput(): ParityInput {
         { assessmentId: "a-post", code: "post-test", version: 1, kind: "posttest", phase: "post", position: 0, status: "locked", required: true },
       ],
     },
-    snapshot: { id: "00000000-0000-4000-8000-0000000000aa", versionLabel: bundle.versionLabel, status: "published", kind: "release", isDemo: false, payload: bundle },
-    manifest: {
-      id: "00000000-0000-4000-8000-0000000000bb",
-      snapshotId: "00000000-0000-4000-8000-0000000000aa",
-      status: "published",
-      traditions: ["demo-alpha", "demo-beta"],
-      manifestHash: m.manifestHash,
-      ruleSetConfig: defaultRuleSetConfig(),
-      validationPassed: m.validation.passed,
-      manifest: m.manifest,
-    },
+    snapshot: { id: "00000000-0000-4000-8000-0000000000aa", versionLabel: "fixture", status: "published", kind: "release", isDemo: false },
+    templates,
+    doors,
+    fileHashes: Object.fromEntries(files.map((file) => [file, `hash-${file}`])),
     sessionBudgets: [],
   });
 }

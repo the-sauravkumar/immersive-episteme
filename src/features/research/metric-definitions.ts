@@ -20,24 +20,76 @@ import { SCALE_SCORE_VERSION } from "./scale-scores";
 /** Version of the aggregations defined by the dashboard itself (change scores, counts, coverage). */
 export const DASHBOARD_METRICS_VERSION = "1.0.0";
 
-/**
- * Preregistration role of a metric (study-decisions.md D2): the primary outcome is
- * cmap.recall.dl on the post-learning map with the pre-test score as covariate; the secondary
- * outcomes, in D2 order, are cmap.recall.du, cmap.precision.dl with edges drawn, cmap.f1.dl,
- * cmap.cross_category.valid_normalised and the raw valid count. Everything else is exploratory.
- */
 export type MetricRole = "primary" | "secondary" | "exploratory";
 
-export const PRIMARY_OUTCOME = { metric: "cmap.recall.dl", phase: "post", covariate: { metric: "cmap.recall.dl", phase: "pre" }, model: "ANCOVA", decision: "D2" } as const;
+export const PRE_TEST_COVARIATE = { metric: "test.pre_test", phase: "pre" } as const;
 
-/** Secondary outcomes in D2 order. */
-export const SECONDARY_OUTCOMES = ["cmap.recall.du", "cmap.precision.dl", "cmap.edges_drawn", "cmap.incorrect_relationships", "cmap.f1.dl", "cmap.cross_category.valid_normalised", "cmap.valid_relationships"] as const;
+export const PRIMARY_OUTCOMES = ["test.sequence", "test.stage_placement"] as const;
 
-/** Role of ANY metric name (stored scores, behavioural metrics, dashboard aggregates). */
+export const PRIMARY_OUTCOME = { metric: PRIMARY_OUTCOMES[0], metrics: PRIMARY_OUTCOMES, phase: "post", delayedPhase: "follow_up", covariate: PRE_TEST_COVARIATE, model: "ANCOVA", delayedModel: "Mixed model, time by condition", decision: "Concept Note rev2, H1" } as const;
+
+export const SECONDARY_OUTCOMES = [
+  "test.identification",
+  "test.cloth_state",
+  "test.attribution",
+  "test.transfer",
+  "cmap.recall.dl",
+  "common.mental_effort",
+  "common.navigation_effort",
+  "common.comfort",
+  "common.engagement",
+  "stage.total_ms",
+] as const;
+
+export const HYPOTHESES = [
+  { id: "H1", statement: "The walkthrough group scores higher on sequence and stage association, with a larger difference at the delayed test.", metrics: PRIMARY_OUTCOMES, analysis: "ANCOVA at the immediate test; mixed model immediate versus delayed", direction: "immersive higher" },
+  { id: "H2", statement: "Identification of labelled tools and materials does not differ.", metrics: ["test.identification"], analysis: "ANCOVA with an equivalence reading of the interval", direction: "no difference" },
+  { id: "H3", statement: "Perceived load is somewhat higher in the walkthrough; navigation load is measured apart from content difficulty.", metrics: ["common.mental_effort", "common.navigation_effort"], analysis: "Group comparison of each rating", direction: "immersive higher" },
+] as const;
+
 export function metricRole(name: string): MetricRole {
-  if (name === PRIMARY_OUTCOME.metric) return "primary";
+  if ((PRIMARY_OUTCOMES as readonly string[]).includes(name)) return "primary";
   return (SECONDARY_OUTCOMES as readonly string[]).includes(name) ? "secondary" : "exploratory";
 }
+
+const testScore = (key: string, label: string, measures: string): Omit<MetricDefinition, "role"> => ({
+  key,
+  label,
+  group: "knowledge",
+  version: "1.0.0",
+  measures,
+  unit: "proportion 0-1",
+  computation: "Sum of item.key_match over the assessment's keyed items divided by the number of keyed items; a skipped item counts 0. Sequence items earn the share of stage pairs in the right order, matching items the share of pairs right. Battery phase separates pre, immediate (post) and delayed (follow_up).",
+  computedIn: "src/server/study/engine.ts (submitAssessment)",
+  citation: null,
+  note: PROJECT,
+});
+
+const behaviour = (key: string, label: string, measures: string, unit: string): Omit<MetricDefinition, "role"> => ({
+  key,
+  label,
+  group: "telemetry",
+  version: "1",
+  measures,
+  unit,
+  computation: "Computed from the ordered stage and walk events.",
+  computedIn: "src/server/research/metrics/stage.ts",
+  citation: null,
+  note: PROJECT,
+});
+
+const commonRating = (key: string, label: string, measures: string): Omit<MetricDefinition, "role"> => ({
+  key,
+  label,
+  group: "questionnaire",
+  version: SCALE_SCORE_VERSION,
+  measures,
+  unit: "rating 1-7",
+  computation: "The participant's single rating. Project wording, not a validated scale.",
+  computedIn: "src/features/research/scale-scores.ts",
+  citation: null,
+  note: PROJECT,
+});
 
 export type MetricGroup = "primary" | "secondary" | "knowledge" | "questionnaire" | "telemetry" | "quality";
 
@@ -445,6 +497,27 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
     citation: null,
     note: PROJECT,
   },
+  testScore("test.pre_test", "Pre-Test Score", "Prior knowledge, the covariate of every test score."),
+  testScore("test.identification", "Identification", "Recognition: naming a tool or material from its image (H2)."),
+  testScore("test.stage_placement", "Stage Placement", "Association: the stage at which a tool or material is used (H1)."),
+  testScore("test.sequence", "Sequence", "Order of shuffled stage cards per tradition (H1)."),
+  testScore("test.cloth_state", "Cloth State", "Matching a cloth state to the stage that produces it."),
+  testScore("test.attribution", "Attribution", "Assigning a finished product image to its tradition."),
+  testScore("test.transfer", "Transfer", "Predicting order or next stage for an unseen tradition."),
+  commonRating("common.mental_effort", "Mental Effort", "Perceived mental effort of learning (H3)."),
+  commonRating("common.navigation_effort", "Navigation Effort", "Perceived effort of moving through the material, apart from content difficulty (H3)."),
+  commonRating("common.comfort", "Comfort", "Perceived comfort during learning."),
+  commonRating("common.engagement", "Engagement", "Perceived engagement during learning."),
+  behaviour("stage.total_ms", "Total Stage Time", "Active time across all stages, an outcome of self-paced learning.", "ms"),
+  behaviour("stage.revisits", "Stage Revisits", "Returns to a stage already seen, in both doors.", "count"),
+  behaviour("stage.back_steps", "Back-Steps", "Moves to an earlier stage of the same tradition, in both doors.", "count"),
+  behaviour("walk.object_dwell_ms", "Object Dwell", "Door 2: time near labelled objects, by object.", "ms"),
+  behaviour("walk.approach_distance_m", "Approach Distance", "Door 2: how close the learner came to each object.", "m"),
+  behaviour("walk.viewpoint_changes", "Viewpoint Changes", "Door 2: changes of view direction.", "count"),
+  behaviour("walk.wrong_turns", "Wrong Turns", "Door 2: moves away from the next station.", "count"),
+  behaviour("walk.walking_ms", "Walking Time", "Door 2: time moving, recorded apart from viewing.", "ms"),
+  behaviour("walk.viewing_ms", "Viewing Time", "Door 2: time standing at a station.", "ms"),
+  behaviour("walk.path_length_m", "Path Length", "Door 2: length of the walked path.", "m"),
   // ---- Data quality ------------------------------------------------------------------------
   {
     key: "quality.sequence_gaps",
@@ -522,9 +595,9 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
 
 export const METRIC_DEFINITIONS: readonly MetricDefinition[] = DEFINITIONS.map((d) => ({ ...d, role: metricRole(d.key) }));
 
-/** Role table for the export data dictionary: primary, then secondary in D2 order, then exploratory (by name). */
 export function metricRoleTable(extraNames: readonly string[] = []): { metric: string; role: MetricRole }[] {
-  const rank = (m: string) => (m === PRIMARY_OUTCOME.metric ? -1 : (SECONDARY_OUTCOMES as readonly string[]).indexOf(m) >= 0 ? (SECONDARY_OUTCOMES as readonly string[]).indexOf(m) : SECONDARY_OUTCOMES.length);
+  const order: readonly string[] = [...PRIMARY_OUTCOMES, ...SECONDARY_OUTCOMES];
+  const rank = (m: string) => (order.includes(m) ? order.indexOf(m) : order.length);
   const names = [...new Set([...METRIC_DEFINITIONS.map((d) => d.key), ...extraNames])].sort((a, b) => rank(a) - rank(b) || (a < b ? -1 : a > b ? 1 : 0));
   return names.map((metric) => ({ metric, role: metricRole(metric) }));
 }

@@ -229,14 +229,16 @@ export async function saveItem(q: Q, assessmentId: string, input: z.input<typeof
   let answerKey: unknown = null;
   if (form.answerKey !== undefined && form.answerKey !== null) {
     const k = answerKeySchema.safeParse(form.answerKey);
-    if (!k.success) throw new AssessmentError("invalid", "Answer key: use {optionId}, {optionIds: [...]} or {value, tolerance}.");
+    if (!k.success) throw new AssessmentError("invalid", "Answer key: use {optionId}, {optionIds: [...]}, {value, tolerance}, {order: [...]} or {matches: {...}}.");
     const cfg = item.config;
     const optionIds = "options" in cfg ? new Set(cfg.options.map((o) => o.id)) : null;
     const key = k.data;
     const ok =
       ("optionId" in key && item.kind === "single_choice" && optionIds?.has(key.optionId)) ||
       ("optionIds" in key && item.kind === "multiple_choice" && key.optionIds.every((id) => optionIds?.has(id))) ||
-      ("value" in key && item.kind === "numeric");
+      ("value" in key && item.kind === "numeric") ||
+      ("order" in key && item.kind === "ranking" && key.order.length === optionIds?.size && key.order.every((id) => optionIds.has(id))) ||
+      ("matches" in key && item.config.kind === "matching" && Object.entries(key.matches).every(([, optionId]) => optionIds?.has(optionId)));
     if (!ok) throw new AssessmentError("invalid", "The answer key does not fit this item kind or its options.");
     answerKey = key;
   }

@@ -228,6 +228,7 @@ export const ASSESSMENT_KINDS = [
   "reconstruction",
   "transfer",
   "questionnaire",
+  "sketch",
 ] as const;
 export type AssessmentKind = (typeof ASSESSMENT_KINDS)[number];
 
@@ -240,6 +241,8 @@ export const ASSESSMENT_ITEM_KINDS = [
   "numeric",
   "ranking",
   "concept_map",
+  "matching",
+  "sketch",
 ] as const;
 export type AssessmentItemKind = (typeof ASSESSMENT_ITEM_KINDS)[number];
 

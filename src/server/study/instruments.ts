@@ -59,6 +59,7 @@ export type Substitution = "neutral_term" | "awkward" | null;
 
 export interface VerifiedItem {
   key: string;
+  choices?: readonly string[];
   /** Item code or number in the source (e.g. ECL_I_1, SUS 8). */
   sourceCode: string;
   original: string;
@@ -90,7 +91,7 @@ export interface InstrumentDefinition {
   version: number;
   /** Title (Title Case). */
   name: string;
-  purpose: "cognitive_load" | "usability" | "presence" | "simulator_sickness";
+  purpose: "cognitive_load" | "usability" | "presence" | "simulator_sickness" | "background" | "common_questions";
   decision: string;
   selectionStatus: "adopted" | "backup";
   /** Limited to these conditions whatever the study config says (presence names the virtual environment). */
@@ -99,6 +100,7 @@ export interface InstrumentDefinition {
   instructions: string | null;
   instructionsSource: string | null;
   responseScale: ResponseScale;
+  paged?: boolean;
   items: VerifiedItem[];
   pending: PendingItem[];
   citation: string;
@@ -169,7 +171,51 @@ const SSQ_SYMPTOMS = [
   "Burping",
 ];
 
+const PROJECT_WORDING = "Project wording for Concept Note rev2, section 7";
+const projectItem = (key: string, original: string, choices?: readonly string[]): VerifiedItem => ({ key, ...(choices ? { choices } : {}), sourceCode: key, original, source: PROJECT_WORDING, locator: "section 7", secondary: false, substitution: null });
+const NOT_SAY = "I prefer not to say";
+const DONT_KNOW = "I do not know";
+
 export const INSTRUMENT_DEFINITIONS: readonly InstrumentDefinition[] = [
+  {
+    code: "background",
+    version: 1,
+    name: titleCase("about you"),
+    purpose: "background",
+    decision: "Concept Note rev2 section 7 step 2: a short questionnaire before the pre-test. Coarse bands only; no names or contact data.",
+    selectionStatus: "adopted",
+    instructions: null,
+    instructionsSource: null,
+    paged: true,
+    responseScale: { points: 2, min: 1, anchors: {}, formatSource: PROJECT_WORDING, anchorsSource: PROJECT_WORDING, anchorsVerified: false },
+    items: [
+      projectItem("background.age", "Which age band are you in?", ["Under 18", "18 to 24", "25 to 34", "35 to 44", "45 or over", NOT_SAY]),
+      projectItem("background.study", "Do you study or work in design, textiles or a related field?", ["Yes", "No", NOT_SAY]),
+      projectItem("background.craft", "How much have you seen or done of textile printing by hand?", ["Nothing", "A little", "A fair amount", "A lot", DONT_KNOW]),
+      projectItem("background.games", "How often do you play games or use 3D environments on a screen?", ["Never", "A few times a year", "A few times a month", "Most weeks", DONT_KNOW]),
+    ],
+    pending: [],
+    citation: PROJECT_WORDING,
+  },
+  {
+    code: "common-questions",
+    version: 1,
+    name: titleCase("questions about the learning task"),
+    purpose: "common_questions",
+    decision: "Concept Note rev2 section 7 step 6 and DESIGN.md section 11: mental effort, navigation effort, comfort and engagement, the same for both doors, on a 7-point scale. Project wording, not a validated scale.",
+    selectionStatus: "adopted",
+    instructions: null,
+    instructionsSource: null,
+    responseScale: { points: 7, min: 1, anchors: { "1": "Very low", "7": "Very high" }, formatSource: "DESIGN.md section 11", anchorsSource: "Platform choice. Researchers to confirm.", anchorsVerified: false },
+    items: [
+      projectItem("common.mental_effort", "How much mental effort did understanding the material take?"),
+      projectItem("common.navigation_effort", "How much effort did moving through the material take?"),
+      projectItem("common.comfort", "How comfortable were you during the learning task?"),
+      projectItem("common.engagement", "How engaged were you during the learning task?"),
+    ],
+    pending: [],
+    citation: PROJECT_WORDING,
+  },
   {
     code: "cognitive-load",
     version: 2,
@@ -254,11 +300,12 @@ export const INSTRUMENT_DEFINITIONS: readonly InstrumentDefinition[] = [
   },
   {
     code: "ssq",
-    version: 2,
+    version: 3,
     name: titleCase("simulator sickness questionnaire"),
     purpose: "simulator_sickness",
+    conditions: ["immersive"],
     decision:
-      "D7(d): SSQ before and after learning in both groups, total score only, as a safety screen and covariate. The 16 symptoms are from Kennedy et al. (1993), Table 3, p. 210 (PDF p. 9), primary. " +
+      "Concept Note rev2 section 7 step 6: motion sickness for Door 2 only, after learning, total score only. The 16 symptoms are from Kennedy et al. (1993), Table 3, p. 210 (PDF p. 9), primary. " +
       'Severity 0–3: Kennedy et al. p. 212 (PDF p. 11) scores each symptom "(0, 1,2,3)" but labels no point; the endpoint labels are secondary (Eudave & Martínez 2025, p. 5).',
     selectionStatus: "adopted",
     instructions: null,
@@ -317,6 +364,7 @@ export function instrumentConfig(d: InstrumentDefinition): Record<string, unknow
       purpose: d.purpose,
       decision: d.decision,
       selectionStatus: d.selectionStatus,
+      paged: d.paged ?? false,
       conditions: d.conditions ?? null,
       neutralTerm: NEUTRAL_TERM,
       instructionsSource: d.instructionsSource,
@@ -343,18 +391,19 @@ export async function seedInstrumentDefinitions(q: Q): Promise<string[]> {
     if (!id) continue;
     const scale = d.responseScale;
     for (const [i, item] of d.items.entries()) {
+      const answerFormat = item.choices
+        ? { kind: "single_choice", options: item.choices.map((label, index) => ({ id: `c${index + 1}`, label })) }
+        : { kind: "likert", points: scale.points, min: scale.min, anchors: scale.anchors };
       await q.query(
-        "INSERT INTO assessment_items (assessment_id, item_key, position, kind, prompt, config) VALUES ($1, $2, $3, 'likert', $4, $5::jsonb)",
+        "INSERT INTO assessment_items (assessment_id, item_key, position, kind, prompt, config) VALUES ($1, $2, $3, $4, $5, $6::jsonb)",
         [
           id,
           item.key,
           i,
+          answerFormat.kind,
           displayedText(item),
           JSON.stringify({
-            kind: "likert",
-            points: scale.points,
-            min: scale.min,
-            anchors: scale.anchors,
+            ...answerFormat,
             provenance: {
               source: item.source,
               locator: item.locator,

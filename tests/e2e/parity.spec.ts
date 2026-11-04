@@ -65,8 +65,8 @@ import { KNOWLEDGE_SECTIONS, sectionOfZoneGroup } from "@/features/learning/sect
 import * as strings from "@/features/learning/strings";
 import { interfaceParityReportSchema, PARITY_CHECKS, type InterfaceParityCheck, type InterfaceParityRun } from "@/features/research/interface-parity";
 import { studyConfigSchema } from "@/features/study/contracts";
-import { figureBalance, runParityChecks } from "@/server/research/parity/engine";
-import { loadParityInput } from "@/server/research/parity/store";
+import { figureBalance } from "@/server/research/parity/engine";
+import { listSnapshotFigureAssets } from "@/server/cms/media/service";
 
 import { importGraphParity, stringTableParity } from "../unit/design/static-checks";
 
@@ -701,29 +701,28 @@ function gitCommit(): string {
 /** P21: the content parity engine's figure-balance check on the demo study's bundle. */
 async function figureBalanceCheck(): Promise<{ value: string; passed: boolean } | null> {
   const pool = db();
-  const r = await pool.query<{ id: string }>(
-    `SELECT st.id FROM studies st
+  const r = await pool.query<{ config: unknown; snapshot_id: string; payload: unknown }>(
+    `SELECT st.config, st.snapshot_id, s.payload FROM studies st
        JOIN content_snapshots s ON s.id = st.snapshot_id
       WHERE st.is_demo AND s.kind = 'review' AND NOT s.is_demo
       ORDER BY s.created_at DESC, st.created_at DESC LIMIT 1`,
   );
-  const id = r.rows[0]?.id;
-  if (!id) return null;
-  const input = await loadParityInput(pool, id);
-  const fig = runParityChecks(input).checks.find((c) => c.id === "a.figures");
-  if (!fig) return null;
-  // The matrix behind the check, from the engine's own figure balance on the same inputs.
-  const bundle = knowledgeBundleSchema.safeParse(input.snapshot?.payload);
-  const config = studyConfigSchema.safeParse(input.study.config ?? {});
-  let matrix = "";
-  if (bundle.success && config.success) {
-    const fb = figureBalance(bundle.data, config.data.traditionSlugs ?? [], { structureDiagrams: config.data.figures.structureDiagrams, figureAssets: input.figureAssets, asOf: input.asOf ?? null });
-    matrix = fb.rows
-      .filter((row) => Object.values(row.counts).some((n) => n > 0))
-      .map((row) => `${row.sectionId} ${fb.traditionSlugs.map((t) => row.counts[t] ?? 0).join("/")}`)
-      .join("; ");
-  }
-  return { value: short(`${fig.passed ? "balanced" : `unbalanced (${fig.issues.length} issues)`}${matrix ? `: ${matrix}` : ""}`, 200), passed: fig.passed };
+  const row = r.rows[0];
+  if (!row) return null;
+  const bundle = knowledgeBundleSchema.safeParse(row.payload);
+  const config = studyConfigSchema.safeParse(row.config ?? {});
+  if (!bundle.success || !config.success) return null;
+  const fb = figureBalance(bundle.data, config.data.traditionSlugs ?? [], {
+    structureDiagrams: config.data.figures.structureDiagrams,
+    figureAssets: await listSnapshotFigureAssets(pool, row.snapshot_id),
+    asOf: new Date().toISOString().slice(0, 10),
+  });
+  const matrix = fb.rows
+    .filter((balance) => Object.values(balance.counts).some((n) => n > 0))
+    .map((balance) => `${balance.sectionId} ${fb.traditionSlugs.map((t) => balance.counts[t] ?? 0).join("/")}`)
+    .join("; ");
+  const passed = fb.issues.length === 0;
+  return { value: short(`${passed ? "balanced" : `unbalanced (${fb.issues.length} issues)`}${matrix ? `: ${matrix}` : ""}`, 200), passed };
 }
 
 test("interface parity P1-P33: 2D concept page vs 3D panel", async ({ browser }) => {

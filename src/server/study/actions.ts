@@ -24,22 +24,21 @@ import { STUDY_STEPS } from "./config";
 import {
   StudyEngineError,
   WITHDRAWAL_REASONS,
+  completeEntrance,
   completeOnboarding,
   completeSession,
   enrolParticipant,
   findEnrollableStudy,
   completeFamiliarisation,
-  allocateSession,
-  syncPosition,
   openSessionAfterConsent,
   startFamiliarisation,
   loadParticipant,
-  loadSessionState,
   loadStudy,
   recordConsent,
   recordDeviceCheck,
   recordMuseumWebglFailure,
   resumeSession,
+  returnForDelayedTest,
   markAssessmentPresented,
   submitAssessment,
   withdraw,
@@ -72,6 +71,10 @@ function messageFor(err: unknown): string {
         return "These answers were already submitted.";
       case "invalid_answers":
         return "Some answers need attention.";
+      case "learning_incomplete":
+        return "Every stage must be visited before you finish.";
+      case "delayed_test_not_open":
+        return "The delayed test is not open yet.";
       case "learning_not_started":
         return "Open the learning task first.";
       case "familiarisation_not_finished":
@@ -217,10 +220,7 @@ export async function submitDeviceCheck(report: unknown): Promise<DeviceCheckRes
   const parsed = deviceReportSchema.safeParse(report);
   if (!parsed.success) return { ok: false, error: "The check could not be read. Please try again." };
   try {
-    const outcome = await recordDeviceCheck(getPool(), participant.sessionId, parsed.data, { appBuild: appBuild() });
-    if (outcome.kind === "reassigned") {
-      await issueParticipantSessionCookie({ participantId: participant.participantId, sessionId: outcome.sessionId, condition: outcome.condition });
-    }
+    const outcome = await recordDeviceCheck(getPool(), participant.sessionId, parsed.data);
     if (outcome.kind === "excluded") await clearParticipantSessionCookie();
     return { ok: true, outcome: outcome.kind, reason: outcome.kind === "retry" ? outcome.reason : undefined, minViewport: outcome.kind === "retry" ? outcome.minViewport : undefined };
   } catch (err) {
@@ -295,7 +295,6 @@ export async function submitAssessmentForm(_prev: FormState, formData: FormData)
       clientTs: typeof formData.get("clientTs") === "string" ? String(formData.get("clientTs")) : null,
     });
     target = r.stepCompleted ? "/study/session" : returnTo.startsWith("/study/") ? returnTo : "/study/session";
-    if (r.stepCompleted && participant.condition === null) target = await allocateIfDue(participant);
   } catch (err) {
     if (err instanceof StudyEngineError && err.code === "invalid_answers") {
       return { error: messageFor(err), fieldErrors: (err.details.errors as Record<string, string>) ?? {} };
@@ -306,26 +305,17 @@ export async function submitAssessmentForm(_prev: FormState, formData: FormData)
   redirect(target);
 }
 
-/**
- * After the last condition-blind step: allocate (D3) and re-issue the cookie with the condition,
- * in this action (a Server Action may set cookies). /study/allocate does the same for blind steps
- * completed elsewhere (the reconstruction page).
- */
-async function allocateIfDue(participant: { participantId: string; sessionId: string }): Promise<string> {
-  const pool = getPool();
-  const s = await loadSessionState(pool, participant.sessionId);
-  if (!s || (await syncPosition(pool, s)).kind !== "allocation") return "/study/session";
-  try {
-    const a = await allocateSession(pool, participant.sessionId);
-    await issueParticipantSessionCookie({ participantId: participant.participantId, sessionId: participant.sessionId, condition: a.condition });
-    return "/study/session";
-  } catch (err) {
-    if (err instanceof StudyEngineError && err.code === "allocation_refused") return "/study/session?allocation=refused";
-    throw err;
-  }
-}
+// ---- entrance, onboarding and learning -------------------------------------------------------
 
-// ---- onboarding and learning -----------------------------------------------------------------
+export async function continueFromEntrance(_prev: FormState): Promise<FormState> {
+  const participant = await requireParticipantSession();
+  try {
+    await completeEntrance(getPool(), participant.sessionId);
+  } catch (err) {
+    return { error: messageFor(err) };
+  }
+  redirect("/study/session");
+}
 
 export async function startLearning(_prev: FormState): Promise<FormState> {
   const participant = await requireParticipantSession();
@@ -358,6 +348,30 @@ export async function endFamiliarisation(_prev: FormState): Promise<FormState> {
     await completeFamiliarisation(getPool(), participant.sessionId);
   } catch (err) {
     return { error: messageFor(err) };
+  }
+  redirect("/study/session");
+}
+
+// ---- delayed test ------------------------------------------------------------------------------
+
+export async function returnWithCode(_prev: FormState, formData: FormData): Promise<FormState> {
+  const studyCode = String(formData.get("studyCode") ?? "");
+  const participantCode = String(formData.get("participantCode") ?? "");
+  if (!studyCode.trim() || !participantCode.trim()) return { error: "Enter the study code and your participant code." };
+  await requireSiteAccess("/study");
+  const pool = getPool();
+  try {
+    const study = await findEnrollableStudy(pool, studyCode);
+    if (!study.isDemo) {
+      const policy = clientIpPolicy();
+      const address = clientAddress(await headers(), { header: policy.header, trustedProxies: policy.trustedProxies });
+      const gate = await consumeEnrolmentAttempt(pool, { studyId: study.id, address, limits: study.protocol.config.enrolment });
+      if (!gate.allowed) throw new StudyEngineError("enrolment_throttled", "Too many attempts right now.", { scope: gate.scope, retryAfterSeconds: gate.retryAfterSeconds });
+    }
+    const back = await returnForDelayedTest(pool, { studyCode, participantCode });
+    await issueParticipantSessionCookie({ participantId: back.participantId, sessionId: back.sessionId, condition: back.condition });
+  } catch (err) {
+    return { error: err instanceof StudyEngineError && (err.code === "participant_not_found" || err.code === "session_closed") ? "This code has no delayed test waiting. Check it with the facilitator." : messageFor(err) };
   }
   redirect("/study/session");
 }

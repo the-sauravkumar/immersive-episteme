@@ -253,13 +253,10 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
     const r1 = await ref(1, true);
     expect(await analysisReferences(t.pool, st.studyId)).toEqual([{ assessmentId: a.id, referenceMapId: r1, version: 1, basis: "provisional" }]);
     await t.pool.query("UPDATE reference_maps SET status = 'locked' WHERE id = $1", [r1]);
-    const r2 = await ref(2, true);
+    await ref(2, true);
     await ref(3, false);
     // The locked v1 wins over the newer finalised v2 and the draft v3.
     expect(await analysisReferences(t.pool, st.studyId)).toEqual([{ assessmentId: a.id, referenceMapId: r1, version: 1, basis: "locked" }]);
-    // A map pinned at activation wins over everything.
-    await t.pool.query("UPDATE studies SET config = $2::jsonb WHERE id = $1", [st.studyId, JSON.stringify({ allocation: { stratifyBy: { source: "pre_map_recall", cutoff: 0.5, referenceMapId: r2 } } })]);
-    expect(await analysisReferences(t.pool, st.studyId)).toEqual([{ assessmentId: a.id, referenceMapId: r2, version: 2, basis: "pinned" }]);
   });
 
   it("primary outcome: pre, post and change by condition, excluded session left out", () => {
@@ -382,7 +379,7 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
       expect(text).not.toMatch(/Renderer crashed/);
       const summary = parseCsv((await (await csvGet("dashboard_primary")).text()).split("\r\n").slice(1).join("\r\n"));
       const post2d = summary.rows.find((x) => x.phase === "post" && x.condition_code === "conventional")!;
-      expect(post2d).toMatchObject({ metric: "cmap.recall.dl", metric_version: "1.0.0", role: "primary", n: "2", mean: "0.55" });
+      expect(post2d).toMatchObject({ metric: "cmap.recall.dl", metric_version: "1.0.0", role: "secondary", n: "2", mean: "0.55" });
       expect((await csvGet("nope")).status).toBe(400);
       const audit = await t.pool.query("SELECT count(*)::int AS n FROM audit_log WHERE action = 'export.dashboard_csv'");
       expect(audit.rows[0].n).toBe(2);

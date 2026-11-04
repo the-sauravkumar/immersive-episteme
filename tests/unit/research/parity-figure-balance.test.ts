@@ -25,25 +25,33 @@ import { EPISTEMIC_SECTIONS } from "@/features/learning-2d/template";
 import { STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
 import { altTextProblem, captionProblem, displayLongEdge, licenceValidOn, STUDY_FIGURE_CAP } from "@/features/media/contracts";
 import { LIGHTBOX_MAX_EDGE } from "@/components/knowledge/figure-lightbox";
-import { figureBalance, runParityChecks, type ParityFigureAsset, type ParityInput, type ParityReport } from "@/server/research/parity/engine";
+import { figureBalance, type ParityFigureAsset } from "@/server/research/parity/engine";
 
-import { passingInput } from "./fixtures";
+import { demoBundle } from "./fixtures";
 
-const checkOf = (r: ParityReport, id: string) => {
-  const c = r.checks.find((x) => x.id === id);
-  if (!c) throw new Error(`no check ${id}`);
-  return c;
-};
+interface FigureInput {
+  bundle: KnowledgeBundle;
+  structureDiagrams: boolean;
+  figureAssets?: ParityFigureAsset[];
+  asOf?: string;
+}
 
-const bundleOf = (i: ParityInput) => i.snapshot!.payload as KnowledgeBundle;
-const conceptId = (i: ParityInput, key: string) => {
+const passingInput = (): FigureInput => ({ bundle: demoBundle(), structureDiagrams: true });
+
+function balanceOf(i: FigureInput) {
+  const fb = figureBalance(i.bundle, ["demo-alpha", "demo-beta"], { structureDiagrams: i.structureDiagrams, figureAssets: i.figureAssets, asOf: i.asOf ?? null });
+  return { passed: fb.issues.length === 0, issues: fb.issues, metrics: fb.metrics };
+}
+
+const bundleOf = (i: FigureInput) => i.bundle;
+const conceptId = (i: FigureInput, key: string) => {
   const c = bundleOf(i).concepts.find((x) => x.key === key);
   if (!c) throw new Error(`no concept ${key}`);
   return c.id;
 };
 
 let n = 0;
-function photo(i: ParityInput, key: string, over: Partial<ParityFigureAsset> = {}): ParityFigureAsset {
+function photo(i: FigureInput, key: string, over: Partial<ParityFigureAsset> = {}): ParityFigureAsset {
   n += 1;
   return {
     assetId: `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`,
@@ -63,11 +71,9 @@ function photo(i: ParityInput, key: string, over: Partial<ParityFigureAsset> = {
   };
 }
 
-describe("figure balance check (a.figures)", () => {
+describe("figure balance", () => {
   it("passes the matched fixture: its graph-derived diagrams are balanced by construction", () => {
-    const r = runParityChecks(passingInput());
-    const c = checkOf(r, "a.figures");
-    expect(c.severity).toBe("critical");
+    const c = balanceOf(passingInput());
     expect(c.passed).toBe(true);
     expect(c.metrics.diagrams).toBeGreaterThan(0);
     expect(c.metrics.photos).toBe(0);
@@ -76,10 +82,8 @@ describe("figure balance check (a.figures)", () => {
   it("fails activation when one tradition has a photograph the others lack, naming the section and counts", () => {
     const input = passingInput();
     input.figureAssets = [photo(input, "demo-alpha.tool.block")];
-    const r = runParityChecks(input);
-    const c = checkOf(r, "a.figures");
+    const c = balanceOf(input);
     expect(c.passed).toBe(false);
-    expect(r.passed).toBe(false);
     const issue = c.issues.find((x) => x.code === "figures_unbalanced");
     expect(issue?.ref).toBe("materials-tools");
     expect(issue?.message).toContain('Section "Materials and tools" is unbalanced');
@@ -89,7 +93,7 @@ describe("figure balance check (a.figures)", () => {
   it("passes when every tradition has one photograph in the same section", () => {
     const input = passingInput();
     input.figureAssets = [photo(input, "demo-alpha.tool.block"), photo(input, "demo-beta.tool.block")];
-    const c = checkOf(runParityChecks(input), "a.figures");
+    const c = balanceOf(input);
     expect(c.issues).toEqual([]);
     expect(c.metrics.photos).toBe(2);
   });
@@ -97,7 +101,7 @@ describe("figure balance check (a.figures)", () => {
   it("allows at most one figure per concept", () => {
     const input = passingInput();
     input.figureAssets = [photo(input, "demo-alpha.tool.block"), photo(input, "demo-alpha.tool.block"), photo(input, "demo-beta.tool.block")];
-    const c = checkOf(runParityChecks(input), "a.figures");
+    const c = balanceOf(input);
     expect(c.issues.map((x) => x.code)).toEqual(["figure_per_concept"]);
     // Only one of the two is shown, so the section itself stays balanced.
     expect(c.metrics.photos).toBe(2);
@@ -109,15 +113,15 @@ describe("figure balance check (a.figures)", () => {
     const base = figureBalance(bundleOf(input), ["demo-alpha", "demo-beta"], { structureDiagrams: true });
     const anchor = base.shown.find((s) => s.kind === "diagram" && s.traditionSlug === "demo-alpha")!;
     input.figureAssets = [{ ...photo(input, "demo-alpha.tool.block"), conceptId: anchor.conceptId }];
-    const c = checkOf(runParityChecks(input), "a.figures");
+    const c = balanceOf(input);
     expect(c.passed).toBe(true);
     expect(c.metrics.photosHeldBack).toBe(1);
 
     // Switched off (both conditions together), the same photograph is shown and unbalances its section.
     const off = passingInput();
-    (off.study.config as Record<string, unknown>).figures = { structureDiagrams: false };
+    off.structureDiagrams = false;
     off.figureAssets = input.figureAssets;
-    const cOff = checkOf(runParityChecks(off), "a.figures");
+    const cOff = balanceOf(off);
     expect(cOff.metrics.diagrams).toBe(0);
     expect(cOff.issues.map((x) => x.code)).toEqual(["figures_unbalanced"]);
   });
@@ -131,7 +135,7 @@ describe("figure balance check (a.figures)", () => {
       photo(input, "demo-alpha.material.dye", { licenceExpiresOn: "2027-05-31" }),
       photo(input, "demo-beta.material.dye", { position: 4 }),
     ];
-    const codes = checkOf(runParityChecks(input), "a.figures").issues.map((x) => x.code).sort();
+    const codes = balanceOf(input).issues.map((x) => x.code).sort();
     expect(codes).toEqual(["figure_anchor", "figure_below_cap", "figure_below_cap", "figure_licence_expired"]);
   });
 
@@ -142,8 +146,7 @@ describe("figure balance check (a.figures)", () => {
       photo(input, "demo-beta.tool.block", { caption: "  " }),
       photo(input, "demo-alpha.material.dye", { altText: "" }),
     ];
-    const c = checkOf(runParityChecks(input), "a.figures");
-    expect(c.severity).toBe("critical");
+    const c = balanceOf(input);
     expect(c.passed).toBe(false);
     expect(c.issues.map((x) => x.code)).toEqual(["figure_metadata", "figure_metadata", "figure_metadata"]);
     expect(c.issues[0]!.message).toMatch(/no credit/);
@@ -153,7 +156,7 @@ describe("figure balance check (a.figures)", () => {
   it("ignores unapproved and demo-into-real photographs", () => {
     const input = passingInput();
     input.figureAssets = [photo(input, "demo-alpha.tool.block", { verificationState: "under_review" }), photo(input, "demo-beta.tool.block", { role: "hero" })];
-    const c = checkOf(runParityChecks(input), "a.figures");
+    const c = balanceOf(input);
     expect(c.passed).toBe(true);
     expect(c.metrics.photos).toBe(0);
 

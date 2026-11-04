@@ -6,10 +6,10 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { METRIC_DEFINITIONS, metricDefinition, metricRole, PRIMARY_OUTCOME, SECONDARY_OUTCOMES } from "../../../src/features/research/metric-definitions";
+import { HYPOTHESES, METRIC_DEFINITIONS, metricDefinition, metricRole, PRE_TEST_COVARIATE, PRIMARY_OUTCOME, PRIMARY_OUTCOMES, SECONDARY_OUTCOMES } from "../../../src/features/research/metric-definitions";
 import { SCALES } from "../../../src/features/research/scale-scores";
 import { RUBRIC_METRIC } from "../../../src/server/assessment/scoring";
-import { PRIMARY_METRIC, SECONDARY_METRICS } from "../../../src/server/research/dashboard";
+import { MAP_METRIC, SECONDARY_METRICS } from "../../../src/server/research/dashboard";
 import { DASHBOARD_TABLE_NAMES, DASHBOARD_TABLES, exportMetricRoles } from "../../../src/server/research/exports/dictionary";
 import { KEY_MATCH_TOTAL_METRIC } from "../../../src/server/study/engine";
 
@@ -33,7 +33,7 @@ describe("metric definitions", () => {
   it("covers every metric the dashboard shows, with unique keys", () => {
     const keys = METRIC_DEFINITIONS.map((d) => d.key);
     expect(new Set(keys).size).toBe(keys.length);
-    for (const k of [PRIMARY_METRIC, `${PRIMARY_METRIC}.change`, ...SECONDARY_METRICS, ...SCALES.map((s) => s.name), "assessment.key_match_total", "rubric.rating.mean"]) {
+    for (const k of [MAP_METRIC, `${MAP_METRIC}.change`, ...SECONDARY_METRICS, ...SCALES.map((s) => s.name), "assessment.key_match_total", "rubric.rating.mean"]) {
       expect(() => metricDefinition(k)).not.toThrow();
     }
   });
@@ -47,27 +47,33 @@ describe("metric definitions", () => {
     expect(DASHBOARD_TABLES.map((t) => t.name).sort()).toEqual([...DASHBOARD_TABLE_NAMES].sort());
   });
 
-  it("marks the preregistered primary outcome, the D2 secondary outcomes in order, and everything else exploratory", () => {
-    expect(PRIMARY_OUTCOME).toMatchObject({ metric: "cmap.recall.dl", phase: "post", covariate: { metric: "cmap.recall.dl", phase: "pre" } });
-    expect([...SECONDARY_OUTCOMES]).toEqual(["cmap.recall.du", "cmap.precision.dl", "cmap.edges_drawn", "cmap.incorrect_relationships", "cmap.f1.dl", "cmap.cross_category.valid_normalised", "cmap.valid_relationships"]);
-    expect(metricRole("cmap.recall.dl")).toBe("primary");
+  it("follows H1 to H3: sequence and association primary, the rest of section 8 secondary, the pre-test the covariate", () => {
+    expect(PRIMARY_OUTCOME).toMatchObject({ metric: "test.sequence", phase: "post", delayedPhase: "follow_up", covariate: { metric: "test.pre_test", phase: "pre" }, model: "ANCOVA" });
+    expect([...PRIMARY_OUTCOMES]).toEqual(["test.sequence", "test.stage_placement"]);
+    for (const m of PRIMARY_OUTCOMES) expect(metricRole(m)).toBe("primary");
     for (const m of SECONDARY_OUTCOMES) expect(metricRole(m)).toBe("secondary");
-    for (const m of ["cmap.recall.dl.change", "cmap.jaccard.dl", "cmap.causal_chain_depth", "nav.path_length", "time.exposure_total_ms", "sus.score"]) expect(metricRole(m), m).toBe("exploratory");
+    expect(HYPOTHESES.map((h) => h.id)).toEqual(["H1", "H2", "H3"]);
+    expect(HYPOTHESES[1]!.metrics).toEqual(["test.identification"]);
+    expect(HYPOTHESES[2]!.metrics).toEqual(["common.mental_effort", "common.navigation_effort"]);
+    for (const key of [...PRIMARY_OUTCOMES, ...SECONDARY_OUTCOMES, "test.pre_test"]) expect(metricDefinition(key).key).toBe(key);
+    for (const m of ["cmap.recall.dl.change", "cmap.jaccard.dl", "nav.path_length", "time.exposure_total_ms", "sus.score", "test.pre_test", "walk.wrong_turns"]) expect(metricRole(m), m).toBe("exploratory");
     for (const d of METRIC_DEFINITIONS) expect(d.role, d.key).toBe(metricRole(d.key));
   });
 
   it("puts the roles in the export data dictionary, primary first, from the one shared table", () => {
     const roles = exportMetricRoles(["cmap.jaccard.dl", "cmap.recall.dl", "nav.path_length"]);
-    expect(roles.primaryOutcome.metric).toBe("cmap.recall.dl");
-    expect(roles.roles.slice(0, 1 + SECONDARY_OUTCOMES.length).map((r) => r.metric)).toEqual(["cmap.recall.dl", ...SECONDARY_OUTCOMES]);
+    expect(roles.primaryOutcome.metric).toBe("test.sequence");
+    expect(roles.hypotheses).toBe(HYPOTHESES);
+    expect(roles.roles.slice(0, PRIMARY_OUTCOMES.length + SECONDARY_OUTCOMES.length).map((r) => r.metric)).toEqual([...PRIMARY_OUTCOMES, ...SECONDARY_OUTCOMES]);
     expect(roles.roles.find((r) => r.metric === "cmap.jaccard.dl")?.role).toBe("exploratory");
     expect(roles.roles.find((r) => r.metric === "nav.path_length")?.role).toBe("exploratory");
   });
 
-  it("analysis/episteme_stats falls back to the same D2 rule", () => {
+  it("analysis/episteme_stats falls back to the same rule", () => {
     const py = readFileSync(new URL("../../../analysis/episteme_stats/roles.py", import.meta.url), "utf8");
-    const secondary = /SECONDARY_OUTCOMES = \(([^)]*)\)/.exec(py)![1]!.match(/"([^"]+)"/g)!.map((x) => x.slice(1, -1));
-    expect(secondary).toEqual([...SECONDARY_OUTCOMES]);
-    expect(py).toContain(`"metric": "${PRIMARY_OUTCOME.metric}", "phase": "${PRIMARY_OUTCOME.phase}"`);
+    const listed = (name: string) => new RegExp(`${name} = \\(([^)]*)\\)`).exec(py)![1]!.match(/"([^"]+)"/g)!.map((x) => x.slice(1, -1));
+    expect(listed("SECONDARY_OUTCOMES")).toEqual([...SECONDARY_OUTCOMES]);
+    expect(listed("PRIMARY_OUTCOMES")).toEqual([...PRIMARY_OUTCOMES]);
+    expect(py).toContain(`PRE_TEST_COVARIATE = {"metric": "${PRE_TEST_COVARIATE.metric}", "phase": "${PRE_TEST_COVARIATE.phase}"}`);
   });
 });

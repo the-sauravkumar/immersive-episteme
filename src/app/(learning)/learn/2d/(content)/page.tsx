@@ -13,6 +13,8 @@ import { PageTelemetry } from "@/features/learning-2d/ui/page-telemetry";
 import { TrackedLink } from "@/features/learning-2d/ui/tracked-link";
 import { titleCase } from "@/lib/text/title-case";
 
+import { doorSessionFor } from "../../door-session";
+
 export const metadata: Metadata = { title: "Craft Traditions" };
 
 /** May block: the learning gate verifies the participant session per navigation (see the layout). */
@@ -37,6 +39,8 @@ export default function Learn2dPage() {
 async function Catalogue() {
   const result = await learning2dContext();
   if (!result.ok) return null;
+  const door = await doorSessionFor("2d", result.ctx);
+  if (door) return door;
   const { traditions, categories } = await loadCatalogue(result.ctx);
   const pageId = pageId2d.catalogue();
   return (

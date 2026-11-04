@@ -56,8 +56,8 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
     await recordConsent(t.pool, { participantId: p.participantId, study, decision: "granted", shownVersion: CONSENT.version });
     const s = await openSessionAfterConsent(t.pool, { participantId: p.participantId, studyId: study.id, appBuild: BUILD });
     await submitAssessment(t.pool, { sessionId: s.sessionId, step: "pre_test", assessmentId: ids["pu-pre"]!, values: { [ids["pu-pre:q1"]!]: ["b"] } });
+    await recordDeviceCheck(t.pool, s.sessionId, { viewport: { width: 1280, height: 800 }, webglVersion: 2, inputDevices: ["keyboard"] });
     const a = await allocateSession(t.pool, s.sessionId);
-    await recordDeviceCheck(t.pool, s.sessionId, { viewport: { width: 1280, height: 800 }, webglVersion: 2, inputDevices: ["keyboard"] }, { appBuild: BUILD });
     await completeOnboarding(t.pool, s.sessionId);
     await syncPosition(t.pool, (await loadSessionState(t.pool, s.sessionId))!, { arrivedAtHub: true });
     // A final post map with an edge (revisions by trigger), a derived score on it.

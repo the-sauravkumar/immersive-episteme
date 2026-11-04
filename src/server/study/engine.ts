@@ -11,11 +11,9 @@
  * no step column); the database rows it summarises (consent_records, allocations, responses,
  * concept_maps, derived_scores, the learning clock) stay the authoritative research records.
  *
- * Allocation point (study decision D3). With `allocation.point = after_pre_test` (the default)
- * the session is opened at consent WITHOUT a condition (migration 0010/0011); the condition-blind
- * steps (questionnaire_pre, pre_test, pre_reconstruction) are stored on it; when the last of them
- * is done the participant is allocated (stratum from the scored pre-test when configured) and the
- * allocation is attached to the session once. The device check follows allocation.
+ * Order of a session: consent, the condition-blind steps, the device check (no condition is known,
+ * so it can imply no door), allocation balanced by pre-test score with the tradition order drawn at
+ * the same moment, then the remaining steps from the entrance to the delayed test.
  */
 import { createHash, randomInt } from "node:crypto";
 
@@ -25,12 +23,12 @@ import { KEY_MATCH_METRIC } from "@/features/assessment/responses";
 import { museumCanRender } from "@/features/study/gpu-acceptance";
 import type { LearningCondition } from "@/lib/permissions/learning";
 import type { ConditionInterface } from "@/lib/validation/enums";
-import { AssessmentError } from "@/server/assessment/common";
-import { scoreFinalMap } from "@/server/assessment/scoring";
 import { conditionFromInterface } from "@/server/auth/study-session-port-types";
 import { LearningFinishRefusedError, recordLearningEnded } from "@/server/learning/context-data";
 
-import { drawCondition, type AllocatableCondition, type DrawAlgorithm } from "./allocation";
+import { coverageOf, admitStop, inAssignedOrder, requiredStops, type StageCoverage, type StageStop, type StageVisit, type StopAdmission } from "@/features/study/stage-coverage";
+
+import { drawCondition, drawTraditionOrder, type AllocatableCondition, type DrawAlgorithm } from "./allocation";
 import { isDeliverable, isKeyedItem, itemConfig, parseAnswer, scoreItem, toResponseRaw, type DeliveredItem, type ParsedAnswer } from "./answers";
 import {
   BLIND_STEPS,
@@ -43,6 +41,7 @@ import {
   type StudyStep,
 } from "./config";
 import { instrumentBlocker, instrumentConditions } from "./instruments";
+import { loadStageTemplates } from "./stage-templates";
 
 export { LearningFinishRefusedError };
 
@@ -63,6 +62,10 @@ export type StudyEngineErrorCode =
   | "assessment_not_ready"
   | "invalid_answers"
   | "learning_not_started"
+  | "learning_incomplete"
+  | "stage_refused"
+  | "delayed_test_not_open"
+  | "delayed_test_closed"
   | "familiarisation_not_finished"
   | "session_closed"
   | "repeat_browser"
@@ -82,8 +85,7 @@ export class StudyEngineError extends Error {
 
 /** Per-assessment total of the keyed items (the pre-test score of D3 stratification). */
 export const KEY_MATCH_TOTAL_METRIC = { name: "assessment.key_match_total", version: "1.0.0", pipeline: KEY_MATCH_METRIC.pipeline } as const;
-/** The concept-map metric of D3 stratification (expert-map coverage, directed and labelled). */
-export const PRE_MAP_METRIC = "cmap.recall.dl";
+export const TEST_SCORE_METRIC = { version: "1.0.0", pipeline: KEY_MATCH_METRIC.pipeline } as const;
 
 const sha256 = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
 
@@ -415,10 +417,6 @@ export async function openSessionAfterConsent(pool: Pool | PoolClient, input: { 
     await journal(c, { kind: "participant", code: p.code }, "study.session_opened", "study_session", s.rows[0]!.id, { allocationPoint: "after_pre_test", blindSteps: blindPrefix(study.protocol) });
     return { sessionId: s.rows[0]!.id, participantId: p.id, condition: null, conditionId: null, created: true };
   });
-  if (opened.condition === null && blindPrefix(study.protocol).length === 0) {
-    const a = await allocateSession(pool, opened.sessionId);
-    return { ...opened, condition: a.condition, conditionId: a.conditionId };
-  }
   return opened;
 }
 
@@ -431,7 +429,7 @@ interface DrawContext {
 }
 
 /** Draws and inserts the period-1 allocation (caller holds the per-study lock). */
-async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise<{ allocationId: string; conditionId: string; conditionCode: string; iface: ConditionInterface; record: Record<string, unknown> }> {
+async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise<{ allocationId: string; conditionId: string; conditionCode: string; iface: ConditionInterface; traditionOrder: string[]; record: Record<string, unknown> }> {
   const { study } = ctx;
   const conds = await c.query<{ id: string; code: string; allocation_weight: number; interface: ConditionInterface }>(
     "SELECT id, code, allocation_weight, interface FROM study_conditions WHERE study_id = $1",
@@ -455,6 +453,11 @@ async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise
   }
   const seed = allocationSeed(study);
   const draw = drawCondition({ algorithm: algorithm as DrawAlgorithm, seed, conditions, index, stratum: ctx.stratum, blockSize: alloc.blockSize });
+  const orderIndex = await c.query<{ n: number }>(
+    "SELECT count(*)::int AS n FROM allocations WHERE study_id = $1 AND period = 1 AND condition_id = $2 AND stratum IS NOT DISTINCT FROM $3",
+    [study.id, draw.conditionId, ctx.stratum],
+  );
+  const traditionOrder = drawTraditionOrder({ seed, traditions: study.protocol.config.traditionSlugs, conditionCode: draw.conditionCode, stratum: ctx.stratum, index: orderIndex.rows[0]!.n });
   const a = await c.query<{ id: string; allocated_at: Date }>(
     `INSERT INTO allocations (study_id, participant_id, condition_id, period, algorithm, seed, sequence_index, block_index, stratum, study_protocol_version)
      VALUES ($1, $2, $3, 1, $4, $5, $6, $7, $8, $9) RETURNING id, allocated_at`,
@@ -465,6 +468,7 @@ async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise
     conditionId: draw.conditionId,
     conditionCode: draw.conditionCode,
     iface: conds.rows.find((r) => r.id === draw.conditionId)!.interface,
+    traditionOrder,
     record: {
       allocationId: a.rows[0]!.id,
       algorithm,
@@ -479,6 +483,7 @@ async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise
       positionInBlock: draw.positionInBlock,
       blockSize: draw.blockIndex === null ? null : (alloc.blockSize ?? null),
       conditionCode: draw.conditionCode,
+      traditionOrder,
       allocationPoint: alloc.point,
       studyProtocolVersion: study.protocolVersion,
       allocatedAt: a.rows[0]!.allocated_at.toISOString(),
@@ -511,9 +516,9 @@ export async function allocateAndOpenSession(pool: Pool | PoolClient, input: { p
     const stratum = stratumRow.rows[0]?.stratum ?? null;
     const d = await drawAndInsertAllocation(c, { study, participantId: p.id, stratum, stratumSource: stratum ? { source: "researcher_entered" } : null });
     const s = await c.query<{ id: string }>(
-      `INSERT INTO study_sessions (study_id, participant_id, condition_id, allocation_id, period, app_build, status, started_at, last_activity_at)
-       VALUES ($1, $2, $3, $4, 1, $5, 'in_progress', now(), now()) RETURNING id`,
-      [study.id, p.id, d.conditionId, d.allocationId, input.appBuild],
+      `INSERT INTO study_sessions (study_id, participant_id, condition_id, allocation_id, period, app_build, status, started_at, last_activity_at, tradition_order)
+       VALUES ($1, $2, $3, $4, 1, $5, 'in_progress', now(), now(), $6::jsonb) RETURNING id`,
+      [study.id, p.id, d.conditionId, d.allocationId, input.appBuild, JSON.stringify(d.traditionOrder)],
     );
     await c.query("UPDATE participants SET status = 'active' WHERE id = $1 AND status = 'enrolled'", [p.id]);
     const sessionId = s.rows[0]!.id;
@@ -554,40 +559,6 @@ async function preTestScore(
 }
 
 /**
- * cmap.recall.dl of the final pre map against the study's reference map (assessment services).
- * The map is the one pinned at activation (`stratifyBy.referenceMapId`, final review database-02),
- * so every participant of the study is stratified by the same rule. Studies activated before the
- * pin existed fall back to the newest locked map not bound to another snapshot.
- */
-async function preMapRecall(q: Q, s: SessionState): Promise<{ score: number; conceptMapId: string; referenceMapId: string; referenceVersion: number; referencePinned: boolean } | { refused: string }> {
-  const pre = await listStepAssessments(q, s, "pre_reconstruction");
-  if (pre.length !== 1) return { refused: `the pre_reconstruction step must have exactly one reconstruction assessment (found ${pre.length})` };
-  const a = pre[0]!;
-  const pinned = s.study.protocol.config.allocation.stratifyBy?.referenceMapId;
-  const ref = pinned
-    ? await q.query<{ id: string; version: number }>("SELECT id, version FROM reference_maps WHERE id = $1 AND assessment_id = $2 AND status = 'locked'", [pinned, a.id])
-    : await q.query<{ id: string; version: number }>(
-        `SELECT id, version FROM reference_maps WHERE assessment_id = $1 AND status = 'locked' AND (snapshot_id IS NULL OR snapshot_id = $2)
-          ORDER BY version DESC LIMIT 1`,
-        [a.id, s.study.snapshotId],
-      );
-  if (!ref.rows[0]) {
-    return { refused: pinned ? `the reference map pinned at activation (${pinned}) is not a locked map of ${a.code} v${a.version}` : `no locked reference map for ${a.code} v${a.version}` };
-  }
-  const map = await q.query<{ id: string }>("SELECT id FROM concept_maps WHERE session_id = $1 AND assessment_id = $2 AND phase = 'pre' AND is_final", [s.sessionId, a.id]);
-  if (!map.rows[0]) return { refused: "no final pre-test concept map" };
-  try {
-    const scored = await scoreFinalMap(q, map.rows[0].id, ref.rows[0].id);
-    const recall = scored.scores.find((x) => x.metricName === PRE_MAP_METRIC);
-    if (!recall || recall.value === null) return { refused: `${PRE_MAP_METRIC} is undefined for this map and reference (no expected edges)` };
-    return { score: recall.value, conceptMapId: map.rows[0].id, referenceMapId: ref.rows[0].id, referenceVersion: ref.rows[0].version, referencePinned: !!pinned };
-  } catch (err) {
-    if (err instanceof AssessmentError) return { refused: `the pre map could not be scored: ${err.message}` };
-    throw err;
-  }
-}
-
-/**
  * Allocates an unallocated session once its blind steps are done (allocation after the pre-test,
  * D3), with the stratum from the scored pre-test when `allocation.stratifyBy` is set. Refuses
  * (protocol error, `allocation_refused`) when that score cannot be computed: there is no silent
@@ -613,24 +584,15 @@ export async function allocateSession(pool: Pool | PoolClient, sessionId: string
     let stratumSource: Record<string, unknown> | null = null;
     const by = s.study.protocol.config.allocation.stratifyBy;
     if (by) {
-      let score: number;
-      let evidence: Record<string, unknown>;
-      if (by.source === "pre_test_score") {
-        const r = await preTestScore(c, s);
-        if (!r) return { refused: { source: by.source, reason: "the pre-test score cannot be computed (the pre-test has no keyed items)" }, s };
-        score = r.score;
-        evidence = { keyedItems: r.keyedItems, answeredKeyedItems: r.answeredKeyedItems, skippedKeyedItems: r.skippedKeyedItems, assessments: r.assessments, metric: KEY_MATCH_METRIC.name };
-      } else {
-        const r = await preMapRecall(c, s);
-        if ("refused" in r) return { refused: { source: by.source, reason: `the pre-test map recall cannot be computed (${r.refused})` }, s };
-        score = r.score;
-        evidence = { metric: PRE_MAP_METRIC, conceptMapId: r.conceptMapId, referenceMapId: r.referenceMapId, referenceVersion: r.referenceVersion, referencePinned: r.referencePinned };
-      }
+      const r = await preTestScore(c, s);
+      if (!r) return { refused: { source: by.source, reason: "the pre-test score cannot be computed (the pre-test has no keyed items)" }, s };
+      const { score } = r;
+      const evidence = { keyedItems: r.keyedItems, answeredKeyedItems: r.answeredKeyedItems, skippedKeyedItems: r.skippedKeyedItems, assessments: r.assessments, metric: KEY_MATCH_METRIC.name };
       stratum = score <= by.cutoff ? "low" : "high";
       stratumSource = { source: by.source, score, cutoff: by.cutoff, rule: "low = score ≤ cutoff, else high", ...evidence };
     }
     const d = await drawAndInsertAllocation(c, { study: s.study, participantId: s.participantId, stratum, stratumSource });
-    await c.query("UPDATE study_sessions SET condition_id = $2, allocation_id = $3, last_activity_at = now() WHERE id = $1", [sessionId, d.conditionId, d.allocationId]);
+    await c.query("UPDATE study_sessions SET condition_id = $2, allocation_id = $3, tradition_order = $4::jsonb, last_activity_at = now() WHERE id = $1", [sessionId, d.conditionId, d.allocationId, JSON.stringify(d.traditionOrder)]);
     if (stratum) await c.query("UPDATE participants SET stratum = $2 WHERE id = $1 AND stratum IS NULL", [s.participantId, stratum]);
     await journal(c, { kind: "system" }, "study.allocated", "study_session", sessionId, d.record);
     return { condition: conditionFromInterface(d.iface), conditionId: d.conditionId, created: true };
@@ -676,6 +638,7 @@ export interface SessionState {
   device: Record<string, unknown>;
   snapshotLabel: string | null;
   learning: { startedAt: Date | null; endsAt: Date | null; endedAt: Date | null };
+  traditionOrder: string[];
   assessmentVersions: Record<string, number>;
   journal: JournalEntry[];
   now: Date;
@@ -686,11 +649,11 @@ export async function loadSessionState(q: Q, sessionId: string): Promise<Session
     id: string; participant_id: string; code: string; p_status: string; study_id: string; condition_id: string | null; c_code: string | null; interface: ConditionInterface | null;
     c_config: Record<string, unknown> | null; period: number; status: string; withdrawn: boolean; excluded: boolean; started_at: Date | null; last_activity_at: Date | null;
     interruption_count: number; device: Record<string, unknown>; version_label: string | null; learning_started_at: Date | null; learning_ends_at: Date | null;
-    learning_ended_at: Date | null; assessment_versions: Record<string, number>; now: Date;
+    learning_ended_at: Date | null; tradition_order: string[] | null; assessment_versions: Record<string, number>; now: Date;
   }>(
     `SELECT ss.id, ss.participant_id, p.code, p.status AS p_status, ss.study_id, ss.condition_id, sc.code AS c_code, sc.interface, sc.config AS c_config,
             ss.period, ss.status, ss.withdrawn, ss.excluded, ss.started_at, ss.last_activity_at, ss.interruption_count, ss.device,
-            cs.version_label, ss.learning_started_at, ss.learning_ends_at, ss.learning_ended_at, ss.assessment_versions, now() AS now
+            cs.version_label, ss.learning_started_at, ss.learning_ends_at, ss.learning_ended_at, ss.tradition_order, ss.assessment_versions, now() AS now
        FROM study_sessions ss
        JOIN participants p ON p.id = ss.participant_id
        LEFT JOIN study_conditions sc ON sc.id = ss.condition_id
@@ -726,6 +689,7 @@ export async function loadSessionState(q: Q, sessionId: string): Promise<Session
     device: row.device ?? {},
     snapshotLabel: row.version_label,
     learning: { startedAt: row.learning_started_at, endsAt: row.learning_ends_at, endedAt: row.learning_ended_at },
+    traditionOrder: row.tradition_order ?? [],
     assessmentVersions: row.assessment_versions ?? {},
     journal: j.rows.map((x) => ({ action: x.action, after: x.after ?? {}, occurredAt: x.occurred_at })),
     now: row.now,
@@ -758,11 +722,7 @@ export type Position =
   | { kind: "device_check" }
   | { kind: "finish" };
 
-/**
- * Where the participant is. Pure. `blind` = the leading condition-blind steps taken before
- * allocation (empty when allocating at enrolment). Order: blind steps → allocation → device check
- * → the remaining steps → finish.
- */
+/** Where the participant is. Pure. Order: blind steps, device check, allocation, the remaining steps, finish. */
 export function positionOf(input: {
   steps: readonly StudyStep[];
   blind: readonly StudyStep[];
@@ -772,8 +732,8 @@ export function positionOf(input: {
 }): Position {
   const { steps, blind, done } = input;
   for (const step of blind) if (!done.has(step)) return { kind: "step", step, index: steps.indexOf(step) };
-  if (!input.allocated) return { kind: "allocation" };
   if (!input.devicePassed) return { kind: "device_check" };
+  if (!input.allocated) return { kind: "allocation" };
   for (let i = 0; i < steps.length; i++) {
     const step = steps[i]!;
     if (!done.has(step)) return { kind: "step", step, index: i };
@@ -910,11 +870,79 @@ export function submittedAssessments(s: Pick<SessionState, "journal">, step: Stu
   return out;
 }
 
-/** May the learning phase end now? Budget over, or the study allows finishing (self-paced / early finish). */
-export function learningMayEnd(s: Pick<SessionState, "learning" | "now" | "study">): boolean {
+export function learningMayEnd(s: Pick<SessionState, "learning" | "now" | "study">, everyStageVisited = true): boolean {
   if (!s.learning.startedAt) return false;
-  if (s.learning.endsAt) return s.now >= s.learning.endsAt || s.study.protocol.config.exposure.allowEarlyFinish;
-  return true; // self-paced
+  if (s.learning.endsAt && s.now >= s.learning.endsAt) return true;
+  const { allowEarlyFinish, requireEveryStage } = s.study.protocol.config.exposure;
+  if (requireEveryStage && !everyStageVisited) return false;
+  return s.learning.endsAt ? allowEarlyFinish : true;
+}
+
+export async function assignedStops(s: Pick<SessionState, "traditionOrder">): Promise<StageStop[]> {
+  return requiredStops(inAssignedOrder(await loadStageTemplates(), s.traditionOrder));
+}
+
+async function stageVisitsOf(q: Q, sessionId: string): Promise<StageVisit[]> {
+  const r = await q.query<{ tradition_key: string; stage_key: string }>("SELECT tradition_key, stage_key FROM stage_visits WHERE session_id = $1 ORDER BY visit_index", [sessionId]);
+  return r.rows.map((row) => ({ traditionKey: row.tradition_key, stageKey: row.stage_key }));
+}
+
+export async function stageCoverage(q: Q, s: SessionState): Promise<StageCoverage | null> {
+  if (!s.study.protocol.config.exposure.requireEveryStage) return null;
+  return coverageOf(await assignedStops(s), await stageVisitsOf(q, s.sessionId));
+}
+
+async function openLearningSession(c: PoolClient, sessionId: string): Promise<SessionState> {
+  await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
+  const s = await loadSessionState(c, sessionId);
+  if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
+  const pos = await syncPosition(c, s);
+  if (pos.kind !== "step" || pos.step !== "learning") throw new StudyEngineError("not_current_step", "Learning is not the current step.");
+  if (!s.learning.startedAt) throw new StudyEngineError("learning_not_started", "Open the learning task first.");
+  return s;
+}
+
+export interface StageEntryResult {
+  visitIndex: number;
+  visitCount: number;
+  backStep: boolean;
+  coverage: StageCoverage;
+  endsAt: Date | null;
+}
+
+export async function recordStageEntered(pool: Pool | PoolClient, sessionId: string, target: StageVisit): Promise<StageEntryResult> {
+  const result = await withTx(pool, async (c): Promise<StageEntryResult | { refused: Extract<StopAdmission, { admitted: false }> }> => {
+    const s = await openLearningSession(c, sessionId);
+    const required = await assignedStops(s);
+    const visits = await stageVisitsOf(c, sessionId);
+    const admission = admitStop(required, visits, target);
+    if (!admission.admitted) {
+      await journal(c, { kind: "participant", code: s.participantCode }, "study.stage_refused", "study_session", sessionId, { ...target, reason: admission.reason, expected: admission.expected });
+      return { refused: admission };
+    }
+    const last = visits[visits.length - 1];
+    const lastStop = last ? required.find((stop) => stop.traditionKey === last.traditionKey && stop.stageKey === last.stageKey) : undefined;
+    const backStep = !!lastStop && lastStop.traditionKey === target.traditionKey && admission.stop.stageNumber < lastStop.stageNumber;
+    await c.query("UPDATE stage_visits SET left_at = now() WHERE session_id = $1 AND left_at IS NULL", [sessionId]);
+    await c.query(
+      "INSERT INTO stage_visits (session_id, tradition_key, stage_key, stage_number, visit_index) VALUES ($1, $2, $3, $4, $5)",
+      [sessionId, target.traditionKey, target.stageKey, admission.stop.stageNumber, visits.length],
+    );
+    await touch(c, sessionId);
+    const after = [...visits, target];
+    const visitCount = after.filter((v) => v.traditionKey === target.traditionKey && v.stageKey === target.stageKey).length;
+    return { visitIndex: visits.length, visitCount, backStep, coverage: coverageOf(required, after), endsAt: s.learning.endsAt };
+  });
+  if ("refused" in result) throw new StudyEngineError("stage_refused", "This stage cannot be entered yet.", { reason: result.refused.reason, expected: result.refused.expected });
+  return result;
+}
+
+export async function recordStageLeft(pool: Pool | PoolClient, sessionId: string, target: StageVisit & { activeMs: number }): Promise<void> {
+  await pool.query(
+    `UPDATE stage_visits SET left_at = coalesce(left_at, now()), active_ms = $4
+      WHERE id = (SELECT id FROM stage_visits WHERE session_id = $1 AND tradition_key = $2 AND stage_key = $3 ORDER BY visit_index DESC LIMIT 1)`,
+    [sessionId, target.traditionKey, target.stageKey, target.activeMs],
+  );
 }
 
 /**
@@ -933,12 +961,17 @@ export async function syncPosition(q: Q, s: SessionState, opts: { arrivedAtHub?:
     const step = pos.step;
     if (step === "learning") {
       const budgetOver = !!s.learning.endsAt && s.now >= s.learning.endsAt;
-      if (!s.learning.endedAt && s.learning.startedAt && (budgetOver || (opts.arrivedAtHub && learningMayEnd(s)))) {
+      const coverage = s.learning.startedAt && (budgetOver || opts.arrivedAtHub || s.learning.endedAt) ? await stageCoverage(q, s) : null;
+      if (!s.learning.endedAt && s.learning.startedAt && (budgetOver || (opts.arrivedAtHub && learningMayEnd(s, coverage?.complete ?? true)))) {
         const clock = await recordLearningEnded(q, s.sessionId);
         s.learning.endedAt = clock.endedAt ? new Date(clock.endedAt) : null;
       }
       if (!s.learning.endedAt) return pos;
-      await markStepCompleted(q, s, "learning", { endedAt: s.learning.endedAt.toISOString(), reason: s.learning.endsAt && s.learning.endedAt >= s.learning.endsAt ? "budget_ended" : "finished" });
+      await markStepCompleted(q, s, "learning", {
+        endedAt: s.learning.endedAt.toISOString(),
+        reason: s.learning.endsAt && s.learning.endedAt >= s.learning.endsAt ? "cap_reached" : "finished",
+        ...(coverage ? { stagesRequired: coverage.required, stagesVisited: coverage.visited, unvisited: coverage.unvisited } : {}),
+      });
       continue;
     }
     if (!isAssessmentStep(step)) return pos;
@@ -947,8 +980,17 @@ export async function syncPosition(q: Q, s: SessionState, opts: { arrivedAtHub?:
       await markStepCompleted(q, s, step, { empty: true });
       continue;
     }
-    if (step === "pre_reconstruction" || step === "reconstruction") {
-      const phase = step === "pre_reconstruction" ? "pre" : "post";
+    if (step === "delayed_test") {
+      const schedule = await ensureDelayedSchedule(q, s);
+      if (s.now > schedule.closesAt && !schedule.completedAt) {
+        await q.query("UPDATE delayed_test_schedule SET missed_at = coalesce(missed_at, now()) WHERE session_id = $1", [s.sessionId]);
+        await markStepCompleted(q, s, "delayed_test", { missed: true });
+        continue;
+      }
+      return pos;
+    }
+    if (step === "reconstruction") {
+      const phase = "post";
       const itemIds = assessments.flatMap((a) => a.items.filter((i) => i.kind === "concept_map").map((i) => i.id));
       if (itemIds.length > 0) {
         const r = await q.query<{ n: number }>(
@@ -965,17 +1007,99 @@ export async function syncPosition(q: Q, s: SessionState, opts: { arrivedAtHub?:
   }
 }
 
-/**
- * The map phase of the participant's current reconstruction step ("pre" for pre_reconstruction,
- * "post" for reconstruction), or null when neither is current or the session is closed. For the
- * concept-map save (src/server/assessment/participant-actions.ts), on its transaction.
- */
+export interface DelayedSchedule {
+  scheduledAt: Date;
+  opensAt: Date;
+  dueAt: Date;
+  closesAt: Date;
+  returnedAt: Date | null;
+  completedAt: Date | null;
+  missedAt: Date | null;
+}
+
+const DAY_MS = 86_400_000;
+
+async function readDelayedSchedule(q: Q, sessionId: string): Promise<DelayedSchedule | null> {
+  const r = await q.query<{ scheduled_at: Date; opens_at: Date; due_at: Date; closes_at: Date; returned_at: Date | null; completed_at: Date | null; missed_at: Date | null }>(
+    "SELECT scheduled_at, opens_at, due_at, closes_at, returned_at, completed_at, missed_at FROM delayed_test_schedule WHERE session_id = $1",
+    [sessionId],
+  );
+  const row = r.rows[0];
+  return row ? { scheduledAt: row.scheduled_at, opensAt: row.opens_at, dueAt: row.due_at, closesAt: row.closes_at, returnedAt: row.returned_at, completedAt: row.completed_at, missedAt: row.missed_at } : null;
+}
+
+export async function ensureDelayedSchedule(q: Q, s: Pick<SessionState, "sessionId" | "participantId" | "participantCode" | "study" | "now">): Promise<DelayedSchedule> {
+  const existing = await readDelayedSchedule(q, s.sessionId);
+  if (existing) return existing;
+  const window = s.study.protocol.config.delayedTest;
+  const at = (days: number) => new Date(s.now.getTime() + days * DAY_MS);
+  await q.query(
+    `INSERT INTO delayed_test_schedule (session_id, study_id, participant_id, opens_at, due_at, closes_at)
+     VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (session_id) DO NOTHING`,
+    [s.sessionId, s.study.id, s.participantId, at(window.opensAfterDays), at(window.dueAfterDays), at(window.closesAfterDays)],
+  );
+  await journal(q, { kind: "system" }, "study.delayed_test_scheduled", "study_session", s.sessionId, { dueAt: at(window.dueAfterDays).toISOString() });
+  return (await readDelayedSchedule(q, s.sessionId))!;
+}
+
+export type DelayedAvailability = "early" | "open" | "closed";
+
+export function delayedAvailability(schedule: Pick<DelayedSchedule, "opensAt" | "closesAt">, now: Date): DelayedAvailability {
+  if (now < schedule.opensAt) return "early";
+  return now > schedule.closesAt ? "closed" : "open";
+}
+
+export async function delayedTestStatus(q: Q, s: SessionState): Promise<{ schedule: DelayedSchedule; availability: DelayedAvailability }> {
+  const schedule = await ensureDelayedSchedule(q, s);
+  return { schedule, availability: delayedAvailability(schedule, s.now) };
+}
+
+export interface DelayedReturn {
+  participantId: string;
+  sessionId: string;
+  condition: LearningCondition | null;
+  availability: DelayedAvailability;
+}
+
+export async function returnForDelayedTest(pool: Pool | PoolClient, input: { studyCode: string; participantCode: string }): Promise<DelayedReturn> {
+  return withTx(pool, async (c) => {
+    const r = await c.query<{ session_id: string }>(
+      `SELECT d.session_id FROM delayed_test_schedule d
+         JOIN studies st ON st.id = d.study_id JOIN participants p ON p.id = d.participant_id
+        WHERE st.slug = $1 AND upper(p.code) = upper($2)`,
+      [normaliseStudyCode(input.studyCode), input.participantCode.trim()],
+    );
+    const sessionId = r.rows[0]?.session_id;
+    if (!sessionId) throw new StudyEngineError("participant_not_found", "No delayed test is scheduled for this code.");
+    await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
+    const s = (await loadSessionState(c, sessionId))!;
+    if (!isSessionOpen(s)) throw new StudyEngineError("session_closed", "This session is closed.");
+    const { schedule, availability } = await delayedTestStatus(c, s);
+    if (availability === "open" && !schedule.returnedAt) await c.query("UPDATE delayed_test_schedule SET returned_at = now() WHERE session_id = $1", [sessionId]);
+    await journal(c, { kind: "participant", code: s.participantCode }, "study.delayed_test_returned", "study_session", sessionId, { availability });
+    await touch(c, sessionId);
+    return { participantId: s.participantId, sessionId, condition: s.condition, availability };
+  });
+}
+
+export async function completeEntrance(pool: Pool | PoolClient, sessionId: string): Promise<void> {
+  await withTx(pool, async (c) => {
+    await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
+    const s = await loadSessionState(c, sessionId);
+    if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
+    const pos = await syncPosition(c, s);
+    if (pos.kind !== "step" || pos.step !== "entrance") return;
+    await markStepCompleted(c, s, "entrance", { door: s.condition });
+    await touch(c, sessionId);
+  });
+}
+
 export async function currentReconstructionPhase(q: Q, sessionId: string): Promise<"pre" | "post" | null> {
   const s = await loadSessionState(q, sessionId);
   if (!s || !isSessionOpen(s)) return null;
   const pos = await syncPosition(q, s);
   if (pos.kind !== "step") return null;
-  return pos.step === "pre_reconstruction" ? "pre" : pos.step === "reconstruction" ? "post" : null;
+  return pos.step === "reconstruction" ? "post" : null;
 }
 
 /**
@@ -1018,36 +1142,24 @@ export type DeviceOutcome =
   | { kind: "excluded" }
   | { kind: "reassigned"; sessionId: string; condition: LearningCondition };
 
-/** Pure: what the check means for this session under the study's policy. */
 export function evaluateDevice(
   report: DeviceReport,
-  ctx: { condition: LearningCondition; policy: "exclude" | "retry" | "reassign"; minViewport?: { width: number; height: number } },
-): "passed" | "viewport_too_small" | "webgl_retry" | "webgl_exclude" | "webgl_reassign" {
+  ctx: { policy: "exclude" | "retry" | "reassign"; minViewport?: { width: number; height: number } },
+): "passed" | "viewport_too_small" | "webgl_retry" | "webgl_exclude" {
   const min = ctx.minViewport;
   if (min && (report.viewport.width < min.width || report.viewport.height < min.height)) return "viewport_too_small";
-  // The museum's own acceptance rule (WebGL 2 on a hardware renderer), so a device the museum
-  // would refuse fails here and the WebGL-failure policy applies (final review study-01).
-  if (ctx.condition === "immersive" && !museumCanRender(report)) {
-    return ctx.policy === "exclude" ? "webgl_exclude" : ctx.policy === "reassign" ? "webgl_reassign" : "webgl_retry";
-  }
+  if (!museumCanRender(report)) return ctx.policy === "exclude" ? "webgl_exclude" : "webgl_retry";
   return "passed";
 }
 
-/**
- * Records the device check in `study_sessions.device` (coarse covariates only, no fingerprint)
- * and applies the WebGL-failure policy (config `webglFailurePolicy`, Q-R10). It runs after
- * allocation (D3/D8), identically for both conditions; only a device that cannot render the
- * museum (no WebGL 2, or a software renderer) in the immersive condition triggers the policy.
- */
-export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: string, report: DeviceReport, opts: { appBuild: string }): Promise<DeviceOutcome> {
+export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: string, report: DeviceReport): Promise<DeviceOutcome> {
   return withTx(pool, async (c) => {
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
     if (deviceCheckPassed(s)) return { kind: "passed" };
-    if (s.condition === null) throw new StudyEngineError("not_allocated", "The device check follows allocation.");
     const minViewport = s.study.protocol.config.device.minViewport;
     const policy = s.study.protocol.config.webglFailurePolicy;
-    const verdict = evaluateDevice(report, { condition: s.condition, policy, minViewport });
+    const verdict = evaluateDevice(report, { policy, minViewport });
     const attempt = s.journal.filter((e) => e.action === "study.device_checked").length + 1;
     const device = {
       viewport: report.viewport,
@@ -1063,7 +1175,7 @@ export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: stri
     };
     await c.query("UPDATE study_sessions SET device = $2::jsonb, last_activity_at = now() WHERE id = $1", [sessionId, JSON.stringify(device)]);
     const actor: Actor = { kind: "participant", code: s.participantCode };
-    const outcome = verdict === "passed" ? "passed" : verdict === "viewport_too_small" || verdict === "webgl_retry" ? "retry" : verdict === "webgl_exclude" ? "excluded" : "reassigned";
+    const outcome = verdict === "passed" ? "passed" : verdict === "webgl_exclude" ? "excluded" : "retry";
     await journal(c, actor, "study.device_checked", "study_session", sessionId, { outcome, verdict, attempt, webglVersion: report.webglVersion, softwareRenderer: report.softwareRenderer ?? null, viewport: report.viewport });
 
     switch (verdict) {
@@ -1075,8 +1187,6 @@ export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: stri
         return { kind: "retry", reason: "webgl_unavailable" };
       case "webgl_exclude":
         return excludeForWebgl(c, s, policy);
-      case "webgl_reassign":
-        return reassignToConventional(c, s, device, opts.appBuild);
     }
   });
 }
@@ -1125,7 +1235,7 @@ export async function recordMuseumWebglFailure(
       learningStarted,
     });
     if (policy === "exclude") return excludeForWebgl(c, s, policy);
-    if (policy === "reassign") return reassignToConventional(c, s, { ...s.device, runtimeWebglFailure: { step: pos.step, ...gpu } }, opts.appBuild, { carry: "blind" });
+    if (policy === "reassign") return reassignToConventional(c, s, { ...s.device, runtimeWebglFailure: { step: pos.step, ...gpu } }, opts.appBuild);
     const attempt = s.journal.filter((e) => e.action === "study.device_checked").length + 1;
     await journal(c, { kind: "participant", code: s.participantCode }, "study.device_checked", "study_session", sessionId, {
       outcome: "retry",
@@ -1150,7 +1260,6 @@ async function reassignToConventional(
   s: SessionState,
   device: Record<string, unknown>,
   appBuild: string,
-  opts: { carry: "all" | "blind" } = { carry: "all" },
 ): Promise<DeviceOutcome> {
   const target = await c.query<{ id: string; code: string }>(
     "SELECT id, code FROM study_conditions WHERE study_id = $1 AND interface = 'conventional_2d' ORDER BY position, code LIMIT 1",
@@ -1169,9 +1278,9 @@ async function reassignToConventional(
     [s.study.id, s.participantId, target.rows[0].id, s.period + 1, orig.rows[0]!.seed, orig.rows[0]!.sequence_index, orig.rows[0]!.stratum, s.study.protocolVersion, reason],
   );
   const n = await c.query<{ id: string }>(
-    `INSERT INTO study_sessions (study_id, participant_id, condition_id, allocation_id, period, app_build, status, started_at, last_activity_at, device)
-     VALUES ($1, $2, $3, $4, $5, $6, 'in_progress', now(), now(), $7::jsonb) RETURNING id`,
-    [s.study.id, s.participantId, target.rows[0].id, a.rows[0]!.id, s.period + 1, appBuild, JSON.stringify(device)],
+    `INSERT INTO study_sessions (study_id, participant_id, condition_id, allocation_id, period, app_build, status, started_at, last_activity_at, device, tradition_order)
+     VALUES ($1, $2, $3, $4, $5, $6, 'in_progress', now(), now(), $7::jsonb, $8::jsonb) RETURNING id`,
+    [s.study.id, s.participantId, target.rows[0].id, a.rows[0]!.id, s.period + 1, appBuild, JSON.stringify(device), JSON.stringify(s.traditionOrder)],
   );
   const newId = n.rows[0]!.id;
   await journal(c, { kind: "system" }, "study.session_reassigned", "study_session", s.sessionId, { toSessionId: newId, toCondition: target.rows[0].code }, reason);
@@ -1179,7 +1288,7 @@ async function reassignToConventional(
     allocationId: a.rows[0]!.id, algorithm: "manual", overrideReason: reason, fromSessionId: s.sessionId, conditionCode: target.rows[0].code, studyProtocolVersion: s.study.protocolVersion,
   });
   for (const step of completedSteps(s)) {
-    if (opts.carry === "blind" && !BLIND_STEPS.includes(step)) continue;
+    if (!BLIND_STEPS.includes(step)) continue;
     await journal(c, { kind: "system" }, "study.step_completed", "study_session", newId, { step, carriedFrom: s.sessionId });
   }
   await journal(c, { kind: "system" }, "study.device_checked", "study_session", newId, { outcome: "passed", verdict: "passed", carriedFrom: s.sessionId });
@@ -1252,6 +1361,10 @@ export async function submitAssessment(
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
     const pos = await syncPosition(c, s);
     if (pos.kind !== "step" || pos.step !== input.step) throw new StudyEngineError("not_current_step", "This part of the study is not the current step.");
+    if (input.step === "delayed_test") {
+      const { availability } = await delayedTestStatus(c, s);
+      if (availability === "early") throw new StudyEngineError("delayed_test_not_open", "The delayed test is not open yet.");
+    }
     const assessments = await listStepAssessments(c, s, input.step);
     const a = assessments.find((x) => x.id === input.assessmentId);
     if (!a) throw new StudyEngineError("not_current_step", "This assessment is not part of the current step.");
@@ -1317,6 +1430,15 @@ export async function submitAssessment(
         [s.sessionId, s.participantId, a.id, KEY_MATCH_TOTAL_METRIC.name, KEY_MATCH_TOTAL_METRIC.version, correct, JSON.stringify({ keyedItems: scored, items: a.items.length, assessmentVersion: a.version, perItem }), KEY_MATCH_TOTAL_METRIC.pipeline],
       );
     }
+    const keyedItems = a.items.filter(isKeyedItem).length;
+    const testType = typeof a.config.testType === "string" ? a.config.testType : null;
+    if (testType && keyedItems > 0) {
+      await c.query(
+        `INSERT INTO derived_scores (session_id, participant_id, assessment_id, metric_name, metric_version, value, details, pipeline_version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8) ON CONFLICT ON CONSTRAINT derived_scores_uq DO NOTHING`,
+        [s.sessionId, s.participantId, a.id, `test.${testType}`, TEST_SCORE_METRIC.version, correct / keyedItems, JSON.stringify({ keyedItems, answered, skipped, assessmentVersion: a.version, step: input.step }), TEST_SCORE_METRIC.pipeline],
+      );
+    }
     await journal(c, { kind: "participant", code: s.participantCode }, "study.assessment_submitted", "study_session", s.sessionId, {
       assessmentId: a.id, code: a.code, version: a.version, step: input.step, attempt, answered, skipped,
     });
@@ -1324,6 +1446,7 @@ export async function submitAssessment(
     await touch(c, s.sessionId);
     const allDone = assessments.every((x) => submittedAssessments(s, input.step).has(x.id));
     if (allDone) await markStepCompleted(c, s, input.step);
+    if (allDone && input.step === "delayed_test") await c.query("UPDATE delayed_test_schedule SET completed_at = now() WHERE session_id = $1", [s.sessionId]);
     return { answered, skipped, scored, correct, stepCompleted: allDone };
   });
 }
@@ -1384,22 +1507,22 @@ export async function completeOnboarding(pool: Pool | PoolClient, sessionId: str
   });
 }
 
-/**
- * Ends the learning phase (server time). Refused before the budget runs out unless the study
- * allows an early finish (LearningFinishRefusedError), and before the task was started.
- */
 export async function finishLearning(pool: Pool | PoolClient, sessionId: string): Promise<void> {
-  await withTx(pool, async (c) => {
+  const refused = await withTx(pool, async (c) => {
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
     const pos = await syncPosition(c, s);
-    if (pos.kind !== "step" || pos.step !== "learning") return; // already finished: idempotent
+    if (pos.kind !== "step" || pos.step !== "learning") return null;
     if (!s.learning.startedAt) throw new StudyEngineError("learning_not_started", "Open the learning task first.");
+    const coverage = await stageCoverage(c, s);
+    if (coverage && !coverage.complete && !learningMayEnd(s, false)) return coverage.unvisited;
     const clock = await recordLearningEnded(c, sessionId);
     s.learning.endedAt = clock.endedAt ? new Date(clock.endedAt) : null;
     await syncPosition(c, s);
     await touch(c, sessionId);
+    return null;
   });
+  if (refused) throw new StudyEngineError("learning_incomplete", "Every stage must be visited before learning can finish.", { unvisited: refused });
 }
 
 // ---------------------------------------------------------------------------------------------

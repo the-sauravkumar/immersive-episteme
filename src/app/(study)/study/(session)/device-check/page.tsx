@@ -24,7 +24,7 @@ async function Check() {
 export const instant = false;
 
 /**
- * First page after allocation, identical for both conditions (the component takes no condition
+ * The page before allocation, identical for everyone (the component takes no condition
  * input). It shows the High contrast accommodation chosen once on the consent page, before the
  * pre-test (DR-019; read-only here), then checks the browser. Results, with that display choice,
  * go to study_sessions.device.

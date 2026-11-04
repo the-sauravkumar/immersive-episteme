@@ -28,7 +28,7 @@ export const SSQ_TOTAL_FACTOR = 3.74;
 export interface ScaleSpec {
   /** Score name (metric-name style). */
   name: string;
-  instrument: "cognitive-load" | "sus" | "mps-physical-presence" | "ssq";
+  instrument: "cognitive-load" | "sus" | "mps-physical-presence" | "ssq" | "common-questions";
   label: string;
   items: readonly string[];
   rule: "mean" | "sum" | "sus" | "ssq-total";
@@ -45,6 +45,10 @@ export const SCALES: readonly ScaleSpec[] = [
   { name: "cl.extraneous_instructions", instrument: "cognitive-load", label: "Extraneous load: instructions", items: keys("el-instr", 4, 6), rule: "mean", range: [0, 10], interfaces: null },
   { name: "cl.extraneous_interaction", instrument: "cognitive-load", label: "Extraneous load: interaction", items: keys("el-int", 1, 4), rule: "mean", range: [0, 10], interfaces: null },
   { name: "cl.extraneous_environment", instrument: "cognitive-load", label: "Extraneous load: environment", items: keys("el-env", 1, 4), rule: "mean", range: [0, 10], interfaces: null },
+  { name: "common.mental_effort", instrument: "common-questions", label: "Mental effort", items: ["common.mental_effort"], rule: "mean", range: [1, 7], interfaces: null },
+  { name: "common.navigation_effort", instrument: "common-questions", label: "Navigation effort", items: ["common.navigation_effort"], rule: "mean", range: [1, 7], interfaces: null },
+  { name: "common.comfort", instrument: "common-questions", label: "Comfort", items: ["common.comfort"], rule: "mean", range: [1, 7], interfaces: null },
+  { name: "common.engagement", instrument: "common-questions", label: "Engagement", items: ["common.engagement"], rule: "mean", range: [1, 7], interfaces: null },
   { name: "sus.score", instrument: "sus", label: "SUS score", items: keys("sus", 1, 10), rule: "sus", range: [0, 100], interfaces: null },
   { name: "presence.physical", instrument: "mps-physical-presence", label: "Physical presence", items: keys("p", 1, 5), rule: "mean", range: [1, 5], interfaces: ["immersive_3d"] },
   // Maximum: each column holds 7 symptoms rated 0–3, so (21 + 21 + 21) × 3.74 = 235.62.

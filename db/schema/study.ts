@@ -259,16 +259,11 @@ export const studySessions = pgTable(
     startedAt: tsz(),
     completedAt: tsz(),
     lastActivityAt: tsz(),
-    /**
-     * Learning clock (migration 0009), set by the server, never by the client: when the learning
-     * phase started, the budget copied from the frozen study config (`exposure.mode = fixed_time`,
-     * `exposure.minutes`; NULL when self-paced), when it ends (start + budget) and when it actually
-     * ended. Identical budget for both conditions by design. Set-once; not a learning outcome.
-     */
     learningStartedAt: tsz(),
     learningBudgetSeconds: integer(),
     learningEndsAt: tsz(),
     learningEndedAt: tsz(),
+    traditionOrder: jsonb().notNull().default(sql`'[]'::jsonb`),
     interrupted: boolean().notNull().default(false),
     interruptionCount: integer().notNull().default(0),
     /** Covariates: viewport, input device, GPU class, quality tier, a11y settings. No fingerprinting. */
@@ -316,6 +311,47 @@ export const studySessions = pgTable(
     check("study_sessions_withdrawn_ck", sql`NOT ${t.withdrawn} OR ${t.withdrawnAt} IS NOT NULL`),
     check("study_sessions_interruptions_ck", sql`${t.interruptionCount} >= 0 AND (${t.interrupted} OR ${t.interruptionCount} = 0)`),
     index("study_sessions_study_idx").on(t.studyId, t.status),
+  ],
+);
+
+export const stageVisits = pgTable(
+  "stage_visits",
+  {
+    id: pk(),
+    sessionId: uuid().notNull().references(() => studySessions.id, { onDelete: "restrict" }),
+    traditionKey: text().notNull(),
+    stageKey: text().notNull(),
+    stageNumber: smallint().notNull(),
+    visitIndex: integer().notNull(),
+    enteredAt: tsz().notNull().defaultNow(),
+    leftAt: tsz(),
+    activeMs: integer(),
+  },
+  (t) => [
+    unique("stage_visits_order_uq").on(t.sessionId, t.visitIndex),
+    check("stage_visits_number_ck", sql`${t.stageNumber} > 0`),
+    check("stage_visits_active_ck", sql`${t.activeMs} IS NULL OR ${t.activeMs} >= 0`),
+    index("stage_visits_stage_idx").on(t.sessionId, t.traditionKey, t.stageKey),
+  ],
+);
+
+export const delayedTestSchedule = pgTable(
+  "delayed_test_schedule",
+  {
+    sessionId: uuid().primaryKey().references(() => studySessions.id, { onDelete: "restrict" }),
+    studyId: uuid().notNull().references(() => studies.id, { onDelete: "restrict" }),
+    participantId: uuid().notNull().references(() => participants.id, { onDelete: "restrict" }),
+    scheduledAt: tsz().notNull().defaultNow(),
+    opensAt: tsz().notNull(),
+    dueAt: tsz().notNull(),
+    closesAt: tsz().notNull(),
+    returnedAt: tsz(),
+    completedAt: tsz(),
+    missedAt: tsz(),
+  },
+  (t) => [
+    check("delayed_test_window_ck", sql`${t.opensAt} <= ${t.dueAt} AND ${t.dueAt} <= ${t.closesAt}`),
+    index("delayed_test_study_idx").on(t.studyId, t.dueAt),
   ],
 );
 

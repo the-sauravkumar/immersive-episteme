@@ -90,6 +90,24 @@ def minimum_detectable_d(n_per_group: int, power: float = 0.80, rho: float = PLA
     return hi
 
 
+NOTE_EFFECTS = ((0.24, "Wu et al. 2020 as cited in Concept Note rev2"), (0.38, "Coban et al. 2022 as cited in Concept Note rev2"), (0.45, "D4 planning effect"))
+NOTE_RHOS = (0.4, 0.6)
+
+
+def note_sensitivity_table(alpha: float = 0.05) -> list[dict[str, object]]:
+    return [
+        {
+            "d": d,
+            "source": source,
+            "rho": rho,
+            "ancova_power_at_51": round(power_ancova(d, PLANNED_N_PER_GROUP, rho, alpha), 3),
+            "ancova_n_per_group_for_80": n_for_power_ancova(d, 0.80, rho, alpha),
+        }
+        for d, source in NOTE_EFFECTS
+        for rho in NOTE_RHOS
+    ]
+
+
 def planned_sample_table(alpha: float = 0.05) -> dict[str, object]:
     """The preregistered (D4) power plan, with the concept note's t-test as a labelled comparison."""
     return {
@@ -106,6 +124,7 @@ def planned_sample_table(alpha: float = 0.05) -> dict[str, object]:
             }
             for d, src, _, _ in PLANNED_SAMPLE_FACTS
         ],
+        "note_sensitivity": note_sensitivity_table(alpha),
         "minimum_detectable_d_at_n20": round(minimum_detectable_d(CONCEPT_NOTE_N_PER_GROUP, 0.80, PLANNED_RHO, alpha), 2),
         "note": "If recruitment is capped at the concept note's ~40, D4 makes the study an estimation study powered only for the minimum detectable d at 20 per group.",
     }
