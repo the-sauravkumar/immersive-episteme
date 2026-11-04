@@ -8,7 +8,7 @@ const USED_SCANS = new Set([...fs.readFileSync("src/features/process/domain/asse
 const USED_TEXTURES = new Set(["red_laterite_soil_stones", "large_red_bricks", "painted_plaster_wall", "weathered_brown_planks", "wood_table_worn", "rough_linen", "raw_cotton"]);
 
 async function reencode(file, size, quality) {
-  const data = await sharp(file).resize(size, size, { fit: "inside", withoutEnlargement: true }).jpeg({ quality, mozjpeg: true }).toBuffer();
+  const data = await sharp(fs.readFileSync(file)).resize(size, size, { fit: "inside", withoutEnlargement: true }).jpeg({ quality, mozjpeg: true }).toBuffer();
   fs.writeFileSync(file, data);
 }
 
