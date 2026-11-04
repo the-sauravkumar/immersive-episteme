@@ -1,0 +1,295 @@
+{
+  "status": "proposal",
+  "note": "Proposal for the lead: the concept note's open Granularity decision (Section 12). Each template stage merges adjacent fine steps in process order. Names join short forms copied from the source titles; no term is invented. A caption is one or two existing claims, verbatim, addressed by source stage and claim index.",
+  "traditions": [
+    {
+      "tradition": "ajrakh",
+      "traditionName": "Ajrakh",
+      "unlinkedStages": [],
+      "stages": [
+        {
+          "key": "scouring-and-washing",
+          "kind": "soak",
+          "sources": [
+            { "stage": "ajrakh.process_stage.saaj", "shortForm": "scouring" },
+            { "stage": "ajrakh.process_stage.washing", "shortForm": "washing" }
+          ],
+          "caption": [
+            { "stage": "ajrakh.process_stage.saaj", "claim": 1 },
+            { "stage": "ajrakh.process_stage.washing", "claim": 0 }
+          ],
+          "rationale": "The source's washing step is the end of the Saaj cycle: its claim works the Saaj lather out of the cloth."
+        },
+        {
+          "key": "harde-pre-mordanting",
+          "kind": "soak",
+          "sources": [{ "stage": "ajrakh.process_stage.kasano", "shortForm": "harde pre-mordanting" }],
+          "caption": [{ "stage": "ajrakh.process_stage.kasano", "claim": 0 }],
+          "rationale": "Stands alone: a distinct bath and a distinct material."
+        },
+        {
+          "key": "outline-and-black-printing",
+          "kind": "table",
+          "sources": [
+            { "stage": "ajrakh.process_stage.khariyanu", "shortForm": "resist outline" },
+            { "stage": "ajrakh.process_stage.kut", "shortForm": "iron-black printing" }
+          ],
+          "caption": [
+            { "stage": "ajrakh.process_stage.khariyanu", "claim": 0 },
+            { "stage": "ajrakh.process_stage.kut", "claim": 0 }
+          ],
+          "rationale": "Two consecutive printings at the table, and the kut claim describes filling between the khariyanu outlines."
+        },
+        {
+          "key": "alum-and-mud-resist-printing",
+          "kind": "table",
+          "sources": [
+            { "stage": "ajrakh.process_stage.pa", "shortForm": "alum mordant printing" },
+            { "stage": "ajrakh.process_stage.gach", "shortForm": "mud resist" },
+            { "stage": "ajrakh.process_stage.dhori-gach", "shortForm": "mud resist" }
+          ],
+          "caption": [
+            { "stage": "ajrakh.process_stage.pa", "claim": 0 },
+            { "stage": "ajrakh.process_stage.gach", "claim": 0 }
+          ],
+          "rationale": "Three consecutive printings before the first dye bath. The largest merge in the plan, needed to reach nine; the alternative is a tenth stage."
+        },
+        {
+          "key": "indigo-dyeing",
+          "kind": "vat",
+          "sources": [{ "stage": "ajrakh.process_stage.indigo-dyeing", "shortForm": "indigo dyeing" }],
+          "caption": [
+            { "stage": "ajrakh.process_stage.indigo-dyeing", "claim": 0 },
+            { "stage": "ajrakh.process_stage.indigo-dyeing", "claim": 1 }
+          ],
+          "rationale": "Stands alone: the vat."
+        },
+        {
+          "key": "washing-out-resists",
+          "kind": "wash",
+          "sources": [{ "stage": "ajrakh.process_stage.resist-washing", "shortForm": "washing out resists" }],
+          "caption": [{ "stage": "ajrakh.process_stage.resist-washing", "claim": 0 }],
+          "rationale": "Stands alone: it uncovers what the resists kept."
+        },
+        {
+          "key": "red-dyeing",
+          "kind": "boil",
+          "sources": [{ "stage": "ajrakh.process_stage.red-dyeing", "shortForm": "red dyeing" }],
+          "caption": [{ "stage": "ajrakh.process_stage.red-dyeing", "claim": 0 }],
+          "rationale": "Stands alone: a heated copper pot. The source says gently heated; the boil kind names the station form only."
+        },
+        {
+          "key": "dung-soak-and-sun-bleaching",
+          "kind": "dry",
+          "sources": [{ "stage": "ajrakh.process_stage.tapano", "shortForm": "dung soak and sun-bleaching" }],
+          "caption": [{ "stage": "ajrakh.process_stage.tapano", "claim": 0 }],
+          "rationale": "Stands alone: spread on the ground in the sun."
+        },
+        {
+          "key": "final-wash-and-finishing",
+          "kind": "finish",
+          "sources": [
+            { "stage": "ajrakh.process_stage.vichharnu", "shortForm": "final wash" },
+            { "stage": "ajrakh.process_stage.finishing", "shortForm": "finishing" }
+          ],
+          "caption": [
+            { "stage": "ajrakh.process_stage.vichharnu", "claim": 0 },
+            { "stage": "ajrakh.process_stage.finishing", "claim": 0 }
+          ],
+          "rationale": "The two closing steps. The finishing claim opens with once washed completely."
+        }
+      ]
+    },
+    {
+      "tradition": "sanganeri",
+      "traditionName": "Sanganeri",
+      "unlinkedStages": ["sanganeri.process_stage.block-carving"],
+      "stages": [
+        {
+          "key": "block-carving",
+          "kind": "carve",
+          "sources": [{ "stage": "sanganeri.process_stage.block-carving", "shortForm": "block carving" }],
+          "caption": [{ "stage": "sanganeri.process_stage.block-carving", "claim": 0 }],
+          "rationale": "No PRECEDES link places this stage. Its title says preparatory and mordant printing REQUIRES it, so it goes first, as block carving does in the Machilipatnam chain. Its place before scouring is this plan's reading, not a sourced order, so it should not be a scored pair in a sequence item until the lead rules."
+        },
+        {
+          "key": "scouring-and-harda-pre-treatment",
+          "kind": "soak",
+          "sources": [
+            { "stage": "sanganeri.process_stage.scouring", "shortForm": "scouring" },
+            { "stage": "sanganeri.process_stage.harda-treatment", "shortForm": "harda pre-treatment" }
+          ],
+          "caption": [
+            { "stage": "sanganeri.process_stage.scouring", "claim": 0 },
+            { "stage": "sanganeri.process_stage.harda-treatment", "claim": 1 }
+          ],
+          "rationale": "The two baths that prepare the cloth before any printing."
+        },
+        {
+          "key": "printing-the-mordants-and-ageing",
+          "kind": "table",
+          "sources": [
+            { "stage": "sanganeri.process_stage.mordant-printing", "shortForm": "printing the mordants" },
+            { "stage": "sanganeri.process_stage.ageing", "shortForm": "ageing" }
+          ],
+          "caption": [
+            { "stage": "sanganeri.process_stage.mordant-printing", "claim": 1 },
+            { "stage": "sanganeri.process_stage.ageing", "claim": 0 }
+          ],
+          "rationale": "The ageing claim is about the paste just printed, and ageing has no objects of its own."
+        },
+        {
+          "key": "washing-and-alizarin-dyeing",
+          "kind": "boil",
+          "sources": [
+            { "stage": "sanganeri.process_stage.washing-excess-mordant", "shortForm": "washing" },
+            { "stage": "sanganeri.process_stage.alizarin-dyeing", "shortForm": "alizarin / madder dyeing" }
+          ],
+          "caption": [
+            { "stage": "sanganeri.process_stage.washing-excess-mordant", "claim": 0 },
+            { "stage": "sanganeri.process_stage.alizarin-dyeing", "claim": 0 }
+          ],
+          "rationale": "The washing claim says it is done before dyeing; the wash has no objects of its own."
+        },
+        {
+          "key": "sun-bleaching",
+          "kind": "dry",
+          "sources": [{ "stage": "sanganeri.process_stage.sun-bleaching", "shortForm": "sun-bleaching" }],
+          "caption": [
+            { "stage": "sanganeri.process_stage.sun-bleaching", "claim": 0 },
+            { "stage": "sanganeri.process_stage.sun-bleaching", "claim": 1 }
+          ],
+          "rationale": "Stands alone: the source calls it the most typical part of the process."
+        },
+        {
+          "key": "dabu-resist-printing",
+          "kind": "table",
+          "sources": [{ "stage": "sanganeri.process_stage.dabu-resist-printing", "shortForm": "dabu resist printing" }],
+          "caption": [{ "stage": "sanganeri.process_stage.dabu-resist-printing", "claim": 0 }],
+          "rationale": "Stands alone: the resist printing before indigo."
+        },
+        {
+          "key": "indigo-dyeing",
+          "kind": "vat",
+          "sources": [{ "stage": "sanganeri.process_stage.indigo-dyeing", "shortForm": "indigo dyeing" }],
+          "caption": [
+            { "stage": "sanganeri.process_stage.indigo-dyeing", "claim": 0 },
+            { "stage": "sanganeri.process_stage.indigo-dyeing", "claim": 1 }
+          ],
+          "rationale": "Stands alone: the vat."
+        },
+        {
+          "key": "yellow-dyeing-and-alum-post-mordanting",
+          "kind": "soak",
+          "sources": [
+            { "stage": "sanganeri.process_stage.yellow-dyeing", "shortForm": "yellow dyeing" },
+            { "stage": "sanganeri.process_stage.alum-post-mordant", "shortForm": "alum post-mordanting" }
+          ],
+          "caption": [
+            { "stage": "sanganeri.process_stage.yellow-dyeing", "claim": 0 },
+            { "stage": "sanganeri.process_stage.alum-post-mordant", "claim": 0 }
+          ],
+          "rationale": "The alum dip fixes the yellow, so the two read as one step. No kind names mopping; soak names the alum dip."
+        },
+        {
+          "key": "final-washing",
+          "kind": "wash",
+          "sources": [{ "stage": "sanganeri.process_stage.final-washing", "shortForm": "final washing" }],
+          "caption": [{ "stage": "sanganeri.process_stage.final-washing", "claim": 0 }],
+          "rationale": "Stands alone: it removes the resist."
+        }
+      ]
+    },
+    {
+      "tradition": "machilipatnam-kalamkari",
+      "traditionName": "Machilipatnam Kalamkari",
+      "unlinkedStages": [],
+      "stages": [
+        {
+          "key": "block-carving",
+          "kind": "carve",
+          "sources": [{ "stage": "machilipatnam-kalamkari.process_stage.block-carving", "shortForm": "block carving" }],
+          "caption": [
+            { "stage": "machilipatnam-kalamkari.process_stage.block-carving", "claim": 1 },
+            { "stage": "machilipatnam-kalamkari.process_stage.block-carving", "claim": 2 }
+          ],
+          "rationale": "Stands alone: first in the PRECEDES chain."
+        },
+        {
+          "key": "scouring-and-dung-bleaching",
+          "kind": "soak",
+          "sources": [{ "stage": "machilipatnam-kalamkari.process_stage.scouring-dung-bleaching", "shortForm": "scouring / dung bleaching" }],
+          "caption": [{ "stage": "machilipatnam-kalamkari.process_stage.scouring-dung-bleaching", "claim": 0 }],
+          "rationale": "Stands alone."
+        },
+        {
+          "key": "myrobalan-treatment",
+          "kind": "soak",
+          "sources": [{ "stage": "machilipatnam-kalamkari.process_stage.myrobalan-treatment", "shortForm": "myrobalan treatment" }],
+          "caption": [{ "stage": "machilipatnam-kalamkari.process_stage.myrobalan-treatment", "claim": 0 }],
+          "rationale": "Stands alone: a distinct bath and a distinct material."
+        },
+        {
+          "key": "printing-iron-and-alum-mordants",
+          "kind": "table",
+          "sources": [
+            { "stage": "machilipatnam-kalamkari.process_stage.mordant-printing-kasim", "shortForm": "printing iron mordant" },
+            { "stage": "machilipatnam-kalamkari.process_stage.mordant-printing-karam", "shortForm": "alum mordant" }
+          ],
+          "caption": [
+            { "stage": "machilipatnam-kalamkari.process_stage.mordant-printing-kasim", "claim": 0 },
+            { "stage": "machilipatnam-kalamkari.process_stage.mordant-printing-karam", "claim": 0 }
+          ],
+          "rationale": "Two consecutive mordant printings at the same table with the same blocks."
+        },
+        {
+          "key": "curing-and-degumming-wash",
+          "kind": "wash",
+          "sources": [
+            { "stage": "machilipatnam-kalamkari.process_stage.curing-drying", "shortForm": "drying / curing" },
+            { "stage": "machilipatnam-kalamkari.process_stage.degumming-wash", "shortForm": "degumming wash" }
+          ],
+          "caption": [
+            { "stage": "machilipatnam-kalamkari.process_stage.curing-drying", "claim": 0 },
+            { "stage": "machilipatnam-kalamkari.process_stage.degumming-wash", "claim": 0 }
+          ],
+          "rationale": "The curing then the wash that follows it; neither has objects of its own."
+        },
+        {
+          "key": "dye-bath-boiling-and-sun-drying",
+          "kind": "boil",
+          "sources": [
+            { "stage": "machilipatnam-kalamkari.process_stage.alizarin-boiling", "shortForm": "dye-bath boiling" },
+            { "stage": "machilipatnam-kalamkari.process_stage.post-dye-sun-drying", "shortForm": "sun-drying" }
+          ],
+          "caption": [
+            { "stage": "machilipatnam-kalamkari.process_stage.alizarin-boiling", "claim": 0 },
+            { "stage": "machilipatnam-kalamkari.process_stage.post-dye-sun-drying", "claim": 0 }
+          ],
+          "rationale": "The drying stage has one claim, needs evidence, and is the close of the boil."
+        },
+        {
+          "key": "second-printing",
+          "kind": "table",
+          "sources": [{ "stage": "machilipatnam-kalamkari.process_stage.second-printing", "shortForm": "second printing" }],
+          "caption": [{ "stage": "machilipatnam-kalamkari.process_stage.second-printing", "claim": 0 }],
+          "rationale": "Stands alone."
+        },
+        {
+          "key": "alum-fixing-dip",
+          "kind": "soak",
+          "sources": [{ "stage": "machilipatnam-kalamkari.process_stage.alum-fixing-dip", "shortForm": "alum fixing dip" }],
+          "caption": [{ "stage": "machilipatnam-kalamkari.process_stage.alum-fixing-dip", "claim": 0 }],
+          "rationale": "Stands alone."
+        },
+        {
+          "key": "soaping-and-final-sun-drying",
+          "kind": "finish",
+          "sources": [{ "stage": "machilipatnam-kalamkari.process_stage.soaping-finishing", "shortForm": "soaping and final sun-drying" }],
+          "caption": [{ "stage": "machilipatnam-kalamkari.process_stage.soaping-finishing", "claim": 0 }],
+          "rationale": "Stands alone: the last stage."
+        }
+      ]
+    }
+  ]
+}
