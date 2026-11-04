@@ -29,6 +29,7 @@ In order of occurrence. "Lead" is the project lead. Commits are on branch `main`
 | 23 | Study engine moved to Concept Note rev2: two doors, the note's step order, self-paced learning with a server cap and every stage required, new test item types generated from the stage templates, delayed test, Door 2 behavioural logging, parity from one template, analysis on H1 to H3. | DR-074 |
 | 24 | Both doors wired into the study from one template, the old doors and the spatial compiler deleted, and the whole journey run through both doors on a production build. | DR-076 |
 | 25 | Final adversarial review: test option order, recording of stops, resume, exit events and the WebGL backstop corrected. | DR-077 |
+| 26 | Lead's material rule L12 recorded; material look sheet and asset list corrected after an adversarial check. | DR-078 |
 
 ## 2026-11-04: Door 2 Whole-Route Faults
 
@@ -40,3 +41,12 @@ Walking every station, rather than the first three, exposed faults the single-sc
 - Guided turning compared raw yaw, so a turn that crossed the wrap never ended and the camera kept overriding the look input. Back also stopped short during arrival and walked forward before turning. All fixed and covered by `npm run walkthrough:route`.
 - Pan shimmer, pixels with 4 or more reversals, budget 0.5%: vat 2.18 to 0.93, table 0.77 to 0.41, wash 2.69 to 0.81. Vat and wash remain over budget. Close-up sharpness was compared by eye at 4K and held.
 - Not measured: the Iris Xe timing on the new scenes. Claude Code stopped the run for low memory about 20 s after launch, before the page reported ready.
+
+## 2026-11-05: Materials Must Look Like Themselves
+
+The lead asked whether materials in pots match real life and asked that nothing overlaps, tears or pixelates. This became rule L12 (DR-078).
+
+- The first material look sheet had real quotes, but about 16 rows marked sourced had colours their evidence did not establish. An adversarial check caught this, and rice starch, tamarind paste and the red baths were the worst.
+- After correction, 12 of 58 rows render on evidence, 26 on an inferred colour and 20 on a provisional one. Each stays flagged for the lead. Indigo vat liquor is amber to yellowish-green in general dyers' guides, and clean water and alum baths have no invented tint.
+- The asset list recorded physical size and density, which exposed Bitumen at 205 px/m. All 47 Fab rows stay unverified, because the site returned 403 to a script. Liquids are shaded, not sourced.
+- The running scenes have not changed yet.

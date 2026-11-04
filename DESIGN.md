@@ -16,6 +16,7 @@ These are the lead's own words and findings from reviewing the look. They bind e
 | L9 | "don't hold back on using premium high quality images because you don't have license; list them all in a to_be_licensed and I'll batch email it" | Choose images on quality alone. Every third-party file not already cleared gets a row in `docs/to_be_licensed.md`. Section 10.5. Nothing is pushed or deployed. |
 | L11 | "delete the dead code, write no comments in the codefiles and make sure you follow CLEAN architecture" | Section 0.1. |
 | L10 | "Don't Hold back" and "No questions" while the lead is away | Take the recommended route, record it as a decision record, and report it afterwards. |
+| L12 | "are the materials stored in pot, or any utensils have same color as they do in real life? (like Camel Dung, Indian Madder, Indigo, etc)" and "make sure materials are not overlapping, textures are not tearing when come close and nothing is of low and pixelated quality" | Every material looks like itself in form and colour from `docs/research/substance-looks.json`. Nothing overlaps at any distance. Nothing tears or pixelates at the nearest reachable distance at 3840 by 2160. Section 13. Rows with `renderBasis` inferred or provisional are rendered and stay flagged for the lead. |
 
 ### 0.1 Code Rules
 - **No comments in code files.** No line, block or doc comments in anything new or rewritten. Names carry the meaning. Only tool directives that a tool requires to function are allowed. Rationale goes in decision records.
@@ -332,6 +333,7 @@ Nobody reports 3D or interface work as done without this. Agents state which ite
 - [ ] Same stage from both doors side by side: is one plainer? Do they read as one world?
 - [ ] Door 2: would someone want to walk here? Any text hanging in a frame? Any grey emptiness? Is the cloth the event?
 - [ ] Door 1: are images the main thing on screen? Would a design student admire it?
+- [ ] **Materials look like themselves (L12).** Every material and every vat, tank and pot fill renders the form, `renderHex` and `transparency` of its row in `docs/research/substance-looks.json`, in both doors. Fills are in the scene check, with zero overlaps at any distance. Close-ups at the nearest reachable distance, at 3840 by 2160 on NVIDIA, show no tearing and no pixels. Report which rows are still inferred or provisional.
 - [ ] State anything unverified and every proxy still present.
 
 ## 14. Open Points
