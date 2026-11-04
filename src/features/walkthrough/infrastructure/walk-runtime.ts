@@ -14,12 +14,15 @@ export interface WalkEvents {
   readonly onWrongTurn: (station: RouteStation) => void;
   readonly onObjectDwell: (station: RouteStation, itemKey: string, seconds: number, nearestMetres: number) => void;
   readonly onPath: (x: number, z: number) => void;
+  readonly onContextLost: () => void;
 }
 
 const NEAR_OBJECT_METRES = 3;
 const WRONG_TURN_METRES = 6;
 const STREAM_BEHIND = 1;
 const STREAM_AHEAD = 1;
+const STREAM_RETRY_MS = 3000;
+const LONGEST_COUNTED_FRAME_SECONDS = 2;
 
 export class WalkRuntime {
   private readonly renderer: THREE.WebGLRenderer;
@@ -44,6 +47,8 @@ export class WalkRuntime {
   private autoPitch = 0;
   private current = -1;
   private streamCentre = 0;
+  private disposed = false;
+  private readonly contextLost = () => this.events.onContextLost();
   private frame = 0;
   private last = 0;
   private lastPathReport = 0;
@@ -67,16 +72,21 @@ export class WalkRuntime {
     this.camera = new THREE.PerspectiveCamera(55, host.clientWidth / host.clientHeight, 0.15, 1200);
     this.library = new MaterialLibrary(this.renderer);
     this.kit = new YardKit(this.library);
+    this.renderer.domElement.addEventListener("webglcontextlost", this.contextLost);
   }
 
   async start(startIndex = 0): Promise<void> {
     this.sky = await this.library.sky(this.scene, this.renderer);
-    this.hills = addHorizon(this.scene, (await this.library.scan("earth")).colour);
+    if (this.disposed) return;
+    const earth = await this.library.scan("earth");
+    if (this.disposed) return;
+    this.hills = addHorizon(this.scene, earth.colour);
     this.sun = addSun(this.scene, new THREE.Vector3(1, 0, -2));
     const station = this.stations[startIndex]!;
     this.walker = walkerAt(station.plan.standpoint.from, station.plan.standpoint.to, startIndex);
     this.view = createRenderView(this.renderer, this.scene, this.camera);
     await this.stream(startIndex);
+    if (this.disposed) return;
     this.enter(startIndex);
     this.prepareFirstFrame();
     this.last = performance.now();
@@ -118,6 +128,7 @@ export class WalkRuntime {
   private async stream(index: number): Promise<void> {
     this.streamCentre = index;
     await Promise.all(this.wantedAround(index).map((i) => this.loadYard(i)));
+    if (this.disposed) return;
     const wanted = this.wantedAround(this.streamCentre);
     for (const [i, yard] of this.built) {
       if (!wanted.includes(i)) {
@@ -128,7 +139,7 @@ export class WalkRuntime {
       }
     }
     if (this.sun) {
-      const z = -index * NEXT_YARD_OFFSET - 2;
+      const z = -this.streamCentre * NEXT_YARD_OFFSET - 2;
       this.sun.position.set(-29, 24, z + 26);
       this.sun.target.position.set(1, 0, z);
       this.sun.target.updateMatrixWorld();
@@ -147,6 +158,7 @@ export class WalkRuntime {
     for (const texture of textures) {
       this.uploaded.add(texture);
       await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      if (this.disposed) return;
       this.renderer.initTexture(texture);
     }
   }
@@ -157,13 +169,16 @@ export class WalkRuntime {
     const station = this.stations[index]!;
     const pending = buildYard(this.kit, station.plan, { clothBefore: station.clothBefore, clothAfter: station.clothAfter, wetAfter: station.wetAfter, textiles: this.textiles(station) }, station.id).then(async (yard) => {
       await this.uploadGradually(yard.group);
+      if (this.disposed) return yard;
       await this.view!.prepare(yard.group);
+      if (this.disposed) return yard;
       yard.group.position.z = -index * NEXT_YARD_OFFSET;
       this.scene.add(yard.group);
       this.built.set(index, yard);
       return yard;
     });
     this.yards.set(index, pending);
+    pending.catch(() => this.yards.delete(index));
     return pending;
   }
 
@@ -189,7 +204,7 @@ export class WalkRuntime {
   }
 
   walkTo(index: number): void {
-    if (!this.stations[index] || index === this.current) return;
+    if (this.current < 0 || !this.stations[index] || index === this.current) return;
     this.autoDirection = index > this.current ? 1 : -1;
     this.autoGoal = index;
     this.autoPitch = 0;
@@ -225,7 +240,17 @@ export class WalkRuntime {
     this.furthestLocalZ = Number.POSITIVE_INFINITY;
     this.turnedBack = false;
     this.events.onStationEntered(this.stations[index]!, index);
-    void this.stream(index);
+    void this.streamUntilLoaded(index);
+  }
+
+  private async streamUntilLoaded(index: number): Promise<void> {
+    try {
+      await this.stream(index);
+    } catch {
+      setTimeout(() => {
+        if (!this.disposed) void this.streamUntilLoaded(this.streamCentre);
+      }, STREAM_RETRY_MS);
+    }
   }
 
   private flushDwell(): void {
@@ -256,6 +281,7 @@ export class WalkRuntime {
     this.autoPitch = facing.pitch;
     this.autoTarget = null;
     this.autoArriving = false;
+    this.furthestLocalZ = Number.POSITIVE_INFINITY;
   }
 
   private autoInput(): { forward: number; strafe: number } {
@@ -292,8 +318,12 @@ export class WalkRuntime {
 
   private watchForWrongTurn(): void {
     const here = localZ(this.walker.z, this.current);
+    if (this.autoTarget) {
+      this.furthestLocalZ = here;
+      return;
+    }
     this.furthestLocalZ = Math.min(this.furthestLocalZ, here);
-    if (this.autoTarget || this.turnedBack) {
+    if (this.turnedBack) {
       if (here <= this.furthestLocalZ + 1) this.turnedBack = false;
       return;
     }
@@ -314,7 +344,9 @@ export class WalkRuntime {
 
   private update(): void {
     const now = performance.now();
-    const seconds = Math.min(0.1, (now - this.last) / 1000);
+    const elapsed = (now - this.last) / 1000;
+    const seconds = Math.min(0.1, elapsed);
+    const counted = Math.min(LONGEST_COUNTED_FRAME_SECONDS, elapsed);
     this.last = now;
     if (!this.paused) {
       const moving = this.autoInput();
@@ -332,10 +364,10 @@ export class WalkRuntime {
       this.input.lookY = 0;
       const index = Math.min(this.stations.length - 1, stationIndexAt(this.walker.z));
       if (index !== this.current) this.enter(index);
-      this.activeMs += seconds * 1000;
-      if (moved) this.walkingMs += seconds * 1000;
+      this.activeMs += counted * 1000;
+      if (moved) this.walkingMs += counted * 1000;
       this.watchForWrongTurn();
-      this.trackObjects(seconds);
+      this.trackObjects(counted);
       if (now - this.lastPathReport > 500) {
         this.lastPathReport = now;
         this.events.onPath(this.walker.x, this.walker.z);
@@ -353,9 +385,16 @@ export class WalkRuntime {
   }
 
   dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
     cancelAnimationFrame(this.frame);
-    this.flushDwell();
+    if (this.current >= 0) {
+      this.flushDwell();
+      this.events.onStationLeft(this.stations[this.current]!, this.current, Math.round(this.activeMs), Math.round(this.walkingMs), this.viewpointChanges);
+    }
+    this.renderer.domElement.removeEventListener("webglcontextlost", this.contextLost);
     this.renderer.dispose();
+    this.renderer.forceContextLoss();
     this.renderer.domElement.remove();
   }
 }

@@ -45,8 +45,8 @@ export class MaterialLibrary {
   private readonly textures = new THREE.TextureLoader();
   private readonly bitmaps = new THREE.ImageBitmapLoader().setOptions({ imageOrientation: "flipY", premultiplyAlpha: "none", colorSpaceConversion: "none" });
   private readonly models = new GLTFLoader();
-  private readonly scans = new Map<ScanName, ScanTextures>();
-  private readonly scenes = new Map<string, THREE.Object3D>();
+  private readonly scans = new Map<ScanName, Promise<ScanTextures>>();
+  private readonly scenes = new Map<string, Promise<THREE.Object3D>>();
   private readonly kept = new WeakSet<object>();
   private readonly anisotropy: number;
 
@@ -75,13 +75,18 @@ export class MaterialLibrary {
   async scan(name: ScanName): Promise<ScanTextures> {
     const known = this.scans.get(name);
     if (known) return known;
+    const loading = this.loadScan(name);
+    this.scans.set(name, loading);
+    loading.catch(() => this.scans.delete(name));
+    return loading;
+  }
+
+  private async loadScan(name: ScanName): Promise<ScanTextures> {
     const spec = SCANS[name];
     const base = `${ROOT}/tex/${spec.id}`;
     const [colour, normal, roughness] = await Promise.all([this.map(`${base}/diff.jpg`, true), this.map(`${base}/nor.jpg`, false), this.map(`${base}/rough.jpg`, false)]);
     for (const texture of [colour, normal, roughness]) this.kept.add(texture);
-    const loaded = { colour, normal, roughness, tileMetres: spec.tileMetres };
-    this.scans.set(name, loaded);
-    return loaded;
+    return { colour, normal, roughness, tileMetres: spec.tileMetres };
   }
 
   keep(resource: object): void {
@@ -147,8 +152,16 @@ export class MaterialLibrary {
   }
 
   async model(scanId: string): Promise<THREE.Object3D> {
-    const known = this.scenes.get(scanId);
-    if (known) return known.clone(true);
+    let loading = this.scenes.get(scanId);
+    if (!loading) {
+      loading = this.loadModel(scanId);
+      this.scenes.set(scanId, loading);
+      loading.catch(() => this.scenes.delete(scanId));
+    }
+    return (await loading).clone(true);
+  }
+
+  private async loadModel(scanId: string): Promise<THREE.Object3D> {
     const gltf = await this.models.loadAsync(`${ROOT}/models/${scanId}/${scanId}_2k.gltf`);
     gltf.scene.traverse((node) => {
       if (node instanceof THREE.Mesh) {
@@ -166,8 +179,7 @@ export class MaterialLibrary {
         }
       }
     });
-    this.scenes.set(scanId, gltf.scene);
-    return gltf.scene.clone(true);
+    return gltf.scene;
   }
 
   async sky(scene: THREE.Scene, renderer: THREE.WebGLRenderer): Promise<THREE.Mesh> {
