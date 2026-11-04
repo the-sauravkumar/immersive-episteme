@@ -51,3 +51,4 @@ The lead asked whether materials in pots match real life and asked that nothing 
 - After correction, 12 of 58 rows render on evidence, 26 on an inferred colour and 20 on a provisional one. Each stays flagged for the lead. Indigo vat liquor is amber to yellowish-green in general dyers' guides, and clean water and alum baths have no invented tint.
 - The asset list recorded physical size and density, which exposed Bitumen at 205 px/m. All 47 Fab rows stay unverified, because the site returned 403 to a script. Liquids are shaded, not sourced.
 - The running scenes changed on 2026-11-05: materials now render from these rows (DR-079).
+- Mechanical checks for overlap, tearing and density were added with planted faults (DR-080). They found inside-out roots, words past their boards and a tear at a cloth join, all fixed. The camera now stops 0.6 m from anything it could previously walk through.

@@ -94,7 +94,7 @@ function rootPiece(seed: number, length: number, radius: number): PieceVariant {
     for (let side = 0; side < sides; side++) {
       const a = ring * sides + side;
       const b = ring * sides + ((side + 1) % sides);
-      indices.push(a, a + sides, b, b, a + sides, b + sides);
+      indices.push(a, b, a + sides, b, b + sides, a + sides);
     }
   }
   const geometry = new THREE.BufferGeometry();

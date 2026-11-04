@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
+import type { SurfaceClass } from "../domain/surface-density";
+import { phongTessellate } from "./smooth-tessellate";
 
 const ROOT = "/walkthrough";
 
@@ -38,16 +40,121 @@ export interface ScanTextures {
 
 const ANTI_TILE = "#include <map_fragment>\nvec3 mean = textureLod(map, vMapUv, 12.0).rgb;\nfloat meanTone = max(dot(mean, vec3(0.33)), 0.02);\nfloat toneA = dot(textureLod(map, vMapUv * 0.137 + vec2(0.31, 0.17), 5.0).rgb, vec3(0.33));\nfloat toneB = dot(textureLod(map, vMapUv.yx * 0.0531, 4.0).rgb, vec3(0.33));\ndiffuseColor.rgb *= clamp(mix(1.0, (toneA + toneB) / (2.0 * meanTone), 0.7), 0.72, 1.28);";
 
-const FAR_PRINT = ["#ifdef USE_MAP", "vec4 sampledDiffuseColor = texture2D(map, vMapUv, 0.6);", "diffuseColor *= sampledDiffuseColor;", "#endif"].join("\n");
+const farPrint = (bias: number) => ["#ifdef USE_MAP", `vec4 sampledDiffuseColor = texture2D(map, vMapUv, ${bias.toFixed(1)});`, "diffuseColor *= sampledDiffuseColor;", "#endif"].join("\n");
+const SCAN_PRINT_BIAS = 0.7;
+const CLOTH_PRINT_BIAS = 1.5;
 const FAR_WEAVE = ["#include <normal_fragment_maps>", "#ifdef USE_NORMALMAP_TANGENTSPACE", "normal = normalize(tbn * ((texture2D(normalMap, vNormalMapUv, 1.2).xyz * 2.0 - 1.0) * vec3(normalScale, 1.0)));", "#endif"].join("\n");
 
-export function softenWhenFar<T extends THREE.Material>(material: T, antiTile = false): T {
+const DETAIL_UNIFORMS = "uniform sampler2D detailMap;\nuniform sampler2D detailNormal;\nuniform vec2 detailScale;\nuniform float detailTone;\nuniform float detailRelief;\n";
+const DETAIL_COLOUR = [
+  "#include <map_fragment>",
+  "float detailFade = 1.0 - smoothstep(1.5, 6.0, length(vViewPosition));",
+  "vec2 detailUv = vMapUv * detailScale;",
+  "vec2 detailDx = dFdx(detailUv);",
+  "vec2 detailDy = dFdy(detailUv);",
+  "if (detailFade > 0.0) {",
+  "  float detailValue = dot(textureGrad(detailMap, detailUv, detailDx, detailDy).rgb, vec3(0.33)) / max(dot(textureLod(detailMap, vec2(0.5), 12.0).rgb, vec3(0.33)), 0.02);",
+  "  diffuseColor.rgb *= clamp(mix(1.0, detailValue, detailTone * detailFade), 0.6, 1.4);",
+  "}",
+].join("\n");
+const DETAIL_NORMAL = [
+  "#include <normal_fragment_maps>",
+  "#ifdef USE_NORMALMAP_TANGENTSPACE",
+  "if (detailFade > 0.0) {",
+  "  vec2 detailBump = textureGrad(detailNormal, detailUv, detailDx, detailDy).xy * 2.0 - 1.0;",
+  "  normal = normalize(normal + tbn * vec3(detailBump * detailRelief * detailFade, 0.0));",
+  "}",
+  "#endif",
+].join("\n");
+
+export interface FineDetail {
+  readonly colour: THREE.Texture;
+  readonly normal: THREE.Texture;
+  readonly scale: readonly [number, number];
+  readonly tone: number;
+  readonly relief: number;
+}
+
+export function softenWhenFar<T extends THREE.Material>(material: T, antiTile = false, detail: FineDetail | null = null, printBias = SCAN_PRINT_BIAS): T {
   material.onBeforeCompile = (shader) => {
-    const tiled = antiTile ? shader.fragmentShader.replace("#include <map_fragment>", ANTI_TILE) : shader.fragmentShader;
-    shader.fragmentShader = tiled.replace("#include <map_fragment>", FAR_PRINT).replace("#include <normal_fragment_maps>", FAR_WEAVE);
+    let fragment = shader.fragmentShader;
+    if (detail) {
+      shader.uniforms.detailMap = { value: detail.colour };
+      shader.uniforms.detailNormal = { value: detail.normal };
+      shader.uniforms.detailScale = { value: new THREE.Vector2(detail.scale[0], detail.scale[1]) };
+      shader.uniforms.detailTone = { value: detail.tone };
+      shader.uniforms.detailRelief = { value: detail.relief };
+      fragment = DETAIL_UNIFORMS + fragment.replace("#include <map_fragment>", DETAIL_COLOUR).replace("#include <normal_fragment_maps>", DETAIL_NORMAL);
+    }
+    if (antiTile) fragment = fragment.replace("#include <map_fragment>", ANTI_TILE);
+    shader.fragmentShader = fragment.replace("#include <map_fragment>", farPrint(printBias)).replace("#include <normal_fragment_maps>", FAR_WEAVE);
   };
-  material.customProgramCacheKey = () => (antiTile ? "far-anti-tile" : "far");
+  material.customProgramCacheKey = () => `far${antiTile ? "-anti-tile" : ""}${detail ? "-detail" : ""}-${printBias}`;
   return material;
+}
+
+export interface SurfaceNote {
+  readonly label: string;
+  readonly kind: SurfaceClass;
+  readonly perMetre?: number;
+  readonly detail?: { readonly colour: THREE.Texture; readonly normal: THREE.Texture; readonly scale: readonly [number, number] };
+  readonly textHeight?: number;
+}
+
+export function noteSurface<T extends THREE.Material>(material: T, note: SurfaceNote): T {
+  material.userData.surface = note;
+  return material;
+}
+
+export function texturesOf(material: THREE.Material): THREE.Texture[] {
+  const standard = material as THREE.MeshStandardMaterial;
+  const note = material.userData.surface as SurfaceNote | undefined;
+  return [standard.map, standard.normalMap, standard.roughnessMap, note?.detail?.colour, note?.detail?.normal].filter((texture): texture is THREE.Texture => texture instanceof THREE.Texture);
+}
+
+interface FineScan {
+  readonly scan: ScanName;
+  readonly tileMetres: number;
+  readonly tone: number;
+  readonly relief: number;
+}
+
+const FINE_SCANS: Partial<Record<ScanName, FineScan>> = {
+  earth: { scan: "earth", tileMetres: 0.31, tone: 0.42, relief: 0.6 },
+  brick: { scan: "dryMud", tileMetres: 0.37, tone: 0.34, relief: 0.75 },
+  lime: { scan: "lime", tileMetres: 0.37, tone: 0.3, relief: 0.4 },
+  timber: { scan: "table", tileMetres: 0.47, tone: 0.42, relief: 0.6 },
+};
+
+const SURFACE_KINDS: Partial<Record<ScanName, SurfaceClass>> = { earth: "ground", brick: "wall", lime: "wall" };
+
+const MODEL_FINE_SCANS: Readonly<Record<string, FineScan>> = {
+  wooden_crate_01: { scan: "table", tileMetres: 0.47, tone: 0.4, relief: 0.6 },
+  wicker_basket_01: { scan: "bamboo", tileMetres: 0.47, tone: 0.3, relief: 0.5 },
+};
+
+function medianUvPerMetre(geometry: THREE.BufferGeometry): number {
+  const position = geometry.attributes.position!;
+  const uv = geometry.attributes.uv!;
+  const index = geometry.index;
+  const count = index ? index.count : position.count;
+  const at = (i: number) => (index ? index.getX(i) : i);
+  const a = new THREE.Vector3();
+  const b = new THREE.Vector3();
+  const c = new THREE.Vector3();
+  const ratios: number[] = [];
+  for (let t = 0; t + 2 < count; t += 3) {
+    const [i0, i1, i2] = [at(t), at(t + 1), at(t + 2)];
+    a.fromBufferAttribute(position, i0);
+    b.fromBufferAttribute(position, i1);
+    c.fromBufferAttribute(position, i2);
+    const area = b.sub(a).cross(c.sub(a)).length() / 2;
+    if (area < 1e-10) continue;
+    const uvArea = Math.abs((uv.getX(i1) - uv.getX(i0)) * (uv.getY(i2) - uv.getY(i0)) - (uv.getX(i2) - uv.getX(i0)) * (uv.getY(i1) - uv.getY(i0))) / 2;
+    ratios.push(Math.sqrt(uvArea / area));
+  }
+  ratios.sort((p, q) => p - q);
+  return ratios[ratios.length >> 1] ?? 1;
 }
 
 export class MaterialLibrary {
@@ -119,7 +226,7 @@ export class MaterialLibrary {
     return this.kept.has(resource);
   }
 
-  async surface(name: ScanName, options: { tint?: readonly [number, number, number] | number; normalScale?: number; antiTile?: boolean; repeat?: readonly [number, number] } = {}): Promise<THREE.MeshStandardMaterial> {
+  async surface(name: ScanName, options: { tint?: readonly [number, number, number] | number; normalScale?: number; antiTile?: boolean; fine?: FineScan | null } = {}): Promise<THREE.MeshStandardMaterial> {
     const scan = await this.scan(name);
     const material = new THREE.MeshStandardMaterial({
       map: scan.colour,
@@ -132,7 +239,15 @@ export class MaterialLibrary {
     });
     if (Array.isArray(options.tint)) material.color.setRGB(options.tint[0]!, options.tint[1]!, options.tint[2]!);
     else if (typeof options.tint === "number") material.color.set(options.tint);
-    return softenWhenFar(material, options.antiTile ?? false);
+    const fine = options.fine ?? FINE_SCANS[name] ?? null;
+    if (!fine) {
+      noteSurface(material, { label: name, kind: SURFACE_KINDS[name] ?? "model" });
+      return softenWhenFar(material, options.antiTile ?? false);
+    }
+    const fineScan = await this.scan(fine.scan);
+    const ratio = scan.tileMetres / fine.tileMetres;
+    noteSurface(material, { label: name, kind: SURFACE_KINDS[name] ?? "model", detail: { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio] } });
+    return softenWhenFar(material, options.antiTile ?? false, { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio], tone: fine.tone, relief: fine.relief });
   }
 
   async clothMaterial(file: string, options: { wet?: boolean; tint?: number; metresPerRepeat?: number; width?: number } = {}): Promise<THREE.MeshStandardMaterial> {
@@ -140,9 +255,10 @@ export class MaterialLibrary {
     colour.wrapS = colour.wrapT = THREE.MirroredRepeatWrapping;
     const weave = await this.scan("weave");
     const normal = weave.normal.clone();
-    normal.repeat.set((options.metresPerRepeat ?? 3.46) / weave.tileMetres, (options.width ?? 1.5) / weave.tileMetres);
+    const scale: readonly [number, number] = [(options.metresPerRepeat ?? 3.46) / weave.tileMetres, (options.width ?? 1.5) / weave.tileMetres];
+    normal.repeat.set(scale[0], scale[1]);
     normal.needsUpdate = true;
-    return softenWhenFar(new THREE.MeshStandardMaterial({
+    const material = new THREE.MeshStandardMaterial({
       map: colour,
       color: options.tint ?? 0xffffff,
       normalMap: normal,
@@ -151,7 +267,18 @@ export class MaterialLibrary {
       metalness: 0,
       side: THREE.DoubleSide,
       envMapIntensity: 0.22,
-    }));
+    });
+    noteSurface(material, { label: "cloth state", kind: "cloth", detail: { colour: weave.colour, normal: weave.normal, scale } });
+    return softenWhenFar(material, false, { colour: weave.colour, normal: weave.normal, scale, tone: 0.32, relief: 0 }, CLOTH_PRINT_BIAS);
+  }
+
+  async textileMaterial(file: string, widthMetres: number, heightMetres: number): Promise<THREE.MeshStandardMaterial> {
+    const [photo, weave] = await Promise.all([this.photo(file), this.scan("weave")]);
+    const normal = weave.normal.clone();
+    normal.repeat.set(widthMetres / weave.tileMetres, heightMetres / weave.tileMetres);
+    normal.needsUpdate = true;
+    const material = new THREE.MeshStandardMaterial({ map: photo, normalMap: normal, normalScale: new THREE.Vector2(0.4, 0.4), side: THREE.DoubleSide, roughness: 0.95, envMapIntensity: 0.3 });
+    return noteSurface(material, { label: `printed textile ${file.split("/").pop()}`, kind: "printed-textile" });
   }
 
   async rawCottonMaterial(): Promise<THREE.MeshStandardMaterial> {
@@ -163,7 +290,7 @@ export class MaterialLibrary {
       texture.repeat.set(3.46 / weave.tileMetres, 1.5 / weave.tileMetres);
       texture.needsUpdate = true;
     }
-    return softenWhenFar(new THREE.MeshStandardMaterial({ map: colour, normalMap: normal, roughnessMap: roughness, roughness: 1, color: 0xffffff, side: THREE.DoubleSide, envMapIntensity: 0.12 }));
+    return noteSurface(softenWhenFar(new THREE.MeshStandardMaterial({ map: colour, normalMap: normal, roughnessMap: roughness, roughness: 1, color: 0xffffff, side: THREE.DoubleSide, envMapIntensity: 0.12 })), { label: "raw cotton", kind: "cloth" });
   }
 
   async photo(file: string): Promise<THREE.Texture> {
@@ -185,12 +312,28 @@ export class MaterialLibrary {
 
   private async loadModel(scanId: string): Promise<THREE.Object3D> {
     const gltf = await this.models.loadAsync(`${ROOT}/models/${scanId}/${scanId}_2k.gltf`);
+    const meshes: THREE.Mesh[] = [];
     gltf.scene.traverse((node) => {
-      if (node instanceof THREE.Mesh) {
+      if (node instanceof THREE.Mesh) meshes.push(node);
+    });
+    for (const node of meshes) {
+      if (MODEL_FINE_SCANS[scanId]) {
+        const refined = phongTessellate(node.geometry as THREE.BufferGeometry);
+        (node.geometry as THREE.BufferGeometry).dispose();
+        node.geometry = refined;
+      }
+      {
         node.castShadow = true;
         node.receiveShadow = true;
         const material = node.material as THREE.MeshStandardMaterial;
-        softenWhenFar(material);
+        const fine = MODEL_FINE_SCANS[scanId];
+        if (fine) {
+          const fineScan = await this.scan(fine.scan);
+          const ratio = 1 / (fine.tileMetres * medianUvPerMetre(node.geometry as THREE.BufferGeometry));
+          noteSurface(softenWhenFar(material, false, { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio], tone: fine.tone, relief: fine.relief }), { label: `model ${scanId}`, kind: "model", detail: { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio] } });
+        } else {
+          noteSurface(softenWhenFar(material), { label: `model ${scanId}`, kind: "model" });
+        }
         this.kept.add(node.geometry);
         this.kept.add(material);
         for (const texture of [material.map, material.normalMap, material.roughnessMap]) {
@@ -200,7 +343,7 @@ export class MaterialLibrary {
           }
         }
       }
-    });
+    }
     return gltf.scene;
   }
 

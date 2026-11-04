@@ -5,8 +5,8 @@ import type { RouteStation } from "../domain/route-plan";
 import { easeYaw, eyeOf, localZ, moveTowards, nearestWaypoint, stationIndexAt, steerAlong, stepWalker, turnBetween, walkerAt, worldZ, type WalkInput, type WalkTarget, type Walker } from "../domain/walk-state";
 import { buildYard, releaseYard, YardKit, type BuiltYard } from "./build-yard";
 import { addHorizon } from "./horizon";
-import { MaterialLibrary } from "./material-library";
-import { addSun, createRenderer, createRenderView, type RenderView } from "./render-view";
+import { MaterialLibrary, texturesOf } from "./material-library";
+import { addSun, CAMERA_NEAR_METRES, createRenderer, createRenderView, type RenderView } from "./render-view";
 
 export interface WalkEvents {
   readonly onStationEntered: (station: RouteStation, index: number) => void;
@@ -69,7 +69,7 @@ export class WalkRuntime {
   ) {
     this.renderer = createRenderer(host, host.clientWidth, host.clientHeight);
     this.scene.fog = new THREE.Fog(0xdfe4e6, 60, 420);
-    this.camera = new THREE.PerspectiveCamera(55, host.clientWidth / host.clientHeight, 0.15, 1200);
+    this.camera = new THREE.PerspectiveCamera(55, host.clientWidth / host.clientHeight, CAMERA_NEAR_METRES, 1200);
     this.library = new MaterialLibrary(this.renderer);
     this.kit = new YardKit(this.library);
     this.renderer.domElement.addEventListener("webglcontextlost", this.contextLost);
@@ -105,9 +105,8 @@ export class WalkRuntime {
       if (node instanceof THREE.Mesh || node instanceof THREE.InstancedMesh) {
         restore.push([node, node.frustumCulled]);
         node.frustumCulled = false;
-        const material = node.material as THREE.MeshStandardMaterial;
-        for (const texture of [material.map, material.normalMap, material.roughnessMap]) {
-          if (texture && !seen.has(texture)) {
+        for (const texture of texturesOf(node.material as THREE.Material)) {
+          if (!seen.has(texture)) {
             seen.add(texture);
             this.renderer.initTexture(texture);
           }
@@ -151,8 +150,7 @@ export class WalkRuntime {
     const textures = new Set<THREE.Texture>();
     group.traverse((node) => {
       if (node instanceof THREE.Mesh) {
-        const material = node.material as THREE.MeshStandardMaterial;
-        for (const texture of [material.map, material.normalMap, material.roughnessMap]) if (texture && !this.uploaded.has(texture)) textures.add(texture);
+        for (const texture of texturesOf(node.material as THREE.Material)) if (!this.uploaded.has(texture)) textures.add(texture);
       }
     });
     for (const texture of textures) {

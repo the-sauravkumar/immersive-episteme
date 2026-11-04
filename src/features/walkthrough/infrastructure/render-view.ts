@@ -1,5 +1,7 @@
 import * as THREE from "three";
 
+export const CAMERA_NEAR_METRES = 0.15;
+
 export interface RenderView {
   readonly render: () => void;
   readonly resize: (width: number, height: number) => void;

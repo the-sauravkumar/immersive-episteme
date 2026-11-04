@@ -39,15 +39,15 @@ async function integralSubject(kit: YardKit, modelId: string, liquid: SubstanceL
       [0, -work.halfZ - work.rim / 2, outerX * 2, work.rim],
       [-work.halfX - work.rim / 2, 0, work.rim, work.halfZ * 2],
       [work.halfX + work.rim / 2, 0, work.rim, work.halfZ * 2],
-    ] as const) softBox(group, [sx, work.curb, sz], plaster, [x, work.curb / 2, z], { radius: 0.02, segments: 3, tile: [2, 2] });
+    ] as const) softBox(group, [sx, work.curb, sz], plaster, [x, work.curb / 2, z], { radius: 0.02, tile: [2, 2] });
     addTankLining(group, work, plaster);
     if (liquid) await addWorkLiquid(kit.library, group, work, liquid);
     return;
   }
   if (modelId === "printing-table") {
-    const [top, timber] = await Promise.all([kit.library.surface("table", { normalScale: 0.9 }), kit.library.surface("timber")]);
-    softBox(group, [1.84, 0.2, 4], top, [0, 0.76, 0], { radius: 0.018, segments: 3, tile: [0.55, 0.55] });
-    for (const z of [-1.6, 1.6]) for (const a of [-1, 1]) softBox(group, [0.1, 0.66, 0.1], timber, [a * 0.82, 0.33, z], { radius: 0.008, tile: [1.8, 1.8] });
+    const top = await kit.library.surface("table", { normalScale: 0.9 });
+    softBox(group, [1.84, 0.2, 4], top, [0, 0.76, 0], { radius: 0.018, tile: [0.55, 0.55] });
+    for (const z of [-1.6, 1.6]) for (const a of [-1, 1]) softBox(group, [0.1, 0.66, 0.1], top, [a * 0.82, 0.33, z], { radius: 0.008, tile: [0.55, 0.55] });
     return;
   }
   await placeCatalogueModel(kit, group, modelId, 0, 0, 0);

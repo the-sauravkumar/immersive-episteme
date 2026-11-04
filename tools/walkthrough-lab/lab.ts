@@ -7,7 +7,11 @@ import { clothStatePath } from "@/features/process/domain/asset-catalogue";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
 import { checkScene } from "@/features/walkthrough/domain/scene-check";
 import { buildRoute, practiceStation } from "@/features/walkthrough/domain/route-plan";
-import { buildYardPlan, CLOTH_LINE_X, type YardPlan } from "@/features/walkthrough/domain/yard-plan";
+import { buildYardPlan, CLOTH_LINE_X, NEXT_YARD_OFFSET, YARD_FRONT_Z, YARD_HALF_WIDTH, type YardPlan } from "@/features/walkthrough/domain/yard-plan";
+import type { Box } from "@/features/walkthrough/domain/geometry";
+import { reachField, type ReachField } from "@/features/walkthrough/domain/reach";
+import { rankWorstFirst, tearingFailures } from "@/features/walkthrough/domain/surface-density";
+import { measureTearing, objectParts, reachOfParts, surfaceRows } from "./surface-audit";
 import { SUBSTANCE_LOOK_ROWS } from "@/features/process/domain/substance-look-rows";
 import { looksOfItem, stageItemStillPath, trayPadLookOf, workLiquidOf, type SubstanceLook } from "@/features/process/domain/substance-look";
 import { easeYaw, moveTowards, steerAlong, stepWalker, walkerAt, type WalkTarget, type Walker } from "@/features/walkthrough/domain/walk-state";
@@ -16,7 +20,7 @@ import { buildYard, YardKit, type BuiltYard, type YardTextile } from "@/features
 import { buildStillSubject } from "@/features/walkthrough/infrastructure/build-still";
 import { addHorizon } from "@/features/walkthrough/infrastructure/horizon";
 import { MaterialLibrary } from "@/features/walkthrough/infrastructure/material-library";
-import { addSun, createRenderer, createRenderView } from "@/features/walkthrough/infrastructure/render-view";
+import { addSun, CAMERA_NEAR_METRES, createRenderer, createRenderView } from "@/features/walkthrough/infrastructure/render-view";
 
 const TEMPLATES: Record<string, StageTemplate> = { ajrakh: ajrakh as StageTemplate, sanganeri: sanganeri as StageTemplate, kalamkari: kalamkari as unknown as StageTemplate };
 
@@ -28,13 +32,17 @@ const scene = new THREE.Scene();
 scene.fog = new THREE.Fog(0xdfe4e6, 60, 420);
 const library = new MaterialLibrary(renderer);
 const kit = new YardKit(library);
-const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.15, 1200);
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, CAMERA_NEAR_METRES, 1200);
 const win = window as unknown as Record<string, unknown>;
 let audit: BuiltYard["audit"] | null = null;
 let walkPlan: YardPlan | null = null;
 let walkColliders: BuiltYard["colliders"] | null = null;
 let planForCheck: YardPlan | null = null;
 let view: { from: readonly number[]; to: readonly number[] };
+let auditRoot: THREE.Object3D | null = null;
+let auditColliders: readonly Box[] = [];
+let auditSeed: readonly [number, number] = [0, 0];
+let auditArea = { minX: CLOTH_LINE_X - YARD_HALF_WIDTH - 1, maxX: CLOTH_LINE_X + YARD_HALF_WIDTH + 1, minZ: YARD_FRONT_Z - NEXT_YARD_OFFSET, maxZ: YARD_FRONT_Z + 2 };
 
 if (sceneName === "still") {
   const modelId = query.get("m") ?? ASSET_CATALOGUE[0]!.id;
@@ -76,7 +84,11 @@ if (sceneName === "still") {
     const entrance = await buildEntrance(kit, { open, openness: Number(query.get("t") ?? 1), door1View: "/walkthrough/stills/door1-first-panel.jpg", door2View: "/walkthrough/stills/practice-view.jpg" });
     scene.add(entrance.group);
     view = query.get("v") === "near" ? { from: [0.9, 1.6, 3.8], to: [3.3, 1.55, -4.5] } : { from: [-6.4, 1.6, 8.6], to: [1.6, 2.3, -4.5] };
-    audit = () => ({ solids: entrance.solids(), cloths: entrance.cloths, fields: [], fills: [], groundIsOpenAt: () => false });
+    audit = () => ({ solids: entrance.solids(), cloths: entrance.cloths, fields: [], fills: [], groundIsOpenAt: () => false, unchecked: entrance.unchecked() });
+    auditRoot = entrance.group;
+    auditColliders = entrance.colliders;
+    auditSeed = [view.from[0]!, view.from[2]!];
+    auditArea = { minX: -30, maxX: 30, minZ: -4, maxZ: 30 };
     planForCheck = buildYardPlan({ number: 0, name: "", localName: null, caption: "", kind: "dry", items: [], next: null, index: 0 });
   } else {
     let plan: YardPlan;
@@ -102,6 +114,9 @@ if (sceneName === "still") {
     audit = built.audit;
     walkPlan = plan;
     walkColliders = built.colliders;
+    auditRoot = built.group;
+    auditColliders = built.colliders;
+    auditSeed = plan.walkLine[0]!;
     const s = plan.side;
     const X = (x: number) => CLOTH_LINE_X + s * (x - CLOTH_LINE_X);
     const custom: Record<string, { from: readonly number[]; to: readonly number[] }> = {
@@ -135,10 +150,23 @@ output.render();
 win.QA = (plantFault = false, plantFillFault = false) => {
   if (!audit || !planForCheck) return { solidsChecked: 0, clothPointsChecked: 0, fillPointsChecked: 0, fillPiecesChecked: 0, problems: [] };
   const parts = audit();
-  const solids = plantFault ? [...parts.solids, { name: "planted fault", role: "textile" as const, box: { min: [25, 0, 0] as const, max: [40, 3, 0.1] as const }, restsOn: [], planted: false }] : parts.solids;
+  const plantedSolids = [
+    { name: "planted textile past the wall", role: "textile" as const, box: { min: [25, 0, 0] as const, max: [40, 3, 0.1] as const }, restsOn: [], planted: false },
+    { name: "planted vessel through its bench", role: "object" as const, box: { min: [-40, 0.3, -40] as const, max: [-39.5, 0.6, -39.5] as const }, restsOn: [], planted: false, standsOnY: 0.38 },
+    { name: "planted neighbour A", role: "object" as const, box: { min: [0, 0.4, 16] as const, max: [0.3, 0.7, 16.3] as const }, restsOn: [], planted: false },
+    { name: "planted neighbour B", role: "object" as const, box: { min: [0.1, 0.4, 16.1] as const, max: [0.4, 0.7, 16.4] as const }, restsOn: [], planted: false },
+  ];
+  const solids = plantFault ? [...parts.solids, ...plantedSolids] : parts.solids;
   const cloths = plantFault ? parts.cloths.map((cloth) => ({ ...cloth, positions: cloth.positions.map((value, i) => (i % 3 === 1 ? value - 0.06 : value)) })) : parts.cloths;
-  const fills = plantFillFault ? parts.fills.map((fill) => ({ ...fill, points: fill.points.map((value, i) => (i % 3 === 0 ? value + 0.2 : value)), pieces: fill.pieces.length > 1 ? [...fill.pieces, fill.pieces[0]!] : fill.pieces })) : parts.fills;
-  return checkScene({ yard: planForCheck.yard, solids, cloths, fields: parts.fields, fills, groundIsOpenAt: parts.groundIsOpenAt });
+  const unchecked = plantFault ? [...parts.unchecked, "planted unregistered mesh"] : parts.unchecked;
+  const thinned = (points: Float32Array) => {
+    const every = Math.max(1, Math.floor(points.length / 3 / 40));
+    const kept: number[] = [];
+    for (let k = 0; k < points.length; k += every * 3) kept.push(points[k]! + 0.5, points[k + 1]!, points[k + 2]!);
+    return Float32Array.from(kept);
+  };
+  const fills = plantFault ? [] : plantFillFault ? parts.fills.map((fill) => ({ ...fill, points: thinned(fill.points), pieces: fill.pieces.length > 1 ? [...fill.pieces.slice(0, 3), fill.pieces[0]!] : fill.pieces })) : parts.fills;
+  return checkScene({ yard: planForCheck.yard, solids, cloths, fields: parts.fields, fills, groundIsOpenAt: parts.groundIsOpenAt, unchecked });
 };
 const gl = renderer.getContext();
 win.flicker = async (frames = 60, threshold = 10, mode = "pan") => {
@@ -275,6 +303,130 @@ win.stageContents = () => {
     tools: walkPlan.items.filter((placed) => placed.looks.length === 0).map((placed) => ({ modelId: placed.item.modelId, ...centreOf(`item ${placed.item.key} 0`) })),
     liquid: walkPlan.workLiquid && (work.type === "ring" || work.type === "tank") ? { look: walkPlan.workLiquid, x: CLOTH_LINE_X, y: work.level, z: work.z, reach: work.type === "ring" ? work.radius : work.halfX } : null,
   };
+};
+let field: ReachField | null = null;
+const fieldHere = () => (field ??= reachField(auditArea, auditColliders, auditSeed));
+const environmentOf = () => {
+  const out: THREE.Object3D[] = [];
+  scene.traverse((node) => {
+    if (node instanceof THREE.Mesh && auditRoot && !isUnder(node, auditRoot)) out.push(node);
+  });
+  return out;
+};
+const isUnder = (node: THREE.Object3D, ancestor: THREE.Object3D): boolean => {
+  let at: THREE.Object3D | null = node;
+  while (at) {
+    if (at === ancestor) return true;
+    at = at.parent;
+  }
+  return false;
+};
+const plantOnWalkLine = (mesh: THREE.Mesh, name: string, height = 1.4) => {
+  const here = walkPlan ? walkPlan.walkLine[1]! : ([auditSeed[0] + 2, auditSeed[1] - 2] as const);
+  mesh.position.set(here[0], height, here[1] - 1);
+  mesh.userData.auditName = name;
+  auditRoot!.add(mesh);
+  mesh.updateWorldMatrix(true, true);
+  return mesh;
+};
+win.surfaceAudit = () => {
+  if (!auditRoot) return null;
+  const rows = surfaceRows(reachOfParts(objectParts(auditRoot), fieldHere()), fieldHere());
+  return rankWorstFirst(rows);
+};
+win.surfacePlanted = () => {
+  if (!auditRoot) return null;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 64;
+  const coarse = plantOnWalkLine(new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(canvas) })), "planted coarse texture");
+  const faceted = plantOnWalkLine(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.5, 8), new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(canvas) })), "planted faceted cylinder");
+  faceted.position.x += 1.5;
+  faceted.updateWorldMatrix(true, true);
+  const rows = surfaceRows(reachOfParts(objectParts(coarse), fieldHere()).concat(reachOfParts(objectParts(faceted), fieldHere())), fieldHere());
+  coarse.removeFromParent();
+  faceted.removeFromParent();
+  return rows.map((row) => ({ label: row.label, failures: row.failures }));
+};
+const tearingOf = (reaches: ReturnType<typeof reachOfParts>) => measureTearing({ renderer, scene, camera, renderColour: output.render }, reaches, environmentOf(), fieldHere());
+win.tearingAudit = () => {
+  if (!auditRoot) return null;
+  const parts = objectParts(auditRoot);
+  const reaches = reachOfParts(parts, fieldHere());
+  return tearingOf(reaches).map((figures) => ({ ...figures, failures: tearingFailures(figures) }));
+};
+win.tearingPlanted = () => {
+  if (!auditRoot) return null;
+  const material = new THREE.MeshBasicMaterial({ color: 0x808080 });
+  const fightA = plantOnWalkLine(new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2, 9, 7), material), "planted fight");
+  const fightB = plantOnWalkLine(new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5, 3, 11), new THREE.MeshBasicMaterial({ color: 0x202020 })), "planted fight partner");
+  fightB.rotation.z = 0.7;
+  fightB.updateWorldMatrix(true, true);
+  const crack = new THREE.Group();
+  const leftSlab = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.2, 0.05), material);
+  const rightSlab = new THREE.Mesh(new THREE.BoxGeometry(0.6, 1.2, 0.05), material);
+  leftSlab.position.x = -0.302;
+  rightSlab.position.x = 0.302;
+  crack.add(leftSlab, rightSlab);
+  crack.position.set(fightA.position.x - 2.2, 1.4, fightA.position.z);
+  crack.userData.auditName = "planted crack";
+  auditRoot.add(crack);
+  const box = new THREE.BoxGeometry(1, 1, 1);
+  const index = box.index!;
+  const open = new THREE.BufferGeometry();
+  open.setAttribute("position", box.attributes.position!);
+  open.setIndex(Array.from(index.array).filter((_, i) => i < 24 || i >= 30));
+  const missing = plantOnWalkLine(new THREE.Mesh(open, material), "planted missing face");
+  missing.position.x -= 4.4;
+  missing.rotation.y = 0.3;
+  missing.updateWorldMatrix(true, true);
+  crack.updateWorldMatrix(true, true);
+  const planted = [fightA, crack, missing];
+  const reaches = planted.flatMap((object) => reachOfParts(objectParts(object), fieldHere()).map((reach) => ({ ...reach, distance: 1.4, eye: [object.position.x, 1.6, object.position.z + 1.4] as const, target: [object.position.x, object.position.y, object.position.z] as const })));
+  const results = tearingOf(reaches).map((figures) => ({ ...figures, failures: tearingFailures(figures) }));
+  for (const object of [fightA, fightB, crack, missing]) object.removeFromParent();
+  return results;
+};
+win.paintOffSurface = () => {
+  if (!auditRoot) return [];
+  auditRoot.updateWorldMatrix(true, true);
+  const solids: THREE.Object3D[] = [];
+  const paints: THREE.Mesh[] = [];
+  auditRoot.traverse((node) => {
+    if (!(node instanceof THREE.Mesh) || node instanceof THREE.InstancedMesh) return;
+    const kind = ((node.material as THREE.Material).userData.surface as { kind?: string } | undefined)?.kind;
+    if (kind === "painted") paints.push(node);
+    else if (kind !== "smooth" && kind !== "distant") solids.push(node);
+  });
+  const ray = new THREE.Raycaster();
+  const off: { name: string; corner: number; lines: string }[] = [];
+  for (const paint of paints) {
+    const geometry = paint.geometry;
+    if (!(geometry instanceof THREE.PlaneGeometry)) continue;
+    const { width, height } = geometry.parameters;
+    const normal = new THREE.Vector3(0, 0, 1).transformDirection(paint.matrixWorld);
+    [[0.46, 0.3], [-0.46, 0.3], [0.46, -0.3], [-0.46, -0.3], [0, 0]].forEach(([u, v], corner) => {
+      const from = new THREE.Vector3(u! * width, v! * height, 0).applyMatrix4(paint.matrixWorld).addScaledVector(normal, 0.03);
+      ray.set(from, normal.clone().negate());
+      ray.far = 0.08;
+      if (ray.intersectObjects(solids, false).length === 0) off.push({ name: paint.userData.auditName as string, corner, lines: `${width.toFixed(2)} wide` });
+    });
+  }
+  return off;
+};
+win.fillOutside = () => {
+  if (!audit) return null;
+  return audit().fills.flatMap((fill) => {
+    const out: number[][] = [];
+    let count = 0;
+    for (let k = 0; k < fill.points.length; k += 3) {
+      const point = [fill.points[k]!, fill.points[k + 1]!, fill.points[k + 2]!] as const;
+      if (fill.vertexOutside(point)) {
+        count++;
+        if (out.length < 8) out.push(point.map((value) => +value.toFixed(4)));
+      }
+    }
+    return count > 0 ? [{ name: fill.name, count, total: fill.points.length / 3, sample: out }] : [];
+  });
 };
 win.lookRows = SUBSTANCE_LOOK_ROWS;
 win.stillJobs = () => Object.values(TEMPLATES).flatMap((template) =>
