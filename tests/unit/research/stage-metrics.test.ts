@@ -46,6 +46,15 @@ describe("stage and walk metrics", () => {
     expect(valueOf(events, "walk.path_length_m").value).toBe(9);
   });
 
+  it("does not count the jump to a new tradition or after a reload as walked path", () => {
+    const walked = [
+      event(0, "path_sampled", { traditionKey: "ajrakh", segment: "a", points: [[0, 0, 0], [10, 3, 4]] }),
+      event(1, "path_sampled", { traditionKey: "sanganeri", segment: "b", points: [[20, 0, 300], [30, 0, 301]] }),
+      event(2, "path_sampled", { traditionKey: "sanganeri", segment: "c", points: [[5, 0, 11], [6, 3, 15]] }),
+    ];
+    expect(valueOf(walked, "walk.path_length_m").value).toBe(11);
+  });
+
   it("reports an undefined approach and zero counts with no events", () => {
     expect(valueOf([], "walk.approach_distance_m").value).toBeNull();
     expect(valueOf([], "stage.total_ms").value).toBe(0);

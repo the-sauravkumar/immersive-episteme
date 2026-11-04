@@ -1,6 +1,6 @@
 import type { MetricValue, NavEvent } from "./navigation";
 
-export const STAGE_METRICS_VERSION = "1";
+export const STAGE_METRICS_VERSION = "2";
 
 export const STAGE_METRIC_DEFINITIONS = [
   { name: "stage.total_ms", unit: "ms", definition: "Sum of activeMs over stage_left events; time on task, recorded as an outcome. details: byStage." },
@@ -12,7 +12,7 @@ export const STAGE_METRIC_DEFINITIONS = [
   { name: "walk.wrong_turns", unit: "count", definition: "Door 2. wrong_turn events: the learner moved away from the next station for longer than the route allows." },
   { name: "walk.walking_ms", unit: "ms", definition: "Door 2. Sum of walkingMs over movement_summary events." },
   { name: "walk.viewing_ms", unit: "ms", definition: "Door 2. Sum of viewingMs over movement_summary events: standing still at a station, kept apart from walking." },
-  { name: "walk.path_length_m", unit: "m", definition: "Door 2. Length of the sampled path over path_sampled events." },
+  { name: "walk.path_length_m", unit: "m", definition: "Door 2. Length of the sampled path over path_sampled events, measured within one unbroken walk; the jump between traditions or after a reload is not walked distance." },
 ] as const;
 
 const metadata = (event: NavEvent): Record<string, unknown> => event.metadata ?? {};
@@ -26,9 +26,15 @@ function metric(metricName: string, value: number | null, details: Record<string
 function pathLength(events: readonly NavEvent[]): number {
   let total = 0;
   let last: readonly [number, number] | null = null;
+  let walk: string | null = null;
   for (const event of events) {
     const points = metadata(event).points;
     if (!Array.isArray(points)) continue;
+    const eventWalk = `${textOf(metadata(event).traditionKey)}/${textOf(metadata(event).segment)}`;
+    if (eventWalk !== walk) {
+      walk = eventWalk;
+      last = null;
+    }
     for (const point of points as [number, number, number][]) {
       if (last) total += Math.hypot(point[1] - last[0], point[2] - last[1]);
       last = [point[1], point[2]];

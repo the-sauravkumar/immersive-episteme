@@ -7,7 +7,9 @@ import { useCallback, useState } from "react";
 import { CoursePractice } from "@/features/course/ui/course-practice";
 import { endFamiliarisation } from "@/server/study/actions";
 
-const WalkthroughPractice = dynamic(() => import("@/features/walkthrough/ui/walkthrough-practice").then((module) => module.WalkthroughPractice), {
+import { useRenderFailureReport } from "./door-progress";
+
+const WalkthroughPractice = dynamic(() => import("./composed-walkthrough").then((module) => module.ComposedWalkthroughPractice), {
   ssr: false,
   loading: () => <div className="walkthrough walkthrough-loading walking" role="status">Opening The Yard</div>,
 });
@@ -51,10 +53,11 @@ export function CoursePracticeDoor(props: PracticeDoorProps) {
 
 export function WalkthroughPracticeDoor(props: PracticeDoorProps) {
   const { error, finish } = usePracticeFinish(props);
+  const { failureNotice, onRenderFailed } = useRenderFailureReport(props.studyMode);
   return (
     <>
-      <WalkthroughPractice onFinished={finish} />
-      <PracticeError message={error} />
+      <WalkthroughPractice onFinished={finish} onRenderFailed={onRenderFailed} />
+      <PracticeError message={failureNotice ?? error} />
     </>
   );
 }

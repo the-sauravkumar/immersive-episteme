@@ -78,7 +78,7 @@ export default function PrivacyPage() {
               </li>
             </ul>
             <Prose>
-              Your browser also keeps, on this device only, your display settings, the graphics level chosen for the museum and, during a study,
+              Your browser also keeps, on this device only, your display settings and, during a study,
               interaction events until the platform has received them.
             </Prose>
           </EditorialRow>

@@ -105,8 +105,6 @@ describe("Atlas lint: no raw browser controls (DESIGN.md 9)", () => {
         "src/components/ui/disclosure.tsx",
         // "About these links": the disclosure look with telemetry on toggle (shared by both conditions).
         "src/components/knowledge/relation-group-details.tsx",
-        // The breadcrumb's "…" button that reveals the middle crumbs in place.
-        "src/components/ui/breadcrumb.tsx",
       ]),
     ).toEqual([]);
   });

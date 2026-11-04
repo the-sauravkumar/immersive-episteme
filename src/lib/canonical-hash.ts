@@ -124,8 +124,3 @@ export function deterministicUuid(namespace: string, name: string): string {
   const s = hex.join("");
   return `${s.slice(0, 8)}-${s.slice(8, 12)}-${s.slice(12, 16)}-${s.slice(16, 20)}-${s.slice(20, 32)}`;
 }
-
-/** Short stable suffix for element ids derived from a relationship or concept id. */
-export function shortHash(value: string, length = 10): string {
-  return sha256Hex(value).slice(0, length);
-}

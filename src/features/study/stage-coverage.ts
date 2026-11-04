@@ -47,6 +47,31 @@ export function admitStop(required: readonly StageStop[], visits: readonly Stage
   return { admitted: true, stop: required[index]! };
 }
 
+export interface StopPosition {
+  readonly tradition: number;
+  readonly stop: number;
+}
+
+export interface LearningResume extends StopPosition {
+  readonly reached: readonly number[];
+}
+
+export function stopPosition(templates: readonly StageTemplate[], visit: StageVisit): StopPosition | null {
+  const tradition = templates.findIndex((template) => template.tradition === visit.traditionKey);
+  if (tradition < 0) return null;
+  const template = templates[tradition]!;
+  const stop = visit.stageKey === PRODUCT_STOP_KEY ? template.stages.length : template.stages.findIndex((stage) => stage.key === visit.stageKey);
+  return stop < 0 ? null : { tradition, stop };
+}
+
+export function resumeFrom(templates: readonly StageTemplate[], visits: readonly StageVisit[]): LearningResume | null {
+  const positions = visits.flatMap((visit) => stopPosition(templates, visit) ?? []);
+  const last = positions.at(-1);
+  if (!last) return null;
+  const reached = templates.map((_, tradition) => Math.max(-1, ...positions.filter((position) => position.tradition === tradition).map((position) => position.stop)));
+  return { ...last, reached };
+}
+
 export function inAssignedOrder(templates: readonly StageTemplate[], order: readonly string[]): StageTemplate[] {
   return order.map((key) => {
     const template = templates.find((candidate) => candidate.tradition === key);

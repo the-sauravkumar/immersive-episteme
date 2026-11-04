@@ -34,6 +34,19 @@ function withoutStrings(source: string): string {
     .replace(/\/(?![*/])(?:[^/\\\n]|\\.)+\/[gimsuy]*/g, "0");
 }
 
+function outwardImports(file: string, source: string): string[] {
+  const from = layerOf(file);
+  const rank = LAYER_RANK[from ?? ""];
+  if (rank === undefined) return [];
+  const bad: string[] = [];
+  for (const match of source.matchAll(/(?:from |import\()\s*"(\.[^"]+|@\/features\/[^"]+)"/g)) {
+    const target = layerOf(match[1]!);
+    if (!target || target === from) continue;
+    if (LAYER_RANK[target]! >= rank) bad.push(`${relative(".", file)} -> ${match[1]}`);
+  }
+  return bad;
+}
+
 describe("clean architecture", () => {
   const files = FEATURES.flatMap(filesUnder);
 
@@ -48,16 +61,22 @@ describe("clean architecture", () => {
     expect(bad).toEqual([]);
   });
 
-  it("points every dependency inward", () => {
-    const bad: string[] = [];
-    for (const file of files) {
-      const rank = LAYER_RANK[layerOf(file) ?? ""];
-      for (const match of readFileSync(file, "utf8").matchAll(/from "(\.[^"]+|@\/features\/[^"]+)"/g)) {
-        const target = layerOf(match[1]!);
-        if (target && rank !== undefined && LAYER_RANK[target]! > rank) bad.push(`${relative(".", file)} -> ${match[1]}`);
-      }
-    }
-    expect(bad).toEqual([]);
+  it("points every dependency inward, with ui and infrastructure apart", () => {
+    expect(files.flatMap((file) => outwardImports(file, readFileSync(file, "utf8")))).toEqual([]);
+  });
+
+  it("catches a planted ui to infrastructure import and other outward imports", () => {
+    const planted = (file: string, line: string) => outwardImports(file, line);
+    expect(planted("src/features/walkthrough/ui/planted.tsx", `import { WalkRuntime } from "../infrastructure/walk-runtime";`)).toHaveLength(1);
+    expect(planted("src/features/walkthrough/ui/planted.tsx", `import { WalkRuntime } from "@/features/walkthrough/infrastructure/walk-runtime";`)).toHaveLength(1);
+    expect(planted("src/features/walkthrough/ui/planted.tsx", `const load = () => import("../infrastructure/walk-runtime");`)).toHaveLength(1);
+    expect(planted("src/features/walkthrough/infrastructure/planted.ts", `import { WalkthroughSession } from "../ui/walkthrough-session";`)).toHaveLength(1);
+    expect(planted("src/features/walkthrough/application/planted.ts", `import { WalkRuntime } from "../infrastructure/walk-runtime";`)).toHaveLength(1);
+    expect(planted("src/features/walkthrough/domain/planted.ts", `import type { WalkEngine } from "../application/walk-engine";`)).toHaveLength(1);
+    expect(planted("src/features/walkthrough/ui/planted.tsx", `import type { WalkEngine } from "../application/walk-engine";`)).toEqual([]);
+    expect(planted("src/features/walkthrough/ui/planted.tsx", `import { practiceStation } from "../domain/route-plan";`)).toEqual([]);
+    expect(planted("src/features/walkthrough/ui/planted.tsx", `import "./walkthrough.css";`)).toEqual([]);
+    expect(planted("src/features/walkthrough/ui/planted.tsx", `import { Other } from "./other-ui";`)).toEqual([]);
   });
 
   it("has no comments in feature code", () => {

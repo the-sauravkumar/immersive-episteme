@@ -160,7 +160,7 @@ function StepList() {
 
 // ---- Live sections -----------------------------------------------------------------------------
 
-/** The read-only Equivalence Monitor (WP0): the latest stored interface parity run, or "No parity run recorded yet." */
+/** The read-only Equivalence Monitor (WP0): the latest stored interface parity run, or "There is no current interface parity run." */
 async function EquivalenceResult() {
   const report = await getInterfaceParityReport();
   return <EquivalenceMonitor interfaceParity={report} tone="neutral" />;
@@ -290,7 +290,7 @@ export default function AboutPage() {
           <EditorialRow
             note={
               <Sidenote>
-                <p>The full list of checks, with the latest result of each, is on the Colophon.</p>
+                <p>What is compared, and the state of the runs, is on the Colophon.</p>
                 <Link href="/about/colophon#parity" className={STANDALONE}>
                   Parity checks on the Colophon
                 </Link>
@@ -298,9 +298,10 @@ export default function AboutPage() {
             }
           >
             <Prose>
-              The two conditions present the same claims, citations and figures through the same components, typefaces, controls and timer. Only the
-              spatial organisation and the navigation differ. Measurable parity checks compare the two conditions on the same concept pages, from the
-              text and its line breaks to the size of every control, and their stored results are published here.
+              The two conditions present one stage template: the same stages, words, sources, tool and material models and image files, with the same
+              typefaces and timer. Only the spatial organisation and the navigation differ. A content parity check compares these for a study
+              configuration and stores its report with the study. The suite that compared the earlier interfaces was removed with them, so no
+              interface parity results are published.
             </Prose>
             <Suspense fallback={<p className="text-reading text-ink-2">Reading the latest parity run…</p>}>
               <EquivalenceResult />

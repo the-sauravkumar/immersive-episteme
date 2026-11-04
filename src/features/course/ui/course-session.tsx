@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { startCourseSession, stepCourse, type CourseAction, type CourseEvent, type CoursePanelRef, type CourseSessionModel } from "@/features/course/application/course-session";
-import { canFinish, canGoBack, canGoNext, isLastTradition, isProductPanel, reachedPanel } from "@/features/course/domain/course-state";
+import { closeOpenCourseStop, reopenCourseStop, restoreCourseStop, startCourseSession, stepCourse, suspendCourseClock, type CourseAction, type CourseEvent, type CoursePanelRef, type CourseSessionModel, type CourseStep } from "@/features/course/application/course-session";
+import { canFinish, canGoBack, canGoNext, isLastTradition, isProductPanel, reachedPanel, type CoursePosition, type CourseResume } from "@/features/course/domain/course-state";
 import { barSegments, stagePanelModel } from "@/features/course/domain/panel-model";
 import { QUESTIONS_LABEL } from "@/features/process/domain/guidance";
 import { PRODUCT_TITLE, type StageTemplate } from "@/features/process/domain/stage-template";
+import { useTabHidden } from "@/lib/use-tab-hidden";
 
 import { usePanelControls } from "./course-dialogs";
 import { ProductPanel, productImageSources } from "./product-panel";
@@ -27,11 +28,14 @@ export interface CourseStageEvent {
 export interface CourseSessionProps {
   readonly templates: readonly StageTemplate[];
   readonly reviewMarks?: boolean;
-  readonly onStageEntered?: (event: CourseStageEvent) => boolean | void | Promise<boolean>;
-  readonly onStageLeft?: (event: CourseStageEvent & { readonly dwellMs: number }) => void;
+  readonly resume?: CourseResume | null;
+  readonly restore?: CoursePosition | null;
+  readonly registerExit?: (close: () => void) => () => void;
+  readonly onStageEntered?: (event: CourseStageEvent) => void;
+  readonly onStageLeft?: (event: CourseStageEvent & { readonly activeMs: number }) => void;
   readonly onBackStep?: (event: { readonly from: CourseStageEvent; readonly to: CourseStageEvent }) => void;
   readonly onSourceOpened?: (event: CourseStageEvent) => void;
-  readonly onFinished?: () => void;
+  readonly onFinished?: () => boolean | void | Promise<boolean>;
 }
 
 function stageEvent(templates: readonly StageTemplate[], at: CoursePanelRef): CourseStageEvent {
@@ -40,73 +44,98 @@ function stageEvent(templates: readonly StageTemplate[], at: CoursePanelRef): Co
   return { tradition: template.tradition, stageKey: stage?.key ?? null, stageNumber: stage?.number ?? null, panel: at.isProduct ? "product" : "stage" };
 }
 
-const panelRefOf = ({ state }: CourseSessionModel): CoursePanelRef => ({ tradition: state.tradition, panel: state.panel, isProduct: isProductPanel(state) });
-
 function imagesFor(template: StageTemplate, panel: number): readonly string[] {
   return panel < template.stages.length ? panelImageSources(stagePanelModel(template, panel)) : productImageSources(template);
 }
 
-export function CourseSession({ templates, reviewMarks = false, onStageEntered, onStageLeft, onBackStep, onSourceOpened, onFinished }: CourseSessionProps) {
+export function CourseSession({ templates, reviewMarks = false, resume = null, restore = null, registerExit, onStageEntered, onStageLeft, onBackStep, onSourceOpened, onFinished }: CourseSessionProps) {
   const stageCounts = useMemo(() => templates.map((template) => template.stages.length), [templates]);
-  const [model, setModel] = useState<CourseSessionModel>(() => startCourseSession(stageCounts, 0).model);
+  const [model, setModel] = useState<CourseSessionModel>(() => startCourseSession(stageCounts, 0, resume).model);
+  const [sourcesOpenAt, setSourcesOpenAt] = useState<CoursePosition | null>(null);
   const modelRef = useRef(model);
   const handlers = useRef({ onStageEntered, onStageLeft, onBackStep, onFinished });
   const startedRef = useRef(false);
+  const startResume = useRef(resume);
 
   useEffect(() => {
     handlers.current = { onStageEntered, onStageLeft, onBackStep, onFinished };
   }, [onStageEntered, onStageLeft, onBackStep, onFinished]);
 
+  const adopt = useCallback((next: CourseSessionModel) => {
+    modelRef.current = next;
+    setModel(next);
+  }, []);
+
   const emit = useCallback(
-    (events: readonly CourseEvent[]): readonly Promise<boolean>[] => {
-      const admissions: Promise<boolean>[] = [];
+    (events: readonly CourseEvent[]) => {
       for (const event of events) {
-        if (event.type === "entered") admissions.push(Promise.resolve(handlers.current.onStageEntered?.(stageEvent(templates, event.at)) ?? true));
-        if (event.type === "left") handlers.current.onStageLeft?.({ ...stageEvent(templates, event.at), dwellMs: event.dwellMs });
+        if (event.type === "entered") handlers.current.onStageEntered?.(stageEvent(templates, event.at));
+        if (event.type === "left") handlers.current.onStageLeft?.({ ...stageEvent(templates, event.at), activeMs: event.activeMs });
         if (event.type === "back-step") handlers.current.onBackStep?.({ from: stageEvent(templates, event.from), to: stageEvent(templates, event.to) });
-        if (event.type === "finished") handlers.current.onFinished?.();
+        if (event.type === "finished") {
+          void Promise.resolve(handlers.current.onFinished?.()).then((accepted) => {
+            if (accepted === false) adopt(reopenCourseStop(modelRef.current, Date.now()));
+          });
+        }
       }
-      return admissions;
     },
-    [templates],
+    [adopt, templates],
   );
 
   useEffect(() => {
     if (startedRef.current) return;
     startedRef.current = true;
-    const started = startCourseSession(stageCounts, Date.now());
-    modelRef.current = started.model;
-    setModel(started.model);
+    const started = startCourseSession(stageCounts, Date.now(), startResume.current);
+    adopt(started.model);
     emit(started.events);
-  }, [emit, stageCounts]);
+  }, [adopt, emit, stageCounts]);
+
+  useEffect(() => {
+    const close = () => {
+      const closed = closeOpenCourseStop(modelRef.current, Date.now());
+      modelRef.current = closed.model;
+      emit(closed.events);
+    };
+    modelRef.current = reopenCourseStop(modelRef.current, Date.now());
+    const unregister = registerExit?.(close);
+    return () => {
+      unregister?.();
+      close();
+    };
+  }, [emit, registerExit]);
 
   const headingFocus = useRef(false);
-  const dispatch = useCallback(
-    (action: CourseAction) => {
-      const previous = modelRef.current;
-      const step = stepCourse(previous, action, Date.now());
-      if (step.model === previous) return;
-      modelRef.current = step.model;
+  const applyStep = useCallback(
+    (step: CourseStep) => {
+      if (step.model === modelRef.current) return;
       headingFocus.current = true;
-      setModel(step.model);
-      const admissions = emit(step.events);
-      void Promise.all(admissions).then((results) => {
-        if (results.every(Boolean) || modelRef.current !== step.model) return;
-        const restored = { ...previous, enteredAtMs: Date.now() };
-        modelRef.current = restored;
-        setModel(restored);
-        emit([{ type: "entered", at: panelRefOf(restored) }]);
-      });
+      adopt(step.model);
+      emit(step.events);
     },
-    [emit],
+    [adopt, emit],
   );
+  const dispatch = useCallback((action: CourseAction) => applyStep(stepCourse(modelRef.current, action, Date.now())), [applyStep]);
+
+  const appliedRestore = useRef(restore);
+  useEffect(() => {
+    if (!restore || restore === appliedRestore.current) return;
+    appliedRestore.current = restore;
+    applyStep(restoreCourseStop(modelRef.current, restore, Date.now()));
+  }, [applyStep, restore]);
 
   const { state } = model;
   const template = templates[state.tradition]!;
   const onProduct = isProductPanel(state);
   const sources = useMemo(() => imagesFor(template, state.panel), [template, state.panel]);
   const images = usePanelImages(sources);
-  const controls = usePanelControls();
+  const { controls, dialogOpen } = usePanelControls();
+  const tabHidden = useTabHidden();
+  const sourcesOpen = sourcesOpenAt?.tradition === state.tradition && sourcesOpenAt.stop === state.panel;
+  const suspended = dialogOpen || sourcesOpen || tabHidden;
+
+  useEffect(() => {
+    modelRef.current = suspendCourseClock(modelRef.current, suspended, Date.now());
+  }, [suspended]);
 
   useEffect(() => {
     if (!images.settled) return;
@@ -121,8 +150,10 @@ export function CourseSession({ templates, reviewMarks = false, onStageEntered, 
   }, [state.panel, state.tradition]);
 
   const sourceOpened = () => {
+    setSourcesOpenAt({ tradition: state.tradition, stop: state.panel });
     onSourceOpened?.(stageEvent(templates, { tradition: state.tradition, panel: state.panel, isProduct: onProduct }));
   };
+  const sourceClosed = () => setSourcesOpenAt(null);
 
   const previousStage = onProduct ? template.stages.at(-1) : template.stages[state.panel - 1];
   const nextStage = template.stages[state.panel + 1];
@@ -135,9 +166,9 @@ export function CourseSession({ templates, reviewMarks = false, onStageEntered, 
     <div className="course walking" data-course-root="" data-tradition={template.tradition} data-panel={onProduct ? "product" : state.panel + 1}>
       <div className="course-frame">
       {onProduct ? (
-        <ProductPanel template={template} imageStatus={images.status} controls={controls} onSourcesOpened={sourceOpened} />
+        <ProductPanel template={template} imageStatus={images.status} controls={controls} onSourcesOpened={sourceOpened} onSourcesClosed={sourceClosed} />
       ) : (
-        <StagePanel model={stagePanelModel(template, state.panel)} reviewMarks={reviewMarks} imageStatus={images.status} controls={controls} onSourcesOpened={sourceOpened} />
+        <StagePanel model={stagePanelModel(template, state.panel)} reviewMarks={reviewMarks} imageStatus={images.status} controls={controls} onSourcesOpened={sourceOpened} onSourcesClosed={sourceClosed} />
       )}
       <ProgressBar
         back={{
@@ -149,7 +180,7 @@ export function CourseSession({ templates, reviewMarks = false, onStageEntered, 
         forward={{
           label: finishing ? QUESTIONS_LABEL : "Next",
           detail: finishing ? null : forwardDetail,
-          disabled: !images.settled || (finishing ? !canFinish(state) : !canGoNext(state)),
+          disabled: !images.settled || (finishing ? !canFinish(state) || model.finishing : !canGoNext(state)),
           onPress: () => dispatch({ type: finishing ? "finish" : "next" }),
         }}
         segments={barSegments(template)}

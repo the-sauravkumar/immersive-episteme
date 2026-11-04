@@ -27,19 +27,22 @@ function CourseDialog({ title, lines, action, onClose }: { readonly title: strin
   );
 }
 
-export function usePanelControls(): React.ReactNode {
+export function usePanelControls(): { readonly controls: React.ReactNode; readonly dialogOpen: boolean } {
   const [open, setOpen] = useState<OpenDialog>(null);
   const close = () => setOpen(null);
-  return (
-    <>
-      <button type="button" className="icon-button" aria-label={HELP_TITLE} onClick={() => setOpen("help")}>
-        <HelpIcon />
-      </button>
-      <button type="button" className="icon-button" aria-label="Pause" onClick={() => setOpen("pause")}>
-        <PauseIcon />
-      </button>
-      {open === "help" ? <CourseDialog title={HELP_TITLE} lines={HELP_LINES} action="Close" onClose={close} /> : null}
-      {open === "pause" ? <CourseDialog title={PAUSE_TITLE} lines={[PAUSE_TEXT]} action={RESUME_LABEL} onClose={close} /> : null}
-    </>
-  );
+  return {
+    dialogOpen: open !== null,
+    controls: (
+      <>
+        <button type="button" className="icon-button" aria-label={HELP_TITLE} onClick={() => setOpen("help")}>
+          <HelpIcon />
+        </button>
+        <button type="button" className="icon-button" aria-label="Pause" onClick={() => setOpen("pause")}>
+          <PauseIcon />
+        </button>
+        {open === "help" ? <CourseDialog title={HELP_TITLE} lines={HELP_LINES} action="Close" onClose={close} /> : null}
+        {open === "pause" ? <CourseDialog title={PAUSE_TITLE} lines={[PAUSE_TEXT]} action={RESUME_LABEL} onClose={close} /> : null}
+      </>
+    ),
+  };
 }

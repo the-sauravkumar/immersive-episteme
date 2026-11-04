@@ -16,7 +16,6 @@ import { DISPLAY_BOOT_SCRIPT, DISPLAY_STORAGE_KEY, isStudyPath, parseDisplayPref
 import { DisplayPreferencesSync, DisplaySettings } from "@/components/shell/display-settings";
 import { PageHeader } from "@/components/shell/page-header";
 import { StudyShell } from "@/components/shell/study-shell";
-import { BreadcrumbTrail } from "@/components/ui/breadcrumb";
 
 vi.mock("@/server/auth/actions", () => ({ endPublicDemo: vi.fn() }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/about", useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }) }));
@@ -227,30 +226,5 @@ describe("brand components (DESIGN.md 7)", () => {
     expect(svg.querySelector("path[data-draw]")).toBeNull();
     expect(svg.querySelectorAll('g[data-layer="outline"] path')).toHaveLength(1);
     expect(container.innerHTML).not.toMatch(/madder/);
-  });
-});
-
-describe("BreadcrumbTrail (DESIGN.md 9.16)", () => {
-  it("collapses middle crumbs behind a 44 px button, keeps the full path in title and a parent link for phones", () => {
-    const items = [
-      { label: "Traditions", href: "/learn/2d" },
-      { label: "Alpha", href: "/learn/2d/traditions/a" },
-      { label: "Process", href: "/learn/2d/traditions/a#process" },
-      { label: "Stage", href: "/learn/2d/concepts/s" },
-      { label: "Current" },
-    ];
-    const { container } = render(<BreadcrumbTrail items={items} />);
-    const nav = screen.getByRole("navigation", { name: "breadcrumb" });
-    expect(nav).toHaveAttribute("title", "Traditions › Alpha › Process › Stage › Current");
-    const summary = container.querySelector("summary")!;
-    expect(summary).toHaveAccessibleName("Show 2 more levels");
-    expect(summary.className).toContain("size-11");
-    expect(container.querySelector("p.xs\\:hidden a")).toHaveAttribute("href", "/learn/2d/concepts/s");
-    expect(screen.getByText("Current")).toHaveAttribute("aria-current", "page");
-  });
-
-  it("shows every crumb when there are three or fewer", () => {
-    const { container } = render(<BreadcrumbTrail items={[{ label: "Traditions", href: "/x" }, { label: "Alpha" }]} />);
-    expect(container.querySelector("summary")).toBeNull();
   });
 });

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { renderLicensingList, rowsFrom, type LicenceRow } from "../../../scripts/content/build-to-be-licensed";
@@ -31,6 +31,56 @@ describe("to be licensed list", () => {
     expect(rowsFrom([{ file: "x" }])).toHaveLength(1);
     expect(rowsFrom({ rows: [{ file: "x" }] })).toHaveLength(1);
     expect(rowsFrom({ nothing: true })).toHaveLength(0);
+  });
+});
+
+const MANIFESTS = readdirSync("public/walkthrough").filter((name) => /^manifest.*\.json$/.test(name)).sort();
+const manifestRows = MANIFESTS.flatMap((name) => rowsFrom(JSON.parse(readFileSync(`public/walkthrough/${name}`, "utf8"))));
+
+function shippedFiles(dir: string): string[] {
+  return readdirSync(dir).flatMap((name) => {
+    const full = `${dir}/${name}`;
+    return statSync(full).isDirectory() ? shippedFiles(full) : [full.replace(/^public/, "")];
+  });
+}
+
+function rowCovers(rowFile: string, shipped: string): boolean {
+  const strips = rowFile.includes("with each -strip.jpg crop");
+  const target = strips ? shipped.replace(/-strip\.jpg$/, ".jpg") : shipped;
+  return rowFile
+    .replace(", with each -strip.jpg crop", "")
+    .replace(/^public/, "")
+    .split(", ")
+    .some((part) => {
+      const range = /^(.+\/.+-)(\d+)\.jpg to .+-(\d+)\.jpg$/.exec(part);
+      if (range) {
+        const name = new RegExp(`^${range[1]}(\\d+)\\.jpg$`).exec(target);
+        return !!name && Number(name[1]) >= Number(range[2]) && Number(name[1]) <= Number(range[3]);
+      }
+      if (part.includes("*")) return target.startsWith(part.split("*")[0]!) && target.endsWith(part.split("*")[1]!);
+      return target === part || target.startsWith(`${part}/`);
+    });
+}
+
+describe("committed licensing record", () => {
+  it("gives every shipped walkthrough file a manifest row", () => {
+    const uncovered = shippedFiles("public/walkthrough").filter((file) => !/^\/walkthrough\/manifest.*\.json$/.test(file) && !manifestRows.some((row) => rowCovers(row.file, file)));
+    expect(uncovered).toEqual([]);
+  });
+
+  it("finds a file with no row", () => {
+    expect(manifestRows.some((row) => rowCovers(row.file, "/walkthrough/stills/planted-unlisted.jpg"))).toBe(false);
+  });
+
+  it("matches what the generator writes", () => {
+    expect(readFileSync("docs/to_be_licensed.md", "utf8").replace(/\r\n/g, "\n")).toBe(renderLicensingList(manifestRows, MANIFESTS));
+  });
+
+  it("lists open font files apart from what needs clearing", () => {
+    const text = renderLicensingList(manifestRows, MANIFESTS);
+    const [needsClearing] = text.split("## CC0, No Licence Needed");
+    expect(needsClearing).not.toContain("woff2");
+    expect(text.split("## Open Font License, No Licence Needed")[1]).toContain("Mukta-400.woff2");
   });
 });
 

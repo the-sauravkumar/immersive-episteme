@@ -1,11 +1,7 @@
 /**
- * The ONE rule for "can this browser show the 3D museum?", shared by the study device check
- * (src/components/study/device-check.tsx, evaluated by the engine) and the museum's own probe
- *
- * Final review study-01: the device check used to pass any WebGL (1 or 2) and could not see a
- * software renderer, while the museum refuses both in study mode. An immersive participant on a
- * GPU-blocklisted lab PC or a VM therefore passed the check, saw only the fallback screen for the
- * whole learning budget, and the WebGL-failure policy (Q-R10) never ran. Pure and client-safe.
+ * The ONE rule for "can this browser show the walkthrough?", shared by the study device check
+ * (src/components/study/device-check.tsx, evaluated by the engine) and the walkthrough's own
+ * failure report. Client-safe.
  */
 
 /** Renderer strings of software rasterisers (SwiftShader, llvmpipe, Microsoft Basic Render, ...). */
@@ -16,9 +12,37 @@ export function isSoftwareRenderer(renderer: string | null | undefined): boolean
 }
 
 /**
- * Study mode: the museum needs WebGL 2 on a hardware renderer (a software renderer is refused
- * there; only the non-study `allowSoftware` debug switch lifts that).
+ * Study mode: the walkthrough needs WebGL 2 on a hardware renderer.
  */
-export function museumCanRender(gpu: { webglVersion: 1 | 2 | null; softwareRenderer?: boolean | null }): boolean {
+export function walkthroughCanRender(gpu: { webglVersion: 1 | 2 | null; softwareRenderer?: boolean | null }): boolean {
   return gpu.webglVersion === 2 && gpu.softwareRenderer !== true;
+}
+
+export function detectWebgl(doc: Document = document): 1 | 2 | null {
+  try {
+    const canvas = doc.createElement("canvas");
+    if (canvas.getContext("webgl2")) return 2;
+    if (canvas.getContext("webgl") || canvas.getContext("experimental-webgl")) return 1;
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+export function detectSoftwareRenderer(doc: Document = document): boolean {
+  try {
+    const canvas = doc.createElement("canvas");
+    const gl = (canvas.getContext("webgl2") ?? canvas.getContext("webgl")) as WebGLRenderingContext | null;
+    if (!gl) return false;
+    const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+    const renderer = String(gl.getParameter(dbg ? dbg.UNMASKED_RENDERER_WEBGL : gl.RENDERER));
+    gl.getExtension("WEBGL_lose_context")?.loseContext();
+    return isSoftwareRenderer(renderer);
+  } catch {
+    return false;
+  }
+}
+
+export function probeGpu(): { readonly webglVersion: 1 | 2 | null; readonly softwareRenderer: boolean } {
+  return { webglVersion: detectWebgl(), softwareRenderer: detectSoftwareRenderer() };
 }

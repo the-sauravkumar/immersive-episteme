@@ -10,6 +10,20 @@ export function startCourse(stageCounts: readonly number[]): CourseState {
   return { stageCounts, tradition: 0, panel: 0, reached: stageCounts.map((_, index) => (index === 0 ? 0 : -1)) };
 }
 
+export interface CoursePosition {
+  readonly tradition: number;
+  readonly stop: number;
+}
+
+export interface CourseResume extends CoursePosition {
+  readonly reached: readonly number[];
+}
+
+export function placeCourse(stageCounts: readonly number[], at: CourseResume): CourseState {
+  const started = startCourse(stageCounts);
+  return { ...started, tradition: at.tradition, panel: at.stop, reached: stageCounts.map((_, index) => Math.max(at.reached[index] ?? -1, index === at.tradition ? at.stop : -1)) };
+}
+
 const stageCount = (state: CourseState): number => state.stageCounts[state.tradition]!;
 
 export const isProductPanel = (state: CourseState): boolean => state.panel === stageCount(state);

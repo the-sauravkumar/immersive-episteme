@@ -75,7 +75,7 @@ describe("CourseSession", () => {
     vi.unstubAllGlobals();
   });
 
-  it("keeps the learner in place when the server refuses the next stop", async () => {
+  it("returns the learner to the stop the door asks for, and retries a refused finish", async () => {
     vi.stubGlobal(
       "Image",
       class {
@@ -86,12 +86,47 @@ describe("CourseSession", () => {
         }
       },
     );
-    const entered = vi.fn(async (event: { stageNumber: number | null }) => event.stageNumber !== 2);
-    render(<CourseSession templates={[template]} onStageEntered={entered} />);
+    const entered = vi.fn();
+    const finished = vi.fn(async () => false);
+    const { rerender } = render(<CourseSession templates={[template]} onStageEntered={entered} onFinished={finished} />);
     await settle();
     fireEvent.click(screen.getByRole("button", { name: /^Next/ }));
+    rerender(<CourseSession templates={[template]} onStageEntered={entered} onFinished={finished} restore={{ tradition: 0, stop: 0 }} />);
     await vi.waitFor(() => expect(screen.getByRole("heading", { name: "Stage Name 1" })).toBeTruthy());
     expect(entered.mock.calls.map(([event]) => event.stageNumber)).toEqual([1, 2, 1]);
+    await settle();
+    fireEvent.click(screen.getByRole("button", { name: /^Next/ }));
+    await settle();
+    fireEvent.click(screen.getByRole("button", { name: /^Next/ }));
+    await settle();
+    fireEvent.click(screen.getByRole("button", { name: "Questions" }));
+    expect(finished).toHaveBeenCalledTimes(1);
+    await settle();
+    expect(screen.getByRole("button", { name: /^Back/ })).toHaveProperty("disabled", false);
+    fireEvent.click(screen.getByRole("button", { name: "Questions" }));
+    expect(finished).toHaveBeenCalledTimes(2);
+    vi.unstubAllGlobals();
+  });
+
+  it("resumes at the stored stop without an entry report and sends the exit once on unmount", async () => {
+    vi.stubGlobal(
+      "Image",
+      class {
+        onerror: (() => void) | null = null;
+        onload: (() => void) | null = null;
+        set src(_value: string) {
+          queueMicrotask(() => this.onerror?.());
+        }
+      },
+    );
+    const entered = vi.fn();
+    const left = vi.fn();
+    const { unmount } = render(<CourseSession templates={[template]} onStageEntered={entered} onStageLeft={left} resume={{ tradition: 0, stop: 1, reached: [1] }} />);
+    expect(screen.getByRole("heading", { name: "Stage Name 2" })).toBeTruthy();
+    expect(entered).not.toHaveBeenCalled();
+    unmount();
+    expect(left).toHaveBeenCalledTimes(1);
+    expect(left.mock.calls[0]![0]).toMatchObject({ stageNumber: 2 });
     vi.unstubAllGlobals();
   });
 });

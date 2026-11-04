@@ -22,7 +22,7 @@ export function CoursePractice({ reviewMarks = false, onFinished }: CoursePracti
   const [reached, setReached] = useState(0);
   const model = useMemo(() => practicePanelModel(step), [step]);
   const images = usePanelImages(panelImageSources(model));
-  const controls = usePanelControls();
+  const { controls } = usePanelControls();
   const segments = practiceSegments();
   const last = step === PRACTICE_STEP_COUNT - 1;
 

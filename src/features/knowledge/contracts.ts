@@ -468,7 +468,7 @@ export const bundleEvidenceSchema = z.object({ locator: z.string(), quote: z.str
  */
 const bundleSourceRefSchema = z.object({ sourceId: uuidSchema, locator: z.string().nullish(), evidence: z.array(bundleEvidenceSchema).default([]) });
 
-export const bundleCategorySchema = z.object({
+const bundleCategorySchema = z.object({
   code: knowledgeCategoryCodeSchema,
   label: z.string(),
   templateGroup: z.string(),
