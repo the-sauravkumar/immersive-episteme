@@ -2,8 +2,8 @@ import * as THREE from "three";
 import type { Box } from "../domain/geometry";
 import { NEXT_YARD_OFFSET } from "../domain/yard-plan";
 import type { RouteStation } from "../domain/route-plan";
-import { easeYaw, eyeOf, localZ, moveTowards, stationIndexAt, steerAlong, stepWalker, walkerAt, worldZ, type WalkInput, type WalkTarget, type Walker } from "../domain/walk-state";
-import { buildYard, YardKit, type BuiltYard } from "./build-yard";
+import { easeYaw, eyeOf, localZ, moveTowards, nearestWaypoint, stationIndexAt, steerAlong, stepWalker, turnBetween, walkerAt, worldZ, type WalkInput, type WalkTarget, type Walker } from "../domain/walk-state";
+import { buildYard, releaseYard, YardKit, type BuiltYard } from "./build-yard";
 import { addHorizon } from "./horizon";
 import { MaterialLibrary } from "./material-library";
 import { addSun, createRenderer, createRenderView, type RenderView } from "./render-view";
@@ -32,6 +32,7 @@ export class WalkRuntime {
   private readonly uploaded = new WeakSet<THREE.Texture>();
   private view: RenderView | null = null;
   private sky: THREE.Mesh | null = null;
+  private hills: THREE.Object3D | null = null;
   private sun: THREE.DirectionalLight | null = null;
   private walker: Walker = { x: 0, z: 0, yaw: 0, pitch: 0, walked: 0 };
   private input: { forward: number; strafe: number; lookX: number; lookY: number } = { forward: 0, strafe: 0, lookX: 0, lookY: 0 };
@@ -42,6 +43,7 @@ export class WalkRuntime {
   private autoHeading: number | null = null;
   private autoPitch = 0;
   private current = -1;
+  private streamCentre = 0;
   private frame = 0;
   private last = 0;
   private lastPathReport = 0;
@@ -69,7 +71,7 @@ export class WalkRuntime {
 
   async start(startIndex = 0): Promise<void> {
     this.sky = await this.library.sky(this.scene, this.renderer);
-    addHorizon(this.scene, (await this.library.scan("earth")).colour);
+    this.hills = addHorizon(this.scene, (await this.library.scan("earth")).colour);
     this.sun = addSun(this.scene, new THREE.Vector3(1, 0, -2));
     const station = this.stations[startIndex]!;
     this.walker = walkerAt(station.plan.standpoint.from, station.plan.standpoint.to, startIndex);
@@ -107,13 +109,20 @@ export class WalkRuntime {
     for (const [node, culled] of restore) node.frustumCulled = culled;
   }
 
-  private async stream(index: number): Promise<void> {
+  private wantedAround(index: number): number[] {
     const wanted: number[] = [];
     for (let i = index - STREAM_BEHIND; i <= index + STREAM_AHEAD; i++) if (i >= 0 && i < this.stations.length) wanted.push(i);
-    await Promise.all(wanted.map((i) => this.loadYard(i)));
+    return wanted;
+  }
+
+  private async stream(index: number): Promise<void> {
+    this.streamCentre = index;
+    await Promise.all(this.wantedAround(index).map((i) => this.loadYard(i)));
+    const wanted = this.wantedAround(this.streamCentre);
     for (const [i, yard] of this.built) {
       if (!wanted.includes(i)) {
         this.scene.remove(yard.group);
+        releaseYard(this.kit, yard.group);
         this.built.delete(i);
         this.yards.delete(i);
       }
@@ -148,6 +157,7 @@ export class WalkRuntime {
     const station = this.stations[index]!;
     const pending = buildYard(this.kit, station.plan, { clothBefore: station.clothBefore, clothAfter: station.clothAfter, wetAfter: station.wetAfter, textiles: this.textiles(station) }, station.id).then(async (yard) => {
       await this.uploadGradually(yard.group);
+      await this.view!.prepare(yard.group);
       yard.group.position.z = -index * NEXT_YARD_OFFSET;
       this.scene.add(yard.group);
       this.built.set(index, yard);
@@ -184,7 +194,15 @@ export class WalkRuntime {
     this.autoGoal = index;
     this.autoPitch = 0;
     const line = this.stations[this.current]!.plan.walkLine;
-    this.autoTarget = { station: this.current, waypoint: this.autoDirection === 1 ? 1 : line.length - 2 };
+    const waypoint = nearestWaypoint(this.walker, line, this.current) + this.autoDirection;
+    if (line[waypoint]) {
+      this.autoTarget = { station: this.current, waypoint };
+      this.autoArriving = false;
+      return;
+    }
+    const station = this.current + this.autoDirection;
+    this.autoTarget = { station, waypoint: this.autoDirection === 1 ? 0 : this.stations[station]!.plan.walkLine.length - 1 };
+    this.autoArriving = this.autoDirection === 1 && station === index;
   }
 
   get stationIndex(): number {
@@ -291,6 +309,7 @@ export class WalkRuntime {
     this.camera.rotation.order = "YXZ";
     this.camera.rotation.set(this.walker.pitch, this.walker.yaw, 0);
     this.sky?.position.copy(this.camera.position);
+    this.hills?.position.set(this.camera.position.x, 0, this.camera.position.z);
   }
 
   private update(): void {
@@ -306,7 +325,7 @@ export class WalkRuntime {
         const yaw = easeYaw(this.walker.yaw, this.autoHeading, seconds);
         const pitch = this.walker.pitch + (this.autoPitch - this.walker.pitch) * Math.min(1, seconds * 2);
         this.walker = { ...this.walker, yaw, pitch };
-        if (!this.autoTarget && Math.abs(yaw - this.autoHeading) < 0.002) this.autoHeading = null;
+        if (!this.autoTarget && Math.abs(turnBetween(yaw, this.autoHeading)) < 0.002) this.autoHeading = null;
       }
       const moved = this.walker.x !== from.x || this.walker.z !== from.z;
       this.input.lookX = 0;

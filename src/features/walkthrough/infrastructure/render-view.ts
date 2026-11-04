@@ -3,6 +3,7 @@ import * as THREE from "three";
 export interface RenderView {
   readonly render: () => void;
   readonly resize: (width: number, height: number) => void;
+  readonly prepare: (group: THREE.Object3D) => Promise<void>;
 }
 
 const VERTEX = "varying vec2 v;void main(){v=uv;gl_Position=vec4(position.xy,0.,1.);}";
@@ -55,6 +56,12 @@ export function createRenderView(renderer: THREE.WebGLRenderer, scene: THREE.Sce
       main.setSize(width, height);
       bloomA.setSize(width >> 2, height >> 2);
       bloomB.setSize(width >> 2, height >> 2);
+    },
+    async prepare(group) {
+      renderer.setRenderTarget(main);
+      const compiled = renderer.compileAsync(group, camera, scene);
+      renderer.setRenderTarget(null);
+      await compiled;
     },
   };
 }

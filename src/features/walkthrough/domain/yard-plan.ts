@@ -343,7 +343,7 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     tie,
     heightField: field,
     walkLine: [
-      [standX, 11.2],
+      [standpoint.from[0], standpoint.from[2]],
       [CLOTH_LINE_X - side * 1.85, 10.4],
       [CLOTH_LINE_X - side * 1.85, -10],
       [CLOTH_LINE_X, -14],

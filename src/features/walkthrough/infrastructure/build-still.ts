@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { catalogueModel } from "@/features/process/domain/asset-catalogue";
 import { structureFor } from "../domain/yard-plan";
-import { placeCatalogueModel, turnedRing, waterMaterial, YardKit } from "./build-yard";
+import { placeCatalogueModel, turnedRing, waterMaterial, type YardKit } from "./build-yard";
 import { softBox } from "./solid-builders";
 
 export interface StillSubject {

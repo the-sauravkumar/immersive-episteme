@@ -27,7 +27,7 @@ function scrubCanvas(): HTMLCanvasElement {
 }
 
 export function addHorizon(scene: THREE.Scene, earth: THREE.Texture): THREE.Group {
-  const group = new THREE.Group();
+  const hills = new THREE.Group();
   const groundTexture = earth.clone();
   groundTexture.repeat.set(300, 300);
   groundTexture.needsUpdate = true;
@@ -35,7 +35,7 @@ export function addHorizon(scene: THREE.Scene, earth: THREE.Texture): THREE.Grou
   land.rotation.x = -Math.PI / 2;
   land.position.y = -0.04;
   land.receiveShadow = false;
-  group.add(land);
+  scene.add(land);
   const soft = document.createElement("canvas");
   soft.width = 4096;
   soft.height = 512;
@@ -60,9 +60,9 @@ export function addHorizon(scene: THREE.Scene, earth: THREE.Texture): THREE.Grou
       const strip = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
       strip.position.set(Math.cos(angle) * radius, height / 2 - 0.5, Math.sin(angle) * radius);
       strip.rotation.y = -angle - Math.PI / 2;
-      group.add(strip);
+      hills.add(strip);
     }
   }
-  scene.add(group);
-  return group;
+  scene.add(hills);
+  return hills;
 }
