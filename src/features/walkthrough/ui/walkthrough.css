@@ -1,12 +1,4 @@
 .walkthrough {
-  --vat: #0e1626;
-  --vat-2: #16264e;
-  --line: #2c3850;
-  --lime: #efe8d6;
-  --lime-dim: #b9b6ac;
-  --turmeric: #e8a917;
-  --turmeric-hi: #f4c04a;
-  --thread: #5a6478;
   position: fixed;
   inset: 0;
   background: var(--vat);

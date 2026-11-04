@@ -56,3 +56,21 @@ export function stepWalker(walker: Walker, input: WalkInput, seconds: number, co
   if (!blocked(x, here + dz, colliders) && walker.z + dz > minZ && walker.z + dz < maxZ) z = walker.z + dz;
   return { x, z, yaw, pitch, walked: walker.walked + Math.hypot(x - walker.x, z - walker.z) };
 }
+
+export interface WalkTarget {
+  readonly station: number;
+  readonly waypoint: number;
+}
+
+export function steerAlong(walker: Walker, line: readonly (readonly [number, number])[], target: WalkTarget, direction: 1 | -1): { walker: Walker; target: WalkTarget | null; moving: boolean } {
+  const point = line[target.waypoint]!;
+  const worldTargetZ = worldZ(point[1], target.station);
+  const dx = point[0] - walker.x;
+  const dz = worldTargetZ - walker.z;
+  if (Math.hypot(dx, dz) < 0.35) {
+    const next = target.waypoint + direction;
+    if (next < 0 || next >= line.length) return { walker, target: null, moving: false };
+    return { walker, target: { station: target.station, waypoint: next }, moving: true };
+  }
+  return { walker: { ...walker, yaw: Math.atan2(-dx, -dz), pitch: 0 }, target, moving: true };
+}

@@ -1,9 +1,15 @@
 import * as THREE from "three";
-import type { ProductImage, StageItem, StationKind } from "@/features/process/domain/stage-template";
+import type { StageItem, StationKind } from "@/features/process/domain/stage-template";
 import { ASSET_CATALOGUE } from "@/features/process/domain/asset-catalogue";
+import ajrakh from "../../content/study/ajrakh.template.json";
+import sanganeri from "../../content/study/sanganeri.template.json";
+import kalamkari from "../../content/study/machilipatnam-kalamkari.template.json";
+import { clothStatePath } from "@/features/process/domain/asset-catalogue";
+import type { StageTemplate } from "@/features/process/domain/stage-template";
 import { checkScene } from "@/features/walkthrough/domain/scene-check";
-import { buildHallPlan, layoutTextiles, practiceStation } from "@/features/walkthrough/domain/route-plan";
+import { buildRoute, practiceStation } from "@/features/walkthrough/domain/route-plan";
 import { buildYardPlan, CLOTH_LINE_X, type YardPlan, type YardStage } from "@/features/walkthrough/domain/yard-plan";
+import { steerAlong, stepWalker, walkerAt, type WalkTarget, type Walker } from "@/features/walkthrough/domain/walk-state";
 import { buildEntrance } from "@/features/walkthrough/infrastructure/build-entrance";
 import { buildYard, YardKit, type BuiltYard, type YardTextile } from "@/features/walkthrough/infrastructure/build-yard";
 import { buildStillSubject } from "@/features/walkthrough/infrastructure/build-still";
@@ -27,17 +33,10 @@ const STATIONS: Record<string, Station> = {
   carve: fixture("carve", 2, [tool("t", "Printing Table", "printing-table"), tool("c", "Chisels", "spoon"), tool("h", "Hatha Handle", "mallet")], "raw-cotton", "raw-cotton", "Block Carving", null),
   finish: fixture("finish", 13, [tool("t", "Printing Table", "printing-table"), tool("c", "Bale", "cloth-bale")], STATE("13"), STATE("14"), "Finishing", null),
 };
-const HALL_PRODUCTS: ProductImage[] = [
-  ["a", "/agent-state/p-fig9.jpg", "Ajrakh", "Mingei Museum"],
-  ["b", "/agent-state/p-fig3.jpg", "Ajrakh", "Mingei Museum"],
-  ["c", "/agent-state/p-469296.jpg", "Ajrakh", "V&A Museum"],
-  ["d", "/agent-state/p-470770.jpg", "Ajrakh", "V&A Museum"],
-  ["e", "/agent-state/p-mykutch.jpg", "Ajrakh", "MyKutch"],
-  ["f", "/agent-state/p-ajrak.jpg", "Ajrak", "Wikimedia Commons"],
-].map(([id, file, name, holder]) => ({ id: id!, file: file!, name: name!, holder: holder! }));
+const TEMPLATES: Record<string, StageTemplate> = { ajrakh: ajrakh as StageTemplate, sanganeri: sanganeri as StageTemplate, kalamkari: kalamkari as unknown as StageTemplate };
 
 const query = new URLSearchParams(location.search);
-const sceneName = query.get("s") ?? "vat";
+const sceneName = query.get("s") ?? "route";
 await Promise.all(["800 40px Eczar", "700 40px Eczar", "600 40px Eczar", "600 40px Mukta"].map((font) => document.fonts.load(font)));
 const renderer = createRenderer(document.body, innerWidth, innerHeight);
 const scene = new THREE.Scene();
@@ -47,6 +46,8 @@ const kit = new YardKit(library);
 const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.15, 1200);
 const win = window as unknown as Record<string, unknown>;
 let audit: BuiltYard["audit"] | null = null;
+let walkPlan: YardPlan | null = null;
+let walkColliders: BuiltYard["colliders"] | null = null;
 let planForCheck: YardPlan | null = null;
 let view: { from: readonly number[]; to: readonly number[] };
 
@@ -65,7 +66,7 @@ if (sceneName === "still") {
   sun.shadow.camera.updateProjectionMatrix();
   camera.fov = 24;
   camera.updateProjectionMatrix();
-  const distance = subject.radius / Math.tan((12 * Math.PI) / 180) * 1.25;
+  const distance = subject.radius / Math.tan((12 * Math.PI) / 180) * 1.02;
   view = { from: [distance * 0.62, subject.centreY + distance * 0.52, distance * 0.72], to: [0, subject.centreY, 0] };
 } else {
   const sky = await library.sky(scene, renderer);
@@ -84,18 +85,15 @@ if (sceneName === "still") {
     let before = "raw-cotton";
     let after = "raw-cotton";
     let wet = false;
-    if (sceneName === "hall") {
-      plan = buildHallPlan(3.75);
-      const aspects = new Map<string, number>();
-      await Promise.all(HALL_PRODUCTS.map(async (product) => {
-        const image = new Image();
-        image.src = product.file;
-        await image.decode();
-        aspects.set(product.id, image.width / image.height);
-      }));
-      textiles = layoutTextiles(HALL_PRODUCTS, (product) => aspects.get(product.id) ?? 1).map((placed) => ({ file: placed.product.file, name: placed.product.id, x: placed.x, z: placed.z, width: placed.width, height: placed.height, label: placed.label }));
-      after = STATE("14");
-      before = after;
+    const routed = query.get("t");
+    if (routed) {
+      const route = buildRoute(TEMPLATES[routed]!, clothStatePath);
+      const station = route[Number(query.get("n") ?? 0)]!;
+      plan = station.plan;
+      before = station.clothBefore;
+      after = station.clothAfter;
+      wet = station.wetAfter;
+      textiles = station.textiles.map((placed) => ({ file: placed.product.file, name: placed.product.id, x: placed.x, z: placed.z, width: placed.width, height: placed.height, label: placed.label }));
     } else if (sceneName === "practice") {
       plan = practiceStation().plan;
     } else {
@@ -109,6 +107,8 @@ if (sceneName === "still") {
     const built = await buildYard(kit, plan, { clothBefore: before, clothAfter: after, wetAfter: wet, textiles }, sceneName);
     scene.add(built.group);
     audit = built.audit;
+    walkPlan = plan;
+    walkColliders = built.colliders;
     const s = plan.side;
     const X = (x: number) => CLOTH_LINE_X + s * (x - CLOTH_LINE_X);
     const custom: Record<string, { from: readonly number[]; to: readonly number[] }> = {
@@ -212,6 +212,23 @@ win.flicker = async (frames = 60, threshold = 10, mode = "pan") => {
   }
   context.putImageData(image, 0, 0);
   return { mode, anyPct: +((any / count) * 100).toFixed(3), fourPlusPct: +((four / count) * 100).toFixed(3), events, heat: heat.toDataURL("image/png") };
+};
+win.WALK = () => {
+  if (!walkPlan || !walkColliders) return null;
+  let walker: Walker = walkerAt(walkPlan.standpoint.from, walkPlan.standpoint.to, 0);
+  let target: WalkTarget | null = { station: 0, waypoint: 1 };
+  let time = 0;
+  let stuck = 0;
+  while (target && time < 120) {
+    const steered = steerAlong(walker, walkPlan.walkLine, target, 1);
+    target = steered.target;
+    const before = steered.walker;
+    walker = stepWalker(before, { forward: steered.moving ? 1 : 0, strafe: 0, lookX: 0, lookY: 0 }, 1 / 30, walkColliders, 3);
+    if (steered.moving && Math.hypot(walker.x - before.x, walker.z - before.z) < 0.001) stuck++;
+    if (stuck > 60) break;
+    time += 1 / 30;
+  }
+  return { reachedEnd: target === null, seconds: +time.toFixed(1), metres: +walker.walked.toFixed(1), stuckAt: target ? [+walker.x.toFixed(2), +walker.z.toFixed(2)] : null };
 };
 win.INFO = { tris: renderer.info.render.triangles, textures: renderer.info.memory.textures };
 win.READY = true;

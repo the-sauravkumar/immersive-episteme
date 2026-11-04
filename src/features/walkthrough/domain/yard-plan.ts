@@ -31,6 +31,7 @@ export interface PaintedWords {
   readonly pixelsPerMetre: number;
   readonly wear: number;
   readonly lineHeight: number;
+  readonly maxWidth?: number | null;
 }
 
 export interface CurvedWords {
@@ -49,6 +50,7 @@ export interface PlacedItem {
   readonly surfaceTop: number;
   readonly onBench: boolean;
   readonly benchLabel: PaintedWords | null;
+  readonly benchLength: number;
 }
 
 export interface ClothPiece {
@@ -72,6 +74,7 @@ export interface YardPlan {
   readonly readingSpot: { readonly from: Vec3; readonly to: Vec3 };
   readonly tie: { readonly x: number; readonly z0: number; readonly z1: number; readonly y: number } | null;
   readonly heightField: HeightField;
+  readonly walkLine: readonly (readonly [number, number])[];
 }
 
 export interface YardStage {
@@ -207,17 +210,36 @@ function benchWords(item: StageItem, x: number, z: number, y: number, side: 1 | 
   };
 }
 
+const NAME_HEIGHT = 0.34;
+const WORD_COLUMN_WIDTH = 3.2;
+
+function linesNeeded(text: string, height: number): number {
+  const perLine = Math.floor(WORD_COLUMN_WIDTH / (height * 0.53));
+  let lines = 1;
+  let used = 0;
+  for (const word of text.split(" ")) {
+    if (used > 0 && used + 1 + word.length > perLine) {
+      lines++;
+      used = word.length;
+    } else used += word.length + (used > 0 ? 1 : 0);
+  }
+  return lines;
+}
+
 function stationWords(stage: YardStage, shedX: (x: number) => number, shedZ: number): PaintedWords[] {
-  const base = { facing: 0, align: "left" as const, family: "Eczar" as const, weight: 700, wear: 0.4, lineHeight: 1.14 };
+  const base = { facing: 0, align: "left" as const, family: "Eczar" as const, weight: 700, wear: 0.4, lineHeight: 1.14, maxWidth: null };
   const z = shedZ + 0.004;
-  const fitName = (text: string, max: number, start: number) => Math.min(start, max / (text.length * 0.53));
   const left = shedX(-6.75);
-  const words: PaintedWords[] = [
-    { ...base, align: "right", lines: [String(stage.number)], at: [shedX(-6.95), 1.6, z], height: 1.6, colour: "ink", weight: 800, pixelsPerMetre: 560 },
-    { ...base, lines: [stage.name], at: [left, 2.92, z], height: fitName(stage.name, 3.15, 0.5), colour: "ink", pixelsPerMetre: 800 },
-    { ...base, lines: [stage.caption], at: [left, 1.72, z], height: 0.155, colour: "caption", family: "Mukta", weight: 600, pixelsPerMetre: 1400, wear: 0, lineHeight: 1.3 },
-  ];
-  if (stage.localName) words.push({ ...base, lines: [stage.localName], at: [left, 2.5, z], height: fitName(stage.localName, 3.15, 0.18), colour: "ink", weight: 600, pixelsPerMetre: 1400, wear: 0.2 });
+  const words: PaintedWords[] = [{ ...base, align: "right", lines: [String(stage.number)], at: [shedX(-6.95), 1.6, z], height: 1.6, colour: "ink", weight: 800, pixelsPerMetre: 560 }];
+  let top = 3.5;
+  const nameLines = linesNeeded(stage.name, NAME_HEIGHT);
+  words.push({ ...base, lines: [stage.name], at: [left, top, z], height: NAME_HEIGHT, colour: "ink", pixelsPerMetre: 800, lineHeight: 1.1, maxWidth: WORD_COLUMN_WIDTH });
+  top -= nameLines * NAME_HEIGHT * 1.1 + 0.14;
+  if (stage.localName) {
+    words.push({ ...base, lines: [stage.localName], at: [left, top, z], height: 0.16, colour: "ink", weight: 600, pixelsPerMetre: 1400, wear: 0.2, maxWidth: WORD_COLUMN_WIDTH });
+    top -= linesNeeded(stage.localName, 0.16) * 0.16 * 1.14 + 0.1;
+  }
+  words.push({ ...base, lines: [stage.caption], at: [left, top, z], height: 0.13, colour: "caption", family: "Mukta", weight: 600, pixelsPerMetre: 1400, wear: 0, lineHeight: 1.3, maxWidth: WORD_COLUMN_WIDTH });
   return words;
 }
 
@@ -264,19 +286,22 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     pins.push([CLOTH_LINE_X - CLOTH_WIDTH / 2 + 0.02, z]);
     pins.push([CLOTH_LINE_X + CLOTH_WIDTH / 2 - 0.02, z + 0.3]);
   }
-  const benchX = X(CLOTH_LINE_X - 2.75);
+  const benchX = CLOTH_LINE_X - side * 2.75;
   const benchFront = benchX - side * 0.2505;
   const placed: PlacedItem[] = [];
   const integralWords: string[] = [];
-  let slotZ = 8.2;
+  let slotZ = 9.2;
   for (const item of stage.items) {
     const integralHere = (item.modelId === "printing-table" && work.type === "table") || (item.modelId === "dye-vat" && work.type === "ring") || (item.modelId === "boiling-vessel" && work.type === "ring") || (item.modelId === "wash-tank" && work.type === "tank");
     if (integralHere) {
       integralWords.push(item.localName ? `${item.label} (${item.localName})` : item.label);
       continue;
     }
-    placed.push({ item, x: benchX, z: slotZ, surfaceTop: 0.38, onBench: true, benchLabel: benchWords(item, benchFront, slotZ, 0.33, side) });
-    slotZ -= 1.6;
+    const words = item.localName ? `${item.label} (${item.localName})` : item.label;
+    const benchLength = Math.max(1.3, words.length * 0.078 * 0.53 + 0.3);
+    const centre = slotZ - benchLength / 2;
+    placed.push({ item, x: benchX, z: centre, surfaceTop: 0.38, onBench: true, benchLabel: benchWords(item, benchFront, centre, 0.33, side), benchLength });
+    slotZ -= benchLength + 0.3;
   }
   if (work.type === "ring" && integralWords.length > 0) {
     curvedWords.push({ lines: integralWords, centre: [CLOTH_LINE_X, work.z], radius: work.rim + 0.003, y: work.curb / 2, angle: -side * 1.38, height: Math.min(0.095, (work.curb * 0.7) / (integralWords.length * 1.2)) });
@@ -317,5 +342,12 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     readingSpot: { from: [readX, EYE_HEIGHT, -0.9], to: [readX, 1.72, shedZ] },
     tie,
     heightField: field,
+    walkLine: [
+      [standX, 11.2],
+      [CLOTH_LINE_X - side * 1.85, 10.4],
+      [CLOTH_LINE_X - side * 1.85, -10],
+      [CLOTH_LINE_X, -14],
+      [CLOTH_LINE_X, -25.9],
+    ],
   };
 }
