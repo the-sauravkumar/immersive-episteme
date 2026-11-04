@@ -213,7 +213,7 @@ win.flicker = async (frames = 60, threshold = 10, mode = "pan") => {
   context.putImageData(image, 0, 0);
   return { mode, anyPct: +((any / count) * 100).toFixed(3), fourPlusPct: +((four / count) * 100).toFixed(3), events, heat: heat.toDataURL("image/png") };
 };
-win.WALK = () => {
+win.walkCheck = () => {
   if (!walkPlan || !walkColliders) return null;
   let walker: Walker = walkerAt(walkPlan.standpoint.from, walkPlan.standpoint.to, 0);
   let target: WalkTarget | null = { station: 0, waypoint: 1 };
