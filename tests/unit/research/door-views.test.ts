@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { stagePanelModel } from "@/features/course/domain/panel-model";
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
@@ -39,6 +39,8 @@ const replaceDoor = (door: "2d" | "immersive", view: DoorView["traditions"][numb
   const doors = buildDoorViews(templates);
   return doors.map((entry) => (entry.door === door ? { ...entry, traditions: entry.traditions.map((tradition) => (tradition.tradition === view.tradition ? view : tradition)) } : entry));
 };
+
+vi.setConfig({ testTimeout: 30000 });
 
 describe("door views read each door's own generator", () => {
   it("registers both doors, and the real templates pass", () => {

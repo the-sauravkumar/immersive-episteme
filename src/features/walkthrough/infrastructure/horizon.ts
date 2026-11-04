@@ -33,8 +33,7 @@ export function addHorizon(scene: THREE.Scene, earth: THREE.Texture): THREE.Grou
   const groundTexture = earth.clone();
   groundTexture.repeat.set(300, 300);
   groundTexture.needsUpdate = true;
-  const land = new THREE.Mesh(new THREE.CircleGeometry(880, 96), new THREE.MeshStandardMaterial({ map: groundTexture, roughness: 1, color: new THREE.Color(2.5, 1.62, 1.22) }));
-  land.rotation.x = -Math.PI / 2;
+  const land = new THREE.Mesh(new THREE.CircleGeometry(880, 96), new THREE.MeshStandardMaterial({ map: groundTexture, roughness: 1, color: new THREE.Color(2.5, 1.62, 1.22) }));  land.rotation.x = -Math.PI / 2;
   land.position.y = LAND_BELOW_THE_WELLS;
   land.receiveShadow = false;
   scene.add(land);

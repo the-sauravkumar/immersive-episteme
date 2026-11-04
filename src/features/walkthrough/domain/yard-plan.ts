@@ -15,6 +15,8 @@ export const EYE_HEIGHT = 1.6;
 export const YARD_HALF_WIDTH = 24;
 
 export const WORK_FLOOR_Y = -0.72;
+export const CLOTH_COLUMNS = 78;
+const SETTLED_CLOTH_FLOOR = WORK_FLOOR_Y + 0.03;
 
 export type WorkStructure =
   | { readonly type: "ring"; readonly z: number; readonly radius: number; readonly rim: number; readonly curb: number; readonly level: number; readonly finish: "lime" | "copper" }
@@ -44,6 +46,7 @@ export interface CurvedWords {
   readonly y: number;
   readonly angle: number;
   readonly height: number;
+  readonly colour: "ink" | "lime";
 }
 
 export interface PlacedItem {
@@ -128,7 +131,7 @@ export function heightFieldFor(work: WorkStructure, rails: readonly number[]): H
       else if (r > work.rim + 0.03 && r < work.rim + 0.03 + work.curb * 1.6) h = Math.max(h, h + (top - h) * cosineFall((r - work.rim - 0.03) / (work.curb * 1.6)));
       else if (r < work.radius - 0.02) {
         const t = (work.radius - 0.02 - r) / 0.42;
-        h = t >= 1 ? -9 : work.level - 0.25 + (top - work.level + 0.25) * cosineFall(t);
+        h = SETTLED_CLOTH_FLOOR + (top - SETTLED_CLOTH_FLOOR) * cosineFall(t);
       }
     }
     if (work.type === "tank") {
@@ -140,7 +143,7 @@ export function heightFieldFor(work: WorkStructure, rails: readonly number[]): H
       const inner = dx < work.halfX - 0.02 && dz < work.halfZ - 0.02;
       if (inner) {
         const t = Math.min(work.halfZ - 0.02 - dz, 0.42) / 0.42;
-        h = t >= 1 ? -9 : work.level - 0.25 + (top - work.level + 0.25) * cosineFall(t);
+        h = SETTLED_CLOTH_FLOOR + (top - SETTLED_CLOTH_FLOOR) * cosineFall(t);
       } else if (dx <= outerX + 0.03 && dz <= outerZ + 0.03) h = top;
       else if (dx <= outerX + 0.03 && dz < outerZ + 0.03 + work.curb * 1.6) h = Math.max(h, h + (top - h) * cosineFall((dz - outerZ - 0.03) / (work.curb * 1.6)));
     }
@@ -218,6 +221,7 @@ function benchWords(item: StageItem, x: number, z: number, y: number, side: 1 | 
 }
 
 const NAME_HEIGHT = 0.34;
+const GATE_PIER_WIDTH = 0.42;
 const WORD_COLUMN_WIDTH = 3.2;
 
 function linesNeeded(text: string, height: number): number {
@@ -269,7 +273,7 @@ export function buildYardPlan(stage: YardStage): YardPlan {
   const specOf = (points: readonly Vec3[], name: string, state: "before" | "after", fold: number): ClothPiece => ({
     name,
     state,
-    surface: settleCloth({ points, width: CLOTH_WIDTH, metresPerRepeat: 3.46, fold, foldFrequency: 3.1, step: 0.05, columns: 44, foldAmount, field }),
+    surface: settleCloth({ points, width: CLOTH_WIDTH, metresPerRepeat: 3.46, fold, foldFrequency: 3.1, step: 0.05, columns: CLOTH_COLUMNS, foldAmount, field }),
   });
   const cloth: ClothPiece[] = [];
   let lastGround = 6;
@@ -282,14 +286,14 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     const inside = work.type === "ring" ? work.radius - 0.72 : work.halfZ - 0.72;
     lastGround = work.z + reach;
     cloth.push(specOf([...incomingGround(lastGround + 1), [CLOTH_LINE_X, 0.012, lastGround], [CLOTH_LINE_X, 0.012, work.z + inside + 0.5], [CLOTH_LINE_X, -0.1, work.z + inside + 0.1], [CLOTH_LINE_X, -0.3, work.z + inside - 0.2], [CLOTH_LINE_X, -0.36, work.z]], "cloth-in", "before", 0.004));
-    cloth.push(specOf([[CLOTH_LINE_X, -0.36, work.z], [CLOTH_LINE_X, -0.3, work.z - inside + 0.2], [CLOTH_LINE_X, work.level + 0.03, work.z - inside], [CLOTH_LINE_X, work.curb + 1, Math.min(3.5, work.z - inside - 0.7)], [CLOTH_LINE_X, 3.2, start + 0.45], [CLOTH_LINE_X, RAIL_HEIGHT - 0.2, start + 0.18], toFirstRail, ...festoon, ...away], "cloth-out", "after", 0.07));
+    cloth.push(specOf([[CLOTH_LINE_X, -0.36, work.z], [CLOTH_LINE_X, -0.3, work.z - inside + 0.2], [CLOTH_LINE_X, work.level + 0.03, work.z - inside], [CLOTH_LINE_X, work.curb + 1, Math.min(3.5, work.z - inside - 0.7)], [CLOTH_LINE_X, 3.2, start + 0.45], [CLOTH_LINE_X, RAIL_HEIGHT - 0.2, start + 0.18], toFirstRail, ...festoon, ...away], "cloth-out", "after", 0.065));
   } else if (work.type === "table") {
     const boundary = 3.4;
     cloth.push(specOf([[CLOTH_LINE_X, 0.012, YARD_FRONT_Z], [CLOTH_LINE_X, 0.012, work.stackZ + 2], [CLOTH_LINE_X, 0.2, work.stackZ + 0.95], [CLOTH_LINE_X, work.stackTop, work.stackZ + 0.3], [CLOTH_LINE_X, work.stackTop, work.stackZ - 0.25], [CLOTH_LINE_X, 0.6, work.z1 + 0.6], [CLOTH_LINE_X, work.top + 0.012, work.z1], [CLOTH_LINE_X, work.top + 0.012, boundary]], "cloth-in", "before", 0.003));
-    cloth.push(specOf([[CLOTH_LINE_X, work.top + 0.012, boundary], [CLOTH_LINE_X, work.top + 0.012, work.z0 + 0.5], [CLOTH_LINE_X, work.top + 0.1, work.z0 - 0.1], [CLOTH_LINE_X, 1.6, -1.7], [CLOTH_LINE_X, 3.3, -2.5], [CLOTH_LINE_X, RAIL_HEIGHT - 0.2, start + 0.25], toFirstRail, ...festoon, ...away], "cloth-out", "after", 0.07));
+    cloth.push(specOf([[CLOTH_LINE_X, work.top + 0.012, boundary], [CLOTH_LINE_X, work.top + 0.012, work.z0 + 0.5], [CLOTH_LINE_X, work.top + 0.1, work.z0 - 0.1], [CLOTH_LINE_X, 1.6, -1.7], [CLOTH_LINE_X, 3.3, -2.5], [CLOTH_LINE_X, RAIL_HEIGHT - 0.2, start + 0.25], toFirstRail, ...festoon, ...away], "cloth-out", "after", 0.065));
   } else {
     cloth.push(specOf([...incomingGround(4), [CLOTH_LINE_X, 0.012, 0.8]], "cloth-in", "before", 0.004));
-    cloth.push(specOf([[CLOTH_LINE_X, 0.012, 0.8], [CLOTH_LINE_X, 0.03, 0.2], [CLOTH_LINE_X, 1.4, -0.45], [CLOTH_LINE_X, 3.3, -0.85], [CLOTH_LINE_X, RAIL_HEIGHT - 0.2, start + 0.2], toFirstRail, ...festoon, ...away], "cloth-out", "after", 0.07));
+    cloth.push(specOf([[CLOTH_LINE_X, 0.012, 0.8], [CLOTH_LINE_X, 0.03, 0.2], [CLOTH_LINE_X, 1.4, -0.45], [CLOTH_LINE_X, 3.3, -0.85], [CLOTH_LINE_X, RAIL_HEIGHT - 0.2, start + 0.2], toFirstRail, ...festoon, ...away], "cloth-out", "after", 0.065));
   }
   const pins: (readonly [number, number])[] = [];
   const pinStart = work.type === "table" ? work.stackZ + 2.2 : work.type === "open" ? 1.8 : lastGround + 1;
@@ -297,7 +301,7 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     pins.push([CLOTH_LINE_X - CLOTH_WIDTH / 2 + 0.02, z]);
     pins.push([CLOTH_LINE_X + CLOTH_WIDTH / 2 - 0.02, z + 0.3]);
   }
-  const benchX = CLOTH_LINE_X - side * 2.75;
+  const benchX = CLOTH_LINE_X - side * 3.2;
   const benchFront = benchX - side * 0.2505;
   const placed: PlacedItem[] = [];
   const integralWords: string[] = [];
@@ -315,7 +319,7 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     slotZ -= benchLength + 0.3;
   }
   if (work.type === "ring" && integralWords.length > 0) {
-    curvedWords.push({ lines: integralWords, centre: [CLOTH_LINE_X, work.z], radius: work.rim + 0.003, y: work.curb / 2, angle: -side * 1.38, height: Math.min(0.095, (work.curb * 0.7) / (integralWords.length * 1.2)) });
+    curvedWords.push({ lines: integralWords, centre: [CLOTH_LINE_X, work.z], radius: work.rim + 0.003, y: work.curb / 2, angle: -side * 1.38, height: Math.min(0.095, (work.curb * 0.7) / (integralWords.length * 1.2)), colour: work.finish === "copper" ? "lime" : "ink" });
   }
   if (work.type === "tank" && integralWords.length > 0) {
     const faceX = CLOTH_LINE_X - side * (work.halfX + work.rim + 0.002);
@@ -330,8 +334,9 @@ export function buildYardPlan(stage: YardStage): YardPlan {
   const tie = work.type === "table" ? null : { x: CLOTH_LINE_X - side * 1.22, z0: rails[rails.length - 1]! - 0.1, z1: rails[0]! + 0.15, y: 1.3 };
   if (tie) words.push({ lines: [CLOTH_AFTER_LABEL], at: [CLOTH_LINE_X - side * 1.2465, 1.3, (tie.z0 + tie.z1) / 2 + 1], facing: paintedFacing(side), height: 0.128, align: "center", colour: "lime", weight: 700, family: "Eczar", pixelsPerMetre: 1500, wear: 0.6, lineHeight: 1.14 });
   if (stage.next) {
-    const toward = CLOTH_LINE_X - side * (GAP_WIDTH / 2 + 3.4);
-    words.push({ lines: [`${stage.next.number}  ${stage.next.name}`], at: [toward, 1.55, FAR_WALL_Z + 0.156], facing: 0, height: 0.42, align: "center", colour: "lime", weight: 800, family: "Eczar", pixelsPerMetre: 900, wear: 0.8, lineHeight: 1.1 });
+    const nextWords = `${stage.next.number}  ${stage.next.name}`;
+    const toward = CLOTH_LINE_X - side * (GAP_WIDTH / 2 + GATE_PIER_WIDTH + nextWords.length * 0.42 * 0.3 + 0.3);
+    words.push({ lines: [nextWords], at: [toward, 1.55, FAR_WALL_Z + 0.156], facing: 0, height: 0.42, align: "center", colour: "lime", weight: 800, family: "Eczar", pixelsPerMetre: 900, wear: 0.8, lineHeight: 1.1 });
   }
   const standX = CLOTH_LINE_X - side * 5.8;
   const standpoint = work.type === "table"
@@ -357,10 +362,13 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     heightField: field,
     walkLine: [
       [standpoint.from[0], standpoint.from[2]],
-      [CLOTH_LINE_X - side * 1.85, 10.4],
-      [CLOTH_LINE_X - side * 1.85, -10],
+      [CLOTH_LINE_X - side * 2.18, 11.2],
+      [CLOTH_LINE_X - side * 2.18, 10.4],
+      [CLOTH_LINE_X - side * 2.18, -10],
       [CLOTH_LINE_X, -14],
-      [CLOTH_LINE_X, -26.4],
+      [CLOTH_LINE_X, -21.8],
+      [CLOTH_LINE_X + side * 1.7, -23.2],
+      [CLOTH_LINE_X + side * 1.7, -26.4],
     ],
   };
 }

@@ -1,6 +1,6 @@
 import { boxesOverlapDepth, insideDepth, type Box, type Vec3 } from "./geometry";
 
-export type SolidRole = "wall" | "structure" | "object" | "textile" | "frame" | "hollow";
+export type SolidRole = "wall" | "structure" | "object" | "textile" | "frame" | "hollow" | "surface";
 
 export interface CheckedSolid {
   readonly name: string;
@@ -8,6 +8,7 @@ export interface CheckedSolid {
   readonly box: Box;
   readonly restsOn: readonly string[];
   readonly planted: boolean;
+  readonly standsOnY?: number;
 }
 
 export interface SolidField {
@@ -31,15 +32,16 @@ export interface CheckedSphere {
 export interface FillAudit {
   readonly name: string;
   readonly points: Float32Array;
-  readonly outsideDepth: (point: Vec3) => number;
+  readonly vertexOutside: (point: Vec3) => boolean;
   readonly pieces: readonly (readonly CheckedSphere[])[];
 }
 
 export interface SceneProblem {
-  readonly rule: "solid-overlap" | "outside-yard" | "below-ground" | "through-wall" | "cloth-penetration" | "fill-outside-vessel" | "fill-overlap";
+  readonly rule: "solid-overlap" | "outside-yard" | "below-ground" | "through-wall" | "cloth-penetration" | "fill-outside-vessel" | "fill-overlap" | "through-bench" | "unchecked-mesh";
   readonly subject: string;
   readonly against: string;
   readonly depthMm: number;
+  readonly vertices?: number;
 }
 
 export interface SceneCheckInput {
@@ -49,6 +51,7 @@ export interface SceneCheckInput {
   readonly cloths: readonly ClothMesh[];
   readonly groundIsOpenAt: (x: number, z: number) => boolean;
   readonly fills?: readonly FillAudit[];
+  readonly unchecked?: readonly string[];
 }
 
 export interface SceneCheckReport {
@@ -68,8 +71,10 @@ const mm = (metres: number): number => Math.round(metres * 10000) / 10;
 
 function solidProblems(input: SceneCheckInput): SceneProblem[] {
   const problems: SceneProblem[] = [];
-  const { yard, solids } = input;
+  const yard = input.yard;
+  const solids = input.solids.filter((solid) => solid.role !== "surface");
   for (const solid of solids) {
+    if (solid.standsOnY !== undefined && solid.box.min[1] < solid.standsOnY - TOLERANCE_METRES) problems.push({ rule: "through-bench", subject: solid.name, against: "bench top", depthMm: mm(solid.standsOnY - solid.box.min[1]) });
     if (solid.role !== "wall") {
       const beyond = Math.max(yard.min[0] - solid.box.min[0], solid.box.max[0] - yard.max[0], yard.min[2] - solid.box.min[2], solid.box.max[2] - yard.max[2]);
       if (beyond > TOLERANCE_METRES) problems.push({ rule: "outside-yard", subject: solid.name, against: "yard", depthMm: mm(beyond) });
@@ -99,7 +104,7 @@ function clothProblems(input: SceneCheckInput, count: { points: number }): Scene
     const known = worst.get(key);
     if (!known || known.depthMm < mm(depth)) worst.set(key, { rule: "cloth-penetration", subject, against, depthMm: mm(depth) });
   };
-  const blockers = input.solids.filter((solid) => solid.role !== "frame" && solid.role !== "hollow");
+  const blockers = input.solids.filter((solid) => solid.role !== "frame" && solid.role !== "hollow" && solid.role !== "surface");
   const test = (name: string, p: Vec3) => {
     count.points++;
     if (p[1] < GROUND_ALLOWANCE_METRES && !input.groundIsOpenAt(p[0], p[2])) note(name, "ground", GROUND_ALLOWANCE_METRES - p[1]);
@@ -136,13 +141,13 @@ function piecesOverlapDepth(a: readonly CheckedSphere[], b: readonly CheckedSphe
 function fillProblems(input: SceneCheckInput, count: { fillPoints: number; fillPieces: number }): SceneProblem[] {
   const problems: SceneProblem[] = [];
   for (const fill of input.fills ?? []) {
-    let deepest = 0;
+    let outside = 0;
     const p = fill.points;
     for (let k = 0; k < p.length; k += 3) {
       count.fillPoints++;
-      deepest = Math.max(deepest, fill.outsideDepth([p[k]!, p[k + 1]!, p[k + 2]!]));
+      if (fill.vertexOutside([p[k]!, p[k + 1]!, p[k + 2]!])) outside++;
     }
-    if (deepest > TOLERANCE_METRES) problems.push({ rule: "fill-outside-vessel", subject: fill.name, against: "vessel", depthMm: mm(deepest) });
+    if (outside > 0) problems.push({ rule: "fill-outside-vessel", subject: fill.name, against: "vessel", depthMm: 0, vertices: outside });
     count.fillPieces += fill.pieces.length;
     let overlap = 0;
     for (let i = 0; i < fill.pieces.length; i++) {
@@ -155,6 +160,7 @@ function fillProblems(input: SceneCheckInput, count: { fillPoints: number; fillP
 
 export function checkScene(input: SceneCheckInput): SceneCheckReport {
   const count = { points: 0, fillPoints: 0, fillPieces: 0 };
-  const problems = [...solidProblems(input), ...clothProblems(input, count), ...fillProblems(input, count)];
+  const unchecked = (input.unchecked ?? []).map((name): SceneProblem => ({ rule: "unchecked-mesh", subject: name, against: "scene check", depthMm: 0 }));
+  const problems = [...solidProblems(input), ...clothProblems(input, count), ...fillProblems(input, count), ...unchecked];
   return { solidsChecked: input.solids.length, clothPointsChecked: count.points, fillPointsChecked: count.fillPoints, fillPiecesChecked: count.fillPieces, problems };
 }

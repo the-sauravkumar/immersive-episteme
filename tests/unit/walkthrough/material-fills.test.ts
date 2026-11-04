@@ -80,7 +80,7 @@ describe("piles do not interpenetrate", () => {
       const [x, y, z] = rotateYXZ(sphere.x, sphere.y, sphere.z, piece.yaw, piece.pitch, piece.roll);
       return { x: x + piece.x, y: y + piece.y, z: z + piece.z, r: sphere.r };
     }));
-    const audit: FillAudit = { name: "pile", points: new Float32Array(0), outsideDepth: () => 0, pieces: world };
+    const audit: FillAudit = { name: "pile", points: new Float32Array(0), vertexOutside: () => false, pieces: world };
     const report = checkScene({ yard: { min: [-1, -1, -1], max: [1, 1, 1] }, solids: [], cloths: [], fields: [], groundIsOpenAt: () => false, fills: [audit] });
     expect(report.problems).toEqual([]);
     for (const piece of world) for (const sphere of piece) expect(sphere.y - sphere.r).toBeGreaterThanOrEqual(profile.floorY - 1e-6);
@@ -88,7 +88,7 @@ describe("piles do not interpenetrate", () => {
 
   it("the scene check catches a pile overlap and a fill through the wall", () => {
     const pieces = [[{ x: 0, y: 0, z: 0, r: 0.02 }], [{ x: 0.01, y: 0, z: 0, r: 0.02 }]];
-    const fill: FillAudit = { name: "bad", points: Float32Array.from([0.5, 0.1, 0]), outsideDepth: ([x, y, z]) => outsideDepth(profile, x, y, z), pieces };
+    const fill: FillAudit = { name: "bad", points: Float32Array.from([0.5, 0.1, 0]), vertexOutside: ([x, y, z]) => outsideDepth(profile, x, y, z) > 0.004, pieces };
     const report = checkScene({ yard: { min: [-1, -1, -1], max: [1, 1, 1] }, solids: [], cloths: [], fields: [], groundIsOpenAt: () => false, fills: [fill] });
     expect(report.problems.map((problem) => problem.rule).sort()).toEqual(["fill-outside-vessel", "fill-overlap"]);
   });

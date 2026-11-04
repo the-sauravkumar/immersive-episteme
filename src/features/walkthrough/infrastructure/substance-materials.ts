@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import type { SubstanceFill, SubstanceLook, Transparency } from "@/features/process/domain/substance-look";
 import { albedoForDisplay, type LinearRgb } from "../domain/lit-colour";
-import type { MaterialLibrary, ScanName } from "./material-library";
+import { noteSurface, type MaterialLibrary, type ScanName } from "./material-library";
 
 const TRIPLANAR_VERTEX = [
   "#include <begin_vertex>",
@@ -109,11 +109,11 @@ export function substanceMaterial(library: MaterialLibrary, look: SubstanceLook)
       transparent: look.fill === "paste" && look.transparency === "translucent",
       opacity: look.fill === "paste" && look.transparency === "translucent" ? 0.93 : 1,
     });
-    return projectScan(material, 1 / scan.tileMetres, form.contrast, look.fill === "paste" ? 0.16 : 0.72);
+    return noteSurface(projectScan(material, 1 / scan.tileMetres, form.contrast, look.fill === "paste" ? 0.16 : 0.72), { label: `substance ${look.key}`, kind: "model", perMetre: 1 / scan.tileMetres });
   });
 }
 
-const LIQUID_OPACITY: Readonly<Record<Transparency, number>> = { clear: 0.1, translucent: 0.975, opaque: 1 };
+const LIQUID_OPACITY: Readonly<Record<Transparency, number>> = { clear: 0.1, translucent: 1, opaque: 1 };
 const CLEAR_TINT = 0.05;
 const CLEAR_CRYSTAL_BODY = 0.42;
 
@@ -137,6 +137,7 @@ export function liquidMaterial(library: MaterialLibrary, look: SubstanceLook): P
       opacity,
       depthWrite: opacity === 1,
     });
+    noteSurface(material, { label: `liquid ${look.key}`, kind: "smooth" });
     material.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace("#include <opaque_fragment>", REFLECTS_WHEN_GRAZED);
     };
@@ -150,7 +151,8 @@ export function crystalMaterial(library: MaterialLibrary, look: SubstanceLook): 
     const clear = look.transparency === "clear";
     const colour = displayAlbedo(look.renderHex);
     if (clear) colour.multiplyScalar(CLEAR_CRYSTAL_BODY);
-    const material = new THREE.MeshStandardMaterial({ color: colour, roughness: clear ? 0.2 : 0.32, metalness: 0, envMapIntensity: clear ? 1.6 : 0.75, transparent: clear, opacity: clear ? 0.56 : 1, flatShading: true, side: clear ? THREE.DoubleSide : THREE.FrontSide });
+    const material = new THREE.MeshStandardMaterial({ color: colour, roughness: clear ? 0.2 : 0.42, metalness: 0, envMapIntensity: clear ? 1.6 : 0.65, transparent: clear, opacity: clear ? 0.56 : 1, flatShading: true, side: clear ? THREE.DoubleSide : THREE.FrontSide });
+    noteSurface(material, { label: `crystals ${look.key}`, kind: "smooth" });
     if (!clear) return material;
     material.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace("#include <opaque_fragment>", REFLECTS_WHEN_GRAZED);
@@ -162,7 +164,8 @@ export function crystalMaterial(library: MaterialLibrary, look: SubstanceLook): 
 
 export function bubbleMaterial(library: MaterialLibrary): Promise<THREE.MeshStandardMaterial> {
   return library.shared("bubble-shell", async () => {
-    const material = new THREE.MeshStandardMaterial({ color: 0xf4f2ea, roughness: 0.08, metalness: 0, envMapIntensity: 1.4, transparent: true, opacity: 0.22, depthWrite: false });
+    const material = new THREE.MeshStandardMaterial({ color: 0xf4f2ea, roughness: 0.28, metalness: 0, envMapIntensity: 1, transparent: true, opacity: 0.22, depthWrite: false });
+    noteSurface(material, { label: "bubble", kind: "smooth" });
     material.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace("#include <opaque_fragment>", REFLECTS_WHEN_GRAZED);
     };
@@ -175,6 +178,7 @@ export function copperScumMaterial(library: MaterialLibrary): Promise<THREE.Mesh
   return library.shared("scum:copper", async () => {
     const scan = await library.scan("dryMud");
     const material = new THREE.MeshStandardMaterial({ map: scan.colour, color: displayAlbedo("#C07A44"), roughness: 0.42, metalness: 0.7, envMapIntensity: 1.4, transparent: true, depthWrite: false });
+    noteSurface(material, { label: "copper scum", kind: "smooth" });
     material.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace(
         "#include <map_fragment>",

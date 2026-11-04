@@ -2,18 +2,21 @@ import * as THREE from "three";
 import { liquidMarks, type SubstanceLook } from "@/features/process/domain/substance-look";
 import { fittedSurface, flatLevel, levelInVessel, moundHeight, pasteHeight, type SurfaceGrid } from "../domain/fill-surface";
 import { packingSteps, seededRandom, rotateYXZ, type PlacedPiece } from "../domain/pile-packing";
+import { makeVesselProbe, vertexOutsideVessel, type VesselProbe } from "../domain/mesh-probe";
 import type { FillAudit, CheckedSphere } from "../domain/scene-check";
-import { measuringSteps, outsideDepth, wallRadius, widestWallRadius, type VesselProfile } from "../domain/vessel-profile";
+import { measuringSteps, wallRadius, widestWallRadius, type VesselProfile } from "../domain/vessel-profile";
 import type { MaterialLibrary } from "./material-library";
 import { isPileFill, pileRecipe, type PileFill, type PileRecipe } from "./fill-pieces";
 import { softBox } from "./solid-builders";
 import { bubbleMaterial, copperScumMaterial, crystalMaterial, liquidMaterial, substanceMaterial } from "./substance-materials";
 
 const LIQUID_FRACTION = 0.76;
+const BUBBLE_CLEARANCE_METRES = 0.0006;
 const PASTE_FRACTION = 0.66;
 const POWDER_FRACTION = 0.5;
 const POWDER_HEAP_FRACTION = 0.42;
 const CLEAR_OF_LOW_RIM = 0.01;
+const CLEAR_OF_WOVEN_FLOOR = 0.008;
 const FOLDED_PILES = 3;
 const FOLDED_GAP = 0.012;
 
@@ -32,21 +35,43 @@ async function runGradually<T>(steps: Generator<void, T>): Promise<T> {
   return step.value;
 }
 
-export function measureObjectProfile(object: THREE.Object3D): Promise<VesselProfile> {
-  object.updateWorldMatrix(true, true);
+export function trianglesOf(objects: readonly THREE.Object3D[], origin: THREE.Vector3 = new THREE.Vector3()): Float32Array {
   const corners: number[] = [];
   const point = new THREE.Vector3();
-  object.traverse((node) => {
-    if (!(node instanceof THREE.Mesh)) return;
-    const geometry = node.geometry as THREE.BufferGeometry;
-    const position = geometry.attributes.position!;
-    const count = geometry.index ? geometry.index.count : position.count;
-    for (let i = 0; i < count; i++) {
-      point.fromBufferAttribute(position, geometry.index ? geometry.index.getX(i) : i).applyMatrix4(node.matrixWorld);
-      corners.push(point.x, point.y, point.z);
-    }
-  });
-  return runGradually(measuringSteps(Float32Array.from(corners)));
+  for (const object of objects) {
+    object.updateWorldMatrix(true, true);
+    object.traverse((node) => {
+      if (!(node instanceof THREE.Mesh)) return;
+      const geometry = node.geometry as THREE.BufferGeometry;
+      const position = geometry.attributes.position!;
+      const count = geometry.index ? geometry.index.count : position.count;
+      for (let i = 0; i < count; i++) {
+        point.fromBufferAttribute(position, geometry.index ? geometry.index.getX(i) : i).applyMatrix4(node.matrixWorld).sub(origin);
+        corners.push(point.x, point.y, point.z);
+      }
+    });
+  }
+  return Float32Array.from(corners);
+}
+
+export interface MeasuredVessel {
+  readonly profile: VesselProfile;
+  readonly triangles: Float32Array;
+  probe: VesselProbe | null;
+}
+
+export async function measureObject(object: THREE.Object3D): Promise<MeasuredVessel> {
+  const triangles = trianglesOf([object]);
+  return { profile: await runGradually(measuringSteps(triangles)), triangles, probe: null };
+}
+
+const VESSEL_TUCK_METRES = 0.003;
+
+function outsideTest(measured: MeasuredVessel): FillAudit["vertexOutside"] {
+  return (point) => {
+    measured.probe ??= makeVesselProbe(measured.triangles, 0, 0, measured.profile.rimY, measured.profile.floorY);
+    return vertexOutsideVessel(measured.probe, point, VESSEL_TUCK_METRES);
+  };
 }
 
 function gridGeometry(grid: SurfaceGrid): THREE.BufferGeometry {
@@ -77,8 +102,8 @@ function stillMesh(geometry: THREE.BufferGeometry, material: THREE.Material): TH
   return mesh;
 }
 
-function surfaceAudit(name: string, profile: VesselProfile, geometry: THREE.BufferGeometry): FillAudit {
-  return { name, points: geometry.attributes.position!.array as Float32Array, outsideDepth: ([x, y, z]) => outsideDepth(profile, x, y, z), pieces: [] };
+function surfaceAudit(name: string, measured: MeasuredVessel, geometry: THREE.BufferGeometry): FillAudit {
+  return { name, points: geometry.attributes.position!.array as Float32Array, vertexOutside: outsideTest(measured), pieces: [] };
 }
 
 const kept = (library: MaterialLibrary, geometry: THREE.BufferGeometry): THREE.BufferGeometry => {
@@ -93,7 +118,7 @@ export interface BubbleArea {
   readonly largest: number;
 }
 
-export async function addBubbles(library: MaterialLibrary, parent: THREE.Object3D, level: number, area: BubbleArea): Promise<void> {
+export async function addBubbles(library: MaterialLibrary, parent: THREE.Object3D, level: number, area: BubbleArea): Promise<number[]> {
   const dome = await library.shared("bubble-dome", async () => new THREE.SphereGeometry(1, 20, 8, 0, Math.PI * 2, 0, Math.PI / 2));
   const material = await bubbleMaterial(library);
   const random = seededRandom(area.count * 31 + 7);
@@ -117,9 +142,11 @@ export async function addBubbles(library: MaterialLibrary, parent: THREE.Object3
     bubbles.setMatrixAt(i, holder.matrix);
   });
   parent.add(bubbles);
+  return placed.flatMap(({ x, z, r }) => [x + r, level, z, x - r, level, z, x, level, z + r, x, level, z - r, x, level + r, z]);
 }
 
-async function addLiquid(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, profile: VesselProfile, name: string): Promise<FillAudit> {
+async function addLiquid(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
+  const profile = measured.profile;
   const level = levelInVessel(profile, LIQUID_FRACTION);
   const geometry = await library.shared(`surface:liquid:${scanId}`, async () => {
     const built = gridGeometry(fittedSurface(profile, level, 32, 192, flatLevel(level)));
@@ -128,19 +155,22 @@ async function addLiquid(library: MaterialLibrary, parent: THREE.Object3D, scanI
   });
   parent.add(stillMesh(geometry, await liquidMaterial(library, look)));
   const marks = liquidMarks(look);
-  if (marks.bubbles) await addBubbles(library, parent, level, { reach: (theta) => wallRadius(profile, theta, level), count: 620, smallest: 0.001, largest: 0.0042 });
-  return surfaceAudit(name, profile, geometry);
+  const bubblePoints = marks.bubbles ? await addBubbles(library, parent, level + BUBBLE_CLEARANCE_METRES, { reach: (theta) => wallRadius(profile, theta, level), count: 520, smallest: 0.0018, largest: 0.0046 }) : [];
+  const surface = surfaceAudit(name, measured, geometry);
+  return bubblePoints.length === 0 ? surface : { ...surface, points: Float32Array.from([...surface.points, ...bubblePoints]) };
 }
 
-async function addPaste(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, profile: VesselProfile, name: string): Promise<FillAudit> {
+async function addPaste(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
+  const profile = measured.profile;
   const level = levelInVessel(profile, PASTE_FRACTION);
   const depth = profile.rimY - profile.floorY;
   const geometry = await library.shared(`surface:paste:${scanId}`, async () => gridGeometry(fittedSurface(profile, level, 56, 224, pasteHeight(level, depth))));
   parent.add(stillMesh(geometry, await substanceMaterial(library, look)));
-  return surfaceAudit(name, profile, geometry);
+  return surfaceAudit(name, measured, geometry);
 }
 
-async function addPowder(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, profile: VesselProfile, name: string): Promise<FillAudit> {
+async function addPowder(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
+  const profile = measured.profile;
   const level = levelInVessel(profile, POWDER_FRACTION);
   const depth = profile.rimY - profile.floorY;
   const heap = depth * POWDER_HEAP_FRACTION;
@@ -148,7 +178,7 @@ async function addPowder(library: MaterialLibrary, parent: THREE.Object3D, scanI
   const mound = stillMesh(geometry, await substanceMaterial(library, look));
   mound.castShadow = true;
   parent.add(mound);
-  return surfaceAudit(name, profile, geometry);
+  return surfaceAudit(name, measured, geometry);
 }
 
 interface PackedPile {
@@ -163,21 +193,21 @@ function packedPile(library: MaterialLibrary, scanId: string, fill: PileFill, pr
       for (const variant of built.variants) kept(library, variant.geometry);
       return built;
     });
-    const placed = await runGradually(packingSteps(profile, recipe.blueprints, {
+    const placed = await runGradually(packingSteps({ ...profile, floorY: profile.floorY + CLEAR_OF_WOVEN_FLOOR }, recipe.blueprints, {
       seed: recipe.seed,
       candidates: recipe.candidates,
       maxTilt: recipe.maxTilt,
       anyTumble: recipe.anyTumble,
       topY: profile.rimY - CLEAR_OF_LOW_RIM,
-      margin: 0.004,
+      margin: 0.0065,
       fillRadius: widestWallRadius(profile, profile.rimY),
     }));
     return { recipe, placed };
   });
 }
 
-async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, fill: PileFill, look: SubstanceLook, profile: VesselProfile, name: string): Promise<FillAudit> {
-  const { recipe, placed } = await packedPile(library, scanId, fill, profile);
+async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, fill: PileFill, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
+  const { recipe, placed } = await packedPile(library, scanId, fill, measured.profile);
   const material = fill === "crystals" ? await crystalMaterial(library, look) : await substanceMaterial(library, look);
   if (fill === "leaves") material.side = THREE.DoubleSide;
   const holder = new THREE.Object3D();
@@ -196,7 +226,7 @@ async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId:
       holder.scale.setScalar(piece.scale);
       holder.updateMatrix();
       mesh.setMatrixAt(i, holder.matrix);
-      for (let k = 0; k < position.count; k += 3) {
+      for (let k = 0; k < position.count; k++) {
         vertex.fromBufferAttribute(position, k).applyMatrix4(holder.matrix);
         points.push(vertex.x, vertex.y, vertex.z);
       }
@@ -209,7 +239,7 @@ async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId:
     mesh.receiveShadow = true;
     parent.add(mesh);
   });
-  return { name, points: Float32Array.from(points), outsideDepth: ([x, y, z]) => outsideDepth(profile, x, y, z), pieces };
+  return { name, points: Float32Array.from(points), vertexOutside: outsideTest(measured), pieces };
 }
 
 function foldSlab(geometry: THREE.BufferGeometry, seed: number): void {
@@ -222,7 +252,8 @@ function foldSlab(geometry: THREE.BufferGeometry, seed: number): void {
   geometry.computeVertexNormals();
 }
 
-async function addFoldedCloth(library: MaterialLibrary, parent: THREE.Object3D, look: SubstanceLook, profile: VesselProfile, name: string): Promise<FillAudit> {
+async function addFoldedCloth(library: MaterialLibrary, parent: THREE.Object3D, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
+  const profile = measured.profile;
   const material = await substanceMaterial(library, look);
   const midHeight = profile.floorY + (profile.rimY - profile.floorY) * 0.6;
   const halfX = wallRadius(profile, 0, midHeight) - 0.012;
@@ -246,20 +277,21 @@ async function addFoldedCloth(library: MaterialLibrary, parent: THREE.Object3D, 
       const z = longOnX ? 0 : along;
       const sx = longOnX ? trimLong : trimShort;
       const sz = longOnX ? trimShort : trimLong;
-      const slab = softBox(parent, [sx, 0.027, sz], material, [x, y, z], { radius: 0.0125, segments: 28, tile: [1, 1] });
+      const slab = softBox(parent, [sx, 0.027, sz], material, [x, y, z], { radius: 0.0125, segments: 22, tile: [1, 1] });
       foldSlab(slab.geometry, pile * 3 + layer);
-      for (const a of [-1, 1]) for (const b of [-1, 1]) points.push(x + (a * sx) / 2, y, z + (b * sz) / 2);
+      const slabPosition = slab.geometry.attributes.position!;
+      for (let k = 0; k < slabPosition.count; k++) points.push(x + slabPosition.getX(k), y + slabPosition.getY(k), z + slabPosition.getZ(k));
     }
   }
-  return { name, points: Float32Array.from(points), outsideDepth: ([x, y, z]) => outsideDepth(profile, x, y, z), pieces: [] };
+  return { name, points: Float32Array.from(points), vertexOutside: outsideTest(measured), pieces: [] };
 }
 
-export async function fillVessel(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, profile: VesselProfile, name: string): Promise<FillAudit> {
-  if (look.fill === "liquid") return addLiquid(library, parent, scanId, look, profile, name);
-  if (look.fill === "paste") return addPaste(library, parent, scanId, look, profile, name);
-  if (look.fill === "powder") return addPowder(library, parent, scanId, look, profile, name);
-  if (look.fill === "cloth") return addFoldedCloth(library, parent, look, profile, name);
-  if (isPileFill(look.fill)) return addPile(library, parent, scanId, look.fill, look, profile, name);
+export async function fillVessel(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
+  if (look.fill === "liquid") return addLiquid(library, parent, scanId, look, measured, name);
+  if (look.fill === "paste") return addPaste(library, parent, scanId, look, measured, name);
+  if (look.fill === "powder") return addPowder(library, parent, scanId, look, measured, name);
+  if (look.fill === "cloth") return addFoldedCloth(library, parent, look, measured, name);
+  if (isPileFill(look.fill)) return addPile(library, parent, scanId, look.fill, look, measured, name);
   throw new Error(`No fill for ${look.key}`);
 }
 

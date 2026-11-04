@@ -1,9 +1,13 @@
 import * as THREE from "three";
+import { roundSegments } from "../domain/surface-density";
 import type { MaterialLibrary } from "./material-library";
 import { pole, softBox } from "./solid-builders";
 
+const TURNED_PROFILE_POINTS = 64;
+
 function turned(profile: readonly (readonly [number, number])[], material: THREE.Material, tile: number): THREE.Mesh {
-  const geometry = new THREE.LatheGeometry(profile.map(([r, y]) => new THREE.Vector2(r, y)), 40);
+  const smoothed = new THREE.SplineCurve(profile.map(([r, y]) => new THREE.Vector2(r, y))).getPoints(TURNED_PROFILE_POINTS).map((point) => new THREE.Vector2(Math.max(1e-4, point.x), point.y));
+  const geometry = new THREE.LatheGeometry(smoothed, Math.max(...profile.map(([r]) => roundSegments(r))));
   const uv = geometry.attributes.uv!;
   const height = profile[profile.length - 1]![1] - profile[0]![1];
   const around = Math.max(...profile.map(([r]) => r)) * Math.PI * 2;
@@ -17,7 +21,7 @@ export async function buildWashingPaddle(library: MaterialLibrary): Promise<THRE
   const timber = await library.surface("table", { normalScale: 1 });
   const group = new THREE.Group();
   const tile: readonly [number, number] = [0.55, 0.55];
-  softBox(group, [0.11, 0.026, 0.3], timber, [0, 0.013, 0.2], { radius: 0.011, segments: 8, tile });
+  softBox(group, [0.11, 0.026, 0.3], timber, [0, 0.013, 0.2], { radius: 0.011, tile });
   const handle = turned([[0.0001, 0], [0.016, 0.004], [0.017, 0.05], [0.0155, 0.25], [0.0165, 0.33], [0.019, 0.355], [0.0001, 0.372]], timber, 0.55);
   handle.rotation.x = -Math.PI / 2;
   handle.position.set(0, 0.0195, 0.052);

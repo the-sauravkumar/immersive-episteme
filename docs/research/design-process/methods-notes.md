@@ -181,3 +181,6 @@ study session and logged as a covariate [DR-013].
   per room (`scripts/museum/walk-times-browser.mjs`; 21 rooms, within 0.14 s). Wings 48.2 to 52.8 s
   (9.5% spread); the same section differs up to 23% across traditions. Data:
   `analysis/out/museum/walk-times.json`.
+
+
+- **Visual quality checks (DR-080).** `npm run walkthrough:overlap`, `walkthrough:tearing` and `walkthrough:density` run on 32 scenes in `tools/walkthrough-lab`, on the GTX 1650, restarting the browser every 6 scenes because a long-lived browser crashed intermittently. Each proves itself in the same run with planted faults. Limits are derived: 1 texel per pixel at the derived nearest reach at 3840 by 2160, facet sagitta 1 px, depth fight 0.25% of an object's pixels, flicker 1%, cracks 8 px, back faces 0.5%.

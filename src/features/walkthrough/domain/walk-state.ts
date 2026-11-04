@@ -17,7 +17,9 @@ export interface Walker {
 }
 
 export const WALK_SPEED = 1.9;
-const BODY_RADIUS = 0.32;
+export const BODY_RADIUS = 0.6;
+const LOWEST_BLOCKING_METRES = 0.12;
+const HEAD_CLEARANCE_METRES = 2.1;
 const MAX_PITCH = 1.2;
 
 export const stationIndexAt = (z: number): number => Math.max(0, Math.floor((YARD_FRONT_Z - z) / NEXT_YARD_OFFSET));
@@ -34,8 +36,10 @@ export function eyeOf(walker: Walker): Vec3 {
   return [walker.x, EYE_HEIGHT, walker.z];
 }
 
+export const blocksBody = (box: Box): boolean => box.max[1] > LOWEST_BLOCKING_METRES && box.min[1] < HEAD_CLEARANCE_METRES;
+
 function blocked(x: number, z: number, colliders: readonly Box[]): boolean {
-  return colliders.some((box) => box.max[1] > 0.12 && x > box.min[0] - BODY_RADIUS && x < box.max[0] + BODY_RADIUS && z > box.min[2] - BODY_RADIUS && z < box.max[2] + BODY_RADIUS);
+  return colliders.some((box) => blocksBody(box) && x > box.min[0] - BODY_RADIUS && x < box.max[0] + BODY_RADIUS && z > box.min[2] - BODY_RADIUS && z < box.max[2] + BODY_RADIUS);
 }
 
 export function stepWalker(walker: Walker, input: WalkInput, seconds: number, colliders: readonly Box[], lastStation: number): Walker {
