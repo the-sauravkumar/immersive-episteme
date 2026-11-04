@@ -146,5 +146,72 @@ win.QA = (plantFault = false) => {
   const cloths = plantFault ? parts.cloths.map((cloth) => ({ ...cloth, positions: cloth.positions.map((value, i) => (i % 3 === 1 ? value - 0.06 : value)) })) : parts.cloths;
   return checkScene({ yard: planForCheck.yard, solids, cloths, fields: parts.fields, groundIsOpenAt: parts.groundIsOpenAt });
 };
+const gl = renderer.getContext();
+win.flicker = async (frames = 60, threshold = 10, mode = "pan") => {
+  const width = renderer.domElement.width;
+  const height = renderer.domElement.height;
+  const count = width * height;
+  const pixels = new Uint8Array(count * 4);
+  let previous = new Float32Array(count);
+  let currentFrame = new Float32Array(count);
+  const direction = new Int8Array(count);
+  const reversals = new Uint16Array(count);
+  const from = new THREE.Vector3(view.from[0]!, view.from[1]!, view.from[2]!);
+  const to = new THREE.Vector3(view.to[0]!, view.to[1]!, view.to[2]!);
+  const forward = to.clone().sub(from).setY(0).normalize();
+  const right = new THREE.Vector3(-forward.z, 0, forward.x);
+  const pixelAngle = ((camera.fov * Math.PI) / 180) / height;
+  const place = (i: number) => {
+    if (mode === "pan") {
+      camera.position.copy(from);
+      camera.lookAt(to.clone().addScaledVector(right, Math.tan(pixelAngle * 0.25 * i) * from.distanceTo(to)));
+    } else {
+      camera.position.copy(from).addScaledVector(forward, i * 0.02);
+      camera.lookAt(to.clone().addScaledVector(forward, i * 0.02));
+    }
+    output.render();
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    for (let p = 0, q = 0; p < count; p++, q += 4) currentFrame[p] = pixels[q]! * 0.3 + pixels[q + 1]! * 0.59 + pixels[q + 2]! * 0.11;
+  };
+  place(0);
+  [previous, currentFrame] = [currentFrame, previous];
+  let events = 0;
+  for (let i = 1; i < frames; i++) {
+    place(i);
+    for (let p = 0; p < count; p++) {
+      const change = currentFrame[p]! - previous[p]!;
+      const sign = change > threshold ? 1 : change < -threshold ? -1 : 0;
+      if (sign !== 0) {
+        if (direction[p] === -sign) {
+          reversals[p]!++;
+          events++;
+        }
+        direction[p] = sign;
+      }
+    }
+    [previous, currentFrame] = [currentFrame, previous];
+    await new Promise(requestAnimationFrame);
+  }
+  let four = 0;
+  let any = 0;
+  const heat = document.createElement("canvas");
+  heat.width = width;
+  heat.height = height;
+  const context = heat.getContext("2d")!;
+  const image = context.createImageData(width, height);
+  for (let j = 0; j < height; j++) {
+    for (let k = 0; k < width; k++) {
+      const value = reversals[(height - 1 - j) * width + k]!;
+      if (value) any++;
+      if (value >= 4) four++;
+      const o = (j * width + k) * 4;
+      image.data[o] = Math.min(255, value * 80);
+      image.data[o + 1] = Math.min(255, value * 30);
+      image.data[o + 3] = 255;
+    }
+  }
+  context.putImageData(image, 0, 0);
+  return { mode, anyPct: +((any / count) * 100).toFixed(3), fourPlusPct: +((four / count) * 100).toFixed(3), events, heat: heat.toDataURL("image/png") };
+};
 win.INFO = { tris: renderer.info.render.triangles, textures: renderer.info.memory.textures };
 win.READY = true;
