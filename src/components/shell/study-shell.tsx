@@ -46,7 +46,7 @@ export function StudyShell({ children, step }: { children: ReactNode; step?: Stu
   return (
     <div
       data-zone="study"
-      className="study-root a11y-reduce-motion group/study flex min-h-dvh flex-col bg-ground"
+      className="walking study-root a11y-reduce-motion group/study flex min-h-dvh flex-col bg-ground"
     >
       <DisplayPreferencesSync zone="study" />
       <header className="border-b border-rule-strong">

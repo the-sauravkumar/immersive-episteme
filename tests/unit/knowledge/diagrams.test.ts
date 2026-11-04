@@ -33,9 +33,8 @@ import {
   type StructureDiagram,
 } from "@/features/knowledge/read/diagrams";
 import { createKnowledgeView, diagramFiguresByConcept, resolveConceptFigures, shortCitationLabel } from "@/features/knowledge/read/view";
-import { EPISTEMIC_SECTIONS } from "@/features/learning-2d/template";
+import { EPISTEMIC_SECTIONS } from "@/features/learning/epistemic-sections";
 import { CANONICAL_TRADITION_SLUGS, compareTraditions, STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
-import { learningSettingsOf } from "@/features/learning/settings";
 import { studyConfigSchema } from "@/features/study/contracts";
 import { titleCase } from "@/lib/text/title-case";
 
@@ -184,8 +183,8 @@ describe.skipIf(!present)("structure diagrams over the real content", () => {
 
 describe("the structure-diagram switch in the study contract", () => {
   it("defaults on and reaches both conditions through the shared learning settings", () => {
-    expect(learningSettingsOf(studyConfigSchema.parse({})).figures).toEqual({ structureDiagrams: true, photos: true });
-    expect(learningSettingsOf(studyConfigSchema.parse({ figures: { structureDiagrams: false } })).figures).toEqual({ structureDiagrams: false, photos: true });
+    expect(studyConfigSchema.parse({}).figures).toEqual({ structureDiagrams: true, photos: true });
+    expect(studyConfigSchema.parse({ figures: { structureDiagrams: false } }).figures).toEqual({ structureDiagrams: false, photos: true });
   });
 });
 

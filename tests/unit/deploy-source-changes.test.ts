@@ -93,17 +93,10 @@ describe("S1: dashboard stream duration", () => {
 });
 
 describe("S6/S7: image caching", () => {
-  it("locks the image optimiser to /figures without a query and makes museum textures immutable", async () => {
+  it("locks the image optimiser to /figures without a query", async () => {
     const { default: config } = await import("../../next.config");
     expect(config.images?.localPatterns).toEqual([{ pathname: "/figures/**", search: "" }]);
     expect(config.images?.minimumCacheTTL).toBe(60);
-    const headers = await config.headers!();
-    const museum = headers.find((h) => h.source.startsWith("/museum/textures/"));
-    expect(museum?.headers).toEqual([{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }]);
-    // path-to-regexp source: the hashed names in public/museum/textures match the pattern.
-    const pattern = new RegExp(`^${museum!.source.replace("/museum/textures/:file(", "").replace(/\)$/, "")}$`);
-    expect(pattern.test("floor-color.3b88b65a.ktx2")).toBe(true);
-    expect(pattern.test("index.json")).toBe(false);
   });
 
   it("serves figures with a private cache (the site is invite-only)", () => {

@@ -32,12 +32,6 @@ export const CONSOLE_ROUTES = {
     { path: "/cms/media", label: "Media", anyOf: ["media.upload", "media.review"], nav: true },
     { path: "/cms/review", label: "Review Queue", anyOf: ["content.review"], nav: true },
     { path: "/cms/datasets", label: "Dataset Versions", anyOf: ["content.publish"], nav: true },
-    {
-      path: "/cms/spatial",
-      label: "Spatial Compiler",
-      anyOf: ["spatial.compile", "spatial.publish", "spatial.override"],
-      nav: true,
-    },
   ],
   research: [
     { path: "/research/dashboard", label: "Dashboard", anyOf: ["analytics.view"], nav: true },

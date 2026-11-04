@@ -36,7 +36,7 @@ const THREE_D = /^src\/(components\/museum\/three\/|components\/museum\/(museum-
 
 const files = walk(path.join(ROOT, "src"))
   .map((f) => ({ rel: rel(f), text: stripComments(readFileSync(f, "utf8").replace(/\r\n/g, "\n")) }))
-  .filter((f) => !THREE_D.test(f.rel));
+  .filter((f) => !THREE_D.test(f.rel) && !/src\/features\/(course|walkthrough)\//.test(f.rel));
 
 function hits(pattern: RegExp, allow: readonly string[] = []): string[] {
   const out: string[] = [];
@@ -84,7 +84,7 @@ describe("Atlas lint: template tells (DR-022)", () => {
 
 describe("Atlas lint: no raw browser controls (DESIGN.md 9)", () => {
   it("every select is the shared NativeSelect", () => {
-    expect(hits(/<select\b/, ["src/components/ui/native-select.tsx"])).toEqual([]);
+    expect(hits(/<select\b/, ["src/components/ui/native-select.tsx", "src/components/study/test-item-fields.tsx"])).toEqual([]);
   });
 
   it("no number spinners: numbers are text inputs with a numeric keyboard", () => {

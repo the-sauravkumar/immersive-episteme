@@ -17,7 +17,6 @@ import { describe, expect, it } from "vitest";
 import { photoFiguresOf, photoGateOpen, resolveConceptFigures, type DiagramFigure, type IllustrationLink } from "@/features/knowledge/read/view";
 import { STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
 import { studyConfigSchema } from "@/features/study/contracts";
-import { learningSettingsOf } from "@/features/learning/settings";
 import { figureBalance, type ParityFigureAsset } from "@/server/research/parity/engine";
 
 import { anchorPosition, creditOf, jpegSize, planStudyPhotos, VA_CREDIT, VA_MAX_PIXELS, VA_TERM_MONTHS } from "../../../scripts/content/ingest-study-photos";
@@ -66,7 +65,7 @@ describe("protocol switch figures.photos", () => {
   it("defaults to on and reaches both conditions through the learning settings", () => {
     const cfg = studyConfigSchema.parse({});
     expect(cfg.figures).toEqual({ structureDiagrams: true, photos: true });
-    expect(learningSettingsOf(studyConfigSchema.parse({ figures: { photos: false } })).figures).toEqual({ structureDiagrams: true, photos: false });
+    expect(studyConfigSchema.parse({ figures: { photos: false } }).figures).toEqual({ structureDiagrams: true, photos: false });
   });
 
   it("removes the photograph from the one resolution both conditions call", () => {

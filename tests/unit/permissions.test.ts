@@ -55,7 +55,6 @@ const EXPECTED: Record<Role, Permission[]> = {
     "content.review",
     "content.verify",
     "content.publish",
-    "spatial.publish",
     "study.view",
     "study.configure",
     "study.activate",
@@ -99,9 +98,6 @@ const EXPECTED: Record<Role, Permission[]> = {
     "graph.edit",
     "media.upload",
     "media.review",
-    "spatial.compile",
-    "spatial.publish",
-    "spatial.override",
     "parity.run",
     ...LEARN,
   ],
@@ -111,7 +107,6 @@ const EXPECTED: Record<Role, Permission[]> = {
     "content.edit",
     "graph.edit",
     "media.upload",
-    "spatial.compile",
     ...LEARN,
   ],
   study_facilitator: [
@@ -179,8 +174,6 @@ describe("policy invariants", () => {
       "content.review",
       "content.verify",
       "content.publish",
-      "spatial.publish",
-      "spatial.override",
       "media.review",
     ] as const) {
       expect(can({ roles: ["content_editor"] }, p), p).toBe(false);

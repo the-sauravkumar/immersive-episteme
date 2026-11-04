@@ -19,7 +19,7 @@ async function Delayed() {
   if (availability === "open") return <AssessmentStep step="delayed_test" route="/study/delayed-test" />;
   const link = `/study/return?study=${encodeURIComponent(state.study.slug)}&code=${encodeURIComponent(state.participantCode)}`;
   return (
-    <section className="walking flex flex-col gap-6 p-4">
+    <section className="flex flex-col gap-6">
       <h1 className="text-[clamp(38px,6vw,64px)] leading-none">Come Back In About A Week</h1>
       <p className="max-w-[65ch] text-[22px] leading-[1.4]">
         You are done for today. One short set of questions is left, online, on or after {dateText(schedule.dueAt)}. It closes on {dateText(schedule.closesAt)}.

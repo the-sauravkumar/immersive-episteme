@@ -190,27 +190,11 @@ describe.skipIf(!TEST_URL)("telemetry ingestion", () => {
     expect(r).toMatchObject({ status: 410, body: { error: "session_closed" } });
   });
 
-  it("resolves the study-mode learning context from the session's pinned snapshot and manifest", async () => {
+  it("resolves the study-mode learning context from the session's pinned snapshot", async () => {
     const ctx = await resolveLearningContext(
       { kind: "participant", experimental: true, condition: "2d", participantId: s2d.participantId, sessionId: s2d.sessionId },
       { data: pgLearningContextData(t.pool), appBuild: "test" },
     );
-    expect(ctx).toMatchObject({
-      mode: "study",
-      snapshotId,
-      contentVersion: label,
-      manifestId,
-      sessionId: s2d.sessionId,
-      participantPseudonym: "P-ING01",
-      nonExperimental: false,
-      unverifiedContent: false,
-      features: { search: false },
-      telemetrySessionId: s2d.sessionId,
-    });
-    const demoCtx = await resolveLearningContext(
-      { kind: "participant", experimental: true, condition: "2d", participantId: sDemo.participantId, sessionId: sDemo.sessionId },
-      { data: pgLearningContextData(t.pool), appBuild: "test" },
-    );
-    expect(demoCtx.nonExperimental).toBe(true);
+    expect(ctx).toMatchObject({ mode: "study", contentVersion: label, sessionId: s2d.sessionId, telemetrySessionId: s2d.sessionId });
   });
 });

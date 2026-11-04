@@ -74,4 +74,24 @@ describe("CourseSession", () => {
     expect(finished).toHaveBeenCalledTimes(1);
     vi.unstubAllGlobals();
   });
+
+  it("keeps the learner in place when the server refuses the next stop", async () => {
+    vi.stubGlobal(
+      "Image",
+      class {
+        onerror: (() => void) | null = null;
+        onload: (() => void) | null = null;
+        set src(_value: string) {
+          queueMicrotask(() => this.onerror?.());
+        }
+      },
+    );
+    const entered = vi.fn(async (event: { stageNumber: number | null }) => event.stageNumber !== 2);
+    render(<CourseSession templates={[template]} onStageEntered={entered} />);
+    await settle();
+    fireEvent.click(screen.getByRole("button", { name: /^Next/ }));
+    await vi.waitFor(() => expect(screen.getByRole("heading", { name: "Stage Name 1" })).toBeTruthy());
+    expect(entered.mock.calls.map(([event]) => event.stageNumber)).toEqual([1, 2, 1]);
+    vi.unstubAllGlobals();
+  });
 });

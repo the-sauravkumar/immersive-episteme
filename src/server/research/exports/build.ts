@@ -14,7 +14,7 @@
  */
 import type { Pool } from "pg";
 
-import { canonicalHash } from "@/features/spatial/compiler/canonical";
+import { canonicalHash } from "@/lib/canonical-hash";
 import { METRIC_VERSIONS } from "@/features/assessment/scoring/metrics/registry";
 import { EVENT_TYPE_REGISTRY } from "@/features/telemetry/contracts";
 

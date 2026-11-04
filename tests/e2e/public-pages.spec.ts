@@ -139,12 +139,10 @@ test("Explore cards align their actions and the Colophon shows only stored parit
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/explore");
   const tops = await Promise.all(
-    ["Open conventional pages", "Open immersive museum"].map(async (name) => (await page.getByRole("button", { name }).boundingBox())!),
+    ["Open visual course", "Open walkthrough"].map(async (name) => (await page.getByRole("button", { name }).boundingBox())!),
   );
   expect(Math.abs(tops[0]!.y - tops[1]!.y)).toBeLessThanOrEqual(1);
   expect(Math.abs(tops[0]!.y + tops[0]!.height - (tops[1]!.y + tops[1]!.height))).toBeLessThanOrEqual(1);
-  // Exactly one museum button (the immersive specs click /museum/i).
-  await expect(page.getByRole("button", { name: /museum/i })).toHaveCount(1);
 
   await page.goto("/about/colophon");
   const rows = page.locator("#parity tbody tr");
@@ -235,27 +233,6 @@ test("the home title block is left-aligned with only Plate 1 beside it, and Figu
     expect(r.scroll, `${width} px horizontal overflow`).toBeLessThanOrEqual(0);
   }
   await expect(page.locator("[data-slot=public-plate], [data-slot=claim-specimen]")).toHaveCount(0);
-  // Plate 1 (DR-058): beside the title on columns 8-12 from 1024 px,
-  // its frame's top on the h1's top (within 4 px), never taller than the title block, and absent
-  // below 1024 px (the page is unchanged at 390 px).
-  const plate = page.locator("[data-slot=museum-plan-plate]");
-  for (const width of WIDTHS) {
-    await page.setViewportSize({ width, height: 800 });
-    if (width < 1024) {
-      await expect(plate, `${width} px plate hidden`).toBeHidden();
-      continue;
-    }
-    await expect(plate).toBeVisible();
-    const m = await page.evaluate(() => {
-      const h1 = document.querySelector("#home-title")!.getBoundingClientRect();
-      const block = document.querySelector("#home-title")!.parentElement!.getBoundingClientRect();
-      const frame = document.querySelector("[data-slot=museum-plan-plate] > div > div")!.getBoundingClientRect();
-      return { h1Top: h1.top, h1Right: h1.right, blockRight: block.right, blockBottom: block.bottom, frameTop: frame.top, frameLeft: frame.left, frameBottom: frame.bottom };
-    });
-    expect(Math.abs(m.frameTop - m.h1Top), `${width} px plate top against the h1 top`).toBeLessThanOrEqual(4);
-    expect(m.frameLeft, `${width} px plate beside the title block`).toBeGreaterThanOrEqual(m.blockRight);
-    expect(m.frameBottom, `${width} px plate no taller than the title block`).toBeLessThanOrEqual(m.blockBottom + 1);
-  }
   await page.setViewportSize({ width: 1280, height: 800 });
   const figTop = await page.locator("#conditions-heading").evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
   expect(figTop).toBeLessThan(1600);

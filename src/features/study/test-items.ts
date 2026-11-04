@@ -7,6 +7,7 @@ export const LAYOUT_SKETCH_PROMPT = "From memory, sketch the layout of what you 
 
 const OPTION_COUNT = 4;
 const PRE_ITEMS_PER_TRADITION = 2;
+const STAND_IN_ITEMS_PER_TRADITION = 6;
 
 export interface UnseenStage {
   readonly key: string;
@@ -100,6 +101,8 @@ function placementItem(object: PlacedObject, turn: number, prefix: string): Draf
     answerKey: { optionId: `s${object.stage.number}` },
   };
 }
+
+const asSample = (item: DraftItem): DraftItem => ({ ...item, config: { ...item.config, sampleText: true } });
 
 function withDontKnow(item: DraftItem): DraftItem {
   const config = item.config as { options: { id: string; label: string }[] };
@@ -246,6 +249,7 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
   const pre: (DraftItem | null)[] = [];
   const ident = { immediate: [] as (DraftItem | null)[], delayed: [] as (DraftItem | null)[] };
   const placement = { immediate: [] as DraftItem[], delayed: [] as DraftItem[] };
+  const standIn = { immediate: [] as DraftItem[], delayed: [] as DraftItem[] };
   templates.forEach((template) => {
     const objects = uniqueObjects(template);
     const named = objects.filter((object) => identifiable(object, pool));
@@ -256,6 +260,10 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
         const item = identificationItem(object, pool, turn, "pre.id");
         pre.push(item ? withDontKnow(item) : null);
       }
+    });
+    objects.filter((object) => !named.includes(object)).forEach((object, turn) => {
+      const item = identificationItem(object, pool, turn, "id");
+      if (item && turn < STAND_IN_ITEMS_PER_TRADITION) (turn % 3 === 2 ? standIn.delayed : standIn.immediate).push(asSample(item));
     });
     objects.forEach((object, turn) => {
       if (turn < PRE_ITEMS_PER_TRADITION) pre.push(withDontKnow(placementItem(object, turn, "pre.place")));
@@ -277,7 +285,7 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
   const [immediateUnseen, delayedUnseen] = [unseen[0], unseen[1] ?? unseen[0]];
   const battery: GeneratedAssessment[] = [
     assessment("test-pre", "pre", 0, "Questions Before Learning", "pre_test", pre, "pretest", "Choose I do not know if you do not know. It is fine not to know."),
-    assessment("test-identification", "post", 0, "Name The Object", "identification", ident.immediate),
+    assessment("test-identification", "post", 0, "Name The Object", "identification", ident.immediate.some(Boolean) ? ident.immediate : standIn.immediate),
     assessment("test-stage-placement", "post", 1, "Find The Stage", "stage_placement", placement.immediate),
     assessment("test-sequence", "post", 2, "Put The Stages In Order", "sequence", templates.map((template) => sequenceItem(template, template.stages, "all"))),
     assessment("test-cloth-state", "post", 3, "Match The Cloth", "cloth_state", templates.map((template) => clothItem(template, alternate(template.stages, 0), "a"))),
@@ -305,7 +313,7 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
       paged: false,
       items: [{ itemKey: "layout.sketch", position: 0, kind: "sketch", prompt: LAYOUT_SKETCH_PROMPT, config: { kind: "sketch" }, answerKey: null }],
     },
-    assessment("test-identification-delayed", "follow_up", 0, "Name The Object", "identification", ident.delayed),
+    assessment("test-identification-delayed", "follow_up", 0, "Name The Object", "identification", ident.delayed.some(Boolean) ? ident.delayed : standIn.delayed),
     assessment("test-stage-placement-delayed", "follow_up", 1, "Find The Stage", "stage_placement", placement.delayed),
     assessment("test-sequence-delayed", "follow_up", 2, "Put The Stages In Order", "sequence", templates.map((template) => sequenceItem(template, alternate(template.stages, 1), "short"))),
     assessment("test-cloth-state-delayed", "follow_up", 3, "Match The Cloth", "cloth_state", templates.map((template) => clothItem(template, alternate(template.stages, 1), "b"))),

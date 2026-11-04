@@ -56,8 +56,6 @@ const eslintConfig = defineConfig([
       "src/app/(study)/**/*.{ts,tsx}",
       "src/components/knowledge/**/*.{ts,tsx}",
       "src/components/learning/**/*.{ts,tsx}",
-      "src/components/museum/overlays/**/*.{ts,tsx}",
-      "src/features/learning-2d/ui/**/*.{ts,tsx}",
     ],
     rules: {
       "no-restricted-syntax": [

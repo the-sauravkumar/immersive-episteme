@@ -89,7 +89,7 @@ export function howToCite(config: InstitutionConfig = INSTITUTION): string | nul
   const names = config.authors.map((a) => citationName(a.name));
   const authors = names.length === 1 ? names[0]! : `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]!}`;
   const publisher = config.affiliations[0]?.name.split(",").slice(0, 2).join(",").trim();
-  return `${authors} (n.d.). ${PLATFORM_NAME}: a research platform comparing conventional pages and a walkable 3D museum [Research software].${publisher ? ` ${publisher}.` : ""}`;
+  return `${authors} (n.d.). ${PLATFORM_NAME}: a research platform comparing a visual course and a walkthrough of a craft process [Research software].${publisher ? ` ${publisher}.` : ""}`;
 }
 
 /** The ORCID record URL of an iD. */

@@ -1,11 +1,7 @@
 /**
  * Public home (DESIGN.md 10.1, DR-022). In order:
  *  1. the title block, left-aligned on columns 1 to 7: the h1 in Anek Latin `text-display-1`, the
- *     deck, ONE primary action ("Explore the demo") and a text link ("Read the method"). No
- *     eyebrow and no hero card (the "headline + two buttons + card" formula). Beside it on lg and
- *     up, columns 8 to 12: Plate 1, the plan of the compiled demo museum drawn by the 3D plan's
- *     own code, never taller than the title block (DR-058, amends
- *     DR-022 for this block only: data, not decoration). Hidden below lg;
+ *     deck, ONE primary action ("Explore the demo") and a text link ("Read the method");
  *  2. Figure 1, "One Knowledge Model, Two Conditions", full grid width on one indigo plate with live
  *     counts: the single place where the public pages spend their boldness. Static. Its text
  *     equivalents follow: the count list, the two conditions as text and the booktabs table;
@@ -27,7 +23,6 @@ import { DatasetTable } from "@/components/public/dataset-table";
 import { FigureOneCountList, FigureOneDiagram } from "@/components/public/figure-one";
 import { IdenticalDiffersTable } from "@/components/public/identical-differs-table";
 import { InstitutionStrip } from "@/components/public/institution-strip";
-import { MuseumPlanPlate, MuseumPlanPlateFrame } from "@/components/public/museum-plan-plate";
 import { TraditionIndex } from "@/components/public/tradition-plates";
 import { Button } from "@/components/ui/button";
 import { INSTITUTION } from "@/config/institution";
@@ -124,21 +119,20 @@ function SectionHead({ id, title, label }: { id: string; title: string; label?: 
 const CONDITIONS = [
   {
     key: "2d",
-    title: "Conventional Pages",
-    description: "The knowledge model as pages: each concept a column of numbered claims, each claim with its source.",
+    title: "Visual Course",
+    description: "The process as a sequence of panels: one per stage, with labelled tools and materials and the cloth after that stage.",
   },
   {
     key: "immersive",
-    title: "Immersive Museum",
-    description: "The same knowledge model as a walkable museum: each tradition a wing, its sections rooms, its concepts exhibits.",
+    title: "Walkthrough",
+    description: "The same stages as a route of working yards: the same words and images, with tools and materials standing where they are used.",
   },
 ] as const;
 
 export default function HomePage() {
   return (
     <div className="flex flex-col gap-24 max-xs:gap-16">
-      {/* 1. Title block on columns 1-7, left-aligned; Plate 1 on columns 8-12 from lg (DR-058). */}
-      <section aria-labelledby="home-title" className="grid lg:grid-cols-12 lg:grid-rows-[auto_auto] lg:gap-x-6">
+      <section aria-labelledby="home-title" className="grid lg:grid-cols-12 lg:gap-x-6">
         <div className="flex flex-col gap-6 pt-4 lg:col-span-7 lg:col-start-1 lg:row-start-1">
           <h1 id="home-title" className="text-display-1 text-ink">
             Immersive Episteme
@@ -155,9 +149,6 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-        <Suspense fallback={<MuseumPlanPlateFrame plan={null} />}>
-          <MuseumPlanPlate />
-        </Suspense>
       </section>
 
       {/* 2. Figure 1 on the indigo plate, then its text equivalents. */}
@@ -169,7 +160,7 @@ export default function HomePage() {
           </Suspense>
           <figcaption className="text-caption max-w-[48rem]">
             <span className="font-bold text-ink">{chartFigureLabel(1)}.</span> One knowledge model, with its live counts, compiled into two learning
-            conditions of equal weight: conventional pages and an immersive museum.
+            conditions of equal weight: a visual course and a walkthrough.
           </figcaption>
         </figure>
         <ul className="grid gap-x-6 gap-y-8 md:grid-cols-2" aria-label="The two conditions">

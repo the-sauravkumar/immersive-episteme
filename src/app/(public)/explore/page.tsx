@@ -29,39 +29,28 @@ export const metadata: Metadata = { title: "Explore" };
 const OPTIONS = [
   {
     condition: "2d",
-    title: "Conventional pages",
-    description: "Browse the demo knowledge base as pages: traditions, their sections and concepts, each concept a column of numbered, cited claims.",
+    title: "Visual course",
+    description: "Go through each tradition as a sequence of panels, one per stage, with Next and Back.",
   },
   {
     condition: "immersive",
-    title: "Immersive museum",
-    description: "Walk through the same demo knowledge base arranged as a museum: traditions as wings, sections as rooms, concepts as exhibits.",
+    title: "Walkthrough",
+    description: "Walk the same stages as a route of working yards, with the same words and images.",
   },
 ] as const;
 
-/** The controls of each condition, from the shared onboarding wording (strings.ts) and the museum's controls help. */
 const CONTROLS: Record<"2d" | "immersive", readonly [string, string][]> = {
   "2d": [
-    ["See where you are", "In This Section, in the top bar"],
-    ["See every section", "The index, on the left"],
-    ["Go to another section", "Its row in the index"],
-    ["Open a concept", "Select its link"],
-    ["Close a concept", "Close, at the top of the concept"],
-    ["Related concepts", "Links at the end of each page"],
-    ["Neighbouring concepts", "Previous and Next"],
-    ["Open a source record", "The number in brackets after a statement; Escape closes it"],
-    ["Enlarge a figure", "Enlarge, under the figure; Close or Escape returns"],
+    ["Go on", "Next, at the bottom right"],
+    ["Go back", "Back, or a woven part of the strip"],
+    ["Open the sources", "Sources Behind This Caption, under the caption"],
+    ["Help or pause", "The buttons at the top of the panel"],
   ],
   immersive: [
-    ["See the rooms", "Plan, in the top bar"],
-    ["See this room's exhibits", "In This Room, in the top bar"],
-    ["Walk", "W and S, or the Up and Down arrow keys"],
-    ["Turn", "A and D, or the Left and Right arrow keys"],
-    ["Look around", "Drag, hold the right button, or press L"],
-    ["Open an exhibit", "A wall panel, or the In This Room list"],
-    ["Close an exhibit", "Close, at the top of the panel, or Escape"],
-    ["Open a source record", "The number in brackets after a statement; Escape closes it"],
-    ["Enlarge a figure", "Enlarge, under the figure; Close or Escape returns"],
+    ["Go on", "Walk On, or W and the Up arrow key"],
+    ["Go back", "Back, or the B key"],
+    ["Open the sources", "Sources, at the top right"],
+    ["Help or pause", "The buttons at the top right"],
   ],
 };
 
@@ -88,7 +77,7 @@ async function UnavailableNotice({ searchParams }: { searchParams: PageProps<"/e
 const ROW_H = "h-11 md:h-[3.625rem]";
 
 function ControlsTable({ condition, number }: { condition: "2d" | "immersive"; number: number }) {
-  const title = condition === "2d" ? "Controls of the Conventional Pages" : "Controls of the Immersive Museum";
+  const title = condition === "2d" ? "Controls of the Visual Course" : "Controls of the Walkthrough";
   return (
     <Table caption={title} number={number} rowRules className="table-fixed">
       <colgroup>

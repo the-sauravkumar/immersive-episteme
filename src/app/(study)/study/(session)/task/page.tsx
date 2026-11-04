@@ -7,9 +7,9 @@ import { ActionForm } from "@/components/study/action-form";
 import { StepFooter } from "@/components/study/step-footer";
 import { StepProgress, stepCountOf } from "@/components/study/step-progress";
 import { titleCase } from "@/lib/text/title-case";
-import { PHASE_TEXT } from "@/features/learning/strings";
 import { getPool } from "@/server/db/client";
 import { startLearning } from "@/server/study/actions";
+import { LEARNING_CAP_MINUTES } from "@/server/study/config";
 import { requireStep } from "@/server/study/session";
 
 export const metadata: Metadata = { title: titleCase("Introduction to the learning task") };
@@ -54,22 +54,12 @@ async function balancedOnboarding(studyId: string, own: unknown): Promise<string
 }
 
 /**
- * Condition onboarding. The interface instructions are the researchers' text from the
- * condition config (`study_conditions.config.onboarding`), guarded by `balancedOnboarding`;
- * without it both conditions get the same procedural sentence. The time rule shown is the
- * study's single learning budget, the same for both conditions, and names the Finish control
- * by the label the StudyBar shows (PHASE_TEXT, the single source of learner-visible strings).
- * Set in `text-reading` at the 34rem measure.
+ * The researchers' text from the condition config when balanced, else one procedural sentence.
  */
 async function Onboarding() {
   const { state, position } = await requireStep("onboarding");
   const text = await balancedOnboarding(state.study.id, state.conditionConfig);
-  const exposure = state.study.protocol.config.exposure;
-  const timeRule =
-    exposure.mode === "fixed_time" && exposure.minutes
-      ? `You will have ${exposure.minutes} minutes for the learning task. When the time is up, the study moves on to the next part.` +
-        (exposure.allowEarlyFinish ? ` You can also finish earlier with “${PHASE_TEXT.learning.finish}” in the top bar.` : "")
-      : `Take the time you need. When you have finished, choose “${PHASE_TEXT.learning.finish}” in the top bar.`;
+  const timeRule = `Take the time you need, up to ${state.study.protocol.config.exposure.minutes ?? LEARNING_CAP_MINUTES} minutes. Go through every stop in order. The last stop leads on to the questions.`;
   return (
     <>
       <StepProgress count={stepCountOf(state.study.protocol.steps, position)} />

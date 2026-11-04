@@ -36,10 +36,6 @@
  *    telemetry-08).
  *  - Demo and staff preview have no study session: the batch is validated and acknowledged
  *    (`persisted: false`, `nonExperimental: true`) but nothing is written.
- *  - Familiarisation practice (D5): a participant's practice pages send under their own telemetry
- *    session (`practiceTelemetrySessionId(sessionId)`, never the study session). Such a batch is
- *    validated and acknowledged (`persisted: false`, `practice: true`) and nothing is written,
- *    so practice can never count toward learning metrics or the session's sequence.
  */
 import { createHash } from "node:crypto";
 
@@ -54,7 +50,6 @@ import {
 } from "@/features/telemetry/contracts";
 import { canonicalJson } from "@/features/knowledge/graph/canonical-json";
 import { studyConfigSchema } from "@/features/study/contracts";
-import { practiceTelemetrySessionId } from "@/server/learning/context-data";
 
 export type TelemetryPrincipal =
   | { kind: "participant"; participantId: string; sessionId: string }
@@ -83,7 +78,7 @@ interface SessionRow {
 
 const sha256 = (s: string) => createHash("sha256").update(s, "utf8").digest("hex");
 
-function acknowledgeWithoutStoring(batch: { sessionId: string; events: unknown[] }, receivedAt: Date, practice: boolean): IngestOutcome {
+function acknowledgeWithoutStoring(batch: { sessionId: string; events: unknown[] }, receivedAt: Date): IngestOutcome {
   let valid = 0;
   let invalid = 0;
   for (const raw of batch.events) {
@@ -102,7 +97,6 @@ function acknowledgeWithoutStoring(batch: { sessionId: string; events: unknown[]
       quarantined: invalid,
       persisted: false,
       nonExperimental: true,
-      ...(practice ? { practice: true } : {}),
       gaps: [],
       serverReceivedAt: receivedAt.toISOString(),
     },
@@ -132,9 +126,8 @@ export async function ingestTelemetryBatch(
   }
   const batch = env.data;
 
-  // Demo / preview, and a participant's familiarisation practice: validate, acknowledge, store nothing.
-  if (principal.kind !== "participant") return acknowledgeWithoutStoring(batch, receivedAt, false);
-  if (batch.sessionId === practiceTelemetrySessionId(principal.sessionId)) return acknowledgeWithoutStoring(batch, receivedAt, true);
+  // Demo / preview: validate, acknowledge, store nothing.
+  if (principal.kind !== "participant") return acknowledgeWithoutStoring(batch, receivedAt);
 
   if (batch.sessionId !== principal.sessionId) {
     return fail(403, "session_mismatch", "The batch belongs to another session than the signed-in participant session");

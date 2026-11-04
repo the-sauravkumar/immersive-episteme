@@ -110,7 +110,19 @@ export function edgeDirected(type: string | null, rules: EditorRules): boolean {
 }
 
 /** Deterministic initial layout: concepts on a circle, in protocol order. */
+const RING_LIMIT = 8;
+const GRID_COLUMN = 210;
+const GRID_ROW = 110;
+
+function gridNodes(concepts: readonly MapConcept[]): MapNode[] {
+  const columns = Math.ceil(Math.sqrt(concepts.length * 1.4));
+  return [...concepts]
+    .sort((a, b) => a.label.localeCompare(b.label))
+    .map((c, i) => ({ key: c.nodeKey, conceptId: c.conceptId, label: c.label, x: (i % columns) * GRID_COLUMN, y: Math.floor(i / columns) * GRID_ROW }));
+}
+
 export function initialNodes(concepts: readonly MapConcept[], radius = 220): MapNode[] {
+  if (concepts.length > RING_LIMIT) return gridNodes(concepts);
   const n = Math.max(concepts.length, 1);
   return concepts.map((c, i) => {
     const angle = (2 * Math.PI * i) / n - Math.PI / 2;

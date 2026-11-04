@@ -169,11 +169,11 @@ export function AssessmentForm({ step, assessment, items, returnTo }: { step: st
       </ol>
       <StudyActions>
         {onLastScreen || flagged.length > 0 ? (
-          <Button type="submit" aria-disabled={pending}>
+          <Button key="submit" type="submit" aria-disabled={pending}>
             {pending ? "Saving…" : "Submit answers"}
           </Button>
         ) : (
-          <Button type="button" onClick={() => setScreen((n) => n + 1)}>
+          <Button key="next" type="button" onClick={() => setScreen((n) => n + 1)}>
             Next
           </Button>
         )}
@@ -292,7 +292,7 @@ function ItemField({
       return (
         <fieldset className="flex min-w-0 flex-col gap-4" aria-describedby={describedBy}>
           <legend className="mb-4">{prompt}</legend>
-          {item.account ? <ItemAccount account={item.account} sampleText={item.sampleText === true} /> : null}
+          {item.account ? <ItemAccount account={item.account} sampleText={item.sampleText === true} /> : item.sampleText ? <span className="walking-sample self-start">Sample Text</span> : null}
           {item.image ? <ItemFigure image={item.image} /> : null}
           {item.kind === "multiple_choice" ? (
             <p className="text-source -mt-2">Choose all that apply{item.maxSelections ? ` (at most ${item.maxSelections})` : ""}.</p>

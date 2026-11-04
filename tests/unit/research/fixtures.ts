@@ -1,10 +1,10 @@
 import type { KnowledgeBundle } from "@/features/knowledge/contracts";
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
 import type { StageTemplate, TraditionKey } from "@/features/process/domain/stage-template";
-import { compileSpatialManifest, deterministicUuid, type CompileResult } from "@/features/spatial/compiler";
+import { deterministicUuid } from "@/lib/canonical-hash";
 import type { DoorTraditionView, DoorView, ParityInput } from "@/server/research/parity/engine";
 
-import { syntheticGraph, syntheticInput } from "../spatial/fixtures";
+import { syntheticGraph } from "./synthetic-graph";
 
 export const SOURCE_A = deterministicUuid("source", "demo-source-a");
 export const SOURCE_B = deterministicUuid("source", "demo-source-b");
@@ -77,13 +77,6 @@ export function demoBundle(): KnowledgeBundle {
   };
 }
 
-let compiled: CompileResult | null = null;
-export function demoManifest(): CompileResult {
-  // The manifest is compiled from the bundle itself, as the platform compiles from a snapshot payload.
-  compiled ??= compileSpatialManifest(syntheticInput(demoBundle()));
-  return compiled;
-}
-
 export const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x)) as T;
 
 const TRADITIONS: TraditionKey[] = ["ajrakh", "sanganeri"];
@@ -93,7 +86,7 @@ export function fixtureTemplate(tradition: TraditionKey): StageTemplate {
     tradition,
     traditionName: `Sample Text ${tradition}`,
     rawClothStateId: `${tradition}-raw`,
-    products: [{ id: `${tradition}-product`, file: `/walkthrough/products/${tradition}.jpg`, name: "Sample Text", holder: "Sample Text" }],
+    products: [{ id: `${tradition}-product`, file: `/walkthrough/products/${tradition}.jpg`, name: "Sample Text", holder: "Sample Text", widthPx: 100, heightPx: 100 }],
     stages: [1, 2].map((number) => ({
       number,
       key: `${tradition}-s${number}`,

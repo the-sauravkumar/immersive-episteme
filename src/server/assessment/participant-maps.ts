@@ -56,13 +56,14 @@ interface SessionRow {
   study_id: string;
   snapshot_id: string | null;
   learning_started_at: Date | null;
+  is_demo: boolean;
 }
 
 async function ownSession(q: Q, who: ParticipantIdentity): Promise<SessionRow> {
   assertUuid(who.sessionId, "Session");
   assertUuid(who.participantId, "Participant");
   const r = await q.query<SessionRow>(
-    "SELECT id, study_id, snapshot_id, learning_started_at FROM study_sessions WHERE id = $1 AND participant_id = $2",
+    "SELECT ss.id, ss.study_id, ss.snapshot_id, ss.learning_started_at, st.is_demo FROM study_sessions ss JOIN studies st ON st.id = ss.study_id WHERE ss.id = $1 AND ss.participant_id = $2",
     [who.sessionId, who.participantId],
   );
   const row = r.rows[0];
@@ -84,14 +85,14 @@ export async function loadReconstructionTask(q: Q, who: ParticipantIdentity): Pr
        FROM study_assessments sa
        JOIN assessments a ON a.id = sa.assessment_id AND a.kind = 'reconstruction'
        JOIN assessment_items i ON i.assessment_id = a.id AND i.kind = 'concept_map'
-      WHERE sa.study_id = $1 AND sa.phase = $2
-      ORDER BY sa.position, i.position
+      WHERE sa.study_id = $1 AND sa.phase::text = $2
+      ORDER BY EXISTS (SELECT 1 FROM concept_maps cm WHERE cm.session_id = $3 AND cm.item_id = i.id AND cm.phase::text = $2 AND cm.is_final), sa.position, i.position
       LIMIT 1`,
-    [session.study_id, phase],
+    [session.study_id, phase, session.id],
   );
   const row = item.rows[0];
   if (!row) return { kind: "none", phase };
-  const set = session.snapshot_id ? await conceptSetFromSnapshot(q, session.snapshot_id, row.config) : await conceptSetFromTables(q, row.config);
+  const set = session.snapshot_id && !session.is_demo ? await conceptSetFromSnapshot(q, session.snapshot_id, row.config) : await conceptSetFromTables(q, row.config);
   const m = await q.query<{ id: string; revision: number; is_final: boolean; nodes: unknown; raw: unknown }>(
     "SELECT id, revision, is_final, nodes, raw FROM concept_maps WHERE session_id = $1 AND item_id = $2 AND phase = $3",
     [session.id, row.item_id, phase],

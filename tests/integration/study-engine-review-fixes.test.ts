@@ -176,7 +176,7 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
   });
 
   it("study-02: learning content only while the learning step is current", async () => {
-    const study = await activeStudy({ steps: ["pre_test", "familiarisation", "onboarding", "learning", "post_test"], familiarisation: { minutes: 5 } }, BASIC);
+    const study = await activeStudy({ steps: ["pre_test", "familiarisation", "onboarding", "learning", "post_test"] }, BASIC);
     const s = await allocatedTo(study, "2d");
     await startFamiliarisation(t.pool, s.sessionId);
     expect(await learningStepIsCurrent(t.pool, s.sessionId)).toBe(false); // familiarisation

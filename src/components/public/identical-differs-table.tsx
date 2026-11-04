@@ -16,8 +16,8 @@ const IDENTICAL: readonly [string, string][] = [
 ];
 
 const DIFFERS: readonly [string, string][] = [
-  ["Spatial organisation", "2D: pages and sections. 3D: rooms of a walkable museum"],
-  ["Navigation", "2D: the section list, the index and links. 3D: walking, the plan, the room list and links that walk to exhibits"],
+  ["Spatial organisation", "2D: a sequence of panels. 3D: a route of working yards"],
+  ["Navigation", "2D: Next, Back and the woven strip. 3D: walking along a one-way route, with back allowed"],
 ];
 
 function Group({ head, rows }: { head: string; rows: readonly [string, string][] }) {

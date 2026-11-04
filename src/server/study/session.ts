@@ -65,6 +65,11 @@ export const getCurrentSession = cache(async (arrivedAtHub: boolean = false): Pr
   return { state, position };
 });
 
+export async function nextTelemetrySeq(sessionId: string): Promise<number> {
+  const row = await getPool().query<{ next: number }>("SELECT coalesce(max(seq) + 1, 0)::int AS next FROM telemetry_events WHERE session_id = $1", [sessionId]);
+  return row.rows[0]!.next;
+}
+
 /** Where the participant should be for a position. */
 export function routeFor(position: Position, condition: SessionState["condition"]): string {
   switch (position.kind) {

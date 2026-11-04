@@ -20,7 +20,7 @@ export function EntranceScene({ door }: { door: 1 | 2 }) {
   }, []);
 
   return (
-    <div className="walking flex flex-col gap-6 p-4">
+    <div className="flex flex-col gap-6">
       <h1 className="text-[clamp(38px,6vw,64px)] leading-none">Entrance</h1>
       <div aria-hidden="true" className="pointer-events-none select-none">
         <Image className="walking-entrance" src={open ? entranceOpenImage(door) : ENTRANCE_CLOSED} alt="" width={1920} height={1080} sizes="100vw" priority unoptimized draggable={false} />

@@ -18,7 +18,7 @@ import { LEARNING_ROUTE } from "@/lib/permissions/learning";
 import { titleCase } from "@/lib/text/title-case";
 import { STEP_LABEL, type StudyStep } from "@/server/study/config";
 import { completedSteps, type Position } from "@/server/study/engine";
-import { getCurrentSession, routeFor } from "@/server/study/session";
+import { getCurrentSession, nextTelemetrySeq, routeFor } from "@/server/study/session";
 
 export const metadata: Metadata = { title: titleCase("Your session") };
 
@@ -88,7 +88,7 @@ async function Hub({ searchParams }: { searchParams: PageProps<"/study/session">
     );
   }
 
-  const telemetry = { sessionId: state.sessionId, contentVersion: state.snapshotLabel ?? "none", appBuild: serverEnv().APP_BUILD_VERSION, mode: "study" as const };
+  const telemetry = { firstSeq: await nextTelemetrySeq(state.sessionId), sessionId: state.sessionId, contentVersion: state.snapshotLabel ?? "none", appBuild: serverEnv().APP_BUILD_VERSION, mode: "study" as const };
   const remainingMinutes =
     state.learning.endsAt && state.learning.endsAt > state.now && !state.study.protocol.config.exposure.requireEveryStage ? Math.ceil((state.learning.endsAt.getTime() - state.now.getTime()) / 60_000) : null;
 

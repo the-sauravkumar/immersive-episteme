@@ -12,7 +12,6 @@
  *    return; diagrams render only graph text.
  *  - LayerTabs: canonical names and order, arrow keys, Home and End.
  *  - RelatedConcepts: grouped by verb with one "About these links" disclosure per group.
- *  - StudyBar: the shared group is identical whatever the condition group holds.
  *  - Onboarding: the same screen apart from the movement step, whose two versions differ by at
  *    most 10% in words (P23).
  * Fixtures are the placeholder knowledge-graph fixtures (no craft facts).
@@ -23,14 +22,10 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { ClaimList, KnowledgeSheet, LayeredField, Pager, RelatedConcepts, relatedLinksFromGroups, SheetReferences, type SheetConcept } from "@/components/knowledge";
-import { GuidanceProvider, LearningPhaseProvider, Onboarding, onboardingSteps, StallCue, StudyBar, StudyBarButton } from "@/components/learning";
 import { diagramCredit, diagramFigureOf, referenceNumbers, type ConceptDetail, type DiagramFigure } from "@/features/knowledge/read/view";
 import { KNOWLEDGE_LAYERS } from "@/features/learning/labels";
-import type { GuidanceSettings } from "@/features/learning/settings";
-import { ONBOARDING_TEXT } from "@/features/learning/strings";
-import type { LearningTimeBudget } from "@/features/learning/time-budget";
 
-import { fixtureView, renderWithTelemetry } from "../learning-2d/harness";
+import { fixtureView, renderWithTelemetry } from "./harness";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/learn/2d", useRouter: () => ({ replace: vi.fn(), push: vi.fn() }) }));
 vi.mock("next/link", () => ({ default: ({ href, children, ...rest }: { href: string; children: ReactNode }) => <a href={href} {...rest}>{children}</a> }));
@@ -226,77 +221,5 @@ describe("RelatedConcepts", () => {
     const withDetails = [...verbs].filter((v) => links.some((l) => `${l.type}:${l.direction}` === v && (l.explanation || l.conditions || l.statedBy.length)));
     expect(screen.queryAllByText("About these links")).toHaveLength(withDetails.length);
     expect(screen.getAllByRole("link")).toHaveLength(links.length);
-  });
-});
-
-const HYBRID: GuidanceSettings = { policy: "hybrid", cueEnabled: true, stallSeconds: 10, hintText: "Researcher hint for the test." };
-const FIXED: LearningTimeBudget = {
-  mode: "fixed_time",
-  budgetSeconds: 1200,
-  allowEarlyFinish: true,
-  startedAt: "2026-01-01T00:00:00.000Z",
-  endsAt: "2026-01-01T00:20:00.000Z",
-  endedAt: null,
-  serverNow: "2026-01-01T00:00:00.000Z",
-  persisted: false,
-};
-
-describe("StudyBar", () => {
-  const bar = (nav: ReactNode, locationAs: "text" | "h1") =>
-    renderWithTelemetry(
-      <LearningPhaseProvider budget={FIXED} mode="demo">
-        <GuidanceProvider guidance={HYBRID}>
-          <StudyBar location="a location" locationAs={locationAs} skipTargetId="content" conditionNav={nav} />
-          <StallCue />
-        </GuidanceProvider>
-      </LearningPhaseProvider>,
-    );
-
-  it("renders the same skip link, wordmark and shared controls whatever the condition group holds", () => {
-    const a = bar(<StudyBarButton icon={<span />} label="Contents" />, "text");
-    const sharedA = normalise(a.container.querySelector("[data-slot=study-bar-shared]")!.outerHTML);
-    const skipA = a.container.querySelector("[data-slot=study-skip-link]")!.outerHTML;
-    expect(screen.getByRole("button", { name: "Hint" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Finish learning" })).toBeInTheDocument();
-    expect(screen.getByRole("timer")).toHaveAccessibleName(/^Learning time left: /);
-    expect(screen.getByRole("link", { name: "Skip to content" })).toHaveAttribute("href", "#content");
-    a.unmount();
-    const b = bar(
-      <>
-        <StudyBarButton icon={<span />} label="Plan" />
-        <StudyBarButton icon={<span />} label="Pause" />
-      </>,
-      "h1",
-    );
-    expect(normalise(b.container.querySelector("[data-slot=study-bar-shared]")!.outerHTML)).toBe(sharedA);
-    expect(b.container.querySelector("[data-slot=study-skip-link]")!.outerHTML).toBe(skipA);
-    expect(screen.getByRole("heading", { level: 1, name: "A Location" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Plan" })).toHaveAttribute("title", "Plan");
-  });
-});
-
-describe("Onboarding", () => {
-  const words = (s: string) => s.split(/\s+/).filter(Boolean).length;
-
-  it("writes the two movement steps to the same length (within 10% of words)", () => {
-    const a = words(ONBOARDING_TEXT.movement["2d"]);
-    const b = words(ONBOARDING_TEXT.movement.immersive);
-    expect(Math.abs(a - b) / Math.max(a, b)).toBeLessThanOrEqual(0.1);
-  });
-
-  it("shows the same screen in both conditions apart from the movement step", () => {
-    const opts = { minutes: 20, hintAvailable: true } as const;
-    const twoD = onboardingSteps({ condition: "2d", ...opts });
-    const threeD = onboardingSteps({ condition: "immersive", ...opts });
-    expect(twoD.map((s) => s.id)).toEqual(threeD.map((s) => s.id));
-    expect(twoD.filter((s) => s.id !== "movement")).toEqual(threeD.filter((s) => s.id !== "movement"));
-
-    const first = render(<Onboarding condition="2d" {...opts} onStart={() => {}} />);
-    const htmlA = first.container.innerHTML.replace(ONBOARDING_TEXT.movement["2d"], "MOVEMENT");
-    expect(screen.getByRole("heading", { level: 1 })).toHaveFocus();
-    first.unmount();
-    const second = render(<Onboarding condition="immersive" {...opts} onStart={() => {}} />);
-    expect(second.container.innerHTML.replace(ONBOARDING_TEXT.movement.immersive, "MOVEMENT")).toBe(htmlA);
-    expect(screen.getByRole("button", { name: "Start" })).toBeInTheDocument();
   });
 });

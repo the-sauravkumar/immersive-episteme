@@ -16,7 +16,6 @@ import type { PoolClient } from "pg";
 import { nodeSha256 } from "../../src/features/knowledge/graph/hash-node";
 import { importContent } from "../../src/server/content/import-content";
 import { storeReviewSnapshot } from "../../src/server/content/review-snapshot";
-import { compileAndStoreManifest, type StoredManifest } from "../../src/server/spatial/manifest-store";
 
 import { REPO_ROOT, loadAndValidate } from "./_shared";
 
@@ -27,7 +26,6 @@ export const DEMO_REVIEW_STUDY_SLUG = "demo-review-walkthrough";
 export async function ensureDemoStudy(
   client: PoolClient,
   snapshotId: string,
-  manifest: StoredManifest,
 ): Promise<{ id: string; action: "created" | "updated" | "unchanged" }> {
   const config = {
     traditionSlugs: [...SHORTLIST],
@@ -42,14 +40,13 @@ export async function ensureDemoStudy(
   let action: "created" | "updated" | "unchanged" = "unchanged";
   if (!id) {
     const r = await client.query<{ id: string }>(
-      `INSERT INTO studies (slug, title, description, protocol_version, design, snapshot_id, manifest_id, config, allow_unverified_content, is_demo)
-       VALUES ($1, $2, $3, 'demo-1', 'between', $4, $5, $6::jsonb, true, true) RETURNING id`,
+      `INSERT INTO studies (slug, title, description, protocol_version, design, snapshot_id, config, allow_unverified_content, is_demo)
+       VALUES ($1, $2, $3, 'demo-1', 'between', $4, $5::jsonb, true, true) RETURNING id`,
       [
         DEMO_REVIEW_STUDY_SLUG,
         "Demo: Review-content walkthrough (non-experimental)",
         "Demo study for development and the public demo. Not a real study; its data is never experimental.",
         snapshotId,
-        manifest.id,
         JSON.stringify(config),
       ],
     );
@@ -57,9 +54,9 @@ export async function ensureDemoStudy(
     action = "created";
   } else if (existing.rows[0]!.status === "draft") {
     const u = await client.query(
-      `UPDATE studies SET snapshot_id = $2, manifest_id = $3, config = $4::jsonb
-        WHERE id = $1 AND (snapshot_id IS DISTINCT FROM $2 OR manifest_id IS DISTINCT FROM $3 OR config IS DISTINCT FROM $4::jsonb)`,
-      [id, snapshotId, manifest.id, JSON.stringify(config)],
+      `UPDATE studies SET snapshot_id = $2, manifest_id = NULL, config = $3::jsonb
+        WHERE id = $1 AND (snapshot_id IS DISTINCT FROM $2 OR manifest_id IS NOT NULL OR config IS DISTINCT FROM $3::jsonb)`,
+      [id, snapshotId, JSON.stringify(config)],
     );
     if ((u.rowCount ?? 0) > 0) action = "updated";
   } else {
@@ -67,7 +64,7 @@ export async function ensureDemoStudy(
   }
   const c = await client.query(
     `INSERT INTO study_conditions (study_id, code, label, interface, position)
-     VALUES ($1, 'conventional', 'Conventional 2D pages', 'conventional_2d', 0), ($1, 'immersive', 'Immersive 3D museum', 'immersive_3d', 1)
+     VALUES ($1, 'conventional', 'Visual Course 2D', 'conventional_2d', 0), ($1, 'immersive', 'Walkthrough 3D', 'immersive_3d', 1)
      ON CONFLICT (study_id, code) DO NOTHING`,
     [id],
   );
@@ -77,12 +74,11 @@ export async function ensureDemoStudy(
 
 export interface PublicDemoResult {
   snapshotId: string;
-  combinedManifestId: string;
   studyId: string;
   study: "created" | "updated" | "unchanged";
 }
 
-/** Steps 3-6 of dev:bootstrap: content import, review snapshot, manifests, demo study. */
+/** Steps 3-6 of dev:bootstrap: content import, review snapshot, demo study. */
 export async function buildPublicDemo(client: PoolClient, opts: { invokedBy: string; log: (msg: string) => void }): Promise<PublicDemoResult> {
   const { log } = opts;
   const { model, report } = loadAndValidate(`${REPO_ROOT}/content`);
@@ -95,16 +91,9 @@ export async function buildPublicDemo(client: PoolClient, opts: { invokedBy: str
   const snap = await storeReviewSnapshot(client, { hasher: nodeSha256 });
   log(`review snapshot ${snap.created ? "created" : "unchanged"}: id ${snap.id} label ${snap.versionLabel} payload_sha256 ${snap.payloadSha256} items ${snap.itemCount}`);
 
-  const combined = await compileAndStoreManifest(client, { snapshotId: snap.id, traditions: [...SHORTLIST] });
-  const manifests = [combined];
-  for (const t of SHORTLIST) manifests.push(await compileAndStoreManifest(client, { snapshotId: snap.id, traditions: [t] }));
-  for (const m of manifests) {
-    log(`manifest [${m.traditions.join("+")}] ${m.created ? "created" : "unchanged"}: id ${m.id} status ${m.status} manifest_hash ${m.manifestHash} (${m.elements} elements)`);
-  }
-
-  const study = await ensureDemoStudy(client, snap.id, combined);
-  log(`demo study ${DEMO_REVIEW_STUDY_SLUG} ${study.action}: id ${study.id} (is_demo, non-experimental, draft) snapshot ${snap.id} manifest ${combined.id}`);
-  return { snapshotId: snap.id, combinedManifestId: combined.id, studyId: study.id, study: study.action };
+  const study = await ensureDemoStudy(client, snap.id);
+  log(`demo study ${DEMO_REVIEW_STUDY_SLUG} ${study.action}: id ${study.id} (is_demo, non-experimental, draft) snapshot ${snap.id}`);
+  return { snapshotId: snap.id, studyId: study.id, study: study.action };
 }
 
 const DEMO_FLAGGED = new Set([

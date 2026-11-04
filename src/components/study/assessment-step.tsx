@@ -13,7 +13,7 @@ import { getPool } from "@/server/db/client";
 import { optionOrder, itemConfig, pairOrder } from "@/server/study/answers";
 import type { StudyStep } from "@/server/study/config";
 import { listStepAssessments, stepReadiness, StudyEngineError, submittedAssessments } from "@/server/study/engine";
-import { requireStep } from "@/server/study/session";
+import { nextTelemetrySeq, requireStep } from "@/server/study/session";
 
 import { AssessmentForm, type RenderItem } from "./assessment-form";
 import { StudyStateMessage } from "./state-message";
@@ -75,7 +75,7 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
   const presentation = next.config.presentation === "semantic_differential" ? "semantic_differential" : "standard";
   const paged = next.config.paged === true || (next.config.instrument as { paged?: boolean } | undefined)?.paged === true;
   const body = (
-    <div className="walking p-4">
+    <div>
       <StepProgress count={count} />
       {all.length > 1 ? <p className="text-ui mb-2 tabular-nums text-ink-3">{countOf("Part", all.indexOf(next) + 1, all.length)}</p> : null}
       <AssessmentForm
@@ -91,7 +91,7 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
   // Telemetry only once allocated: an unallocated session has no condition to store events under.
   if (state.condition === null) return body;
   return (
-    <TelemetryProvider config={{ sessionId: state.sessionId, contentVersion: state.snapshotLabel ?? "none", appBuild: serverEnv().APP_BUILD_VERSION, mode: "study" }}>
+    <TelemetryProvider config={{ firstSeq: await nextTelemetrySeq(state.sessionId), sessionId: state.sessionId, contentVersion: state.snapshotLabel ?? "none", appBuild: serverEnv().APP_BUILD_VERSION, mode: "study" }}>
       {body}
     </TelemetryProvider>
   );

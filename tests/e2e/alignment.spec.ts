@@ -17,7 +17,7 @@ import { randomBytes } from "node:crypto";
 
 import { expect, newContext, test, type Browser, type Page } from "./fixtures";
 
-import { E2E_STUDY_CODE, closeDb, ensureE2eStudy, retireE2eStaff } from "./study-fixtures";
+import { JOURNEY_STUDY as E2E_STUDY_CODE, closeDb, ensureDemoStudy, retireE2eStaff } from "./study-fixtures";
 
 // The dev server compiles each route on first visit.
 test.describe.configure({ timeout: 600_000 });
@@ -52,7 +52,7 @@ async function signInStaff(page: Page) {
 
 async function startDemo(page: Page) {
   await page.goto("/explore");
-  await page.getByRole("button", { name: "Open conventional pages" }).click();
+  await page.getByRole("button", { name: "Open visual course" }).click();
   await page.waitForURL(/\/learn\/2d$/, { timeout: 120_000 });
 }
 
@@ -92,21 +92,6 @@ async function expectActionsAligned(page: Page, cards: string, action: string) {
   expect(compared, `${cards} has at least one row of side-by-side cards`).toBeGreaterThan(0);
 }
 
-/**
- * Parallel cards stacked in one column (the 2D index): every card has the same width and height
- * within 1 px. Only visible cards count: Next keeps the previous route hidden in the DOM for a
- * moment after a client navigation.
- */
-async function expectEqualCards(page: Page, cards: string) {
-  await page.locator(`${cards}:visible`).nth(1).waitFor({ timeout: 120_000 });
-  const boxes = await page.locator(`${cards}:visible`).evaluateAll((els) => els.map((el) => el.getBoundingClientRect()).map((r) => ({ w: r.width, h: r.height })));
-  expect(boxes.length, `${cards} on ${page.url()}`).toBeGreaterThan(1);
-  for (const b of boxes) {
-    expect(Math.abs(b.w - boxes[0]!.w), `card widths of ${cards}`).toBeLessThanOrEqual(1);
-    expect(Math.abs(b.h - boxes[0]!.h), `card heights of ${cards}`).toBeLessThanOrEqual(1);
-  }
-}
-
 async function expectNoHorizontalOverflow(page: Page, path: string) {
   await page.goto(path);
   await page.waitForLoadState("networkidle");
@@ -128,9 +113,6 @@ test("card actions in one row share a baseline at 1280 px", async ({ browser }) 
 
   await page.goto("/explore");
   await expectActionsAligned(page, '[data-slot="card"]', 'button[type="submit"]');
-
-  await startDemo(page);
-  await expectEqualCards(page, "main [data-slot=tradition-card]");
 
   // Study entry: label and field share the left edge; Continue ends on the field's right edge
   // (DESIGN.md 11.7: the primary action sits right, on the study column's edge).
@@ -160,17 +142,7 @@ test("no in-scope page scrolls horizontally at 390 px", async ({ browser }) => {
 
   const demo = await context(browser, PHONE);
   await startDemo(demo.page);
-  const tradition = await demo.page.locator('a[href^="/learn/2d/traditions/"]').first().getAttribute("href");
-  await demo.page.goto(tradition!);
-  const concept = await demo.page.locator('a[href^="/learn/2d/concepts/"]').first().getAttribute("href");
-  for (const path of ["/learn/2d", "/learn/2d/categories", "/learn/2d/comparisons", "/learn/2d/search?q=dye", tradition!, concept!]) {
-    await expectNoHorizontalOverflow(demo.page, path);
-  }
-  // The immersive route (DESIGN.md 15): the museum overlays at 390 px, once the scene is ready.
-  await demo.page.goto("/learn/immersive?allowSoftware=1");
-  await demo.page.waitForFunction(() => (window as unknown as { __museumInfo?: () => { ready: boolean } }).__museumInfo?.().ready === true, null, { timeout: 600_000 });
-  const museum = await demo.page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, client: document.documentElement.clientWidth }));
-  expect(museum.scroll, `/learn/immersive scrolls horizontally at ${museum.client} px`).toBeLessThanOrEqual(museum.client);
+  await expectNoHorizontalOverflow(demo.page, "/learn/2d");
   await demo.ctx.close();
 
   const staff = await context(browser, PHONE);
@@ -186,7 +158,7 @@ test("no in-scope page scrolls horizontally at 390 px", async ({ browser }) => {
 
 test("the study consent page does not scroll horizontally at 390 px", async ({ browser }) => {
   // Participant: consent page of the demo fixture study (kept apart so the study fixture never blocks the other checks).
-  await ensureE2eStudy();
+  ensureDemoStudy(E2E_STUDY_CODE, 30);
   const p = await context(browser, PHONE);
   await p.page.goto("/study");
   await p.page.getByLabel("Study code").fill(E2E_STUDY_CODE);

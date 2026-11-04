@@ -3317,3 +3317,34 @@ novice met, and none touches the sheet.
 - **Integration points left open by design:** `DOOR_SESSIONS` in `src/app/(learning)/learn/door-session.tsx` and `DOOR_VIEW_BUILDERS` in `src/server/research/parity/door-views.ts` are empty until `CourseSession` and `WalkthroughSession` are merged. The old learning UI still serves `/learn/*` until then.
 - **Evidence:** the test counts for this change are in the commit report. Items that were not run are named there.
 
+## DR-076: Both Doors Wired Into The Study, The Old Doors Deleted, The Whole Journey Run (Adopted under the lead's delegation; "no questions, take the recommended route")
+
+- **Context:** DR-075 left `DOOR_SESSIONS` and `DOOR_VIEW_BUILDERS` empty, and `/learn/*` still served the old pages and the old museum. Concept Note rev2 sections 5, 7 and 10 and `DESIGN.md` sections 3, 4 and 11 bind this work.
+- **Wiring:**
+  - Thin adapters in `src/app/(learning)/learn/` (`course-door.tsx`, `walkthrough-door.tsx`, `practice-doors.tsx`, `door-progress.ts`) translate door events to `learning-progress`. On finish the learner goes to the `next` URL the server returns.
+  - The product stop is `products`, number stages + 1, in both doors.
+  - A refused entry (`stop_ahead`) returns Door 1 to the panel the learner was on and reports that panel again, so a lost report cannot lock the learner out. In Door 2 the server journal holds the refusal (`study.stage_refused`).
+  - Progress reports are now sent one at a time. Sent together, a stop's "left" could reach the server before its "entered" and be lost.
+- **Practice:** the 5 to 10 minute minimum is gone for both doors, with `familiarisation.minutes`. The start and the elapsed time stay in the journal, so practice is still timed apart.
+- **Parity:** `courseView` reads Door 1's panel models and `walkthroughView` reads the painted words of Door 2's plan, so a door that paints or prints other words fails. Planted differences are tested in `tests/unit/research/door-views.test.ts`. Sources in Door 2 come from the template stage, as its Sources dialog does.
+- **Tokens:** one file, `src/styles/walking-tokens.css`, one scope `.walking`, with the self-hosted fonts. The study shell now carries the scope, so study pages are `--vat` pages. Atlas components there take the turmeric, square corners and the two typefaces through aliases.
+- **New telemetry event:** `source_opened`, both doors, because both sessions report it and no existing event fits (`citation_opened` needs a concept id).
+- **New migration, not asked for:** `0023_manifest_not_required` drops the database rule that a study with an immersive condition needs a spatial manifest. With the compiler deleted, no study could otherwise activate. The manifest tables and columns stay. Their removal is for the lead.
+- **Faults the journey found, all fixed:**
+  1. Pressing Next on the second-last screen of a paged form submitted the form, because React reused the button and the click finished as a submit. The last question of the background form and pre-test was never asked.
+  2. `/study/return` needed the participant cookie, so the delayed return link could not work from another browser.
+  3. Three concept maps were owed but the loader always served the first, so a session could never leave that step. The editor also kept the previous map's concepts under the next map's prompt.
+  4. The transfer account said "in no particular order" while each stage title kept its source number, which gave the answer.
+  5. A returning browser restarted telemetry numbering at 0 and every delayed-test event was quarantined. The server now passes the next number.
+  6. Study pages were a dark box on a white page. The sketch canvas pointed at a missing plaster file. Door 1 stills read as pasted patches on rough plaster, and the concept map opened as overlapping nodes running off the left edge.
+- **Decisions taken while the lead was away, for ruling:**
+  1. **Identification items.** With stand-in models almost no object has its own model, so the immediate and delayed forms had none. They now fall back to stand-in objects whose distractors have other models, and each carries a visible `Sample Text` mark. A real study needs real models first (DESIGN Section 13: no such mark in a final build).
+  2. **Demo studies and the concept map.** A demo snapshot may not hold real concepts, so a demo study reads concept labels from the knowledge tables. A real study still reads its snapshot.
+  3. **Door 1 cell ground.** A flat `#D2C4B6` replaces the rough plaster behind the stills, added to DESIGN Section 4. Section 7 asks for plaster, so the better answer is stills rendered on the plaster itself.
+  4. **Interface parity report removed.** `analysis/parity/interface-parity.json` measured the deleted pages, so the Equivalence Monitor now reports no run. The monitor, its P1 to P33 list and the colophon table still describe the old suite and need replacing.
+  5. **Kept for now:** the concept figure balance in the CMS media page, the knowledge components the CMS uses, and the exposure and navigation timing events. Nothing in either door uses them.
+- **Equivalence check:** (1) content, words and files come from one template and are checked per door; (2) exposure, same 30-minute server cap; (3) sources, same list behind each caption and the product credits now in both; (4) ease, Help and Pause open the same text in both, with Door 2's movement line added; (5) navigation is the variable; (6) salience unchanged; (7) telemetry, the same stop events in both, with Door 2's extra movement events.
+- **Open faults in Door 2's runtime, which the rebuild's main session owns, so they are not fixed here:**
+  1. Ajrakh Station 4 arrives with no shed, walls or drying frames. The painted words float in the air in front of the horizon hills. It happened in both runs that reached it, and was still there 60 seconds after arrival.
+  2. Pressing Back while the guided walk is still arriving stops the walk at the yard's first point, because `walkTo` does not clear `autoArriving`. Back also walks forward through the yard before it turns round.
+- **Evidence:** the run numbers are in the commit report. Items that were not run are named there. The last full journey run was stopped by the system for low memory after Door 1 passed; Door 2 and the cap passed on an earlier build of this change.

@@ -7,7 +7,6 @@ import { describe, expect, it } from "vitest";
 
 import { canTransition, conceptInputSchema, relationshipTypeSchema, verificationTransitionSchema } from "../../src/features/knowledge/contracts";
 import { conceptMapSubmissionSchema, assessmentInputSchema } from "../../src/features/research/contracts";
-import { spatialManifestSchema } from "../../src/features/spatial/contracts";
 import { participantCodeSchema, studyInputSchema } from "../../src/features/study/contracts";
 import { EVENT_TYPE_REGISTRY, telemetryBatchSchema } from "../../src/features/telemetry/contracts";
 import { RELATIONSHIP_TYPES } from "../../db/seeds/reference-data";
@@ -114,17 +113,5 @@ describe("schema contracts", () => {
     expect(
       assessmentInputSchema.safeParse({ code: "ux", version: 1, kind: "questionnaire", title: "UX", isValidatedInstrument: true }).success,
     ).toBe(false);
-    const manifest = {
-      schemaVersion: 1,
-      snapshotVersion: "v1",
-      ruleSet: { id: randomUUID(), name: "r", version: 1, configSha256: "a".repeat(64) },
-      compilerVersion: "1.0.0",
-      seed: "s",
-      elements: [
-        { id: "zone-a", kind: "zone", ruleId: "r1" },
-        { id: "zone-a", kind: "room", ruleId: "r1", parentId: "zone-a" },
-      ],
-    };
-    expect(spatialManifestSchema.safeParse(manifest).success).toBe(false);
   });
 });
