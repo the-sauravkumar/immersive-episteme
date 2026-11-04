@@ -24,7 +24,7 @@ const SCENES = process.argv[2] ? process.argv[2].split(",") : ["s=practice", "s=
     const caught = planted.problems.length > report.problems.length;
     console.log(scene, "solids", report.solidsChecked, "clothPoints", report.clothPointsChecked, "hits", report.problems.length, "plantedFaultCaught", caught);
     for (const problem of report.problems) console.log("  ", JSON.stringify(problem));
-    const walk = await page.evaluate("window.WALK()");
+    const walk = await page.evaluate("window.walkCheck()");
     if (walk) console.log("   walk", JSON.stringify(walk));
     if (walk && !walk.reachedEnd) failed++;
     if (report.problems.length > 0 || !caught) failed++;
