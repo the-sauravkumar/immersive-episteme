@@ -2,26 +2,75 @@
 
 import { useEffect, useRef, useState } from "react";
 import { HELP_LINES, HELP_TITLE } from "@/features/process/domain/guidance";
+import type { WalkEngine, WalkEngineFactory } from "../application/walk-engine";
 import { practiceStation } from "../domain/route-plan";
-import { WalkRuntime } from "../infrastructure/walk-runtime";
 import "@/styles/walking-tokens.css";
 import "./walkthrough.css";
 
 const KEY_MOVES: Record<string, readonly [number, number]> = { KeyW: [1, 0], ArrowUp: [1, 0], KeyS: [-1, 0], ArrowDown: [-1, 0], KeyA: [0, -1], ArrowLeft: [0, -1], KeyD: [0, 1], ArrowRight: [0, 1] };
 
-export function WalkthroughPractice({ onFinished }: { readonly onFinished: () => void }) {
+export interface WalkthroughPracticeProps {
+  readonly createEngine: WalkEngineFactory;
+  readonly onFinished: () => void;
+  readonly onRenderFailed: () => void;
+}
+
+export function WalkthroughPractice({ createEngine, onFinished, onRenderFailed }: WalkthroughPracticeProps) {
   const host = useRef<HTMLDivElement>(null);
-  const runtime = useRef<WalkRuntime | null>(null);
+  const runtime = useRef<WalkEngine | null>(null);
   const dragging = useRef<{ x: number; y: number } | null>(null);
+  const failedHandler = useRef(onRenderFailed);
   const [helpOpen, setHelpOpen] = useState(false);
   const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    failedHandler.current = onRenderFailed;
+  }, [onRenderFailed]);
 
   useEffect(() => {
     const element = host.current;
     if (!element) return;
-    const instance = new WalkRuntime(element, [practiceStation()], () => [], { onStationEntered() { setReady(true); }, onStationLeft() {}, onObjectDwell() {}, onPath() {}, onWrongTurn() {} });
+    let instance: WalkEngine | null = null;
+    const close = () => {
+      instance?.dispose();
+      instance = null;
+      runtime.current = null;
+    };
+    const fail = () => {
+      close();
+      setFailed(true);
+      failedHandler.current();
+    };
+    try {
+      instance = createEngine(element, [practiceStation()], () => [], {
+        onStationEntered() {
+          setReady(true);
+        },
+        onStationLeft() {},
+        onObjectDwell() {},
+        onPath() {},
+        onWrongTurn() {},
+        onContextLost: fail,
+      });
+    } catch {
+      fail();
+      return;
+    }
     runtime.current = instance;
-    void instance.start(0);
+    instance.start(0).catch(() => {
+      if (instance) fail();
+    });
+    const resize = () => runtime.current?.resize(element.clientWidth, element.clientHeight);
+    window.addEventListener("resize", resize);
+    return () => {
+      window.removeEventListener("resize", resize);
+      close();
+    };
+  }, [createEngine]);
+
+  useEffect(() => {
+    if (!ready) return;
     const pressed = new Set<string>();
     const apply = () => {
       let forward = 0;
@@ -33,7 +82,7 @@ export function WalkthroughPractice({ onFinished }: { readonly onFinished: () =>
           strafe += move[1];
         }
       }
-      instance.setMove(Math.sign(forward), Math.sign(strafe));
+      runtime.current?.setMove(Math.sign(forward), Math.sign(strafe));
     };
     const down = (event: KeyboardEvent) => {
       if (KEY_MOVES[event.code]) {
@@ -45,17 +94,13 @@ export function WalkthroughPractice({ onFinished }: { readonly onFinished: () =>
       pressed.delete(event.code);
       apply();
     };
-    const resize = () => instance.resize(element.clientWidth, element.clientHeight);
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
-    window.addEventListener("resize", resize);
     return () => {
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
-      window.removeEventListener("resize", resize);
-      instance.dispose();
     };
-  }, []);
+  }, [ready]);
 
   return (
     <div className="walkthrough walking" data-slot="walkthrough-practice">
@@ -84,7 +129,7 @@ export function WalkthroughPractice({ onFinished }: { readonly onFinished: () =>
         <button type="button" onClick={() => setHelpOpen(true)}>{HELP_TITLE}</button>
       </div>
       <div className="walkthrough-move">
-        <button type="button" className="walkthrough-next" onClick={onFinished}>Finish Practice</button>
+        <button type="button" className="walkthrough-next" disabled={!ready} onClick={onFinished}>Finish Practice</button>
       </div>
       {helpOpen ? (
         <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={HELP_TITLE}>
@@ -96,6 +141,7 @@ export function WalkthroughPractice({ onFinished }: { readonly onFinished: () =>
           <button type="button" onClick={() => setHelpOpen(false)}>Close</button>
         </div>
       ) : null}
+      {failed ? <div className="walkthrough-cover walkthrough-loading" role="alert">This Device Cannot Show The Yard</div> : null}
     </div>
   );
 }

@@ -12,6 +12,7 @@ interface ProductPanelProps {
   readonly imageStatus: (src: string) => ImageStatus;
   readonly controls: React.ReactNode;
   readonly onSourcesOpened: () => void;
+  readonly onSourcesClosed: () => void;
 }
 
 export function productImageSources(template: StageTemplate): readonly string[] {
@@ -19,7 +20,7 @@ export function productImageSources(template: StageTemplate): readonly string[] 
   return [...(last ? [clothStatePath(last.clothStateId)] : []), ...template.products.map((product) => product.file)];
 }
 
-export function ProductPanel({ template, imageStatus, controls, onSourcesOpened }: ProductPanelProps) {
+export function ProductPanel({ template, imageStatus, controls, onSourcesOpened, onSourcesClosed }: ProductPanelProps) {
   const last = template.stages.at(-1);
   const followedSrc = last ? clothStatePath(last.clothStateId) : null;
   return (
@@ -37,6 +38,7 @@ export function ProductPanel({ template, imageStatus, controls, onSourcesOpened 
           className="sources"
           onToggle={(event) => {
             if (event.currentTarget.open) onSourcesOpened();
+            else onSourcesClosed();
           }}
         >
           <summary>{SOURCES_AND_CREDITS_LABEL}</summary>

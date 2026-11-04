@@ -141,7 +141,7 @@ export async function recordLearningEnded(q: Q, sessionId: string): Promise<Lear
   if (!row) throw new LearningContextUnavailableError("session_not_found");
   if (!row.ended) {
     if (!row.allowed) throw new LearningFinishRefusedError();
-    await q.query("UPDATE study_sessions SET learning_ended_at = now() WHERE id = $1 AND learning_ended_at IS NULL AND learning_started_at IS NOT NULL", [sessionId]);
+    await q.query("UPDATE study_sessions SET learning_ended_at = LEAST(now(), learning_ends_at) WHERE id = $1 AND learning_ended_at IS NULL AND learning_started_at IS NOT NULL", [sessionId]);
   }
   return readClock(q, sessionId);
 }

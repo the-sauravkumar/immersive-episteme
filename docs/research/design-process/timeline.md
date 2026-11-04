@@ -28,6 +28,7 @@ In order of occurrence. "Lead" is the project lead. Commits are on branch `main`
 | 22 | Condition-equivalence module built: server-timed learning budget, one shared time accountant (exposure, navigation, pauses; reconciles exactly), lossless exit flush, shared citation disclosure, versioned timing metrics kept out of outcome tables. | `modules/condition-equivalence.md` |
 | 23 | Study engine moved to Concept Note rev2: two doors, the note's step order, self-paced learning with a server cap and every stage required, new test item types generated from the stage templates, delayed test, Door 2 behavioural logging, parity from one template, analysis on H1 to H3. | DR-074 |
 | 24 | Both doors wired into the study from one template, the old doors and the spatial compiler deleted, and the whole journey run through both doors on a production build. | DR-076 |
+| 25 | Final adversarial review: test option order, recording of stops, resume, exit events and the WebGL backstop corrected. | DR-077 |
 
 ## 2026-11-04: Door 2 Whole-Route Faults
 

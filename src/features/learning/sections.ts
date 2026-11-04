@@ -14,7 +14,7 @@
  *
  * Titles are interface labels, not craft content. Client-safe (pure data).
  */
-import { CONCEPT_TYPES, type ConceptType, type KnowledgeCategoryCode } from "@/lib/validation/enums";
+import type { ConceptType, KnowledgeCategoryCode } from "@/lib/validation/enums";
 
 export interface KnowledgeSection {
   /** Stable id: the 2D DOM anchor (`#section-<id>`) and telemetry `layerId` (`section:<id>`). */
@@ -63,12 +63,3 @@ export function sectionOfType(type: ConceptType): KnowledgeSection {
   return KNOWLEDGE_SECTIONS.find((s) => (s.types as readonly ConceptType[]).includes(type)) ?? KNOWLEDGE_SECTIONS[0];
 }
 
-/** Every concept type of a section, the `tradition` concept included (what the compiler places in its room). */
-export function typesOfSection(section: KnowledgeSection): ConceptType[] {
-  return CONCEPT_TYPES.filter((t) => sectionOfType(t).id === section.id);
-}
-
-/** The section of a museum zone group (a room's `group`), or null for rooms that are no section (lobby, shared commons). */
-export function sectionOfZoneGroup(group: string | null | undefined): KnowledgeSection | null {
-  return group ? (KNOWLEDGE_SECTIONS.find((s) => s.zoneGroup === group) ?? null) : null;
-}

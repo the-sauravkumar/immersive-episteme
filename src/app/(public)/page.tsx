@@ -7,7 +7,7 @@
  *     equivalents follow: the count list, the two conditions as text and the booktabs table;
  *  3. the six traditions as an index of equal rows, without images (DR-020);
  *  4. Table 1, the dataset counts;
- *  5. the latest parity run, or "No parity run recorded yet";
+ *  5. the latest parity run, or "There is no current interface parity run";
  *  6. the institution strip (hidden while its fields are null).
  *
  * Every number on this page is read from the database at request time inside <Suspense>

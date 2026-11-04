@@ -9,7 +9,7 @@
  *    itself (tests/integration/public-dataset-stats.test.ts seeds a different dataset and shows
  *    the reads change with it).
  *  - Figure 1 is one static indigo plate (DR-022): no draw-on, nothing animates.
- *  - Explore: the two cards' buttons share one baseline; the Colophon lists every parity check (PARITY_CHECKS, P1 to P33)
+ *  - Explore: the two cards' buttons share one baseline; the Colophon states there is no current interface parity run
  *    and shows a result only from a stored run.
  *  - No band, ticks or marker exist anywhere; in high contrast every pane edge is ink; every
  *    control reached by Tab shows the focus ring, in normal and high contrast.
@@ -18,14 +18,11 @@
  *    rows share one title edge and face; the dataset table fits 390 px without scrolling; the two
  *    Explore control tables end on one rule.
  */
-import { existsSync } from "node:fs";
-import path from "node:path";
 
 import { expect, newContext, test, type Page } from "./fixtures";
 import { config as loadEnv } from "dotenv";
 import { Pool } from "pg";
 
-import { PARITY_CHECKS } from "@/features/research/interface-parity";
 
 loadEnv({ quiet: true });
 
@@ -145,12 +142,8 @@ test("Explore cards align their actions and the Colophon shows only stored parit
   expect(Math.abs(tops[0]!.y + tops[0]!.height - (tops[1]!.y + tops[1]!.height))).toBeLessThanOrEqual(1);
 
   await page.goto("/about/colophon");
-  const rows = page.locator("#parity tbody tr");
-  await expect(rows).toHaveCount(PARITY_CHECKS.length);
-  if (!existsSync(path.join(process.cwd(), "analysis", "parity", "interface-parity.json"))) {
-    await expect(page.getByText("No parity run recorded yet.", { exact: false })).toBeVisible();
-    await expect(rows.filter({ hasText: /Pass|Fail/ })).toHaveCount(0);
-  }
+  await expect(page.locator("#parity tbody tr")).toHaveCount(0);
+  await expect(page.getByText("There is no current interface parity run.", { exact: false })).toBeVisible();
 });
 
 test("no decorative graphics exist, and high contrast sets every rule in ink (DR-022)", async ({ browser }) => {

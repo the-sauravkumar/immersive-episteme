@@ -21,6 +21,7 @@ import {
   finishLearning,
   recordStageEntered,
   recordStageLeft,
+  stageVisitsOf,
   returnForDelayedTest,
   consentTextSha256,
   enrolParticipant,
@@ -473,6 +474,19 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       const step = (await state(s.sessionId)).journal.find((e) => e.action === "study.step_completed" && e.after.step === "learning")!;
       expect(step.after).toMatchObject({ reason: "cap_reached", stagesRequired: 9, stagesVisited: 0 });
       expect(step.after.unvisited).toHaveLength(9);
+      const clock = await one<{ ended: Date; ends: Date }>(t.pool, "SELECT learning_ended_at AS ended, learning_ends_at AS ends FROM study_sessions WHERE id = $1", [s.sessionId]);
+      expect(clock.ended.getTime()).toBe(clock.ends.getTime());
+    });
+
+    it("treats a repeated report of the current stop as the same visit, and adds up its exits", async () => {
+      const { s, stops } = await learning();
+      await recordStageEntered(t.pool, s.sessionId, stops[0]!);
+      expect(await recordStageEntered(t.pool, s.sessionId, stops[0]!)).toMatchObject({ visitCount: 1, backStep: false, visitIndex: 0 });
+      await recordStageLeft(t.pool, s.sessionId, { ...stops[0]!, activeMs: 1000 });
+      await recordStageLeft(t.pool, s.sessionId, { ...stops[0]!, activeMs: 250 });
+      const visits = await t.pool.query<{ active_ms: number }>("SELECT active_ms FROM stage_visits WHERE session_id = $1", [s.sessionId]);
+      expect(visits.rows.map((row) => row.active_ms)).toEqual([1250]);
+      expect(await stageVisitsOf(t.pool, s.sessionId)).toEqual([{ traditionKey: stops[0]!.traditionKey, stageKey: stops[0]!.stageKey }]);
     });
 
     it("counterbalances the order of the traditions within each condition", async () => {

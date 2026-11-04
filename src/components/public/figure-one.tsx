@@ -15,7 +15,7 @@
  */
 import { OutlineDiagram, type DiagramEdge, type DiagramNode } from "@/components/brand/outline-diagram";
 
-import { pageMiniature, planMiniature } from "./condition-schematic";
+import { pageMiniature, routeMiniature } from "./condition-schematic";
 
 export interface FigureOneCounts {
   traditions: number;
@@ -70,7 +70,7 @@ export const FIGURE_ONE_TALL = { width: 320, height: 488 } as const;
 
 function wide(counts: FigureOneCounts | null): { nodes: DiagramNode[]; edges: DiagramEdge[] } {
   // Cluster x 16-328, y 80-320; a bracket at x 344 spans it, and the trunk leaves from its midpoint.
-  const nodes = [...clusterNodes(counts, 16, 80, 312), ...pageMiniature("f1-page", 608, 24, 232, 140), ...planMiniature("f1-plan", 608, 236, 232, 140)];
+  const nodes = [...clusterNodes(counts, 16, 80, 312), ...pageMiniature("f1-page", 608, 24, 232, 140), ...routeMiniature("f1-route", 608, 236, 232, 140)];
   const edges: DiagramEdge[] = [
     { id: "bracket", d: "M336 80 H344 V320 H336" },
     { id: "branch-2d", d: "M344 200 H472 V94 H600", arrow: true, label: { text: "2D: visual course", x: 724, y: 190 } },
@@ -81,11 +81,11 @@ function wide(counts: FigureOneCounts | null): { nodes: DiagramNode[]; edges: Di
 
 function tall(counts: FigureOneCounts | null): { nodes: DiagramNode[]; edges: DiagramEdge[] } {
   // Cluster x 8-312, y 16-256; a bracket under it at y 272, and the trunk leaves from its midpoint.
-  const nodes = [...clusterNodes(counts, 8, 16, 304), ...pageMiniature("f1m-page", 8, 336, 144, 112), ...planMiniature("f1m-plan", 168, 336, 144, 112)];
+  const nodes = [...clusterNodes(counts, 8, 16, 304), ...pageMiniature("f1m-page", 8, 336, 144, 112), ...routeMiniature("f1m-route", 168, 336, 144, 112)];
   const edges: DiagramEdge[] = [
     { id: "bracket", d: "M8 264 V272 H312 V264" },
-    { id: "branch-2d", d: "M160 272 V300 H80 V328", arrow: true, label: { text: "2D: pages", x: 80, y: 474 } },
-    { id: "branch-3d", d: "M160 272 V300 H240 V328", arrow: true, label: { text: "3D: museum", x: 240, y: 474 } },
+    { id: "branch-2d", d: "M160 272 V300 H80 V328", arrow: true, label: { text: "2D: visual course", x: 80, y: 474 } },
+    { id: "branch-3d", d: "M160 272 V300 H240 V328", arrow: true, label: { text: "3D: walkthrough", x: 240, y: 474 } },
   ];
   return { nodes, edges };
 }

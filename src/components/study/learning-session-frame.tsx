@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
-import { bindLearningTelemetry, finishLearning } from "@/features/study/learning-progress";
+import { bindLearningTelemetry, closeOpenStop, finishLearning, unbindLearningTelemetry } from "@/features/study/learning-progress";
 import { useOptionalTelemetry } from "@/features/telemetry/client";
 
 export function capTimings(endsAt: string, serverNow: string, warningMinutes: number): { untilWarningMs: number; untilCapMs: number } {
@@ -18,16 +18,30 @@ export function LearningSessionFrame({ endsAt, serverNow, warningMinutes, childr
 
   useEffect(() => {
     if (!telemetry) return;
-    const track = telemetry.track.bind(telemetry) as unknown as Parameters<typeof bindLearningTelemetry>[0];
+    const track = telemetry.track.bind(telemetry) as unknown as Parameters<typeof bindLearningTelemetry>[0] & object;
     bindLearningTelemetry(track);
-    return () => bindLearningTelemetry(null);
+    return () => queueMicrotask(() => unbindLearningTelemetry(track));
   }, [telemetry]);
+
+  useEffect(() => {
+    const leaving = () => closeOpenStop();
+    const returned = (event: PageTransitionEvent) => {
+      if (event.persisted) window.location.reload();
+    };
+    window.addEventListener("pagehide", leaving);
+    window.addEventListener("pageshow", returned);
+    return () => {
+      window.removeEventListener("pagehide", leaving);
+      window.removeEventListener("pageshow", returned);
+    };
+  }, []);
 
   useEffect(() => {
     if (!endsAt) return;
     const { untilWarningMs, untilCapMs } = capTimings(endsAt, serverNow, warningMinutes);
     const warning = setTimeout(() => setWarned(true), Math.max(0, untilWarningMs));
     const cap = setTimeout(() => {
+      closeOpenStop();
       void finishLearning().finally(() => router.replace("/study/session"));
     }, Math.max(0, untilCapMs));
     return () => {

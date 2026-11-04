@@ -1,7 +1,7 @@
 /** The shared "can the museum render here" rule (study-01): WebGL 2 on a hardware renderer. */
 import { describe, expect, it } from "vitest";
 
-import { isSoftwareRenderer, museumCanRender } from "@/features/study/gpu-acceptance";
+import { isSoftwareRenderer, walkthroughCanRender } from "@/features/study/gpu-acceptance";
 
 describe("museum GPU acceptance", () => {
   it("recognises software rasterisers by renderer string", () => {
@@ -12,10 +12,10 @@ describe("museum GPU acceptance", () => {
   });
 
   it("accepts only WebGL 2 without a software renderer", () => {
-    expect(museumCanRender({ webglVersion: 2, softwareRenderer: false })).toBe(true);
-    expect(museumCanRender({ webglVersion: 2 })).toBe(true);
-    expect(museumCanRender({ webglVersion: 2, softwareRenderer: true })).toBe(false);
-    expect(museumCanRender({ webglVersion: 1, softwareRenderer: false })).toBe(false);
-    expect(museumCanRender({ webglVersion: null })).toBe(false);
+    expect(walkthroughCanRender({ webglVersion: 2, softwareRenderer: false })).toBe(true);
+    expect(walkthroughCanRender({ webglVersion: 2 })).toBe(true);
+    expect(walkthroughCanRender({ webglVersion: 2, softwareRenderer: true })).toBe(false);
+    expect(walkthroughCanRender({ webglVersion: 1, softwareRenderer: false })).toBe(false);
+    expect(walkthroughCanRender({ webglVersion: null })).toBe(false);
   });
 });

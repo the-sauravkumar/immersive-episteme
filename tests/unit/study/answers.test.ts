@@ -135,6 +135,10 @@ describe("objective scoring (shared key rule)", () => {
     const shuffled = { ...plain, config: { kind: "single_choice", options: opts, shuffle: true } };
     expect(optionOrder("s1", shuffled)).toEqual(optionOrder("s1", shuffled));
     expect([...optionOrder("s1", shuffled)].sort()).toEqual(["a", "b", "c"]);
+    const withDontKnow = { ...plain, config: { kind: "single_choice", options: [...opts, { id: "dont-know", label: "I do not know" }], shuffle: true } };
+    const answerOrders = Array.from({ length: 40 }, (_, i) => optionOrder(`s${i}`, withDontKnow));
+    for (const order of answerOrders) expect(order.at(-1)).toBe("dont-know");
+    expect(new Set(answerOrders.map((order) => order[0]))).toEqual(new Set(["a", "b", "c"]));
     const orders = new Set(Array.from({ length: 20 }, (_, i) => optionOrder(`s${i}`, shuffled).join("")));
     expect(orders.size).toBeGreaterThan(1);
   });

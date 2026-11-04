@@ -278,7 +278,6 @@ function ConfigForm({
   disabled: boolean;
 }) {
   const c = study.config;
-  const manifests = pins.manifests.filter((m) => m.snapshotId === study.snapshotId);
   const body = (
     <fieldset disabled={disabled} className="grid max-w-[60rem] min-w-0 gap-x-6 gap-y-5 md:grid-cols-2">
       <FieldLabel label="Title">
@@ -306,16 +305,7 @@ function ConfigForm({
           ))}
         </NativeSelect>
       </FieldLabel>
-      <FieldLabel label="Spatial manifest" className="md:col-span-2" hint="Manifests compiled from the selected snapshot. Save after changing the snapshot to refresh this list.">
-        <NativeSelect name="manifestId" defaultValue={study.manifestId ?? ""}>
-          <option value="">None</option>
-          {manifests.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.traditions.join(", ")} ({m.status}, compiler {m.compilerVersion})
-            </option>
-          ))}
-        </NativeSelect>
-      </FieldLabel>
+      <input type="hidden" name="manifestId" value={study.manifestId ?? ""} />
       <fieldset className="flex min-w-0 flex-col gap-1 md:col-span-2">
         <legend className={FIELD_LABEL}>Traditions</legend>
         {traditions.length === 0 ? <span className="text-credit">Pin a snapshot first.</span> : null}

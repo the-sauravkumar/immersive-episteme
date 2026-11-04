@@ -69,8 +69,9 @@ export default function AccessibilityPage() {
         <EditorialSection id="study-pages" title="In a study">
           <EditorialRow>
             <Prose>
-              Study pages are always shown in the light theme and have no motion at all, in both learning conditions, so that the display is the
-              same for everyone. High contrast is the one setting offered there, in the same way in both conditions.
+              Study pages are always shown in the light theme, with no interface transitions or animations, in both learning conditions, so that the
+              display is the same for everyone. High contrast is the one setting offered there, in the same way in both conditions. In the walkthrough
+              the view moves only while the learner walks, looks around or uses Walk On or Back.
             </Prose>
           </EditorialRow>
         </EditorialSection>
@@ -79,14 +80,20 @@ export default function AccessibilityPage() {
           <EditorialRow>
             <ul className={LIST}>
               <li>Skip to content is the first stop on every page.</li>
-              <li>Every control shows a visible focus ring, and sticky bars never cover the focused element.</li>
-              <li>After every statement, a number in brackets such as [1] opens where it comes from, with the exact quotation; selecting it again or pressing Escape closes it and returns to the number. Each sheet ends with one numbered list of its references.</li>
-              <li>Enlarge, under a figure, opens it full size; Close or Escape returns to Enlarge.</li>
-              <li>Layer tabs move with the arrow keys, Home and End.</li>
+              <li>Every control shows a visible focus ring.</li>
               <li>
-                The same list sits at the left in both conditions: &ldquo;In This Section&rdquo; on the pages and &ldquo;In This Room&rdquo; in the
-                museum, with the button of the same name in the top bar; Escape closes it where it opens over the view. In the museum it lists the
-                exhibits and doorways of the current room, and the plan lists every room, so every exhibit can be reached without the mouse.
+                In the visual course, Next and Back move one panel at a time, and the woven parts of the strip return to a panel already reached. Focus
+                moves to the name of the stage on each step. Sources opens under the caption, and Help and Pause are the buttons at the top of the
+                panel; Escape closes either dialog.
+              </li>
+              <li>
+                In the walkthrough, W, A, S and D or the arrow keys walk, Walk On goes to the next station, and Back or the B key goes back along the
+                route. Sources, Help and Pause are the buttons at the top right. Turning the view by hand needs a pointer; Walk On and Back turn the
+                view by themselves on the way to each station.
+              </li>
+              <li>
+                In the staff console&rsquo;s concept preview, a number in brackets such as [1] opens where a statement comes from, Enlarge opens a figure
+                full size with Close or Escape returning to it, and layer tabs move with the arrow keys, Home and End.
               </li>
             </ul>
           </EditorialRow>
@@ -95,8 +102,9 @@ export default function AccessibilityPage() {
         <EditorialSection id="screen-readers" title="Screen readers">
           <EditorialRow>
             <Prose>
-              Pages use landmarks and one main heading each. Claims are numbered lists, figures carry a text alternative that describes what they
-              show, and every diagram on the public pages has a text version beside it.
+              Pages use landmarks and one main heading each. In the visual course the stage name is a heading and each caption is page text. In the
+              walkthrough the stage names and captions are painted in the scene, where a screen reader cannot read them; the caption is also in
+              Sources, as text. Every diagram on the public pages has a text version beside it.
             </Prose>
           </EditorialRow>
         </EditorialSection>

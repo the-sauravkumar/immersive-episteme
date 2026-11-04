@@ -161,17 +161,12 @@ jobs:
           retention-days: 7
 
   parity:
-    # DESIGN.md 12.4 and 15 (WP8): the interface parity suite (P1-P27, four viewports x four
-    # themes x three study traditions) and the design acceptance checks, against a database
-    # bootstrapped with the real content and the demo study. On main the measured report is
-    # committed to analysis/parity/interface-parity.json, which the Equivalence Monitor reads;
-    # the report is written even when a check fails, so failures are visible there too.
+    # The alignment checks, against a database bootstrapped with the real content and the demo
+    # study. Nothing in this job writes to the repository.
     name: Interface parity and design acceptance
     runs-on: ubuntu-24.04
     timeout-minutes: 300
     needs: verify
-    permissions:
-      contents: write
     services:
       postgres:
         image: pgvector/pgvector:pg18@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11

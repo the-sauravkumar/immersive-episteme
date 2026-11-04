@@ -124,8 +124,7 @@ describe("media upload origin in connect-src", () => {
       "connect-src 'self' https://media.s3.ap-south-1.amazonaws.com;",
     );
     expect(contentSecurityPolicy({ frameAncestors: "none", connectSrc: [] })).toContain("connect-src 'self';");
-    // WebAssembly (KTX2 transcoder) is allowed; JS eval is not, outside dev.
-    expect(contentSecurityPolicy({ frameAncestors: "none" })).toMatch(/script-src [^;]*'wasm-unsafe-eval'/);
+    expect(contentSecurityPolicy({ frameAncestors: "none" })).not.toMatch(/wasm-unsafe-eval/);
     expect(contentSecurityPolicy({ frameAncestors: "none" })).not.toMatch(/'unsafe-eval'/);
   });
 });
