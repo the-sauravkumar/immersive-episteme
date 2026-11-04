@@ -1,0 +1,158 @@
+.walkthrough {
+  --vat: #0e1626;
+  --vat-2: #16264e;
+  --line: #2c3850;
+  --lime: #efe8d6;
+  --lime-dim: #b9b6ac;
+  --turmeric: #e8a917;
+  --turmeric-hi: #f4c04a;
+  --thread: #5a6478;
+  position: fixed;
+  inset: 0;
+  background: var(--vat);
+  color: var(--lime);
+  font-family: Mukta, "Segoe UI", system-ui, sans-serif;
+}
+
+.walkthrough-loading {
+  display: grid;
+  place-items: center;
+  font: 700 24px/1.1 Eczar, Georgia, serif;
+}
+
+.walkthrough-view {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+  cursor: grab;
+}
+
+.walkthrough-view:active {
+  cursor: grabbing;
+}
+
+.walkthrough-plate,
+.walkthrough-tools,
+.walkthrough-move {
+  position: absolute;
+  display: flex;
+  gap: 4px;
+}
+
+.walkthrough-route {
+  left: 14px;
+  top: 14px;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 12px;
+  background: var(--vat);
+}
+
+.walkthrough-route p {
+  margin: 0;
+  display: grid;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.walkthrough-route b {
+  font: 700 20px/1 Eczar, Georgia, serif;
+}
+
+.walkthrough-map {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 3px;
+}
+
+.walkthrough-map li {
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--thread);
+}
+
+.walkthrough-map li[data-state="done"] {
+  background: var(--lime);
+  border-color: var(--lime);
+}
+
+.walkthrough-map li[data-state="now"] {
+  background: var(--turmeric);
+  border-color: var(--turmeric);
+}
+
+.walkthrough-tools {
+  right: 14px;
+  top: 14px;
+}
+
+.walkthrough-move {
+  right: 14px;
+  bottom: 14px;
+}
+
+.walkthrough button {
+  min-height: 46px;
+  padding: 8px 20px;
+  background: var(--vat);
+  color: var(--lime);
+  border: 2px solid var(--lime);
+  font: 700 19px/1 Eczar, Georgia, serif;
+  cursor: pointer;
+}
+
+.walkthrough button:hover {
+  background: var(--vat-2);
+}
+
+.walkthrough button:focus-visible {
+  outline: 3px solid var(--turmeric);
+  outline-offset: 2px;
+}
+
+.walkthrough button:disabled {
+  background: #262f42;
+  border-color: #262f42;
+  color: #99a0ad;
+  cursor: not-allowed;
+}
+
+.walkthrough .walkthrough-next {
+  background: var(--turmeric);
+  border-color: var(--turmeric);
+  color: var(--vat);
+}
+
+.walkthrough .walkthrough-next:hover {
+  background: var(--turmeric-hi);
+  border-color: var(--turmeric-hi);
+}
+
+.walkthrough-dialog {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  overflow: auto;
+  display: grid;
+  gap: 12px;
+  padding: 24px;
+  background: var(--vat-2);
+  border: 2px solid var(--lime);
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.walkthrough-dialog h2 {
+  margin: 0;
+  font: 700 32px/1.1 Eczar, Georgia, serif;
+}
+
+.walkthrough-dialog p,
+.walkthrough-dialog ul {
+  margin: 0;
+}

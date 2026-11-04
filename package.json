@@ -27,6 +27,8 @@
     "db:studio": "drizzle-kit studio",
     "create-admin": "tsx scripts/create-admin.ts",
     "check": "npm run typecheck && npm run lint && npm run test",
+    "walkthrough:lab": "node tools/walkthrough-lab/serve.cjs",
+    "walkthrough:check": "node tools/walkthrough-lab/check.cjs",
     "content:import": "tsx scripts/content/import.ts",
     "content:bootstrap:remote": "tsx scripts/content/bootstrap-remote.ts",
     "spatial:compile": "tsx scripts/spatial/publish-manifest.ts",

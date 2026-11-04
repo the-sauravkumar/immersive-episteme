@@ -116,7 +116,7 @@ export function buildHallPlan(followedClothRailZ: number): YardPlan {
     cloth: [{ name: "cloth-followed", state: "after", surface }],
     pins,
     tie: { x: CLOTH_LINE_X - 1.22, z0: followedClothRailZ - 0.15, z1: followedClothRailZ + 2, y: 1.3 },
-    standpoint: { from: [CLOTH_LINE_X - 8.2, EYE_HEIGHT, 13], to: [CLOTH_LINE_X + 3.2, 1.9, -2] },
+    standpoint: { from: [CLOTH_LINE_X - 5.4, EYE_HEIGHT, 10.5], to: [CLOTH_LINE_X + 3.4, 1.85, -1.5] },
     heightField: field,
   };
 }
