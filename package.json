@@ -29,6 +29,7 @@
     "check": "npm run typecheck && npm run lint && npm run test",
     "walkthrough:lab": "node tools/walkthrough-lab/serve.cjs",
     "walkthrough:check": "node tools/walkthrough-lab/check.cjs",
+    "walkthrough:route": "node tools/walkthrough-lab/route.cjs",
     "content:import": "tsx scripts/content/import.ts",
     "content:bootstrap:remote": "tsx scripts/content/bootstrap-remote.ts",
     "content:stage-template": "tsx scripts/content/build-stage-template.ts",
