@@ -366,7 +366,10 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   for (const x of [leanStart, leanStart + 2.4]) pole(group, [x, 0, shed.z + 2.2], [x, 2.5, shed.z + 2.2], 0.055, bamboo);
   pole(group, [leanStart - 0.1, 2.47, shed.z + 2.2], [leanStart + 2.5, 2.47, shed.z + 2.2], 0.045, bamboo);
 
-  for (const words of plan.words) paintWords(group, words, words.family === "Mukta" ? 3.2 : null);
+  for (const words of plan.words) {
+    const painted = paintWords(group, words, words.maxWidth ?? null);
+    if (words.maxWidth) painted.mesh.position.y = words.at[1] - painted.height / 2;
+  }
   for (const words of plan.curvedWords) paintCurved(group, words);
 
   const work = plan.work;
@@ -476,11 +479,11 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   }
 
   for (const placed of plan.items) {
-    const plank = softBox(group, [0.5, 0.1, 1.3], timber, [placed.x, 0.33, placed.z], { radius: 0.012, tile: [1.8, 1.8] });
+    const plank = softBox(group, [0.5, 0.1, placed.benchLength], timber, [placed.x, 0.33, placed.z], { radius: 0.012, tile: [1.8, 1.8] });
     const name = `bench ${placed.item.key}`;
     register(name, "structure", plank, [`${name} leg 0`, `${name} leg 1`, `item ${placed.item.key}`]);
     blockedBy(plank);
-    [-0.48, 0.48].forEach((a, i) => {
+    [-placed.benchLength / 2 + 0.17, placed.benchLength / 2 - 0.17].forEach((a, i) => {
       const leg = softBox(group, [0.36, 0.28, 0.24], clay, [placed.x, 0.14, placed.z + a], { radius: 0.014, segments: 3, tile: [0.8, 0.8] });
       register(`${name} leg ${i}`, "structure", leg, [name]);
     });

@@ -49,13 +49,13 @@ const ROW_DEPTH = 9;
 const FIRST_ROW_Z = 1;
 const FIRST_COLUMN_X = CLOTH_LINE_X + 3.2;
 
-export function layoutTextiles(products: readonly ProductImage[], aspectOf: (product: ProductImage) => number): PlacedTextile[] {
+export function layoutTextiles(products: readonly ProductImage[]): PlacedTextile[] {
   const rightLimit = CLOTH_LINE_X + YARD_HALF_WIDTH - 1.5;
   const placed: PlacedTextile[] = [];
   let x = FIRST_COLUMN_X;
   let z = FIRST_ROW_Z;
   for (const product of products) {
-    const width = Math.min(TEXTILE_MAX_WIDTH, Math.max(TEXTILE_MIN_WIDTH, TEXTILE_HEIGHT * aspectOf(product)));
+    const width = Math.min(TEXTILE_MAX_WIDTH, Math.max(TEXTILE_MIN_WIDTH, TEXTILE_HEIGHT * (product.widthPx / product.heightPx)));
     if (x + width > rightLimit) {
       x = FIRST_COLUMN_X + 1.6;
       z -= ROW_DEPTH;
@@ -121,7 +121,8 @@ export function buildHallPlan(followedClothRailZ: number): YardPlan {
   };
 }
 
-export function buildRoute(template: StageTemplate, clothFile: (stateId: string) => string, aspectOf: (product: ProductImage) => number): RouteStation[] {
+export function buildRoute(template: StageTemplate, stateFile: (stateId: string) => string): RouteStation[] {
+  const clothFile = (stateId: string) => (stateId === template.rawClothStateId ? RAW_COTTON : stateFile(stateId));
   const yardStages = stagesFromTemplate(template);
   const stations: RouteStation[] = yardStages.map((yardStage, index) => {
     const stage = template.stages[index]!;
@@ -137,7 +138,7 @@ export function buildRoute(template: StageTemplate, clothFile: (stateId: string)
       textiles: [],
     };
   });
-  const textiles = layoutTextiles(template.products, aspectOf);
+  const textiles = layoutTextiles(template.products);
   const lastState = template.stages[template.stages.length - 1]!.clothStateId;
   stations.push({
     id: `${template.tradition}-hall`,

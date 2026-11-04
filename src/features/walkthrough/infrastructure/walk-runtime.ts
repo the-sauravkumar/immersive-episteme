@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import type { Box, Vec3 } from "../domain/geometry";
+import type { Box } from "../domain/geometry";
 import { NEXT_YARD_OFFSET } from "../domain/yard-plan";
 import type { RouteStation } from "../domain/route-plan";
-import { eyeOf, localZ, stationIndexAt, stepWalker, walkerAt, type WalkInput, type Walker } from "../domain/walk-state";
+import { eyeOf, localZ, stationIndexAt, steerAlong, stepWalker, walkerAt, type WalkInput, type WalkTarget, type Walker } from "../domain/walk-state";
 import { buildYard, YardKit, type BuiltYard } from "./build-yard";
 import { addHorizon } from "./horizon";
 import { MaterialLibrary } from "./material-library";
@@ -34,7 +34,9 @@ export class WalkRuntime {
   private sun: THREE.DirectionalLight | null = null;
   private walker: Walker = { x: 0, z: 0, yaw: 0, pitch: 0, walked: 0 };
   private input: { forward: number; strafe: number; lookX: number; lookY: number } = { forward: 0, strafe: 0, lookX: 0, lookY: 0 };
-  private autoWalkTo: number | null = null;
+  private autoTarget: WalkTarget | null = null;
+  private autoDirection: 1 | -1 = 1;
+  private autoGoal = 0;
   private current = -1;
   private enteredAt = 0;
   private frame = 0;
@@ -133,7 +135,7 @@ export class WalkRuntime {
   setMove(forward: number, strafe: number): void {
     this.input.forward = forward;
     this.input.strafe = strafe;
-    if (forward !== 0 || strafe !== 0) this.autoWalkTo = null;
+    if (forward !== 0 || strafe !== 0) this.autoTarget = null;
   }
 
   look(dx: number, dy: number): void {
@@ -143,8 +145,11 @@ export class WalkRuntime {
   }
 
   walkTo(index: number): void {
-    const target = this.stations[index];
-    if (target) this.autoWalkTo = index;
+    if (!this.stations[index] || index === this.current) return;
+    this.autoDirection = index > this.current ? 1 : -1;
+    this.autoGoal = index;
+    const line = this.stations[this.current]!.plan.walkLine;
+    this.autoTarget = { station: this.current, waypoint: this.autoDirection === 1 ? 1 : line.length - 2 };
   }
 
   get stationIndex(): number {
@@ -190,20 +195,20 @@ export class WalkRuntime {
   }
 
   private autoInput(): { forward: number; strafe: number } {
-    if (this.autoWalkTo === null) return this.input;
-    const target = this.stations[this.autoWalkTo]!;
-    const from: Vec3 = [target.plan.standpoint.from[0], 0, target.plan.standpoint.from[2] - this.autoWalkTo * NEXT_YARD_OFFSET];
-    const lineX = 3 - (this.autoWalkTo >= this.current ? 2.4 : -2.4) * 0;
-    const dz = from[2] - this.walker.z;
-    const crossing = Math.abs(dz) > 8;
-    const aimX = crossing ? lineX - 2.2 : from[0];
-    const dx = aimX - this.walker.x;
-    const distance = Math.hypot(dx, dz);
-    if (distance < 0.4) {
-      this.autoWalkTo = null;
+    if (!this.autoTarget) return this.input;
+    const line = this.stations[this.autoTarget.station]!.plan.walkLine;
+    const steered = steerAlong(this.walker, line, this.autoTarget, this.autoDirection);
+    this.walker = steered.walker;
+    if (steered.target) {
+      this.autoTarget = steered.target;
+      return steered.moving ? { forward: 1, strafe: 0 } : { forward: 0, strafe: 0 };
+    }
+    const nextStation = this.autoTarget.station + this.autoDirection;
+    if (nextStation === this.autoGoal + (this.autoDirection === 1 ? 0 : -1) || nextStation < 0 || nextStation >= this.stations.length) {
+      this.autoTarget = null;
       return { forward: 0, strafe: 0 };
     }
-    this.walker = { ...this.walker, yaw: Math.atan2(-dx, -dz) };
+    this.autoTarget = { station: nextStation, waypoint: this.autoDirection === 1 ? 0 : this.stations[nextStation]!.plan.walkLine.length - 1 };
     return { forward: 1, strafe: 0 };
   }
 

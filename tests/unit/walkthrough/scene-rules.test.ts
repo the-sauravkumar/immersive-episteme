@@ -67,10 +67,10 @@ describe("scene check", () => {
 });
 
 describe("product hall layout", () => {
-  const products: ProductImage[] = Array.from({ length: 12 }, (_, i) => ({ id: `p${i}`, file: "", name: "Name", holder: "Holder" }));
+  const products: ProductImage[] = Array.from({ length: 12 }, (_, i) => ({ id: `p${i}`, file: "", name: "Name", holder: "Holder", widthPx: 1400, heightPx: 1000 }));
 
   it("keeps every textile inside the walls and clear of its neighbours", () => {
-    const placed = layoutTextiles(products, () => 1.4);
+    const placed = layoutTextiles(products);
     for (const textile of placed) {
       expect(textile.x + textile.width / 2).toBeLessThan(CLOTH_LINE_X + YARD_HALF_WIDTH);
       expect(textile.x - textile.width / 2).toBeGreaterThan(CLOTH_LINE_X + 1);
