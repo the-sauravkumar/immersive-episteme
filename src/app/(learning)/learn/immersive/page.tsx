@@ -10,6 +10,8 @@ import { buildMuseumPayload, MuseumUnavailableError } from "@/features/immersive
 import { SCREEN_TEXT } from "@/features/learning/strings";
 import { getLearningContext, LearningContextUnavailableError } from "@/server/learning/context";
 
+import { doorSessionFor } from "../door-session";
+
 export const metadata: Metadata = { title: "Learning" };
 
 /** May block: the learning gate verifies the participant session per navigation (see the layout). */
@@ -39,6 +41,8 @@ async function Museum() {
     if (e instanceof LearningContextUnavailableError) return <MuseumShell reason={e.reason} />;
     throw e;
   }
+  const door = await doorSessionFor("immersive", ctx);
+  if (door) return door;
   let payload;
   try {
     payload = await buildMuseumPayload(ctx);

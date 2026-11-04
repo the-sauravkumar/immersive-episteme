@@ -93,15 +93,9 @@ export async function requireStep(step: StudyStep | "device_check"): Promise<Cur
   return current;
 }
 
-/**
- * Guard for the reconstruction page (owned by the assessment module): renders only while a
- * reconstruction step is current and tells the page which phase it is. The step completes when
- * every concept-map item of the phase has a final map; the page then sends the participant to
- * /study/session.
- */
-export async function requireReconstructionStep(): Promise<CurrentSession & { phase: "pre" | "post"; step: "pre_reconstruction" | "reconstruction" }> {
+export async function requireReconstructionStep(): Promise<CurrentSession & { phase: "post"; step: "reconstruction" }> {
   const current = await getCurrentSession();
   const p = current.position;
-  if (p.kind !== "step" || (p.step !== "pre_reconstruction" && p.step !== "reconstruction")) redirect("/study/session");
-  return { ...current, step: p.step, phase: p.step === "pre_reconstruction" ? "pre" : "post" };
+  if (p.kind !== "step" || p.step !== "reconstruction") redirect("/study/session");
+  return { ...current, step: p.step, phase: "post" };
 }

@@ -17,21 +17,16 @@ import { titleCase } from "@/lib/text/title-case";
 
 export { STUDY_STEPS, type StudyStep };
 
-/**
- * Which study battery rows (study_assessments phase, assessments kind) each non-questionnaire
- * assessment step delivers. Shared by the engine and the parity check, which refuses activation
- * when a configured step has nothing to deliver (final review study-10).
- */
-export const STEP_ASSESSMENTS: Partial<Record<StudyStep, { phase: "pre" | "post"; kind: string }>> = {
+export const STEP_ASSESSMENTS: Partial<Record<StudyStep, { phase: "pre" | "post" | "follow_up"; kind: string }>> = {
   pre_test: { phase: "pre", kind: "pretest" },
-  pre_reconstruction: { phase: "pre", kind: "reconstruction" },
   post_test: { phase: "post", kind: "posttest" },
   reconstruction: { phase: "post", kind: "reconstruction" },
   transfer: { phase: "post", kind: "transfer" },
+  layout_sketch: { phase: "post", kind: "sketch" },
+  delayed_test: { phase: "follow_up", kind: "posttest" },
 };
 
-/** Steps taken before allocation when `allocation.point = after_pre_test`: blind to condition. */
-export const BLIND_STEPS: readonly StudyStep[] = ["questionnaire_pre", "pre_test", "pre_reconstruction"];
+export const BLIND_STEPS: readonly StudyStep[] = ["questionnaire_pre", "pre_test"];
 
 export const QUESTIONNAIRE_STEPS = ["questionnaire_pre", "questionnaire_post_learning", "questionnaire_end"] as const;
 export type QuestionnaireStep = (typeof QUESTIONNAIRE_STEPS)[number];
@@ -50,16 +45,10 @@ export function isQuestionnaireStep(step: StudyStep): step is QuestionnaireStep 
  */
 export const PRACTICE_ROUTES_AVAILABLE = true;
 
-/**
- * Default order, study decision D8: consent → SSQ (pre) → prior-knowledge test and pre-test
- * concept map → allocation (D3) → device check → familiarisation → learning → immediately the
- * load, sickness and presence ratings → post-test → transfer → concept-map reconstruction → SUS.
- * Familiarisation needs `familiarisation.minutes` (5–10, D5) in the config.
- */
-export const D8_STEPS: readonly StudyStep[] = [
+export const DEFAULT_STEPS: readonly StudyStep[] = [
   "questionnaire_pre",
   "pre_test",
-  "pre_reconstruction",
+  "entrance",
   "familiarisation",
   "onboarding",
   "learning",
@@ -67,29 +56,27 @@ export const D8_STEPS: readonly StudyStep[] = [
   "post_test",
   "transfer",
   "reconstruction",
+  "layout_sketch",
   "questionnaire_end",
+  "delayed_test",
 ];
-export const DEFAULT_STEPS: readonly StudyStep[] = D8_STEPS;
 
 /** D5: minutes of content-free practice for a new study (the lower end of the adopted 5–10; a pilot parameter). */
 export const DEFAULT_FAMILIARISATION_MINUTES = 5;
 
-/** D7 instruments per questionnaire step (codes of src/server/study/instruments.ts). */
 export const DEFAULT_QUESTIONNAIRES = {
-  pre: ["ssq"],
-  postLearning: ["cognitive-load", "ssq", { code: "mps-physical-presence", conditions: ["immersive"] }],
+  pre: ["background"],
+  postLearning: ["common-questions", { code: "mps-physical-presence", conditions: ["immersive"] }, { code: "ssq", conditions: ["immersive"] }],
   end: ["sus"],
 } satisfies { pre: InstrumentRef[]; postLearning: InstrumentRef[]; end: InstrumentRef[] };
 
-/**
- * Config for a NEW study (engine and research console): D5 exposure (30 min, fixed, no early
- * finish) and familiarisation (DEFAULT_FAMILIARISATION_MINUTES), D3 allocation (after the pre-test, permuted blocks of 4; the stratum cutoff is the
- * pilot median, unknown until the pilot, so `stratifyBy` is left for the researchers), the D8
- * order and the D7 questionnaires. Existing studies keep their own configs.
- */
+export const LEARNING_CAP_MINUTES = 30;
+export const CAP_WARNING_MINUTES = 5;
+export const DEFAULT_PRE_TEST_CUTOFF = 2;
+
 export const NEW_STUDY_CONFIG = {
-  exposure: { mode: "fixed_time", minutes: 30, allowEarlyFinish: false },
-  allocation: { algorithm: "block", blockSize: 4, point: "after_pre_test", strata: [] },
+  exposure: { mode: "self_paced", minutes: LEARNING_CAP_MINUTES, allowEarlyFinish: true, requireEveryStage: true },
+  allocation: { algorithm: "stratified_block", blockSize: 4, point: "after_pre_test", strata: [], stratifyBy: { source: "pre_test_score", cutoff: DEFAULT_PRE_TEST_CUTOFF } },
   familiarisation: { minutes: DEFAULT_FAMILIARISATION_MINUTES },
   steps: [...DEFAULT_STEPS],
   questionnaires: DEFAULT_QUESTIONNAIRES,
@@ -116,10 +103,10 @@ export function protocolIssues(config: StudyConfig, steps: readonly StudyStep[])
   if (new Set(steps).size !== steps.length) issues.push("steps: a step may appear only once");
   const learning = at("learning");
   if (learning < 0) issues.push("steps: the journey must include the learning step");
-  for (const s of ["questionnaire_pre", "pre_test", "pre_reconstruction", "familiarisation", "onboarding"] as const) {
+  for (const s of ["questionnaire_pre", "pre_test", "entrance", "familiarisation", "onboarding"] as const) {
     if (has(s) && learning >= 0 && at(s) > learning) issues.push(`steps: ${s} must come before learning`);
   }
-  for (const s of ["questionnaire_post_learning", "post_test", "transfer", "reconstruction", "questionnaire_end"] as const) {
+  for (const s of ["questionnaire_post_learning", "post_test", "transfer", "reconstruction", "layout_sketch", "questionnaire_end", "delayed_test"] as const) {
     if (has(s) && learning >= 0 && at(s) < learning) issues.push(`steps: ${s} must come after learning`);
   }
   // Starting the task from the onboarding page starts the learning clock: nothing in between.
@@ -128,7 +115,11 @@ export function protocolIssues(config: StudyConfig, steps: readonly StudyStep[])
   if (has("questionnaire_post_learning") && learning >= 0 && at("questionnaire_post_learning") !== learning + 1) {
     issues.push("steps: nothing may come between learning and questionnaire_post_learning");
   }
-  if (has("questionnaire_end") && at("questionnaire_end") !== steps.length - 1) issues.push("steps: questionnaire_end must be the last step");
+  if (has("delayed_test") && at("delayed_test") !== steps.length - 1) issues.push("steps: delayed_test must be the last step");
+  const lastImmediate = has("delayed_test") ? steps.length - 2 : steps.length - 1;
+  if (has("questionnaire_end") && at("questionnaire_end") !== lastImmediate) issues.push("steps: questionnaire_end must be the last step before any delayed test");
+  if (has("post_test") && has("questionnaire_post_learning") && at("post_test") < at("questionnaire_post_learning")) issues.push("steps: the common questions come before the immediate test");
+  if (has("entrance") && has("familiarisation") && at("entrance") > at("familiarisation")) issues.push("steps: entrance must come before familiarisation");
 
   const point = config.allocation.point;
   if (point === "after_pre_test") {
@@ -143,8 +134,7 @@ export function protocolIssues(config: StudyConfig, steps: readonly StudyStep[])
   if (by) {
     if (point !== "after_pre_test") issues.push("allocation.stratifyBy needs allocation.point = after_pre_test");
     if (config.allocation.algorithm !== "stratified_block") issues.push("allocation.stratifyBy needs allocation.algorithm = stratified_block");
-    if (by.source === "pre_test_score" && !has("pre_test")) issues.push("allocation.stratifyBy pre_test_score needs the pre_test step");
-    if (by.source === "pre_map_recall" && !has("pre_reconstruction")) issues.push("allocation.stratifyBy pre_map_recall needs the pre_reconstruction step");
+    if (!has("pre_test")) issues.push("allocation.stratifyBy pre_test_score needs the pre_test step");
   } else if (config.allocation.algorithm === "stratified_block" && point === "after_pre_test") {
     issues.push("allocation.algorithm stratified_block after the pre-test needs allocation.stratifyBy");
   }
@@ -183,13 +173,15 @@ export function instrumentsFor(protocol: StudyProtocol, step: QuestionnaireStep,
 export const STEP_ROUTE: Record<Exclude<StudyStep, "learning" | "familiarisation">, string> = {
   questionnaire_pre: "/study/questionnaire/before",
   pre_test: "/study/pre-test",
-  pre_reconstruction: "/study/reconstruction",
+  entrance: "/study/entrance",
   onboarding: "/study/task",
   questionnaire_post_learning: "/study/questionnaire/after-learning",
   post_test: "/study/post-test",
   transfer: "/study/transfer",
   reconstruction: "/study/reconstruction",
+  layout_sketch: "/study/layout-sketch",
   questionnaire_end: "/study/questionnaire",
+  delayed_test: "/study/delayed-test",
 };
 
 /** Practice route of the familiarisation step (D5). */
@@ -203,7 +195,7 @@ export const STEP_LABEL: Record<StudyStep, string> = Object.fromEntries(
     [
       ["questionnaire_pre", "Questions before you start"],
       ["pre_test", "Questions before learning"],
-      ["pre_reconstruction", "Connect the concepts (before learning)"],
+      ["entrance", "Entrance"],
       ["familiarisation", "Practice with the controls"],
       ["onboarding", "Introduction to the learning task"],
       // The learning route shows this name too: one string for both (the shared table, P20).
@@ -212,7 +204,9 @@ export const STEP_LABEL: Record<StudyStep, string> = Object.fromEntries(
       ["post_test", "Questions after learning"],
       ["transfer", "Transfer task"],
       ["reconstruction", "Connect the concepts"],
+      ["layout_sketch", "Layout sketch"],
       ["questionnaire_end", "Final questionnaire"],
+      ["delayed_test", "Delayed test"],
     ] as const
   ).map(([k, v]) => [k, titleCase(v)]),
 ) as Record<StudyStep, string>;

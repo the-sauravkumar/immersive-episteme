@@ -59,7 +59,7 @@ function BackToSession({ title, tone = "info", children }: { title: string; tone
 }
 
 /**
- * The study engine decides when this page may render (its `pre_reconstruction` / `reconstruction`
+ * The study engine decides when this page may render (its `reconstruction`
  * step must be current; otherwise it redirects to the session hub) and which phase it is. The
  * editor gets the concept set, the allowed relationship types and the stored map. It is never
  * given the learning condition: the task is identical in both conditions. Like every other

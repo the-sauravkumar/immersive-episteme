@@ -148,6 +148,20 @@
       "when": 1792133016761,
       "tag": "0020_invite_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793787318892,
+      "tag": "0021_walking_the_process",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793787320581,
+      "tag": "0022_exposure_cap_clock",
+      "breakpoints": true
     }
   ]
 }

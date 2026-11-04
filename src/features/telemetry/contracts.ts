@@ -73,6 +73,13 @@ export const EVENT_TYPE_REGISTRY = [
   // Optional citation use (citations never obstruct the primary learning path).
   { code: "citation_opened", label: "Citation opened", description: "The participant opened the source citation of a claim (metadata.sourceId, metadata.claimIndex).", analyticConcept: "citation_used", scope: "both", requirementRefs: [] },
   { code: "citation_closed", label: "Citation closed", description: "The citation was closed (metadata.openMs).", analyticConcept: "citation_used", scope: "both", requirementRefs: [] },
+  { code: "stage_entered", label: "Stage entered", description: "The participant entered a process stage or the product stop, in either door (metadata.traditionKey, stageKey, stageNumber, visitCount, backStep).", analyticConcept: "stage_accessed", scope: "both", requirementRefs: ["NOTE-8"] },
+  { code: "stage_left", label: "Stage left", description: "The participant left a stage (metadata.activeMs excludes paused time).", analyticConcept: "stage_left", scope: "both", requirementRefs: ["NOTE-8"] },
+  { code: "object_dwell", label: "Object dwell", description: "Time near one labelled object in Door 2 (metadata.objectKey, dwellMs, closestM, the approach distance).", analyticConcept: "object_dwell", scope: "immersive_3d", requirementRefs: ["NOTE-8"] },
+  { code: "path_sampled", label: "Path sampled", description: "A batch of walked positions in Door 2 (metadata.points as [ms, x, z]).", analyticConcept: "path", scope: "immersive_3d", requirementRefs: ["NOTE-8"] },
+  { code: "viewpoint_changed", label: "Viewpoint changed", description: "Changes of view direction in Door 2 since the last report (metadata.count).", analyticConcept: "viewpoint_change", scope: "immersive_3d", requirementRefs: ["NOTE-8"] },
+  { code: "wrong_turn", label: "Wrong turn", description: "The learner moved away from the next station in Door 2 (metadata.traditionKey, stageKey).", analyticConcept: "wrong_turn", scope: "immersive_3d", requirementRefs: ["NOTE-8"] },
+  { code: "movement_summary", label: "Movement summary", description: "Walking time apart from viewing time at one stage in Door 2 (metadata.walkingMs, viewingMs).", analyticConcept: "movement", scope: "immersive_3d", requirementRefs: ["NOTE-8"] },
   // Technical / lifecycle events: excluded from behavioural metrics, used for data quality.
   { code: "session_started", label: "Session started", description: "The learning session started on this client.", analyticConcept: "session_lifecycle", scope: "both", requirementRefs: [], isTechnical: true },
   { code: "session_resumed", label: "Session resumed", description: "The session resumed after an interruption or reload.", analyticConcept: "session_lifecycle", scope: "both", requirementRefs: [], isTechnical: true },
@@ -164,6 +171,8 @@ export type TimingEventTypeCode = (typeof TIMING_EVENT_TYPES)[number];
 /** Event types that must carry `conceptId` (time and citations are attributed to a concept). */
 export const CONCEPT_REQUIRED_EVENT_TYPES = ["exposure_started", "exposure_ended", "citation_opened", "citation_closed"] as const;
 
+const stageRef = { traditionKey: shortCode, stageKey: shortCode, stageNumber: z.number().int().positive().max(1000) };
+
 /** Allowed metadata per event type (all keys optional unless stated). */
 export const EVENT_METADATA_SCHEMAS = {
   room_entered: z.strictObject(domainEntry),
@@ -205,6 +214,13 @@ export const EVENT_METADATA_SCHEMAS = {
   }),
   citation_opened: z.strictObject({ sourceId: uuidSchema, claimIndex: count }),
   citation_closed: z.strictObject({ sourceId: uuidSchema, claimIndex: count, openMs: durationMs.optional() }),
+  stage_entered: z.strictObject({ ...stageRef, visitCount: count.optional(), backStep: z.boolean().optional() }),
+  stage_left: z.strictObject({ ...stageRef, activeMs: durationMs }),
+  object_dwell: z.strictObject({ ...stageRef, objectKey: shortCode, dwellMs: durationMs, closestM: z.number().nonnegative().max(1000) }),
+  path_sampled: z.strictObject({ traditionKey: shortCode, points: z.array(z.tuple([monoMs, z.number().finite(), z.number().finite()])).min(1).max(120) }),
+  viewpoint_changed: z.strictObject({ traditionKey: shortCode, stageKey: shortCode, count }),
+  wrong_turn: z.strictObject({ traditionKey: shortCode, stageKey: shortCode }),
+  movement_summary: z.strictObject({ traditionKey: shortCode, stageKey: shortCode, walkingMs: durationMs, viewingMs: durationMs }),
   session_started: z.strictObject({}),
   session_resumed: z.strictObject({ gapMs: durationMs.optional() }),
   session_ended: z.strictObject({ reason: z.enum(["completed", "timeout", "user_exit", "error"]).optional() }),

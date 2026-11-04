@@ -20,7 +20,7 @@
 import { createHash } from "node:crypto";
 
 import { describe, type Descriptives } from "@/features/research/descriptive";
-import { DASHBOARD_METRICS_VERSION, metricDefinition, metricRole, metricVersionHeader, PRIMARY_OUTCOME } from "@/features/research/metric-definitions";
+import { DASHBOARD_METRICS_VERSION, metricDefinition, metricRole, metricVersionHeader } from "@/features/research/metric-definitions";
 import { numericAnswer, SCALES, scoreScale } from "@/features/research/scale-scores";
 
 import { ANALYSIS_REFERENCES_SQL } from "./analysis-reference";
@@ -32,13 +32,13 @@ import { toCsv } from "./exports/csv";
 import { DASHBOARD_TABLE_BY_NAME, type DashboardTableName } from "./exports/dictionary";
 import { loadSnapshotFacts } from "./metrics/pipeline";
 
-export const PRIMARY_METRIC = PRIMARY_OUTCOME.metric;
+export const MAP_METRIC = "cmap.recall.dl";
 /**
  * The concept-map section: the D2 secondary outcomes in D2 order (SECONDARY_OUTCOMES in
  * metric-definitions.ts; edges drawn and the incorrect count are reported with precision).
  */
 export const SECONDARY_METRICS = ["cmap.recall.du", "cmap.precision.dl", "cmap.edges_drawn", "cmap.incorrect_relationships", "cmap.f1.dl", "cmap.cross_category.valid_normalised", "cmap.valid_relationships"] as const;
-const STORED_MAP_METRICS = [PRIMARY_METRIC, ...SECONDARY_METRICS.filter((m) => m !== "cmap.edges_drawn")];
+const STORED_MAP_METRICS = [MAP_METRIC, ...SECONDARY_METRICS.filter((m) => m !== "cmap.edges_drawn")];
 
 export interface DashboardStudy {
   id: string;
@@ -252,7 +252,7 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
       `SELECT cm.session_id, cm.participant_id, cm.phase::text AS phase, (SELECT count(*)::int FROM concept_map_edges e WHERE e.concept_map_id = cm.id) AS n
          FROM study_sessions ss JOIN concept_maps cm ON cm.session_id = ss.id AND cm.is_final
         WHERE ss.study_id = $1 AND EXISTS (SELECT 1 FROM derived_scores d WHERE d.session_id = cm.session_id AND d.concept_map_id = cm.id AND d.metric_name = $2)`,
-      [studyId, PRIMARY_METRIC],
+      [studyId, MAP_METRIC],
     ),
     () => q.query<{ session_id: string; code: string; version: number; kind: string; value: number | null }>(
       `SELECT DISTINCT ON (ds.session_id, ds.assessment_id) ds.session_id, a.code, a.version, a.kind::text AS kind, ds.value
@@ -347,7 +347,7 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     const sessionId = participantSessions.get(pid);
     if (!sessionId || !inScope(sessionId)) continue;
     const cid = conditionOf(sessionId)!;
-    const prim = metrics[PRIMARY_METRIC];
+    const prim = metrics[MAP_METRIC];
     if (prim) {
       let pre = prim.pre?.value ?? null;
       const post = prim.post?.value ?? null;
@@ -376,8 +376,8 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     }
   }
   ancova.sort((a, b) => (a.participantCode < b.participantCode ? -1 : a.participantCode > b.participantCode ? 1 : 0));
-  const primaryKey = metricDefinition(PRIMARY_METRIC);
-  const changeKey = metricDefinition(`${PRIMARY_METRIC}.change`);
+  const primaryKey = metricDefinition(MAP_METRIC);
+  const changeKey = metricDefinition(`${MAP_METRIC}.change`);
   const primarySummary: MeasureRow[] = (["pre", "post", "change"] as const).map((phase) => ({
     key: phase === "change" ? changeKey.key : primaryKey.key,
     version: phase === "change" ? changeKey.version : primaryKey.version,
@@ -581,7 +581,7 @@ export function dashboardTableRows(data: DashboardData, table: DashboardTableNam
   const cond = (id: string | null) => data.conditions.find((c) => c.id === id);
   switch (table) {
     case "dashboard_primary":
-      return { rows: summaryRows("primary", data.primary.summary, data.conditions), metrics: [PRIMARY_METRIC, `${PRIMARY_METRIC}.change`] };
+      return { rows: summaryRows("primary", data.primary.summary, data.conditions), metrics: [MAP_METRIC, `${MAP_METRIC}.change`] };
     case "dashboard_primary_ancova":
       return {
         rows: data.primary.ancova.map((r) => ({
@@ -594,7 +594,7 @@ export function dashboardTableRows(data: DashboardData, table: DashboardTableNam
           change_cmap_recall_dl: r.change,
           reference_map_ids: r.referenceMapIds.join(" "),
         })),
-        metrics: [PRIMARY_METRIC, `${PRIMARY_METRIC}.change`],
+        metrics: [MAP_METRIC, `${MAP_METRIC}.change`],
       };
     case "dashboard_secondary":
       return { rows: summaryRows("secondary", data.secondary, data.conditions), metrics: [...SECONDARY_METRICS] };

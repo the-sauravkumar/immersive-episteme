@@ -20,7 +20,7 @@
  * (responses + journal); the event marks the submission attempt on the client timeline.
  */
 import { Check, CircleAlert } from "lucide-react";
-import { useActionState, useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 import { countOf } from "@/components/brand/numbering";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -34,9 +34,19 @@ import { cn } from "@/lib/utils";
 import { markAssessmentStarted, submitAssessmentForm, type FormState } from "@/server/study/actions";
 
 import { keepEnteredValues, StudyActions } from "./action-form";
+import { ItemAccount, ItemFigure, MatchingField, SequenceField, SketchField, type ItemFigureImage } from "./test-item-fields";
+
+interface ItemContext {
+  image?: ItemFigureImage;
+  account?: string;
+  sampleText?: boolean;
+}
 
 export type RenderItem =
-  | { id: string; kind: "single_choice" | "multiple_choice"; prompt: string; options: { id: string; label: string }[]; maxSelections?: number }
+  | ({ id: string; kind: "single_choice" | "multiple_choice"; prompt: string; options: { id: string; label: string }[]; maxSelections?: number } & ItemContext)
+  | ({ id: string; kind: "ranking"; prompt: string; options: { id: string; label: string }[] } & ItemContext)
+  | ({ id: string; kind: "matching"; prompt: string; pairs: { id: string; image: ItemFigureImage }[]; options: { id: string; label: string }[] } & ItemContext)
+  | { id: string; kind: "sketch"; prompt: string; maxBytes: number }
   | { id: string; kind: "short_text" | "long_text"; prompt: string; maxLength: number }
   | { id: string; kind: "likert"; prompt: string; points: number; min: number; anchors: Record<string, string> }
   | { id: string; kind: "numeric"; prompt: string; min?: number; max?: number; step?: number };
@@ -48,6 +58,7 @@ export interface RenderAssessment {
   title: string;
   description: string | null;
   presentation: "standard" | "semantic_differential";
+  paged?: boolean;
 }
 
 export function assessmentTaskCode(a: Pick<RenderAssessment, "code" | "version">): string {
@@ -62,6 +73,10 @@ function firstControlId(item: RenderItem): string {
       return `${item.id}-${item.options[0]?.id ?? "none"}`;
     case "likert":
       return `${item.id}-${item.min}`;
+    case "ranking":
+    case "matching":
+    case "sketch":
+      return `prompt-${item.id}`;
     default:
       return item.id;
   }
@@ -90,6 +105,9 @@ export function AssessmentForm({ step, assessment, items, returnTo }: { step: st
   }, {});
   const errors = state.fieldErrors ?? {};
   const flagged = items.map((item, i) => ({ item, number: i + 1 })).filter(({ item }) => errors[item.id]);
+  const [screen, setScreen] = useState(0);
+  const paged = assessment.paged === true && items.length > 1;
+  const onLastScreen = !paged || screen >= items.length - 1;
 
   // After a refused submit the summary takes focus, so keyboard and screen-reader users start
   // from the list of questions to fix (DESIGN.md 9.5).
@@ -144,15 +162,21 @@ export function AssessmentForm({ step, assessment, items, returnTo }: { step: st
       ) : null}
       <ol className="flex flex-col gap-12">
         {items.map((item, i) => (
-          <li key={item.id}>
+          <li key={item.id} hidden={paged && i !== screen && flagged.length === 0}>
             <ItemField item={item} number={i + 1} total={items.length} error={errors[item.id]} />
           </li>
         ))}
       </ol>
       <StudyActions>
-        <Button type="submit" aria-disabled={pending}>
-          {pending ? "Saving…" : "Submit answers"}
-        </Button>
+        {onLastScreen || flagged.length > 0 ? (
+          <Button type="submit" aria-disabled={pending}>
+            {pending ? "Saving…" : "Submit answers"}
+          </Button>
+        ) : (
+          <Button type="button" onClick={() => setScreen((n) => n + 1)}>
+            Next
+          </Button>
+        )}
       </StudyActions>
     </form>
   );
@@ -238,11 +262,38 @@ function ItemField({
   const err = error ? <FieldError id={errorId}>{error}</FieldError> : null;
 
   switch (item.kind) {
+    case "ranking":
+      return (
+        <fieldset className="flex min-w-0 flex-col gap-4" aria-describedby={describedBy}>
+          <legend className="mb-4">{prompt}</legend>
+          {item.account ? <ItemAccount account={item.account} sampleText={item.sampleText === true} /> : null}
+          <SequenceField name={name} options={item.options} />
+          {err}
+        </fieldset>
+      );
+    case "matching":
+      return (
+        <fieldset className="flex min-w-0 flex-col gap-4" aria-describedby={describedBy}>
+          <legend className="mb-4">{prompt}</legend>
+          <MatchingField name={name} pairs={item.pairs} options={item.options} />
+          {err}
+        </fieldset>
+      );
+    case "sketch":
+      return (
+        <fieldset className="flex min-w-0 flex-col gap-4" aria-describedby={describedBy}>
+          <legend className="mb-4">{prompt}</legend>
+          <SketchField name={name} maxBytes={item.maxBytes} />
+          {err}
+        </fieldset>
+      );
     case "single_choice":
     case "multiple_choice":
       return (
         <fieldset className="flex min-w-0 flex-col gap-4" aria-describedby={describedBy}>
           <legend className="mb-4">{prompt}</legend>
+          {item.account ? <ItemAccount account={item.account} sampleText={item.sampleText === true} /> : null}
+          {item.image ? <ItemFigure image={item.image} /> : null}
           {item.kind === "multiple_choice" ? (
             <p className="text-source -mt-2">Choose all that apply{item.maxSelections ? ` (at most ${item.maxSelections})` : ""}.</p>
           ) : null}

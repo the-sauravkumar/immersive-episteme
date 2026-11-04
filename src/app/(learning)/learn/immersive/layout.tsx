@@ -1,3 +1,5 @@
+import "@/styles/walking-tokens.css";
+
 import { Suspense } from "react";
 
 import { GateFallback } from "@/components/shell/gate-fallback";

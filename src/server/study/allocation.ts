@@ -10,9 +10,10 @@
  *    every block boundary.
  *  - `stratified_block`: the same, with an independent block sequence per stratum.
  *  - `simple`: an independent weighted draw per sequence index (no balance guarantee).
- *  - `counterbalanced` (within-subjects period orders) and `manual` are not drawn here:
- *    counterbalancing is not implemented (between-subjects only, Q-R3); manual is the
- *    reassignment path with a recorded reason.
+ *  - `counterbalanced` (within-subjects period orders) and `manual` are not drawn here; manual
+ *    is the reassignment path with a recorded reason.
+ *
+ * Tradition order within learning is drawn separately by `drawTraditionOrder`.
  *
  * Randomness: u = first 32 bits of sha256("<seed>|<stratum>|<block>|<draw>") / 2^32. sha256 is
  * a deterministic, platform-independent stream; it is not used for secrecy. Allocation
@@ -119,6 +120,26 @@ export function drawCondition(input: {
   const position = index % size;
   const chosen = permutedBlock(seed, stratum, blockIndex, conditions, size)[position]!;
   return { conditionId: chosen.id, conditionCode: chosen.code, blockIndex, positionInBlock: position };
+}
+
+function permutationsOf<T>(items: readonly T[]): T[][] {
+  if (items.length <= 1) return [[...items]];
+  return items.flatMap((item, index) => permutationsOf([...items.slice(0, index), ...items.slice(index + 1)]).map((rest) => [item, ...rest]));
+}
+
+export function drawTraditionOrder(input: { seed: string; traditions: readonly string[]; conditionCode: string; stratum?: string | null; index: number }): string[] {
+  const { seed, traditions, conditionCode, index } = input;
+  if (!Number.isInteger(index) || index < 0) throw new AllocationConfigError("order index must be a non-negative integer");
+  if (traditions.length < 2) return [...traditions];
+  const orders = permutationsOf([...traditions].sort());
+  const stratum = `order:${conditionCode}:${input.stratum ?? ""}`;
+  const blockIndex = Math.floor(index / orders.length);
+  const block = [...orders];
+  for (let i = block.length - 1; i > 0; i--) {
+    const j = Math.floor(uniform(seed, stratum, blockIndex, block.length - 1 - i) * (i + 1));
+    [block[i], block[j]] = [block[j]!, block[i]!];
+  }
+  return block[index % orders.length]!;
 }
 
 export interface RecordedAllocation {

@@ -27,6 +27,8 @@ export const answerKeySchema = z.union([
   z.object({ optionId: z.string().min(1).max(64) }),
   z.object({ optionIds: z.array(z.string().min(1).max(64)).min(1) }),
   z.object({ value: z.number().finite(), tolerance: z.number().nonnegative().default(0) }),
+  z.object({ order: z.array(z.string().min(1).max(64)).min(2) }),
+  z.object({ matches: z.record(z.string().min(1).max(64), z.string().min(1).max(64)) }),
 ]);
 export type AnswerKey = z.infer<typeof answerKeySchema>;
 
@@ -54,7 +56,30 @@ export function extractAnswer(raw: unknown): { optionIds: string[] | null; value
   return { optionIds: null, value: null };
 }
 
-/** 1 = matches the key, 0 = does not, null = not scorable (with the reason). */
+export function orderScore(expected: readonly string[], given: readonly string[]): number {
+  const rank = new Map(given.map((id, index) => [id, index]));
+  let agreeing = 0;
+  let pairs = 0;
+  for (let a = 0; a < expected.length; a++) {
+    for (let b = a + 1; b < expected.length; b++) {
+      pairs++;
+      const first = rank.get(expected[a]!);
+      const second = rank.get(expected[b]!);
+      if (first !== undefined && second !== undefined && first < second) agreeing++;
+    }
+  }
+  return pairs === 0 ? 0 : agreeing / pairs;
+}
+
+export const matchValue = (pairId: string, optionId: string): string => `${pairId}=${optionId}`;
+
+export function matchScore(matches: Readonly<Record<string, string>>, given: readonly string[]): number {
+  const keys = Object.keys(matches);
+  if (keys.length === 0) return 0;
+  const chosen = new Set(given);
+  return keys.filter((pairId) => chosen.has(matchValue(pairId, matches[pairId]!))).length / keys.length;
+}
+
 export function keyMatch(answerKey: unknown, raw: unknown): { value: number | null; reason?: string } {
   const parsed = answerKeySchema.safeParse(answerKey);
   if (!parsed.success) return { value: null, reason: "no_answer_key" };
@@ -63,6 +88,14 @@ export function keyMatch(answerKey: unknown, raw: unknown): { value: number | nu
   if ("optionId" in key) {
     if (!a.optionIds) return { value: null, reason: "unrecognised_answer" };
     return { value: a.optionIds.length === 1 && a.optionIds[0] === key.optionId ? 1 : 0 };
+  }
+  if ("order" in key) {
+    if (!a.optionIds) return { value: null, reason: "unrecognised_answer" };
+    return { value: orderScore(key.order, a.optionIds) };
+  }
+  if ("matches" in key) {
+    if (!a.optionIds) return { value: null, reason: "unrecognised_answer" };
+    return { value: matchScore(key.matches, a.optionIds) };
   }
   if ("optionIds" in key) {
     if (!a.optionIds) return { value: null, reason: "unrecognised_answer" };
