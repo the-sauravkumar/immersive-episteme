@@ -1,4 +1,5 @@
 import { CLOTH_AFTER_LABEL, type StageItem, type StationKind } from "@/features/process/domain/stage-template";
+import { looksOfItem, trayPadLookOf, workLiquidOf, type SubstanceLook } from "@/features/process/domain/substance-look";
 import { cosineFall, smoothstep, type Box, type Vec3 } from "./geometry";
 import { settleCloth, type ClothSurface, type HeightField } from "./cloth-surface";
 
@@ -12,6 +13,8 @@ export const GAP_WIDTH = 3.6;
 export const WALL_HEIGHT = 2.6;
 export const EYE_HEIGHT = 1.6;
 export const YARD_HALF_WIDTH = 24;
+
+export const WORK_FLOOR_Y = -0.72;
 
 export type WorkStructure =
   | { readonly type: "ring"; readonly z: number; readonly radius: number; readonly rim: number; readonly curb: number; readonly level: number; readonly finish: "lime" | "copper" }
@@ -45,6 +48,7 @@ export interface CurvedWords {
 
 export interface PlacedItem {
   readonly item: StageItem;
+  readonly looks: readonly SubstanceLook[];
   readonly x: number;
   readonly z: number;
   readonly surfaceTop: number;
@@ -63,6 +67,8 @@ export interface YardPlan {
   readonly side: 1 | -1;
   readonly yard: Box;
   readonly work: WorkStructure;
+  readonly workLiquid: SubstanceLook | null;
+  readonly trayLook: SubstanceLook | null;
   readonly shed: { readonly x0: number; readonly x1: number; readonly z: number; readonly height: number; readonly doorX: number };
   readonly rails: readonly number[];
   readonly items: readonly PlacedItem[];
@@ -78,6 +84,7 @@ export interface YardPlan {
 }
 
 export interface YardStage {
+  readonly stageKey?: string;
   readonly number: number | string;
   readonly name: string;
   readonly localName: string | null;
@@ -246,7 +253,11 @@ function stationWords(stage: YardStage, shedX: (x: number) => number, shedZ: num
 export function buildYardPlan(stage: YardStage): YardPlan {
   const side: 1 | -1 = stage.index % 2 === 0 ? 1 : -1;
   const X = (x: number) => CLOTH_LINE_X + side * (x - CLOTH_LINE_X);
-  const work = structureFor(stage.kind);
+  const standardWork = structureFor(stage.kind);
+  const work: WorkStructure = standardWork.type === "ring" && stage.items.some((item) => item.modelId === "boiling-vessel") ? { ...standardWork, finish: "copper" } : standardWork;
+  const stageKey = stage.stageKey ?? null;
+  const workLiquid = stageKey && (work.type === "ring" || work.type === "tank") ? workLiquidOf(stageKey, stage.items) : null;
+  const trayLook = stageKey ? trayPadLookOf(stageKey) : null;
   const after: readonly number[] = work.type === "table" ? [-3.2, -5.2, -7.2] : work.type === "open" ? [-1.5, -3.5, -5.5] : work.type === "tank" ? [1.6, -0.4, -2.4, -4.4, -6.4, -8.4] : [2.5, 0.5, -1.5, -3.5, -5.5, -7.5];
   const rails = after;
   const field = heightFieldFor(work, rails);
@@ -270,8 +281,8 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     const reach = work.type === "ring" ? work.rim + work.curb * 1.6 + 0.2 : work.halfZ + work.rim + work.curb * 1.6 + 0.2;
     const inside = work.type === "ring" ? work.radius - 0.72 : work.halfZ - 0.72;
     lastGround = work.z + reach;
-    cloth.push(specOf([...incomingGround(lastGround + 1), [CLOTH_LINE_X, 0.012, lastGround], [CLOTH_LINE_X, 0.012, work.z + inside + 0.5], [CLOTH_LINE_X, -0.1, work.z + inside + 0.1], [CLOTH_LINE_X, -0.3, work.z + inside - 0.2]], "cloth-in", "before", 0.004));
-    cloth.push(specOf([[CLOTH_LINE_X, -0.3, work.z - inside + 0.2], [CLOTH_LINE_X, work.level + 0.03, work.z - inside], [CLOTH_LINE_X, work.curb + 1, Math.min(3.5, work.z - inside - 0.7)], [CLOTH_LINE_X, 3.2, start + 0.45], [CLOTH_LINE_X, RAIL_HEIGHT - 0.2, start + 0.18], toFirstRail, ...festoon, ...away], "cloth-out", "after", 0.07));
+    cloth.push(specOf([...incomingGround(lastGround + 1), [CLOTH_LINE_X, 0.012, lastGround], [CLOTH_LINE_X, 0.012, work.z + inside + 0.5], [CLOTH_LINE_X, -0.1, work.z + inside + 0.1], [CLOTH_LINE_X, -0.3, work.z + inside - 0.2], [CLOTH_LINE_X, -0.36, work.z]], "cloth-in", "before", 0.004));
+    cloth.push(specOf([[CLOTH_LINE_X, -0.36, work.z], [CLOTH_LINE_X, -0.3, work.z - inside + 0.2], [CLOTH_LINE_X, work.level + 0.03, work.z - inside], [CLOTH_LINE_X, work.curb + 1, Math.min(3.5, work.z - inside - 0.7)], [CLOTH_LINE_X, 3.2, start + 0.45], [CLOTH_LINE_X, RAIL_HEIGHT - 0.2, start + 0.18], toFirstRail, ...festoon, ...away], "cloth-out", "after", 0.07));
   } else if (work.type === "table") {
     const boundary = 3.4;
     cloth.push(specOf([[CLOTH_LINE_X, 0.012, YARD_FRONT_Z], [CLOTH_LINE_X, 0.012, work.stackZ + 2], [CLOTH_LINE_X, 0.2, work.stackZ + 0.95], [CLOTH_LINE_X, work.stackTop, work.stackZ + 0.3], [CLOTH_LINE_X, work.stackTop, work.stackZ - 0.25], [CLOTH_LINE_X, 0.6, work.z1 + 0.6], [CLOTH_LINE_X, work.top + 0.012, work.z1], [CLOTH_LINE_X, work.top + 0.012, boundary]], "cloth-in", "before", 0.003));
@@ -300,7 +311,7 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     const words = item.localName ? `${item.label} (${item.localName})` : item.label;
     const benchLength = Math.max(1.3, words.length * 0.078 * 0.53 + 0.3);
     const centre = slotZ - benchLength / 2;
-    placed.push({ item, x: benchX, z: centre, surfaceTop: 0.38, onBench: true, benchLabel: benchWords(item, benchFront, centre, 0.33, side), benchLength });
+    placed.push({ item, looks: stageKey ? looksOfItem(stageKey, item) : [], x: benchX, z: centre, surfaceTop: 0.38, onBench: true, benchLabel: benchWords(item, benchFront, centre, 0.33, side), benchLength });
     slotZ -= benchLength + 0.3;
   }
   if (work.type === "ring" && integralWords.length > 0) {
@@ -331,6 +342,8 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     side,
     yard: { min: [CLOTH_LINE_X - YARD_HALF_WIDTH, -1, FAR_WALL_Z - 0.2], max: [CLOTH_LINE_X + YARD_HALF_WIDTH, 12, YARD_FRONT_Z] },
     work,
+    workLiquid,
+    trayLook,
     shed,
     rails,
     items: placed,

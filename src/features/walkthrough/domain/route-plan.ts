@@ -32,6 +32,7 @@ export function stagesFromTemplate(template: StageTemplate): YardStage[] {
   return template.stages.map((stage, index) => {
     const following = template.stages[index + 1];
     return {
+      stageKey: stage.key,
       number: stage.number,
       name: stage.name,
       localName: stage.localName,

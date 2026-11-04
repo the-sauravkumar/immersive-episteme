@@ -170,26 +170,6 @@
   "permission": "none needed"
  },
  {
-  "file": "public/walkthrough/models/wooden_hammer_01",
-  "usedFor": "stand-in tool or material model",
-  "holder": "James Ray Cock",
-  "sourcePage": "https://polyhaven.com/a/wooden_hammer_01",
-  "directUrl": "https://polyhaven.com/a/wooden_hammer_01",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/models/wooden_spoon",
-  "usedFor": "stand-in tool or material model",
-  "holder": "Ronnie Barter",
-  "sourcePage": "https://polyhaven.com/a/wooden_spoon",
-  "directUrl": "https://polyhaven.com/a/wooden_spoon",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
   "file": "public/walkthrough/sky",
   "usedFor": "sky and image-based light",
   "holder": "Greg Zaal",
@@ -208,16 +188,6 @@
   "widthPx": 2048,
   "licence": "CC0 1.0",
   "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/stills/barrel.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
  },
  {
   "file": "public/walkthrough/stills/basket.jpg",
@@ -281,16 +251,6 @@
  },
  {
   "file": "public/walkthrough/stills/carved-block.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/cloth-bale.jpg",
   "usedFor": "object still for Door 1 panels and test items",
   "holder": "Rendered by this project from the CC0 scans listed in this manifest",
   "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
@@ -370,47 +330,7 @@
   "widthPx": 1800
  },
  {
-  "file": "public/walkthrough/stills/liquid-pot.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/lump-basket.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/mallet.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
   "file": "public/walkthrough/stills/pan-brass.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/paste-bowl.jpg",
   "usedFor": "object still for Door 1 panels and test items",
   "holder": "Rendered by this project from the CC0 scans listed in this manifest",
   "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
@@ -440,16 +360,6 @@
   "widthPx": 1800
  },
  {
-  "file": "public/walkthrough/stills/powder-bowl.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
   "file": "public/walkthrough/stills/practice-view.jpg",
   "usedFor": "seen through Door 2 in the entrance stills; the practice yard",
   "holder": "Rendered by this project from the CC0 scans listed in this manifest",
@@ -461,26 +371,6 @@
  },
  {
   "file": "public/walkthrough/stills/printing-table.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/printing-tray.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/spoon.jpg",
   "usedFor": "object still for Door 1 panels and test items",
   "holder": "Rendered by this project from the CC0 scans listed in this manifest",
   "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
@@ -562,5 +452,145 @@
   "directUrl": "public/walkthrough/fonts/Mukta-OFL.txt",
   "licence": "SIL Open Font License 1.1",
   "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/bamboo_veneer",
+  "usedFor": "bamboo poles, kalam and brush handle",
+  "holder": "Jenelle van Heerden",
+  "sourcePage": "https://polyhaven.com/a/bamboo_veneer",
+  "directUrl": "https://polyhaven.com/a/bamboo_veneer",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/bark_willow",
+  "usedFor": "madder and chay roots, recoloured from its luminance",
+  "holder": "Dario Barresi, Dimitrios Savva",
+  "sourcePage": "https://polyhaven.com/a/bark_willow",
+  "directUrl": "https://polyhaven.com/a/bark_willow",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/brown_mud",
+  "usedFor": "wet pastes, recoloured from its luminance",
+  "holder": "Rob Tuytel",
+  "sourcePage": "https://polyhaven.com/a/brown_mud",
+  "directUrl": "https://polyhaven.com/a/brown_mud",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/brown_mud_dry",
+  "usedFor": "dung lumps and vat scum, recoloured from its luminance",
+  "holder": "Rob Tuytel",
+  "sourcePage": "https://polyhaven.com/a/brown_mud_dry",
+  "directUrl": "https://polyhaven.com/a/brown_mud_dry",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/dry_decay_leaves",
+  "usedFor": "dry flowers and leaves, recoloured from its luminance",
+  "holder": "Amal Kumar",
+  "sourcePage": "https://polyhaven.com/a/dry_decay_leaves",
+  "directUrl": "https://polyhaven.com/a/dry_decay_leaves",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/macro_flour",
+  "usedFor": "fine powders, recoloured from its luminance",
+  "holder": "Jenelle van Heerden, Dario Barresi",
+  "sourcePage": "https://polyhaven.com/a/macro_flour",
+  "directUrl": "https://polyhaven.com/a/macro_flour",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/metal_plate_02",
+  "usedFor": "carving chisel blades",
+  "holder": "Rob Tuytel",
+  "sourcePage": "https://polyhaven.com/a/metal_plate_02",
+  "directUrl": "https://polyhaven.com/a/metal_plate_02",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/Metal008",
+  "usedFor": "copper vessels",
+  "holder": "ambientCG",
+  "sourcePage": "https://ambientcg.com/a/Metal008",
+  "directUrl": "https://ambientcg.com/a/Metal008",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/wood_chips_003",
+  "usedFor": "sawdust and dusting agents, recoloured from its luminance",
+  "holder": "ambientCG",
+  "sourcePage": "https://ambientcg.com/a/WoodChips003",
+  "directUrl": "https://ambientcg.com/a/WoodChips003",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/stills/materials/*.jpg",
+  "usedFor": "each material in its vessel, for Door 1 and the tests",
+  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
+  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
+  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
+  "licence": "CC0 1.0",
+  "permission": "none needed; every input is a CC0 row of this manifest",
+  "widthPx": 1800
+ },
+ {
+  "file": "public/walkthrough/stills/tools/*.jpg",
+  "usedFor": "each vat, tank and vessel holding its own stage's liquid",
+  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
+  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
+  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
+  "licence": "CC0 1.0",
+  "permission": "none needed; every input is a CC0 row of this manifest",
+  "widthPx": 1800
+ },
+ {
+  "file": "public/walkthrough/stills/washing-paddle.jpg",
+  "usedFor": "built washing paddle",
+  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
+  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
+  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
+  "licence": "CC0 1.0",
+  "permission": "none needed; every input is a CC0 row of this manifest",
+  "widthPx": 1800
+ },
+ {
+  "file": "public/walkthrough/stills/carving-chisels.jpg",
+  "usedFor": "built carving chisels",
+  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
+  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
+  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
+  "licence": "CC0 1.0",
+  "permission": "none needed; every input is a CC0 row of this manifest",
+  "widthPx": 1800
+ },
+ {
+  "file": "public/walkthrough/stills/brush-and-kalam.jpg",
+  "usedFor": "built brush and kalam",
+  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
+  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
+  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
+  "licence": "CC0 1.0",
+  "permission": "none needed; every input is a CC0 row of this manifest",
+  "widthPx": 1800
  }
 ]

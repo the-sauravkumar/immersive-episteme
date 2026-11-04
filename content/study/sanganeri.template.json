@@ -35,7 +35,7 @@
           "role": "tool",
           "label": "Block-Carving Chisels",
           "localName": "Kalam",
-          "modelId": "mallet"
+          "modelId": "carving-chisels"
         }
       ],
       "clothStateId": "sanganeri-01"
@@ -366,7 +366,7 @@
           "role": "material",
           "label": "Indigo",
           "localName": "Neel",
-          "modelId": "liquid-pot"
+          "modelId": "powder-bowl"
         }
       ],
       "clothStateId": "sanganeri-07"
@@ -424,7 +424,7 @@
           "role": "material",
           "label": "Alum",
           "localName": "Fitkari",
-          "modelId": "powder-bowl"
+          "modelId": "crystal-bowl"
         }
       ],
       "clothStateId": "sanganeri-08"

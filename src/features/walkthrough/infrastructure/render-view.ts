@@ -20,7 +20,7 @@ export function createRenderView(renderer: THREE.WebGLRenderer, scene: THREE.Sce
   triangle.setAttribute("position", new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
   triangle.setAttribute("uv", new THREE.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2));
   const pass = (fragmentShader: string, uniforms: Record<string, THREE.IUniform>) => new THREE.ShaderMaterial({ vertexShader: VERTEX, fragmentShader, uniforms, depthTest: false, depthWrite: false, toneMapped: false });
-  const threshold = pass("varying vec2 v;uniform sampler2D t;void main(){vec3 c=texture2D(t,v).rgb;float l=max(c.r,max(c.g,c.b));gl_FragColor=vec4(c*smoothstep(1.05,1.65,l),1.);}", { t: { value: null } });
+  const threshold = pass("varying vec2 v;uniform sampler2D t;void main(){vec3 c=min(texture2D(t,v).rgb,vec3(2.5));float l=max(c.r,max(c.g,c.b));gl_FragColor=vec4(c*smoothstep(1.05,1.65,l),1.);}", { t: { value: null } });
   const blur = pass(
     "varying vec2 v;uniform sampler2D t;uniform vec2 d;void main(){vec3 c=texture2D(t,v).rgb*.227;c+=(texture2D(t,v+d*1.38).rgb+texture2D(t,v-d*1.38).rgb)*.316;c+=(texture2D(t,v+d*3.23).rgb+texture2D(t,v-d*3.23).rgb)*.07;gl_FragColor=vec4(c,1.);}",
     { t: { value: null }, d: { value: new THREE.Vector2() } },

@@ -187,7 +187,7 @@
           "role": "material",
           "label": "Alum",
           "localName": "Karam",
-          "modelId": "powder-bowl"
+          "modelId": "paste-bowl"
         }
       ],
       "clothStateId": "machilipatnam-kalamkari-04"
@@ -262,7 +262,7 @@
           "role": "material",
           "label": "Alizarin, Madder And Chay Root",
           "localName": null,
-          "modelId": "lump-basket"
+          "modelId": "powder-bowl"
         },
         {
           "key": "machilipatnam-kalamkari.material.dye-bath-plant-additives",
@@ -312,21 +312,21 @@
           "role": "tool",
           "label": "Date-Palm Brush And Kalam",
           "localName": null,
-          "modelId": "spoon"
+          "modelId": "brush-and-kalam"
         },
         {
           "key": "machilipatnam-kalamkari.material.rice-starch",
           "role": "material",
           "label": "Rice Starch",
           "localName": null,
-          "modelId": "paste-bowl"
+          "modelId": "liquid-pot"
         },
         {
           "key": "machilipatnam-kalamkari.material.indigo",
           "role": "material",
           "label": "Indigo",
           "localName": null,
-          "modelId": "liquid-pot"
+          "modelId": "paste-bowl"
         },
         {
           "key": "machilipatnam-kalamkari.material.myrobalan-karakkaya",
@@ -370,7 +370,7 @@
           "role": "material",
           "label": "Alum",
           "localName": "Karam",
-          "modelId": "powder-bowl"
+          "modelId": "paste-bowl"
         }
       ],
       "clothStateId": "machilipatnam-kalamkari-08"

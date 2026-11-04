@@ -1,4 +1,5 @@
-import { clothStatePath, stillPath } from "@/features/process/domain/asset-catalogue";
+import { clothStatePath } from "@/features/process/domain/asset-catalogue";
+import { stageItemStillPath } from "@/features/process/domain/substance-look";
 import type { StageItem, StageTemplate, TemplateStage } from "@/features/process/domain/stage-template";
 import type { TestItemType } from "@/features/research/contracts";
 
@@ -87,7 +88,7 @@ function identificationItem(object: PlacedObject, pool: readonly StageItem[], tu
     itemKey: `${prefix}.${object.template.tradition}.${object.stage.number}.${turn}`.slice(0, 64),
     kind: "single_choice",
     prompt: "What is this called?",
-    config: { kind: "single_choice", options: choice.options, shuffle: true, image: { path: stillPath(object.item.modelId), alt: "The object to name" }, target: placedTarget(object) },
+    config: { kind: "single_choice", options: choice.options, shuffle: true, image: { path: stageItemStillPath(object.stage.key, object.stage.items, object.item), alt: "The object to name" }, target: placedTarget(object) },
     answerKey: { optionId: choice.correct },
   };
 }
@@ -97,7 +98,7 @@ function placementItem(object: PlacedObject, turn: number, prefix: string): Draf
     itemKey: `${prefix}.${object.template.tradition}.${object.stage.number}.${turn}`.slice(0, 64),
     kind: "single_choice",
     prompt: `At which stage of ${object.template.traditionName} is ${object.item.label} used?`,
-    config: { kind: "single_choice", options: stageOptions(object.template), shuffle: true, image: { path: stillPath(object.item.modelId), alt: object.item.label }, target: placedTarget(object) },
+    config: { kind: "single_choice", options: stageOptions(object.template), shuffle: true, image: { path: stageItemStillPath(object.stage.key, object.stage.items, object.item), alt: object.item.label }, target: placedTarget(object) },
     answerKey: { optionId: `s${object.stage.number}` },
   };
 }

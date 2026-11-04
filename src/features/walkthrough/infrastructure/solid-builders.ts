@@ -42,46 +42,28 @@ export function softBox(parent: THREE.Object3D, size: readonly [number, number, 
   return mesh;
 }
 
-export function bambooCanvas(): HTMLCanvasElement {
-  const canvas = document.createElement("canvas");
-  canvas.width = 1024;
-  canvas.height = 4096;
-  const context = canvas.getContext("2d")!;
-  const gradient = context.createLinearGradient(0, 0, canvas.width, 0);
-  gradient.addColorStop(0, "#94763f");
-  gradient.addColorStop(0.5, "#c5a666");
-  gradient.addColorStop(1, "#94763f");
-  context.fillStyle = gradient;
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  for (let i = 0; i < 520; i++) {
-    const x = Math.random() * canvas.width;
-    context.strokeStyle = `rgba(${Math.random() < 0.6 ? "70,46,20" : "238,214,160"},${Math.random() * 0.16})`;
-    context.lineWidth = 0.8 + Math.random() * 3;
-    context.beginPath();
-    context.moveTo(x, 0);
-    context.bezierCurveTo(x + 6, canvas.height / 3, x - 6, (canvas.height * 2) / 3, x + (Math.random() - 0.5) * 10, canvas.height);
-    context.stroke();
-  }
-  for (let y = 340; y < canvas.height; y += 1024) {
-    const node = context.createLinearGradient(0, y - 52, 0, y + 52);
-    node.addColorStop(0, "rgba(60,38,16,0)");
-    node.addColorStop(0.46, "rgba(60,38,16,.72)");
-    node.addColorStop(0.54, "rgba(248,228,178,.5)");
-    node.addColorStop(1, "rgba(60,38,16,0)");
-    context.fillStyle = node;
-    context.fillRect(0, y - 52, canvas.width, 104);
-  }
-  return canvas;
-}
+const BAMBOO_NODE_SPACING = 0.42;
+const BAMBOO_TILE_METRES = 0.6;
 
 export function pole(parent: THREE.Object3D, from: readonly [number, number, number], to: readonly [number, number, number], radius: number, material: THREE.Material): THREE.Mesh {
   const a = new THREE.Vector3(...from);
   const b = new THREE.Vector3(...to);
   const axis = b.clone().sub(a);
   const span = axis.length();
-  const geometry = new THREE.CylinderGeometry(radius, radius * 1.04, span, 28, 1);
+  const nodeCount = Math.max(1, Math.round(span / BAMBOO_NODE_SPACING));
+  const geometry = new THREE.CylinderGeometry(radius, radius * 1.04, span, 28, nodeCount * 10);
+  const position = geometry.attributes.position!;
   const uv = geometry.attributes.uv!;
-  for (let i = 0; i < uv.count; i++) uv.setY(i, uv.getY(i) * (span / 2));
+  const around = (2 * Math.PI * radius) / BAMBOO_TILE_METRES;
+  for (let i = 0; i < position.count; i++) {
+    const along = position.getY(i) / span + 0.5;
+    const toNode = Math.abs(((along * nodeCount) % 1) - 0.5) * 2;
+    const swell = 1 + 0.07 * Math.exp(-((toNode * 9) ** 2));
+    position.setX(i, position.getX(i) * swell);
+    position.setZ(i, position.getZ(i) * swell);
+    uv.setXY(i, (along * span) / BAMBOO_TILE_METRES, uv.getX(i) * around);
+  }
+  geometry.computeVertexNormals();
   const mesh = new THREE.Mesh(geometry, material);
   mesh.position.copy(a).addScaledVector(axis, 0.5);
   mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis.normalize());

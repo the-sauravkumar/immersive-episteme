@@ -6,27 +6,30 @@ import type { ConceptRecord, TraditionRecord } from "@/features/process/domain/k
 import type { MergePlan } from "@/features/process/domain/merge-plan";
 import type { ProductImage, TraditionKey } from "@/features/process/domain/stage-template";
 import { adjacencyErrors, captionErrors, orderErrors, structuralErrors } from "@/features/process/domain/validate-template";
+import { itemVesselModel } from "@/features/process/domain/substance-look";
 import { titleCase } from "@/lib/text/title-case";
 
 const MODEL_RULES: ReadonlyArray<readonly [RegExp, string]> = [
   [/printing table/, "printing-table"],
-  [/chisel/, "mallet"],
-  [/brush/, "spoon"],
-  [/paddle|mallet/, "mallet"],
+  [/chisel/, "carving-chisels"],
+  [/brush/, "brush-and-kalam"],
+  [/paddle/, "washing-paddle"],
   [/vat/, "dye-vat"],
   [/washing tank/, "wash-tank"],
   [/copper|boiling vessel/, "boiling-vessel"],
   [/tray|pad\b/, "printing-tray"],
   [/block/, "carved-block"],
-  [/cloth|fabric|cotton/, "cloth-bale"],
-  [/sawdust|dusting/, "powder-bowl"],
-  [/dung|root|galls|flowers|additives|indian madder/, "lump-basket"],
-  [/paste|gum|resist|starch|syahi|gach|dabu/, "paste-bowl"],
-  [/kasim|neerani|indigo|alizarin|milk|yellow|dye bath/, "liquid-pot"],
-  [/harde|harda|myrobalan|alum/, "powder-bowl"],
 ];
 
-function modelIdFor(concept: ConceptRecord): string {
+const firstVesselOfItem = new Map<string, string>();
+
+function modelIdFor(concept: ConceptRecord, stageKey: string, role: "tool" | "material", label: string): string {
+  if (role === "material") {
+    const vessel = firstVesselOfItem.get(concept.key) ?? itemVesselModel(stageKey, { label, role });
+    if (!vessel) throw new Error(`No look row for ${stageKey}: ${label}`);
+    firstVesselOfItem.set(concept.key, vessel);
+    return vessel;
+  }
   const title = concept.title.toLowerCase();
   const rule = MODEL_RULES.find(([pattern]) => pattern.test(title));
   if (!rule) throw new Error(`No model rule for ${concept.key}: ${concept.title}`);

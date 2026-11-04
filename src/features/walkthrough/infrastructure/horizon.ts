@@ -1,5 +1,7 @@
 import * as THREE from "three";
 
+const LAND_BELOW_THE_WELLS = -0.9;
+
 const SCRUB_COLOURS = ["#6f7a44", "#5e6b3c", "#818a52", "#49552f"];
 
 function scrubCanvas(): HTMLCanvasElement {
@@ -33,7 +35,7 @@ export function addHorizon(scene: THREE.Scene, earth: THREE.Texture): THREE.Grou
   groundTexture.needsUpdate = true;
   const land = new THREE.Mesh(new THREE.CircleGeometry(880, 96), new THREE.MeshStandardMaterial({ map: groundTexture, roughness: 1, color: new THREE.Color(2.5, 1.62, 1.22) }));
   land.rotation.x = -Math.PI / 2;
-  land.position.y = -0.04;
+  land.position.y = LAND_BELOW_THE_WELLS;
   land.receiveShadow = false;
   scene.add(land);
   const soft = document.createElement("canvas");
@@ -58,7 +60,7 @@ export function addHorizon(scene: THREE.Scene, earth: THREE.Texture): THREE.Grou
       const angle = (i / ring) * Math.PI * 2 + radius;
       const width = 2 * radius * Math.tan(Math.PI / ring) * 1.02;
       const strip = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
-      strip.position.set(Math.cos(angle) * radius, height / 2 - 0.5, Math.sin(angle) * radius);
+      strip.position.set(Math.cos(angle) * radius, height / 2 + LAND_BELOW_THE_WELLS, Math.sin(angle) * radius);
       strip.rotation.y = -angle - Math.PI / 2;
       hills.add(strip);
     }

@@ -1,6 +1,7 @@
 import { CLOTH_AFTER_LABEL, type ItemRole, type SourceRef, type StageTemplate, type TemplateStage } from "@/features/process/domain/stage-template";
 import { clothStatePath, clothStripPath, stillPath } from "@/features/process/domain/asset-catalogue";
 import { PRACTICE_OBJECT_LABEL } from "@/features/process/domain/guidance";
+import { stageItemStillPath } from "@/features/process/domain/substance-look";
 
 export interface PanelObject {
   readonly key: string;
@@ -60,7 +61,7 @@ export function stagePanelModel(template: StageTemplate, stageIndex: number): St
       label: item.label,
       localName: item.localName,
       modelId: item.modelId,
-      stillSrc: stillPath(item.modelId),
+      stillSrc: stageItemStillPath(stage.key, stage.items, item),
     })),
     clothStateId: stage.clothStateId,
     clothBeforeSrc: clothStatePath(previous ? previous.clothStateId : template.rawClothStateId),

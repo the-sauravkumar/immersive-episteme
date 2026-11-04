@@ -5,7 +5,7 @@ import { isShortFormOf, joinShortForms, splitTitle } from "./title-parts";
 
 export interface TemplateBuildPorts {
   readonly headingCase: (text: string) => string;
-  readonly modelIdFor: (concept: ConceptRecord) => string;
+  readonly modelIdFor: (concept: ConceptRecord, stageKey: string, role: "tool" | "material", label: string) => string;
 }
 
 export interface ExcludedItem {
@@ -67,6 +67,7 @@ function buildName(record: TraditionRecord, planned: PlannedStage, ports: Templa
 }
 
 function buildItems(
+  tradition: string,
   record: TraditionRecord,
   planned: PlannedStage,
   ports: TemplateBuildPorts,
@@ -92,7 +93,7 @@ function buildItems(
         role,
         label: ports.headingCase(parts.name),
         localName: parts.localName ? ports.headingCase(parts.localName) : null,
-        modelId: ports.modelIdFor(concept),
+        modelId: ports.modelIdFor(concept, `${tradition}.${planned.key}`, role, ports.headingCase(parts.name)),
       });
     }
   }
@@ -112,7 +113,7 @@ export function buildStageTemplate(
   const stagesWithoutItems: string[] = [];
   const stages = plan.stages.map((planned, index): TemplateStage => {
     const number = index + 1;
-    const items = buildItems(record, planned, ports, excludedItems);
+    const items = buildItems(plan.tradition, record, planned, ports, excludedItems);
     if (items.length === 0) stagesWithoutItems.push(planned.key);
     return {
       number,

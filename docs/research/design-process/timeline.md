@@ -30,6 +30,7 @@ In order of occurrence. "Lead" is the project lead. Commits are on branch `main`
 | 24 | Both doors wired into the study from one template, the old doors and the spatial compiler deleted, and the whole journey run through both doors on a production build. | DR-076 |
 | 25 | Final adversarial review: test option order, recording of stops, resume, exit events and the WebGL backstop corrected. | DR-077 |
 | 26 | Lead's material rule L12 recorded; material look sheet and asset list corrected after an adversarial check. | DR-078 |
+| 27 | Materials built from the look sheet: fitted fills from measured vessels, a bath of its own for each stage, real scans recoloured, one Door 1 still per material, fills in the scene check. | DR-079 |
 
 ## 2026-11-04: Door 2 Whole-Route Faults
 
@@ -49,4 +50,4 @@ The lead asked whether materials in pots match real life and asked that nothing 
 - The first material look sheet had real quotes, but about 16 rows marked sourced had colours their evidence did not establish. An adversarial check caught this, and rice starch, tamarind paste and the red baths were the worst.
 - After correction, 12 of 58 rows render on evidence, 26 on an inferred colour and 20 on a provisional one. Each stays flagged for the lead. Indigo vat liquor is amber to yellowish-green in general dyers' guides, and clean water and alum baths have no invented tint.
 - The asset list recorded physical size and density, which exposed Bitumen at 205 px/m. All 47 Fab rows stay unverified, because the site returned 403 to a script. Liquids are shaded, not sourced.
-- The running scenes have not changed yet.
+- The running scenes changed on 2026-11-05: materials now render from these rows (DR-079).
