@@ -247,11 +247,7 @@ export async function activateStudy(pool: Pool | PoolClient, actor: Actor, study
     }
     const current = await loadParityInput(c, studyId);
     if (parityInputHash(current.study) !== stored.report.inputSha256) throw new ResearchActionError("The study changed while it was being checked; run the activation again.");
-    const pins = await activationPins(c, studyId, current.study.config, current.study.snapshotId);
-    if ("refused" in pins) {
-      await audit(c, actor, "study.activation_refused", "study", studyId, { after: { parityReportId: stored.id, failures: [pins.refused] } });
-      return { activated: false, parityReportId: stored.id, passed: true, failures: [pins.refused] };
-    }
+    const pins = activationPins(current.study.config);
     // The pins go into the config in the same statement that activates (the config is frozen afterwards).
     await c.query("UPDATE studies SET config = $3::jsonb, status = 'active', activated_by = $2, activated_at = now() WHERE id = $1", [studyId, actor.userId, JSON.stringify(pins.config)]);
     await audit(c, actor, "study.activate", "study", studyId, {
@@ -267,38 +263,14 @@ export async function activateStudy(pool: Pool | PoolClient, actor: Actor, study
  *    fallback seed is derived from the study id and protocol version, which staff can see, so
  *    the allocation sequence would be predictable. Only a fingerprint is journalled, never the seed;
  *    exports leave it out until the study is closed.
- *  - the reference map that `stratifyBy: pre_map_recall` scores against (final review
- *    database-02): the newest locked map at activation is pinned by id, so a map version locked
- *    later cannot change the stratification rule part-way through the study.
  */
-async function activationPins(
-  q: Q,
-  studyId: string,
-  rawConfig: unknown,
-  snapshotId: string | null,
-): Promise<{ config: Record<string, unknown>; recorded: Record<string, unknown> } | { refused: string }> {
+function activationPins(rawConfig: unknown): { config: Record<string, unknown>; recorded: Record<string, unknown> } {
   const config = { ...(rawConfig as Record<string, unknown>) };
   const allocation = { ...((config.allocation as Record<string, unknown> | undefined) ?? {}) };
   const recorded: Record<string, unknown> = {};
   if (typeof allocation.seed !== "string" || allocation.seed.length === 0) {
     allocation.seed = randomBytes(32).toString("base64url");
     recorded.allocationSeed = { generated: true, sha256Prefix: createHash("sha256").update(allocation.seed as string, "utf8").digest("hex").slice(0, 12) };
-  }
-  const by = allocation.stratifyBy as { source?: string; referenceMapId?: string } | undefined;
-  if (by?.source === "pre_map_recall" && !by.referenceMapId) {
-    const ref = await q.query<{ id: string; version: number; code: string }>(
-      `SELECT rm.id, rm.version, a.code FROM study_assessments sa
-         JOIN assessments a ON a.id = sa.assessment_id
-         JOIN reference_maps rm ON rm.assessment_id = a.id
-        WHERE sa.study_id = $1 AND sa.phase = 'pre' AND a.kind = 'reconstruction' AND rm.status = 'locked'
-          AND (rm.snapshot_id IS NULL OR rm.snapshot_id = $2)
-        ORDER BY rm.version DESC LIMIT 1`,
-      [studyId, snapshotId],
-    );
-    const r = ref.rows[0];
-    if (!r) return { refused: "Stratification by pre-map recall needs a locked reference map for the pre-learning reconstruction assessment." };
-    allocation.stratifyBy = { ...by, referenceMapId: r.id };
-    recorded.stratificationReferenceMap = { id: r.id, version: r.version, assessment: r.code };
   }
   config.allocation = allocation;
   return { config, recorded };
@@ -314,19 +286,11 @@ export async function closeStudy(pool: Pool | PoolClient, actor: Actor, studyId:
   });
 }
 
-/**
- * The config of a new version without the pins activation set: the new version gets its own
- * secret seed and its own reference map at its activation (reusing the seed would repeat the old
- * version's allocation sequence).
- */
+/** The config of a new version without its secret seed: reusing it would repeat the allocation sequence. */
 function withoutActivationPins(raw: unknown): unknown {
   const config = { ...((raw as Record<string, unknown>) ?? {}) };
   const allocation = { ...((config.allocation as Record<string, unknown> | undefined) ?? {}) };
   delete allocation.seed;
-  if (allocation.stratifyBy && typeof allocation.stratifyBy === "object") {
-    const { referenceMapId: _pinned, ...by } = allocation.stratifyBy as Record<string, unknown>;
-    allocation.stratifyBy = by;
-  }
   config.allocation = allocation;
   return config;
 }

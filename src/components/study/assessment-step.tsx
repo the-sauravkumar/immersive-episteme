@@ -10,7 +10,7 @@ import { countOf } from "@/components/brand/numbering";
 import { TelemetryProvider } from "@/features/telemetry/client";
 import { serverEnv } from "@/lib/env";
 import { getPool } from "@/server/db/client";
-import { optionOrder, itemConfig } from "@/server/study/answers";
+import { optionOrder, itemConfig, pairOrder } from "@/server/study/answers";
 import type { StudyStep } from "@/server/study/config";
 import { listStepAssessments, stepReadiness, StudyEngineError, submittedAssessments } from "@/server/study/engine";
 import { requireStep } from "@/server/study/session";
@@ -48,9 +48,19 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
         const byId = new Map(cfg.options.map((o) => [o.id, o]));
         const options = optionOrder(state.sessionId, item).map((id) => byId.get(id)!);
         return cfg.kind === "single_choice"
-          ? { id: item.id, kind: "single_choice", prompt: item.prompt, options }
+          ? { id: item.id, kind: "single_choice", prompt: item.prompt, options, image: cfg.image, account: cfg.account, sampleText: cfg.sampleText }
           : { id: item.id, kind: "multiple_choice", prompt: item.prompt, options, maxSelections: cfg.maxSelections };
       }
+      case "ranking": {
+        const byId = new Map(cfg.options.map((o) => [o.id, o]));
+        return { id: item.id, kind: "ranking", prompt: item.prompt, options: optionOrder(state.sessionId, item).map((id) => byId.get(id)!), account: cfg.account, sampleText: cfg.sampleText };
+      }
+      case "matching": {
+        const pairById = new Map(cfg.pairs.map((p) => [p.id, p]));
+        return { id: item.id, kind: "matching", prompt: item.prompt, pairs: pairOrder(state.sessionId, item).map((id) => pairById.get(id)!), options: cfg.options };
+      }
+      case "sketch":
+        return { id: item.id, kind: "sketch", prompt: item.prompt, maxBytes: cfg.maxBytes };
       case "short_text":
       case "long_text":
         return { id: item.id, kind: cfg.kind, prompt: item.prompt, maxLength: cfg.maxLength };
@@ -63,19 +73,20 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
     }
   });
   const presentation = next.config.presentation === "semantic_differential" ? "semantic_differential" : "standard";
+  const paged = next.config.paged === true || (next.config.instrument as { paged?: boolean } | undefined)?.paged === true;
   const body = (
-    <>
+    <div className="walking p-4">
       <StepProgress count={count} />
       {all.length > 1 ? <p className="text-ui mb-2 tabular-nums text-ink-3">{countOf("Part", all.indexOf(next) + 1, all.length)}</p> : null}
       <AssessmentForm
         key={next.id}
         step={step}
         returnTo={route}
-        assessment={{ id: next.id, code: next.code, version: next.version, title: next.title, description: next.description, presentation }}
+        assessment={{ id: next.id, code: next.code, version: next.version, title: next.title, description: next.description, presentation, paged }}
         items={items}
       />
       <StepFooter />
-    </>
+    </div>
   );
   // Telemetry only once allocated: an unallocated session has no condition to store events under.
   if (state.condition === null) return body;

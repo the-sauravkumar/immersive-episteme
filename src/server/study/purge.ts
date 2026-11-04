@@ -57,6 +57,8 @@ const PURGE_STEPS: { table: string; where: string }[] = [
   { table: "responses", where: "participant_id = $2" },
   { table: "protocol_deviations", where: "session_id = ANY($1::uuid[]) OR participant_id = $2" },
   { table: "session_annotations", where: "session_id = ANY($1::uuid[])" },
+  { table: "stage_visits", where: "session_id = ANY($1::uuid[])" },
+  { table: "delayed_test_schedule", where: "participant_id = $2" },
   { table: "study_sessions", where: "id = ANY($1::uuid[])" },
 ];
 

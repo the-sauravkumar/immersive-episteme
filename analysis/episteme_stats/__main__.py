@@ -4,6 +4,8 @@
     python -m episteme_stats report <bundle.json> --metric <name> [--source derived_scores|derived_metrics]
                                      [--phase post] [--baseline-phase pre] [--a conventional] [--b immersive]
                                      [--metric-version 1.0.0]
+                                     [--covariate test.pre_test]
+    python -m episteme_stats hypotheses <bundle.json> [--a conventional] [--b immersive]
     python -m episteme_stats power [--d 0.5 ...] [--alpha 0.05]
 
 The power reference is the preregistered plan (D4: ANCOVA, rho = 0.6, 51 per group); the concept
@@ -25,6 +27,7 @@ from .bundle import load_bundle, verify_bundle
 from .compare import compare_groups
 from .data import build_table, values
 from .describe import describe_table
+from .hypotheses import hypothesis_report
 from .missing import missing_report
 from .roles import role_report
 from .power import CONCEPT_NOTE_N_PER_GROUP, PLANNED_N_PER_GROUP, PLANNED_RHO, n_for_power_ancova, planned_sample_table, power_ancova, power_two_sample
@@ -44,6 +47,11 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--a", default="conventional")
     r.add_argument("--b", default="immersive")
     r.add_argument("--metric-version", default=None, help="defaults to the bundle's current scoring version of the metric")
+    r.add_argument("--covariate", default=None, help="baseline metric when it is not the outcome's own, such as test.pre_test")
+    h = sub.add_parser("hypotheses")
+    h.add_argument("bundle")
+    h.add_argument("--a", default="conventional")
+    h.add_argument("--b", default="immersive")
     w = sub.add_parser("power")
     w.add_argument("--d", type=float, nargs="*")
     w.add_argument("--alpha", type=float, default=0.05)
@@ -72,8 +80,11 @@ def main(argv: list[str] | None = None) -> int:
     if errors:
         print(json.dumps({"error": "bundle failed verification", "errors": errors[:50]}, indent=2))
         return 1
+    if args.cmd == "hypotheses":
+        print(json.dumps({"notice": EXPLORATORY_NOTICE, **hypothesis_report(bundle, args.a, args.b)}, indent=2))
+        return 0
     try:
-        table = build_table(bundle, args.metric, source=args.source, phase=args.phase, baseline_phase=args.baseline_phase, metric_version=args.metric_version)
+        table = build_table(bundle, args.metric, source=args.source, phase=args.phase, baseline_phase=args.baseline_phase, metric_version=args.metric_version, covariate_metric=args.covariate)
     except ValueError as err:
         print(json.dumps({"error": str(err)}, indent=2))
         return 1

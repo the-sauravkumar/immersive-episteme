@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { keyMatch, responseRawSchema } from "../../../src/features/assessment/responses";
-import { optionOrder, parseAnswer, scoreItem, toResponseRaw, type DeliveredItem } from "../../../src/server/study/answers";
+import { orderScore } from "../../../src/features/assessment/responses";
+import { optionOrder, pairOrder, parseAnswer, scoreItem, toResponseRaw, type DeliveredItem } from "../../../src/server/study/answers";
 
 const item = (kind: string, config: unknown, answerKey: unknown = null): DeliveredItem => ({ id: "i1", itemKey: "k", position: 0, kind, prompt: "p", config, answerKey });
 const opts = [
@@ -9,6 +10,60 @@ const opts = [
   { id: "b", label: "B" },
   { id: "c", label: "C" },
 ];
+
+describe("new test item kinds", () => {
+  const options = [{ id: "s1", label: "One" }, { id: "s2", label: "Two" }, { id: "s3", label: "Three" }];
+  const seq = item("ranking", { kind: "ranking", options }, { order: ["s1", "s2", "s3"] });
+  const match = item("matching", { kind: "matching", pairs: [{ id: "p1", image: { path: "/a.jpg", alt: "a" } }, { id: "p2", image: { path: "/b.jpg", alt: "b" } }], options }, { matches: { p1: "s1", p2: "s2" } });
+  const sketch = item("sketch", { kind: "sketch" });
+
+  it("keeps a sequence in the order posted and refuses a partial one", () => {
+    expect(parseAnswer(seq, ["s3", "s1", "s2"])).toEqual({ status: "answered", value: ["s3", "s1", "s2"] });
+    expect(parseAnswer(seq, [])).toEqual({ status: "skipped" });
+    expect(parseAnswer(seq, ["s1", "s2"]).status).toBe("invalid");
+    expect(parseAnswer(seq, ["s1", "s1", "s2"]).status).toBe("invalid");
+  });
+
+  it("scores a sequence by the share of pairs in order", () => {
+    expect(scoreItem(seq, { status: "answered", value: ["s1", "s2", "s3"] })).toBe(1);
+    expect(scoreItem(seq, { status: "answered", value: ["s3", "s2", "s1"] })).toBe(0);
+    expect(scoreItem(seq, { status: "answered", value: ["s2", "s1", "s3"] })).toBeCloseTo(2 / 3, 10);
+    expect(orderScore(["a"], ["a"])).toBe(0);
+  });
+
+  it("validates and scores cloth state matches pair by pair", () => {
+    expect(parseAnswer(match, ["p2=s1", "p1=s1", ""])).toEqual({ status: "answered", value: ["p1=s1", "p2=s1"] });
+    expect(parseAnswer(match, ["p1=s9"]).status).toBe("invalid");
+    expect(parseAnswer(match, ["p9=s1"]).status).toBe("invalid");
+    expect(parseAnswer(match, ["p1=s1", "p1=s2"]).status).toBe("invalid");
+    expect(scoreItem(match, { status: "answered", value: ["p1=s1", "p2=s1"] })).toBe(0.5);
+    expect(scoreItem(match, { status: "answered", value: ["p1=s1", "p2=s2"] })).toBe(1);
+  });
+
+  it("stores a sketch unscored, refuses a malformed or oversized one, and skips an empty one", () => {
+    const strokes = JSON.stringify([[[0, 0], [1000, 1000]]]);
+    expect(parseAnswer(sketch, [strokes])).toEqual({ status: "answered", value: strokes });
+    expect(parseAnswer(sketch, ["[]"])).toEqual({ status: "skipped" });
+    expect(parseAnswer(sketch, ["not json"]).status).toBe("invalid");
+    expect(parseAnswer(sketch, [JSON.stringify([[[2000, 0]]])]).status).toBe("invalid");
+    expect(parseAnswer(sketch, ["x".repeat(200_001)]).status).toBe("invalid");
+    expect(scoreItem(sketch, { status: "answered", value: strokes })).toBeNull();
+  });
+
+  it("shuffles sequence cards per session and keeps a reload stable", () => {
+    const a = optionOrder("session-a", seq);
+    expect(optionOrder("session-a", seq)).toEqual(a);
+    expect([...a].sort()).toEqual(["s1", "s2", "s3"]);
+    const many = new Set(Array.from({ length: 12 }, (_, i) => optionOrder(`session-${i}`, seq).join()));
+    expect(many.size).toBeGreaterThan(1);
+    expect([...pairOrder("session-a", match)].sort()).toEqual(["p1", "p2"]);
+  });
+
+  it("carries an image and a target on a choice item", () => {
+    const withImage = item("single_choice", { kind: "single_choice", options, image: { path: "/walkthrough/stills/bucket.jpg", alt: "Object" }, target: { tradition: "ajrakh", objectKey: "t" } });
+    expect(parseAnswer(withImage, ["s1"]).status).toBe("answered");
+  });
+});
 
 describe("answer parsing", () => {
   it("validates choices against the configured options", () => {

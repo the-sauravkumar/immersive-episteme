@@ -11,17 +11,15 @@
  * and occasion and invalidates the ANCOVA.
  *
  * The rule, the same for both conditions and every participant:
- *  1. the map activation pinned for stratification (`allocation.stratifyBy.referenceMapId`,
- *     DR-031), when it belongs to this assessment; allocation already scores against it;
- *  2. otherwise the newest LOCKED map of the assessment (bound to no snapshot or the study's);
- *  3. otherwise, before any map is locked, the newest finalised (adjudicated) map, labelled
+ *  1. the newest LOCKED map of the assessment (bound to no snapshot or the study's);
+ *  2. otherwise, before any map is locked, the newest finalised (adjudicated) map, labelled
  *     "provisional" so a report says the reference may still change.
  * Scores are also read at the scoring library's current metric version only, so a rescore after a
  * definition change never mixes with the old values.
  */
 import type { Q } from "./db";
 
-export type AnalysisReferenceBasis = "pinned" | "locked" | "provisional";
+export type AnalysisReferenceBasis = "locked" | "provisional";
 
 export interface AnalysisReference {
   assessmentId: string;
@@ -37,15 +35,14 @@ export interface AnalysisReference {
  */
 export const ANALYSIS_REFERENCES_SQL = `
   SELECT DISTINCT ON (a.id) a.id AS assessment_id, rm.id AS reference_map_id, rm.version,
-         CASE WHEN rm.id::text = st.config #>> '{allocation,stratifyBy,referenceMapId}' THEN 'pinned'
-              WHEN rm.status = 'locked' THEN 'locked' ELSE 'provisional' END AS basis
+         CASE WHEN rm.status = 'locked' THEN 'locked' ELSE 'provisional' END AS basis
     FROM studies st
     JOIN study_assessments sa ON sa.study_id = st.id
     JOIN assessments a ON a.id = sa.assessment_id AND a.kind = 'reconstruction'
     JOIN reference_maps rm ON rm.assessment_id = a.id AND rm.adjudicated_at IS NOT NULL
    WHERE st.id = $1
-     AND (rm.snapshot_id IS NULL OR rm.snapshot_id = st.snapshot_id OR rm.id::text = st.config #>> '{allocation,stratifyBy,referenceMapId}')
-   ORDER BY a.id, (rm.id::text = coalesce(st.config #>> '{allocation,stratifyBy,referenceMapId}', '')) DESC, (rm.status = 'locked') DESC, rm.version DESC`;
+     AND (rm.snapshot_id IS NULL OR rm.snapshot_id = st.snapshot_id)
+   ORDER BY a.id, (rm.status = 'locked') DESC, rm.version DESC`;
 
 export async function analysisReferences(q: Q, studyId: string): Promise<AnalysisReference[]> {
   const r = await q.query<{ assessment_id: string; reference_map_id: string; version: number; basis: AnalysisReferenceBasis }>(ANALYSIS_REFERENCES_SQL, [studyId]);

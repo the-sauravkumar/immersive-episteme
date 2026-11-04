@@ -81,7 +81,7 @@ export async function updateStudyAction(studyId: string, _: ActionState, d: Form
           .map((s) => s.trim())
           .filter(Boolean),
       },
-      exposure: { mode: text(d, "exposureMode") || "self_paced", minutes: optInt(d, "exposureMinutes"), allowEarlyFinish: d.get("allowEarlyFinish") === "on" },
+      exposure: { ...current.config.exposure, mode: text(d, "exposureMode") || "self_paced", minutes: optInt(d, "exposureMinutes"), allowEarlyFinish: d.get("allowEarlyFinish") === "on" },
       guidance: guidanceFromForm(current.config.guidance, d),
       searchEnabled: d.get("searchEnabled") === "on",
       minimap: text(d, "minimap") || "toggle",

@@ -3,9 +3,8 @@
  * persistence pipeline (./pipeline.ts) and the export re-import validator, so a stored value can
  * always be recomputed from exported raw records (spec §15.4).
  *
- * Families: time accounting (src/features/telemetry/metrics.ts, v1), navigation (./navigation.ts,
- * v1) and navigation-to-map correspondence (./correspondence.ts, v1). All go to derived_metrics,
- * never to derived_scores (timings are not outcomes; DR-015).
+ * Families: time accounting, navigation, stage and walk behaviour (./stage.ts), and
+ * navigation-to-map correspondence. All go to derived_metrics, never to derived_scores.
  */
 import { canonicalHash } from "@/features/spatial/compiler/canonical";
 import type { TelemetryEvent } from "@/features/telemetry/contracts";
@@ -13,6 +12,7 @@ import { computeTimingMetrics, TIMING_METRIC_DEFINITIONS } from "@/features/tele
 
 import { computeMapCorrespondence, CORRESPONDENCE_METRIC, CORRESPONDENCE_VERSION, type MapEdgeInput, type SnapshotRelationship } from "./correspondence";
 import { computeNavigationMetrics, NAVIGATION_METRIC_DEFINITIONS, NAVIGATION_METRICS_VERSION, type ConceptFacts, type MetricValue, type NavEvent } from "./navigation";
+import { computeStageMetrics, STAGE_METRIC_DEFINITIONS, STAGE_METRICS_VERSION } from "./stage";
 
 export const METRICS_PIPELINE_VERSION = "research-metrics/1";
 
@@ -20,13 +20,14 @@ export interface MetricDefinition {
   name: string;
   version: string;
   unit: string;
-  family: "time" | "navigation" | "correspondence";
+  family: "time" | "navigation" | "correspondence" | "stage";
   definition: string;
 }
 
 export const METRIC_DEFINITIONS: readonly MetricDefinition[] = [
   ...TIMING_METRIC_DEFINITIONS.map((d) => ({ name: d.name, version: d.version, unit: d.unit, family: "time" as const, definition: d.definition })),
   ...NAVIGATION_METRIC_DEFINITIONS.map((d) => ({ name: d.name, version: NAVIGATION_METRICS_VERSION, unit: d.unit, family: "navigation" as const, definition: d.definition })),
+  ...STAGE_METRIC_DEFINITIONS.map((d) => ({ name: d.name, version: STAGE_METRICS_VERSION, unit: d.unit, family: "stage" as const, definition: d.definition })),
   {
     name: CORRESPONDENCE_METRIC,
     version: CORRESPONDENCE_VERSION,
@@ -68,7 +69,7 @@ export function computeSessionMetrics(input: SessionMetricInput): ComputedMetric
   const nav = computeNavigationMetrics(input.events, input.concepts);
   const corr = computeMapCorrespondence(input.events, input.map ? input.map.edges : null, input.relationships);
   return {
-    values: [...timing.map((t) => ({ ...t, details: t.details })), ...nav, corr],
+    values: [...timing.map((t) => ({ ...t, details: t.details })), ...nav, ...computeStageMetrics(input.events), corr],
     inputEventCount: input.events.length,
     inputSha256: metricInputHash(input.events, input.map),
   };

@@ -6,7 +6,7 @@
  * Join keys: participant_code (pseudonym, unique within the study), session_id, condition_id,
  * concept_id (snapshot concept ids, listed in content_manifest.concepts), event_id.
  */
-import { metricRoleTable, PRIMARY_OUTCOME, type MetricRole } from "@/features/research/metric-definitions";
+import { HYPOTHESES, metricRoleTable, PRIMARY_OUTCOME, type MetricRole } from "@/features/research/metric-definitions";
 
 export type ColumnType = "uuid" | "text" | "integer" | "number" | "boolean" | "timestamp" | "json";
 
@@ -94,8 +94,9 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
       c("started_at", "timestamp", "Session start."),
       c("completed_at", "timestamp", "Session completion."),
       c("learning_started_at", "timestamp", "Learning phase start (server clock)."),
-      c("learning_budget_seconds", "integer", "Learning budget copied from the frozen study config."),
-      c("learning_ended_at", "timestamp", "Learning phase end."),
+      c("learning_budget_seconds", "integer", "Learning cap copied from the frozen study config."),
+      c("learning_ended_at", "timestamp", "Learning phase end. End minus start is total learning time, an outcome of self-paced learning."),
+      c("tradition_order", "json", "Counterbalanced order of the traditions assigned to this session."),
       c("interrupted", "boolean", "Session was interrupted."),
       c("interruption_count", "integer", "Number of interruptions."),
       c("device", "json", "Coarse device covariates (viewport, input devices, GPU tier, quality tier, a11y settings)."),
@@ -135,7 +136,7 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
   },
   {
     name: "derived_metrics",
-    description: "Versioned behavioural metrics (time accounting, navigation, correspondence). Observational, not outcomes.",
+    description: "Versioned behavioural metrics (time accounting, stages, walking, navigation, correspondence). Time on task is an outcome under self-paced learning; the rest describe behaviour.",
     columns: [
       c("session_id", "uuid", "Session."),
       c("participant_code", "text", "Participant."),
@@ -220,6 +221,61 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
     ],
   },
   {
+    name: "stage_visits",
+    description: "Server record of every stage entry, in both doors. Required stops include the product stop of each tradition.",
+    columns: [
+      c("session_id", "uuid", "Session."),
+      c("participant_code", "text", "Participant."),
+      c("tradition_key", "text", "Tradition."),
+      c("stage_key", "text", "Stage key, or products for the product stop."),
+      c("stage_number", "integer", "Stage number in process order."),
+      c("visit_index", "integer", "Position of this entry in the session, from 0."),
+      c("entered_at", "timestamp", "Entry (server clock)."),
+      c("left_at", "timestamp", "Exit (server clock)."),
+      c("active_ms", "integer", "Client-measured active time, pauses excluded."),
+    ],
+  },
+  {
+    name: "learning_ends",
+    description: "How learning ended, per session, with the stages left unvisited when the cap was reached.",
+    columns: [
+      c("session_id", "uuid", "Session."),
+      c("participant_code", "text", "Participant."),
+      c("reason", "text", "finished | cap_reached."),
+      c("stages_required", "integer", "Required stops."),
+      c("stages_visited", "integer", "Required stops visited."),
+      c("unvisited", "json", "Stops not visited [{traditionKey, stageKey, stageNumber}]."),
+    ],
+  },
+  {
+    name: "delayed_test_schedule",
+    description: "Delayed test schedule per session. Reminders go out from this list; the platform holds no contact data.",
+    columns: [
+      c("session_id", "uuid", "Session."),
+      c("participant_code", "text", "Participant."),
+      c("scheduled_at", "timestamp", "When the schedule was made, at the end of the immediate part."),
+      c("opens_at", "timestamp", "Window opens."),
+      c("due_at", "timestamp", "Reminder date, about 7 days later."),
+      c("closes_at", "timestamp", "Window closes."),
+      c("returned_at", "timestamp", "First return inside the window."),
+      c("completed_at", "timestamp", "Delayed test submitted."),
+      c("status", "text", "waiting | due | returned | completed | missed."),
+    ],
+  },
+  {
+    name: "test_item_targets",
+    description: "What each test item asks about, for item-level recall against stage and object behaviour (RQ3).",
+    columns: [
+      c("assessment_id", "uuid", "Assessment."),
+      c("assessment_code", "text", "Assessment code."),
+      c("item_key", "text", "Item key (joins responses)."),
+      c("test_type", "text", "Item type."),
+      c("tradition_key", "text", "Tradition the item is about."),
+      c("stage_key", "text", "Stage the item is about, if any."),
+      c("object_key", "text", "Tool or material the item is about, if any."),
+    ],
+  },
+  {
     name: "deviations",
     description: "Protocol deviations. Descriptions are free text: identified exports only.",
     columns: [
@@ -244,18 +300,14 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
   },
 ];
 
-/**
- * The metric-role part of the data dictionary: the preregistered primary outcome (D2) and the
- * role of every metric that appears in the export or in the dashboard's definitions table. One
- * source: metricRole() in src/features/research/metric-definitions.ts.
- */
 export interface ExportMetricRoles {
   primaryOutcome: typeof PRIMARY_OUTCOME;
+  hypotheses: typeof HYPOTHESES;
   roles: { metric: string; role: MetricRole }[];
 }
 
 export function exportMetricRoles(metricNames: readonly string[]): ExportMetricRoles {
-  return { primaryOutcome: PRIMARY_OUTCOME, roles: metricRoleTable(metricNames) };
+  return { primaryOutcome: PRIMARY_OUTCOME, hypotheses: HYPOTHESES, roles: metricRoleTable(metricNames) };
 }
 
 export const TABLE_BY_NAME: ReadonlyMap<string, TableSpec> = new Map(EXPORT_TABLES.map((t) => [t.name, t]));
@@ -317,7 +369,7 @@ export const DASHBOARD_TABLES: readonly (TableSpec & { name: DashboardTableName 
   { name: "dashboard_secondary", description: "Secondary concept-map outcomes in D2 order, pre and post, by condition.", columns: SUMMARY_COLUMNS },
   { name: "dashboard_knowledge", description: "Knowledge test and transfer scores (keyed items; rubric ratings) by assessment and condition.", columns: SUMMARY_COLUMNS },
   { name: "dashboard_questionnaires", description: "Questionnaire scale scores (cognitive load, SUS, presence 3D only, SSQ pre/post) by condition.", columns: SUMMARY_COLUMNS },
-  { name: "dashboard_telemetry", description: "Time accounting and interaction counts per session, summarised by condition. Descriptive covariates, never outcomes (DR-015).", columns: SUMMARY_COLUMNS },
+  { name: "dashboard_telemetry", description: "Time accounting and interaction counts per session, summarised by condition.", columns: SUMMARY_COLUMNS },
   {
     name: "dashboard_telemetry_sessions",
     description: "Time accounting and interaction counts, one row per session in scope.",

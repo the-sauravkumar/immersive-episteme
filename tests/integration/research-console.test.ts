@@ -9,6 +9,8 @@
  */
 import { randomUUID } from "node:crypto";
 
+import type { StageTemplate } from "../../src/features/process/domain/stage-template";
+
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { analysable } from "../../src/server/research/analysis-scope";
@@ -18,7 +20,9 @@ import { buildExportBundle, buildExportBundleConsistent, bundleCsvZip, bundleTab
 import { csvText, parseCsv } from "../../src/server/research/exports/csv";
 import { validateExportBundle } from "../../src/server/research/exports/validate";
 import { recomputeStudyMetrics, staleMetricSessions } from "../../src/server/research/metrics/pipeline";
+import { DOOR_VIEW_BUILDERS } from "../../src/server/research/parity/door-views";
 import { listParityReports } from "../../src/server/research/parity/store";
+import { setStageTemplateSource } from "../../src/server/study/stage-templates";
 import { addAnnotation, addDeviation, excludeSession, getSession, integrityFlags, listAnnotations, listDeviations, listSessions } from "../../src/server/research/sessions";
 import { activateStudy, createStudy, getStudy, newStudyVersion, researchStudyConfigSchema, setBattery, updateStudy, type UpdateStudyInput } from "../../src/server/research/studies";
 import { compileAndStoreManifest } from "../../src/server/spatial/manifest-store";
@@ -39,7 +43,26 @@ describe.skipIf(!TEST_URL)("research console", () => {
   let s2d: Awaited<ReturnType<typeof createSession>>;
   let s3d: Awaited<ReturnType<typeof createSession>>;
 
+  const SHARED_FILE = "/museum/textures/floor-color.3b88b65a.ktx2";
+  const template = {
+    tradition: "rc-tradition",
+    traditionName: "Sample Text",
+    rawClothStateId: "raw",
+    products: [],
+    stages: [{ number: 1, key: "s1", sourceStageKeys: [], name: "Sample Text", localName: null, kind: "table", caption: { text: "Sample Text", sources: [{ sourceId: "S1", title: "Sample Text", locator: "p. 1", quote: "Sample Text" }] }, items: [{ key: "i1", role: "tool", label: "Sample Text", localName: null, modelId: "bucket" }], clothStateId: "c1" }],
+  } as unknown as StageTemplate;
+
+  afterAll(() => {
+    setStageTemplateSource(null);
+    delete DOOR_VIEW_BUILDERS["2d"];
+    delete DOOR_VIEW_BUILDERS.immersive;
+  });
+
   beforeAll(async () => {
+    setStageTemplateSource(async () => [template]);
+    const build = (t: StageTemplate) => ({ tradition: t.tradition, products: [], stages: t.stages.map((s) => ({ number: s.number, key: s.key, name: s.name, caption: s.caption.text, sources: s.caption.sources, items: s.items, clothStateId: s.clothStateId, clothFile: SHARED_FILE })) });
+    DOOR_VIEW_BUILDERS["2d"] = build;
+    DOOR_VIEW_BUILDERS.immersive = build;
     t = await createTestDatabase("research");
     const curator = await createUser(t.pool);
     actor = { userId: await createUser(t.pool) };
@@ -177,7 +200,7 @@ describe.skipIf(!TEST_URL)("research console", () => {
   it("refuses activation while the parity report fails, and keeps the report", async () => {
     const r = await activateStudy(t.pool, actor, studyId);
     expect(r.activated).toBe(false);
-    expect(r.failures.join(" ")).toMatch(/exposure budget/i);
+    expect(r.failures.join(" ")).toMatch(/self-paced with one cap/i);
     expect((await getStudy(t.pool, studyId))?.status).toBe("draft");
     const reports = await listParityReports(t.pool, studyId);
     expect(reports).toHaveLength(1);
@@ -186,7 +209,7 @@ describe.skipIf(!TEST_URL)("research console", () => {
   });
 
   it("activates once the parity report passes", async () => {
-    await updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { mode: "fixed_time", minutes: 20 } }));
+    await updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true } }));
     const r = await activateStudy(t.pool, actor, studyId);
     expect(r.failures).toEqual([]);
     expect(r.activated).toBe(true);
@@ -194,8 +217,8 @@ describe.skipIf(!TEST_URL)("research console", () => {
     expect(s?.status).toBe("active");
     const reports = await listParityReports(t.pool, studyId);
     expect(reports[0]!.id).toBe(r.parityReportId);
-    expect(reports[0]!.report.contentSet).toMatchObject({ concepts: 3, relationships: 1, claims: 3, sources: 1 });
-    await expect(updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { mode: "fixed_time", minutes: 25 } }))).rejects.toBeInstanceOf(ResearchActionError);
+    expect(reports[0]!.report.contentSet).toMatchObject({ stages: 1, items: 1, products: 0, sources: 1 });
+    await expect(updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { mode: "self_paced", minutes: 25 } }))).rejects.toBeInstanceOf(ResearchActionError);
     // Activation gave the study a secret allocation seed (study-07): journalled only as a fingerprint.
     const seed = (s?.config as { allocation: { seed?: string } }).allocation.seed!;
     expect(seed).toMatch(/^[A-Za-z0-9_-]{43}$/);

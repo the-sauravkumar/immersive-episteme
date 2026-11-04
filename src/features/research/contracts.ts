@@ -25,9 +25,23 @@ export const itemKeySchema = z.string().regex(/^[a-z0-9][a-z0-9_.-]{0,63}$/);
 
 const optionSchema = z.object({ id: z.string().min(1).max(64), label: nonBlank(500) });
 
-/** Item configuration by kind (assessment_items.config). */
+export const TEST_ITEM_TYPES = ["pre_test", "identification", "stage_placement", "sequence", "cloth_state", "attribution", "transfer"] as const;
+export type TestItemType = (typeof TEST_ITEM_TYPES)[number];
+
+const itemImageSchema = z.object({ path: z.string().regex(/^\/[A-Za-z0-9/_.-]+\.(jpg|jpeg|png|webp)$/), alt: nonBlank(300) });
+export type ItemImage = z.infer<typeof itemImageSchema>;
+
+const itemTargetSchema = z.object({ tradition: z.string().min(1).max(64), stageKey: z.string().min(1).max(120).optional(), objectKey: z.string().min(1).max(120).optional() });
+
+const testItemFields = {
+  image: itemImageSchema.optional(),
+  account: z.string().min(1).max(4000).optional(),
+  sampleText: z.boolean().default(false),
+  target: itemTargetSchema.optional(),
+};
+
 export const itemConfigSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("single_choice"), options: z.array(optionSchema).min(2), shuffle: z.boolean().default(false) }),
+  z.object({ kind: z.literal("single_choice"), options: z.array(optionSchema).min(2), shuffle: z.boolean().default(false), ...testItemFields }),
   z.object({ kind: z.literal("multiple_choice"), options: z.array(optionSchema).min(2), shuffle: z.boolean().default(false), maxSelections: z.number().int().positive().optional() }),
   z.object({ kind: z.literal("short_text"), maxLength: z.number().int().positive().max(2000).default(500) }),
   z.object({ kind: z.literal("long_text"), maxLength: z.number().int().positive().max(20000).default(5000) }),
@@ -39,7 +53,15 @@ export const itemConfigSchema = z.discriminatedUnion("kind", [
     anchors: z.record(z.string(), z.string()).default({}),
   }),
   z.object({ kind: z.literal("numeric"), min: z.number().optional(), max: z.number().optional(), step: z.number().positive().optional() }),
-  z.object({ kind: z.literal("ranking"), options: z.array(optionSchema).min(2) }),
+  z.object({ kind: z.literal("ranking"), options: z.array(optionSchema).min(2), ...testItemFields }),
+  z.object({
+    kind: z.literal("matching"),
+    pairs: z.array(z.object({ id: z.string().min(1).max(64), image: itemImageSchema })).min(2),
+    options: z.array(optionSchema).min(2),
+    shuffle: z.boolean().default(false),
+    ...testItemFields,
+  }),
+  z.object({ kind: z.literal("sketch"), maxStrokes: z.number().int().positive().max(2000).default(600), maxBytes: z.number().int().positive().max(400_000).default(200_000) }),
   z.object({
     kind: z.literal("concept_map"),
     /** Concept set offered to the participant (concept keys); fixed vs. per-tradition is Q-R4. */

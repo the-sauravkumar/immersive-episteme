@@ -75,10 +75,11 @@ def current_metric_version(bundle: dict[str, Any], metric: str) -> str | None:
     return versions[fam] if fam else None
 
 
-def build_table(bundle: dict[str, Any], metric: str, *, source: str = "derived_scores", phase: str | None = "post", baseline_phase: str | None = "pre", metric_version: str | None = None) -> AnalysisTable:
+def build_table(bundle: dict[str, Any], metric: str, *, source: str = "derived_scores", phase: str | None = "post", baseline_phase: str | None = "pre", metric_version: str | None = None, covariate_metric: str | None = None) -> AnalysisTable:
     """Outcome `metric` (and its baseline in `baseline_phase`) for every analysable participant.
 
     source: "derived_scores" (assessment outcomes) or "derived_metrics" (behavioural, no phase).
+    covariate_metric: the baseline's metric when it is not the outcome's own, such as the pre-test.
     metric_version: defaults to the bundle's current scoring version of the metric; when the bundle
     does not record one and the rows carry several versions, a ValueError asks for it.
     """
@@ -119,7 +120,14 @@ def build_table(bundle: dict[str, Any], metric: str, *, source: str = "derived_s
             return map_phase.get(r["concept_map_id"])
         return battery_phase.get(r.get("assessment_id"))
 
+    baseline_name = covariate_metric or metric
     candidates = [r for r in t[source] if r["metric_name"] == metric and r["session_id"] in owner]
+    if covariate_metric and source == "derived_scores":
+        for r in t[source]:
+            if r["metric_name"] == covariate_metric and r["session_id"] in owner and phase_of(r) == baseline_phase:
+                code = owner[r["session_id"]]
+                value = r["value"]
+                rows[code].outcomes["baseline"] = None if value is None else float(value)
     version = metric_version or (current_metric_version(bundle, metric) if source == "derived_scores" else None)
     if version is None:
         found = {r["metric_version"] for r in candidates}
@@ -139,7 +147,7 @@ def build_table(bundle: dict[str, Any], metric: str, *, source: str = "derived_s
         p = phase_of(r) if source == "derived_scores" else None
         if source == "derived_metrics" or p == phase:
             slot = "outcome" if on_analysed else None  # outcomes belong to the analysed session
-        elif p == baseline_phase:
+        elif p == baseline_phase and baseline_name == metric:
             slot = "baseline"  # condition-blind: any of the participant's sessions
         else:
             slot = None
@@ -156,7 +164,7 @@ def build_table(bundle: dict[str, Any], metric: str, *, source: str = "derived_s
         rows[code].outcomes[slot] = None if v is None else float(v)
     conditions = sorted({r.condition for r in rows.values()})
     has_baseline = source == "derived_scores" and baseline_phase is not None
-    return AnalysisTable(list(rows.values()), conditions, excluded, metric, metric if has_baseline else None, dropped, version)
+    return AnalysisTable(list(rows.values()), conditions, excluded, metric, baseline_name if has_baseline else None, dropped, version)
 
 
 def values(table: AnalysisTable, condition: str, slot: str = "outcome") -> list[float]:

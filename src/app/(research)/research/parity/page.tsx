@@ -20,12 +20,9 @@ export const metadata: Metadata = { title: "Parity checks" };
 
 const GROUPS: Record<ParityGroup, string> = {
   base: "Pinned inputs",
-  a: "(a) Same snapshot: concepts, claims, explanations, media, comparisons",
-  b: "(b) Coverage: every 2D concept has an exhibit, and vice versa",
-  c: "(c) Citation coverage",
-  d: "(d) Prompts, assessments and guidance policy",
-  e: "(e) Exposure budget",
-  f: "(f) No condition-specific extra text",
+  t: "One template: same stages, words, sources, models and files in both doors",
+  d: "Prompts, assessments and guidance policy",
+  e: "Self-paced learning with one cap",
 };
 
 /** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
@@ -79,7 +76,7 @@ async function Parity({ searchParams }: { searchParams: Promise<Record<string, s
         eyebrow="Content parity"
         title="Run"
         demo={study.isDemo}
-        description="Generates a report from the study's current configuration, pinned snapshot and manifest, and stores it (append-only)."
+        description="Generates a report from the study's current configuration, stage templates and door views, and stores it (append-only)."
       >
         <ActionForm action={runParityAction.bind(null, study.id)} submitLabel="Run parity check" />
       </Section>
@@ -172,11 +169,11 @@ function ReportView({ base, id, createdAt, sha, report, demo }: { base: number; 
           { label: "Result", value: <Verdict passed={report.passed} /> },
           { label: "Generator", value: <span className="text-id">{report.generatorVersion}</span> },
           { label: "Snapshot", value: report.snapshotLabel ?? "None" },
-          { label: "Manifest", value: <span className="text-id">{report.manifestHash?.slice(0, 12) ?? "None"}</span> },
+          { label: "Manifest", value: <span className="text-id">{report.manifestId?.slice(0, 12) ?? "None"}</span> },
           { label: "Report SHA-256", value: <span className="text-id break-all">{sha}</span> },
           {
             label: "Content set",
-            value: `${report.contentSet.concepts} concepts (${report.contentSet.comparisons} comparisons), ${report.contentSet.relationships} relationships, ${report.contentSet.claims} claims citing ${report.contentSet.sources} sources`,
+            value: report.schemaVersion === 2 ? `${report.contentSet.stages} stages, ${report.contentSet.items} tools and materials, ${report.contentSet.products} product images, citing ${report.contentSet.sources} sources` : "A report from the earlier design",
           },
         ]}
       />

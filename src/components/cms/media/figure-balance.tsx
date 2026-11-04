@@ -5,7 +5,7 @@
  * Sanganeri).
  *
  * The numbers are not computed here: they come from `figureBalance()` in the content parity engine,
- * the same function the study activation runs (check `a.figures`, critical). The matrix only
+ * the balance function of the content parity engine. The matrix only
  * displays them, so the CMS can never disagree with the gate that blocks a study.
  *
  * Presentation: a booktabs table with counts on the sequential indigo ramp (`--viz-seq-1..6`), the
