@@ -347,7 +347,7 @@ export function buildYardPlan(stage: YardStage): YardPlan {
       [CLOTH_LINE_X - side * 1.85, 10.4],
       [CLOTH_LINE_X - side * 1.85, -10],
       [CLOTH_LINE_X, -14],
-      [CLOTH_LINE_X, -25.9],
+      [CLOTH_LINE_X, -26.4],
     ],
   };
 }

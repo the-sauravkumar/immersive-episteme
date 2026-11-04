@@ -298,6 +298,8 @@ async function scanItem(kit: YardKit, parent: THREE.Object3D, modelId: string, x
   return object;
 }
 
+const nextTask = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
 export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, stationId: string): Promise<BuiltYard> {
   const group = new THREE.Group();
   group.name = stationId;
@@ -367,6 +369,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   pole(group, [leanStart - 0.1, 2.47, shed.z + 2.2], [leanStart + 2.5, 2.47, shed.z + 2.2], 0.045, bamboo);
 
   for (const words of plan.words) {
+    await nextTask();
     const painted = paintWords(group, words, words.maxWidth ?? null);
     if (words.maxWidth) painted.mesh.position.y = words.at[1] - painted.height / 2;
   }
@@ -479,6 +482,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   }
 
   for (const placed of plan.items) {
+    await nextTask();
     const plank = softBox(group, [0.5, 0.1, placed.benchLength], timber, [placed.x, 0.33, placed.z], { radius: 0.012, tile: [1.8, 1.8] });
     const name = `bench ${placed.item.key}`;
     register(name, "structure", plank, [`${name} leg 0`, `${name} leg 1`, `item ${placed.item.key}`]);
@@ -493,6 +497,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   }
 
   for (const textile of files.textiles ?? []) {
+    await nextTask();
     const photo = await kit.library.photo(textile.file);
     const hanging = new THREE.PlaneGeometry(textile.width, textile.height, 96, 48);
     const position = hanging.attributes.position!;
@@ -521,6 +526,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   const after = await clothMaterialFor(kit, files.clothAfter, files.wetAfter);
   const clothMeshes: ClothMesh[] = [];
   for (const piece of plan.cloth) {
+    await nextTask();
     const mesh = new THREE.Mesh(clothGeometry(piece.surface), piece.state === "before" ? before : after);
     mesh.castShadow = true;
     mesh.receiveShadow = true;

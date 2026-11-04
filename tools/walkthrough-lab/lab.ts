@@ -9,7 +9,7 @@ import type { StageTemplate } from "@/features/process/domain/stage-template";
 import { checkScene } from "@/features/walkthrough/domain/scene-check";
 import { buildRoute, practiceStation } from "@/features/walkthrough/domain/route-plan";
 import { buildYardPlan, CLOTH_LINE_X, type YardPlan, type YardStage } from "@/features/walkthrough/domain/yard-plan";
-import { steerAlong, stepWalker, walkerAt, type WalkTarget, type Walker } from "@/features/walkthrough/domain/walk-state";
+import { easeYaw, moveTowards, steerAlong, stepWalker, walkerAt, type WalkTarget, type Walker } from "@/features/walkthrough/domain/walk-state";
 import { buildEntrance } from "@/features/walkthrough/infrastructure/build-entrance";
 import { buildYard, YardKit, type BuiltYard, type YardTextile } from "@/features/walkthrough/infrastructure/build-yard";
 import { buildStillSubject } from "@/features/walkthrough/infrastructure/build-still";
@@ -222,9 +222,12 @@ win.WALK = () => {
   while (target && time < 120) {
     const steered = steerAlong(walker, walkPlan.walkLine, target, 1);
     target = steered.target;
-    const before = steered.walker;
-    walker = stepWalker(before, { forward: steered.moving ? 1 : 0, strafe: 0, lookX: 0, lookY: 0 }, 1 / 30, walkColliders, 3);
-    if (steered.moving && Math.hypot(walker.x - before.x, walker.z - before.z) < 0.001) stuck++;
+    if (steered.heading === null) break;
+    const before: Walker = walker;
+    const move = moveTowards(steered.heading, before.yaw);
+    walker = stepWalker(before, { ...move, lookX: 0, lookY: 0 }, 1 / 30, walkColliders, 3);
+    walker = { ...walker, yaw: easeYaw(walker.yaw, steered.heading, 1 / 30) };
+    if (Math.hypot(walker.x - before.x, walker.z - before.z) < 0.001) stuck++;
     if (stuck > 60) break;
     time += 1 / 30;
   }

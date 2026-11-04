@@ -38,6 +38,7 @@ function preventTiling(material: THREE.MeshStandardMaterial): void {
 
 export class MaterialLibrary {
   private readonly textures = new THREE.TextureLoader();
+  private readonly bitmaps = new THREE.ImageBitmapLoader().setOptions({ imageOrientation: "flipY", premultiplyAlpha: "none", colorSpaceConversion: "none" });
   private readonly models = new GLTFLoader();
   private readonly scans = new Map<ScanName, ScanTextures>();
   private readonly scenes = new Map<string, THREE.Object3D>();
@@ -47,8 +48,18 @@ export class MaterialLibrary {
     this.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
   }
 
+  private async decoded(path: string): Promise<THREE.Texture> {
+    const bitmap = await this.bitmaps.loadAsync(path);
+    const texture = new THREE.Texture(bitmap);
+    texture.flipY = false;
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.needsUpdate = true;
+    return texture;
+  }
+
   private async map(path: string, srgb: boolean): Promise<THREE.Texture> {
-    const texture = await this.textures.loadAsync(path);
+    const texture = await this.decoded(path);
     if (srgb) texture.colorSpace = THREE.SRGBColorSpace;
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
     texture.anisotropy = this.anisotropy;
@@ -115,7 +126,7 @@ export class MaterialLibrary {
   }
 
   async photo(file: string): Promise<THREE.Texture> {
-    const texture = await this.textures.loadAsync(file);
+    const texture = await this.decoded(file);
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.anisotropy = this.anisotropy;
     return texture;

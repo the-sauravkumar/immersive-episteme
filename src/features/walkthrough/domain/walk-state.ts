@@ -62,15 +62,33 @@ export interface WalkTarget {
   readonly waypoint: number;
 }
 
-export function steerAlong(walker: Walker, line: readonly (readonly [number, number])[], target: WalkTarget, direction: 1 | -1): { walker: Walker; target: WalkTarget | null; moving: boolean } {
+export interface Steering {
+  readonly heading: number | null;
+  readonly target: WalkTarget | null;
+}
+
+const TURN_RATE = 1.5;
+
+export function steerAlong(walker: Walker, line: readonly (readonly [number, number])[], target: WalkTarget, direction: 1 | -1): Steering {
   const point = line[target.waypoint]!;
-  const worldTargetZ = worldZ(point[1], target.station);
   const dx = point[0] - walker.x;
-  const dz = worldTargetZ - walker.z;
+  const dz = worldZ(point[1], target.station) - walker.z;
   if (Math.hypot(dx, dz) < 0.35) {
     const next = target.waypoint + direction;
-    if (next < 0 || next >= line.length) return { walker, target: null, moving: false };
-    return { walker, target: { station: target.station, waypoint: next }, moving: true };
+    if (next < 0 || next >= line.length) return { heading: null, target: null };
+    const after = line[next]!;
+    return { heading: Math.atan2(-(after[0] - walker.x), -(worldZ(after[1], target.station) - walker.z)), target: { station: target.station, waypoint: next } };
   }
-  return { walker: { ...walker, yaw: Math.atan2(-dx, -dz), pitch: 0 }, target, moving: true };
+  return { heading: Math.atan2(-dx, -dz), target };
+}
+
+export function moveTowards(heading: number, yaw: number): { forward: number; strafe: number } {
+  const difference = heading - yaw;
+  return { forward: Math.cos(difference), strafe: -Math.sin(difference) };
+}
+
+export function easeYaw(yaw: number, heading: number, seconds: number): number {
+  const difference = Math.atan2(Math.sin(heading - yaw), Math.cos(heading - yaw));
+  const step = TURN_RATE * seconds;
+  return yaw + Math.max(-step, Math.min(step, difference));
 }
