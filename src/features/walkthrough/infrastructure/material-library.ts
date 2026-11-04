@@ -104,14 +104,14 @@ export class MaterialLibrary {
 
   async rawCottonMaterial(): Promise<THREE.MeshStandardMaterial> {
     const weave = await this.scan("weave");
-    const colour = weave.colour.clone();
+    const colour = await this.map(`${ROOT}/tex/raw_cotton/diff.jpg`, true);
     const normal = weave.normal.clone();
     const roughness = weave.roughness.clone();
     for (const texture of [colour, normal, roughness]) {
       texture.repeat.set(3.46 / weave.tileMetres, 1.5 / weave.tileMetres);
       texture.needsUpdate = true;
     }
-    return new THREE.MeshStandardMaterial({ map: colour, normalMap: normal, roughnessMap: roughness, roughness: 1, color: new THREE.Color(1.5, 1.42, 1.28), side: THREE.DoubleSide, envMapIntensity: 0.12 });
+    return new THREE.MeshStandardMaterial({ map: colour, normalMap: normal, roughnessMap: roughness, roughness: 1, color: 0xffffff, side: THREE.DoubleSide, envMapIntensity: 0.12 });
   }
 
   async photo(file: string): Promise<THREE.Texture> {

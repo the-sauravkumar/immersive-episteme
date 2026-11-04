@@ -5,6 +5,7 @@ import { clothStatePath } from "@/features/process/domain/asset-catalogue";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
 import { buildRoute, type RouteStation } from "../domain/route-plan";
 import { WalkRuntime } from "../infrastructure/walk-runtime";
+import "./walkthrough.css";
 
 export interface WalkthroughSessionEvents {
   readonly onStageEntered: (tradition: string, stageNumber: number) => void;
@@ -19,14 +20,40 @@ export interface WalkthroughSessionEvents {
 
 export interface WalkthroughSessionProps {
   readonly templates: readonly StageTemplate[];
-  readonly aspects: Readonly<Record<string, number>>;
   readonly events: WalkthroughSessionEvents;
 }
 
 const KEY_MOVES: Record<string, readonly [number, number]> = { KeyW: [1, 0], ArrowUp: [1, 0], KeyS: [-1, 0], ArrowDown: [-1, 0], KeyA: [0, -1], ArrowLeft: [0, -1], KeyD: [0, 1], ArrowRight: [0, 1] };
 const LOOK_SPEED = 0.0032;
 
-export function WalkthroughSession({ templates, aspects, events }: WalkthroughSessionProps) {
+function useProductAspects(templates: readonly StageTemplate[]): Readonly<Record<string, number>> | null {
+  const [aspects, setAspects] = useState<Readonly<Record<string, number>> | null>(null);
+  useEffect(() => {
+    let live = true;
+    const products = templates.flatMap((template) => template.products);
+    void Promise.all(
+      products.map(async (product) => {
+        const image = new Image();
+        image.src = product.file;
+        await image.decode();
+        return [product.id, image.width / image.height] as const;
+      }),
+    ).then((entries) => {
+      if (live) setAspects(Object.fromEntries(entries));
+    });
+    return () => {
+      live = false;
+    };
+  }, [templates]);
+  return aspects;
+}
+
+export function WalkthroughSession({ templates, events }: WalkthroughSessionProps) {
+  const aspects = useProductAspects(templates);
+  return aspects ? <WalkthroughStage templates={templates} aspects={aspects} events={events} /> : <div className="walkthrough walkthrough-loading" role="status">Laying Out The Yard</div>;
+}
+
+function WalkthroughStage({ templates, aspects, events }: WalkthroughSessionProps & { aspects: Readonly<Record<string, number>> }) {
   const [traditionIndex, setTraditionIndex] = useState(0);
   const [stationIndex, setStationIndex] = useState(0);
   const [reached, setReached] = useState(0);

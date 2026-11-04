@@ -1,6 +1,5 @@
 import * as THREE from "three";
 import { catalogueModel } from "@/features/process/domain/asset-catalogue";
-import type { StageItem } from "@/features/process/domain/stage-template";
 import type { ClothSurface } from "../domain/cloth-surface";
 import { FAR_WALL_Z, GAP_WIDTH, CLOTH_LINE_X, NEXT_YARD_OFFSET, RAIL_HEIGHT, WALL_HEIGHT, YARD_FRONT_Z, YARD_HALF_WIDTH, type PaintedWords, type WorkStructure, type YardPlan } from "../domain/yard-plan";
 import type { CheckedSolid, ClothMesh, SolidField, SolidRole } from "../domain/scene-check";
@@ -44,6 +43,13 @@ export class YardKit {
 
   constructor(readonly library: MaterialLibrary) {}
 
+  async copperMaterial(): Promise<THREE.MeshStandardMaterial> {
+    const scan = await this.library.scan("lime");
+    const roughness = scan.roughness.clone();
+    roughness.repeat.set(1, 1);
+    return new THREE.MeshStandardMaterial({ color: 0xa8623a, roughnessMap: roughness, roughness: 0.75, metalness: 0.9, normalMap: scan.normal, normalScale: new THREE.Vector2(0.35, 0.35), envMapIntensity: 1.15, side: THREE.DoubleSide });
+  }
+
   async bambooMaterial(): Promise<THREE.MeshStandardMaterial> {
     if (this.bamboo) return this.bamboo;
     const texture = new THREE.CanvasTexture(bambooCanvas());
@@ -68,7 +74,7 @@ async function clothMaterialFor(kit: YardKit, file: string, wet: boolean): Promi
   return file === "raw-cotton" ? kit.library.rawCottonMaterial() : kit.library.clothMaterial(file, { wet });
 }
 
-function turnedRing(work: Extract<WorkStructure, { type: "ring" }>, material: THREE.Material): THREE.Mesh {
+export function turnedRing(work: Extract<WorkStructure, { type: "ring" }>, material: THREE.Material): THREE.Mesh {
   const bevel = Math.min(0.028, (work.rim - work.radius) / 3);
   const profile: [number, number][] = [
     [work.rim, 0],
@@ -102,7 +108,7 @@ function turnedRing(work: Extract<WorkStructure, { type: "ring" }>, material: TH
   return mesh;
 }
 
-function waterMaterial(): THREE.MeshStandardMaterial {
+export function waterMaterial(): THREE.MeshStandardMaterial {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 2048;
   const context = canvas.getContext("2d")!;
@@ -159,6 +165,71 @@ function blockFace(): THREE.CanvasTexture {
   return texture;
 }
 
+const BENCH_CLEAR_WIDTH = 0.44;
+
+const FILL_TONE: Record<string, readonly [number, number, number]> = { liquid: [0.09, 0.13, 0.2], paste: [0.78, 0.74, 0.62], powder: [0.62, 0.48, 0.28], lumps: [0.2, 0.16, 0.12], cloth: [0.86, 0.82, 0.72] };
+
+function moundGeometry(radius: number, height: number): THREE.BufferGeometry {
+  const geometry = new THREE.SphereGeometry(radius, 64, 24, 0, Math.PI * 2, 0, Math.PI / 2);
+  const position = geometry.attributes.position!;
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i);
+    const z = position.getZ(i);
+    const wobble = 1 + 0.06 * Math.sin(x * 40 + z * 13) * Math.sin(z * 37 - x * 9);
+    position.setY(i, (position.getY(i) / radius) * height * wobble);
+  }
+  geometry.computeVertexNormals();
+  return geometry;
+}
+
+function addFill(kit: YardKit, parent: THREE.Object3D, fill: string, x: number, y: number, z: number, radius: number): void {
+  const tone = FILL_TONE[fill] ?? FILL_TONE.paste!;
+  const colour = new THREE.Color(tone[0], tone[1], tone[2]);
+  if (fill === "liquid") {
+    const surface = new THREE.Mesh(new THREE.CircleGeometry(radius, 64), new THREE.MeshStandardMaterial({ color: colour, roughness: 0.22, envMapIntensity: 0.6 }));
+    surface.rotation.x = -Math.PI / 2;
+    surface.position.set(x, y, z);
+    surface.receiveShadow = true;
+    parent.add(surface);
+    return;
+  }
+  if (fill === "lumps") {
+    const lump = new THREE.IcosahedronGeometry(1, 3);
+    const position = lump.attributes.position!;
+    for (let i = 0; i < position.count; i++) {
+      const k = 0.84 + 0.18 * Math.sin(position.getX(i) * 4.3 + 1) * Math.sin(position.getY(i) * 3.7 + 2) + 0.08 * Math.sin(position.getZ(i) * 9);
+      position.setXYZ(i, position.getX(i) * k, position.getY(i) * k, position.getZ(i) * k);
+    }
+    lump.computeVertexNormals();
+    const lumps = new THREE.InstancedMesh(lump, new THREE.MeshStandardMaterial({ color: colour, roughness: 0.95 }), 26);
+    const placement = new THREE.Object3D();
+    for (let i = 0; i < 26; i++) {
+      const angle = i * 2.39;
+      const reach = radius * 0.82 * Math.sqrt((i + 0.5) / 26);
+      placement.position.set(x + Math.cos(angle) * reach, y + 0.012 + (i % 4) * 0.008, z + Math.sin(angle) * reach);
+      placement.rotation.set(i * 0.4, i * 1.1, i * 0.7);
+      const size = radius * (0.2 + (i % 5) * 0.022);
+      placement.scale.set(size, size * 0.72, size * 0.9);
+      placement.updateMatrix();
+      lumps.setMatrixAt(i, placement.matrix);
+    }
+    lumps.castShadow = lumps.receiveShadow = true;
+    parent.add(lumps);
+    return;
+  }
+  void kit.library.scan("weave").then((weave) => {
+    const material = new THREE.MeshStandardMaterial({ color: colour, roughness: 0.96, normalMap: weave.normal, normalScale: new THREE.Vector2(0.4, 0.4) });
+    const mound = new THREE.Mesh(moundGeometry(radius, radius * 0.34), material);
+    mound.position.set(x, y - radius * 0.04, z);
+    mound.castShadow = mound.receiveShadow = true;
+    parent.add(mound);
+  });
+}
+
+export async function placeCatalogueModel(kit: YardKit, parent: THREE.Object3D, modelId: string, x: number, y: number, z: number): Promise<THREE.Object3D> {
+  return scanItem(kit, parent, modelId, x, y, z);
+}
+
 async function buildCarvedBlock(kit: YardKit): Promise<THREE.Object3D> {
   const timber = await kit.library.surface("table", { normalScale: 1 });
   const group = new THREE.Group();
@@ -200,12 +271,12 @@ async function buildTray(kit: YardKit): Promise<THREE.Object3D> {
   return group;
 }
 
-async function scanItem(kit: YardKit, parent: THREE.Object3D, item: StageItem, x: number, y: number, z: number): Promise<THREE.Object3D> {
-  const model = catalogueModel(item.modelId);
-  if (item.modelId === "carved-block" || item.modelId === "printing-tray") {
-    const built = item.modelId === "carved-block" ? await buildCarvedBlock(kit) : await buildTray(kit);
-    built.position.set(x, y + (item.modelId === "carved-block" ? 0.002 : 0), z);
-    built.rotation.y = item.modelId === "carved-block" ? 0.35 : Math.PI / 2;
+async function scanItem(kit: YardKit, parent: THREE.Object3D, modelId: string, x: number, y: number, z: number): Promise<THREE.Object3D> {
+  const model = catalogueModel(modelId);
+  if (modelId === "carved-block" || modelId === "printing-tray") {
+    const built = modelId === "carved-block" ? await buildCarvedBlock(kit) : await buildTray(kit);
+    built.position.set(x, y + (modelId === "carved-block" ? 0.002 : 0), z);
+    built.rotation.y = modelId === "carved-block" ? 0.35 : Math.PI / 2;
     parent.add(built);
     return built;
   }
@@ -217,18 +288,14 @@ async function scanItem(kit: YardKit, parent: THREE.Object3D, item: StageItem, x
   const target = model.heightMetres || 0.42;
   const scale = (size.y > size.x * 1.5 && size.y > size.z * 1.5 ? target / Math.max(standing.x, standing.z) : target / standing.y);
   object.scale.setScalar(scale);
+  const fitted = new THREE.Box3().setFromObject(object).getSize(new THREE.Vector3());
+  if (fitted.x > BENCH_CLEAR_WIDTH && fitted.x > fitted.z) object.rotation.y += Math.PI / 2;
+  const turned = new THREE.Box3().setFromObject(object).getSize(new THREE.Vector3());
+  if (turned.x > BENCH_CLEAR_WIDTH) object.scale.multiplyScalar(BENCH_CLEAR_WIDTH / turned.x);
   const scaled = new THREE.Box3().setFromObject(object);
   object.position.set(x - (scaled.min.x + scaled.max.x) / 2, y - scaled.min.y, z - (scaled.min.z + scaled.max.z) / 2);
   parent.add(object);
-  if (model.fill) {
-    const inner = Math.min(scaled.max.x - scaled.min.x, scaled.max.z - scaled.min.z) * 0.36;
-    const tone = model.fill === "liquid" ? 0x2b3a58 : model.fill === "paste" ? 0xd8d0ba : model.fill === "powder" ? 0xb79a6a : model.fill === "lumps" ? 0x3a3128 : 0xe8e0cc;
-    const fill = new THREE.Mesh(new THREE.CircleGeometry(inner, 48), new THREE.MeshStandardMaterial({ color: tone, roughness: model.fill === "liquid" ? 0.25 : 0.95 }));
-    fill.rotation.x = -Math.PI / 2;
-    fill.position.set(x, y + target * 0.72, z);
-    fill.receiveShadow = true;
-    parent.add(fill);
-  }
+  if (model.fill) addFill(kit, parent, model.fill, x, y + target * 0.62, z, Math.min(scaled.max.x - scaled.min.x, scaled.max.z - scaled.min.z) * 0.36);
   return object;
 }
 
@@ -307,7 +374,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   const fields: SolidField[] = [];
   let groundIsOpenAt: (x: number, z: number) => boolean = () => false;
   if (work.type === "ring") {
-    const material = work.finish === "copper" ? new THREE.MeshStandardMaterial({ color: 0xb06a3c, roughness: 0.42, metalness: 0.85, side: THREE.DoubleSide, envMapIntensity: 0.9 }) : await kit.library.surface("lime", { normalScale: 0.6, tint: [1.55, 1.52, 1.38] });
+    const material = work.finish === "copper" ? await kit.copperMaterial() : await kit.library.surface("lime", { normalScale: 0.6, tint: [1.55, 1.52, 1.38] });
     if (work.finish !== "copper") material.side = THREE.DoubleSide;
     const ring = turnedRing(work, material);
     ring.position.set(CLOTH_LINE_X, 0, work.z);
@@ -417,7 +484,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
       const leg = softBox(group, [0.36, 0.28, 0.24], clay, [placed.x, 0.14, placed.z + a], { radius: 0.014, segments: 3, tile: [0.8, 0.8] });
       register(`${name} leg ${i}`, "structure", leg, [name]);
     });
-    const object = await scanItem(kit, group, placed.item, placed.x, 0.38, placed.z);
+    const object = await scanItem(kit, group, placed.item.modelId, placed.x, 0.38, placed.z);
     register(`item ${placed.item.key}`, "object", object, [name]);
     if (placed.benchLabel) paintWords(group, placed.benchLabel);
   }
