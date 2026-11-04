@@ -462,7 +462,8 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   const clay = await kit.library.surface("brick", { normalScale: 1.1, tint: [1, 0.92, 0.86] });
   const brickGeometry = softBoxGeometry(0.23, 0.085, 0.11, 0.012, 3, [0.5, 0.25]);
   if (plan.pins.length > 0) {
-    const bricks = new THREE.InstancedMesh(brickGeometry, clay, plan.pins.length);
+    const firedClay = await kit.library.surface("lime", { normalScale: 1.4, tint: [0.92, 0.42, 0.26] });
+    const bricks = new THREE.InstancedMesh(brickGeometry, firedClay, plan.pins.length);
     const placement = new THREE.Object3D();
     plan.pins.forEach(([x, z], i) => {
       placement.position.set(x, 0.064, z);
