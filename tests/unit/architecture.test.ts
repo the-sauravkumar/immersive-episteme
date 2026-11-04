@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 const FEATURES = ["src/features/process", "src/features/walkthrough", "src/features/course"];
 const LAYER_RANK: Record<string, number> = { domain: 0, application: 1, infrastructure: 2, ui: 2 };
 const FORBIDDEN_IN_INNER = [/from "three/, /from "react/, /from "next/, /from "pg/, /from "drizzle/, /@\/server/, /@\/components/];
-const COMMENT = /(^|\s)\/\/(?!\s*@ts-)|\/\*/;
+const LINE_OR_BLOCK_COMMENT = /(^|\s)\/\/|\/\*/;
 
 function filesUnder(dir: string): string[] {
   let entries: string[];
@@ -16,16 +16,22 @@ function filesUnder(dir: string): string[] {
   }
   return entries.flatMap((name) => {
     const path = join(dir, name);
-    return statSync(path).isDirectory() ? filesUnder(path) : /\.tsx?$/.test(name) ? [path] : [];
+    if (statSync(path).isDirectory()) return filesUnder(path);
+    return /\.tsx?$/.test(name) ? [path] : [];
   });
 }
 
 function layerOf(path: string): string | null {
-  return path.replace(/\/g, "/").match(/\/(domain|application|infrastructure|ui)\//)?.[1] ?? null;
+  const parts = path.split(/[\\/]/);
+  return parts.find((part) => part in LAYER_RANK) ?? null;
 }
 
-function stripStrings(source: string): string {
-  return source.replace(/`(?:[^`\]|\.)*`/g, "``").replace(/"(?:[^"\\n]|\.)*"/g, '""').replace(/'(?:[^'\\n]|\.)*'/g, "''");
+function withoutStrings(source: string): string {
+  return source
+    .replace(/`(?:[^`\\]|\\.)*`/g, "``")
+    .replace(/"(?:[^"\\\n]|\\.)*"/g, '""')
+    .replace(/'(?:[^'\\\n]|\\.)*'/g, "''")
+    .replace(/\/(?![*/])(?:[^/\\\n]|\\.)+\/[gimsuy]*/g, "0");
 }
 
 describe("clean architecture", () => {
@@ -42,12 +48,12 @@ describe("clean architecture", () => {
     expect(bad).toEqual([]);
   });
 
-  it("points every relative dependency inward", () => {
+  it("points every dependency inward", () => {
     const bad: string[] = [];
     for (const file of files) {
       const rank = LAYER_RANK[layerOf(file) ?? ""];
       for (const match of readFileSync(file, "utf8").matchAll(/from "(\.[^"]+|@\/features\/[^"]+)"/g)) {
-        const target = layerOf(`/${match[1]}/`);
+        const target = layerOf(match[1]!);
         if (target && rank !== undefined && LAYER_RANK[target]! > rank) bad.push(`${relative(".", file)} -> ${match[1]}`);
       }
     }
@@ -55,7 +61,7 @@ describe("clean architecture", () => {
   });
 
   it("has no comments in feature code", () => {
-    const bad = files.filter((file) => COMMENT.test(stripStrings(readFileSync(file, "utf8"))));
+    const bad = files.filter((file) => LINE_OR_BLOCK_COMMENT.test(withoutStrings(readFileSync(file, "utf8"))));
     expect(bad).toEqual([]);
   });
 });
