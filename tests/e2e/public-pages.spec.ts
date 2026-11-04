@@ -143,7 +143,7 @@ test("Explore cards align their actions and the Colophon shows only stored parit
 
   await page.goto("/about/colophon");
   await expect(page.locator("#parity tbody tr")).toHaveCount(0);
-  await expect(page.getByText("There is no current interface parity run.", { exact: false })).toBeVisible();
+  await expect(page.getByText("There is no current interface parity run.", { exact: true })).toBeVisible();
 });
 
 test("no decorative graphics exist, and high contrast sets every rule in ink (DR-022)", async ({ browser }) => {
