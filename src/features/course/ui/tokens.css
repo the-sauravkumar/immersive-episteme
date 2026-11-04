@@ -1,0 +1,59 @@
+@font-face {
+  font-family: Eczar;
+  src: url("/walkthrough/fonts/Eczar-400-800.woff2") format("woff2");
+  font-weight: 400 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: Mukta;
+  src: url("/walkthrough/fonts/Mukta-400.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: Mukta;
+  src: url("/walkthrough/fonts/Mukta-500.woff2") format("woff2");
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: Mukta;
+  src: url("/walkthrough/fonts/Mukta-600.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+
+.walking-tokens {
+  color-scheme: dark;
+  --vat: #0e1626;
+  --vat-2: #16264e;
+  --line: #2c3850;
+  --lime: #efe8d6;
+  --lime-dim: #b9b6ac;
+  --cotton: #e4dcc6;
+  --stamp: #14213f;
+  --turmeric: #e8a917;
+  --turmeric-hi: #f4c04a;
+  --turmeric-lo: #c48c0c;
+  --madder: #b02a20;
+  --madder-text: #f3a99f;
+  --ok: #9ccba6;
+  --thread: #5a6478;
+  --off-bg: #262f42;
+  --off-fg: #99a0ad;
+  --plaster: #c8bfae;
+  --wall-ink: #101d42;
+  --hall-paint: #7a1610;
+  --product-rail: #6b5238;
+  --backdrop: rgba(6, 10, 20, 0.78);
+  --disp: Eczar, "Iowan Old Style", Georgia, serif;
+  --body: Mukta, "Segoe UI", system-ui, sans-serif;
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+  --s7: 48px;
+  --s8: 72px;
+}

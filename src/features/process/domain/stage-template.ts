@@ -41,6 +41,8 @@ export interface ProductImage {
   readonly file: string;
   readonly name: string;
   readonly holder: string;
+  readonly widthPx: number;
+  readonly heightPx: number;
 }
 
 export interface StageTemplate {
