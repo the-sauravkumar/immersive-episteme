@@ -82,6 +82,7 @@ const eslintConfig = defineConfig([
     "db/migrations/**",
     "content/**",
     "docs/**",
+    "tools/walkthrough-lab/*.cjs",
   ]),
 ]);
 

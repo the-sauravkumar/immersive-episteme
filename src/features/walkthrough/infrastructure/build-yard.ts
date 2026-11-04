@@ -57,6 +57,8 @@ export class YardKit {
     texture.wrapS = texture.wrapT = THREE.MirroredRepeatWrapping;
     texture.anisotropy = 16;
     this.bamboo = new THREE.MeshStandardMaterial({ map: texture, roughness: 0.62, metalness: 0, envMapIntensity: 0.5 });
+    this.library.keep(texture);
+    this.library.keep(this.bamboo);
     return this.bamboo;
   }
 }
@@ -118,16 +120,20 @@ export function waterMaterial(): THREE.MeshStandardMaterial {
   gradient.addColorStop(1, "#060b24");
   context.fillStyle = gradient;
   context.fillRect(0, 0, 2048, 2048);
-  context.filter = "blur(4px)";
+  const sheen = document.createElement("canvas");
+  sheen.width = sheen.height = 2048;
+  const sheenContext = sheen.getContext("2d")!;
   for (let i = 0; i < 700; i++) {
     const a = Math.random() * 7;
     const d = Math.random() ** 0.6 * 960;
     const r = 5 + Math.random() * 40;
-    context.fillStyle = `rgba(${70 + Math.random() * 60},${70 + Math.random() * 40},${130 + Math.random() * 80},${0.03 + Math.random() * 0.07})`;
-    context.beginPath();
-    context.ellipse(1024 + Math.cos(a) * d, 1024 + Math.sin(a) * d, r, r * 0.66, a, 0, 7);
-    context.fill();
+    sheenContext.fillStyle = `rgba(${70 + Math.random() * 60},${70 + Math.random() * 40},${130 + Math.random() * 80},${0.03 + Math.random() * 0.07})`;
+    sheenContext.beginPath();
+    sheenContext.ellipse(1024 + Math.cos(a) * d, 1024 + Math.sin(a) * d, r, r * 0.66, a, 0, 7);
+    sheenContext.fill();
   }
+  context.filter = "blur(4px)";
+  context.drawImage(sheen, 0, 0);
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   return new THREE.MeshStandardMaterial({ map: texture, roughness: 0.32, metalness: 0.02, envMapIntensity: 0.22 });
@@ -312,12 +318,11 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
     colliders.push({ min: [box.min.x, box.min.y, box.min.z], max: [box.max.x, box.max.y, box.max.z] });
   };
 
-  const [earth, brick, lime, timber, tableTop, bamboo] = await Promise.all([
+  const [earth, brick, lime, timber, bamboo] = await Promise.all([
     kit.library.surface("earth", { antiTile: true, normalScale: 1.1, tint: [2.5, 1.62, 1.22] }),
     kit.library.surface("brick", { antiTile: true, normalScale: 1.2, tint: [1.02, 0.96, 0.92] }),
     kit.library.surface("lime", { antiTile: true, normalScale: 0.5, tint: [1.62, 1.58, 1.42] }),
     kit.library.surface("timber", { normalScale: 1 }),
-    kit.library.surface("table", { normalScale: 1 }),
     kit.bambooMaterial(),
   ]);
 
@@ -403,7 +408,6 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   }
   if (work.type === "tank") {
     const outerX = work.halfX + work.rim;
-    const outerZ = work.halfZ + work.rim;
     const plaster = await kit.library.surface("lime", { normalScale: 0.6, tint: [1.55, 1.52, 1.38] });
     const parts: [number, number, number, number][] = [
       [CLOTH_LINE_X, work.z + work.halfZ + work.rim / 2, outerX * 2, work.rim],
@@ -547,4 +551,19 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
     groundIsOpenAt,
   });
   return { group, audit, colliders };
+}
+
+export function releaseYard(kit: YardKit, group: THREE.Object3D): void {
+  const { library } = kit;
+  group.traverse((node) => {
+    if (!(node instanceof THREE.Mesh)) return;
+    if (node instanceof THREE.InstancedMesh) node.dispose();
+    if (!library.keeps(node.geometry)) node.geometry.dispose();
+    const materials: THREE.Material[] = Array.isArray(node.material) ? node.material : [node.material];
+    for (const material of materials) {
+      if (library.keeps(material)) continue;
+      for (const value of Object.values(material)) if (value instanceof THREE.Texture && !library.keeps(value)) value.dispose();
+      material.dispose();
+    }
+  });
 }

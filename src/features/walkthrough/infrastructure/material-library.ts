@@ -42,6 +42,7 @@ export class MaterialLibrary {
   private readonly models = new GLTFLoader();
   private readonly scans = new Map<ScanName, ScanTextures>();
   private readonly scenes = new Map<string, THREE.Object3D>();
+  private readonly kept = new WeakSet<object>();
   private readonly anisotropy: number;
 
   constructor(renderer: THREE.WebGLRenderer) {
@@ -72,9 +73,18 @@ export class MaterialLibrary {
     const spec = SCANS[name];
     const base = `${ROOT}/tex/${spec.id}`;
     const [colour, normal, roughness] = await Promise.all([this.map(`${base}/diff.jpg`, true), this.map(`${base}/nor.jpg`, false), this.map(`${base}/rough.jpg`, false)]);
+    for (const texture of [colour, normal, roughness]) this.kept.add(texture);
     const loaded = { colour, normal, roughness, tileMetres: spec.tileMetres };
     this.scans.set(name, loaded);
     return loaded;
+  }
+
+  keep(resource: object): void {
+    this.kept.add(resource);
+  }
+
+  keeps(resource: object): boolean {
+    return this.kept.has(resource);
   }
 
   async surface(name: ScanName, options: { tint?: readonly [number, number, number] | number; normalScale?: number; antiTile?: boolean; repeat?: readonly [number, number] } = {}): Promise<THREE.MeshStandardMaterial> {
@@ -141,7 +151,14 @@ export class MaterialLibrary {
         node.castShadow = true;
         node.receiveShadow = true;
         const material = node.material as THREE.MeshStandardMaterial;
-        for (const texture of [material.map, material.normalMap, material.roughnessMap]) if (texture) texture.anisotropy = this.anisotropy;
+        this.kept.add(node.geometry);
+        this.kept.add(material);
+        for (const texture of [material.map, material.normalMap, material.roughnessMap]) {
+          if (texture) {
+            texture.anisotropy = this.anisotropy;
+            this.kept.add(texture);
+          }
+        }
       }
     });
     this.scenes.set(scanId, gltf.scene);

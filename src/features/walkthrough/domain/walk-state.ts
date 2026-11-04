@@ -62,6 +62,19 @@ export interface WalkTarget {
   readonly waypoint: number;
 }
 
+export function nearestWaypoint(walker: Walker, line: readonly (readonly [number, number])[], station: number): number {
+  let nearest = 0;
+  let shortest = Number.POSITIVE_INFINITY;
+  for (const [index, point] of line.entries()) {
+    const distance = Math.hypot(point[0] - walker.x, worldZ(point[1], station) - walker.z);
+    if (distance < shortest) {
+      shortest = distance;
+      nearest = index;
+    }
+  }
+  return nearest;
+}
+
 export interface Steering {
   readonly heading: number | null;
   readonly target: WalkTarget | null;
@@ -87,8 +100,12 @@ export function moveTowards(heading: number, yaw: number): { forward: number; st
   return { forward: Math.cos(difference), strafe: -Math.sin(difference) };
 }
 
+export function turnBetween(yaw: number, heading: number): number {
+  return Math.atan2(Math.sin(heading - yaw), Math.cos(heading - yaw));
+}
+
 export function easeYaw(yaw: number, heading: number, seconds: number): number {
-  const difference = Math.atan2(Math.sin(heading - yaw), Math.cos(heading - yaw));
+  const difference = turnBetween(yaw, heading);
   const step = TURN_RATE * seconds;
   return yaw + Math.max(-step, Math.min(step, difference));
 }

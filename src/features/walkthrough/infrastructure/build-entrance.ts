@@ -3,7 +3,7 @@ import { settleCloth } from "../domain/cloth-surface";
 import { smoothstep } from "../domain/geometry";
 import type { Vec3 } from "../domain/geometry";
 import type { CheckedSolid, ClothMesh } from "../domain/scene-check";
-import { YardKit } from "./build-yard";
+import { type YardKit } from "./build-yard";
 import { paintWords, pole, softBox } from "./solid-builders";
 
 export type AssignedDoor = "none" | "door-1" | "door-2";
