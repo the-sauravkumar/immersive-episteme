@@ -2,7 +2,7 @@ import * as THREE from "three";
 import type { Box } from "../domain/geometry";
 import { NEXT_YARD_OFFSET } from "../domain/yard-plan";
 import type { RouteStation } from "../domain/route-plan";
-import { eyeOf, localZ, stationIndexAt, steerAlong, stepWalker, walkerAt, type WalkInput, type WalkTarget, type Walker } from "../domain/walk-state";
+import { easeYaw, eyeOf, localZ, moveTowards, stationIndexAt, steerAlong, stepWalker, walkerAt, worldZ, type WalkInput, type WalkTarget, type Walker } from "../domain/walk-state";
 import { buildYard, YardKit, type BuiltYard } from "./build-yard";
 import { addHorizon } from "./horizon";
 import { MaterialLibrary } from "./material-library";
@@ -29,6 +29,7 @@ export class WalkRuntime {
   private readonly library: MaterialLibrary;
   private readonly yards = new Map<number, Promise<BuiltYard>>();
   private readonly built = new Map<number, BuiltYard>();
+  private readonly uploaded = new WeakSet<THREE.Texture>();
   private view: RenderView | null = null;
   private sky: THREE.Mesh | null = null;
   private sun: THREE.DirectionalLight | null = null;
@@ -37,6 +38,9 @@ export class WalkRuntime {
   private autoTarget: WalkTarget | null = null;
   private autoDirection: 1 | -1 = 1;
   private autoGoal = 0;
+  private autoArriving = false;
+  private autoHeading: number | null = null;
+  private autoPitch = 0;
   private current = -1;
   private frame = 0;
   private last = 0;
@@ -123,11 +127,27 @@ export class WalkRuntime {
     this.renderer.shadowMap.needsUpdate = true;
   }
 
+  private async uploadGradually(group: THREE.Object3D): Promise<void> {
+    const textures = new Set<THREE.Texture>();
+    group.traverse((node) => {
+      if (node instanceof THREE.Mesh) {
+        const material = node.material as THREE.MeshStandardMaterial;
+        for (const texture of [material.map, material.normalMap, material.roughnessMap]) if (texture && !this.uploaded.has(texture)) textures.add(texture);
+      }
+    });
+    for (const texture of textures) {
+      this.uploaded.add(texture);
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      this.renderer.initTexture(texture);
+    }
+  }
+
   private loadYard(index: number): Promise<BuiltYard> {
     const known = this.yards.get(index);
     if (known) return known;
     const station = this.stations[index]!;
-    const pending = buildYard(this.kit, station.plan, { clothBefore: station.clothBefore, clothAfter: station.clothAfter, wetAfter: station.wetAfter, textiles: this.textiles(station) }, station.id).then((yard) => {
+    const pending = buildYard(this.kit, station.plan, { clothBefore: station.clothBefore, clothAfter: station.clothAfter, wetAfter: station.wetAfter, textiles: this.textiles(station) }, station.id).then(async (yard) => {
+      await this.uploadGradually(yard.group);
       yard.group.position.z = -index * NEXT_YARD_OFFSET;
       this.scene.add(yard.group);
       this.built.set(index, yard);
@@ -140,7 +160,11 @@ export class WalkRuntime {
   setMove(forward: number, strafe: number): void {
     this.input.forward = forward;
     this.input.strafe = strafe;
-    if (forward !== 0 || strafe !== 0) this.autoTarget = null;
+    if (forward !== 0 || strafe !== 0) {
+      this.autoTarget = null;
+      this.autoArriving = false;
+      this.autoHeading = null;
+    }
   }
 
   endLook(): void {
@@ -158,6 +182,7 @@ export class WalkRuntime {
     if (!this.stations[index] || index === this.current) return;
     this.autoDirection = index > this.current ? 1 : -1;
     this.autoGoal = index;
+    this.autoPitch = 0;
     const line = this.stations[this.current]!.plan.walkLine;
     this.autoTarget = { station: this.current, waypoint: this.autoDirection === 1 ? 1 : line.length - 2 };
   }
@@ -206,22 +231,45 @@ export class WalkRuntime {
     }
   }
 
+  private arrive(station: number): void {
+    const plan = this.stations[station]!.plan;
+    const facing = walkerAt(plan.standpoint.from, plan.standpoint.to, station);
+    this.autoHeading = facing.yaw;
+    this.autoPitch = facing.pitch;
+    this.autoTarget = null;
+    this.autoArriving = false;
+  }
+
   private autoInput(): { forward: number; strafe: number } {
     if (!this.autoTarget) return this.input;
     const line = this.stations[this.autoTarget.station]!.plan.walkLine;
-    const steered = steerAlong(this.walker, line, this.autoTarget, this.autoDirection);
-    this.walker = steered.walker;
-    if (steered.target) {
-      this.autoTarget = steered.target;
-      return steered.moving ? { forward: 1, strafe: 0 } : { forward: 0, strafe: 0 };
+    if (this.autoArriving) {
+      const point = line[0]!;
+      if (Math.hypot(point[0] - this.walker.x, worldZ(point[1], this.autoTarget.station) - this.walker.z) < 0.4) {
+        this.arrive(this.autoTarget.station);
+        return { forward: 0, strafe: 0 };
+      }
     }
-    const nextStation = this.autoTarget.station + this.autoDirection;
-    if (nextStation === this.autoGoal + (this.autoDirection === 1 ? 0 : -1) || nextStation < 0 || nextStation >= this.stations.length) {
-      this.autoTarget = null;
+    const steered = steerAlong(this.walker, line, this.autoTarget, this.autoDirection);
+    if (steered.target && steered.heading !== null) {
+      this.autoTarget = steered.target;
+      this.autoHeading = steered.heading;
+      return moveTowards(steered.heading, this.walker.yaw);
+    }
+    const finished = this.autoTarget.station;
+    if (this.autoDirection === -1 && finished === this.autoGoal) {
+      this.arrive(finished);
       return { forward: 0, strafe: 0 };
     }
-    this.autoTarget = { station: nextStation, waypoint: this.autoDirection === 1 ? 0 : this.stations[nextStation]!.plan.walkLine.length - 1 };
-    return { forward: 1, strafe: 0 };
+    const nextStation = finished + this.autoDirection;
+    const nextLine = this.stations[nextStation]!.plan.walkLine;
+    if (this.autoDirection === 1 && nextStation === this.autoGoal) {
+      this.autoArriving = true;
+      this.autoTarget = { station: nextStation, waypoint: 0 };
+      return { forward: 0, strafe: 0 };
+    }
+    this.autoTarget = { station: nextStation, waypoint: this.autoDirection === 1 ? 0 : nextLine.length - 1 };
+    return { forward: 0, strafe: 0 };
   }
 
   private watchForWrongTurn(): void {
@@ -254,6 +302,12 @@ export class WalkRuntime {
       const input: WalkInput = { forward: moving.forward, strafe: moving.strafe, lookX: this.input.lookX, lookY: this.input.lookY };
       const from = this.walker;
       this.walker = stepWalker(this.walker, input, seconds, this.collidersHere(), this.stations.length - 1);
+      if (this.autoHeading !== null) {
+        const yaw = easeYaw(this.walker.yaw, this.autoHeading, seconds);
+        const pitch = this.walker.pitch + (this.autoPitch - this.walker.pitch) * Math.min(1, seconds * 2);
+        this.walker = { ...this.walker, yaw, pitch };
+        if (!this.autoTarget && Math.abs(yaw - this.autoHeading) < 0.002) this.autoHeading = null;
+      }
       const moved = this.walker.x !== from.x || this.walker.z !== from.z;
       this.input.lookX = 0;
       this.input.lookY = 0;
