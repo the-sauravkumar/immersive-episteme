@@ -1,0 +1,202 @@
+[
+ {
+  "file": "public/walkthrough/tex/red_laterite_soil_stones",
+  "usedFor": "ground",
+  "holder": "Amal Kumar",
+  "sourcePage": "https://polyhaven.com/a/red_laterite_soil_stones",
+  "directUrl": "https://polyhaven.com/a/red_laterite_soil_stones",
+  "widthPx": 4096,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/large_red_bricks",
+  "usedFor": "boundary walls and bench legs",
+  "holder": "Rob Tuytel",
+  "sourcePage": "https://polyhaven.com/a/large_red_bricks",
+  "directUrl": "https://polyhaven.com/a/large_red_bricks",
+  "widthPx": 4096,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/painted_plaster_wall",
+  "usedFor": "shed walls, vat rim, course ground",
+  "holder": "Amal Kumar",
+  "sourcePage": "https://polyhaven.com/a/painted_plaster_wall",
+  "directUrl": "https://polyhaven.com/a/painted_plaster_wall",
+  "widthPx": 4096,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/weathered_brown_planks",
+  "usedFor": "benches, doors, frame ties",
+  "holder": "Dimitrios Savva, Rico Cilliers",
+  "sourcePage": "https://polyhaven.com/a/weathered_brown_planks",
+  "directUrl": "https://polyhaven.com/a/weathered_brown_planks",
+  "widthPx": 4096,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/wood_table_worn",
+  "usedFor": "printing table, block, tray",
+  "holder": "Dimitrios Savva, Rico Cilliers",
+  "sourcePage": "https://polyhaven.com/a/wood_table_worn",
+  "directUrl": "https://polyhaven.com/a/wood_table_worn",
+  "widthPx": 4096,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/tex/rough_linen",
+  "usedFor": "cloth weave and raw cotton",
+  "holder": "colormass, Rico Cilliers",
+  "sourcePage": "https://polyhaven.com/a/rough_linen",
+  "directUrl": "https://polyhaven.com/a/rough_linen",
+  "widthPx": 4096,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/brass_pan_01",
+  "usedFor": "stand-in tool or material model",
+  "holder": "Rico Cilliers",
+  "sourcePage": "https://polyhaven.com/a/brass_pan_01",
+  "directUrl": "https://polyhaven.com/a/brass_pan_01",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/brass_pot_01",
+  "usedFor": "stand-in tool or material model",
+  "holder": "Rico Cilliers",
+  "sourcePage": "https://polyhaven.com/a/brass_pot_01",
+  "directUrl": "https://polyhaven.com/a/brass_pot_01",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/ceramic_pot",
+  "usedFor": "stand-in tool or material model",
+  "holder": "Aron Łyczek",
+  "sourcePage": "https://polyhaven.com/a/ceramic_pot",
+  "directUrl": "https://polyhaven.com/a/ceramic_pot",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/metal_jug",
+  "usedFor": "stand-in tool or material model",
+  "holder": "Anzor Lezhava",
+  "sourcePage": "https://polyhaven.com/a/metal_jug",
+  "directUrl": "https://polyhaven.com/a/metal_jug",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/planter_pot_clay",
+  "usedFor": "stand-in tool or material model",
+  "holder": "Amal Kumar",
+  "sourcePage": "https://polyhaven.com/a/planter_pot_clay",
+  "directUrl": "https://polyhaven.com/a/planter_pot_clay",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/wicker_basket_01",
+  "usedFor": "stand-in tool or material model",
+  "holder": "Kuutti Siitonen",
+  "sourcePage": "https://polyhaven.com/a/wicker_basket_01",
+  "directUrl": "https://polyhaven.com/a/wicker_basket_01",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/wooden_bowl_01",
+  "usedFor": "stand-in tool or material model",
+  "holder": "Oliver Harries",
+  "sourcePage": "https://polyhaven.com/a/wooden_bowl_01",
+  "directUrl": "https://polyhaven.com/a/wooden_bowl_01",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/wooden_bucket_01",
+  "usedFor": "stand-in tool or material model",
+  "holder": "James Ray Cock",
+  "sourcePage": "https://polyhaven.com/a/wooden_bucket_01",
+  "directUrl": "https://polyhaven.com/a/wooden_bucket_01",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/wooden_bucket_02",
+  "usedFor": "stand-in tool or material model",
+  "holder": "James Ray Cock",
+  "sourcePage": "https://polyhaven.com/a/wooden_bucket_02",
+  "directUrl": "https://polyhaven.com/a/wooden_bucket_02",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/wooden_crate_01",
+  "usedFor": "stand-in tool or material model",
+  "holder": "James Ray Cock",
+  "sourcePage": "https://polyhaven.com/a/wooden_crate_01",
+  "directUrl": "https://polyhaven.com/a/wooden_crate_01",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/wooden_cutting_board",
+  "usedFor": "stand-in tool or material model",
+  "holder": "Kuutti Siitonen",
+  "sourcePage": "https://polyhaven.com/a/wooden_cutting_board",
+  "directUrl": "https://polyhaven.com/a/wooden_cutting_board",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/wooden_hammer_01",
+  "usedFor": "stand-in tool or material model",
+  "holder": "James Ray Cock",
+  "sourcePage": "https://polyhaven.com/a/wooden_hammer_01",
+  "directUrl": "https://polyhaven.com/a/wooden_hammer_01",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/models/wooden_spoon",
+  "usedFor": "stand-in tool or material model",
+  "holder": "Ronnie Barter",
+  "sourcePage": "https://polyhaven.com/a/wooden_spoon",
+  "directUrl": "https://polyhaven.com/a/wooden_spoon",
+  "widthPx": 2048,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ },
+ {
+  "file": "public/walkthrough/sky",
+  "usedFor": "sky and image-based light",
+  "holder": "Greg Zaal",
+  "sourcePage": "https://polyhaven.com/a/kloofendal_43d_clear_puresky",
+  "directUrl": "https://polyhaven.com/a/kloofendal_43d_clear_puresky",
+  "widthPx": 8192,
+  "licence": "CC0 1.0",
+  "permission": "none needed"
+ }
+]
