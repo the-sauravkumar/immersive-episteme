@@ -1,0 +1,482 @@
+{
+  "tradition": "sanganeri",
+  "traditionName": "Sanganeri",
+  "rawClothStateId": "sanganeri-raw",
+  "stages": [
+    {
+      "number": 1,
+      "key": "sanganeri.block-carving",
+      "sourceStageKeys": [
+        "sanganeri.process_stage.block-carving"
+      ],
+      "name": "Block Carving",
+      "localName": null,
+      "kind": "carve",
+      "caption": {
+        "text": "Block carving proceeds through ghisai (smoothing), chakai (design transfer), khudai (carving), dabana (levelling the background), chilai (smoothing the sides) and fixing the hatha handle.",
+        "sources": [
+          {
+            "sourceId": "S10",
+            "title": "Past and Present of Hand Block Printing of Sanganer in Jaipur City of Rajasthan",
+            "locator": "PDF p. 5",
+            "quote": "After this the background of the block was levelled called ,,Dabana and finally ,,Chilai the sides of the block were smoothened to match the consecutive printing. Lastly the ,,Hatha a handle is added to it."
+          },
+          {
+            "sourceId": "S10",
+            "title": "Past and Present of Hand Block Printing of Sanganer in Jaipur City of Rajasthan",
+            "locator": "PDF p. 5",
+            "quote": "certain steps in sequence beginning with ,,Ghisai meaning smoothening the surface of the wooden block than ,,Chakai where a design is transferred from a tracing paper to the wooden surface that is already coated with titanium dioxide and adhesive followed by ,,Khudai that was carving"
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "sanganeri.tool.kalam-chisels",
+          "role": "tool",
+          "label": "Block-Carving Chisels",
+          "localName": "Kalam",
+          "modelId": "mallet"
+        }
+      ],
+      "clothStateId": "sanganeri-01"
+    },
+    {
+      "number": 2,
+      "key": "sanganeri.scouring-and-harda-pre-treatment",
+      "sourceStageKeys": [
+        "sanganeri.process_stage.scouring",
+        "sanganeri.process_stage.harda-treatment"
+      ],
+      "name": "Scouring And Harda Pre-Treatment",
+      "localName": "Peela Karna",
+      "kind": "soak",
+      "caption": {
+        "text": "Cloth is scoured to remove starch, oil and dust for good, even penetration of colours. Harda leaves a yellowish tinge, hence pila-karna.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 10",
+            "quote": "contains natural and added impurities such as starc\\ oil and dust' To g* good ard even penetration of colours, the fabric is boiled with soap and de-sizing agents' ttuditiooutty cow dung was used for soouring- Cow dung and water are mixed togetlrer and the cloth"
+          },
+          {
+            "sourceId": "S8",
+            "title": "Syahi Begar | Sanganer Print",
+            "locator": "§ \"Syahi Begar\"",
+            "quote": "The cloth was treated with Harda, which functions as a pre-mordant link between the fibers and the various other ingredients. It left a yellowish tinge to the fabric, hence known as 'pila-karna '."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "sanganeri.material.cow-dung",
+          "role": "material",
+          "label": "Cow Dung",
+          "localName": null,
+          "modelId": "lump-basket"
+        },
+        {
+          "key": "sanganeri.material.cotton-mulmul",
+          "role": "material",
+          "label": "Base Fabric: Cotton, Mulmul And Silk",
+          "localName": null,
+          "modelId": "cloth-bale"
+        },
+        {
+          "key": "sanganeri.material.harda-myrobalan",
+          "role": "material",
+          "label": "Myrobalan",
+          "localName": "Harda",
+          "modelId": "powder-bowl"
+        }
+      ],
+      "clothStateId": "sanganeri-02"
+    },
+    {
+      "number": 3,
+      "key": "sanganeri.printing-the-mordants-and-ageing",
+      "sourceStageKeys": [
+        "sanganeri.process_stage.mordant-printing",
+        "sanganeri.process_stage.ageing"
+      ],
+      "name": "Printing The Mordants And Ageing",
+      "localName": "Chhapai, Sukhai",
+      "kind": "table",
+      "caption": {
+        "text": "The fabric is printed with two mordants, ferrous syahi and aluminium sulphate begar; the ferrous is usually printed with the outline block. Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 10",
+            "quote": "The fabric is printed with two mordant-ferrous ('ry\"h*r) made out of rusted horse shoe nails, and aluminum zulphate (b*SC*) Uzually ferrous is printed with the outline block ('reAh')."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 10",
+            "quote": "for anotler prhter to place the filler block ('dalla) with beggar some times the background block is applied before the outline block. - Ageing - localty called 'Sukhti' The printed fabric is left for at least three-four days so that the print (mordant paste) penetrates"
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 10",
+            "quote": "Longer the ageilg better is the result."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "sanganeri.tool.rekh-datta-gadh-block-set",
+          "role": "tool",
+          "label": "Block Set: Rekh (Outline), Datta (Filler) And Background Blocks",
+          "localName": null,
+          "modelId": "carved-block"
+        },
+        {
+          "key": "sanganeri.tool.printing-table-and-pad",
+          "role": "tool",
+          "label": "Printing Table With Padded Surface",
+          "localName": "Patia",
+          "modelId": "printing-table"
+        },
+        {
+          "key": "sanganeri.tool.colour-tray",
+          "role": "tool",
+          "label": "Colour Tray With Jute-And-Cotton Pad",
+          "localName": null,
+          "modelId": "printing-tray"
+        },
+        {
+          "key": "sanganeri.material.syahi-iron-black",
+          "role": "material",
+          "label": "Fermented Iron Black",
+          "localName": "Syahi",
+          "modelId": "paste-bowl"
+        },
+        {
+          "key": "sanganeri.material.begar-alum-mordant",
+          "role": "material",
+          "label": "Alum Mordant Paste",
+          "localName": "Begar",
+          "modelId": "paste-bowl"
+        }
+      ],
+      "clothStateId": "sanganeri-03"
+    },
+    {
+      "number": 4,
+      "key": "sanganeri.washing-and-alizarin-dyeing",
+      "sourceStageKeys": [
+        "sanganeri.process_stage.washing-excess-mordant",
+        "sanganeri.process_stage.alizarin-dyeing"
+      ],
+      "name": "Washing And Alizarin / Madder Dyeing",
+      "localName": "Khulai, Rangai",
+      "kind": "boil",
+      "caption": {
+        "text": "Printed fabric is washed in running water to remove excess mordants before dyeing. The dye reacts with two mordants at two locations on the same print, giving red with alum and black with ferrous.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 10",
+            "quote": "Washing - localty called 'Dhatsi' The printed fabric is washed in running water to rmove excess mordants. t4"
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 12",
+            "quote": "For turning the fabric green it is taken for further process of yellow dyeing but before this it is printed with dhabu to refain some blue areas."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 9",
+            "quote": "Iilashing or rernoval of excess mordant before dying localty called \"Khulai\"."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 11",
+            "quote": "the dye reacts with two mordents at two diiTerent locations on the same print grvhg two different shades of colours' Alizarin is used as the dye throughout Rajasthan. the colours obtained in conjunctioa with the two mordants are red (with alum) and black (with ferrous)."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "sanganeri.tool.copper-dye-vessel",
+          "role": "tool",
+          "label": "Copper Dye Vessel Over A Wood-Fired Furnace",
+          "localName": null,
+          "modelId": "boiling-vessel"
+        },
+        {
+          "key": "sanganeri.material.madder-alizarin",
+          "role": "material",
+          "label": "Madder / Alizarin Dye Bath",
+          "localName": null,
+          "modelId": "liquid-pot"
+        },
+        {
+          "key": "sanganeri.material.dhawai-phool",
+          "role": "material",
+          "label": "Dhawai Flowers",
+          "localName": null,
+          "modelId": "lump-basket"
+        }
+      ],
+      "clothStateId": "sanganeri-04"
+    },
+    {
+      "number": 5,
+      "key": "sanganeri.sun-bleaching",
+      "sourceStageKeys": [
+        "sanganeri.process_stage.sun-bleaching"
+      ],
+      "name": "Sun-Bleaching",
+      "localName": "Tapai",
+      "kind": "dry",
+      "caption": {
+        "text": "Alizarin over-dyes the ground to an off-white or yellow tinge, so the fabric is sun-bleached to whiten the ground again. The fabric is laid flat on a river bed and sprinkled with a mild cow dung solution, repeated as it dries.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 11",
+            "quote": "Sun - bleeching - loc.ally calltd'Tqai' Alizaria often 'over dyes\" the sun printed area giving an of-white or yellow tiage all over the fabric which makes the priat look dull. In order to make the ground look whitg again the fabric is sun-bleached."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 11",
+            "quote": "In this process the fabrio is laid flat on a river bed, A mild solution ofcow dung and water is sprhkled over the fubric. This process is repeated again when the fabric is drying."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "sanganeri.material.cow-dung",
+          "role": "material",
+          "label": "Cow Dung",
+          "localName": null,
+          "modelId": "lump-basket"
+        }
+      ],
+      "clothStateId": "sanganeri-05"
+    },
+    {
+      "number": 6,
+      "key": "sanganeri.dabu-resist-printing",
+      "sourceStageKeys": [
+        "sanganeri.process_stage.dabu-resist-printing"
+      ],
+      "name": "Dabu Resist Printing",
+      "localName": null,
+      "kind": "table",
+      "caption": {
+        "text": "Dabu is applied with a wooden block, sawdust is sprinkled over it, and the fabric is sun-dried before the indigo tanks.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 11",
+            "quote": "It is applied with wooden block on the fabric and saw dus is sprinkled over it."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 11",
+            "quote": "After printiug the ftbric is left outside in tie sun for drying before dipping in indigo taoks."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "sanganeri.material.dabu-resist-paste",
+          "role": "material",
+          "label": "Mud Resist Paste",
+          "localName": "Dabu",
+          "modelId": "paste-bowl"
+        },
+        {
+          "key": "sanganeri.material.sawdust",
+          "role": "material",
+          "label": "Sawdust",
+          "localName": null,
+          "modelId": "powder-bowl"
+        }
+      ],
+      "clothStateId": "sanganeri-06"
+    },
+    {
+      "number": 7,
+      "key": "sanganeri.indigo-dyeing",
+      "sourceStageKeys": [
+        "sanganeri.process_stage.indigo-dyeing"
+      ],
+      "name": "Indigo Dyeing",
+      "localName": "Neel Rangai",
+      "kind": "vat",
+      "caption": {
+        "text": "Cloth folded like sari pleats is lowered into the tank and opened under the liquid; it is then taken out and opened to react with atmospheric oxygen. The first dip gives a pale sky blue; dipping and oxidising are repeated until the desired dark shade is reached.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 11",
+            "quote": "The printed cloth is folded neatly like saree pleats and lowered gently into the indigo tank."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 12",
+            "quote": "The fabric is then taken out of tank' gently squeezed and opened out to react with the atmospheric orygen and tum the reduced indigo into oxidized iodigo."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 11",
+            "quote": "When the cloth is totally submerged io the tank, the dyer still holdiry it under the liquid dye, opens each pleat to allow the fab'ric to have tle indigo dye evenly."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 12",
+            "quote": "Indigo has poor atrni1V to the fabric in the presio\"\" of water, so the first 'dip' gves a pale sky blue shade."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 12",
+            "quote": "In order to get darker indigo blue, the fabric is again dipped in the tanft' pulled out and o*idi\"ea. This process is repeatd till the desired dark shade is achieved."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "sanganeri.tool.indigo-vat",
+          "role": "tool",
+          "label": "Indigo Vat",
+          "localName": null,
+          "modelId": "dye-vat"
+        },
+        {
+          "key": "sanganeri.material.indigo",
+          "role": "material",
+          "label": "Indigo",
+          "localName": "Neel",
+          "modelId": "liquid-pot"
+        }
+      ],
+      "clothStateId": "sanganeri-07"
+    },
+    {
+      "number": 8,
+      "key": "sanganeri.yellow-dyeing-and-alum-post-mordanting",
+      "sourceStageKeys": [
+        "sanganeri.process_stage.yellow-dyeing",
+        "sanganeri.process_stage.alum-post-mordant"
+      ],
+      "name": "Yellow Dyeing And Alum Post-Mordanting",
+      "localName": "Haldi Naspal Putai, Fitkari Rangai",
+      "kind": "soak",
+      "caption": {
+        "text": "Four persons hold the cloth at the corners while a fifth rubs on turmeric and pomegranate-rind dye with a loose-woven woollen cloth used as a sponge. Fabric is dipped for a few minutes in a copper vessel of water and diluted alum, squeezed and dried flat.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 12",
+            "quote": "Four persons hold it at each corner and fifth person dips a loose-woven woolel fabric which acts as a sponge in the dye extracled out of haldi (turmerio) and naspat (pomegranate rinds) and rubs it gently all over the cloth to be dyed."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 12",
+            "quote": "known u'Filkui Rangati' The dye extracted ftom turmeric and pomegranate peals is very fugitive and in order to make it fast, post mordanting is done witl alum (fitkari). ln this process the fab'ric is dipped in a big copper vessel filled with water and diluted"
+          },
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 12",
+            "quote": "A-fter leaving it for a few minutes (long period of time will oause the dhabu to come ofi) it is taken out, gently squeezed and dried flat on the ground When it is completely dry it is folded and stored in dark places for at"
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "sanganeri.tool.copper-dye-vessel",
+          "role": "tool",
+          "label": "Copper Dye Vessel Over A Wood-Fired Furnace",
+          "localName": null,
+          "modelId": "boiling-vessel"
+        },
+        {
+          "key": "sanganeri.material.haldi-naspal-yellow",
+          "role": "material",
+          "label": "Turmeric And Pomegranate-Rind Yellow",
+          "localName": null,
+          "modelId": "liquid-pot"
+        },
+        {
+          "key": "sanganeri.material.alum-fitkari",
+          "role": "material",
+          "label": "Alum",
+          "localName": "Fitkari",
+          "modelId": "powder-bowl"
+        }
+      ],
+      "clothStateId": "sanganeri-08"
+    },
+    {
+      "number": 9,
+      "key": "sanganeri.final-washing",
+      "sourceStageKeys": [
+        "sanganeri.process_stage.final-washing"
+      ],
+      "name": "Final Washing",
+      "localName": "Dhulai",
+      "kind": "wash",
+      "caption": {
+        "text": "Fabric is left in big tanks for at least 3 to 4 hours until the resist paste becomes smooth, then beaten on a flat stone slab to remove paste and excess dye.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Application for Registration of a Geographical Indication in Part A of the Register: Sanganeri Hand Block Printing (Statement of case)",
+            "locator": "PDF p. 12",
+            "quote": "In this process the fabric is left in big tanks for at lest 3 to 4 hours till the resist paste becomes smooth. The fabric is then beatea over a flat stone slab to remove the resist paste and excess dye."
+          }
+        ]
+      },
+      "items": [],
+      "clothStateId": "sanganeri-09"
+    }
+  ],
+  "products": [
+    {
+      "id": "sanganeri-p1",
+      "file": "/walkthrough/products/sanganeri-p1.jpg",
+      "name": "Sanganeri Textile",
+      "holder": "Victoria and Albert Museum, London",
+      "widthPx": 2307,
+      "heightPx": 1821
+    },
+    {
+      "id": "sanganeri-p2",
+      "file": "/walkthrough/products/sanganeri-p2.jpg",
+      "name": "Sanganeri Textile",
+      "holder": "Victoria and Albert Museum, London",
+      "widthPx": 1536,
+      "heightPx": 2395
+    },
+    {
+      "id": "sanganeri-p3",
+      "file": "/walkthrough/products/sanganeri-p3.jpg",
+      "name": "Sanganeri Textile",
+      "holder": "Victoria and Albert Museum, London",
+      "widthPx": 1771,
+      "heightPx": 1271
+    }
+  ]
+}

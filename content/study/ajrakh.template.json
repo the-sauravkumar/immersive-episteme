@@ -1,0 +1,508 @@
+{
+  "tradition": "ajrakh",
+  "traditionName": "Ajrakh",
+  "rawClothStateId": "ajrakh-raw",
+  "stages": [
+    {
+      "number": 1,
+      "key": "ajrakh.scouring-and-washing",
+      "sourceStageKeys": [
+        "ajrakh.process_stage.saaj",
+        "ajrakh.process_stage.washing"
+      ],
+      "name": "Scouring And Washing",
+      "localName": "Saaj",
+      "kind": "soak",
+      "caption": {
+        "text": "By the third or fourth steeping the dung-oil mixture emulsifies into a rich lather, leaving the cloth bright white and soft. Clean water is used to work the soap through the cloth; washing is a rigorous cycle of soaking and beating until all foam is wrung out.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+            "quote": "meaning the Saaj process can take many days to complete, depending upon the level of impurities in the cloth, usually by the third or fourth steeping the dung and oil mixture emulsifies to produce a rich lather, which leaves the cloth bright white and soft"
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+            "quote": "Washing:By the final cycle of the Saaj process the neerani mixture has produced a rich lather on the cloth. Clean water is used to work this soap through the cloth, cleaning out the impurities."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+            "quote": "The washing is a rigorous cycle of soaking and beating, only completed all traces of foam have been wrung from cloth."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "ajrakh.tool.dhoki-paddle",
+          "role": "tool",
+          "label": "Washing Paddle",
+          "localName": "Dhoki",
+          "modelId": "mallet"
+        },
+        {
+          "key": "ajrakh.material.neerani-scouring-mix",
+          "role": "material",
+          "label": "Neerani",
+          "localName": null,
+          "modelId": "lump-basket"
+        },
+        {
+          "key": "ajrakh.material.camel-dung",
+          "role": "material",
+          "label": "Camel Dung",
+          "localName": null,
+          "modelId": "lump-basket"
+        },
+        {
+          "key": "ajrakh.material.cotton-cloth",
+          "role": "material",
+          "label": "Cotton Base Cloth",
+          "localName": null,
+          "modelId": "cloth-bale"
+        }
+      ],
+      "clothStateId": "ajrakh-01"
+    },
+    {
+      "number": 2,
+      "key": "ajrakh.harde-pre-mordanting",
+      "sourceStageKeys": [
+        "ajrakh.process_stage.kasano"
+      ],
+      "name": "Harde Pre-Mordanting",
+      "localName": "Kasano",
+      "kind": "soak",
+      "caption": {
+        "text": "The cloth is soaked in harde and dried in the sun without rinsing; tannin is an essential pre-mordant aiding adhesion of printed mordants.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+            "quote": "The cloth is then dried in the sun without rinsing off the Harde solution. The tannin in the Myroballan penetrates the cotton fibres and is essential pre-mordant which aids the adhesion of the subsequent printed mordants onto the cloth."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+            "quote": "The soft cleaned cloth now undergoes a soak in Harde"
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "ajrakh.material.harde-myrobalan",
+          "role": "material",
+          "label": "Harde",
+          "localName": null,
+          "modelId": "powder-bowl"
+        }
+      ],
+      "clothStateId": "ajrakh-02"
+    },
+    {
+      "number": 3,
+      "key": "ajrakh.outline-and-black-printing",
+      "sourceStageKeys": [
+        "ajrakh.process_stage.khariyanu",
+        "ajrakh.process_stage.kut"
+      ],
+      "name": "Resist Outline And Iron-Black Printing",
+      "localName": "Khariyanu, Kut",
+      "kind": "table",
+      "caption": {
+        "text": "Outlines where white is required are printed with a carved block and a lime and tree-gum resist paste. Areas where black is required are printed with kut paste, usually an infill (datla) between khariyanu outlines.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+            "quote": "Preparation of Outline of design (Khariyanu/ Kiriyana):- Outlines of the design, where white is required, are printed with a carved wooden block and a resist paste containing lime and tree gum."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+            "quote": "Areas where black is required are now printed with kut paste. In true Ajrakh, this is usually an infill or datla between selected khariyanu outliners."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "ajrakh.tool.wooden-blocks",
+          "role": "tool",
+          "label": "Hand-Carved Wooden Printing Blocks",
+          "localName": null,
+          "modelId": "carved-block"
+        },
+        {
+          "key": "ajrakh.material.lime-gum-resist",
+          "role": "material",
+          "label": "Khariyanu Resist Paste",
+          "localName": null,
+          "modelId": "paste-bowl"
+        },
+        {
+          "key": "ajrakh.material.kut-iron-paste",
+          "role": "material",
+          "label": "Fermented Iron-Jaggery Black Paste",
+          "localName": "Kut",
+          "modelId": "paste-bowl"
+        }
+      ],
+      "clothStateId": "ajrakh-03"
+    },
+    {
+      "number": 4,
+      "key": "ajrakh.alum-and-mud-resist-printing",
+      "sourceStageKeys": [
+        "ajrakh.process_stage.pa",
+        "ajrakh.process_stage.gach",
+        "ajrakh.process_stage.dhori-gach"
+      ],
+      "name": "Alum Mordant Printing And Mud Resist",
+      "localName": "Pa, Gach, Dhori Gach",
+      "kind": "table",
+      "caption": {
+        "text": "Pa, a smooth paste of alum in tamarind-seed paste, is printed with blocks patterned for the mavi areas where red is required. Gach with alum is printed where larger red areas are required (red ground gudh or mavi infill); the clay and millet resist indigo while the alum acts as mordant.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+            "quote": "This smooth paste called Pa, is printed with blocks which have been carved so that the printing portion of the raised face is patterned only, with the areas of the design called mavi, where red is required."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+            "quote": "Alum is suspended in a sticky paste of boiled powder from roasted and ground tamarind seeds (locally known as kachika)."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+            "quote": "Alum is added to half of this paste, and printed where larger areas of the Red are required in a design, for example a red background gudh or infill areas called mavi."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+            "quote": "The clay and millet flour in the paste act as a resist, preventing indigo from staining the cloth beneath, whilst the alum content acts a mordant for subsequent application of red dye."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "ajrakh.tool.wooden-blocks",
+          "role": "tool",
+          "label": "Hand-Carved Wooden Printing Blocks",
+          "localName": null,
+          "modelId": "carved-block"
+        },
+        {
+          "key": "ajrakh.material.alum",
+          "role": "material",
+          "label": "Alum",
+          "localName": "Fatakdi",
+          "modelId": "powder-bowl"
+        },
+        {
+          "key": "ajrakh.material.tamarind-seed-paste",
+          "role": "material",
+          "label": "Tamarind Seed Paste",
+          "localName": "Kachika",
+          "modelId": "paste-bowl"
+        },
+        {
+          "key": "ajrakh.material.gach-mud-resist",
+          "role": "material",
+          "label": "Gach Mud Resist",
+          "localName": null,
+          "modelId": "paste-bowl"
+        },
+        {
+          "key": "ajrakh.material.dusting-agents",
+          "role": "material",
+          "label": "Dusting Agents",
+          "localName": null,
+          "modelId": "powder-bowl"
+        }
+      ],
+      "clothStateId": "ajrakh-04"
+    },
+    {
+      "number": 5,
+      "key": "ajrakh.indigo-dyeing",
+      "sourceStageKeys": [
+        "ajrakh.process_stage.indigo-dyeing"
+      ],
+      "name": "Indigo Dyeing",
+      "localName": "Kun Me Burana",
+      "kind": "vat",
+      "caption": {
+        "text": "The first stage of dyeing is called 'kun me burana'; the fabric is folded (fara) and dipped in the indigo vat. At first bright green, the cloth rapidly becomes blue as oxygen meets the dye on the fibres.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+            "quote": "The first stage of dyeing is referred to as \"kun me burana\". The fabric is folded (fara) and then dipped in the indigo vat."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+            "quote": "At first bright green, the cloth rapidly becomes blue as oxygen meets the dye particles on the fibres."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "ajrakh.tool.underground-indigo-vat",
+          "role": "tool",
+          "label": "Underground Indigo Vat",
+          "localName": "Kun",
+          "modelId": "dye-vat"
+        },
+        {
+          "key": "ajrakh.material.indigo",
+          "role": "material",
+          "label": "Indigo",
+          "localName": null,
+          "modelId": "liquid-pot"
+        }
+      ],
+      "clothStateId": "ajrakh-05"
+    },
+    {
+      "number": 6,
+      "key": "ajrakh.washing-out-resists",
+      "sourceStageKeys": [
+        "ajrakh.process_stage.resist-washing"
+      ],
+      "name": "Washing Out Resists",
+      "localName": null,
+      "kind": "wash",
+      "caption": {
+        "text": "Washing begins gently to loosen clay without smudging, then becomes vigorous soaking and beating; remaining on the fibres are indigo, kut black, alum mordants and resisted whites.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+            "quote": "This washing begins gently, to loosen the clay of the resist pastes without smudging, then becomes a vigorous soaking and beating to ensure the cloth is free from the printing pastes and ready for the red dye."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+            "quote": "Remaining on the fibres are the Indigo blue, kut black, alum from Pa and gach mordants and the resisted plain white areas."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "ajrakh.tool.washing-tanks",
+          "role": "tool",
+          "label": "Washing Tanks / River Washing",
+          "localName": null,
+          "modelId": "wash-tank"
+        }
+      ],
+      "clothStateId": "ajrakh-06"
+    },
+    {
+      "number": 7,
+      "key": "ajrakh.red-dyeing",
+      "sourceStageKeys": [
+        "ajrakh.process_stage.red-dyeing"
+      ],
+      "name": "Red Dyeing",
+      "localName": "Rang",
+      "kind": "boil",
+      "caption": {
+        "text": "Alizarin crystals or steeped madder roots are heated in a copper pot; dyeing the purest reds continues for up to four hours.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+            "quote": "Red Dyeing:- Alizarin crystals or the crushed and steeped roots of majeeta or Indian Madder are gently heated in a large copper pot."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+            "quote": "Dyeing the purest reds continues for up to four hours."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "ajrakh.tool.copper-dye-pot",
+          "role": "tool",
+          "label": "Copper Dye Pot And Stirring Sticks",
+          "localName": null,
+          "modelId": "boiling-vessel"
+        },
+        {
+          "key": "ajrakh.material.madder",
+          "role": "material",
+          "label": "Indian Madder",
+          "localName": null,
+          "modelId": "lump-basket"
+        },
+        {
+          "key": "ajrakh.material.synthetic-alizarin",
+          "role": "material",
+          "label": "Synthetic Alizarin",
+          "localName": null,
+          "modelId": "liquid-pot"
+        },
+        {
+          "key": "ajrakh.material.dhawri-tamarisk",
+          "role": "material",
+          "label": "Dhawri / Tamarisk Galls",
+          "localName": "Dhaori Na Phool",
+          "modelId": "lump-basket"
+        }
+      ],
+      "clothStateId": "ajrakh-07"
+    },
+    {
+      "number": 8,
+      "key": "ajrakh.dung-soak-and-sun-bleaching",
+      "sourceStageKeys": [
+        "ajrakh.process_stage.tapano"
+      ],
+      "name": "Dung Soak And Sun-Bleaching",
+      "localName": "Tapano",
+      "kind": "dry",
+      "caption": {
+        "text": "Madder often leaves a pinkish tinge on whites; the cloth is soaked in camel dung, spread on sandy river banks in the sun and sprinkled with water over at least three days.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+            "quote": "The dyed cloth would be soaked in a solution of camel dung, then spread on the sandy banks of a river in the sun and regularly sprinkled with water to keep it moist throughout the day."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+            "quote": "As a result dyeing with majeeta often leaves a pinkish tinge to the white areas of a design. Over time a procedure was developed to counteract this staining."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+            "quote": "This would be repeated over at least three days"
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "ajrakh.material.camel-dung",
+          "role": "material",
+          "label": "Camel Dung",
+          "localName": null,
+          "modelId": "lump-basket"
+        }
+      ],
+      "clothStateId": "ajrakh-08"
+    },
+    {
+      "number": 9,
+      "key": "ajrakh.final-wash-and-finishing",
+      "sourceStageKeys": [
+        "ajrakh.process_stage.vichharnu",
+        "ajrakh.process_stage.finishing"
+      ],
+      "name": "Final Wash And Finishing",
+      "localName": "Vichharana",
+      "kind": "finish",
+      "caption": {
+        "text": "The final washing and beating removes loose colour; it is usually done early in the morning when water is cool. Once washed completely, artisans do ancillary activities like pressing and packaging.",
+        "sources": [
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+            "quote": "It is usually done early in the morning when the water is cool as the warm water of the afternoon may dissolve some of the alum.It clears the excess dyes and makes the whiteness of the Ajrakh stars shine bright."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+            "quote": "Final Wash (Vichharana):The final washing and beating to remove any loose colour is vital."
+          },
+          {
+            "sourceId": "S1",
+            "title": "Geographical Indications Journal No. 188 (19 Dec 2023), G.I. Application No. 1050 - Kutch Ajrakh (journal copy)",
+            "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+            "quote": "Packaging of the Product:Once the Ajrakh print is washed completely, the artisans do ancillary activities like pressing, packaging before selling it to the clients/ customers."
+          }
+        ]
+      },
+      "items": [],
+      "clothStateId": "ajrakh-09"
+    }
+  ],
+  "products": [
+    {
+      "id": "ajrakh-p1",
+      "file": "/walkthrough/products/ajrakh-p1.jpg",
+      "name": "Ajrakh Textile",
+      "holder": "Mingei International Museum",
+      "widthPx": 2451,
+      "heightPx": 1771
+    },
+    {
+      "id": "ajrakh-p2",
+      "file": "/walkthrough/products/ajrakh-p2.jpg",
+      "name": "Ajrakh Textile",
+      "holder": "Mingei International Museum",
+      "widthPx": 1702,
+      "heightPx": 2217
+    },
+    {
+      "id": "ajrakh-p3",
+      "file": "/walkthrough/products/ajrakh-p3.jpg",
+      "name": "Ajrakh Textile",
+      "holder": "Ahub1988, Wikimedia Commons",
+      "widthPx": 4137,
+      "heightPx": 1821
+    },
+    {
+      "id": "ajrakh-p4",
+      "file": "/walkthrough/products/ajrakh-p4.jpg",
+      "name": "Ajrakh Textile",
+      "holder": "Victoria and Albert Museum, London",
+      "widthPx": 1824,
+      "heightPx": 2343
+    },
+    {
+      "id": "ajrakh-p5",
+      "file": "/walkthrough/products/ajrakh-p5.jpg",
+      "name": "Ajrakh Textile",
+      "holder": "Victoria and Albert Museum, London",
+      "widthPx": 2265,
+      "heightPx": 1272
+    },
+    {
+      "id": "ajrakh-p6",
+      "file": "/walkthrough/products/ajrakh-p6.jpg",
+      "name": "Ajrakh Textile",
+      "holder": "MyKutch",
+      "widthPx": 3872,
+      "heightPx": 2592
+    }
+  ]
+}

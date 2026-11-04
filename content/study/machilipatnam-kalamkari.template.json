@@ -1,0 +1,452 @@
+{
+  "tradition": "machilipatnam-kalamkari",
+  "traditionName": "Machilipatnam Kalamkari",
+  "rawClothStateId": "machilipatnam-kalamkari-raw",
+  "stages": [
+    {
+      "number": 1,
+      "key": "machilipatnam-kalamkari.block-carving",
+      "sourceStageKeys": [
+        "machilipatnam-kalamkari.process_stage.block-carving"
+      ],
+      "name": "Block Carving",
+      "localName": null,
+      "kind": "carve",
+      "caption": {
+        "text": "The outline drawing is carved on wooden blocks which are then used for printing. Each colour gets its own block.",
+        "sources": [
+          {
+            "sourceId": "S3",
+            "title": "One District One Product — Krishna district (Pedana Kalamkari)",
+            "locator": "§ \"AWARDS:\"",
+            "quote": "In the Pedana / Machilipatnam style, the outline drawing is carved on wooden blocks which are then used to print on fabrics."
+          },
+          {
+            "sourceId": "S13",
+            "title": "Kalamkari: An Introduction",
+            "locator": "§ \"Rajarshi Sengupta\"",
+            "quote": "In Machilipatnam, for the block printed textiles, line drawings are not necessary. The textiles produced here can be monochromatic or polychromatic and for each colour, separate blocks are used."
+          }
+        ]
+      },
+      "items": [],
+      "clothStateId": "machilipatnam-kalamkari-01"
+    },
+    {
+      "number": 2,
+      "key": "machilipatnam-kalamkari.scouring-and-dung-bleaching",
+      "sourceStageKeys": [
+        "machilipatnam-kalamkari.process_stage.scouring-dung-bleaching"
+      ],
+      "name": "Scouring / Dung Bleaching",
+      "localName": null,
+      "kind": "soak",
+      "caption": {
+        "text": "Grey cloth is soaked in dung and water, kept wet overnight, washed in flowing water, spread over waterweed and dried in the sun.",
+        "sources": [
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 7",
+            "quote": "The next morning it is washed in flowing water and spread over waterweed and dried in the sun."
+          },
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 6",
+            "quote": "6.b Elaboration of printing process i) Bleaching The unbleached material/cloth/gray cloth is soaked in a solution of buffalo or cow dung and water for 5 to 10 minutes. It is wrung out a little and kept wet overnight."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "machilipatnam-kalamkari.material.cow-dung",
+          "role": "material",
+          "label": "Cow Or Buffalo Dung",
+          "localName": null,
+          "modelId": "lump-basket"
+        },
+        {
+          "key": "machilipatnam-kalamkari.material.kora-cotton-cloth",
+          "role": "material",
+          "label": "Unbleached Cotton",
+          "localName": null,
+          "modelId": "cloth-bale"
+        }
+      ],
+      "clothStateId": "machilipatnam-kalamkari-02"
+    },
+    {
+      "number": 3,
+      "key": "machilipatnam-kalamkari.myrobalan-treatment",
+      "sourceStageKeys": [
+        "machilipatnam-kalamkari.process_stage.myrobalan-treatment"
+      ],
+      "name": "Myrobalan Treatment",
+      "localName": "Karakkaya",
+      "kind": "soak",
+      "caption": {
+        "text": "The bleached cloth is dipped in myrobalan solution, squeezed and dried in the sun.",
+        "sources": [
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 7",
+            "quote": "(The process has been described earlier.) The material is dipped into this solution, removed immediately and squeezed out and dried in the sun. The tannin in the myrobalan plays a special role."
+          },
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 7",
+            "quote": "The cloth thus bleached is then soaked in a myrobalan solution."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "machilipatnam-kalamkari.material.myrobalan-karakkaya",
+          "role": "material",
+          "label": "Myrobalan",
+          "localName": "Karakkaya",
+          "modelId": "powder-bowl"
+        }
+      ],
+      "clothStateId": "machilipatnam-kalamkari-03"
+    },
+    {
+      "number": 4,
+      "key": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+      "sourceStageKeys": [
+        "machilipatnam-kalamkari.process_stage.mordant-printing-kasim",
+        "machilipatnam-kalamkari.process_stage.mordant-printing-karam"
+      ],
+      "name": "Printing Iron Mordant And Alum Mordant",
+      "localName": "Kasim, Karam",
+      "kind": "table",
+      "caption": {
+        "text": "Gum-mixed black colour is printed with a wooden block, usually to outline the design. Alum-based red paste is block-printed where red is needed.",
+        "sources": [
+          {
+            "sourceId": "S3",
+            "title": "One District One Product — Krishna district (Pedana Kalamkari)",
+            "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+            "quote": "The black colour is taken by a wooden block from the colour tray and printing usually outlines of the design."
+          },
+          {
+            "sourceId": "S3",
+            "title": "One District One Product — Krishna district (Pedana Kalamkari)",
+            "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+            "quote": "Printing with Black colour: The gum mixed black colour is taken in colour trays."
+          },
+          {
+            "sourceId": "S3",
+            "title": "One District One Product — Krishna district (Pedana Kalamkari)",
+            "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+            "quote": "Printing with Alum solution: The Alum red tinted printing paste is taken in colour tray. This alum solution is taken by the blocks from the trays and printed where ever red colour is necessary."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "machilipatnam-kalamkari.tool.printing-pad-tray",
+          "role": "tool",
+          "label": "Mordant/Colour Printing Pad",
+          "localName": null,
+          "modelId": "printing-tray"
+        },
+        {
+          "key": "machilipatnam-kalamkari.tool.printing-table",
+          "role": "tool",
+          "label": "Printing Table With Gunny And Damp Cloth",
+          "localName": null,
+          "modelId": "printing-table"
+        },
+        {
+          "key": "machilipatnam-kalamkari.tool.teak-printing-blocks",
+          "role": "tool",
+          "label": "Carved Wooden Printing Blocks",
+          "localName": null,
+          "modelId": "carved-block"
+        },
+        {
+          "key": "machilipatnam-kalamkari.material.kasim-iron-acetate",
+          "role": "material",
+          "label": "Iron Acetate Black Mordant",
+          "localName": "Kasim",
+          "modelId": "liquid-pot"
+        },
+        {
+          "key": "machilipatnam-kalamkari.material.gum-binder",
+          "role": "material",
+          "label": "Gum",
+          "localName": null,
+          "modelId": "paste-bowl"
+        },
+        {
+          "key": "machilipatnam-kalamkari.material.alum-karam",
+          "role": "material",
+          "label": "Alum",
+          "localName": "Karam",
+          "modelId": "powder-bowl"
+        }
+      ],
+      "clothStateId": "machilipatnam-kalamkari-04"
+    },
+    {
+      "number": 5,
+      "key": "machilipatnam-kalamkari.curing-and-degumming-wash",
+      "sourceStageKeys": [
+        "machilipatnam-kalamkari.process_stage.curing-drying",
+        "machilipatnam-kalamkari.process_stage.degumming-wash"
+      ],
+      "name": "Drying / Curing And Degumming Wash",
+      "localName": null,
+      "kind": "wash",
+      "caption": {
+        "text": "After block printing the cloth is kept two to three days until dried. The cloth is washed in flowing water to remove gum and unwanted mordant so colour does not develop in unwanted areas; after washing for one hour it is dried in the sun.",
+        "sources": [
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 10",
+            "quote": "Degumming and Washing After block printing the cloth is kept for two to three days until dried."
+          },
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 10",
+            "quote": "It is washed in flowing water to remove the gum and any unwanted mordant so as to avoid development of color in any unwanted area due to spreading of the mordant. After washing for one hour, it is dried in the sun."
+          }
+        ]
+      },
+      "items": [],
+      "clothStateId": "machilipatnam-kalamkari-05"
+    },
+    {
+      "number": 6,
+      "key": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
+      "sourceStageKeys": [
+        "machilipatnam-kalamkari.process_stage.alizarin-boiling",
+        "machilipatnam-kalamkari.process_stage.post-dye-sun-drying"
+      ],
+      "name": "Dye-Bath Boiling And Sun-Drying",
+      "localName": null,
+      "kind": "boil",
+      "caption": {
+        "text": "The mordant-printed fabric is submerged and boiled for an hour and a half with alizarin and jajaku leaves, swirled for even permeation. After red has developed the cloth is taken out, squeezed and dried in the sun.",
+        "sources": [
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 10",
+            "quote": "The mordant-printed fabric is then completely submerged and allowed to boil for an hour and a half. The cloth is properly swirled ensuring even permeation of alizerine."
+          },
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 11",
+            "quote": "Fabric being boiled in Jajaku leaves and Alizarine After the red color has developed, the cloth is taken out, squeezed and dried in the sun."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "machilipatnam-kalamkari.tool.boiling-vessels-and-ovens",
+          "role": "tool",
+          "label": "Boiling Vessels And Fire-Places",
+          "localName": null,
+          "modelId": "boiling-vessel"
+        },
+        {
+          "key": "machilipatnam-kalamkari.material.alizarin-and-red-roots",
+          "role": "material",
+          "label": "Alizarin, Madder And Chay Root",
+          "localName": null,
+          "modelId": "lump-basket"
+        },
+        {
+          "key": "machilipatnam-kalamkari.material.dye-bath-plant-additives",
+          "role": "material",
+          "label": "Dye-Bath Plant Additives",
+          "localName": null,
+          "modelId": "lump-basket"
+        }
+      ],
+      "clothStateId": "machilipatnam-kalamkari-06"
+    },
+    {
+      "number": 7,
+      "key": "machilipatnam-kalamkari.second-printing",
+      "sourceStageKeys": [
+        "machilipatnam-kalamkari.process_stage.second-printing"
+      ],
+      "name": "Second Printing",
+      "localName": null,
+      "kind": "table",
+      "caption": {
+        "text": "A second printing applies yellow, green, pink, grey and indigo; yellow is brushed on with a date-palm stick over starched cloth.",
+        "sources": [
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 12",
+            "quote": "Printing of Yellow, Green and Indigo After the above process, the second printing is carried out. This involves the printing of yellow, green, pink, gray and indigo."
+          },
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 12",
+            "quote": "For yellow, the fabric is dipped in prepared starch (boiled rice water)."
+          },
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 12",
+            "quote": "This is the only stage where a brush (made of date-palm stick) is used to apply the yellow color (prepared myrobalan solution)."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "machilipatnam-kalamkari.tool.date-palm-brush-and-kalam",
+          "role": "tool",
+          "label": "Date-Palm Brush And Kalam",
+          "localName": null,
+          "modelId": "spoon"
+        },
+        {
+          "key": "machilipatnam-kalamkari.material.rice-starch",
+          "role": "material",
+          "label": "Rice Starch",
+          "localName": null,
+          "modelId": "paste-bowl"
+        },
+        {
+          "key": "machilipatnam-kalamkari.material.indigo",
+          "role": "material",
+          "label": "Indigo",
+          "localName": null,
+          "modelId": "liquid-pot"
+        },
+        {
+          "key": "machilipatnam-kalamkari.material.myrobalan-karakkaya",
+          "role": "material",
+          "label": "Myrobalan",
+          "localName": "Karakkaya",
+          "modelId": "powder-bowl"
+        }
+      ],
+      "clothStateId": "machilipatnam-kalamkari-07"
+    },
+    {
+      "number": 8,
+      "key": "machilipatnam-kalamkari.alum-fixing-dip",
+      "sourceStageKeys": [
+        "machilipatnam-kalamkari.process_stage.alum-fixing-dip"
+      ],
+      "name": "Alum Fixing Dip",
+      "localName": null,
+      "kind": "soak",
+      "caption": {
+        "text": "The fabric is submerged in alum solution; the excess yellow runs off and all colours are fixed.",
+        "sources": [
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 12",
+            "quote": "The fabric is then submerged in this solution for a while. The excess yellow color runs off and all the colors are fixed."
+          },
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 12",
+            "quote": "The alum solution is made by adding cool water to pounded alum crystals. The fabric is then submerged in this solution for a while."
+          }
+        ]
+      },
+      "items": [
+        {
+          "key": "machilipatnam-kalamkari.material.alum-karam",
+          "role": "material",
+          "label": "Alum",
+          "localName": "Karam",
+          "modelId": "powder-bowl"
+        }
+      ],
+      "clothStateId": "machilipatnam-kalamkari-08"
+    },
+    {
+      "number": 9,
+      "key": "machilipatnam-kalamkari.soaping-and-final-sun-drying",
+      "sourceStageKeys": [
+        "machilipatnam-kalamkari.process_stage.soaping-finishing"
+      ],
+      "name": "Soaping And Final Sun-Drying",
+      "localName": null,
+      "kind": "finish",
+      "caption": {
+        "text": "The last stage is washing with soap, after which the cloth is dried in the sun.",
+        "sources": [
+          {
+            "sourceId": "S4",
+            "title": "Kalamkari — The Block Prints of Machalipatnam (craft documentation)",
+            "locator": "PDF p. 13",
+            "quote": "Soaping The last stage is washing with soap after which the cloth is dried in the sun."
+          }
+        ]
+      },
+      "items": [],
+      "clothStateId": "machilipatnam-kalamkari-09"
+    }
+  ],
+  "products": [
+    {
+      "id": "machilipatnam-kalamkari-p1",
+      "file": "/walkthrough/products/machilipatnam-kalamkari-p1.jpg",
+      "name": "Machilipatnam Kalamkari Textile",
+      "holder": "Victoria and Albert Museum, London",
+      "widthPx": 1836,
+      "heightPx": 2445
+    },
+    {
+      "id": "machilipatnam-kalamkari-p2",
+      "file": "/walkthrough/products/machilipatnam-kalamkari-p2.jpg",
+      "name": "Machilipatnam Kalamkari Textile",
+      "holder": "Victoria and Albert Museum, London",
+      "widthPx": 1434,
+      "heightPx": 2429
+    },
+    {
+      "id": "machilipatnam-kalamkari-p3",
+      "file": "/walkthrough/products/machilipatnam-kalamkari-p3.jpg",
+      "name": "Machilipatnam Kalamkari Textile",
+      "holder": "Victoria and Albert Museum, London",
+      "widthPx": 1764,
+      "heightPx": 1773
+    },
+    {
+      "id": "machilipatnam-kalamkari-p4",
+      "file": "/walkthrough/products/machilipatnam-kalamkari-p4.jpg",
+      "name": "Machilipatnam Kalamkari Textile",
+      "holder": "Rooftop",
+      "widthPx": 3840,
+      "heightPx": 5772
+    },
+    {
+      "id": "machilipatnam-kalamkari-p5",
+      "file": "/walkthrough/products/machilipatnam-kalamkari-p5.jpg",
+      "name": "Machilipatnam Kalamkari Textile",
+      "holder": "Rooftop",
+      "widthPx": 3840,
+      "heightPx": 3017
+    },
+    {
+      "id": "machilipatnam-kalamkari-p6",
+      "file": "/walkthrough/products/machilipatnam-kalamkari-p6.jpg",
+      "name": "Machilipatnam Kalamkari Textile",
+      "holder": "MAP Academy",
+      "widthPx": 1172,
+      "heightPx": 1144
+    }
+  ]
+}
