@@ -1,0 +1,124 @@
+import { stillPath } from "./asset-catalogue";
+import type { StageItem } from "./stage-template";
+import { SUBSTANCE_LOOK_ROWS } from "./substance-look-rows";
+
+export type SubstanceForm = "liquid" | "paste" | "powder" | "crystals" | "roots" | "flowers" | "cloth" | "other";
+export type SubstanceFill = "liquid" | "paste" | "powder" | "crystals" | "roots" | "flowers" | "cloth" | "dung" | "leaves";
+export type Transparency = "clear" | "translucent" | "opaque";
+export type RenderBasis = "evidence" | "inferred" | "provisional";
+export type LookStatus = "sourced" | "inferred" | "partial" | "needs-lead";
+
+export interface SubstanceLookRow {
+  readonly key: string;
+  readonly stages: readonly string[];
+  readonly label: string;
+  readonly partOfTemplateLabel: string | null;
+  readonly form: string;
+  readonly renderHex: string;
+  readonly renderBasis: string;
+  readonly status: string;
+  readonly transparency: string;
+  readonly surface: string;
+  readonly vesselSuggestion: string | null;
+}
+
+export interface SubstanceLook {
+  readonly key: string;
+  readonly label: string;
+  readonly fill: SubstanceFill;
+  readonly renderHex: string;
+  readonly transparency: Transparency;
+  readonly surface: string;
+  readonly renderBasis: RenderBasis;
+  readonly status: LookStatus;
+  readonly vesselModelId: string;
+}
+
+const LEAF_SURFACE = "dry leaf";
+const TRAY_MODEL = "printing-tray";
+const WORK_LIQUID_MODELS: ReadonlySet<string> = new Set(["dye-vat", "wash-tank", "boiling-vessel"]);
+
+const VESSEL_BY_FILL: Readonly<Record<SubstanceFill, string>> = {
+  liquid: "liquid-pot",
+  paste: "paste-bowl",
+  powder: "powder-bowl",
+  crystals: "crystal-bowl",
+  roots: "lump-basket",
+  flowers: "lump-basket",
+  dung: "lump-basket",
+  leaves: "lump-basket",
+  cloth: "cloth-bale",
+};
+
+function fillOf(row: SubstanceLookRow): SubstanceFill {
+  if (row.form === "other") return row.surface === LEAF_SURFACE ? "leaves" : "dung";
+  return row.form as SubstanceFill;
+}
+
+function lookOf(row: SubstanceLookRow): SubstanceLook {
+  const fill = fillOf(row);
+  return {
+    key: row.key,
+    label: row.label,
+    fill,
+    renderHex: row.renderHex,
+    transparency: row.transparency as Transparency,
+    surface: row.surface,
+    renderBasis: row.renderBasis as RenderBasis,
+    status: row.status as LookStatus,
+    vesselModelId: VESSEL_BY_FILL[fill],
+  };
+}
+
+const rowsOfStage = (stageKey: string): readonly SubstanceLookRow[] => SUBSTANCE_LOOK_ROWS.filter((row) => row.stages.includes(stageKey));
+
+const namesItem = (row: SubstanceLookRow, label: string): boolean => row.label === label || row.partOfTemplateLabel === label;
+
+export function looksOfItem(stageKey: string, item: Pick<StageItem, "label" | "role">): readonly SubstanceLook[] {
+  if (item.role !== "material") return [];
+  return rowsOfStage(stageKey)
+    .filter((row) => namesItem(row, item.label))
+    .map(lookOf);
+}
+
+export function workLiquidOf(stageKey: string, items: readonly Pick<StageItem, "label" | "role">[]): SubstanceLook | null {
+  const liquids = rowsOfStage(stageKey).filter((row) => row.form === "liquid");
+  const materialLabels = items.filter((item) => item.role === "material").map((item) => item.label);
+  const row = liquids.find((candidate) => !materialLabels.some((label) => namesItem(candidate, label))) ?? liquids[0];
+  return row ? lookOf(row) : null;
+}
+
+export function trayPadLookOf(stageKey: string): SubstanceLook | null {
+  const row = rowsOfStage(stageKey).find((candidate) => candidate.vesselSuggestion === "colour tray");
+  if (row) return lookOf(row);
+  const tradition = stageKey.split(".")[0];
+  const cloth = SUBSTANCE_LOOK_ROWS.find((candidate) => candidate.form === "cloth" && candidate.key.startsWith(`${tradition}-`));
+  return cloth ? lookOf(cloth) : null;
+}
+
+export const materialStillPath = (lookKey: string): string => `/walkthrough/stills/materials/${lookKey}.jpg`;
+export const toolStillPath = (modelId: string, liquidHex: string): string => `/walkthrough/stills/tools/${modelId}-${liquidHex.replace("#", "").toLowerCase()}.jpg`;
+
+export function stageItemStillPath(stageKey: string, items: readonly StageItem[], item: StageItem): string {
+  if (item.role === "material") {
+    const look = looksOfItem(stageKey, item)[0];
+    return look ? materialStillPath(look.key) : stillPath(item.modelId);
+  }
+  if (item.modelId === TRAY_MODEL) {
+    const pad = trayPadLookOf(stageKey);
+    return pad ? toolStillPath(item.modelId, pad.renderHex) : stillPath(item.modelId);
+  }
+  if (WORK_LIQUID_MODELS.has(item.modelId)) {
+    const liquid = workLiquidOf(stageKey, items);
+    return liquid ? toolStillPath(item.modelId, liquid.renderHex) : stillPath(item.modelId);
+  }
+  return stillPath(item.modelId);
+}
+
+export function liquidMarks(look: Pick<SubstanceLook, "surface">): { readonly scum: boolean; readonly bubbles: boolean } {
+  return { scum: /scum/.test(look.surface), bubbles: /bubbles|soapy|lather/.test(look.surface) };
+}
+
+export function itemVesselModel(stageKey: string, item: Pick<StageItem, "label" | "role">): string | null {
+  return looksOfItem(stageKey, item)[0]?.vesselModelId ?? null;
+}

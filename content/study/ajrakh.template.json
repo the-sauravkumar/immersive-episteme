@@ -42,14 +42,14 @@
           "role": "tool",
           "label": "Washing Paddle",
           "localName": "Dhoki",
-          "modelId": "mallet"
+          "modelId": "washing-paddle"
         },
         {
           "key": "ajrakh.material.neerani-scouring-mix",
           "role": "material",
           "label": "Neerani",
           "localName": null,
-          "modelId": "lump-basket"
+          "modelId": "liquid-pot"
         },
         {
           "key": "ajrakh.material.camel-dung",
@@ -210,7 +210,7 @@
           "role": "material",
           "label": "Alum",
           "localName": "Fatakdi",
-          "modelId": "powder-bowl"
+          "modelId": "crystal-bowl"
         },
         {
           "key": "ajrakh.material.tamarind-seed-paste",
@@ -275,7 +275,7 @@
           "role": "material",
           "label": "Indigo",
           "localName": null,
-          "modelId": "liquid-pot"
+          "modelId": "powder-bowl"
         }
       ],
       "clothStateId": "ajrakh-05"
@@ -363,7 +363,7 @@
           "role": "material",
           "label": "Synthetic Alizarin",
           "localName": null,
-          "modelId": "liquid-pot"
+          "modelId": "crystal-bowl"
         },
         {
           "key": "ajrakh.material.dhawri-tamarisk",

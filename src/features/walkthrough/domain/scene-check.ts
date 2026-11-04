@@ -21,8 +21,22 @@ export interface ClothMesh {
   readonly indices: Uint32Array;
 }
 
+export interface CheckedSphere {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly r: number;
+}
+
+export interface FillAudit {
+  readonly name: string;
+  readonly points: Float32Array;
+  readonly outsideDepth: (point: Vec3) => number;
+  readonly pieces: readonly (readonly CheckedSphere[])[];
+}
+
 export interface SceneProblem {
-  readonly rule: "solid-overlap" | "outside-yard" | "below-ground" | "through-wall" | "cloth-penetration";
+  readonly rule: "solid-overlap" | "outside-yard" | "below-ground" | "through-wall" | "cloth-penetration" | "fill-outside-vessel" | "fill-overlap";
   readonly subject: string;
   readonly against: string;
   readonly depthMm: number;
@@ -34,17 +48,21 @@ export interface SceneCheckInput {
   readonly fields: readonly SolidField[];
   readonly cloths: readonly ClothMesh[];
   readonly groundIsOpenAt: (x: number, z: number) => boolean;
+  readonly fills?: readonly FillAudit[];
 }
 
 export interface SceneCheckReport {
   readonly solidsChecked: number;
   readonly clothPointsChecked: number;
+  readonly fillPointsChecked: number;
+  readonly fillPiecesChecked: number;
   readonly problems: readonly SceneProblem[];
 }
 
 const TOLERANCE_METRES = 0.004;
 const GROUND_ALLOWANCE_METRES = 0.002;
 const PLANTED_DEPTH_METRES = 0.12;
+const PIECE_TOLERANCE_METRES = 0.0002;
 
 const mm = (metres: number): number => Math.round(metres * 10000) / 10;
 
@@ -107,8 +125,36 @@ function clothProblems(input: SceneCheckInput, count: { points: number }): Scene
   return [...worst.values()];
 }
 
+function piecesOverlapDepth(a: readonly CheckedSphere[], b: readonly CheckedSphere[]): number {
+  let deepest = 0;
+  for (const one of a) {
+    for (const other of b) deepest = Math.max(deepest, one.r + other.r - Math.hypot(one.x - other.x, one.y - other.y, one.z - other.z));
+  }
+  return deepest;
+}
+
+function fillProblems(input: SceneCheckInput, count: { fillPoints: number; fillPieces: number }): SceneProblem[] {
+  const problems: SceneProblem[] = [];
+  for (const fill of input.fills ?? []) {
+    let deepest = 0;
+    const p = fill.points;
+    for (let k = 0; k < p.length; k += 3) {
+      count.fillPoints++;
+      deepest = Math.max(deepest, fill.outsideDepth([p[k]!, p[k + 1]!, p[k + 2]!]));
+    }
+    if (deepest > TOLERANCE_METRES) problems.push({ rule: "fill-outside-vessel", subject: fill.name, against: "vessel", depthMm: mm(deepest) });
+    count.fillPieces += fill.pieces.length;
+    let overlap = 0;
+    for (let i = 0; i < fill.pieces.length; i++) {
+      for (let j = i + 1; j < fill.pieces.length; j++) overlap = Math.max(overlap, piecesOverlapDepth(fill.pieces[i]!, fill.pieces[j]!));
+    }
+    if (overlap > PIECE_TOLERANCE_METRES) problems.push({ rule: "fill-overlap", subject: fill.name, against: "another piece", depthMm: mm(overlap) });
+  }
+  return problems;
+}
+
 export function checkScene(input: SceneCheckInput): SceneCheckReport {
-  const count = { points: 0 };
-  const problems = [...solidProblems(input), ...clothProblems(input, count)];
-  return { solidsChecked: input.solids.length, clothPointsChecked: count.points, problems };
+  const count = { points: 0, fillPoints: 0, fillPieces: 0 };
+  const problems = [...solidProblems(input), ...clothProblems(input, count), ...fillProblems(input, count)];
+  return { solidsChecked: input.solids.length, clothPointsChecked: count.points, fillPointsChecked: count.fillPoints, fillPiecesChecked: count.fillPieces, problems };
 }

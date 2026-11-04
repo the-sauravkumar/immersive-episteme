@@ -1,7 +1,7 @@
 const fs = require("fs");
 const { launchGpu, rendererOf } = require("C:/Tools/Playwright/launch.cjs");
-const base = "http://127.0.0.1:" + (process.env.LAB_PORT || 8940) + "/?s=";
-const SCENES = (process.argv[2] || "vat,table,wash,hall,practice,entrance").split(",");
+const base = "http://127.0.0.1:" + (process.env.LAB_PORT || 8940) + "/?";
+const SCENES = (process.argv[2] || "t=ajrakh&n=4,t=ajrakh&n=2,t=ajrakh&n=5,t=ajrakh&n=9,s=practice,s=entrance").split(",");
 const out = process.argv[3];
 (async () => {
   const browser = await launchGpu();

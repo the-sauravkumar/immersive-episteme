@@ -22,12 +22,14 @@ const SCENES = process.argv[2] ? process.argv[2].split(",") : ["s=practice", "s=
     const report = await page.evaluate("window.QA(false)");
     const planted = await page.evaluate("window.QA(true)");
     const caught = planted.problems.length > report.problems.length;
-    console.log(scene, "solids", report.solidsChecked, "clothPoints", report.clothPointsChecked, "hits", report.problems.length, "plantedFaultCaught", caught);
+    const plantedFill = await page.evaluate("window.QA(false,true)");
+    const fillCaught = report.fillPointsChecked === 0 || plantedFill.problems.some((problem) => problem.rule === "fill-outside-vessel");
+    console.log(scene, "solids", report.solidsChecked, "clothPoints", report.clothPointsChecked, "fillPoints", report.fillPointsChecked, "fillPieces", report.fillPiecesChecked, "hits", report.problems.length, "plantedFaultCaught", caught, "plantedFillCaught", fillCaught);
     for (const problem of report.problems) console.log("  ", JSON.stringify(problem));
     const walk = await page.evaluate("window.walkCheck()");
     if (walk) console.log("   walk", JSON.stringify(walk));
     if (walk && !walk.reachedEnd) failed++;
-    if (report.problems.length > 0 || !caught) failed++;
+    if (report.problems.length > 0 || !caught || !fillCaught) failed++;
     await page.close();
   }
   await browser.close();

@@ -5,20 +5,18 @@ export interface CatalogueModel {
   readonly form: ModelForm;
   readonly scan: string | null;
   readonly heightMetres: number;
-  readonly fill: string | null;
   readonly standIn: true;
 }
 
-const scan = (id: string, file: string, heightMetres: number, fill: string | null = null): CatalogueModel => ({
+const scan = (id: string, file: string, heightMetres: number): CatalogueModel => ({
   id,
   form: "scan",
   scan: file,
   heightMetres,
-  fill,
   standIn: true,
 });
 
-const integral = (id: string): CatalogueModel => ({ id, form: "integral", scan: null, heightMetres: 0, fill: null, standIn: true });
+const integral = (id: string): CatalogueModel => ({ id, form: "integral", scan: null, heightMetres: 0, standIn: true });
 
 export const ASSET_CATALOGUE: readonly CatalogueModel[] = [
   integral("printing-table"),
@@ -27,24 +25,26 @@ export const ASSET_CATALOGUE: readonly CatalogueModel[] = [
   integral("boiling-vessel"),
   integral("carved-block"),
   integral("printing-tray"),
-  scan("bowl-wood", "wooden_bowl_01", 0.14),
-  scan("bowl-clay", "planter_pot_clay", 0.24),
-  scan("pot-ceramic", "ceramic_pot", 0.42),
-  scan("pot-brass", "brass_pot_01", 0.34),
-  scan("pan-brass", "brass_pan_01", 0.07),
-  scan("jug-metal", "metal_jug", 0.3),
-  scan("bucket", "wooden_bucket_01", 0.38),
-  scan("tub", "wooden_bucket_02", 0.42),
-  scan("basket", "wicker_basket_01", 0.16),
-  scan("crate", "wooden_crate_01", 0.36),
-  scan("mallet", "wooden_hammer_01", 0.3),
-  scan("board", "wooden_cutting_board", 0.05),
-  scan("spoon", "wooden_spoon", 0.04),
-  scan("powder-bowl", "wooden_bowl_01", 0.14, "powder"),
-  scan("paste-bowl", "wooden_bowl_01", 0.14, "paste"),
-  scan("liquid-pot", "planter_pot_clay", 0.24, "liquid"),
-  scan("lump-basket", "wicker_basket_01", 0.16, "lumps"),
-  scan("cloth-bale", "wooden_crate_01", 0.36, "cloth"),
+  integral("washing-paddle"),
+  integral("carving-chisels"),
+  integral("brush-and-kalam"),
+  scan("bowl-wood", "wooden_bowl_01", 0.094),
+  scan("bowl-clay", "planter_pot_clay", 0.222),
+  scan("pot-ceramic", "ceramic_pot", 0.372),
+  scan("pot-brass", "brass_pot_01", 0.291),
+  scan("pan-brass", "brass_pan_01", 0.0525),
+  scan("jug-metal", "metal_jug", 0.288),
+  scan("bucket", "wooden_bucket_01", 0.55),
+  scan("tub", "wooden_bucket_02", 0.35),
+  scan("basket", "wicker_basket_01", 0.117),
+  scan("crate", "wooden_crate_01", 0.35),
+  scan("board", "wooden_cutting_board", 0.041),
+  scan("powder-bowl", "wooden_bowl_01", 0.094),
+  scan("paste-bowl", "wooden_bowl_01", 0.094),
+  scan("crystal-bowl", "wooden_bowl_01", 0.094),
+  scan("liquid-pot", "planter_pot_clay", 0.222),
+  scan("lump-basket", "wicker_basket_01", 0.117),
+  scan("cloth-bale", "wooden_crate_01", 0.35),
 ];
 
 export function catalogueModel(id: string): CatalogueModel {

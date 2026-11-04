@@ -16,6 +16,15 @@ export const SCANS = {
   timber: { id: "weathered_brown_planks", tileMetres: 1.8 },
   table: { id: "wood_table_worn", tileMetres: 0.55 },
   weave: { id: "rough_linen", tileMetres: 0.27 },
+  bamboo: { id: "bamboo_veneer", tileMetres: 0.6 },
+  copper: { id: "Metal008", tileMetres: 1 },
+  steel: { id: "metal_plate_02", tileMetres: 0.5 },
+  dryMud: { id: "brown_mud_dry", tileMetres: 0.65 },
+  wetMud: { id: "brown_mud", tileMetres: 0.65 },
+  bark: { id: "bark_willow", tileMetres: 0.28 },
+  leaves: { id: "dry_decay_leaves", tileMetres: 0.45 },
+  flour: { id: "macro_flour", tileMetres: 0.3 },
+  sawdust: { id: "wood_chips_003", tileMetres: 0.4 },
 } as const satisfies Record<string, ScanSpec>;
 
 export type ScanName = keyof typeof SCANS;
@@ -47,6 +56,7 @@ export class MaterialLibrary {
   private readonly models = new GLTFLoader();
   private readonly scans = new Map<ScanName, Promise<ScanTextures>>();
   private readonly scenes = new Map<string, Promise<THREE.Object3D>>();
+  private readonly sharedResources = new Map<string, Promise<object>>();
   private readonly kept = new WeakSet<object>();
   private readonly anisotropy: number;
 
@@ -91,6 +101,18 @@ export class MaterialLibrary {
 
   keep(resource: object): void {
     this.kept.add(resource);
+  }
+
+  shared<T extends object>(key: string, build: () => Promise<T>): Promise<T> {
+    const known = this.sharedResources.get(key) as Promise<T> | undefined;
+    if (known) return known;
+    const loading = build().then((resource) => {
+      this.kept.add(resource);
+      return resource;
+    });
+    this.sharedResources.set(key, loading);
+    loading.catch(() => this.sharedResources.delete(key));
+    return loading;
   }
 
   keeps(resource: object): boolean {

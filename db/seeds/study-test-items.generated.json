@@ -10,7 +10,51 @@
     "paged": true,
     "items": [
       {
-        "itemKey": "pre.id.ajrakh.6.0",
+        "itemKey": "pre.id.ajrakh.1.0",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Washing Paddle"
+            },
+            {
+              "id": "o2",
+              "label": "Copper Dye Pot And Stirring Sticks"
+            },
+            {
+              "id": "o3",
+              "label": "Underground Indigo Vat"
+            },
+            {
+              "id": "o4",
+              "label": "Washing Tanks / River Washing"
+            },
+            {
+              "id": "dont-know",
+              "label": "I do not know"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/washing-paddle.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.scouring-and-washing",
+            "objectKey": "ajrakh.tool.dhoki-paddle"
+          }
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "pre.id.ajrakh.6.1",
         "kind": "single_choice",
         "prompt": "What is this called?",
         "config": {
@@ -22,15 +66,15 @@
             },
             {
               "id": "o2",
-              "label": "Copper Dye Pot And Stirring Sticks"
-            },
-            {
-              "id": "o3",
               "label": "Washing Paddle"
             },
             {
-              "id": "o4",
+              "id": "o3",
               "label": "Underground Indigo Vat"
+            },
+            {
+              "id": "o4",
+              "label": "Hand-Carved Wooden Printing Blocks"
             },
             {
               "id": "dont-know",
@@ -39,7 +83,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/wash-tank.jpg",
+            "path": "/walkthrough/stills/tools/wash-tank-eef1ec.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -51,7 +95,7 @@
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 0
+        "position": 1
       },
       {
         "itemKey": "pre.place.ajrakh.1.0",
@@ -103,7 +147,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/mallet.jpg",
+            "path": "/walkthrough/stills/washing-paddle.jpg",
             "alt": "Washing Paddle"
           },
           "target": {
@@ -115,7 +159,7 @@
         "answerKey": {
           "optionId": "s1"
         },
-        "position": 1
+        "position": 2
       },
       {
         "itemKey": "pre.place.ajrakh.1.1",
@@ -167,7 +211,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/lump-basket.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-neerani-scouring-mix.jpg",
             "alt": "Neerani"
           },
           "target": {
@@ -179,7 +223,7 @@
         "answerKey": {
           "optionId": "s1"
         },
-        "position": 2
+        "position": 3
       },
       {
         "itemKey": "pre.id.machilipatnam-kalamkari.7.0",
@@ -211,7 +255,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/spoon.jpg",
+            "path": "/walkthrough/stills/brush-and-kalam.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -223,7 +267,7 @@
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 3
+        "position": 4
       },
       {
         "itemKey": "pre.place.machilipatnam-kalamkari.2.0",
@@ -275,7 +319,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/lump-basket.jpg",
+            "path": "/walkthrough/stills/materials/machilipatnam-kalamkari-cow-dung.jpg",
             "alt": "Cow Or Buffalo Dung"
           },
           "target": {
@@ -287,7 +331,7 @@
         "answerKey": {
           "optionId": "s2"
         },
-        "position": 4
+        "position": 5
       },
       {
         "itemKey": "pre.place.machilipatnam-kalamkari.2.1",
@@ -339,7 +383,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/cloth-bale.jpg",
+            "path": "/walkthrough/stills/materials/machilipatnam-kalamkari-kora-cotton-cloth.jpg",
             "alt": "Unbleached Cotton"
           },
           "target": {
@@ -351,7 +395,51 @@
         "answerKey": {
           "optionId": "s2"
         },
-        "position": 5
+        "position": 6
+      },
+      {
+        "itemKey": "pre.id.sanganeri.1.0",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Block-Carving Chisels"
+            },
+            {
+              "id": "o2",
+              "label": "Copper Dye Pot And Stirring Sticks"
+            },
+            {
+              "id": "o3",
+              "label": "Washing Paddle"
+            },
+            {
+              "id": "o4",
+              "label": "Underground Indigo Vat"
+            },
+            {
+              "id": "dont-know",
+              "label": "I do not know"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/carving-chisels.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.block-carving",
+            "objectKey": "sanganeri.tool.kalam-chisels"
+          }
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 7
       },
       {
         "itemKey": "pre.place.sanganeri.1.0",
@@ -403,7 +491,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/mallet.jpg",
+            "path": "/walkthrough/stills/carving-chisels.jpg",
             "alt": "Block-Carving Chisels"
           },
           "target": {
@@ -415,7 +503,7 @@
         "answerKey": {
           "optionId": "s1"
         },
-        "position": 6
+        "position": 8
       },
       {
         "itemKey": "pre.place.sanganeri.2.1",
@@ -467,7 +555,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/cloth-bale.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-cotton-mulmul.jpg",
             "alt": "Base Fabric: Cotton, Mulmul And Silk"
           },
           "target": {
@@ -479,7 +567,7 @@
         "answerKey": {
           "optionId": "s2"
         },
-        "position": 7
+        "position": 9
       }
     ]
   },
@@ -519,7 +607,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/cloth-bale.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-cotton-cloth.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -547,20 +635,20 @@
             },
             {
               "id": "o2",
-              "label": "Cotton Base Cloth"
+              "label": "Camel Dung"
             },
             {
               "id": "o3",
-              "label": "Dhawri / Tamarisk Galls"
+              "label": "Cotton Base Cloth"
             },
             {
               "id": "o4",
-              "label": "Gach Mud Resist"
+              "label": "Dhawri / Tamarisk Galls"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-harde-myrobalan.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -601,7 +689,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-kut-iron-paste.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -629,20 +717,20 @@
             },
             {
               "id": "o2",
-              "label": "Indigo"
+              "label": "Gach Mud Resist"
             },
             {
               "id": "o3",
-              "label": "Fermented Iron-Jaggery Black Paste"
+              "label": "Harde"
             },
             {
               "id": "o4",
-              "label": "Khariyanu Resist Paste"
+              "label": "Indigo"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-alum.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -683,7 +771,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/printing-tray.jpg",
+            "path": "/walkthrough/stills/tools/printing-tray-b86a52.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -765,7 +853,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "path": "/walkthrough/stills/materials/machilipatnam-kalamkari-kasim-iron-acetate.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -806,7 +894,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/machilipatnam-kalamkari-gum-binder.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -834,20 +922,20 @@
             },
             {
               "id": "o2",
-              "label": "Camel Dung"
+              "label": "Alum"
             },
             {
               "id": "o3",
-              "label": "Cotton Base Cloth"
+              "label": "Camel Dung"
             },
             {
               "id": "o4",
-              "label": "Dhawri / Tamarisk Galls"
+              "label": "Cotton Base Cloth"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-harda-myrobalan.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -929,7 +1017,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/printing-tray.jpg",
+            "path": "/walkthrough/stills/tools/printing-tray-d8d1b8.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -970,7 +1058,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-syahi-iron-black.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -1043,7 +1131,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/cloth-bale.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-cotton-cloth.jpg",
             "alt": "Cotton Base Cloth"
           },
           "target": {
@@ -1103,7 +1191,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-harde-myrobalan.jpg",
             "alt": "Harde"
           },
           "target": {
@@ -1163,7 +1251,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-kut-iron-paste.jpg",
             "alt": "Fermented Iron-Jaggery Black Paste"
           },
           "target": {
@@ -1223,7 +1311,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-alum.jpg",
             "alt": "Alum"
           },
           "target": {
@@ -1283,7 +1371,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-gach-mud-resist.jpg",
             "alt": "Gach Mud Resist"
           },
           "target": {
@@ -1343,7 +1431,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-dusting-agents.jpg",
             "alt": "Dusting Agents"
           },
           "target": {
@@ -1403,7 +1491,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-indigo.jpg",
             "alt": "Indigo"
           },
           "target": {
@@ -1463,7 +1551,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/wash-tank.jpg",
+            "path": "/walkthrough/stills/tools/wash-tank-eef1ec.jpg",
             "alt": "Washing Tanks / River Washing"
           },
           "target": {
@@ -1523,7 +1611,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/lump-basket.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-madder.jpg",
             "alt": "Indian Madder"
           },
           "target": {
@@ -1583,7 +1671,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-synthetic-alizarin.jpg",
             "alt": "Synthetic Alizarin"
           },
           "target": {
@@ -1643,7 +1731,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/printing-tray.jpg",
+            "path": "/walkthrough/stills/tools/printing-tray-b86a52.jpg",
             "alt": "Mordant/Colour Printing Pad"
           },
           "target": {
@@ -1763,7 +1851,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "path": "/walkthrough/stills/materials/machilipatnam-kalamkari-kasim-iron-acetate.jpg",
             "alt": "Iron Acetate Black Mordant"
           },
           "target": {
@@ -1823,7 +1911,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/machilipatnam-kalamkari-gum-binder.jpg",
             "alt": "Gum"
           },
           "target": {
@@ -1883,7 +1971,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/lump-basket.jpg",
+            "path": "/walkthrough/stills/materials/machilipatnam-kalamkari-alizarin.jpg",
             "alt": "Alizarin, Madder And Chay Root"
           },
           "target": {
@@ -1943,7 +2031,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/lump-basket.jpg",
+            "path": "/walkthrough/stills/materials/machilipatnam-kalamkari-dye-bath-plant-additives.jpg",
             "alt": "Dye-Bath Plant Additives"
           },
           "target": {
@@ -2003,7 +2091,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/machilipatnam-kalamkari-rice-starch.jpg",
             "alt": "Rice Starch"
           },
           "target": {
@@ -2063,7 +2151,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "path": "/walkthrough/stills/materials/machilipatnam-kalamkari-indigo.jpg",
             "alt": "Indigo"
           },
           "target": {
@@ -2123,7 +2211,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-harda-myrobalan.jpg",
             "alt": "Myrobalan"
           },
           "target": {
@@ -2243,7 +2331,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/printing-tray.jpg",
+            "path": "/walkthrough/stills/tools/printing-tray-d8d1b8.jpg",
             "alt": "Colour Tray With Jute-And-Cotton Pad"
           },
           "target": {
@@ -2303,7 +2391,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-syahi-iron-black.jpg",
             "alt": "Fermented Iron Black"
           },
           "target": {
@@ -2363,7 +2451,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-madder-alizarin.jpg",
             "alt": "Madder / Alizarin Dye Bath"
           },
           "target": {
@@ -2423,7 +2511,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/lump-basket.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-dhawai-phool.jpg",
             "alt": "Dhawai Flowers"
           },
           "target": {
@@ -2483,7 +2571,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-sawdust.jpg",
             "alt": "Sawdust"
           },
           "target": {
@@ -2543,7 +2631,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/dye-vat.jpg",
+            "path": "/walkthrough/stills/tools/dye-vat-7c7a36.jpg",
             "alt": "Indigo Vat"
           },
           "target": {
@@ -2603,7 +2691,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-haldi-naspal-yellow.jpg",
             "alt": "Turmeric And Pomegranate-Rind Yellow"
           },
           "target": {
@@ -2663,7 +2751,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/powder-bowl.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-alum-fitkari.jpg",
             "alt": "Alum"
           },
           "target": {
@@ -3650,7 +3738,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-lime-gum-resist.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -3691,7 +3779,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-tamarind-seed-paste.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -3773,7 +3861,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/boiling-vessel.jpg",
+            "path": "/walkthrough/stills/tools/boiling-vessel-7f2a1d.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -3855,7 +3943,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-begar-alum-mordant.jpg",
             "alt": "The object to name"
           },
           "target": {
@@ -3928,7 +4016,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-lime-gum-resist.jpg",
             "alt": "Khariyanu Resist Paste"
           },
           "target": {
@@ -3988,7 +4076,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-tamarind-seed-paste.jpg",
             "alt": "Tamarind Seed Paste"
           },
           "target": {
@@ -4048,7 +4136,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/dye-vat.jpg",
+            "path": "/walkthrough/stills/tools/dye-vat-7c7a36.jpg",
             "alt": "Underground Indigo Vat"
           },
           "target": {
@@ -4108,7 +4196,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/boiling-vessel.jpg",
+            "path": "/walkthrough/stills/tools/boiling-vessel-7f2a1d.jpg",
             "alt": "Copper Dye Pot And Stirring Sticks"
           },
           "target": {
@@ -4168,7 +4256,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/lump-basket.jpg",
+            "path": "/walkthrough/stills/materials/ajrakh-dhawri-tamarisk.jpg",
             "alt": "Dhawri / Tamarisk Galls"
           },
           "target": {
@@ -4288,7 +4376,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/boiling-vessel.jpg",
+            "path": "/walkthrough/stills/tools/boiling-vessel-7f2a1d.jpg",
             "alt": "Boiling Vessels And Fire-Places"
           },
           "target": {
@@ -4348,7 +4436,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/spoon.jpg",
+            "path": "/walkthrough/stills/brush-and-kalam.jpg",
             "alt": "Date-Palm Brush And Kalam"
           },
           "target": {
@@ -4468,7 +4556,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-begar-alum-mordant.jpg",
             "alt": "Alum Mordant Paste"
           },
           "target": {
@@ -4528,7 +4616,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/paste-bowl.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-dabu-resist-paste.jpg",
             "alt": "Mud Resist Paste"
           },
           "target": {
@@ -4588,7 +4676,7 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/liquid-pot.jpg",
+            "path": "/walkthrough/stills/materials/sanganeri-indigo.jpg",
             "alt": "Indigo"
           },
           "target": {

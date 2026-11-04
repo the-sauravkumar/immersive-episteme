@@ -16,6 +16,9 @@ const WALL_REACH = 62;
   await page.goto("http://127.0.0.1:" + (process.env.LAB_PORT || 8941) + "/");
   console.log(await rendererOf(page));
   await page.waitForFunction("window.READY===true");
+  console.log("load seconds", await page.evaluate("+window.loadSeconds.toFixed(1)"));
+  const memory = "(()=>{const m=window.runtime.renderer.info.memory;return {textures:m.textures,geometries:m.geometries}})()";
+  console.log("memory at start", JSON.stringify(await page.evaluate(memory)));
   const stations = await page.evaluate("window.stations");
   for (let target = 1; target < stations; target++) {
     await page.evaluate(`window.frames.length=0;window.runtime.walkTo(${target})`);
@@ -23,7 +26,7 @@ const WALL_REACH = 62;
     const near = await page.evaluate(hillsAway);
     const stats = await page.evaluate("(()=>{const f=[...window.frames].slice(5);return {max:+Math.max(...f).toFixed(0),over50:f.filter(x=>x>50).length,frames:f.length}})()");
     const where = await page.evaluate(place);
-    console.log("station", target + 1, JSON.stringify(where), "hills m", near, JSON.stringify(stats));
+    console.log("station", target + 1, JSON.stringify(where), "hills m", near, JSON.stringify(stats), JSON.stringify(await page.evaluate(memory)));
     if (near < WALL_REACH) faults.push(`station ${target + 1}: hills ${near} m from camera, inside the yard reach of ${WALL_REACH} m`);
     if (out) await page.screenshot({ path: `${out}/route-${target + 1}.jpg`, type: "jpeg", quality: 84 });
   }

@@ -22,7 +22,6 @@ const bundle = () =>
 const fileFor = (url) => {
   if (url === "/") return path.join(__dirname, "index.html");
   if (url.startsWith("/agent-state/")) return path.join(agentData, "state", path.basename(url));
-  if (url.startsWith("/lab-fonts/")) return path.join(process.env.LAB_FONTS, path.basename(url));
   return path.join(root, "public", url);
 };
 
