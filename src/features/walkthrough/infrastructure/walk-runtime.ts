@@ -10,14 +10,14 @@ import { addSun, createRenderer, createRenderView, type RenderView } from "./ren
 
 export interface WalkEvents {
   readonly onStationEntered: (station: RouteStation, index: number) => void;
-  readonly onStationLeft: (station: RouteStation, index: number, seconds: number) => void;
+  readonly onStationLeft: (station: RouteStation, index: number, activeMs: number, walkingMs: number, viewpointChanges: number) => void;
+  readonly onWrongTurn: (station: RouteStation) => void;
   readonly onObjectDwell: (station: RouteStation, itemKey: string, seconds: number, nearestMetres: number) => void;
-  readonly onPath: (x: number, z: number, walkedMetres: number) => void;
-  readonly onLook: () => void;
-  readonly onRouteEnd: () => void;
+  readonly onPath: (x: number, z: number) => void;
 }
 
 const NEAR_OBJECT_METRES = 3;
+const WRONG_TURN_METRES = 6;
 const STREAM_BEHIND = 1;
 const STREAM_AHEAD = 1;
 
@@ -38,10 +38,15 @@ export class WalkRuntime {
   private autoDirection: 1 | -1 = 1;
   private autoGoal = 0;
   private current = -1;
-  private enteredAt = 0;
   private frame = 0;
   private last = 0;
   private lastPathReport = 0;
+  private lookedThisDrag = false;
+  private viewpointChanges = 0;
+  private walkingMs = 0;
+  private activeMs = 0;
+  private furthestLocalZ = Number.POSITIVE_INFINITY;
+  private turnedBack = false;
   private readonly dwell = new Map<string, { seconds: number; nearest: number }>();
   paused = false;
 
@@ -138,10 +143,15 @@ export class WalkRuntime {
     if (forward !== 0 || strafe !== 0) this.autoTarget = null;
   }
 
+  endLook(): void {
+    if (this.lookedThisDrag) this.viewpointChanges++;
+    this.lookedThisDrag = false;
+  }
+
   look(dx: number, dy: number): void {
     this.input.lookX += dx;
     this.input.lookY += dy;
-    this.events.onLook();
+    this.lookedThisDrag = true;
   }
 
   walkTo(index: number): void {
@@ -161,16 +171,18 @@ export class WalkRuntime {
   }
 
   private enter(index: number): void {
-    const now = performance.now();
     if (this.current >= 0) {
       this.flushDwell();
-      this.events.onStationLeft(this.stations[this.current]!, this.current, (now - this.enteredAt) / 1000);
+      this.events.onStationLeft(this.stations[this.current]!, this.current, Math.round(this.activeMs), Math.round(this.walkingMs), this.viewpointChanges);
     }
     this.current = index;
-    this.enteredAt = now;
+    this.activeMs = 0;
+    this.walkingMs = 0;
+    this.viewpointChanges = 0;
+    this.furthestLocalZ = Number.POSITIVE_INFINITY;
+    this.turnedBack = false;
     this.events.onStationEntered(this.stations[index]!, index);
     void this.stream(index);
-    if (index === this.stations.length - 1) this.events.onRouteEnd();
   }
 
   private flushDwell(): void {
@@ -212,6 +224,19 @@ export class WalkRuntime {
     return { forward: 1, strafe: 0 };
   }
 
+  private watchForWrongTurn(): void {
+    const here = localZ(this.walker.z, this.current);
+    this.furthestLocalZ = Math.min(this.furthestLocalZ, here);
+    if (this.autoTarget || this.turnedBack) {
+      if (here <= this.furthestLocalZ + 1) this.turnedBack = false;
+      return;
+    }
+    if (here > this.furthestLocalZ + WRONG_TURN_METRES) {
+      this.turnedBack = true;
+      this.events.onWrongTurn(this.stations[this.current]!);
+    }
+  }
+
   private applyCamera(): void {
     const eye = eyeOf(this.walker);
     this.camera.position.set(eye[0], eye[1], eye[2]);
@@ -227,15 +252,20 @@ export class WalkRuntime {
     if (!this.paused) {
       const moving = this.autoInput();
       const input: WalkInput = { forward: moving.forward, strafe: moving.strafe, lookX: this.input.lookX, lookY: this.input.lookY };
+      const from = this.walker;
       this.walker = stepWalker(this.walker, input, seconds, this.collidersHere(), this.stations.length - 1);
+      const moved = this.walker.x !== from.x || this.walker.z !== from.z;
       this.input.lookX = 0;
       this.input.lookY = 0;
       const index = Math.min(this.stations.length - 1, stationIndexAt(this.walker.z));
       if (index !== this.current) this.enter(index);
+      this.activeMs += seconds * 1000;
+      if (moved) this.walkingMs += seconds * 1000;
+      this.watchForWrongTurn();
       this.trackObjects(seconds);
       if (now - this.lastPathReport > 500) {
         this.lastPathReport = now;
-        this.events.onPath(this.walker.x, this.walker.z, this.walker.walked);
+        this.events.onPath(this.walker.x, this.walker.z);
       }
     }
     this.applyCamera();

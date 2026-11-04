@@ -15,6 +15,8 @@ export interface PlacedTextile {
 export interface RouteStation {
   readonly id: string;
   readonly stageNumber: number | null;
+  readonly stopKey: string;
+  readonly stopNumber: number;
   readonly name: string;
   readonly plan: YardPlan;
   readonly clothBefore: string;
@@ -24,6 +26,7 @@ export interface RouteStation {
 }
 
 export const RAW_COTTON = "raw-cotton";
+export const PRODUCTS_STOP = "products";
 
 export function stagesFromTemplate(template: StageTemplate): YardStage[] {
   return template.stages.map((stage, index) => {
@@ -130,6 +133,8 @@ export function buildRoute(template: StageTemplate, stateFile: (stateId: string)
     return {
       id: `${template.tradition}-${stage.number}`,
       stageNumber: stage.number,
+      stopKey: stage.key,
+      stopNumber: stage.number,
       name: stage.name,
       plan: buildYardPlan(yardStage),
       clothBefore: clothFile(previous),
@@ -143,6 +148,8 @@ export function buildRoute(template: StageTemplate, stateFile: (stateId: string)
   stations.push({
     id: `${template.tradition}-hall`,
     stageNumber: null,
+    stopKey: PRODUCTS_STOP,
+    stopNumber: template.stages.length + 1,
     name: PRODUCT_TITLE,
     plan: buildHallPlan(3.75),
     clothBefore: clothFile(lastState),
@@ -164,5 +171,5 @@ export function practiceStation(): RouteStation {
     next: null,
     index: 0,
   });
-  return { id: "practice", stageNumber: null, name: "Practice", plan, clothBefore: RAW_COTTON, clothAfter: RAW_COTTON, wetAfter: false, textiles: [] };
+  return { id: "practice", stageNumber: null, stopKey: "practice", stopNumber: 1, name: "Practice", plan, clothBefore: RAW_COTTON, clothAfter: RAW_COTTON, wetAfter: false, textiles: [] };
 }

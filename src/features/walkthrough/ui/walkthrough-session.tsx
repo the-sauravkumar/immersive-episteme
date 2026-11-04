@@ -8,14 +8,22 @@ import { WalkRuntime } from "../infrastructure/walk-runtime";
 import "@/features/course/ui/tokens.css";
 import "./walkthrough.css";
 
+export interface WalkStop {
+  readonly traditionKey: string;
+  readonly stageKey: string;
+  readonly stageNumber: number;
+}
+
 export interface WalkthroughSessionEvents {
-  readonly onStageEntered: (tradition: string, stageNumber: number) => void;
-  readonly onStageLeft: (tradition: string, stageNumber: number, seconds: number) => void;
-  readonly onObjectDwell: (tradition: string, stageNumber: number, itemKey: string, seconds: number, nearestMetres: number) => void;
-  readonly onPath: (x: number, z: number, walkedMetres: number) => void;
-  readonly onViewpointChange: () => void;
+  readonly onStageEntered: (stop: WalkStop) => void;
+  readonly onStageLeft: (stop: WalkStop, activeMs: number) => void;
+  readonly onMovement: (stop: WalkStop, walkingMs: number, viewingMs: number) => void;
+  readonly onViewpointChanges: (stop: WalkStop, count: number) => void;
+  readonly onObjectDwell: (stop: WalkStop, objectKey: string, dwellMs: number, closestMetres: number) => void;
+  readonly onPathSample: (traditionKey: string, points: readonly (readonly [number, number, number])[]) => void;
+  readonly onWrongTurn: (stop: WalkStop) => void;
   readonly onBackStep: () => void;
-  readonly onSourceOpened: (tradition: string, stageNumber: number) => void;
+  readonly onSourceOpened: (stop: WalkStop) => void;
   readonly onFinished: () => void;
 }
 
@@ -48,25 +56,33 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
     if (!element) return;
     const tradition = template.tradition;
     const texturesFor = (station: RouteStation) => station.textiles.map((textile) => ({ file: textile.product.file, name: textile.product.name, x: textile.x, z: textile.z, width: textile.width, height: textile.height, label: textile.label }));
+    const stopOf = (station: RouteStation): WalkStop => ({ traditionKey: tradition, stageKey: station.stopKey, stageNumber: station.stopNumber });
+    const path: [number, number, number][] = [];
+    const flushPath = () => {
+      if (path.length > 0) eventsRef.current.onPathSample(tradition, path.splice(0));
+    };
     const instance = new WalkRuntime(element, route, texturesFor, {
       onStationEntered(station, index) {
         setStationIndex(index);
         setReached((value) => Math.max(value, index));
-        if (station.stageNumber !== null) eventsRef.current.onStageEntered(tradition, station.stageNumber);
+        eventsRef.current.onStageEntered(stopOf(station));
       },
-      onStationLeft(station, _index, seconds) {
-        if (station.stageNumber !== null) eventsRef.current.onStageLeft(tradition, station.stageNumber, seconds);
+      onStationLeft(station, _index, activeMs, walkingMs, viewpointChanges) {
+        flushPath();
+        eventsRef.current.onStageLeft(stopOf(station), activeMs);
+        eventsRef.current.onMovement(stopOf(station), walkingMs, Math.max(0, activeMs - walkingMs));
+        eventsRef.current.onViewpointChanges(stopOf(station), viewpointChanges);
       },
       onObjectDwell(station, itemKey, seconds, nearest) {
-        if (station.stageNumber !== null) eventsRef.current.onObjectDwell(tradition, station.stageNumber, itemKey, seconds, nearest);
+        eventsRef.current.onObjectDwell(stopOf(station), itemKey, seconds * 1000, nearest);
       },
-      onPath(x, z, walked) {
-        eventsRef.current.onPath(x, z, walked);
+      onPath(x, z) {
+        path.push([x, 0, z]);
+        if (path.length >= 40) flushPath();
       },
-      onLook() {
-        eventsRef.current.onViewpointChange();
+      onWrongTurn(station) {
+        eventsRef.current.onWrongTurn(stopOf(station));
       },
-      onRouteEnd() {},
     });
     runtime.current = instance;
     void instance.start(0);
@@ -159,6 +175,7 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
         }}
         onPointerUp={() => {
           dragging.current = null;
+          runtime.current?.endLook();
         }}
       />
       <div className="walkthrough-plate walkthrough-route">
@@ -175,7 +192,7 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
       <div className="walkthrough-tools">
         <button type="button" disabled={!stage} onClick={() => {
           setSourcesOpen(true);
-          if (stage) events.onSourceOpened(template.tradition, stage.number);
+          if (station) events.onSourceOpened({ traditionKey: template.tradition, stageKey: station.stopKey, stageNumber: station.stopNumber });
         }}>
           Sources
         </button>
