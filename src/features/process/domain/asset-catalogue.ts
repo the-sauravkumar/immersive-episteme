@@ -40,7 +40,6 @@ export const ASSET_CATALOGUE: readonly CatalogueModel[] = [
   scan("mallet", "wooden_hammer_01", 0.3),
   scan("board", "wooden_cutting_board", 0.05),
   scan("spoon", "wooden_spoon", 0.04),
-  scan("barrel", "Barrel_01", 0.88),
   scan("powder-bowl", "wooden_bowl_01", 0.14, "powder"),
   scan("paste-bowl", "wooden_bowl_01", 0.14, "paste"),
   scan("liquid-pot", "planter_pot_clay", 0.24, "liquid"),

@@ -36,13 +36,19 @@ export function addHorizon(scene: THREE.Scene, earth: THREE.Texture): THREE.Grou
   land.position.y = -0.04;
   land.receiveShadow = false;
   group.add(land);
-  const texture = new THREE.CanvasTexture(scrubCanvas());
+  const soft = document.createElement("canvas");
+  soft.width = 4096;
+  soft.height = 512;
+  const softContext = soft.getContext("2d")!;
+  softContext.filter = "blur(5px)";
+  softContext.drawImage(scrubCanvas(), 0, 0);
+  const texture = new THREE.CanvasTexture(soft);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.generateMipmaps = true;
   texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.wrapS = THREE.RepeatWrapping;
   texture.anisotropy = 16;
-  const material = new THREE.MeshBasicMaterial({ map: texture, alphaTest: 0.25, alphaToCoverage: true, side: THREE.DoubleSide });
+  const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, side: THREE.DoubleSide });
   const ring = 18;
   for (const [radius, height] of [
     [130, 9],

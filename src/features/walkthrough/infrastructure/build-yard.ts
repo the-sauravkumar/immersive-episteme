@@ -182,7 +182,7 @@ function moundGeometry(radius: number, height: number): THREE.BufferGeometry {
   return geometry;
 }
 
-function addFill(kit: YardKit, parent: THREE.Object3D, fill: string, x: number, y: number, z: number, radius: number): void {
+async function addFill(kit: YardKit, parent: THREE.Object3D, fill: string, x: number, y: number, z: number, radius: number): Promise<void> {
   const tone = FILL_TONE[fill] ?? FILL_TONE.paste!;
   const colour = new THREE.Color(tone[0], tone[1], tone[2]);
   if (fill === "liquid") {
@@ -217,13 +217,12 @@ function addFill(kit: YardKit, parent: THREE.Object3D, fill: string, x: number, 
     parent.add(lumps);
     return;
   }
-  void kit.library.scan("weave").then((weave) => {
-    const material = new THREE.MeshStandardMaterial({ color: colour, roughness: 0.96, normalMap: weave.normal, normalScale: new THREE.Vector2(0.4, 0.4) });
-    const mound = new THREE.Mesh(moundGeometry(radius, radius * 0.34), material);
-    mound.position.set(x, y - radius * 0.04, z);
-    mound.castShadow = mound.receiveShadow = true;
-    parent.add(mound);
-  });
+  const weave = await kit.library.scan("weave");
+  const material = new THREE.MeshStandardMaterial({ color: colour, roughness: 0.96, normalMap: weave.normal, normalScale: new THREE.Vector2(0.4, 0.4) });
+  const mound = new THREE.Mesh(moundGeometry(radius, radius * 0.34), material);
+  mound.position.set(x, y - radius * 0.04, z);
+  mound.castShadow = mound.receiveShadow = true;
+  parent.add(mound);
 }
 
 export async function placeCatalogueModel(kit: YardKit, parent: THREE.Object3D, modelId: string, x: number, y: number, z: number): Promise<THREE.Object3D> {
@@ -295,7 +294,7 @@ async function scanItem(kit: YardKit, parent: THREE.Object3D, modelId: string, x
   const scaled = new THREE.Box3().setFromObject(object);
   object.position.set(x - (scaled.min.x + scaled.max.x) / 2, y - scaled.min.y, z - (scaled.min.z + scaled.max.z) / 2);
   parent.add(object);
-  if (model.fill) addFill(kit, parent, model.fill, x, y + target * 0.62, z, Math.min(scaled.max.x - scaled.min.x, scaled.max.z - scaled.min.z) * 0.36);
+  if (model.fill) await addFill(kit, parent, model.fill, x, y + target * 0.62, z, Math.min(scaled.max.x - scaled.min.x, scaled.max.z - scaled.min.z) * 0.36);
   return object;
 }
 
