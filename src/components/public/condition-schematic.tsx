@@ -5,8 +5,8 @@
  * same outline weight, the same `--sunk` fills and exactly one indigo accent.
  *
  *  - The page miniature: a title bar, numbered claim lines (the 2D column).
- *  - The floor-plan miniature: rooms as squares (the 3D museum), the current room marked by an
- *    indigo square of the same area as the page's title bar.
+ *  - The route miniature: working yards in one line (the walkthrough), the current yard marked by
+ *    an indigo square of the same area as the page's title bar.
  *
  * The builders are shared with Figure 1 (figure-one.tsx), so the home figure and the Explore
  * cards draw the same marks.
@@ -16,8 +16,8 @@ import { OutlineDiagram, type DiagramNode } from "@/components/brand/outline-dia
 export type SchematicCondition = "2d" | "immersive";
 
 /**
- * The one indigo accent of a miniature in the box (w, h): the page's title bar. The plan's
- * current-room marker is a square of the same area, so in the same box both miniatures carry the
+ * The one indigo accent of a miniature in the box (w, h): the page's title bar. The route's
+ * current-yard marker is a square of the same area, so in the same box both miniatures carry the
  * same amount of indigo and neither condition reads heavier (11.3; unit-tested).
  */
 function accentBar(w: number, h: number): { width: number; height: number } {
@@ -46,25 +46,22 @@ export function pageMiniature(prefix: string, x: number, y: number, w: number, h
 }
 
 /**
- * A floor plan of rooms (columns x rows) in the box (x, y, w, h). Every room is the same sunk
- * square; the first is the current room, marked by an indigo square centred in it whose area
+ * A route of working yards in the box (x, y, w, h), walked in one line. Every yard is the same
+ * sunk square; the first is the current yard, marked by an indigo square centred in it whose area
  * equals the page miniature's title bar in the same box.
  */
-export function planMiniature(prefix: string, x: number, y: number, w: number, h: number, columns = 3, rowsOfRooms = 2): DiagramNode[] {
+export function routeMiniature(prefix: string, x: number, y: number, w: number, h: number, yards = 3): DiagramNode[] {
   const pad = Math.round(Math.min(w, h) * 0.1);
   const gap = Math.max(8, Math.round(w * 0.05));
-  const size = Math.floor(Math.min((w - 2 * pad - (columns - 1) * gap) / columns, (h - 2 * pad - (rowsOfRooms - 1) * gap) / rowsOfRooms));
-  const gridW = columns * size + (columns - 1) * gap;
-  const gridH = rowsOfRooms * size + (rowsOfRooms - 1) * gap;
-  const x0 = Math.round(x + (w - gridW) / 2);
-  const y0 = Math.round(y + (h - gridH) / 2);
-  const nodes: DiagramNode[] = [{ id: `${prefix}-plan`, x, y, width: w, height: h, fill: "none" }];
-  for (let r = 0; r < rowsOfRooms; r++) {
-    for (let c = 0; c < columns; c++) {
-      const i = r * columns + c;
-      nodes.push({ id: `${prefix}-r${i}`, x: x0 + c * (size + gap), y: y0 + r * (size + gap), width: size, height: size, fill: "sunk" });
-    }
-  }
+  const size = Math.floor(Math.min((w - 2 * pad - (yards - 1) * gap) / yards, h - 2 * pad));
+  const lineW = yards * size + (yards - 1) * gap;
+  const x0 = Math.round(x + (w - lineW) / 2);
+  const y0 = Math.round(y + (h - size) / 2);
+  const nodes: DiagramNode[] = [
+    { id: `${prefix}-route`, x, y, width: w, height: h, fill: "none" },
+    { id: `${prefix}-path`, x: x0, y: y0 + Math.round(size / 2) - 3, width: lineW, height: 6, fill: "sunk" },
+  ];
+  for (let i = 0; i < yards; i++) nodes.push({ id: `${prefix}-y${i}`, x: x0 + i * (size + gap), y: y0, width: size, height: size, fill: "sunk" });
   const bar = accentBar(w, h);
   const marker = Math.min(size - 8, Math.round(Math.sqrt(bar.width * bar.height)));
   const inset = Math.round((size - marker) / 2);
@@ -80,7 +77,7 @@ export function planMiniature(prefix: string, x: number, y: number, w: number, h
 export const SCHEMATIC_BOX = { width: 288, height: 180 } as const;
 
 export function ConditionSchematic({ condition }: { condition: SchematicCondition }) {
-  const nodes = condition === "2d" ? pageMiniature("s2d", 36, 18, 216, 144, 4) : planMiniature("s3d", 36, 18, 216, 144, 3, 2);
+  const nodes = condition === "2d" ? pageMiniature("s2d", 36, 18, 216, 144, 4) : routeMiniature("s3d", 36, 18, 216, 144);
   return (
     <div data-slot="condition-schematic" data-condition-schematic={condition} className="aspect-[16/10] w-full border border-rule bg-ground">
       <OutlineDiagram {...SCHEMATIC_BOX} nodes={nodes} className="h-full" />

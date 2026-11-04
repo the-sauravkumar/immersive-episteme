@@ -16,6 +16,7 @@ import { createHash } from "node:crypto";
 
 import { keyMatch, type ResponseRaw } from "@/features/assessment/responses";
 import { itemConfigSchema, type ItemConfig } from "@/features/research/contracts";
+import { DONT_KNOW_OPTION } from "@/features/study/test-items";
 
 export const DELIVERABLE_ITEM_KINDS = ["single_choice", "multiple_choice", "short_text", "long_text", "likert", "numeric", "ranking", "matching", "sketch"] as const;
 export type DeliverableItemKind = (typeof DELIVERABLE_ITEM_KINDS)[number];
@@ -58,7 +59,8 @@ export function optionOrder(sessionId: string, item: Pick<DeliveredItem, "id" | 
   if (!cfg || (cfg.kind !== "single_choice" && cfg.kind !== "multiple_choice" && cfg.kind !== "ranking" && cfg.kind !== "matching")) return [];
   const ids = cfg.options.map((o) => o.id);
   if (cfg.kind !== "ranking" && !cfg.shuffle) return ids;
-  return seededShuffle(ids, `${sessionId}|${item.id}`);
+  const answers = ids.filter((id) => id !== DONT_KNOW_OPTION.id);
+  return [...seededShuffle(answers, `${sessionId}|${item.id}`), ...ids.filter((id) => id === DONT_KNOW_OPTION.id)];
 }
 
 export function pairOrder(sessionId: string, item: Pick<DeliveredItem, "id" | "kind" | "config">): string[] {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { startCourseSession, stepCourse, type CourseEvent, type CourseSessionModel } from "@/features/course/application/course-session";
+import { closeOpenCourseStop, reopenCourseStop, restoreCourseStop, startCourseSession, stepCourse, suspendCourseClock, type CourseEvent, type CourseSessionModel } from "@/features/course/application/course-session";
 import { allStagesVisited, canFinish, canGoBack, canJumpTo, goBack, goNext, hasVisited, isProductPanel, jumpTo, startCourse } from "@/features/course/domain/course-state";
 import { captionSize, nameSize, objectColumns, practicePanelModel, productRails, PRACTICE_STEP_COUNT, stagePanelModel } from "@/features/course/domain/panel-model";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
@@ -80,8 +80,8 @@ describe("course session events", () => {
     const start = startCourseSession([2], 1000).model;
     const step = stepCourse(start, { type: "next" }, 1800);
     expect(types(step.events)).toEqual(["left", "entered"]);
-    expect(step.events[0]).toMatchObject({ type: "left", dwellMs: 800 });
-    expect(step.model.enteredAtMs).toBe(1800);
+    expect(step.events[0]).toMatchObject({ type: "left", activeMs: 800 });
+    expect(step.model.sinceMs).toBe(1800);
   });
 
   it("reports a back-step for back and for a jump to an earlier stage", () => {
@@ -104,7 +104,6 @@ describe("course session events", () => {
     const finished = stepCourse(end, { type: "finish" }, 9);
     expect(types(finished.events)).toEqual(["left", "finished"]);
     expect(stepCourse(finished.model, { type: "finish" }, 10).events).toEqual([]);
-    expect(stepCourse(finished.model, { type: "back" }, 10).events).toEqual([]);
   });
 });
 
@@ -165,5 +164,60 @@ describe("panel model", () => {
     expect(captionSize("x".repeat(280))).toBe("small");
     expect(objectColumns(3)).toBe(1);
     expect(objectColumns(4)).toBe(2);
+  });
+});
+
+describe("course session clock and recovery", () => {
+  const types = (events: readonly CourseEvent[]) => events.map((event) => event.type);
+  const positioned = (panel: number, tradition = 0, reached: readonly number[] = [panel]) => startCourseSession(tradition === 0 && reached.length === 1 ? [3] : [3, 3], 1000, { tradition, stop: panel, reached }).model;
+
+  it("leaves paused time out of the active time, as Door 2 does", () => {
+    const start = startCourseSession([2], 0).model;
+    const paused = suspendCourseClock(start, true, 1000);
+    const resumed = suspendCourseClock(paused, false, 601000);
+    expect(stepCourse(resumed, { type: "next" }, 603000).events[0]).toMatchObject({ type: "left", activeMs: 3000 });
+  });
+
+  it("keeps a suspended clock suspended on the next stop", () => {
+    const paused = suspendCourseClock(startCourseSession([2], 0).model, true, 100);
+    const moved = stepCourse(paused, { type: "next" }, 200).model;
+    expect(moved.suspended).toBe(true);
+    expect(stepCourse(suspendCourseClock(moved, false, 900), { type: "back" }, 1000).events[0]).toMatchObject({ type: "left", activeMs: 100 });
+  });
+
+  it("resumes where the learner stopped without reporting an entry", () => {
+    const step = startCourseSession([3, 3], 5, { tradition: 1, stop: 2, reached: [3, 2] });
+    expect(step.events).toEqual([]);
+    expect(step.model.state).toMatchObject({ tradition: 1, panel: 2, reached: [3, 2] });
+    expect(types(stepCourse(step.model, { type: "back" }, 6).events)).toEqual(["left", "back-step", "entered"]);
+  });
+
+  it("lets a refused finish be retried and keeps Back working until the server accepts", () => {
+    const end = positioned(3);
+    const finishing = stepCourse(end, { type: "finish" }, 2000);
+    expect(types(finishing.events)).toEqual(["left", "finished"]);
+    expect(finishing.model.finishing).toBe(true);
+    expect(types(stepCourse(finishing.model, { type: "back" }, 2100).events)).toEqual(["back-step", "entered"]);
+    const reopened = reopenCourseStop(finishing.model, 3000);
+    expect(reopened.finishing).toBe(false);
+    const again = stepCourse(reopened, { type: "finish" }, 3500);
+    expect(again.events[0]).toMatchObject({ type: "left", activeMs: 500 });
+    expect(types(again.events)).toEqual(["left", "finished"]);
+    expect(types(stepCourse(reopenCourseStop(again.model, 3600), { type: "back" }, 3700).events)).toEqual(["left", "back-step", "entered"]);
+  });
+
+  it("closes the open stop once, for the cap, a closed tab or an unmount", () => {
+    const open = positioned(1);
+    const closed = closeOpenCourseStop(open, 1700);
+    expect(closed.events).toMatchObject([{ type: "left", activeMs: 700 }]);
+    expect(closeOpenCourseStop(closed.model, 1800).events).toEqual([]);
+    expect(stepCourse(closed.model, { type: "next" }, 1900).events.map((event) => event.type)).toEqual(["entered"]);
+  });
+
+  it("returns a refused learner to the stop the server expects, across traditions", () => {
+    const ahead = positioned(2, 1, [3, 2]);
+    const restored = restoreCourseStop(ahead, { tradition: 0, stop: 1 }, 2000);
+    expect(types(restored.events)).toEqual(["left", "entered"]);
+    expect(restored.model.state).toMatchObject({ tradition: 0, panel: 1, reached: [1, -1] });
   });
 });

@@ -149,7 +149,7 @@ test("no in-scope page scrolls horizontally at 390 px", async ({ browser }) => {
   await signInStaff(staff.page);
   await staff.page.goto("/cms/concepts");
   const conceptDetail = await staff.page.locator('a[href^="/cms/concepts/"]').first().getAttribute("href");
-  const consolePaths = ["/cms", "/cms/concepts", "/cms/traditions", "/cms/sources", "/cms/relations", "/cms/datasets", "/cms/review", "/cms/spatial", "/cms/media"];
+  const consolePaths = ["/cms", "/cms/concepts", "/cms/traditions", "/cms/sources", "/cms/relations", "/cms/datasets", "/cms/review", "/cms/media"];
   for (const path of [...consolePaths, conceptDetail!, "/admin", "/admin/users", "/admin/roles", "/admin/audit", "/admin/settings"]) {
     await expectNoHorizontalOverflow(staff.page, path);
   }

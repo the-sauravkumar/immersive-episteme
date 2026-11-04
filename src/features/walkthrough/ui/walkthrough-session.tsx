@@ -4,8 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
 import { HELP_LINES, HELP_TITLE, PAUSE_TEXT, PAUSE_TITLE, RESUME_LABEL, SOURCES_AND_CREDITS_LABEL, SOURCES_LABEL } from "@/features/process/domain/guidance";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
+import { useTabHidden } from "@/lib/use-tab-hidden";
+import type { WalkEngine, WalkEngineFactory } from "../application/walk-engine";
 import { buildRoute, type RouteStation } from "../domain/route-plan";
-import { WalkRuntime } from "../infrastructure/walk-runtime";
 import "@/styles/walking-tokens.css";
 import "./walkthrough.css";
 
@@ -15,36 +16,63 @@ export interface WalkStop {
   readonly stageNumber: number;
 }
 
+export interface WalkPosition {
+  readonly tradition: number;
+  readonly stop: number;
+}
+
+export interface WalkResume extends WalkPosition {
+  readonly reached: readonly number[];
+}
+
 export interface WalkthroughSessionEvents {
   readonly onStageEntered: (stop: WalkStop) => void;
   readonly onStageLeft: (stop: WalkStop, activeMs: number) => void;
   readonly onMovement: (stop: WalkStop, walkingMs: number, viewingMs: number) => void;
   readonly onViewpointChanges: (stop: WalkStop, count: number) => void;
   readonly onObjectDwell: (stop: WalkStop, objectKey: string, dwellMs: number, closestMetres: number) => void;
-  readonly onPathSample: (traditionKey: string, points: readonly (readonly [number, number, number])[]) => void;
+  readonly onPathSample: (traditionKey: string, segment: string, points: readonly (readonly [number, number, number])[]) => void;
   readonly onWrongTurn: (stop: WalkStop) => void;
   readonly onSourceOpened: (stop: WalkStop) => void;
-  readonly onFinished: () => void;
+  readonly onFinished: () => Promise<boolean>;
+  readonly onRenderFailed: () => void;
+  readonly registerExit: (close: () => void) => () => void;
 }
 
 export interface WalkthroughSessionProps {
   readonly templates: readonly StageTemplate[];
   readonly events: WalkthroughSessionEvents;
+  readonly createEngine: WalkEngineFactory;
+  readonly resume?: WalkResume | null;
+  readonly restore?: WalkPosition | null;
+}
+
+interface WalkEntry {
+  readonly tradition: number;
+  readonly station: number;
+  readonly reached: number;
+  readonly alreadyRecorded: boolean;
 }
 
 const KEY_MOVES: Record<string, readonly [number, number]> = { KeyW: [1, 0], ArrowUp: [1, 0], KeyS: [-1, 0], ArrowDown: [-1, 0], KeyA: [0, -1], ArrowLeft: [0, -1], KeyD: [0, 1], ArrowRight: [0, 1] };
 const LOOK_SPEED = 0.0032;
 
-export function WalkthroughSession({ templates, events }: WalkthroughSessionProps) {
-  const [traditionIndex, setTraditionIndex] = useState(0);
-  const [stationIndex, setStationIndex] = useState(0);
-  const [reached, setReached] = useState(0);
+const firstEntry = (resume: WalkResume | null): WalkEntry => (resume ? { tradition: resume.tradition, station: resume.stop, reached: Math.max(resume.stop, resume.reached[resume.tradition] ?? 0), alreadyRecorded: true } : { tradition: 0, station: 0, reached: 0, alreadyRecorded: false });
+
+export function WalkthroughSession({ templates, events, createEngine, resume = null, restore = null }: WalkthroughSessionProps) {
+  const [entry, setEntry] = useState<WalkEntry>(() => firstEntry(resume));
+  const [stationIndex, setStationIndex] = useState(entry.station);
+  const [reached, setReached] = useState(entry.reached);
   const [paused, setPaused] = useState(false);
   const [ready, setReady] = useState(false);
+  const [failed, setFailed] = useState(false);
+  const [finishing, setFinishing] = useState(false);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const tabHidden = useTabHidden();
   const host = useRef<HTMLDivElement>(null);
-  const runtime = useRef<WalkRuntime | null>(null);
+  const runtime = useRef<WalkEngine | null>(null);
+  const traditionIndex = entry.tradition;
   const template = templates[traditionIndex]!;
   const route = useMemo(() => buildRoute(template, (id) => clothStatePath(id)), [template]);
   const eventsRef = useRef(events);
@@ -52,58 +80,96 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
     eventsRef.current = events;
   }, [events]);
 
+  const moveTo = useCallback((next: WalkEntry) => {
+    setEntry(next);
+    setStationIndex(next.station);
+    setReached(next.reached);
+  }, []);
+
+  const [appliedRestore, setAppliedRestore] = useState(restore);
+  if (restore !== appliedRestore) {
+    setAppliedRestore(restore);
+    if (restore) moveTo({ tradition: restore.tradition, station: restore.stop, reached: restore.stop, alreadyRecorded: false });
+  }
+
   useEffect(() => {
     const element = host.current;
     if (!element) return;
     setReady(false);
     const tradition = template.tradition;
+    const segment = `${entry.station}.${Date.now().toString(36)}`;
     const texturesFor = (station: RouteStation) => station.textiles.map((textile) => ({ file: textile.product.file, name: textile.product.name, x: textile.x, z: textile.z, width: textile.width, height: textile.height, label: textile.label }));
     const stopOf = (station: RouteStation): WalkStop => ({ traditionKey: tradition, stageKey: station.stopKey, stageNumber: station.stopNumber });
     const path: [number, number, number][] = [];
-    let open: { stop: WalkStop; enteredAt: number } | null = null;
     const flushPath = () => {
-      if (path.length > 0) eventsRef.current.onPathSample(tradition, path.splice(0));
+      if (path.length > 0) eventsRef.current.onPathSample(tradition, segment, path.splice(0));
     };
-    const instance = new WalkRuntime(element, route, texturesFor, {
-      onStationEntered(station, index) {
-        setReady(true);
-        setStationIndex(index);
-        setReached((value) => Math.max(value, index));
-        open = { stop: stopOf(station), enteredAt: performance.now() };
-        eventsRef.current.onStageEntered(open.stop);
-      },
-      onStationLeft(station, _index, activeMs, walkingMs, viewpointChanges) {
-        flushPath();
-        open = null;
-        eventsRef.current.onStageLeft(stopOf(station), activeMs);
-        eventsRef.current.onMovement(stopOf(station), walkingMs, Math.max(0, activeMs - walkingMs));
-        eventsRef.current.onViewpointChanges(stopOf(station), viewpointChanges);
-      },
-      onObjectDwell(station, itemKey, seconds, nearest) {
-        eventsRef.current.onObjectDwell(stopOf(station), itemKey, seconds * 1000, nearest);
-      },
-      onPath(x, z) {
-        path.push([performance.now(), x, z]);
-        if (path.length >= 40) flushPath();
-      },
-      onWrongTurn(station) {
-        eventsRef.current.onWrongTurn(stopOf(station));
-      },
-    });
+    let alreadyRecorded = entry.alreadyRecorded;
+    let instance: WalkEngine | null = null;
+    let unregister: (() => void) | null = null;
+    const close = () => {
+      unregister?.();
+      unregister = null;
+      const closing = instance;
+      instance = null;
+      runtime.current = null;
+      closing?.dispose();
+      flushPath();
+    };
+    const fail = () => {
+      close();
+      setFailed(true);
+      eventsRef.current.onRenderFailed();
+    };
+    try {
+      instance = createEngine(element, route, texturesFor, {
+        onStationEntered(station, index) {
+          setReady(true);
+          setStationIndex(index);
+          setReached((value) => Math.max(value, index));
+          if (alreadyRecorded) {
+            alreadyRecorded = false;
+            return;
+          }
+          eventsRef.current.onStageEntered(stopOf(station));
+        },
+        onStationLeft(station, _index, activeMs, walkingMs, viewpointChanges) {
+          flushPath();
+          eventsRef.current.onStageLeft(stopOf(station), activeMs);
+          eventsRef.current.onMovement(stopOf(station), walkingMs, Math.max(0, activeMs - walkingMs));
+          eventsRef.current.onViewpointChanges(stopOf(station), viewpointChanges);
+        },
+        onObjectDwell(station, itemKey, seconds, nearest) {
+          eventsRef.current.onObjectDwell(stopOf(station), itemKey, seconds * 1000, nearest);
+        },
+        onPath(x, z) {
+          path.push([performance.now(), x, z]);
+          if (path.length >= 40) flushPath();
+        },
+        onWrongTurn(station) {
+          eventsRef.current.onWrongTurn(stopOf(station));
+        },
+        onContextLost: fail,
+      });
+    } catch {
+      fail();
+      return;
+    }
     runtime.current = instance;
-    void instance.start(0);
-    const resize = () => instance.resize(element.clientWidth, element.clientHeight);
+    unregister = eventsRef.current.registerExit(close);
+    instance.start(entry.station).catch(() => {
+      if (instance) fail();
+    });
+    const resize = () => runtime.current?.resize(element.clientWidth, element.clientHeight);
     window.addEventListener("resize", resize);
     return () => {
       window.removeEventListener("resize", resize);
-      flushPath();
-      if (open) eventsRef.current.onStageLeft(open.stop, performance.now() - open.enteredAt);
-      instance.dispose();
-      runtime.current = null;
+      close();
     };
-  }, [route, template.tradition]);
+  }, [createEngine, entry, route, template.tradition]);
 
   useEffect(() => {
+    if (!ready) return;
     const pressed = new Set<string>();
     const apply = () => {
       let forward = 0;
@@ -137,11 +203,11 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
     };
-  }, []);
+  }, [ready]);
 
   useEffect(() => {
-    if (runtime.current) runtime.current.paused = paused || sourcesOpen || helpOpen;
-  }, [paused, sourcesOpen, helpOpen]);
+    if (runtime.current) runtime.current.paused = paused || sourcesOpen || helpOpen || tabHidden;
+  }, [entry, paused, sourcesOpen, helpOpen, tabHidden]);
 
   const dragging = useRef<{ x: number; y: number } | null>(null);
   const station = route[stationIndex];
@@ -155,13 +221,14 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
       return;
     }
     if (lastTradition) {
-      events.onFinished();
+      setFinishing(true);
+      void events.onFinished().then((accepted) => {
+        if (!accepted) setFinishing(false);
+      });
       return;
     }
-    setTraditionIndex((value) => value + 1);
-    setStationIndex(0);
-    setReached(0);
-  }, [atHall, events, lastTradition, stationIndex]);
+    moveTo({ tradition: traditionIndex + 1, station: 0, reached: 0, alreadyRecorded: false });
+  }, [atHall, events, lastTradition, moveTo, stationIndex, traditionIndex]);
 
   return (
     <div className="walkthrough walking" data-slot="walkthrough-session">
@@ -211,7 +278,7 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
         <button type="button" disabled={!ready || stationIndex === 0} onClick={() => runtime.current?.walkTo(stationIndex - 1)}>
           Back
         </button>
-        <button type="button" className="walkthrough-next" disabled={!ready} onClick={onwards}>
+        <button type="button" className="walkthrough-next" disabled={!ready || finishing} onClick={onwards}>
           {atHall ? (lastTradition ? "Questions" : "Next Tradition") : "Walk On"}
         </button>
       </div>
@@ -259,6 +326,7 @@ export function WalkthroughSession({ templates, events }: WalkthroughSessionProp
           <button type="button" onClick={() => setHelpOpen(false)}>Close</button>
         </div>
       ) : null}
+      {failed ? <div className="walkthrough-cover walkthrough-loading" role="alert">This Device Cannot Show The Yard</div> : null}
     </div>
   );
 }

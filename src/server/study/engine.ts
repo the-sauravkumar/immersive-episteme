@@ -20,7 +20,7 @@ import { createHash, randomInt } from "node:crypto";
 import type { Pool, PoolClient } from "pg";
 
 import { KEY_MATCH_METRIC } from "@/features/assessment/responses";
-import { museumCanRender } from "@/features/study/gpu-acceptance";
+import { walkthroughCanRender } from "@/features/study/gpu-acceptance";
 import type { LearningCondition } from "@/lib/permissions/learning";
 import type { ConditionInterface } from "@/lib/validation/enums";
 import { conditionFromInterface } from "@/server/auth/study-session-port-types";
@@ -708,7 +708,7 @@ export function completedSteps(s: Pick<SessionState, "journal">): Set<StudyStep>
 
 /**
  * The LATEST device check passed. (A check is not repeated after it passes; only a WebGL failure
- * reported by the museum afterwards, under the retry policy, records a later failed check that
+ * reported by the walkthrough afterwards, under the retry policy, records a later failed check that
  * sends the participant back to the device check.)
  */
 export function deviceCheckPassed(s: Pick<SessionState, "journal">): boolean {
@@ -882,7 +882,7 @@ export async function assignedStops(s: Pick<SessionState, "traditionOrder">): Pr
   return requiredStops(inAssignedOrder(await loadStageTemplates(), s.traditionOrder));
 }
 
-async function stageVisitsOf(q: Q, sessionId: string): Promise<StageVisit[]> {
+export async function stageVisitsOf(q: Q, sessionId: string): Promise<StageVisit[]> {
   const r = await q.query<{ tradition_key: string; stage_key: string }>("SELECT tradition_key, stage_key FROM stage_visits WHERE session_id = $1 ORDER BY visit_index", [sessionId]);
   return r.rows.map((row) => ({ traditionKey: row.tradition_key, stageKey: row.stage_key }));
 }
@@ -921,6 +921,10 @@ export async function recordStageEntered(pool: Pool | PoolClient, sessionId: str
       return { refused: admission };
     }
     const last = visits[visits.length - 1];
+    if (last && last.traditionKey === target.traditionKey && last.stageKey === target.stageKey) {
+      const visitCount = visits.filter((v) => v.traditionKey === target.traditionKey && v.stageKey === target.stageKey).length;
+      return { visitIndex: visits.length - 1, visitCount, backStep: false, coverage: coverageOf(required, visits), endsAt: s.learning.endsAt };
+    }
     const lastStop = last ? required.find((stop) => stop.traditionKey === last.traditionKey && stop.stageKey === last.stageKey) : undefined;
     const backStep = !!lastStop && lastStop.traditionKey === target.traditionKey && admission.stop.stageNumber < lastStop.stageNumber;
     await c.query("UPDATE stage_visits SET left_at = now() WHERE session_id = $1 AND left_at IS NULL", [sessionId]);
@@ -939,7 +943,7 @@ export async function recordStageEntered(pool: Pool | PoolClient, sessionId: str
 
 export async function recordStageLeft(pool: Pool | PoolClient, sessionId: string, target: StageVisit & { activeMs: number }): Promise<void> {
   await pool.query(
-    `UPDATE stage_visits SET left_at = coalesce(left_at, now()), active_ms = $4
+    `UPDATE stage_visits SET left_at = now(), active_ms = coalesce(active_ms, 0) + $4
       WHERE id = (SELECT id FROM stage_visits WHERE session_id = $1 AND tradition_key = $2 AND stage_key = $3 ORDER BY visit_index DESC LIMIT 1)`,
     [sessionId, target.traditionKey, target.stageKey, target.activeMs],
   );
@@ -1148,7 +1152,7 @@ export function evaluateDevice(
 ): "passed" | "viewport_too_small" | "webgl_retry" | "webgl_exclude" {
   const min = ctx.minViewport;
   if (min && (report.viewport.width < min.width || report.viewport.height < min.height)) return "viewport_too_small";
-  if (!museumCanRender(report)) return ctx.policy === "exclude" ? "webgl_exclude" : "webgl_retry";
+  if (!walkthroughCanRender(report)) return ctx.policy === "exclude" ? "webgl_exclude" : "webgl_retry";
   return "passed";
 }
 
@@ -1199,11 +1203,11 @@ async function excludeForWebgl(c: PoolClient, s: SessionState, policy: string): 
   return { kind: "excluded" };
 }
 
-export type MuseumFailureOutcome = DeviceOutcome | { kind: "ignored" };
+export type WalkthroughFailureOutcome = DeviceOutcome | { kind: "ignored" };
 
 /**
  * Backstop for a GPU that fails AFTER the device check passed (driver crash, blocklisting, another
- * browser): the museum's fallback screen reports it here in study mode (final review study-01).
+ * browser): the walkthrough reports it here in study mode.
  * Recorded as `study.webgl_failed` and handled by the same policy as the device check:
  *  - exclude: the session is excluded, as at the check;
  *  - reassign: a 2D session is opened; only the condition-blind steps are carried over, so the
@@ -1212,12 +1216,12 @@ export type MuseumFailureOutcome = DeviceOutcome | { kind: "ignored" };
  *    journal entry flags the session's learning time, which may already be running).
  * Ignored outside the immersive practice and learning steps, and for a 2D session.
  */
-export async function recordMuseumWebglFailure(
+export async function recordWalkthroughWebglFailure(
   pool: Pool | PoolClient,
   sessionId: string,
   gpu: { webglVersion: 1 | 2 | null; softwareRenderer: boolean },
   opts: { appBuild: string },
-): Promise<MuseumFailureOutcome> {
+): Promise<WalkthroughFailureOutcome> {
   return withTx(pool, async (c) => {
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
     const s = await loadSessionState(c, sessionId);

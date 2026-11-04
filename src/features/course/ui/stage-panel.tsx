@@ -12,19 +12,21 @@ interface StagePanelProps {
   readonly imageStatus: (src: string) => ImageStatus;
   readonly controls: React.ReactNode;
   readonly onSourcesOpened: () => void;
+  readonly onSourcesClosed?: () => void;
 }
 
 export function panelImageSources(model: StagePanelModel): readonly string[] {
   return [model.clothBeforeSrc, model.clothAfterSrc, ...model.objects.map((object) => object.stillSrc)];
 }
 
-export function SourcesDisclosure({ sources, onOpened }: { readonly sources: readonly SourceRef[]; readonly onOpened: () => void }) {
+export function SourcesDisclosure({ sources, onOpened, onClosed }: { readonly sources: readonly SourceRef[]; readonly onOpened: () => void; readonly onClosed?: () => void }) {
   if (sources.length === 0) return null;
   return (
     <details
       className="sources"
       onToggle={(event) => {
         if (event.currentTarget.open) onOpened();
+        else onClosed?.();
       }}
     >
       <summary>{SOURCES_LABEL}</summary>
@@ -55,7 +57,7 @@ function ObjectCell({ object, status, reviewMarks }: { readonly object: PanelObj
   );
 }
 
-export function StagePanel({ model, reviewMarks, imageStatus, controls, onSourcesOpened }: StagePanelProps) {
+export function StagePanel({ model, reviewMarks, imageStatus, controls, onSourcesOpened, onSourcesClosed }: StagePanelProps) {
   const count = model.objects.length;
   const dense = model.name.length + (model.localName?.length ?? 0) + model.caption.length > 300;
   return (
@@ -75,7 +77,7 @@ export function StagePanel({ model, reviewMarks, imageStatus, controls, onSource
         <p className="panel-caption" data-size={captionSize(model.caption)}>
           {model.caption}
         </p>
-        <SourcesDisclosure sources={model.sources} onOpened={onSourcesOpened} />
+        <SourcesDisclosure key={model.kicker} sources={model.sources} onOpened={onSourcesOpened} onClosed={onSourcesClosed} />
       </div>
       {count > 0 ? (
         <div className="objects" data-columns={objectColumns(count)} data-count={count}>

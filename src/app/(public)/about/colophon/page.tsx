@@ -2,8 +2,8 @@
  * Colophon (DESIGN.md 10.1, DR-022): how the platform is set. Typefaces with specimens and the
  * font budget; the palette as plain swatches with their roles (only the indigo carries "Design
  * interpretation; not a measured or historical dye colour", R-C6, since no other token derives
- * from a craft colour); the fixed condition order; and the full parity-check list (DESIGN.md
- * 12.4) with the latest real result per check, read from the stored report (never sample values).
+ * from a craft colour); the fixed condition order; and the state of the parity runs, read from the
+ * stored report (never sample values).
  *
  * The swatch values are read from `src/app/globals.css` itself (the token file), so the page can
  * never disagree with the colours actually in use.
@@ -18,8 +18,6 @@ import { EditorialFrame, EditorialRow, EditorialSection, Prose } from "@/compone
 import { Sidenote } from "@/components/public/sidenote";
 import { EquivalenceMonitor } from "@/components/parity/equivalence-monitor";
 import { PageHeader } from "@/components/shell/page-header";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PARITY_CHECKS } from "@/features/research/interface-parity";
 import { getInterfaceParityReport } from "@/server/public/dataset-stats";
 
 export const metadata: Metadata = { title: "Colophon" };
@@ -82,38 +80,9 @@ function Palette() {
   );
 }
 
-// ---- Parity checks (DESIGN.md 12.4) ----------------------------------------------------------
-
-/**
- * The full parity-check list (DESIGN.md 11.2, 12.4) through WP0's Equivalence Monitor. With a
- * stored run it is the monitor's full per-check table. Without one the monitor says "No parity
- * run recorded yet." and the list below documents what each check compares, with no result column,
- * so nothing reads as a result.
- */
 async function ParityTable() {
   const report = await getInterfaceParityReport();
-  if (report) return <EquivalenceMonitor interfaceParity={report} full tone="neutral" numbers={{ interface: 1 }} />;
-  return (
-    <>
-      <EquivalenceMonitor interfaceParity={null} tone="neutral" />
-      <Table caption="Interface Parity Checks" number={1} note="Results appear here only from a stored run, never as sample values.">
-        <TableHeader>
-          <TableRow>
-            <TableHead scope="col">Check</TableHead>
-            <TableHead scope="col">What Is Compared</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {PARITY_CHECKS.map(({ id, label }) => (
-            <TableRow key={id}>
-              <TableCell className="tabular-nums">{id}</TableCell>
-              <TableCell className="whitespace-normal">{label}</TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </>
-  );
+  return <EquivalenceMonitor interfaceParity={report} full tone="neutral" numbers={{ interface: 1 }} />;
 }
 
 export default function ColophonPage() {
@@ -135,16 +104,22 @@ export default function ColophonPage() {
             }
           >
             <div className="flex flex-col gap-2 border-t border-rule pt-4">
-              <p className="text-label">Atkinson Hyperlegible Next, everything you read and use</p>
-              <p className="text-reading text-ink">Claims are set at 20 pixels on a 30 pixel line, about sixty-two characters to the line, in both conditions.</p>
+              <p className="text-label">Atkinson Hyperlegible Next, the public, study and staff pages</p>
+              <p className="text-reading text-ink">Reading text is set at 20 pixels on a 30 pixel line, about sixty-two characters to the line.</p>
               <p className="text-quote bg-sunk px-4 py-3 text-ink">&ldquo;The evidence is set as large as the claim it supports, upright, on its own mat.&rdquo;</p>
               <p className="text-table text-ink-2">Tabular figures for every number a reader compares: 0123456789. Codes need no monospace: 0O 1Il.</p>
             </div>
             <div className="flex flex-col gap-2 border-t border-rule pt-4">
               <p className="text-label">Anek Latin, public display only</p>
               <p className="text-display-2 text-ink">Immersive Episteme</p>
-              <p className="text-credit">By Ek Type, a type collective in Mumbai. Never used on study pages or in the museum.</p>
+              <p className="text-credit">By Ek Type, a type collective in Mumbai. Never used on study pages or in either door.</p>
             </div>
+          </EditorialRow>
+        </EditorialSection>
+
+        <EditorialSection id="door-typefaces" title="Typefaces of the doors">
+          <EditorialRow>
+            <Prose>The visual course and the walkthrough share two typefaces, self-hosted under the SIL Open Font License: Eczar for names and Mukta for text.</Prose>
           </EditorialRow>
         </EditorialSection>
 
@@ -171,8 +146,9 @@ export default function ColophonPage() {
         <EditorialSection id="parity" title="Equivalence of the conditions">
           <EditorialRow>
             <Prose>
-              The doors are compared from one stage template: the same stages, words, sources, model ids and file hashes. No run of the rebuilt
-              doors is stored here yet.
+              The doors are compared from one stage template: the same stages, words, sources, model ids and file hashes. A content parity report is
+              stored with each study. The suite that measured the earlier interfaces was removed with them, so there is no current interface parity
+              run.
             </Prose>
           </EditorialRow>
           <Suspense fallback={<Prose className="text-ink-2">Reading the latest parity run…</Prose>}>

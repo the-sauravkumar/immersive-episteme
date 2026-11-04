@@ -1,11 +1,9 @@
 /**
  * Interface parity report (DESIGN.md 12.4, 18 WP0 task 9).
  *
- * `tests/e2e/parity.spec.ts` measures checks P1-P33 on the 2D concept page and the 3D panel for one
- * concept per study tradition, at five viewports (plus 1024 x 768 and 1920 x 1080 for the layout
- * checks P28 and P30) and four themes, and writes one report
- * to `analysis/parity/interface-parity.json`; CI commits it. The Equivalence Monitor reads ONLY
- * that stored file: when it is absent or malformed the monitor says "No parity run recorded yet"
+ * The suite that measured checks P1-P33 was removed with the earlier doors (DR-076), and nothing
+ * writes `analysis/parity/interface-parity.json` now. The Equivalence Monitor reads ONLY that stored
+ * file: when it is absent or malformed the monitor says there is no current interface parity run
  * and shows nothing else. There is no sample or placeholder path.
  *
  * Schema: { runId, commit, runs: [{ viewport, theme, traditionKey, checks: [{ id, label, value2d,

@@ -1,13 +1,13 @@
 /**
- * The public demo museum, shared by `npm run dev:bootstrap` (local) and
+ * The public demo, shared by `npm run dev:bootstrap` (local) and
  * `npm run content:bootstrap:remote` (production): import content/, build the REVIEW snapshot,
- * compile the spatial manifests, and create or update the demo study `demo-review-walkthrough`.
+ * and create or update the demo study `demo-review-walkthrough`.
  *
  * No side effects on import. Nothing here creates users, staff accounts, participants or demo
  * seed rows: dev:bootstrap adds those itself (db/seeds), the remote command never does.
  *
  * Every step is idempotent: a second run over unchanged content/ inserts and updates no content,
- * snapshot, manifest or study row. The importer's own bookkeeping still records each run, by
+ * snapshot or study row. The importer's own bookkeeping still records each run, by
  * design (src/server/content/import-content.ts): one audit_log row ('content.import') and
  * content_packages.imported_at set to the time of the run.
  */

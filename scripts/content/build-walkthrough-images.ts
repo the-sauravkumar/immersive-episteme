@@ -459,7 +459,7 @@ function clothRows(sources: readonly ManifestSource[]) {
     if (!source) throw new Error(`No manifest row for ${cloth.sourceFile}`);
     const derived = cloth.states.flatMap((state, index) => (state.sameAsRaw ? [] : [`${cloth.tradition}-${String(index + 1).padStart(2, "0")}`]));
     return {
-      file: `/walkthrough/cloth/${derived[0]}.jpg to ${derived.at(-1)}.jpg`,
+      file: `/walkthrough/cloth/${derived[0]}.jpg to ${derived.at(-1)}.jpg, with each -strip.jpg crop`,
       usedFor: `Motif source for the proxy cloth states of ${cloth.tradition}, derived by image processing: ${derived.join(", ")}. Proxy only, no craft claim.`,
       holder: source.creatorOrHolder,
       creditLine: source.creatorOrHolder,
@@ -476,7 +476,7 @@ function clothRows(sources: readonly ManifestSource[]) {
 
 const CC0_ROWS = [
   {
-    file: "/walkthrough/cloth/*-raw.jpg",
+    file: "/walkthrough/cloth/*-raw.jpg, /walkthrough/cloth/sanganeri-01.jpg, /walkthrough/cloth/machilipatnam-kalamkari-01.jpg, with each -strip.jpg crop",
     usedFor: "Weave of the raw cloth files and the weave relief of every cloth state",
     holder: "Poly Haven: Rough Linen, photography colormass, processing Rico Cilliers",
     creditLine: "Rough Linen, Poly Haven",

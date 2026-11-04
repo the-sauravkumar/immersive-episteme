@@ -19,8 +19,8 @@
  * Cloudflare R2, when --env-file is given);
  * the invite gate redirects every gated page and refuses an invalid code; staff sign-in, the auth
  * API and static assets stay reachable without an invite; staff areas redirect to sign-in; the
- * dashboard stream refuses anonymous callers; telemetry rejects bad input; every museum texture
- * and transcoder file is served with the right size; and, in headless Chromium on the discrete
+ * dashboard stream refuses anonymous callers; telemetry rejects bad input; every walkthrough
+ * asset is served with the right size; and, in headless Chromium on the discrete
  * GPU (args from playwright.config.ts), the sign-in form renders with no CSP violation.
  *
  * Invite-gate contract assumed here (source change S11, docs/deploy/RUNBOOK.md "Invite-only
@@ -28,8 +28,8 @@
  * --invite-path (default /invite); `?invite=<code>` sets the cookie.
  */
 import { execFileSync } from "node:child_process";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { existsSync, readdirSync, statSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
@@ -201,53 +201,40 @@ try {
   report.add("telemetry", "GET -> 405", "FAIL", err(e));
 }
 
-// ---- Museum assets (the local tree is the deployed commit's tree) ----------------------------
-type TexIndex = { textures: Record<string, { maps: Record<string, { url: string; bytes: number }> }> };
-const assets: { path: string; bytes: number }[] = [];
-const indexPath = join(REPO, "public/museum/textures/index.json");
-if (existsSync(indexPath)) {
-  const idx = JSON.parse(readFileSync(indexPath, "utf8")) as TexIndex;
-  for (const t of Object.values(idx.textures)) for (const m of Object.values(t.maps)) assets.push({ path: m.url, bytes: m.bytes });
-}
-const basisDir = join(REPO, "public/museum/basis");
-if (existsSync(basisDir)) for (const f of readdirSync(basisDir)) assets.push({ path: `/museum/basis/${f}`, bytes: statSync(join(basisDir, f)).size });
-if (existsSync(indexPath)) assets.push({ path: "/museum/textures/index.json", bytes: statSync(indexPath).size });
-else report.add("museum", "local texture index", "WARN", "public/museum/textures/index.json missing locally; texture checks skipped");
-// The expected sizes come from this working tree, so it must match the deployed commit.
-let museumDirty = "";
+// ---- Walkthrough assets (the local tree is the deployed commit's tree) -----------------------
+const assetsUnder = (dir: string): { path: string; bytes: number }[] =>
+  readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) return assetsUnder(full);
+    return [{ path: `/${relative(join(REPO, "public"), full).replace(/\\/g, "/")}`, bytes: statSync(full).size }];
+  });
+const walkthroughDir = join(REPO, "public/walkthrough");
+const assets = existsSync(walkthroughDir) ? assetsUnder(walkthroughDir) : [];
+let walkthroughDirty = "";
 try {
-  museumDirty = execFileSync("git", ["status", "--porcelain", "--", "public/museum"], { cwd: REPO, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  walkthroughDirty = execFileSync("git", ["status", "--porcelain", "--", "public/walkthrough"], { cwd: REPO, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
 } catch {
-  museumDirty = "";
+  walkthroughDirty = "";
 }
-if (museumDirty) {
-  report.add("museum", "local tree = deployed commit", "WARN", `${museumDirty.split("\n").length} uncommitted change(s) under public/museum: expected sizes may not match the deployment`);
+if (walkthroughDirty) {
+  report.add("walkthrough", "local tree = deployed commit", "WARN", `${walkthroughDirty.split("\n").length} uncommitted change(s) under public/walkthrough: expected sizes may not match the deployment`);
 }
 let assetFails = 0;
 for (const a of assets) {
   try {
-    // Node's fetch asks for gzip/br by default, and a compressed response (.wasm, .js, .json)
-    // reports the compressed length or none. Ask for the identity encoding to compare exact bytes.
     const r = await req(a.path, { method: "HEAD", headers: { "accept-encoding": "identity" } });
     const len = Number(r.headers.get("content-length") ?? "-1");
-    const sizeOk = len === a.bytes || (len === -1 && /\.(js|json|wasm)$/.test(a.path));
+    const sizeOk = len === a.bytes || (len === -1 && /\.(js|json|txt)$/.test(a.path));
     if (r.status !== 200 || !sizeOk) {
       assetFails++;
-      report.add("museum", a.path, "FAIL", `HTTP ${r.status}, ${len} bytes (expected ${a.bytes})`);
+      report.add("walkthrough", a.path, "FAIL", `HTTP ${r.status}, ${len} bytes (expected ${a.bytes})`);
     }
   } catch (e) {
     assetFails++;
-    report.add("museum", a.path, "FAIL", err(e));
+    report.add("walkthrough", a.path, "FAIL", err(e));
   }
 }
-report.add("museum", `${assets.length} assets served`, assetFails === 0 ? "PASS" : "FAIL", `${assets.length - assetFails}/${assets.length} with the expected size, no invite needed`);
-try {
-  const r = await req("/museum/basis/ktx2-worker-boot.js", { method: "HEAD" });
-  const csp = r.headers.get("content-security-policy") ?? "";
-  report.add("museum", "transcoder worker CSP", csp.startsWith("default-src 'none'") ? "PASS" : "FAIL", csp || "(missing)");
-} catch (e) {
-  report.add("museum", "transcoder worker CSP", "FAIL", err(e));
-}
+report.add("walkthrough", `${assets.length} assets served`, assets.length > 0 && assetFails === 0 ? "PASS" : "FAIL", `${assets.length - assetFails}/${assets.length} with the expected size, no invite needed`);
 
 // ---- Headless browser ------------------------------------------------------------------------
 if (args["no-browser"]) {

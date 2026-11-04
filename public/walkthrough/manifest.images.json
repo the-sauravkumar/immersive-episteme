@@ -317,7 +317,7 @@
       }
     },
     {
-      "file": "/walkthrough/cloth/ajrakh-01.jpg to ajrakh-09.jpg",
+      "file": "/walkthrough/cloth/ajrakh-01.jpg to ajrakh-09.jpg, with each -strip.jpg crop",
       "usedFor": "Motif source for the proxy cloth states of ajrakh, derived by image processing: ajrakh-01, ajrakh-02, ajrakh-03, ajrakh-04, ajrakh-05, ajrakh-06, ajrakh-07, ajrakh-08, ajrakh-09. Proxy only, no craft claim.",
       "holder": "MyKutch",
       "creditLine": "MyKutch",
@@ -330,7 +330,7 @@
       "contactRoute": "info@mykutch.org (shown on the source page)"
     },
     {
-      "file": "/walkthrough/cloth/sanganeri-02.jpg to sanganeri-09.jpg",
+      "file": "/walkthrough/cloth/sanganeri-02.jpg to sanganeri-09.jpg, with each -strip.jpg crop",
       "usedFor": "Motif source for the proxy cloth states of sanganeri, derived by image processing: sanganeri-02, sanganeri-03, sanganeri-04, sanganeri-05, sanganeri-06, sanganeri-07, sanganeri-08, sanganeri-09. Proxy only, no craft claim.",
       "holder": "Victoria and Albert Museum, London",
       "creditLine": "Victoria and Albert Museum, London",
@@ -343,7 +343,7 @@
       "contactRoute": "vaimages@vam.ac.uk (shown on the object page; also the address of the existing reply)"
     },
     {
-      "file": "/walkthrough/cloth/machilipatnam-kalamkari-02.jpg to machilipatnam-kalamkari-09.jpg",
+      "file": "/walkthrough/cloth/machilipatnam-kalamkari-02.jpg to machilipatnam-kalamkari-09.jpg, with each -strip.jpg crop",
       "usedFor": "Motif source for the proxy cloth states of machilipatnam-kalamkari, derived by image processing: machilipatnam-kalamkari-02, machilipatnam-kalamkari-03, machilipatnam-kalamkari-04, machilipatnam-kalamkari-05, machilipatnam-kalamkari-06, machilipatnam-kalamkari-07, machilipatnam-kalamkari-08, machilipatnam-kalamkari-09. Proxy only, no craft claim.",
       "holder": "Rooftop",
       "creditLine": "Rooftop",
@@ -356,7 +356,7 @@
       "contactRoute": "connect@rooftopapp.com (shown on the source page)"
     },
     {
-      "file": "/walkthrough/cloth/*-raw.jpg",
+      "file": "/walkthrough/cloth/*-raw.jpg, /walkthrough/cloth/sanganeri-01.jpg, /walkthrough/cloth/machilipatnam-kalamkari-01.jpg, with each -strip.jpg crop",
       "usedFor": "Weave of the raw cloth files and the weave relief of every cloth state",
       "holder": "Poly Haven: Rough Linen, photography colormass, processing Rico Cilliers",
       "creditLine": "Rough Linen, Poly Haven",

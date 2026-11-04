@@ -24,7 +24,7 @@ import {
   openSessionAfterConsent,
   recordConsent,
   recordDeviceCheck,
-  recordMuseumWebglFailure,
+  recordWalkthroughWebglFailure,
   startFamiliarisation,
   completeFamiliarisation,
   submitAssessment,
@@ -155,9 +155,9 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
       const s = await allocatedTo(study, "immersive");
       expect(await recordDeviceCheck(t.pool, s.sessionId, report(2))).toEqual({ kind: "passed" });
       // Before the learning step the report is ignored (only practice and learning show the museum).
-      expect(await recordMuseumWebglFailure(t.pool, s.sessionId, { webglVersion: 2, softwareRenderer: true }, { appBuild: BUILD })).toEqual({ kind: "ignored" });
+      expect(await recordWalkthroughWebglFailure(t.pool, s.sessionId, { webglVersion: 2, softwareRenderer: true }, { appBuild: BUILD })).toEqual({ kind: "ignored" });
       await completeOnboarding(t.pool, s.sessionId);
-      const out = await recordMuseumWebglFailure(t.pool, s.sessionId, { webglVersion: 2, softwareRenderer: true }, { appBuild: BUILD });
+      const out = await recordWalkthroughWebglFailure(t.pool, s.sessionId, { webglVersion: 2, softwareRenderer: true }, { appBuild: BUILD });
       const failed = (await state(s.sessionId)).journal.find((e) => e.action === "study.webgl_failed");
       expect(failed?.after).toMatchObject({ step: "learning", policy, softwareRenderer: true, learningStarted: true });
       if (policy === "retry") {
@@ -261,7 +261,7 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     };
     const s = await allocatedTo(study, "immersive", (x) => answer(x.sessionId, "questionnaire_pre", "1"));
     await completeOnboarding(t.pool, s.sessionId);
-    const out = await recordMuseumWebglFailure(t.pool, s.sessionId, { webglVersion: null, softwareRenderer: false }, { appBuild: BUILD });
+    const out = await recordWalkthroughWebglFailure(t.pool, s.sessionId, { webglVersion: null, softwareRenderer: false }, { appBuild: BUILD });
     expect(out.kind).toBe("reassigned");
     if (out.kind !== "reassigned") return;
     await completeOnboarding(t.pool, out.sessionId);

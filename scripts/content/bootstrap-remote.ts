@@ -1,5 +1,5 @@
 /**
- * Builds the public demo museum in a PRODUCTION (or any) database, the same way dev:bootstrap
+ * Builds the public demo in a PRODUCTION (or any) database, the same way dev:bootstrap
  * does locally, minus everything that must never reach production:
  *
  *   npx tsx scripts/deploy/with-env.ts --env-file <file> -- npm run content:bootstrap:remote -- --i-understand-this-is-remote
@@ -7,8 +7,7 @@
  * Steps (scripts/content/public-demo.ts, shared with dev:bootstrap):
  *  1. import content/ (src/server/content/import-content.ts);
  *  2. build the REVIEW snapshot (kind 'review', draft, never publishable);
- *  3. compile the spatial manifests: the three shortlisted traditions together and each alone;
- *  4. create or update the demo study `demo-review-walkthrough` (is_demo, non-experimental, draft).
+ *  3. create or update the demo study `demo-review-walkthrough` (is_demo, non-experimental, draft).
  *
  * Never: migrations (run `db:migrate` first, through with-env), the test database, the demo seed,
  * staff or test users, passwords, participants. It refuses to start when migrations are pending or

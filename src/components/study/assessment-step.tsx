@@ -57,7 +57,8 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
       }
       case "matching": {
         const pairById = new Map(cfg.pairs.map((p) => [p.id, p]));
-        return { id: item.id, kind: "matching", prompt: item.prompt, pairs: pairOrder(state.sessionId, item).map((id) => pairById.get(id)!), options: cfg.options };
+        const optionById = new Map(cfg.options.map((o) => [o.id, o]));
+        return { id: item.id, kind: "matching", prompt: item.prompt, pairs: pairOrder(state.sessionId, item).map((id) => pairById.get(id)!), options: optionOrder(state.sessionId, item).map((id) => optionById.get(id)!) };
       }
       case "sketch":
         return { id: item.id, kind: "sketch", prompt: item.prompt, maxBytes: cfg.maxBytes };

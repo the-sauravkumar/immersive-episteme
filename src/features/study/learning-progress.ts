@@ -36,6 +36,23 @@ export function bindLearningTelemetry(next: TelemetrySink | null): void {
   sink = next;
 }
 
+export function unbindLearningTelemetry(bound: TelemetrySink): void {
+  if (sink === bound) sink = null;
+}
+
+let openStopCloser: (() => void) | null = null;
+
+export function registerOpenStop(close: () => void): () => void {
+  openStopCloser = close;
+  return () => {
+    if (openStopCloser === close) openStopCloser = null;
+  };
+}
+
+export function closeOpenStop(): void {
+  openStopCloser?.();
+}
+
 const stagePage = (stage: Pick<StageRef, "traditionKey" | "stageKey">) => `stage:${stage.traditionKey}:${stage.stageKey}`;
 
 let lastPost: Promise<unknown> = Promise.resolve();
@@ -60,15 +77,21 @@ function post<T>(body: LearningProgressRequest, keepalive = false): Promise<T | 
 }
 
 export async function reportStageEntered(stage: StageRef): Promise<StageEntryOutcome> {
-  const outcome = (await post<StageEntryOutcome>({ kind: "stage_entered", stage })) ?? { ok: false, reason: "unavailable", expected: null };
+  const outcome = await post<StageEntryOutcome | { readonly error: string }>({ kind: "stage_entered", stage });
+  if (outcome === null) return { ok: false, reason: "unavailable", expected: null };
+  if ("error" in outcome) return { ok: false, reason: "not_learning", expected: null };
   if (outcome.ok) sink?.("stage_entered", { metadata: { ...stage, visitCount: outcome.visitCount, backStep: outcome.backStep }, roomOrPageId: stagePage(stage) });
   return outcome;
 }
 
-export function reportStageLeft(stage: StageRef, activeMs: number): void {
-  const whole = Math.max(0, Math.round(activeMs));
-  sink?.("stage_left", { metadata: { ...stage, activeMs: whole }, roomOrPageId: stagePage(stage) });
-  void post({ kind: "stage_left", stage, activeMs: whole }, true);
+const wholeMs = (activeMs: number): number => Math.max(0, Math.round(activeMs));
+
+export function logStageLeft(stage: StageRef, activeMs: number): void {
+  sink?.("stage_left", { metadata: { ...stage, activeMs: wholeMs(activeMs) }, roomOrPageId: stagePage(stage) });
+}
+
+export async function sendStageLeft(stage: StageRef, activeMs: number): Promise<boolean> {
+  return (await post({ kind: "stage_left", stage, activeMs: wholeMs(activeMs) }, true)) !== null;
 }
 
 export function reportSourceOpened(stage: StageRef): void {
@@ -79,8 +102,8 @@ export function reportObjectDwell(stage: StageRef, dwell: ObjectDwell): void {
   sink?.("object_dwell", { metadata: { ...stage, objectKey: dwell.objectKey, dwellMs: Math.round(dwell.dwellMs), closestM: dwell.closestM }, roomOrPageId: stagePage(stage), target: dwell.objectKey });
 }
 
-export function reportPathSample(traditionKey: string, points: readonly (readonly [number, number, number])[]): void {
-  if (points.length > 0) sink?.("path_sampled", { metadata: { traditionKey, points } });
+export function reportPathSample(traditionKey: string, segment: string, points: readonly (readonly [number, number, number])[]): void {
+  if (points.length > 0) sink?.("path_sampled", { metadata: { traditionKey, segment, points } });
 }
 
 export function reportViewpointChanges(stage: Pick<StageRef, "traditionKey" | "stageKey">, count: number): void {

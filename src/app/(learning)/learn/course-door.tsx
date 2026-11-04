@@ -1,13 +1,11 @@
 "use client";
 
-import { useCallback } from "react";
-
 import { CourseSession, type CourseStageEvent } from "@/features/course/ui/course-session";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
-import { reportSourceOpened, reportStageLeft, type StageRef } from "@/features/study/learning-progress";
-import { PRODUCT_STOP_KEY } from "@/features/study/stage-coverage";
+import { registerOpenStop, reportSourceOpened, type StageRef } from "@/features/study/learning-progress";
+import { PRODUCT_STOP_KEY, type LearningResume } from "@/features/study/stage-coverage";
 
-import { enterStop, useLearningExit } from "./door-progress";
+import { useDoorProgress } from "./door-progress";
 
 export function courseStop(event: CourseStageEvent, templates: readonly StageTemplate[]): StageRef {
   if (event.stageKey !== null && event.stageNumber !== null) return { traditionKey: event.tradition, stageKey: event.stageKey, stageNumber: event.stageNumber };
@@ -15,24 +13,19 @@ export function courseStop(event: CourseStageEvent, templates: readonly StageTem
   return { traditionKey: event.tradition, stageKey: PRODUCT_STOP_KEY, stageNumber: template.stages.length + 1 };
 }
 
-export function CourseDoor({ templates }: { readonly templates: readonly StageTemplate[] }) {
-  const { notice, finish, leave } = useLearningExit();
-  const onStageEntered = useCallback(
-    async (event: CourseStageEvent) => {
-      const verdict = await enterStop(courseStop(event, templates));
-      if (verdict === "ended") leave();
-      return verdict !== "refused";
-    },
-    [leave, templates],
-  );
+export function CourseDoor({ templates, resume }: { readonly templates: readonly StageTemplate[]; readonly resume: LearningResume | null }) {
+  const { notice, restore, enter, left, finish } = useDoorProgress(templates);
   return (
     <>
       <CourseSession
         templates={templates}
-        onStageEntered={onStageEntered}
-        onStageLeft={(event) => reportStageLeft(courseStop(event, templates), event.dwellMs)}
+        resume={resume}
+        restore={restore}
+        registerExit={registerOpenStop}
+        onStageEntered={(event) => enter(courseStop(event, templates))}
+        onStageLeft={(event) => left(courseStop(event, templates), event.activeMs)}
         onSourceOpened={(event) => reportSourceOpened(courseStop(event, templates))}
-        onFinished={() => void finish()}
+        onFinished={finish}
       />
       {notice ? (
         <div role="alert" className="walking-toast" data-visible="true">

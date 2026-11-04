@@ -9,8 +9,7 @@
  * runs with `cacheComponents` (static shells) by design (docs/decisions/0001), so a
  * `'nonce-…' 'strict-dynamic'` policy would block the framework's own shell scripts. Inline
  * scripts are therefore still allowed (`'unsafe-inline'`), and everything else is locked down:
- *  - scripts only from this origin (no third-party script hosts, no `eval` outside dev;
- *    WebAssembly compilation is allowed for the museum's texture transcoder);
+ *  - scripts only from this origin (no third-party script hosts, no `eval` outside dev);
  *  - no plugins (`object-src 'none'`), no `<base>` hijacking (`base-uri 'none'`);
  *  - forms post only to this origin (`form-action 'self'`), so injected markup cannot send
  *    credentials elsewhere; fetch/XHR/WebSocket only to this origin (`connect-src 'self'`),
@@ -64,9 +63,7 @@ export function contentSecurityPolicy({ frameAncestors, dev = false, connectSrc 
   const extraConnect = connectSrc ?? [mediaUploadOrigin()].filter((o): o is string => o !== null);
   const directives: [string, ...string[]][] = [
     ["default-src", "'self'"],
-    // 'wasm-unsafe-eval' allows WebAssembly compilation only (not JS eval): the museum's KTX2
-    // texture transcoder (public/museum/basis) is WebAssembly.
-    ["script-src", "'self'", "'unsafe-inline'", "'wasm-unsafe-eval'", ...(dev ? ["'unsafe-eval'"] : [])],
+    ["script-src", "'self'", "'unsafe-inline'", ...(dev ? ["'unsafe-eval'"] : [])],
     ["style-src", "'self'", "'unsafe-inline'"],
     ["img-src", "'self'", "blob:", "data:"],
     ["font-src", "'self'", "data:"],
