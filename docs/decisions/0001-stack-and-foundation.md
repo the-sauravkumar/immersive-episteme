@@ -19,7 +19,7 @@ on 2026-10-14.
 
 | Area | Choice (version) | Why |
 |---|---|---|
-| Framework | Next.js 16.4.0, React 19.3.0 | Latest stable. RSC, route handlers and server actions keep both conditions in one deployable. |
+| Framework | Next.js 16.4.5, React 19.3.0 | Latest stable. RSC, route handlers and server actions keep both conditions in one deployable. |
 | Rendering model | `cacheComponents: true`, `partialPrefetching: true` | create-next-app 16.4 defaults; the docs say the next major makes both mandatory. Request-time reads (session, cookies) must sit behind `<Suspense>`. |
 | Language | TypeScript 5.9.3 (`strict`, `noUncheckedIndexedAccess`) | TS 7.0 (native port) is `latest` on npm, but create-next-app 16.4 still scaffolds `^5`. Stay on 5.9 until Next documents TS 7 support. |
 | Styling | Tailwind CSS 4.3.3 via `@tailwindcss/postcss`, tw-animate-css 1.4.0 | PostCSS is the path documented in `next/dist/docs` and works for Turbopack and Vitest alike. |
@@ -30,7 +30,7 @@ on 2026-10-14.
 | ORM | drizzle-orm 0.45.4, drizzle-kit 0.31.11, pg 8.23.1 | SQL-first and typed; generated SQL migrations are reviewed in git and applied by a programmatic migrator. The 1.0 line is still RC. |
 | Auth | better-auth 1.7.7 | Self-hosted, Drizzle adapter, sessions in our Postgres. RBAC is layered in `src/lib/permissions`. |
 | Tests | Vitest 5.0.4 (Vite 8.3.4, @vitejs/plugin-react 6.1.2, jsdom 30.1.2), Testing Library, Playwright 1.64.0 | Two Vitest projects: `dom` (jsdom) and `node` (logic, server, DB integration against `episteme_test`). |
-| Lint | ESLint 9.39.5 + eslint-config-next 16.4.0 | ESLint 10 exists, but create-next-app 16.4 pins `^9`. |
+| Lint | ESLint 9.39.5 + eslint-config-next 16.4.5 | ESLint 10 exists, but create-next-app 16.4 pins `^9`. |
 | Runtime | Node 24 (`.nvmrc`), npm 11 | Current LTS. |
 | CI | GitHub Actions, actions pinned by commit SHA | Typecheck, lint, test (pgvector service container), build, then a Playwright smoke job. |
 
@@ -68,3 +68,8 @@ deferred until auth and the 3D runtime exist.
 - `shadcn add` re-introduces `import { cn } from "cn"`; rewrite it to `@/lib/utils`.
 - `npm audit` reports 9 advisories in dev tooling (esbuild via drizzle-kit's `@esbuild-kit`,
   braces). None ship to the browser. Revisit when drizzle-kit 1.0 is stable.
+- 2026-11-05: `next` and `eslint-config-next` moved from 16.4.0 to 16.4.5, pinned exactly, for
+  GHSA-673q-mjm6-r5xr and GHSA-2464-fhr4-w9xw (critical), GHSA-p3m5-59mp-jv5r (high), all
+  patched in 16.4.1, and the seven moderate advisories of the November 2026 Next.js security
+  release, patched in 16.4.5. From 16.4.5 route handler responses no longer carry
+  `Content-Length`; the figure and media file routes stopped setting it (DR-097).

@@ -64,10 +64,10 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/figures/[ass
       const url = await storage.presignGet(asset.storageKey, { mime: asset.mimeType, disposition: "inline" });
       const res = await fetch(url);
       if (!res.ok || !res.body) return notFound();
-      return new Response(res.body, { status: 200, headers: { ...headers, "Content-Length": String(asset.byteSize) } });
+      return new Response(res.body, { status: 200, headers });
     }
     const bytes = await storage.read(asset.storageKey);
-    return new Response(new Uint8Array(bytes), { status: 200, headers: { ...headers, "Content-Length": String(bytes.byteLength) } });
+    return new Response(new Uint8Array(bytes), { status: 200, headers });
   } catch {
     return notFound();
   }
