@@ -98,7 +98,9 @@ if (sceneName === "still") {
     const stageKey = query.get("stage");
     const label = query.get("item");
     if (!stageKey || !label) return [];
-    return looksOfItem(stageKey, { label, role: "material" });
+    const trialFill = query.get("fill") as SubstanceLook["fill"] | null;
+    const trialSurface = query.get("surface");
+    return looksOfItem(stageKey, { label, role: "material" }).map((look) => ({ ...look, ...(trialFill ? { fill: trialFill } : {}), ...(trialSurface ? { surface: trialSurface } : {}) }));
   };
   const liquidOfStill = (): SubstanceLook | null => {
     const stageKey = query.get("stage");

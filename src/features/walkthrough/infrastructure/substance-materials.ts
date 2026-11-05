@@ -105,6 +105,7 @@ export function displayAlbedo(hex: string, gain?: LinearRgb): THREE.Color {
 interface FormSurface {
   readonly scan: ScanName;
   readonly tileMetres?: number;
+  readonly alongGrain?: boolean;
   readonly roughness: number;
   readonly leastRough: number;
   readonly normalScale: number;
@@ -118,17 +119,20 @@ interface FormSurface {
 type ScannedFill = Exclude<SubstanceFill, "liquid">;
 
 const FORM_SURFACES: Readonly<Record<ScannedFill, FormSurface>> = {
-  dung: { scan: "dryMud", roughness: 1, leastRough: 0.8, normalScale: 0.5, contrast: 0.3, gain: [1.02, 0.96, 0.76], specular: 0.25, contact: 0.5, env: 0.35 },
-  roots: { scan: "bark", roughness: 1, leastRough: 0.8, normalScale: 1.1, contrast: 0.5, gain: [1.16, 1.08, 1], specular: 0.3, contact: 0.55, env: 0.35 },
-  flowers: { scan: "leaves", roughness: 1, leastRough: 0.82, normalScale: 0.8, contrast: 0.4, gain: [1.14, 1.04, 0.94], specular: 0.3, contact: 0.5, env: 0.35 },
-  leaves: { scan: "leaves", roughness: 1, leastRough: 0.75, normalScale: 1, contrast: 0.5, gain: [0.95, 0.95, 0.95], specular: 0.4, contact: 0.45, env: 0.4 },
+  dung: { scan: "cowCrust", roughness: 1, leastRough: 0.82, normalScale: 1.6, contrast: 0.9, gain: [1.35, 1.48, 1.56], specular: 0.25, contact: 0.5, env: 0.35 },
+  roots: { scan: "madderBark", alongGrain: true, roughness: 1, leastRough: 0.82, normalScale: 2.2, contrast: 1, gain: [1.68, 1.84, 1.8], specular: 0.3, contact: 0.45, env: 0.35 },
+  flowers: { scan: "madderBark", tileMetres: 0.09, alongGrain: true, roughness: 1, leastRough: 0.82, normalScale: 1, contrast: 0.7, gain: [1.3, 1.35, 1.45], specular: 0.3, contact: 0.4, env: 0.35 },
+  leaves: { scan: "leafBlade", alongGrain: true, roughness: 1, leastRough: 0.72, normalScale: 0.9, contrast: 0.8, gain: [1.22, 1.46, 1.6], specular: 0.4, contact: 0.4, env: 0.4 },
+  fruit: { scan: "fruitSkin", roughness: 1, leastRough: 0.55, normalScale: 1.5, contrast: 0.85, gain: [1.5, 1.5, 1.5], specular: 0.55, contact: 0.5, env: 0.45 },
   powder: { scan: "flour", roughness: 1, leastRough: 0.85, normalScale: 0.8, contrast: 0.4, gain: [0.84, 0.84, 0.84], specular: 0.25, contact: 0, env: 0.4 },
   crystals: { scan: "flour", roughness: 1, leastRough: 0.85, normalScale: 0.7, contrast: 0.3, gain: [0.8, 0.8, 0.8], specular: 0.25, contact: 0, env: 0.4 },
   paste: { scan: "wetMud", tileMetres: 1.25, roughness: 0.42, leastRough: 0.22, normalScale: 0.06, contrast: 0.05, gain: [0.92, 0.92, 0.92], specular: 0.8, contact: 0, env: 0.45 },
   cloth: { scan: "weave", roughness: 1, leastRough: 0.72, normalScale: 1.2, contrast: 0.5, gain: [0.86, 0.86, 0.86], specular: 0.4, contact: 0.4, env: 0.2 },
 };
 
-const SURFACE_OVERRIDES: readonly { readonly words: RegExp; readonly apply: (form: FormSurface) => FormSurface }[] = [
+const SURFACE_OVERRIDES: readonly { readonly words: RegExp; readonly fill?: SubstanceFill; readonly apply: (form: FormSurface) => FormSurface }[] = [
+  { words: /crazed|crease|seam/, fill: "dung", apply: (form) => ({ ...form, scan: "camelSkin", normalScale: 1.8, contrast: 1, gain: [1.25, 1.28, 1.38], contact: 0.62 }) },
+  { words: /\bwet\b|\bfresh\b|\bmoist\b/, fill: "dung", apply: (form) => ({ ...form, scan: "wetMud", tileMetres: 0.65, leastRough: 0.34, normalScale: 0.5, contrast: 0.3, specular: 0.7 }) },
   { words: /\bdust\b/, apply: (form) => ({ ...form, scan: "sawdust", tileMetres: 0.13, contrast: 0.62, normalScale: 1 }) },
   { words: /^granular$/, apply: (form) => ({ ...form, scan: "sawdust", tileMetres: 0.055, contrast: 0.42, normalScale: 1.5 }) },
   { words: /fibrous/, apply: (form) => ({ ...form, scan: "bark", tileMetres: 0.09, contrast: 0.42, normalScale: 0.95, leastRough: 0.46, specular: 0.65 }) },
@@ -140,10 +144,11 @@ const RUBBED_SHARE = 0.55;
 
 function surfaceOf(look: SubstanceLook): FormSurface {
   const form = FORM_SURFACES[look.fill as ScannedFill];
-  return SURFACE_OVERRIDES.filter(({ words }) => words.test(look.surface)).reduce((current, { apply }) => apply(current), form);
+  return SURFACE_OVERRIDES.filter(({ words, fill }) => words.test(look.surface) && (fill === undefined || fill === look.fill)).reduce((current, { apply }) => apply(current), form);
 }
 
-const PILE_BED_DARKENING = 0.42;
+const PILE_BED_DARKENING: Partial<Record<SubstanceFill, number>> = { dung: 0.58, roots: 0.32, fruit: 0.4 };
+const GAP_DARKENING = 0.3;
 
 async function scannedMaterial(library: MaterialLibrary, look: SubstanceLook, bed: boolean): Promise<THREE.MeshStandardMaterial> {
   const form = surfaceOf(look);
@@ -160,7 +165,7 @@ async function scannedMaterial(library: MaterialLibrary, look: SubstanceLook, be
     transparent: look.fill === "paste" && look.transparency === "translucent",
     opacity: look.fill === "paste" && look.transparency === "translucent" ? 0.93 : 1,
   });
-  if (bed && look.fill !== "crystals") material.color.multiplyScalar(PILE_BED_DARKENING);
+  if (bed && look.fill !== "crystals") material.color.multiplyScalar(PILE_BED_DARKENING[look.fill] ?? GAP_DARKENING);
   const perMetre = 1 / (form.tileMetres ?? scan.tileMetres);
   const rubbed = /coppery/.test(look.surface);
   return noteSurface(projectScan(material, perMetre, form.contrast, form.leastRough, { specular: form.specular, contact: bed ? 0 : form.contact, rubbed: rubbed ? RUBBED_SHARE : 0, rubbedColour: rubbed ? displayAlbedo(RUBBED_COPPER_HEX) : undefined }), { label: `substance ${look.key}`, kind: "model", perMetre, openWork: !bed && look.fill !== "powder" && look.fill !== "paste" });
@@ -168,6 +173,75 @@ async function scannedMaterial(library: MaterialLibrary, look: SubstanceLook, be
 
 export function substanceMaterial(library: MaterialLibrary, look: SubstanceLook): Promise<THREE.MeshStandardMaterial> {
   return library.shared(`substance:${look.key}`, () => scannedMaterial(library, look, false));
+}
+
+const GRAIN_LUMA = "vec3(0.2126, 0.7152, 0.0722)";
+
+const GRAIN_COLOUR = [
+  "float grainMean = max(dot(textureLod(map, vec2(0.5), 12.0).rgb, " + GRAIN_LUMA + "), 0.02);",
+  "float grainTone = dot(texture2D(map, vMapUv).rgb, " + GRAIN_LUMA + ") / grainMean;",
+  "diffuseColor.rgb *= clamp(mix(1.0, grainTone, grainContrast), 0.35, 1.7);",
+  "diffuseColor.rgb *= mix(1.0 - grainContact, 1.0, smoothstep(-0.7, 0.45, vGrainUp));",
+].join("\n");
+
+const GRAIN_ROUGH = "float roughnessFactor = max(roughness * texture2D(roughnessMap, vRoughnessMapUv).g, grainLeastRough);";
+const GRAIN_SPECULAR = "#include <lights_physical_fragment>\nmaterial.specularColorBlended *= grainSpecular;";
+const GRAIN_VERTEX = [
+  "#include <begin_vertex>",
+  "#ifdef USE_INSTANCING",
+  "vGrainUp = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * normal).y;",
+  "#else",
+  "vGrainUp = normalize(mat3(modelMatrix) * normal).y;",
+  "#endif",
+].join("\n");
+
+function scanAlongGrain(material: THREE.MeshStandardMaterial, form: FormSurface): void {
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.grainContrast = { value: form.contrast };
+    shader.uniforms.grainContact = { value: form.contact };
+    shader.uniforms.grainLeastRough = { value: form.leastRough };
+    shader.uniforms.grainSpecular = { value: form.specular };
+    shader.vertexShader = `varying float vGrainUp;\n${shader.vertexShader.replace("#include <begin_vertex>", GRAIN_VERTEX)}`;
+    shader.fragmentShader = `varying float vGrainUp;\nuniform float grainContrast;\nuniform float grainContact;\nuniform float grainLeastRough;\nuniform float grainSpecular;\n${shader.fragmentShader.replace("#include <map_fragment>", GRAIN_COLOUR).replace("#include <roughnessmap_fragment>", GRAIN_ROUGH).replace("#include <lights_physical_fragment>", GRAIN_SPECULAR)}`;
+  };
+  material.customProgramCacheKey = () => "scan-along-grain";
+}
+
+function repeatedScan(library: MaterialLibrary, texture: THREE.Texture, key: string, perMetre: number): Promise<THREE.Texture> {
+  return library.shared(`grain-map:${key}:${perMetre.toFixed(2)}`, async () => {
+    const repeated = texture.clone();
+    repeated.repeat.set(perMetre, perMetre);
+    repeated.needsUpdate = true;
+    library.keep(repeated);
+    return repeated;
+  });
+}
+
+export function pileMaterial(library: MaterialLibrary, look: SubstanceLook): Promise<THREE.MeshStandardMaterial> {
+  return library.shared(`pile:${look.key}`, async () => {
+    const form = surfaceOf(look);
+    if (!form.alongGrain) {
+      const material = await scannedMaterial(library, look, false);
+      material.vertexColors = true;
+      return material;
+    }
+    const scan = await library.scan(form.scan);
+    const perMetre = 1 / (form.tileMetres ?? scan.tileMetres);
+    const material = new THREE.MeshStandardMaterial({
+      map: await repeatedScan(library, scan.colour, `${form.scan}:colour`, perMetre),
+      normalMap: await repeatedScan(library, scan.normal, `${form.scan}:normal`, perMetre),
+      roughnessMap: await repeatedScan(library, scan.roughness, `${form.scan}:roughness`, perMetre),
+      roughness: form.roughness,
+      metalness: 0,
+      color: displayAlbedo(look.renderHex, form.gain),
+      normalScale: new THREE.Vector2(form.normalScale, form.normalScale),
+      envMapIntensity: form.env,
+      vertexColors: true,
+      side: look.fill === "roots" ? THREE.FrontSide : THREE.DoubleSide,
+    });
+    scanAlongGrain(material, form);
+    return noteSurface(material, { label: `substance ${look.key}`, kind: "model", perMetre, openWork: true });
+  });
 }
 
 export function pileBedMaterial(library: MaterialLibrary, look: SubstanceLook): Promise<THREE.MeshStandardMaterial> {
