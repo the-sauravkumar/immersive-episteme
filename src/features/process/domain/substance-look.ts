@@ -4,7 +4,7 @@ import { SUBSTANCE_LOOK_ROWS } from "./substance-look-rows";
 
 export type SubstanceFill = "liquid" | "paste" | "powder" | "crystals" | "roots" | "flowers" | "cloth" | "dung" | "leaves";
 export type Transparency = "clear" | "translucent" | "opaque";
-export type RenderBasis = "evidence" | "inferred" | "provisional";
+export type RenderBasis = "evidence" | "photo" | "inferred" | "provisional";
 export type LookStatus = "sourced" | "inferred" | "partial" | "needs-lead";
 
 export interface SubstanceLookRow {

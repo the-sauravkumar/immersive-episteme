@@ -4,7 +4,7 @@ import { PRACTICE_MODEL, stagePanelModel } from "@/features/course/domain/panel-
 import { catalogueModel, clothStatePath, stillPath } from "@/features/process/domain/asset-catalogue";
 import { buildRoute } from "@/features/walkthrough/domain/route-plan";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
-import { itemVesselModel, liquidMarks, looksOfItem, stageItemStillPath, trayPadLookOf, workLiquidOf } from "@/features/process/domain/substance-look";
+import { itemColourIsUnsettled, itemVesselModel, liquidMarks, looksOfItem, stageItemStillPath, trayPadLookOf, workLiquidOf } from "@/features/process/domain/substance-look";
 import { SUBSTANCE_LOOK_ROWS } from "@/features/process/domain/substance-look-rows";
 import { structureFor } from "@/features/walkthrough/domain/yard-plan";
 import { lookRowsSource } from "../../../scripts/content/build-substance-look-rows";
@@ -66,7 +66,7 @@ describe("the look sheet reaches the scene", () => {
   it("gives each material its own Door 1 image and each bath its own tool image", () => {
     const stage = templates[0]!.stages.find((candidate) => candidate.key === "ajrakh.indigo-dyeing")!;
     expect(stageItemStillPath(stage.key, stage.items, stage.items.find((item) => item.label === "Indigo")!)).toBe(stillPath("ajrakh-indigo"));
-    expect(stageItemStillPath(stage.key, stage.items, stage.items.find((item) => item.modelId === "dye-vat")!)).toBe(stillPath("dye-vat-7c7a36"));
+    expect(stageItemStillPath(stage.key, stage.items, stage.items.find((item) => item.modelId === "dye-vat")!)).toBe(stillPath("dye-vat-212531"));
     const paths = new Set(materials.map(({ stage: where, item }) => stageItemStillPath(where.key, where.items, item)));
     expect(paths.size).toBe(new Set(materials.map(({ stage: where, item }) => looksOfItem(where.key, item).map((look) => look.key).join("+"))).size);
   });
@@ -123,6 +123,20 @@ describe("the look sheet reaches the scene", () => {
   it("draws every liquid row on the sheet, in a vessel or a bath", () => {
     const drawn = new Set(templates.flatMap((template) => template.stages.flatMap((stage) => [...stage.items.flatMap((item) => looksOfItem(stage.key, item)), ...(["ring", "tank"].includes(structureFor(stage.kind).type) ? [workLiquidOf(stage.key, stage.items)!] : [])].map((look) => look.key))));
     expect(SUBSTANCE_LOOK_ROWS.filter((row) => row.form === "liquid" && !drawn.has(row.key)).map((row) => row.key)).toEqual([]);
+  });
+
+  it("keeps a photo row flagged and names the photo it came from", () => {
+    const rows = sheet as { key: string; stages: string[]; label: string; renderBasis: string; renderNote: string; photoFile?: string; photoPage?: string; photoLicence?: string }[];
+    const photoRows = rows.filter((row) => row.renderBasis === "photo");
+    expect(photoRows.length).toBeGreaterThan(0);
+    expect(rows.filter((row) => !["evidence", "photo", "inferred", "provisional"].includes(row.renderBasis)).map((row) => row.key)).toEqual([]);
+    for (const row of photoRows) {
+      expect(row.photoFile, row.key).toBeTruthy();
+      expect(row.photoPage, row.key).toMatch(/^https?:\/\//);
+      expect(row.photoLicence, row.key).toBeTruthy();
+      expect(row.renderNote, row.key).toContain("not albedo");
+      expect(itemColourIsUnsettled(row.stages[0]!, { label: row.label, role: "material" }), row.key).toBe(true);
+    }
   });
 
   it("marks the indigo vat with its scum and bubbles from the sheet", () => {

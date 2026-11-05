@@ -25,11 +25,11 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "label": "Camel Dung",
     "partOfTemplateLabel": null,
     "form": "other",
-    "renderHex": "#4A3A28",
-    "renderBasis": "provisional",
+    "renderHex": "#A3978E",
+    "renderBasis": "photo",
     "status": "needs-lead",
     "transparency": "opaque",
-    "surface": "unknown",
+    "surface": "dry matt skin with fine crazed wrinkles, lengthwise creases and torn seams showing tan plant fibre",
     "vesselSuggestion": null
   },
   {
@@ -145,11 +145,11 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "label": "Dusting Agents",
     "partOfTemplateLabel": null,
     "form": "powder",
-    "renderHex": "#B59A6E",
-    "renderBasis": "provisional",
+    "renderHex": "#8E674A",
+    "renderBasis": "photo",
     "status": "partial",
     "transparency": "opaque",
-    "surface": "dry loose dust",
+    "surface": "dry fine dust, matt",
     "vesselSuggestion": null
   },
   {
@@ -205,11 +205,11 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "label": "Dhawri / Tamarisk Galls",
     "partOfTemplateLabel": null,
     "form": "flowers",
-    "renderHex": "#8A5A46",
-    "renderBasis": "provisional",
+    "renderHex": "#D8AA67",
+    "renderBasis": "photo",
     "status": "partial",
     "transparency": "opaque",
-    "surface": "dry",
+    "surface": "small loose dry papery flakes",
     "vesselSuggestion": null
   },
   {
@@ -250,11 +250,11 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "label": "Underground Indigo Vat",
     "partOfTemplateLabel": null,
     "form": "liquid",
-    "renderHex": "#7C7A36",
-    "renderBasis": "inferred",
+    "renderHex": "#212531",
+    "renderBasis": "photo",
     "status": "inferred",
     "transparency": "translucent",
-    "surface": "wet with a metallic coppery scum and bubbles",
+    "surface": "mirror-dark wet surface with islands of dense small bubbles, lilac-silver where lit, and the sources' metallic coppery scum",
     "vesselSuggestion": "underground vat"
   },
   {
@@ -326,11 +326,11 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "label": "Cow Dung",
     "partOfTemplateLabel": null,
     "form": "other",
-    "renderHex": "#4A3A28",
-    "renderBasis": "inferred",
+    "renderHex": "#6B5F55",
+    "renderBasis": "photo",
     "status": "inferred",
     "transparency": "opaque",
-    "surface": "moist, fibrous",
+    "surface": "rough pitted granular dry crust with deep branching cracks",
     "vesselSuggestion": null
   },
   {
@@ -416,11 +416,11 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "label": "Dhawai Flowers",
     "partOfTemplateLabel": null,
     "form": "flowers",
-    "renderHex": "#8A5A46",
-    "renderBasis": "provisional",
+    "renderHex": "#964933",
+    "renderBasis": "photo",
     "status": "partial",
     "transparency": "opaque",
-    "surface": "small dry florets",
+    "surface": "slim dry tubular calyces, red to pink streaked with straw",
     "vesselSuggestion": null
   },
   {
@@ -446,11 +446,11 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "label": "Sawdust",
     "partOfTemplateLabel": null,
     "form": "powder",
-    "renderHex": "#B59A6E",
-    "renderBasis": "provisional",
+    "renderHex": "#A27A5B",
+    "renderBasis": "photo",
     "status": "partial",
     "transparency": "opaque",
-    "surface": "dry loose dust",
+    "surface": "fine dust under flakes, chips and curled shavings",
     "vesselSuggestion": null
   },
   {
@@ -536,11 +536,11 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "label": "Indigo Vat",
     "partOfTemplateLabel": null,
     "form": "liquid",
-    "renderHex": "#7C7A36",
-    "renderBasis": "inferred",
+    "renderHex": "#212531",
+    "renderBasis": "photo",
     "status": "inferred",
     "transparency": "translucent",
-    "surface": "wet with a metallic coppery scum and bubbles",
+    "surface": "mirror-dark wet surface with islands of dense small bubbles, lilac-silver where lit, and the sources' metallic coppery scum",
     "vesselSuggestion": "indigo tank"
   },
   {
@@ -581,11 +581,11 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "label": "Cow Or Buffalo Dung",
     "partOfTemplateLabel": null,
     "form": "other",
-    "renderHex": "#4A3A28",
-    "renderBasis": "inferred",
+    "renderHex": "#6B5F55",
+    "renderBasis": "photo",
     "status": "inferred",
     "transparency": "opaque",
-    "surface": "moist, fibrous",
+    "surface": "rough pitted granular dry crust with deep branching cracks",
     "vesselSuggestion": null
   },
   {
@@ -716,11 +716,11 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "label": "Madder Root",
     "partOfTemplateLabel": "Alizarin, Madder And Chay Root",
     "form": "roots",
-    "renderHex": "#7E4632",
-    "renderBasis": "inferred",
+    "renderHex": "#8C5F3A",
+    "renderBasis": "photo",
     "status": "inferred",
     "transparency": "opaque",
-    "surface": "dry wrinkled root",
+    "surface": "matt dry root with fine lengthwise grain, thin bark flaking to a darker rough layer, orange at cut ends",
     "vesselSuggestion": null
   },
   {
