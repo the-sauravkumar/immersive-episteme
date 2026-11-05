@@ -1,19 +1,29 @@
 import * as THREE from "three";
 import type { SubstanceLook } from "@/features/process/domain/substance-look";
-import { fittedSurface, flatLevel, levelInVessel, moundHeight, pasteHeight, type SurfaceGrid } from "../domain/fill-surface";
+import { fittedSurface, flatLevel, heapHeight, levelInVessel, meanWallRadius, moundHeight, pasteHeight, surfaceShade, valueNoise, wallFilm, type HeapShape, type HeightAt, type SurfaceGrid, type SurfaceShading } from "../domain/fill-surface";
 import { packingSteps, rotateYXZ, type PlacedPiece } from "../domain/pile-packing";
-import { makeVesselProbe, vertexOutsideVessel, VESSEL_TUCK_METRES, type VesselProbe } from "../domain/mesh-probe";
+import { firstHit, makeVesselProbe, vertexOutsideVessel, VESSEL_TUCK_METRES, type VesselProbe } from "../domain/mesh-probe";
 import type { FillAudit, CheckedSphere } from "../domain/scene-check";
 import { measuringSteps, wallRadius, widestWallRadius, type VesselProfile } from "../domain/vessel-profile";
 import type { MaterialLibrary } from "./material-library";
-import { isPileFill, pileRecipe, type PileFill, type PileRecipe } from "./fill-pieces";
+import { hasCakePieces, isLumpCrystal, PASTE_FORMS, pasteThicknessOf, POWDER_FORMS, powderGrainOf, type PowderGrain } from "../domain/substance-body";
+import { scatterSteps, type ScatterKind } from "../domain/surface-scatter";
+import { alumLump, crumb, crystalGrain, curledShaving, grainsInTurn, grit, indigoCake, woodFlake } from "./fill-grains";
+import { blueprintsFrom, isPileFill, pileRecipe, type PieceVariant, type PileFill, type PileRecipe } from "./fill-pieces";
 import { softBox } from "./solid-builders";
-import { crystalMaterial, liquidMaterial, pileBedMaterial, substanceMaterial } from "./substance-materials";
+import { cakeMaterial, crystalMaterial, filmMaterial, liquidMaterial, pileBedMaterial, substanceMaterial } from "./substance-materials";
 
 const LIQUID_FRACTION = 0.76;
-const PASTE_FRACTION = 0.54;
-const POWDER_FRACTION = 0.5;
-const POWDER_HEAP_FRACTION = 0.42;
+const FILM_INSET_METRES = 0.0007;
+const FILM_BELOW_LEVEL_METRES = 0.007;
+const FILM_BELOW_RIM_METRES = 0.004;
+const FILM_TOP_STEP_METRES = 0.001;
+const FILM_SHADE = 0.8;
+const HEAP_SHADING: SurfaceShading = { cavityMetres: 0.0032, cavity: 0.2, wall: 0.42 };
+const PASTE_SHADING: SurfaceShading = { cavityMetres: 0.004, cavity: 0.16, wall: 0.3 };
+const LUMP_BED_FRACTION = 0.22;
+const LUMP_REST_METRES = 0.0016;
+const LUMP_FILLS_TO = 0.98;
 const CLEAR_OF_LOW_RIM = 0.01;
 const PILE_BED_FRACTION = 0.34;
 const PILE_BED_GRAIN = 0.012;
@@ -71,11 +81,13 @@ export async function measureObject(object: THREE.Object3D): Promise<MeasuredVes
   return { profile: await runGradually(measuringSteps(triangles)), triangles, probe: null };
 }
 
+function probeOf(measured: MeasuredVessel): VesselProbe {
+  measured.probe ??= makeVesselProbe(measured.triangles, 0, 0, measured.profile.rimY, measured.profile.floorY);
+  return measured.probe;
+}
+
 function outsideTest(measured: MeasuredVessel): FillAudit["vertexOutside"] {
-  return (point) => {
-    measured.probe ??= makeVesselProbe(measured.triangles, 0, 0, measured.profile.rimY, measured.profile.floorY);
-    return vertexOutsideVessel(measured.probe, point, VESSEL_TUCK_METRES);
-  };
+  return (point) => vertexOutsideVessel(probeOf(measured), point, VESSEL_TUCK_METRES);
 }
 
 function gridGeometry(grid: SurfaceGrid): THREE.BufferGeometry {
@@ -151,25 +163,230 @@ async function addLiquid(library: MaterialLibrary, parent: THREE.Object3D, scanI
   return surfaceAudit(name, measured, geometry);
 }
 
+function plainWhite(geometry: THREE.BufferGeometry, shade = 1): THREE.BufferGeometry {
+  const count = geometry.attributes.position!.count;
+  geometry.setAttribute("color", new THREE.BufferAttribute(new Float32Array(count * 3).fill(shade), 3));
+  return geometry;
+}
+
+function shadedGeometry(grid: SurfaceGrid, rings: number, spokes: number, shading: SurfaceShading): THREE.BufferGeometry {
+  const geometry = gridGeometry(grid);
+  geometry.setAttribute("color", new THREE.BufferAttribute(surfaceShade(grid, rings, spokes, shading), 3));
+  return geometry;
+}
+
+function wallFilmGeometry(measured: MeasuredVessel, level: number, height: number, seed: number): THREE.BufferGeometry {
+  const profile = measured.profile;
+  const probe = probeOf(measured);
+  const wallAt = (theta: number, y: number): number => {
+    const measuredRadius = wallRadius(profile, theta, y);
+    const hit = firstHit(probe.grid, [0, y, 0], [Math.cos(theta), 0, Math.sin(theta)]);
+    return hit && hit.distance < measuredRadius * 1.25 ? hit.distance : measuredRadius;
+  };
+  const rise = (theta: number): number => height * (0.45 + 0.75 * valueNoise(Math.cos(theta) * 3.3 + 7, Math.sin(theta) * 3.3 + 3, seed));
+  const enclosed = (theta: number, y: number): boolean => {
+    const hit = firstHit(probe.grid, [0, y, 0], [Math.cos(theta), 0, Math.sin(theta)]);
+    return hit !== null && hit.distance < wallRadius(profile, theta, y) * 1.25;
+  };
+  const topOf = (theta: number): number => {
+    let y = Math.min(level + rise(theta), profile.rimY - FILM_BELOW_RIM_METRES);
+    while (y > level && !(enclosed(theta, y + FILM_BELOW_RIM_METRES) && enclosed(theta, y))) y -= FILM_TOP_STEP_METRES;
+    return y;
+  };
+  const grid = wallFilm(12, 320, () => level - FILM_BELOW_LEVEL_METRES, topOf, wallAt, FILM_INSET_METRES);
+  const geometry = plainWhite(gridGeometry(grid), FILM_SHADE);
+  geometry.setAttribute("filmShare", new THREE.BufferAttribute(grid.share, 1));
+  return geometry;
+}
+
+interface PieceSet {
+  readonly variants: readonly PieceVariant[];
+  readonly material: THREE.Material;
+  readonly placed: readonly PlacedPiece[];
+  readonly castsShadow: boolean;
+  readonly toneSpread: number;
+  readonly warmth: number;
+}
+
+const PIECE_HOLDER = new THREE.Object3D();
+PIECE_HOLDER.rotation.order = "YXZ";
+
+function placedMatrixFor(piece: PlacedPiece): THREE.Matrix4 {
+  PIECE_HOLDER.position.set(piece.x, piece.y, piece.z);
+  PIECE_HOLDER.rotation.set(piece.pitch, piece.yaw, piece.roll);
+  PIECE_HOLDER.scale.setScalar(piece.scale);
+  PIECE_HOLDER.updateMatrix();
+  return PIECE_HOLDER.matrix;
+}
+
+function addPieceSet(parent: THREE.Object3D, set: PieceSet): void {
+  const tint = new THREE.Color();
+  set.variants.forEach((variant, index) => {
+    const own = set.placed.filter((piece) => piece.variant === index);
+    if (own.length === 0) return;
+    const mesh = new THREE.InstancedMesh(variant.geometry, set.material, own.length);
+    own.forEach((piece, i) => {
+      mesh.setMatrixAt(i, placedMatrixFor(piece));
+      const tone = 1 + set.toneSpread * (valueNoise(piece.x * 310, piece.z * 310, index) - 0.5) * 2;
+      const warm = set.warmth * (valueNoise(piece.z * 170, piece.x * 170, index + 4) - 0.35);
+      tint.setRGB(tone * (1 + warm), tone, tone * (1 - warm));
+      mesh.setColorAt(i, tint);
+    });
+    mesh.castShadow = set.castsShadow;
+    mesh.receiveShadow = true;
+    parent.add(mesh);
+  });
+}
+
+function placedSpheres(set: PieceSet, piece: PlacedPiece): CheckedSphere[] {
+  return set.variants[piece.variant]!.spheres.map((sphere) => {
+    const [x, y, z] = rotateYXZ(sphere.x * piece.scale, sphere.y * piece.scale, sphere.z * piece.scale, piece.yaw, piece.pitch, piece.roll);
+    return { x: x + piece.x, y: y + piece.y, z: z + piece.z, r: sphere.r * piece.scale };
+  });
+}
+
+function fillAudit(name: string, measured: MeasuredVessel, geometries: readonly THREE.BufferGeometry[], sets: readonly PieceSet[]): FillAudit {
+  return {
+    name,
+    vertexOutside: outsideTest(measured),
+    points: () => {
+      const points: number[] = [];
+      for (const geometry of geometries) for (const value of geometry.attributes.position!.array as Float32Array) points.push(value);
+      for (const set of sets) {
+        for (const piece of set.placed) {
+          for (const { x, y, z, r } of placedSpheres(set, piece)) points.push(x + r, y, z, x - r, y, z, x, y, z + r, x, y, z - r, x, y + r, z);
+        }
+      }
+      return Float32Array.from(points);
+    },
+    pieces: () => sets.flatMap((set) => set.placed.map((piece) => placedSpheres(set, piece))),
+  };
+}
+
+const PASTE_SMEAR = { stretch: 0.22, falloff: 2.6, cloudWeight: 1.9, grainWeight: 0.15, edge: 0.7 };
+const POWDER_FEATHER = { stretch: 1, falloff: 1.6, cloudWeight: 1.1, grainWeight: 1.3, edge: 0.45 };
+
 async function addPaste(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
   const profile = measured.profile;
-  const level = levelInVessel(profile, PASTE_FRACTION);
+  const thickness = pasteThicknessOf(look);
+  const form = PASTE_FORMS[thickness];
+  const level = levelInVessel(profile, form.level);
   const depth = profile.rimY - profile.floorY;
-  const geometry = await library.shared(`surface:paste:${scanId}`, async () => gridGeometry(fittedSurface(profile, level, 56, 224, pasteHeight(level, depth))));
-  parent.add(stillMesh(geometry, await substanceMaterial(library, look)));
-  return surfaceAudit(name, measured, geometry);
+  const body = { ...form, reach: meanWallRadius(profile, level), seed: 7 };
+  const geometry = await library.shared(`surface:paste:${scanId}:${thickness}`, async () => shadedGeometry(fittedSurface(profile, level, 72, 320, pasteHeight(level, depth, body)), 72, 320, PASTE_SHADING));
+  const smear = await library.shared(`film:paste:${scanId}:${thickness}`, async () => wallFilmGeometry(measured, level + depth * form.meniscus * 0.3, depth * form.smearHeight, 5));
+  const mass = stillMesh(geometry, await substanceMaterial(library, look));
+  mass.castShadow = true;
+  parent.add(mass);
+  parent.add(stillMesh(smear, await filmMaterial(library, look, PASTE_SMEAR)));
+  return fillAudit(name, measured, [geometry, smear], []);
+}
+
+interface GrainRecipe {
+  readonly variants: readonly PieceVariant[];
+  readonly kinds: readonly ScatterKind[];
+}
+
+const range = (from: number, count: number): number[] => Array.from({ length: count }, (_, i) => from + i);
+
+const CRUMB_VARIANTS = 5;
+const CRUMB_RADIUS: Readonly<Record<PowderGrain, number>> = { fine: 0.0015, dust: 0.0015, coarse: 0.0013, granular: 0.0012, fibrous: 0.0013, crystalline: 0.0016 };
+
+function grainRecipe(library: MaterialLibrary, grain: PowderGrain): Promise<GrainRecipe> {
+  return library.shared(`grains:${grain}`, async () => {
+    const form = POWDER_FORMS[grain];
+    const crumbMakers = range(1, CRUMB_VARIANTS).map((seed) => () => (grain === "crystalline" ? crystalGrain(seed, CRUMB_RADIUS[grain]) : grit(seed, CRUMB_RADIUS[grain])));
+    const clumpMakers = form.clumps > 0 ? range(11, 3).map((seed) => () => crumb(seed, 0.0042, 3)) : [];
+    const fibreMakers = grain === "fibrous" ? [...range(21, 6).map((seed) => () => curledShaving(seed)), ...range(31, 5).map((seed) => () => woodFlake(seed))] : [];
+    const variants = await grainsInTurn([...crumbMakers, ...clumpMakers, ...fibreMakers]);
+    for (const variant of variants) kept(library, plainWhite(variant.geometry));
+    const spheresOf = (variant: number) => variants[variant]!.spheres;
+    const fibres: ScatterKind[] = grain === "fibrous"
+      ? [
+          { variants: range(CRUMB_VARIANTS, 6), spheresOf, count: 520, smallest: 0.55, largest: 1.25, towardWall: 0.1, sink: 0.3, tries: 24 },
+          { variants: range(CRUMB_VARIANTS + 6, 5), spheresOf, count: 300, smallest: 0.45, largest: 1.05, towardWall: 0.1, sink: 0.2, tries: 24 },
+        ]
+      : [];
+    const clumps: ScatterKind[] = form.clumps > 0 ? [{ variants: range(CRUMB_VARIANTS, 3), spheresOf, count: form.clumps, smallest: form.clumpSmallest, largest: form.clumpLargest, towardWall: 0.45, sink: 0.3, tries: 20 }] : [];
+    return { variants, kinds: [...clumps, ...fibres, { variants: range(0, CRUMB_VARIANTS), spheresOf, count: form.crumbs, smallest: form.crumbSmallest, largest: form.crumbLargest, towardWall: 0.8, sink: 0.35 }] };
+  });
+}
+
+function heapShapeOf(grain: PowderGrain, reach: number): HeapShape {
+  const form = POWDER_FORMS[grain];
+  return { reach, seed: 11 + grain.length, crownOffset: form.crownOffset, slumps: form.slumps, slumpDepth: form.slumpDepth, lineDepth: form.lineDepth, lumpDepth: form.lumpDepth, fineDepth: form.fineDepth, climb: form.climb };
+}
+
+async function cakeSet(library: MaterialLibrary, scanId: string, look: SubstanceLook, profile: VesselProfile, level: number, heightAt: HeightAt): Promise<PieceSet> {
+  const variants = await library.shared("recipe:indigo-cake", async () => {
+    const built = await grainsInTurn(range(1, 6).map((seed) => () => indigoCake(seed)));
+    for (const variant of built) kept(library, variant.geometry);
+    return built;
+  });
+  const kind: ScatterKind = { variants: range(0, 6), spheresOf: (variant) => variants[variant]!.spheres, count: 6, smallest: 0.82, largest: 1.18, towardWall: 0, sink: 0.12, tries: 90, lying: true };
+  const placed = await library.shared(`scatter:cake:${scanId}`, async () => ({ pieces: await runGradually(scatterSteps([kind], { profile, heightAt, level, seed: 53, margin: 0.002 })) }));
+  return { variants, material: await cakeMaterial(library, look), placed: placed.pieces, castsShadow: true, toneSpread: 0.1, warmth: 0.02 };
 }
 
 async function addPowder(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
   const profile = measured.profile;
-  const level = levelInVessel(profile, POWDER_FRACTION);
+  const grain = powderGrainOf(look);
+  const form = POWDER_FORMS[grain];
+  const level = levelInVessel(profile, form.level);
   const depth = profile.rimY - profile.floorY;
-  const heap = depth * POWDER_HEAP_FRACTION;
-  const geometry = await library.shared(`surface:powder:${scanId}`, async () => gridGeometry(fittedSurface(profile, level, 72, 256, moundHeight(level, heap, depth * 0.012))));
-  const mound = stillMesh(geometry, await substanceMaterial(library, look));
+  const heightAt = heapHeight(level, depth * form.heap, heapShapeOf(grain, meanWallRadius(profile, level)));
+  const geometry = await library.shared(`surface:powder:${scanId}:${grain}`, async () => shadedGeometry(fittedSurface(profile, level, 96, 384, heightAt), 96, 384, HEAP_SHADING));
+  const dust = await library.shared(`film:powder:${scanId}:${grain}`, async () => wallFilmGeometry(measured, level, depth * form.filmHeight, 9));
+  const material = await substanceMaterial(library, look);
+  if (grain === "fibrous") material.side = THREE.DoubleSide;
+  const mound = stillMesh(geometry, material);
   mound.castShadow = true;
   parent.add(mound);
-  return surfaceAudit(name, measured, geometry);
+  parent.add(stillMesh(dust, await filmMaterial(library, look, POWDER_FEATHER)));
+  const recipe = await grainRecipe(library, grain);
+  const cakes = hasCakePieces(look) ? await cakeSet(library, scanId, look, profile, level, heightAt) : null;
+  const avoid = cakes ? cakes.placed.flatMap((piece) => placedSpheres(cakes, piece)) : [];
+  const placed = await library.shared(`scatter:powder:${scanId}:${grain}:${cakes ? "cake" : "loose"}`, async () => ({ pieces: await runGradually(scatterSteps(recipe.kinds, { profile, heightAt, level, seed: 37, margin: 0.001, avoid })) }));
+  const grains: PieceSet = { variants: recipe.variants, material: grain === "crystalline" ? await crystalMaterial(library, look) : material, placed: placed.pieces.filter((piece) => piece.variant < CRUMB_VARIANTS), castsShadow: false, toneSpread: 0.22, warmth: grain === "coarse" ? 0.32 : 0.1 };
+  const larger: PieceSet = { variants: recipe.variants, material, placed: placed.pieces.filter((piece) => piece.variant >= CRUMB_VARIANTS), castsShadow: grain !== "fibrous", toneSpread: grain === "fibrous" ? 0.3 : 0.1, warmth: grain === "fibrous" ? 0.16 : 0.06 };
+  const sets = cakes ? [grains, larger, cakes] : [grains, larger];
+  for (const set of sets) addPieceSet(parent, set);
+  return fillAudit(name, measured, [geometry, dust], sets);
+}
+
+const LARGE_LUMPS = 56;
+const SMALL_LUMPS = 110;
+const LARGE_LUMP_VARIANTS = 5;
+const ALUM_CRUMBS = 160;
+
+async function addCrystalLumps(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
+  const profile = measured.profile;
+  const level = levelInVessel(profile, LUMP_BED_FRACTION);
+  const depth = profile.rimY - profile.floorY;
+  const heightAt = heapHeight(level, 0, { ...heapShapeOf("fine", meanWallRadius(profile, level)), slumps: 0, lineDepth: 0, lumpDepth: 0.0014, fineDepth: 0.0003 });
+  const bed = await library.shared(`surface:lump-bed:${scanId}`, async () => gridGeometry(fittedSurface(profile, level, 64, 320, heightAt)));
+  const dust = await library.shared(`film:lump-bed:${scanId}`, async () => wallFilmGeometry(measured, level, depth * POWDER_FORMS.fine.filmHeight, 13));
+  const powder = await substanceMaterial(library, look);
+  parent.add(stillMesh(bed, await pileBedMaterial(library, look)));
+  parent.add(stillMesh(dust, await filmMaterial(library, look, POWDER_FEATHER)));
+  const lumps = await library.shared("recipe:alum-lump", async () => {
+    const built = await grainsInTurn(range(1, 9).map((seed) => () => alumLump(seed, seed <= LARGE_LUMP_VARIANTS ? 2 : 1)));
+    for (const variant of built) kept(library, variant.geometry);
+    return built;
+  });
+  const packed = await library.shared(`pile:${scanId}:alum`, async () => ({
+    pieces: await runGradually(packingSteps({ ...profile, floorY: level + LUMP_REST_METRES }, [...blueprintsFrom(lumps.slice(0, LARGE_LUMP_VARIANTS), LARGE_LUMPS, 25, 0.95, 1.7), ...blueprintsFrom(lumps.slice(LARGE_LUMP_VARIANTS), SMALL_LUMPS, 26, 0.45, 0.95).map((blueprint) => ({ ...blueprint, variant: blueprint.variant + LARGE_LUMP_VARIANTS }))], { seed: 105, candidates: 16, maxTilt: 0.5, anyTumble: true, topY: Math.min(profile.rimY - CLEAR_OF_LOW_RIM, profile.floorY + depth * LUMP_FILLS_TO), margin: 0.003, fillRadius: widestWallRadius(profile, profile.rimY), leansOnOne: true })),
+  }));
+  const lumpSet: PieceSet = { variants: lumps, material: await crystalMaterial(library, look), placed: packed.pieces, castsShadow: true, toneSpread: 0.06, warmth: 0.06 };
+  const recipe = await grainRecipe(library, "fine");
+  const avoid = packed.pieces.flatMap((piece) => placedSpheres(lumpSet, piece));
+  const crumbs = await library.shared(`scatter:lump-bed:${scanId}`, async () => ({
+    pieces: await runGradually(scatterSteps([...recipe.kinds, { variants: range(0, CRUMB_VARIANTS), spheresOf: (variant: number) => recipe.variants[variant]!.spheres, count: ALUM_CRUMBS, smallest: 0.3, largest: 0.7, towardWall: 0.2, sink: 0.3 }], { profile, heightAt, level, seed: 71, margin: 0.001, avoid })),
+  }));
+  const crumbSet: PieceSet = { variants: recipe.variants, material: powder, placed: crumbs.pieces, castsShadow: false, toneSpread: 0.08, warmth: 0.02 };
+  addPieceSet(parent, lumpSet);
+  addPieceSet(parent, crumbSet);
+  return fillAudit(name, measured, [bed, dust], [lumpSet, crumbSet]);
 }
 
 interface PackedPile {
@@ -200,7 +417,7 @@ function packedPile(library: MaterialLibrary, scanId: string, fill: PileFill, pr
 
 async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, fill: PileFill, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
   const { recipe, placed } = await packedPile(library, scanId, fill, measured.profile);
-  const material = fill === "crystals" ? await crystalMaterial(library, look) : await substanceMaterial(library, look);
+  const material = await substanceMaterial(library, look);
   if (fill === "leaves") material.side = THREE.DoubleSide;
   const profile = measured.profile;
   const bedLevel = levelInVessel(profile, PILE_BED_FRACTION);
@@ -308,7 +525,8 @@ async function addFoldedCloth(library: MaterialLibrary, parent: THREE.Object3D, 
 export async function fillVessel(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
   if (look.fill === "liquid") return addLiquid(library, parent, scanId, look, measured, name);
   if (look.fill === "paste") return addPaste(library, parent, scanId, look, measured, name);
-  if (look.fill === "powder") return addPowder(library, parent, scanId, look, measured, name);
+  if (isLumpCrystal(look)) return addCrystalLumps(library, parent, scanId, look, measured, name);
+  if (look.fill === "powder" || look.fill === "crystals") return addPowder(library, parent, scanId, look, measured, name);
   if (look.fill === "cloth") return addFoldedCloth(library, parent, look, measured, name);
   if (isPileFill(look.fill)) return addPile(library, parent, scanId, look.fill, look, measured, name);
   throw new Error(`No fill for ${look.key}`);

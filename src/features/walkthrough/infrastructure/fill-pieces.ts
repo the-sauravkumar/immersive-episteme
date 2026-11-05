@@ -1,10 +1,9 @@
 import * as THREE from "three";
-import { ConvexGeometry } from "three/examples/jsm/geometries/ConvexGeometry.js";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { SubstanceFill } from "@/features/process/domain/substance-look";
 import { seededRandom, type PieceSphere, type PileBlueprint } from "../domain/pile-packing";
 
-export type PileFill = Extract<SubstanceFill, "dung" | "roots" | "flowers" | "leaves" | "crystals">;
+export type PileFill = Extract<SubstanceFill, "dung" | "roots" | "flowers" | "leaves">;
 
 export interface PieceVariant {
   readonly geometry: THREE.BufferGeometry;
@@ -23,7 +22,7 @@ export interface PileRecipe {
   readonly leansOnOne?: boolean;
 }
 
-export const isPileFill = (fill: SubstanceFill): fill is PileFill => fill === "dung" || fill === "roots" || fill === "flowers" || fill === "leaves" || fill === "crystals";
+export const isPileFill = (fill: SubstanceFill): fill is PileFill => fill === "dung" || fill === "roots" || fill === "flowers" || fill === "leaves";
 
 function coverWithSpheres(geometry: THREE.BufferGeometry, centres: readonly (readonly [number, number, number])[]): PieceSphere[] {
   const position = geometry.attributes.position!;
@@ -164,24 +163,7 @@ function dryLeaf(seed: number): PieceVariant {
   return { geometry, spheres: coverWithSpheres(geometry, centres) };
 }
 
-function crystal(seed: number): PieceVariant {
-  const random = seededRandom(seed * 577 + 3);
-  const size = 0.0075 + random() * 0.0085;
-  const stretch = new THREE.Vector3(0.55 + random() * 0.9, 0.45 + random() * 0.6, 0.55 + random() * 0.9);
-  const corners = 9 + Math.floor(random() * 10);
-  const points = Array.from({ length: corners }, () => {
-    const theta = random() * Math.PI * 2;
-    const rise = random() * 2 - 1;
-    const flat = Math.sqrt(1 - rise * rise);
-    const reach = 0.72 + random() * 0.28;
-    return new THREE.Vector3(Math.cos(theta) * flat, rise, Math.sin(theta) * flat).multiplyScalar(reach).multiply(stretch).multiplyScalar(size);
-  });
-  for (const axis of [new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)]) points.push(axis.multiply(stretch).multiplyScalar(size * 0.42));
-  const geometry = new ConvexGeometry(points);
-  return { geometry, spheres: coverWithSpheres(geometry, [[0, 0, 0]]) };
-}
-
-function blueprintsFrom(variants: readonly PieceVariant[], count: number, seed: number, low: number, high: number): PileBlueprint[] {
+export function blueprintsFrom(variants: readonly PieceVariant[], count: number, seed: number, low: number, high: number): PileBlueprint[] {
   const random = seededRandom(seed);
   return Array.from({ length: count }, (_, i) => ({ variant: i % variants.length, scale: low + random() * (high - low), spheres: variants[i % variants.length]!.spheres }));
 }
@@ -212,10 +194,6 @@ export async function pileRecipe(fill: PileFill): Promise<PileRecipe> {
     case "leaves": {
       const variants = await builtInTurn([() => dryLeaf(1), () => dryLeaf(2), () => dryLeaf(3), () => dryLeaf(4)]);
       return { variants, blueprints: blueprintsFrom(variants, 110, 24, 0.82, 1.12), candidates: 18, maxTilt: 0.5, anyTumble: false, seed: 104, fillsTo: 1 };
-    }
-    case "crystals": {
-      const variants = await builtInTurn(Array.from({ length: 9 }, (_, i) => () => crystal(i + 1)));
-      return { variants, blueprints: blueprintsFrom(variants, 340, 25, 0.5, 1.45), candidates: 40, maxTilt: 0.5, anyTumble: true, seed: 105, fillsTo: 0.6 };
     }
   }
 }

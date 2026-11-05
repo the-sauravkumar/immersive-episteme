@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { fittedSurface, flatLevel, levelInVessel, moundHeight, pasteHeight } from "@/features/walkthrough/domain/fill-surface";
+import { fittedSurface, flatLevel, heapHeight, levelInVessel, moundHeight, pasteHeight, wallFilm } from "@/features/walkthrough/domain/fill-surface";
+import { hasCakePieces, isLumpCrystal, PASTE_FORMS, pasteThicknessOf, powderGrainOf } from "@/features/walkthrough/domain/substance-body";
+import { scatterOnSurface } from "@/features/walkthrough/domain/surface-scatter";
 import { albedoForDisplay, filmicToScene } from "@/features/walkthrough/domain/lit-colour";
 import { packPile, rotateYXZ } from "@/features/walkthrough/domain/pile-packing";
 import { checkScene, type FillAudit } from "@/features/walkthrough/domain/scene-check";
@@ -109,6 +111,74 @@ describe("piles do not interpenetrate", () => {
     const fill: FillAudit = { name: "bad", points: () => Float32Array.from([0.5, 0.1, 0]), vertexOutside: ([x, y, z]) => outsideDepth(profile, x, y, z) > 0.004, pieces: () => pieces };
     const report = checkScene({ yard: { min: [-1, -1, -1], max: [1, 1, 1] }, solids: [], cloths: [], fields: [], groundIsOpenAt: () => false, fills: [fill] });
     expect(report.problems.map((problem) => problem.rule).sort()).toEqual(["fill-outside-vessel", "fill-overlap"]);
+  });
+});
+
+describe("powder heaps, pastes and scattered grains", () => {
+  const level = levelInVessel(profile, 0.34);
+  const reach = wallRadius(profile, 0, level);
+  const shape = { reach, seed: 3, crownOffset: 0.18, slumps: 5, slumpDepth: 0.003, lineDepth: 0.0012, lumpDepth: 0.0026, fineDepth: 0.0004, climb: 0.004 };
+
+  it("a powder heap rises to an off-centre crown with an uneven slope", () => {
+    const grid = fittedSurface(profile, level, 48, 192, heapHeight(level, 0.06, shape));
+    let top = -Infinity;
+    let topAt = 0;
+    for (let i = 0; i < grid.positions.length; i += 3) {
+      if (grid.positions[i + 1]! > top) {
+        top = grid.positions[i + 1]!;
+        topAt = Math.hypot(grid.positions[i]!, grid.positions[i + 2]!);
+      }
+    }
+    expect(top - level).toBeGreaterThan(0.04);
+    expect(topAt).toBeGreaterThan(0.003);
+    const ring = Array.from({ length: 192 }, (_, spoke) => grid.positions[(1 + 20 * 192 + spoke) * 3 + 1]!);
+    expect(Math.max(...ring) - Math.min(...ring)).toBeGreaterThan(0.002);
+  });
+
+  it("a paste domes, climbs the wall and keeps inside it", () => {
+    const grid = fittedSurface(profile, level, 48, 192, pasteHeight(level, 0.18, { reach, seed: 7, ...PASTE_FORMS.thick }));
+    let deepest = 0;
+    for (let i = 0; i < grid.positions.length; i += 3) deepest = Math.max(deepest, outsideDepth(profile, grid.positions[i]!, grid.positions[i + 1]!, grid.positions[i + 2]!));
+    expect(deepest).toBeLessThan(0.004);
+    let edgeMean = 0;
+    for (let spoke = 0; spoke < 192; spoke++) edgeMean += grid.positions[(1 + 47 * 192 + spoke) * 3 + 1]! / 192;
+    expect(edgeMean).toBeGreaterThan(level);
+  });
+
+  it("scattered grains sit on the surface, inside the wall and clear of each other", () => {
+    const heightAt = heapHeight(level, 0.05, shape);
+    const spheres = [{ x: 0, y: 0, z: 0, r: 0.0015 }];
+    const placed = scatterOnSurface([{ variants: [0], spheresOf: () => spheres, count: 120, smallest: 0.6, largest: 1.2, towardWall: 0.8, sink: 0.35 }], { profile, heightAt, level, seed: 9, margin: 0.001 });
+    expect(placed.length).toBeGreaterThan(60);
+    const world = placed.map((piece) => [{ x: piece.x, y: piece.y, z: piece.z, r: 0.0015 * piece.scale }]);
+    const audit: FillAudit = { name: "grains", points: () => new Float32Array(0), vertexOutside: () => false, pieces: () => world };
+    expect(checkScene({ yard: { min: [-1, -1, -1], max: [1, 1, 1] }, solids: [], cloths: [], fields: [], groundIsOpenAt: () => false, fills: [audit] }).problems).toEqual([]);
+    for (const piece of placed) expect(outsideDepth(profile, piece.x, piece.y, piece.z)).toBe(0);
+  });
+
+  it("a wall film follows the wall from under the fill and fades out at its top", () => {
+    const film = wallFilm(8, 64, () => level - 0.005, () => level + 0.02, (theta, y) => wallRadius(profile, theta, y), 0.0007);
+    expect(film.share[0]).toBe(0);
+    expect(film.share[8]).toBe(1);
+    let deepest = 0;
+    for (let i = 0; i < film.positions.length; i += 3) deepest = Math.max(deepest, outsideDepth(profile, film.positions[i]!, film.positions[i + 1]!, film.positions[i + 2]!));
+    expect(deepest).toBe(0);
+  });
+
+  it("reads grain, cakes and lumps from each look row's own words", () => {
+    const row = (key: string, fill: string, surface: string, transparency = "opaque") => ({ key, fill, surface, transparency });
+    expect(powderGrainOf(row("sanganeri-sawdust", "powder", "fine dust under flakes, chips and curled shavings"))).toBe("fibrous");
+    expect(powderGrainOf(row("ajrakh-harde-myrobalan", "powder", "fine powder"))).toBe("coarse");
+    expect(powderGrainOf(row("sanganeri-indigo", "powder", "granular"))).toBe("granular");
+    expect(powderGrainOf(row("ajrakh-dusting-agents", "powder", "dry fine dust, matt"))).toBe("dust");
+    expect(powderGrainOf(row("machilipatnam-kalamkari-alizarin", "powder", "crystals or powder"))).toBe("crystalline");
+    expect(hasCakePieces(row("ajrakh-indigo", "powder", "dull matte, coppery where rubbed"))).toBe(true);
+    expect(hasCakePieces(row("sanganeri-indigo", "powder", "granular"))).toBe(false);
+    expect(isLumpCrystal(row("ajrakh-alum", "crystals", "glassy crystalline, matte as powder", "clear"))).toBe(true);
+    expect(isLumpCrystal(row("ajrakh-synthetic-alizarin", "crystals", "crystalline"))).toBe(false);
+    expect(pasteThicknessOf(row("sanganeri-dabu-resist-paste", "paste", "thick, sticky, wet"))).toBe("thick");
+    expect(pasteThicknessOf(row("ajrakh-tamarind-seed-paste", "paste", "sticky wet paste"))).toBe("stiff");
+    expect(pasteThicknessOf(row("machilipatnam-kalamkari-indigo", "paste", "wet paste"))).toBe("thin");
   });
 });
 
