@@ -1,9 +1,9 @@
 import * as THREE from "three";
-import { ASSET_CATALOGUE } from "@/features/process/domain/asset-catalogue";
+import { ASSET_CATALOGUE, clothStatePath, stillPath } from "@/features/process/domain/asset-catalogue";
+import { PRACTICE_MODEL } from "@/features/course/domain/panel-model";
 import ajrakh from "../../content/study/ajrakh.template.json";
 import sanganeri from "../../content/study/sanganeri.template.json";
 import kalamkari from "../../content/study/machilipatnam-kalamkari.template.json";
-import { clothStatePath } from "@/features/process/domain/asset-catalogue";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
 import { checkScene } from "@/features/walkthrough/domain/scene-check";
 import { buildRoute, practiceStation } from "@/features/walkthrough/domain/route-plan";
@@ -44,6 +44,52 @@ let auditColliders: readonly Box[] = [];
 let auditSeed: readonly [number, number] = [0, 0];
 let auditArea = { minX: CLOTH_LINE_X - YARD_HALF_WIDTH - 1, maxX: CLOTH_LINE_X + YARD_HALF_WIDTH + 1, minZ: YARD_FRONT_Z - NEXT_YARD_OFFSET, maxZ: YARD_FRONT_Z + 2 };
 
+const STILL_FOV_DEGREES = 24;
+const STILL_FILLS_FRAME = 0.8;
+const STILL_POINTS_PER_MESH = 3000;
+const STILL_CAMERA_DIRECTION = new THREE.Vector3(0.6, 0.72, 0.7).normalize();
+
+function visiblePoints(subject: THREE.Object3D): THREE.Vector3[] {
+  const points: THREE.Vector3[] = [];
+  subject.updateWorldMatrix(true, true);
+  subject.traverse((node) => {
+    if (!(node instanceof THREE.Mesh)) return;
+    if (node instanceof THREE.InstancedMesh) {
+      const box = new THREE.Box3().setFromObject(node);
+      for (let bit = 0; bit < 8; bit++) points.push(new THREE.Vector3(bit & 1 ? box.max.x : box.min.x, Math.max(0, bit & 2 ? box.max.y : box.min.y), bit & 4 ? box.max.z : box.min.z));
+      return;
+    }
+    const position = (node.geometry as THREE.BufferGeometry).attributes.position!;
+    const stride = Math.max(1, Math.floor(position.count / STILL_POINTS_PER_MESH));
+    for (let i = 0; i < position.count; i += stride) {
+      const point = new THREE.Vector3().fromBufferAttribute(position, i).applyMatrix4(node.matrixWorld);
+      if (point.y >= 0) points.push(point);
+    }
+  });
+  return points;
+}
+
+function fitStillView(subject: THREE.Object3D, bounds: THREE.Box3, lens: THREE.PerspectiveCamera, direction: THREE.Vector3): { from: readonly number[]; to: readonly number[] } {
+  const points = visiblePoints(subject);
+  const target = bounds.getCenter(new THREE.Vector3());
+  let distance = bounds.getSize(new THREE.Vector3()).length() * 4;
+  for (let round = 0; round < 12; round++) {
+    lens.position.copy(target).addScaledVector(direction, distance);
+    lens.lookAt(target);
+    lens.updateMatrixWorld();
+    const projected = points.map((point) => point.clone().project(lens));
+    const [minX, maxX] = [Math.min(...projected.map((p) => p.x)), Math.max(...projected.map((p) => p.x))];
+    const [minY, maxY] = [Math.min(...projected.map((p) => p.y)), Math.max(...projected.map((p) => p.y))];
+    const right = new THREE.Vector3().setFromMatrixColumn(lens.matrixWorld, 0);
+    const up = new THREE.Vector3().setFromMatrixColumn(lens.matrixWorld, 1);
+    const halfHeight = Math.tan((lens.fov * Math.PI) / 360) * distance;
+    target.addScaledVector(right, ((minX + maxX) / 2) * halfHeight * lens.aspect).addScaledVector(up, ((minY + maxY) / 2) * halfHeight);
+    distance *= Math.max((maxX - minX) / 2, (maxY - minY) / 2) / STILL_FILLS_FRAME;
+  }
+  lens.position.copy(target).addScaledVector(direction, distance);
+  return { from: lens.position.toArray(), to: target.toArray() };
+}
+
 if (sceneName === "still") {
   const modelId = query.get("m") ?? ASSET_CATALOGUE[0]!.id;
   const looksOfStill = (): readonly SubstanceLook[] => {
@@ -66,15 +112,14 @@ if (sceneName === "still") {
   const subject = await buildStillSubject(kit, { modelId, looks: looksOfStill(), liquid: liquidOfStill(), tray: stillStage ? trayPadLookOf(stillStage) : null });
   scene.add(subject.group);
   const sun = addSun(scene, new THREE.Vector3(0, 0, 0));
-  sun.position.set(-3, 4.2, 3.4);
-  sun.shadow.camera.left = sun.shadow.camera.bottom = -subject.radius * 2;
-  sun.shadow.camera.right = sun.shadow.camera.top = subject.radius * 2;
-  sun.shadow.camera.far = 30;
+  sun.shadow.camera.left = sun.shadow.camera.bottom = -subject.radius * 2.5;
+  sun.shadow.camera.right = sun.shadow.camera.top = subject.radius * 2.5;
+  sun.shadow.camera.near = 30;
+  sun.shadow.camera.far = 62;
   sun.shadow.camera.updateProjectionMatrix();
-  camera.fov = 24;
+  camera.fov = STILL_FOV_DEGREES;
   camera.updateProjectionMatrix();
-  const distance = subject.radius / Math.tan((12 * Math.PI) / 180) * 1.02;
-  view = { from: [distance * 0.62, subject.centreY + distance * 0.52, distance * 0.72], to: [0, subject.centreY, 0] };
+  view = fitStillView(subject.group.children[0]!, subject.bounds, camera, STILL_CAMERA_DIRECTION);
 } else {
   const sky = await library.sky(scene, renderer);
   addHorizon(scene, (await library.scan("earth")).colour);
@@ -429,14 +474,20 @@ win.fillOutside = () => {
   });
 };
 win.lookRows = SUBSTANCE_LOOK_ROWS;
-win.stillJobs = () => Object.values(TEMPLATES).flatMap((template) =>
-  template.stages.flatMap((stage) =>
-    stage.items
-      .map((item) => ({ item, path: stageItemStillPath(stage.key, stage.items, item) }))
-      .filter(({ path }) => path.includes("/materials/") || path.includes("/tools/"))
-      .map(({ item, path }) => ({ file: path.replace("/walkthrough/stills/", ""), query: path.includes("/tools/") ? `s=still&m=${item.modelId}&stage=${encodeURIComponent(stage.key)}` : `s=still&stage=${encodeURIComponent(stage.key)}&item=${encodeURIComponent(item.label)}` })),
+win.stillJobs = () => [
+  { name: `practice ${PRACTICE_MODEL}`, form: "tool", file: stillPath(PRACTICE_MODEL), query: `s=still&m=${PRACTICE_MODEL}` },
+  ...Object.values(TEMPLATES).flatMap((template) =>
+    template.stages.flatMap((stage) =>
+      stage.items.map((item) => {
+        const looks = looksOfItem(stage.key, item);
+        const stageQuery = `stage=${encodeURIComponent(stage.key)}`;
+        return looks.length > 0
+          ? { name: `${stage.key} / ${item.label} / ${looks.map((look) => look.key).join("+")}`, form: looks.map((look) => `${look.fill} ${look.renderHex} ${look.transparency}`).join(" + "), file: stageItemStillPath(stage.key, stage.items, item), query: `s=still&${stageQuery}&item=${encodeURIComponent(item.label)}` }
+          : { name: `${stage.key} / ${item.label} / ${item.modelId}`, form: "tool", file: stageItemStillPath(stage.key, stage.items, item), query: `s=still&m=${item.modelId}&${stageQuery}` };
+      }),
+    ),
   ),
-);
+];
 win.renderInfo = () => ({ textures: renderer.info.memory.textures, geometries: renderer.info.memory.geometries, tris: renderer.info.render.triangles, calls: renderer.info.render.calls });
 win.INFO = { tris: renderer.info.render.triangles, textures: renderer.info.memory.textures };
 win.READY = true;

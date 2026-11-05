@@ -86,6 +86,22 @@ describe("piles do not interpenetrate", () => {
     for (const piece of world) for (const sphere of piece) expect(sphere.y - sphere.r).toBeGreaterThanOrEqual(profile.floorY - 1e-6);
   });
 
+  it("rests every piece on the floor, on other pieces or on a wall that slopes enough to hold it", () => {
+    const reachOf = (piece: (typeof placed)[number]) => spheres.map((sphere) => {
+      const [x, y, z] = rotateYXZ(sphere.x, sphere.y, sphere.z, piece.yaw, piece.pitch, piece.roll);
+      return { x: x + piece.x, y: y + piece.y, z: z + piece.z, r: sphere.r };
+    });
+    const hanging = placed.filter((piece, index) => {
+      const own = reachOf(piece);
+      const onFloor = own.some((sphere) => sphere.y - sphere.r <= profile.floorY + 0.003);
+      const onPiece = placed.slice(0, index).some((other) => reachOf(other).some((below) => own.some((sphere) => Math.hypot(sphere.x - below.x, sphere.y - below.y, sphere.z - below.z) <= sphere.r + below.r + 0.003)));
+      const theta = Math.atan2(piece.z, piece.x);
+      const flare = (wallRadius(profile, theta, piece.y + 0.015) - wallRadius(profile, theta, piece.y - 0.015)) / 0.03;
+      return !onFloor && !onPiece && flare < 0.5;
+    });
+    expect(hanging).toEqual([]);
+  });
+
   it("the scene check catches a pile overlap and a fill through the wall", () => {
     const pieces = [[{ x: 0, y: 0, z: 0, r: 0.02 }], [{ x: 0.01, y: 0, z: 0, r: 0.02 }]];
     const fill: FillAudit = { name: "bad", points: Float32Array.from([0.5, 0.1, 0]), vertexOutside: ([x, y, z]) => outsideDepth(profile, x, y, z) > 0.004, pieces };

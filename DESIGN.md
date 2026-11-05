@@ -263,6 +263,7 @@ Stills come from the same scene code as the station, so light and colour match:
 3. Fixed three-quarter camera, field of view 22–26°, contents visible.
 4. Output with alpha at 1800 by 1440 or larger, composited over the plaster scan with a lit ground plane and consistent cast light.
 5. Check: mean colour on the object's lit side is within 8/255 per channel of the same patch in a sunlit in-station render (derived).
+6. One still per material look row, one per tool and per bath colour. The file name is a hash of that id (`stillPath`), so a test image cannot name its answer. Both doors read the same look row, and the same files serve Door 1 and the test items. `npm run walkthrough:lab` then `node tools/walkthrough-lab/render-stills.cjs` makes them all, and a test fails on a still that nothing uses.
 
 ### 10.4 Cloth States
 One state file per stage, shared by both doors. Door 1's hero is an orthographic top view, with soft relief, no perspective warp and the previous and current states clipped on the diagonal. Current states are image-processed proxies and make no craft claim; they keep a `Proxy Cloth State` mark in review builds until replaced by a checked set.

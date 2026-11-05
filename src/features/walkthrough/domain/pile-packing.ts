@@ -69,6 +69,18 @@ function sphereFits(profile: VesselProfile, x: number, y: number, z: number, r: 
   return true;
 }
 
+const WALL_SPAN_METRES = 0.015;
+const STEEPEST_WALL_THAT_HOLDS = 0.5;
+const MOST_OFF_CENTRE_REST = 0.72;
+const CONTACT_TOLERANCE_METRES = 0.002;
+const NESTED_CONTACTS = 2;
+
+function wallCanHold(profile: VesselProfile, x: number, y: number, z: number): boolean {
+  const theta = Math.atan2(z, x);
+  const flare = (wallRadius(profile, theta, y + WALL_SPAN_METRES) - wallRadius(profile, theta, y - WALL_SPAN_METRES)) / (2 * WALL_SPAN_METRES);
+  return flare >= STEEPEST_WALL_THAT_HOLDS;
+}
+
 export function packPile(profile: VesselProfile, blueprints: readonly PileBlueprint[], options: PackOptions): PlacedPiece[] {
   const steps = packingSteps(profile, blueprints, options);
   let step = steps.next();
@@ -97,6 +109,7 @@ export function* packingSteps(profile: VesselProfile, blueprints: readonly PileB
       });
       let y = profile.floorY;
       for (const sphere of own) y = Math.max(y, profile.floorY + sphere.r - sphere.y);
+      let slidesOff = false;
       for (const sphere of own) {
         for (const other of settled) {
           const dx = sphere.x - other.x;
@@ -104,16 +117,23 @@ export function* packingSteps(profile: VesselProfile, blueprints: readonly PileB
           const reach = sphere.r + other.r;
           const flat = dx * dx + dz * dz;
           if (flat >= reach * reach) continue;
-          y = Math.max(y, other.y + Math.sqrt(reach * reach - flat) - sphere.y);
+          const onOther = other.y + Math.sqrt(reach * reach - flat) - sphere.y;
+          if (onOther <= y) continue;
+          y = onOther;
+          slidesOff = flat > (reach * MOST_OFF_CENTRE_REST) ** 2;
         }
       }
       if (best && y >= best.piece.y) continue;
+      const contacts = own.reduce((count, sphere) => count + settled.filter((other) => Math.hypot(sphere.x - other.x, sphere.y + y - other.y, sphere.z - other.z) <= sphere.r + other.r + CONTACT_TOLERANCE_METRES).length, 0);
+      if (slidesOff && contacts < NESTED_CONTACTS) continue;
+      const restingY = y;
       let fits = false;
       while (!fits && y <= options.topY) {
         fits = own.every((sphere) => sphereFits(profile, sphere.x, sphere.y + y, sphere.z, sphere.r, options.margin));
         if (!fits) y += step;
       }
       if (!fits || y > options.topY || (best && y >= best.piece.y)) continue;
+      if (y > restingY && !wallCanHold(profile, x, y, z)) continue;
       const finalY = y;
       const clearOfOthers = own.every((sphere) => settled.every((other) => Math.hypot(sphere.x - other.x, sphere.y + finalY - other.y, sphere.z - other.z) >= sphere.r + other.r - 1e-5));
       if (!clearOfOthers) continue;

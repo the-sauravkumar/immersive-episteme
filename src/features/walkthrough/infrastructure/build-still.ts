@@ -8,8 +8,8 @@ import { addTankLining, addWorkLiquid, copperMaterial, groundWithOpening, plaste
 
 export interface StillSubject {
   readonly group: THREE.Group;
+  readonly bounds: THREE.Box3;
   readonly radius: number;
-  readonly centreY: number;
 }
 
 export interface StillRequest {
@@ -20,6 +20,8 @@ export interface StillRequest {
 }
 
 const NO_OPENING = { type: "open" } as const;
+const GROUND_TILES_PER_RADIUS = 3;
+const VESSEL_GAP_METRES = 0.05;
 
 async function integralSubject(kit: YardKit, modelId: string, liquid: SubstanceLook | null, group: THREE.Group): Promise<void> {
   if (modelId === "dye-vat" || modelId === "boiling-vessel") {
@@ -58,12 +60,15 @@ const openingOf = (modelId: string | undefined) => (modelId === "dye-vat" ? stru
 async function lookSubject(kit: YardKit, looks: readonly SubstanceLook[], subject: THREE.Group): Promise<void> {
   const placed = [];
   for (const look of looks) placed.push(await placeCatalogueModel(kit, subject, look.vesselModelId, 0, 0, 0, { look }));
-  const widths = placed.map(({ object }) => new THREE.Box3().setFromObject(object).getSize(new THREE.Vector3()).x);
-  let cursor = -(widths.reduce((sum, width) => sum + width, 0) + 0.05 * (placed.length - 1)) / 2;
-  placed.forEach(({ object }, i) => {
-    object.position.x = cursor + widths[i]! / 2;
-    cursor += widths[i]! + 0.05;
+  const sizes = placed.map(({ object }) => new THREE.Box3().setFromObject(object).getSize(new THREE.Vector3()));
+  const [front, ...back] = placed;
+  const backWidth = back.reduce((sum, { object }) => sum + new THREE.Box3().setFromObject(object).getSize(new THREE.Vector3()).x + VESSEL_GAP_METRES, -VESSEL_GAP_METRES);
+  let cursor = -backWidth / 2;
+  back.forEach(({ object }, i) => {
+    object.position.set(cursor + sizes[i + 1]!.x / 2, 0, -(sizes[i + 1]!.z + sizes[0]!.z + VESSEL_GAP_METRES) / 2);
+    cursor += sizes[i + 1]!.x + VESSEL_GAP_METRES;
   });
+  front!.object.position.set(0, 0, 0);
 }
 
 export async function buildStillSubject(kit: YardKit, request: StillRequest): Promise<StillSubject> {
@@ -77,11 +82,10 @@ export async function buildStillSubject(kit: YardKit, request: StillRequest): Pr
   const bounds = new THREE.Box3().setFromObject(subject);
   bounds.min.y = Math.max(bounds.min.y, 0);
   const sphere = bounds.getBoundingSphere(new THREE.Sphere());
-  const tile = Math.max(2, sphere.radius * 6);
-  const ground = new THREE.Mesh(groundWithOpening(40, 40, 0, 0, openingOf(request.modelId), tile, 0, 0), groundMaterial);
+  const ground = new THREE.Mesh(groundWithOpening(40, 40, 0, 0, openingOf(request.modelId), sphere.radius * GROUND_TILES_PER_RADIUS, 0, 0), groundMaterial);
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.002;
   ground.receiveShadow = true;
   group.add(ground);
-  return { group, radius: sphere.radius, centreY: sphere.center.y };
+  return { group, bounds, radius: sphere.radius };
 }

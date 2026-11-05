@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { closeOpenCourseStop, reopenCourseStop, restoreCourseStop, startCourseSession, stepCourse, suspendCourseClock, type CourseEvent, type CourseSessionModel } from "@/features/course/application/course-session";
 import { allStagesVisited, canFinish, canGoBack, canJumpTo, goBack, goNext, hasVisited, isProductPanel, jumpTo, startCourse } from "@/features/course/domain/course-state";
 import { captionSize, nameSize, objectColumns, practicePanelModel, productRails, PRACTICE_STEP_COUNT, stagePanelModel } from "@/features/course/domain/panel-model";
+import { stillPath } from "@/features/process/domain/asset-catalogue";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
 
 function walk(steps: number, counts: readonly number[] = [3, 2]) {
@@ -128,7 +129,7 @@ describe("panel model", () => {
   });
 
   it("resolves objects through the shared still path", () => {
-    expect(stagePanelModel(template, 0).objects[0]?.stillSrc).toBe("/walkthrough/stills/carved-block.jpg");
+    expect(stagePanelModel(template, 0).objects[0]?.stillSrc).toBe(stillPath("carved-block"));
   });
 
   it("writes the kicker in Title Case with the true count", () => {

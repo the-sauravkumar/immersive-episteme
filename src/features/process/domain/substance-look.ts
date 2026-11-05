@@ -96,13 +96,12 @@ export function trayPadLookOf(stageKey: string): SubstanceLook | null {
   return cloth ? lookOf(cloth) : null;
 }
 
-export const materialStillPath = (lookKey: string): string => `/walkthrough/stills/materials/${lookKey}.jpg`;
-export const toolStillPath = (modelId: string, liquidHex: string): string => `/walkthrough/stills/tools/${modelId}-${liquidHex.replace("#", "").toLowerCase()}.jpg`;
+const toolStillPath = (modelId: string, liquidHex: string): string => stillPath(`${modelId}-${liquidHex.replace("#", "").toLowerCase()}`);
 
 export function stageItemStillPath(stageKey: string, items: readonly StageItem[], item: StageItem): string {
   if (item.role === "material") {
     const look = looksOfItem(stageKey, item)[0];
-    return look ? materialStillPath(look.key) : stillPath(item.modelId);
+    return stillPath(look ? look.key : item.modelId);
   }
   if (item.modelId === TRAY_MODEL) {
     const pad = trayPadLookOf(stageKey);

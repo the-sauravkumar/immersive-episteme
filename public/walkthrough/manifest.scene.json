@@ -190,78 +190,8 @@
   "permission": "none needed"
  },
  {
-  "file": "public/walkthrough/stills/basket.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/board.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/boiling-vessel.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/bowl-clay.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/bowl-wood.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/bucket.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/carved-block.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/crate.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
+  "file": "public/walkthrough/stills/objects/*.jpg",
+  "usedFor": "each material in its vessel, and each tool or vat, for Door 1 and the tests; file names are hashes so a test image does not name its answer",
   "holder": "Rendered by this project from the CC0 scans listed in this manifest",
   "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
   "directUrl": "tools/walkthrough-lab/render-stills.cjs",
@@ -278,16 +208,6 @@
   "licence": "CC0 1.0",
   "permission": "none needed; every input is a CC0 row of this manifest",
   "widthPx": 3415
- },
- {
-  "file": "public/walkthrough/stills/dye-vat.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
  },
  {
   "file": "public/walkthrough/stills/entrance-closed.jpg",
@@ -320,46 +240,6 @@
   "widthPx": 3840
  },
  {
-  "file": "public/walkthrough/stills/jug-metal.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/pan-brass.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/pot-brass.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/pot-ceramic.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
   "file": "public/walkthrough/stills/practice-view.jpg",
   "usedFor": "seen through Door 2 in the entrance stills; the practice yard",
   "holder": "Rendered by this project from the CC0 scans listed in this manifest",
@@ -368,36 +248,6 @@
   "licence": "CC0 1.0",
   "permission": "none needed; every input is a CC0 row of this manifest",
   "widthPx": 3840
- },
- {
-  "file": "public/walkthrough/stills/printing-table.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/tub.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/wash-tank.jpg",
-  "usedFor": "object still for Door 1 panels and test items",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
  },
  {
   "file": "public/walkthrough/fonts/Eczar-400-800.woff2",
@@ -542,55 +392,5 @@
   "widthPx": 2048,
   "licence": "CC0 1.0",
   "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/stills/materials/*.jpg",
-  "usedFor": "each material in its vessel, for Door 1 and the tests",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/tools/*.jpg",
-  "usedFor": "each vat, tank and vessel holding its own stage's liquid",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/washing-paddle.jpg",
-  "usedFor": "built washing paddle",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/carving-chisels.jpg",
-  "usedFor": "built carving chisels",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/brush-and-kalam.jpg",
-  "usedFor": "built brush and kalam",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
  }
 ]
