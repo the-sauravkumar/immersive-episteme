@@ -38,7 +38,7 @@ export async function GET(_request: NextRequest, ctx: RouteContext<"/cms/media/f
   }
   try {
     const bytes = await storage.read(asset.storageKey);
-    return new Response(new Uint8Array(bytes), { status: 200, headers: { ...headers, "Content-Length": String(bytes.byteLength) } });
+    return new Response(new Uint8Array(bytes), { status: 200, headers });
   } catch {
     return NextResponse.json({ error: "file_missing", message: "The stored file is missing." }, { status: 404 });
   }
