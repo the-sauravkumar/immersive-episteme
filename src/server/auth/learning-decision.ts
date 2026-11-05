@@ -110,7 +110,7 @@ export async function resolveLearningAccess(
 
     const record = await deps.lookup.findSession(claims.sessionId);
     if (!record || record.participantId !== claims.participantId) return deny("invalid_participant_session");
-    if (record.withdrawn || !ACTIVE_PARTICIPANT_STATUSES.includes(record.participantStatus)) {
+    if (record.withdrawn || record.excluded || !ACTIVE_PARTICIPANT_STATUSES.includes(record.participantStatus)) {
       return deny("session_not_active");
     }
     if (record.status === "scheduled") return deny("session_not_started");
@@ -190,6 +190,7 @@ export async function resolveParticipantSession(
   }
   if (
     record.withdrawn ||
+    record.excluded ||
     record.status === "completed" ||
     record.status === "abandoned" ||
     !ACTIVE_PARTICIPANT_STATUSES.includes(record.participantStatus)

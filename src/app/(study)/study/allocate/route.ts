@@ -27,7 +27,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (!verified.ok) return to("/study/exit?reason=invalid-session");
   const record = await getStudySessionLookup().findSession(verified.claims.sessionId);
   if (!record || record.participantId !== verified.claims.participantId) return to("/study/exit?reason=invalid-session");
-  if (record.withdrawn || record.status === "completed" || record.status === "abandoned") return to("/study/exit?reason=session-ended");
+  if (record.withdrawn || record.excluded || record.status === "completed" || record.status === "abandoned") return to("/study/exit?reason=session-ended");
   if (verified.claims.condition !== null && verified.claims.condition !== record.condition) return to("/study/exit?reason=invalid-session");
 
   let condition = record.condition;

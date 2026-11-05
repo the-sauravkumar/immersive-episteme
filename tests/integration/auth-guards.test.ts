@@ -48,6 +48,7 @@ const running2d: StudySessionRecord = {
   status: "in_progress",
   participantStatus: "active",
   withdrawn: false,
+  excluded: false,
 };
 
 const noStaff = async () => null;
@@ -157,6 +158,7 @@ describe("learning condition guard (in-memory study sessions)", () => {
     ["session completed", { status: "completed" }, "session_not_active"],
     ["session abandoned", { status: "abandoned" }, "session_not_active"],
     ["session withdrawn", { withdrawn: true }, "session_not_active"],
+    ["session excluded", { excluded: true }, "session_not_active"],
     ["participant withdrawn", { participantStatus: "withdrawn" }, "session_not_active"],
     ["participant excluded", { participantStatus: "excluded" }, "session_not_active"],
   ])("re-validates against study_sessions: %s", async (_label, patch, reason) => {
@@ -261,6 +263,7 @@ describe("participant session guard for /study steps (in-memory)", () => {
     ["unknown session", "VALID", [], "/study/exit?reason=invalid-session"],
     ["completed session", "VALID", [{ ...running2d, status: "completed" }], "/study/exit?reason=session-ended"],
     ["withdrawn session", "VALID", [{ ...running2d, withdrawn: true }], "/study/exit?reason=session-ended"],
+    ["excluded live session", "VALID", [{ ...running2d, excluded: true }], "/study/exit?reason=session-ended"],
     ["excluded participant", "VALID", [{ ...running2d, participantStatus: "excluded" }], "/study/exit?reason=session-ended"],
   ])("denies: %s", async (_label, cookie, records, redirectTo) => {
     const value = cookie === "VALID" ? await participantCookie("2d") : cookie;
@@ -351,6 +354,7 @@ describe.skipIf(!testUrl)("learning guard with the Drizzle study-session lookup 
         status: "in_progress",
         participantStatus: "active",
         withdrawn: false,
+        excluded: false,
       });
       expect(await lookup.findSession("not-a-uuid")).toBeNull();
       expect(await lookup.findSession("00000000-0000-4000-8000-000000000000")).toBeNull();
