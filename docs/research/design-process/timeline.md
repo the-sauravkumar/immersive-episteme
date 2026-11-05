@@ -53,3 +53,4 @@ The lead asked whether materials in pots match real life and asked that nothing 
 - The running scenes changed on 2026-11-05: materials now render from these rows (DR-079).
 - Mechanical checks for overlap, tearing and density were added with planted faults (DR-080). They found inside-out roots, words past their boards and a tear at a cloth join, all fixed. The camera now stops 0.6 m from anything it could previously walk through.
 - Door 1 stills were re-rendered tightly framed, one per look row, with hashed file names so a test image cannot name its answer (DR-081). Unused stills were deleted.
+- Reference photos were gathered per material and vessel, and 10 look rows moved to a new `photo` basis, still flagged for the lead (DR-083). Indigo vats now render near black, as photographs show, while the guides' amber to yellowish-green stays in the words. Five evidence materials differ from photos and were reported, not changed. Renders do not yet match the photos.

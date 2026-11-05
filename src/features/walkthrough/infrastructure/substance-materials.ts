@@ -129,7 +129,7 @@ const FORM_SURFACES: Readonly<Record<ScannedFill, FormSurface>> = {
 };
 
 const SURFACE_OVERRIDES: readonly { readonly words: RegExp; readonly apply: (form: FormSurface) => FormSurface }[] = [
-  { words: /^dry loose dust$/, apply: (form) => ({ ...form, scan: "sawdust", tileMetres: 0.13, contrast: 0.62, normalScale: 1 }) },
+  { words: /\bdust\b/, apply: (form) => ({ ...form, scan: "sawdust", tileMetres: 0.13, contrast: 0.62, normalScale: 1 }) },
   { words: /^granular$/, apply: (form) => ({ ...form, scan: "sawdust", tileMetres: 0.055, contrast: 0.42, normalScale: 1.5 }) },
   { words: /fibrous/, apply: (form) => ({ ...form, scan: "bark", tileMetres: 0.09, contrast: 0.42, normalScale: 0.95, leastRough: 0.46, specular: 0.65 }) },
   { words: /sticky|glassy/, apply: (form) => ({ ...form, leastRough: 0.13, specular: 1 }) },
