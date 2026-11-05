@@ -1,6 +1,6 @@
-const fs = require("fs");
-const path = require("path");
-const sharp = require("sharp");
+import fs from "node:fs";
+import path from "node:path";
+import sharp from "sharp";
 
 const SIZE = 2048;
 const WORK = 1920;
@@ -67,7 +67,7 @@ async function tile(file, channel, name) {
 
 (async () => {
   const source = process.argv[2];
-  if (!source) throw new Error("usage: node scripts/walkthrough/build-fired-clay-tile.cjs <folder holding diff.jpg nor_gl.jpg arm.jpg>");
+  if (!source) throw new Error("usage: node scripts/walkthrough/build-fired-clay-tile.mjs <folder holding diff.jpg nor_gl.jpg arm.jpg>");
   fs.mkdirSync(OUT, { recursive: true });
   await tile(path.join(source, "diff.jpg"), null, "diff.jpg");
   await tile(path.join(source, "nor_gl.jpg"), null, "nor.jpg");

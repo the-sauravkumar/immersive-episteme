@@ -64,12 +64,15 @@ export class YardKit {
   }
 }
 
-function clothGeometry(surface: ClothSurface): THREE.BufferGeometry {
+const nextTask = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+async function clothGeometry(surface: ClothSurface): Promise<THREE.BufferGeometry> {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(surface.positions, 3));
   geometry.setAttribute("uv", new THREE.BufferAttribute(surface.uvs, 2));
   geometry.setIndex(new THREE.BufferAttribute(surface.indices, 1));
   geometry.computeVertexNormals();
+  await nextTask();
   geometry.computeTangents();
   return geometry;
 }
@@ -171,7 +174,6 @@ function solidBox(object: THREE.Object3D): THREE.Box3 {
   return box.isEmpty() ? new THREE.Box3().setFromObject(object) : box;
 }
 
-const nextTask = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, stationId: string): Promise<BuiltYard> {
   const group = new THREE.Group();
@@ -470,7 +472,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   const clothMeshes: ClothMesh[] = [];
   for (const piece of plan.cloth) {
     await nextTask();
-    const mesh = new THREE.Mesh(clothGeometry(piece.surface), piece.state === "before" ? before : after);
+    const mesh = new THREE.Mesh(await clothGeometry(piece.surface), piece.state === "before" ? before : after);
     mesh.customDepthMaterial = await kit.library.shared("cloth-shadow", async () => dryClothShadowMaterial());
     mesh.castShadow = true;
     mesh.receiveShadow = true;

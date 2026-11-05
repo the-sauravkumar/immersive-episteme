@@ -1,6 +1,6 @@
 import * as THREE from "three";
-import { toCreasedNormals } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { SubstanceLook } from "@/features/process/domain/substance-look";
+import { creasedNormals } from "./creased-normals";
 import { noteSurface, type MaterialLibrary } from "./material-library";
 import { projectedMaterial, solidMesh } from "./built-materials";
 import { displayAlbedo, projectScan } from "./substance-materials";
@@ -55,7 +55,7 @@ function trayShell(depth: number): THREE.BufferGeometry {
   const walls = new THREE.ExtrudeGeometry(outer, { depth: RIM_HEIGHT - 0.003, bevelEnabled: true, bevelThickness: 0.0015, bevelSize: 0.0015, bevelOffset: -0.0015, bevelSegments: 2, curveSegments: 8 });
   walls.rotateX(-Math.PI / 2);
   walls.translate(0, 0.0015, 0);
-  return toCreasedNormals(walls, 0.7);
+  return creasedNormals(walls, 0.7);
 }
 
 function trayFloor(depth: number): THREE.BufferGeometry {

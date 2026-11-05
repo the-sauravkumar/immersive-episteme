@@ -242,13 +242,20 @@ export function filmMaterial(library: MaterialLibrary, look: SubstanceLook, film
 }
 
 const GRAIN_LUMA = "vec3(0.2126, 0.7152, 0.0722)";
+const GRAIN_FINE_EVENING = 0.6;
+const GRAIN_MEAN_TINT = 0.9;
 
 const GRAIN_COLOUR = [
+  "float grainFine = smoothstep(0.3, 1.2, length(fwidth(vNormal)));",
   "float grainMean = max(dot(textureLod(map, vec2(0.5), 12.0).rgb, " + GRAIN_LUMA + "), 0.02);",
   "float grainTone = dot(texture2D(map, vMapUv).rgb, " + GRAIN_LUMA + ") / grainMean;",
-  "diffuseColor.rgb *= clamp(mix(1.0, grainTone, grainContrast), 0.35, 1.7);",
-  "diffuseColor.rgb *= mix(1.0 - grainContact, 1.0, smoothstep(-0.7, 0.45, vGrainUp));",
+  "diffuseColor.rgb *= clamp(mix(1.0, grainTone, grainContrast * (1.0 - GRAIN_FINE_EVENING * grainFine)), 0.35, 1.7);",
+  "diffuseColor.rgb *= mix(1.0 - grainContact, 1.0, smoothstep(-0.7, 0.45, mix(vGrainUp, 1.0, grainFine)));",
 ].join("\n");
+
+const GRAIN_TINT = ["#if defined( USE_COLOR ) || defined( USE_COLOR_ALPHA )", "diffuseColor.rgb *= mix(vColor.rgb, vec3(GRAIN_MEAN_TINT), GRAIN_FINE_EVENING * grainFine);", "#endif"].join("\n");
+
+const GRAIN_NORMAL = ["#include <normal_fragment_maps>", "vec3 grainBroadUp = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);", "normal = normalize(mix(normal, grainBroadUp, grainFine) + grainBroadUp * 0.001);"].join("\n");
 
 const GRAIN_ROUGH = "float roughnessFactor = max(roughness * texture2D(roughnessMap, vRoughnessMapUv).g, grainLeastRough);";
 const GRAIN_SPECULAR = "#include <lights_physical_fragment>\nmaterial.specularColorBlended *= grainSpecular;";
@@ -268,7 +275,7 @@ function scanAlongGrain(material: THREE.MeshStandardMaterial, form: FormSurface)
     shader.uniforms.grainLeastRough = { value: form.leastRough };
     shader.uniforms.grainSpecular = { value: form.specular };
     shader.vertexShader = `varying float vGrainUp;\n${shader.vertexShader.replace("#include <begin_vertex>", GRAIN_VERTEX)}`;
-    shader.fragmentShader = `varying float vGrainUp;\nuniform float grainContrast;\nuniform float grainContact;\nuniform float grainLeastRough;\nuniform float grainSpecular;\n${shader.fragmentShader.replace("#include <map_fragment>", GRAIN_COLOUR).replace("#include <roughnessmap_fragment>", GRAIN_ROUGH).replace("#include <lights_physical_fragment>", GRAIN_SPECULAR)}`;
+    shader.fragmentShader = `#define GRAIN_FINE_EVENING ${GRAIN_FINE_EVENING.toFixed(2)}\n#define GRAIN_MEAN_TINT ${GRAIN_MEAN_TINT.toFixed(2)}\nvarying float vGrainUp;\nuniform float grainContrast;\nuniform float grainContact;\nuniform float grainLeastRough;\nuniform float grainSpecular;\n${shader.fragmentShader.replace("#include <map_fragment>", GRAIN_COLOUR).replace("#include <color_fragment>", GRAIN_TINT).replace("#include <roughnessmap_fragment>", GRAIN_ROUGH).replace("#include <normal_fragment_maps>", GRAIN_NORMAL).replace("#include <lights_physical_fragment>", GRAIN_SPECULAR)}`;
   };
   material.customProgramCacheKey = () => "scan-along-grain";
 }
