@@ -39,6 +39,7 @@ const NO_FRAME_SOURCES = [
   "/sign-in",
   "/sign-out",
   "/forbidden",
+  "/awaiting-access",
 ];
 
 const nextConfig: NextConfig = {

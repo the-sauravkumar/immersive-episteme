@@ -126,3 +126,14 @@ export function staffLanding(subject: Subject | null | undefined): string | null
 
 /** Route Handler that redirects a signed-in staff member to `staffLanding` (src/app/console). */
 export const STAFF_HOME = "/console";
+
+export const AWAITING_ACCESS_PATH = "/awaiting-access";
+export const FORBIDDEN_PATH = "/forbidden";
+
+export function isAwaitingAccess(subject: Subject): boolean {
+  return subject.roles.length === 0;
+}
+
+export function refusalPath(subject: Subject): string {
+  return isAwaitingAccess(subject) ? AWAITING_ACCESS_PATH : FORBIDDEN_PATH;
+}

@@ -9,7 +9,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import type { Permission } from "@/lib/permissions/permissions";
-import { canEnterArea, consoleRoute, type ConsoleArea, type ConsolePath } from "@/lib/permissions/console-routes";
+import { canEnterArea, consoleRoute, refusalPath, type ConsoleArea, type ConsolePath } from "@/lib/permissions/console-routes";
 import type { LearningCondition } from "@/lib/permissions/learning";
 import { requireLearningAccess, requireParticipantSession } from "@/server/auth/learning-access";
 import { requirePermission, requireStaff } from "@/server/auth/staff";
@@ -22,7 +22,7 @@ const AREA_ROOT: Record<ConsoleArea, string> = { cms: "/cms", research: "/resear
 /** Layout gate: signed-in staff who can open at least one route of the area. */
 export async function StaffAreaGate({ area, children }: { area: ConsoleArea; children: ReactNode }) {
   const principal = await requireStaff({ next: AREA_ROOT[area] });
-  if (!canEnterArea(principal, area)) redirect("/forbidden");
+  if (!canEnterArea(principal, area)) redirect(refusalPath(principal));
   return <>{children}</>;
 }
 

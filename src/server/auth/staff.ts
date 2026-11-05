@@ -18,6 +18,7 @@ import { redirect } from "next/navigation";
 import { cache } from "react";
 
 import { canAny, type Subject } from "@/lib/permissions/can";
+import { refusalPath } from "@/lib/permissions/console-routes";
 import type { Permission } from "@/lib/permissions/permissions";
 import type { StaffRole } from "@/lib/permissions/roles";
 import { safeNextPath } from "@/lib/permissions/safe-redirect";
@@ -72,7 +73,7 @@ export async function requirePermission(
 ): Promise<StaffPrincipal> {
   const principal = await requireStaff(opts);
   const anyOf: readonly Permission[] = typeof permission === "string" ? [permission] : permission;
-  if (!canAny(principal, anyOf)) redirect("/forbidden");
+  if (!canAny(principal, anyOf)) redirect(refusalPath(principal));
   return principal;
 }
 
