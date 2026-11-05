@@ -66,7 +66,7 @@ describe("the look sheet reaches the scene", () => {
   it("gives each material its own Door 1 image and each bath its own tool image", () => {
     const stage = templates[0]!.stages.find((candidate) => candidate.key === "ajrakh.indigo-dyeing")!;
     expect(stageItemStillPath(stage.key, stage.items, stage.items.find((item) => item.label === "Indigo")!)).toBe(stillPath("ajrakh-indigo"));
-    expect(stageItemStillPath(stage.key, stage.items, stage.items.find((item) => item.modelId === "dye-vat")!)).toBe(stillPath("dye-vat-212531"));
+    expect(stageItemStillPath(stage.key, stage.items, stage.items.find((item) => item.modelId === "dye-vat")!)).toBe(stillPath("dye-vat-17181d"));
     const paths = new Set(materials.map(({ stage: where, item }) => stageItemStillPath(where.key, where.items, item)));
     expect(paths.size).toBe(new Set(materials.map(({ stage: where, item }) => looksOfItem(where.key, item).map((look) => look.key).join("+"))).size);
   });
@@ -125,7 +125,17 @@ describe("the look sheet reaches the scene", () => {
     expect(SUBSTANCE_LOOK_ROWS.filter((row) => row.form === "liquid" && !drawn.has(row.key)).map((row) => row.key)).toEqual([]);
   });
 
-  it("keeps a photo row flagged and names the photo it came from", () => {
+  it("records a confidence and an honest basis on every row, and no flag in place of research", () => {
+    const rows = sheet as { key: string; status: string; renderBasis: string; basis?: string; confidence?: string; conflicts: unknown[] }[];
+    const confidences = ["low", "low-medium", "medium", "medium-high", "high", "unassessed"];
+    expect(rows.filter((row) => !confidences.includes(row.confidence ?? "") || !row.basis).map((row) => row.key)).toEqual([]);
+    expect(rows.filter((row) => !["sourced", "inferred", "partial"].includes(row.status)).map((row) => row.key)).toEqual([]);
+    expect(rows.filter((row) => row.status === "sourced" && row.renderBasis !== "evidence").map((row) => row.key)).toEqual([]);
+    expect(rows.filter((row) => /needs-lead|flagged for the lead/.test(JSON.stringify(row))).map((row) => row.key)).toEqual([]);
+    expect(rows.flatMap((row) => row.conflicts.filter((conflict) => typeof conflict !== "object" || !("outcome" in (conflict as object)) || !("unsettled" in (conflict as object))).map(() => row.key))).toEqual([]);
+  });
+
+  it("keeps a photo row unsettled and names the photo it came from", () => {
     const rows = sheet as { key: string; stages: string[]; label: string; renderBasis: string; renderNote: string; photoFile?: string; photoPage?: string; photoLicence?: string }[];
     const photoRows = rows.filter((row) => row.renderBasis === "photo");
     expect(photoRows.length).toBeGreaterThan(0);

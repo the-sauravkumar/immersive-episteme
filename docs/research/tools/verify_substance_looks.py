@@ -75,6 +75,50 @@ def tradition_quotes():
     return found
 
 
+def check_archive(entry, archive):
+    reference = entry["archive"]
+    path = os.path.join(ROOT, reference[5:]) if reference.startswith("repo:") else os.path.join(archive, reference)
+    if not os.path.exists(path):
+        return ("archived copy missing", False)
+    return ("archived copy named in the row", normalise(entry["quote"]) in normalise(read_text(path)))
+
+
+LOCAL_PATH = re.compile(r"(?<![A-Za-z])[A-Za-z]:[\\/]|Users[\\/]|AppData|scratchpad[\\/]")
+CONFIDENCE = {"low", "low-medium", "medium", "medium-high", "high", "unassessed"}
+BASES = {"evidence", "photo", "inferred", "provisional"}
+STATUSES = {"sourced", "inferred", "partial"}
+FLAG_WORDS = re.compile(r"needs-lead|flagged for the lead|stays? flagged")
+
+
+def row_problems(row):
+    problems = []
+    if row.get("confidence") not in CONFIDENCE:
+        problems.append("confidence missing or not one of " + ", ".join(sorted(CONFIDENCE)))
+    if not row.get("basis"):
+        problems.append("basis missing")
+    if row["renderBasis"] not in BASES:
+        problems.append("renderBasis " + row["renderBasis"])
+    if row["status"] not in STATUSES:
+        problems.append("status " + row["status"])
+    if row["status"] == "sourced" and row["renderBasis"] != "evidence":
+        problems.append("status sourced on a row whose colour is not rendered on evidence")
+    if row["renderBasis"] == "photo" and not (row.get("photoFile") and row.get("photoPage") and row.get("photoLicence")):
+        problems.append("photo row without photoFile, photoPage and photoLicence")
+    text = json.dumps(row, ensure_ascii=False)
+    if FLAG_WORDS.search(text):
+        problems.append("flag wording instead of a recorded basis")
+    for entry in row["evidence"] + row.get("measurements", []):
+        if not entry.get("source") or not entry.get("locator"):
+            problems.append("evidence or measurement without source and locator")
+        for field in ("source", "locator", "url", "archive", "photoFile", "reliability"):
+            if isinstance(entry.get(field), str) and LOCAL_PATH.search(entry[field]):
+                problems.append("local path in " + field + ": " + entry[field][:60])
+    for conflict in row["conflicts"]:
+        if not (isinstance(conflict, dict) and conflict.get("question") and conflict.get("outcome") and "unsettled" in conflict):
+            problems.append("conflict without question, outcome and what stays unsettled")
+    return problems
+
+
 def check_project(entry, claims, thesis, archive):
     quote = entry["quote"]
     if "Sengupta" in entry["source"]:
@@ -138,13 +182,20 @@ def main():
     tally = {}
     failures = []
     seen = set()
+    structure = []
     for row in rows:
+        structure.extend((row["key"], problem) for problem in row_problems(row))
         for entry in row["evidence"]:
-            identity = (entry["kind"], entry["source"], entry["locator"], entry["quote"])
+            identity = (entry["kind"], entry["source"], entry["locator"], entry["quote"], entry.get("archive"))
             if identity in seen:
                 continue
             seen.add(identity)
-            where, passed = check_project(entry, claims, thesis, args.archive) if entry["kind"] == "project-source" else check_web(entry, args.archive)
+            if "archive" in entry:
+                where, passed = check_archive(entry, args.archive)
+            elif entry["kind"] == "project-source":
+                where, passed = check_project(entry, claims, thesis, args.archive)
+            else:
+                where, passed = check_web(entry, args.archive)
             label = entry["kind"] + ": " + where
             tally[label] = tally.get(label, 0) + 1
             if not passed:
@@ -158,8 +209,11 @@ def main():
         print(count, label)
     for failure in failures:
         print("FAIL", failure)
+    for problem in structure:
+        print("ROW", problem)
+    print("row problems", len(structure))
     print("failures", len(failures))
-    return 1 if failures or uncovered else 0
+    return 1 if failures or uncovered or structure else 0
 
 
 if __name__ == "__main__":
