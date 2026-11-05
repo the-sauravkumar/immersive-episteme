@@ -165,7 +165,7 @@ function subdivided(geometry: THREE.BufferGeometry, levels: number): THREE.Buffe
   return out;
 }
 
-function brokenSolid(seed: number, corners: THREE.Vector3[], cuts: number, cutReach: number, ripple: number, size: number, levels = 2): PieceShape {
+function brokenSolid(seed: number, corners: THREE.Vector3[], cuts: number, cutReach: number, ripple: number, size: number, levels = 2, crease = FACET_CREASE_RADIANS): PieceShape {
   const random = seededRandom(seed * 577 + 3);
   const planes = Array.from({ length: cuts }, () => {
     const rise = random() * 2 - 1;
@@ -192,14 +192,14 @@ function brokenSolid(seed: number, corners: THREE.Vector3[], cuts: number, cutRe
     away.multiplyScalar(1 + shift / Math.max(away.length(), 1e-5));
     position.setXYZ(i, away.x, away.y, away.z);
   }
-  const geometry = toCreasedNormals(fine, FACET_CREASE_RADIANS);
+  const geometry = toCreasedNormals(fine, crease);
   fine.dispose();
   return { geometry, spheres: tightCover(geometry, LUMP_COVER_SPHERES) };
 }
 
 export function alumLump(seed: number, levels: number): PieceShape {
   const random = seededRandom(seed * 131 + 17);
-  const size = 0.0085 + random() * 0.0055;
+  const size = 0.011 + random() * 0.006;
   const stretch = new THREE.Vector3(0.75 + random() * 0.65, 0.55 + random() * 0.45, 0.7 + random() * 0.55);
   const corners = Array.from({ length: 22 + Math.floor(random() * 16) }, () => {
     const theta = random() * Math.PI * 2;
@@ -213,16 +213,16 @@ export function alumLump(seed: number, levels: number): PieceShape {
 
 export function indigoCake(seed: number): PieceShape {
   const random = seededRandom(seed * 233 + 29);
-  const half = new THREE.Vector3(0.017 + random() * 0.012, 0.0095 + random() * 0.006, 0.014 + random() * 0.009);
-  const corners: THREE.Vector3[] = [];
-  for (const sx of [-1, 1]) {
-    for (const sy of [-1, 1]) {
-      for (const sz of [-1, 1]) {
-        for (let k = 0; k < 4; k++) corners.push(new THREE.Vector3(sx * half.x * (0.86 + random() * 0.14), sy * half.y * (0.86 + random() * 0.14), sz * half.z * (0.86 + random() * 0.14)));
-      }
-    }
-  }
-  return brokenSolid(seed + 40, corners, 2 + Math.floor(random() * 3), 0.5, 0.016, Math.max(half.x, half.z));
+  const half = new THREE.Vector3(0.018 + random() * 0.012, 0.0065 + random() * 0.004, 0.014 + random() * 0.009);
+  const corners = Array.from({ length: 40 + Math.floor(random() * 16) }, () => {
+    const theta = random() * Math.PI * 2;
+    const rise = (random() * 2 - 1) * 0.9;
+    const flat = Math.sqrt(1 - rise * rise);
+    const reach = 0.8 + random() * 0.2;
+    const lowered = rise < -0.35 ? -0.92 : rise;
+    return new THREE.Vector3(Math.cos(theta) * flat * reach * half.x, lowered * half.y, Math.sin(theta) * flat * reach * half.z);
+  });
+  return brokenSolid(seed + 40, corners, 3 + Math.floor(random() * 3), 0.55, 0.045, Math.max(half.x, half.z), 3, 1.25);
 }
 
 export async function grainsInTurn(makers: readonly (() => PieceShape)[]): Promise<PieceShape[]> {

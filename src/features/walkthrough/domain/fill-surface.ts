@@ -224,7 +224,8 @@ export function pasteHeight(level: number, depth: number, body: PasteBody = DEFA
     }
     const warpU = u + 0.5 * layeredNoise(u * 2.1, v * 2.1, seed + 2, 2);
     const warpV = v + 0.5 * layeredNoise(u * 2.1 + 9, v * 2.1 - 5, seed + 3, 2);
-    const folded = body.folds === 0 ? 0 : (1 - Math.abs(Math.sin((warpU * 0.8 + warpV * 0.6) * body.folds))) ** 2 - 0.3;
+    const foldTurn = body.seed * 1.7;
+    const folded = body.folds === 0 ? 0 : (1 - Math.abs(Math.sin((warpU * Math.cos(foldTurn) + warpV * Math.sin(foldTurn)) * body.folds))) ** 2 - 0.3;
     const soft = undulation(x, z, 34) * swell + layeredNoise(u * 6, v * 6, seed + 4, 2) * swell;
     const climb = meniscus * wallNearness ** body.creep * (0.7 + 0.6 * valueNoise(x * 30, z * 30, seed + 5));
     const rise = dome * (1 - wallNearness * wallNearness);

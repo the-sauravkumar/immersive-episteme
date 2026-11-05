@@ -120,11 +120,10 @@ interface FormSurface {
 type ScannedFill = Exclude<SubstanceFill, "liquid">;
 
 const FORM_SURFACES: Readonly<Record<ScannedFill, FormSurface>> = {
-  dung: { scan: "cowCrust", roughness: 1, leastRough: 0.82, normalScale: 1.6, contrast: 0.9, gain: [1.35, 1.48, 1.56], specular: 0.25, contact: 0.5, env: 0.35 },
+  dung: { scan: "wetMud", tileMetres: 0.3, roughness: 1, leastRough: 0.4, normalScale: 0.9, contrast: 0.45, gain: [1.2, 1.22, 1.24], specular: 0.55, contact: 0.5, env: 0.35 },
   roots: { scan: "madderBark", alongGrain: true, roughness: 1, leastRough: 0.82, normalScale: 2.2, contrast: 1, gain: [1.68, 1.84, 1.8], specular: 0.3, contact: 0.45, env: 0.35 },
   flowers: { scan: "madderBark", tileMetres: 0.09, alongGrain: true, roughness: 1, leastRough: 0.82, normalScale: 1, contrast: 0.7, gain: [1.3, 1.35, 1.45], specular: 0.3, contact: 0.4, env: 0.35 },
   leaves: { scan: "leafBlade", alongGrain: true, roughness: 1, leastRough: 0.72, normalScale: 0.9, contrast: 0.8, gain: [1.22, 1.46, 1.6], specular: 0.4, contact: 0.4, env: 0.4 },
-  fruit: { scan: "fruitSkin", roughness: 1, leastRough: 0.55, normalScale: 1.5, contrast: 0.85, gain: [1.5, 1.5, 1.5], specular: 0.55, contact: 0.5, env: 0.45 },
   powder: { scan: "flour", roughness: 1, leastRough: 0.88, normalScale: 1, contrast: 0.45, gain: [0.8, 0.8, 0.8], specular: 0.2, contact: 0.5, env: 0.4 },
   crystals: { scan: "flour", roughness: 1, leastRough: 0.88, normalScale: 1, contrast: 0.4, gain: [0.62, 0.62, 0.62], specular: 0.2, contact: 0.5, env: 0.4 },
   paste: { scan: "wetMud", tileMetres: 0.42, roughness: 0.42, leastRough: 0.27, normalScale: 0.09, contrast: 0.08, gain: [0.92, 0.92, 0.92], specular: 0.85, contact: 0, env: 0.5 },
@@ -132,8 +131,7 @@ const FORM_SURFACES: Readonly<Record<ScannedFill, FormSurface>> = {
 };
 
 const SURFACE_OVERRIDES: readonly { readonly words: RegExp; readonly fill?: SubstanceFill; readonly apply: (form: FormSurface) => FormSurface }[] = [
-  { words: /crazed|crease|seam/, fill: "dung", apply: (form) => ({ ...form, scan: "camelSkin", normalScale: 1.8, contrast: 1, gain: [1.25, 1.28, 1.38], contact: 0.62 }) },
-  { words: /\bwet\b|\bfresh\b|\bmoist\b/, fill: "dung", apply: (form) => ({ ...form, scan: "wetMud", tileMetres: 0.65, leastRough: 0.34, normalScale: 0.5, contrast: 0.3, specular: 0.7 }) },
+  { words: /crazed|crease|seam/, fill: "dung", apply: (form) => ({ ...form, scan: "camelSkin", tileMetres: undefined, leastRough: 0.82, normalScale: 1.8, contrast: 0.7, gain: [1.16, 1.16, 1.14], specular: 0.25, contact: 0.62 }) },
   { words: /fibrous/, apply: (form) => ({ ...form, scan: "bark", tileMetres: 0.09, contrast: 0.42, normalScale: 0.95, leastRough: 0.46, specular: 0.65 }) },
   { words: /sticky|glassy/, apply: (form) => ({ ...form, leastRough: 0.13, specular: 1 }) },
 ];
@@ -157,7 +155,7 @@ function surfaceOf(look: SubstanceLook): FormSurface {
   return SURFACE_OVERRIDES.filter(({ words, fill }) => words.test(look.surface) && (fill === undefined || fill === look.fill)).reduce((current, { apply }) => apply(current), form);
 }
 
-const PILE_BED_DARKENING: Partial<Record<SubstanceFill, number>> = { dung: 0.58, roots: 0.32, fruit: 0.4, crystals: 0.42 };
+const PILE_BED_DARKENING: Partial<Record<SubstanceFill, number>> = { dung: 0.82, roots: 0.55, crystals: 0.42 };
 const GAP_DARKENING = 0.3;
 const CAKE_SURFACE: Pick<FormSurface, "scan" | "tileMetres" | "normalScale" | "contrast" | "leastRough" | "specular" | "contact"> = { scan: "flour", tileMetres: 0.09, normalScale: 0.8, contrast: 0.3, leastRough: 0.46, specular: 0.55, contact: 0.5 };
 
@@ -206,6 +204,8 @@ const FILM_ALPHA = [
   "#include <opaque_fragment>",
 ].join("\n");
 
+const FILM_SKY_SHARE = 0.35;
+
 export interface FilmLook {
   readonly stretch: number;
   readonly falloff: number;
@@ -220,6 +220,7 @@ export function filmMaterial(library: MaterialLibrary, look: SubstanceLook, film
     material.transparent = true;
     material.opacity = 1;
     material.depthWrite = false;
+    material.envMapIntensity *= FILM_SKY_SHARE;
     material.polygonOffset = true;
     material.polygonOffsetFactor = -1;
     material.polygonOffsetUnits = -2;
@@ -316,6 +317,7 @@ export function pileBedMaterial(library: MaterialLibrary, look: SubstanceLook): 
 const ABSORPTION_PER_METRE: Readonly<Record<Transparency, number>> = { clear: 0.2, translucent: 26, opaque: 400 };
 const DARK_BATH_ABSORPTION_PER_METRE = 130;
 const DARK_BATH_LUMINANCE = 0.05;
+const PALE_TRANSLUCENT_ABSORPTION_PER_METRE = 3;
 export const BATH_COLUMN_METRES = 0.034;
 const CLEAR_WATER_COVER = 0.16;
 const OPAQUE_COVER = 1;
@@ -341,6 +343,7 @@ const LIQUID_SHAPES = [
   "uniform vec3 foamGlint;",
   "uniform float foamCover;",
   "uniform float foamGrain;",
+  "uniform float foamCentre;",
   "uniform vec3 scumColour;",
   "float liquidScum = 0.0;",
   "float liquidFoam = 0.0;",
@@ -364,39 +367,40 @@ const LIQUID_COLOUR = [
   "}",
   "diffuseColor.rgb *= liquidMirror;",
   "if (liquidIslandShare > 0.0) {",
-  "  vec2 warp = vec2(liquidCloud(liquidAcross * 1.7 + 4.0), liquidCloud(liquidAcross * 1.7 + 11.0)) - 0.5;",
-  "  float gather = liquidCloud((liquidAcross + warp * 0.6) * 3.1 * foamGrain + 3.0 + liquidTime * 0.004);",
-  "  float islandAt = mix(0.72, 0.4, min(liquidIslandShare / 0.6, 1.0));",
-  "  float island = smoothstep(islandAt - 0.035, islandAt + 0.05, gather);",
+  "  float fromCentre = length(vLiquidAt.xz);",
+  "  float outward = fromCentre / max(fromCentre + length(vLiquidWall), 0.0001);",
+  "  float wobble = (liquidCloud(liquidAcross * 2.6 * foamGrain + 3.0 + liquidTime * 0.004) - 0.5) * 0.5 + (liquidCloud(liquidAcross * 9.0 + 1.0) - 0.5) * 0.16;",
+  "  float reach = min(sqrt(liquidIslandShare), 0.92);",
+  "  float centrePatch = 1.0 - smoothstep(reach - 0.16, reach + 0.1, outward + wobble);",
+  "  float rimBand = 1.0 - smoothstep(reach * 0.2, reach * 0.2 + 0.07, length(vLiquidWall) + wobble * 0.08);",
+  "  float island = mix(rimBand, centrePatch, foamCentre);",
   "  if (foamShare > 0.0 && island > 0.0) {",
-  "    vec3 small = liquidBubbles(liquidAcross * 380.0);",
-  "    vec3 middle = liquidBubbles(liquidAcross * 170.0 + 3.0);",
-  "    vec3 wide = liquidBubbles(liquidAcross * 92.0 + 5.0);",
-  "    float big = smoothstep(0.72, 0.9, liquidNoise(liquidAcross * 19.0));",
-  "    float mid = smoothstep(0.3, 0.62, liquidNoise(liquidAcross * 37.0 + 8.0));",
-  "    vec3 bubble = mix(mix(small, middle, mid), wide, big);",
-  "    liquidDome = bubble.x * (0.74 + 0.26 * liquidBubbles(liquidAcross * 900.0 + 2.0).x) * (0.72 + 0.56 * liquidNoise(liquidAcross * 70.0));",
-  "    liquidBubbleTilt = bubble.yz * island;",
-  "    liquidFoam = island;",
-  "    diffuseColor.rgb = mix(diffuseColor.rgb, foamColour * (0.42 + 0.8 * liquidDome), liquidFoam * foamCover);",
+  "    vec3 small = liquidBubbles(liquidAcross * 520.0);",
+  "    vec3 middle = liquidBubbles(liquidAcross * 260.0 + 3.0);",
+  "    float mid = smoothstep(0.45, 0.8, liquidNoise(liquidAcross * 31.0 + 8.0)) * island;",
+  "    vec3 bubble = mix(small, middle, mid);",
+  "    liquidDome = mix(0.62, bubble.x, 0.7) * (0.8 + 0.4 * liquidNoise(liquidAcross * 60.0));",
+  "    liquidBubbleTilt = bubble.yz * island * 0.25;",
+  "    liquidFoam = island * (0.55 + 0.45 * smoothstep(0.2, 0.7, liquidNoise(liquidAcross * 14.0)));",
+  "    diffuseColor.rgb = mix(diffuseColor.rgb, foamColour * (0.5 + 0.6 * liquidDome), liquidFoam * foamCover);",
   "  }",
   "  if (scumShare > 0.0) {",
-  "    float rimOfIsland = smoothstep(islandAt - 0.045, islandAt, gather) * (1.0 - smoothstep(islandAt + 0.01, islandAt + 0.06, gather));",
-  "    liquidScum = rimOfIsland * smoothstep(0.3, 0.7, liquidNoise(liquidAcross * 26.0)) * (0.5 + 0.5 * liquidNoise(liquidAcross * 90.0));",
-  "    diffuseColor.rgb = mix(diffuseColor.rgb, scumColour, liquidScum * 0.4);",
+  "    float sheen = smoothstep(0.35, 0.8, liquidCloud(liquidAcross * 4.2 + 7.0));",
+  "    liquidScum = sheen * mix(0.35, 1.0, island) * smoothstep(0.0, 0.5, island + 0.15) * 0.8;",
+  "    diffuseColor.rgb = mix(diffuseColor.rgb, scumColour, liquidScum * 0.3);",
   "  }",
   "}",
 ].join("\n");
 
 const LIQUID_ROUGH = "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.3, max(liquidFoam * 0.8, liquidScum));";
-const LIQUID_METAL = "#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.5, liquidScum);";
+const LIQUID_METAL = "#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.35, liquidScum);";
 
 const LIQUID_NORMAL = [
   "#include <normal_fragment_maps>",
   "float liquidEdge = length(vLiquidWall);",
   "vec2 liquidTilt = liquidSlope(liquidAcross) * liquidRipple * (1.0 - liquidFoam * 0.7);",
   "liquidTilt += liquidBubbleTilt * 0.5;",
-  "liquidTilt -= (liquidEdge > 0.0001 ? vLiquidWall / liquidEdge : vec2(0.0)) * 0.55 * exp(-liquidEdge / 0.007);",
+  "liquidTilt -= (liquidEdge > 0.0001 ? vLiquidWall / liquidEdge : vec2(0.0)) * 0.2 * exp(-liquidEdge / 0.003);",
   "normal = normalize((viewMatrix * vec4(normalize(vec3(-liquidTilt.x, 1.0, -liquidTilt.y)), 0.0)).xyz);",
 ].join("\n");
 
@@ -408,9 +412,9 @@ const LIQUID_OUTPUT = [
   "float liquidColumn = min(vLiquidDepth, liquidEdge * 1.4);",
   "float liquidCover = max(1.0 - exp(-liquidColumn * liquidAbsorb / max(liquidFacing, 0.3)), liquidCoverFloor);",
   "liquidCover = max(liquidCover, max(liquidFoam * foamCover, liquidScum * 0.9));",
-  "float liquidWallShade = mix(0.3, 1.0, smoothstep(0.0, 0.09, liquidEdge));",
+  "float liquidWallShade = mix(0.75, 1.0, smoothstep(0.0, 0.03, liquidEdge));",
   "vec3 liquidGlint = reflectedLight.directSpecular / (1.0 + dot(reflectedLight.directSpecular, vec3(0.33)) / LIQUID_BRIGHTEST_GLINT);",
-  "outgoingLight = (reflectedLight.directDiffuse + reflectedLight.indirectDiffuse) * liquidCover * mix(1.0 - 0.45 * exp(-liquidEdge / 0.012), 1.0, liquidFoam) + liquidGlint + reflectedLight.indirectSpecular * liquidWallShade;",
+  "outgoingLight = (reflectedLight.directDiffuse + reflectedLight.indirectDiffuse) * liquidCover * mix(1.0 - 0.2 * exp(-liquidEdge / 0.006), 1.0, liquidFoam) + liquidGlint + reflectedLight.indirectSpecular * liquidWallShade;",
   "if (liquidClear > 0.0) {",
   "  vec2 netAt = liquidAcross * 9.0 + liquidSlope(liquidAcross) * 9.0;",
   "  float netA = 1.0 - abs(2.0 * liquidNoise(netAt + liquidTime * 0.09) - 1.0);",
@@ -433,6 +437,8 @@ const PALE_FOAM_GRAIN = 2.6;
 const SOAP_FILM_ON_CLEAR_WATER = 0.42;
 const FOAM_GLINT_FALLBACK = new THREE.Color(0.6, 0.6, 0.6);
 const LILAC_SILVER_GLINT = new THREE.Color(0.62, 0.56, 0.72);
+const PLUM_FOAM_TINT = new THREE.Color(1.3, 0.92, 1.18);
+const DARK_FOAM_LUMINANCE = 0.035;
 const WATER_NET_LIGHT = 0.07;
 const BRIGHTEST_GLINT = 1.1;
 const MIRROR_DARK_BODY = 0.3;
@@ -440,7 +446,7 @@ const DEEP_BODY = 0.72;
 const PALE_LIQUID_LUMINANCE = 0.55;
 const PALE_BODY = 0.38;
 
-const rippleOf = (look: SubstanceLook): number => (/mirror/.test(look.surface) ? 0.45 : /boil/.test(look.surface) ? 2.6 : /gently heated|flowing|on a furnace/.test(look.surface) ? 1.7 : /thick|lather/.test(look.surface) ? 0.5 : /thin/.test(look.surface) ? 0.8 : 1);
+const rippleOf = (look: SubstanceLook): number => (/mirror/.test(look.surface) ? 0.45 : /viscid/.test(look.surface) ? 0.3 : /boil/.test(look.surface) ? 2.6 : /gently heated|flowing|on a furnace/.test(look.surface) ? 1.7 : /thick|lather/.test(look.surface) ? 0.5 : /thin/.test(look.surface) ? 0.8 : 1);
 const filmOf = (look: SubstanceLook): number => (look.transparency === "translucent" && !/mirror/.test(look.surface) ? 0.22 : 0);
 const seedOf = (key: string): number => [...key].reduce((sum, letter, i) => (sum + letter.charCodeAt(0) * (i + 1)) % 97, 0) * 0.37;
 
@@ -456,10 +462,13 @@ function liquidShader(material: THREE.MeshStandardMaterial, look: SubstanceLook)
   const body = liquidBodyColour(look);
   const pale = body.r * 0.2126 + body.g * 0.7152 + body.b * 0.0722 > PALE_LIQUID_LUMINANCE * PALE_BODY * 0.8;
   const foam = clear ? new THREE.Color(0.7, 0.7, 0.68) : body.clone().multiplyScalar(pale ? PALE_FOAM_LIFT : FOAM_LIFTS_BODY / DEEP_BODY);
+  const foamLuminance = foam.r * 0.2126 + foam.g * 0.7152 + foam.b * 0.0722;
+  if (!clear && foamLuminance < DARK_FOAM_LUMINANCE) foam.multiplyScalar(DARK_FOAM_LUMINANCE / Math.max(foamLuminance, 0.0005));
+  if (/plum|violet|purple/.test(look.surface)) foam.multiply(PLUM_FOAM_TINT);
   material.onBeforeCompile = (shader) => {
     const row = displayAlbedo(look.renderHex);
     const darkBath = look.transparency === "translucent" && row.r * 0.2126 + row.g * 0.7152 + row.b * 0.0722 < DARK_BATH_LUMINANCE;
-    shader.uniforms.liquidAbsorb = { value: darkBath ? DARK_BATH_ABSORPTION_PER_METRE : ABSORPTION_PER_METRE[look.transparency] };
+    shader.uniforms.liquidAbsorb = { value: darkBath ? DARK_BATH_ABSORPTION_PER_METRE : look.transparency === "translucent" && pale ? PALE_TRANSLUCENT_ABSORPTION_PER_METRE : ABSORPTION_PER_METRE[look.transparency] };
     shader.uniforms.liquidCoverFloor = { value: clear ? CLEAR_WATER_COVER : look.transparency === "opaque" ? OPAQUE_COVER : TRANSLUCENT_COVER_FLOOR };
     shader.uniforms.liquidClear = { value: clear ? WATER_NET_LIGHT : 0 };
     shader.uniforms.liquidTime = LIQUID_CLOCK;
@@ -473,6 +482,7 @@ function liquidShader(material: THREE.MeshStandardMaterial, look: SubstanceLook)
     shader.uniforms.foamGlint = { value: /lilac/.test(look.surface) ? LILAC_SILVER_GLINT : FOAM_GLINT_FALLBACK };
     shader.uniforms.foamCover = { value: clear ? SOAP_FILM_ON_CLEAR_WATER : 0.97 };
     shader.uniforms.foamGrain = { value: pale ? PALE_FOAM_GRAIN : 1 };
+    shader.uniforms.foamCentre = { value: /flower/.test(look.surface) ? 1 : 0 };
     shader.uniforms.scumColour = { value: displayAlbedo(SCUM_HEX) };
     shader.vertexShader = `attribute float liquidDepth;\nattribute vec2 liquidWall;\nvarying vec3 vLiquidAt;\nvarying float vLiquidDepth;\nvarying vec2 vLiquidWall;\n${shader.vertexShader.replace("#include <begin_vertex>", LIQUID_VERTEX)}`;
     shader.fragmentShader = `#define LIQUID_BRIGHTEST_GLINT ${BRIGHTEST_GLINT.toFixed(1)}\n${LIQUID_SHAPES}\n${shader.fragmentShader
@@ -554,7 +564,7 @@ const CRYSTAL_COLOUR = [
   "  crystalCloud += crystalNoise(p * 0.3 + 9.0);",
   "}",
   "crystalCloud *= 0.25;",
-  "float crystalMilk = clamp(0.04 + 0.5 * smoothstep(0.4, 0.74, crystalCloud) + 1.1 * crystalVeil, 0.0, 1.0);",
+  "float crystalMilk = clamp(0.06 + 0.55 * smoothstep(0.36, 0.78, crystalCloud) + 0.28 * crystalVeil, 0.0, 1.0);",
   "diffuseColor.rgb = mix(diffuseColor.rgb * vec3(0.5, 0.49, 0.46), diffuseColor.rgb, crystalMilk);",
   "crystalAlpha = mix(0.34, 0.94, crystalMilk);",
   "vec3 crystalGlow = diffuseColor.rgb * (0.16 + 0.34 * crystalMilk);",
@@ -562,7 +572,7 @@ const CRYSTAL_COLOUR = [
 
 const CRYSTAL_EMISSIVE = "#include <emissivemap_fragment>\ntotalEmissiveRadiance += crystalGlow;";
 
-const CRYSTAL_ROUGH = "#include <roughnessmap_fragment>\nroughnessFactor = mix(0.07, 0.52, smoothstep(0.42, 0.74, crystalNoise(vCrystalAt * 120.0 + vCrystalSeed.zxy)));";
+const CRYSTAL_ROUGH = "#include <roughnessmap_fragment>\nroughnessFactor = mix(0.22, 0.62, smoothstep(0.38, 0.7, crystalNoise(vCrystalAt * 160.0 + vCrystalSeed.zxy)));";
 
 const CRYSTAL_ALPHA = [
   "float crystalGrazing = pow(1.0 - saturate(abs(dot(normalize(vViewPosition), normal))), 3.0);",
@@ -580,7 +590,7 @@ export function crystalMaterial(library: MaterialLibrary, look: SubstanceLook): 
       return noteSurface(opaque, { label: `crystals ${look.key}`, kind: "smooth", realFacets: true, openWork: true });
     }
     colour.multiplyScalar(0.42);
-    const material = new THREE.MeshStandardMaterial({ color: colour, roughness: 0.2, metalness: 0, envMapIntensity: 0.95, transparent: true, depthWrite: true, side: THREE.DoubleSide });
+    const material = new THREE.MeshStandardMaterial({ color: colour, roughness: 0.34, metalness: 0, envMapIntensity: 0.55, transparent: true, depthWrite: true, side: THREE.DoubleSide });
     noteSurface(material, { label: `crystals ${look.key}`, kind: "smooth", realFacets: true, openWork: true });
     library.reflectOpenSky(material);
     material.onBeforeCompile = (shader) => {

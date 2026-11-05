@@ -10,6 +10,7 @@ const WALL = 0.018;
 const RIM_HEIGHT = 0.072;
 const FLOOR_THICKNESS = 0.012;
 const CORNER = 0.012;
+const PAD_CLEARANCE_METRES = 0.0007;
 const UNLOADED_HEX = "#9A8F78";
 const PAD_COLUMNS = 128;
 const PAD_ROWS = 96;
@@ -80,6 +81,17 @@ interface PadLayer {
 
 const wanderAt = (angle: number, phase: number): number => 0.5 + 0.28 * Math.sin(angle * 3 + phase) + 0.14 * Math.sin(angle * 7 - phase * 1.7) + 0.08 * Math.sin(angle * 17 + phase * 2.3);
 
+function insideRoundedCorner(x: number, z: number, halfX: number, halfZ: number): [number, number] {
+  const radius = CORNER / 2;
+  const fromX = Math.abs(x) - (halfX - radius);
+  const fromZ = Math.abs(z) - (halfZ - radius);
+  if (fromX <= 0 || fromZ <= 0) return [x, z];
+  const reach = Math.hypot(fromX, fromZ);
+  if (reach <= radius) return [x, z];
+  const pull = radius / reach;
+  return [Math.sign(x) * (halfX - radius + fromX * pull), Math.sign(z) * (halfZ - radius + fromZ * pull)];
+}
+
 function padGeometry(layer: PadLayer, below: HeightField): { geometry: THREE.BufferGeometry; top: HeightField } {
   const edgeOf = (x: number, z: number) => {
     const angle = Math.atan2(z / layer.halfZ, x / layer.halfX);
@@ -101,8 +113,7 @@ function padGeometry(layer: PadLayer, below: HeightField): { geometry: THREE.Buf
       const t = (row / PAD_ROWS) * 2 - 1;
       const angle = Math.atan2(t, s);
       const inset = layer.edgeWander * wanderAt(angle, layer.phase);
-      const x = s * (layer.halfX - inset * Math.max(Math.abs(s), Math.abs(t)) ** 3);
-      const z = t * (layer.halfZ - inset * Math.max(Math.abs(s), Math.abs(t)) ** 3);
+      const [x, z] = insideRoundedCorner(s * (layer.halfX - inset * Math.max(Math.abs(s), Math.abs(t)) ** 3), t * (layer.halfZ - inset * Math.max(Math.abs(s), Math.abs(t)) ** 3), layer.halfX, layer.halfZ);
       const k = row * (PAD_COLUMNS + 1) + column;
       positions.set([x, top(x, z), z], k * 3);
       const q = edgeOf(x, z);
@@ -156,9 +167,9 @@ export async function buildPrintingTray(library: MaterialLibrary, look: Substanc
   const [wood, under, looped] = await Promise.all([projectedMaterial(library, TRAY_WOOD), padMaterial(library, look, "weave", UNDER_LOOK), padMaterial(library, look, "flour", LOOPED_LOOK)]);
   const group = new THREE.Group();
   group.add(solidMesh(trayShell(depth), wood), solidMesh(trayFloor(depth), wood));
-  const clearX = WIDTH / 2 - WALL - 0.003;
-  const clearZ = depth / 2 - WALL - 0.003;
-  const lower = padGeometry({ halfX: clearX, halfZ: clearZ, edgeWander: 0.004, thickness: 0.0075, swell: 0.2, phase: 0.9, edgeTone: 0.34, soakedShare: 0.1, centreTone: 0.42, hump: 0.4 }, () => FLOOR_THICKNESS);
+  const clearX = WIDTH / 2 - WALL - PAD_CLEARANCE_METRES;
+  const clearZ = depth / 2 - WALL - PAD_CLEARANCE_METRES;
+  const lower = padGeometry({ halfX: clearX, halfZ: clearZ, edgeWander: 0.0012, thickness: 0.0075, swell: 0.2, phase: 0.9, edgeTone: 0.34, soakedShare: 0.1, centreTone: 0.42, hump: 0.4 }, () => FLOOR_THICKNESS);
   const middle = padGeometry({ halfX: clearX - 0.004, halfZ: clearZ - 0.004, edgeWander: 0.009, thickness: 0.0085, swell: 0.3, phase: 2.2, edgeTone: 0.42, soakedShare: 0.12, centreTone: 0.62, hump: 0.8 }, lower.top);
   const upper = padGeometry({ halfX: clearX - 0.01, halfZ: clearZ - 0.012, edgeWander: 0.024, thickness: 0.006, swell: 0.75, phase: 4.1, edgeTone: 0.44, soakedShare: 0.34, centreTone: 1, hump: 1.6 }, middle.top);
   group.add(solidMesh(lower.geometry, under), solidMesh(middle.geometry, under), solidMesh(upper.geometry, looped));

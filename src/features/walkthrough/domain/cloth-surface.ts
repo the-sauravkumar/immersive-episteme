@@ -263,6 +263,11 @@ const LAP_THICKNESS_SHARE = 0.34;
 
 const wobble = (a: number, b: number, seed: number): number => Math.sin(a * 2.3 + seed * 1.7) * 0.5 + Math.sin(b * 3.1 - seed * 0.9) * 0.3 + Math.sin((a + b) * 6.7 + seed * 2.9) * 0.2;
 
+function layerJitter(at: number): number {
+  const value = Math.sin(at * 12.9898) * 43758.5453;
+  return (value - Math.floor(value)) * 2 - 1;
+}
+
 export function foldedPile(spec: FoldedPileSpec): FoldedPile {
   const count = spec.layers * (FOLD_STATIONS + 1) * FOLD_LOOP;
   const positions = new Float32Array(count * 3);
@@ -276,12 +281,12 @@ export function foldedPile(spec: FoldedPileSpec): FoldedPile {
   let index = 0;
   for (let layer = 0; layer < spec.layers; layer++) {
     const seed = spec.seed * 7.1 + layer * 2.37;
-    const thin = 0.78 + 0.22 * (0.5 + 0.5 * Math.sin(seed * 3.3));
+    const thin = 0.78 + 0.22 * (0.5 + 0.5 * layerJitter(seed * 3.3));
     const half = (spec.thickness / 2) * thin;
-    const shiftLong = LAYER_SHIFT_METRES * Math.sin(seed * 1.9) * 0.8;
-    const shiftShort = LAYER_SHIFT_METRES * Math.sin(seed * 2.7 + 1) * 0.8;
-    const trimLong = 1 - 0.035 * (0.5 + 0.5 * Math.sin(seed * 4.1));
-    const trimShort = 1 - 0.05 * (0.5 + 0.5 * Math.sin(seed * 5.3));
+    const shiftLong = LAYER_SHIFT_METRES * layerJitter(seed * 1.9) * 0.9;
+    const shiftShort = LAYER_SHIFT_METRES * layerJitter(seed * 2.7 + 1) * 0.9;
+    const trimLong = 1 - 0.06 * (0.5 + 0.5 * layerJitter(seed * 4.1));
+    const trimShort = 1 - 0.08 * (0.5 + 0.5 * layerJitter(seed * 5.3));
     const midY = spec.floorY + spec.pitch * (layer + 0.5);
     const isTop = layer === spec.layers - 1;
     for (let station = 0; station <= FOLD_STATIONS; station++) {

@@ -94,15 +94,15 @@ function wallReachOf(work: RingWork | TankWork, geometry: THREE.BufferGeometry):
     const x = position.getX(i);
     const z = position.getZ(i);
     if (work.type === "ring") {
-      const out = Math.hypot(x, z) || 1;
+      const out = Math.hypot(x, z);
       const gap = Math.max(work.radius - out, 0);
-      reach[i * 2] = (x / out) * gap;
-      reach[i * 2 + 1] = (z / out) * gap;
+      reach[i * 2] = out > 0 ? (x / out) * gap : gap;
+      reach[i * 2 + 1] = out > 0 ? (z / out) * gap : 0;
     } else {
       const gapX = Math.max(work.halfX - Math.abs(x), 0);
       const gapZ = Math.max(work.halfZ - Math.abs(z), 0);
-      reach[i * 2] = gapX < gapZ ? Math.sign(x) * gapX : 0;
-      reach[i * 2 + 1] = gapX < gapZ ? 0 : Math.sign(z) * gapZ;
+      reach[i * 2] = gapX < gapZ ? (Math.sign(x) || 1) * gapX : 0;
+      reach[i * 2 + 1] = gapX < gapZ ? 0 : (Math.sign(z) || 1) * gapZ;
     }
   }
   return new THREE.BufferAttribute(reach, 2);
