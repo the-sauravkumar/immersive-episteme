@@ -58,7 +58,7 @@ export function meanWallRadius(profile: VesselProfile, y: number): number {
   return total / profile.angleCount;
 }
 
-export function fittedSurface(profile: VesselProfile, rimLevel: number, rings: number, spokes: number, heightAt: HeightAt, tuck = RIM_TUCK_METRES): SurfaceGrid {
+export function* fittedSurfaceSteps(profile: VesselProfile, rimLevel: number, rings: number, spokes: number, heightAt: HeightAt, tuck = RIM_TUCK_METRES): Generator<void, SurfaceGrid> {
   const positions = new Float32Array((1 + rings * spokes) * 3);
   positions.set([0, heightAt(0, 0, 0), 0], 0);
   for (let ring = 1; ring <= rings; ring++) {
@@ -73,6 +73,7 @@ export function fittedSurface(profile: VesselProfile, rimLevel: number, rings: n
       const z = Math.sin(theta) * radius;
       positions.set([x, heightAt(x, z, reach), z], (1 + (ring - 1) * spokes + spoke) * 3);
     }
+    yield;
   }
   const indices = new Uint32Array((spokes + (rings - 1) * spokes * 2) * 3);
   let cursor = 0;

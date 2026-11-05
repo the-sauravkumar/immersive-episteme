@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { fittedSurface, flatLevel, heapHeight, levelInVessel, moundHeight, pasteHeight, wallFilm } from "@/features/walkthrough/domain/fill-surface";
+import { fittedSurfaceSteps, flatLevel, heapHeight, levelInVessel, moundHeight, pasteHeight, wallFilm } from "@/features/walkthrough/domain/fill-surface";
 import { hasCakePieces, isLumpCrystal, PASTE_FORMS, pasteThicknessOf, powderGrainOf } from "@/features/walkthrough/domain/substance-body";
 import { scatterOnSurface } from "@/features/walkthrough/domain/surface-scatter";
 import { albedoForDisplay, filmicToScene } from "@/features/walkthrough/domain/lit-colour";
 import { packPile, rotateYXZ } from "@/features/walkthrough/domain/pile-packing";
 import { checkScene, type FillAudit } from "@/features/walkthrough/domain/scene-check";
 import { measureVesselProfile, outsideDepth, wallRadius } from "@/features/walkthrough/domain/vessel-profile";
+
+function settle<T>(steps: Generator<void, T>): T {
+  let step = steps.next();
+  while (!step.done) step = steps.next();
+  return step.value;
+}
 
 function lathe(profile: readonly (readonly [number, number])[], sides = 64): Float32Array {
   const out: number[] = [];
@@ -55,7 +61,7 @@ describe("surfaces fit the vessel", () => {
   const level = levelInVessel(profile, 0.7);
   for (const [name, height] of [["liquid", flatLevel(level)], ["paste", pasteHeight(level, 0.18)], ["powder", moundHeight(level, 0.05, 0.002)]] as const) {
     it(`${name} touches the wall all round and never leaves it`, () => {
-      const grid = fittedSurface(profile, level, 24, 96, height);
+      const grid = settle(fittedSurfaceSteps(profile, level, 24, 96, height));
       let deepest = 0;
       for (let i = 0; i < grid.positions.length; i += 3) deepest = Math.max(deepest, outsideDepth(profile, grid.positions[i]!, grid.positions[i + 1]!, grid.positions[i + 2]!));
       expect(deepest).toBeLessThan(0.004);
@@ -69,7 +75,7 @@ describe("surfaces fit the vessel", () => {
   }
 
   it("a liquid surface is flat", () => {
-    const grid = fittedSurface(profile, level, 12, 48, flatLevel(level));
+    const grid = settle(fittedSurfaceSteps(profile, level, 12, 48, flatLevel(level)));
     for (let i = 1; i < grid.positions.length; i += 3) expect(grid.positions[i]).toBeCloseTo(level, 6);
   });
 });
@@ -120,7 +126,7 @@ describe("powder heaps, pastes and scattered grains", () => {
   const shape = { reach, seed: 3, crownOffset: 0.18, slumps: 5, slumpDepth: 0.003, lineDepth: 0.0012, lumpDepth: 0.0026, fineDepth: 0.0004, climb: 0.004 };
 
   it("a powder heap rises to an off-centre crown with an uneven slope", () => {
-    const grid = fittedSurface(profile, level, 48, 192, heapHeight(level, 0.06, shape));
+    const grid = settle(fittedSurfaceSteps(profile, level, 48, 192, heapHeight(level, 0.06, shape)));
     let top = -Infinity;
     let topAt = 0;
     for (let i = 0; i < grid.positions.length; i += 3) {
@@ -136,7 +142,7 @@ describe("powder heaps, pastes and scattered grains", () => {
   });
 
   it("a paste domes, climbs the wall and keeps inside it", () => {
-    const grid = fittedSurface(profile, level, 48, 192, pasteHeight(level, 0.18, { reach, seed: 7, ...PASTE_FORMS.thick }));
+    const grid = settle(fittedSurfaceSteps(profile, level, 48, 192, pasteHeight(level, 0.18, { reach, seed: 7, ...PASTE_FORMS.thick })));
     let deepest = 0;
     for (let i = 0; i < grid.positions.length; i += 3) deepest = Math.max(deepest, outsideDepth(profile, grid.positions[i]!, grid.positions[i + 1]!, grid.positions[i + 2]!));
     expect(deepest).toBeLessThan(0.004);

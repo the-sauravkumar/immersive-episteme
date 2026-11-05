@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import type { SubstanceLook } from "@/features/process/domain/substance-look";
 import { foldedPile } from "../domain/cloth-surface";
-import { fittedSurface, flatLevel, heapHeight, levelInVessel, meanWallRadius, moundHeight, pasteHeight, surfaceShade, valueNoise, wallFilm, type HeapShape, type HeightAt, type SurfaceGrid, type SurfaceShading } from "../domain/fill-surface";
+import { fittedSurfaceSteps, flatLevel, heapHeight, levelInVessel, meanWallRadius, moundHeight, pasteHeight, surfaceShade, valueNoise, wallFilm, type HeapShape, type HeightAt, type SurfaceGrid, type SurfaceShading } from "../domain/fill-surface";
 import { pileFormOf, type PileForm } from "../domain/pile-form";
 import { packingSteps, piecesNearTop, rotateYXZ, worldSpheresOf, type PieceSphere, type PlacedPiece } from "../domain/pile-packing";
 import { firstHit, makeVesselProbe, vertexOutsideVessel, VESSEL_TUCK_METRES, type VesselProbe } from "../domain/mesh-probe";
@@ -148,7 +148,7 @@ async function addLiquid(library: MaterialLibrary, parent: THREE.Object3D, scanI
   const profile = measured.profile;
   const level = levelInVessel(profile, LIQUID_FRACTION);
   const geometry = await library.shared(`surface:liquid:${scanId}`, async () => {
-    const built = gridGeometry(fittedSurface(profile, level, 32, 192, flatLevel(level)));
+    const built = gridGeometry(await runGradually(fittedSurfaceSteps(profile, level, 32, 192, flatLevel(level))));
     liquidColumnDepths(built, profile, level);
     return built;
   });
@@ -271,7 +271,7 @@ async function addPaste(library: MaterialLibrary, parent: THREE.Object3D, scanId
   const depth = profile.rimY - profile.floorY;
   const seed = keySeed(look.key);
   const body = { ...form, strokes: Math.max(1, form.strokes - (seed % 3)), furrowDepth: form.furrowDepth * (0.55 + (seed % 5) * 0.15), reach: meanWallRadius(profile, level), seed };
-  const geometry = await library.shared(`surface:paste:${scanId}:${look.key}`, async () => shadedGeometry(fittedSurface(profile, level, 72, 320, pasteHeight(level, depth, body)), 72, 320, PASTE_SHADING));
+  const geometry = await library.shared(`surface:paste:${scanId}:${look.key}`, async () => shadedGeometry(await runGradually(fittedSurfaceSteps(profile, level, 72, 320, pasteHeight(level, depth, body))), 72, 320, PASTE_SHADING));
   const smear = await library.shared(`film:paste:${scanId}:${thickness}`, async () => wallFilmGeometry(measured, level + depth * form.meniscus * 0.3, depth * form.smearHeight, 5));
   const mass = stillMesh(geometry, await substanceMaterial(library, look));
   mass.castShadow = true;
@@ -333,7 +333,7 @@ async function addPowder(library: MaterialLibrary, parent: THREE.Object3D, scanI
   const level = levelInVessel(profile, form.level);
   const depth = profile.rimY - profile.floorY;
   const heightAt = heapHeight(level, depth * form.heap, heapShapeOf(grain, meanWallRadius(profile, level)));
-  const geometry = await library.shared(`surface:powder:${scanId}:${grain}`, async () => shadedGeometry(fittedSurface(profile, level, 96, 384, heightAt), 96, 384, HEAP_SHADING));
+  const geometry = await library.shared(`surface:powder:${scanId}:${grain}`, async () => shadedGeometry(await runGradually(fittedSurfaceSteps(profile, level, 96, 384, heightAt)), 96, 384, HEAP_SHADING));
   const dust = await library.shared(`film:powder:${scanId}:${grain}`, async () => wallFilmGeometry(measured, level, depth * form.filmHeight, 9));
   const material = await substanceMaterial(library, look);
   if (grain === "fibrous") material.side = THREE.DoubleSide;
@@ -362,7 +362,7 @@ async function addCrystalLumps(library: MaterialLibrary, parent: THREE.Object3D,
   const level = levelInVessel(profile, LUMP_BED_FRACTION);
   const depth = profile.rimY - profile.floorY;
   const heightAt = heapHeight(level, 0, { ...heapShapeOf("fine", meanWallRadius(profile, level)), slumps: 0, lineDepth: 0, lumpDepth: 0.0014, fineDepth: 0.0003 });
-  const bed = await library.shared(`surface:lump-bed:${scanId}`, async () => gridGeometry(fittedSurface(profile, level, 64, 320, heightAt)));
+  const bed = await library.shared(`surface:lump-bed:${scanId}`, async () => gridGeometry(await runGradually(fittedSurfaceSteps(profile, level, 64, 320, heightAt))));
   const dust = await library.shared(`film:lump-bed:${scanId}`, async () => wallFilmGeometry(measured, level, depth * POWDER_FORMS.fine.filmHeight, 13));
   const powder = await substanceMaterial(library, look);
   parent.add(stillMesh(bed, await pileBedMaterial(library, look)));
@@ -442,7 +442,7 @@ async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId:
   const { recipe, placed, world, seen } = await packedPile(library, scanId, form, measured.profile);
   const material = await pileMaterial(library, look);
   const profile = measured.profile;
-  const bedGeometry = await library.shared(`surface:bed:${scanId}:${form}`, async () => gridGeometry(fittedSurface(profile, levelInVessel(profile, recipe.bedShare ?? PILE_BED_FRACTION), 48, 192, bedHeightOf(profile, recipe), PILE_BED_INSET_METRES)));
+  const bedGeometry = await library.shared(`surface:bed:${scanId}:${form}`, async () => gridGeometry(await runGradually(fittedSurfaceSteps(profile, levelInVessel(profile, recipe.bedShare ?? PILE_BED_FRACTION), 48, 192, bedHeightOf(profile, recipe), PILE_BED_INSET_METRES))));
   if (!recipe.bare) parent.add(stillMesh(bedGeometry, await pileBedMaterial(library, look)));
   const holder = new THREE.Object3D();
   holder.rotation.order = "YXZ";

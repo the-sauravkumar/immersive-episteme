@@ -1,6 +1,7 @@
 import * as THREE from "three";
-import { mergeGeometries, toCreasedNormals } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { roundSegments } from "../domain/surface-density";
+import { creasedNormals } from "./creased-normals";
 import type { MaterialLibrary } from "./material-library";
 import { projectedMaterial, restOnBench, setTones, solidMesh } from "./built-materials";
 
@@ -157,7 +158,7 @@ function kalamStick(): THREE.BufferGeometry {
     const cut = KALAM_LENGTH - 0.0075 + position.getX(i) * 0.8;
     if (position.getY(i) > cut) position.setY(i, cut);
   }
-  const geometry = toCreasedNormals(lathe, 0.6);
+  const geometry = creasedNormals(lathe, 0.6);
   setTones(geometry, (_x, y) => (y < SPINDLE_FROM ? 1.32 : 1 - 0.28 * THREE.MathUtils.smoothstep(y, KALAM_LENGTH - 0.045, KALAM_LENGTH)));
   return geometry.rotateZ(-Math.PI / 2);
 }
@@ -173,7 +174,7 @@ function kalamSpindle(): THREE.BufferGeometry {
     position.setX(i, position.getX(i) * lump);
     position.setZ(i, position.getZ(i) * lump);
   }
-  return toCreasedNormals(geometry, 1);
+  return creasedNormals(geometry, 1);
 }
 
 function kalamThreads(): THREE.BufferGeometry {
@@ -301,7 +302,7 @@ function blockBody(): THREE.BufferGeometry {
   const geometry = new THREE.ExtrudeGeometry(shape, { depth: BODY_HEIGHT - 0.003, bevelEnabled: true, bevelThickness: 0.0015, bevelSize: 0.0015, bevelOffset: -0.0015, bevelSegments: 2, curveSegments: 20 });
   geometry.rotateX(-Math.PI / 2);
   geometry.translate(0, COMB_HEIGHT + 0.0015, 0);
-  return toCreasedNormals(geometry, 0.75);
+  return creasedNormals(geometry, 0.75);
 }
 
 function blockComb(): THREE.BufferGeometry {
@@ -319,7 +320,7 @@ function blockComb(): THREE.BufferGeometry {
   holesIn(shape);
   const geometry = new THREE.ExtrudeGeometry(shape, { depth: COMB_HEIGHT + 0.0004, bevelEnabled: false, curveSegments: 20 });
   geometry.rotateX(-Math.PI / 2);
-  return toCreasedNormals(geometry, 0.75);
+  return creasedNormals(geometry, 0.75);
 }
 
 function blockHandle(): THREE.BufferGeometry {
@@ -345,7 +346,7 @@ function blockHandle(): THREE.BufferGeometry {
     position.setZ(i, position.getZ(i) * (1.08 - 0.14 * height));
   }
   lofted.translate(0, COMB_HEIGHT + BODY_HEIGHT + 0.0041, 0);
-  const geometry = toCreasedNormals(lofted, 0.35);
+  const geometry = creasedNormals(lofted, 0.35);
   return setTones(geometry, (x, y, z) => {
     const streak = 0.5 + 0.5 * Math.sin(x * 240 + z * 90);
     const stain = 1 - THREE.MathUtils.smoothstep(y, COMB_HEIGHT + BODY_HEIGHT + 0.002, COMB_HEIGHT + BODY_HEIGHT + 0.04);

@@ -1,6 +1,6 @@
-const fs = require("fs");
-const path = require("path");
-const sharp = require("sharp");
+import fs from "node:fs";
+import path from "node:path";
+import sharp from "sharp";
 
 const TEX = "public/walkthrough/tex";
 const MODELS = "public/walkthrough/models";

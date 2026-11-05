@@ -118,7 +118,7 @@ Who to write to: vaimages@vam.ac.uk (shown on the object page; also the address 
 | public/walkthrough/tex/metal_plate_02 | carving chisel blades | Rob Tuytel | https://polyhaven.com/a/metal_plate_02 |
 | public/walkthrough/tex/Metal008 | copper vessels | ambientCG | https://ambientcg.com/a/Metal008 |
 | public/walkthrough/tex/wood_chips_003 | sawdust and dusting agents, recoloured from its luminance | ambientCG | https://ambientcg.com/a/WoodChips003 |
-| public/walkthrough/tex/fired_clay | clay bowls and pots, tiled from the outer body band of the Planter Pot Clay scan by scripts/walkthrough/build-fired-clay-tile.cjs; surface only, a European flower pot and not an Indian vessel | Amal Kumar | https://polyhaven.com/a/planter_pot_clay |
+| public/walkthrough/tex/fired_clay | clay bowls and pots, tiled from the outer body band of the Planter Pot Clay scan by scripts/walkthrough/build-fired-clay-tile.mjs; surface only, a European flower pot and not an Indian vessel | Amal Kumar | https://polyhaven.com/a/planter_pot_clay |
 
 ## Open Font License, No Licence Needed
 

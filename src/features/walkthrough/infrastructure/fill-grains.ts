@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { ConvexGeometry } from "three/examples/jsm/geometries/ConvexGeometry.js";
-import { mergeVertices, toCreasedNormals } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { seededRandom, type PieceSphere } from "../domain/pile-packing";
+import { creasedNormals } from "./creased-normals";
 import type { PieceShape } from "./piece-mesh";
 
 const FACET_CREASE_RADIANS = 0.55;
@@ -192,7 +193,7 @@ function brokenSolid(seed: number, corners: THREE.Vector3[], cuts: number, cutRe
     away.multiplyScalar(1 + shift / Math.max(away.length(), 1e-5));
     position.setXYZ(i, away.x, away.y, away.z);
   }
-  const geometry = toCreasedNormals(fine, crease);
+  const geometry = creasedNormals(fine, crease);
   fine.dispose();
   return { geometry, spheres: tightCover(geometry, LUMP_COVER_SPHERES) };
 }
