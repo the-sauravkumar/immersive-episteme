@@ -14,7 +14,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "opaque",
     "surface": "opaque emulsified liquid, surface look unsourced; the sourced foam is on the cloth when rubbed, not on the vat",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-camel-dung",
@@ -30,7 +32,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "dry matt skin with fine crazed wrinkles, lengthwise creases and torn seams showing tan plant fibre",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-cotton-cloth",
@@ -45,7 +49,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "sourced",
     "transparency": "opaque",
     "surface": "matte woven cotton",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-harde-myrobalan",
@@ -60,7 +66,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "sourced",
     "transparency": "opaque",
     "surface": "fine powder",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-lime-gum-resist",
@@ -75,7 +83,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "smooth, thick, lump-free wet paste",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-kut-iron-paste",
@@ -90,7 +100,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "smooth fine wet paste",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-alum",
@@ -105,7 +117,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "clear",
     "surface": "glassy crystalline, matte as powder",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-tamarind-seed-paste",
@@ -120,7 +134,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "sticky wet paste",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-gach-mud-resist",
@@ -135,7 +151,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "smooth fine wet mud",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-dusting-agents",
@@ -150,7 +168,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "opaque",
     "surface": "dry fine dust, matt",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-indigo",
@@ -165,7 +185,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "sourced",
     "transparency": "opaque",
     "surface": "dull matte, coppery where rubbed",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-madder",
@@ -180,7 +202,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "sourced",
     "transparency": "opaque",
     "surface": "dry wrinkled root",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-synthetic-alizarin",
@@ -195,7 +219,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "sourced",
     "transparency": "opaque",
     "surface": "crystalline",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-dhawri-tamarisk",
@@ -209,8 +235,10 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "renderBasis": "photo",
     "status": "partial",
     "transparency": "opaque",
-    "surface": "small loose dry papery flakes",
-    "vesselSuggestion": null
+    "surface": "small dry tubular florets, no galls",
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-scouring-rinse-water",
@@ -225,7 +253,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "translucent",
     "surface": "wet, soapy where it meets the cloth",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-harde-bath",
@@ -240,7 +270,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "wet",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-indigo-vat",
@@ -255,7 +287,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "glossy near-black liquid with dense small bubbles, a plum-navy foam or flower and a coppery scum; in a working tank plum froth covers most of the surface",
-    "vesselSuggestion": "underground vat"
+    "vesselSuggestion": "underground vat",
+    "frothHex": "#2B202B",
+    "spread": []
   },
   {
     "key": "ajrakh-washing-tank-water",
@@ -270,7 +304,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "translucent",
     "surface": "wet, carrying loosened clay",
-    "vesselSuggestion": "washing tanks"
+    "vesselSuggestion": "washing tanks",
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-red-dye-bath",
@@ -285,7 +321,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "wet, gently heated",
-    "vesselSuggestion": "large copper pot"
+    "vesselSuggestion": "large copper pot",
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-camel-dung-solution",
@@ -300,7 +338,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "opaque",
     "surface": "wet",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "ajrakh-final-wash-water",
@@ -315,7 +355,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "clear",
     "surface": "cool wet",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-cow-dung",
@@ -331,7 +373,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "moist, soft, with plant fibre and a dull sheen at damp patches",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-cotton-mulmul",
@@ -346,7 +390,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "fine matte woven",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-harda-myrobalan",
@@ -361,7 +407,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "sourced",
     "transparency": "opaque",
     "surface": "fine powder",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-syahi-iron-black",
@@ -376,7 +424,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "wet gum paste",
-    "vesselSuggestion": "earthenware vessel"
+    "vesselSuggestion": "earthenware vessel",
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-begar-alum-mordant",
@@ -391,7 +441,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "translucent",
     "surface": "sticky wet paste",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-madder-alizarin",
@@ -406,7 +458,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "wet, on a furnace",
-    "vesselSuggestion": "copper vessel"
+    "vesselSuggestion": "copper vessel",
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-dhawai-phool",
@@ -421,7 +475,22 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "opaque",
     "surface": "slim dry tubular calyces, red to pink streaked with straw",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": [
+      {
+        "hex": "#A24A3C",
+        "share": 0.4
+      },
+      {
+        "hex": "#8C5B3D",
+        "share": 0.33
+      },
+      {
+        "hex": "#CCAD8C",
+        "share": 0.12
+      }
+    ]
   },
   {
     "key": "sanganeri-dabu-resist-paste",
@@ -436,7 +505,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "thick, sticky, wet",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-sawdust",
@@ -451,7 +522,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "opaque",
     "surface": "fine, dry, matt dust in a soft even bank",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-indigo",
@@ -466,7 +539,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "granular",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-haldi-naspal-yellow",
@@ -481,7 +556,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "wet",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-alum-fitkari",
@@ -496,7 +573,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "clear",
     "surface": "glassy crystalline, matte as powder",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-harda-bath",
@@ -511,7 +590,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "wet",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-cow-dung-solution",
@@ -526,7 +607,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "translucent",
     "surface": "wet",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-indigo-vat",
@@ -541,7 +624,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "dark purple-brown granular scum with bubbles over much of the surface, and smoother brownish patches with sky sheen",
-    "vesselSuggestion": "indigo tank"
+    "vesselSuggestion": "indigo tank",
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-alum-post-mordant-bath",
@@ -556,7 +641,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "clear",
     "surface": "wet, clear",
-    "vesselSuggestion": "big copper vessel"
+    "vesselSuggestion": "big copper vessel",
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "sanganeri-final-wash-water",
@@ -571,7 +658,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "translucent",
     "surface": "wet, carrying softened resist",
-    "vesselSuggestion": "big tanks"
+    "vesselSuggestion": "big tanks",
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-cow-dung",
@@ -586,7 +675,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "moist, soft, with plant fibre and a dull sheen at damp patches",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-kora-cotton-cloth",
@@ -601,7 +692,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "matte woven cotton",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-myrobalan-karakkaya",
@@ -616,7 +709,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "pounded powder",
-    "vesselSuggestion": "stone pot, for pounding"
+    "vesselSuggestion": "stone pot, for pounding",
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-myrobalan-solution",
@@ -631,7 +726,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "translucent",
     "surface": "wet",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-kasim-iron-acetate",
@@ -646,7 +743,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "sourced",
     "transparency": "opaque",
     "surface": "wet, thin",
-    "vesselSuggestion": "At printing: a shallow tray pad with a bamboo bed, sponge and top cloth, filled from a small mug (wooden in 1961 to 2004 accounts, often plastic in recent fieldwork). Fermented and stored in a large closed earthen pot; whether it is sunk differs by account."
+    "vesselSuggestion": "At printing: a shallow tray pad with a bamboo bed, sponge and top cloth, filled from a small mug (wooden in 1961 to 2004 accounts, often plastic in recent fieldwork). Fermented and stored in a large closed earthen pot; whether it is sunk differs by account.",
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-gum-binder",
@@ -661,7 +760,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "clear",
     "surface": "sticky, viscid wet solution that flows",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-alum-karam-printing-paste",
@@ -676,7 +777,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "translucent",
     "surface": "wet paste on a tray pad",
-    "vesselSuggestion": "colour tray"
+    "vesselSuggestion": "colour tray",
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-alum-karam",
@@ -691,7 +794,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "clear",
     "surface": "glassy crystalline, matte as powder",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-alizarin",
@@ -706,7 +811,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "sourced",
     "transparency": "opaque",
     "surface": "crystals or powder",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-madder-root",
@@ -721,7 +828,18 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "matt dry root with fine lengthwise grain, thin bark flaking to a darker rough layer, orange at cut ends",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": [
+      {
+        "hex": "#5A3726",
+        "share": 0.25
+      },
+      {
+        "hex": "#7F5236",
+        "share": 0.25
+      }
+    ]
   },
   {
     "key": "machilipatnam-kalamkari-chay-root",
@@ -736,7 +854,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "sourced",
     "transparency": "opaque",
     "surface": "dry root",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-dye-bath-plant-additives",
@@ -751,7 +871,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "opaque",
     "surface": "dry leaf",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-rice-starch",
@@ -766,7 +888,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "opaque",
     "surface": "wet, slightly thick",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-indigo",
@@ -781,7 +905,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "wet paste",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-dung-bath",
@@ -796,7 +922,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "opaque",
     "surface": "wet",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-myrobalan-bath",
@@ -811,7 +939,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "wet",
-    "vesselSuggestion": "a vessel"
+    "vesselSuggestion": "a vessel",
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-degumming-wash-water",
@@ -826,7 +956,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "clear",
     "surface": "wet, flowing",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-red-dye-bath",
@@ -841,7 +973,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "opaque",
     "surface": "wet, boiling then brought to a medium heat, with floating leaves",
-    "vesselSuggestion": "copper pot on a brick fireplace"
+    "vesselSuggestion": "copper pot on a brick fireplace",
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-alum-dip-bath",
@@ -856,7 +990,9 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "inferred",
     "transparency": "clear",
     "surface": "wet, clear",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   },
   {
     "key": "machilipatnam-kalamkari-soap-water",
@@ -871,6 +1007,8 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "status": "partial",
     "transparency": "translucent",
     "surface": "wet, soapy",
-    "vesselSuggestion": null
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
   }
 ];

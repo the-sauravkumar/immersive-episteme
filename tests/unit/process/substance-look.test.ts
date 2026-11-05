@@ -155,4 +155,23 @@ describe("the look sheet reaches the scene", () => {
     expect(liquidMarks(vat).foam).toBeGreaterThan(0);
     expect(liquidMarks(workLiquidOf("ajrakh.red-dyeing", [])!)).toEqual({ scum: 0, foam: 0 });
   });
+
+  it("carries the sheet's froth colour and its froth over most of the surface to the indigo vat", () => {
+    const vat = workLiquidOf("ajrakh.indigo-dyeing", [])!;
+    expect(vat.frothHex).toBe("#2B202B");
+    expect(liquidMarks(vat).foam).toBeGreaterThan(0.5);
+    expect(liquidMarks(workLiquidOf("sanganeri.indigo-dyeing", [])!).foam).toBeLessThan(0.5);
+  });
+
+  it("puts no lather cap on the neerani pot, as its row and verify ruling say", () => {
+    const neerani = looksOfItem("ajrakh.scouring-and-washing", { label: "Neerani", role: "material" })[0]!;
+    expect(neerani.frothHex).toBeNull();
+    expect(liquidMarks(neerani).foam).toBe(0);
+  });
+
+  it("gives a stated within-heap spread to the rows that record one, with shares under one", () => {
+    const spread = SUBSTANCE_LOOK_ROWS.filter((row) => row.spread.length > 0);
+    expect(spread.map((row) => row.key).sort()).toEqual(["machilipatnam-kalamkari-madder-root", "sanganeri-dhawai-phool"]);
+    for (const row of spread) expect(row.spread.reduce((sum, part) => sum + part.share, 0), row.key).toBeLessThanOrEqual(1);
+  });
 });

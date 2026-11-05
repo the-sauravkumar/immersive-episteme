@@ -97,6 +97,8 @@ export function projectScan(material: THREE.MeshStandardMaterial, perMetre: numb
   return material;
 }
 
+const toneCancelling = (meanTone: LinearRgb): LinearRgb => [1 / meanTone[0], 1 / meanTone[1], 1 / meanTone[2]];
+
 export function displayAlbedo(hex: string, gain?: LinearRgb): THREE.Color {
   const target = new THREE.Color().setStyle(hex, THREE.SRGBColorSpace);
   const [r, g, b] = albedoForDisplay([target.r, target.g, target.b], gain);
@@ -111,7 +113,7 @@ interface FormSurface {
   readonly leastRough: number;
   readonly normalScale: number;
   readonly contrast: number;
-  readonly gain: LinearRgb;
+  readonly gain?: LinearRgb;
   readonly specular: number;
   readonly contact: number;
   readonly env: number;
@@ -120,10 +122,10 @@ interface FormSurface {
 type ScannedFill = Exclude<SubstanceFill, "liquid">;
 
 const FORM_SURFACES: Readonly<Record<ScannedFill, FormSurface>> = {
-  dung: { scan: "wetMud", tileMetres: 0.3, roughness: 1, leastRough: 0.4, normalScale: 0.9, contrast: 0.45, gain: [1.2, 1.22, 1.24], specular: 0.55, contact: 0.5, env: 0.35 },
-  roots: { scan: "madderBark", alongGrain: true, roughness: 1, leastRough: 0.82, normalScale: 2.2, contrast: 1, gain: [1.68, 1.84, 1.8], specular: 0.3, contact: 0.45, env: 0.35 },
-  flowers: { scan: "madderBark", tileMetres: 0.09, alongGrain: true, roughness: 1, leastRough: 0.82, normalScale: 1, contrast: 0.7, gain: [1.3, 1.35, 1.45], specular: 0.3, contact: 0.4, env: 0.35 },
-  leaves: { scan: "leafBlade", alongGrain: true, roughness: 1, leastRough: 0.72, normalScale: 0.9, contrast: 0.8, gain: [1.22, 1.46, 1.6], specular: 0.4, contact: 0.4, env: 0.4 },
+  dung: { scan: "wetMud", tileMetres: 0.3, roughness: 1, leastRough: 0.4, normalScale: 0.9, contrast: 0.45, specular: 0.55, contact: 0.5, env: 0.35 },
+  roots: { scan: "madderBark", alongGrain: true, roughness: 1, leastRough: 0.82, normalScale: 2.2, contrast: 1, specular: 0.3, contact: 0.45, env: 0.35 },
+  flowers: { scan: "madderBark", tileMetres: 0.09, alongGrain: true, roughness: 1, leastRough: 0.82, normalScale: 1, contrast: 0.7, specular: 0.3, contact: 0.4, env: 0.35 },
+  leaves: { scan: "leafBlade", alongGrain: true, roughness: 1, leastRough: 0.72, normalScale: 0.9, contrast: 0.8, specular: 0.4, contact: 0.4, env: 0.4 },
   powder: { scan: "flour", roughness: 1, leastRough: 0.88, normalScale: 1, contrast: 0.45, gain: [0.8, 0.8, 0.8], specular: 0.2, contact: 0.5, env: 0.4 },
   crystals: { scan: "flour", roughness: 1, leastRough: 0.88, normalScale: 1, contrast: 0.4, gain: [0.62, 0.62, 0.62], specular: 0.2, contact: 0.5, env: 0.4 },
   paste: { scan: "wetMud", tileMetres: 0.42, roughness: 0.42, leastRough: 0.27, normalScale: 0.09, contrast: 0.08, gain: [0.92, 0.92, 0.92], specular: 0.85, contact: 0, env: 0.5 },
@@ -131,7 +133,7 @@ const FORM_SURFACES: Readonly<Record<ScannedFill, FormSurface>> = {
 };
 
 const SURFACE_OVERRIDES: readonly { readonly words: RegExp; readonly fill?: SubstanceFill; readonly apply: (form: FormSurface) => FormSurface }[] = [
-  { words: /crazed|crease|seam/, fill: "dung", apply: (form) => ({ ...form, scan: "camelSkin", tileMetres: undefined, leastRough: 0.82, normalScale: 1.8, contrast: 0.7, gain: [1.16, 1.16, 1.14], specular: 0.25, contact: 0.62 }) },
+  { words: /crazed|crease|seam/, fill: "dung", apply: (form) => ({ ...form, scan: "camelSkin", tileMetres: undefined, leastRough: 0.82, normalScale: 1.8, contrast: 0.7, specular: 0.25, contact: 0.62 }) },
   { words: /fibrous/, apply: (form) => ({ ...form, scan: "bark", tileMetres: 0.09, contrast: 0.42, normalScale: 0.95, leastRough: 0.46, specular: 0.65 }) },
   { words: /sticky|glassy/, apply: (form) => ({ ...form, leastRough: 0.13, specular: 1 }) },
 ];
@@ -161,7 +163,7 @@ const CAKE_SURFACE: Pick<FormSurface, "scan" | "tileMetres" | "normalScale" | "c
 
 type ScannedRole = "body" | "bed" | "cake";
 
-async function scannedMaterial(library: MaterialLibrary, look: SubstanceLook, role: ScannedRole): Promise<THREE.MeshStandardMaterial> {
+async function scannedMaterial(library: MaterialLibrary, look: SubstanceLook, role: ScannedRole, meanTone?: LinearRgb): Promise<THREE.MeshStandardMaterial> {
   const form = role === "cake" ? { ...surfaceOf(look), ...CAKE_SURFACE } : surfaceOf(look);
   const bed = role === "bed";
   const scan = await library.scan(form.scan);
@@ -171,7 +173,7 @@ async function scannedMaterial(library: MaterialLibrary, look: SubstanceLook, ro
     roughnessMap: scan.roughness,
     roughness: form.roughness,
     metalness: 0,
-    color: displayAlbedo(look.renderHex, form.gain),
+    color: displayAlbedo(look.renderHex, meanTone ? toneCancelling(meanTone) : form.gain),
     normalScale: new THREE.Vector2(form.normalScale, form.normalScale),
     envMapIntensity: form.env,
     vertexColors: look.fill === "cloth" || (role === "body" && (look.fill === "paste" || look.fill === "powder" || look.fill === "crystals")),
@@ -290,11 +292,11 @@ function repeatedScan(library: MaterialLibrary, texture: THREE.Texture, key: str
   });
 }
 
-export function pileMaterial(library: MaterialLibrary, look: SubstanceLook): Promise<THREE.MeshStandardMaterial> {
+export function pileMaterial(library: MaterialLibrary, look: SubstanceLook, meanTone: LinearRgb): Promise<THREE.MeshStandardMaterial> {
   return library.shared(`pile:${look.key}`, async () => {
     const form = surfaceOf(look);
     if (!form.alongGrain) {
-      const material = await scannedMaterial(library, look, "body");
+      const material = await scannedMaterial(library, look, "body", meanTone);
       material.vertexColors = true;
       return material;
     }
@@ -306,7 +308,7 @@ export function pileMaterial(library: MaterialLibrary, look: SubstanceLook): Pro
       roughnessMap: await repeatedScan(library, scan.roughness, `${form.scan}:roughness`, perMetre),
       roughness: form.roughness,
       metalness: 0,
-      color: displayAlbedo(look.renderHex, form.gain),
+      color: displayAlbedo(look.renderHex, toneCancelling(meanTone)),
       normalScale: new THREE.Vector2(form.normalScale, form.normalScale),
       envMapIntensity: form.env,
       vertexColors: true,
@@ -325,6 +327,8 @@ const ABSORPTION_PER_METRE: Readonly<Record<Transparency, number>> = { clear: 0.
 const DARK_BATH_ABSORPTION_PER_METRE = 130;
 const DARK_BATH_LUMINANCE = 0.05;
 const PALE_TRANSLUCENT_ABSORPTION_PER_METRE = 3;
+const SOAPY_CLOUD_ABSORPTION_PER_METRE = 16;
+const SOAPY_CLOUD_FILM = 0.55;
 export const BATH_COLUMN_METRES = 0.034;
 const CLEAR_WATER_COVER = 0.16;
 const OPAQUE_COVER = 1;
@@ -454,7 +458,7 @@ const PALE_LIQUID_LUMINANCE = 0.55;
 const PALE_BODY = 0.38;
 
 const rippleOf = (look: SubstanceLook): number => (/mirror/.test(look.surface) ? 0.45 : /viscid/.test(look.surface) ? 0.3 : /boil/.test(look.surface) ? 2.6 : /gently heated|flowing|on a furnace/.test(look.surface) ? 1.7 : /thick|lather/.test(look.surface) ? 0.5 : /thin/.test(look.surface) ? 0.8 : 1);
-const filmOf = (look: SubstanceLook): number => (look.transparency === "translucent" && !/mirror/.test(look.surface) ? 0.22 : 0);
+const filmOf = (look: SubstanceLook): number => (look.transparency !== "translucent" || /mirror/.test(look.surface) ? 0 : /soapy/.test(look.surface) ? SOAPY_CLOUD_FILM : 0.22);
 const seedOf = (key: string): number => [...key].reduce((sum, letter, i) => (sum + letter.charCodeAt(0) * (i + 1)) % 97, 0) * 0.37;
 
 export function liquidBodyColour(look: SubstanceLook): THREE.Color {
@@ -463,19 +467,24 @@ export function liquidBodyColour(look: SubstanceLook): THREE.Color {
   return body.multiplyScalar(luminance > PALE_LIQUID_LUMINANCE ? PALE_BODY : DEEP_BODY);
 }
 
+function derivedFoam(look: SubstanceLook, body: THREE.Color, clear: boolean, pale: boolean): THREE.Color {
+  const foam = clear ? new THREE.Color(0.7, 0.7, 0.68) : body.clone().multiplyScalar(pale ? PALE_FOAM_LIFT : FOAM_LIFTS_BODY / DEEP_BODY);
+  const foamLuminance = foam.r * 0.2126 + foam.g * 0.7152 + foam.b * 0.0722;
+  if (!clear && foamLuminance < DARK_FOAM_LUMINANCE) foam.multiplyScalar(DARK_FOAM_LUMINANCE / Math.max(foamLuminance, 0.0005));
+  if (/plum|violet|purple/.test(look.surface)) foam.multiply(PLUM_FOAM_TINT);
+  return foam;
+}
+
 function liquidShader(material: THREE.MeshStandardMaterial, look: SubstanceLook): void {
   const marks = liquidMarks(look);
   const clear = look.transparency === "clear";
   const body = liquidBodyColour(look);
   const pale = body.r * 0.2126 + body.g * 0.7152 + body.b * 0.0722 > PALE_LIQUID_LUMINANCE * PALE_BODY * 0.8;
-  const foam = clear ? new THREE.Color(0.7, 0.7, 0.68) : body.clone().multiplyScalar(pale ? PALE_FOAM_LIFT : FOAM_LIFTS_BODY / DEEP_BODY);
-  const foamLuminance = foam.r * 0.2126 + foam.g * 0.7152 + foam.b * 0.0722;
-  if (!clear && foamLuminance < DARK_FOAM_LUMINANCE) foam.multiplyScalar(DARK_FOAM_LUMINANCE / Math.max(foamLuminance, 0.0005));
-  if (/plum|violet|purple/.test(look.surface)) foam.multiply(PLUM_FOAM_TINT);
+  const foam = look.frothHex ? displayAlbedo(look.frothHex) : derivedFoam(look, body, clear, pale);
   material.onBeforeCompile = (shader) => {
     const row = displayAlbedo(look.renderHex);
     const darkBath = look.transparency === "translucent" && row.r * 0.2126 + row.g * 0.7152 + row.b * 0.0722 < DARK_BATH_LUMINANCE;
-    shader.uniforms.liquidAbsorb = { value: darkBath ? DARK_BATH_ABSORPTION_PER_METRE : look.transparency === "translucent" && pale ? PALE_TRANSLUCENT_ABSORPTION_PER_METRE : ABSORPTION_PER_METRE[look.transparency] };
+    shader.uniforms.liquidAbsorb = { value: darkBath ? DARK_BATH_ABSORPTION_PER_METRE : look.transparency === "translucent" && pale ? (/soapy/.test(look.surface) ? SOAPY_CLOUD_ABSORPTION_PER_METRE : PALE_TRANSLUCENT_ABSORPTION_PER_METRE) : ABSORPTION_PER_METRE[look.transparency] };
     shader.uniforms.liquidCoverFloor = { value: clear ? CLEAR_WATER_COVER : look.transparency === "opaque" ? OPAQUE_COVER : TRANSLUCENT_COVER_FLOOR };
     shader.uniforms.liquidClear = { value: clear ? WATER_NET_LIGHT : 0 };
     shader.uniforms.liquidTime = LIQUID_CLOCK;

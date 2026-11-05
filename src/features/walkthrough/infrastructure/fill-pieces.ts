@@ -28,6 +28,10 @@ export interface PileRecipe {
   readonly tones?: readonly Tone[];
 }
 
+export interface TonedPileRecipe extends PileRecipe {
+  readonly meanTone: Tone;
+}
+
 export const isPileFill = (fill: SubstanceFill): fill is PileFill => fill === "dung" || fill === "roots" || fill === "flowers" || fill === "leaves";
 
 export function blueprintsFrom(variants: readonly PieceShape[], count: number, seed: number, low: number, high: number, shares?: readonly number[]): PileBlueprint[] {
@@ -63,7 +67,7 @@ const ROOT_TONES: readonly Tone[] = [[1, 1, 1], [0.8, 0.76, 0.74], [1.16, 1.08, 
 const FLOWER_TONES: readonly Tone[] = [[1, 1, 1], [0.8, 0.76, 0.72], [1.06, 1.06, 1.04], [0.9, 0.86, 0.8], [0.72, 0.66, 0.6], [1.1, 1.08, 1.06], [0.94, 0.9, 0.86]];
 const LEAF_TONES: readonly Tone[] = [[1, 1, 1], [0.84, 0.78, 0.66], [1.08, 1.06, 0.92], [0.9, 0.84, 0.8], [0.74, 0.66, 0.56]];
 
-export async function pileRecipe(pacer: WorkPacer, form: PileForm): Promise<PileRecipe> {
+async function shapedRecipe(pacer: WorkPacer, form: PileForm): Promise<PileRecipe> {
   switch (form) {
     case "camel-pellets": {
       const variants = await builtInTurn(pacer, [() => camelPellet(1, 0.036, 1.62, true), () => camelPellet(2, 0.044, 1.78, false), () => camelPellet(3, 0.03, 1.5, true), () => camelPellet(4, 0.05, 1.9, true), () => camelPellet(5, 0.033, 1.56, false), () => camelPellet(6, 0.04, 1.7, true), () => camelCluster(7, 0.021, 4), () => camelPellet(8, 0.027, 1.44, false)]);
@@ -99,4 +103,32 @@ export async function pileRecipe(pacer: WorkPacer, form: PileForm): Promise<Pile
       return { variants, blueprints: blueprintsFrom(variants, 520, 24, 0.86, 1.12), candidates: 40, maxTilt: 0.3, anyTumble: false, seed: 104, fillsTo: 0.92, wallMargin: 0.003, leansOnOne: true, bedShare: 0.2, bedHeap: 0.08, crown: 0.028, seenDepth: 0.024, tones: LEAF_TONES };
     }
   }
+}
+
+function meanVertexTone(variant: PieceVariant): Tone {
+  const colour = variant.geometry.attributes.color;
+  if (!colour) return [1, 1, 1];
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  for (let i = 0; i < colour.count; i++) {
+    r += colour.getX(i);
+    g += colour.getY(i);
+    b += colour.getZ(i);
+  }
+  return [r / colour.count, g / colour.count, b / colour.count];
+}
+
+function meanToneOf(recipe: PileRecipe): Tone {
+  const perVariant = recipe.variants.map(meanVertexTone);
+  const sum: [number, number, number] = [0, 0, 0];
+  for (const blueprint of recipe.blueprints) for (const c of [0, 1, 2] as const) sum[c] += perVariant[blueprint.variant]![c];
+  const tones = recipe.tones ?? [[1, 1, 1] as Tone];
+  const channel = (c: 0 | 1 | 2): number => (sum[c] / recipe.blueprints.length) * (tones.reduce((total, tone) => total + tone[c], 0) / tones.length);
+  return [channel(0), channel(1), channel(2)];
+}
+
+export async function pileRecipe(pacer: WorkPacer, form: PileForm): Promise<TonedPileRecipe> {
+  const recipe = await shapedRecipe(pacer, form);
+  return { ...recipe, meanTone: meanToneOf(recipe) };
 }
