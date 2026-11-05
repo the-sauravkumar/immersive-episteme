@@ -124,6 +124,10 @@ export function structureFor(kind: StationKind): WorkStructure {
   }
 }
 
+const RIM_DRAPE_RUN_METRES = 0.46;
+const ENTERING_SIDE_METRES = 0.55;
+const rimLap = (offset: number): number => 0.03 + 0.018 * Math.sin(offset * 5.3 + 0.7) + 0.012 * Math.sin(offset * 11.9 + 2.1);
+
 const groundHeight = (x: number, z: number): number => 0.012 + 0.0022 * (1 + Math.sin(x * 7.3 + z * 2.1) * Math.sin(z * 6.1 - x * 1.7));
 
 export function heightFieldFor(work: WorkStructure, rails: readonly number[]): HeightField {
@@ -132,14 +136,19 @@ export function heightFieldFor(work: WorkStructure, rails: readonly number[]): H
     if (work.type === "ring") {
       const across = Math.abs(z - work.z);
       const top = work.curb + 0.016;
-      const foldLine = Math.sqrt(work.radius * work.radius - (CLOTH_WIDTH / 2 + 0.06) ** 2);
+      const offset = x - CLOTH_LINE_X;
+      const toCentre = Math.sqrt(offset * offset + across * across);
       const rimEdge = work.rim + 0.03;
-      if (Math.abs(x - CLOTH_LINE_X) > CLOTH_WIDTH / 2 + 0.06) h = groundHeight(x, z);
-      else if (across >= foldLine && across <= rimEdge) h = top;
-      else if (across > rimEdge && across < rimEdge + work.curb * 1.6) h = Math.max(h, h + (top - h) * cosineFall((across - rimEdge) / (work.curb * 1.6)));
-      else if (across < foldLine) {
-        const t = (foldLine - across) / 0.42;
-        h = SETTLED_CLOTH_FLOOR + (top - SETTLED_CLOTH_FLOOR) * cosineFall(t);
+      const lap = rimLap(offset);
+      if (Math.abs(offset) > CLOTH_WIDTH / 2 + 0.06) h = groundHeight(x, z);
+      else if (toCentre > rimEdge) {
+        const run = (toCentre - rimEdge - lap) / (work.curb * 1.6);
+        if (run < 1) h = Math.max(h, h + (top - h) * cosineFall(run));
+      } else if (toCentre >= work.radius) h = top;
+      else {
+        const hanging = SETTLED_CLOTH_FLOOR + (top - SETTLED_CLOTH_FLOOR) * cosineFall((work.radius - toCentre - lap) / RIM_DRAPE_RUN_METRES);
+        const entering = smoothstep(0, ENTERING_SIDE_METRES, z - work.z);
+        h = SETTLED_CLOTH_FLOOR + (hanging - SETTLED_CLOTH_FLOOR) * entering;
       }
     }
     if (work.type === "tank") {
@@ -150,8 +159,9 @@ export function heightFieldFor(work: WorkStructure, rails: readonly number[]): H
       const top = work.curb + 0.016;
       const inner = dx < work.halfX - 0.02 && dz < work.halfZ - 0.02;
       if (inner) {
-        const t = Math.min(work.halfZ - 0.02 - dz, 0.42) / 0.42;
-        h = SETTLED_CLOTH_FLOOR + (top - SETTLED_CLOTH_FLOOR) * cosineFall(t);
+        const lap = rimLap(x - CLOTH_LINE_X);
+        const hanging = SETTLED_CLOTH_FLOOR + (top - SETTLED_CLOTH_FLOOR) * cosineFall((work.halfZ - 0.02 - dz - lap) / RIM_DRAPE_RUN_METRES);
+        h = z > work.z ? hanging : SETTLED_CLOTH_FLOOR + (hanging - SETTLED_CLOTH_FLOOR) * (1 - smoothstep(0, work.halfZ * 0.5, work.z - z));
       } else if (dx <= outerX + 0.03 && dz <= outerZ + 0.03) h = top;
       else if (dx <= outerX + 0.03 && dz < outerZ + 0.03 + work.curb * 1.6) h = Math.max(h, h + (top - h) * cosineFall((dz - outerZ - 0.03) / (work.curb * 1.6)));
     }
@@ -174,8 +184,19 @@ export function heightFieldFor(work: WorkStructure, rails: readonly number[]): H
 export const foldAmount = (p: Vec3): number => {
   const low = smoothstep(0.55, 1.5, p[1]);
   const high = 1 - smoothstep(RAIL_HEIGHT - 1.1, RAIL_HEIGHT - 0.2, p[1]);
-  return Math.max(p[1] > 0.5 ? 0.08 : 0, low * high);
+  return Math.max(0.08 * smoothstep(0.36, 0.56, p[1]), low * high);
 };
+
+const GROUND_FOLD_SHARE = 0.1;
+const BATH_ENTRY_FOLD_SHARE = 0.72;
+const BATH_LIFT_FOLD_SHARE = 0.5;
+
+const gatherToBath = (work: Extract<WorkStructure, { type: "ring" | "tank" }>, opening: number) => (p: Vec3): number => {
+  const inOpening = 1 - smoothstep(opening, opening + work.rim + work.curb * 1.6, Math.abs(p[2] - work.z));
+  return Math.max(GROUND_FOLD_SHARE, BATH_ENTRY_FOLD_SHARE * inOpening);
+};
+
+const liftFromBath = (work: Extract<WorkStructure, { type: "ring" | "tank" }>) => (p: Vec3): number => Math.max(foldAmount(p), BATH_LIFT_FOLD_SHARE * smoothstep(work.level - 0.42, work.level + 0.02, p[1]) * (1 - smoothstep(work.curb + 1.2, work.curb + 2.2, p[1])));
 
 function festoonPoints(rails: readonly number[]): Vec3[] {
   const out: Vec3[] = [];
@@ -279,12 +300,12 @@ export function buildYardPlan(stage: YardStage): YardPlan {
   const words: PaintedWords[] = stationWords(stage, shedWordX, shedZ);
   const curvedWords: CurvedWords[] = [];
   const cloth: ClothPiece[] = [];
-  const specOf = (points: readonly Vec3[], name: string, state: "before" | "after", fold: number, step = CLOTH_ROW_METRES): ClothPiece => {
+  const specOf = (points: readonly Vec3[], name: string, state: "before" | "after", fold: number, step = CLOTH_ROW_METRES, amount: (p: Vec3) => number = foldAmount): ClothPiece => {
     const startAlong = cloth[cloth.length - 1]?.surface.endAlong;
     return {
       name,
       state,
-      surface: settleCloth({ points, width: CLOTH_WIDTH, metresPerRepeat: 3.46, fold, foldFrequency: 3.1, step, columns: CLOTH_COLUMNS, foldAmount, field, ...(startAlong ? { startAlong } : {}) }),
+      surface: settleCloth({ points, width: CLOTH_WIDTH, metresPerRepeat: 3.46, fold, foldFrequency: 3.1, step, columns: CLOTH_COLUMNS, foldAmount: amount, field, ...(startAlong ? { startAlong } : {}) }),
     };
   };
   let lastGround = 6;
@@ -296,8 +317,8 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     const reach = work.type === "ring" ? work.rim + work.curb * 1.6 + 0.2 : work.halfZ + work.rim + work.curb * 1.6 + 0.2;
     const inside = work.type === "ring" ? work.radius - 0.72 : work.halfZ - 0.72;
     lastGround = work.z + reach;
-    cloth.push(specOf([...incomingGround(lastGround + 1), [CLOTH_LINE_X, 0.012, lastGround], [CLOTH_LINE_X, 0.012, work.z + inside + 0.5], [CLOTH_LINE_X, -0.1, work.z + inside + 0.1], [CLOTH_LINE_X, -0.3, work.z + inside - 0.2], [CLOTH_LINE_X, -0.36, work.z]], "cloth-in", "before", 0.004, CLOTH_ROW_OVER_RIM_METRES));
-    cloth.push(specOf([[CLOTH_LINE_X, -0.36, work.z], [CLOTH_LINE_X, -0.3, work.z - inside + 0.2], [CLOTH_LINE_X, work.level + 0.03, work.z - inside], [CLOTH_LINE_X, work.curb + 1, Math.min(3.5, work.z - inside - 0.7)], [CLOTH_LINE_X, 3.2, start + 0.45], [CLOTH_LINE_X, RAIL_HEIGHT - 0.2, start + 0.18], toFirstRail, ...festoon, ...away], "cloth-out", "after", 0.065));
+    cloth.push(specOf([...incomingGround(lastGround + 1), [CLOTH_LINE_X, 0.012, lastGround], [CLOTH_LINE_X, 0.012, work.z + inside + 0.5], [CLOTH_LINE_X, -0.1, work.z + inside + 0.1], [CLOTH_LINE_X, -0.3, work.z + inside - 0.2], [CLOTH_LINE_X, -0.36, work.z]], "cloth-in", "before", 0.04, CLOTH_ROW_OVER_RIM_METRES, gatherToBath(work, work.type === "ring" ? work.radius : work.halfZ)));
+    cloth.push(specOf([[CLOTH_LINE_X, -0.36, work.z], [CLOTH_LINE_X, -0.3, work.z - inside + 0.2], [CLOTH_LINE_X, work.level + 0.03, work.z - inside], [CLOTH_LINE_X, work.curb + 1, Math.min(3.5, work.z - inside - 0.7)], [CLOTH_LINE_X, 3.2, start + 0.45], [CLOTH_LINE_X, RAIL_HEIGHT - 0.2, start + 0.18], toFirstRail, ...festoon, ...away], "cloth-out", "after", 0.065, CLOTH_ROW_METRES, liftFromBath(work)));
   } else if (work.type === "table") {
     const boundary = 3.4;
     cloth.push(specOf([[CLOTH_LINE_X, 0.012, YARD_FRONT_Z], [CLOTH_LINE_X, 0.012, work.stackZ + 2], [CLOTH_LINE_X, 0.2, work.stackZ + 0.95], [CLOTH_LINE_X, work.stackTop, work.stackZ + 0.3], [CLOTH_LINE_X, work.stackTop, work.stackZ - 0.25], [CLOTH_LINE_X, 0.6, work.z1 + 0.6], [CLOTH_LINE_X, work.top + 0.012, work.z1], [CLOTH_LINE_X, work.top + 0.012, boundary]], "cloth-in", "before", 0.003));

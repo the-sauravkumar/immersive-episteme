@@ -3,7 +3,6 @@ import type { SubstanceLook } from "@/features/process/domain/substance-look";
 import { WORK_FLOOR_Y, type WorkStructure } from "../domain/yard-plan";
 import { noteSurface, type MaterialLibrary } from "./material-library";
 import { softBox } from "./solid-builders";
-import { rippleNormals } from "./substance-fill";
 import { BATH_COLUMN_METRES, liquidBodyMaterial, liquidMaterial, projectScan } from "./substance-materials";
 
 export type RingWork = Extract<WorkStructure, { type: "ring" }>;
@@ -25,6 +24,7 @@ export function copperMaterial(library: MaterialLibrary): Promise<THREE.MeshStan
     material.metalness = 0.92;
     material.envMapIntensity = 1.15;
     material.side = THREE.DoubleSide;
+    library.reflectOpenSky(material);
     return noteSurface(projectScan(material, 1 / COPPER_SCAN_TILE_METRES, COPPER_SCAN_CONTRAST, COPPER_LEAST_ROUGH), { label: "copper", kind: "model", perMetre: 1 / COPPER_SCAN_TILE_METRES });
   });
 }
@@ -87,10 +87,31 @@ export function addTankLining(parent: THREE.Object3D, work: TankWork, plaster: T
   softBox(parent, [work.halfX * 2 + thick * 2, thick, work.halfZ * 2 + thick * 2], plaster, [0, WORK_FLOOR_Y - thick / 2, 0], { radius: 0.004, tile: [LIME_TILE_METRES, LIME_TILE_METRES], cast: false });
 }
 
+function wallReachOf(work: RingWork | TankWork, geometry: THREE.BufferGeometry): THREE.BufferAttribute {
+  const position = geometry.attributes.position!;
+  const reach = new Float32Array(position.count * 2);
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i);
+    const z = position.getZ(i);
+    if (work.type === "ring") {
+      const out = Math.hypot(x, z) || 1;
+      const gap = Math.max(work.radius - out, 0);
+      reach[i * 2] = (x / out) * gap;
+      reach[i * 2 + 1] = (z / out) * gap;
+    } else {
+      const gapX = Math.max(work.halfX - Math.abs(x), 0);
+      const gapZ = Math.max(work.halfZ - Math.abs(z), 0);
+      reach[i * 2] = gapX < gapZ ? Math.sign(x) * gapX : 0;
+      reach[i * 2 + 1] = gapX < gapZ ? 0 : Math.sign(z) * gapZ;
+    }
+  }
+  return new THREE.BufferAttribute(reach, 2);
+}
+
 function surfaceOf(work: RingWork | TankWork): THREE.BufferGeometry {
   const geometry = work.type === "ring" ? new THREE.RingGeometry(0.001, work.radius + 0.002, 192, 48) : new THREE.PlaneGeometry(work.halfX * 2 + 0.004, work.halfZ * 2 + 0.004, 96, 160);
   geometry.rotateX(-Math.PI / 2);
-  rippleNormals(geometry, 0.00016);
+  geometry.setAttribute("liquidWall", wallReachOf(work, geometry));
   geometry.setAttribute("liquidDepth", new THREE.BufferAttribute(new Float32Array(geometry.attributes.position!.count).fill(BATH_COLUMN_METRES), 1));
   return geometry;
 }

@@ -10,7 +10,7 @@ import { dipInBath, type MaterialLibrary } from "./material-library";
 import { buildBrushAndKalam, buildCarvingChisels, buildWashingPaddle } from "./built-tools";
 import { grainAlongHeight, paintCurved, paintWords, pole, softBox, softBoxGeometry } from "./solid-builders";
 import { fillVessel, measureObject, trianglesOf } from "./substance-fill";
-import { displayAlbedo, substanceMaterial } from "./substance-materials";
+import { liquidBodyColour, substanceMaterial } from "./substance-materials";
 import { addTankLining, addWorkLiquid, BATH_BODY_DEPTH_METRES, copperMaterial, groundWithOpening, plasterMaterial, turnedRing } from "./work-structures";
 
 export interface YardAudit {
@@ -68,6 +68,7 @@ function clothGeometry(surface: ClothSurface): THREE.BufferGeometry {
   geometry.setAttribute("uv", new THREE.BufferAttribute(surface.uvs, 2));
   geometry.setIndex(new THREE.BufferAttribute(surface.indices, 1));
   geometry.computeVertexNormals();
+  geometry.computeTangents();
   return geometry;
 }
 
@@ -80,6 +81,8 @@ const BENCH_WIDTH = 0.5;
 const BENCH_TOP = 0.38;
 const BENCH_ITEM_GAP = 0.05;
 const BATH_TUCK_METRES = 0.005;
+const WICKED_ABOVE_BATH_METRES = 0.11;
+const LIFTED_WET_METRES = 1.5;
 const TRAY_BENCH_CLEARANCE = 0.02;
 const DOOR_PLANK_SHIFT = 0.37;
 
@@ -491,11 +494,11 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   const after = await clothMaterialFor(kit, files.clothAfter, files.wetAfter);
   if ((work.type === "ring" || work.type === "tank") && plan.workLiquid) {
     const seesThrough = plan.workLiquid.transparency === "clear";
-    const bath = { level: work.level, bodyDepth: seesThrough ? 0 : BATH_BODY_DEPTH_METRES, body: displayAlbedo(plan.workLiquid.renderHex) };
+    const bath = { level: work.level, bodyDepth: seesThrough ? 0 : BATH_BODY_DEPTH_METRES, body: liquidBodyColour(plan.workLiquid) };
     const earlierRepeat: readonly [number, number] = [before.map!.repeat.x, before.map!.repeat.y];
     const joinAlong = plan.cloth[0]!.surface.endAlong;
-    dipInBath(before, { ...bath, earlier: null, earlierRepeat, joinAlong: null });
-    dipInBath(after, { ...bath, earlier: before.map, earlierRepeat, joinAlong });
+    dipInBath(before, { ...bath, wetRise: WICKED_ABOVE_BATH_METRES, earlier: null, earlierRepeat, joinAlong: null });
+    dipInBath(after, { ...bath, wetRise: LIFTED_WET_METRES, earlier: before.map, earlierRepeat, joinAlong });
   }
   const clothMeshes: ClothMesh[] = [];
   for (const piece of plan.cloth) {
