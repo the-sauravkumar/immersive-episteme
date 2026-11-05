@@ -27,7 +27,7 @@ export const INVITE_REDEEM_NEXT_HEADER = "x-invite-redeem-next";
  * route refuses callers without a participant, demo or staff session on its own (401/403), and
  * those sessions are only issued behind the gate.
  */
-const EXEMPT_PREFIXES = ["/invite", "/sign-in", "/sign-out", "/forbidden", "/console", "/api", "/_next"] as const;
+const EXEMPT_PREFIXES = ["/invite", "/sign-in", "/sign-out", "/forbidden", "/awaiting-access", "/console", "/api", "/_next"] as const;
 const EXEMPT_FILES = new Set(["/favicon.ico", "/robots.txt"]);
 
 function underPrefix(pathname: string, prefix: string): boolean {

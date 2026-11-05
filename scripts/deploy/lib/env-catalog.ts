@@ -34,6 +34,8 @@ export const CATALOG: readonly CatalogEntry[] = [
   { name: "APP_BUILD_VERSION", kind: "config", need: "required", source: "git short SHA of the commit being deployed" },
   { name: "AUTH_CLIENT_IP_HEADER", kind: "config", need: "required", source: "x-forwarded-for (Vercel overwrites it; RESEARCH.md section 11)" },
   { name: "PUBLIC_DEMO", kind: "config", need: "optional", source: "auto (default)" },
+  { name: "GOOGLE_CLIENT_ID", kind: "config", need: "optional", source: "Google Cloud OAuth client (Web application) ID; staff Google sign-in only, set together with GOOGLE_CLIENT_SECRET (RUNBOOK \"Google sign-in for staff\")" },
+  { name: "GOOGLE_CLIENT_SECRET", kind: "secret", need: "optional", source: "the same OAuth client's secret; unset both to turn Google sign-in off" },
   { name: "MEDIA_S3_BUCKET", kind: "config", need: "required", source: "Cloudflare R2 bucket name, private (RUNBOOK step 2); or the AWS S3 bucket" },
   { name: "MEDIA_S3_REGION", kind: "config", need: "required", source: "auto for R2; for AWS S3 the database's AWS region (ap-south-1 next to RDS)" },
   { name: "MEDIA_S3_ENDPOINT", kind: "config", need: "conditional", source: "R2 only: https://<account-id>.r2.cloudflarestorage.com (unset for AWS S3)" },

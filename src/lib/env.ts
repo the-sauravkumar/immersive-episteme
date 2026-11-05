@@ -36,6 +36,11 @@ export const MIN_PRODUCTION_SECRET_DISTINCT_CHARS = 16;
 const SECRET_HINT = "generate one with the command in .env.example";
 
 /** One IP address or CIDR range (IPv4 or IPv6); full validation happens in Better Auth. */
+const optionalText = z
+  .string()
+  .optional()
+  .transform((v) => (v && v.trim() ? v.trim() : undefined));
+
 const ipOrCidr = /^(?:\d{1,3}(?:\.\d{1,3}){3}|[0-9a-fA-F:]*:[0-9a-fA-F:.]*)(?:\/\d{1,3})?$/;
 
 export const serverEnvSchema = z
@@ -96,8 +101,17 @@ export const serverEnvSchema = z
      * so prospective participants cannot preview both conditions; "on" / "off" force it.
      */
     PUBLIC_DEMO: z.enum(["auto", "on", "off"]).default("auto"),
+    GOOGLE_CLIENT_ID: optionalText.pipe(z.string().regex(/^[A-Za-z0-9._-]{8,200}$/, "must be a Google OAuth client ID").optional()),
+    GOOGLE_CLIENT_SECRET: optionalText.pipe(z.string().min(8, "must be the Google OAuth client secret").max(200).optional()),
   })
   .superRefine((env, ctx) => {
+    if (Boolean(env.GOOGLE_CLIENT_ID) !== Boolean(env.GOOGLE_CLIENT_SECRET)) {
+      ctx.addIssue({
+        code: "custom",
+        path: [env.GOOGLE_CLIENT_ID ? "GOOGLE_CLIENT_SECRET" : "GOOGLE_CLIENT_ID"],
+        message: "is required when the other Google OAuth variable is set (set both or neither)",
+      });
+    }
     if (env.NODE_ENV !== "production") return;
     if (isPooledHost(env.DATABASE_URL) && !env.DATABASE_URL_UNPOOLED) {
       ctx.addIssue({
@@ -169,6 +183,13 @@ export function withBuildVersion(source: Record<string, string | undefined>): Re
   const sha = source.VERCEL_GIT_COMMIT_SHA?.trim().toLowerCase();
   if (sha && /^[0-9a-f]{7,40}$/.test(sha)) return { ...source, APP_BUILD_VERSION: sha.slice(0, 7) };
   return source.APP_BUILD_VERSION === "" ? { ...source, APP_BUILD_VERSION: undefined } : source;
+}
+
+export type GoogleOAuthCredentials = { clientId: string; clientSecret: string };
+
+export function googleOAuthCredentials(env: Pick<ServerEnv, "GOOGLE_CLIENT_ID" | "GOOGLE_CLIENT_SECRET">): GoogleOAuthCredentials | null {
+  if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) return null;
+  return { clientId: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET };
 }
 
 let cached: ServerEnv | undefined;

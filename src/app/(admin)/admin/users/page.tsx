@@ -1,4 +1,4 @@
-import { CircleCheck, Lock } from "lucide-react";
+import { CircleCheck, Clock, Lock } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { can } from "@/lib/permissions/can";
+import { isAwaitingAccess } from "@/lib/permissions/console-routes";
 import { isStaffRole, ROLE_LABELS, STAFF_ROLES } from "@/lib/permissions/roles";
 import { titleCase } from "@/lib/text/title-case";
 import { listStaffUsers, type StaffUserRow } from "@/server/admin/users";
@@ -63,7 +64,21 @@ function CellLabel({ children }: { children: string }) {
 /** Accounts per page; the filter and paging run over the full, alphabetical list. */
 const PAGE_SIZE = 25;
 
-type UserFilter = { q?: string; role?: string; status?: "active" | "locked" };
+type UserStatus = "active" | "locked" | "awaiting";
+type UserFilter = { q?: string; role?: string; status?: UserStatus };
+
+const USER_STATUSES: readonly UserStatus[] = ["active", "awaiting", "locked"];
+
+const SIGN_IN_METHOD_LABELS: Readonly<Record<string, string>> = { credential: "password", google: "Google" };
+
+function awaitingAccess(u: StaffUserRow): boolean {
+  return !u.disabledAt && isAwaitingAccess(u);
+}
+
+function signInMethods(u: StaffUserRow): string {
+  const labels = u.signInMethods.map((m) => SIGN_IN_METHOD_LABELS[m] ?? m);
+  return labels.length ? `Signs in with ${labels.join(" or ")}` : "No sign-in method";
+}
 
 function parseFilter(sp: SearchParams): UserFilter & { page: number } {
   const q = one(sp.q)?.trim().slice(0, 200) || undefined;
@@ -73,7 +88,7 @@ function parseFilter(sp: SearchParams): UserFilter & { page: number } {
   return {
     q,
     role: role && isStaffRole(role) ? role : undefined,
-    status: status === "active" || status === "locked" ? status : undefined,
+    status: USER_STATUSES.find((s) => s === status),
     page: Number.isFinite(page) && page > 0 ? page : 1,
   };
 }
@@ -86,6 +101,7 @@ function matches(u: StaffUserRow, f: UserFilter): boolean {
   if (f.role && !(u.roles as string[]).includes(f.role)) return false;
   if (f.status === "locked" && !u.disabledAt) return false;
   if (f.status === "active" && u.disabledAt) return false;
+  if (f.status === "awaiting" && !awaitingAccess(u)) return false;
   return true;
 }
 
@@ -101,6 +117,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
   const first = (page - 1) * PAGE_SIZE + 1;
   const manageRoles = can(actor, "admin.roles");
   const locked = matching.filter((u) => u.disabledAt).length;
+  const awaiting = all.filter(awaitingAccess).length;
   const field = "flex min-w-0 flex-col gap-1.5";
   return (
     <div className="flex flex-col gap-12">
@@ -131,6 +148,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
               <NativeSelect id="u-status" name="status" defaultValue={filter.status ?? ""}>
                 <option value="">Any</option>
                 <option value="active">Active</option>
+                <option value="awaiting">Awaiting access</option>
                 <option value="locked">Locked</option>
               </NativeSelect>
             </div>
@@ -144,6 +162,16 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
             ) : null}
           </div>
         </form>
+        {awaiting > 0 && filter.status !== "awaiting" ? (
+          <div className="flex flex-col items-start gap-3">
+            <p className="text-body text-ink">
+              {awaiting === 1 ? "1 account is" : `${awaiting} accounts are`} waiting for a role. Accounts made through Google sign-in start with no role and open nothing until a role is added.
+            </p>
+            <Button asChild variant="outline">
+              <Link href="/admin/users?status=awaiting">Show accounts awaiting access</Link>
+            </Button>
+          </div>
+        ) : null}
         {users.length === 0 ? (
           <Empty>{filtered ? "No accounts match these filters." : "No staff accounts yet."}</Empty>
         ) : (
@@ -185,6 +213,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                       {u.name} {u.id === actor.userId ? <span className="font-normal text-ink-3">(you)</span> : null}
                     </span>
                     <span className="text-id block text-ink-2 [overflow-wrap:anywhere] sm:whitespace-nowrap">{u.email}</span>
+                    <span className="text-credit block">{signInMethods(u)}</span>
                     <Mono className="block text-ink-3" title="Account id">
                       {u.id}
                     </Mono>
@@ -213,6 +242,11 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                           since <Stamp at={u.disabledAt} />
                         </span>
                       </span>
+                    ) : awaitingAccess(u) ? (
+                      <Badge variant="warn">
+                        <Clock aria-hidden="true" />
+                        Awaiting access
+                      </Badge>
                     ) : (
                       <Badge variant="ok">
                         <CircleCheck aria-hidden="true" />

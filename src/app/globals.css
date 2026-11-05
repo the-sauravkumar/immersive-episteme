@@ -54,6 +54,13 @@
   --viz-seq-6: #1b3360;
   --focus-outer: #000000;
   --focus-inner: #ffffff;
+  --google-fill: #ffffff;
+  --google-stroke: #747775;
+  --google-text: #1f1f1f;
+  --google-blue: #4285f4;
+  --google-green: #34a853;
+  --google-yellow: #fbbc05;
+  --google-red: #ea4335;
   /* Retired name (DR-022): the paper. An alias so no older call site can show a second paper. */
   --surface: var(--ground);
 
@@ -124,6 +131,9 @@
   --viz-seq-6: #c3d3f1;
   --focus-outer: #ffffff;
   --focus-inner: #000000;
+  --google-fill: #131314;
+  --google-stroke: #8e918f;
+  --google-text: #e3e3e3;
   --surface: var(--ground);
 
   --background: var(--ground);
