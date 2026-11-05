@@ -26,9 +26,7 @@ export const SCANS = {
   wetMud: { id: "brown_mud", tileMetres: 0.65 },
   bark: { id: "bark_willow", tileMetres: 0.28 },
   camelSkin: { id: "camel_dung_skin", tileMetres: 0.34 },
-  cowCrust: { id: "cow_dung_crust", tileMetres: 0.5 },
   madderBark: { id: "madder_root_bark", tileMetres: 0.23 },
-  fruitSkin: { id: "myrobalan_skin", tileMetres: 0.2 },
   leafBlade: { id: "dry_leaf_blade", tileMetres: 0.24 },
   flour: { id: "macro_flour", tileMetres: 0.3 },
   sawdust: { id: "wood_chips_003", tileMetres: 0.4 },
@@ -48,7 +46,7 @@ const ANTI_TILE = "#include <map_fragment>\nvec3 mean = textureLod(map, vMapUv, 
 const farPrint = (bias: number, nearBias: number) => ["#ifdef USE_MAP", `vec4 sampledDiffuseColor = texture2D(map, vMapUv, mix(${nearBias.toFixed(1)}, ${bias.toFixed(1)}, smoothstep(1.4, 5.0, length(vViewPosition))));`, "diffuseColor *= sampledDiffuseColor;", "#endif"].join("\n");
 const SCAN_PRINT_BIAS = 0.7;
 const CLOTH_PRINT_BIAS = 1.5;
-const CLOTH_NEAR_PRINT_BIAS = 0.25;
+const CLOTH_NEAR_PRINT_BIAS = 0;
 const FAR_WEAVE = ["#include <normal_fragment_maps>", "#ifdef USE_NORMALMAP_TANGENTSPACE", "normal = normalize(tbn * ((texture2D(normalMap, vNormalMapUv, 1.2).xyz * 2.0 - 1.0) * vec3(normalScale, 1.0)));", "#endif"].join("\n");
 
 const DETAIL_UNIFORMS = "uniform sampler2D detailMap;\nuniform sampler2D detailNormal;\nuniform vec2 detailScale;\nuniform float detailTone;\nuniform float detailRelief;\n";
@@ -148,12 +146,12 @@ export interface BathContact {
   readonly joinAlong: Float32Array | null;
 }
 
-const JOIN_BLEND_REPEATS = 0.34;
+const JOIN_BLEND_REPEATS = 0.08;
 const WET_TONE = 0.7;
 const WET_SATURATE = 1.3;
 const WET_ROUGH = 0.62;
-const WET_CLOTH_SKY_LIGHT = 0.44;
-const THIN_CLOTH_GLOW_SHARE = 0.42;
+const WET_CLOTH_SKY_LIGHT = 0.16;
+const THIN_CLOTH_GLOW_SHARE = 0.2;
 
 export function dipInBath<T extends THREE.Material>(material: T, contact: BathContact): T {
   const earlierCompile = material.onBeforeCompile;
@@ -401,7 +399,7 @@ export class MaterialLibrary {
       texture.repeat.set(3.46 / weave.tileMetres, 1.5 / weave.tileMetres);
       texture.needsUpdate = true;
     }
-    return noteSurface(softenWhenFar(new THREE.MeshStandardMaterial({ map: colour, normalMap: normal, roughnessMap: roughness, roughness: 1, color: 0xffffff, side: THREE.DoubleSide, envMapIntensity: CLOTH_SKY_LIGHT })), { label: "raw cotton", kind: "cloth" });
+    return noteSurface(softenWhenFar(new THREE.MeshStandardMaterial({ map: colour, normalMap: normal, roughnessMap: roughness, roughness: 1, color: 0xffffff, side: THREE.DoubleSide, envMapIntensity: CLOTH_SKY_LIGHT }), false, null, SCAN_PRINT_BIAS, 0), { label: "raw cotton", kind: "cloth" });
   }
 
   async photo(file: string): Promise<THREE.Texture> {
@@ -458,7 +456,7 @@ export class MaterialLibrary {
   }
 
   reflectOpenSky(material: THREE.MeshStandardMaterial): void {
-    if (!this.openSky) return;
+    if (!this.openSky) throw new Error("The open sky is not loaded; await sky() before building reflecting materials");
     material.envMap = this.openSky;
     material.envMapRotation.set(0, OPEN_SKY_TURN_RADIANS, 0);
   }

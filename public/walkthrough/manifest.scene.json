@@ -235,7 +235,7 @@
   },
   {
     "file": "public/walkthrough/tex/brown_mud",
-    "usedFor": "wet pastes, recoloured from its luminance",
+    "usedFor": "wet pastes and the moist cow dung lumps, recoloured from its luminance",
     "holder": "Rob Tuytel",
     "sourcePage": "https://polyhaven.com/a/brown_mud",
     "directUrl": "https://polyhaven.com/a/brown_mud",
@@ -314,33 +314,13 @@
     "permission": "needed; texture quilted from the photo (scripts/content/build-pile-skins.mjs)"
   },
   {
-    "file": "public/walkthrough/tex/cow_dung_crust",
-    "usedFor": "dried cow dung lumps and cakes, quilted from the photo's luminance and recoloured to the look row",
-    "holder": "MGB CEE",
-    "sourcePage": "https://commons.wikimedia.org/wiki/File:%E0%A4%97%E0%A5%8B%E0%A4%B5%E0%A4%B1%E0%A5%8D%E0%A4%AF%E0%A4%BE,_%E0%A4%B5%E0%A5%80%E0%A4%B0%E0%A4%AA%E0%A5%81%E0%A4%B0,_%E0%A4%B6%E0%A4%B9%E0%A4%BE%E0%A4%A6%E0%A4%BE,_%E0%A4%A8%E0%A4%82%E0%A4%A6%E0%A5%82%E0%A4%B0%E0%A4%AC%E0%A4%BE%E0%A4%B0_Govarya,_Veerpur,_Shahada,_Nandurbar_(cow_dung_cake).jpg",
-    "directUrl": "https://upload.wikimedia.org/wikipedia/commons/a/a1/%E0%A4%97%E0%A5%8B%E0%A4%B5%E0%A4%B1%E0%A5%8D%E0%A4%AF%E0%A4%BE%2C_%E0%A4%B5%E0%A5%80%E0%A4%B0%E0%A4%AA%E0%A5%81%E0%A4%B0%2C_%E0%A4%B6%E0%A4%B9%E0%A4%BE%E0%A4%A6%E0%A4%BE%2C_%E0%A4%A8%E0%A4%82%E0%A4%A6%E0%A5%82%E0%A4%B0%E0%A4%AC%E0%A4%BE%E0%A4%B0_Govarya%2C_Veerpur%2C_Shahada%2C_Nandurbar_%28cow_dung_cake%29.jpg",
-    "widthPx": 2048,
-    "licence": "CC BY-SA 4.0",
-    "permission": "needed; texture quilted from the photo (scripts/content/build-pile-skins.mjs)"
-  },
-  {
     "file": "public/walkthrough/tex/madder_root_bark",
-    "usedFor": "madder and chay root bark and dried flower grain, quilted from the photo's luminance and recoloured to the look row",
+    "usedFor": "madder root bark; also a madder-bark proxy on chay root and on the dried Woodfordia flowers, which have no photo texture of their own; quilted from the photo luminance and recoloured to the look row; widthPx is the 1600 px source, from which the 2048 px tile is quilted",
     "holder": "Royal Botanic Gardens, Kew, Economic Botany Collection",
     "sourcePage": "https://www.gbif.org/occurrence/2429000442 (Kew K:EBC-000053847)",
     "directUrl": "https://d2seqvvyy3b8p2.cloudfront.net/73ee650d8552079d5d98ec384d83cebd.jpg",
-    "widthPx": 2048,
+    "widthPx": 1600,
     "licence": "CC BY 4.0",
-    "permission": "needed; texture quilted from the photo (scripts/content/build-pile-skins.mjs)"
-  },
-  {
-    "file": "public/walkthrough/tex/myrobalan_skin",
-    "usedFor": "dried myrobalan fruit skin, quilted from the photo's luminance and recoloured to the look row",
-    "holder": "Salil Kumar Mukherjee",
-    "sourcePage": "https://commons.wikimedia.org/wiki/File:Haritaki_(Terminalia_chebula)_fruits_01.jpg",
-    "directUrl": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Haritaki_%28Terminalia_chebula%29_fruits_01.jpg",
-    "widthPx": 2048,
-    "licence": "CC BY-SA 4.0",
     "permission": "needed; texture quilted from the photo (scripts/content/build-pile-skins.mjs)"
   },
   {

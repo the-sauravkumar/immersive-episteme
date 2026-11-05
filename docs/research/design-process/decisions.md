@@ -3488,3 +3488,39 @@ novice met, and none touches the sheet.
 - **Removed:** the `bowl-wood` and `bowl-clay` catalogue rows, which nothing used, and the `wooden_bowl_01` and `planter_pot_clay` models with their manifest rows.
 - **Not changed, for the lead:** the basket (`wicker_basket_01`) and crate (`wooden_crate_01`) stay as CC0 stand-ins. No Indian basket photo could be opened, and no workshop photo shows a wooden crate; the photos show cardboard boxes, plastic trays and metal drums. Replacing them needs photographs, not a guess.
 - **Paper implications:** report the vessel forms as inferred from retail photographs and the clay surface as a proxy scan.
+
+## DR-086: Pile Fills Built As Settled Instanced Heaps From The Reference Photos (Adopted under the lead's delegation, 2026-11-05; recorded after the fact for commit 2966100)
+
+- **Trigger:** dung, roots, flowers and leaves were single displaced slabs. Rules L4 and L12.
+- **Decision:** each pile row is packed from instanced pieces with tight sphere covers (`fill-pieces.ts`, `piece-dung.ts`, `piece-roots.ts`, `piece-plants.ts`, `domain/pile-packing.ts`). Buried pieces draw a coarse mesh.
+- **Basis per surface:** `tex/camel_dung_skin` is quilted from the luminance of the asergeev.com camel pellet photo (licence not stated, permission needed) and recoloured to the look row; photo basis for form, row basis for colour. `tex/madder_root_bark` is quilted from Kew specimen K:EBC-000053847 (Rubia cordifolia, CC BY 4.0, 1600 px source quilted to a 2048 tile); it is the madder surface, and only a madder-bark proxy on chay root and on the dried Woodfordia flowers. `tex/dry_leaf_blade` is quilted from Kew herbarium sheet K004414905, a proxy species. Pellet and lump forms are inferred from photos; no Ajrakh source gives pellet size (see the camel-dung conflict research: Sidoroff 2019 pieces 3 to 7 cm, not Kutch dung).
+- **Superseded in part by DR-089:** the dried cow-dung lumps, cakes, the wet slab, the dried-fruit pile and their two skins.
+
+## DR-087: Powders As Heaps, Pastes As Worked Masses, Alum As Separate Lumps (Adopted under the lead's delegation, 2026-11-05; recorded after the fact for commit 60d0d73)
+
+- **Trigger:** powders and pastes were level discs. Rules L4 and L12.
+- **Decision:** powders are off-centre heaps with slump scars, a grain normal by grain kind, crumbs and a dust film up the wall; pastes dome, creep up the wall, carry furrows by thickness and leave a wall smear; clear crystal rows are packed broken lumps over a powder bed.
+- **Basis:** heap and paste forms are inferred from the reference photos in the material references; colours come from each look row. No new texture: the surfaces reuse the CC0 macro flour, wood chips and Poly Haven brown mud scans.
+
+## DR-088: Cloth Wets Into The Bath; Liquids Reflect A Softened Open Sky (Adopted under the lead's delegation, 2026-11-05; recorded after the fact for commit fdae71c)
+
+- **Trigger:** sawtooth cloth where it met vat rims, and dead flat liquids. Rules L2, L4 and L8.
+- **Decision:** the rim height field follows the round rim with a soft drape; cloth darkens and wicks above the bath line and takes the bath colour below it. Liquids reflect a second, sun-softened PMREM of the same CC0 sky HDR, with Fresnel, slow ripples and the row's foam and scum.
+- **Basis:** wetting darkness and wick height are inferred, not measured. The second PMREM costs GPU memory for the library's lifetime and no per-frame work beyond one shared time uniform.
+
+## DR-089: Close-Review Fixes To Dung, Roots, Flowers, Indigo, Alum, Pastes And Liquids (Adopted under the lead's delegation, 2026-11-05)
+
+- **Trigger:** the real-life, close-up and code reviews of the Door 1 and Door 2 materials (rule L12).
+- **Cow dung:** both real rows say "moist, soft, with plant fibre and a dull sheen at damp patches", so every non-camel dung row is now a mass of soft slumped moist lumps with straw fibres on a dung bed, using the CC0 brown mud scan. The dry lump, cake and wet-slab recipes and `tex/cow_dung_crust` (CC BY-SA) are deleted with their manifest and licence rows. The test reads the real rows' surface words.
+- **Dried fruit:** no look row has the fruit form, so the fruit fill, its recipe and `tex/myrobalan_skin` (CC BY-SA) are deleted with their rows.
+- **Dhawri:** the verified dhawri conflict ruling (verify entry: "drawing small tubular florets and no galls is the best available ruling") is followed, so every flower row is drawn as tubular calyces and the flake recipe is deleted. The dhawri row's colour stays as the sheet gives it until the row-verification run updates it.
+- **Camel dung:** pellets are longer olives with a split, fibre-toned end, the pile settles under the rim with no crown, and the skin gain is neutral so the pellets no longer turn lilac. A unit test holds every pellet centre and sphere inside the basket footprint and below the rim.
+- **Roots:** madder roots are about 1.7 times thicker with knobbly nodes and no dark bed; chay sheaves are finer and denser, pinched by one thinner tie, with their core ends hidden, and lie on the basket floor without a bed.
+- **Indigo cake:** irregular flat slabs with rounded fracture edges replace the box-like pieces.
+- **Alum:** fewer, larger lumps (about 2 to 3.5 cm), frosted rather than caustic-veined, settled under the rim.
+- **Pastes:** the stroke count, furrow depth and fold direction now vary by row, so no two bowls carry the same relief. A clear paste (the gum binder) is drawn as a level, glossy liquid.
+- **Liquids:** the honeycomb bubble stipple and hard-edged scum blotches are gone. Foam gathers in one soft round patch where the row names a flower, otherwise in a band along the walls; scum is a soft coppery sheen; the wall bevel is narrower. Dark-bath foam keeps a visible floor of brightness, and plum or violet rows tint it. Pale translucent baths absorb less light. The wall vector on the tank centre line and at the ring centre was zero, which drew a false wall line; it is fixed.
+- **Cloth:** wet cloth takes less sky light, so dark dyed cloth no longer looks hazy; the earlier-state blend at the join is shorter; raw cotton keeps its weave sharp at reach. Folded cloth layers shift by a hash, not a regular sine, so their edges no longer step evenly.
+- **Tray:** the pad layers now meet the tray wall with 0.7 mm clearance and follow its rounded corners.
+- **Checks:** the wall films trusted a probe hit up to 25 percent beyond the measured wall, which put some film vertices inside the clay wall; they now trust it only within 4 percent, and the scene check passes on every scene. `reflectOpenSky` now throws if the sky has not loaded.
+- **Not changed, with reasons:** the block handle stays pale, because the Sanganer workshop photo (sanganeri-12) shows a pale handle on a dark block. Vat lettering stays, because painted names on real surfaces are a Section 9 rule. Vats are not sunk to the rim, because the vat height carries the painted names, the cloth path and the checks. Colours flagged by the review (dabu, lime-gum resist, gach, tamarind, chay, dhawri, camel dung, the three indigo rows, myrobalan, Sanganeri final wash) come from the look sheet and are left to the row-verification run.

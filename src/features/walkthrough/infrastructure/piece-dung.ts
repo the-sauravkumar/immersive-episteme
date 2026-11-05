@@ -14,6 +14,7 @@ interface PelletShape {
   readonly bend: number;
   readonly creases: readonly { readonly angle: number; readonly depth: number; readonly width: number; readonly wander: number }[];
   readonly seam: { readonly angle: number; readonly from: number; readonly to: number } | null;
+  readonly splitAngle: number;
   readonly seed: number;
 }
 
@@ -33,6 +34,14 @@ function pelletPoint(shape: PelletShape, dx: number, dy: number, dz: number): Bo
     crevice = Math.max(crevice, cut);
   }
   let tone: Tone = PLAIN;
+  const split = smoothstep(0.62, 0.98, dx);
+  if (split > 0) {
+    const cleft = Math.abs(Math.sin((around - shape.splitAngle) * 0.5 + 0.08 * noise3(dx * 7 + seed, dy * 7, dz * 7)));
+    const open = (1 - smoothstep(0.05, 0.2, cleft)) * split;
+    groove += open * 0.16;
+    crevice = Math.max(crevice, open * 0.8);
+    tone = mixTone(tone, shadeTone(TORN_FIBRE, 0.78 + 0.3 * noise3(dx * 34, dy * 34 + seed, dz * 34)), open * 0.9 + split * 0.25);
+  }
   let lip = 0;
   if (seam) {
     const across = Math.abs(Math.sin((around - seam.angle - 0.14 * Math.sin(dx * 5.2 + seed)) * 0.5));
@@ -87,6 +96,7 @@ function pelletShape(seed: number, length: number, ratio: number, seamed: boolea
     bend: random() < 0.4 ? 0.1 + random() * 0.12 : random() * 0.04,
     creases: Array.from({ length: creaseCount }, () => ({ angle: random() * Math.PI * 2, depth: 0.035 + random() * 0.035, width: 0.025 + random() * 0.035, wander: 0.1 + random() * 0.3 })),
     seam: seamed ? { angle: random() * Math.PI * 2, from: -0.75 + random() * 0.4, to: 0.3 + random() * 0.5 } : null,
+    splitAngle: random() * Math.PI * 2,
     seed: seed * 3.7,
   };
 }
@@ -141,116 +151,33 @@ export function camelCluster(seed: number, spread: number, lobes: number): Piece
   return { geometry, buried: coarse.build(), spheres: surfaceCover(geometry, spread * 0.8, spread * 0.4) };
 }
 
-export function dungLump(seed: number, size: number): PieceVariant {
+export function moistDungLump(seed: number, size: number): PieceVariant {
   const random = seededRandom(seed * 773 + 29);
-  const bumps = Array.from({ length: 4 + Math.floor(random() * 3) }, () => {
+  const bulges = Array.from({ length: 3 + Math.floor(random() * 3) }, () => {
     const theta = random() * Math.PI * 2;
-    const rise = random() * 2 - 1;
-    const flat = Math.sqrt(1 - rise * rise);
-    return { x: Math.cos(theta) * flat, y: rise, z: Math.sin(theta) * flat, height: 0.14 + random() * 0.2, width: 0.32 + random() * 0.3 };
+    const rise = random() * 1.2 - 0.2;
+    const flat = Math.sqrt(Math.max(0, 1 - rise * rise));
+    return { x: Math.cos(theta) * flat, y: rise, z: Math.sin(theta) * flat, height: 0.12 + random() * 0.16, width: 0.45 + random() * 0.35 };
   });
-  const cells = Array.from({ length: 16 }, () => {
-    const theta = random() * Math.PI * 2;
-    const rise = random() * 2 - 1;
-    const flat = Math.sqrt(1 - rise * rise);
-    return [Math.cos(theta) * flat, rise, Math.sin(theta) * flat] as const;
-  });
-  const stretch: Point = [size * (0.56 + random() * 0.14), size * (0.34 + random() * 0.1), size * (0.48 + random() * 0.12)];
+  const foldTurn = random() * Math.PI;
+  const stretch: Point = [size * (0.55 + random() * 0.12), size * (0.3 + random() * 0.08), size * (0.48 + random() * 0.1)];
   const surface = (dx: number, dy: number, dz: number): BodyPoint => {
-    const warp = 0.13 * layered(dx, dy, dz, 3, seed);
-    const wx = dx + warp;
-    const wy = dy - warp;
-    const wz = dz + warp * 0.6;
-    let nearest = 9;
-    let next = 9;
-    for (const cell of cells) {
-      const distance = Math.hypot(wx - cell[0], wy - cell[1], wz - cell[2]);
-      if (distance < nearest) {
-        next = nearest;
-        nearest = distance;
-      } else if (distance < next) next = distance;
-    }
-    const edge = next - nearest;
-    const crack = 1 - smoothstep(0.012, 0.06, edge);
     let swell = 1;
-    for (const bump of bumps) swell += bump.height * Math.exp(-(((dx - bump.x) ** 2 + (dy - bump.y) ** 2 + (dz - bump.z) ** 2) / (bump.width * bump.width)));
-    const pitted = 0.035 * layered(dx, dy, dz, 5.5, seed + 1) + 0.016 * layered(dx, dy, dz, 15, seed + 2);
-    const reach = swell + pitted - crack * 0.075;
-    return { point: [dx * reach * stretch[0], dy * reach * stretch[1], dz * reach * stretch[2]], tone: shadeTone(PLAIN, 1 - 0.68 * crack * crack) };
+    for (const bulge of bulges) swell += bulge.height * Math.exp(-(((dx - bulge.x) ** 2 + (dy - bulge.y) ** 2 + (dz - bulge.z) ** 2) / (bulge.width * bulge.width)));
+    const settle = dy < 0 ? 1 - 0.35 * dy * dy : 1;
+    const fold = Math.abs(Math.sin((dx * Math.cos(foldTurn) + dz * Math.sin(foldTurn)) * 3.1 + 0.6 * layered(dx, dy, dz, 1.4, seed + 6)));
+    const crease = (1 - smoothstep(0.04, 0.3, fold)) * smoothstep(-0.1, 0.5, dy);
+    const soft = 0.05 * layered(dx, dy, dz, 2.4, seed) + 0.014 * layered(dx, dy, dz, 9, seed + 1);
+    const reach = (swell + soft - crease * 0.05) * settle;
+    const damp = smoothstep(0.45, 0.75, noise3(dx * 2.2 + seed, dy * 2.2, dz * 2.2));
+    const tone = shadeTone(PLAIN, (1 - 0.32 * crease) * (1 - 0.16 * damp));
+    return { point: [dx * reach * stretch[0], dy * reach * stretch[1], dz * reach * stretch[2]], tone };
   };
   const fine = new PieceMesh();
-  addBody(fine, 26, surface);
+  addBody(fine, 24, surface);
+  for (let f = 0; f < 4; f++) fibreOnSkin(fine, surface, seed * 41 + f, 0.035 + f * 0.01, 0.00045 + f * 0.00008);
   const coarse = new PieceMesh();
   addBody(coarse, 6, surface);
   const geometry = fine.build();
   return { geometry, buried: coarse.build(), spheres: surfaceCover(geometry, stretch[1] * 1.6, stretch[1] * 0.8) };
-}
-
-export function dungCake(seed: number, diameter: number, thickness: number): PieceVariant {
-  const random = seededRandom(seed * 113 + 41);
-  const radius = diameter / 2;
-  const heading = random() * Math.PI;
-  const ridges = 6 + Math.floor(random() * 5);
-  const height = (x: number, z: number, edge: number): number => {
-    const across = (x * Math.cos(heading) + z * Math.sin(heading)) / radius;
-    const along = (-x * Math.sin(heading) + z * Math.cos(heading)) / radius;
-    const bent = across + 0.1 * noise3(along * 2.5 + seed, across * 2.5, seed);
-    const ridge = Math.sin(bent * ridges * Math.PI) * 0.12 + 0.05 * layered(x * 30, z * 30, 0, 1, seed);
-    return thickness * ((1 - edge * edge) * 0.5 + 0.5) * (0.45 + ridge * (1 - edge));
-  };
-  const build = (rings: number, spokes: number, straws: number): PieceMesh => {
-    const mesh = new PieceMesh();
-    const outline = (angle: number) => radius * (0.92 + 0.07 * noise3(Math.cos(angle) * 2 + seed, Math.sin(angle) * 2, seed) + 0.03 * noise3(Math.cos(angle) * 9, Math.sin(angle) * 9 + seed, 0));
-    const place = (ring: number, spoke: number, under: boolean): number => {
-      const t = ring / rings;
-      const angle = (spoke / spokes) * Math.PI * 2;
-      const reach = outline(angle) * t;
-      const x = Math.cos(angle) * reach;
-      const z = Math.sin(angle) * reach;
-      const y = height(x, z, t) * (under ? -0.7 : 1);
-      return mesh.vertex([x, y, z], shadeTone(PLAIN, under ? 0.7 : 1 - 0.3 * smoothstep(0.92, 1, t)), x, z);
-    };
-    const topCentre = mesh.vertex([0, height(0, 0, 0), 0], PLAIN);
-    const underCentre = mesh.vertex([0, -height(0, 0, 0) * 0.7, 0], shadeTone(PLAIN, 0.7));
-    const top: number[] = [];
-    const under: number[] = [];
-    for (let ring = 1; ring <= rings; ring++) {
-      for (let spoke = 0; spoke < spokes; spoke++) {
-        top.push(place(ring, spoke, false));
-        under.push(ring === rings ? top[top.length - 1]! : place(ring, spoke, true));
-      }
-    }
-    const at = (list: number[], ring: number, spoke: number) => list[(ring - 1) * spokes + (spoke % spokes)]!;
-    for (let spoke = 0; spoke < spokes; spoke++) {
-      mesh.triangle(topCentre, at(top, 1, spoke + 1), at(top, 1, spoke));
-      mesh.triangle(underCentre, at(under, 1, spoke), at(under, 1, spoke + 1));
-      for (let ring = 1; ring < rings; ring++) {
-        mesh.quad(at(top, ring, spoke), at(top, ring, spoke + 1), at(top, ring + 1, spoke + 1), at(top, ring + 1, spoke));
-        mesh.quad(at(under, ring, spoke), at(under, ring + 1, spoke), at(under, ring + 1, spoke + 1), at(under, ring, spoke + 1));
-      }
-    }
-    for (let s = 0; s < straws; s++) {
-      const angle = random() * Math.PI * 2;
-      const off = Math.sqrt(random()) * radius * 0.8;
-      const turn = random() * Math.PI * 2;
-      const span = 0.012 + random() * 0.02;
-      const bx = Math.cos(angle) * off;
-      const bz = Math.sin(angle) * off;
-      addTube(mesh, {
-        rings: 6,
-        sides: 5,
-        lengthMetres: span,
-        pathAt: (t) => {
-          const x = bx + Math.cos(turn) * span * (t - 0.5);
-          const z = bz + Math.sin(turn) * span * (t - 0.5);
-          return [x, height(x, z, Math.min(1, Math.hypot(x, z) / radius)) + 0.0006, z];
-        },
-        radiusAt: () => 0.0005,
-        surfaceAt: () => ({ radial: 1, tone: STRAW }),
-      });
-    }
-    return mesh;
-  };
-  const geometry = build(36, 120, 34).build();
-  return { geometry, buried: build(8, 18, 0).build(), spheres: surfaceCover(geometry, thickness * 1.2, thickness * 0.6) };
 }

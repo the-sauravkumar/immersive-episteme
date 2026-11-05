@@ -1,11 +1,10 @@
 import { seededRandom } from "../domain/pile-packing";
-import { addBody, addTube, coverWithSpheres, layered, mixTone, noise3, PieceMesh, PLAIN, shadeTone, smoothstep, surfaceCover, type BodyPoint, type PieceVariant, type Point, type Tone } from "./piece-mesh";
+import { addTube, coverWithSpheres, layered, mixTone, noise3, PieceMesh, PLAIN, shadeTone, smoothstep, surfaceCover, type PieceVariant, type Point, type Tone } from "./piece-mesh";
 
 const PAPERY_STRAW: Tone = [1.32, 1.28, 1.05];
 const RUST_FOLD: Tone = [0.72, 0.58, 0.5];
 const PALE_MIDRIB: Tone = [1.42, 1.3, 1.02];
 const DARK_BLOTCH: Tone = [0.52, 0.44, 0.38];
-const RIDGE_LINE: Tone = [1.26, 1.16, 0.86];
 
 export function driedFlake(seed: number, length: number): PieceVariant {
   const random = seededRandom(seed * 313 + 11);
@@ -126,39 +125,4 @@ export function dryLeaf(seed: number, length: number, breadth: number): PieceVar
   };
   const geometry = build(52, 18).build();
   return { geometry, buried: build(24, 8).build(), spheres: surfaceCover(geometry, 0.0055, 0) };
-}
-
-export function driedFruit(seed: number, length: number, ratio: number, collapsed: boolean, pinched: boolean): PieceVariant {
-  const random = seededRandom(seed * 449 + 23);
-  const half = length / 2;
-  const width = half / ratio;
-  const phase = random() * Math.PI * 2;
-  const ridgeCount = 5;
-  const ridgeSharp = 0.05 + random() * 0.04;
-  const fall = random() * Math.PI * 2;
-  const surface = (dx: number, dy: number, dz: number): BodyPoint => {
-    const around = Math.atan2(dz, dy);
-    const flat = Math.hypot(dy, dz);
-    const spindle = flat ** 0.92;
-    const poleFade = smoothstep(0.02, 0.32, flat);
-    const wobble = around + 0.22 * Math.sin(dx * 3 + phase) + 0.1 * noise3(dx * 3 + seed, Math.cos(around), Math.sin(around));
-    const raw = Math.cos(ridgeCount * wobble + phase) * (0.65 + 0.35 * Math.sin(around * 2 + phase));
-    const peak = Math.abs(raw) ** 0.7 * Math.sign(raw);
-    const ridge = ridgeSharp * peak * poleFade;
-    const stretchX = dx * 7.5;
-    const wrinkle = 0.09 * layered(stretchX * 0.42, Math.cos(around) * 4.2, Math.sin(around) * 4.2, 1.1, seed) * poleFade + 0.02 * layered(dx * 15, dy * 15, dz * 15, 1, seed + 3);
-    const dent = collapsed ? 0.3 * Math.exp(-((Math.sin((around - fall) * 0.5) / 0.38) ** 2)) * poleFade : 0;
-    const reach = 1 + ridge + wrinkle - dent;
-    const pinch = pinched ? 1 + 0.42 * smoothstep(0.72, 1, dx) ** 2 : 1;
-    const crease = 1 - smoothstep(-0.92, -0.5, raw);
-    const ridgeLine = smoothstep(0.82, 0.99, raw) * poleFade;
-    const tone = shadeTone(mixTone(PLAIN, RIDGE_LINE, ridgeLine * 0.3), 1 - 0.14 * crease * poleFade);
-    return { point: [dx * half * pinch, (dy / Math.max(flat, 1e-5)) * spindle * width * reach, (dz / Math.max(flat, 1e-5)) * spindle * width * reach], tone };
-  };
-  const fine = new PieceMesh();
-  addBody(fine, 13, surface);
-  const coarse = new PieceMesh();
-  addBody(coarse, 6, surface);
-  const geometry = fine.build();
-  return { geometry, buried: coarse.build(), spheres: surfaceCover(geometry, width * 1.4, width * 0.7) };
 }

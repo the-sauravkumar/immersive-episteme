@@ -15,13 +15,6 @@ const SKINS = {
     overlap: 24,
     sources: [{ file: "dung/downloads/camel_asergeev_10b.jpg", scale: 0.62, rects: pixelRects(6.69, [[385, 280, 85, 60], [650, 130, 60, 70], [680, 240, 60, 70], [450, 400, 60, 90], [545, 400, 40, 100], [610, 430, 60, 70], [750, 400, 80, 80], [200, 380, 60, 50], [270, 340, 50, 70], [190, 530, 60, 70], [470, 520, 60, 60], [890, 600, 70, 50], [120, 590, 60, 90], [860, 270, 70, 50], [710, 60, 90, 40]]) }],
   },
-  cow_dung_crust: {
-    relief: 4,
-    roughLow: 0.88,
-    step: 64,
-    overlap: 24,
-    sources: [{ file: "dung/downloads/cow_goverya.jpg", scale: 0.9, rects: pixelRects(4.19, [[10, 490, 90, 80], [290, 540, 90, 70], [400, 550, 85, 60], [500, 560, 110, 60], [620, 540, 60, 60], [720, 530, 90, 60], [890, 535, 80, 60], [420, 490, 90, 40]]) }],
-  },
   madder_root_bark: {
     relief: 3.4,
     roughLow: 0.8,
@@ -33,13 +26,6 @@ const SKINS = {
       { file: "roots/downloads/kew/53847-2.jpg", scale: 1, centre: [1338, 444], angle: 40, size: [360, 50] },
       { file: "roots/downloads/kew/53847-2.jpg", scale: 1, centre: [1185, 204], angle: -10.5, size: [320, 46] },
     ],
-  },
-  myrobalan_skin: {
-    relief: 3,
-    roughLow: 0.62,
-    step: 32,
-    overlap: 12,
-    sources: [{ file: "fruit/downloads/myro_haritaki01.jpg", scale: 1, rects: pixelRects(1.745, [[340, 360, 130, 90], [560, 380, 130, 70], [730, 400, 100, 110], [850, 440, 110, 180], [90, 190, 110, 130], [250, 170, 90, 130], [640, 250, 110, 80], [370, 200, 70, 90], [510, 240, 90, 60], [580, 640, 70, 90], [950, 480, 90, 170]]) }],
   },
   dry_leaf_blade: {
     relief: 1.6,
