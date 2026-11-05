@@ -5,7 +5,12 @@ import { SUBSTANCE_LOOK_ROWS } from "./substance-look-rows";
 export type SubstanceFill = "liquid" | "paste" | "powder" | "crystals" | "roots" | "flowers" | "cloth" | "dung" | "leaves";
 export type Transparency = "clear" | "translucent" | "opaque";
 export type RenderBasis = "evidence" | "photo" | "inferred" | "provisional";
-export type LookStatus = "sourced" | "inferred" | "partial" | "needs-lead";
+export type LookStatus = "sourced" | "inferred" | "partial";
+
+export interface LookSpread {
+  readonly hex: string;
+  readonly share: number;
+}
 
 export interface SubstanceLookRow {
   readonly key: string;
@@ -19,6 +24,8 @@ export interface SubstanceLookRow {
   readonly transparency: string;
   readonly surface: string;
   readonly vesselSuggestion: string | null;
+  readonly frothHex: string | null;
+  readonly spread: readonly LookSpread[];
 }
 
 export interface SubstanceLook {
@@ -31,6 +38,8 @@ export interface SubstanceLook {
   readonly renderBasis: RenderBasis;
   readonly status: LookStatus;
   readonly vesselModelId: string;
+  readonly frothHex: string | null;
+  readonly spread: readonly LookSpread[];
 }
 
 const LEAF_SURFACE = "dry leaf";
@@ -66,6 +75,8 @@ function lookOf(row: SubstanceLookRow): SubstanceLook {
     renderBasis: row.renderBasis as RenderBasis,
     status: row.status as LookStatus,
     vesselModelId: VESSEL_BY_FILL[fill],
+    frothHex: row.frothHex,
+    spread: row.spread,
   };
 }
 
@@ -116,10 +127,11 @@ const LATHER_SHARE = 0.5;
 const SOAP_SHARE = 0.2;
 const BUBBLES_WITH_SCUM_SHARE = 0.16;
 const SCUM_SHARE = 0.34;
+const FROTH_OVER_MOST_SHARE = 0.6;
 
 export function liquidMarks(look: Pick<SubstanceLook, "surface">): { readonly scum: number; readonly foam: number } {
   const scum = /scum/.test(look.surface) ? SCUM_SHARE : 0;
-  const foam = /lather/.test(look.surface) ? LATHER_SHARE : /soapy/.test(look.surface) ? SOAP_SHARE : /bubbles/.test(look.surface) ? BUBBLES_WITH_SCUM_SHARE : 0;
+  const foam = /froth covers most/.test(look.surface) ? FROTH_OVER_MOST_SHARE : /lather/.test(look.surface) ? LATHER_SHARE : /soapy/.test(look.surface) ? SOAP_SHARE : /bubbles/.test(look.surface) ? BUBBLES_WITH_SCUM_SHARE : 0;
   return { scum, foam };
 }
 
