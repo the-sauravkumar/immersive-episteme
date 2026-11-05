@@ -7,10 +7,13 @@ export type Point = readonly [number, number, number];
 
 export const PLAIN: Tone = [1, 1, 1];
 
-export interface PieceVariant {
+export interface PieceShape {
   readonly geometry: THREE.BufferGeometry;
-  readonly buried: THREE.BufferGeometry;
   readonly spheres: readonly PieceSphere[];
+}
+
+export interface PieceVariant extends PieceShape {
+  readonly buried: THREE.BufferGeometry;
 }
 
 export const mixTone = (a: Tone, b: Tone, share: number): Tone => [a[0] + (b[0] - a[0]) * share, a[1] + (b[1] - a[1]) * share, a[2] + (b[2] - a[2]) * share];

@@ -1,6 +1,6 @@
 import type { SubstanceFill, SubstanceLook } from "@/features/process/domain/substance-look";
 
-export type PileForm = "camel-pellets" | "dung-lumps" | "dung-cakes" | "wet-dung" | "madder-roots" | "chay-sheaves" | "dried-flakes" | "dried-calyces" | "dry-leaves" | "dried-fruit" | "crystals";
+export type PileForm = "camel-pellets" | "dung-lumps" | "dung-cakes" | "wet-dung" | "madder-roots" | "chay-sheaves" | "dried-flakes" | "dried-calyces" | "dry-leaves" | "dried-fruit";
 
 type PileFormLook = Pick<SubstanceLook, "key" | "surface"> & { readonly fill: SubstanceFill };
 
@@ -23,8 +23,6 @@ export function pileFormOf(look: PileFormLook): PileForm | null {
       return "dry-leaves";
     case "fruit":
       return "dried-fruit";
-    case "crystals":
-      return "crystals";
     default:
       return null;
   }
