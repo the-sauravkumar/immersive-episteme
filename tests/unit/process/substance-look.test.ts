@@ -1,6 +1,8 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { catalogueModel } from "@/features/process/domain/asset-catalogue";
+import { PRACTICE_MODEL, stagePanelModel } from "@/features/course/domain/panel-model";
+import { catalogueModel, clothStatePath, stillPath } from "@/features/process/domain/asset-catalogue";
+import { buildRoute } from "@/features/walkthrough/domain/route-plan";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
 import { itemVesselModel, liquidMarks, looksOfItem, stageItemStillPath, workLiquidOf } from "@/features/process/domain/substance-look";
 import { SUBSTANCE_LOOK_ROWS } from "@/features/process/domain/substance-look-rows";
@@ -63,10 +65,46 @@ describe("the look sheet reaches the scene", () => {
 
   it("gives each material its own Door 1 image and each bath its own tool image", () => {
     const stage = templates[0]!.stages.find((candidate) => candidate.key === "ajrakh.indigo-dyeing")!;
-    expect(stageItemStillPath(stage.key, stage.items, stage.items.find((item) => item.label === "Indigo")!)).toBe("/walkthrough/stills/materials/ajrakh-indigo.jpg");
-    expect(stageItemStillPath(stage.key, stage.items, stage.items.find((item) => item.modelId === "dye-vat")!)).toBe("/walkthrough/stills/tools/dye-vat-7c7a36.jpg");
+    expect(stageItemStillPath(stage.key, stage.items, stage.items.find((item) => item.label === "Indigo")!)).toBe(stillPath("ajrakh-indigo"));
+    expect(stageItemStillPath(stage.key, stage.items, stage.items.find((item) => item.modelId === "dye-vat")!)).toBe(stillPath("dye-vat-7c7a36"));
     const paths = new Set(materials.map(({ stage: where, item }) => stageItemStillPath(where.key, where.items, item)));
-    expect(paths.size).toBeGreaterThan(30);
+    expect(paths.size).toBe(new Set(materials.map(({ stage: where, item }) => looksOfItem(where.key, item)[0]!.key)).size);
+  });
+
+  it("keys Door 1 and Door 2 to the same look of the same material", () => {
+    for (const template of templates) {
+      buildRoute(template, clothStatePath).forEach((station, index) => {
+        const stage = template.stages[index];
+        if (!stage) return;
+        const panel = stagePanelModel(template, index);
+        for (const placed of station.plan.items) {
+          if (placed.item.role !== "material") continue;
+          const keys = looksOfItem(stage.key, placed.item).map((look) => look.key);
+          expect(placed.looks.map((look) => look.key), `${stage.key} ${placed.item.label}`).toEqual(keys);
+          expect(panel.objects.find((object) => object.key === placed.item.key)!.stillSrc).toBe(stillPath(keys[0]!));
+        }
+      });
+    }
+  });
+
+  it("names no still after what it shows, so a test image cannot give its answer away", () => {
+    const words = [...new Set(uses.flatMap(({ item }) => [item.label, item.localName ?? "", item.modelId, item.key]).flatMap((text) => text.toLowerCase().split(/[^a-z]+/)))].filter((word) => word.length > 2);
+    for (const { stage, item } of uses) {
+      const path = stageItemStillPath(stage.key, stage.items, item);
+      expect(path).toMatch(/^\/walkthrough\/stills\/objects\/[0-9a-f]{8}\.jpg$/);
+      const name = path.split("/").pop()!;
+      expect(words.filter((word) => name.includes(word)), path).toEqual([]);
+    }
+  });
+
+  it("gives test items the same files Door 1 shows and keeps no still that nothing uses", () => {
+    const shown = new Set([...uses.map(({ stage, item }) => stageItemStillPath(stage.key, stage.items, item)), stillPath(PRACTICE_MODEL)]);
+    const battery = JSON.parse(readFileSync("db/seeds/study-test-items.generated.json", "utf8")) as { items: { config: { image?: { path: string } } }[] }[];
+    const tested = battery.flatMap((assessment) => assessment.items.flatMap((item) => (item.config.image?.path.includes("/stills/") ? [item.config.image.path] : [])));
+    expect(tested.length).toBeGreaterThan(0);
+    expect(tested.filter((path) => !shown.has(path))).toEqual([]);
+    const onDisk = readdirSync("public/walkthrough/stills/objects").map((name) => `/walkthrough/stills/objects/${name}`).sort();
+    expect(onDisk).toEqual([...shown].sort());
   });
 
   it("has a rendered image on disk for every item in every stage", () => {

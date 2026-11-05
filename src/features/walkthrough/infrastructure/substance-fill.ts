@@ -12,7 +12,7 @@ import { bubbleMaterial, copperScumMaterial, crystalMaterial, liquidMaterial, su
 
 const LIQUID_FRACTION = 0.76;
 const BUBBLE_CLEARANCE_METRES = 0.0006;
-const PASTE_FRACTION = 0.66;
+const PASTE_FRACTION = 0.54;
 const POWDER_FRACTION = 0.5;
 const POWDER_HEAP_FRACTION = 0.42;
 const CLEAR_OF_LOW_RIM = 0.01;
@@ -155,7 +155,7 @@ async function addLiquid(library: MaterialLibrary, parent: THREE.Object3D, scanI
   });
   parent.add(stillMesh(geometry, await liquidMaterial(library, look)));
   const marks = liquidMarks(look);
-  const bubblePoints = marks.bubbles ? await addBubbles(library, parent, level + BUBBLE_CLEARANCE_METRES, { reach: (theta) => wallRadius(profile, theta, level), count: 520, smallest: 0.0018, largest: 0.0046 }) : [];
+  const bubblePoints = marks.bubbles ? await addBubbles(library, parent, level + BUBBLE_CLEARANCE_METRES, { reach: (theta) => wallRadius(profile, theta, level), count: 900, smallest: 0.0012, largest: 0.0036 }) : [];
   const surface = surfaceAudit(name, measured, geometry);
   return bubblePoints.length === 0 ? surface : { ...surface, points: Float32Array.from([...surface.points, ...bubblePoints]) };
 }
@@ -198,8 +198,8 @@ function packedPile(library: MaterialLibrary, scanId: string, fill: PileFill, pr
       candidates: recipe.candidates,
       maxTilt: recipe.maxTilt,
       anyTumble: recipe.anyTumble,
-      topY: profile.rimY - CLEAR_OF_LOW_RIM,
-      margin: 0.0065,
+      topY: Math.min(profile.rimY - CLEAR_OF_LOW_RIM, profile.floorY + (profile.rimY - profile.floorY) * recipe.fillsTo),
+      margin: recipe.wallMargin ?? 0.0065,
       fillRadius: widestWallRadius(profile, profile.rimY),
     }));
     return { recipe, placed };

@@ -52,3 +52,4 @@ The lead asked whether materials in pots match real life and asked that nothing 
 - The asset list recorded physical size and density, which exposed Bitumen at 205 px/m. All 47 Fab rows stay unverified, because the site returned 403 to a script. Liquids are shaded, not sourced.
 - The running scenes changed on 2026-11-05: materials now render from these rows (DR-079).
 - Mechanical checks for overlap, tearing and density were added with planted faults (DR-080). They found inside-out roots, words past their boards and a tear at a cloth join, all fixed. The camera now stops 0.6 m from anything it could previously walk through.
+- Door 1 stills were re-rendered tightly framed, one per look row, with hashed file names so a test image cannot name its answer (DR-081). Unused stills were deleted.

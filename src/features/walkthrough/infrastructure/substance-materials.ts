@@ -87,6 +87,7 @@ const FORM_SURFACES: Readonly<Record<Exclude<SubstanceFill, "liquid" | "crystals
 };
 
 const LOOSE_DUST = "dry loose dust";
+const LOOSE_DUST_TILE_METRES = 0.13;
 
 function surfaceOf(look: SubstanceLook): FormSurface {
   const form = FORM_SURFACES[look.fill as keyof typeof FORM_SURFACES];
@@ -109,12 +110,13 @@ export function substanceMaterial(library: MaterialLibrary, look: SubstanceLook)
       transparent: look.fill === "paste" && look.transparency === "translucent",
       opacity: look.fill === "paste" && look.transparency === "translucent" ? 0.93 : 1,
     });
-    return noteSurface(projectScan(material, 1 / scan.tileMetres, form.contrast, look.fill === "paste" ? 0.16 : 0.72), { label: `substance ${look.key}`, kind: "model", perMetre: 1 / scan.tileMetres });
+    const perMetre = 1 / (look.surface === LOOSE_DUST ? LOOSE_DUST_TILE_METRES : scan.tileMetres);
+    return noteSurface(projectScan(material, perMetre, form.contrast, look.fill === "paste" ? 0.16 : 0.72), { label: `substance ${look.key}`, kind: "model", perMetre });
   });
 }
 
-const LIQUID_OPACITY: Readonly<Record<Transparency, number>> = { clear: 0.1, translucent: 1, opaque: 1 };
-const CLEAR_TINT = 0.05;
+const LIQUID_OPACITY: Readonly<Record<Transparency, number>> = { clear: 0.78, translucent: 1, opaque: 1 };
+const CLEAR_TINT = 0.1;
 const CLEAR_CRYSTAL_BODY = 0.42;
 
 const REFLECTS_WHEN_GRAZED = [

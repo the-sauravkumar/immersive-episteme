@@ -18,6 +18,8 @@ export interface PileRecipe {
   readonly maxTilt: number;
   readonly anyTumble: boolean;
   readonly seed: number;
+  readonly fillsTo: number;
+  readonly wallMargin?: number;
 }
 
 export const isPileFill = (fill: SubstanceFill): fill is PileFill => fill === "dung" || fill === "roots" || fill === "flowers" || fill === "leaves" || fill === "crystals";
@@ -200,23 +202,23 @@ export async function pileRecipe(fill: PileFill): Promise<PileRecipe> {
   switch (fill) {
     case "dung": {
       const variants = await builtInTurn([() => dungLump(1), () => dungLump(2), () => dungLump(3)]);
-      return { variants, blueprints: blueprintsFrom(variants, 44, 21, 0.8, 1.15), candidates: 30, maxTilt: 0.5, anyTumble: true, seed: 101 };
+      return { variants, blueprints: blueprintsFrom(variants, 64, 21, 0.62, 0.86), candidates: 40, maxTilt: 0.5, anyTumble: true, seed: 101, fillsTo: 1 };
     }
     case "roots": {
       const variants = await builtInTurn([() => rootPiece(1, 0.17, 0.0075), () => rootPiece(2, 0.14, 0.0085), () => rootPiece(3, 0.2, 0.0065), () => rootPiece(4, 0.12, 0.009), () => rootPiece(5, 0.16, 0.0058)]);
-      return { variants, blueprints: blueprintsFrom(variants, 110, 22, 0.85, 1.1), candidates: 26, maxTilt: 0.34, anyTumble: false, seed: 102 };
+      return { variants, blueprints: blueprintsFrom(variants, 110, 22, 0.85, 1.1), candidates: 26, maxTilt: 0.34, anyTumble: false, seed: 102, fillsTo: 1 };
     }
     case "flowers": {
       const variants = await builtInTurn([() => floret(1), () => floret(2), () => floret(3), () => floret(4), () => floret(5)]);
-      return { variants, blueprints: blueprintsFrom(variants, 420, 23, 0.8, 1.2), candidates: 6, maxTilt: 0.5, anyTumble: true, seed: 103 };
+      return { variants, blueprints: blueprintsFrom(variants, 420, 23, 0.8, 1.2), candidates: 6, maxTilt: 0.5, anyTumble: true, seed: 103, fillsTo: 1, wallMargin: 0.0095 };
     }
     case "leaves": {
       const variants = await builtInTurn([() => dryLeaf(1), () => dryLeaf(2), () => dryLeaf(3), () => dryLeaf(4)]);
-      return { variants, blueprints: blueprintsFrom(variants, 110, 24, 0.82, 1.12), candidates: 18, maxTilt: 0.5, anyTumble: false, seed: 104 };
+      return { variants, blueprints: blueprintsFrom(variants, 110, 24, 0.82, 1.12), candidates: 18, maxTilt: 0.5, anyTumble: false, seed: 104, fillsTo: 1 };
     }
     case "crystals": {
       const variants = await builtInTurn([() => crystal(1), () => crystal(2), () => crystal(3), () => crystal(4), () => crystal(5)]);
-      return { variants, blueprints: blueprintsFrom(variants, 340, 25, 0.75, 1.3), candidates: 14, maxTilt: 0.5, anyTumble: true, seed: 105 };
+      return { variants, blueprints: blueprintsFrom(variants, 340, 25, 0.75, 1.3), candidates: 26, maxTilt: 0.5, anyTumble: true, seed: 105, fillsTo: 0.58 };
     }
   }
 }

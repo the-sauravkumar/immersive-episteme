@@ -53,6 +53,15 @@ export function catalogueModel(id: string): CatalogueModel {
   return model;
 }
 
-export const stillPath = (modelId: string): string => `/walkthrough/stills/${modelId}.jpg`;
+const FNV_OFFSET = 0x811c9dc5;
+const FNV_PRIME = 0x01000193;
+
+function nameThatSaysNothing(subjectId: string): string {
+  let hash = FNV_OFFSET;
+  for (let i = 0; i < subjectId.length; i++) hash = Math.imul(hash ^ subjectId.charCodeAt(i), FNV_PRIME) >>> 0;
+  return hash.toString(16).padStart(8, "0");
+}
+
+export const stillPath = (subjectId: string): string => `/walkthrough/stills/objects/${nameThatSaysNothing(subjectId)}.jpg`;
 export const clothStatePath = (stateId: string): string => `/walkthrough/cloth/${stateId}.jpg`;
 export const clothStripPath = (stateId: string): string => `/walkthrough/cloth/${stateId}-strip.jpg`;
