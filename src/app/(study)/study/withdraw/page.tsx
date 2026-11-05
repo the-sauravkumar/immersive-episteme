@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { GateFallback } from "@/components/shell/gate-fallback";
 import { PageHeader } from "@/components/shell/page-header";
 import { WithdrawForm } from "@/components/study/withdraw-form";
 import { titleCase } from "@/lib/text/title-case";
-import { getCurrentSession } from "@/server/study/session";
+import { requireWithdrawalSession } from "@/server/auth/learning-access";
+import { getPool } from "@/server/db/client";
+import { loadSessionState } from "@/server/study/engine";
 
 export const metadata: Metadata = { title: titleCase("Withdraw from the study") };
 
@@ -15,7 +18,9 @@ export const metadata: Metadata = { title: titleCase("Withdraw from the study") 
  * the audit record is said plainly.
  */
 async function Withdraw() {
-  const { state } = await getCurrentSession();
+  const participant = await requireWithdrawalSession();
+  const state = await loadSessionState(getPool(), participant.sessionId);
+  if (!state) redirect("/study/exit?reason=invalid-session");
   const days = state.study.protocol.config.retentionDays;
   return (
     <div className="flex flex-col gap-8">

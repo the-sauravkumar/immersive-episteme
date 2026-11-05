@@ -13,7 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { serverEnv } from "@/lib/env";
 import { titleCase } from "@/lib/text/title-case";
 import { PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
-import { resolveParticipantSession } from "@/server/auth/learning-decision";
+import { resolveParticipantSession, resolveWithdrawalSession } from "@/server/auth/learning-decision";
 import { getStudySessionLookup } from "@/server/auth/study-session-port";
 import { getPool } from "@/server/db/client";
 import { resumeStudy } from "@/server/study/actions";
@@ -32,9 +32,8 @@ async function Entry({ searchParams }: { searchParams: PageProps<"/study">["sear
   const message = typeof reason === "string" ? REASONS[reason] : undefined;
 
   const cookie = (await cookies()).get(PARTICIPANT_COOKIE)?.value;
-  const live = cookie
-    ? await resolveParticipantSession(cookie, { secret: serverEnv().BETTER_AUTH_SECRET, lookup: getStudySessionLookup() })
-    : null;
+  const deps = { secret: serverEnv().BETTER_AUTH_SECRET, lookup: getStudySessionLookup() };
+  const live = cookie ? await resolveParticipantSession(cookie, deps) : null;
   if (live?.allowed) {
     return (
       <section aria-labelledby="resume-heading" className="flex flex-col gap-4">
@@ -51,6 +50,22 @@ async function Entry({ searchParams }: { searchParams: PageProps<"/study">["sear
             </Link>
           }
         />
+      </section>
+    );
+  }
+
+  if (cookie && (await resolveWithdrawalSession(cookie, deps)).allowed) {
+    return (
+      <section aria-labelledby="ended-heading" className="flex flex-col gap-4">
+        <h2 id="ended-heading" className="text-h2 text-ink">
+          {titleCase("Your study session has ended")}
+        </h2>
+        <p className="text-reading max-w-[34rem] text-ink">Thank you for taking part. You can still withdraw from the study.</p>
+        <p>
+          <Link href="/study/withdraw" className={STUDY_LINK_CLASS}>
+            Withdraw from the study
+          </Link>
+        </p>
       </section>
     );
   }

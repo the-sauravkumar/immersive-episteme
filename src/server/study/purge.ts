@@ -89,9 +89,16 @@ export async function purgeParticipantData(
   pool: Pool | PoolClient,
   input: { studyId: string; participant: string; reason: string; actorId: string; trigger: PurgeTrigger },
 ): Promise<PurgeResult> {
-  const reason = input.reason.trim();
-  if (reason.length < 5) throw new PurgeError("Give the reason for the removal (at least 5 characters).");
+  if (input.reason.trim().length < 5) throw new PurgeError("Give the reason for the removal (at least 5 characters).");
   await closeStaleSessions(pool, input.studyId);
+  return purgeOne(pool, input);
+}
+
+async function purgeOne(
+  pool: Pool | PoolClient,
+  input: { studyId: string; participant: string; reason: string; actorId: string; trigger: PurgeTrigger },
+): Promise<PurgeResult> {
+  const reason = input.reason.trim();
   return withTx(pool, async (c) => {
     const p = await c.query<{ id: string; code: string; status: string }>(
       "SELECT id, code, status::text AS status FROM participants WHERE study_id = $1 AND (upper(code) = upper($2) OR id::text = lower($2)) FOR UPDATE",
@@ -172,7 +179,7 @@ export async function purgeRetentionDue(pool: Pool, input: { studyId: string; ac
   const out: PurgeResult[] = [];
   for (const d of due) {
     out.push(
-      await purgeParticipantData(pool, {
+      await purgeOne(pool, {
         studyId: input.studyId,
         participant: d.participantId,
         reason: `retention period of ${retentionDays} days ended (participation ended ${d.endedAt.slice(0, 10)})`,

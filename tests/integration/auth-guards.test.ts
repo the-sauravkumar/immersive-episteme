@@ -17,6 +17,7 @@ import { signDemoSession } from "@/server/auth/demo-session";
 import {
   resolveLearningAccess,
   resolveParticipantSession,
+  resolveWithdrawalSession,
   type LearningAccessInput,
 } from "@/server/auth/learning-decision";
 import { signParticipantSession, verifyParticipantSession } from "@/server/auth/participant-session-token";
@@ -269,6 +270,16 @@ describe("participant session guard for /study steps (in-memory)", () => {
     const value = cookie === "VALID" ? await participantCookie("2d") : cookie;
     const d = await resolveParticipantSession(value, { secret: SECRET, lookup: memoryLookup(records) });
     expect(d).toEqual({ allowed: false, redirectTo });
+  });
+
+  it("keeps withdrawal open to a session staff excluded, and to no session that has ended", async () => {
+    const cookie = await participantCookie("2d");
+    const withdrawal = (records: StudySessionRecord[]) => resolveWithdrawalSession(cookie, { secret: SECRET, lookup: memoryLookup(records) });
+    expect(await withdrawal([{ ...running2d, excluded: true }])).toEqual({ allowed: true, participant: { participantId: PID, sessionId: SID, condition: "2d" } });
+    expect(await resolveParticipantSession(cookie, { secret: SECRET, lookup: memoryLookup([{ ...running2d, excluded: true }]) })).toEqual({ allowed: false, redirectTo: "/study/exit?reason=session-ended" });
+    for (const ended of [{ withdrawn: true }, { status: "completed" as const }, { status: "abandoned" as const }, { participantStatus: "withdrawn" as const }]) {
+      expect(await withdrawal([{ ...running2d, excluded: true, ...ended }])).toEqual({ allowed: false, redirectTo: "/study/exit?reason=session-ended" });
+    }
   });
 });
 

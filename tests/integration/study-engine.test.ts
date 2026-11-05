@@ -679,13 +679,37 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       const ended = [...(await closeStaleSessions(t.pool, waiting.study.id)), ...(await closeStaleSessions(t.pool, lapsed.study.id)), ...(await closeStaleSessions(t.pool, study.id))];
       expect(ended.map((e) => [e.sessionId, e.status]).sort()).toEqual([[lapsed.s.sessionId, "completed"], [away.sessionId, "abandoned"]].sort());
       const closes = await one<{ closes_at: Date; missed_at: Date | null }>(t.pool, "SELECT closes_at, missed_at FROM delayed_test_schedule WHERE session_id = $1", [lapsed.s.sessionId]);
-      expect(closes.missed_at).not.toBeNull();
+      expect(closes.missed_at).toBeNull();
       expect(await one(t.pool, "SELECT status::text AS status, completed_at FROM study_sessions WHERE id = $1", [lapsed.s.sessionId])).toEqual({ status: "completed", completed_at: closes.closes_at });
       expect((await state(away.sessionId)).status).toBe("abandoned");
       expect((await state(waiting.s.sessionId)).status).toBe("in_progress");
       expect((await state(here.sessionId)).status).toBe("in_progress");
       expect(await closeStaleSessions(t.pool, study.id)).toEqual([]);
       await expect(returnForDelayedTest(t.pool, { studyCode: lapsed.study.slug, participantCode: (await state(lapsed.s.sessionId)).participantCode })).rejects.toMatchObject({ code: "session_closed" });
+    });
+
+    it("never creates or moves a delayed schedule when ending sessions by timing, and times the window from the last immediate step", async () => {
+      const { study, s } = await atDelayedTest();
+      await t.pool.query("UPDATE study_sessions SET started_at = now() - interval '11 days', last_activity_at = now() - interval '10 days' WHERE id = $1", [s.sessionId]);
+      expect(await closeStaleSessions(t.pool, study.id)).toEqual([]);
+      expect(await closeStaleSessions(t.pool, study.id)).toEqual([]);
+      expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM delayed_test_schedule WHERE session_id = $1", [s.sessionId])).n).toBe(0);
+      expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM audit_log WHERE entity_id = $1 AND action = 'study.delayed_test_scheduled'", [s.sessionId])).n).toBe(0);
+      expect((await state(s.sessionId)).status).toBe("in_progress");
+
+      expect(await position(s.sessionId)).toMatchObject({ step: "delayed_test" });
+      const timed = await one<{ opens: boolean; closes: boolean }>(
+        t.pool,
+        `SELECT d.opens_at = e.at + interval '6 days' AS opens, d.closes_at = e.at + interval '14 days' AS closes
+           FROM delayed_test_schedule d,
+                (SELECT date_trunc('milliseconds', max(occurred_at)) AS at FROM audit_log WHERE entity_id = $1 AND action = 'study.step_completed' AND after->>'step' <> 'delayed_test') e
+          WHERE d.session_id = $1`,
+        [s.sessionId],
+      );
+      expect(timed).toEqual({ opens: true, closes: true });
+      const before = await one(t.pool, "SELECT opens_at, due_at, closes_at, missed_at FROM delayed_test_schedule WHERE session_id = $1", [s.sessionId]);
+      expect(await closeStaleSessions(t.pool, study.id)).toEqual([]);
+      expect(await one(t.pool, "SELECT opens_at, due_at, closes_at, missed_at FROM delayed_test_schedule WHERE session_id = $1", [s.sessionId])).toEqual(before);
     });
   });
 
