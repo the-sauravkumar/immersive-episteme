@@ -83,6 +83,7 @@ const eslintConfig = defineConfig([
     "content/**",
     "docs/**",
     "tools/walkthrough-lab/*.cjs",
+    ".claude/**",
   ]),
 ]);
 

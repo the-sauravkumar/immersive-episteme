@@ -3,7 +3,7 @@ import type { SubstanceLook } from "@/features/process/domain/substance-look";
 import { foldedPile } from "../domain/cloth-surface";
 import { fittedSurfaceSteps, flatLevel, heapHeight, levelInVessel, meanWallRadius, moundHeight, pasteHeight, surfaceShade, valueNoise, wallFilm, type HeapShape, type HeightAt, type SurfaceGrid, type SurfaceShading } from "../domain/fill-surface";
 import { pileFormOf, type PileForm } from "../domain/pile-form";
-import { packingSteps, piecesNearTop, rotateYXZ, worldSpheresOf, type PieceSphere, type PlacedPiece } from "../domain/pile-packing";
+import { packingSteps, piecesNearTop, rotateYXZ, seededRandom, worldSpheresOf, type PieceSphere, type PlacedPiece } from "../domain/pile-packing";
 import { firstHit, makeVesselProbe, vertexOutsideVessel, VESSEL_TUCK_METRES, type VesselProbe } from "../domain/mesh-probe";
 import type { FillAudit, CheckedSphere } from "../domain/scene-check";
 import { measuringSteps, wallRadius, widestWallRadius, type VesselProfile } from "../domain/vessel-profile";
@@ -12,9 +12,9 @@ import type { WorkPacer } from "./work-pacer";
 import { hasCakePieces, isLumpCrystal, PASTE_FORMS, pasteThicknessOf, POWDER_FORMS, powderGrainOf, type PowderGrain } from "../domain/substance-body";
 import { scatterSteps, type ScatterKind } from "../domain/surface-scatter";
 import { alumLump, crumb, crystalGrain, curledShaving, grainsInTurn, grit, indigoCake, woodFlake } from "./fill-grains";
-import { blueprintsFrom, isPileFill, pileRecipe, type PileRecipe } from "./fill-pieces";
-import type { PieceShape } from "./piece-mesh";
-import { cakeMaterial, crystalMaterial, filmMaterial, liquidMaterial, pileBedMaterial, pileMaterial, substanceMaterial } from "./substance-materials";
+import { blueprintsFrom, isPileFill, pileRecipe, type PileRecipe, type TonedPileRecipe } from "./fill-pieces";
+import type { PieceShape, Tone } from "./piece-mesh";
+import { cakeMaterial, crystalMaterial, displayAlbedo, filmMaterial, liquidMaterial, pileBedMaterial, pileMaterial, substanceMaterial } from "./substance-materials";
 
 const LIQUID_FRACTION = 0.76;
 const FILM_INSET_METRES = 0.0007;
@@ -382,7 +382,7 @@ async function addCrystalLumps(library: MaterialLibrary, parent: THREE.Object3D,
 }
 
 interface PackedPile {
-  readonly recipe: PileRecipe;
+  readonly recipe: TonedPileRecipe;
   readonly placed: readonly PlacedPiece[];
   readonly world: readonly (readonly PieceSphere[])[];
   readonly seen: readonly boolean[];
@@ -393,7 +393,7 @@ const bedHeightOf = (profile: VesselProfile, recipe: PileRecipe) => {
   return moundHeight(levelInVessel(profile, recipe.bedShare ?? PILE_BED_FRACTION), depth * (recipe.bedHeap ?? 0), depth * PILE_BED_GRAIN);
 };
 
-function pileRecipeOf(library: MaterialLibrary, form: PileForm): Promise<PileRecipe> {
+function pileRecipeOf(library: MaterialLibrary, form: PileForm): Promise<TonedPileRecipe> {
   return library.shared(`recipe:${form}`, async () => {
     const built = await pileRecipe(library.pacer, form);
     for (const variant of built.variants) {
@@ -436,9 +436,30 @@ function againstWall(profile: VesselProfile, spheres: readonly PieceSphere[]): b
   return spheres.some((sphere) => Math.hypot(sphere.x, sphere.z) + sphere.r + AUDIT_WALL_BAND_METRES > wallRadius(profile, Math.atan2(sphere.z, sphere.x), sphere.y));
 }
 
+const NO_TONE: Tone = [1, 1, 1];
+
+function spreadTonesOf(look: SubstanceLook): readonly Tone[] {
+  const base = displayAlbedo(look.renderHex);
+  return [NO_TONE, ...look.spread.map(({ hex }) => {
+    const shifted = displayAlbedo(hex);
+    return [shifted.r / base.r, shifted.g / base.g, shifted.b / base.b] as const;
+  })];
+}
+
+function spreadPicker(look: SubstanceLook, seed: number): (index: number) => number {
+  return (index) => {
+    let left = seededRandom(index * 7919 + seed)();
+    for (let k = 0; k < look.spread.length; k++) {
+      left -= look.spread[k]!.share;
+      if (left < 0) return k + 1;
+    }
+    return 0;
+  };
+}
+
 async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, form: PileForm, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
   const { recipe, placed, world, seen } = await packedPile(library, scanId, form, measured.profile);
-  const material = await pileMaterial(library, look);
+  const material = await pileMaterial(library, look, recipe.meanTone);
   const profile = measured.profile;
   const bedGeometry = await library.shared(`surface:bed:${scanId}:${form}`, async () => gridGeometry(await library.pacer.run(fittedSurfaceSteps(profile, levelInVessel(profile, recipe.bedShare ?? PILE_BED_FRACTION), 48, 192, bedHeightOf(profile, recipe), PILE_BED_INSET_METRES))));
   if (!recipe.bare) parent.add(stillMesh(bedGeometry, await pileBedMaterial(library, look)));
@@ -454,6 +475,8 @@ async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId:
   const geometryOf = (index: number): THREE.BufferGeometry => (seen[index] ? recipe.variants[placed[index]!.variant]!.geometry : recipe.variants[placed[index]!.variant]!.buried);
   const tint = new THREE.Color();
   const tones = recipe.tones;
+  const spreadTones = spreadTonesOf(look);
+  const spreadPick = spreadPicker(look, keySeed(look.key));
   recipe.variants.forEach((variant, variantIndex) => {
     for (const showing of [true, false]) {
       const own = placed.map((_, index) => index).filter((index) => placed[index]!.variant === variantIndex && seen[index] === showing);
@@ -461,7 +484,9 @@ async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId:
       const mesh = new THREE.InstancedMesh(showing ? variant.geometry : variant.buried, material, own.length);
       own.forEach((index, i) => {
         mesh.setMatrixAt(i, placedMatrix(placed[index]!));
-        if (tones) mesh.setColorAt(i, tint.setRGB(...tones[(index * 7 + (index >> 3)) % tones.length]!, THREE.LinearSRGBColorSpace));
+        const tone = tones ? tones[(index * 7 + (index >> 3)) % tones.length]! : NO_TONE;
+        const spread = spreadTones[spreadPick(index)]!;
+        mesh.setColorAt(i, tint.setRGB(tone[0] * spread[0], tone[1] * spread[1], tone[2] * spread[2], THREE.LinearSRGBColorSpace));
       });
       mesh.castShadow = showing;
       mesh.receiveShadow = true;
