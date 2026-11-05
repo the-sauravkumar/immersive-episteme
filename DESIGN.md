@@ -85,7 +85,7 @@ Strong colour in the world comes from the cloth and the dye. The interface has o
 | `--wall-ink` | `#101D42` | Number and name paint, Door 2 | 9.02 on plaster |
 | `--hall-paint` | `#7A1610` | Hall lettering | 5.91 on plaster |
 
-**Named extras:** Door 1 object cell ground `#D2C4B6`, the corner colour of the stills, so a still does not read as a pasted patch; danger hover `#C63A2E`; danger pressed and wall Sample Text `#8D1C14` (4.99 on plaster); raised hover `#21356A`; Door 1 product rail `#6B5238`; caption paint `#0A1636` (9.75 on plaster); table row hover `rgba(22,38,78,.55)`; dialog backdrop `rgba(6,10,20,.78)`.
+**Named extras:** Door 1 object cell ground `#D2C4B6`, the corner colour of the stills, so a still does not read as a pasted patch; danger hover `#C63A2E`; danger pressed and wall Sample Text `#8D1C14` (4.99 on plaster); raised hover `#21356A`; Door 1 product rail `#6B5238`; caption paint `#0A1636` (9.75 on plaster); table row hover `rgba(22,38,78,.55)`; dialog backdrop `rgba(6,10,20,.78)`. Google sign-in button, set by Google's branding guidelines and used nowhere else (DR-096): light `#FFFFFF` fill, `#747775` stroke, `#1F1F1F` text; dark `#131314` fill, `#8E918F` stroke, `#E3E3E3` text; logo `#4285F4`, `#34A853`, `#FBBC05`, `#EA4335`.
 
 **Scene constants:** the yard's dimensions, cloth line and eye height live in `src/features/walkthrough/domain/yard-plan.ts`; the painted-word colours of Door 2 in `src/features/walkthrough/infrastructure/solid-builders.ts`.
 
@@ -293,6 +293,8 @@ Shared by both doors, built from Section 6 components on a `--vat` page, with a 
 **Test items:** Identification (render, radio names). Stage Placement (labelled render, stage select). Sequence (cards with drag and arrows, keyboard usable). Cloth State (state images, stage selects). Attribution (product image, tradition radios). Concept Map (nodes on the raised surface, click two to link, post only). Layout Sketch (plaster canvas with undo and clear, same prompt for both doors). Transfer has no specimen: compose it from a text account plus select or sequence parts. Test images come from the shared files, never an in-scene Door 2 view or a Door 1 panel.
 
 **Staff screens** use the same type, colour and controls, packed tighter: Sign In (wall image beside form), Study Overview (four figures, funnel on cloth steps, export and parity actions), Staff Console (side nav, filter, participant table, status chips), Content Editor (one record with both doors' previews, plus same-words, same-assets and proxy chips), Admin Users (role selects, invite dialog). All demo records carry `Demo:`.
+
+**Staff sign-in methods (DR-096):** staff sign in with email and password, or with `Continue with Google` under the form when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set. A new Google account gets no role and sees `Your Account Is Waiting for an Administrator` until an administrator grants one in Admin Users, where it shows `Awaiting access`. A Google identity joins an existing account only when Google has verified the same email. Locked accounts are refused either way. No participant screen offers or mentions Google: participants never sign in. Creating the OAuth client: `docs/deploy/RUNBOOK.md` section 6.4.
 
 Do not use a `Leave This Station?` dialog as a nudge in the study: Door 1 has no equivalent.
 
