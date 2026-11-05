@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { liquidMarks, type SubstanceFill, type SubstanceLook, type Transparency } from "@/features/process/domain/substance-look";
 import { albedoForDisplay, type LinearRgb } from "../domain/lit-colour";
+import { powderGrainOf, type PowderGrain } from "../domain/substance-body";
 import { noteSurface, type MaterialLibrary, type ScanName } from "./material-library";
 
 const TRIPLANAR_VERTEX = [
@@ -63,7 +64,7 @@ const TRIPLANAR_NORMAL = [
   "tx = vec3(tx.xy * normalScale + triN.zy, abs(tx.z) * triN.x);",
   "ty = vec3(ty.xy * normalScale + triN.xz, abs(ty.z) * triN.y);",
   "tz = vec3(tz.xy * normalScale + triN.xy, abs(tz.z) * triN.z);",
-  "normal = normalize(vTriTurn * normalize(tx.zyx * triW.x + ty.xzy * triW.y + tz.xyz * triW.z));",
+  "normal = normalize(vTriTurn * normalize(tx.zyx * triW.x + ty.xzy * triW.y + tz.xyz * triW.z)) * faceDirection;",
 ].join("\n");
 
 export interface ProjectedScanOptions {
@@ -124,34 +125,47 @@ const FORM_SURFACES: Readonly<Record<ScannedFill, FormSurface>> = {
   flowers: { scan: "madderBark", tileMetres: 0.09, alongGrain: true, roughness: 1, leastRough: 0.82, normalScale: 1, contrast: 0.7, gain: [1.3, 1.35, 1.45], specular: 0.3, contact: 0.4, env: 0.35 },
   leaves: { scan: "leafBlade", alongGrain: true, roughness: 1, leastRough: 0.72, normalScale: 0.9, contrast: 0.8, gain: [1.22, 1.46, 1.6], specular: 0.4, contact: 0.4, env: 0.4 },
   fruit: { scan: "fruitSkin", roughness: 1, leastRough: 0.55, normalScale: 1.5, contrast: 0.85, gain: [1.5, 1.5, 1.5], specular: 0.55, contact: 0.5, env: 0.45 },
-  powder: { scan: "flour", roughness: 1, leastRough: 0.85, normalScale: 0.8, contrast: 0.4, gain: [0.84, 0.84, 0.84], specular: 0.25, contact: 0, env: 0.4 },
-  crystals: { scan: "flour", roughness: 1, leastRough: 0.85, normalScale: 0.7, contrast: 0.3, gain: [0.8, 0.8, 0.8], specular: 0.25, contact: 0, env: 0.4 },
-  paste: { scan: "wetMud", tileMetres: 1.25, roughness: 0.42, leastRough: 0.22, normalScale: 0.06, contrast: 0.05, gain: [0.92, 0.92, 0.92], specular: 0.8, contact: 0, env: 0.45 },
+  powder: { scan: "flour", roughness: 1, leastRough: 0.88, normalScale: 1, contrast: 0.45, gain: [0.8, 0.8, 0.8], specular: 0.2, contact: 0.5, env: 0.4 },
+  crystals: { scan: "flour", roughness: 1, leastRough: 0.88, normalScale: 1, contrast: 0.4, gain: [0.62, 0.62, 0.62], specular: 0.2, contact: 0.5, env: 0.4 },
+  paste: { scan: "wetMud", tileMetres: 0.42, roughness: 0.42, leastRough: 0.27, normalScale: 0.09, contrast: 0.08, gain: [0.92, 0.92, 0.92], specular: 0.85, contact: 0, env: 0.5 },
   cloth: { scan: "weave", roughness: 1, leastRough: 0.72, normalScale: 1.2, contrast: 0.5, gain: [0.86, 0.86, 0.86], specular: 0.4, contact: 0.4, env: 0.2 },
 };
 
 const SURFACE_OVERRIDES: readonly { readonly words: RegExp; readonly fill?: SubstanceFill; readonly apply: (form: FormSurface) => FormSurface }[] = [
   { words: /crazed|crease|seam/, fill: "dung", apply: (form) => ({ ...form, scan: "camelSkin", normalScale: 1.8, contrast: 1, gain: [1.25, 1.28, 1.38], contact: 0.62 }) },
   { words: /\bwet\b|\bfresh\b|\bmoist\b/, fill: "dung", apply: (form) => ({ ...form, scan: "wetMud", tileMetres: 0.65, leastRough: 0.34, normalScale: 0.5, contrast: 0.3, specular: 0.7 }) },
-  { words: /\bdust\b/, apply: (form) => ({ ...form, scan: "sawdust", tileMetres: 0.13, contrast: 0.62, normalScale: 1 }) },
-  { words: /^granular$/, apply: (form) => ({ ...form, scan: "sawdust", tileMetres: 0.055, contrast: 0.42, normalScale: 1.5 }) },
   { words: /fibrous/, apply: (form) => ({ ...form, scan: "bark", tileMetres: 0.09, contrast: 0.42, normalScale: 0.95, leastRough: 0.46, specular: 0.65 }) },
   { words: /sticky|glassy/, apply: (form) => ({ ...form, leastRough: 0.13, specular: 1 }) },
 ];
 
 const RUBBED_COPPER_HEX = "#6A4A36";
-const RUBBED_SHARE = 0.55;
+const RUBBED_SHARE = 0.32;
+const BRIGHTEST_BODY_ALBEDO = 0.98;
+
+const GRAIN_SURFACES: Readonly<Record<PowderGrain, Pick<FormSurface, "scan" | "tileMetres" | "normalScale" | "contrast"> & Partial<Pick<FormSurface, "contact">>>> = {
+  fine: { scan: "flour", tileMetres: 0.11, normalScale: 2.1, contrast: 0.7 },
+  dust: { scan: "flour", tileMetres: 0.14, normalScale: 2.2, contrast: 0.75 },
+  coarse: { scan: "sawdust", tileMetres: 0.085, normalScale: 1.25, contrast: 0.6 },
+  granular: { scan: "sawdust", tileMetres: 0.05, normalScale: 1.5, contrast: 0.42 },
+  fibrous: { scan: "sawdust", tileMetres: 0.2, normalScale: 1.1, contrast: 0.62, contact: 0 },
+  crystalline: { scan: "flour", tileMetres: 0.08, normalScale: 2.4, contrast: 0.7 },
+};
 
 function surfaceOf(look: SubstanceLook): FormSurface {
-  const form = FORM_SURFACES[look.fill as ScannedFill];
+  const base = FORM_SURFACES[look.fill as ScannedFill];
+  const form = look.fill === "powder" || look.fill === "crystals" ? { ...base, ...GRAIN_SURFACES[powderGrainOf(look)] } : base;
   return SURFACE_OVERRIDES.filter(({ words, fill }) => words.test(look.surface) && (fill === undefined || fill === look.fill)).reduce((current, { apply }) => apply(current), form);
 }
 
-const PILE_BED_DARKENING: Partial<Record<SubstanceFill, number>> = { dung: 0.58, roots: 0.32, fruit: 0.4 };
+const PILE_BED_DARKENING: Partial<Record<SubstanceFill, number>> = { dung: 0.58, roots: 0.32, fruit: 0.4, crystals: 0.42 };
 const GAP_DARKENING = 0.3;
+const CAKE_SURFACE: Pick<FormSurface, "scan" | "tileMetres" | "normalScale" | "contrast" | "leastRough" | "specular" | "contact"> = { scan: "flour", tileMetres: 0.09, normalScale: 0.8, contrast: 0.3, leastRough: 0.46, specular: 0.55, contact: 0.5 };
 
-async function scannedMaterial(library: MaterialLibrary, look: SubstanceLook, bed: boolean): Promise<THREE.MeshStandardMaterial> {
-  const form = surfaceOf(look);
+type ScannedRole = "body" | "bed" | "cake";
+
+async function scannedMaterial(library: MaterialLibrary, look: SubstanceLook, role: ScannedRole): Promise<THREE.MeshStandardMaterial> {
+  const form = role === "cake" ? { ...surfaceOf(look), ...CAKE_SURFACE } : surfaceOf(look);
+  const bed = role === "bed";
   const scan = await library.scan(form.scan);
   const material = new THREE.MeshStandardMaterial({
     map: scan.colour,
@@ -162,17 +176,68 @@ async function scannedMaterial(library: MaterialLibrary, look: SubstanceLook, be
     color: displayAlbedo(look.renderHex, form.gain),
     normalScale: new THREE.Vector2(form.normalScale, form.normalScale),
     envMapIntensity: form.env,
+    vertexColors: role === "body" && (look.fill === "paste" || look.fill === "powder" || look.fill === "crystals"),
     transparent: look.fill === "paste" && look.transparency === "translucent",
     opacity: look.fill === "paste" && look.transparency === "translucent" ? 0.93 : 1,
   });
-  if (bed && look.fill !== "crystals") material.color.multiplyScalar(PILE_BED_DARKENING[look.fill] ?? GAP_DARKENING);
+  if (bed) material.color.multiplyScalar(PILE_BED_DARKENING[look.fill] ?? GAP_DARKENING);
+  if (look.fill === "paste" || look.fill === "powder" || look.fill === "crystals") material.color.multiplyScalar(Math.min(1, BRIGHTEST_BODY_ALBEDO / Math.max(material.color.r, material.color.g, material.color.b)));
   const perMetre = 1 / (form.tileMetres ?? scan.tileMetres);
-  const rubbed = /coppery/.test(look.surface);
+  const rubbed = role === "cake" && /coppery/.test(look.surface);
   return noteSurface(projectScan(material, perMetre, form.contrast, form.leastRough, { specular: form.specular, contact: bed ? 0 : form.contact, rubbed: rubbed ? RUBBED_SHARE : 0, rubbedColour: rubbed ? displayAlbedo(RUBBED_COPPER_HEX) : undefined }), { label: `substance ${look.key}`, kind: "model", perMetre, openWork: !bed && look.fill !== "powder" && look.fill !== "paste" });
 }
 
 export function substanceMaterial(library: MaterialLibrary, look: SubstanceLook): Promise<THREE.MeshStandardMaterial> {
-  return library.shared(`substance:${look.key}`, () => scannedMaterial(library, look, false));
+  return library.shared(`substance:${look.key}`, () => scannedMaterial(library, look, "body"));
+}
+
+export function cakeMaterial(library: MaterialLibrary, look: SubstanceLook): Promise<THREE.MeshStandardMaterial> {
+  return library.shared(`cake:${look.key}`, () => scannedMaterial(library, look, "cake"));
+}
+
+const FILM_VERTEX = ["#include <begin_vertex>", "vFilmShare = filmShare;"].join("\n");
+
+const FILM_ALPHA = [
+  "vec3 filmAt = vTriPosition * triPerMetre * filmCloudScale;",
+  "float filmCloud = dot(textureLod(map, vec2(filmAt.x + filmAt.z, filmAt.y * filmStretch), 2.0).rgb, vec3(0.33)) / max(dot(textureLod(map, vec2(0.5), 12.0).rgb, vec3(0.33)), 0.02);",
+  "float filmBody = pow(1.0 - vFilmShare, filmFalloff);",
+  "float filmCover = filmBody * 1.5 + (filmCloud - 1.0) * filmCloudWeight + (triLuminance - 1.0) * filmGrainWeight - 0.2;",
+  "diffuseColor.a *= smoothstep(0.0, filmEdge, filmCover) * (1.0 - smoothstep(0.92, 1.0, vFilmShare));",
+  "#include <opaque_fragment>",
+].join("\n");
+
+export interface FilmLook {
+  readonly stretch: number;
+  readonly falloff: number;
+  readonly cloudWeight: number;
+  readonly grainWeight: number;
+  readonly edge: number;
+}
+
+export function filmMaterial(library: MaterialLibrary, look: SubstanceLook, film: FilmLook): Promise<THREE.MeshStandardMaterial> {
+  return library.shared(`film:${look.key}`, async () => {
+    const material = await scannedMaterial(library, look, "body");
+    material.transparent = true;
+    material.opacity = 1;
+    material.depthWrite = false;
+    material.polygonOffset = true;
+    material.polygonOffsetFactor = -1;
+    material.polygonOffsetUnits = -2;
+    const projected = material.onBeforeCompile;
+    material.onBeforeCompile = (shader, renderer) => {
+      projected(shader, renderer);
+      shader.uniforms.filmStretch = { value: film.stretch };
+      shader.uniforms.filmFalloff = { value: film.falloff };
+      shader.uniforms.filmCloudWeight = { value: film.cloudWeight };
+      shader.uniforms.filmGrainWeight = { value: film.grainWeight };
+      shader.uniforms.filmEdge = { value: film.edge };
+      shader.uniforms.filmCloudScale = { value: 0.11 };
+      shader.vertexShader = `attribute float filmShare;\nvarying float vFilmShare;\n${shader.vertexShader.replace("#include <begin_vertex>", FILM_VERTEX)}`;
+      shader.fragmentShader = `varying float vFilmShare;\nuniform float filmStretch;\nuniform float filmFalloff;\nuniform float filmCloudWeight;\nuniform float filmGrainWeight;\nuniform float filmEdge;\nuniform float filmCloudScale;\n${shader.fragmentShader.replace("#include <opaque_fragment>", FILM_ALPHA)}`;
+    };
+    material.customProgramCacheKey = () => "projected-scan-film";
+    return material;
+  });
 }
 
 const GRAIN_LUMA = "vec3(0.2126, 0.7152, 0.0722)";
@@ -221,7 +286,7 @@ export function pileMaterial(library: MaterialLibrary, look: SubstanceLook): Pro
   return library.shared(`pile:${look.key}`, async () => {
     const form = surfaceOf(look);
     if (!form.alongGrain) {
-      const material = await scannedMaterial(library, look, false);
+      const material = await scannedMaterial(library, look, "body");
       material.vertexColors = true;
       return material;
     }
@@ -245,7 +310,7 @@ export function pileMaterial(library: MaterialLibrary, look: SubstanceLook): Pro
 }
 
 export function pileBedMaterial(library: MaterialLibrary, look: SubstanceLook): Promise<THREE.MeshStandardMaterial> {
-  return library.shared(`pile-bed:${look.key}`, () => scannedMaterial(library, look, true));
+  return library.shared(`pile-bed:${look.key}`, () => scannedMaterial(library, look, "bed"));
 }
 
 const ABSORPTION_PER_METRE: Readonly<Record<Transparency, number>> = { clear: 0.2, translucent: 26, opaque: 400 };
@@ -349,28 +414,75 @@ export function liquidBodyMaterial(library: MaterialLibrary, look: SubstanceLook
   );
 }
 
-const GLASS_ALPHA = [
-  "float glassGrazing = pow(1.0 - saturate(dot(normalize(vViewPosition), normal)), 3.0);",
-  "float glassGleam = dot(reflectedLight.directSpecular + reflectedLight.indirectSpecular, vec3(0.33));",
-  "diffuseColor.a = clamp(diffuseColor.a + glassGrazing * 0.6 + glassGleam, 0.0, 1.0);",
+const CRYSTAL_VERTEX = [
+  "#include <begin_vertex>",
+  "vCrystalAt = position;",
+  "vCrystalNormal = normal;",
+  "#ifdef USE_INSTANCING",
+  "vCrystalSeed = instanceMatrix[3].xyz * 61.0;",
+  "vCrystalEye = (inverse(modelViewMatrix * instanceMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - position;",
+  "#else",
+  "vCrystalSeed = vec3(0.0);",
+  "vCrystalEye = (inverse(modelViewMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - position;",
+  "#endif",
+].join("\n");
+
+const CRYSTAL_VARYINGS = ["varying vec3 vCrystalAt;", "varying vec3 vCrystalNormal;", "varying vec3 vCrystalSeed;", "varying vec3 vCrystalEye;"].join("\n");
+
+const CRYSTAL_SHAPES = [
+  CRYSTAL_VARYINGS,
+  "float crystalAlpha = 1.0;",
+  "float crystalHash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }",
+  "float crystalNoise(vec3 p) { vec3 i = floor(p); vec3 f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(mix(crystalHash(i), crystalHash(i + vec3(1.0, 0.0, 0.0)), f.x), mix(crystalHash(i + vec3(0.0, 1.0, 0.0)), crystalHash(i + vec3(1.0, 1.0, 0.0)), f.x), f.y), mix(mix(crystalHash(i + vec3(0.0, 0.0, 1.0)), crystalHash(i + vec3(1.0, 0.0, 1.0)), f.x), mix(crystalHash(i + vec3(0.0, 1.0, 1.0)), crystalHash(i + vec3(1.0, 1.0, 1.0)), f.x), f.y), f.z); }",
+  "float crystalFeather(vec3 p) { float sheet = 1.0 - abs(2.0 * crystalNoise(p) - 1.0); return pow(sheet, 14.0) * smoothstep(0.35, 0.8, crystalNoise(p * 0.42 + 5.0)); }",
+].join("\n");
+
+const CRYSTAL_COLOUR = [
+  "#include <color_fragment>",
+  "vec3 crystalRay = normalize(-normalize(vCrystalEye) - normalize(vCrystalNormal) * 0.7);",
+  "float crystalVeil = 0.0;",
+  "float crystalCloud = 0.0;",
+  "for (int i = 0; i < 4; i++) {",
+  "  vec3 p = (vCrystalAt + crystalRay * (float(i) + 0.4) * 0.0032) * 210.0 + vCrystalSeed;",
+  "  crystalVeil += crystalFeather(p) * (1.0 - float(i) * 0.14);",
+  "  crystalCloud += crystalNoise(p * 0.3 + 9.0);",
+  "}",
+  "crystalCloud *= 0.25;",
+  "float crystalMilk = clamp(0.04 + 0.5 * smoothstep(0.4, 0.74, crystalCloud) + 1.1 * crystalVeil, 0.0, 1.0);",
+  "diffuseColor.rgb = mix(diffuseColor.rgb * vec3(0.5, 0.49, 0.46), diffuseColor.rgb, crystalMilk);",
+  "crystalAlpha = mix(0.34, 0.94, crystalMilk);",
+  "vec3 crystalGlow = diffuseColor.rgb * (0.16 + 0.34 * crystalMilk);",
+].join("\n");
+
+const CRYSTAL_EMISSIVE = "#include <emissivemap_fragment>\ntotalEmissiveRadiance += crystalGlow;";
+
+const CRYSTAL_ROUGH = "#include <roughnessmap_fragment>\nroughnessFactor = mix(0.07, 0.52, smoothstep(0.42, 0.74, crystalNoise(vCrystalAt * 120.0 + vCrystalSeed.zxy)));";
+
+const CRYSTAL_ALPHA = [
+  "float crystalGrazing = pow(1.0 - saturate(abs(dot(normalize(vViewPosition), normal))), 3.0);",
+  "float crystalGleam = dot(reflectedLight.directSpecular + reflectedLight.indirectSpecular, vec3(0.33));",
+  "diffuseColor.a = clamp(crystalAlpha + crystalGrazing * 0.5 + crystalGleam, 0.0, 1.0);",
   "#include <opaque_fragment>",
 ].join("\n");
 
-const CLEAR_CRYSTAL_BODY = 0.34;
-const CLEAR_CRYSTAL_ALPHA = 0.3;
-
 export function crystalMaterial(library: MaterialLibrary, look: SubstanceLook): Promise<THREE.MeshStandardMaterial> {
   return library.shared(`crystal:${look.key}`, async () => {
-    const clear = look.transparency === "clear";
     const colour = displayAlbedo(look.renderHex);
-    if (clear) colour.multiplyScalar(CLEAR_CRYSTAL_BODY);
-    const material = new THREE.MeshStandardMaterial({ color: colour, roughness: clear ? 0.08 : 0.34, metalness: 0, envMapIntensity: clear ? 2 : 0.7, transparent: clear, opacity: clear ? CLEAR_CRYSTAL_ALPHA : 1, flatShading: true, side: clear ? THREE.DoubleSide : THREE.FrontSide });
+    if (look.transparency === "opaque") {
+      return noteSurface(new THREE.MeshStandardMaterial({ color: colour, roughness: 0.38, metalness: 0, envMapIntensity: 0.7, flatShading: true }), { label: `crystals ${look.key}`, kind: "smooth", realFacets: true, openWork: true });
+    }
+    colour.multiplyScalar(0.42);
+    const material = new THREE.MeshStandardMaterial({ color: colour, roughness: 0.2, metalness: 0, envMapIntensity: 0.95, transparent: true, depthWrite: true, side: THREE.DoubleSide });
     noteSurface(material, { label: `crystals ${look.key}`, kind: "smooth", realFacets: true, openWork: true });
-    if (!clear) return material;
     material.onBeforeCompile = (shader) => {
-      shader.fragmentShader = shader.fragmentShader.replace("#include <opaque_fragment>", GLASS_ALPHA);
+      shader.vertexShader = `${CRYSTAL_VARYINGS}\n${shader.vertexShader.replace("#include <begin_vertex>", CRYSTAL_VERTEX)}`;
+      shader.fragmentShader = `${CRYSTAL_SHAPES}\n${shader.fragmentShader
+        .replace("#include <color_fragment>", CRYSTAL_COLOUR)
+        .replace("#include <emissivemap_fragment>", CRYSTAL_EMISSIVE)
+        .replace("#include <roughnessmap_fragment>", CRYSTAL_ROUGH)
+        .replace("#include <opaque_fragment>", CRYSTAL_ALPHA)}`;
     };
-    material.customProgramCacheKey = () => "clear-crystal";
+    material.customProgramCacheKey = () => "milky-crystal";
     return material;
   });
 }

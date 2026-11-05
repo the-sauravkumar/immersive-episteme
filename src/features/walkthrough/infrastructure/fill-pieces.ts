@@ -1,16 +1,13 @@
 import * as THREE from "three";
-import { ConvexGeometry } from "three/examples/jsm/geometries/ConvexGeometry.js";
 import type { SubstanceFill } from "@/features/process/domain/substance-look";
 import type { PileForm } from "../domain/pile-form";
 import { seededRandom, type PileBlueprint } from "../domain/pile-packing";
 import { camelCluster, camelPellet, dungCake, dungLump } from "./piece-dung";
-import { coverWithSpheres, type PieceVariant, type Tone } from "./piece-mesh";
+import { coverWithSpheres, type PieceShape, type PieceVariant, type Tone } from "./piece-mesh";
 import { driedCalyx, driedFlake, driedFruit, dryLeaf } from "./piece-plants";
 import { chaySheaf, madderCrown, madderCutLength, madderRoot } from "./piece-roots";
 
-export type PileFill = Extract<SubstanceFill, "dung" | "roots" | "flowers" | "leaves" | "crystals" | "fruit">;
-
-export type { PieceVariant };
+export type PileFill = Extract<SubstanceFill, "dung" | "roots" | "flowers" | "leaves" | "fruit">;
 
 export interface PileRecipe {
   readonly variants: readonly PieceVariant[];
@@ -30,26 +27,9 @@ export interface PileRecipe {
   readonly tones?: readonly Tone[];
 }
 
-export const isPileFill = (fill: SubstanceFill): fill is PileFill => fill === "dung" || fill === "roots" || fill === "flowers" || fill === "leaves" || fill === "crystals" || fill === "fruit";
+export const isPileFill = (fill: SubstanceFill): fill is PileFill => fill === "dung" || fill === "roots" || fill === "flowers" || fill === "leaves" || fill === "fruit";
 
-function crystal(seed: number): PieceVariant {
-  const random = seededRandom(seed * 577 + 3);
-  const size = 0.0075 + random() * 0.0085;
-  const stretch = new THREE.Vector3(0.55 + random() * 0.9, 0.45 + random() * 0.6, 0.55 + random() * 0.9);
-  const corners = 9 + Math.floor(random() * 10);
-  const points = Array.from({ length: corners }, () => {
-    const theta = random() * Math.PI * 2;
-    const rise = random() * 2 - 1;
-    const flat = Math.sqrt(1 - rise * rise);
-    const reach = 0.72 + random() * 0.28;
-    return new THREE.Vector3(Math.cos(theta) * flat, rise, Math.sin(theta) * flat).multiplyScalar(reach).multiply(stretch).multiplyScalar(size);
-  });
-  for (const axis of [new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)]) points.push(axis.multiply(stretch).multiplyScalar(size * 0.42));
-  const geometry = new ConvexGeometry(points);
-  return { geometry, buried: geometry, spheres: coverWithSpheres(geometry, [[0, 0, 0]]) };
-}
-
-function blueprintsFrom(variants: readonly PieceVariant[], count: number, seed: number, low: number, high: number, shares?: readonly number[]): PileBlueprint[] {
+export function blueprintsFrom(variants: readonly PieceShape[], count: number, seed: number, low: number, high: number, shares?: readonly number[]): PileBlueprint[] {
   const random = seededRandom(seed);
   const total = shares?.reduce((sum, share) => sum + share, 0) ?? 0;
   const pickVariant = (i: number): number => {
@@ -129,10 +109,6 @@ export async function pileRecipe(form: Exclude<PileForm, "wet-dung">): Promise<P
     case "dried-fruit": {
       const variants = await builtInTurn([() => driedFruit(1, 0.031, 1.72, false, false), () => driedFruit(2, 0.028, 1.46, false, false), () => driedFruit(3, 0.034, 1.95, true, false), () => driedFruit(4, 0.029, 1.6, true, false), () => driedFruit(5, 0.03, 1.84, false, true), () => driedFruit(6, 0.026, 1.28, false, false), () => driedFruit(7, 0.033, 2.05, true, true)]);
       return { variants, blueprints: blueprintsFrom(variants, 700, 30, 0.84, 1.16), candidates: 50, maxTilt: 0.7, anyTumble: false, spins: true, seed: 110, fillsTo: 0.9, wallMargin: 0.003, leansOnOne: true, bedShare: 0.2, bedHeap: 0.1, crown: 0.03, seenDepth: 0.018, tones: FRUIT_TONES };
-    }
-    case "crystals": {
-      const variants = await builtInTurn(Array.from({ length: 9 }, (_, i) => () => crystal(i + 1)));
-      return { variants, blueprints: blueprintsFrom(variants, 340, 25, 0.5, 1.45), candidates: 40, maxTilt: 0.5, anyTumble: true, seed: 105, fillsTo: 0.6 };
     }
   }
 }
