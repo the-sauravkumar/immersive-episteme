@@ -1,17 +1,17 @@
 import * as THREE from "three";
 import { catalogueModel } from "@/features/process/domain/asset-catalogue";
 import { clothBodyBoxes, type ClothSurface } from "../domain/cloth-surface";
-import { FAR_WALL_Z, GAP_WIDTH, CLOTH_LINE_X, NEXT_YARD_OFFSET, RAIL_HEIGHT, WALL_HEIGHT, WORK_FLOOR_Y, YARD_FRONT_Z, YARD_HALF_WIDTH, type PaintedWords, type YardPlan } from "../domain/yard-plan";
+import { FAR_WALL_Z, GAP_WIDTH, CLOTH_LINE_X, NEXT_YARD_OFFSET, RAIL_HEIGHT, TIE_BOARD_THICKNESS, WALL_HEIGHT, WORK_FLOOR_Y, YARD_FRONT_Z, YARD_HALF_WIDTH, type PaintedWords, type YardPlan } from "../domain/yard-plan";
 import type { SubstanceLook } from "@/features/process/domain/substance-look";
 import { makeVesselProbe, vertexOutsideVessel, type VesselProbe } from "../domain/mesh-probe";
 import type { CheckedSolid, ClothMesh, FillAudit, SolidField, SolidRole } from "../domain/scene-check";
 import type { Box, Vec3 } from "../domain/geometry";
-import type { MaterialLibrary } from "./material-library";
+import { dipInBath, type MaterialLibrary } from "./material-library";
 import { buildBrushAndKalam, buildCarvingChisels, buildWashingPaddle } from "./built-tools";
-import { paintCurved, paintWords, pole, softBox, softBoxGeometry } from "./solid-builders";
+import { grainAlongHeight, paintCurved, paintWords, pole, softBox, softBoxGeometry } from "./solid-builders";
 import { fillVessel, measureObject, trianglesOf } from "./substance-fill";
-import { substanceMaterial } from "./substance-materials";
-import { addTankLining, addWorkLiquid, copperMaterial, groundWithOpening, plasterMaterial, turnedRing } from "./work-structures";
+import { displayAlbedo, substanceMaterial } from "./substance-materials";
+import { addTankLining, addWorkLiquid, BATH_BODY_DEPTH_METRES, copperMaterial, groundWithOpening, plasterMaterial, turnedRing } from "./work-structures";
 
 export interface YardAudit {
   readonly solids: CheckedSolid[];
@@ -51,6 +51,7 @@ interface Registered {
   readonly object: THREE.Object3D;
   readonly restsOn: readonly string[];
   readonly standsOnY?: number;
+  readonly standsWithin?: Box;
 }
 
 export class YardKit {
@@ -75,9 +76,12 @@ async function clothMaterialFor(kit: YardKit, file: string, wet: boolean): Promi
 }
 
 const BENCH_CLEAR_WIDTH = 0.44;
+const BENCH_WIDTH = 0.5;
 const BENCH_TOP = 0.38;
 const BENCH_ITEM_GAP = 0.05;
 const BATH_TUCK_METRES = 0.005;
+const TRAY_BENCH_CLEARANCE = 0.02;
+const DOOR_PLANK_SHIFT = 0.37;
 
 function dryClothShadowMaterial(): THREE.MeshDepthMaterial {
   const material = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
@@ -118,7 +122,7 @@ async function buildTray(kit: YardKit, look: SubstanceLook | null): Promise<THRE
   const timber = await kit.library.surface("table", { normalScale: 1 });
   const group = new THREE.Group();
   const width = 0.8;
-  const depth = 0.56;
+  const depth = BENCH_WIDTH - TRAY_BENCH_CLEARANCE * 2;
   const wall = 0.03;
   softBox(group, [width, 0.014, depth], timber, [0, 0.007, 0], { radius: 0.004, tile: [0.55, 0.55] });
   for (const [x, z, sx, sz] of [
@@ -127,8 +131,9 @@ async function buildTray(kit: YardKit, look: SubstanceLook | null): Promise<THRE
     [-width / 2 + wall / 2, 0, wall, depth - wall * 2 - 0.002],
     [width / 2 - wall / 2, 0, wall, depth - wall * 2 - 0.002],
   ] as const) softBox(group, [sx, 0.075, sz], timber, [x, 0.0375, z], { radius: 0.006, tile: [0.55, 0.55] });
-  const pad = look ? await substanceMaterial(kit.library, look) : await kit.library.surface("weave");
+  const pad = await kit.library.surface("weave");
   softBox(group, [width - wall * 2 - 0.004, 0.034, depth - wall * 2 - 0.004], pad, [0, 0.0315, 0], { radius: 0.008, tile: [0.27, 0.27] });
+  if (look) softBox(group, [width - wall * 2 - 0.05, 0.004, depth - wall * 2 - 0.05], await substanceMaterial(kit.library, look), [0, 0.0505, 0], { radius: 0.0018, segments: 18, tile: [0.27, 0.27] });
   return group;
 }
 
@@ -204,9 +209,9 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   const registered: Registered[] = [];
   const extraSolids: CheckedSolid[] = [];
   const colliders: Box[] = [];
-  const register = (name: string, role: SolidRole, object: THREE.Object3D, restsOn: readonly string[] = [], standsOnY?: number) => {
+  const register = (name: string, role: SolidRole, object: THREE.Object3D, restsOn: readonly string[] = [], standsOnY?: number, standsWithin?: Box) => {
     object.userData.auditName = name;
-    registered.push({ name, role, object, restsOn, standsOnY });
+    registered.push({ name, role, object, restsOn, ...(standsOnY === undefined ? {} : { standsOnY }), ...(standsWithin ? { standsWithin } : {}) });
   };
   const blockedBy = (object: THREE.Object3D) => {
     object.updateWorldMatrix(true, true);
@@ -265,8 +270,8 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   const planks = new THREE.Group();
   group.add(planks);
   const doorTimber = await kit.library.surface("table", { normalScale: 1 });
-  for (let i = 0; i < 5; i++) softBox(planks, [0.242, 2.2, 0.05], doorTimber, [shed.doorX - 0.5 + i * 0.25, 1.1, shed.z + 0.09], { radius: 0.006, tile: [0.55, 0.55] });
-  register("shed door planks", "frame", planks, shedParts);
+  for (let i = 0; i < 5; i++) grainAlongHeight(softBox(planks, [0.242, 2.2, 0.05], doorTimber, [shed.doorX - 0.5 + i * 0.25, 1.1, shed.z + 0.09], { radius: 0.006, tile: [0.55, 0.55] }).geometry, i * DOOR_PLANK_SHIFT);
+  register("shed door planks", "frame", planks, [...shedParts, "lean-to"]);
   blockedBy(planks);
   register("shed door lintel", "structure", softBox(group, [1.66, 0.16, 0.2], timber, [shed.doorX, 2.42, shed.z + 0.08], { radius: 0.012, tile: [1.8, 1.8] }), [...shedParts, "shed door planks", "lean-to"]);
   const leanStart = shed.doorX - 1.2;
@@ -275,7 +280,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   for (let i = 0; i < 25; i++) pole(leanTo, [leanStart + i * 0.098, 3.18, shed.z + 0.03], [leanStart + i * 0.098, 2.48, shed.z + 2.3], 0.034, bamboo);
   for (const x of [leanStart, leanStart + 2.4]) blockedBy(pole(leanTo, [x, 0, shed.z + 2.2], [x, 2.5, shed.z + 2.2], 0.055, bamboo));
   pole(leanTo, [leanStart - 0.1, 2.47, shed.z + 2.2], [leanStart + 2.5, 2.47, shed.z + 2.2], 0.045, bamboo);
-  register("lean-to", "frame", leanTo, shedParts);
+  register("lean-to", "frame", leanTo, [...shedParts, "shed door planks"]);
 
   for (const [i, words] of plan.words.entries()) {
     await nextTask();
@@ -294,12 +299,12 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
     let probe: VesselProbe | null = null;
     fills.push({
       name: `bath ${look.key}`,
-      points,
-      pieces: [],
+      points: () => points,
       vertexOutside: (p) => {
         probe ??= makeVesselProbe(trianglesOf(walls, held.position), 0, 0, rimY, WORK_FLOOR_Y);
         return vertexOutsideVessel(probe, p, BATH_TUCK_METRES);
       },
+      pieces: () => [],
     });
   };
   if (work.type === "ring") {
@@ -377,14 +382,15 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
 
   const postRadius = 0.065;
   let framePart = 0;
-  const framePole = (from: readonly [number, number, number], to: readonly [number, number, number], radius: number) => {
+  const framePole = (from: readonly [number, number, number], to: readonly [number, number, number], radius: number, joins: readonly string[]) => {
     const part = pole(group, from, to, radius, bamboo);
-    register(`frame part ${framePart++}`, "frame", part, ["cloth tie"]);
+    register(`frame part ${framePart++}`, "pole", part, joins);
     blockedBy(part);
   };
   for (const z of plan.rails) {
-    framePole([CLOTH_LINE_X - 1.15, RAIL_HEIGHT, z], [CLOTH_LINE_X + 1.15, RAIL_HEIGHT, z], 0.05);
-    for (const a of [-1, 1]) framePole([CLOTH_LINE_X + a * 1.15, 0, z], [CLOTH_LINE_X + a * 1.15, RAIL_HEIGHT + 0.3, z], postRadius);
+    const first = framePart;
+    framePole([CLOTH_LINE_X - 1.15, RAIL_HEIGHT, z], [CLOTH_LINE_X + 1.15, RAIL_HEIGHT, z], 0.05, [`frame part ${first + 1}`, `frame part ${first + 2}`]);
+    for (const a of [-1, 1]) framePole([CLOTH_LINE_X + a * 1.15, 0, z], [CLOTH_LINE_X + a * 1.15, RAIL_HEIGHT + 0.3, z], postRadius, [`frame part ${first}`]);
   }
   const railsForCheck = plan.rails;
   fields.push({
@@ -400,7 +406,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   });
   if (plan.tie) {
     const tieTimber = await kit.library.surface("table", { normalScale: 0.9 });
-    const tie = softBox(group, [0.05, 0.22, plan.tie.z1 - plan.tie.z0], tieTimber, [plan.tie.x, plan.tie.y, (plan.tie.z0 + plan.tie.z1) / 2], { radius: 0.008, tile: [0.55, 0.55] });
+    const tie = softBox(group, [TIE_BOARD_THICKNESS, 0.22, plan.tie.z1 - plan.tie.z0], tieTimber, [plan.tie.x, plan.tie.y, (plan.tie.z0 + plan.tie.z1) / 2], { radius: 0.008, tile: [0.55, 0.55] });
     register("cloth tie", "frame", tie);
     blockedBy(tie);
   }
@@ -426,7 +432,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
 
   for (const [itemIndex, placed] of plan.items.entries()) {
     await nextTask();
-    const plank = softBox(group, [0.5, 0.1, placed.benchLength], timber, [placed.x, 0.33, placed.z], { radius: 0.012, tile: [1.8, 1.8] });
+    const plank = softBox(group, [BENCH_WIDTH, 0.1, placed.benchLength], timber, [placed.x, 0.33, placed.z], { radius: 0.012, tile: [1.8, 1.8] });
     const name = `bench ${placed.item.key}`;
     const looks: readonly (SubstanceLook | null)[] = placed.looks.length > 0 ? placed.looks : [null];
     const itemNames = looks.map((_, i) => `item ${placed.item.key} ${i}`);
@@ -444,7 +450,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
     models.forEach(({ object, fills: held }, i) => {
       if (models.length > 1) object.position.z += cursor + depths[i]! / 2 - placed.z;
       cursor += depths[i]! + BENCH_ITEM_GAP;
-      register(itemNames[i]!, "object", object, [name, `${name} leg 0`, `${name} leg 1`], BENCH_TOP);
+      register(itemNames[i]!, "object", object, [name, `${name} leg 0`, `${name} leg 1`], BENCH_TOP, { min: [placed.x - BENCH_WIDTH / 2, 0, placed.z - placed.benchLength / 2], max: [placed.x + BENCH_WIDTH / 2, 1, placed.z + placed.benchLength / 2] });
       blockedBy(object);
       fills.push(...held);
     });
@@ -472,13 +478,25 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
     const postA = pole(group, [textile.x - half, 0, textile.z], [textile.x - half, 4.72, textile.z], 0.06, bamboo);
     const postB = pole(group, [textile.x + half, 0, textile.z], [textile.x + half, 4.72, textile.z], 0.06, bamboo);
     const board = softBox(group, [half * 2 - 0.14, 0.26, 0.04], timber, [textile.x, 0.56, textile.z + 0.075], { radius: 0.008, tile: [1.8, 1.8] });
-    for (const [i, part] of [rail, postA, postB, board].entries()) register(`frame ${textile.x} ${textile.z} ${i}`, "frame", part);
+    const frameName = (part: number) => `frame ${textile.x} ${textile.z} ${part}`;
+    register(frameName(0), "pole", rail, [frameName(1), frameName(2)]);
+    register(frameName(1), "pole", postA, [frameName(0)]);
+    register(frameName(2), "pole", postB, [frameName(0)]);
+    register(frameName(3), "frame", board);
     for (const part of [postA, postB, board]) blockedBy(part);
     register(`textile paint ${textile.name} ${textile.x}`, "surface", paintWords(group, textile.label).mesh);
   }
 
   const before = await clothMaterialFor(kit, files.clothBefore, false);
   const after = await clothMaterialFor(kit, files.clothAfter, files.wetAfter);
+  if ((work.type === "ring" || work.type === "tank") && plan.workLiquid) {
+    const seesThrough = plan.workLiquid.transparency === "clear";
+    const bath = { level: work.level, bodyDepth: seesThrough ? 0 : BATH_BODY_DEPTH_METRES, body: displayAlbedo(plan.workLiquid.renderHex) };
+    const earlierRepeat: readonly [number, number] = [before.map!.repeat.x, before.map!.repeat.y];
+    const joinAlong = plan.cloth[0]!.surface.endAlong;
+    dipInBath(before, { ...bath, earlier: null, earlierRepeat, joinAlong: null });
+    dipInBath(after, { ...bath, earlier: before.map, earlierRepeat, joinAlong });
+  }
   const clothMeshes: ClothMesh[] = [];
   for (const piece of plan.cloth) {
     await nextTask();
@@ -506,7 +524,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
           const box = solidBox(entry.object);
           const min: Vec3 = [box.min.x, entry.role === "hollow" ? Math.max(0, box.min.y) : box.min.y, box.min.z];
           const max: Vec3 = [box.max.x, box.max.y, box.max.z];
-          return { name: entry.name, role: entry.role, box: { min, max }, restsOn: entry.restsOn, planted: false, ...(entry.standsOnY === undefined ? {} : { standsOnY: entry.standsOnY }) };
+          return { name: entry.name, role: entry.role, box: { min, max }, restsOn: entry.restsOn, planted: false, ...(entry.standsOnY === undefined ? {} : { standsOnY: entry.standsOnY }), ...(entry.standsWithin ? { standsWithin: entry.standsWithin } : {}) };
         }),
         ...extraSolids,
       ],

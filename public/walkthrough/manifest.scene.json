@@ -1,396 +1,326 @@
 [
- {
-  "file": "public/walkthrough/tex/red_laterite_soil_stones",
-  "usedFor": "ground",
-  "holder": "Amal Kumar",
-  "sourcePage": "https://polyhaven.com/a/red_laterite_soil_stones",
-  "directUrl": "https://polyhaven.com/a/red_laterite_soil_stones",
-  "widthPx": 4096,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/large_red_bricks",
-  "usedFor": "boundary walls and bench legs",
-  "holder": "Rob Tuytel",
-  "sourcePage": "https://polyhaven.com/a/large_red_bricks",
-  "directUrl": "https://polyhaven.com/a/large_red_bricks",
-  "widthPx": 4096,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/painted_plaster_wall",
-  "usedFor": "shed walls, vat rim, course ground",
-  "holder": "Amal Kumar",
-  "sourcePage": "https://polyhaven.com/a/painted_plaster_wall",
-  "directUrl": "https://polyhaven.com/a/painted_plaster_wall",
-  "widthPx": 4096,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/weathered_brown_planks",
-  "usedFor": "benches, doors, frame ties",
-  "holder": "Dimitrios Savva, Rico Cilliers",
-  "sourcePage": "https://polyhaven.com/a/weathered_brown_planks",
-  "directUrl": "https://polyhaven.com/a/weathered_brown_planks",
-  "widthPx": 4096,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/wood_table_worn",
-  "usedFor": "printing table, block, tray",
-  "holder": "Dimitrios Savva, Rico Cilliers",
-  "sourcePage": "https://polyhaven.com/a/wood_table_worn",
-  "directUrl": "https://polyhaven.com/a/wood_table_worn",
-  "widthPx": 4096,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/rough_linen",
-  "usedFor": "cloth weave and raw cotton",
-  "holder": "colormass, Rico Cilliers",
-  "sourcePage": "https://polyhaven.com/a/rough_linen",
-  "directUrl": "https://polyhaven.com/a/rough_linen",
-  "widthPx": 4096,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/models/brass_pan_01",
-  "usedFor": "stand-in tool or material model",
-  "holder": "Rico Cilliers",
-  "sourcePage": "https://polyhaven.com/a/brass_pan_01",
-  "directUrl": "https://polyhaven.com/a/brass_pan_01",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/models/brass_pot_01",
-  "usedFor": "stand-in tool or material model",
-  "holder": "Rico Cilliers",
-  "sourcePage": "https://polyhaven.com/a/brass_pot_01",
-  "directUrl": "https://polyhaven.com/a/brass_pot_01",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/models/ceramic_pot",
-  "usedFor": "stand-in tool or material model",
-  "holder": "Aron Łyczek",
-  "sourcePage": "https://polyhaven.com/a/ceramic_pot",
-  "directUrl": "https://polyhaven.com/a/ceramic_pot",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/models/metal_jug",
-  "usedFor": "stand-in tool or material model",
-  "holder": "Anzor Lezhava",
-  "sourcePage": "https://polyhaven.com/a/metal_jug",
-  "directUrl": "https://polyhaven.com/a/metal_jug",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/models/planter_pot_clay",
-  "usedFor": "stand-in tool or material model",
-  "holder": "Amal Kumar",
-  "sourcePage": "https://polyhaven.com/a/planter_pot_clay",
-  "directUrl": "https://polyhaven.com/a/planter_pot_clay",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/models/wicker_basket_01",
-  "usedFor": "stand-in tool or material model",
-  "holder": "Kuutti Siitonen",
-  "sourcePage": "https://polyhaven.com/a/wicker_basket_01",
-  "directUrl": "https://polyhaven.com/a/wicker_basket_01",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/models/wooden_bowl_01",
-  "usedFor": "stand-in tool or material model",
-  "holder": "Oliver Harries",
-  "sourcePage": "https://polyhaven.com/a/wooden_bowl_01",
-  "directUrl": "https://polyhaven.com/a/wooden_bowl_01",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/models/wooden_bucket_01",
-  "usedFor": "stand-in tool or material model",
-  "holder": "James Ray Cock",
-  "sourcePage": "https://polyhaven.com/a/wooden_bucket_01",
-  "directUrl": "https://polyhaven.com/a/wooden_bucket_01",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/models/wooden_bucket_02",
-  "usedFor": "stand-in tool or material model",
-  "holder": "James Ray Cock",
-  "sourcePage": "https://polyhaven.com/a/wooden_bucket_02",
-  "directUrl": "https://polyhaven.com/a/wooden_bucket_02",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/models/wooden_crate_01",
-  "usedFor": "stand-in tool or material model",
-  "holder": "James Ray Cock",
-  "sourcePage": "https://polyhaven.com/a/wooden_crate_01",
-  "directUrl": "https://polyhaven.com/a/wooden_crate_01",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/models/wooden_cutting_board",
-  "usedFor": "stand-in tool or material model",
-  "holder": "Kuutti Siitonen",
-  "sourcePage": "https://polyhaven.com/a/wooden_cutting_board",
-  "directUrl": "https://polyhaven.com/a/wooden_cutting_board",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/sky",
-  "usedFor": "sky and image-based light",
-  "holder": "Greg Zaal",
-  "sourcePage": "https://polyhaven.com/a/kloofendal_43d_clear_puresky",
-  "directUrl": "https://polyhaven.com/a/kloofendal_43d_clear_puresky",
-  "widthPx": 8192,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/raw_cotton/diff.jpg",
-  "usedFor": "raw cotton colour map, recoloured from the Rough Linen colour map (same 2048 by 2052 pixels, luminance correlation 0.988 at ff53fad)",
-  "holder": "colormass, Rico Cilliers",
-  "sourcePage": "https://polyhaven.com/a/rough_linen",
-  "directUrl": "https://polyhaven.com/a/rough_linen",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/stills/objects/*.jpg",
-  "usedFor": "each material in its vessel, and each tool or vat, for Door 1 and the tests; file names are hashes so a test image does not name its answer",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 1800
- },
- {
-  "file": "public/walkthrough/stills/door1-first-panel.jpg",
-  "usedFor": "seen through Door 1 in the entrance stills; screenshot of the Door 1 practice panel, plain cotton only",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 3415
- },
- {
-  "file": "public/walkthrough/stills/entrance-closed.jpg",
-  "usedFor": "entrance with both doors shut",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 3840
- },
- {
-  "file": "public/walkthrough/stills/entrance-open1.jpg",
-  "usedFor": "entrance with Door 1 open",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 3840
- },
- {
-  "file": "public/walkthrough/stills/entrance-open2.jpg",
-  "usedFor": "entrance with Door 2 open",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 3840
- },
- {
-  "file": "public/walkthrough/stills/practice-view.jpg",
-  "usedFor": "seen through Door 2 in the entrance stills; the practice yard",
-  "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-  "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-  "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-  "licence": "CC0 1.0",
-  "permission": "none needed; every input is a CC0 row of this manifest",
-  "widthPx": 3840
- },
- {
-  "file": "public/walkthrough/fonts/Eczar-400-800.woff2",
-  "usedFor": "display type in both doors",
-  "holder": "The Eczar Project Authors",
-  "sourcePage": "public/walkthrough/fonts/Eczar-OFL.txt",
-  "directUrl": "public/walkthrough/fonts/Eczar-OFL.txt",
-  "licence": "SIL Open Font License 1.1",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/fonts/Eczar-OFL.txt",
-  "usedFor": "licence text of Eczar",
-  "holder": "The Eczar Project Authors",
-  "sourcePage": "public/walkthrough/fonts/Eczar-OFL.txt",
-  "directUrl": "public/walkthrough/fonts/Eczar-OFL.txt",
-  "licence": "SIL Open Font License 1.1",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/fonts/Mukta-400.woff2",
-  "usedFor": "text type in both doors",
-  "holder": "Girish Dalvi, Ek Type",
-  "sourcePage": "public/walkthrough/fonts/Mukta-OFL.txt",
-  "directUrl": "public/walkthrough/fonts/Mukta-OFL.txt",
-  "licence": "SIL Open Font License 1.1",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/fonts/Mukta-500.woff2",
-  "usedFor": "text type in both doors",
-  "holder": "Girish Dalvi, Ek Type",
-  "sourcePage": "public/walkthrough/fonts/Mukta-OFL.txt",
-  "directUrl": "public/walkthrough/fonts/Mukta-OFL.txt",
-  "licence": "SIL Open Font License 1.1",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/fonts/Mukta-600.woff2",
-  "usedFor": "text type in both doors",
-  "holder": "Girish Dalvi, Ek Type",
-  "sourcePage": "public/walkthrough/fonts/Mukta-OFL.txt",
-  "directUrl": "public/walkthrough/fonts/Mukta-OFL.txt",
-  "licence": "SIL Open Font License 1.1",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/fonts/Mukta-OFL.txt",
-  "usedFor": "licence text of Mukta",
-  "holder": "Girish Dalvi, Ek Type",
-  "sourcePage": "public/walkthrough/fonts/Mukta-OFL.txt",
-  "directUrl": "public/walkthrough/fonts/Mukta-OFL.txt",
-  "licence": "SIL Open Font License 1.1",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/bamboo_veneer",
-  "usedFor": "bamboo poles, kalam and brush handle",
-  "holder": "Jenelle van Heerden",
-  "sourcePage": "https://polyhaven.com/a/bamboo_veneer",
-  "directUrl": "https://polyhaven.com/a/bamboo_veneer",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/bark_willow",
-  "usedFor": "madder and chay roots, recoloured from its luminance",
-  "holder": "Dario Barresi, Dimitrios Savva",
-  "sourcePage": "https://polyhaven.com/a/bark_willow",
-  "directUrl": "https://polyhaven.com/a/bark_willow",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/brown_mud",
-  "usedFor": "wet pastes, recoloured from its luminance",
-  "holder": "Rob Tuytel",
-  "sourcePage": "https://polyhaven.com/a/brown_mud",
-  "directUrl": "https://polyhaven.com/a/brown_mud",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/brown_mud_dry",
-  "usedFor": "dung lumps and vat scum, recoloured from its luminance",
-  "holder": "Rob Tuytel",
-  "sourcePage": "https://polyhaven.com/a/brown_mud_dry",
-  "directUrl": "https://polyhaven.com/a/brown_mud_dry",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/dry_decay_leaves",
-  "usedFor": "dry flowers and leaves, recoloured from its luminance",
-  "holder": "Amal Kumar",
-  "sourcePage": "https://polyhaven.com/a/dry_decay_leaves",
-  "directUrl": "https://polyhaven.com/a/dry_decay_leaves",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/macro_flour",
-  "usedFor": "fine powders, recoloured from its luminance",
-  "holder": "Jenelle van Heerden, Dario Barresi",
-  "sourcePage": "https://polyhaven.com/a/macro_flour",
-  "directUrl": "https://polyhaven.com/a/macro_flour",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/metal_plate_02",
-  "usedFor": "carving chisel blades",
-  "holder": "Rob Tuytel",
-  "sourcePage": "https://polyhaven.com/a/metal_plate_02",
-  "directUrl": "https://polyhaven.com/a/metal_plate_02",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/Metal008",
-  "usedFor": "copper vessels",
-  "holder": "ambientCG",
-  "sourcePage": "https://ambientcg.com/a/Metal008",
-  "directUrl": "https://ambientcg.com/a/Metal008",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- },
- {
-  "file": "public/walkthrough/tex/wood_chips_003",
-  "usedFor": "sawdust and dusting agents, recoloured from its luminance",
-  "holder": "ambientCG",
-  "sourcePage": "https://ambientcg.com/a/WoodChips003",
-  "directUrl": "https://ambientcg.com/a/WoodChips003",
-  "widthPx": 2048,
-  "licence": "CC0 1.0",
-  "permission": "none needed"
- }
+  {
+    "file": "public/walkthrough/tex/red_laterite_soil_stones",
+    "usedFor": "ground",
+    "holder": "Amal Kumar",
+    "sourcePage": "https://polyhaven.com/a/red_laterite_soil_stones",
+    "directUrl": "https://polyhaven.com/a/red_laterite_soil_stones",
+    "widthPx": 4096,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/large_red_bricks",
+    "usedFor": "boundary walls and bench legs",
+    "holder": "Rob Tuytel",
+    "sourcePage": "https://polyhaven.com/a/large_red_bricks",
+    "directUrl": "https://polyhaven.com/a/large_red_bricks",
+    "widthPx": 4096,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/painted_plaster_wall",
+    "usedFor": "shed walls, vat rim, course ground",
+    "holder": "Amal Kumar",
+    "sourcePage": "https://polyhaven.com/a/painted_plaster_wall",
+    "directUrl": "https://polyhaven.com/a/painted_plaster_wall",
+    "widthPx": 4096,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/weathered_brown_planks",
+    "usedFor": "benches, doors, frame ties",
+    "holder": "Dimitrios Savva, Rico Cilliers",
+    "sourcePage": "https://polyhaven.com/a/weathered_brown_planks",
+    "directUrl": "https://polyhaven.com/a/weathered_brown_planks",
+    "widthPx": 4096,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/wood_table_worn",
+    "usedFor": "printing table, block, tray",
+    "holder": "Dimitrios Savva, Rico Cilliers",
+    "sourcePage": "https://polyhaven.com/a/wood_table_worn",
+    "directUrl": "https://polyhaven.com/a/wood_table_worn",
+    "widthPx": 4096,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/rough_linen",
+    "usedFor": "cloth weave and raw cotton",
+    "holder": "colormass, Rico Cilliers",
+    "sourcePage": "https://polyhaven.com/a/rough_linen",
+    "directUrl": "https://polyhaven.com/a/rough_linen",
+    "widthPx": 4096,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/models/planter_pot_clay",
+    "usedFor": "stand-in tool or material model",
+    "holder": "Amal Kumar",
+    "sourcePage": "https://polyhaven.com/a/planter_pot_clay",
+    "directUrl": "https://polyhaven.com/a/planter_pot_clay",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/models/wicker_basket_01",
+    "usedFor": "stand-in tool or material model",
+    "holder": "Kuutti Siitonen",
+    "sourcePage": "https://polyhaven.com/a/wicker_basket_01",
+    "directUrl": "https://polyhaven.com/a/wicker_basket_01",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/models/wooden_bowl_01",
+    "usedFor": "stand-in tool or material model",
+    "holder": "Oliver Harries",
+    "sourcePage": "https://polyhaven.com/a/wooden_bowl_01",
+    "directUrl": "https://polyhaven.com/a/wooden_bowl_01",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/models/wooden_crate_01",
+    "usedFor": "stand-in tool or material model",
+    "holder": "James Ray Cock",
+    "sourcePage": "https://polyhaven.com/a/wooden_crate_01",
+    "directUrl": "https://polyhaven.com/a/wooden_crate_01",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/sky",
+    "usedFor": "sky and image-based light",
+    "holder": "Greg Zaal",
+    "sourcePage": "https://polyhaven.com/a/kloofendal_43d_clear_puresky",
+    "directUrl": "https://polyhaven.com/a/kloofendal_43d_clear_puresky",
+    "widthPx": 8192,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/raw_cotton/diff.jpg",
+    "usedFor": "raw cotton colour map, recoloured from the Rough Linen colour map (same 2048 by 2052 pixels, luminance correlation 0.988 at ff53fad)",
+    "holder": "colormass, Rico Cilliers",
+    "sourcePage": "https://polyhaven.com/a/rough_linen",
+    "directUrl": "https://polyhaven.com/a/rough_linen",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/stills/objects/*.jpg",
+    "usedFor": "each material in its vessel, and each tool or vat, for Door 1 and the tests; file names are hashes so a test image does not name its answer",
+    "holder": "Rendered by this project from the CC0 scans listed in this manifest",
+    "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
+    "directUrl": "tools/walkthrough-lab/render-stills.cjs",
+    "licence": "CC0 1.0",
+    "permission": "none needed; every input is a CC0 row of this manifest",
+    "widthPx": 1800
+  },
+  {
+    "file": "public/walkthrough/stills/door1-first-panel.jpg",
+    "usedFor": "seen through Door 1 in the entrance stills; screenshot of the Door 1 practice panel, plain cotton only",
+    "holder": "Rendered by this project from the CC0 scans listed in this manifest",
+    "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
+    "directUrl": "tools/walkthrough-lab/render-stills.cjs",
+    "licence": "CC0 1.0",
+    "permission": "none needed; every input is a CC0 row of this manifest",
+    "widthPx": 3415
+  },
+  {
+    "file": "public/walkthrough/stills/entrance-closed.jpg",
+    "usedFor": "entrance with both doors shut",
+    "holder": "Rendered by this project from the CC0 scans listed in this manifest",
+    "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
+    "directUrl": "tools/walkthrough-lab/render-stills.cjs",
+    "licence": "CC0 1.0",
+    "permission": "none needed; every input is a CC0 row of this manifest",
+    "widthPx": 3840
+  },
+  {
+    "file": "public/walkthrough/stills/entrance-open1.jpg",
+    "usedFor": "entrance with Door 1 open",
+    "holder": "Rendered by this project from the CC0 scans listed in this manifest",
+    "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
+    "directUrl": "tools/walkthrough-lab/render-stills.cjs",
+    "licence": "CC0 1.0",
+    "permission": "none needed; every input is a CC0 row of this manifest",
+    "widthPx": 3840
+  },
+  {
+    "file": "public/walkthrough/stills/entrance-open2.jpg",
+    "usedFor": "entrance with Door 2 open",
+    "holder": "Rendered by this project from the CC0 scans listed in this manifest",
+    "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
+    "directUrl": "tools/walkthrough-lab/render-stills.cjs",
+    "licence": "CC0 1.0",
+    "permission": "none needed; every input is a CC0 row of this manifest",
+    "widthPx": 3840
+  },
+  {
+    "file": "public/walkthrough/stills/practice-view.jpg",
+    "usedFor": "seen through Door 2 in the entrance stills; the practice yard",
+    "holder": "Rendered by this project from the CC0 scans listed in this manifest",
+    "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
+    "directUrl": "tools/walkthrough-lab/render-stills.cjs",
+    "licence": "CC0 1.0",
+    "permission": "none needed; every input is a CC0 row of this manifest",
+    "widthPx": 3840
+  },
+  {
+    "file": "public/walkthrough/fonts/Eczar-400-800.woff2",
+    "usedFor": "display type in both doors",
+    "holder": "The Eczar Project Authors",
+    "sourcePage": "public/walkthrough/fonts/Eczar-OFL.txt",
+    "directUrl": "public/walkthrough/fonts/Eczar-OFL.txt",
+    "licence": "SIL Open Font License 1.1",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/fonts/Eczar-OFL.txt",
+    "usedFor": "licence text of Eczar",
+    "holder": "The Eczar Project Authors",
+    "sourcePage": "public/walkthrough/fonts/Eczar-OFL.txt",
+    "directUrl": "public/walkthrough/fonts/Eczar-OFL.txt",
+    "licence": "SIL Open Font License 1.1",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/fonts/Mukta-400.woff2",
+    "usedFor": "text type in both doors",
+    "holder": "Girish Dalvi, Ek Type",
+    "sourcePage": "public/walkthrough/fonts/Mukta-OFL.txt",
+    "directUrl": "public/walkthrough/fonts/Mukta-OFL.txt",
+    "licence": "SIL Open Font License 1.1",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/fonts/Mukta-500.woff2",
+    "usedFor": "text type in both doors",
+    "holder": "Girish Dalvi, Ek Type",
+    "sourcePage": "public/walkthrough/fonts/Mukta-OFL.txt",
+    "directUrl": "public/walkthrough/fonts/Mukta-OFL.txt",
+    "licence": "SIL Open Font License 1.1",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/fonts/Mukta-600.woff2",
+    "usedFor": "text type in both doors",
+    "holder": "Girish Dalvi, Ek Type",
+    "sourcePage": "public/walkthrough/fonts/Mukta-OFL.txt",
+    "directUrl": "public/walkthrough/fonts/Mukta-OFL.txt",
+    "licence": "SIL Open Font License 1.1",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/fonts/Mukta-OFL.txt",
+    "usedFor": "licence text of Mukta",
+    "holder": "Girish Dalvi, Ek Type",
+    "sourcePage": "public/walkthrough/fonts/Mukta-OFL.txt",
+    "directUrl": "public/walkthrough/fonts/Mukta-OFL.txt",
+    "licence": "SIL Open Font License 1.1",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/bamboo_veneer",
+    "usedFor": "bamboo poles, kalam and brush handle",
+    "holder": "Jenelle van Heerden",
+    "sourcePage": "https://polyhaven.com/a/bamboo_veneer",
+    "directUrl": "https://polyhaven.com/a/bamboo_veneer",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/bark_willow",
+    "usedFor": "madder and chay roots, recoloured from its luminance",
+    "holder": "Dario Barresi, Dimitrios Savva",
+    "sourcePage": "https://polyhaven.com/a/bark_willow",
+    "directUrl": "https://polyhaven.com/a/bark_willow",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/brown_mud",
+    "usedFor": "wet pastes, recoloured from its luminance",
+    "holder": "Rob Tuytel",
+    "sourcePage": "https://polyhaven.com/a/brown_mud",
+    "directUrl": "https://polyhaven.com/a/brown_mud",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/brown_mud_dry",
+    "usedFor": "dung lumps and vat scum, recoloured from its luminance",
+    "holder": "Rob Tuytel",
+    "sourcePage": "https://polyhaven.com/a/brown_mud_dry",
+    "directUrl": "https://polyhaven.com/a/brown_mud_dry",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/dry_decay_leaves",
+    "usedFor": "dry flowers and leaves, recoloured from its luminance",
+    "holder": "Amal Kumar",
+    "sourcePage": "https://polyhaven.com/a/dry_decay_leaves",
+    "directUrl": "https://polyhaven.com/a/dry_decay_leaves",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/macro_flour",
+    "usedFor": "fine powders, recoloured from its luminance",
+    "holder": "Jenelle van Heerden, Dario Barresi",
+    "sourcePage": "https://polyhaven.com/a/macro_flour",
+    "directUrl": "https://polyhaven.com/a/macro_flour",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/metal_plate_02",
+    "usedFor": "carving chisel blades",
+    "holder": "Rob Tuytel",
+    "sourcePage": "https://polyhaven.com/a/metal_plate_02",
+    "directUrl": "https://polyhaven.com/a/metal_plate_02",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/Metal008",
+    "usedFor": "copper vessels",
+    "holder": "ambientCG",
+    "sourcePage": "https://ambientcg.com/a/Metal008",
+    "directUrl": "https://ambientcg.com/a/Metal008",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/wood_chips_003",
+    "usedFor": "sawdust and dusting agents, recoloured from its luminance",
+    "holder": "ambientCG",
+    "sourcePage": "https://ambientcg.com/a/WoodChips003",
+    "directUrl": "https://ambientcg.com/a/WoodChips003",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  }
 ]

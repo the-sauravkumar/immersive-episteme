@@ -1,7 +1,7 @@
 import { PRODUCT_SENTENCE, PRODUCT_TITLE, FOLLOWED_CLOTH_LABEL, type ProductImage, type StageTemplate } from "@/features/process/domain/stage-template";
 import { settleCloth } from "./cloth-surface";
 import type { Vec3 } from "./geometry";
-import { buildYardPlan, CLOTH_COLUMNS, CLOTH_LINE_X, CLOTH_WIDTH, EYE_HEIGHT, foldAmount, heightFieldFor, RAIL_HEIGHT, YARD_FRONT_Z, YARD_HALF_WIDTH, type PaintedWords, type YardPlan, type YardStage } from "./yard-plan";
+import { buildYardPlan, CLOTH_COLUMNS, CLOTH_LINE_X, CLOTH_WIDTH, EYE_HEIGHT, foldAmount, heightFieldFor, RAIL_HEIGHT, TIE_BOARD_OFFSET, TIE_BOARD_THICKNESS, YARD_FRONT_Z, YARD_HALF_WIDTH, type PaintedWords, type YardPlan, type YardStage } from "./yard-plan";
 
 export interface PlacedTextile {
   readonly product: ProductImage;
@@ -107,7 +107,7 @@ export function buildHallPlan(followedClothRailZ: number): YardPlan {
     [CLOTH_LINE_X, 0.55, followedClothRailZ - 0.3],
   ];
   const surface = settleCloth({ points, width: CLOTH_WIDTH, metresPerRepeat: 3.46, fold: 0.03, foldFrequency: 2.6, step: 0.05, columns: CLOTH_COLUMNS, foldAmount, field });
-  const label: PaintedWords = { lines: [FOLLOWED_CLOTH_LABEL], at: [CLOTH_LINE_X - 1.2465, 1.3, followedClothRailZ + 0.925], facing: -Math.PI / 2, height: 0.1, align: "center", colour: "lime", weight: 700, family: "Eczar", pixelsPerMetre: 1500, wear: 0.6, lineHeight: 1.14 };
+  const label: PaintedWords = { lines: [FOLLOWED_CLOTH_LABEL], at: [CLOTH_LINE_X - TIE_BOARD_OFFSET - TIE_BOARD_THICKNESS / 2 - 0.0015, 1.3, followedClothRailZ + 0.925], facing: -Math.PI / 2, height: 0.1, align: "center", colour: "lime", weight: 700, family: "Eczar", pixelsPerMetre: 1500, wear: 0.6, lineHeight: 1.14 };
   const words = base.words.filter((word) => word.lines[0] !== "Cloth After This Stage" && word.lines[0] !== "");
   const pins: (readonly [number, number])[] = [];
   for (let z = followedClothRailZ + 3; z < YARD_FRONT_Z - 0.6; z += 2.2) {
@@ -119,7 +119,7 @@ export function buildHallPlan(followedClothRailZ: number): YardPlan {
     words: [...words, label],
     cloth: [{ name: "cloth-followed", state: "after", surface }],
     pins,
-    tie: { x: CLOTH_LINE_X - 1.22, z0: followedClothRailZ - 0.15, z1: followedClothRailZ + 2, y: 1.3 },
+    tie: { x: CLOTH_LINE_X - TIE_BOARD_OFFSET, z0: followedClothRailZ - 0.15, z1: followedClothRailZ + 2, y: 1.3 },
     standpoint: { from: [CLOTH_LINE_X - 5.4, EYE_HEIGHT, 10.5], to: [CLOTH_LINE_X + 3.4, 1.85, -1.5] },
     heightField: field,
   };

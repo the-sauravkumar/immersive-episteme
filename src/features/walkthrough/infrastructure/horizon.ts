@@ -2,6 +2,7 @@ import * as THREE from "three";
 
 const LAND_BELOW_THE_WELLS = -0.9;
 
+const HILL_REPEATS = 18;
 const SCRUB_COLOURS = ["#6f7a44", "#5e6b3c", "#818a52", "#49552f"];
 
 function scrubCanvas(): HTMLCanvasElement {
@@ -10,7 +11,7 @@ function scrubCanvas(): HTMLCanvasElement {
   canvas.height = 512;
   const context = canvas.getContext("2d")!;
   for (let bush = 0; bush < 120; bush++) {
-    const x = Math.random() * canvas.width;
+    const centre = Math.random() * canvas.width;
     const radius = canvas.height * (0.22 + Math.random() * 0.42);
     const y = canvas.height - radius * 0.45;
     for (let leaf = 0; leaf < radius * 46; leaf++) {
@@ -20,9 +21,13 @@ function scrubCanvas(): HTMLCanvasElement {
       if (leafY > canvas.height) continue;
       context.fillStyle = SCRUB_COLOURS[Math.floor(Math.random() * SCRUB_COLOURS.length)]!;
       context.globalAlpha = 0.5 + Math.random() * 0.5;
-      context.beginPath();
-      context.ellipse(x + Math.cos(angle) * reach * 1.3, leafY, 1 + Math.random() * 3, 1 + Math.random() * 2, Math.random() * 3, 0, 7);
-      context.fill();
+      const leafX = centre + Math.cos(angle) * reach * 1.3;
+      const [wide, tall, turn] = [1 + Math.random() * 3, 1 + Math.random() * 2, Math.random() * 3];
+      for (const wrap of [-canvas.width, 0, canvas.width]) {
+        context.beginPath();
+        context.ellipse(leafX + wrap, leafY, wide, tall, turn, 0, 7);
+        context.fill();
+      }
     }
   }
   return canvas;
@@ -43,7 +48,8 @@ export function addHorizon(scene: THREE.Scene, earth: THREE.Texture): THREE.Grou
   soft.height = 512;
   const softContext = soft.getContext("2d")!;
   softContext.filter = "blur(5px)";
-  softContext.drawImage(scrubCanvas(), 0, 0);
+  const scrub = scrubCanvas();
+  for (const wrap of [-soft.width, 0, soft.width]) softContext.drawImage(scrub, wrap, 0);
   const texture = new THREE.CanvasTexture(soft);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.generateMipmaps = true;
@@ -51,19 +57,14 @@ export function addHorizon(scene: THREE.Scene, earth: THREE.Texture): THREE.Grou
   texture.wrapS = THREE.RepeatWrapping;
   texture.anisotropy = 16;
   const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, side: THREE.DoubleSide });
-  const ring = 18;
+  texture.repeat.x = HILL_REPEATS;
   for (const [radius, height] of [
     [130, 9],
     [210, 16],
   ] as const) {
-    for (let i = 0; i < ring; i++) {
-      const angle = (i / ring) * Math.PI * 2 + radius;
-      const width = 2 * radius * Math.tan(Math.PI / ring) * 1.02;
-      const strip = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
-      strip.position.set(Math.cos(angle) * radius, height / 2 + LAND_BELOW_THE_WELLS, Math.sin(angle) * radius);
-      strip.rotation.y = -angle - Math.PI / 2;
-      hills.add(strip);
-    }
+    const belt = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, height, 96, 1, true, radius), material);
+    belt.position.y = height / 2 + LAND_BELOW_THE_WELLS;
+    hills.add(belt);
   }
   scene.add(hills);
   return hills;

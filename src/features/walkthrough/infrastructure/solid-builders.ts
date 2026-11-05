@@ -45,6 +45,11 @@ export function softBoxGeometry(width: number, height: number, depth: number, ra
   return geometry;
 }
 
+export function grainAlongHeight(geometry: THREE.BufferGeometry, shift: number): void {
+  const uv = geometry.attributes.uv!;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getY(i) + shift, uv.getX(i) + shift * 0.61);
+}
+
 export function softBox(parent: THREE.Object3D, size: readonly [number, number, number], material: THREE.Material, at: readonly [number, number, number], options: { radius?: number; tile?: readonly [number, number]; rotationY?: number; segments?: number; cast?: boolean } = {}): THREE.Mesh {
   const mesh = new THREE.Mesh(softBoxGeometry(size[0], size[1], size[2], options.radius ?? 0.01, options.segments ?? 1, options.tile ?? [1, 1]), material);
   mesh.position.set(at[0], at[1], at[2]);
@@ -112,7 +117,8 @@ function wrapped(lines: readonly string[], font: string, maxPixels: number): str
   return out;
 }
 
-const EDGE_BLUR_PIXELS = 1.1;
+const EDGE_BLUR_PIXELS = 2.2;
+const LOWEST_WEAR_ALPHA = 0.42;
 
 function paintLayer(words: Pick<PaintedWords, "lines" | "height" | "weight" | "family" | "pixelsPerMetre" | "wear" | "lineHeight" | "align">, maxWidthMetres: number | null): PaintLayer {
   let size = words.height * words.pixelsPerMetre;
@@ -143,7 +149,7 @@ function paintLayer(words: Pick<PaintedWords, "lines" | "height" | "weight" | "f
   context.globalCompositeOperation = "destination-out";
   const marks = ((width * height) / 900) * words.wear;
   for (let i = 0; i < marks; i++) {
-    context.fillStyle = `rgba(0,0,0,${Math.random() * 0.55})`;
+    context.fillStyle = `rgba(0,0,0,${Math.random() * LOWEST_WEAR_ALPHA})`;
     context.beginPath();
     context.ellipse(Math.random() * width, Math.random() * height, 0.5 + Math.random() * size * 0.014, 0.4 + Math.random() * size * 0.006, Math.random() * 3, 0, 7);
     context.fill();
@@ -157,12 +163,12 @@ function paintLayer(words: Pick<PaintedWords, "lines" | "height" | "weight" | "f
 }
 
 const PAINT_EDGE = [
-  "float paintSpread = max(length(dFdx(vMapUv) * vec2(textureSize(map, 0))), length(dFdy(vMapUv) * vec2(textureSize(map, 0))));",
+  "float paintSpread = min(length(dFdx(vMapUv) * vec2(textureSize(map, 0))), length(dFdy(vMapUv) * vec2(textureSize(map, 0))));",
   "float paintSharp = texture2D(map, vMapUv).a;",
   "float paintEdge = max(fwidth(paintSharp) * 0.75, 0.015);",
   "float paintCrisp = smoothstep(0.5 - paintEdge, 0.5 + paintEdge, paintSharp);",
   "float paintFar = texture2D(map, vMapUv, 1.3).a;",
-  "diffuseColor.a *= mix(paintCrisp, paintFar, smoothstep(0.8, 1.3, paintSpread));",
+  "diffuseColor.a *= mix(paintCrisp, paintFar, smoothstep(1.4, 2.4, paintSpread));",
 ].join("\n");
 
 function paintMaterial(texture: THREE.Texture, colour: PaintedWords["colour"], textHeight: number): THREE.MeshStandardMaterial {

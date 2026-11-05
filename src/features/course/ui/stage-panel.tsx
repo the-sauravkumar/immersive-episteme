@@ -1,7 +1,7 @@
 "use client";
 
 import { captionSize, nameSize, objectColumns, type PanelObject, type StagePanelModel } from "@/features/course/domain/panel-model";
-import { PROXY_CLOTH_MARK, ROLE_LABELS, SOURCES_LABEL, STAND_IN_MARK } from "@/features/process/domain/guidance";
+import { PROXY_CLOTH_MARK, ROLE_LABELS, SOURCES_LABEL, STAND_IN_MARK, UNSETTLED_COLOUR_MARK } from "@/features/process/domain/guidance";
 import type { SourceRef } from "@/features/process/domain/stage-template";
 
 import type { ImageStatus } from "./use-panel-images";
@@ -48,7 +48,7 @@ function ObjectCell({ object, status, reviewMarks }: { readonly object: PanelObj
     <figure className="object">
       {status === "ready" ? <img src={object.stillSrc} alt="" /> : <span className="threads" aria-hidden="true" />}
       <span className="object-role">{ROLE_LABELS[object.role]}</span>
-      {reviewMarks ? <span className="mark-proxy object-mark">{STAND_IN_MARK}</span> : null}
+      {reviewMarks ? <span className="mark-proxy object-mark">{object.colourUnsettled ? `${STAND_IN_MARK}, ${UNSETTLED_COLOUR_MARK}` : STAND_IN_MARK}</span> : null}
       <figcaption className="object-name">
         {object.label}
         {object.localName ? <small>({object.localName})</small> : null}

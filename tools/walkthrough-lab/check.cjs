@@ -11,8 +11,12 @@ const PLANTED_RULES = ["outside-yard", "cloth-penetration", "through-bench", "so
     const plantedNames = planted.problems.map((problem) => `${problem.subject}|${problem.against}`).join(";");
     const caught = PLANTED_RULES.every((rule) => plantedRules.has(rule)) && plantedNames.includes("planted neighbour A|planted neighbour B");
     const plantedFill = await page.evaluate("window.QA(false,true)");
-    const fillCaught = report.fillPointsChecked === 0 || plantedFill.problems.some((problem) => problem.rule === "fill-outside-vessel");
-    console.log(scene, "solids", report.solidsChecked, "clothPoints", report.clothPointsChecked, "fillPoints", report.fillPointsChecked, "fillPieces", report.fillPiecesChecked, "hits", report.problems.length, "plantedFaultCaught", caught, "plantedFillCaught", fillCaught);
+    const poked = new Set(plantedFill.problems.filter((problem) => problem.rule === "fill-outside-vessel").map((problem) => problem.subject));
+    const pokeCaught = poked.size >= Math.max(0, report.fillsChecked);
+    const overlapCaught = report.fillPiecesChecked === 0 || plantedFill.problems.some((problem) => problem.rule === "fill-overlap");
+    const paintCaught = (await page.evaluate("window.paintOffPlanted()")).some((row) => row.name === "planted paint");
+    const fillCaught = pokeCaught && overlapCaught && paintCaught;
+    console.log(scene, "solids", report.solidsChecked, "clothPoints", report.clothPointsChecked, "fillPoints", report.fillPointsChecked, "fillPieces", report.fillPiecesChecked, "hits", report.problems.length, "plantedFaultCaught", caught, "pokesCaught", poked.size, "of", report.fillsChecked, "overlapCaught", overlapCaught, "paintCaught", paintCaught);
     for (const problem of report.problems) console.log("  ", JSON.stringify(problem));
     const offSurface = await page.evaluate("window.paintOffSurface()");
     if (offSurface.length > 0) {

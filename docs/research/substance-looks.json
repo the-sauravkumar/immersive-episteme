@@ -988,7 +988,8 @@
         "quote": "The dyed cloth would be soaked in a solution of camel dung",
         "supports": "form"
       }
-    ]
+    ],
+    "partOfTemplateLabel": "Camel Dung"
   },
   {
     "key": "ajrakh-final-wash-water",
@@ -1708,7 +1709,8 @@
         "quote": "A mild solution ofcow dung and water is sprhkled over the fubric.",
         "supports": "form"
       }
-    ]
+    ],
+    "partOfTemplateLabel": "Cow Dung"
   },
   {
     "key": "sanganeri-indigo-vat",

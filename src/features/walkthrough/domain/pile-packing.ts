@@ -32,6 +32,7 @@ export interface PackOptions {
   readonly topY: number;
   readonly margin: number;
   readonly fillRadius: number;
+  readonly leansOnOne?: boolean;
 }
 
 export function seededRandom(seed: number): () => number {
@@ -125,7 +126,7 @@ export function* packingSteps(profile: VesselProfile, blueprints: readonly PileB
       }
       if (best && y >= best.piece.y) continue;
       const contacts = own.reduce((count, sphere) => count + settled.filter((other) => Math.hypot(sphere.x - other.x, sphere.y + y - other.y, sphere.z - other.z) <= sphere.r + other.r + CONTACT_TOLERANCE_METRES).length, 0);
-      if (slidesOff && contacts < NESTED_CONTACTS) continue;
+      if (slidesOff && !options.leansOnOne && contacts < NESTED_CONTACTS) continue;
       const restingY = y;
       let fits = false;
       while (!fits && y <= options.topY) {

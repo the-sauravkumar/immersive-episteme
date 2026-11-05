@@ -1,4 +1,4 @@
-import { outsideDepth, wallRadius, type VesselProfile } from "./vessel-profile";
+import { wallRadius, type VesselProfile } from "./vessel-profile";
 
 export interface SurfaceGrid {
   readonly positions: Float32Array;
@@ -16,7 +16,7 @@ export function levelInVessel(profile: VesselProfile, fraction: number): number 
   return profile.floorY + (profile.rimY - profile.floorY) * fraction;
 }
 
-export function fittedSurface(profile: VesselProfile, rimLevel: number, rings: number, spokes: number, heightAt: HeightAt): SurfaceGrid {
+export function fittedSurface(profile: VesselProfile, rimLevel: number, rings: number, spokes: number, heightAt: HeightAt, tuck = RIM_TUCK_METRES): SurfaceGrid {
   const positions = new Float32Array((1 + rings * spokes) * 3);
   positions.set([0, heightAt(0, 0, 0), 0], 0);
   for (let ring = 1; ring <= rings; ring++) {
@@ -24,9 +24,9 @@ export function fittedSurface(profile: VesselProfile, rimLevel: number, rings: n
     const reach = 1 - (1 - along) * (1 - along);
     for (let spoke = 0; spoke < spokes; spoke++) {
       const theta = (spoke / spokes) * Math.PI * 2;
-      const first = (wallRadius(profile, theta, rimLevel) + RIM_TUCK_METRES) * reach;
+      const first = (wallRadius(profile, theta, rimLevel) + tuck) * reach;
       const raised = heightAt(Math.cos(theta) * first, Math.sin(theta) * first, reach);
-      const radius = (Math.min(wallRadius(profile, theta, rimLevel), wallRadius(profile, theta, raised)) + RIM_TUCK_METRES) * reach;
+      const radius = (Math.min(wallRadius(profile, theta, rimLevel), wallRadius(profile, theta, raised)) + tuck) * reach;
       const x = Math.cos(theta) * radius;
       const z = Math.sin(theta) * radius;
       positions.set([x, heightAt(x, z, reach), z], (1 + (ring - 1) * spokes + spoke) * 3);
@@ -62,11 +62,4 @@ export function moundHeight(level: number, heap: number, grain: number): HeightA
     const rough = grain * (undulation(x, z, 60) + 0.4 * undulation(x + 3, z - 2, 170)) * (1 - wallNearness ** 10);
     return level + crown + rough;
   };
-}
-
-export function deepestOutside(profile: VesselProfile, grid: SurfaceGrid): number {
-  let deepest = 0;
-  const p = grid.positions;
-  for (let i = 0; i < p.length; i += 3) deepest = Math.max(deepest, outsideDepth(profile, p[i]!, p[i + 1]!, p[i + 2]!));
-  return deepest;
 }

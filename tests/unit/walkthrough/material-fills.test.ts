@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { deepestOutside, fittedSurface, flatLevel, levelInVessel, moundHeight, pasteHeight } from "@/features/walkthrough/domain/fill-surface";
-import { albedoForDisplay, filmicToScene, sceneToFilmic } from "@/features/walkthrough/domain/lit-colour";
+import { fittedSurface, flatLevel, levelInVessel, moundHeight, pasteHeight } from "@/features/walkthrough/domain/fill-surface";
+import { albedoForDisplay, filmicToScene } from "@/features/walkthrough/domain/lit-colour";
 import { packPile, rotateYXZ } from "@/features/walkthrough/domain/pile-packing";
 import { checkScene, type FillAudit } from "@/features/walkthrough/domain/scene-check";
-import { measureVesselProfile, outsideDepth, smallestWallRadius, wallRadius } from "@/features/walkthrough/domain/vessel-profile";
+import { measureVesselProfile, outsideDepth, wallRadius } from "@/features/walkthrough/domain/vessel-profile";
 
 function lathe(profile: readonly (readonly [number, number])[], sides = 64): Float32Array {
   const out: number[] = [];
@@ -39,7 +39,7 @@ describe("vessel profile from the mesh", () => {
     woven.set(bumps, lathe(POT).length);
     const measured = measureVesselProfile(woven);
     expect(measured.rimY).toBeGreaterThan(0.18);
-    expect(smallestWallRadius(measured, 0.1)).toBeGreaterThan(0.08);
+    expect(wallRadius(measured, 0.7, 0.1)).toBeGreaterThan(0.08);
   });
 
   it("measures how far a point is outside", () => {
@@ -54,7 +54,9 @@ describe("surfaces fit the vessel", () => {
   for (const [name, height] of [["liquid", flatLevel(level)], ["paste", pasteHeight(level, 0.18)], ["powder", moundHeight(level, 0.05, 0.002)]] as const) {
     it(`${name} touches the wall all round and never leaves it`, () => {
       const grid = fittedSurface(profile, level, 24, 96, height);
-      expect(deepestOutside(profile, grid)).toBeLessThan(0.004);
+      let deepest = 0;
+      for (let i = 0; i < grid.positions.length; i += 3) deepest = Math.max(deepest, outsideDepth(profile, grid.positions[i]!, grid.positions[i + 1]!, grid.positions[i + 2]!));
+      expect(deepest).toBeLessThan(0.004);
       const last = grid.positions.length - 96 * 3;
       for (let spoke = 0; spoke < 96; spoke++) {
         const x = grid.positions[last + spoke * 3]!;
@@ -80,7 +82,7 @@ describe("piles do not interpenetrate", () => {
       const [x, y, z] = rotateYXZ(sphere.x, sphere.y, sphere.z, piece.yaw, piece.pitch, piece.roll);
       return { x: x + piece.x, y: y + piece.y, z: z + piece.z, r: sphere.r };
     }));
-    const audit: FillAudit = { name: "pile", points: new Float32Array(0), vertexOutside: () => false, pieces: world };
+    const audit: FillAudit = { name: "pile", points: () => new Float32Array(0), vertexOutside: () => false, pieces: () => world };
     const report = checkScene({ yard: { min: [-1, -1, -1], max: [1, 1, 1] }, solids: [], cloths: [], fields: [], groundIsOpenAt: () => false, fills: [audit] });
     expect(report.problems).toEqual([]);
     for (const piece of world) for (const sphere of piece) expect(sphere.y - sphere.r).toBeGreaterThanOrEqual(profile.floorY - 1e-6);
@@ -104,7 +106,7 @@ describe("piles do not interpenetrate", () => {
 
   it("the scene check catches a pile overlap and a fill through the wall", () => {
     const pieces = [[{ x: 0, y: 0, z: 0, r: 0.02 }], [{ x: 0.01, y: 0, z: 0, r: 0.02 }]];
-    const fill: FillAudit = { name: "bad", points: Float32Array.from([0.5, 0.1, 0]), vertexOutside: ([x, y, z]) => outsideDepth(profile, x, y, z) > 0.004, pieces };
+    const fill: FillAudit = { name: "bad", points: () => Float32Array.from([0.5, 0.1, 0]), vertexOutside: ([x, y, z]) => outsideDepth(profile, x, y, z) > 0.004, pieces: () => pieces };
     const report = checkScene({ yard: { min: [-1, -1, -1], max: [1, 1, 1] }, solids: [], cloths: [], fields: [], groundIsOpenAt: () => false, fills: [fill] });
     expect(report.problems.map((problem) => problem.rule).sort()).toEqual(["fill-outside-vessel", "fill-overlap"]);
   });
@@ -112,7 +114,8 @@ describe("piles do not interpenetrate", () => {
 
 describe("colour for the display", () => {
   it("inverts the film curve", () => {
-    for (const y of [0.01, 0.05, 0.2, 0.5, 0.8]) expect(sceneToFilmic(filmicToScene(y))).toBeCloseTo(y, 4);
+    const film = (scene: number) => (scene * (2.51 * scene + 0.03)) / (scene * (2.43 * scene + 0.59) + 0.14);
+    for (const y of [0.01, 0.05, 0.2, 0.5, 0.8]) expect(film(filmicToScene(y))).toBeCloseTo(y, 4);
   });
 
   it("keeps dark dark and pale pale", () => {

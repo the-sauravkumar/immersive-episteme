@@ -13,7 +13,7 @@ const perMetre = (value) => (value === null || value === undefined ? "-" : Strin
     const rows = await page.evaluate("window.surfaceAudit()");
     const planted = await page.evaluate("window.surfacePlanted()");
     const coarseCaught = planted.some((row) => row.label.includes("coarse") && row.failures.some((failure) => failure.includes("texels")));
-    const facetCaught = planted.some((row) => row.label.includes("faceted") && row.failures.some((failure) => failure.includes("facets")));
+    const facetCaught = planted.some((row) => row.label.includes("faceted") && row.failures.some((failure) => failure.includes("facets"))) && planted.some((row) => row.label.includes("six-sided") && row.failures.some((failure) => failure.includes("facets"))) && planted.some((row) => row.label.includes("flat-shaded") && row.failures.some((failure) => failure.includes("flat-shaded")));
     if (!coarseCaught || !facetCaught) {
       failed++;
       console.log(scene, "PLANTED NOT CAUGHT", JSON.stringify(planted));

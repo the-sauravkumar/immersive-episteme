@@ -93,12 +93,62 @@ export function softenWhenFar<T extends THREE.Material>(material: T, antiTile = 
   return material;
 }
 
+const SEEN_THROUGH_BATH_VERTEX = "#include <project_vertex>\nvBathY = (modelMatrix * vec4(transformed, 1.0)).y;";
+const SEEN_THROUGH_BATH_COLOUR = [
+  "#include <color_fragment>",
+  "if (bathFrom > 0.0) {",
+  "  vec3 bathEarlier = texture2D(bathEarlierMap, vMapUv * bathEarlierRepeat).rgb;",
+  "  diffuseColor.rgb = mix(bathEarlier, diffuseColor.rgb, smoothstep(bathFrom, bathFrom + bathBlend, vMapUv.x));",
+  "}",
+  "float bathBelow = bathLevel - vBathY;",
+  "float bathWetBand = smoothstep(BATH_WET_RISE, 0.0, -bathBelow);",
+  "diffuseColor.rgb *= mix(1.0, BATH_WET_TONE, bathBelow > 0.0 ? 1.0 : bathWetBand);",
+  "float bathSink = bathBodyDepth > 0.0 ? pow(clamp(bathBelow / bathBodyDepth, 0.0, 1.0), 0.72) : 0.0;",
+  "diffuseColor.rgb = mix(diffuseColor.rgb, bathBody, bathSink);",
+].join("\n");
+const SEEN_THROUGH_BATH_NORMAL = "#include <emissivemap_fragment>\nnormal = normalize(mix(normal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz), bathSink));";
+
+export interface BathContact {
+  readonly level: number;
+  readonly bodyDepth: number;
+  readonly body: THREE.Color;
+  readonly earlier: THREE.Texture | null;
+  readonly earlierRepeat: readonly [number, number];
+  readonly joinAlong: Float32Array | null;
+}
+
+const JOIN_BLEND_REPEATS = 0.34;
+const WET_RISE_METRES = 0.055;
+const WET_TONE = 0.66;
+
+export function dipInBath<T extends THREE.Material>(material: T, contact: BathContact): T {
+  const earlierCompile = material.onBeforeCompile;
+  const earlierKey = material.customProgramCacheKey.bind(material);
+  const joinFrom = contact.joinAlong ? contact.joinAlong[contact.joinAlong.length >> 1]! : 0;
+  material.onBeforeCompile = (shader, renderer) => {
+    earlierCompile.call(material, shader, renderer);
+    shader.uniforms.bathLevel = { value: contact.level };
+    shader.uniforms.bathBodyDepth = { value: contact.bodyDepth };
+    shader.uniforms.bathBody = { value: contact.body };
+    shader.uniforms.bathFrom = { value: contact.earlier ? joinFrom : 0 };
+    shader.uniforms.bathBlend = { value: JOIN_BLEND_REPEATS };
+    shader.uniforms.bathEarlierMap = { value: contact.earlier };
+    shader.uniforms.bathEarlierRepeat = { value: new THREE.Vector2(contact.earlierRepeat[0], contact.earlierRepeat[1]) };
+    shader.vertexShader = `varying float vBathY;\n${shader.vertexShader.replace("#include <project_vertex>", SEEN_THROUGH_BATH_VERTEX)}`;
+    shader.fragmentShader = `#define BATH_WET_RISE ${WET_RISE_METRES.toFixed(3)}\n#define BATH_WET_TONE ${WET_TONE.toFixed(2)}\nvarying float vBathY;\nuniform float bathLevel;\nuniform float bathBodyDepth;\nuniform vec3 bathBody;\nuniform float bathFrom;\nuniform float bathBlend;\nuniform sampler2D bathEarlierMap;\nuniform vec2 bathEarlierRepeat;\n${shader.fragmentShader.replace("#include <color_fragment>", SEEN_THROUGH_BATH_COLOUR).replace("#include <emissivemap_fragment>", SEEN_THROUGH_BATH_NORMAL)}`;
+  };
+  material.customProgramCacheKey = () => `${earlierKey()}-in-bath`;
+  return material;
+}
+
 export interface SurfaceNote {
   readonly label: string;
   readonly kind: SurfaceClass;
   readonly perMetre?: number;
   readonly detail?: { readonly colour: THREE.Texture; readonly normal: THREE.Texture; readonly scale: readonly [number, number] };
   readonly textHeight?: number;
+  readonly openWork?: boolean;
+  readonly realFacets?: boolean;
 }
 
 export function noteSurface<T extends THREE.Material>(material: T, note: SurfaceNote): T {
@@ -132,6 +182,9 @@ const MODEL_FINE_SCANS: Readonly<Record<string, FineScan>> = {
   wooden_crate_01: { scan: "table", tileMetres: 0.47, tone: 0.4, relief: 0.6 },
   wicker_basket_01: { scan: "bamboo", tileMetres: 0.47, tone: 0.3, relief: 0.5 },
 };
+
+const CLOTH_SKY_LIGHT = 0.26;
+const OPEN_WORK_MODELS: ReadonlySet<string> = new Set(["wicker_basket_01", "wooden_crate_01"]);
 
 function medianUvPerMetre(geometry: THREE.BufferGeometry): number {
   const position = geometry.attributes.position!;
@@ -266,7 +319,7 @@ export class MaterialLibrary {
       roughness: options.wet ? 0.82 : 0.95,
       metalness: 0,
       side: THREE.DoubleSide,
-      envMapIntensity: 0.22,
+      envMapIntensity: CLOTH_SKY_LIGHT,
     });
     noteSurface(material, { label: "cloth state", kind: "cloth", detail: { colour: weave.colour, normal: weave.normal, scale } });
     return softenWhenFar(material, false, { colour: weave.colour, normal: weave.normal, scale, tone: 0.32, relief: 0 }, CLOTH_PRINT_BIAS);
@@ -277,8 +330,10 @@ export class MaterialLibrary {
     const normal = weave.normal.clone();
     normal.repeat.set(widthMetres / weave.tileMetres, heightMetres / weave.tileMetres);
     normal.needsUpdate = true;
-    const material = new THREE.MeshStandardMaterial({ map: photo, normalMap: normal, normalScale: new THREE.Vector2(0.4, 0.4), side: THREE.DoubleSide, roughness: 0.95, envMapIntensity: 0.3 });
-    return noteSurface(material, { label: `printed textile ${file.split("/").pop()}`, kind: "printed-textile" });
+    const scale: readonly [number, number] = [widthMetres / weave.tileMetres, heightMetres / weave.tileMetres];
+    const material = new THREE.MeshStandardMaterial({ map: photo, normalMap: normal, normalScale: new THREE.Vector2(0.4, 0.4), side: THREE.DoubleSide, roughness: 0.95, envMapIntensity: 0.55 });
+    noteSurface(material, { label: `printed textile ${file.split("/").pop()}`, kind: "printed-textile", detail: { colour: weave.colour, normal: weave.normal, scale } });
+    return softenWhenFar(material, false, { colour: weave.colour, normal: weave.normal, scale, tone: 0.3, relief: 0.7 }, 0);
   }
 
   async rawCottonMaterial(): Promise<THREE.MeshStandardMaterial> {
@@ -290,7 +345,7 @@ export class MaterialLibrary {
       texture.repeat.set(3.46 / weave.tileMetres, 1.5 / weave.tileMetres);
       texture.needsUpdate = true;
     }
-    return noteSurface(softenWhenFar(new THREE.MeshStandardMaterial({ map: colour, normalMap: normal, roughnessMap: roughness, roughness: 1, color: 0xffffff, side: THREE.DoubleSide, envMapIntensity: 0.12 })), { label: "raw cotton", kind: "cloth" });
+    return noteSurface(softenWhenFar(new THREE.MeshStandardMaterial({ map: colour, normalMap: normal, roughnessMap: roughness, roughness: 1, color: 0xffffff, side: THREE.DoubleSide, envMapIntensity: CLOTH_SKY_LIGHT })), { label: "raw cotton", kind: "cloth" });
   }
 
   async photo(file: string): Promise<THREE.Texture> {
@@ -322,25 +377,24 @@ export class MaterialLibrary {
         (node.geometry as THREE.BufferGeometry).dispose();
         node.geometry = refined;
       }
-      {
-        node.castShadow = true;
-        node.receiveShadow = true;
-        const material = node.material as THREE.MeshStandardMaterial;
-        const fine = MODEL_FINE_SCANS[scanId];
-        if (fine) {
-          const fineScan = await this.scan(fine.scan);
-          const ratio = 1 / (fine.tileMetres * medianUvPerMetre(node.geometry as THREE.BufferGeometry));
-          noteSurface(softenWhenFar(material, false, { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio], tone: fine.tone, relief: fine.relief }), { label: `model ${scanId}`, kind: "model", detail: { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio] } });
-        } else {
-          noteSurface(softenWhenFar(material), { label: `model ${scanId}`, kind: "model" });
-        }
-        this.kept.add(node.geometry);
-        this.kept.add(material);
-        for (const texture of [material.map, material.normalMap, material.roughnessMap]) {
-          if (texture) {
-            texture.anisotropy = this.anisotropy;
-            this.kept.add(texture);
-          }
+      node.castShadow = true;
+      node.receiveShadow = true;
+      const material = node.material as THREE.MeshStandardMaterial;
+      const fine = MODEL_FINE_SCANS[scanId];
+      const openWork = OPEN_WORK_MODELS.has(scanId);
+      if (fine) {
+        const fineScan = await this.scan(fine.scan);
+        const ratio = 1 / (fine.tileMetres * medianUvPerMetre(node.geometry as THREE.BufferGeometry));
+        noteSurface(softenWhenFar(material, false, { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio], tone: fine.tone, relief: fine.relief }), { label: `model ${scanId}`, kind: "model", openWork, detail: { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio] } });
+      } else {
+        noteSurface(softenWhenFar(material), { label: `model ${scanId}`, kind: "model", openWork });
+      }
+      this.kept.add(node.geometry);
+      this.kept.add(material);
+      for (const texture of [material.map, material.normalMap, material.roughnessMap]) {
+        if (texture) {
+          texture.anisotropy = this.anisotropy;
+          this.kept.add(texture);
         }
       }
     }

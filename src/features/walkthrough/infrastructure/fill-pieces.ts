@@ -20,6 +20,7 @@ export interface PileRecipe {
   readonly seed: number;
   readonly fillsTo: number;
   readonly wallMargin?: number;
+  readonly leansOnOne?: boolean;
 }
 
 export const isPileFill = (fill: SubstanceFill): fill is PileFill => fill === "dung" || fill === "roots" || fill === "flowers" || fill === "leaves" || fill === "crystals";
@@ -111,21 +112,17 @@ function rootPiece(seed: number, length: number, radius: number): PieceVariant {
   return { geometry, spheres: coverWithSpheres(geometry, centres) };
 }
 
-function floret(seed: number): PieceVariant {
-  const geometry = smoothSphere(4);
+function driedFloret(seed: number): PieceVariant {
+  const geometry = smoothSphere(7);
   const position = geometry.attributes.position!;
-  const lobes = 4 + (seed % 3);
-  const size = 0.0095 + (seed % 4) * 0.0012;
+  const size = 0.0085 + (seed % 5) * 0.0011;
+  const stretch = 0.82 + (seed % 3) * 0.2;
   for (let i = 0; i < position.count; i++) {
     const x = position.getX(i);
     const y = position.getY(i);
     const z = position.getZ(i);
-    const around = Math.atan2(z, x);
-    const rim = 1 - Math.abs(y);
-    const petal = 0.5 + 0.5 * Math.cos(around * lobes + seed);
-    const k = 0.72 + 0.62 * rim * petal ** 1.5;
-    const cup = y < 0 ? y * 1.05 : y * 0.42 - 0.22 * rim * petal;
-    position.setXYZ(i, x * k * size, cup * size, z * k * size);
+    const crumple = 1 + 0.26 * swell(x * 1.6, y * 1.6, z * 1.6, seed * 1.3) + 0.09 * Math.sin(x * 15 + z * 12 + seed);
+    position.setXYZ(i, x * crumple * size * stretch, y * crumple * size * 0.62, z * crumple * size);
   }
   geometry.computeVertexNormals();
   return { geometry, spheres: coverWithSpheres(geometry, [[0, 0, 0]]) };
@@ -169,18 +166,18 @@ function dryLeaf(seed: number): PieceVariant {
 
 function crystal(seed: number): PieceVariant {
   const random = seededRandom(seed * 577 + 3);
-  const size = 0.0085 + random() * 0.006;
-  const cut = 0.58 + random() * 0.14;
-  const points: THREE.Vector3[] = [];
-  const axes = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)];
-  for (const tip of axes) {
-    for (const other of axes) {
-      if (Math.abs(tip.dot(other)) > 0.5) continue;
-      points.push(tip.clone().multiplyScalar(cut).addScaledVector(other, 1 - cut));
-    }
-  }
-  const squash = new THREE.Vector3(0.85 + random() * 0.3, 0.75 + random() * 0.3, 0.85 + random() * 0.3);
-  const geometry = new ConvexGeometry(points.map((point) => point.multiply(squash).multiplyScalar(size).add(new THREE.Vector3((random() - 0.5) * size * 0.06, (random() - 0.5) * size * 0.06, (random() - 0.5) * size * 0.06))));
+  const size = 0.0075 + random() * 0.0085;
+  const stretch = new THREE.Vector3(0.55 + random() * 0.9, 0.45 + random() * 0.6, 0.55 + random() * 0.9);
+  const corners = 9 + Math.floor(random() * 10);
+  const points = Array.from({ length: corners }, () => {
+    const theta = random() * Math.PI * 2;
+    const rise = random() * 2 - 1;
+    const flat = Math.sqrt(1 - rise * rise);
+    const reach = 0.72 + random() * 0.28;
+    return new THREE.Vector3(Math.cos(theta) * flat, rise, Math.sin(theta) * flat).multiplyScalar(reach).multiply(stretch).multiplyScalar(size);
+  });
+  for (const axis of [new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)]) points.push(axis.multiply(stretch).multiplyScalar(size * 0.42));
+  const geometry = new ConvexGeometry(points);
   return { geometry, spheres: coverWithSpheres(geometry, [[0, 0, 0]]) };
 }
 
@@ -202,23 +199,23 @@ export async function pileRecipe(fill: PileFill): Promise<PileRecipe> {
   switch (fill) {
     case "dung": {
       const variants = await builtInTurn([() => dungLump(1), () => dungLump(2), () => dungLump(3)]);
-      return { variants, blueprints: blueprintsFrom(variants, 64, 21, 0.62, 0.86), candidates: 40, maxTilt: 0.5, anyTumble: true, seed: 101, fillsTo: 1 };
+      return { variants, blueprints: blueprintsFrom(variants, 56, 21, 0.72, 1.08), candidates: 60, maxTilt: 0.5, anyTumble: true, seed: 101, fillsTo: 0.78, wallMargin: 0.012, leansOnOne: true };
     }
     case "roots": {
-      const variants = await builtInTurn([() => rootPiece(1, 0.17, 0.0075), () => rootPiece(2, 0.14, 0.0085), () => rootPiece(3, 0.2, 0.0065), () => rootPiece(4, 0.12, 0.009), () => rootPiece(5, 0.16, 0.0058)]);
-      return { variants, blueprints: blueprintsFrom(variants, 110, 22, 0.85, 1.1), candidates: 26, maxTilt: 0.34, anyTumble: false, seed: 102, fillsTo: 1 };
+      const variants = await builtInTurn([() => rootPiece(1, 0.17, 0.0108), () => rootPiece(2, 0.14, 0.0122), () => rootPiece(3, 0.2, 0.0094), () => rootPiece(4, 0.12, 0.013), () => rootPiece(5, 0.16, 0.0084)]);
+      return { variants, blueprints: blueprintsFrom(variants, 130, 22, 0.85, 1.1), candidates: 30, maxTilt: 0.34, anyTumble: false, seed: 102, fillsTo: 1, leansOnOne: true };
     }
     case "flowers": {
-      const variants = await builtInTurn([() => floret(1), () => floret(2), () => floret(3), () => floret(4), () => floret(5)]);
-      return { variants, blueprints: blueprintsFrom(variants, 420, 23, 0.8, 1.2), candidates: 6, maxTilt: 0.5, anyTumble: true, seed: 103, fillsTo: 1, wallMargin: 0.0095 };
+      const variants = await builtInTurn([() => driedFloret(1), () => driedFloret(2), () => driedFloret(3), () => driedFloret(4), () => driedFloret(5)]);
+      return { variants, blueprints: blueprintsFrom(variants, 420, 23, 0.8, 1.2), candidates: 8, maxTilt: 0.5, anyTumble: true, seed: 103, fillsTo: 1, wallMargin: 0.0095, leansOnOne: true };
     }
     case "leaves": {
       const variants = await builtInTurn([() => dryLeaf(1), () => dryLeaf(2), () => dryLeaf(3), () => dryLeaf(4)]);
       return { variants, blueprints: blueprintsFrom(variants, 110, 24, 0.82, 1.12), candidates: 18, maxTilt: 0.5, anyTumble: false, seed: 104, fillsTo: 1 };
     }
     case "crystals": {
-      const variants = await builtInTurn([() => crystal(1), () => crystal(2), () => crystal(3), () => crystal(4), () => crystal(5)]);
-      return { variants, blueprints: blueprintsFrom(variants, 340, 25, 0.75, 1.3), candidates: 26, maxTilt: 0.5, anyTumble: true, seed: 105, fillsTo: 0.58 };
+      const variants = await builtInTurn(Array.from({ length: 9 }, (_, i) => () => crystal(i + 1)));
+      return { variants, blueprints: blueprintsFrom(variants, 340, 25, 0.5, 1.45), candidates: 40, maxTilt: 0.5, anyTumble: true, seed: 105, fillsTo: 0.6 };
     }
   }
 }

@@ -13,6 +13,7 @@ export interface ClothSpec {
   readonly columns: number;
   readonly foldAmount: FoldAmount;
   readonly field: HeightField;
+  readonly startAlong?: Float32Array;
 }
 
 export interface ClothSurface {
@@ -21,6 +22,7 @@ export interface ClothSurface {
   readonly indices: Uint32Array;
   readonly rows: number;
   readonly columns: number;
+  readonly endAlong: Float32Array;
 }
 
 const normalize = (v: Vec3): Vec3 => {
@@ -33,6 +35,10 @@ const dot = (a: Vec3, b: Vec3): number => a[0] * b[0] + a[1] * b[1] + a[2] * b[2
 const FOLD_FREE_ENDS_METRES = 0.6;
 const BEND_SAGITTA_METRES = 0.00014;
 const MOST_PIECES_PER_ROW = 7;
+const LOW_CLOTH_METRES = 1.1;
+const SETTLE_ROUNDS = 3;
+const EASE_ROUNDS = 6;
+export const EASE_BELOW_FIELD_METRES = 0.01;
 const turnAt = (a: Vec3, b: Vec3, c: Vec3): number => {
   const u = normalize([b[0] - a[0], b[1] - a[1], b[2] - a[2]]);
   const v = normalize([c[0] - b[0], c[1] - b[1], c[2] - b[2]]);
@@ -124,15 +130,24 @@ export function settleCloth(spec: ClothSpec): ClothSurface {
     }
   };
   lift();
-  for (let iteration = 0; iteration < 6; iteration++) {
-    for (let i = 1; i < rows - 1; i++) {
+  const lowRows: number[] = [];
+  for (let i = 1; i < rows - 1; i++) if (positions[(i * cols + (cols >> 1)) * 3 + 1]! < LOW_CLOTH_METRES) lowRows.push(i);
+  const relax = (below: number) => {
+    const next = positions.slice();
+    for (const i of lowRows) {
       for (let j = 0; j < cols; j++) {
-        const k = (i * cols + j) * 3 + 1;
-        if (positions[k]! < 1.1) positions[k] = positions[k]! * 0.5 + (positions[k - cols * 3]! + positions[k + cols * 3]!) * 0.25;
+        const k = (i * cols + j) * 3;
+        if (positions[k + 1]! >= LOW_CLOTH_METRES) continue;
+        const left = positions[k + 1 - (j > 0 ? 3 : 0)]!;
+        const right = positions[k + 1 + (j < cols - 1 ? 3 : 0)]!;
+        const eased = positions[k + 1]! * 0.4 + (positions[k + 1 - cols * 3]! + positions[k + 1 + cols * 3]!) * 0.2 + (left + right) * 0.1;
+        next[k + 1] = Math.max(eased, spec.field(positions[k]!, positions[k + 2]!, eased) - below);
       }
     }
-    lift();
-  }
+    positions.set(next);
+  };
+  for (let iteration = 0; iteration < SETTLE_ROUNDS; iteration++) relax(0);
+  for (let iteration = 0; iteration < EASE_ROUNDS; iteration++) relax(EASE_BELOW_FIELD_METRES);
   return refineBends(positions, uvs, rows, cols, spec);
 }
 
@@ -159,15 +174,17 @@ function refineBends(positions: Float32Array, uvs: Float32Array, rows: number, c
   const outUvs = new Float32Array(total * cols * 2);
   let row = 0;
   const hermite = (p0: number, p1: number, p2: number, p3: number, t: number) => 0.5 * (2 * p1 + (p2 - p0) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (3 * p1 - p0 - 3 * p2 + p3) * t * t * t);
+  const clampRow = (r: number) => (r < 0 ? 0 : r > rows - 1 ? rows - 1 : r);
   for (let i = 0; i < rows - 1; i++) {
     const pieces = steps[i]!;
     for (let piece = 0; piece < pieces; piece++) {
       const t = piece / pieces;
       for (let j = 0; j < cols; j++) {
         const k = (row * cols + j) * 3;
+        const base = j * 3;
         for (let axis = 0; axis < 3; axis++) {
-          const at = (r: number) => positions[(Math.min(rows - 1, Math.max(0, r)) * cols + j) * 3 + axis]!;
-          outPositions[k + axis] = piece === 0 ? at(i) : hermite(at(i - 1), at(i), at(i + 1), at(i + 2), t);
+          const here = positions[i * cols * 3 + base + axis]!;
+          outPositions[k + axis] = piece === 0 ? here : hermite(positions[clampRow(i - 1) * cols * 3 + base + axis]!, here, positions[clampRow(i + 1) * cols * 3 + base + axis]!, positions[clampRow(i + 2) * cols * 3 + base + axis]!, t);
         }
         if (piece > 0) outPositions[k + 1] = Math.max(outPositions[k + 1]!, spec.field(outPositions[k]!, outPositions[k + 2]!, outPositions[k + 1]!));
         const m = (row * cols + j) * 2;
@@ -181,6 +198,16 @@ function refineBends(positions: Float32Array, uvs: Float32Array, rows: number, c
     for (let axis = 0; axis < 3; axis++) outPositions[(row * cols + j) * 3 + axis] = positions[((rows - 1) * cols + j) * 3 + axis]!;
     outUvs[(row * cols + j) * 2] = uvs[((rows - 1) * cols + j) * 2]!;
     outUvs[(row * cols + j) * 2 + 1] = uvs[((rows - 1) * cols + j) * 2 + 1]!;
+  }
+  const along = spec.startAlong ? Float32Array.from(spec.startAlong) : new Float32Array(cols);
+  for (let j = 0; j < cols; j++) outUvs[j * 2] = along[j]!;
+  for (let i = 1; i < total; i++) {
+    for (let j = 0; j < cols; j++) {
+      const k = (i * cols + j) * 3;
+      const p = k - cols * 3;
+      along[j] = along[j]! + Math.hypot(outPositions[k]! - outPositions[p]!, outPositions[k + 1]! - outPositions[p + 1]!, outPositions[k + 2]! - outPositions[p + 2]!) / spec.metresPerRepeat;
+      outUvs[(i * cols + j) * 2] = along[j]!;
+    }
   }
   const indices = new Uint32Array((total - 1) * spec.columns * 6);
   let n = 0;
@@ -198,5 +225,5 @@ function refineBends(positions: Float32Array, uvs: Float32Array, rows: number, c
       indices[n++] = d;
     }
   }
-  return { positions: outPositions, uvs: outUvs, indices, rows: total, columns: cols };
+  return { positions: outPositions, uvs: outUvs, indices, rows: total, columns: cols, endAlong: along };
 }

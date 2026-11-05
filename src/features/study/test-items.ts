@@ -1,5 +1,5 @@
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
-import { stageItemStillPath } from "@/features/process/domain/substance-look";
+import { itemColourIsUnsettled, stageItemStillPath } from "@/features/process/domain/substance-look";
 import type { StageItem, StageTemplate, TemplateStage } from "@/features/process/domain/stage-template";
 import type { TestItemType } from "@/features/research/contracts";
 
@@ -8,7 +8,6 @@ export const LAYOUT_SKETCH_PROMPT = "From memory, sketch the layout of what you 
 
 const OPTION_COUNT = 4;
 const PRE_ITEMS_PER_TRADITION = 2;
-const STAND_IN_ITEMS_PER_TRADITION = 6;
 
 export interface UnseenStage {
   readonly key: string;
@@ -53,27 +52,39 @@ interface PlacedObject {
 
 type DraftItem = Omit<GeneratedItem, "position">;
 
+const asSample = (item: DraftItem): DraftItem => ({ ...item, config: { ...item.config, sampleText: true } });
+
 function uniqueObjects(template: StageTemplate): PlacedObject[] {
   const uses = template.stages.flatMap((stage) => stage.items.map((item) => ({ template, stage, item })));
   return uses.filter((use) => uses.filter((other) => other.item.key === use.item.key).length === 1);
 }
 
-function allObjects(templates: readonly StageTemplate[]): StageItem[] {
-  const seen = new Map<string, StageItem>();
-  for (const template of templates) for (const stage of template.stages) for (const item of stage.items) if (!seen.has(item.key)) seen.set(item.key, item);
-  return [...seen.values()].sort((a, b) => a.key.localeCompare(b.key));
+interface PooledObject {
+  readonly item: StageItem;
+  readonly still: string;
 }
 
-function identifiable(object: PlacedObject, pool: readonly StageItem[]): boolean {
-  return pool.filter((item) => item.modelId === object.item.modelId && item.label !== object.item.label).length === 0;
+const stillOf = (stage: TemplateStage, item: StageItem): string => stageItemStillPath(stage.key, stage.items, item);
+
+function allObjects(templates: readonly StageTemplate[]): PooledObject[] {
+  const seen = new Map<string, PooledObject>();
+  for (const template of templates) for (const stage of template.stages) for (const item of stage.items) if (!seen.has(item.key)) seen.set(item.key, { item, still: stillOf(stage, item) });
+  return [...seen.values()].sort((a, b) => a.item.key.localeCompare(b.item.key));
 }
 
-function nameOptions(target: StageItem, pool: readonly StageItem[], turn: number): { options: { id: string; label: string }[]; correct: string } | null {
-  const sameRole = pool.filter((item) => item.role === target.role && item.label !== target.label && item.modelId !== target.modelId);
-  const labels = [...new Set(sameRole.map((item) => item.label))];
-  if (labels.length < OPTION_COUNT - 1) return null;
-  const start = turn % labels.length;
-  const distractors = Array.from({ length: OPTION_COUNT - 1 }, (_, offset) => labels[(start + offset) % labels.length]!);
+function identifiable(object: PlacedObject, pool: readonly PooledObject[]): boolean {
+  const still = stillOf(object.stage, object.item);
+  return pool.filter((other) => other.still === still && other.item.label !== object.item.label).length === 0;
+}
+
+
+function nameOptions(target: StageItem, targetStill: string, pool: readonly PooledObject[], turn: number): { options: { id: string; label: string }[]; correct: string } | null {
+  const others = pool.filter((other) => other.item.role === target.role && other.item.label !== target.label && other.still !== targetStill);
+  const inSameVessel = [...new Set(others.filter((other) => other.item.modelId === target.modelId).map((other) => other.item.label))];
+  const elsewhere = [...new Set(others.map((other) => other.item.label))].filter((label) => !inSameVessel.includes(label));
+  if (inSameVessel.length + elsewhere.length < OPTION_COUNT - 1) return null;
+  const rotated = (labels: readonly string[]) => labels.map((_, offset) => labels[(turn + offset) % labels.length]!);
+  const distractors = [...rotated(inSameVessel), ...rotated(elsewhere)].slice(0, OPTION_COUNT - 1);
   return { options: [target.label, ...distractors].map((label, index) => ({ id: `o${index + 1}`, label })), correct: "o1" };
 }
 
@@ -81,16 +92,17 @@ const stageOptions = (template: StageTemplate) => template.stages.map((stage) =>
 
 const placedTarget = (object: PlacedObject) => ({ tradition: object.template.tradition, stageKey: object.stage.key, objectKey: object.item.key });
 
-function identificationItem(object: PlacedObject, pool: readonly StageItem[], turn: number, prefix: string): DraftItem | null {
-  const choice = nameOptions(object.item, pool, turn);
+function identificationItem(object: PlacedObject, pool: readonly PooledObject[], turn: number, prefix: string): DraftItem | null {
+  const choice = nameOptions(object.item, stillOf(object.stage, object.item), pool, turn);
   if (!choice) return null;
-  return {
+  const item: DraftItem = {
     itemKey: `${prefix}.${object.template.tradition}.${object.stage.number}.${turn}`.slice(0, 64),
     kind: "single_choice",
     prompt: "What is this called?",
-    config: { kind: "single_choice", options: choice.options, shuffle: true, image: { path: stageItemStillPath(object.stage.key, object.stage.items, object.item), alt: "The object to name" }, target: placedTarget(object) },
+    config: { kind: "single_choice", options: choice.options, shuffle: true, image: { path: stillOf(object.stage, object.item), alt: "The object to name" }, target: placedTarget(object) },
     answerKey: { optionId: choice.correct },
   };
+  return itemColourIsUnsettled(object.stage.key, object.item) ? asSample(item) : item;
 }
 
 function placementItem(object: PlacedObject, turn: number, prefix: string): DraftItem {
@@ -98,12 +110,10 @@ function placementItem(object: PlacedObject, turn: number, prefix: string): Draf
     itemKey: `${prefix}.${object.template.tradition}.${object.stage.number}.${turn}`.slice(0, 64),
     kind: "single_choice",
     prompt: `At which stage of ${object.template.traditionName} is ${object.item.label} used?`,
-    config: { kind: "single_choice", options: stageOptions(object.template), shuffle: true, image: { path: stageItemStillPath(object.stage.key, object.stage.items, object.item), alt: object.item.label }, target: placedTarget(object) },
+    config: { kind: "single_choice", options: stageOptions(object.template), shuffle: true, image: { path: stillOf(object.stage, object.item), alt: object.item.label }, target: placedTarget(object) },
     answerKey: { optionId: `s${object.stage.number}` },
   };
 }
-
-const asSample = (item: DraftItem): DraftItem => ({ ...item, config: { ...item.config, sampleText: true } });
 
 function withDontKnow(item: DraftItem): DraftItem {
   const config = item.config as { options: { id: string; label: string }[] };
@@ -250,7 +260,6 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
   const pre: (DraftItem | null)[] = [];
   const ident = { immediate: [] as (DraftItem | null)[], delayed: [] as (DraftItem | null)[] };
   const placement = { immediate: [] as DraftItem[], delayed: [] as DraftItem[] };
-  const standIn = { immediate: [] as DraftItem[], delayed: [] as DraftItem[] };
   templates.forEach((template) => {
     const objects = uniqueObjects(template);
     const named = objects.filter((object) => identifiable(object, pool));
@@ -261,11 +270,6 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
         const item = identificationItem(object, pool, turn, "pre.id");
         pre.push(item ? withDontKnow(item) : null);
       }
-    });
-    const placedInPreTest = new Set(objects.slice(0, PRE_ITEMS_PER_TRADITION));
-    objects.filter((object) => !named.includes(object) && !placedInPreTest.has(object)).forEach((object, turn) => {
-      const item = identificationItem(object, pool, turn, "id");
-      if (item && turn < STAND_IN_ITEMS_PER_TRADITION) (turn % 3 === 2 ? standIn.delayed : standIn.immediate).push(asSample(item));
     });
     objects.forEach((object, turn) => {
       if (turn < PRE_ITEMS_PER_TRADITION) pre.push(withDontKnow(placementItem(object, turn, "pre.place")));
@@ -287,7 +291,7 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
   const [immediateUnseen, delayedUnseen] = [unseen[0], unseen[1] ?? unseen[0]];
   const battery: GeneratedAssessment[] = [
     assessment("test-pre", "pre", 0, "Questions Before Learning", "pre_test", pre, "pretest", "Choose I do not know if you do not know. It is fine not to know."),
-    assessment("test-identification", "post", 0, "Name The Object", "identification", ident.immediate.some(Boolean) ? ident.immediate : standIn.immediate),
+    assessment("test-identification", "post", 0, "Name The Object", "identification", ident.immediate),
     assessment("test-stage-placement", "post", 1, "Find The Stage", "stage_placement", placement.immediate),
     assessment("test-sequence", "post", 2, "Put The Stages In Order", "sequence", templates.map((template) => sequenceItem(template, template.stages, "all"))),
     assessment("test-cloth-state", "post", 3, "Match The Cloth", "cloth_state", templates.map((template) => clothItem(template, alternate(template.stages, 0), "a"))),
@@ -315,7 +319,7 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
       paged: false,
       items: [{ itemKey: "layout.sketch", position: 0, kind: "sketch", prompt: LAYOUT_SKETCH_PROMPT, config: { kind: "sketch" }, answerKey: null }],
     },
-    assessment("test-identification-delayed", "follow_up", 0, "Name The Object", "identification", ident.delayed.some(Boolean) ? ident.delayed : standIn.delayed),
+    assessment("test-identification-delayed", "follow_up", 0, "Name The Object", "identification", ident.delayed),
     assessment("test-stage-placement-delayed", "follow_up", 1, "Find The Stage", "stage_placement", placement.delayed),
     assessment("test-sequence-delayed", "follow_up", 2, "Put The Stages In Order", "sequence", templates.map((template) => sequenceItem(template, alternate(template.stages, 1), "short"))),
     assessment("test-cloth-state-delayed", "follow_up", 3, "Match The Cloth", "cloth_state", templates.map((template) => clothItem(template, alternate(template.stages, 1), "b"))),

@@ -220,12 +220,6 @@ export function wallRadius(profile: VesselProfile, theta: number, y: number): nu
   return low * (1 - ht) + high * ht;
 }
 
-export function smallestWallRadius(profile: VesselProfile, y: number): number {
-  let smallest = Number.POSITIVE_INFINITY;
-  for (let a = 0; a < profile.angleCount; a++) smallest = Math.min(smallest, wallRadius(profile, (a / profile.angleCount) * Math.PI * 2, y));
-  return smallest;
-}
-
 export function widestWallRadius(profile: VesselProfile, y: number): number {
   let widest = 0;
   for (let a = 0; a < profile.angleCount; a++) widest = Math.max(widest, wallRadius(profile, (a / profile.angleCount) * Math.PI * 2, y));

@@ -95,7 +95,7 @@ export function fixtureTemplate(tradition: TraditionKey): StageTemplate {
       localName: null,
       kind: "table" as const,
       caption: { text: `Sample Text caption ${number}`, sources: [{ sourceId: "S1", title: "Sample Text", locator: "p. 1", quote: "Sample Text" }] },
-      items: [{ key: `${tradition}-tool-${number}`, role: "tool" as const, label: `Sample Text Tool ${tradition} ${number}`, localName: null, modelId: number === 1 ? "bucket" : "crate" }],
+      items: [{ key: `${tradition}-tool-${number}`, role: "tool" as const, label: `Sample Text Tool ${tradition} ${number}`, localName: null, modelId: number === 1 ? "basket" : "crate" }],
       clothStateId: `${tradition}-c${number}`,
     })),
   };

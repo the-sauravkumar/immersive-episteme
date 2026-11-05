@@ -4,7 +4,7 @@ import { nearestEye, type ReachField } from "@/features/walkthrough/domain/reach
 import { chordSagitta, judgeSurface, NEAREST_REACH_METRES, type SurfaceClass, type SurfaceFact, type SurfaceRow, type TearingFigures } from "@/features/walkthrough/domain/surface-density";
 import type { SurfaceNote } from "@/features/walkthrough/infrastructure/material-library";
 
-const LARGEST_CURVE_TURNING = (50 * Math.PI) / 180;
+const LARGEST_CURVE_TURNING = (75 * Math.PI) / 180;
 const SMALLEST_CURVE_TURNING = (0.3 * Math.PI) / 180;
 const WELD_METRES = 2e-5;
 const SHARED_NORMAL_COSINE = 0.985;
@@ -111,14 +111,18 @@ const sizeOf = (texture: THREE.Texture | null | undefined): number | null => {
 
 const repeatOf = (texture: THREE.Texture): number => Math.sqrt(Math.abs(texture.repeat.x * texture.repeat.y));
 
-function facetSagitta(mesh: THREE.Mesh, matrix: THREE.Matrix4, field: ReachField): number {
+interface FacetFigures {
+  readonly sagitta: number;
+  readonly hardCurveShare: number;
+}
+
+function facetFigures(mesh: THREE.Mesh, matrix: THREE.Matrix4, field: ReachField): FacetFigures {
   const scale = scaleOf(matrix);
   const geometry = mesh.geometry as THREE.BufferGeometry;
   const position = geometry.attributes.position!;
   const normal = geometry.attributes.normal;
   const index = geometry.index;
   const count = index ? index.count : position.count;
-  if (count > 600000) return 0;
   const at = (i: number) => (index ? index.getX(i) : i);
   const weldKey = (i: number) => `${Math.round(position.getX(i) / WELD_METRES)},${Math.round(position.getY(i) / WELD_METRES)},${Math.round(position.getZ(i) / WELD_METRES)}`;
   const keys = new Map<number, number>();
@@ -142,6 +146,8 @@ function facetSagitta(mesh: THREE.Mesh, matrix: THREE.Matrix4, field: ReachField
   const na = new THREE.Vector3();
   const nb = new THREE.Vector3();
   const sagittas: number[] = [];
+  let curved = 0;
+  let hard = 0;
   for (let t = 0; t + 2 < count; t += 3) {
     const corners = [at(t), at(t + 1), at(t + 2)];
     a.fromBufferAttribute(position, corners[0]!);
@@ -168,19 +174,28 @@ function facetSagitta(mesh: THREE.Mesh, matrix: THREE.Matrix4, field: ReachField
       }
       const turning = known.face.angleTo(face);
       if (turning < SMALLEST_CURVE_TURNING || turning > LARGEST_CURVE_TURNING) continue;
+      curved++;
       if (normal) {
         na.fromBufferAttribute(normal, known.vertex);
         nb.fromBufferAttribute(normal, ip === idOf(known.vertex) ? p : q);
-        if (na.dot(nb) < SHARED_NORMAL_COSINE) continue;
+        if (na.dot(nb) < SHARED_NORMAL_COSINE) {
+          hard++;
+          continue;
+        }
+      } else {
+        hard++;
+        continue;
       }
       const middle = new THREE.Vector3().addVectors(na, nb).multiplyScalar(0.5).applyMatrix4(matrix);
       const fromEye = Math.max(NEAREST_REACH_METRES, nearestEye(field, [middle.x, middle.y, middle.z]).distance);
       sagittas.push((chordSagitta(Math.min(known.width, width) * scale, turning) * NEAREST_REACH_METRES) / fromEye);
     }
   }
-  if (sagittas.length === 0) return 0;
+  const flatShaded = (mesh.material as THREE.MeshStandardMaterial).flatShading === true;
+  const hardCurveShare = flatShaded ? 1 : curved === 0 ? 0 : hard / curved;
+  if (sagittas.length === 0) return { sagitta: 0, hardCurveShare };
   sagittas.sort((p, q) => p - q);
-  return sagittas[Math.floor(sagittas.length * 0.98)]!;
+  return { sagitta: sagittas[Math.floor(sagittas.length * 0.98)]!, hardCurveShare };
 }
 
 function samplePoints(mesh: THREE.Mesh, matrix: THREE.Matrix4, budget: number, out: number[]): void {
@@ -259,11 +274,14 @@ function factOf(reach: ObjectReach, field: ReachField): SurfaceFact {
   let detailColourPerMetre: number | null = null;
   let detailNormalPerMetre: number | null = null;
   let sagitta = 0;
+  let hardCurveShare = 0;
   for (const mesh of part.meshes) {
     const matrices = instanceMatrices(mesh);
     const largestScale = Math.max(...matrices.map(scaleOf));
     const largest = matrices.reduce((p, q) => (scaleOf(q) > scaleOf(p) ? q : p));
-    sagitta = Math.max(sagitta, facetSagitta(mesh, largest, field));
+    const facets = facetFigures(mesh, largest, field);
+    sagitta = Math.max(sagitta, facets.sagitta);
+    hardCurveShare = Math.max(hardCurveShare, facets.hardCurveShare);
     const density = uvDensity(mesh, largest);
     const uvPerMetre = part.surfaceClass === "cloth" ? density.middleUvPerMetre : density.uvPerMetre;
     const perMetre = (texture: THREE.Texture | null | undefined) => {
@@ -295,7 +313,8 @@ function factOf(reach: ObjectReach, field: ReachField): SurfaceFact {
     textHeightMetres: note?.textHeight ?? null,
     reachMetres: reach.distance,
     facetSagittaMetres: sagitta,
-    flatShaded: material.flatShading === true,
+    facetsAreReal: note?.realFacets === true,
+    hardCurveShare,
   };
 }
 
@@ -361,8 +380,10 @@ export function measureTearing(view: TearingScene, reaches: readonly ObjectReach
     originals.set(node, material);
   });
   const hidden = environment.map((object) => [object, object.visible] as const);
-  const showIds = (on: boolean) => {
+  const seeThrough = [...ids.keys()].filter((mesh) => (originals.get(mesh) as THREE.Material).transparent);
+  const showIds = (on: boolean, judged: readonly THREE.Mesh[] = []) => {
     for (const [mesh, material] of ids) mesh.material = on ? material : originals.get(mesh)!;
+    for (const mesh of seeThrough) mesh.visible = !on || judged.includes(mesh);
     for (const [object, visible] of hidden) object.visible = on ? false : visible;
   };
   const clear = renderer.getClearColor(new THREE.Color());
@@ -398,7 +419,7 @@ export function measureTearing(view: TearingScene, reaches: readonly ObjectReach
     const single = reach.part.meshes.every((mesh) => (originals.get(mesh) as THREE.Material).side === THREE.FrontSide);
     const shift = Math.max(reach.distance * OFFSET_PER_METRE, 3e-5);
     offset.set(shift, shift * 0.6, shift * 0.3);
-    showIds(true);
+    showIds(true, reach.part.meshes);
     const place = (eye: Vec3) => {
       camera.position.set(eye[0], eye[1], eye[2]);
       camera.lookAt(reach.target[0], reach.target[1], reach.target[2]);
@@ -478,7 +499,7 @@ export function measureTearing(view: TearingScene, reaches: readonly ObjectReach
       colourFlickerPercent: colourJudged ? +((colourChanged / colourJudged) * 100).toFixed(3) : 0,
       crackPixels: crack,
       backFacePercent: visible && single ? +((back / visible) * 100).toFixed(3) : 0,
-      openWork: reach.part.meshes.some((mesh) => mesh instanceof THREE.InstancedMesh || /wicker|crate/.test(reach.part.label)),
+      openWork: reach.part.meshes.some((mesh) => noteOf(originals.get(mesh) as THREE.Material)?.openWork === true),
     });
   }
   scene.background = background;

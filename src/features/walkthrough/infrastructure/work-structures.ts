@@ -1,10 +1,10 @@
 import * as THREE from "three";
-import { liquidMarks, type SubstanceLook } from "@/features/process/domain/substance-look";
+import type { SubstanceLook } from "@/features/process/domain/substance-look";
 import { WORK_FLOOR_Y, type WorkStructure } from "../domain/yard-plan";
 import { noteSurface, type MaterialLibrary } from "./material-library";
 import { softBox } from "./solid-builders";
-import { addBubbles, addScum, rippleNormals } from "./substance-fill";
-import { liquidMaterial, projectScan } from "./substance-materials";
+import { rippleNormals } from "./substance-fill";
+import { BATH_COLUMN_METRES, liquidBodyMaterial, liquidMaterial, projectScan } from "./substance-materials";
 
 export type RingWork = Extract<WorkStructure, { type: "ring" }>;
 export type TankWork = Extract<WorkStructure, { type: "tank" }>;
@@ -16,6 +16,7 @@ const COPPER_SCAN_TILE_METRES = 0.8;
 const COPPER_SCAN_CONTRAST = 0.55;
 const COPPER_LEAST_ROUGH = 0.28;
 const HOLE_TUCK_METRES = 0.015;
+export const BATH_BODY_DEPTH_METRES = 0.2;
 
 export function copperMaterial(library: MaterialLibrary): Promise<THREE.MeshStandardMaterial> {
   return library.shared("work:copper", async () => {
@@ -90,6 +91,7 @@ function surfaceOf(work: RingWork | TankWork): THREE.BufferGeometry {
   const geometry = work.type === "ring" ? new THREE.RingGeometry(0.001, work.radius + 0.002, 192, 48) : new THREE.PlaneGeometry(work.halfX * 2 + 0.004, work.halfZ * 2 + 0.004, 96, 160);
   geometry.rotateX(-Math.PI / 2);
   rippleNormals(geometry, 0.00016);
+  geometry.setAttribute("liquidDepth", new THREE.BufferAttribute(new Float32Array(geometry.attributes.position!.count).fill(BATH_COLUMN_METRES), 1));
   return geometry;
 }
 
@@ -97,15 +99,19 @@ export async function addWorkLiquid(library: MaterialLibrary, parent: THREE.Obje
   const geometry = surfaceOf(work);
   const surface = new THREE.Mesh(geometry, await liquidMaterial(library, look));
   surface.position.y = work.level;
+  surface.receiveShadow = true;
   parent.add(surface);
-  const marks = liquidMarks(look);
   const position = geometry.attributes.position!;
   const points: number[] = [];
   for (let i = 0; i < position.count; i++) points.push(position.getX(i), work.level, position.getZ(i));
-  if (marks.scum) await addScum(library, parent, geometry, work.level);
-  if (!marks.bubbles) return Float32Array.from(points);
-  const reach = work.type === "ring" ? () => work.radius : (theta: number) => Math.min(work.halfX / Math.max(Math.abs(Math.cos(theta)), 1e-3), work.halfZ / Math.max(Math.abs(Math.sin(theta)), 1e-3));
-  points.push(...(await addBubbles(library, parent, work.level + 0.002, { reach, count: marks.scum ? 420 : 150, smallest: 0.003, largest: marks.scum ? 0.016 : 0.009 })));
+  if (look.transparency === "translucent") {
+    const bodyLevel = work.level - BATH_BODY_DEPTH_METRES;
+    const body = new THREE.Mesh(geometry, await liquidBodyMaterial(library, look));
+    body.position.y = bodyLevel;
+    body.receiveShadow = true;
+    parent.add(body);
+    for (let i = 0; i < position.count; i++) points.push(position.getX(i), bodyLevel, position.getZ(i));
+  }
   return Float32Array.from(points);
 }
 
