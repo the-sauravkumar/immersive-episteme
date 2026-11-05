@@ -23,6 +23,7 @@ import { KEY_MATCH_METRIC } from "@/features/assessment/responses";
 import { walkthroughCanRender } from "@/features/study/gpu-acceptance";
 import type { LearningCondition } from "@/lib/permissions/learning";
 import type { ConditionInterface } from "@/lib/validation/enums";
+import { PARTICIPANT_SESSION_TTL_SECONDS } from "@/server/auth/participant-session-token";
 import { conditionFromInterface } from "@/server/auth/study-session-port-types";
 import { LearningFinishRefusedError, recordLearningEnded } from "@/server/learning/context-data";
 
@@ -184,13 +185,26 @@ export function normaliseStudyCode(input: string): string {
   return input.trim().toLowerCase();
 }
 
-/** An active study that a participant can join with `code`, or an error saying why not. */
-export async function findEnrollableStudy(q: Q, code: string): Promise<EnrollableStudy> {
+async function studyRowByCode(q: Q, code: string): Promise<StudyRow> {
   const slug = normaliseStudyCode(code);
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug) || slug.length > 120) throw new StudyEngineError("study_not_found", "No study has this code.");
   const r = await q.query<StudyRow>(`SELECT ${STUDY_COLUMNS} FROM studies WHERE slug = $1`, [slug]);
   const row = r.rows[0];
   if (!row) throw new StudyEngineError("study_not_found", "No study has this code.");
+  return row;
+}
+
+const DELAYED_RETURN_STUDY_STATUSES: readonly string[] = ["active", "closed"];
+
+export async function findReturnableStudy(q: Q, code: string): Promise<EnrollableStudy> {
+  const row = await studyRowByCode(q, code);
+  if (!DELAYED_RETURN_STUDY_STATUSES.includes(row.status)) throw new StudyEngineError("study_not_open", "This study takes no returns.");
+  return toStudy(row);
+}
+
+/** An active study that a participant can join with `code`, or an error saying why not. */
+export async function findEnrollableStudy(q: Q, code: string): Promise<EnrollableStudy> {
+  const row = await studyRowByCode(q, code);
   if (row.status !== "active") throw new StudyEngineError("study_not_open", "This study is not open for participation.");
   const study = toStudy(row);
   if (!study.protocol.config.consent) {
@@ -941,32 +955,45 @@ export async function recordStageEntered(pool: Pool | PoolClient, sessionId: str
   return result;
 }
 
-export async function recordStageLeft(pool: Pool | PoolClient, sessionId: string, target: StageVisit & { activeMs: number }): Promise<void> {
-  await pool.query(
-    `UPDATE stage_visits SET left_at = now(), active_ms = coalesce(active_ms, 0) + $4
-      WHERE id = (SELECT id FROM stage_visits WHERE session_id = $1 AND tradition_key = $2 AND stage_key = $3 ORDER BY visit_index DESC LIMIT 1)`,
-    [sessionId, target.traditionKey, target.stageKey, target.activeMs],
-  );
+export async function recordStageLeft(pool: Pool | PoolClient, sessionId: string, target: StageVisit & { activeMs: number }): Promise<boolean> {
+  return withTx(pool, async (c) => {
+    await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
+    const s = await loadSessionState(c, sessionId);
+    if (!s || !isSessionOpen(s)) return false;
+    const r = await c.query(
+      `UPDATE stage_visits v
+          SET active_ms = (coalesce(v.active_ms, 0)::bigint + least($4::bigint, greatest(0, floor(extract(epoch FROM b.until - coalesce(v.left_at, v.entered_at)) * 1000))::bigint))::int,
+              left_at = greatest(coalesce(v.left_at, v.entered_at), b.until)
+         FROM (SELECT least(now(), coalesce(learning_ended_at, 'infinity'::timestamptz), coalesce(learning_ends_at, 'infinity'::timestamptz)) AS until
+                 FROM study_sessions WHERE id = $1) b
+        WHERE v.id = (SELECT id FROM stage_visits WHERE session_id = $1 ORDER BY visit_index DESC LIMIT 1)
+          AND v.tradition_key = $2 AND v.stage_key = $3`,
+      [sessionId, target.traditionKey, target.stageKey, target.activeMs],
+    );
+    if (r.rowCount === 0) return false;
+    await touch(c, sessionId);
+    return true;
+  });
 }
 
 /**
  * Brings the journal up to date with facts recorded elsewhere, then returns the position:
  *  - learning: a fixed budget that ran out on the server clock is ended now (same rule in both
- *    conditions); with `arrivedAtHub` (the learning phase handed the participant back to
- *    /study/session) the end is recorded whenever the study allows it;
+ *    conditions); any other end is the participant's finish (`finishLearning`), never a visit to
+ *    the hub;
  *  - reconstruction: the step completes when every concept-map item of the phase has a FINAL map
  *    (written by the assessment module's page);
  *  - an assessment step with nothing to deliver for this session is completed as `empty`.
  */
-export async function syncPosition(q: Q, s: SessionState, opts: { arrivedAtHub?: boolean } = {}): Promise<Position> {
+export async function syncPosition(q: Q, s: SessionState): Promise<Position> {
   for (;;) {
     const pos = positionOfState(s);
     if (pos.kind !== "step") return pos;
     const step = pos.step;
     if (step === "learning") {
       const budgetOver = !!s.learning.endsAt && s.now >= s.learning.endsAt;
-      const coverage = s.learning.startedAt && (budgetOver || opts.arrivedAtHub || s.learning.endedAt) ? await stageCoverage(q, s) : null;
-      if (!s.learning.endedAt && s.learning.startedAt && (budgetOver || (opts.arrivedAtHub && learningMayEnd(s, coverage?.complete ?? true)))) {
+      const coverage = s.learning.startedAt && (budgetOver || s.learning.endedAt) ? await stageCoverage(q, s) : null;
+      if (!s.learning.endedAt && s.learning.startedAt && budgetOver) {
         const clock = await recordLearningEnded(q, s.sessionId);
         s.learning.endedAt = clock.endedAt ? new Date(clock.endedAt) : null;
       }
@@ -1561,6 +1588,75 @@ export async function resumeSession(pool: Pool | PoolClient, sessionId: string):
     await journal(c, actor, "study.session_resumed", "study_session", sessionId, { gapSeconds, interruptionCount: s.interruptionCount + 1 });
     return { kind: "resumed", gapSeconds, interruptionCount: s.interruptionCount + 1 };
   });
+}
+
+export type SessionEndByTiming = { kind: "live" } | { kind: "abandoned" | "completed"; endedAt: Date };
+
+export function sessionEndByTiming(input: {
+  position: Position;
+  lastActivityAt: Date;
+  now: Date;
+  learningCapMinutes: number | null;
+  delayed: Pick<DelayedSchedule, "closesAt" | "completedAt"> | null;
+}): SessionEndByTiming {
+  if (input.position.kind === "step" && input.position.step === "delayed_test") return { kind: "live" };
+  if (input.position.kind === "finish" && input.delayed) {
+    if (input.now <= input.delayed.closesAt) return { kind: "live" };
+    const windowEnd = input.delayed.completedAt ?? input.delayed.closesAt;
+    return { kind: "completed", endedAt: windowEnd > input.lastActivityAt ? windowEnd : input.lastActivityAt };
+  }
+  const reachMs = Math.max(PARTICIPANT_SESSION_TTL_SECONDS * 1000, (input.learningCapMinutes ?? 0) * 60_000);
+  if (input.now.getTime() - input.lastActivityAt.getTime() <= reachMs) return { kind: "live" };
+  return { kind: input.position.kind === "finish" ? "completed" : "abandoned", endedAt: input.lastActivityAt };
+}
+
+export interface TimedSessionEnd {
+  sessionId: string;
+  status: "abandoned" | "completed";
+  endedAt: Date;
+}
+
+export async function closeStaleSessions(pool: Pool | PoolClient, studyId: string): Promise<TimedSessionEnd[]> {
+  const candidates = await pool.query<{ id: string }>(
+    "SELECT id FROM study_sessions WHERE study_id = $1 AND status = 'in_progress' AND NOT withdrawn AND NOT excluded ORDER BY id",
+    [studyId],
+  );
+  const ended: TimedSessionEnd[] = [];
+  for (const { id } of candidates.rows) {
+    const end = await withTx(pool, async (c): Promise<TimedSessionEnd | null> => {
+      await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [id]);
+      const s = await loadSessionState(c, id);
+      if (!s || s.status !== "in_progress" || !isSessionOpen(s)) return null;
+      const position = await syncPosition(c, s);
+      const verdict = sessionEndByTiming({
+        position,
+        lastActivityAt: s.lastActivityAt ?? s.startedAt ?? s.now,
+        now: s.now,
+        learningCapMinutes: s.study.protocol.config.exposure.minutes ?? null,
+        delayed: await readDelayedSchedule(c, id),
+      });
+      if (verdict.kind === "live") return null;
+      let endedAt = verdict.endedAt;
+      if (verdict.kind === "completed") {
+        const done = await c.query<{ completed_at: Date }>("UPDATE study_sessions SET status = 'completed', completed_at = greatest($2::timestamptz, started_at) WHERE id = $1 RETURNING completed_at", [id, verdict.endedAt]);
+        endedAt = done.rows[0]!.completed_at;
+        await c.query("UPDATE participants SET status = 'completed' WHERE id = $1 AND status IN ('enrolled', 'active')", [s.participantId]);
+      } else {
+        await c.query("UPDATE study_sessions SET status = 'abandoned' WHERE id = $1", [id]);
+      }
+      await journal(c, { kind: "system" }, verdict.kind === "completed" ? "study.session_completed" : "study.session_abandoned", "study_session", id, {
+        closedBy: "timing",
+        endedAt: endedAt.toISOString(),
+        position: position.kind === "step" ? position.step : position.kind,
+      });
+      return { sessionId: id, status: verdict.kind, endedAt };
+    }).catch((err: unknown) => {
+      if (err instanceof StudyEngineError) return null;
+      throw err;
+    });
+    if (end) ended.push(end);
+  }
+  return ended;
 }
 
 // ---------------------------------------------------------------------------------------------

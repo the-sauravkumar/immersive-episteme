@@ -10,7 +10,7 @@ import {
   parseStudyProtocol,
   protocolIssues,
 } from "../../../src/server/study/config";
-import { delayedAvailability, evaluateDevice, generateParticipantCode, learningMayEnd, positionOf, resumeDecision, type DeviceReport } from "../../../src/server/study/engine";
+import { delayedAvailability, evaluateDevice, generateParticipantCode, learningMayEnd, positionOf, resumeDecision, sessionEndByTiming, type DeviceReport } from "../../../src/server/study/engine";
 import { INSTRUMENT_DEFINITIONS, displayedText, instrumentBlocker, neutralise } from "../../../src/server/study/instruments";
 import { addHistory, signEnrolment, signHistory, verifyEnrolment, verifyHistory } from "../../../src/server/study/tokens";
 import { studyConfigSchema } from "../../../src/features/study/contracts";
@@ -203,7 +203,7 @@ describe("instrument definitions (D7)", () => {
 });
 
 describe("participant cookie before and after allocation", () => {
-  const record = (condition: StudySessionRecord["condition"]): StudySessionRecord => ({ sessionId: S, participantId: P, condition, status: "in_progress", participantStatus: "active", withdrawn: false });
+  const record = (condition: StudySessionRecord["condition"]): StudySessionRecord => ({ sessionId: S, participantId: P, condition, status: "in_progress", participantStatus: "active", withdrawn: false, excluded: false });
   const lookup = (r: StudySessionRecord): StudySessionLookup => ({ findSession: async () => r });
 
   it("allows an unallocated session in the study pages but never in a learning condition", async () => {
@@ -222,6 +222,46 @@ describe("participant cookie before and after allocation", () => {
     // A cookie for one condition never passes for another.
     const twoD = await signParticipantSession({ participantId: P, sessionId: S, condition: "2d" }, SECRET);
     expect(await resolveParticipantSession(twoD, { secret: SECRET, lookup: lookup(record("immersive")) })).toMatchObject({ allowed: false, redirectTo: "/study/exit?reason=invalid-session" });
+  });
+
+  it("ends an excluded live session in the study pages and the learning pages", async () => {
+    const token = await signParticipantSession({ participantId: P, sessionId: S, condition: "2d" }, SECRET);
+    const excluded = lookup({ ...record("2d"), excluded: true });
+    expect(await resolveParticipantSession(token, { secret: SECRET, lookup: excluded })).toEqual({ allowed: false, redirectTo: "/study/exit?reason=session-ended" });
+    const learn = await resolveLearningAccess({ condition: "2d", participantCookie: token, demoCookie: undefined, staff: async () => null }, { secret: SECRET, lookup: excluded });
+    expect(learn).toEqual({ allowed: false, reason: "session_not_active", redirectTo: "/study/exit?reason=session-ended" });
+  });
+});
+
+describe("ending a session nobody can come back to", () => {
+  const now = new Date("2026-11-20T12:00:00Z");
+  const hoursAgo = (h: number) => new Date(now.getTime() - h * 3_600_000);
+  const learning = { kind: "step", step: "learning", index: 5 } as const;
+  const delayedStep = { kind: "step", step: "delayed_test", index: 12 } as const;
+  const finish = { kind: "finish" } as const;
+
+  it("keeps a session live while its cookie can still be in use, then abandons it", () => {
+    expect(sessionEndByTiming({ position: learning, lastActivityAt: hoursAgo(5.9), now, learningCapMinutes: 30, delayed: null })).toEqual({ kind: "live" });
+    expect(sessionEndByTiming({ position: learning, lastActivityAt: hoursAgo(6.1), now, learningCapMinutes: 30, delayed: null })).toEqual({ kind: "abandoned", endedAt: hoursAgo(6.1) });
+    expect(sessionEndByTiming({ position: { kind: "device_check" }, lastActivityAt: hoursAgo(7), now, learningCapMinutes: null, delayed: null })).toMatchObject({ kind: "abandoned" });
+  });
+
+  it("never ends a learning phase before its cap could have run out", () => {
+    expect(sessionEndByTiming({ position: learning, lastActivityAt: hoursAgo(7), now, learningCapMinutes: 8 * 60, delayed: null })).toEqual({ kind: "live" });
+  });
+
+  it("waits for the delayed-test window, then completes the session at its close", () => {
+    const delayed = { closesAt: hoursAgo(-24), completedAt: null };
+    expect(sessionEndByTiming({ position: delayedStep, lastActivityAt: hoursAgo(24 * 20), now, learningCapMinutes: 30, delayed })).toEqual({ kind: "live" });
+    expect(sessionEndByTiming({ position: finish, lastActivityAt: hoursAgo(24 * 20), now, learningCapMinutes: 30, delayed })).toEqual({ kind: "live" });
+    const closed = { closesAt: hoursAgo(24), completedAt: null };
+    expect(sessionEndByTiming({ position: finish, lastActivityAt: hoursAgo(24 * 20), now, learningCapMinutes: 30, delayed: closed })).toEqual({ kind: "completed", endedAt: hoursAgo(24) });
+    const taken = { closesAt: hoursAgo(24), completedAt: hoursAgo(24 * 5) };
+    expect(sessionEndByTiming({ position: finish, lastActivityAt: hoursAgo(24 * 5), now, learningCapMinutes: 30, delayed: taken })).toEqual({ kind: "completed", endedAt: hoursAgo(24 * 5) });
+  });
+
+  it("completes a session whose every step is done once nobody can submit the finish", () => {
+    expect(sessionEndByTiming({ position: finish, lastActivityAt: hoursAgo(7), now, learningCapMinutes: 30, delayed: null })).toEqual({ kind: "completed", endedAt: hoursAgo(7) });
   });
 });
 

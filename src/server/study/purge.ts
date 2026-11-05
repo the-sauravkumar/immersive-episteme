@@ -23,7 +23,7 @@
  */
 import type { Pool, PoolClient } from "pg";
 
-type Q = Pick<Pool | PoolClient, "query">;
+import { closeStaleSessions } from "./engine";
 
 export class PurgeError extends Error {
   constructor(message: string) {
@@ -91,6 +91,7 @@ export async function purgeParticipantData(
 ): Promise<PurgeResult> {
   const reason = input.reason.trim();
   if (reason.length < 5) throw new PurgeError("Give the reason for the removal (at least 5 characters).");
+  await closeStaleSessions(pool, input.studyId);
   return withTx(pool, async (c) => {
     const p = await c.query<{ id: string; code: string; status: string }>(
       "SELECT id, code, status::text AS status FROM participants WHERE study_id = $1 AND (upper(code) = upper($2) OR id::text = lower($2)) FOR UPDATE",
@@ -141,11 +142,12 @@ export interface RetentionDue {
  * activity of an abandoned session) and who still have data. A participant with a session still
  * running is never due. Studies without `retentionDays` have nothing due.
  */
-export async function listRetentionDue(q: Q, studyId: string, now: Date = new Date()): Promise<{ retentionDays: number | null; due: RetentionDue[] }> {
-  const s = await q.query<{ days: string | null }>("SELECT config->>'retentionDays' AS days FROM studies WHERE id = $1", [studyId]);
+export async function listRetentionDue(pool: Pool | PoolClient, studyId: string, now: Date = new Date()): Promise<{ retentionDays: number | null; due: RetentionDue[] }> {
+  const s = await pool.query<{ days: string | null }>("SELECT config->>'retentionDays' AS days FROM studies WHERE id = $1", [studyId]);
   const days = s.rows[0]?.days ? Number(s.rows[0].days) : null;
   if (!days || !Number.isFinite(days) || days <= 0) return { retentionDays: null, due: [] };
-  const r = await q.query<{ participant_id: string; code: string; ended_at: Date; due_at: Date }>(
+  await closeStaleSessions(pool, studyId);
+  const r = await pool.query<{ participant_id: string; code: string; ended_at: Date; due_at: Date }>(
     `WITH ends AS (
        SELECT ss.participant_id,
               bool_or(ss.status = 'in_progress' AND NOT ss.withdrawn AND NOT ss.excluded) AS live,

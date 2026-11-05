@@ -29,6 +29,7 @@ import {
   completeSession,
   enrolParticipant,
   findEnrollableStudy,
+  findReturnableStudy,
   completeFamiliarisation,
   openSessionAfterConsent,
   loadParticipant,
@@ -348,7 +349,7 @@ export async function returnWithCode(_prev: FormState, formData: FormData): Prom
   await requireSiteAccess("/study");
   const pool = getPool();
   try {
-    const study = await findEnrollableStudy(pool, studyCode);
+    const study = await findReturnableStudy(pool, studyCode);
     if (!study.isDemo) {
       const policy = clientIpPolicy();
       const address = clientAddress(await headers(), { header: policy.header, trustedProxies: policy.trustedProxies });

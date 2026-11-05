@@ -53,17 +53,8 @@ function Progress({ steps, done, position }: { steps: readonly StudyStep[]; done
   );
 }
 
-/**
- * Session hub: routes the participant to the current step. It renders only for the learning step
- * (the learning time is not over and the study does not allow finishing early), for an allocation
- * refused by the protocol, and at the end (final confirmation); every other position redirects.
- *
- * Arriving here ends the learning phase whenever the study allows it: both conditions hand the
- * participant back to /study/session through the shared <LearningPhaseProvider>
- * (src/components/learning), so the end is recorded by the server the same way in both.
- */
 async function Hub({ searchParams }: { searchParams: PageProps<"/study/session">["searchParams"] }) {
-  const { state, position } = await getCurrentSession(true);
+  const { state, position } = await getCurrentSession();
   const { allocation } = await searchParams;
   const learningOpen = position.kind === "step" && position.step === "learning" && state.condition !== null;
   const refused = position.kind === "allocation" && allocation === "refused";

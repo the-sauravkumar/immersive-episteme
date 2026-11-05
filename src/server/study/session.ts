@@ -56,12 +56,12 @@ export interface CurrentSession {
  * The verified participant session (guard: signed cookie + live row) with its journal and the
  * current position, brought up to date. Redirects when there is no live session. Deduped per request.
  */
-export const getCurrentSession = cache(async (arrivedAtHub: boolean = false): Promise<CurrentSession> => {
+export const getCurrentSession = cache(async (): Promise<CurrentSession> => {
   const participant = await requireParticipantSession();
   const pool = getPool();
   const state = await loadSessionState(pool, participant.sessionId);
   if (!state) redirect("/study/exit?reason=invalid-session");
-  const position = await syncPosition(pool, state, { arrivedAtHub });
+  const position = await syncPosition(pool, state);
   return { state, position };
 });
 
