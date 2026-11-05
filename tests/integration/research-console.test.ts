@@ -47,7 +47,7 @@ describe.skipIf(!TEST_URL)("research console", () => {
     traditionName: "Sample Text",
     rawClothStateId: "raw",
     products: [],
-    stages: [{ number: 1, key: "s1", sourceStageKeys: [], name: "Sample Text", localName: null, kind: "table", caption: { text: "Sample Text", sources: [{ sourceId: "S1", title: "Sample Text", locator: "p. 1", quote: "Sample Text" }] }, items: [{ key: "i1", role: "tool", label: "Sample Text", localName: null, modelId: "bucket" }], clothStateId: "c1" }],
+    stages: [{ number: 1, key: "s1", sourceStageKeys: [], name: "Sample Text", localName: null, kind: "table", caption: { text: "Sample Text", sources: [{ sourceId: "S1", title: "Sample Text", locator: "p. 1", quote: "Sample Text" }] }, items: [{ key: "i1", role: "tool", label: "Sample Text", localName: null, modelId: "basket" }], clothStateId: "c1" }],
   } as unknown as StageTemplate;
 
   const realBuilders = { ...DOOR_VIEW_BUILDERS };

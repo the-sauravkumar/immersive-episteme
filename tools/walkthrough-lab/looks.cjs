@@ -23,6 +23,12 @@ const delta = (a, b) => {
 };
 const parseHex = (hex) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
 
+const rowOf = (stage, key, form, look, seen) => {
+  const target = parseHex(look.renderHex);
+  const figure = (colour) => (colour ? +delta(colour, target).toFixed(1) : null);
+  return { stage, key, form, transparency: look.transparency, basis: look.renderBasis, status: look.status, renderHex: look.renderHex, pixels: seen.pixels, shaded: seen.shaded, middle: seen.middle, lit: seen.lit, deltaEMiddle: figure(seen.middle), deltaELit: figure(seen.lit) };
+};
+
 (async () => {
   fs.mkdirSync(out, { recursive: true });
   const browser = await launchGpu();
@@ -47,8 +53,8 @@ const parseHex = (hex) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 
         const top = vessel.top;
         const name = `${tag}-${vessel.look.key}`;
         const near = [cx + stage.side * 0.42, top + 0.42, cz + 0.08];
-        const colour = await page.evaluate(`window.colourAt(${JSON.stringify([cx + 0.012, top + 0.55, cz + 0.012])},${JSON.stringify([cx, top, cz])},5,0.3)`);
-        const row = { stage: tag, key: vessel.look.key, form: vessel.look.fill, transparency: vessel.look.transparency, basis: vessel.look.renderBasis, renderHex: vessel.look.renderHex, rendered: colour, deltaE: +delta(colour, parseHex(vessel.look.renderHex)).toFixed(1) };
+        const seen = await page.evaluate(`window.colourOfLook(${JSON.stringify(vessel.look.key)},${JSON.stringify([cx + 0.012, top + 0.55, cz + 0.012])},${JSON.stringify([cx, top, cz])},24)`);
+        const row = rowOf(tag, vessel.look.key, vessel.look.fill, vessel.look, seen);
         rows.push(row);
         console.log(JSON.stringify(row));
         if (!onlyColour) {
@@ -60,8 +66,8 @@ const parseHex = (hex) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 
         const name = `${tag}-${stage.liquid.look.key}`;
         const { x, y, z, reach } = stage.liquid;
         const sampleX = 3 + (reach - 0.14);
-        const colour = await page.evaluate(`window.colourAt(${JSON.stringify([sampleX + 0.02, y + 1.2, z])},${JSON.stringify([sampleX, y, z])},4,0.3)`);
-        const row = { stage: tag, key: stage.liquid.look.key, form: "liquid-work", transparency: stage.liquid.look.transparency, basis: stage.liquid.look.renderBasis, renderHex: stage.liquid.look.renderHex, rendered: colour, deltaE: +delta(colour, parseHex(stage.liquid.look.renderHex)).toFixed(1) };
+        const seen = await page.evaluate(`window.colourOfLook(${JSON.stringify(stage.liquid.look.key)},${JSON.stringify([sampleX + 0.02, y + 1.2, z])},${JSON.stringify([sampleX, y, z])},20)`);
+        const row = rowOf(tag, stage.liquid.look.key, "liquid-work", stage.liquid.look, seen);
         rows.push(row);
         console.log(JSON.stringify(row));
         if (!onlyColour) {

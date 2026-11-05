@@ -13,8 +13,9 @@ const pad = (value, width) => String(value).padEnd(width).slice(0, width);
       fight: planted.some((row) => row.label.includes("planted fight") && row.failures.some((failure) => failure.includes("depth fight"))),
       crack: planted.some((row) => row.label.includes("planted crack") && row.failures.some((failure) => failure.includes("crack"))),
       missing: planted.some((row) => row.label.includes("planted missing") && row.failures.some((failure) => failure.includes("missing face"))),
+      flicker: planted.some((row) => row.label.includes("planted flicker") && row.failures.some((failure) => failure.includes("flicker"))),
     };
-    if (!caught.fight || !caught.crack || !caught.missing) {
+    if (!caught.fight || !caught.crack || !caught.missing || !caught.flicker) {
       failed++;
       console.log(scene, "PLANTED NOT CAUGHT", JSON.stringify(planted));
     }

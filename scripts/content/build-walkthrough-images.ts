@@ -25,7 +25,6 @@ type LayerColours = Readonly<Partial<Record<Layer, string | null>>>;
 interface StateSpec {
   readonly colours: LayerColours;
   readonly sourceMix?: number;
-  readonly weave?: number;
   readonly mottle?: number;
   readonly sameAsRaw?: boolean;
 }
@@ -54,15 +53,15 @@ const CLOTHS: readonly TraditionCloth[] = [
     crop: { left: 0, top: 460, width: 3872 },
     classifier: { groundValue: 0.62, groundSaturation: 0.34, blackValue: 0.2, haloRadius: 0 },
     states: [
-      { colours: UNIFORM("#EFEBDE"), weave: 2.2, mottle: 0.03 },
-      { colours: UNIFORM("#D8B24A"), weave: 1.8, mottle: 0.09 },
-      { colours: { ground: "#EFE8D4", red: "#D2AA45", blue: "#D2AA45", other: "#D2AA45", black: "#2B211B" }, weave: 1.4, mottle: 0.07 },
-      { colours: { ground: "#8F7C64", red: "#7E5C45", blue: "#D0A843", other: "#D0A843", black: "#6E5C4A" }, weave: 1.2, mottle: 0.16 },
-      { colours: { ground: "#3F4259", red: "#3B3D55", blue: "#142C68", other: "#142C68", black: "#30324A" }, weave: 1, mottle: 0.15 },
-      { colours: { ground: "#E9E4D6", red: "#CFBD86", blue: "#1C3C84", other: "#1C3C84", black: "#221C22" }, weave: 1, mottle: 0.07 },
-      { colours: { ground: "#E8B4A4", red: "#A5201A", blue: "#1A2D66", other: "#1A2D66", black: "#1C1418" }, weave: 1, mottle: 0.06 },
-      { colours: { ground: "#EEE8DA", red: "#A8231C", blue: "#1B3069", other: "#1B3069", black: "#1C1418" }, weave: 1, mottle: 0.05 },
-      { colours: {}, sourceMix: 0.92, weave: 0.6 },
+      { colours: UNIFORM("#EFEBDE"), mottle: 0.03 },
+      { colours: UNIFORM("#D8B24A"), mottle: 0.09 },
+      { colours: { ground: "#EFE8D4", red: "#D2AA45", blue: "#D2AA45", other: "#D2AA45", black: "#2B211B" }, mottle: 0.07 },
+      { colours: { ground: "#8F7C64", red: "#7E5C45", blue: "#D0A843", other: "#D0A843", black: "#6E5C4A" }, mottle: 0.16 },
+      { colours: { ground: "#3F4259", red: "#3B3D55", blue: "#142C68", other: "#142C68", black: "#30324A" }, mottle: 0.15 },
+      { colours: { ground: "#E9E4D6", red: "#CFBD86", blue: "#1C3C84", other: "#1C3C84", black: "#221C22" }, mottle: 0.07 },
+      { colours: { ground: "#E8B4A4", red: "#A5201A", blue: "#1A2D66", other: "#1A2D66", black: "#1C1418" }, mottle: 0.06 },
+      { colours: { ground: "#EEE8DA", red: "#A8231C", blue: "#1B3069", other: "#1B3069", black: "#1C1418" }, mottle: 0.05 },
+      { colours: {}, sourceMix: 0.92 },
     ],
   },
   {
@@ -72,14 +71,14 @@ const CLOTHS: readonly TraditionCloth[] = [
     classifier: { groundValue: 0.6, groundSaturation: 0.3, blackValue: 0.26, haloRadius: 6 },
     states: [
       { colours: {}, sameAsRaw: true },
-      { colours: UNIFORM("#E2CE7C"), weave: 1.8, mottle: 0.07 },
-      { colours: { ground: "#E0CB78", halo: "#E0CB78", red: "#A08A63", blue: "#A08A63", other: "#A08A63", black: "#4C3F34" }, weave: 1.5, mottle: 0.06 },
-      { colours: { ground: "#E7DAA9", halo: "#E7DAA9", red: "#A9392A", blue: "#A9392A", other: "#A9392A", black: "#2C1B17" }, weave: 1.3, mottle: 0.06 },
-      { colours: { ground: "#F1ECDF", halo: "#F1ECDF", red: "#AD3A2B", blue: "#AD3A2B", other: "#AD3A2B", black: "#2C1B17" }, weave: 1.5, mottle: 0.03 },
-      { colours: { ground: "#F1ECDF", halo: "#80705C", red: "#6C5C4B", blue: "#6C5C4B", other: "#6C5C4B", black: "#56483C" }, weave: 1.2, mottle: 0.14 },
-      { colours: { ground: "#1F3D78", halo: "#4D4B57", red: "#454350", blue: "#454350", other: "#454350", black: "#3A3946" }, weave: 1, mottle: 0.14 },
-      { colours: { ground: "#2C6B56", halo: "#6A6B4B", red: "#5E5F45", blue: "#5E5F45", other: "#5E5F45", black: "#4C4D3A" }, weave: 1, mottle: 0.12 },
-      { colours: { ground: "#2E6F5A", halo: "#EFE7D2", red: "#AD3A2B", blue: "#AD3A2B", other: "#AD3A2B", black: "#2C1B17" }, weave: 0.9, mottle: 0.06 },
+      { colours: UNIFORM("#E2CE7C"), mottle: 0.07 },
+      { colours: { ground: "#E0CB78", halo: "#E0CB78", red: "#A08A63", blue: "#A08A63", other: "#A08A63", black: "#4C3F34" }, mottle: 0.06 },
+      { colours: { ground: "#E7DAA9", halo: "#E7DAA9", red: "#A9392A", blue: "#A9392A", other: "#A9392A", black: "#2C1B17" }, mottle: 0.06 },
+      { colours: { ground: "#F1ECDF", halo: "#F1ECDF", red: "#AD3A2B", blue: "#AD3A2B", other: "#AD3A2B", black: "#2C1B17" }, mottle: 0.03 },
+      { colours: { ground: "#F1ECDF", halo: "#80705C", red: "#6C5C4B", blue: "#6C5C4B", other: "#6C5C4B", black: "#56483C" }, mottle: 0.14 },
+      { colours: { ground: "#1F3D78", halo: "#4D4B57", red: "#454350", blue: "#454350", other: "#454350", black: "#3A3946" }, mottle: 0.14 },
+      { colours: { ground: "#2C6B56", halo: "#6A6B4B", red: "#5E5F45", blue: "#5E5F45", other: "#5E5F45", black: "#4C4D3A" }, mottle: 0.12 },
+      { colours: { ground: "#2E6F5A", halo: "#EFE7D2", red: "#AD3A2B", blue: "#AD3A2B", other: "#AD3A2B", black: "#2C1B17" }, mottle: 0.06 },
     ],
   },
   {
@@ -89,14 +88,14 @@ const CLOTHS: readonly TraditionCloth[] = [
     classifier: { groundValue: 0.56, groundSaturation: 0.34, blackValue: 0.2, haloRadius: 0 },
     states: [
       { colours: {}, sameAsRaw: true },
-      { colours: UNIFORM("#EEE9DC"), weave: 2.2, mottle: 0.03 },
-      { colours: UNIFORM("#DFC26C"), weave: 1.8, mottle: 0.08 },
-      { colours: { ground: "#DDC06A", red: "#C49A78", blue: "#DDC06A", other: "#DDC06A", black: "#2B2420" }, weave: 1.4, mottle: 0.06 },
-      { colours: { ground: "#E6D8A2", red: "#BD9C7C", blue: "#E6D8A2", other: "#E6D8A2", black: "#322A27" }, weave: 1.4, mottle: 0.05 },
-      { colours: { ground: "#E8C9B6", red: "#8E291E", blue: "#E8C9B6", other: "#E8C9B6", black: "#1E1614" }, weave: 1.1, mottle: 0.07 },
-      { colours: { ground: "#E8C9B6", red: "#8E291E", blue: null, other: null, black: "#1E1614" }, weave: 1.1, mottle: 0.05 },
-      { colours: { ground: "#ECDCCA", red: "#93301F", blue: null, other: null, black: "#1E1614" }, weave: 1, mottle: 0.04 },
-      { colours: {}, sourceMix: 0.92, weave: 0.6 },
+      { colours: UNIFORM("#EEE9DC"), mottle: 0.03 },
+      { colours: UNIFORM("#DFC26C"), mottle: 0.08 },
+      { colours: { ground: "#DDC06A", red: "#C49A78", blue: "#DDC06A", other: "#DDC06A", black: "#2B2420" }, mottle: 0.06 },
+      { colours: { ground: "#E6D8A2", red: "#BD9C7C", blue: "#E6D8A2", other: "#E6D8A2", black: "#322A27" }, mottle: 0.05 },
+      { colours: { ground: "#E8C9B6", red: "#8E291E", blue: "#E8C9B6", other: "#E8C9B6", black: "#1E1614" }, mottle: 0.07 },
+      { colours: { ground: "#E8C9B6", red: "#8E291E", blue: null, other: null, black: "#1E1614" }, mottle: 0.05 },
+      { colours: { ground: "#ECDCCA", red: "#93301F", blue: null, other: null, black: "#1E1614" }, mottle: 0.04 },
+      { colours: {}, sourceMix: 0.92 },
     ],
   },
 ];
@@ -132,20 +131,6 @@ function valueNoise(seed: number): Float32Array {
 
 function blurChannel(channel: Uint8Array, sigma: number): Promise<Buffer> {
   return sharp(Buffer.from(channel), { raw: { width: WIDTH, height: HEIGHT, channels: 1 } }).blur(sigma).extractChannel(0).raw().toBuffer();
-}
-
-async function weaveMap(offset: number): Promise<Float32Array> {
-  const path = join(TEXTURES, "rough_linen/diff.jpg");
-  const { data } = await sharp(path)
-    .extract({ left: offset, top: offset, width: WIDTH - offset, height: HEIGHT })
-    .resize(WIDTH, HEIGHT)
-    .greyscale()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-  const blurred = await blurChannel(data, 24);
-  const out = new Float32Array(WIDTH * HEIGHT);
-  for (let index = 0; index < out.length; index += 1) out[index] = (data[index]! - blurred[index]!) / 255;
-  return out;
 }
 
 async function blurMask(mask: Uint8Array, sigma: number): Promise<Float32Array> {
@@ -222,13 +207,12 @@ async function sourceLayers(cloth: TraditionCloth): Promise<SourceLayers> {
 
 const LAYERS: readonly Layer[] = ["ground", "halo", "red", "blue", "black", "other"];
 
-function renderState(spec: StateSpec, source: SourceLayers, weave: Float32Array, noise: Float32Array): Buffer {
+function renderState(spec: StateSpec, source: SourceLayers, noise: Float32Array): Buffer {
   const out = Buffer.alloc(WIDTH * HEIGHT * 3);
   const colours = LAYERS.map((layer) => {
     const value = spec.colours[layer];
     return typeof value === "string" ? hex(value) : null;
   });
-  const weaveAmount = spec.weave ?? 1;
   const mottleAmount = spec.mottle ?? 0;
   const sourceMix = spec.sourceMix ?? 0;
   const uniform = new Set(colours.map((colour) => colour?.join())).size === 1;
@@ -250,10 +234,9 @@ function renderState(spec: StateSpec, source: SourceLayers, weave: Float32Array,
       total += weight;
     });
     const scale = total > 0 ? 1 / total : 1;
-    const relief = 1 + weaveAmount * weave[index]! * 2.4;
-    const shade = (uniform ? 1 : source.detail[index]!) * (1 + mottleAmount * noise[index]! * 2) * relief;
+    const shade = (uniform ? 1 : source.detail[index]!) * (1 + mottleAmount * noise[index]! * 2);
     const mix = (value: number, original: number) =>
-      Math.max(0, Math.min(255, sourceMix > 0 ? (value * scale * (1 - sourceMix) + original * sourceMix) * relief : value * scale * shade));
+      Math.max(0, Math.min(255, sourceMix > 0 ? value * scale * (1 - sourceMix) + original * sourceMix : value * scale * shade));
     out[index * 3] = mix(r, sr);
     out[index * 3 + 1] = mix(g, sg);
     out[index * 3 + 2] = mix(b, sb);
@@ -261,11 +244,11 @@ function renderState(spec: StateSpec, source: SourceLayers, weave: Float32Array,
   return out;
 }
 
-function renderRaw(weave: Float32Array, noise: Float32Array): Buffer {
+function renderRaw(noise: Float32Array): Buffer {
   const out = Buffer.alloc(WIDTH * HEIGHT * 3);
   const [red, green, blue] = hex("#DCD2BB");
   for (let index = 0; index < WIDTH * HEIGHT; index += 1) {
-    const shade = (1 + weave[index]! * 7) * (1 + noise[index]! * 0.05);
+    const shade = 1 + noise[index]! * 0.05;
     out[index * 3] = Math.max(0, Math.min(255, red * shade));
     out[index * 3 + 1] = Math.max(0, Math.min(255, green * shade));
     out[index * 3 + 2] = Math.max(0, Math.min(255, blue * shade));
@@ -283,13 +266,12 @@ async function buildCloth(): Promise<void> {
   mkdirSync(OUT_CLOTH, { recursive: true });
   for (const [clothIndex, cloth] of CLOTHS.entries()) {
     const source = await sourceLayers(cloth);
-    const weave = await weaveMap(0 + clothIndex * 40);
     const noise = valueNoise(11 + clothIndex * 97);
-    const raw = renderRaw(weave, noise);
+    const raw = renderRaw(noise);
     await writeState(`${cloth.tradition}-raw`, raw);
     for (const [stateIndex, state] of cloth.states.entries()) {
       const id = `${cloth.tradition}-${String(stateIndex + 1).padStart(2, "0")}`;
-      await writeState(id, state.sameAsRaw ? raw : renderState(state, source, weave, valueNoise(31 + stateIndex * 13 + clothIndex * 97)));
+      await writeState(id, state.sameAsRaw ? raw : renderState(state, source, valueNoise(31 + stateIndex * 13 + clothIndex * 97)));
     }
     console.log(`cloth ${cloth.tradition}: raw plus ${cloth.states.length} states`);
   }

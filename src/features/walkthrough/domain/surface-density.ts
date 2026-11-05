@@ -11,6 +11,7 @@ const WEAVE_FLOOR_PER_METRE = 7000;
 const SMALL_TEXT_FLOOR_PER_METRE = 1400;
 const SMALL_TEXT_METRES = 0.2;
 const REACH_TOLERANCE_METRES = 0.05;
+const MOST_HARD_CURVE_SHARE = 0.5;
 
 export type SurfaceClass = "ground" | "wall" | "cloth" | "printed-textile" | "model" | "painted" | "smooth" | "distant";
 
@@ -26,7 +27,8 @@ export interface SurfaceFact {
   readonly textHeightMetres: number | null;
   readonly reachMetres: number;
   readonly facetSagittaMetres: number;
-  readonly flatShaded: boolean;
+  readonly facetsAreReal: boolean;
+  readonly hardCurveShare: number;
 }
 
 export interface SurfaceRow extends SurfaceFact {
@@ -59,10 +61,11 @@ export function judgeSurface(fact: SurfaceFact): SurfaceRow {
   const normal = best(fact.normalPerMetre, fact.detailNormalPerMetre);
   const colourTexelsPerPixel = colour === null ? null : colour / needed;
   const normalTexelsPerPixel = normal === null ? null : normal / needed;
-  const facetPixels = fact.flatShaded ? 0 : fact.facetSagittaMetres * screenPixelsPerMetre(NEAREST_REACH_METRES);
+  const facetPixels = fact.facetsAreReal ? 0 : fact.facetSagittaMetres * screenPixelsPerMetre(NEAREST_REACH_METRES);
   const close = fact.reachMetres <= CLOSE_SURFACE_METRES;
   if (fact.surfaceClass !== "distant" && fact.reachMetres < NEAREST_REACH_METRES - REACH_TOLERANCE_METRES) failures.push(`camera can reach ${fact.reachMetres.toFixed(2)} m, nearer than ${NEAREST_REACH_METRES} m`);
   if (facetPixels > FACET_LIMIT_PIXELS) failures.push(`facets ${facetPixels.toFixed(1)} px at ${NEAREST_REACH_METRES} m`);
+  if (!fact.facetsAreReal && fact.hardCurveShare > MOST_HARD_CURVE_SHARE) failures.push(`flat-shaded facets on ${Math.round(fact.hardCurveShare * 100)}% of curved edges`);
   if (fact.surfaceClass === "smooth" || fact.surfaceClass === "distant") return { ...fact, colourTexelsPerPixel, normalTexelsPerPixel, facetPixels, failures };
   if (fact.surfaceClass === "painted") {
     if (fact.colourPerMetre === null) failures.push("painted words without a layer");
@@ -107,7 +110,6 @@ export interface TearingFigures {
 
 export const FIGHTING_LIMIT_PERCENT = 0.25;
 export const COLOUR_FLICKER_LIMIT_PERCENT = 1;
-const OPEN_WORK_FLICKER_LIMIT_PERCENT = 3;
 export const CRACK_LIMIT_PIXELS = 8;
 export const BACK_FACE_LIMIT_PERCENT = 0.5;
 const SMALLEST_JUDGED_PIXELS = 400;
@@ -116,7 +118,7 @@ export function tearingFailures(figures: TearingFigures): string[] {
   if (figures.visiblePixels < SMALLEST_JUDGED_PIXELS) return [];
   const failures: string[] = [];
   if (figures.fightingPercent > FIGHTING_LIMIT_PERCENT) failures.push(`depth fight ${figures.fightingPercent.toFixed(2)}%`);
-  if (figures.colourFlickerPercent > (figures.openWork ? OPEN_WORK_FLICKER_LIMIT_PERCENT : COLOUR_FLICKER_LIMIT_PERCENT)) failures.push(`flicker ${figures.colourFlickerPercent.toFixed(2)}%`);
+  if (figures.colourFlickerPercent > COLOUR_FLICKER_LIMIT_PERCENT) failures.push(`flicker ${figures.colourFlickerPercent.toFixed(2)}%`);
   if (!figures.openWork && figures.crackPixels > CRACK_LIMIT_PIXELS) failures.push(`crack ${figures.crackPixels} px`);
   if (figures.backFacePercent > BACK_FACE_LIMIT_PERCENT) failures.push(`missing face ${figures.backFacePercent.toFixed(2)}%`);
   return failures;

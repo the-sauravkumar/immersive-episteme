@@ -148,6 +148,7 @@ const DIRECTIONS = 16;
 const DIRECTIONS_REQUIRED = 11;
 const RAY_TILTS = [0, -0.35, 0.2, -0.7] as const;
 const BELOW_RIM_METRES = 0.003;
+export const VESSEL_TUCK_METRES = 0.003;
 const EMBEDDED_DIRECTIONS = 14;
 const DOWN_RAYS: readonly Vec3[] = [[0, -1, 0], ...[0.2, 0.45, 0.8].flatMap((spread) => Array.from({ length: 12 }, (_, i): Vec3 => {
   const angle = (i / 12) * Math.PI * 2 + spread;
@@ -170,7 +171,7 @@ function directionsCovered(probe: VesselProbe, point: Vec3): { covered: number; 
     }
     if (!first) continue;
     covered++;
-    if (probe.cavitySign !== 0 && first.facing !== probe.cavitySign) embedded++;
+    if (first.facing !== probe.cavitySign) embedded++;
   }
   return { covered, embedded };
 }
@@ -184,7 +185,9 @@ export function makeVesselProbe(triangles: Float32Array, axisX: number, axisZ: n
     const angle = (d / DIRECTIONS) * Math.PI * 2;
     balance += firstHit(grid, middle, [Math.cos(angle), 0, Math.sin(angle)])?.facing ?? 0;
   }
-  return { ...unsigned, cavitySign: Math.abs(balance) >= DIRECTIONS / 2 ? Math.sign(balance) : 0 };
+  const cavitySign = Math.abs(balance) >= DIRECTIONS / 2 ? Math.sign(balance) : 0;
+  if (cavitySign === 0) throw new Error("Vessel probe cannot tell the cavity side of this mesh");
+  return { ...unsigned, cavitySign };
 }
 
 export function vertexOutsideVessel(probe: VesselProbe, point: Vec3, tuckMetres: number): boolean {

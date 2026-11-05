@@ -4,7 +4,7 @@ const launch = process.env.LOW_SPEC ? launchLowSpec : launchGpu;
 
 const arrived = "(()=>{const r=window.runtime;return r.autoTarget===null&&r.autoHeading===null})()";
 const place = "(()=>{const r=window.runtime;return {index:r.stationIndex,x:+r.walker.x.toFixed(2),z:+r.walker.z.toFixed(2),localZ:+(r.walker.z+r.stationIndex*44).toFixed(2)}})()";
-const hillsAway = `(()=>{const r=window.runtime;const cam=r.camera.position;let nearest=Infinity;r.hills.children.forEach(s=>{const p=s.getWorldPosition(s.position.clone());nearest=Math.min(nearest,Math.hypot(p.x-cam.x,p.z-cam.z))});return +nearest.toFixed(1)})()`;
+const hillsAway = `(()=>{const r=window.runtime;const cam=r.camera.position;let nearest=Infinity;r.hills.children.forEach(s=>{const p=s.getWorldPosition(s.position.clone());nearest=Math.min(nearest,s.geometry.parameters.radiusTop-Math.hypot(p.x-cam.x,p.z-cam.z))});return +nearest.toFixed(1)})()`;
 const WALL_REACH = 62;
 
 (async () => {

@@ -293,7 +293,7 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
       "ajrakh.dung-soak-and-sun-bleaching"
     ],
     "label": "Dung Soak And Sun-Bleaching",
-    "partOfTemplateLabel": null,
+    "partOfTemplateLabel": "Camel Dung",
     "form": "liquid",
     "renderHex": "#4A3A28",
     "renderBasis": "provisional",
@@ -519,7 +519,7 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
       "sanganeri.sun-bleaching"
     ],
     "label": "Sun-Bleaching",
-    "partOfTemplateLabel": null,
+    "partOfTemplateLabel": "Cow Dung",
     "form": "liquid",
     "renderHex": "#4A3A28",
     "renderBasis": "provisional",

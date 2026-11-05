@@ -383,7 +383,7 @@
       ],
       "name": "Soaping And Final Sun-Drying",
       "localName": null,
-      "kind": "finish",
+      "kind": "wash",
       "caption": {
         "text": "The last stage is washing with soap, after which the cloth is dried in the sun.",
         "sources": [

@@ -17,6 +17,11 @@ export const YARD_HALF_WIDTH = 24;
 export const WORK_FLOOR_Y = -0.72;
 export const CLOTH_COLUMNS = 78;
 const SETTLED_CLOTH_FLOOR = WORK_FLOOR_Y + 0.03;
+const CLOTH_ROW_METRES = 0.05;
+const CLOTH_ROW_OVER_RIM_METRES = 0.026;
+export const TIE_BOARD_THICKNESS = 0.05;
+export const TIE_BOARD_OFFSET = 1.15 + 0.0725 + TIE_BOARD_THICKNESS / 2 + 0.0005;
+const TIE_WORDS_OFFSET = TIE_BOARD_OFFSET + TIE_BOARD_THICKNESS / 2 + 0.0015;
 
 export type WorkStructure =
   | { readonly type: "ring"; readonly z: number; readonly radius: number; readonly rim: number; readonly curb: number; readonly level: number; readonly finish: "lime" | "copper" }
@@ -125,12 +130,15 @@ export function heightFieldFor(work: WorkStructure, rails: readonly number[]): H
   return (x, z, y) => {
     let h = groundHeight(x, z);
     if (work.type === "ring") {
-      const r = Math.hypot(x - CLOTH_LINE_X, z - work.z);
+      const across = Math.abs(z - work.z);
       const top = work.curb + 0.016;
-      if (r >= work.radius - 0.02 && r <= work.rim + 0.03) h = top;
-      else if (r > work.rim + 0.03 && r < work.rim + 0.03 + work.curb * 1.6) h = Math.max(h, h + (top - h) * cosineFall((r - work.rim - 0.03) / (work.curb * 1.6)));
-      else if (r < work.radius - 0.02) {
-        const t = (work.radius - 0.02 - r) / 0.42;
+      const foldLine = Math.sqrt(work.radius * work.radius - (CLOTH_WIDTH / 2 + 0.06) ** 2);
+      const rimEdge = work.rim + 0.03;
+      if (Math.abs(x - CLOTH_LINE_X) > CLOTH_WIDTH / 2 + 0.06) h = groundHeight(x, z);
+      else if (across >= foldLine && across <= rimEdge) h = top;
+      else if (across > rimEdge && across < rimEdge + work.curb * 1.6) h = Math.max(h, h + (top - h) * cosineFall((across - rimEdge) / (work.curb * 1.6)));
+      else if (across < foldLine) {
+        const t = (foldLine - across) / 0.42;
         h = SETTLED_CLOTH_FLOOR + (top - SETTLED_CLOTH_FLOOR) * cosineFall(t);
       }
     }
@@ -270,12 +278,15 @@ export function buildYardPlan(stage: YardStage): YardPlan {
   const shedWordX = (x: number) => (side === 1 ? x : x + 18);
   const words: PaintedWords[] = stationWords(stage, shedWordX, shedZ);
   const curvedWords: CurvedWords[] = [];
-  const specOf = (points: readonly Vec3[], name: string, state: "before" | "after", fold: number): ClothPiece => ({
-    name,
-    state,
-    surface: settleCloth({ points, width: CLOTH_WIDTH, metresPerRepeat: 3.46, fold, foldFrequency: 3.1, step: 0.05, columns: CLOTH_COLUMNS, foldAmount, field }),
-  });
   const cloth: ClothPiece[] = [];
+  const specOf = (points: readonly Vec3[], name: string, state: "before" | "after", fold: number, step = CLOTH_ROW_METRES): ClothPiece => {
+    const startAlong = cloth[cloth.length - 1]?.surface.endAlong;
+    return {
+      name,
+      state,
+      surface: settleCloth({ points, width: CLOTH_WIDTH, metresPerRepeat: 3.46, fold, foldFrequency: 3.1, step, columns: CLOTH_COLUMNS, foldAmount, field, ...(startAlong ? { startAlong } : {}) }),
+    };
+  };
   let lastGround = 6;
   const start = rails[0]!;
   const toFirstRail: Vec3 = [CLOTH_LINE_X, RAIL_HEIGHT + 0.07, start];
@@ -285,7 +296,7 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     const reach = work.type === "ring" ? work.rim + work.curb * 1.6 + 0.2 : work.halfZ + work.rim + work.curb * 1.6 + 0.2;
     const inside = work.type === "ring" ? work.radius - 0.72 : work.halfZ - 0.72;
     lastGround = work.z + reach;
-    cloth.push(specOf([...incomingGround(lastGround + 1), [CLOTH_LINE_X, 0.012, lastGround], [CLOTH_LINE_X, 0.012, work.z + inside + 0.5], [CLOTH_LINE_X, -0.1, work.z + inside + 0.1], [CLOTH_LINE_X, -0.3, work.z + inside - 0.2], [CLOTH_LINE_X, -0.36, work.z]], "cloth-in", "before", 0.004));
+    cloth.push(specOf([...incomingGround(lastGround + 1), [CLOTH_LINE_X, 0.012, lastGround], [CLOTH_LINE_X, 0.012, work.z + inside + 0.5], [CLOTH_LINE_X, -0.1, work.z + inside + 0.1], [CLOTH_LINE_X, -0.3, work.z + inside - 0.2], [CLOTH_LINE_X, -0.36, work.z]], "cloth-in", "before", 0.004, CLOTH_ROW_OVER_RIM_METRES));
     cloth.push(specOf([[CLOTH_LINE_X, -0.36, work.z], [CLOTH_LINE_X, -0.3, work.z - inside + 0.2], [CLOTH_LINE_X, work.level + 0.03, work.z - inside], [CLOTH_LINE_X, work.curb + 1, Math.min(3.5, work.z - inside - 0.7)], [CLOTH_LINE_X, 3.2, start + 0.45], [CLOTH_LINE_X, RAIL_HEIGHT - 0.2, start + 0.18], toFirstRail, ...festoon, ...away], "cloth-out", "after", 0.065));
   } else if (work.type === "table") {
     const boundary = 3.4;
@@ -331,8 +342,8 @@ export function buildYardPlan(stage: YardStage): YardPlan {
     if (names) words.push({ lines: [names], at: [apronX, work.top - 0.1, 6.8], facing: paintedFacing(side), height: 0.1, align: "center", colour: "lime", weight: 700, family: "Eczar", pixelsPerMetre: 1500, wear: 0.6, lineHeight: 1.14 });
     words.push({ lines: [CLOTH_AFTER_LABEL], at: [apronX, work.top - 0.1, 1.6], facing: paintedFacing(side), height: 0.1, align: "center", colour: "lime", weight: 700, family: "Eczar", pixelsPerMetre: 1500, wear: 0.6, lineHeight: 1.14 });
   }
-  const tie = work.type === "table" ? null : { x: CLOTH_LINE_X - side * 1.22, z0: rails[rails.length - 1]! - 0.1, z1: rails[0]! + 0.15, y: 1.3 };
-  if (tie) words.push({ lines: [CLOTH_AFTER_LABEL], at: [CLOTH_LINE_X - side * 1.2465, 1.3, (tie.z0 + tie.z1) / 2 + 1], facing: paintedFacing(side), height: 0.128, align: "center", colour: "lime", weight: 700, family: "Eczar", pixelsPerMetre: 1500, wear: 0.6, lineHeight: 1.14 });
+  const tie = work.type === "table" ? null : { x: CLOTH_LINE_X - side * TIE_BOARD_OFFSET, z0: rails[rails.length - 1]! - 0.1, z1: rails[0]! + 0.15, y: 1.3 };
+  if (tie) words.push({ lines: [CLOTH_AFTER_LABEL], at: [CLOTH_LINE_X - side * TIE_WORDS_OFFSET, 1.3, (tie.z0 + tie.z1) / 2 + 1], facing: paintedFacing(side), height: 0.128, align: "center", colour: "lime", weight: 700, family: "Eczar", pixelsPerMetre: 1500, wear: 0.6, lineHeight: 1.14 });
   if (stage.next) {
     const nextWords = `${stage.next.number}  ${stage.next.name}`;
     const toward = CLOTH_LINE_X - side * (GAP_WIDTH / 2 + GATE_PIER_WIDTH + nextWords.length * 0.42 * 0.3 + 0.3);

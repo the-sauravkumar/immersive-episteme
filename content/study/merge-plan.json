@@ -86,7 +86,7 @@
           "rationale": "Stands alone: spread on the ground in the sun."
         },
         {
-          "key": "final-wash-and-finishing",
+          "key": "final-wash-and-washing",
           "kind": "finish",
           "sources": [
             { "stage": "ajrakh.process_stage.vichharnu", "shortForm": "final wash" },
@@ -284,7 +284,7 @@
         },
         {
           "key": "soaping-and-final-sun-drying",
-          "kind": "finish",
+          "kind": "wash",
           "sources": [{ "stage": "machilipatnam-kalamkari.process_stage.soaping-finishing", "shortForm": "soaping and final sun-drying" }],
           "caption": [{ "stage": "machilipatnam-kalamkari.process_stage.soaping-finishing", "claim": 0 }],
           "rationale": "Stands alone: the last stage."

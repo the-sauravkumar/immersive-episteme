@@ -1,6 +1,6 @@
 import { boxesOverlapDepth, insideDepth, type Box, type Vec3 } from "./geometry";
 
-export type SolidRole = "wall" | "structure" | "object" | "textile" | "frame" | "hollow" | "surface";
+export type SolidRole = "wall" | "structure" | "object" | "textile" | "frame" | "pole" | "hollow" | "surface";
 
 export interface CheckedSolid {
   readonly name: string;
@@ -9,6 +9,7 @@ export interface CheckedSolid {
   readonly restsOn: readonly string[];
   readonly planted: boolean;
   readonly standsOnY?: number;
+  readonly standsWithin?: Box;
 }
 
 export interface SolidField {
@@ -31,13 +32,13 @@ export interface CheckedSphere {
 
 export interface FillAudit {
   readonly name: string;
-  readonly points: Float32Array;
+  readonly points: () => Float32Array;
   readonly vertexOutside: (point: Vec3) => boolean;
-  readonly pieces: readonly (readonly CheckedSphere[])[];
+  readonly pieces: () => readonly (readonly CheckedSphere[])[];
 }
 
 export interface SceneProblem {
-  readonly rule: "solid-overlap" | "outside-yard" | "below-ground" | "through-wall" | "cloth-penetration" | "fill-outside-vessel" | "fill-overlap" | "through-bench" | "unchecked-mesh";
+  readonly rule: "solid-overlap" | "outside-yard" | "below-ground" | "through-wall" | "cloth-penetration" | "fill-outside-vessel" | "fill-overlap" | "through-bench" | "off-bench" | "fill-missing" | "unchecked-mesh";
   readonly subject: string;
   readonly against: string;
   readonly depthMm: number;
@@ -52,6 +53,7 @@ export interface SceneCheckInput {
   readonly groundIsOpenAt: (x: number, z: number) => boolean;
   readonly fills?: readonly FillAudit[];
   readonly unchecked?: readonly string[];
+  readonly expectedFills?: number;
 }
 
 export interface SceneCheckReport {
@@ -59,6 +61,7 @@ export interface SceneCheckReport {
   readonly clothPointsChecked: number;
   readonly fillPointsChecked: number;
   readonly fillPiecesChecked: number;
+  readonly fillsChecked: number;
   readonly problems: readonly SceneProblem[];
 }
 
@@ -75,6 +78,10 @@ function solidProblems(input: SceneCheckInput): SceneProblem[] {
   const solids = input.solids.filter((solid) => solid.role !== "surface");
   for (const solid of solids) {
     if (solid.standsOnY !== undefined && solid.box.min[1] < solid.standsOnY - TOLERANCE_METRES) problems.push({ rule: "through-bench", subject: solid.name, against: "bench top", depthMm: mm(solid.standsOnY - solid.box.min[1]) });
+    if (solid.standsWithin) {
+      const past = Math.max(solid.standsWithin.min[0] - solid.box.min[0], solid.box.max[0] - solid.standsWithin.max[0], solid.standsWithin.min[2] - solid.box.min[2], solid.box.max[2] - solid.standsWithin.max[2]);
+      if (past > TOLERANCE_METRES) problems.push({ rule: "off-bench", subject: solid.name, against: "bench top", depthMm: mm(past) });
+    }
     if (solid.role !== "wall") {
       const beyond = Math.max(yard.min[0] - solid.box.min[0], solid.box.max[0] - yard.max[0], yard.min[2] - solid.box.min[2], solid.box.max[2] - yard.max[2]);
       if (beyond > TOLERANCE_METRES) problems.push({ rule: "outside-yard", subject: solid.name, against: "yard", depthMm: mm(beyond) });
@@ -87,7 +94,7 @@ function solidProblems(input: SceneCheckInput): SceneProblem[] {
       const a = solids[i]!;
       const b = solids[j]!;
       if (a.restsOn.includes(b.name) || b.restsOn.includes(a.name)) continue;
-      if (a.role === b.role && (a.role === "wall" || a.role === "frame")) continue;
+      if (a.role === "wall" && b.role === "wall") continue;
       const depth = boxesOverlapDepth(a.box, b.box);
       if (depth <= TOLERANCE_METRES) continue;
       const rule = a.role === "wall" || b.role === "wall" ? "through-wall" : "solid-overlap";
@@ -104,7 +111,7 @@ function clothProblems(input: SceneCheckInput, count: { points: number }): Scene
     const known = worst.get(key);
     if (!known || known.depthMm < mm(depth)) worst.set(key, { rule: "cloth-penetration", subject, against, depthMm: mm(depth) });
   };
-  const blockers = input.solids.filter((solid) => solid.role !== "frame" && solid.role !== "hollow" && solid.role !== "surface");
+  const blockers = input.solids.filter((solid) => solid.role !== "pole" && solid.role !== "hollow" && solid.role !== "surface");
   const test = (name: string, p: Vec3) => {
     count.points++;
     if (p[1] < GROUND_ALLOWANCE_METRES && !input.groundIsOpenAt(p[0], p[2])) note(name, "ground", GROUND_ALLOWANCE_METRES - p[1]);
@@ -142,16 +149,17 @@ function fillProblems(input: SceneCheckInput, count: { fillPoints: number; fillP
   const problems: SceneProblem[] = [];
   for (const fill of input.fills ?? []) {
     let outside = 0;
-    const p = fill.points;
+    const p = fill.points();
     for (let k = 0; k < p.length; k += 3) {
       count.fillPoints++;
       if (fill.vertexOutside([p[k]!, p[k + 1]!, p[k + 2]!])) outside++;
     }
     if (outside > 0) problems.push({ rule: "fill-outside-vessel", subject: fill.name, against: "vessel", depthMm: 0, vertices: outside });
-    count.fillPieces += fill.pieces.length;
+    const pieces = fill.pieces();
+    count.fillPieces += pieces.length;
     let overlap = 0;
-    for (let i = 0; i < fill.pieces.length; i++) {
-      for (let j = i + 1; j < fill.pieces.length; j++) overlap = Math.max(overlap, piecesOverlapDepth(fill.pieces[i]!, fill.pieces[j]!));
+    for (let i = 0; i < pieces.length; i++) {
+      for (let j = i + 1; j < pieces.length; j++) overlap = Math.max(overlap, piecesOverlapDepth(pieces[i]!, pieces[j]!));
     }
     if (overlap > PIECE_TOLERANCE_METRES) problems.push({ rule: "fill-overlap", subject: fill.name, against: "another piece", depthMm: mm(overlap) });
   }
@@ -161,6 +169,8 @@ function fillProblems(input: SceneCheckInput, count: { fillPoints: number; fillP
 export function checkScene(input: SceneCheckInput): SceneCheckReport {
   const count = { points: 0, fillPoints: 0, fillPieces: 0 };
   const unchecked = (input.unchecked ?? []).map((name): SceneProblem => ({ rule: "unchecked-mesh", subject: name, against: "scene check", depthMm: 0 }));
-  const problems = [...solidProblems(input), ...clothProblems(input, count), ...fillProblems(input, count), ...unchecked];
-  return { solidsChecked: input.solids.length, clothPointsChecked: count.points, fillPointsChecked: count.fillPoints, fillPiecesChecked: count.fillPieces, problems };
+  const seenFills = input.fills?.length ?? 0;
+  const missing = input.expectedFills !== undefined && seenFills !== input.expectedFills ? [{ rule: "fill-missing" as const, subject: `${seenFills} fills`, against: `${input.expectedFills} in the plan`, depthMm: 0 }] : [];
+  const problems = [...solidProblems(input), ...clothProblems(input, count), ...fillProblems(input, count), ...unchecked, ...missing];
+  return { solidsChecked: input.solids.length, clothPointsChecked: count.points, fillPointsChecked: count.fillPoints, fillPiecesChecked: count.fillPieces, fillsChecked: input.fills?.length ?? 0, problems };
 }

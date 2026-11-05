@@ -2,7 +2,6 @@ import { stillPath } from "./asset-catalogue";
 import type { StageItem } from "./stage-template";
 import { SUBSTANCE_LOOK_ROWS } from "./substance-look-rows";
 
-export type SubstanceForm = "liquid" | "paste" | "powder" | "crystals" | "roots" | "flowers" | "cloth" | "other";
 export type SubstanceFill = "liquid" | "paste" | "powder" | "crystals" | "roots" | "flowers" | "cloth" | "dung" | "leaves";
 export type Transparency = "clear" | "translucent" | "opaque";
 export type RenderBasis = "evidence" | "inferred" | "provisional";
@@ -91,17 +90,16 @@ export function workLiquidOf(stageKey: string, items: readonly Pick<StageItem, "
 export function trayPadLookOf(stageKey: string): SubstanceLook | null {
   const row = rowsOfStage(stageKey).find((candidate) => candidate.vesselSuggestion === "colour tray");
   if (row) return lookOf(row);
-  const tradition = stageKey.split(".")[0];
-  const cloth = SUBSTANCE_LOOK_ROWS.find((candidate) => candidate.form === "cloth" && candidate.key.startsWith(`${tradition}-`));
-  return cloth ? lookOf(cloth) : null;
+  const paste = rowsOfStage(stageKey).find((candidate) => candidate.form === "paste");
+  return paste ? lookOf(paste) : null;
 }
 
 const toolStillPath = (modelId: string, liquidHex: string): string => stillPath(`${modelId}-${liquidHex.replace("#", "").toLowerCase()}`);
 
 export function stageItemStillPath(stageKey: string, items: readonly StageItem[], item: StageItem): string {
   if (item.role === "material") {
-    const look = looksOfItem(stageKey, item)[0];
-    return stillPath(look ? look.key : item.modelId);
+    const looks = looksOfItem(stageKey, item);
+    return stillPath(looks.length > 0 ? looks.map((look) => look.key).join("+") : item.modelId);
   }
   if (item.modelId === TRAY_MODEL) {
     const pad = trayPadLookOf(stageKey);
@@ -114,8 +112,19 @@ export function stageItemStillPath(stageKey: string, items: readonly StageItem[]
   return stillPath(item.modelId);
 }
 
-export function liquidMarks(look: Pick<SubstanceLook, "surface">): { readonly scum: boolean; readonly bubbles: boolean } {
-  return { scum: /scum/.test(look.surface), bubbles: /bubbles|soapy|lather/.test(look.surface) };
+const LATHER_SHARE = 0.5;
+const SOAP_SHARE = 0.2;
+const BUBBLES_WITH_SCUM_SHARE = 0.16;
+const SCUM_SHARE = 0.34;
+
+export function liquidMarks(look: Pick<SubstanceLook, "surface">): { readonly scum: number; readonly foam: number } {
+  const scum = /scum/.test(look.surface) ? SCUM_SHARE : 0;
+  const foam = /lather/.test(look.surface) ? LATHER_SHARE : /soapy/.test(look.surface) ? SOAP_SHARE : /bubbles/.test(look.surface) ? BUBBLES_WITH_SCUM_SHARE : 0;
+  return { scum, foam };
+}
+
+export function itemColourIsUnsettled(stageKey: string, item: Pick<StageItem, "label" | "role">): boolean {
+  return looksOfItem(stageKey, item).some((look) => look.renderBasis !== "evidence");
 }
 
 export function itemVesselModel(stageKey: string, item: Pick<StageItem, "label" | "role">): string | null {

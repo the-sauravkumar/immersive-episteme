@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { clothBodyBoxes, settleCloth } from "../domain/cloth-surface";
 import { smoothstep } from "../domain/geometry";
 import type { Box, Vec3 } from "../domain/geometry";
-import type { CheckedSolid, ClothMesh } from "../domain/scene-check";
+import type { CheckedSolid, ClothMesh, SolidField } from "../domain/scene-check";
 import type { SolidRole } from "../domain/scene-check";
 import { type YardKit } from "./build-yard";
 import { noteSurface } from "./material-library";
@@ -37,13 +37,16 @@ export interface BuiltEntrance {
   readonly solids: () => CheckedSolid[];
   readonly unchecked: () => string[];
   readonly cloths: ClothMesh[];
+  readonly fields: readonly SolidField[];
   readonly colliders: readonly Box[];
 }
+
+const PLANK_SHIFT_METRES = 0.37;
 
 async function indigoPlanks(kit: YardKit): Promise<THREE.MeshStandardMaterial> {
   const scan = await kit.library.scan("table");
   const material = new THREE.MeshStandardMaterial({ map: scan.colour, normalMap: scan.normal, roughnessMap: scan.roughness, roughness: 0.9, color: displayAlbedo(INDIGO_PLANK_HEX, PLANK_GAIN), envMapIntensity: 0.4 });
-  return noteSurface(projectScan(material, 1 / scan.tileMetres, PLANK_CONTRAST, 0.5), { label: "indigo door planks", kind: "model", perMetre: 1 / scan.tileMetres });
+  return noteSurface(projectScan(material, 1 / scan.tileMetres, PLANK_CONTRAST, 0.5, { turned: true }), { label: "indigo door planks", kind: "model", perMetre: 1 / scan.tileMetres });
 }
 
 export async function buildEntrance(kit: YardKit, options: EntranceOptions): Promise<BuiltEntrance> {
@@ -108,7 +111,12 @@ export async function buildEntrance(kit: YardKit, options: EntranceOptions): Pro
       hinge.rotation.y = side * swing;
       group.add(hinge);
       const plankWidth = doorWidth / 4 - 0.005;
-      for (const across of [0.5, 1.5]) softBox(hinge, [plankWidth, doorHeight, 0.04], planks, [(-side * doorWidth * across) / 4, doorHeight / 2, 0.007], { radius: 0.005 });
+      for (const across of [0.5, 1.5]) {
+        const plank = softBox(hinge, [plankWidth, doorHeight, 0.04], planks, [(-side * doorWidth * across) / 4, doorHeight / 2, 0.007], { radius: 0.005 });
+        const shift = (across + side) * PLANK_SHIFT_METRES;
+        plank.geometry.translate(shift, 0, 0);
+        plank.position.x -= shift;
+      }
       for (const y of [0.42, 2.08]) softBox(hinge, [doorWidth / 2 - 0.05, 0.11, 0.022], timber, [(-side * doorWidth) / 4, y, 0.038], { radius: 0.005, tile: [1.8, 1.8] });
       register(`${door} leaf ${side}`, "structure", hinge, [...frameParts, `${door} leaf ${-side}`]);
     }
@@ -119,7 +127,7 @@ export async function buildEntrance(kit: YardKit, options: EntranceOptions): Pro
   group.add(rail);
   pole(rail, [-1.05, 3.42, railZ], [1.05, 3.42, railZ], 0.045, bamboo);
   for (const a of [-0.98, 0.98]) softBox(rail, [0.05, 0.05, 0.2], timber, [a, 3.42, WALL_Z + 0.1], { radius: 0.006, tile: [1.8, 1.8] });
-  register("cloth rail", "frame", rail, ["entrance wall"]);
+  register("cloth rail", "pole", rail, ["entrance wall"]);
   const points: Vec3[] = [
     [0, 3.32, WALL_Z + 0.09],
     [0, 3.49, railZ - 0.02],
@@ -197,5 +205,5 @@ export async function buildEntrance(kit: YardKit, options: EntranceOptions): Pro
     });
     return missing;
   };
-  return { group, solids, unchecked, cloths: [{ name: "entrance cloth", positions: surface.positions, indices: surface.indices }], colliders };
+  return { group, solids, fields: [{ name: "cloth rail pole", depthAt: (p) => (Math.abs(p[0]) <= 1.05 ? 0.045 - Math.hypot(p[1] - 3.42, p[2] - railZ) : 0) }], unchecked, cloths: [{ name: "entrance cloth", positions: surface.positions, indices: surface.indices }], colliders };
 }

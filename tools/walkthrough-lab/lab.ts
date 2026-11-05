@@ -12,7 +12,6 @@ import type { Box } from "@/features/walkthrough/domain/geometry";
 import { reachField, type ReachField } from "@/features/walkthrough/domain/reach";
 import { rankWorstFirst, tearingFailures } from "@/features/walkthrough/domain/surface-density";
 import { measureTearing, objectParts, reachOfParts, surfaceRows } from "./surface-audit";
-import { SUBSTANCE_LOOK_ROWS } from "@/features/process/domain/substance-look-rows";
 import { looksOfItem, stageItemStillPath, trayPadLookOf, workLiquidOf, type SubstanceLook } from "@/features/process/domain/substance-look";
 import { easeYaw, moveTowards, steerAlong, stepWalker, walkerAt, type WalkTarget, type Walker } from "@/features/walkthrough/domain/walk-state";
 import { buildEntrance } from "@/features/walkthrough/infrastructure/build-entrance";
@@ -20,6 +19,7 @@ import { buildYard, YardKit, type BuiltYard, type YardTextile } from "@/features
 import { buildStillSubject } from "@/features/walkthrough/infrastructure/build-still";
 import { addHorizon } from "@/features/walkthrough/infrastructure/horizon";
 import { MaterialLibrary } from "@/features/walkthrough/infrastructure/material-library";
+import { paintWords } from "@/features/walkthrough/infrastructure/solid-builders";
 import { addSun, CAMERA_NEAR_METRES, createRenderer, createRenderView } from "@/features/walkthrough/infrastructure/render-view";
 
 const TEMPLATES: Record<string, StageTemplate> = { ajrakh: ajrakh as StageTemplate, sanganeri: sanganeri as StageTemplate, kalamkari: kalamkari as unknown as StageTemplate };
@@ -44,6 +44,7 @@ let auditColliders: readonly Box[] = [];
 let auditSeed: readonly [number, number] = [0, 0];
 let auditArea = { minX: CLOTH_LINE_X - YARD_HALF_WIDTH - 1, maxX: CLOTH_LINE_X + YARD_HALF_WIDTH + 1, minZ: YARD_FRONT_Z - NEXT_YARD_OFFSET, maxZ: YARD_FRONT_Z + 2 };
 
+const PLANTED_POKE_METRES = 0.06;
 const STILL_FOV_DEGREES = 24;
 const STILL_FILLS_FRAME = 0.8;
 const STILL_POINTS_PER_MESH = 3000;
@@ -78,8 +79,9 @@ function fitStillView(subject: THREE.Object3D, bounds: THREE.Box3, lens: THREE.P
     lens.lookAt(target);
     lens.updateMatrixWorld();
     const projected = points.map((point) => point.clone().project(lens));
-    const [minX, maxX] = [Math.min(...projected.map((p) => p.x)), Math.max(...projected.map((p) => p.x))];
-    const [minY, maxY] = [Math.min(...projected.map((p) => p.y)), Math.max(...projected.map((p) => p.y))];
+    const spanOf = (axis: "x" | "y") => projected.reduce(([low, high], p) => [Math.min(low, p[axis]), Math.max(high, p[axis])] as const, [Infinity, -Infinity] as const);
+    const [minX, maxX] = spanOf("x");
+    const [minY, maxY] = spanOf("y");
     const right = new THREE.Vector3().setFromMatrixColumn(lens.matrixWorld, 0);
     const up = new THREE.Vector3().setFromMatrixColumn(lens.matrixWorld, 1);
     const halfHeight = Math.tan((lens.fov * Math.PI) / 360) * distance;
@@ -129,7 +131,7 @@ if (sceneName === "still") {
     const entrance = await buildEntrance(kit, { open, openness: Number(query.get("t") ?? 1), door1View: "/walkthrough/stills/door1-first-panel.jpg", door2View: "/walkthrough/stills/practice-view.jpg" });
     scene.add(entrance.group);
     view = query.get("v") === "near" ? { from: [0.9, 1.6, 3.8], to: [3.3, 1.55, -4.5] } : { from: [-6.4, 1.6, 8.6], to: [1.6, 2.3, -4.5] };
-    audit = () => ({ solids: entrance.solids(), cloths: entrance.cloths, fields: [], fills: [], groundIsOpenAt: () => false, unchecked: entrance.unchecked() });
+    audit = () => ({ solids: entrance.solids(), cloths: entrance.cloths, fields: [...entrance.fields], fills: [], groundIsOpenAt: () => false, unchecked: entrance.unchecked() });
     auditRoot = entrance.group;
     auditColliders = entrance.colliders;
     auditSeed = [view.from[0]!, view.from[2]!];
@@ -193,7 +195,7 @@ renderer.compile(scene, camera);
 output.render();
 output.render();
 win.QA = (plantFault = false, plantFillFault = false) => {
-  if (!audit || !planForCheck) return { solidsChecked: 0, clothPointsChecked: 0, fillPointsChecked: 0, fillPiecesChecked: 0, problems: [] };
+  if (!audit || !planForCheck) return { solidsChecked: 0, clothPointsChecked: 0, fillPointsChecked: 0, fillPiecesChecked: 0, fillsChecked: 0, problems: [] };
   const parts = audit();
   const plantedSolids = [
     { name: "planted textile past the wall", role: "textile" as const, box: { min: [25, 0, 0] as const, max: [40, 3, 0.1] as const }, restsOn: [], planted: false },
@@ -204,14 +206,29 @@ win.QA = (plantFault = false, plantFillFault = false) => {
   const solids = plantFault ? [...parts.solids, ...plantedSolids] : parts.solids;
   const cloths = plantFault ? parts.cloths.map((cloth) => ({ ...cloth, positions: cloth.positions.map((value, i) => (i % 3 === 1 ? value - 0.06 : value)) })) : parts.cloths;
   const unchecked = plantFault ? [...parts.unchecked, "planted unregistered mesh"] : parts.unchecked;
-  const thinned = (points: Float32Array) => {
-    const every = Math.max(1, Math.floor(points.length / 3 / 40));
-    const kept: number[] = [];
-    for (let k = 0; k < points.length; k += every * 3) kept.push(points[k]! + 0.5, points[k + 1]!, points[k + 2]!);
-    return Float32Array.from(kept);
+  const pokedThroughWall = (points: Float32Array) => {
+    let far = 0;
+    let at = 0;
+    for (let k = 0; k < points.length; k += 3) {
+      const reach = Math.hypot(points[k]!, points[k + 2]!);
+      if (reach > far) {
+        far = reach;
+        at = k;
+      }
+    }
+    const outward = (far + PLANTED_POKE_METRES) / far;
+    return Float32Array.from([points[at]! * outward, points[at + 1]!, points[at + 2]! * outward]);
   };
-  const fills = plantFault ? [] : plantFillFault ? parts.fills.map((fill) => ({ ...fill, points: thinned(fill.points), pieces: fill.pieces.length > 1 ? [...fill.pieces.slice(0, 3), fill.pieces[0]!] : fill.pieces })) : parts.fills;
-  return checkScene({ yard: planForCheck.yard, solids, cloths, fields: parts.fields, fills, groundIsOpenAt: parts.groundIsOpenAt, unchecked });
+  const fills = plantFault
+    ? []
+    : plantFillFault
+      ? parts.fills.map((fill) => {
+          const pieces = fill.pieces();
+          return { ...fill, points: () => pokedThroughWall(fill.points()), pieces: () => (pieces.length > 1 ? [...pieces.slice(0, 3), pieces[0]!] : pieces) };
+        })
+      : parts.fills;
+  const expectedFills = !plantFault && walkPlan ? walkPlan.items.reduce((sum, placed) => sum + placed.looks.length, 0) + (walkPlan.workLiquid ? 1 : 0) : undefined;
+  return checkScene({ yard: planForCheck.yard, solids, cloths, fields: parts.fields, fills, groundIsOpenAt: parts.groundIsOpenAt, unchecked, ...(expectedFills === undefined ? {} : { expectedFills }) });
 };
 const gl = renderer.getContext();
 win.flicker = async (frames = 60, threshold = 10, mode = "pan") => {
@@ -300,32 +317,60 @@ win.walkCheck = () => {
   }
   return { reachedEnd: target === null, seconds: +time.toFixed(1), metres: +walker.walked.toFixed(1), stuckAt: target ? [+walker.x.toFixed(2), +walker.z.toFixed(2)] : null };
 };
-win.colourAt = (centre: readonly number[], target: readonly number[], fov: number, windowFraction = 0.2) => {
+const pixelsWithin = (frame: Uint8Array, mask: Uint8Array) => {
+  const rows: [number, number, number, number][] = [];
+  for (let i = 0; i < mask.length; i += 4) {
+    if (mask[i]! < 128) continue;
+    const [r, g, b] = [frame[i]!, frame[i + 1]!, frame[i + 2]!];
+    rows.push([r, g, b, r * 0.2126 + g * 0.7152 + b * 0.0722]);
+  }
+  return rows.sort((p, q) => p[3] - q[3]);
+};
+win.colourOfLook = (key: string, centre: readonly number[], target: readonly number[], fov: number) => {
   camera.fov = fov;
   camera.updateProjectionMatrix();
   camera.position.set(centre[0]!, centre[1]!, centre[2]!);
   camera.lookAt(target[0]!, target[1]!, target[2]!);
+  camera.updateMatrixWorld();
   output.render();
   const width = renderer.domElement.width;
   const height = renderer.domElement.height;
-  const span = Math.floor(Math.min(width, height) * windowFraction);
-  const data = new Uint8Array(span * span * 4);
-  gl.readPixels((width - span) >> 1, (height - span) >> 1, span, span, gl.RGBA, gl.UNSIGNED_BYTE, data);
-  const toned: number[] = [];
-  for (let i = 0; i < data.length; i += 4) toned.push(data[i]! * 0.2126 + data[i + 1]! * 0.7152 + data[i + 2]! * 0.0722);
-  const middle = [...toned].sort((a, b) => a - b)[toned.length >> 1]!;
-  let r = 0;
-  let g = 0;
-  let b = 0;
-  let n = 0;
-  for (let i = 0; i < toned.length; i++) {
-    if (Math.abs(toned[i]! - middle) > 22) continue;
-    r += data[i * 4]!;
-    g += data[i * 4 + 1]!;
-    b += data[i * 4 + 2]!;
-    n++;
-  }
-  return [Math.round(r / n), Math.round(g / n), Math.round(b / n)];
+  const frame = new Uint8Array(width * height * 4);
+  gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, frame);
+  const white = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const black = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  const originals = new Map<THREE.Mesh, THREE.Material>();
+  const looksLike = new RegExp(`^(substance|liquid|crystals) ${key}$`);
+  scene.traverse((node) => {
+    if (!(node instanceof THREE.Mesh)) return;
+    const material = node.material as THREE.Material;
+    originals.set(node, material);
+    const label = (material.userData.surface as { label?: string } | undefined)?.label ?? "";
+    node.material = looksLike.test(label) ? white : black;
+  });
+  const target2 = new THREE.WebGLRenderTarget(width, height, { type: THREE.UnsignedByteType, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
+  const background = scene.background;
+  scene.background = null;
+  renderer.setRenderTarget(target2);
+  renderer.clear();
+  renderer.render(scene, camera);
+  const mask = new Uint8Array(width * height * 4);
+  renderer.readRenderTargetPixels(target2, 0, 0, width, height, mask);
+  renderer.setRenderTarget(null);
+  scene.background = background;
+  for (const [mesh, material] of originals) mesh.material = material;
+  target2.dispose();
+  white.dispose();
+  black.dispose();
+  const rows = pixelsWithin(frame, mask);
+  if (rows.length === 0) return { pixels: 0, shaded: null, middle: null, lit: null };
+  const at = (share: number) => {
+    const from = Math.floor(rows.length * Math.max(0, share - 0.05));
+    const to = Math.max(from + 1, Math.floor(rows.length * Math.min(1, share + 0.05)));
+    const picked = rows.slice(from, to);
+    return [0, 1, 2].map((channel) => Math.round(picked.reduce((sum, row) => sum + row[channel]!, 0) / picked.length));
+  };
+  return { pixels: rows.length, shaded: at(0.2), middle: at(0.5), lit: at(0.8) };
 };
 win.moveCamera = (from: readonly number[], to: readonly number[], fov = 55) => {
   camera.fov = fov;
@@ -383,13 +428,18 @@ win.surfacePlanted = () => {
   if (!auditRoot) return null;
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 64;
-  const coarse = plantOnWalkLine(new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(canvas) })), "planted coarse texture");
-  const faceted = plantOnWalkLine(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.5, 8), new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(canvas) })), "planted faceted cylinder");
+  const painted = () => new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(canvas) });
+  const coarse = plantOnWalkLine(new THREE.Mesh(new THREE.PlaneGeometry(1, 1), painted()), "planted coarse texture");
+  const faceted = plantOnWalkLine(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.5, 8), painted()), "planted faceted cylinder");
+  const sixSided = plantOnWalkLine(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.5, 6), painted()), "planted six-sided cylinder");
+  const flatLump = plantOnWalkLine(new THREE.Mesh(new THREE.IcosahedronGeometry(0.2, 2), new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(canvas), flatShading: true })), "planted flat-shaded lump");
   faceted.position.x += 1.5;
-  faceted.updateWorldMatrix(true, true);
-  const rows = surfaceRows(reachOfParts(objectParts(coarse), fieldHere()).concat(reachOfParts(objectParts(faceted), fieldHere())), fieldHere());
-  coarse.removeFromParent();
-  faceted.removeFromParent();
+  sixSided.position.x += 3;
+  flatLump.position.x += 4.5;
+  const planted = [coarse, faceted, sixSided, flatLump];
+  for (const mesh of planted) mesh.updateWorldMatrix(true, true);
+  const rows = surfaceRows(planted.flatMap((mesh) => reachOfParts(objectParts(mesh), fieldHere())), fieldHere());
+  for (const mesh of planted) mesh.removeFromParent();
   return rows.map((row) => ({ label: row.label, failures: row.failures }));
 };
 const tearingOf = (reaches: ReturnType<typeof reachOfParts>) => measureTearing({ renderer, scene, camera, renderColour: output.render }, reaches, environmentOf(), fieldHere());
@@ -425,13 +475,24 @@ win.tearingPlanted = () => {
   missing.rotation.y = 0.3;
   missing.updateWorldMatrix(true, true);
   crack.updateWorldMatrix(true, true);
-  const planted = [fightA, crack, missing];
+  const checker = new Uint8Array(512 * 512 * 4);
+  for (let i = 0; i < 512 * 512; i++) {
+    const tone = (i + (i >> 9)) % 2 === 0 ? 255 : 0;
+    checker.set([tone, tone, tone, 255], i * 4);
+  }
+  const shimmerMap = new THREE.DataTexture(checker, 512, 512);
+  shimmerMap.magFilter = shimmerMap.minFilter = THREE.NearestFilter;
+  shimmerMap.needsUpdate = true;
+  const shimmer = plantOnWalkLine(new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), new THREE.MeshBasicMaterial({ map: shimmerMap })), "planted flicker");
+  shimmer.position.x += 2.2;
+  shimmer.updateWorldMatrix(true, true);
+  const planted = [fightA, crack, missing, shimmer];
   const reaches = planted.flatMap((object) => reachOfParts(objectParts(object), fieldHere()).map((reach) => ({ ...reach, distance: 1.4, eye: [object.position.x, 1.6, object.position.z + 1.4] as const, target: [object.position.x, object.position.y, object.position.z] as const })));
   const results = tearingOf(reaches).map((figures) => ({ ...figures, failures: tearingFailures(figures) }));
-  for (const object of [fightA, fightB, crack, missing]) object.removeFromParent();
+  for (const object of [fightA, fightB, crack, missing, shimmer]) object.removeFromParent();
   return results;
 };
-win.paintOffSurface = () => {
+const paintOff = () => {
   if (!auditRoot) return [];
   auditRoot.updateWorldMatrix(true, true);
   const solids: THREE.Object3D[] = [];
@@ -458,22 +519,15 @@ win.paintOffSurface = () => {
   }
   return off;
 };
-win.fillOutside = () => {
-  if (!audit) return null;
-  return audit().fills.flatMap((fill) => {
-    const out: number[][] = [];
-    let count = 0;
-    for (let k = 0; k < fill.points.length; k += 3) {
-      const point = [fill.points[k]!, fill.points[k + 1]!, fill.points[k + 2]!] as const;
-      if (fill.vertexOutside(point)) {
-        count++;
-        if (out.length < 8) out.push(point.map((value) => +value.toFixed(4)));
-      }
-    }
-    return count > 0 ? [{ name: fill.name, count, total: fill.points.length / 3, sample: out }] : [];
-  });
+win.paintOffSurface = paintOff;
+win.paintOffPlanted = () => {
+  if (!auditRoot) return [];
+  const floating = paintWords(auditRoot, { lines: ["Planted"], at: [CLOTH_LINE_X, 8, YARD_FRONT_Z - 2], facing: 0, height: 0.2, align: "center", colour: "ink", weight: 700, family: "Eczar", pixelsPerMetre: 800, wear: 0, lineHeight: 1.1 }).mesh;
+  floating.userData.auditName = "planted paint";
+  const off = paintOff();
+  floating.removeFromParent();
+  return off;
 };
-win.lookRows = SUBSTANCE_LOOK_ROWS;
 win.stillJobs = () => [
   { name: `practice ${PRACTICE_MODEL}`, form: "tool", file: stillPath(PRACTICE_MODEL), query: `s=still&m=${PRACTICE_MODEL}` },
   ...Object.values(TEMPLATES).flatMap((template) =>
@@ -488,6 +542,5 @@ win.stillJobs = () => [
     ),
   ),
 ];
-win.renderInfo = () => ({ textures: renderer.info.memory.textures, geometries: renderer.info.memory.geometries, tris: renderer.info.render.triangles, calls: renderer.info.render.calls });
 win.INFO = { tris: renderer.info.render.triangles, textures: renderer.info.memory.textures };
 win.READY = true;

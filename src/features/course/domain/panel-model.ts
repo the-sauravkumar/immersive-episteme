@@ -1,7 +1,7 @@
 import { CLOTH_AFTER_LABEL, type ItemRole, type SourceRef, type StageTemplate, type TemplateStage } from "@/features/process/domain/stage-template";
 import { clothStatePath, clothStripPath, stillPath } from "@/features/process/domain/asset-catalogue";
 import { PRACTICE_OBJECT_LABEL } from "@/features/process/domain/guidance";
-import { stageItemStillPath } from "@/features/process/domain/substance-look";
+import { itemColourIsUnsettled, stageItemStillPath } from "@/features/process/domain/substance-look";
 
 export interface PanelObject {
   readonly key: string;
@@ -10,6 +10,7 @@ export interface PanelObject {
   readonly localName: string | null;
   readonly modelId: string;
   readonly stillSrc: string;
+  readonly colourUnsettled: boolean;
 }
 
 export interface StagePanelModel {
@@ -62,6 +63,7 @@ export function stagePanelModel(template: StageTemplate, stageIndex: number): St
       localName: item.localName,
       modelId: item.modelId,
       stillSrc: stageItemStillPath(stage.key, stage.items, item),
+      colourUnsettled: itemColourIsUnsettled(stage.key, item),
     })),
     clothStateId: stage.clothStateId,
     clothBeforeSrc: clothStatePath(previous ? previous.clothStateId : template.rawClothStateId),
@@ -93,7 +95,7 @@ export function practicePanelModel(stepIndex: number): StagePanelModel {
     localName: null,
     caption,
     sources: [],
-    objects: [{ key: "practice-object", role: "tool", label: PRACTICE_OBJECT_LABEL, localName: null, modelId: PRACTICE_MODEL, stillSrc: stillPath(PRACTICE_MODEL) }],
+    objects: [{ key: "practice-object", role: "tool", label: PRACTICE_OBJECT_LABEL, localName: null, modelId: PRACTICE_MODEL, stillSrc: stillPath(PRACTICE_MODEL), colourUnsettled: false }],
     clothStateId: PRACTICE_CLOTH_STATE,
     clothBeforeSrc: clothStatePath(PRACTICE_CLOTH_STATE),
     clothAfterSrc: clothStatePath(PRACTICE_CLOTH_STATE),

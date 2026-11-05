@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { clothBodyBoxes, settleCloth } from "@/features/walkthrough/domain/cloth-surface";
-import { firstHit, buildTriangleGrid, makeVesselProbe, vertexOutsideVessel } from "@/features/walkthrough/domain/mesh-probe";
+import { firstHit, buildTriangleGrid, makeVesselProbe, vertexOutsideVessel, VESSEL_TUCK_METRES } from "@/features/walkthrough/domain/mesh-probe";
 import { nearestEye, reachField } from "@/features/walkthrough/domain/reach";
 import { checkScene } from "@/features/walkthrough/domain/scene-check";
 import { chordSagitta, judgeSurface, rankWorstFirst, roundSegments, screenPixelsPerMetre, tearingFailures, type SurfaceFact } from "@/features/walkthrough/domain/surface-density";
@@ -41,7 +41,7 @@ describe("vessel probe by raycasting the mesh", () => {
   it("fails a vertex beyond the wall, under the floor or in the wall", () => {
     expect(vertexOutsideVessel(probe, [0.2, 0.1, 0], 0.003)).toBe(true);
     expect(vertexOutsideVessel(probe, [0, -0.02, 0], 0.003)).toBe(true);
-    expect(vertexOutsideVessel(probe, [0.098, 0.15, 0], 0.001)).toBe(true);
+    expect(vertexOutsideVessel(probe, [0.1015, 0.15, 0], VESSEL_TUCK_METRES)).toBe(true);
   });
 });
 
@@ -107,7 +107,8 @@ const fact: SurfaceFact = {
   textHeightMetres: null,
   reachMetres: 0.6,
   facetSagittaMetres: 0,
-  flatShaded: false,
+  facetsAreReal: false,
+  hardCurveShare: 0,
 };
 
 describe("texel density and facets", () => {
@@ -149,7 +150,7 @@ describe("texel density and facets", () => {
     const sagitta = chordSagitta(chord, turning);
     expect(sagitta).toBeCloseTo(radius * (1 - Math.cos(turning / 2)), 4);
     expect(judgeSurface({ ...fact, facetSagittaMetres: sagitta }).failures.join()).toContain("facets");
-    expect(judgeSurface({ ...fact, facetSagittaMetres: sagitta, flatShaded: true }).failures).toEqual([]);
+    expect(judgeSurface({ ...fact, facetSagittaMetres: sagitta, facetsAreReal: true, hardCurveShare: 1 }).failures).toEqual([]);
   });
 
   it("gives round things enough sides to stay under a pixel at 0.6 m", () => {

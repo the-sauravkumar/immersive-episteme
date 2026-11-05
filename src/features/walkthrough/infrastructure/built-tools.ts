@@ -57,7 +57,6 @@ export async function buildBrushAndKalam(library: MaterialLibrary): Promise<THRE
   const group = new THREE.Group();
   pole(group, [-0.075, 0.009, -0.17], [-0.075, 0.009, 0.05], 0.008, bamboo);
   const strand = await library.shared("brush-strand", async () => new THREE.CylinderGeometry(0.00035, 0.0007, 0.09, 6, 4));
-  library.keep(strand);
   const strands = new THREE.InstancedMesh(strand, timber, 280);
   const holder = new THREE.Object3D();
   for (let i = 0; i < 280; i++) {
@@ -70,6 +69,10 @@ export async function buildBrushAndKalam(library: MaterialLibrary): Promise<THRE
   }
   strands.castShadow = strands.receiveShadow = true;
   group.add(strands);
+  const binding = turned([[0.0001, 0], [0.0094, 0.001], [0.0098, 0.012], [0.0094, 0.024], [0.0001, 0.025]], timber, 0.55);
+  binding.rotation.x = Math.PI / 2;
+  binding.position.set(-0.075, 0.009, 0.036);
+  group.add(binding);
   const kalam = turned([[0.0001, 0], [0.0014, 0.018], [0.0052, 0.06], [0.0058, 0.2], [0.0056, 0.24], [0.0001, 0.242]], bamboo, 0.6);
   kalam.rotation.x = Math.PI / 2;
   kalam.position.set(0.05, 0.0065, -0.12);

@@ -1,3 +1,4 @@
+import { stageItemStillPath } from "@/features/process/domain/substance-look";
 import { describe, expect, it } from "vitest";
 
 import { itemConfigSchema } from "@/features/research/contracts";
@@ -75,37 +76,29 @@ describe("test item generation", () => {
     for (const code of codes) for (const item of byCode(code).items) expect(item.config.shuffle, item.itemKey).toBe(true);
   });
 
-  it("keeps stand-in identification items away from the objects the pre-test placement items show", () => {
+  it("draws no identification image from one still that two labels share", () => {
     const sharedModel = (tradition: TraditionKey): StageTemplate => {
       const base = template(tradition);
       return { ...base, stages: base.stages.map((stage) => ({ ...stage, items: stage.items.map((item) => ({ ...item, modelId: `${tradition}-shared` })) })) };
     };
-    const standIn = buildTestBattery({ templates: [sharedModel("ajrakh"), sharedModel("sanganeri"), sharedModel("machilipatnam-kalamkari")], unseen: [], knownConceptKeys: new Set() });
-    const form = (code: string) => standIn.find((a) => a.code === code)!;
-    const placedBefore = new Set(form("test-pre").items.filter((i) => i.itemKey.startsWith("pre.place")).map((i) => (i.config.target as { objectKey: string }).objectKey));
-    expect(placedBefore.size).toBe(6);
-    for (const code of ["test-identification", "test-identification-delayed"]) {
-      const objects = objectsOf(form(code));
-      expect(objects.length, code).toBeGreaterThan(0);
-      expect(objects.filter((key) => placedBefore.has(key!)), code).toEqual([]);
-      for (const item of form(code).items) expect(item.config.sampleText, item.itemKey).toBe(true);
-    }
+    const shared = buildTestBattery({ templates: [sharedModel("ajrakh"), sharedModel("sanganeri"), sharedModel("machilipatnam-kalamkari")], unseen: [], knownConceptKeys: new Set() });
+    expect(shared.filter((a) => a.testType === "identification").flatMap((a) => a.items)).toEqual([]);
   });
 
-  it("names objects from the shared stills, with distractors from the template set and never the same model", () => {
+  it("names objects from the shared stills, with distractors from the template set and never the same still", () => {
     const allLabels = new Set(templates.flatMap((t) => t.stages.map((s) => s.items[0]!.label)));
-    const modelOf = new Map(templates.flatMap((t) => t.stages.map((s) => [s.items[0]!.label, s.items[0]!.modelId] as const)));
+    const stillOf = new Map(templates.flatMap((t) => t.stages.map((s) => [s.items[0]!.label, stageItemStillPath(s.key, s.items, s.items[0]!)] as const)));
     for (const item of byCode("test-identification").items) {
       const config = item.config as { image: { path: string }; options: { id: string; label: string }[] };
       expect(config.image.path).toMatch(/^\/walkthrough\/stills\/.+\.jpg$/);
       expect(config.options).toHaveLength(4);
       for (const option of config.options) expect(allLabels.has(option.label)).toBe(true);
       const target = config.options.find((o) => o.id === (item.answerKey as { optionId: string }).optionId)!;
-      expect(config.options.filter((o) => o !== target && modelOf.get(o.label) === modelOf.get(target.label))).toEqual([]);
+      expect(config.options.filter((o) => o !== target && stillOf.get(o.label) === stillOf.get(target.label))).toEqual([]);
     }
   });
 
-  it("leaves out an object whose model another label shares, and an object used at two stages", () => {
+  it("leaves out an object whose still another label shares, and an object used at two stages", () => {
     const shared = template("ajrakh");
     const stages = shared.stages as (TemplateStage & { items: { modelId: string; key: string }[] })[];
     stages[3]!.items[0]!.modelId = stages[2]!.items[0]!.modelId;

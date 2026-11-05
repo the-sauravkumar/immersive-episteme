@@ -1,3 +1,4 @@
+import { EASE_BELOW_FIELD_METRES } from "@/features/walkthrough/domain/cloth-surface";
 import { describe, expect, it } from "vitest";
 import type { ProductImage, StationKind } from "@/features/process/domain/stage-template";
 import { checkScene } from "@/features/walkthrough/domain/scene-check";
@@ -17,7 +18,7 @@ describe("cloth settles on what it touches", () => {
           const p = piece.surface.positions;
           for (let k = 0; k < p.length; k += 3) {
             const floor = plan.heightField(p[k]!, p[k + 2]!, p[k + 1]!);
-            expect(p[k + 1]!).toBeGreaterThanOrEqual(floor - 1e-4);
+            expect(p[k + 1]!).toBeGreaterThanOrEqual(floor - EASE_BELOW_FIELD_METRES - 1e-4);
           }
         }
       });

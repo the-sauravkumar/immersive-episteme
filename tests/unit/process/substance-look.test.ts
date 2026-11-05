@@ -4,7 +4,7 @@ import { PRACTICE_MODEL, stagePanelModel } from "@/features/course/domain/panel-
 import { catalogueModel, clothStatePath, stillPath } from "@/features/process/domain/asset-catalogue";
 import { buildRoute } from "@/features/walkthrough/domain/route-plan";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
-import { itemVesselModel, liquidMarks, looksOfItem, stageItemStillPath, workLiquidOf } from "@/features/process/domain/substance-look";
+import { itemVesselModel, liquidMarks, looksOfItem, stageItemStillPath, trayPadLookOf, workLiquidOf } from "@/features/process/domain/substance-look";
 import { SUBSTANCE_LOOK_ROWS } from "@/features/process/domain/substance-look-rows";
 import { structureFor } from "@/features/walkthrough/domain/yard-plan";
 import { lookRowsSource } from "../../../scripts/content/build-substance-look-rows";
@@ -68,7 +68,7 @@ describe("the look sheet reaches the scene", () => {
     expect(stageItemStillPath(stage.key, stage.items, stage.items.find((item) => item.label === "Indigo")!)).toBe(stillPath("ajrakh-indigo"));
     expect(stageItemStillPath(stage.key, stage.items, stage.items.find((item) => item.modelId === "dye-vat")!)).toBe(stillPath("dye-vat-7c7a36"));
     const paths = new Set(materials.map(({ stage: where, item }) => stageItemStillPath(where.key, where.items, item)));
-    expect(paths.size).toBe(new Set(materials.map(({ stage: where, item }) => looksOfItem(where.key, item)[0]!.key)).size);
+    expect(paths.size).toBe(new Set(materials.map(({ stage: where, item }) => looksOfItem(where.key, item).map((look) => look.key).join("+"))).size);
   });
 
   it("keys Door 1 and Door 2 to the same look of the same material", () => {
@@ -81,7 +81,7 @@ describe("the look sheet reaches the scene", () => {
           if (placed.item.role !== "material") continue;
           const keys = looksOfItem(stage.key, placed.item).map((look) => look.key);
           expect(placed.looks.map((look) => look.key), `${stage.key} ${placed.item.label}`).toEqual(keys);
-          expect(panel.objects.find((object) => object.key === placed.item.key)!.stillSrc).toBe(stillPath(keys[0]!));
+          expect(panel.objects.find((object) => object.key === placed.item.key)!.stillSrc).toBe(stillPath(keys.join("+")));
         }
       });
     }
@@ -112,9 +112,23 @@ describe("the look sheet reaches the scene", () => {
     expect(missing).toEqual([]);
   });
 
+  it("loads a colour tray with its own stage's paste and never with the base cloth", () => {
+    for (const stage of templates.flatMap((template) => template.stages)) {
+      const pad = trayPadLookOf(stage.key);
+      if (pad) expect(pad.fill, stage.key).toBe("paste");
+    }
+    expect(trayPadLookOf("sanganeri.printing-the-mordants-and-ageing")!.key).toBe("sanganeri-syahi-iron-black");
+  });
+
+  it("draws every liquid row on the sheet, in a vessel or a bath", () => {
+    const drawn = new Set(templates.flatMap((template) => template.stages.flatMap((stage) => [...stage.items.flatMap((item) => looksOfItem(stage.key, item)), ...(["ring", "tank"].includes(structureFor(stage.kind).type) ? [workLiquidOf(stage.key, stage.items)!] : [])].map((look) => look.key))));
+    expect(SUBSTANCE_LOOK_ROWS.filter((row) => row.form === "liquid" && !drawn.has(row.key)).map((row) => row.key)).toEqual([]);
+  });
+
   it("marks the indigo vat with its scum and bubbles from the sheet", () => {
     const vat = workLiquidOf("ajrakh.indigo-dyeing", [])!;
-    expect(liquidMarks(vat)).toEqual({ scum: true, bubbles: true });
-    expect(liquidMarks(workLiquidOf("ajrakh.red-dyeing", [])!)).toEqual({ scum: false, bubbles: false });
+    expect(liquidMarks(vat).scum).toBeGreaterThan(0);
+    expect(liquidMarks(vat).foam).toBeGreaterThan(0);
+    expect(liquidMarks(workLiquidOf("ajrakh.red-dyeing", [])!)).toEqual({ scum: 0, foam: 0 });
   });
 });

@@ -15,4 +15,5 @@ export const QUESTIONS_LABEL = "Questions";
 export const PRACTICE_OBJECT_LABEL = "Practice Object";
 export const ROLE_LABELS: Readonly<Record<"tool" | "material", string>> = { tool: "Tool", material: "Material" };
 export const STAND_IN_MARK = "Stand-In Model";
+export const UNSETTLED_COLOUR_MARK = "Colour Not Sourced";
 export const PROXY_CLOTH_MARK = "Proxy Cloth State";
