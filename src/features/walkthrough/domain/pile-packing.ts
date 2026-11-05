@@ -33,6 +33,9 @@ export interface PackOptions {
   readonly margin: number;
   readonly fillRadius: number;
   readonly leansOnOne?: boolean;
+  readonly crown?: number;
+  readonly spins?: boolean;
+  readonly restAt?: (x: number, z: number) => number;
 }
 
 export function seededRandom(seed: number): () => number {
@@ -89,16 +92,52 @@ export function packPile(profile: VesselProfile, blueprints: readonly PileBluepr
   return step.value;
 }
 
+class SettledColumns {
+  private readonly columns = new Map<number, PieceSphere[]>();
+
+  constructor(private readonly cell: number) {}
+
+  private key(ix: number, iz: number): number {
+    return (ix + 4096) * 8192 + iz + 4096;
+  }
+
+  add(sphere: PieceSphere): void {
+    const key = this.key(Math.floor(sphere.x / this.cell), Math.floor(sphere.z / this.cell));
+    const column = this.columns.get(key);
+    if (column) column.push(sphere);
+    else this.columns.set(key, [sphere]);
+  }
+
+  near(x: number, z: number, reach: number, visit: (other: PieceSphere) => void): void {
+    const lowX = Math.floor((x - reach) / this.cell);
+    const highX = Math.floor((x + reach) / this.cell);
+    const lowZ = Math.floor((z - reach) / this.cell);
+    const highZ = Math.floor((z + reach) / this.cell);
+    for (let ix = lowX; ix <= highX; ix++) {
+      for (let iz = lowZ; iz <= highZ; iz++) {
+        const column = this.columns.get(this.key(ix, iz));
+        if (column) for (const other of column) visit(other);
+      }
+    }
+  }
+}
+
+const SMALLEST_COLUMN_METRES = 0.006;
+
 export function* packingSteps(profile: VesselProfile, blueprints: readonly PileBlueprint[], options: PackOptions): Generator<void, PlacedPiece[]> {
   const random = seededRandom(options.seed);
   const placed: PlacedPiece[] = [];
-  const settled: PieceSphere[] = [];
+  let largest = 0;
+  for (const blueprint of blueprints) for (const sphere of blueprint.spheres) largest = Math.max(largest, sphere.r * blueprint.scale);
+  const settled = new SettledColumns(Math.max(largest, SMALLEST_COLUMN_METRES));
+  const crown = options.crown ?? 0;
+  const restAt = options.restAt ?? (() => profile.floorY);
   const step = 0.002;
   for (const blueprint of blueprints) {
-    let best: { piece: PlacedPiece; spheres: PieceSphere[] } | null = null;
+    let best: { piece: PlacedPiece; spheres: PieceSphere[]; score: number } | null = null;
     for (let c = 0; c < options.candidates; c++) {
       const yaw = random() * Math.PI * 2;
-      const pitch = options.anyTumble ? random() * Math.PI * 2 : (random() - 0.5) * options.maxTilt;
+      const pitch = options.anyTumble || options.spins ? random() * Math.PI * 2 : (random() - 0.5) * options.maxTilt;
       const roll = options.anyTumble ? random() * Math.PI * 2 : (random() - 0.5) * options.maxTilt;
       const angle = random() * Math.PI * 2;
       const radial = Math.sqrt(random()) * options.fillRadius;
@@ -109,44 +148,104 @@ export function* packingSteps(profile: VesselProfile, blueprints: readonly PileB
         return { x: sx + x, y: sy, z: sz + z, r: sphere.r * blueprint.scale };
       });
       let y = profile.floorY;
-      for (const sphere of own) y = Math.max(y, profile.floorY + sphere.r - sphere.y);
+      for (const sphere of own) y = Math.max(y, restAt(sphere.x, sphere.z) + sphere.r - sphere.y);
       let slidesOff = false;
       for (const sphere of own) {
-        for (const other of settled) {
+        settled.near(sphere.x, sphere.z, sphere.r + largest, (other) => {
           const dx = sphere.x - other.x;
           const dz = sphere.z - other.z;
           const reach = sphere.r + other.r;
           const flat = dx * dx + dz * dz;
-          if (flat >= reach * reach) continue;
+          if (flat >= reach * reach) return;
           const onOther = other.y + Math.sqrt(reach * reach - flat) - sphere.y;
-          if (onOther <= y) continue;
+          if (onOther <= y) return;
           y = onOther;
           slidesOff = flat > (reach * MOST_OFF_CENTRE_REST) ** 2;
-        }
+        });
       }
-      if (best && y >= best.piece.y) continue;
-      const contacts = own.reduce((count, sphere) => count + settled.filter((other) => Math.hypot(sphere.x - other.x, sphere.y + y - other.y, sphere.z - other.z) <= sphere.r + other.r + CONTACT_TOLERANCE_METRES).length, 0);
-      if (slidesOff && !options.leansOnOne && contacts < NESTED_CONTACTS) continue;
+      const heapRise = crown * (1 - (radial / options.fillRadius) ** 2);
+      const topY = options.topY + heapRise;
+      if (best && y - heapRise >= best.score) continue;
+      if (slidesOff && !options.leansOnOne) {
+        let contacts = 0;
+        for (const sphere of own) {
+          settled.near(sphere.x, sphere.z, sphere.r + largest + CONTACT_TOLERANCE_METRES, (other) => {
+            if (Math.hypot(sphere.x - other.x, sphere.y + y - other.y, sphere.z - other.z) <= sphere.r + other.r + CONTACT_TOLERANCE_METRES) contacts++;
+          });
+        }
+        if (contacts < NESTED_CONTACTS) continue;
+      }
       const restingY = y;
       let fits = false;
-      while (!fits && y <= options.topY) {
+      while (!fits && y <= topY) {
         fits = own.every((sphere) => sphereFits(profile, sphere.x, sphere.y + y, sphere.z, sphere.r, options.margin));
         if (!fits) y += step;
       }
-      if (!fits || y > options.topY || (best && y >= best.piece.y)) continue;
+      if (!fits || y > topY || (best && y - heapRise >= best.score)) continue;
       if (y > restingY && !wallCanHold(profile, x, y, z)) continue;
       const finalY = y;
-      const clearOfOthers = own.every((sphere) => settled.every((other) => Math.hypot(sphere.x - other.x, sphere.y + finalY - other.y, sphere.z - other.z) >= sphere.r + other.r - 1e-5));
-      if (!clearOfOthers) continue;
+      let clear = true;
+      for (const sphere of own) {
+        settled.near(sphere.x, sphere.z, sphere.r + largest, (other) => {
+          if (Math.hypot(sphere.x - other.x, sphere.y + finalY - other.y, sphere.z - other.z) < sphere.r + other.r - 1e-5) clear = false;
+        });
+        if (!clear) break;
+      }
+      if (!clear) continue;
       best = {
         piece: { variant: blueprint.variant, scale: blueprint.scale, x, y: finalY, z, yaw, pitch, roll },
         spheres: own.map((sphere) => ({ ...sphere, y: sphere.y + finalY })),
+        score: finalY - heapRise,
       };
     }
     yield;
     if (!best) continue;
     placed.push(best.piece);
-    settled.push(...best.spheres);
+    for (const sphere of best.spheres) settled.add(sphere);
   }
   return placed;
+}
+
+export function worldSpheresOf(piece: PlacedPiece, spheres: readonly PieceSphere[]): PieceSphere[] {
+  return spheres.map((sphere) => {
+    const [x, y, z] = rotateYXZ(sphere.x * piece.scale, sphere.y * piece.scale, sphere.z * piece.scale, piece.yaw, piece.pitch, piece.roll);
+    return { x: x + piece.x, y: y + piece.y, z: z + piece.z, r: sphere.r * piece.scale };
+  });
+}
+
+const HEIGHT_CELL_METRES = 0.004;
+
+export function piecesNearTop(pieces: readonly (readonly PieceSphere[])[], depthMetres: number): boolean[] {
+  const tops = new Map<number, number>();
+  const eachCell = (sphere: PieceSphere, visit: (key: number, top: number) => void) => {
+    const lowX = Math.floor((sphere.x - sphere.r) / HEIGHT_CELL_METRES);
+    const highX = Math.floor((sphere.x + sphere.r) / HEIGHT_CELL_METRES);
+    const lowZ = Math.floor((sphere.z - sphere.r) / HEIGHT_CELL_METRES);
+    const highZ = Math.floor((sphere.z + sphere.r) / HEIGHT_CELL_METRES);
+    for (let ix = lowX; ix <= highX; ix++) {
+      for (let iz = lowZ; iz <= highZ; iz++) {
+        const dx = (ix + 0.5) * HEIGHT_CELL_METRES - sphere.x;
+        const dz = (iz + 0.5) * HEIGHT_CELL_METRES - sphere.z;
+        const flat = dx * dx + dz * dz;
+        if (flat <= sphere.r * sphere.r) visit((ix + 4096) * 8192 + iz + 4096, sphere.y + Math.sqrt(sphere.r * sphere.r - flat));
+      }
+    }
+  };
+  for (const piece of pieces) {
+    for (const sphere of piece) {
+      eachCell(sphere, (key, top) => {
+        if (top > (tops.get(key) ?? -Infinity)) tops.set(key, top);
+      });
+    }
+  }
+  return pieces.map((piece) => {
+    let near = false;
+    for (const sphere of piece) {
+      eachCell(sphere, (key, top) => {
+        if (top >= tops.get(key)! - depthMetres) near = true;
+      });
+      if (near) break;
+    }
+    return near;
+  });
 }

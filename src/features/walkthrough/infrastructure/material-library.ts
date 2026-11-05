@@ -24,7 +24,11 @@ export const SCANS = {
   dryMud: { id: "brown_mud_dry", tileMetres: 0.65 },
   wetMud: { id: "brown_mud", tileMetres: 0.65 },
   bark: { id: "bark_willow", tileMetres: 0.28 },
-  leaves: { id: "dry_decay_leaves", tileMetres: 0.45 },
+  camelSkin: { id: "camel_dung_skin", tileMetres: 0.34 },
+  cowCrust: { id: "cow_dung_crust", tileMetres: 0.5 },
+  madderBark: { id: "madder_root_bark", tileMetres: 0.23 },
+  fruitSkin: { id: "myrobalan_skin", tileMetres: 0.2 },
+  leafBlade: { id: "dry_leaf_blade", tileMetres: 0.24 },
   flour: { id: "macro_flour", tileMetres: 0.3 },
   sawdust: { id: "wood_chips_003", tileMetres: 0.4 },
 } as const satisfies Record<string, ScanSpec>;

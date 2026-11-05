@@ -1,14 +1,15 @@
 import * as THREE from "three";
 import type { SubstanceLook } from "@/features/process/domain/substance-look";
 import { fittedSurface, flatLevel, levelInVessel, moundHeight, pasteHeight, type SurfaceGrid } from "../domain/fill-surface";
-import { packingSteps, rotateYXZ, type PlacedPiece } from "../domain/pile-packing";
+import { pileFormOf, type PileForm } from "../domain/pile-form";
+import { packingSteps, piecesNearTop, worldSpheresOf, type PieceSphere, type PlacedPiece } from "../domain/pile-packing";
 import { makeVesselProbe, vertexOutsideVessel, VESSEL_TUCK_METRES, type VesselProbe } from "../domain/mesh-probe";
 import type { FillAudit, CheckedSphere } from "../domain/scene-check";
 import { measuringSteps, wallRadius, widestWallRadius, type VesselProfile } from "../domain/vessel-profile";
 import type { MaterialLibrary } from "./material-library";
-import { isPileFill, pileRecipe, type PileFill, type PileRecipe } from "./fill-pieces";
+import { isPileFill, pileRecipe, type PileRecipe } from "./fill-pieces";
 import { softBox } from "./solid-builders";
-import { crystalMaterial, liquidMaterial, pileBedMaterial, substanceMaterial } from "./substance-materials";
+import { crystalMaterial, liquidMaterial, pileBedMaterial, pileMaterial, substanceMaterial } from "./substance-materials";
 
 const LIQUID_FRACTION = 0.76;
 const PASTE_FRACTION = 0.54;
@@ -17,6 +18,10 @@ const POWDER_HEAP_FRACTION = 0.42;
 const CLEAR_OF_LOW_RIM = 0.01;
 const PILE_BED_FRACTION = 0.34;
 const PILE_BED_GRAIN = 0.012;
+const WET_DUNG_FRACTION = 0.5;
+const WET_DUNG_HEAP = 0.34;
+const WET_DUNG_LUMPS = 9;
+const AUDIT_WALL_BAND_METRES = 0.018;
 const PILE_BED_INSET_METRES = -0.006;
 const REST_ABOVE_BED_METRES = 0.0015;
 const FOLDED_PILES = 3;
@@ -172,19 +177,33 @@ async function addPowder(library: MaterialLibrary, parent: THREE.Object3D, scanI
   return surfaceAudit(name, measured, geometry);
 }
 
+type PiledForm = Exclude<PileForm, "wet-dung">;
+
 interface PackedPile {
   readonly recipe: PileRecipe;
   readonly placed: readonly PlacedPiece[];
+  readonly world: readonly (readonly PieceSphere[])[];
+  readonly seen: readonly boolean[];
 }
 
-function packedPile(library: MaterialLibrary, scanId: string, fill: PileFill, profile: VesselProfile): Promise<PackedPile> {
-  return library.shared(`pile:${scanId}:${fill}`, async () => {
-    const recipe = await library.shared(`recipe:${fill}`, async () => {
-      const built = await pileRecipe(fill);
-      for (const variant of built.variants) kept(library, variant.geometry);
+const bedHeightOf = (profile: VesselProfile, recipe: PileRecipe) => {
+  const depth = profile.rimY - profile.floorY;
+  return moundHeight(levelInVessel(profile, recipe.bedShare ?? PILE_BED_FRACTION), depth * (recipe.bedHeap ?? 0), depth * PILE_BED_GRAIN);
+};
+
+function packedPile(library: MaterialLibrary, scanId: string, form: PiledForm, profile: VesselProfile): Promise<PackedPile> {
+  return library.shared(`pile:${scanId}:${form}`, async () => {
+    const recipe = await library.shared(`recipe:${form}`, async () => {
+      const built = await pileRecipe(form);
+      for (const variant of built.variants) {
+        kept(library, variant.geometry);
+        kept(library, variant.buried);
+      }
       return built;
     });
-    const placed = await runGradually(packingSteps({ ...profile, floorY: levelInVessel(profile, PILE_BED_FRACTION) + REST_ABOVE_BED_METRES }, recipe.blueprints, {
+    const bedHeight = bedHeightOf(profile, recipe);
+    const bedLevel = levelInVessel(profile, recipe.bedShare ?? PILE_BED_FRACTION);
+    const placed = await runGradually(packingSteps({ ...profile, floorY: bedLevel + REST_ABOVE_BED_METRES }, recipe.blueprints, {
       seed: recipe.seed,
       candidates: recipe.candidates,
       maxTilt: recipe.maxTilt,
@@ -193,19 +212,25 @@ function packedPile(library: MaterialLibrary, scanId: string, fill: PileFill, pr
       margin: recipe.wallMargin ?? 0.0065,
       fillRadius: widestWallRadius(profile, profile.rimY),
       leansOnOne: recipe.leansOnOne ?? false,
+      ...(recipe.spins ? { spins: true } : {}),
+      ...(recipe.crown ? { crown: recipe.crown } : {}),
+      restAt: (x, z) => bedHeight(x, z, Math.min(1, Math.hypot(x, z) / wallRadius(profile, Math.atan2(z, x), bedLevel))) + REST_ABOVE_BED_METRES,
     }));
-    return { recipe, placed };
+    const world = placed.map((piece) => worldSpheresOf(piece, recipe.variants[piece.variant]!.spheres));
+    const seen = recipe.seenDepth === undefined ? placed.map(() => true) : piecesNearTop(world, recipe.seenDepth);
+    return { recipe, placed, world, seen };
   });
 }
 
-async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, fill: PileFill, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
-  const { recipe, placed } = await packedPile(library, scanId, fill, measured.profile);
-  const material = fill === "crystals" ? await crystalMaterial(library, look) : await substanceMaterial(library, look);
-  if (fill === "leaves") material.side = THREE.DoubleSide;
+function againstWall(profile: VesselProfile, spheres: readonly PieceSphere[]): boolean {
+  return spheres.some((sphere) => Math.hypot(sphere.x, sphere.z) + sphere.r + AUDIT_WALL_BAND_METRES > wallRadius(profile, Math.atan2(sphere.z, sphere.x), sphere.y));
+}
+
+async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, form: PiledForm, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
+  const { recipe, placed, world, seen } = await packedPile(library, scanId, form, measured.profile);
+  const material = form === "crystals" ? await crystalMaterial(library, look) : await pileMaterial(library, look);
   const profile = measured.profile;
-  const bedLevel = levelInVessel(profile, PILE_BED_FRACTION);
-  const depth = profile.rimY - profile.floorY;
-  const bedGeometry = await library.shared(`surface:bed:${scanId}`, async () => gridGeometry(fittedSurface(profile, bedLevel, 32, 128, moundHeight(bedLevel, 0, depth * PILE_BED_GRAIN), PILE_BED_INSET_METRES)));
+  const bedGeometry = await library.shared(`surface:bed:${scanId}:${form}`, async () => gridGeometry(fittedSurface(profile, levelInVessel(profile, recipe.bedShare ?? PILE_BED_FRACTION), 48, 192, bedHeightOf(profile, recipe), PILE_BED_INSET_METRES)));
   parent.add(stillMesh(bedGeometry, await pileBedMaterial(library, look)));
   const holder = new THREE.Object3D();
   holder.rotation.order = "YXZ";
@@ -216,14 +241,22 @@ async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId:
     holder.updateMatrix();
     return holder.matrix;
   };
-  recipe.variants.forEach((variant, index) => {
-    const own = placed.filter((piece) => piece.variant === index);
-    if (own.length === 0) return;
-    const mesh = new THREE.InstancedMesh(variant.geometry, material, own.length);
-    own.forEach((piece, i) => mesh.setMatrixAt(i, placedMatrix(piece)));
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    parent.add(mesh);
+  const geometryOf = (index: number): THREE.BufferGeometry => (seen[index] ? recipe.variants[placed[index]!.variant]!.geometry : recipe.variants[placed[index]!.variant]!.buried);
+  const tint = new THREE.Color();
+  const tones = recipe.tones;
+  recipe.variants.forEach((variant, variantIndex) => {
+    for (const showing of [true, false]) {
+      const own = placed.map((_, index) => index).filter((index) => placed[index]!.variant === variantIndex && seen[index] === showing);
+      if (own.length === 0) continue;
+      const mesh = new THREE.InstancedMesh(showing ? variant.geometry : variant.buried, material, own.length);
+      own.forEach((index, i) => {
+        mesh.setMatrixAt(i, placedMatrix(placed[index]!));
+        if (tones) mesh.setColorAt(i, tint.setRGB(...tones[(index * 7 + (index >> 3)) % tones.length]!, THREE.LinearSRGBColorSpace));
+      });
+      mesh.castShadow = showing;
+      mesh.receiveShadow = true;
+      parent.add(mesh);
+    }
   });
   return {
     name,
@@ -231,24 +264,45 @@ async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId:
     points: () => {
       const points: number[] = [...(bedGeometry.attributes.position!.array as Float32Array)];
       const vertex = new THREE.Vector3();
-      for (const piece of placed) {
-        const position = recipe.variants[piece.variant]!.geometry.attributes.position!;
+      placed.forEach((piece, index) => {
+        if (!againstWall(profile, world[index]!)) return;
+        const position = geometryOf(index).attributes.position!;
         const matrix = placedMatrix(piece);
         for (let k = 0; k < position.count; k++) {
           vertex.fromBufferAttribute(position, k).applyMatrix4(matrix);
           points.push(vertex.x, vertex.y, vertex.z);
         }
-      }
+      });
       return Float32Array.from(points);
     },
-    pieces: () =>
-      placed.map((piece) =>
-        recipe.variants[piece.variant]!.spheres.map((sphere) => {
-          const [x, y, z] = rotateYXZ(sphere.x * piece.scale, sphere.y * piece.scale, sphere.z * piece.scale, piece.yaw, piece.pitch, piece.roll);
-          return { x: x + piece.x, y: y + piece.y, z: z + piece.z, r: sphere.r * piece.scale };
-        }),
-      ),
+    pieces: () => world,
   };
+}
+
+function wetDungHeight(level: number, depth: number): (x: number, z: number, wallNearness: number) => number {
+  const base = moundHeight(level, depth * WET_DUNG_HEAP, depth * 0.006);
+  const lumps = Array.from({ length: WET_DUNG_LUMPS }, (_, i) => {
+    const angle = i * 2.4;
+    const off = 0.03 + 0.016 * i;
+    return { x: Math.cos(angle) * off, z: Math.sin(angle) * off, r: 0.022 + (i % 3) * 0.008, h: depth * (0.05 + (i % 4) * 0.02) };
+  });
+  return (x, z, wallNearness) => {
+    const held = 1 - wallNearness ** 6;
+    let raised = base(x, z, wallNearness);
+    for (const lump of lumps) raised += lump.h * held * Math.exp(-((x - lump.x) ** 2 + (z - lump.z) ** 2) / (lump.r * lump.r));
+    return raised;
+  };
+}
+
+async function addWetDung(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
+  const profile = measured.profile;
+  const level = levelInVessel(profile, WET_DUNG_FRACTION);
+  const depth = profile.rimY - profile.floorY;
+  const geometry = await library.shared(`surface:wet-dung:${scanId}`, async () => gridGeometry(fittedSurface(profile, level, 96, 288, wetDungHeight(level, depth))));
+  const mound = stillMesh(geometry, await substanceMaterial(library, look));
+  mound.castShadow = true;
+  parent.add(mound);
+  return surfaceAudit(name, measured, geometry);
 }
 
 function foldSlab(geometry: THREE.BufferGeometry, seed: number): void {
@@ -310,6 +364,10 @@ export async function fillVessel(library: MaterialLibrary, parent: THREE.Object3
   if (look.fill === "paste") return addPaste(library, parent, scanId, look, measured, name);
   if (look.fill === "powder") return addPowder(library, parent, scanId, look, measured, name);
   if (look.fill === "cloth") return addFoldedCloth(library, parent, look, measured, name);
-  if (isPileFill(look.fill)) return addPile(library, parent, scanId, look.fill, look, measured, name);
+  if (isPileFill(look.fill)) {
+    const form = pileFormOf(look)!;
+    if (form === "wet-dung") return addWetDung(library, parent, scanId, look, measured, name);
+    return addPile(library, parent, scanId, form, look, measured, name);
+  }
   throw new Error(`No fill for ${look.key}`);
 }
