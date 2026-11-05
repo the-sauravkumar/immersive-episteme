@@ -60,31 +60,11 @@
     "permission": "none needed"
   },
   {
-    "file": "public/walkthrough/models/planter_pot_clay",
-    "usedFor": "stand-in tool or material model",
-    "holder": "Amal Kumar",
-    "sourcePage": "https://polyhaven.com/a/planter_pot_clay",
-    "directUrl": "https://polyhaven.com/a/planter_pot_clay",
-    "widthPx": 2048,
-    "licence": "CC0 1.0",
-    "permission": "none needed"
-  },
-  {
     "file": "public/walkthrough/models/wicker_basket_01",
     "usedFor": "stand-in tool or material model",
     "holder": "Kuutti Siitonen",
     "sourcePage": "https://polyhaven.com/a/wicker_basket_01",
     "directUrl": "https://polyhaven.com/a/wicker_basket_01",
-    "widthPx": 2048,
-    "licence": "CC0 1.0",
-    "permission": "none needed"
-  },
-  {
-    "file": "public/walkthrough/models/wooden_bowl_01",
-    "usedFor": "stand-in tool or material model",
-    "holder": "Oliver Harries",
-    "sourcePage": "https://polyhaven.com/a/wooden_bowl_01",
-    "directUrl": "https://polyhaven.com/a/wooden_bowl_01",
     "widthPx": 2048,
     "licence": "CC0 1.0",
     "permission": "none needed"
@@ -319,6 +299,16 @@
     "holder": "ambientCG",
     "sourcePage": "https://ambientcg.com/a/WoodChips003",
     "directUrl": "https://ambientcg.com/a/WoodChips003",
+    "widthPx": 2048,
+    "licence": "CC0 1.0",
+    "permission": "none needed"
+  },
+  {
+    "file": "public/walkthrough/tex/fired_clay",
+    "usedFor": "clay bowls and pots, tiled from the outer body band of the Planter Pot Clay scan by scripts/walkthrough/build-fired-clay-tile.cjs; surface only, a European flower pot and not an Indian vessel",
+    "holder": "Amal Kumar",
+    "sourcePage": "https://polyhaven.com/a/planter_pot_clay",
+    "directUrl": "https://dl.polyhaven.org/file/ph-assets/Models/jpg/4k/planter_pot_clay/planter_pot_clay_diff_4k.jpg",
     "widthPx": 2048,
     "licence": "CC0 1.0",
     "permission": "none needed"

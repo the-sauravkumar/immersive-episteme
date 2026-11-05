@@ -7,10 +7,12 @@ import { makeVesselProbe, vertexOutsideVessel, type VesselProbe } from "../domai
 import type { CheckedSolid, ClothMesh, FillAudit, SolidField, SolidRole } from "../domain/scene-check";
 import type { Box, Vec3 } from "../domain/geometry";
 import { dipInBath, type MaterialLibrary } from "./material-library";
-import { buildBrushAndKalam, buildCarvingChisels, buildWashingPaddle } from "./built-tools";
+import { buildBrushAndKalam, buildCarvedBlock, buildCarvingChisels, buildWashingPaddle } from "./built-tools";
+import { buildPrintingTray } from "./built-tray";
+import { buildThrownVessel } from "./built-vessels";
 import { grainAlongHeight, paintCurved, paintWords, pole, softBox, softBoxGeometry } from "./solid-builders";
 import { fillVessel, measureObject, trianglesOf } from "./substance-fill";
-import { displayAlbedo, substanceMaterial } from "./substance-materials";
+import { displayAlbedo } from "./substance-materials";
 import { addTankLining, addWorkLiquid, BATH_BODY_DEPTH_METRES, copperMaterial, groundWithOpening, plasterMaterial, turnedRing } from "./work-structures";
 
 export interface YardAudit {
@@ -102,44 +104,9 @@ export interface PlaceOptions {
   readonly tray?: SubstanceLook | null;
 }
 
-async function buildCarvedBlock(kit: YardKit): Promise<THREE.Object3D> {
-  const timber = await kit.library.surface("table", { normalScale: 1 });
-  const group = new THREE.Group();
-  softBox(group, [0.3, 0.075, 0.3], timber, [0, 0.0375, 0], { radius: 0.006, tile: [0.55, 0.55] });
-  softBox(group, [0.22, 0.035, 0.09], timber, [0, 0.092, 0], { radius: 0.008, tile: [0.55, 0.55] });
-  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.033, 0.042, 0.14, 40), timber);
-  handle.position.y = 0.165;
-  handle.castShadow = true;
-  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.047, 40, 24), timber);
-  knob.scale.y = 0.6;
-  knob.position.y = 0.24;
-  knob.castShadow = true;
-  group.add(handle, knob);
-  return group;
-}
-
-async function buildTray(kit: YardKit, look: SubstanceLook | null): Promise<THREE.Object3D> {
-  const timber = await kit.library.surface("table", { normalScale: 1 });
-  const group = new THREE.Group();
-  const width = 0.8;
-  const depth = BENCH_WIDTH - TRAY_BENCH_CLEARANCE * 2;
-  const wall = 0.03;
-  softBox(group, [width, 0.014, depth], timber, [0, 0.007, 0], { radius: 0.004, tile: [0.55, 0.55] });
-  for (const [x, z, sx, sz] of [
-    [0, -depth / 2 + wall / 2, width, wall],
-    [0, depth / 2 - wall / 2, width, wall],
-    [-width / 2 + wall / 2, 0, wall, depth - wall * 2 - 0.002],
-    [width / 2 - wall / 2, 0, wall, depth - wall * 2 - 0.002],
-  ] as const) softBox(group, [sx, 0.075, sz], timber, [x, 0.0375, z], { radius: 0.006, tile: [0.55, 0.55] });
-  const pad = await kit.library.surface("weave");
-  softBox(group, [width - wall * 2 - 0.004, 0.034, depth - wall * 2 - 0.004], pad, [0, 0.0315, 0], { radius: 0.008, tile: [0.27, 0.27] });
-  if (look) softBox(group, [width - wall * 2 - 0.05, 0.004, depth - wall * 2 - 0.05], await substanceMaterial(kit.library, look), [0, 0.0505, 0], { radius: 0.0018, segments: 18, tile: [0.27, 0.27] });
-  return group;
-}
-
 const BUILT_MODELS: Readonly<Record<string, (kit: YardKit, options: PlaceOptions) => Promise<THREE.Object3D>>> = {
-  "carved-block": (kit) => buildCarvedBlock(kit),
-  "printing-tray": (kit, options) => buildTray(kit, options.tray ?? null),
+  "carved-block": (kit) => buildCarvedBlock(kit.library),
+  "printing-tray": (kit, options) => buildPrintingTray(kit.library, options.tray ?? null, BENCH_WIDTH - TRAY_BENCH_CLEARANCE * 2),
   "washing-paddle": (kit) => buildWashingPaddle(kit.library),
   "carving-chisels": (kit) => buildCarvingChisels(kit.library),
   "brush-and-kalam": (kit) => buildBrushAndKalam(kit.library),
@@ -174,9 +141,9 @@ export async function placeCatalogueModel(kit: YardKit, parent: THREE.Object3D, 
     return { object: built, fills: [] };
   }
   const model = catalogueModel(modelId);
-  const scanId = model.scan ?? "wooden_crate_01";
+  const scanId = model.thrown ?? model.scan ?? "wooden_crate_01";
   const holder = new THREE.Group();
-  const object = await stoodScan(kit, scanId, model.heightMetres);
+  const object = model.thrown ? await buildThrownVessel(kit.library, model.thrown) : await stoodScan(kit, scanId, model.heightMetres);
   holder.add(object);
   const fills: FillAudit[] = [];
   if (options.look) {

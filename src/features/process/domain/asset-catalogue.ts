@@ -1,9 +1,12 @@
 export type ModelForm = "scan" | "turned" | "integral";
 
+export type ThrownShape = "clay-bowl" | "clay-pot";
+
 export interface CatalogueModel {
   readonly id: string;
   readonly form: ModelForm;
   readonly scan: string | null;
+  readonly thrown: ThrownShape | null;
   readonly heightMetres: number;
   readonly standIn: true;
 }
@@ -12,11 +15,14 @@ const scan = (id: string, file: string, heightMetres: number): CatalogueModel =>
   id,
   form: "scan",
   scan: file,
+  thrown: null,
   heightMetres,
   standIn: true,
 });
 
-const integral = (id: string): CatalogueModel => ({ id, form: "integral", scan: null, heightMetres: 0, standIn: true });
+const thrown = (id: string, shape: ThrownShape, heightMetres: number): CatalogueModel => ({ id, form: "turned", scan: null, thrown: shape, heightMetres, standIn: true });
+
+const integral = (id: string): CatalogueModel => ({ id, form: "integral", scan: null, thrown: null, heightMetres: 0, standIn: true });
 
 export const ASSET_CATALOGUE: readonly CatalogueModel[] = [
   integral("printing-table"),
@@ -28,14 +34,12 @@ export const ASSET_CATALOGUE: readonly CatalogueModel[] = [
   integral("washing-paddle"),
   integral("carving-chisels"),
   integral("brush-and-kalam"),
-  scan("bowl-wood", "wooden_bowl_01", 0.094),
-  scan("bowl-clay", "planter_pot_clay", 0.222),
   scan("basket", "wicker_basket_01", 0.117),
   scan("crate", "wooden_crate_01", 0.35),
-  scan("powder-bowl", "wooden_bowl_01", 0.094),
-  scan("paste-bowl", "wooden_bowl_01", 0.094),
-  scan("crystal-bowl", "wooden_bowl_01", 0.094),
-  scan("liquid-pot", "planter_pot_clay", 0.222),
+  thrown("powder-bowl", "clay-bowl", 0.105),
+  thrown("paste-bowl", "clay-bowl", 0.105),
+  thrown("crystal-bowl", "clay-bowl", 0.105),
+  thrown("liquid-pot", "clay-pot", 0.199),
   scan("lump-basket", "wicker_basket_01", 0.117),
   scan("cloth-bale", "wooden_crate_01", 0.35),
 ];
