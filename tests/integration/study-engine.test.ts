@@ -703,7 +703,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
         `SELECT d.opens_at = e.at + interval '6 days' AS opens, d.closes_at = e.at + interval '14 days' AS closes
            FROM delayed_test_schedule d,
                 (SELECT date_trunc('milliseconds', max(occurred_at)) AS at FROM audit_log WHERE entity_id = $1 AND action = 'study.step_completed' AND after->>'step' <> 'delayed_test') e
-          WHERE d.session_id = $1`,
+          WHERE d.session_id::text = $1`,
         [s.sessionId],
       );
       expect(timed).toEqual({ opens: true, closes: true });
