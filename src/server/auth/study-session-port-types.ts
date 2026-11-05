@@ -14,6 +14,7 @@ export type StudySessionRecord = {
   participantStatus: ParticipantStatus;
   /** Session withdrawn by or for the participant. Withdrawn sessions never grant access. */
   withdrawn: boolean;
+  excluded: boolean;
 };
 
 export interface StudySessionLookup {

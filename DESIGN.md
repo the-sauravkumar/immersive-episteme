@@ -87,7 +87,7 @@ Strong colour in the world comes from the cloth and the dye. The interface has o
 
 **Named extras:** Door 1 object cell ground `#D2C4B6`, the corner colour of the stills, so a still does not read as a pasted patch; danger hover `#C63A2E`; danger pressed and wall Sample Text `#8D1C14` (4.99 on plaster); raised hover `#21356A`; Door 1 product rail `#6B5238`; caption paint `#0A1636` (9.75 on plaster); table row hover `rgba(22,38,78,.55)`; dialog backdrop `rgba(6,10,20,.78)`.
 
-**Scene constants:** live in `src/features/walkthrough/scene/constants.ts`.
+**Scene constants:** the yard's dimensions, cloth line and eye height live in `src/features/walkthrough/domain/yard-plan.ts`; the painted-word colours of Door 2 in `src/features/walkthrough/infrastructure/solid-builders.ts`.
 
 **Rendered paint contrast:** the plaster ratios above use an assumed colour, so they are not the test. On the render, inside the text's bounding box, 95th over 3rd percentile relative luminance is at least 4.5 (derived).
 
@@ -205,7 +205,7 @@ Reference geometry, metres: eye height 1.6; field of view 55°; yard about 36 wi
 The Door 1 strip bent to the route's plan, from the layout generator. Reached stations show their real strip; current has a 3 px turmeric frame; ahead are empty frames on a dashed `--thread` path; the hall sits at the end. The learner's position is always shown.
 
 ### 8.7 Entrance
-An open forecourt before a long limewashed building: title lettered on the wall, `Door 1` and `Door 2` over two people-sized indigo plank doors, seen from an oblique, asymmetric viewpoint. Raw cloth runs from a rail on the wall between the doors across the earth, pinned with bricks; raw lengths dry on a frame to one side. Both stay shut until the pre-test ends; then the assigned door opens. Door names do not describe the other group's experience. Whatever follows the door is seen only by those assigned to it.
+An open forecourt before a long limewashed building: title lettered on the wall, `Door 1` and `Door 2` over two people-sized indigo plank doors, seen from an oblique, asymmetric viewpoint. Raw cloth runs from a rail on the wall between the doors across the earth, pinned with bricks; raw lengths dry on a frame to one side. The forecourt is built as a 3D scene (`src/features/walkthrough/infrastructure/build-entrance.ts`), but the participant sees it as three fixed renders of that scene at 3840 by 2160, not live: both doors shut, Door 1 open, Door 2 open (`public/walkthrough/stills/entrance-*.jpg`, made by `tools/walkthrough-lab/render-stills.cjs`). The entrance step (`src/components/study/entrance-scene.tsx`) shows the shut still for 3 seconds after the pre-test and allocation, then the still with the assigned door open, then `Continue`. Door names do not describe the other group's experience. Whatever follows the door is seen only by those assigned to it. Stills are what was built on 2026-11-04; no decision record chose them over a live forecourt (DR-095).
 
 ### 8.8 Practice Yard And Product Hall
 - **Practice:** same materials and light. Neutral only: plain cotton on rails, one plain box lettered `Practice Object`, the instruction lettered on the shed, a gap to walk through. Timed separately.
@@ -253,7 +253,7 @@ Every surface a learner can see meets these (L4, L5). Nearest reachable distance
 | Delivery | GPU-compressed KTX2 where it does not visibly lose detail; never downscale for low-spec |
 
 ### 10.2 Shared 3D Models
-One model per tool and material, scanned, licensed or modelled, credit recorded, listed in `src/features/walkthrough/catalogue.ts`. Door 2 stands it in place; Door 1 uses fixed renders. One loader, one material set, one id. A catalogue model that stands in for a real tool stays marked `Stand-In Model` in review builds until a curator accepts it. Test each model in a station and in a Door 1 cell before accepting it.
+One model per tool and material, scanned, licensed or modelled, credit recorded, listed in `src/features/process/domain/asset-catalogue.ts`. Door 2 stands it in place; Door 1 uses fixed renders. One loader, one material set, one id. A catalogue model that stands in for a real tool stays marked `Stand-In Model` in review builds until a curator accepts it. Test each model in a station and in a Door 1 cell before accepting it.
 
 ### 10.3 Render Recipe For Course Stills
 Stills come from the same scene code as the station, so light and colour match:
@@ -280,7 +280,7 @@ Shared by both doors, built from Section 6 components on a `--vat` page, with a 
 
 | Note step | Screen | Rules |
 |---|---|---|
-| 1 Consent | Text box, two checkboxes, `Decline`, `I Agree` | Ethics reference CXA/ETH/01 shown |
+| 1 Consent | Text box, one confirmation checkbox, `I do not want to take part`, `I agree to take part` | Ethics reference CXA/ETH/01 shown. Agreeing needs the tick; declining does not |
 | 2 Background, pre-test | One radio question per screen | Includes `I do not know`; no back; no concept map |
 | 3 Entrance | Section 8.7 | Assignment balanced by pre-test score |
 | 4 Practice | Panel or room | Timed separately |

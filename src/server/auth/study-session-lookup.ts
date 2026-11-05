@@ -30,6 +30,7 @@ export function drizzleStudySessionLookup(db: AnyPgDatabase): StudySessionLookup
           participantId: studySessions.participantId,
           status: studySessions.status,
           withdrawn: studySessions.withdrawn,
+          excluded: studySessions.excluded,
           conditionInterface: studyConditions.interface,
           participantStatus: participants.status,
         })
@@ -47,6 +48,7 @@ export function drizzleStudySessionLookup(db: AnyPgDatabase): StudySessionLookup
         status: row.status,
         participantStatus: row.participantStatus,
         withdrawn: row.withdrawn,
+        excluded: row.excluded,
       };
     },
   };

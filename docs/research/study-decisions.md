@@ -243,9 +243,19 @@ study.
 ## D5. Learning-phase duration and study scope
 
 **Decision.**
-- **Duration.** **30 minutes**, enforced by the server clock, identical in both conditions, with
-  no early finish (`exposure.minutes = 30`, `allowEarlyFinish = false`). Time on task is held
-  constant, as DR-015 requires.
+- **Duration.** *Updated 2026-11-05 (DR-095).* **Self-paced with a 30-minute cap**, enforced by
+  the server clock, identical in both conditions, and every stage must be visited
+  (`exposure = { mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage:
+  true }`, `NEW_STUDY_CONFIG` in `src/server/study/config.ts`). The learner may finish before
+  the cap only once every stage has been visited, and only by the finish in the learning page;
+  time on task is recorded as an outcome, not held constant. Concept Note rev2, Section 9
+  (Sample, pacing and analysis): "Pacing: self-paced with a 30-minute cap and every stage
+  visited, with time recorded as an outcome. Fixed time would leave course learners rereading
+  while walkthrough learners are still walking." Section 7 (Procedure), step 5, Learning: "Three
+  traditions, order counterbalanced. Every stage must be visited". This replaces the earlier
+  rule of 30 minutes with no early finish (`allowEarlyFinish = false`), which held time on task
+  constant as DR-015 required; DR-075 moved the engine to the note's pacing, and the note wins
+  where it differs (`DESIGN.md` Section 1).
 - **Familiarisation first.** 5–10 minutes of content-free familiarisation with the controls and
   layout of the assigned pathway. It is not counted as learning time and shows no craft content.
 - **Study scope.** The learning content is limited to **≤ 4,500 words of claim text**. It is

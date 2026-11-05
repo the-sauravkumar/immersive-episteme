@@ -13,12 +13,11 @@ import {
   completeSession,
   enrolParticipant,
   findEnrollableStudy,
+  finishLearning,
   openSessionAfterConsent,
   recordConsent,
   recordDeviceCheck,
   submitAssessment,
-  syncPosition,
-  loadSessionState,
   withdraw,
   type EnrollableStudy,
   type OpenedSession,
@@ -59,7 +58,7 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
     await recordDeviceCheck(t.pool, s.sessionId, { viewport: { width: 1280, height: 800 }, webglVersion: 2, inputDevices: ["keyboard"] });
     const a = await allocateSession(t.pool, s.sessionId);
     await completeOnboarding(t.pool, s.sessionId);
-    await syncPosition(t.pool, (await loadSessionState(t.pool, s.sessionId))!, { arrivedAtHub: true });
+    await finishLearning(t.pool, s.sessionId);
     // A final post map with an edge (revisions by trigger), a derived score on it.
     const nodes = conceptIds.map((c, i) => ({ key: `n${i}`, conceptId: c, label: `c${i}`, x: 0, y: 0 }));
     const m = await one<{ id: string }>(
@@ -198,5 +197,50 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
     expect(entry.after.trigger).toBe("retention");
     expect(entry.reason).toMatch(/retention period of 30 days/);
     expect((await listRetentionDue(t.pool, study.id, in31Days)).due.map((d) => d.participantId)).not.toContain(ended.participantId);
+  });
+
+  it("ends sessions nobody can come back to by the study's timing, so removal and retention reach them", async () => {
+    const walkedAway = await enrolParticipant(t.pool, study);
+    await recordConsent(t.pool, { participantId: walkedAway.participantId, study, decision: "granted", shownVersion: CONSENT.version });
+    const away = await openSessionAfterConsent(t.pool, { participantId: walkedAway.participantId, studyId: study.id, appBuild: BUILD });
+    await submitAssessment(t.pool, { sessionId: away.sessionId, step: "pre_test", assessmentId: ids["pu-pre"]!, values: {} });
+    const finishedNotSubmitted = await fullParticipant();
+    const running = await fullParticipant();
+    const stale = "UPDATE study_sessions SET started_at = now() - interval '8 hours', last_activity_at = now() - interval '7 hours' WHERE id = $1";
+    await t.pool.query(stale, [away.sessionId]);
+    await t.pool.query(stale, [finishedNotSubmitted.sessionId]);
+
+    const in31Days = new Date(Date.now() + 31 * 24 * 3600 * 1000);
+    const due = (await listRetentionDue(t.pool, study.id, in31Days)).due.map((d) => d.participantId);
+    expect(due).toEqual(expect.arrayContaining([away.participantId, finishedNotSubmitted.participantId]));
+    expect(due).not.toContain(running.participantId);
+    expect(await one(t.pool, "SELECT status::text AS status, completed_at IS NULL AS open FROM study_sessions WHERE id = $1", [away.sessionId])).toEqual({ status: "abandoned", open: true });
+    expect(await one(t.pool, "SELECT status::text AS status FROM study_sessions WHERE id = $1", [finishedNotSubmitted.sessionId])).toEqual({ status: "completed" });
+    expect(await count("audit_log WHERE action = 'study.session_abandoned' AND entity_id = $1 AND after->>'closedBy' = 'timing'", [away.sessionId])).toBe(1);
+
+    const r = await purgeParticipantData(t.pool, { studyId: study.id, participant: away.participantId, reason: "participant asked for removal by email", actorId: pi, trigger: "request" });
+    expect(r.rows.study_sessions).toBe(1);
+    await expect(purgeParticipantData(t.pool, { studyId: study.id, participant: running.participantId, reason: "asked for removal", actorId: pi, trigger: "request" })).rejects.toThrow(/still taking part/);
+  });
+
+  it("sweeps the study for stale sessions once per retention purge, not once per participant", async () => {
+    for (const p of [await fullParticipant(), await fullParticipant()]) await completeSession(t.pool, p.sessionId);
+    let sweeps = 0;
+    const counted = new Proxy(t.pool, {
+      get(target, prop) {
+        if (prop === "query") {
+          return (...args: Parameters<typeof target.query>) => {
+            const sql = args[0];
+            if (typeof sql === "string" && sql.includes("LEFT JOIN delayed_test_schedule d ON d.session_id = ss.id")) sweeps++;
+            return (target.query as (...a: unknown[]) => unknown).apply(target, args);
+          };
+        }
+        const value = Reflect.get(target, prop, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    const removed = await purgeRetentionDue(counted, { studyId: study.id, actorId: pi, now: new Date(Date.now() + 31 * 24 * 3600 * 1000) });
+    expect(removed.length).toBeGreaterThanOrEqual(2);
+    expect(sweeps).toBe(1);
   });
 });
