@@ -5,6 +5,7 @@ import type { RouteStation } from "../domain/route-plan";
 import { easeYaw, eyeOf, localZ, moveTowards, nearestWaypoint, stationIndexAt, steerAlong, stepWalker, turnBetween, walkerAt, worldZ, type WalkInput, type WalkTarget, type Walker } from "../domain/walk-state";
 import { buildYard, releaseYard, YardKit, type BuiltYard } from "./build-yard";
 import { addHorizon } from "./horizon";
+import { setLiquidTime } from "./substance-materials";
 import { MaterialLibrary, texturesOf } from "./material-library";
 import { addSun, CAMERA_NEAR_METRES, createRenderer, createRenderView, type RenderView } from "./render-view";
 
@@ -342,6 +343,7 @@ export class WalkRuntime {
 
   private update(): void {
     const now = performance.now();
+    setLiquidTime(now / 1000);
     const elapsed = (now - this.last) / 1000;
     const seconds = Math.min(0.1, elapsed);
     const counted = Math.min(LONGEST_COUNTED_FRAME_SECONDS, elapsed);
