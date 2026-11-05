@@ -157,7 +157,7 @@ function surfaceOf(look: SubstanceLook): FormSurface {
   return SURFACE_OVERRIDES.filter(({ words, fill }) => words.test(look.surface) && (fill === undefined || fill === look.fill)).reduce((current, { apply }) => apply(current), form);
 }
 
-const PILE_BED_DARKENING: Partial<Record<SubstanceFill, number>> = { dung: 0.82, roots: 0.55, crystals: 0.42 };
+const PILE_BED_DARKENING: Partial<Record<SubstanceFill, number>> = { dung: 0.82, roots: 0.55, crystals: 0.7 };
 const GAP_DARKENING = 0.3;
 const CAKE_SURFACE: Pick<FormSurface, "scan" | "tileMetres" | "normalScale" | "contrast" | "leastRough" | "specular" | "contact"> = { scan: "flour", tileMetres: 0.09, normalScale: 0.8, contrast: 0.3, leastRough: 0.46, specular: 0.55, contact: 0.5 };
 
@@ -443,7 +443,6 @@ export function setLiquidTime(seconds: number): void {
 }
 
 const FOAM_LIFTS_BODY = 2.4;
-const PALE_FOAM_LIFT = 1.45;
 const PALE_FOAM_GRAIN = 2.6;
 const SOAP_FILM_ON_CLEAR_WATER = 0.42;
 const FOAM_GLINT_FALLBACK = new THREE.Color(0.6, 0.6, 0.6);
@@ -453,9 +452,9 @@ const DARK_FOAM_LUMINANCE = 0.035;
 const WATER_NET_LIGHT = 0.07;
 const BRIGHTEST_GLINT = 1.1;
 const MIRROR_DARK_BODY = 0.3;
-const DEEP_BODY = 0.72;
-const PALE_LIQUID_LUMINANCE = 0.55;
-const PALE_BODY = 0.38;
+const PALE_LIQUID_ALBEDO = 0.5;
+const PALE_FOAM_SHARE = 0.55;
+const OPEN_SKY_FILL_MAKEUP: LinearRgb = [1.28, 1.28, 1.28];
 
 const rippleOf = (look: SubstanceLook): number => (/mirror/.test(look.surface) ? 0.45 : /viscid/.test(look.surface) ? 0.3 : /boil/.test(look.surface) ? 2.6 : /gently heated|flowing|on a furnace/.test(look.surface) ? 1.7 : /thick|lather/.test(look.surface) ? 0.5 : /thin/.test(look.surface) ? 0.8 : 1);
 const filmOf = (look: SubstanceLook): number => (look.transparency !== "translucent" || /mirror/.test(look.surface) ? 0 : /soapy/.test(look.surface) ? SOAPY_CLOUD_FILM : 0.22);
@@ -463,12 +462,11 @@ const seedOf = (key: string): number => [...key].reduce((sum, letter, i) => (sum
 
 export function liquidBodyColour(look: SubstanceLook): THREE.Color {
   const body = displayAlbedo(look.renderHex);
-  const luminance = body.r * 0.2126 + body.g * 0.7152 + body.b * 0.0722;
-  return body.multiplyScalar(luminance > PALE_LIQUID_LUMINANCE ? PALE_BODY : DEEP_BODY);
+  return body.multiplyScalar(Math.min(1, BRIGHTEST_BODY_ALBEDO / Math.max(body.r, body.g, body.b)));
 }
 
 function derivedFoam(look: SubstanceLook, body: THREE.Color, clear: boolean, pale: boolean): THREE.Color {
-  const foam = clear ? new THREE.Color(0.7, 0.7, 0.68) : body.clone().multiplyScalar(pale ? PALE_FOAM_LIFT : FOAM_LIFTS_BODY / DEEP_BODY);
+  const foam = clear ? new THREE.Color(0.7, 0.7, 0.68) : body.clone().multiplyScalar(pale ? PALE_FOAM_SHARE : FOAM_LIFTS_BODY);
   const foamLuminance = foam.r * 0.2126 + foam.g * 0.7152 + foam.b * 0.0722;
   if (!clear && foamLuminance < DARK_FOAM_LUMINANCE) foam.multiplyScalar(DARK_FOAM_LUMINANCE / Math.max(foamLuminance, 0.0005));
   if (/plum|violet|purple/.test(look.surface)) foam.multiply(PLUM_FOAM_TINT);
@@ -479,7 +477,7 @@ function liquidShader(material: THREE.MeshStandardMaterial, look: SubstanceLook)
   const marks = liquidMarks(look);
   const clear = look.transparency === "clear";
   const body = liquidBodyColour(look);
-  const pale = body.r * 0.2126 + body.g * 0.7152 + body.b * 0.0722 > PALE_LIQUID_LUMINANCE * PALE_BODY * 0.8;
+  const pale = body.r * 0.2126 + body.g * 0.7152 + body.b * 0.0722 > PALE_LIQUID_ALBEDO;
   const foam = look.frothHex ? displayAlbedo(look.frothHex) : derivedFoam(look, body, clear, pale);
   material.onBeforeCompile = (shader) => {
     const row = displayAlbedo(look.renderHex);
@@ -521,7 +519,7 @@ export function liquidMaterial(library: MaterialLibrary, look: SubstanceLook): P
     const clear = look.transparency === "clear";
     const seeThrough = look.transparency !== "opaque";
     const material = new THREE.MeshStandardMaterial({
-      color: clear ? new THREE.Color(0.02, 0.03, 0.03) : liquidBodyColour(look),
+      color: clear ? new THREE.Color(0.02, 0.03, 0.03) : look.transparency === "opaque" ? displayAlbedo(look.renderHex, OPEN_SKY_FILL_MAKEUP) : liquidBodyColour(look),
       roughness: LIQUID_ROUGHNESS,
       metalness: 0,
       envMapIntensity: LIQUID_SKY_REFLECTION,
@@ -597,6 +595,8 @@ const CRYSTAL_ALPHA = [
   "#include <opaque_fragment>",
 ].join("\n");
 
+const MILKY_CRYSTAL_BODY = 0.55;
+
 export function crystalMaterial(library: MaterialLibrary, look: SubstanceLook): Promise<THREE.MeshStandardMaterial> {
   return library.shared(`crystal:${look.key}`, async () => {
     const colour = displayAlbedo(look.renderHex);
@@ -605,7 +605,7 @@ export function crystalMaterial(library: MaterialLibrary, look: SubstanceLook): 
       library.reflectOpenSky(opaque);
       return noteSurface(opaque, { label: `crystals ${look.key}`, kind: "smooth", realFacets: true, openWork: true });
     }
-    colour.multiplyScalar(0.42);
+    colour.multiplyScalar(MILKY_CRYSTAL_BODY);
     const material = new THREE.MeshStandardMaterial({ color: colour, roughness: 0.34, metalness: 0, envMapIntensity: 0.55, transparent: true, depthWrite: true, side: THREE.DoubleSide });
     noteSurface(material, { label: `crystals ${look.key}`, kind: "smooth", realFacets: true, openWork: true });
     library.reflectOpenSky(material);
