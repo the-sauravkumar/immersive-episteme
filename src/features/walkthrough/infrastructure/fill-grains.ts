@@ -4,6 +4,7 @@ import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { seededRandom, type PieceSphere } from "../domain/pile-packing";
 import { creasedNormals } from "./creased-normals";
 import type { PieceShape } from "./piece-mesh";
+import type { WorkPacer } from "./work-pacer";
 
 const FACET_CREASE_RADIANS = 0.55;
 const COVER_PULL = 0.55;
@@ -226,11 +227,11 @@ export function indigoCake(seed: number): PieceShape {
   return brokenSolid(seed + 40, corners, 3 + Math.floor(random() * 3), 0.55, 0.045, Math.max(half.x, half.z), 3, 1.25);
 }
 
-export async function grainsInTurn(makers: readonly (() => PieceShape)[]): Promise<PieceShape[]> {
+export async function grainsInTurn(pacer: WorkPacer, makers: readonly (() => PieceShape)[]): Promise<PieceShape[]> {
   const variants: PieceShape[] = [];
   for (const make of makers) {
+    await pacer.yieldSlice();
     variants.push(make());
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
   }
   return variants;
 }

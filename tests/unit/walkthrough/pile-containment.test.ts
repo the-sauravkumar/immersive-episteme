@@ -3,6 +3,7 @@ import { worldSpheresOf } from "@/features/walkthrough/domain/pile-packing";
 import { measureVesselProfile, wallRadius } from "@/features/walkthrough/domain/vessel-profile";
 import { pileRecipe } from "@/features/walkthrough/infrastructure/fill-pieces";
 import { pileSteps } from "@/features/walkthrough/infrastructure/substance-fill";
+import { WorkPacer } from "@/features/walkthrough/infrastructure/work-pacer";
 
 const HALF_X = 0.2;
 const HALF_Z = 0.14;
@@ -33,7 +34,7 @@ function settle<T>(steps: Generator<void, T>): T {
 describe("camel dung stays inside its basket", () => {
   it("keeps every pellet centre inside the basket footprint and below the rim", async () => {
     const profile = measureVesselProfile(openBoxTriangles());
-    const recipe = await pileRecipe("camel-pellets");
+    const recipe = await pileRecipe(new WorkPacer(), "camel-pellets");
     const placed = settle(pileSteps(profile, recipe));
     expect(placed.length).toBeGreaterThan(40);
     for (const piece of placed) {

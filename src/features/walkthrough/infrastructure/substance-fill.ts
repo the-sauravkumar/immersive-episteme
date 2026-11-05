@@ -8,6 +8,7 @@ import { firstHit, makeVesselProbe, vertexOutsideVessel, VESSEL_TUCK_METRES, typ
 import type { FillAudit, CheckedSphere } from "../domain/scene-check";
 import { measuringSteps, wallRadius, widestWallRadius, type VesselProfile } from "../domain/vessel-profile";
 import type { MaterialLibrary } from "./material-library";
+import type { WorkPacer } from "./work-pacer";
 import { hasCakePieces, isLumpCrystal, PASTE_FORMS, pasteThicknessOf, POWDER_FORMS, powderGrainOf, type PowderGrain } from "../domain/substance-body";
 import { scatterSteps, type ScatterKind } from "../domain/surface-scatter";
 import { alumLump, crumb, crystalGrain, curledShaving, grainsInTurn, grit, indigoCake, woodFlake } from "./fill-grains";
@@ -41,21 +42,6 @@ const FOLD_THICKNESS = 0.013;
 const FOLD_PITCH = 0.0148;
 const COLUMN_SEARCH_STEPS = 14;
 
-const MOST_MS_BEFORE_YIELDING = 5;
-
-async function runGradually<T>(steps: Generator<void, T>): Promise<T> {
-  let started = performance.now();
-  let step = steps.next();
-  while (!step.done) {
-    if (performance.now() - started > MOST_MS_BEFORE_YIELDING) {
-      await new Promise<void>((resolve) => setTimeout(resolve, 0));
-      started = performance.now();
-    }
-    step = steps.next();
-  }
-  return step.value;
-}
-
 export function trianglesOf(objects: readonly THREE.Object3D[], origin: THREE.Vector3 = new THREE.Vector3()): Float32Array {
   const corners: number[] = [];
   const point = new THREE.Vector3();
@@ -81,9 +67,9 @@ export interface MeasuredVessel {
   probe: VesselProbe | null;
 }
 
-export async function measureObject(object: THREE.Object3D): Promise<MeasuredVessel> {
+export async function measureObject(pacer: WorkPacer, object: THREE.Object3D): Promise<MeasuredVessel> {
   const triangles = trianglesOf([object]);
-  return { profile: await runGradually(measuringSteps(triangles)), triangles, probe: null };
+  return { profile: await pacer.run(measuringSteps(triangles)), triangles, probe: null };
 }
 
 function probeOf(measured: MeasuredVessel): VesselProbe {
@@ -148,7 +134,7 @@ async function addLiquid(library: MaterialLibrary, parent: THREE.Object3D, scanI
   const profile = measured.profile;
   const level = levelInVessel(profile, LIQUID_FRACTION);
   const geometry = await library.shared(`surface:liquid:${scanId}`, async () => {
-    const built = gridGeometry(await runGradually(fittedSurfaceSteps(profile, level, 32, 192, flatLevel(level))));
+    const built = gridGeometry(await library.pacer.run(fittedSurfaceSteps(profile, level, 32, 192, flatLevel(level))));
     liquidColumnDepths(built, profile, level);
     return built;
   });
@@ -271,7 +257,7 @@ async function addPaste(library: MaterialLibrary, parent: THREE.Object3D, scanId
   const depth = profile.rimY - profile.floorY;
   const seed = keySeed(look.key);
   const body = { ...form, strokes: Math.max(1, form.strokes - (seed % 3)), furrowDepth: form.furrowDepth * (0.55 + (seed % 5) * 0.15), reach: meanWallRadius(profile, level), seed };
-  const geometry = await library.shared(`surface:paste:${scanId}:${look.key}`, async () => shadedGeometry(await runGradually(fittedSurfaceSteps(profile, level, 72, 320, pasteHeight(level, depth, body))), 72, 320, PASTE_SHADING));
+  const geometry = await library.shared(`surface:paste:${scanId}:${look.key}`, async () => shadedGeometry(await library.pacer.run(fittedSurfaceSteps(profile, level, 72, 320, pasteHeight(level, depth, body))), 72, 320, PASTE_SHADING));
   const smear = await library.shared(`film:paste:${scanId}:${thickness}`, async () => wallFilmGeometry(measured, level + depth * form.meniscus * 0.3, depth * form.smearHeight, 5));
   const mass = stillMesh(geometry, await substanceMaterial(library, look));
   mass.castShadow = true;
@@ -296,7 +282,7 @@ function grainRecipe(library: MaterialLibrary, grain: PowderGrain): Promise<Grai
     const crumbMakers = range(1, CRUMB_VARIANTS).map((seed) => () => (grain === "crystalline" ? crystalGrain(seed, CRUMB_RADIUS[grain]) : grit(seed, CRUMB_RADIUS[grain])));
     const clumpMakers = form.clumps > 0 ? range(11, 3).map((seed) => () => crumb(seed, 0.0042, 3)) : [];
     const fibreMakers = grain === "fibrous" ? [...range(21, 6).map((seed) => () => curledShaving(seed)), ...range(31, 5).map((seed) => () => woodFlake(seed))] : [];
-    const variants = await grainsInTurn([...crumbMakers, ...clumpMakers, ...fibreMakers]);
+    const variants = await grainsInTurn(library.pacer, [...crumbMakers, ...clumpMakers, ...fibreMakers]);
     for (const variant of variants) kept(library, plainWhite(variant.geometry));
     const spheresOf = (variant: number) => variants[variant]!.spheres;
     const fibres: ScatterKind[] = grain === "fibrous"
@@ -315,14 +301,18 @@ function heapShapeOf(grain: PowderGrain, reach: number): HeapShape {
   return { reach, seed: 11 + grain.length, crownOffset: form.crownOffset, slumps: form.slumps, slumpDepth: form.slumpDepth, lineDepth: form.lineDepth, lumpDepth: form.lumpDepth, fineDepth: form.fineDepth, climb: form.climb };
 }
 
-async function cakeSet(library: MaterialLibrary, scanId: string, look: SubstanceLook, profile: VesselProfile, level: number, heightAt: HeightAt): Promise<PieceSet> {
-  const variants = await library.shared("recipe:indigo-cake", async () => {
-    const built = await grainsInTurn(range(1, 6).map((seed) => () => indigoCake(seed)));
+function indigoCakes(library: MaterialLibrary): Promise<PieceShape[]> {
+  return library.shared("recipe:indigo-cake", async () => {
+    const built = await grainsInTurn(library.pacer, range(1, 6).map((seed) => () => indigoCake(seed)));
     for (const variant of built) kept(library, variant.geometry);
     return built;
   });
+}
+
+async function cakeSet(library: MaterialLibrary, scanId: string, look: SubstanceLook, profile: VesselProfile, level: number, heightAt: HeightAt): Promise<PieceSet> {
+  const variants = await indigoCakes(library);
   const kind: ScatterKind = { variants: range(0, 6), spheresOf: (variant) => variants[variant]!.spheres, count: 6, smallest: 0.82, largest: 1.18, towardWall: 0, sink: 0.12, tries: 90, lying: true };
-  const placed = await library.shared(`scatter:cake:${scanId}`, async () => ({ pieces: await runGradually(scatterSteps([kind], { profile, heightAt, level, seed: 53, margin: 0.002 })) }));
+  const placed = await library.shared(`scatter:cake:${scanId}`, async () => ({ pieces: await library.pacer.run(scatterSteps([kind], { profile, heightAt, level, seed: 53, margin: 0.002 })) }));
   return { variants, material: await cakeMaterial(library, look), placed: placed.pieces, castsShadow: true, toneSpread: 0.1, warmth: 0.02 };
 }
 
@@ -333,7 +323,7 @@ async function addPowder(library: MaterialLibrary, parent: THREE.Object3D, scanI
   const level = levelInVessel(profile, form.level);
   const depth = profile.rimY - profile.floorY;
   const heightAt = heapHeight(level, depth * form.heap, heapShapeOf(grain, meanWallRadius(profile, level)));
-  const geometry = await library.shared(`surface:powder:${scanId}:${grain}`, async () => shadedGeometry(await runGradually(fittedSurfaceSteps(profile, level, 96, 384, heightAt)), 96, 384, HEAP_SHADING));
+  const geometry = await library.shared(`surface:powder:${scanId}:${grain}`, async () => shadedGeometry(await library.pacer.run(fittedSurfaceSteps(profile, level, 96, 384, heightAt)), 96, 384, HEAP_SHADING));
   const dust = await library.shared(`film:powder:${scanId}:${grain}`, async () => wallFilmGeometry(measured, level, depth * form.filmHeight, 9));
   const material = await substanceMaterial(library, look);
   if (grain === "fibrous") material.side = THREE.DoubleSide;
@@ -344,7 +334,7 @@ async function addPowder(library: MaterialLibrary, parent: THREE.Object3D, scanI
   const recipe = await grainRecipe(library, grain);
   const cakes = hasCakePieces(look) ? await cakeSet(library, scanId, look, profile, level, heightAt) : null;
   const avoid = cakes ? cakes.placed.flatMap((piece) => placedSpheres(cakes, piece)) : [];
-  const placed = await library.shared(`scatter:powder:${scanId}:${grain}:${cakes ? "cake" : "loose"}`, async () => ({ pieces: await runGradually(scatterSteps(recipe.kinds, { profile, heightAt, level, seed: 37, margin: 0.001, avoid })) }));
+  const placed = await library.shared(`scatter:powder:${scanId}:${grain}:${cakes ? "cake" : "loose"}`, async () => ({ pieces: await library.pacer.run(scatterSteps(recipe.kinds, { profile, heightAt, level, seed: 37, margin: 0.001, avoid })) }));
   const grains: PieceSet = { variants: recipe.variants, material: grain === "crystalline" ? await crystalMaterial(library, look) : material, placed: placed.pieces.filter((piece) => piece.variant < CRUMB_VARIANTS), castsShadow: false, toneSpread: 0.22, warmth: grain === "coarse" ? 0.32 : 0.1 };
   const larger: PieceSet = { variants: recipe.variants, material, placed: placed.pieces.filter((piece) => piece.variant >= CRUMB_VARIANTS), castsShadow: grain !== "fibrous", toneSpread: grain === "fibrous" ? 0.3 : 0.1, warmth: grain === "fibrous" ? 0.16 : 0.06 };
   const sets = cakes ? [grains, larger, cakes] : [grains, larger];
@@ -357,29 +347,33 @@ const SMALL_LUMPS = 22;
 const LARGE_LUMP_VARIANTS = 5;
 const ALUM_CRUMBS = 60;
 
+function alumLumps(library: MaterialLibrary): Promise<PieceShape[]> {
+  return library.shared("recipe:alum-lump", async () => {
+    const built = await grainsInTurn(library.pacer, range(1, 9).map((seed) => () => alumLump(seed, seed <= LARGE_LUMP_VARIANTS ? 2 : 1)));
+    for (const variant of built) kept(library, variant.geometry);
+    return built;
+  });
+}
+
 async function addCrystalLumps(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {
   const profile = measured.profile;
   const level = levelInVessel(profile, LUMP_BED_FRACTION);
   const depth = profile.rimY - profile.floorY;
   const heightAt = heapHeight(level, 0, { ...heapShapeOf("fine", meanWallRadius(profile, level)), slumps: 0, lineDepth: 0, lumpDepth: 0.0014, fineDepth: 0.0003 });
-  const bed = await library.shared(`surface:lump-bed:${scanId}`, async () => gridGeometry(await runGradually(fittedSurfaceSteps(profile, level, 64, 320, heightAt))));
+  const bed = await library.shared(`surface:lump-bed:${scanId}`, async () => gridGeometry(await library.pacer.run(fittedSurfaceSteps(profile, level, 64, 320, heightAt))));
   const dust = await library.shared(`film:lump-bed:${scanId}`, async () => wallFilmGeometry(measured, level, depth * POWDER_FORMS.fine.filmHeight, 13));
   const powder = await substanceMaterial(library, look);
   parent.add(stillMesh(bed, await pileBedMaterial(library, look)));
   parent.add(stillMesh(dust, await filmMaterial(library, look, POWDER_FEATHER)));
-  const lumps = await library.shared("recipe:alum-lump", async () => {
-    const built = await grainsInTurn(range(1, 9).map((seed) => () => alumLump(seed, seed <= LARGE_LUMP_VARIANTS ? 2 : 1)));
-    for (const variant of built) kept(library, variant.geometry);
-    return built;
-  });
+  const lumps = await alumLumps(library);
   const packed = await library.shared(`pile:${scanId}:alum`, async () => ({
-    pieces: await runGradually(packingSteps({ ...profile, floorY: level + LUMP_REST_METRES }, [...blueprintsFrom(lumps.slice(0, LARGE_LUMP_VARIANTS), LARGE_LUMPS, 25, 0.9, 1.25), ...blueprintsFrom(lumps.slice(LARGE_LUMP_VARIANTS), SMALL_LUMPS, 26, 0.65, 0.9).map((blueprint) => ({ ...blueprint, variant: blueprint.variant + LARGE_LUMP_VARIANTS }))], { seed: 105, candidates: 16, maxTilt: 0.5, anyTumble: true, topY: Math.min(profile.rimY - CLEAR_OF_LOW_RIM, profile.floorY + depth * LUMP_FILLS_TO), margin: 0.003, fillRadius: widestWallRadius(profile, level + depth * LUMP_HEAP_REACH), leansOnOne: true, crown: depth * LUMP_CROWN })),
+    pieces: await library.pacer.run(packingSteps({ ...profile, floorY: level + LUMP_REST_METRES }, [...blueprintsFrom(lumps.slice(0, LARGE_LUMP_VARIANTS), LARGE_LUMPS, 25, 0.9, 1.25), ...blueprintsFrom(lumps.slice(LARGE_LUMP_VARIANTS), SMALL_LUMPS, 26, 0.65, 0.9).map((blueprint) => ({ ...blueprint, variant: blueprint.variant + LARGE_LUMP_VARIANTS }))], { seed: 105, candidates: 16, maxTilt: 0.5, anyTumble: true, topY: Math.min(profile.rimY - CLEAR_OF_LOW_RIM, profile.floorY + depth * LUMP_FILLS_TO), margin: 0.003, fillRadius: widestWallRadius(profile, level + depth * LUMP_HEAP_REACH), leansOnOne: true, crown: depth * LUMP_CROWN })),
   }));
   const lumpSet: PieceSet = { variants: lumps, material: await crystalMaterial(library, look), placed: packed.pieces, castsShadow: true, toneSpread: 0.06, warmth: 0.06 };
   const recipe = await grainRecipe(library, "fine");
   const avoid = packed.pieces.flatMap((piece) => placedSpheres(lumpSet, piece));
   const crumbs = await library.shared(`scatter:lump-bed:${scanId}`, async () => ({
-    pieces: await runGradually(scatterSteps([...recipe.kinds, { variants: range(0, CRUMB_VARIANTS), spheresOf: (variant: number) => recipe.variants[variant]!.spheres, count: ALUM_CRUMBS, smallest: 0.3, largest: 0.7, towardWall: 0.2, sink: 0.3 }], { profile, heightAt, level, seed: 71, margin: 0.001, avoid })),
+    pieces: await library.pacer.run(scatterSteps([...recipe.kinds, { variants: range(0, CRUMB_VARIANTS), spheresOf: (variant: number) => recipe.variants[variant]!.spheres, count: ALUM_CRUMBS, smallest: 0.3, largest: 0.7, towardWall: 0.2, sink: 0.3 }], { profile, heightAt, level, seed: 71, margin: 0.001, avoid })),
   }));
   const crumbSet: PieceSet = { variants: recipe.variants, material: powder, placed: crumbs.pieces, castsShadow: false, toneSpread: 0.08, warmth: 0.02 };
   addPieceSet(parent, lumpSet);
@@ -399,17 +393,21 @@ const bedHeightOf = (profile: VesselProfile, recipe: PileRecipe) => {
   return moundHeight(levelInVessel(profile, recipe.bedShare ?? PILE_BED_FRACTION), depth * (recipe.bedHeap ?? 0), depth * PILE_BED_GRAIN);
 };
 
+function pileRecipeOf(library: MaterialLibrary, form: PileForm): Promise<PileRecipe> {
+  return library.shared(`recipe:${form}`, async () => {
+    const built = await pileRecipe(library.pacer, form);
+    for (const variant of built.variants) {
+      kept(library, variant.geometry);
+      kept(library, variant.buried);
+    }
+    return built;
+  });
+}
+
 function packedPile(library: MaterialLibrary, scanId: string, form: PileForm, profile: VesselProfile): Promise<PackedPile> {
   return library.shared(`pile:${scanId}:${form}`, async () => {
-    const recipe = await library.shared(`recipe:${form}`, async () => {
-      const built = await pileRecipe(form);
-      for (const variant of built.variants) {
-        kept(library, variant.geometry);
-        kept(library, variant.buried);
-      }
-      return built;
-    });
-    const placed = await runGradually(pileSteps(profile, recipe));
+    const recipe = await pileRecipeOf(library, form);
+    const placed = await library.pacer.run(pileSteps(profile, recipe));
     const world = placed.map((piece) => worldSpheresOf(piece, recipe.variants[piece.variant]!.spheres));
     const seen = recipe.seenDepth === undefined ? placed.map(() => true) : piecesNearTop(world, recipe.seenDepth);
     return { recipe, placed, world, seen };
@@ -442,7 +440,7 @@ async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId:
   const { recipe, placed, world, seen } = await packedPile(library, scanId, form, measured.profile);
   const material = await pileMaterial(library, look);
   const profile = measured.profile;
-  const bedGeometry = await library.shared(`surface:bed:${scanId}:${form}`, async () => gridGeometry(await runGradually(fittedSurfaceSteps(profile, levelInVessel(profile, recipe.bedShare ?? PILE_BED_FRACTION), 48, 192, bedHeightOf(profile, recipe), PILE_BED_INSET_METRES))));
+  const bedGeometry = await library.shared(`surface:bed:${scanId}:${form}`, async () => gridGeometry(await library.pacer.run(fittedSurfaceSteps(profile, levelInVessel(profile, recipe.bedShare ?? PILE_BED_FRACTION), 48, 192, bedHeightOf(profile, recipe), PILE_BED_INSET_METRES))));
   if (!recipe.bare) parent.add(stillMesh(bedGeometry, await pileBedMaterial(library, look)));
   const holder = new THREE.Object3D();
   holder.rotation.order = "YXZ";
@@ -531,6 +529,19 @@ async function addFoldedCloth(library: MaterialLibrary, parent: THREE.Object3D, 
   stack.castShadow = true;
   parent.add(stack);
   return surfaceAudit(name, measured, geometry);
+}
+
+export async function prepareFillPieces(library: MaterialLibrary, looks: readonly SubstanceLook[]): Promise<void> {
+  for (const look of looks) {
+    if (look.fill === "liquid" || look.fill === "paste" || look.fill === "cloth") continue;
+    if (isLumpCrystal(look)) {
+      await alumLumps(library);
+      await grainRecipe(library, "fine");
+    } else if (look.fill === "powder" || look.fill === "crystals") {
+      await grainRecipe(library, powderGrainOf(look));
+      if (hasCakePieces(look)) await indigoCakes(library);
+    } else if (isPileFill(look.fill)) await pileRecipeOf(library, pileFormOf(look)!);
+  }
 }
 
 export async function fillVessel(library: MaterialLibrary, parent: THREE.Object3D, scanId: string, look: SubstanceLook, measured: MeasuredVessel, name: string): Promise<FillAudit> {

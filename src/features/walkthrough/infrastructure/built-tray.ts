@@ -165,12 +165,19 @@ function padMaterial(library: MaterialLibrary, look: SubstanceLook | null, scanN
 
 export async function buildPrintingTray(library: MaterialLibrary, look: SubstanceLook | null, depth: number): Promise<THREE.Object3D> {
   const [wood, under, looped] = await Promise.all([projectedMaterial(library, TRAY_WOOD), padMaterial(library, look, "weave", UNDER_LOOK), padMaterial(library, look, "flour", LOOPED_LOOK)]);
+  const { pacer } = library;
   const group = new THREE.Group();
-  group.add(solidMesh(trayShell(depth), wood), solidMesh(trayFloor(depth), wood));
+  await pacer.yieldSlice();
+  group.add(solidMesh(trayShell(depth), wood));
+  await pacer.yieldSlice();
+  group.add(solidMesh(trayFloor(depth), wood));
   const clearX = WIDTH / 2 - WALL - PAD_CLEARANCE_METRES;
   const clearZ = depth / 2 - WALL - PAD_CLEARANCE_METRES;
+  await pacer.yieldSlice();
   const lower = padGeometry({ halfX: clearX, halfZ: clearZ, edgeWander: 0.0012, thickness: 0.0075, swell: 0.2, phase: 0.9, edgeTone: 0.34, soakedShare: 0.1, centreTone: 0.42, hump: 0.4 }, () => FLOOR_THICKNESS);
+  await pacer.yieldSlice();
   const middle = padGeometry({ halfX: clearX - 0.004, halfZ: clearZ - 0.004, edgeWander: 0.009, thickness: 0.0085, swell: 0.3, phase: 2.2, edgeTone: 0.42, soakedShare: 0.12, centreTone: 0.62, hump: 0.8 }, lower.top);
+  await pacer.yieldSlice();
   const upper = padGeometry({ halfX: clearX - 0.01, halfZ: clearZ - 0.012, edgeWander: 0.024, thickness: 0.006, swell: 0.75, phase: 4.1, edgeTone: 0.44, soakedShare: 0.34, centreTone: 1, hump: 1.6 }, middle.top);
   group.add(solidMesh(lower.geometry, under), solidMesh(middle.geometry, under), solidMesh(upper.geometry, looped));
   return group;
