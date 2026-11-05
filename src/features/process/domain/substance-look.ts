@@ -2,7 +2,7 @@ import { stillPath } from "./asset-catalogue";
 import type { StageItem } from "./stage-template";
 import { SUBSTANCE_LOOK_ROWS } from "./substance-look-rows";
 
-export type SubstanceFill = "liquid" | "paste" | "powder" | "crystals" | "roots" | "flowers" | "cloth" | "dung" | "leaves";
+export type SubstanceFill = "liquid" | "paste" | "powder" | "crystals" | "roots" | "flowers" | "cloth" | "dung" | "leaves" | "fruit";
 export type Transparency = "clear" | "translucent" | "opaque";
 export type RenderBasis = "evidence" | "photo" | "inferred" | "provisional";
 export type LookStatus = "sourced" | "inferred" | "partial" | "needs-lead";
@@ -46,6 +46,7 @@ const VESSEL_BY_FILL: Readonly<Record<SubstanceFill, string>> = {
   flowers: "lump-basket",
   dung: "lump-basket",
   leaves: "lump-basket",
+  fruit: "lump-basket",
   cloth: "cloth-bale",
 };
 
