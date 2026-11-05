@@ -12,6 +12,8 @@ interface SheetRow {
   readonly transparency: string;
   readonly surface: string;
   readonly vesselSuggestion: string | null;
+  readonly frothHex?: string | null;
+  readonly spread?: readonly { readonly hex: string; readonly share: number }[];
 }
 
 export const LOOK_ROWS_FILE = "src/features/process/domain/substance-look-rows.ts";
@@ -29,6 +31,8 @@ export function lookRowsSource(rows: readonly SheetRow[]): string {
     transparency: row.transparency,
     surface: row.surface,
     vesselSuggestion: row.vesselSuggestion,
+    frothHex: row.frothHex ?? null,
+    spread: (row.spread ?? []).map(({ hex, share }) => ({ hex, share })),
   }));
   return `import type { SubstanceLookRow } from "./substance-look";\n\nexport const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = ${JSON.stringify(compact, null, 2)};\n`;
 }

@@ -375,6 +375,7 @@ win.colourOfLook = (key: string, centre: readonly number[], target: readonly num
   };
   return { pixels: rows.length, shaded: at(0.2), middle: at(0.5), lit: at(0.8) };
 };
+win.colourOfStill = (key: string) => (win.colourOfLook as (key: string, centre: readonly number[], target: readonly number[], fov: number) => unknown)(key, view.from, view.to, STILL_FOV_DEGREES);
 win.moveCamera = (from: readonly number[], to: readonly number[], fov = 55) => {
   camera.fov = fov;
   camera.updateProjectionMatrix();

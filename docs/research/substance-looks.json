@@ -1288,9 +1288,11 @@
     "photoLicence": "not stated",
     "transparency": "opaque",
     "transparencyBasis": "inferred",
-    "surface": "small loose dry papery flakes",
-    "surfaceWords": "Dry, matt, papery, ridged small flakes and tubular calyces in a loose heap.",
-    "surfaceBasis": "photo",
+    "surface": "small dry tubular florets, no galls",
+    "surfaceWords": "Small tubular florets and no galls, in a loose heap. The flower named in present-day Kutch Ajrakh is dhavadi, most likely Woodfordia fruticosa; the identification still runs only through the vernacular name.",
+    "surfaceBasis": "inferred",
+    "surfaceConfidence": "medium",
+    "surfaceNote": "Follows the upheld verify ruling on this row's dhawri conflict: 'drawing small tubular florets and no galls is the best available ruling' (probable, medium confidence). It replaces 'small loose dry papery flakes', read from the one sunlit Barmer frame, so the words now match the calyces drawn since DR-089. The dried colour is not settled by the ruling and stays on the photo basis above.",
     "vesselSuggestion": null,
     "conflicts": [
       {
@@ -2528,6 +2530,12 @@
     "basis": "Photo of the same plant outside the craft, weighed against conflicting lots; a judgement, not a Sanganer measurement.",
     "confidence": "low",
     "variation": "Real lot variation between red-brown traded lots and a tan lot in Barmer; no source dates the lots.",
+    "spread": [
+      { "hex": "#A24A3C", "share": 0.4 },
+      { "hex": "#8C5B3D", "share": 0.33 },
+      { "hex": "#CCAD8C", "share": 0.12 }
+    ],
+    "spreadNote": "Within one heap, from the JAHM 'Dry flowers' panel (jahm_01.jpg, crop x15-180 y25-185, pixels of luminance 40 to 235): red-pink calyces (R-G over 70) p50 #A24A3C, 40 per cent of pixels; in-between (R-G 45 to 70) p50 #8C5B3D, 33 per cent; straw streaks and bases (R-G under 45, R-B over 15, luminance over 120) mean #CCAD8C, 12 per cent. The rest stays at renderHex. Camera values under that photo's own light, not albedo. This is the surface words' 'red to pink streaked with straw', not the lot variation, which is not drawn.",
     "photoFile": "jahm_01.jpg",
     "photoPage": "https://doi.org/10.31254/jahm.2015.1104",
     "photoLicence": "not stated",
@@ -4276,6 +4284,11 @@
     "renderNote": "Photo: Kew Economic Botany Collection, 'Indian Madder, Rubia cordifolia, Bombay', masked crop p50 #845735 against the sheet's #8C5F3A; the chart in frame reads near neutral, so the raw value needs no large correction. Camera value under that photo's own light, not albedo.",
     "basis": "Photo of a museum lot outside the craft, with a near-neutral chart.",
     "confidence": "medium",
+    "spread": [
+      { "hex": "#5A3726", "share": 0.25 },
+      { "hex": "#7F5236", "share": 0.25 }
+    ],
+    "spreadNote": "The two lot medians the variation names (Kew 53297 p50 #5A3726, Kew 53829 p50 #7F5236), each given to a quarter of the root pieces; the other half stays at renderHex. A basket of one lot may vary less; drawing the stated range is a modelling choice.",
     "variation": "Lots run from #5A3726 (Kew 53297, p50) to #7F5236 (Kew 53829, p50), crop-dependent. Species is favoured, not resolved: Sengupta and the Bombay label favour R. cordifolia, while S4 names rubia tinctoria. Sengupta's Polavaram dyers use alizarin and found Manjistha too time-consuming.",
     "photoFile": "53847-2.jpg",
     "photoPage": "https://www.gbif.org/occurrence/2429000442 (Kew K:EBC-000053847)",
