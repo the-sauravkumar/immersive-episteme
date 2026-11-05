@@ -186,7 +186,11 @@ function refineBends(positions: Float32Array, uvs: Float32Array, rows: number, c
           const here = positions[i * cols * 3 + base + axis]!;
           outPositions[k + axis] = piece === 0 ? here : hermite(positions[clampRow(i - 1) * cols * 3 + base + axis]!, here, positions[clampRow(i + 1) * cols * 3 + base + axis]!, positions[clampRow(i + 2) * cols * 3 + base + axis]!, t);
         }
-        if (piece > 0) outPositions[k + 1] = Math.max(outPositions[k + 1]!, spec.field(outPositions[k]!, outPositions[k + 2]!, outPositions[k + 1]!));
+        if (piece > 0) {
+          const height = outPositions[k + 1]!;
+          const slack = height < LOW_CLOTH_METRES ? EASE_BELOW_FIELD_METRES : 0;
+          outPositions[k + 1] = Math.max(height, spec.field(outPositions[k]!, outPositions[k + 2]!, height) - slack);
+        }
         const m = (row * cols + j) * 2;
         outUvs[m] = uvs[(i * cols + j) * 2]! + (uvs[((i + 1) * cols + j) * 2]! - uvs[(i * cols + j) * 2]!) * t;
         outUvs[m + 1] = uvs[(i * cols + j) * 2 + 1]!;
@@ -226,4 +230,130 @@ function refineBends(positions: Float32Array, uvs: Float32Array, rows: number, c
     }
   }
   return { positions: outPositions, uvs: outUvs, indices, rows: total, columns: cols, endAlong: along };
+}
+
+export interface FoldedPileSpec {
+  readonly sizeLong: number;
+  readonly sizeShort: number;
+  readonly layers: number;
+  readonly pitch: number;
+  readonly thickness: number;
+  readonly floorY: number;
+  readonly longOnX: boolean;
+  readonly centre: number;
+  readonly seed: number;
+}
+
+export interface FoldedPile {
+  readonly positions: Float32Array;
+  readonly shade: Float32Array;
+  readonly indices: Uint32Array;
+}
+
+const FOLD_STATIONS = 26;
+const FOLD_FLAT_POINTS = 14;
+const FOLD_ROUND_POINTS = 7;
+const FOLD_LAP_POINTS = 3;
+const FOLD_LOOP = FOLD_FLAT_POINTS * 2 + FOLD_ROUND_POINTS + FOLD_LAP_POINTS;
+const LAYER_SHIFT_METRES = 0.011;
+const PILE_SLUMP_METRES = 0.016;
+const PILE_SAG_METRES = 0.016;
+const TOP_FOLD_LIFT_METRES = 0.014;
+const LAP_THICKNESS_SHARE = 0.34;
+
+const wobble = (a: number, b: number, seed: number): number => Math.sin(a * 2.3 + seed * 1.7) * 0.5 + Math.sin(b * 3.1 - seed * 0.9) * 0.3 + Math.sin((a + b) * 6.7 + seed * 2.9) * 0.2;
+
+export function foldedPile(spec: FoldedPileSpec): FoldedPile {
+  const count = spec.layers * (FOLD_STATIONS + 1) * FOLD_LOOP;
+  const positions = new Float32Array(count * 3);
+  const shade = new Float32Array(count);
+  const indices = new Uint32Array(spec.layers * FOLD_STATIONS * FOLD_LOOP * 6);
+  const pileHeight = spec.layers * spec.pitch;
+  const margin = LAYER_SHIFT_METRES + PILE_SLUMP_METRES;
+  const halfLong = spec.sizeLong / 2 - margin;
+  const halfShort = spec.sizeShort / 2 - margin;
+  let vertex = 0;
+  let index = 0;
+  for (let layer = 0; layer < spec.layers; layer++) {
+    const seed = spec.seed * 7.1 + layer * 2.37;
+    const thin = 0.78 + 0.22 * (0.5 + 0.5 * Math.sin(seed * 3.3));
+    const half = (spec.thickness / 2) * thin;
+    const shiftLong = LAYER_SHIFT_METRES * Math.sin(seed * 1.9) * 0.8;
+    const shiftShort = LAYER_SHIFT_METRES * Math.sin(seed * 2.7 + 1) * 0.8;
+    const trimLong = 1 - 0.035 * (0.5 + 0.5 * Math.sin(seed * 4.1));
+    const trimShort = 1 - 0.05 * (0.5 + 0.5 * Math.sin(seed * 5.3));
+    const midY = spec.floorY + spec.pitch * (layer + 0.5);
+    const isTop = layer === spec.layers - 1;
+    for (let station = 0; station <= FOLD_STATIONS; station++) {
+      const l = (station / FOLD_STATIONS) * 2 - 1;
+      const endClose = Math.sqrt(Math.max(0, 1 - Math.abs(l) ** 8));
+      for (let point = 0; point < FOLD_LOOP; point++) {
+        let s: number;
+        let h: number;
+        let contact: number;
+        if (point < FOLD_FLAT_POINTS) {
+          const t = point / (FOLD_FLAT_POINTS - 1);
+          s = -1 + 2 * t;
+          h = LAP_THICKNESS_SHARE + (1 - LAP_THICKNESS_SHARE) * smoothstep(0, 0.22, t);
+          contact = 1;
+        } else if (point < FOLD_FLAT_POINTS + FOLD_ROUND_POINTS) {
+          const a = ((point - FOLD_FLAT_POINTS + 1) / (FOLD_ROUND_POINTS + 1)) * Math.PI;
+          s = 1 + (Math.sin(a) * half) / (halfShort * trimShort);
+          h = Math.cos(a);
+          contact = 0.58 + 0.42 * Math.abs(Math.cos(a));
+        } else if (point < FOLD_FLAT_POINTS + FOLD_ROUND_POINTS + FOLD_FLAT_POINTS) {
+          const t = (point - FOLD_FLAT_POINTS - FOLD_ROUND_POINTS) / (FOLD_FLAT_POINTS - 1);
+          s = 1 - 2 * t;
+          h = -(LAP_THICKNESS_SHARE + (1 - LAP_THICKNESS_SHARE) * smoothstep(0, 0.22, 1 - t));
+          contact = 0.45;
+        } else {
+          const a = ((point - FOLD_FLAT_POINTS * 2 - FOLD_ROUND_POINTS + 1) / (FOLD_LAP_POINTS + 1)) * Math.PI;
+          s = -1 - (Math.sin(a) * half * LAP_THICKNESS_SHARE) / (halfShort * trimShort);
+          h = -Math.cos(a) * LAP_THICKNESS_SHARE;
+          contact = 0.5;
+        }
+        const longAt = l * halfLong * trimLong + shiftLong;
+        const shortAt = s * halfShort * trimShort + shiftShort;
+        const puff = 0.82 + 0.18 * wobble(l * 2.1, s * 1.7, seed);
+        let y = midY + h * half * puff * endClose;
+        if (isTop) y += TOP_FOLD_LIFT_METRES * smoothstep(0.35, -1, s) * (0.5 + 0.5 * wobble(l * 1.4, 0.3, seed));
+        const q = (y - spec.floorY) / pileHeight;
+        const slump = PILE_SLUMP_METRES * q * q * (0.65 + 0.35 * Math.sin(spec.seed * 2.1 + l * 2));
+        y += PILE_SAG_METRES * q * (0.55 * wobble(l * 1.3, s * 1.1, spec.seed * 3.3) - 0.5 * (Math.abs(s) ** 3 + Math.abs(l) ** 4));
+        const across = shortAt + slump;
+        const lengthwise = longAt + slump * 0.4 * Math.sin(spec.seed + 1.1);
+        positions[vertex * 3] = spec.longOnX ? spec.centre + lengthwise : across;
+        positions[vertex * 3 + 1] = y;
+        positions[vertex * 3 + 2] = spec.longOnX ? across : spec.centre + lengthwise;
+        shade[vertex] = contact * (endClose < 0.7 ? 0.5 + 0.5 * (endClose / 0.7) : 1);
+        vertex++;
+      }
+    }
+    const base = layer * (FOLD_STATIONS + 1) * FOLD_LOOP;
+    for (let station = 0; station < FOLD_STATIONS; station++) {
+      for (let point = 0; point < FOLD_LOOP; point++) {
+        const next = (point + 1) % FOLD_LOOP;
+        const a = base + station * FOLD_LOOP + point;
+        const b = base + station * FOLD_LOOP + next;
+        const c = a + FOLD_LOOP;
+        const d = b + FOLD_LOOP;
+        if (spec.longOnX) {
+          indices[index++] = a;
+          indices[index++] = b;
+          indices[index++] = c;
+          indices[index++] = b;
+          indices[index++] = d;
+          indices[index++] = c;
+        } else {
+          indices[index++] = a;
+          indices[index++] = c;
+          indices[index++] = b;
+          indices[index++] = b;
+          indices[index++] = c;
+          indices[index++] = d;
+        }
+      }
+    }
+  }
+  return { positions, shade, indices };
 }

@@ -45,9 +45,10 @@ export interface ScanTextures {
 
 const ANTI_TILE = "#include <map_fragment>\nvec3 mean = textureLod(map, vMapUv, 12.0).rgb;\nfloat meanTone = max(dot(mean, vec3(0.33)), 0.02);\nfloat toneA = dot(textureLod(map, vMapUv * 0.137 + vec2(0.31, 0.17), 5.0).rgb, vec3(0.33));\nfloat toneB = dot(textureLod(map, vMapUv.yx * 0.0531, 4.0).rgb, vec3(0.33));\ndiffuseColor.rgb *= clamp(mix(1.0, (toneA + toneB) / (2.0 * meanTone), 0.7), 0.72, 1.28);";
 
-const farPrint = (bias: number) => ["#ifdef USE_MAP", `vec4 sampledDiffuseColor = texture2D(map, vMapUv, ${bias.toFixed(1)});`, "diffuseColor *= sampledDiffuseColor;", "#endif"].join("\n");
+const farPrint = (bias: number, nearBias: number) => ["#ifdef USE_MAP", `vec4 sampledDiffuseColor = texture2D(map, vMapUv, mix(${nearBias.toFixed(1)}, ${bias.toFixed(1)}, smoothstep(1.4, 5.0, length(vViewPosition))));`, "diffuseColor *= sampledDiffuseColor;", "#endif"].join("\n");
 const SCAN_PRINT_BIAS = 0.7;
 const CLOTH_PRINT_BIAS = 1.5;
+const CLOTH_NEAR_PRINT_BIAS = 0.25;
 const FAR_WEAVE = ["#include <normal_fragment_maps>", "#ifdef USE_NORMALMAP_TANGENTSPACE", "normal = normalize(tbn * ((texture2D(normalMap, vNormalMapUv, 1.2).xyz * 2.0 - 1.0) * vec3(normalScale, 1.0)));", "#endif"].join("\n");
 
 const DETAIL_UNIFORMS = "uniform sampler2D detailMap;\nuniform sampler2D detailNormal;\nuniform vec2 detailScale;\nuniform float detailTone;\nuniform float detailRelief;\n";
@@ -80,7 +81,7 @@ export interface FineDetail {
   readonly relief: number;
 }
 
-export function softenWhenFar<T extends THREE.Material>(material: T, antiTile = false, detail: FineDetail | null = null, printBias = SCAN_PRINT_BIAS): T {
+export function softenWhenFar<T extends THREE.Material>(material: T, antiTile = false, detail: FineDetail | null = null, printBias = SCAN_PRINT_BIAS, nearPrintBias = printBias): T {
   material.onBeforeCompile = (shader) => {
     let fragment = shader.fragmentShader;
     if (detail) {
@@ -92,39 +93,67 @@ export function softenWhenFar<T extends THREE.Material>(material: T, antiTile = 
       fragment = DETAIL_UNIFORMS + fragment.replace("#include <map_fragment>", DETAIL_COLOUR).replace("#include <normal_fragment_maps>", DETAIL_NORMAL);
     }
     if (antiTile) fragment = fragment.replace("#include <map_fragment>", ANTI_TILE);
-    shader.fragmentShader = fragment.replace("#include <map_fragment>", farPrint(printBias)).replace("#include <normal_fragment_maps>", FAR_WEAVE);
+    shader.fragmentShader = fragment.replace("#include <map_fragment>", farPrint(printBias, nearPrintBias)).replace("#include <normal_fragment_maps>", FAR_WEAVE);
   };
-  material.customProgramCacheKey = () => `far${antiTile ? "-anti-tile" : ""}${detail ? "-detail" : ""}-${printBias}`;
+  material.customProgramCacheKey = () => `far${antiTile ? "-anti-tile" : ""}${detail ? "-detail" : ""}-${printBias}-${nearPrintBias}`;
   return material;
 }
 
-const SEEN_THROUGH_BATH_VERTEX = "#include <project_vertex>\nvBathY = (modelMatrix * vec4(transformed, 1.0)).y;";
+const SEEN_THROUGH_BATH_VERTEX = "#include <project_vertex>\nvBathAt = (modelMatrix * vec4(transformed, 1.0)).xyz;";
+const BATH_SHAPES = [
+  "varying vec3 vBathAt;",
+  "uniform float bathLevel;",
+  "uniform float bathBodyDepth;",
+  "uniform vec3 bathBody;",
+  "uniform float bathFrom;",
+  "uniform float bathBlend;",
+  "uniform sampler2D bathEarlierMap;",
+  "uniform vec2 bathEarlierRepeat;",
+  "uniform float bathWetRise;",
+  "float bathWet = 0.0;",
+  "float bathHash(vec2 p) { return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5453); }",
+  "float bathNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(bathHash(i), bathHash(i + vec2(1.0, 0.0)), f.x), mix(bathHash(i + vec2(0.0, 1.0)), bathHash(i + vec2(1.0, 1.0)), f.x), f.y); }",
+].join("\n");
 const SEEN_THROUGH_BATH_COLOUR = [
   "#include <color_fragment>",
   "if (bathFrom > 0.0) {",
   "  vec3 bathEarlier = texture2D(bathEarlierMap, vMapUv * bathEarlierRepeat).rgb;",
   "  diffuseColor.rgb = mix(bathEarlier, diffuseColor.rgb, smoothstep(bathFrom, bathFrom + bathBlend, vMapUv.x));",
   "}",
-  "float bathBelow = bathLevel - vBathY;",
-  "float bathWetBand = smoothstep(BATH_WET_RISE, 0.0, -bathBelow);",
-  "diffuseColor.rgb *= mix(1.0, BATH_WET_TONE, bathBelow > 0.0 ? 1.0 : bathWetBand);",
-  "float bathSink = bathBodyDepth > 0.0 ? pow(clamp(bathBelow / bathBodyDepth, 0.0, 1.0), 0.72) : 0.0;",
+  "float bathBelow = bathLevel - vBathAt.y;",
+  "vec2 bathAlong = vBathAt.xz + vBathAt.y * 0.7;",
+  "float bathWick = bathWetRise * (0.4 + 0.75 * bathNoise(bathAlong * 7.0) + 0.35 * bathNoise(bathAlong * 31.0));",
+  "bathWet = bathBelow > 0.0 ? 1.0 : 1.0 - smoothstep(bathWick * 0.3, bathWick, -bathBelow);",
+  "diffuseColor.rgb = pow(max(diffuseColor.rgb, vec3(0.0)), vec3(mix(1.0, BATH_WET_SATURATE, bathWet))) * mix(1.0, BATH_WET_TONE, bathWet);",
+  "diffuseColor.rgb *= 1.0 - 0.45 * exp(-abs(bathBelow) / 0.005);",
+  "float bathSink = bathBodyDepth > 0.0 ? smoothstep(-0.01, bathBodyDepth, bathBelow) : 0.0;",
   "diffuseColor.rgb = mix(diffuseColor.rgb, bathBody, bathSink);",
 ].join("\n");
-const SEEN_THROUGH_BATH_NORMAL = "#include <emissivemap_fragment>\nnormal = normalize(mix(normal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz), bathSink));";
+const SEEN_THROUGH_BATH_ROUGH = "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, BATH_WET_ROUGH, bathWet);";
+const THIN_CLOTH_GLOW = [
+  "#if NUM_DIR_LIGHTS > 0",
+  "reflectedLight.directDiffuse += BRDF_Lambert(material.diffuseColor) * directionalLights[0].color * max(-dot(normal, directionalLights[0].direction), 0.0) * BATH_THIN_CLOTH_GLOW * (1.0 - bathSink);",
+  "#endif",
+  "#include <aomap_fragment>",
+].join("\n");
+const SEEN_THROUGH_BATH_NORMAL = "#include <emissivemap_fragment>\nnormal = normalize(mix(normal, normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz), bathSink * bathSink));";
 
 export interface BathContact {
   readonly level: number;
   readonly bodyDepth: number;
   readonly body: THREE.Color;
+  readonly wetRise: number;
   readonly earlier: THREE.Texture | null;
   readonly earlierRepeat: readonly [number, number];
   readonly joinAlong: Float32Array | null;
 }
 
 const JOIN_BLEND_REPEATS = 0.34;
-const WET_RISE_METRES = 0.055;
-const WET_TONE = 0.66;
+const WET_TONE = 0.7;
+const WET_SATURATE = 1.3;
+const WET_ROUGH = 0.62;
+const WET_CLOTH_SKY_LIGHT = 0.44;
+const THIN_CLOTH_GLOW_SHARE = 0.42;
 
 export function dipInBath<T extends THREE.Material>(material: T, contact: BathContact): T {
   const earlierCompile = material.onBeforeCompile;
@@ -135,13 +164,15 @@ export function dipInBath<T extends THREE.Material>(material: T, contact: BathCo
     shader.uniforms.bathLevel = { value: contact.level };
     shader.uniforms.bathBodyDepth = { value: contact.bodyDepth };
     shader.uniforms.bathBody = { value: contact.body };
+    shader.uniforms.bathWetRise = { value: contact.wetRise };
     shader.uniforms.bathFrom = { value: contact.earlier ? joinFrom : 0 };
     shader.uniforms.bathBlend = { value: JOIN_BLEND_REPEATS };
     shader.uniforms.bathEarlierMap = { value: contact.earlier };
     shader.uniforms.bathEarlierRepeat = { value: new THREE.Vector2(contact.earlierRepeat[0], contact.earlierRepeat[1]) };
-    shader.vertexShader = `varying float vBathY;\n${shader.vertexShader.replace("#include <project_vertex>", SEEN_THROUGH_BATH_VERTEX)}`;
-    shader.fragmentShader = `#define BATH_WET_RISE ${WET_RISE_METRES.toFixed(3)}\n#define BATH_WET_TONE ${WET_TONE.toFixed(2)}\nvarying float vBathY;\nuniform float bathLevel;\nuniform float bathBodyDepth;\nuniform vec3 bathBody;\nuniform float bathFrom;\nuniform float bathBlend;\nuniform sampler2D bathEarlierMap;\nuniform vec2 bathEarlierRepeat;\n${shader.fragmentShader.replace("#include <color_fragment>", SEEN_THROUGH_BATH_COLOUR).replace("#include <emissivemap_fragment>", SEEN_THROUGH_BATH_NORMAL)}`;
+    shader.vertexShader = `varying vec3 vBathAt;\n${shader.vertexShader.replace("#include <project_vertex>", SEEN_THROUGH_BATH_VERTEX)}`;
+    shader.fragmentShader = `#define BATH_WET_TONE ${WET_TONE.toFixed(2)}\n#define BATH_WET_SATURATE ${WET_SATURATE.toFixed(2)}\n#define BATH_WET_ROUGH ${WET_ROUGH.toFixed(2)}\n#define BATH_THIN_CLOTH_GLOW ${THIN_CLOTH_GLOW_SHARE.toFixed(2)}\n${BATH_SHAPES}\n${shader.fragmentShader.replace("#include <color_fragment>", SEEN_THROUGH_BATH_COLOUR).replace("#include <roughnessmap_fragment>", SEEN_THROUGH_BATH_ROUGH).replace("#include <emissivemap_fragment>", SEEN_THROUGH_BATH_NORMAL).replace("#include <aomap_fragment>", THIN_CLOTH_GLOW)}`;
   };
+  if (material instanceof THREE.MeshStandardMaterial) material.envMapIntensity = WET_CLOTH_SKY_LIGHT;
   material.customProgramCacheKey = () => `${earlierKey()}-in-bath`;
   return material;
 }
@@ -215,6 +246,25 @@ function medianUvPerMetre(geometry: THREE.BufferGeometry): number {
   return ratios[ratios.length >> 1] ?? 1;
 }
 
+const OPEN_SKY_TURN_RADIANS = -1.8;
+const SUN_SOFT_KNEE = 3.5;
+
+function softenSun(sky: THREE.DataTexture): void {
+  const values = sky.image.data as unknown as Uint16Array;
+  const { fromHalfFloat, toHalfFloat } = THREE.DataUtils;
+  for (let i = 0; i < values.length; i += 4) {
+    const red = fromHalfFloat(values[i]!);
+    const green = fromHalfFloat(values[i + 1]!);
+    const blue = fromHalfFloat(values[i + 2]!);
+    const brightest = Math.max(red, green, blue);
+    if (brightest <= SUN_SOFT_KNEE * 0.5) continue;
+    const scale = SUN_SOFT_KNEE / (SUN_SOFT_KNEE + brightest - SUN_SOFT_KNEE * 0.5) ;
+    values[i] = toHalfFloat(red * scale);
+    values[i + 1] = toHalfFloat(green * scale);
+    values[i + 2] = toHalfFloat(blue * scale);
+  }
+}
+
 export class MaterialLibrary {
   private readonly textures = new THREE.TextureLoader();
   private readonly bitmaps = new THREE.ImageBitmapLoader().setOptions({ imageOrientation: "flipY", premultiplyAlpha: "none", colorSpaceConversion: "none" });
@@ -224,6 +274,7 @@ export class MaterialLibrary {
   private readonly sharedResources = new Map<string, Promise<object>>();
   private readonly kept = new WeakSet<object>();
   private readonly anisotropy: number;
+  private openSky: THREE.Texture | null = null;
 
   constructor(renderer: THREE.WebGLRenderer) {
     this.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
@@ -327,7 +378,7 @@ export class MaterialLibrary {
       envMapIntensity: CLOTH_SKY_LIGHT,
     });
     noteSurface(material, { label: "cloth state", kind: "cloth", detail: { colour: weave.colour, normal: weave.normal, scale } });
-    return softenWhenFar(material, false, { colour: weave.colour, normal: weave.normal, scale, tone: 0.32, relief: 0 }, CLOTH_PRINT_BIAS);
+    return softenWhenFar(material, false, { colour: weave.colour, normal: weave.normal, scale, tone: 0.32, relief: 0 }, CLOTH_PRINT_BIAS, CLOTH_NEAR_PRINT_BIAS);
   }
 
   async textileMaterial(file: string, widthMetres: number, heightMetres: number): Promise<THREE.MeshStandardMaterial> {
@@ -406,6 +457,12 @@ export class MaterialLibrary {
     return gltf.scene;
   }
 
+  reflectOpenSky(material: THREE.MeshStandardMaterial): void {
+    if (!this.openSky) return;
+    material.envMap = this.openSky;
+    material.envMapRotation.set(0, OPEN_SKY_TURN_RADIANS, 0);
+  }
+
   async sky(scene: THREE.Scene, renderer: THREE.WebGLRenderer): Promise<THREE.Mesh> {
     const [dome, environment] = await Promise.all([this.textures.loadAsync(`${ROOT}/sky/dome.jpg`), new HDRLoader().loadAsync(`${ROOT}/sky/env.hdr`)]);
     dome.colorSpace = THREE.SRGBColorSpace;
@@ -414,6 +471,10 @@ export class MaterialLibrary {
     const generator = new THREE.PMREMGenerator(renderer);
     scene.environment = generator.fromEquirectangular(environment).texture;
     scene.environmentIntensity = 0.62;
+    softenSun(environment);
+    environment.needsUpdate = true;
+    this.openSky = generator.fromEquirectangular(environment).texture;
+    this.kept.add(this.openSky);
     generator.dispose();
     environment.dispose();
     dome.wrapS = THREE.RepeatWrapping;
