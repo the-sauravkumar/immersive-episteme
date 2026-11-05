@@ -17,6 +17,7 @@ import type { Pool } from "pg";
 import { canonicalHash } from "@/lib/canonical-hash";
 import { METRIC_VERSIONS } from "@/features/assessment/scoring/metrics/registry";
 import { EVENT_TYPE_REGISTRY } from "@/features/telemetry/contracts";
+import { closeStaleSessions } from "@/server/study/engine";
 
 import { analysisReferences, type AnalysisReference } from "../analysis-reference";
 import { METRIC_DEFINITIONS, METRICS_PIPELINE_VERSION } from "../metrics/session";
@@ -90,6 +91,7 @@ export function tableChecksum(rows: readonly Row[]): string {
  * session's status matches its events (final review telemetry-04). Use this for downloads.
  */
 export async function buildExportBundleConsistent(pool: Pool, studyId: string, opts: { scope: ExportScope; appBuild: string; now?: Date }): Promise<ExportBundle> {
+  await closeStaleSessions(pool, studyId);
   const client = await pool.connect();
   try {
     await client.query("BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY");

@@ -110,7 +110,7 @@ export async function resolveLearningAccess(
 
     const record = await deps.lookup.findSession(claims.sessionId);
     if (!record || record.participantId !== claims.participantId) return deny("invalid_participant_session");
-    if (record.withdrawn || !ACTIVE_PARTICIPANT_STATUSES.includes(record.participantStatus)) {
+    if (record.withdrawn || record.excluded || !ACTIVE_PARTICIPANT_STATUSES.includes(record.participantStatus)) {
       return deny("session_not_active");
     }
     if (record.status === "scheduled") return deny("session_not_started");
@@ -176,6 +176,21 @@ export async function resolveParticipantSession(
   participantCookie: string | undefined,
   deps: LearningAccessDeps,
 ): Promise<ParticipantDecision> {
+  return resolveSessionCookie(participantCookie, deps, "take_part");
+}
+
+export async function resolveWithdrawalSession(
+  participantCookie: string | undefined,
+  deps: LearningAccessDeps,
+): Promise<ParticipantDecision> {
+  return resolveSessionCookie(participantCookie, deps, "withdraw");
+}
+
+async function resolveSessionCookie(
+  participantCookie: string | undefined,
+  deps: LearningAccessDeps,
+  purpose: "take_part" | "withdraw",
+): Promise<ParticipantDecision> {
   if (participantCookie === undefined) return { allowed: false, redirectTo: "/study" };
   const verified = await verifyParticipantSession(participantCookie, deps.secret, { now: deps.now });
   if (!verified.ok) return { allowed: false, redirectTo: LEARNING_DENY_REDIRECT.invalid_participant_session };
@@ -183,26 +198,26 @@ export async function resolveParticipantSession(
   if (!record || record.participantId !== verified.claims.participantId) {
     return { allowed: false, redirectTo: LEARNING_DENY_REDIRECT.invalid_participant_session };
   }
-  // A cookie issued before allocation for a session that has since been allocated: re-issue it.
   const allocatedSince = verified.claims.condition === null && record.condition !== null;
   if (record.condition !== verified.claims.condition && !allocatedSince) {
     return { allowed: false, redirectTo: LEARNING_DENY_REDIRECT.invalid_participant_session };
   }
   if (
     record.withdrawn ||
+    (record.excluded && purpose === "take_part") ||
     record.status === "completed" ||
     record.status === "abandoned" ||
     !ACTIVE_PARTICIPANT_STATUSES.includes(record.participantStatus)
   ) {
     return { allowed: false, redirectTo: LEARNING_DENY_REDIRECT.session_not_active };
   }
-  if (allocatedSince) return { allowed: false, redirectTo: REISSUE_AFTER_ALLOCATION_PATH };
+  if (allocatedSince && purpose === "take_part") return { allowed: false, redirectTo: REISSUE_AFTER_ALLOCATION_PATH };
   return {
     allowed: true,
     participant: {
       participantId: verified.claims.participantId,
       sessionId: verified.claims.sessionId,
-      condition: verified.claims.condition,
+      condition: record.condition,
     },
   };
 }

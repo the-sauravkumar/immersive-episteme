@@ -2,8 +2,8 @@
  * Integration: the study engine (src/server/study/engine.ts) against a throwaway database with
  * active studies: enrolment, consent, the condition-blind pre-allocation steps, allocation after
  * the pre-test with a stratum from the scored pre-test (D3), device check and WebGL policy,
- * questionnaire steps with condition filters and instrument checks (D7, D8), the learning end on
- * arrival at the hub, resume, withdrawal and completion.
+ * questionnaire steps with condition filters and instrument checks (D7, D8), the learning end by
+ * the participant's finish or the cap, resume, withdrawal and completion.
  */
 import { randomUUID } from "node:crypto";
 
@@ -15,6 +15,7 @@ import type { StageTemplate, TraditionKey } from "../../src/features/process/dom
 import type { GeneratedAssessment } from "../../src/features/study/test-items";
 import {
   allocateSession,
+  closeStaleSessions,
   completeEntrance,
   completeOnboarding,
   completeSession,
@@ -26,6 +27,7 @@ import {
   consentTextSha256,
   enrolParticipant,
   findEnrollableStudy,
+  findReturnableStudy,
   listStepAssessments,
   loadSessionState,
   openSessionAfterConsent,
@@ -109,7 +111,11 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     return openSessionAfterConsent(t.pool, { participantId: p.participantId, studyId: study.id, appBuild: BUILD });
   }
   const state = async (sessionId: string) => (await loadSessionState(t.pool, sessionId))!;
-  const position = async (sessionId: string, arrivedAtHub = false) => syncPosition(t.pool, await state(sessionId), { arrivedAtHub });
+  const position = async (sessionId: string) => syncPosition(t.pool, await state(sessionId));
+  const finished = async (sessionId: string) => {
+    await finishLearning(t.pool, sessionId);
+    return position(sessionId);
+  };
   const pre = (sessionId: string, values: Record<string, string[]> = {}) => submitAssessment(t.pool, { sessionId, step: "pre_test", assessmentId: ids["se-pre"]!, values });
   /** Pre-test, allocation, device check: returns the allocated session. */
   async function allocated(study: EnrollableStudy, preValues: Record<string, string[]> = {}): Promise<OpenedSession & { condition: "2d" | "immersive" }> {
@@ -283,9 +289,8 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       expect(await recordDeviceCheck(t.pool, s.sessionId, report(2))).toEqual({ kind: "passed" });
       const a = await allocateSession(t.pool, s.sessionId);
       await completeOnboarding(t.pool, s.sessionId);
-      // Arriving at the hub ends a self-paced learning phase; the next step follows at once.
       expect(await position(s.sessionId)).toMatchObject({ step: "learning" });
-      expect(await position(s.sessionId, true)).toMatchObject({ step: "questionnaire_post_learning" });
+      expect(await finished(s.sessionId)).toMatchObject({ step: "questionnaire_post_learning" });
       const st = await state(s.sessionId);
       seen[a.condition] = (await listStepAssessments(t.pool, st, "questionnaire_post_learning")).map((x) => x.code);
       if (!completedOne) {
@@ -321,7 +326,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     await recordDeviceCheck(t.pool, s.sessionId, report(2));
     await allocateSession(t.pool, s.sessionId);
     await completeOnboarding(t.pool, s.sessionId);
-    expect(await position(s.sessionId, true)).toMatchObject({ step: "questionnaire_post_learning" });
+    expect(await finished(s.sessionId)).toMatchObject({ step: "questionnaire_post_learning" });
     await submitAssessment(t.pool, { sessionId: s.sessionId, step: "questionnaire_post_learning", assessmentId: ids["se-q-pre"]!, values: { [item]: ["4"] } });
     const rows = await t.pool.query<{ attempt: number; raw: { value: number } }>("SELECT attempt, raw FROM responses WHERE session_id = $1 AND item_id = $2 ORDER BY attempt", [s.sessionId, item]);
     expect(rows.rows.map((r) => [r.attempt, r.raw.value])).toEqual([[1, 2], [2, 4]]);
@@ -398,7 +403,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     const b = await allocated(study);
     await t.pool.query("UPDATE study_sessions SET learning_started_at = now() - interval '2 minutes' WHERE id = $1", [b.sessionId]);
     for (const s of [a, b]) await completeOnboarding(t.pool, s.sessionId);
-    expect(await position(a.sessionId, true)).toMatchObject({ step: "learning" });
+    expect(await position(a.sessionId)).toMatchObject({ step: "learning" });
     expect(await position(b.sessionId)).toMatchObject({ step: "post_test" });
     const step = (await state(b.sessionId)).journal.find((e) => e.action === "study.step_completed" && e.after.step === "learning");
     expect(step?.after.reason).toBe("cap_reached");
@@ -424,6 +429,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       const order = (await state(s.sessionId)).traditionOrder;
       return { s, order, stops: order.flatMap((key) => [`${key}-s1`, `${key}-s2`, "products"].map((stageKey) => ({ traditionKey: key, stageKey }))) };
     }
+    const backdateVisits = (sessionId: string) => t.pool.query("UPDATE stage_visits SET entered_at = entered_at - interval '1 minute', left_at = left_at - interval '1 minute' WHERE session_id = $1", [sessionId]);
 
     it("stamps the cap on a self-paced study, draws a full tradition order, and refuses a finish with stages unvisited", async () => {
       const { s, order } = await learning();
@@ -432,13 +438,26 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       expect(clock.learning_budget_seconds).toBe(1800);
       expect(clock.learning_ends_at).not.toBeNull();
       await expect(finishLearning(t.pool, s.sessionId)).rejects.toMatchObject({ code: "learning_incomplete" });
-      expect(await position(s.sessionId, true)).toMatchObject({ step: "learning" });
+      expect(await position(s.sessionId)).toMatchObject({ step: "learning" });
+    });
+
+    it("keeps learning open through hub visits and a resume once every stage is visited; only the finish ends it", async () => {
+      const { s, stops } = await learning();
+      for (const stop of stops) await recordStageEntered(t.pool, s.sessionId, stop);
+      expect(await position(s.sessionId)).toMatchObject({ step: "learning" });
+      expect(await resumeSession(t.pool, s.sessionId)).toMatchObject({ kind: "resumed" });
+      expect(await position(s.sessionId)).toMatchObject({ step: "learning" });
+      expect((await one<{ ended: Date | null }>(t.pool, "SELECT learning_ended_at AS ended FROM study_sessions WHERE id = $1", [s.sessionId])).ended).toBeNull();
+      expect(await finished(s.sessionId)).toMatchObject({ step: "post_test" });
+      const step = (await state(s.sessionId)).journal.find((e) => e.action === "study.step_completed" && e.after.step === "learning")!;
+      expect(step.after).toMatchObject({ reason: "finished", unvisited: [] });
     });
 
     it("refuses a stage ahead, allows back, then finishes with time recorded and nothing unvisited", async () => {
       const { s, stops } = await learning();
       await expect(recordStageEntered(t.pool, s.sessionId, stops[1]!)).rejects.toMatchObject({ code: "stage_refused" });
       await recordStageEntered(t.pool, s.sessionId, stops[0]!);
+      await backdateVisits(s.sessionId);
       await recordStageLeft(t.pool, s.sessionId, { ...stops[0]!, activeMs: 1200 });
       await recordStageEntered(t.pool, s.sessionId, stops[1]!);
       const back = await recordStageEntered(t.pool, s.sessionId, stops[0]!);
@@ -482,11 +501,55 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       const { s, stops } = await learning();
       await recordStageEntered(t.pool, s.sessionId, stops[0]!);
       expect(await recordStageEntered(t.pool, s.sessionId, stops[0]!)).toMatchObject({ visitCount: 1, backStep: false, visitIndex: 0 });
-      await recordStageLeft(t.pool, s.sessionId, { ...stops[0]!, activeMs: 1000 });
-      await recordStageLeft(t.pool, s.sessionId, { ...stops[0]!, activeMs: 250 });
+      await backdateVisits(s.sessionId);
+      expect(await recordStageLeft(t.pool, s.sessionId, { ...stops[0]!, activeMs: 1000 })).toBe(true);
+      await backdateVisits(s.sessionId);
+      expect(await recordStageLeft(t.pool, s.sessionId, { ...stops[0]!, activeMs: 250 })).toBe(true);
       const visits = await t.pool.query<{ active_ms: number }>("SELECT active_ms FROM stage_visits WHERE session_id = $1", [s.sessionId]);
       expect(visits.rows.map((row) => row.active_ms)).toEqual([1250]);
       expect(await stageVisitsOf(t.pool, s.sessionId)).toEqual([{ traditionKey: stops[0]!.traditionKey, stageKey: stops[0]!.stageKey }]);
+    });
+
+    it("records a stage exit only on this session's current visit, within the wall time since the visit's last recorded moment", async () => {
+      const { s, stops } = await learning();
+      const other = await learning();
+      await recordStageEntered(t.pool, s.sessionId, stops[0]!);
+      await recordStageEntered(t.pool, other.s.sessionId, other.stops[0]!);
+      await t.pool.query("UPDATE stage_visits SET entered_at = now() - interval '2 seconds' WHERE session_id = $1", [s.sessionId]);
+      expect(await recordStageLeft(t.pool, s.sessionId, { ...stops[1]!, activeMs: 500 })).toBe(false);
+      expect(await recordStageLeft(t.pool, s.sessionId, { ...stops[0]!, activeMs: 86_400_000 })).toBe(true);
+      const first = await one<{ active_ms: number; left_at: Date }>(t.pool, "SELECT active_ms, left_at FROM stage_visits WHERE session_id = $1", [s.sessionId]);
+      expect(first.active_ms).toBeGreaterThanOrEqual(2000);
+      expect(first.active_ms).toBeLessThan(60_000);
+      expect(await recordStageLeft(t.pool, s.sessionId, { ...stops[0]!, activeMs: 86_400_000 })).toBe(true);
+      const replayed = await one<{ active_ms: number; left_at: Date }>(t.pool, "SELECT active_ms, left_at FROM stage_visits WHERE session_id = $1", [s.sessionId]);
+      expect(replayed.active_ms - first.active_ms).toBeLessThan(1000);
+      expect(replayed.left_at.getTime()).toBeGreaterThanOrEqual(first.left_at.getTime());
+      await recordStageEntered(t.pool, s.sessionId, stops[1]!);
+      expect(await recordStageLeft(t.pool, s.sessionId, { ...stops[0]!, activeMs: 500 })).toBe(false);
+      expect((await one<{ active_ms: number }>(t.pool, "SELECT active_ms FROM stage_visits WHERE session_id = $1 AND visit_index = 0", [s.sessionId])).active_ms).toBe(replayed.active_ms);
+      expect((await one<{ active_ms: number | null }>(t.pool, "SELECT active_ms FROM stage_visits WHERE session_id = $1", [other.s.sessionId])).active_ms).toBeNull();
+    });
+
+    it("ignores a stage exit after the session closed and bounds a late one by the end of learning", async () => {
+      const { s, stops } = await learning();
+      await recordStageEntered(t.pool, s.sessionId, stops[0]!);
+      await t.pool.query("UPDATE stage_visits v SET entered_at = ss.learning_started_at FROM study_sessions ss WHERE ss.id = v.session_id AND v.session_id = $1", [s.sessionId]);
+      await t.pool.query("UPDATE study_sessions SET learning_ended_at = learning_started_at + interval '1 second' WHERE id = $1", [s.sessionId]);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      expect(await recordStageLeft(t.pool, s.sessionId, { ...stops[0]!, activeMs: 300_000 })).toBe(true);
+      const visit = await one<{ active_ms: number; left_at: Date; ended: Date }>(
+        t.pool,
+        "SELECT v.active_ms, v.left_at, ss.learning_ended_at AS ended FROM stage_visits v JOIN study_sessions ss ON ss.id = v.session_id WHERE v.session_id = $1",
+        [s.sessionId],
+      );
+      expect(visit.left_at.getTime()).toBe(visit.ended.getTime());
+      expect(visit.active_ms).toBe(1000);
+
+      const closed = await learning();
+      await recordStageEntered(t.pool, closed.s.sessionId, closed.stops[0]!);
+      await t.pool.query("UPDATE study_sessions SET excluded = true, excluded_at = now(), exclusion_reason = 'other: test' WHERE id = $1", [closed.s.sessionId]);
+      expect(await recordStageLeft(t.pool, closed.s.sessionId, { ...closed.stops[0]!, activeMs: 10 })).toBe(false);
     });
 
     it("counterbalances the order of the traditions within each condition", async () => {
@@ -515,7 +578,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       const study = await activeStudy({ steps: ["pre_test", "onboarding", "learning", "post_test", "delayed_test"], ...(delayedTest ? { delayedTest } : {}) }, [["se-pre", "pre"], ["se-post", "post"], ["se-delayed", "follow_up" as "post"]]);
       const s = await allocated(study);
       await completeOnboarding(t.pool, s.sessionId);
-      await position(s.sessionId, true);
+      await finished(s.sessionId);
       await submitAssessment(t.pool, { sessionId: s.sessionId, step: "post_test", assessmentId: ids["se-post"]!, values: {} });
       return { study, s };
     }
@@ -537,7 +600,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       const study = await activeStudy({ steps: ["pre_test", "onboarding", "learning", "post_test", "layout_sketch"] }, [["se-pre", "pre"], ["gen-seq", "post"], ["gen-cloth", "post"], ["gen-sketch", "post"]]);
       const s = await allocated(study);
       await completeOnboarding(t.pool, s.sessionId);
-      expect(await position(s.sessionId, true)).toMatchObject({ step: "post_test" });
+      expect(await finished(s.sessionId)).toMatchObject({ step: "post_test" });
       const st = await state(s.sessionId);
       const tests = await listStepAssessments(t.pool, st, "post_test");
       expect(stepReadiness(tests)).toEqual({ ready: true });
@@ -584,6 +647,69 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       await t.pool.query("UPDATE delayed_test_schedule SET opens_at = now() - interval '9 days', due_at = now() - interval '8 days', closes_at = now() - interval '1 day' WHERE session_id = $1", [s.sessionId]);
       expect(await position(s.sessionId)).toEqual({ kind: "finish" });
       expect((await one<{ missed_at: Date | null }>(t.pool, "SELECT missed_at FROM delayed_test_schedule WHERE session_id = $1", [s.sessionId])).missed_at).not.toBeNull();
+    });
+
+    it("lets a participant back for the delayed test after the study is closed, and enrols nobody new", async () => {
+      const { study, s } = await atDelayedTest();
+      expect(await position(s.sessionId)).toMatchObject({ step: "delayed_test" });
+      await t.pool.query("UPDATE studies SET status = 'closed' WHERE id = $1", [study.id]);
+      await expect(findEnrollableStudy(t.pool, study.slug)).rejects.toMatchObject({ code: "study_not_open" });
+      expect((await findReturnableStudy(t.pool, study.slug.toUpperCase())).id).toBe(study.id);
+      await t.pool.query("UPDATE delayed_test_schedule SET opens_at = now() - interval '1 hour', due_at = now(), closes_at = now() + interval '1 day' WHERE session_id = $1", [s.sessionId]);
+      expect(await returnForDelayedTest(t.pool, { studyCode: study.slug, participantCode: (await state(s.sessionId)).participantCode })).toMatchObject({ sessionId: s.sessionId, availability: "open" });
+      const r = await submitAssessment(t.pool, { sessionId: s.sessionId, step: "delayed_test", assessmentId: ids["se-delayed"]!, values: { [ids["se-delayed:q1"]!]: ["a"] } });
+      expect(r.stepCompleted).toBe(true);
+      const draftSlug = `draft-${++n}`;
+      await createStudy(t.pool, { slug: draftSlug, snapshotId, manifestId });
+      await expect(findReturnableStudy(t.pool, draftSlug)).rejects.toMatchObject({ code: "study_not_open" });
+    });
+
+    it("ends a session by the study's timing: a closed delayed window completes it, a walk-away abandons it, an open window keeps it", async () => {
+      const waiting = await atDelayedTest();
+      const lapsed = await atDelayedTest();
+      for (const x of [waiting, lapsed]) expect(await position(x.s.sessionId)).toMatchObject({ step: "delayed_test" });
+      await t.pool.query("UPDATE study_sessions SET started_at = now() - interval '21 days', last_activity_at = now() - interval '20 days' WHERE id = ANY($1::uuid[])", [[waiting.s.sessionId, lapsed.s.sessionId]]);
+      await t.pool.query("UPDATE delayed_test_schedule SET opens_at = now() - interval '9 days', due_at = now() - interval '8 days', closes_at = now() - interval '1 day' WHERE session_id = $1", [lapsed.s.sessionId]);
+      const study = await activeStudy({ steps: BASIC_STEPS }, BASIC);
+      const away = await allocated(study);
+      await completeOnboarding(t.pool, away.sessionId);
+      const here = await allocated(study);
+      await t.pool.query("UPDATE study_sessions SET last_activity_at = now() - interval '7 hours' WHERE id = $1", [away.sessionId]);
+
+      const ended = [...(await closeStaleSessions(t.pool, waiting.study.id)), ...(await closeStaleSessions(t.pool, lapsed.study.id)), ...(await closeStaleSessions(t.pool, study.id))];
+      expect(ended.map((e) => [e.sessionId, e.status]).sort()).toEqual([[lapsed.s.sessionId, "completed"], [away.sessionId, "abandoned"]].sort());
+      const closes = await one<{ closes_at: Date; missed_at: Date | null }>(t.pool, "SELECT closes_at, missed_at FROM delayed_test_schedule WHERE session_id = $1", [lapsed.s.sessionId]);
+      expect(closes.missed_at).toBeNull();
+      expect(await one(t.pool, "SELECT status::text AS status, completed_at FROM study_sessions WHERE id = $1", [lapsed.s.sessionId])).toEqual({ status: "completed", completed_at: closes.closes_at });
+      expect((await state(away.sessionId)).status).toBe("abandoned");
+      expect((await state(waiting.s.sessionId)).status).toBe("in_progress");
+      expect((await state(here.sessionId)).status).toBe("in_progress");
+      expect(await closeStaleSessions(t.pool, study.id)).toEqual([]);
+      await expect(returnForDelayedTest(t.pool, { studyCode: lapsed.study.slug, participantCode: (await state(lapsed.s.sessionId)).participantCode })).rejects.toMatchObject({ code: "session_closed" });
+    });
+
+    it("never creates or moves a delayed schedule when ending sessions by timing, and times the window from the last immediate step", async () => {
+      const { study, s } = await atDelayedTest();
+      await t.pool.query("UPDATE study_sessions SET started_at = now() - interval '11 days', last_activity_at = now() - interval '10 days' WHERE id = $1", [s.sessionId]);
+      expect(await closeStaleSessions(t.pool, study.id)).toEqual([]);
+      expect(await closeStaleSessions(t.pool, study.id)).toEqual([]);
+      expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM delayed_test_schedule WHERE session_id = $1", [s.sessionId])).n).toBe(0);
+      expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM audit_log WHERE entity_id = $1 AND action = 'study.delayed_test_scheduled'", [s.sessionId])).n).toBe(0);
+      expect((await state(s.sessionId)).status).toBe("in_progress");
+
+      expect(await position(s.sessionId)).toMatchObject({ step: "delayed_test" });
+      const timed = await one<{ opens: boolean; closes: boolean }>(
+        t.pool,
+        `SELECT d.opens_at = e.at + interval '6 days' AS opens, d.closes_at = e.at + interval '14 days' AS closes
+           FROM delayed_test_schedule d,
+                (SELECT date_trunc('milliseconds', max(occurred_at)) AS at FROM audit_log WHERE entity_id = $1 AND action = 'study.step_completed' AND after->>'step' <> 'delayed_test') e
+          WHERE d.session_id = $1`,
+        [s.sessionId],
+      );
+      expect(timed).toEqual({ opens: true, closes: true });
+      const before = await one(t.pool, "SELECT opens_at, due_at, closes_at, missed_at FROM delayed_test_schedule WHERE session_id = $1", [s.sessionId]);
+      expect(await closeStaleSessions(t.pool, study.id)).toEqual([]);
+      expect(await one(t.pool, "SELECT opens_at, due_at, closes_at, missed_at FROM delayed_test_schedule WHERE session_id = $1", [s.sessionId])).toEqual(before);
     });
   });
 

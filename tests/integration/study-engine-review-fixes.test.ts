@@ -17,6 +17,7 @@ import {
   currentReconstructionPhase,
   enrolParticipant,
   findEnrollableStudy,
+  finishLearning,
   learningStepIsCurrent,
   listStepAssessments,
   loadSessionState,
@@ -93,7 +94,11 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     return openSessionAfterConsent(t.pool, { participantId: p.participantId, studyId: study.id, appBuild: BUILD });
   }
   const state = async (sessionId: string) => (await loadSessionState(t.pool, sessionId))!;
-  const position = async (sessionId: string, arrivedAtHub = false) => syncPosition(t.pool, await state(sessionId), { arrivedAtHub });
+  const position = async (sessionId: string) => syncPosition(t.pool, await state(sessionId));
+  const finished = async (sessionId: string) => {
+    await finishLearning(t.pool, sessionId);
+    return position(sessionId);
+  };
   const pre = (sessionId: string, values: Record<string, string[]> = {}) => submitAssessment(t.pool, { sessionId, step: "pre_test", assessmentId: ids["fx-pre"]!, values });
 
   /** Consent, pre-test and allocation until the session lands in `condition`. */
@@ -189,7 +194,7 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     expect((await one<{ started: Date | null }>(t.pool, "SELECT learning_started_at AS started FROM study_sessions WHERE id = $1", [s.sessionId])).started).toBeNull();
     await completeOnboarding(t.pool, s.sessionId);
     expect(await learningStepIsCurrent(t.pool, s.sessionId)).toBe(true);
-    expect(await position(s.sessionId, true)).toMatchObject({ step: "post_test" }); // self-paced: the hub ends learning
+    expect(await finished(s.sessionId)).toMatchObject({ step: "post_test" });
     expect(await learningStepIsCurrent(t.pool, s.sessionId)).toBe(false); // after learning: no content
 
     // Allocation at enrolment: the condition is known before the pre-test, the content is not served.
@@ -207,7 +212,7 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     await completeOnboarding(t.pool, s.sessionId);
     await expect(markAssessmentPresented(t.pool, { sessionId: s.sessionId, step: "post_test", assessmentId: ids["fx-post"]! })).rejects.toMatchObject({ code: "not_current_step" });
     expect((await state(s.sessionId)).journal.some((e) => e.action === "study.assessment_started" && e.after.step === "post_test")).toBe(false);
-    expect(await position(s.sessionId, true)).toMatchObject({ step: "post_test" });
+    expect(await finished(s.sessionId)).toMatchObject({ step: "post_test" });
     const first = await markAssessmentPresented(t.pool, { sessionId: s.sessionId, step: "post_test", assessmentId: ids["fx-post"]! });
     const again = await markAssessmentPresented(t.pool, { sessionId: s.sessionId, step: "post_test", assessmentId: ids["fx-post"]! });
     expect(again.presentedAt).toEqual(first.presentedAt);
@@ -226,7 +231,7 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     await allocateSession(t.pool, s.sessionId);
     await completeOnboarding(t.pool, s.sessionId);
     expect(await currentReconstructionPhase(t.pool, s.sessionId)).toBeNull(); // learning: no map save
-    expect(await position(s.sessionId, true)).toMatchObject({ step: "post_test" });
+    expect(await finished(s.sessionId)).toMatchObject({ step: "post_test" });
     expect(await currentReconstructionPhase(t.pool, s.sessionId)).toBeNull();
     await submitAssessment(t.pool, { sessionId: s.sessionId, step: "post_test", assessmentId: ids["fx-post"]!, values: {} });
     expect(await currentReconstructionPhase(t.pool, s.sessionId)).toBe("post");
@@ -265,7 +270,7 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     expect(out.kind).toBe("reassigned");
     if (out.kind !== "reassigned") return;
     await completeOnboarding(t.pool, out.sessionId);
-    expect(await position(out.sessionId, true)).toMatchObject({ step: "questionnaire_post_learning" });
+    expect(await finished(out.sessionId)).toMatchObject({ step: "questionnaire_post_learning" });
     await answer(out.sessionId, "questionnaire_post_learning", "2");
     const attempts = await t.pool.query<{ session_id: string; attempt: number }>(
       "SELECT DISTINCT session_id, attempt FROM responses WHERE participant_id = $1 AND assessment_id = $2 ORDER BY attempt",
