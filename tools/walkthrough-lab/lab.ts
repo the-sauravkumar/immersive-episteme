@@ -20,6 +20,7 @@ import { buildStillSubject } from "@/features/walkthrough/infrastructure/build-s
 import { addHorizon } from "@/features/walkthrough/infrastructure/horizon";
 import { MaterialLibrary } from "@/features/walkthrough/infrastructure/material-library";
 import { paintWords } from "@/features/walkthrough/infrastructure/solid-builders";
+import { setLiquidTime } from "@/features/walkthrough/infrastructure/substance-materials";
 import { addSun, CAMERA_NEAR_METRES, createRenderer, createRenderView } from "@/features/walkthrough/infrastructure/render-view";
 
 const TEMPLATES: Record<string, StageTemplate> = { ajrakh: ajrakh as StageTemplate, sanganeri: sanganeri as StageTemplate, kalamkari: kalamkari as unknown as StageTemplate };
@@ -377,6 +378,10 @@ win.moveCamera = (from: readonly number[], to: readonly number[], fov = 55) => {
   camera.updateProjectionMatrix();
   camera.position.set(from[0]!, from[1]!, from[2]!);
   camera.lookAt(to[0]!, to[1]!, to[2]!);
+  output.render();
+};
+win.setLiquidTime = (seconds: number) => {
+  setLiquidTime(seconds);
   output.render();
 };
 win.stageContents = () => {

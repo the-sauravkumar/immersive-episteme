@@ -157,6 +157,7 @@ async function scannedMaterial(library: MaterialLibrary, look: SubstanceLook, be
     color: displayAlbedo(look.renderHex, form.gain),
     normalScale: new THREE.Vector2(form.normalScale, form.normalScale),
     envMapIntensity: form.env,
+    vertexColors: look.fill === "cloth",
     transparent: look.fill === "paste" && look.transparency === "translucent",
     opacity: look.fill === "paste" && look.transparency === "translucent" ? 0.93 : 1,
   });
@@ -175,95 +176,201 @@ export function pileBedMaterial(library: MaterialLibrary, look: SubstanceLook): 
 }
 
 const ABSORPTION_PER_METRE: Readonly<Record<Transparency, number>> = { clear: 0.2, translucent: 26, opaque: 400 };
+const DARK_BATH_ABSORPTION_PER_METRE = 130;
+const DARK_BATH_LUMINANCE = 0.05;
 export const BATH_COLUMN_METRES = 0.034;
-const CLEAR_WATER_ALPHA_FLOOR = 0.02;
+const CLEAR_WATER_COVER = 0.16;
+const OPAQUE_COVER = 1;
+const TRANSLUCENT_COVER_FLOOR = 0;
 
-const LIQUID_VERTEX = ["#include <begin_vertex>", "vLiquidAt = position;", "vLiquidDepth = liquidDepth;"].join("\n");
+const LIQUID_VERTEX = ["#include <begin_vertex>", "vLiquidAt = position;", "vLiquidDepth = liquidDepth;", "vLiquidWall = liquidWall;"].join("\n");
 
 const LIQUID_SHAPES = [
   "varying vec3 vLiquidAt;",
   "varying float vLiquidDepth;",
+  "varying vec2 vLiquidWall;",
   "uniform float liquidAbsorb;",
+  "uniform float liquidCoverFloor;",
+  "uniform float liquidClear;",
+  "uniform float liquidTime;",
+  "uniform float liquidSeed;",
+  "uniform float liquidRipple;",
+  "uniform float liquidFilm;",
+  "uniform float liquidMirror;",
   "uniform float foamShare;",
   "uniform float scumShare;",
   "uniform vec3 foamColour;",
+  "uniform vec3 foamGlint;",
   "uniform float foamCover;",
+  "uniform float foamGrain;",
   "uniform vec3 scumColour;",
   "float liquidScum = 0.0;",
   "float liquidFoam = 0.0;",
-  "float liquidBubbleDome = 1.0;",
+  "float liquidDome = 1.0;",
+  "vec2 liquidBubbleTilt = vec2(0.0);",
   "float liquidHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }",
   "float liquidNoise(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(liquidHash(i), liquidHash(i + vec2(1.0, 0.0)), f.x), mix(liquidHash(i + vec2(0.0, 1.0)), liquidHash(i + vec2(1.0, 1.0)), f.x), f.y); }",
   "float liquidCloud(vec2 p) { return liquidNoise(p) * 0.55 + liquidNoise(p * 2.3 + 7.1) * 0.3 + liquidNoise(p * 5.7 + 3.7) * 0.15; }",
-  "vec2 liquidCells(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); float near = 8.0; float next = 8.0; for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) { vec2 cell = vec2(float(x), float(y)); vec2 offset = vec2(liquidHash(i + cell), liquidHash(i + cell + 17.0)); float d = length(cell + offset - f); if (d < near) { next = near; near = d; } else if (d < next) next = d; } return vec2(near, next); }",
-  "float liquidBubbles(vec2 p) { float spread = fwidth(p.x) + fwidth(p.y); vec2 c = liquidCells(p); float dome = sqrt(max(1.0 - c.x * c.x * 2.2, 0.0)); float film = 0.72 + 0.28 * smoothstep(0.0, 0.1, c.y - c.x); return mix(dome * film, 0.62, smoothstep(0.25, 0.8, spread)); }",
+  "vec4 liquidCells(vec2 p) { vec2 i = floor(p); vec2 f = fract(p); float near = 8.0; float next = 8.0; vec2 towards = vec2(0.0); for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) { vec2 cell = vec2(float(x), float(y)); vec2 offset = vec2(liquidHash(i + cell), liquidHash(i + cell + 17.0)); vec2 gap = cell + offset - f; float d = length(gap); if (d < near) { next = near; near = d; towards = gap; } else if (d < next) next = d; } return vec4(near, next, towards); }",
+  "vec3 liquidBubbles(vec2 p) { float spread = fwidth(p.x) + fwidth(p.y); vec4 c = liquidCells(p); float keep = 1.0 - smoothstep(0.25, 0.8, spread); float dome = sqrt(max(1.0 - c.x * c.x * 2.6, 0.0)); float wall = smoothstep(0.0, 0.08, c.y - c.x); return vec3(mix(0.62, dome * (0.68 + 0.32 * wall), keep), -c.zw * 1.5 * keep * step(0.0001, dome)); }",
+  "vec2 liquidWave(vec2 p, vec2 towards, float perMetre, float speed, float height) { float fade = 1.0 - smoothstep(0.35, 1.1, perMetre * (fwidth(p.x) + fwidth(p.y))); return towards * cos(dot(towards, p) * perMetre + liquidTime * speed) * height * fade; }",
+  "vec2 liquidSlope(vec2 p) { vec2 q = p + (vec2(liquidNoise(p * 2.3 + liquidTime * 0.05), liquidNoise(p * 2.3 + 9.1 - liquidTime * 0.04)) - 0.5) * 0.42; return liquidWave(q, vec2(0.83, 0.56), 9.0, 0.5, 0.018) + liquidWave(q, vec2(-0.37, 0.93), 17.0, 0.8, 0.012) + liquidWave(q, vec2(0.96, -0.28), 31.0, 1.1, 0.008) + liquidWave(q, vec2(-0.71, -0.7), 57.0, 1.6, 0.005) + liquidWave(q, vec2(0.21, 0.98), 101.0, 2.1, 0.003); }",
 ].join("\n");
 
 const LIQUID_COLOUR = [
   "#include <color_fragment>",
-  "vec2 liquidAcross = vLiquidAt.xz;",
-  "if (scumShare > 0.0) {",
-  "  float cloud = liquidCloud(liquidAcross * 5.5);",
-  "  liquidScum = 0.62 * smoothstep(1.0 - scumShare - 0.16, 1.0 - scumShare + 0.2, cloud) * (0.6 + 0.4 * liquidNoise(liquidAcross * 60.0));",
-  "  diffuseColor.rgb = mix(diffuseColor.rgb, scumColour, liquidScum);",
+  "vec2 liquidAcross = vLiquidAt.xz + liquidSeed;",
+  "float liquidIslandShare = foamShare + scumShare;",
+  "if (liquidFilm > 0.0) {",
+  "  diffuseColor.rgb *= 1.0 + liquidFilm * ((liquidCloud(liquidAcross * 2.4 + liquidTime * 0.01) - 0.5) * 1.1 + (liquidCloud(liquidAcross * 9.0 - liquidTime * 0.016) - 0.5) * 0.5);",
   "}",
-  "if (foamShare > 0.0) {",
-  "  float gather = liquidCloud(liquidAcross * 11.0 + 3.0);",
-  "  liquidFoam = smoothstep(1.0 - foamShare - 0.16, 1.0 - foamShare + 0.1, gather);",
-  "  liquidBubbleDome = min(liquidBubbles(liquidAcross * 240.0), liquidBubbles(liquidAcross * 610.0 + 5.0) * 0.4 + 0.6) * (0.55 + 0.45 * liquidBubbles(liquidAcross * 1500.0 + 2.0));",
-  "  diffuseColor.rgb = mix(diffuseColor.rgb, foamColour * (0.5 + 0.75 * liquidBubbleDome), liquidFoam * foamCover);",
+  "diffuseColor.rgb *= liquidMirror;",
+  "if (liquidIslandShare > 0.0) {",
+  "  vec2 warp = vec2(liquidCloud(liquidAcross * 1.7 + 4.0), liquidCloud(liquidAcross * 1.7 + 11.0)) - 0.5;",
+  "  float gather = liquidCloud((liquidAcross + warp * 0.6) * 3.1 * foamGrain + 3.0 + liquidTime * 0.004);",
+  "  float islandAt = mix(0.72, 0.4, min(liquidIslandShare / 0.6, 1.0));",
+  "  float island = smoothstep(islandAt - 0.035, islandAt + 0.05, gather);",
+  "  if (foamShare > 0.0 && island > 0.0) {",
+  "    vec3 small = liquidBubbles(liquidAcross * 380.0);",
+  "    vec3 middle = liquidBubbles(liquidAcross * 170.0 + 3.0);",
+  "    vec3 wide = liquidBubbles(liquidAcross * 92.0 + 5.0);",
+  "    float big = smoothstep(0.72, 0.9, liquidNoise(liquidAcross * 19.0));",
+  "    float mid = smoothstep(0.3, 0.62, liquidNoise(liquidAcross * 37.0 + 8.0));",
+  "    vec3 bubble = mix(mix(small, middle, mid), wide, big);",
+  "    liquidDome = bubble.x * (0.74 + 0.26 * liquidBubbles(liquidAcross * 900.0 + 2.0).x) * (0.72 + 0.56 * liquidNoise(liquidAcross * 70.0));",
+  "    liquidBubbleTilt = bubble.yz * island;",
+  "    liquidFoam = island;",
+  "    diffuseColor.rgb = mix(diffuseColor.rgb, foamColour * (0.42 + 0.8 * liquidDome), liquidFoam * foamCover);",
+  "  }",
+  "  if (scumShare > 0.0) {",
+  "    float rimOfIsland = smoothstep(islandAt - 0.045, islandAt, gather) * (1.0 - smoothstep(islandAt + 0.01, islandAt + 0.06, gather));",
+  "    liquidScum = rimOfIsland * smoothstep(0.3, 0.7, liquidNoise(liquidAcross * 26.0)) * (0.5 + 0.5 * liquidNoise(liquidAcross * 90.0));",
+  "    diffuseColor.rgb = mix(diffuseColor.rgb, scumColour, liquidScum * 0.4);",
+  "  }",
   "}",
 ].join("\n");
 
-const LIQUID_ROUGH = "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.62, max(liquidFoam * 0.85, liquidScum));";
-const LIQUID_METAL = "#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.45, liquidScum);";
+const LIQUID_ROUGH = "#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, 0.3, max(liquidFoam * 0.8, liquidScum));";
+const LIQUID_METAL = "#include <metalnessmap_fragment>\nmetalnessFactor = mix(metalnessFactor, 0.5, liquidScum);";
 
-const LIQUID_ALPHA = [
-  "float liquidGrazing = pow(1.0 - saturate(dot(normalize(vViewPosition), normal)), 4.0);",
-  "float liquidGleam = dot(reflectedLight.directSpecular + reflectedLight.indirectSpecular, vec3(0.33));",
-  "diffuseColor.a = max(1.0 - exp(-vLiquidDepth * liquidAbsorb), liquidAlphaFloor);",
-  "diffuseColor.a = clamp(max(diffuseColor.a + liquidGleam, max(liquidFoam * foamCover, liquidScum * 0.9)) + liquidGrazing * (1.0 - diffuseColor.a), 0.0, 1.0);",
+const LIQUID_NORMAL = [
+  "#include <normal_fragment_maps>",
+  "float liquidEdge = length(vLiquidWall);",
+  "vec2 liquidTilt = liquidSlope(liquidAcross) * liquidRipple * (1.0 - liquidFoam * 0.7);",
+  "liquidTilt += liquidBubbleTilt * 0.5;",
+  "liquidTilt -= (liquidEdge > 0.0001 ? vLiquidWall / liquidEdge : vec2(0.0)) * 0.55 * exp(-liquidEdge / 0.007);",
+  "normal = normalize((viewMatrix * vec4(normalize(vec3(-liquidTilt.x, 1.0, -liquidTilt.y)), 0.0)).xyz);",
+].join("\n");
+
+const LIQUID_LIGHTS = "#include <lights_physical_fragment>\nmaterial.specularColorBlended = mix(material.specularColorBlended, foamGlint, liquidFoam * liquidDome * liquidDome);";
+
+const LIQUID_OUTPUT = [
+  "float liquidFacing = saturate(dot(normalize(vViewPosition), normal));",
+  "float liquidFresnel = 0.02 + 0.98 * pow(1.0 - liquidFacing, 5.0);",
+  "float liquidColumn = min(vLiquidDepth, liquidEdge * 1.4);",
+  "float liquidCover = max(1.0 - exp(-liquidColumn * liquidAbsorb / max(liquidFacing, 0.3)), liquidCoverFloor);",
+  "liquidCover = max(liquidCover, max(liquidFoam * foamCover, liquidScum * 0.9));",
+  "float liquidWallShade = mix(0.3, 1.0, smoothstep(0.0, 0.09, liquidEdge));",
+  "vec3 liquidGlint = reflectedLight.directSpecular / (1.0 + dot(reflectedLight.directSpecular, vec3(0.33)) / LIQUID_BRIGHTEST_GLINT);",
+  "outgoingLight = (reflectedLight.directDiffuse + reflectedLight.indirectDiffuse) * liquidCover * mix(1.0 - 0.45 * exp(-liquidEdge / 0.012), 1.0, liquidFoam) + liquidGlint + reflectedLight.indirectSpecular * liquidWallShade;",
+  "if (liquidClear > 0.0) {",
+  "  vec2 netAt = liquidAcross * 9.0 + liquidSlope(liquidAcross) * 9.0;",
+  "  float netA = 1.0 - abs(2.0 * liquidNoise(netAt + liquidTime * 0.09) - 1.0);",
+  "  float netB = 1.0 - abs(2.0 * liquidNoise(netAt * 1.7 + 4.0 - liquidTime * 0.07) - 1.0);",
+  "  outgoingLight += vec3(0.95, 1.0, 0.97) * liquidClear * pow(netA * netB, 4.0) * (1.0 - liquidFoam);",
+  "}",
+  "diffuseColor.a = 1.0 - (1.0 - liquidCover) * (1.0 - liquidFresnel);",
   "#include <opaque_fragment>",
 ].join("\n");
 
-const FOAM_LIFTS_BODY = 1.9;
+const LIQUID_CLOCK: THREE.IUniform<number> = { value: 0 };
+
+export function setLiquidTime(seconds: number): void {
+  LIQUID_CLOCK.value = seconds;
+}
+
+const FOAM_LIFTS_BODY = 2.4;
+const PALE_FOAM_LIFT = 1.45;
+const PALE_FOAM_GRAIN = 2.6;
 const SOAP_FILM_ON_CLEAR_WATER = 0.42;
+const FOAM_GLINT_FALLBACK = new THREE.Color(0.6, 0.6, 0.6);
+const LILAC_SILVER_GLINT = new THREE.Color(0.62, 0.56, 0.72);
+const WATER_NET_LIGHT = 0.07;
+const BRIGHTEST_GLINT = 1.1;
+const MIRROR_DARK_BODY = 0.3;
+const DEEP_BODY = 0.72;
+const PALE_LIQUID_LUMINANCE = 0.55;
+const PALE_BODY = 0.38;
+
+const rippleOf = (look: SubstanceLook): number => (/mirror/.test(look.surface) ? 0.45 : /boil/.test(look.surface) ? 2.6 : /gently heated|flowing|on a furnace/.test(look.surface) ? 1.7 : /thick|lather/.test(look.surface) ? 0.5 : /thin/.test(look.surface) ? 0.8 : 1);
+const filmOf = (look: SubstanceLook): number => (look.transparency === "translucent" && !/mirror/.test(look.surface) ? 0.22 : 0);
+const seedOf = (key: string): number => [...key].reduce((sum, letter, i) => (sum + letter.charCodeAt(0) * (i + 1)) % 97, 0) * 0.37;
+
+export function liquidBodyColour(look: SubstanceLook): THREE.Color {
+  const body = displayAlbedo(look.renderHex);
+  const luminance = body.r * 0.2126 + body.g * 0.7152 + body.b * 0.0722;
+  return body.multiplyScalar(luminance > PALE_LIQUID_LUMINANCE ? PALE_BODY : DEEP_BODY);
+}
 
 function liquidShader(material: THREE.MeshStandardMaterial, look: SubstanceLook): void {
   const marks = liquidMarks(look);
-  const foam = look.transparency === "clear" ? new THREE.Color(0.7, 0.7, 0.68) : displayAlbedo(look.renderHex).multiplyScalar(FOAM_LIFTS_BODY);
+  const clear = look.transparency === "clear";
+  const body = liquidBodyColour(look);
+  const pale = body.r * 0.2126 + body.g * 0.7152 + body.b * 0.0722 > PALE_LIQUID_LUMINANCE * PALE_BODY * 0.8;
+  const foam = clear ? new THREE.Color(0.7, 0.7, 0.68) : body.clone().multiplyScalar(pale ? PALE_FOAM_LIFT : FOAM_LIFTS_BODY / DEEP_BODY);
   material.onBeforeCompile = (shader) => {
-    shader.uniforms.liquidAbsorb = { value: ABSORPTION_PER_METRE[look.transparency] };
+    const row = displayAlbedo(look.renderHex);
+    const darkBath = look.transparency === "translucent" && row.r * 0.2126 + row.g * 0.7152 + row.b * 0.0722 < DARK_BATH_LUMINANCE;
+    shader.uniforms.liquidAbsorb = { value: darkBath ? DARK_BATH_ABSORPTION_PER_METRE : ABSORPTION_PER_METRE[look.transparency] };
+    shader.uniforms.liquidCoverFloor = { value: clear ? CLEAR_WATER_COVER : look.transparency === "opaque" ? OPAQUE_COVER : TRANSLUCENT_COVER_FLOOR };
+    shader.uniforms.liquidClear = { value: clear ? WATER_NET_LIGHT : 0 };
+    shader.uniforms.liquidTime = LIQUID_CLOCK;
+    shader.uniforms.liquidSeed = { value: seedOf(look.key) };
+    shader.uniforms.liquidRipple = { value: rippleOf(look) };
+    shader.uniforms.liquidFilm = { value: filmOf(look) };
+    shader.uniforms.liquidMirror = { value: /mirror/.test(look.surface) ? MIRROR_DARK_BODY : 1 };
     shader.uniforms.foamShare = { value: marks.foam };
     shader.uniforms.scumShare = { value: marks.scum };
     shader.uniforms.foamColour = { value: foam };
-    shader.uniforms.foamCover = { value: look.transparency === "clear" ? SOAP_FILM_ON_CLEAR_WATER : 0.97 };
+    shader.uniforms.foamGlint = { value: /lilac/.test(look.surface) ? LILAC_SILVER_GLINT : FOAM_GLINT_FALLBACK };
+    shader.uniforms.foamCover = { value: clear ? SOAP_FILM_ON_CLEAR_WATER : 0.97 };
+    shader.uniforms.foamGrain = { value: pale ? PALE_FOAM_GRAIN : 1 };
     shader.uniforms.scumColour = { value: displayAlbedo(SCUM_HEX) };
-    shader.vertexShader = `attribute float liquidDepth;\nvarying vec3 vLiquidAt;\nvarying float vLiquidDepth;\n${shader.vertexShader.replace("#include <begin_vertex>", LIQUID_VERTEX)}`;
-    shader.fragmentShader = `${LIQUID_SHAPES}\nconst float liquidAlphaFloor = ${(look.transparency === "clear" ? CLEAR_WATER_ALPHA_FLOOR : 0).toFixed(3)};\n${shader.fragmentShader
+    shader.vertexShader = `attribute float liquidDepth;\nattribute vec2 liquidWall;\nvarying vec3 vLiquidAt;\nvarying float vLiquidDepth;\nvarying vec2 vLiquidWall;\n${shader.vertexShader.replace("#include <begin_vertex>", LIQUID_VERTEX)}`;
+    shader.fragmentShader = `#define LIQUID_BRIGHTEST_GLINT ${BRIGHTEST_GLINT.toFixed(1)}\n${LIQUID_SHAPES}\n${shader.fragmentShader
       .replace("#include <color_fragment>", LIQUID_COLOUR)
       .replace("#include <roughnessmap_fragment>", LIQUID_ROUGH)
       .replace("#include <metalnessmap_fragment>", LIQUID_METAL)
-      .replace("#include <opaque_fragment>", LIQUID_ALPHA)}`;
+      .replace("#include <normal_fragment_maps>", LIQUID_NORMAL)
+      .replace("#include <lights_physical_fragment>", LIQUID_LIGHTS)
+      .replace("#include <opaque_fragment>", LIQUID_OUTPUT)}`;
   };
-  material.customProgramCacheKey = () => `liquid-surface-${look.transparency === "clear" ? "clear" : "body"}`;
+  material.customProgramCacheKey = () => "liquid-surface";
 }
 
 const SCUM_HEX = "#9A7044";
+const LIQUID_ROUGHNESS = 0.07;
+const LIQUID_SKY_REFLECTION = 0.85;
 
 export function liquidMaterial(library: MaterialLibrary, look: SubstanceLook): Promise<THREE.MeshStandardMaterial> {
   return library.shared(`liquid:${look.key}`, async () => {
     const clear = look.transparency === "clear";
     const seeThrough = look.transparency !== "opaque";
     const material = new THREE.MeshStandardMaterial({
-      color: clear ? new THREE.Color(0, 0, 0) : displayAlbedo(look.renderHex),
-      roughness: look.transparency === "opaque" ? 0.26 : 0.1,
+      color: clear ? new THREE.Color(0.02, 0.03, 0.03) : liquidBodyColour(look),
+      roughness: LIQUID_ROUGHNESS,
       metalness: 0,
-      envMapIntensity: clear ? 2.4 : 0.5,
+      envMapIntensity: LIQUID_SKY_REFLECTION,
       transparent: seeThrough,
       depthWrite: !seeThrough,
     });
+    if (seeThrough) {
+      material.blending = THREE.CustomBlending;
+      material.blendSrc = THREE.OneFactor;
+      material.blendDst = THREE.OneMinusSrcAlphaFactor;
+    }
     noteSurface(material, { label: `liquid ${look.key}`, kind: "smooth" });
+    library.reflectOpenSky(material);
     liquidShader(material, look);
     return material;
   });
@@ -271,7 +378,7 @@ export function liquidMaterial(library: MaterialLibrary, look: SubstanceLook): P
 
 export function liquidBodyMaterial(library: MaterialLibrary, look: SubstanceLook): Promise<THREE.MeshStandardMaterial> {
   return library.shared(`liquid-body:${look.key}`, async () =>
-    noteSurface(new THREE.MeshStandardMaterial({ color: displayAlbedo(look.renderHex), roughness: 0.6, metalness: 0, envMapIntensity: 0.2 }), { label: `liquid body ${look.key}`, kind: "smooth" }),
+    noteSurface(new THREE.MeshStandardMaterial({ color: liquidBodyColour(look), roughness: 0.6, metalness: 0, envMapIntensity: 0.2 }), { label: `liquid body ${look.key}`, kind: "smooth" }),
   );
 }
 
@@ -292,6 +399,7 @@ export function crystalMaterial(library: MaterialLibrary, look: SubstanceLook): 
     if (clear) colour.multiplyScalar(CLEAR_CRYSTAL_BODY);
     const material = new THREE.MeshStandardMaterial({ color: colour, roughness: clear ? 0.08 : 0.34, metalness: 0, envMapIntensity: clear ? 2 : 0.7, transparent: clear, opacity: clear ? CLEAR_CRYSTAL_ALPHA : 1, flatShading: true, side: clear ? THREE.DoubleSide : THREE.FrontSide });
     noteSurface(material, { label: `crystals ${look.key}`, kind: "smooth", realFacets: true, openWork: true });
+    library.reflectOpenSky(material);
     if (!clear) return material;
     material.onBeforeCompile = (shader) => {
       shader.fragmentShader = shader.fragmentShader.replace("#include <opaque_fragment>", GLASS_ALPHA);
