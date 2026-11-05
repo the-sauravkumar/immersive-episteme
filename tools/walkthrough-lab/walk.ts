@@ -1,10 +1,14 @@
 import ajrakh from "../../content/study/ajrakh.template.json";
+import kalamkari from "../../content/study/machilipatnam-kalamkari.template.json";
+import sanganeri from "../../content/study/sanganeri.template.json";
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
 import { buildRoute, type RouteStation } from "@/features/walkthrough/domain/route-plan";
 import { WalkRuntime } from "@/features/walkthrough/infrastructure/walk-runtime";
 
-const route = buildRoute(ajrakh as StageTemplate, clothStatePath);
+const templates: Record<string, unknown> = { ajrakh, sanganeri, kalamkari };
+const query = new URLSearchParams(location.search);
+const route = buildRoute(templates[query.get("tradition") ?? "ajrakh"] as StageTemplate, clothStatePath);
 await Promise.all(["800 40px Eczar", "700 40px Eczar", "600 40px Eczar", "600 40px Mukta"].map((font) => document.fonts.load(font)));
 const host = document.createElement("div");
 host.style.cssText = "position:fixed;inset:0";
@@ -28,7 +32,7 @@ const runtime = new WalkRuntime(host, route, texturesFor, {
   },
 });
 const started = performance.now();
-await runtime.start(0);
+await runtime.start(Number(query.get("start") ?? 0));
 const frames: number[] = [];
 let last = performance.now();
 const watch = () => {

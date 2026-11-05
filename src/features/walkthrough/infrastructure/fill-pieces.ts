@@ -5,6 +5,7 @@ import { camelCluster, camelPellet, moistDungLump } from "./piece-dung";
 import type { PieceShape, PieceVariant, Tone } from "./piece-mesh";
 import { driedCalyx, driedFlake, dryLeaf } from "./piece-plants";
 import { chaySheaf, madderCrown, madderCutLength, madderRoot } from "./piece-roots";
+import type { WorkPacer } from "./work-pacer";
 
 export type PileFill = Extract<SubstanceFill, "dung" | "roots" | "flowers" | "leaves">;
 
@@ -47,11 +48,11 @@ export function blueprintsFrom(variants: readonly PieceShape[], count: number, s
   });
 }
 
-async function builtInTurn(makers: readonly (() => PieceVariant)[]): Promise<PieceVariant[]> {
+async function builtInTurn(pacer: WorkPacer, makers: readonly (() => PieceVariant)[]): Promise<PieceVariant[]> {
   const variants: PieceVariant[] = [];
   for (const make of makers) {
+    await pacer.yieldSlice();
     variants.push(make());
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
   }
   return variants;
 }
@@ -62,18 +63,18 @@ const ROOT_TONES: readonly Tone[] = [[1, 1, 1], [0.8, 0.76, 0.74], [1.16, 1.08, 
 const FLOWER_TONES: readonly Tone[] = [[1, 1, 1], [0.8, 0.76, 0.72], [1.06, 1.06, 1.04], [0.9, 0.86, 0.8], [0.72, 0.66, 0.6], [1.1, 1.08, 1.06], [0.94, 0.9, 0.86]];
 const LEAF_TONES: readonly Tone[] = [[1, 1, 1], [0.84, 0.78, 0.66], [1.08, 1.06, 0.92], [0.9, 0.84, 0.8], [0.74, 0.66, 0.56]];
 
-export async function pileRecipe(form: PileForm): Promise<PileRecipe> {
+export async function pileRecipe(pacer: WorkPacer, form: PileForm): Promise<PileRecipe> {
   switch (form) {
     case "camel-pellets": {
-      const variants = await builtInTurn([() => camelPellet(1, 0.036, 1.62, true), () => camelPellet(2, 0.044, 1.78, false), () => camelPellet(3, 0.03, 1.5, true), () => camelPellet(4, 0.05, 1.9, true), () => camelPellet(5, 0.033, 1.56, false), () => camelPellet(6, 0.04, 1.7, true), () => camelCluster(7, 0.021, 4), () => camelPellet(8, 0.027, 1.44, false)]);
+      const variants = await builtInTurn(pacer, [() => camelPellet(1, 0.036, 1.62, true), () => camelPellet(2, 0.044, 1.78, false), () => camelPellet(3, 0.03, 1.5, true), () => camelPellet(4, 0.05, 1.9, true), () => camelPellet(5, 0.033, 1.56, false), () => camelPellet(6, 0.04, 1.7, true), () => camelCluster(7, 0.021, 4), () => camelPellet(8, 0.027, 1.44, false)]);
       return { variants, blueprints: blueprintsFrom(variants, 420, 21, 0.78, 1.22, [1, 1, 1, 1, 1, 1, 0.2, 0.9]), candidates: 160, maxTilt: 0.8, anyTumble: false, spins: true, seed: 101, fillsTo: 0.95, wallMargin: 0.0075, leansOnOne: true, bedShare: 0.08, bedHeap: 0.05, crown: 0, seenDepth: 0.026, tones: CAMEL_TONES };
     }
     case "moist-dung": {
-      const variants = await builtInTurn([() => moistDungLump(1, 0.046), () => moistDungLump(2, 0.04), () => moistDungLump(3, 0.052), () => moistDungLump(4, 0.034), () => moistDungLump(5, 0.043), () => moistDungLump(6, 0.03)]);
+      const variants = await builtInTurn(pacer, [() => moistDungLump(1, 0.046), () => moistDungLump(2, 0.04), () => moistDungLump(3, 0.052), () => moistDungLump(4, 0.034), () => moistDungLump(5, 0.043), () => moistDungLump(6, 0.03)]);
       return { variants, blueprints: blueprintsFrom(variants, 420, 26, 0.85, 1.15), candidates: 160, maxTilt: 0.4, anyTumble: false, seed: 116, fillsTo: 0.95, wallMargin: 0.006, leansOnOne: true, bedShare: 0.26, bedHeap: 0.1, crown: 0, seenDepth: 0.04, tones: COW_TONES };
     }
     case "madder-roots": {
-      const variants = await builtInTurn([
+      const variants = await builtInTurn(pacer, [
         () => madderRoot(1, 0.17, 0.0072, 3),
         () => madderRoot(2, 0.13, 0.006, 2),
         () => madderRoot(3, 0.1, 0.0088, 2),
@@ -86,15 +87,15 @@ export async function pileRecipe(form: PileForm): Promise<PileRecipe> {
       return { variants, blueprints: blueprintsFrom(variants, 1500, 22, 0.8, 1.2, [0.5, 0.6, 0.45, 3, 2, 3.6, 2.4, 0.1]), candidates: 40, maxTilt: 0.5, anyTumble: false, spins: true, seed: 102, fillsTo: 0.95, wallMargin: 0.003, leansOnOne: true, bedShare: 0.04, bare: true, bedHeap: 0, crown: 0, seenDepth: 0.028, tones: ROOT_TONES };
     }
     case "chay-sheaves": {
-      const variants = await builtInTurn([() => chaySheaf(1, 0.15, 0.024, 150), () => chaySheaf(2, 0.13, 0.02, 120), () => chaySheaf(3, 0.115, 0.016, 76), () => chaySheaf(4, 0.1, 0.013, 56)]);
+      const variants = await builtInTurn(pacer, [() => chaySheaf(1, 0.15, 0.024, 150), () => chaySheaf(2, 0.13, 0.02, 120), () => chaySheaf(3, 0.115, 0.016, 76), () => chaySheaf(4, 0.1, 0.013, 56)]);
       return { variants, blueprints: blueprintsFrom(variants, 40, 28, 0.9, 1.05, [1, 1, 2, 2]), candidates: 200, maxTilt: 0.12, anyTumble: false, spins: true, seed: 108, fillsTo: 0.95, wallMargin: 0.008, leansOnOne: true, bedShare: 0.04, bare: true, bedHeap: 0, crown: 0, seenDepth: 0.05, tones: ROOT_TONES.slice(0, 4) };
     }
     case "dried-calyces": {
-      const variants = await builtInTurn([() => driedCalyx(1, 0.014), () => driedCalyx(2, 0.012), () => driedCalyx(3, 0.016), () => driedCalyx(4, 0.011), () => driedCalyx(5, 0.013), () => driedFlake(6, 0.01)]);
+      const variants = await builtInTurn(pacer, [() => driedCalyx(1, 0.014), () => driedCalyx(2, 0.012), () => driedCalyx(3, 0.016), () => driedCalyx(4, 0.011), () => driedCalyx(5, 0.013), () => driedFlake(6, 0.01)]);
       return { variants, blueprints: blueprintsFrom(variants, 3800, 29, 0.84, 1.16, [1, 1, 1, 1, 1, 0.4]), candidates: 5, maxTilt: 0.6, anyTumble: false, spins: true, seed: 109, fillsTo: 0.9, wallMargin: 0.0055, leansOnOne: true, bedShare: 0.52, bedHeap: 0.2, crown: 0.022, seenDepth: 0.011, tones: FLOWER_TONES };
     }
     case "dry-leaves": {
-      const variants = await builtInTurn([() => dryLeaf(1, 0.066, 0.031), () => dryLeaf(2, 0.054, 0.028), () => dryLeaf(3, 0.075, 0.036), () => dryLeaf(4, 0.05, 0.026), () => dryLeaf(5, 0.062, 0.033), () => dryLeaf(6, 0.07, 0.03)]);
+      const variants = await builtInTurn(pacer, [() => dryLeaf(1, 0.066, 0.031), () => dryLeaf(2, 0.054, 0.028), () => dryLeaf(3, 0.075, 0.036), () => dryLeaf(4, 0.05, 0.026), () => dryLeaf(5, 0.062, 0.033), () => dryLeaf(6, 0.07, 0.03)]);
       return { variants, blueprints: blueprintsFrom(variants, 520, 24, 0.86, 1.12), candidates: 40, maxTilt: 0.3, anyTumble: false, seed: 104, fillsTo: 0.92, wallMargin: 0.003, leansOnOne: true, bedShare: 0.2, bedHeap: 0.08, crown: 0.028, seenDepth: 0.024, tones: LEAF_TONES };
     }
   }
