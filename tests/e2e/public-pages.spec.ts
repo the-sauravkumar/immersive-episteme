@@ -29,7 +29,7 @@ loadEnv({ quiet: true });
 test.describe.configure({ timeout: 300_000 });
 test.use({ navigationTimeout: 120_000 });
 
-const PAGES = ["/", "/about", "/about/colophon", "/explore", "/accessibility", "/privacy", "/sign-in", "/sign-out", "/forbidden"];
+const PAGES = ["/", "/about", "/about/colophon", "/explore", "/accessibility", "/privacy", "/sign-in", "/sign-out", "/forbidden", "/awaiting-access"];
 
 async function audit(page: Page, url: string) {
   // Warm the route first: on the dev server the first request compiles it, and a late chunk or a

@@ -33,6 +33,7 @@ import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 import { authAccounts, authRateLimits, authSessions, authVerifications, users } from "@db/schema/auth";
+import type { GoogleOAuthCredentials } from "@/lib/env";
 
 import {
   clearSignInAttempts,
@@ -42,6 +43,7 @@ import {
   type AccountThrottleOptions,
 } from "./account-throttle";
 import { AUTH_COOKIE_PREFIX } from "./cookie-names";
+import { GOOGLE_PROVIDER_ID, googleProviderOptions, mayCreateUser, socialRequestRefusal, STAFF_ACCOUNT_LINKING } from "./google-sign-in";
 
 export const AUTH_SCHEMA = {
   user: users,
@@ -74,9 +76,11 @@ export type CreateAuthOptions = {
   clientIpHeader?: string;
   /** Per-account sign-in throttle (default on, see ./account-throttle.ts); false disables it. */
   accountThrottle?: AccountThrottleOptions | false;
+  google?: GoogleOAuthCredentials | null;
 };
 
 const SIGN_IN_PATH = "/sign-in/email";
+const SIGN_IN_ERROR_PATH = "/sign-in";
 
 /**
  * Signed "this browser signed in to this account before" cookie (OWASP device cookies). Its
@@ -102,6 +106,12 @@ export function createAuth(opts: CreateAuthOptions) {
       maxPasswordLength: 256,
       revokeSessionsOnPasswordReset: true,
     },
+    socialProviders: opts.google ? { [GOOGLE_PROVIDER_ID]: googleProviderOptions(opts.google, opts.baseURL) } : {},
+    account: {
+      encryptOAuthTokens: true,
+      accountLinking: STAFF_ACCOUNT_LINKING,
+    },
+    onAPIError: { errorURL: SIGN_IN_ERROR_PATH },
     user: {
       additionalFields: {
         disabledAt: { type: "date", required: false, input: false },
@@ -119,6 +129,7 @@ export function createAuth(opts: CreateAuthOptions) {
       customRules: {
         "/sign-in/email": { window: 60, max: 5 },
         "/change-password": { window: 60, max: 5 },
+        "/sign-in/social": { window: 60, max: 10 },
         "/get-session": false,
       },
     },
@@ -133,6 +144,8 @@ export function createAuth(opts: CreateAuthOptions) {
     },
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
+        const refusal = socialRequestRefusal(ctx.path, ctx.body);
+        if (refusal) throw new APIError("FORBIDDEN", { message: refusal, code: "SOCIAL_REQUEST_REFUSED" });
         if (!throttle || ctx.path !== SIGN_IN_PATH) return;
         const email: unknown = (ctx.body as { email?: unknown } | undefined)?.email;
         if (typeof email !== "string" || email.length === 0) return;
@@ -157,6 +170,13 @@ export function createAuth(opts: CreateAuthOptions) {
       }),
     },
     databaseHooks: {
+      user: {
+        create: {
+          before: async (user, ctx) => {
+            if (!mayCreateUser(user, Boolean(ctx))) return false;
+          },
+        },
+      },
       session: {
         create: {
           // Locked accounts cannot sign in (returning false aborts session creation).

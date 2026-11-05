@@ -35,14 +35,16 @@ export interface StaffUserRow {
   disabledAt: string | null;
   roles: StaffRole[];
   activeSessions: number;
+  signInMethods: string[];
 }
 
 export async function listStaffUsers(pool: Pool, actor: Actor): Promise<StaffUserRow[]> {
   ensure(actor, ["admin.users", "admin.roles"]);
-  const r = await pool.query<{ id: string; name: string; email: string; created_at: Date; disabled_at: Date | null; roles: StaffRole[] | null; sessions: number }>(
+  const r = await pool.query<{ id: string; name: string; email: string; created_at: Date; disabled_at: Date | null; roles: StaffRole[] | null; sessions: number; sign_in_methods: string[] | null }>(
     `SELECT u.id, u.name, u.email, u.created_at, u.disabled_at,
             array_agg(ur.role::text ORDER BY ur.role) FILTER (WHERE ur.role IS NOT NULL) AS roles,
-            (SELECT count(*)::int FROM auth_sessions s WHERE s.user_id = u.id AND s.expires_at > now()) AS sessions
+            (SELECT count(*)::int FROM auth_sessions s WHERE s.user_id = u.id AND s.expires_at > now()) AS sessions,
+            (SELECT array_agg(DISTINCT a.provider_id ORDER BY a.provider_id) FROM auth_accounts a WHERE a.user_id = u.id) AS sign_in_methods
        FROM users u LEFT JOIN user_roles ur ON ur.user_id = u.id
       GROUP BY u.id ORDER BY lower(u.name), u.email`,
   );
@@ -54,6 +56,7 @@ export async function listStaffUsers(pool: Pool, actor: Actor): Promise<StaffUse
     disabledAt: u.disabled_at ? u.disabled_at.toISOString() : null,
     roles: u.roles ?? [],
     activeSessions: u.sessions,
+    signInMethods: u.sign_in_methods ?? [],
   }));
 }
 

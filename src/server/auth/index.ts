@@ -3,7 +3,7 @@
  */
 import "server-only";
 
-import { serverEnv } from "@/lib/env";
+import { googleOAuthCredentials, serverEnv } from "@/lib/env";
 import { getDb } from "@/server/db/client";
 
 import { createAuth, type Auth } from "./config";
@@ -20,10 +20,15 @@ export function getAuth(): Auth {
       baseURL: env.BETTER_AUTH_URL,
       trustedProxies: env.AUTH_TRUSTED_PROXIES,
       clientIpHeader: env.AUTH_CLIENT_IP_HEADER,
+      google: googleOAuthCredentials(env),
       nextjs: true,
     });
   }
   return g.__episteme_auth;
+}
+
+export function googleSignInEnabled(): boolean {
+  return googleOAuthCredentials(serverEnv()) !== null;
 }
 
 export type { Auth } from "./config";

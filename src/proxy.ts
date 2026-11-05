@@ -16,7 +16,7 @@
  *
  * INVITE GATE (deployment source change S11; docs/deploy/RUNBOOK.md "Invite-only access"). The site
  * is always invite-only; there is no open mode. Every page outside the exempt list
- * (src/lib/access/invite-paths.ts: /invite, /sign-in, /sign-out, /forbidden, /console, /api, static
+ * (src/lib/access/invite-paths.ts: /invite, /sign-in, /sign-out, /forbidden, /awaiting-access, /console, /api, static
  * assets) needs either an invite cookie whose HMAC signature verifies here (no database round
  * trip) or a staff session cookie (presence only; staff areas redirect to /sign-in as before, so
  * staff never need a code). Without one, GET/HEAD redirect to /invite?next=<path> and other
@@ -43,7 +43,7 @@ import { verifyInviteAccess } from "@/server/access/invite-cookie";
 import { AUTH_COOKIE_PREFIX, DEMO_COOKIE, INVITE_COOKIE, PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
 
 const STAFF_PREFIXES = ["/cms", "/research", "/admin"];
-const NO_FRAME_PAGES = ["/sign-in", "/sign-out", "/forbidden"];
+const NO_FRAME_PAGES = ["/sign-in", "/sign-out", "/forbidden", "/awaiting-access"];
 const PUBLIC_STUDY_PAGES = ["/study/consent", "/study/complete", "/study/exit", "/study/return"];
 
 function startsWithSegment(pathname: string, prefix: string): boolean {

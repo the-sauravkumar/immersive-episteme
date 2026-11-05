@@ -7,10 +7,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { STAFF_HOME } from "@/lib/permissions/console-routes";
+import { AWAITING_ACCESS_PATH, STAFF_HOME } from "@/lib/permissions/console-routes";
 import { safeNextPath } from "@/lib/permissions/safe-redirect";
 
 import { authClient } from "./auth-client";
+import { GoogleButton } from "./google-button";
+import { googleSignInErrorMessage } from "./google-sign-in-errors";
+
+const SIGN_IN_PATH = "/sign-in";
 
 function messageFor(status: number | undefined, fallback: string | undefined): string {
   if (status === 429) return "Too many sign-in attempts. Wait a minute and try again.";
@@ -18,56 +22,87 @@ function messageFor(status: number | undefined, fallback: string | undefined): s
   return fallback ?? "Sign-in failed. Try again.";
 }
 
-export function SignInForm() {
+function googleMessageFor(status: number | undefined): string {
+  if (status === 429) return "Too many sign-in attempts. Wait a minute and try again.";
+  return "Google sign-in could not start. Try again, or sign in with your email.";
+}
+
+function errorPathFor(next: string): string {
+  return next === STAFF_HOME ? SIGN_IN_PATH : `${SIGN_IN_PATH}?next=${encodeURIComponent(next)}`;
+}
+
+export function SignInForm({ google }: { google: boolean }) {
   const router = useRouter();
   const search = useSearchParams();
-  // No explicit target: /console picks the first page this account's roles can open.
   const next = safeNextPath(search.get("next"), STAFF_HOME);
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(() => (google ? googleSignInErrorMessage(search.get("error")) : null));
+  const [pending, setPending] = useState<"email" | "google" | null>(null);
   const errorRef = useRef<HTMLDivElement>(null);
   const emailId = useId();
   const passwordId = useId();
 
+  function showError(message: string) {
+    setPending(null);
+    setError(message);
+    requestAnimationFrame(() => errorRef.current?.focus());
+  }
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    setPending(true);
+    setPending("email");
     setError(null);
     const { error: err } = await authClient.signIn.email({
       email: String(form.get("email") ?? ""),
       password: String(form.get("password") ?? ""),
     });
     if (err) {
-      setPending(false);
-      setError(messageFor(err.status, err.message));
-      // Move focus to the error so screen-reader and keyboard users hear it.
-      requestAnimationFrame(() => errorRef.current?.focus());
+      showError(messageFor(err.status, err.message));
       return;
     }
     router.replace(next);
     router.refresh();
   }
 
+  async function onGoogle() {
+    setPending("google");
+    setError(null);
+    const { error: err } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL: next,
+      newUserCallbackURL: AWAITING_ACCESS_PATH,
+      errorCallbackURL: errorPathFor(next),
+    });
+    if (err) showError(googleMessageFor(err.status));
+  }
+
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate={false}>
+    <div className="flex flex-col gap-6">
       {error ? (
         <Alert variant="destructive" ref={errorRef} tabIndex={-1}>
           <AlertTitle>Could not sign in</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       ) : null}
-      <div className="flex flex-col gap-2">
-        <Label htmlFor={emailId}>Email</Label>
-        <Input id={emailId} name="email" type="email" autoComplete="username" required />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor={passwordId}>Password</Label>
-        <Input id={passwordId} name="password" type="password" autoComplete="current-password" required />
-      </div>
-      <Button type="submit" disabled={pending}>
-        {pending ? "Signing in…" : "Sign in"}
-      </Button>
-    </form>
+      <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate={false}>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={emailId}>Email</Label>
+          <Input id={emailId} name="email" type="email" autoComplete="username" required />
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={passwordId}>Password</Label>
+          <Input id={passwordId} name="password" type="password" autoComplete="current-password" required />
+        </div>
+        <Button type="submit" disabled={pending !== null}>
+          {pending === "email" ? "Signing in…" : "Sign in"}
+        </Button>
+      </form>
+      {google ? (
+        <div className="flex flex-col gap-3 border-t border-rule pt-6">
+          <p className="text-body text-ink-2">Or use your Google account.</p>
+          <GoogleButton disabled={pending !== null} opening={pending === "google"} onClick={() => void onGoogle()} />
+        </div>
+      ) : null}
+    </div>
   );
 }

@@ -231,6 +231,8 @@ There is **no separate invite-gate secret**: the invite cookie is an HMAC token 
 | `AUTH_CLIENT_IP_HEADER` | `x-forwarded-for` | Config |
 | `APP_BUILD_VERSION` | git short SHA; filled by `push-env.ps1 -BuildVersionFromGit` | Config |
 | `PUBLIC_DEMO` | `auto` ("/explore is off while any real study is active") | Config |
+| `GOOGLE_CLIENT_ID` | optional: the Google OAuth client ID (section 6.4); set together with the secret, or leave both empty to offer email sign-in only | Config |
+| `GOOGLE_CLIENT_SECRET` | optional: the same client's secret (section 6.4) | **Secret** |
 | `MEDIA_S3_BUCKET` | `immersive-episteme-media-626159998512` (A8) | Config |
 | `MEDIA_S3_REGION` | `ap-south-1` | Config |
 | `MEDIA_S3_ENDPOINT` | **leave empty** (AWS S3) | Config |
@@ -251,6 +253,8 @@ There is **no separate invite-gate secret**: the invite cookie is an HMAC token 
 | `AUTH_CLIENT_IP_HEADER` | `x-forwarded-for` | Config |
 | `APP_BUILD_VERSION` | git short SHA; `push-env.ps1 -BuildVersionFromGit` | Config |
 | `PUBLIC_DEMO` | `auto` | Config |
+| `GOOGLE_CLIENT_ID` | optional: the Google OAuth client ID (section 6.4); set together with the secret, or leave both empty to offer email sign-in only | Config |
+| `GOOGLE_CLIENT_SECRET` | optional: the same client's secret (section 6.4) | **Secret** |
 | `MEDIA_S3_BUCKET` | `immersive-episteme-media` (B4) | Config |
 | `MEDIA_S3_REGION` | `auto` ("the region for an R2 bucket is `auto`", https://developers.cloudflare.com/r2/api/s3/api/) | Config |
 | `MEDIA_S3_ENDPOINT` | `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` (B4) | Config |
@@ -467,6 +471,37 @@ What happens (`src/proxy.ts`): any gated URL with `?invite=<code>` goes to `/inv
 **Check by hand in a private window:** no code → `/invite`; the link admits you; an expired or revoked code is refused; staff sign-in works without a code.
 
 **Before opening the study:** the data-location check in section 0 must be done.
+
+### 6.4 Google Sign-In for Staff (Optional)
+
+Staff can sign in with Google as well as with email and password. Participants never sign in: they use study links and stay anonymous (ethics approval CXA/ETH/01), and no participant page offers Google. Without the two variables the sign-in page shows the email form only. Decision record: DR-096.
+
+**Create the OAuth client (Google Cloud console, the project's Google account):**
+
+1. Open **Google Auth Platform** (`https://console.cloud.google.com/auth/overview`) and create or pick a project, for example `immersive-episteme`.
+2. **Branding:** app name `Immersive Episteme`, the user support email and the developer contact email from the institution config. Add the production domain under authorised domains.
+3. **Audience:** user type **External** (staff use their own Google accounts). Google's page on app audience (`https://support.google.com/cloud/answer/15549945`) says Testing apps "are limited to up to 100 test users listed in the OAuth consent screen" and that In production apps "are available to any user with a Google Account". Press **Publish app** before staff outside a test-user list sign in. Publishing does not open the console to anyone: a new Google account still gets no role (below).
+4. **Data Access:** add no scopes beyond `openid`, `.../auth/userinfo.email` and `.../auth/userinfo.profile`.
+5. **Clients → Create client**, type **Web application**, name `Immersive Episteme staff sign-in`.
+   - **Authorised JavaScript origins:** `https://<vercel domain>` and `http://localhost:3000`.
+   - **Authorised redirect URIs:** `https://<vercel domain>/api/auth/callback/google` and `http://localhost:3000/api/auth/callback/google`. Add the lead's own domain as a third pair if it replaces the `*.vercel.app` one. The URI must match exactly, with no trailing slash.
+6. **Create**, then copy the client ID and the client secret at once: Google shows the full secret only at creation ("you will only be able to view and download the full client secret once"). Store the secret in the password manager. Changes to the client can take from 5 minutes to a few hours to apply.
+
+**Set the variables:** `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `~/.episteme/production.env` (and in `.env` for local use with the localhost URI), then push them (section 4.3) and redeploy. `src/lib/env.ts` refuses to start with only one of the two set.
+
+**What a Google sign-in does:**
+
+| Case | Result |
+|---|---|
+| Google email matches an existing staff account, and Google says the email is verified | Google is joined to that account; it signs in with its existing roles |
+| Google email matches an existing staff account, but is not verified by Google | Not joined, no session; the sign-in page says to use the password |
+| New Google account with a verified email | An account with **no role** is made; it lands on "Your account is waiting for an administrator" and opens nothing |
+| New Google account with an unverified email | No account is made |
+| Locked account (`disabled_at` set) | No session, by either method |
+
+**Granting access:** sign in as a platform admin → **Admin → Users**. Accounts waiting for a role show **Awaiting access** in Status, and the Status filter lists them. Use the row menu → **Add role**. Each account's line names its sign-in methods (password, Google). An account that should not exist is locked from the same menu.
+
+**Check by hand on a deployment:** with the variables unset the button is absent; with them set, a new Google account reaches the waiting page, a role granted in Admin → Users opens its console on the next visit, and a locked account is refused.
 
 ---
 
