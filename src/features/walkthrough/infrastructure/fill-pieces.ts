@@ -1,9 +1,8 @@
-import * as THREE from "three";
 import type { SubstanceFill } from "@/features/process/domain/substance-look";
 import type { PileForm } from "../domain/pile-form";
 import { seededRandom, type PileBlueprint } from "../domain/pile-packing";
 import { camelCluster, camelPellet, dungCake, dungLump } from "./piece-dung";
-import { coverWithSpheres, type PieceShape, type PieceVariant, type Tone } from "./piece-mesh";
+import type { PieceShape, PieceVariant, Tone } from "./piece-mesh";
 import { driedCalyx, driedFlake, driedFruit, dryLeaf } from "./piece-plants";
 import { chaySheaf, madderCrown, madderCutLength, madderRoot } from "./piece-roots";
 
