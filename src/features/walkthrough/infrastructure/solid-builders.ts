@@ -93,6 +93,13 @@ export function pole(parent: THREE.Object3D, from: readonly [number, number, num
   return mesh;
 }
 
+let measuringContext: CanvasRenderingContext2D | null = null;
+
+function measuring(): CanvasRenderingContext2D {
+  measuringContext ??= document.createElement("canvas").getContext("2d")!;
+  return measuringContext;
+}
+
 interface PaintLayer {
   readonly texture: THREE.CanvasTexture;
   readonly width: number;
@@ -100,7 +107,7 @@ interface PaintLayer {
 }
 
 function wrapped(lines: readonly string[], font: string, maxPixels: number): string[] {
-  const measure = document.createElement("canvas").getContext("2d")!;
+  const measure = measuring();
   measure.font = font;
   const out: string[] = [];
   for (const line of lines) {
@@ -124,7 +131,7 @@ function paintLayer(words: Pick<PaintedWords, "lines" | "height" | "weight" | "f
   let size = words.height * words.pixelsPerMetre;
   const font = (pixels: number) => `${words.weight} ${pixels}px ${words.family}`;
   const lines = maxWidthMetres ? wrapped(words.lines, font(size), maxWidthMetres * words.pixelsPerMetre) : [...words.lines];
-  const measure = document.createElement("canvas").getContext("2d")!;
+  const measure = measuring();
   measure.font = font(size);
   const textWidth = Math.max(...lines.map((line) => measure.measureText(line).width));
   const padding = size * 0.22;
