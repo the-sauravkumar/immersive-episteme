@@ -19,6 +19,7 @@ export const SCANS = {
   table: { id: "wood_table_worn", tileMetres: 0.55 },
   weave: { id: "rough_linen", tileMetres: 0.27 },
   bamboo: { id: "bamboo_veneer", tileMetres: 0.6 },
+  firedClay: { id: "fired_clay", tileMetres: 0.36 },
   copper: { id: "Metal008", tileMetres: 1 },
   steel: { id: "metal_plate_02", tileMetres: 0.5 },
   dryMud: { id: "brown_mud_dry", tileMetres: 0.65 },
