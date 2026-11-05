@@ -3,6 +3,8 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 import type { SurfaceClass } from "../domain/surface-density";
 import { phongTessellate } from "./smooth-tessellate";
+import { BitmapDecoder } from "./bitmap-decoder";
+import { WorkPacer } from "./work-pacer";
 
 const ROOT = "/walkthrough";
 
@@ -265,7 +267,7 @@ function softenSun(sky: THREE.DataTexture): void {
 
 export class MaterialLibrary {
   private readonly textures = new THREE.TextureLoader();
-  private readonly bitmaps = new THREE.ImageBitmapLoader().setOptions({ imageOrientation: "flipY", premultiplyAlpha: "none", colorSpaceConversion: "none" });
+  private readonly decoder = new BitmapDecoder({ imageOrientation: "flipY", premultiplyAlpha: "none", colorSpaceConversion: "none" });
   private readonly models = new GLTFLoader();
   private readonly scans = new Map<ScanName, Promise<ScanTextures>>();
   private readonly scenes = new Map<string, Promise<THREE.Object3D>>();
@@ -273,13 +275,14 @@ export class MaterialLibrary {
   private readonly kept = new WeakSet<object>();
   private readonly anisotropy: number;
   private openSky: THREE.Texture | null = null;
+  readonly pacer = new WorkPacer();
 
   constructor(renderer: THREE.WebGLRenderer) {
     this.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
   }
 
   private async decoded(path: string): Promise<THREE.Texture> {
-    const bitmap = await this.bitmaps.loadAsync(path);
+    const bitmap = await this.decoder.decode(path);
     const texture = new THREE.Texture(bitmap);
     texture.flipY = false;
     texture.generateMipmaps = true;
@@ -320,13 +323,17 @@ export class MaterialLibrary {
   shared<T extends object>(key: string, build: () => Promise<T>): Promise<T> {
     const known = this.sharedResources.get(key) as Promise<T> | undefined;
     if (known) return known;
-    const loading = build().then((resource) => {
+    const loading = (this.pacer.walking ? this.pacer.yieldSlice().then(build) : build()).then((resource) => {
       this.kept.add(resource);
       return resource;
     });
     this.sharedResources.set(key, loading);
     loading.catch(() => this.sharedResources.delete(key));
     return loading;
+  }
+
+  close(): void {
+    this.decoder.close();
   }
 
   keeps(resource: object): boolean {

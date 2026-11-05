@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { catalogueModel } from "@/features/process/domain/asset-catalogue";
+import { clothShadingSteps } from "../domain/cloth-shading";
 import { clothBodyBoxes, type ClothSurface } from "../domain/cloth-surface";
 import { FAR_WALL_Z, GAP_WIDTH, CLOTH_LINE_X, NEXT_YARD_OFFSET, RAIL_HEIGHT, TIE_BOARD_THICKNESS, WALL_HEIGHT, WORK_FLOOR_Y, YARD_FRONT_Z, YARD_HALF_WIDTH, type PaintedWords, type YardPlan } from "../domain/yard-plan";
 import type { SubstanceLook } from "@/features/process/domain/substance-look";
@@ -13,6 +14,7 @@ import { buildThrownVessel } from "./built-vessels";
 import { grainAlongHeight, paintCurved, paintWords, pole, softBox, softBoxGeometry } from "./solid-builders";
 import { fillVessel, measureObject, trianglesOf } from "./substance-fill";
 import { liquidBodyColour } from "./substance-materials";
+import type { WorkPacer } from "./work-pacer";
 import { addTankLining, addWorkLiquid, BATH_BODY_DEPTH_METRES, copperMaterial, groundWithOpening, plasterMaterial, turnedRing } from "./work-structures";
 
 export interface YardAudit {
@@ -64,16 +66,14 @@ export class YardKit {
   }
 }
 
-const nextTask = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
-
-async function clothGeometry(surface: ClothSurface): Promise<THREE.BufferGeometry> {
+async function clothGeometry(pacer: WorkPacer, surface: ClothSurface): Promise<THREE.BufferGeometry> {
+  const shading = await pacer.run(clothShadingSteps(surface.positions, surface.uvs, surface.indices));
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(surface.positions, 3));
   geometry.setAttribute("uv", new THREE.BufferAttribute(surface.uvs, 2));
   geometry.setIndex(new THREE.BufferAttribute(surface.indices, 1));
-  geometry.computeVertexNormals();
-  await nextTask();
-  geometry.computeTangents();
+  geometry.setAttribute("normal", new THREE.BufferAttribute(shading.normals, 3));
+  geometry.setAttribute("tangent", new THREE.BufferAttribute(shading.tangents, 4));
   return geometry;
 }
 
@@ -158,7 +158,7 @@ export async function placeCatalogueModel(kit: YardKit, parent: THREE.Object3D, 
       if (/lid|latch/.test(node.name)) closures.push(node);
     });
     for (const closure of closures) closure.removeFromParent();
-    const measured = await kit.library.shared(`measured:${scanId}`, () => measureObject(holder));
+    const measured = await kit.library.shared(`measured:${scanId}`, () => measureObject(kit.library.pacer, holder));
     fills.push(await fillVessel(kit.library, holder, scanId, options.look, measured, `fill ${options.look.key}`));
   }
   holder.position.set(x, y, z);
@@ -176,6 +176,7 @@ function solidBox(object: THREE.Object3D): THREE.Box3 {
 
 
 export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, stationId: string): Promise<BuiltYard> {
+  const { pacer } = kit.library;
   const group = new THREE.Group();
   group.name = stationId;
   const registered: Registered[] = [];
@@ -208,12 +209,14 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   ground.receiveShadow = true;
   group.add(ground);
   register("ground", "surface", ground);
+  await pacer.pace();
 
   const wallSegment = (x0: number, x1: number, z0: number, z1: number, name: string, height = WALL_HEIGHT) => {
     const mesh = softBox(group, [Math.abs(x1 - x0), height, Math.abs(z1 - z0)], brick, [(x0 + x1) / 2, height / 2, (z0 + z1) / 2], { radius: 0.015, tile: [2, 2] });
     register(name, "wall", mesh);
     blockedBy(mesh);
   };
+  await pacer.pace();
   const halfGap = GAP_WIDTH / 2;
   const left = CLOTH_LINE_X - YARD_HALF_WIDTH;
   const right = CLOTH_LINE_X + YARD_HALF_WIDTH;
@@ -237,6 +240,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   blockedBy(shedBody);
   const parapet = softBox(group, [shedWidth + 0.16, 0.14, 5.6], lime, [shedCentre, shed.height + 0.07, shed.z - 2.7], { radius: 0.02, tile: [2, 2] });
   register("shed parapet", "structure", parapet, shedParts);
+  await pacer.pace();
   const dark = await kit.library.surface("timber", { normalScale: 1, tint: 0x3a2e24 });
   register("shed door backing", "structure", softBox(group, [1.42, 2.32, 0.1], dark, [shed.doorX, 1.16, shed.z + 0.02], { radius: 0.006, tile: [1.8, 1.8], cast: false }), [...shedParts, "shed door planks"]);
   const planks = new THREE.Group();
@@ -249,18 +253,24 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   const leanStart = shed.doorX - 1.2;
   const leanTo = new THREE.Group();
   group.add(leanTo);
-  for (let i = 0; i < 25; i++) pole(leanTo, [leanStart + i * 0.098, 3.18, shed.z + 0.03], [leanStart + i * 0.098, 2.48, shed.z + 2.3], 0.034, bamboo);
+  for (let i = 0; i < 25; i++) {
+    await pacer.pace();
+    pole(leanTo, [leanStart + i * 0.098, 3.18, shed.z + 0.03], [leanStart + i * 0.098, 2.48, shed.z + 2.3], 0.034, bamboo);
+  }
   for (const x of [leanStart, leanStart + 2.4]) blockedBy(pole(leanTo, [x, 0, shed.z + 2.2], [x, 2.5, shed.z + 2.2], 0.055, bamboo));
   pole(leanTo, [leanStart - 0.1, 2.47, shed.z + 2.2], [leanStart + 2.5, 2.47, shed.z + 2.2], 0.045, bamboo);
   register("lean-to", "frame", leanTo, [...shedParts, "shed door planks"]);
 
   for (const [i, words] of plan.words.entries()) {
-    await nextTask();
+    await pacer.pace();
     const painted = paintWords(group, words, words.maxWidth ?? null);
     if (words.maxWidth) painted.mesh.position.y = words.at[1] - painted.height / 2;
     register(`paint ${i}`, "surface", painted.mesh);
   }
-  plan.curvedWords.forEach((words, i) => register(`curved paint ${i}`, "surface", paintCurved(group, words)));
+  for (const [i, words] of plan.curvedWords.entries()) {
+    await pacer.pace();
+    register(`curved paint ${i}`, "surface", paintCurved(group, words));
+  }
 
   const work = plan.work;
   const fields: SolidField[] = [];
@@ -360,6 +370,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
     blockedBy(part);
   };
   for (const z of plan.rails) {
+    await pacer.pace();
     const first = framePart;
     framePole([CLOTH_LINE_X - 1.15, RAIL_HEIGHT, z], [CLOTH_LINE_X + 1.15, RAIL_HEIGHT, z], 0.05, [`frame part ${first + 1}`, `frame part ${first + 2}`]);
     for (const a of [-1, 1]) framePole([CLOTH_LINE_X + a * 1.15, 0, z], [CLOTH_LINE_X + a * 1.15, RAIL_HEIGHT + 0.3, z], postRadius, [`frame part ${first}`]);
@@ -403,7 +414,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   }
 
   for (const [itemIndex, placed] of plan.items.entries()) {
-    await nextTask();
+    await pacer.pace();
     const plank = softBox(group, [BENCH_WIDTH, 0.1, placed.benchLength], timber, [placed.x, 0.33, placed.z], { radius: 0.012, tile: [1.8, 1.8] });
     const name = `bench ${placed.item.key}`;
     const looks: readonly (SubstanceLook | null)[] = placed.looks.length > 0 ? placed.looks : [null];
@@ -415,7 +426,10 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
       register(`${name} leg ${i}`, "structure", leg, [name]);
     });
     const models: PlacedModel[] = [];
-    for (const look of looks) models.push(await placeCatalogueModel(kit, group, look?.vesselModelId ?? placed.item.modelId, placed.x, BENCH_TOP, placed.z, { look, tray: plan.trayLook }));
+    for (const look of looks) {
+      await pacer.pace();
+      models.push(await placeCatalogueModel(kit, group, look?.vesselModelId ?? placed.item.modelId, placed.x, BENCH_TOP, placed.z, { look, tray: plan.trayLook }));
+    }
     const depths = models.map(({ object }) => new THREE.Box3().setFromObject(object).getSize(new THREE.Vector3()).z);
     const span = depths.reduce((sum, depth) => sum + depth, 0) + BENCH_ITEM_GAP * (models.length - 1);
     let cursor = placed.z - span / 2;
@@ -430,7 +444,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   }
 
   for (const textile of files.textiles ?? []) {
-    await nextTask();
+    await pacer.pace();
     const hanging = new THREE.PlaneGeometry(textile.width, textile.height, 96, 48);
     const position = hanging.attributes.position!;
     for (let i = 0; i < position.count; i++) {
@@ -471,8 +485,8 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   }
   const clothMeshes: ClothMesh[] = [];
   for (const piece of plan.cloth) {
-    await nextTask();
-    const mesh = new THREE.Mesh(await clothGeometry(piece.surface), piece.state === "before" ? before : after);
+    await pacer.pace();
+    const mesh = new THREE.Mesh(await clothGeometry(pacer, piece.surface), piece.state === "before" ? before : after);
     mesh.customDepthMaterial = await kit.library.shared("cloth-shadow", async () => dryClothShadowMaterial());
     mesh.castShadow = true;
     mesh.receiveShadow = true;

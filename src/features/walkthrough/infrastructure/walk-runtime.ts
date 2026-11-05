@@ -8,6 +8,8 @@ import { addHorizon } from "./horizon";
 import { setLiquidTime } from "./substance-materials";
 import { MaterialLibrary, texturesOf } from "./material-library";
 import { addSun, CAMERA_NEAR_METRES, createRenderer, createRenderView, type RenderView } from "./render-view";
+import { SceneWarmup } from "./scene-warmup";
+import { prepareFillPieces } from "./substance-fill";
 
 export interface WalkEvents {
   readonly onStationEntered: (station: RouteStation, index: number) => void;
@@ -33,7 +35,7 @@ export class WalkRuntime {
   private readonly library: MaterialLibrary;
   private readonly yards = new Map<number, Promise<BuiltYard>>();
   private readonly built = new Map<number, BuiltYard>();
-  private readonly uploaded = new WeakSet<THREE.Texture>();
+  private readonly warmup: SceneWarmup;
   private view: RenderView | null = null;
   private sky: THREE.Mesh | null = null;
   private hills: THREE.Object3D | null = null;
@@ -73,6 +75,7 @@ export class WalkRuntime {
     this.camera = new THREE.PerspectiveCamera(55, host.clientWidth / host.clientHeight, CAMERA_NEAR_METRES, 1200);
     this.library = new MaterialLibrary(this.renderer);
     this.kit = new YardKit(this.library);
+    this.warmup = new SceneWarmup(this.renderer, this.scene, this.camera, this.library.pacer, () => this.disposed);
     this.renderer.domElement.addEventListener("webglcontextlost", this.contextLost);
   }
 
@@ -86,10 +89,13 @@ export class WalkRuntime {
     const station = this.stations[startIndex]!;
     this.walker = walkerAt(station.plan.standpoint.from, station.plan.standpoint.to, startIndex);
     this.view = createRenderView(this.renderer, this.scene, this.camera);
+    await prepareFillPieces(this.library, this.stations.flatMap((each) => each.plan.items.flatMap((placed) => placed.looks)));
+    if (this.disposed) return;
     await this.stream(startIndex);
     if (this.disposed) return;
     this.enter(startIndex);
     this.prepareFirstFrame();
+    this.library.pacer.beginWalking();
     this.last = performance.now();
     const tick = () => {
       this.frame = requestAnimationFrame(tick);
@@ -134,6 +140,7 @@ export class WalkRuntime {
       if (!wanted.includes(i)) {
         this.scene.remove(yard.group);
         releaseYard(this.kit, yard.group);
+        this.warmup.release(yard.group);
         this.built.delete(i);
         this.yards.delete(i);
       }
@@ -147,31 +154,14 @@ export class WalkRuntime {
     this.renderer.shadowMap.needsUpdate = true;
   }
 
-  private async uploadGradually(group: THREE.Object3D): Promise<void> {
-    const textures = new Set<THREE.Texture>();
-    group.traverse((node) => {
-      if (node instanceof THREE.Mesh) {
-        for (const texture of texturesOf(node.material as THREE.Material)) if (!this.uploaded.has(texture)) textures.add(texture);
-      }
-    });
-    for (const texture of textures) {
-      this.uploaded.add(texture);
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      if (this.disposed) return;
-      this.renderer.initTexture(texture);
-    }
-  }
-
   private loadYard(index: number): Promise<BuiltYard> {
     const known = this.yards.get(index);
     if (known) return known;
     const station = this.stations[index]!;
     const pending = buildYard(this.kit, station.plan, { clothBefore: station.clothBefore, clothAfter: station.clothAfter, wetAfter: station.wetAfter, textiles: this.textiles(station) }, station.id).then(async (yard) => {
-      await this.uploadGradually(yard.group);
-      if (this.disposed) return yard;
-      await this.view!.prepare(yard.group);
-      if (this.disposed) return yard;
       yard.group.position.z = -index * NEXT_YARD_OFFSET;
+      await this.warmup.ready(yard.group);
+      if (this.disposed) return yard;
       this.scene.add(yard.group);
       this.built.set(index, yard);
       return yard;
@@ -393,6 +383,7 @@ export class WalkRuntime {
       this.events.onStationLeft(this.stations[this.current]!, this.current, Math.round(this.activeMs), Math.round(this.walkingMs), this.viewpointChanges);
     }
     this.renderer.domElement.removeEventListener("webglcontextlost", this.contextLost);
+    this.library.close();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
     this.renderer.domElement.remove();

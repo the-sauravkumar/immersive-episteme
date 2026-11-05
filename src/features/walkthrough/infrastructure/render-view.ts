@@ -5,15 +5,16 @@ export const CAMERA_NEAR_METRES = 0.15;
 export interface RenderView {
   readonly render: () => void;
   readonly resize: (width: number, height: number) => void;
-  readonly prepare: (group: THREE.Object3D) => Promise<void>;
 }
 
 const VERTEX = "varying vec2 v;void main(){v=uv;gl_Position=vec4(position.xy,0.,1.);}";
 
+export const MAIN_TARGET_OPTIONS: THREE.RenderTargetOptions = { type: THREE.HalfFloatType, samples: 4 };
+
 export function createRenderView(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera): RenderView {
   renderer.toneMapping = THREE.NoToneMapping;
   const size = renderer.getDrawingBufferSize(new THREE.Vector2());
-  const main = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: 4 });
+  const main = new THREE.WebGLRenderTarget(size.x, size.y, MAIN_TARGET_OPTIONS);
   const bloomA = new THREE.WebGLRenderTarget(size.x >> 2, size.y >> 2, { type: THREE.HalfFloatType });
   const bloomB = bloomA.clone();
   const passScene = new THREE.Scene();
@@ -58,12 +59,6 @@ export function createRenderView(renderer: THREE.WebGLRenderer, scene: THREE.Sce
       main.setSize(width, height);
       bloomA.setSize(width >> 2, height >> 2);
       bloomB.setSize(width >> 2, height >> 2);
-    },
-    async prepare(group) {
-      renderer.setRenderTarget(main);
-      const compiled = renderer.compileAsync(group, camera, scene);
-      renderer.setRenderTarget(null);
-      await compiled;
     },
   };
 }

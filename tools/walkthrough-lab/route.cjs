@@ -6,6 +6,8 @@ const arrived = "(()=>{const r=window.runtime;return r.autoTarget===null&&r.auto
 const place = "(()=>{const r=window.runtime;return {index:r.stationIndex,x:+r.walker.x.toFixed(2),z:+r.walker.z.toFixed(2),localZ:+(r.walker.z+r.stationIndex*44).toFixed(2)}})()";
 const hillsAway = `(()=>{const r=window.runtime;const cam=r.camera.position;let nearest=Infinity;r.hills.children.forEach(s=>{const p=s.getWorldPosition(s.position.clone());nearest=Math.min(nearest,s.geometry.parameters.radiusTop-Math.hypot(p.x-cam.x,p.z-cam.z))});return +nearest.toFixed(1)})()`;
 const WALL_REACH = 62;
+const WORST_FRAME_MS = 50;
+const tradition = process.env.TRADITION || "ajrakh";
 
 (async () => {
   const browser = await launch();
@@ -13,21 +15,25 @@ const WALL_REACH = 62;
   page.setDefaultTimeout(240000);
   const faults = [];
   page.on("pageerror", (error) => faults.push("page error " + error.message.slice(0, 300)));
-  await page.goto("http://127.0.0.1:" + (process.env.LAB_PORT || 8941) + "/");
+  await page.goto("http://127.0.0.1:" + (process.env.LAB_PORT || 8941) + "/?tradition=" + tradition);
+  console.log("tradition", tradition);
   console.log(await rendererOf(page));
   await page.waitForFunction("window.READY===true");
   console.log("load seconds", await page.evaluate("+window.loadSeconds.toFixed(1)"));
   const memory = "(()=>{const m=window.runtime.renderer.info.memory;return {textures:m.textures,geometries:m.geometries}})()";
   console.log("memory at start", JSON.stringify(await page.evaluate(memory)));
   const stations = await page.evaluate("window.stations");
+  const legs = [];
   for (let target = 1; target < stations; target++) {
     await page.evaluate(`window.frames.length=0;window.runtime.walkTo(${target})`);
     await page.waitForFunction(`window.runtime.stationIndex===${target}&&${arrived}`, undefined, { timeout: 200000 });
     const near = await page.evaluate(hillsAway);
-    const stats = await page.evaluate("(()=>{const f=[...window.frames].slice(5);return {max:+Math.max(...f).toFixed(0),over50:f.filter(x=>x>50).length,frames:f.length}})()");
+    const stats = await page.evaluate(`(()=>{const f=[...window.frames].slice(5);return {max:+Math.max(...f).toFixed(0),overBudget:f.filter(x=>x>${WORST_FRAME_MS}).length,over33:f.filter(x=>x>33.4).length,frames:f.length}})()`);
     const where = await page.evaluate(place);
     console.log("station", target + 1, JSON.stringify(where), "hills m", near, JSON.stringify(stats), JSON.stringify(await page.evaluate(memory)));
+    legs.push([target + 1, stats.max, stats.overBudget]);
     if (near < WALL_REACH) faults.push(`station ${target + 1}: hills ${near} m from camera, inside the yard reach of ${WALL_REACH} m`);
+    if (stats.max > WORST_FRAME_MS) faults.push(`leg to station ${target + 1}: worst frame ${stats.max} ms over the ${WORST_FRAME_MS} ms budget, ${stats.overBudget} frames over`);
     if (out) await page.screenshot({ path: `${out}/route-${target + 1}.jpg`, type: "jpeg", quality: 84 });
   }
   const from = stations - 1;
@@ -57,6 +63,8 @@ const WALL_REACH = 62;
   const before = await page.evaluate("window.runtime.frame");
   await page.waitForTimeout(500);
   if ((await page.evaluate("window.runtime.frame")) !== before) faults.push("a frame loop kept running after dispose");
+  console.log("worst frame per leg ms", legs.map(([station, max]) => `${station}:${max}`).join(" "));
+  console.log("frames over budget per leg", legs.map(([station, , over]) => `${station}:${over}`).join(" "));
   console.log(faults.length ? "FAULTS\n" + faults.join("\n") : "route passed");
   await browser.close();
   process.exit(faults.length ? 1 : 0);
