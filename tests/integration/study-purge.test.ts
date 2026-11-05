@@ -222,4 +222,25 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
     expect(r.rows.study_sessions).toBe(1);
     await expect(purgeParticipantData(t.pool, { studyId: study.id, participant: running.participantId, reason: "asked for removal", actorId: pi, trigger: "request" })).rejects.toThrow(/still taking part/);
   });
+
+  it("sweeps the study for stale sessions once per retention purge, not once per participant", async () => {
+    for (const p of [await fullParticipant(), await fullParticipant()]) await completeSession(t.pool, p.sessionId);
+    let sweeps = 0;
+    const counted = new Proxy(t.pool, {
+      get(target, prop) {
+        if (prop === "query") {
+          return (...args: Parameters<typeof target.query>) => {
+            const sql = args[0];
+            if (typeof sql === "string" && sql.includes("LEFT JOIN delayed_test_schedule d ON d.session_id = ss.id")) sweeps++;
+            return (target.query as (...a: unknown[]) => unknown).apply(target, args);
+          };
+        }
+        const value = Reflect.get(target, prop, target);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    const removed = await purgeRetentionDue(counted, { studyId: study.id, actorId: pi, now: new Date(Date.now() + 31 * 24 * 3600 * 1000) });
+    expect(removed.length).toBeGreaterThanOrEqual(2);
+    expect(sweeps).toBe(1);
+  });
 });

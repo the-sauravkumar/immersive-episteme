@@ -18,6 +18,7 @@ import { isPublicDemoEnabled } from "./demo-gate";
 import {
   resolveLearningAccess,
   resolveParticipantSession,
+  resolveWithdrawalSession,
   type LearningAccess,
   type ParticipantContext,
 } from "./learning-decision";
@@ -49,6 +50,16 @@ export const requireLearningAccess = cache(async (condition: LearningCondition):
 export const requireParticipantSession = cache(async (): Promise<ParticipantContext> => {
   const jar = await cookies();
   const decision = await resolveParticipantSession(jar.get(PARTICIPANT_COOKIE)?.value, {
+    secret: serverEnv().BETTER_AUTH_SECRET,
+    lookup: getStudySessionLookup(),
+  });
+  if (!decision.allowed) redirect(decision.redirectTo);
+  return decision.participant;
+});
+
+export const requireWithdrawalSession = cache(async (): Promise<ParticipantContext> => {
+  const jar = await cookies();
+  const decision = await resolveWithdrawalSession(jar.get(PARTICIPANT_COOKIE)?.value, {
     secret: serverEnv().BETTER_AUTH_SECRET,
     lookup: getStudySessionLookup(),
   });

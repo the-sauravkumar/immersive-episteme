@@ -14,7 +14,7 @@ import { serverEnv } from "@/lib/env";
 import { LEARNING_ROUTE } from "@/lib/permissions/learning";
 import { requireSiteAccess } from "@/server/access/site-access";
 import { PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
-import { resolveParticipantSession } from "@/server/auth/learning-decision";
+import { resolveParticipantSession, resolveWithdrawalSession } from "@/server/auth/learning-decision";
 import { requireParticipantSession } from "@/server/auth/learning-access";
 import { clearParticipantSessionCookie, issueParticipantSessionCookie } from "@/server/auth/participant-session";
 import { getStudySessionLookup } from "@/server/auth/study-session-port";
@@ -98,6 +98,13 @@ async function liveParticipant() {
   const cookie = (await cookies()).get(PARTICIPANT_COOKIE)?.value;
   if (cookie === undefined) return null;
   const d = await resolveParticipantSession(cookie, { secret: serverEnv().BETTER_AUTH_SECRET, lookup: getStudySessionLookup() });
+  return d.allowed ? d.participant : null;
+}
+
+async function withdrawableParticipant() {
+  const cookie = (await cookies()).get(PARTICIPANT_COOKIE)?.value;
+  if (cookie === undefined) return null;
+  const d = await resolveWithdrawalSession(cookie, { secret: serverEnv().BETTER_AUTH_SECRET, lookup: getStudySessionLookup() });
   return d.allowed ? d.participant : null;
 }
 
@@ -372,7 +379,7 @@ export async function withdrawFromStudy(_prev: FormState, formData: FormData): P
   if (formData.get("confirm") !== "yes") return { fieldErrors: { confirm: "Tick the box to confirm that you want to withdraw." } };
   const pool = getPool();
   try {
-    const live = await liveParticipant();
+    const live = await withdrawableParticipant();
     if (live) {
       await withdraw(pool, { participantId: live.participantId, sessionId: live.sessionId, reason });
       await clearParticipantSessionCookie();
