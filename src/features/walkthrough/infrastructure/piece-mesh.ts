@@ -1,11 +1,15 @@
 import * as THREE from "three";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { seededRandom, type PieceSphere } from "../domain/pile-packing";
+import { smoothedValues } from "../domain/neighbourhood-grid";
 
 export type Tone = readonly [number, number, number];
 export type Point = readonly [number, number, number];
 
 export const PLAIN: Tone = [1, 1, 1];
+
+const SOLID_GIRTH_METRES = 1;
+const FAR_TONE_RADIUS_METRES = 0.012;
 
 export interface PieceShape {
   readonly geometry: THREE.BufferGeometry;
@@ -56,16 +60,18 @@ export class PieceMesh {
   private readonly positions: number[] = [];
   private readonly colours: number[] = [];
   private readonly uvs: number[] = [];
+  private readonly girths: number[] = [];
   private readonly indices: number[] = [];
 
   get vertexCount(): number {
     return this.positions.length / 3;
   }
 
-  vertex(point: Point, tone: Tone, u = 0, v = 0): number {
+  vertex(point: Point, tone: Tone, u = 0, v = 0, girth = SOLID_GIRTH_METRES): number {
     this.positions.push(point[0], point[1], point[2]);
     this.colours.push(tone[0], tone[1], tone[2]);
     this.uvs.push(u, v);
+    this.girths.push(girth);
     return this.vertexCount - 1;
   }
 
@@ -82,6 +88,8 @@ export class PieceMesh {
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(this.positions, 3));
     geometry.setAttribute("color", new THREE.Float32BufferAttribute(this.colours, 3));
     geometry.setAttribute("uv", new THREE.Float32BufferAttribute(this.uvs, 2));
+    geometry.setAttribute("girth", new THREE.Float32BufferAttribute(this.girths, 1));
+    geometry.setAttribute("farColour", new THREE.Float32BufferAttribute(smoothedValues(this.positions, this.colours, 3, FAR_TONE_RADIUS_METRES), 3));
     geometry.setIndex(this.indices);
     geometry.computeVertexNormals();
     return geometry;
@@ -163,7 +171,7 @@ export function addTube(mesh: PieceMesh, options: TubeOptions): void {
       const angle = (s / sides) * Math.PI * 2;
       const shaped = surfaceAt ? surfaceAt(t, angle, t * lengthMetres) : { radial: 1, tone: PLAIN };
       const mirrored = (s <= sides / 2 ? s : sides - s) * widthStep;
-      mesh.vertex(ringPoint(centres[ring]!, side, normal, angle, radiusAt(t) * shaped.radial), shaped.tone, mirrored, t * lengthMetres);
+      mesh.vertex(ringPoint(centres[ring]!, side, normal, angle, radiusAt(t) * shaped.radial), shaped.tone, mirrored, t * lengthMetres, radiusAt(t));
     }
   }
   for (let ring = 0; ring < rings; ring++) {
@@ -187,7 +195,7 @@ export function addTube(mesh: PieceMesh, options: TubeOptions): void {
         const angle = (i / sides) * Math.PI * 2;
         const { lift, tone } = shape(radial, angle);
         const p = ringPoint(centre, s, n, angle, radius * radial);
-        mesh.vertex([p[0] + tangent[0] * lift * outward, p[1] + tangent[1] * lift * outward, p[2] + tangent[2] * lift * outward], tone, Math.cos(angle) * radius * radial, Math.sin(angle) * radius * radial);
+        mesh.vertex([p[0] + tangent[0] * lift * outward, p[1] + tangent[1] * lift * outward, p[2] + tangent[2] * lift * outward], tone, Math.cos(angle) * radius * radial, Math.sin(angle) * radius * radial, radius);
       }
       for (let i = 0; i < sides; i++) {
         const a = previous + i;
@@ -200,7 +208,7 @@ export function addTube(mesh: PieceMesh, options: TubeOptions): void {
       previous = start;
     }
     const { lift, tone } = shape(0, 0);
-    const tip = mesh.vertex([centre[0] + tangent[0] * lift * outward, centre[1] + tangent[1] * lift * outward, centre[2] + tangent[2] * lift * outward], tone);
+    const tip = mesh.vertex([centre[0] + tangent[0] * lift * outward, centre[1] + tangent[1] * lift * outward, centre[2] + tangent[2] * lift * outward], tone, 0, 0, radius);
     for (let i = 0; i < sides; i++) {
       const a = previous + i;
       const b = previous + ((i + 1) % sides);

@@ -6,7 +6,7 @@ import type { CheckedSolid, ClothMesh, SolidField } from "../domain/scene-check"
 import type { SolidRole } from "../domain/scene-check";
 import { type YardKit } from "./build-yard";
 import { noteSurface } from "./material-library";
-import { paintWords, pole, softBox } from "./solid-builders";
+import { paintWordsInTurn, pole, softBox } from "./solid-builders";
 import { displayAlbedo, projectScan } from "./substance-materials";
 
 export type AssignedDoor = "none" | "door-1" | "door-2";
@@ -84,15 +84,15 @@ export async function buildEntrance(kit: YardKit, options: EntranceOptions): Pro
   register("entrance parapet", "structure", softBox(group, [WALL_WIDTH + 0.16, 0.14, 6.2], lime, [0, WALL_HEIGHT + 0.07, WALL_Z - 3], { radius: 0.02, tile: [2, 2] }), ["entrance wall"]);
   const face = WALL_Z + 0.004;
   const lettering = { facing: 0, align: "center" as const, colour: "ink" as const, family: "Eczar" as const, lineHeight: 1.14 };
-  register("title paint", "surface", paintWords(group, { ...lettering, lines: ["Immersive Episteme"], at: [0, 4.5, face], height: 0.76, weight: 800, pixelsPerMetre: 560, wear: 0.3 }).mesh);
-  register("subtitle paint", "surface", paintWords(group, { ...lettering, lines: ["Walking The Process"], at: [0, 3.86, face], height: 0.33, weight: 700, pixelsPerMetre: 800, wear: 0.2 }).mesh);
+  register("title paint", "surface", (await paintWordsInTurn(kit.library, group, { ...lettering, lines: ["Immersive Episteme"], at: [0, 4.5, face], height: 0.76, weight: 800, pixelsPerMetre: 560, wear: 0.3 })).mesh);
+  register("subtitle paint", "surface", (await paintWordsInTurn(kit.library, group, { ...lettering, lines: ["Walking The Process"], at: [0, 3.86, face], height: 0.33, weight: 700, pixelsPerMetre: 800, wear: 0.2 })).mesh);
   const doorWidth = 1.76;
   const doorHeight = 2.5;
   for (const [x, door, label, view] of [
     [-3.3, "door-1", "Door 1", options.door1View],
     [3.3, "door-2", "Door 2", options.door2View],
   ] as const) {
-    register(`${door} paint`, "surface", paintWords(group, { ...lettering, lines: [label], at: [x, 2.94, face], height: 0.24, weight: 700, pixelsPerMetre: 1000, wear: 0.3 }).mesh);
+    register(`${door} paint`, "surface", (await paintWordsInTurn(kit.library, group, { ...lettering, lines: [label], at: [x, 2.94, face], height: 0.24, weight: 700, pixelsPerMetre: 1000, wear: 0.3 })).mesh);
     const frameParts = [`${door} frame`, `${door} step`, `${door} view`, `${door} leaf -1`, `${door} leaf 1`, "entrance wall"];
     register(`${door} frame`, "structure", softBox(group, [doorWidth + 0.24, doorHeight + 0.14, 0.14], timber, [x, (doorHeight + 0.14) / 2, WALL_Z + 0.04], { radius: 0.012, tile: [1.8, 1.8], cast: false }), frameParts);
     const texture = await kit.library.photo(view);

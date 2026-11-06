@@ -6,7 +6,8 @@ import { phongTessellate } from "./smooth-tessellate";
 import { BitmapDecoder } from "./bitmap-decoder";
 import { WorkPacer } from "./work-pacer";
 import type { MipFilter } from "../domain/filtered-mips";
-import { smoothedNormals } from "../domain/far-normals";
+import { wallPlaneNormals } from "../domain/far-normals";
+import { PIXEL_FOOTPRINT_UNIFORM, pixelMetresAt, trackPixelFootprint } from "./pixel-footprint";
 
 const ROOT = "/walkthrough";
 
@@ -52,6 +53,7 @@ const farPrint = (bias: number, nearBias: number, ramp: BiasRamp) => ["#ifdef US
 const SCAN_PRINT_BIAS = 0.7;
 const SCAN_BIAS_RAMP: BiasRamp = [1.4, 5];
 const PRODUCT_MIP_FILTER: MipFilter = { radius: 3, beta: 4, sharpen: 0.6 };
+const PAINT_MIP_FILTER: MipFilter = { radius: 3, beta: 4, sharpen: 0, coverage: true };
 const PRODUCT_FAR_BIAS = 1.75;
 const PRODUCT_BIAS_RAMP: BiasRamp = [3, 8];
 const CLOTH_PRINT_BIAS = 1.5;
@@ -107,7 +109,7 @@ export function softenWhenFar<T extends THREE.Material>(material: T, antiTile = 
 }
 
 const FAR_NORMAL_VERTEX = "#include <defaultnormal_vertex>\nvFarNormal = normalMatrix * farNormal;";
-const farNormalBlend = (ramp: BiasRamp) => `normal = normalize(mix(normal, normalize(vFarNormal) * faceDirection, smoothstep(${ramp[0].toFixed(2)}, ${ramp[1].toFixed(2)}, length(vViewPosition))));\n#include <emissivemap_fragment>`;
+const farNormalBlend = (ramp: BiasRamp) => `normal = normalize(mix(normal, (dot(vFarNormal, vViewPosition) < 0.0 ? -1.0 : 1.0) * normalize(vFarNormal), smoothstep(${ramp[0].toFixed(2)}, ${ramp[1].toFixed(2)}, length(vViewPosition))));\n#include <emissivemap_fragment>`;
 
 function fadeToFarNormals<T extends THREE.Material>(material: T, ramp: BiasRamp): T {
   const earlierCompile = material.onBeforeCompile;
@@ -117,7 +119,23 @@ function fadeToFarNormals<T extends THREE.Material>(material: T, ramp: BiasRamp)
     shader.vertexShader = `attribute vec3 farNormal;\nvarying vec3 vFarNormal;\n${shader.vertexShader.replace("#include <defaultnormal_vertex>", FAR_NORMAL_VERTEX)}`;
     shader.fragmentShader = `varying vec3 vFarNormal;\n${shader.fragmentShader.replace("#include <emissivemap_fragment>", farNormalBlend(ramp))}`;
   };
-  material.customProgramCacheKey = () => `${earlierKey()}-far-normals-${ramp.join("-")}`;
+  material.customProgramCacheKey = () => `${earlierKey()}-wall-plane-normals-${ramp.join("-")}`;
+  return material;
+}
+
+const OPEN_WORK_GAP_PIXELS = 0.2;
+const CLOSED_GAPS_VERTEX = ["#include <begin_vertex>", `transformed += normalize(objectNormal) * OPEN_WORK_GAP_PIXELS * ${pixelMetresAt("-(modelViewMatrix * vec4(transformed, 1.0)).z")} / length(modelMatrix[0].xyz);`].join("\n");
+
+function closeSubPixelGaps<T extends THREE.Material>(material: T): T {
+  const earlierCompile = material.onBeforeCompile;
+  const earlierKey = material.customProgramCacheKey.bind(material);
+  const viewHeight = trackPixelFootprint(material);
+  material.onBeforeCompile = (shader, renderer) => {
+    earlierCompile.call(material, shader, renderer);
+    shader.uniforms.footprintViewHeight = viewHeight;
+    shader.vertexShader = `#define OPEN_WORK_GAP_PIXELS ${OPEN_WORK_GAP_PIXELS.toFixed(3)}\n${PIXEL_FOOTPRINT_UNIFORM}\n${shader.vertexShader.replace("#include <begin_vertex>", CLOSED_GAPS_VERTEX)}`;
+  };
+  material.customProgramCacheKey = () => `${earlierKey()}-closed-gaps`;
   return material;
 }
 
@@ -435,6 +453,18 @@ export class MaterialLibrary {
     return texture;
   }
 
+  async paintTexture(drawing: ImageData): Promise<THREE.Texture> {
+    const { bitmap, levels } = await this.decoder.filterDrawing(drawing, PAINT_MIP_FILTER);
+    const texture = new THREE.Texture(bitmap);
+    texture.mipmaps = [bitmap, ...levels] as unknown as HTMLCanvasElement[];
+    texture.flipY = false;
+    texture.generateMipmaps = false;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.anisotropy = this.anisotropy;
+    texture.needsUpdate = true;
+    return texture;
+  }
+
   async rawCottonMaterial(): Promise<THREE.MeshStandardMaterial> {
     const weave = await this.scan("weave");
     const colour = await this.map(`${ROOT}/tex/raw_cotton/diff.jpg`, true);
@@ -488,12 +518,13 @@ export class MaterialLibrary {
         const softened = softenWhenFar(material, false, { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio], tone: fine.tone, relief: fine.relief });
         if (farNormalRadius) {
           const geometry = node.geometry as THREE.BufferGeometry;
-          geometry.setAttribute("farNormal", new THREE.Float32BufferAttribute(smoothedNormals(geometry.attributes.position!.array, geometry.attributes.normal!.array, farNormalRadius), 3));
+          geometry.setAttribute("farNormal", new THREE.Float32BufferAttribute(wallPlaneNormals(geometry.attributes.position!.array, farNormalRadius), 3));
           fadeToFarNormals(softened, FAR_NORMAL_RAMP);
         }
+        if (openWork) closeSubPixelGaps(softened);
         noteSurface(softened, { label: `model ${scanId}`, kind: "model", openWork, detail: { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio] } });
       } else {
-        noteSurface(softenWhenFar(material), { label: `model ${scanId}`, kind: "model", openWork });
+        noteSurface(openWork ? closeSubPixelGaps(softenWhenFar(material)) : softenWhenFar(material), { label: `model ${scanId}`, kind: "model", openWork });
       }
       this.kept.add(node.geometry);
       this.kept.add(material);

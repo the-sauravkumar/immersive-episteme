@@ -19,7 +19,7 @@ import { buildYard, YardKit, type BuiltYard, type YardTextile } from "@/features
 import { buildStillSubject } from "@/features/walkthrough/infrastructure/build-still";
 import { addHorizon } from "@/features/walkthrough/infrastructure/horizon";
 import { MaterialLibrary } from "@/features/walkthrough/infrastructure/material-library";
-import { paintWords } from "@/features/walkthrough/infrastructure/solid-builders";
+import { paintWordsInTurn } from "@/features/walkthrough/infrastructure/solid-builders";
 import { setLiquidTime } from "@/features/walkthrough/infrastructure/substance-materials";
 import { addSun, CAMERA_NEAR_METRES, createRenderer, createRenderView } from "@/features/walkthrough/infrastructure/render-view";
 
@@ -581,9 +581,9 @@ const paintOff = () => {
   return off;
 };
 win.paintOffSurface = paintOff;
-win.paintOffPlanted = () => {
+win.paintOffPlanted = async () => {
   if (!auditRoot) return [];
-  const floating = paintWords(auditRoot, { lines: ["Planted"], at: [CLOTH_LINE_X, 8, YARD_FRONT_Z - 2], facing: 0, height: 0.2, align: "center", colour: "ink", weight: 700, family: "Eczar", pixelsPerMetre: 800, wear: 0, lineHeight: 1.1 }).mesh;
+  const floating = (await paintWordsInTurn(library, auditRoot, { lines: ["Planted"], at: [CLOTH_LINE_X, 8, YARD_FRONT_Z - 2], facing: 0, height: 0.2, align: "center", colour: "ink", weight: 700, family: "Eczar", pixelsPerMetre: 800, wear: 0, lineHeight: 1.1 })).mesh;
   floating.userData.auditName = "planted paint";
   const off = paintOff();
   floating.removeFromParent();

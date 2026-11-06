@@ -59,6 +59,17 @@ describe("filtered mip chain", () => {
     expect(step(sharp)).toBeGreaterThan(step(plain));
   });
 
+  it("filters painted coverage in straight alpha, leaving the colour white", () => {
+    const pixels = new Uint8ClampedArray(64 * 64 * 4);
+    for (let i = 0; i < 64 * 64; i++) pixels.set([255, 255, 255, i % 64 < 32 ? 255 : 0], i * 4);
+    const [first, second] = filteredMips(pixels, 64, 64, { ...KAISER, coverage: true });
+    for (const level of [first!, second!]) for (let i = 0; i < level.pixels.length; i += 4) expect([level.pixels[i], level.pixels[i + 1], level.pixels[i + 2]]).toEqual([255, 255, 255]);
+    const alphaAt = (level: typeof first, x: number) => level!.pixels[(8 * level!.width + x) * 4 + 3]!;
+    expect(alphaAt(first, 4)).toBe(255);
+    expect(alphaAt(first, 28)).toBe(0);
+    expect(Math.abs(alphaAt(first, 15) + alphaAt(first, 16) - 255)).toBeLessThanOrEqual(4);
+  });
+
   it("runs as a stand-alone function, so a worker can carry its source text", () => {
     const rebuilt = new Function(`return (${filteredMips.toString()});`)() as typeof filteredMips;
     const pixels = image(20, 9, (x, y) => (x * 13 + y * 29) % 256);

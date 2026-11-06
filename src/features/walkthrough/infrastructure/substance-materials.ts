@@ -3,6 +3,7 @@ import { liquidMarks, type SubstanceFill, type SubstanceLook, type Transparency 
 import { albedoForDisplay, type LinearRgb } from "../domain/lit-colour";
 import { powderGrainOf, type PowderGrain } from "../domain/substance-body";
 import { noteSurface, type MaterialLibrary, type ScanName } from "./material-library";
+import { PIXEL_FOOTPRINT_UNIFORM, pixelMetresAt, trackPixelFootprint } from "./pixel-footprint";
 
 const TRIPLANAR_VERTEX = [
   "#include <begin_vertex>",
@@ -246,6 +247,9 @@ export function filmMaterial(library: MaterialLibrary, look: SubstanceLook, film
 const GRAIN_LUMA = "vec3(0.2126, 0.7152, 0.0722)";
 const GRAIN_FINE_EVENING = 0.6;
 const GRAIN_MEAN_TINT = 0.9;
+const GRAIN_FAR_FROM_METRES = 0.0025;
+const GRAIN_FAR_TO_METRES = 0.004;
+const GRAIN_LEAST_PIXEL_WIDTHS = 0.5;
 
 const GRAIN_COLOUR = [
   "float grainFine = smoothstep(0.3, 1.2, length(fwidth(vNormal)));",
@@ -255,7 +259,12 @@ const GRAIN_COLOUR = [
   "diffuseColor.rgb *= mix(1.0 - grainContact, 1.0, smoothstep(-0.7, 0.45, mix(vGrainUp, 1.0, grainFine)));",
 ].join("\n");
 
-const GRAIN_TINT = ["#if defined( USE_COLOR ) || defined( USE_COLOR_ALPHA )", "diffuseColor.rgb *= mix(vColor.rgb, vec3(GRAIN_MEAN_TINT), GRAIN_FINE_EVENING * grainFine);", "#endif"].join("\n");
+const GRAIN_TINT = [
+  "#if defined( USE_COLOR ) || defined( USE_COLOR_ALPHA )",
+  "float grainFar = smoothstep(GRAIN_FAR_FROM, GRAIN_FAR_TO, vGrainPixel);",
+  "diffuseColor.rgb *= mix(mix(vColor.rgb, vec3(GRAIN_MEAN_TINT), GRAIN_FINE_EVENING * grainFine), vGrainFarTone, grainFar);",
+  "#endif",
+].join("\n");
 
 const GRAIN_NORMAL = ["#include <normal_fragment_maps>", "vec3 grainBroadUp = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);", "normal = normalize(mix(normal, grainBroadUp, grainFine) + grainBroadUp * 0.001);"].join("\n");
 
@@ -264,22 +273,29 @@ const GRAIN_SPECULAR = "#include <lights_physical_fragment>\nmaterial.specularCo
 const GRAIN_VERTEX = [
   "#include <begin_vertex>",
   "#ifdef USE_INSTANCING",
-  "vGrainUp = normalize(mat3(modelMatrix) * mat3(instanceMatrix) * normal).y;",
+  "mat4 grainPlaced = modelMatrix * instanceMatrix;",
   "#else",
-  "vGrainUp = normalize(mat3(modelMatrix) * normal).y;",
+  "mat4 grainPlaced = modelMatrix;",
   "#endif",
+  "vGrainUp = normalize(mat3(grainPlaced) * normal).y;",
+  "float grainScale = length(grainPlaced[0].xyz);",
+  `vGrainPixel = ${pixelMetresAt("-(viewMatrix * grainPlaced * vec4(transformed, 1.0)).z")};`,
+  "transformed += normalize(objectNormal) * max(GRAIN_LEAST_PIXEL_WIDTHS * vGrainPixel - girth * grainScale, 0.0) / grainScale;",
 ].join("\n");
+const GRAIN_FAR_TONE_VERTEX = ["#include <color_vertex>", "vGrainFarTone = farColour;", "#ifdef USE_INSTANCING_COLOR", "vGrainFarTone *= instanceColor.xyz;", "#endif"].join("\n");
 
 function scanAlongGrain(material: THREE.MeshStandardMaterial, form: FormSurface): void {
+  const viewHeight = trackPixelFootprint(material);
   material.onBeforeCompile = (shader) => {
     shader.uniforms.grainContrast = { value: form.contrast };
     shader.uniforms.grainContact = { value: form.contact };
     shader.uniforms.grainLeastRough = { value: form.leastRough };
     shader.uniforms.grainSpecular = { value: form.specular };
-    shader.vertexShader = `varying float vGrainUp;\n${shader.vertexShader.replace("#include <begin_vertex>", GRAIN_VERTEX)}`;
-    shader.fragmentShader = `#define GRAIN_FINE_EVENING ${GRAIN_FINE_EVENING.toFixed(2)}\n#define GRAIN_MEAN_TINT ${GRAIN_MEAN_TINT.toFixed(2)}\nvarying float vGrainUp;\nuniform float grainContrast;\nuniform float grainContact;\nuniform float grainLeastRough;\nuniform float grainSpecular;\n${shader.fragmentShader.replace("#include <map_fragment>", GRAIN_COLOUR).replace("#include <color_fragment>", GRAIN_TINT).replace("#include <roughnessmap_fragment>", GRAIN_ROUGH).replace("#include <normal_fragment_maps>", GRAIN_NORMAL).replace("#include <lights_physical_fragment>", GRAIN_SPECULAR)}`;
+    shader.uniforms.footprintViewHeight = viewHeight;
+    shader.vertexShader = `#define GRAIN_LEAST_PIXEL_WIDTHS ${GRAIN_LEAST_PIXEL_WIDTHS.toFixed(3)}\nattribute float girth;\nattribute vec3 farColour;\n${PIXEL_FOOTPRINT_UNIFORM}\nvarying float vGrainUp;\nvarying float vGrainPixel;\nvarying vec3 vGrainFarTone;\n${shader.vertexShader.replace("#include <begin_vertex>", GRAIN_VERTEX).replace("#include <color_vertex>", GRAIN_FAR_TONE_VERTEX)}`;
+    shader.fragmentShader = `#define GRAIN_FINE_EVENING ${GRAIN_FINE_EVENING.toFixed(2)}\n#define GRAIN_MEAN_TINT ${GRAIN_MEAN_TINT.toFixed(2)}\n#define GRAIN_FAR_FROM ${GRAIN_FAR_FROM_METRES.toFixed(4)}\n#define GRAIN_FAR_TO ${GRAIN_FAR_TO_METRES.toFixed(4)}\nvarying float vGrainUp;\nvarying float vGrainPixel;\nvarying vec3 vGrainFarTone;\nuniform float grainContrast;\nuniform float grainContact;\nuniform float grainLeastRough;\nuniform float grainSpecular;\n${shader.fragmentShader.replace("#include <map_fragment>", GRAIN_COLOUR).replace("#include <color_fragment>", GRAIN_TINT).replace("#include <roughnessmap_fragment>", GRAIN_ROUGH).replace("#include <normal_fragment_maps>", GRAIN_NORMAL).replace("#include <lights_physical_fragment>", GRAIN_SPECULAR)}`;
   };
-  material.customProgramCacheKey = () => "scan-along-grain";
+  material.customProgramCacheKey = () => "scan-along-grain-far-form";
 }
 
 function repeatedScan(library: MaterialLibrary, texture: THREE.Texture, key: string, perMetre: number): Promise<THREE.Texture> {

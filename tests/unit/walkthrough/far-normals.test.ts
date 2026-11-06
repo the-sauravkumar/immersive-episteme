@@ -1,38 +1,40 @@
 import { describe, expect, it } from "vitest";
-import { smoothedNormals } from "@/features/walkthrough/domain/far-normals";
+import { wallPlaneNormals } from "@/features/walkthrough/domain/far-normals";
 
-function corrugated(columns: number, spacing: number, wave: number) {
+function corrugated(columns: number, spacing: number, wave: number, depth: number, lift = 0) {
   const positions: number[] = [];
-  const normals: number[] = [];
   for (let row = 0; row < 8; row++) {
     for (let column = 0; column < columns; column++) {
       const x = column * spacing;
-      const tilt = Math.sin((x / wave) * Math.PI * 2) * 0.8;
-      positions.push(x, 0, row * spacing);
-      const length = Math.hypot(tilt, 1);
-      normals.push(tilt / length, 1 / length, 0);
+      positions.push(x, lift + Math.sin((x / wave) * Math.PI * 2) * depth, row * spacing);
     }
   }
-  return { positions: Float32Array.from(positions), normals: Float32Array.from(normals) };
+  return Float32Array.from(positions);
 }
+
+const tiltOf = (normals: Float32Array, i: number) => Math.hypot(normals[i]!, normals[i + 2]!);
 
 describe("far normals", () => {
   it("leave a flat surface facing the way it faced", () => {
-    const { positions } = corrugated(30, 0.005, 1);
-    const up = new Float32Array(positions.length).map((_, i) => (i % 3 === 1 ? 1 : 0));
-    const smoothed = smoothedNormals(positions, up, 0.05);
-    for (let i = 0; i < smoothed.length; i += 3) expect([smoothed[i], smoothed[i + 1], smoothed[i + 2]]).toEqual([0, 1, 0]);
+    const normals = wallPlaneNormals(corrugated(30, 0.005, 1, 0), 0.05);
+    for (let i = 0; i < normals.length; i += 3) {
+      expect(normals[i + 1]).toBeCloseTo(1, 6);
+      expect(tiltOf(normals, i)).toBeLessThan(1e-6);
+    }
   });
 
-  it("average away a weave finer than the radius and keep every normal unit length", () => {
-    const { positions, normals } = corrugated(60, 0.002, 0.01);
-    const smoothed = smoothedNormals(positions, normals, 0.05);
-    let widestTilt = 0;
-    for (let i = 0; i < smoothed.length; i += 3) {
-      expect(Math.hypot(smoothed[i]!, smoothed[i + 1]!, smoothed[i + 2]!)).toBeCloseTo(1, 5);
-      if (positions[i]! > 0.05 && positions[i]! < 0.07) widestTilt = Math.max(widestTilt, Math.abs(smoothed[i]!));
+  it("follow the plane of a weave finer than the radius and keep every normal unit length", () => {
+    const normals = wallPlaneNormals(corrugated(60, 0.002, 0.01, 0.002), 0.05);
+    for (let i = 0; i < normals.length; i += 3) {
+      expect(Math.hypot(normals[i]!, normals[i + 1]!, normals[i + 2]!)).toBeCloseTo(1, 5);
+      expect(Math.abs(normals[i + 1]!)).toBeGreaterThan(0.98);
     }
-    const sharpest = Math.max(...Array.from(normals.filter((_, i) => i % 3 === 0), Math.abs));
-    expect(widestTilt).toBeLessThan(sharpest * 0.25);
+  });
+
+  it("give both faces of a thin open wall the wall's own plane instead of cancelling to nothing", () => {
+    const outer = corrugated(40, 0.003, 0.012, 0.0015, 0.004);
+    const inner = corrugated(40, 0.003, 0.012, 0.0015, -0.004);
+    const normals = wallPlaneNormals(Float32Array.from([...outer, ...inner]), 0.05);
+    for (let i = 0; i < normals.length; i += 3) expect(Math.abs(normals[i + 1]!)).toBeGreaterThan(0.98);
   });
 });
