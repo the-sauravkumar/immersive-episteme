@@ -64,6 +64,13 @@ export function softBox(parent: THREE.Object3D, size: readonly [number, number, 
 const BAMBOO_NODE_SPACING = 0.42;
 const BAMBOO_TILE_METRES = 0.5;
 const NODE_RINGS = [-0.2, -0.15, -0.12, -0.09, -0.07, -0.05, -0.03, -0.015, 0, 0.015, 0.03, 0.05, 0.07, 0.09, 0.12, 0.15, 0.2] as const;
+const POLE_BASE_SWELL = 1.04;
+const POLE_TAPER = 0.04;
+const POLE_NODE_SWELL = 0.07;
+
+export function poleWidestRadius(radius: number): number {
+  return radius * POLE_BASE_SWELL * (1 + POLE_NODE_SWELL);
+}
 
 export function pole(parent: THREE.Object3D, from: readonly [number, number, number], to: readonly [number, number, number], radius: number, material: THREE.Material): THREE.Mesh {
   const a = new THREE.Vector3(...from);
@@ -76,7 +83,7 @@ export function pole(parent: THREE.Object3D, from: readonly [number, number, num
   rings.push(1);
   const radiusAt = (along: number) => {
     const toNode = Math.abs(((along * nodeCount) % 1) - 0.5) * 2;
-    return radius * (1.04 - 0.04 * along) * (1 + 0.07 * Math.exp(-((toNode * 9) ** 2)));
+    return radius * (POLE_BASE_SWELL - POLE_TAPER * along) * (1 + POLE_NODE_SWELL * Math.exp(-((toNode * 9) ** 2)));
   };
   const profile = [new THREE.Vector2(1e-4, -span / 2), ...rings.map((along) => new THREE.Vector2(radiusAt(along), (along - 0.5) * span)), new THREE.Vector2(1e-4, span / 2)];
   const sides = roundSegments(radius * 1.12, 0.00017);

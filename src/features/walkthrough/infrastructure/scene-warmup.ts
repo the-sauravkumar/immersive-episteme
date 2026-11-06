@@ -131,7 +131,7 @@ export class SceneWarmup {
       if (this.cancelled()) return;
       if (!stripsFit(texture)) this.renderer.initTexture(texture);
       else if (!this.allocatedAnew(texture)) continue;
-      else if (this.pacer.walking ? await this.uploadInStrips(texture) : this.uploadWhole(texture)) this.releasePixels(texture);
+      else if (await this.uploadByCarrier(texture, this.pacer.walking)) this.releasePixels(texture);
     }
   }
 
@@ -146,41 +146,45 @@ export class SceneWarmup {
     return anew;
   }
 
-  private uploadWhole(texture: THREE.Texture): boolean {
-    this.renderer.copyTextureToTexture(new THREE.Texture(texture.image), texture);
-    return true;
+  private levelsOf(texture: THREE.Texture): readonly TexImageSource[] {
+    return (texture.mipmaps.length > 0 ? texture.mipmaps : [texture.image]) as unknown as readonly TexImageSource[];
   }
 
   private releasePixels(texture: THREE.Texture): void {
-    const image: unknown = texture.image;
     texture.source.dataReady = false;
     this.released.add(texture.source);
-    if (typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap) image.close();
-    else if (typeof HTMLCanvasElement !== "undefined" && image instanceof HTMLCanvasElement) {
-      image.width = 1;
-      image.height = 1;
+    for (const image of this.levelsOf(texture)) {
+      if (typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap) image.close();
+      else if (typeof HTMLCanvasElement !== "undefined" && image instanceof HTMLCanvasElement) {
+        image.width = 1;
+        image.height = 1;
+      }
     }
   }
 
-  private async uploadInStrips(texture: THREE.Texture): Promise<boolean> {
-    const { width, height } = texture.image as { width: number; height: number };
+  private async uploadByCarrier(texture: THREE.Texture, paced: boolean): Promise<boolean> {
+    const levels = this.levelsOf(texture);
     const mipmapped = texture.generateMipmaps;
     texture.generateMipmaps = false;
-    const pixels = new THREE.Texture(texture.image);
     const region = new THREE.Box2();
     const at = new THREE.Vector2();
-    for (let top = 0; top < height; top += STRIP_ROWS) {
-      if (top > 0) await this.pacer.yieldSlice();
-      if (this.cancelled()) {
-        texture.generateMipmaps = mipmapped;
-        return false;
+    for (const [level, image] of levels.entries()) {
+      const { width, height } = image as { width: number; height: number };
+      const carrier = new THREE.Texture(image);
+      const rows = paced ? STRIP_ROWS : height;
+      for (let top = 0; top < height; top += rows) {
+        if (paced && (top > 0 || level > 0)) await this.pacer.yieldSlice();
+        if (this.cancelled()) {
+          texture.generateMipmaps = mipmapped;
+          return false;
+        }
+        const bottom = Math.min(height, top + rows);
+        if (level === 0 && bottom === height) texture.generateMipmaps = mipmapped;
+        region.min.set(0, top);
+        region.max.set(width, bottom);
+        at.set(0, top);
+        this.renderer.copyTextureToTexture(carrier, texture, region, at, 0, level);
       }
-      const bottom = Math.min(height, top + STRIP_ROWS);
-      if (bottom === height) texture.generateMipmaps = mipmapped;
-      region.min.set(0, top);
-      region.max.set(width, bottom);
-      at.set(0, top);
-      this.renderer.copyTextureToTexture(pixels, texture, region, at);
     }
     return true;
   }
