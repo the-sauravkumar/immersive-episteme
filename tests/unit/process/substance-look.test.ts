@@ -10,6 +10,7 @@ import { structureFor } from "@/features/walkthrough/domain/yard-plan";
 import { lookRowsSource } from "../../../scripts/content/build-substance-look-rows";
 
 const templates = ["ajrakh", "sanganeri", "machilipatnam-kalamkari"].map((name) => JSON.parse(readFileSync(`content/study/${name}.template.json`, "utf8")) as StageTemplate);
+const routes = templates.map((template) => buildRoute(template, clothStatePath));
 const uses = templates.flatMap((template) => template.stages.flatMap((stage) => stage.items.map((item) => ({ stage, item }))));
 const materials = uses.filter(({ item }) => item.role === "material");
 const sheet = JSON.parse(readFileSync("docs/research/substance-looks.json", "utf8")) as unknown[];
@@ -72,8 +73,8 @@ describe("the look sheet reaches the scene", () => {
   });
 
   it("keys Door 1 and Door 2 to the same look of the same material", () => {
-    for (const template of templates) {
-      buildRoute(template, clothStatePath).forEach((station, index) => {
+    templates.forEach((template, at) => {
+      routes[at]!.forEach((station, index) => {
         const stage = template.stages[index];
         if (!stage) return;
         const panel = stagePanelModel(template, index);
@@ -84,7 +85,7 @@ describe("the look sheet reaches the scene", () => {
           expect(panel.objects.find((object) => object.key === placed.item.key)!.stillSrc).toBe(stillPath(keys.join("+")));
         }
       });
-    }
+    });
   });
 
   it("names no still after what it shows, so a test image cannot give its answer away", () => {
