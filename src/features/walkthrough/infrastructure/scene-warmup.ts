@@ -134,7 +134,7 @@ export class SceneWarmup {
   }
 
   private async uploadInStrips(texture: THREE.Texture): Promise<void> {
-    const { width, height } = texture.image as { width: number; height: number };
+    const levels = (texture.mipmaps.length > 0 ? texture.mipmaps : [texture.image]) as unknown as readonly TexImageSource[];
     const mipmapped = texture.generateMipmaps;
     texture.source.dataReady = false;
     this.renderer.initTexture(texture);
@@ -142,18 +142,22 @@ export class SceneWarmup {
     texture.generateMipmaps = false;
     const region = new THREE.Box2();
     const at = new THREE.Vector2();
-    for (let top = 0; top < height; top += STRIP_ROWS) {
-      if (top > 0) await this.pacer.yieldSlice();
-      if (this.cancelled()) {
-        texture.generateMipmaps = mipmapped;
-        return;
+    for (const [level, image] of levels.entries()) {
+      const { width, height } = image as { width: number; height: number };
+      const carrier = new THREE.Texture(image);
+      for (let top = 0; top < height; top += STRIP_ROWS) {
+        if (top > 0 || level > 0) await this.pacer.yieldSlice();
+        if (this.cancelled()) {
+          texture.generateMipmaps = mipmapped;
+          return;
+        }
+        const bottom = Math.min(height, top + STRIP_ROWS);
+        if (level === 0 && bottom === height) texture.generateMipmaps = mipmapped;
+        region.min.set(0, top);
+        region.max.set(width, bottom);
+        at.set(0, top);
+        this.renderer.copyTextureToTexture(carrier, texture, region, at, 0, level);
       }
-      const bottom = Math.min(height, top + STRIP_ROWS);
-      if (bottom === height) texture.generateMipmaps = mipmapped;
-      region.min.set(0, top);
-      region.max.set(width, bottom);
-      at.set(0, top);
-      this.renderer.copyTextureToTexture(texture, texture, region, at);
     }
   }
 

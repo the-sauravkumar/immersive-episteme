@@ -5,6 +5,8 @@ import type { SurfaceClass } from "../domain/surface-density";
 import { phongTessellate } from "./smooth-tessellate";
 import { BitmapDecoder } from "./bitmap-decoder";
 import { WorkPacer } from "./work-pacer";
+import type { MipFilter } from "../domain/filtered-mips";
+import { smoothedNormals } from "../domain/far-normals";
 
 const ROOT = "/walkthrough";
 
@@ -45,8 +47,13 @@ export interface ScanTextures {
 
 const ANTI_TILE = "#include <map_fragment>\nvec3 mean = textureLod(map, vMapUv, 12.0).rgb;\nfloat meanTone = max(dot(mean, vec3(0.33)), 0.02);\nfloat toneA = dot(textureLod(map, vMapUv * 0.137 + vec2(0.31, 0.17), 5.0).rgb, vec3(0.33));\nfloat toneB = dot(textureLod(map, vMapUv.yx * 0.0531, 4.0).rgb, vec3(0.33));\ndiffuseColor.rgb *= clamp(mix(1.0, (toneA + toneB) / (2.0 * meanTone), 0.7), 0.72, 1.28);";
 
-const farPrint = (bias: number, nearBias: number) => ["#ifdef USE_MAP", `vec4 sampledDiffuseColor = texture2D(map, vMapUv, mix(${nearBias.toFixed(1)}, ${bias.toFixed(1)}, smoothstep(1.4, 5.0, length(vViewPosition))));`, "diffuseColor *= sampledDiffuseColor;", "#endif"].join("\n");
+type BiasRamp = readonly [number, number];
+const farPrint = (bias: number, nearBias: number, ramp: BiasRamp) => ["#ifdef USE_MAP", `vec4 sampledDiffuseColor = texture2D(map, vMapUv, mix(${nearBias.toFixed(2)}, ${bias.toFixed(2)}, smoothstep(${ramp[0].toFixed(2)}, ${ramp[1].toFixed(2)}, length(vViewPosition))));`, "diffuseColor *= sampledDiffuseColor;", "#endif"].join("\n");
 const SCAN_PRINT_BIAS = 0.7;
+const SCAN_BIAS_RAMP: BiasRamp = [1.4, 5];
+const PRODUCT_MIP_FILTER: MipFilter = { radius: 3, beta: 4, sharpen: 0.6 };
+const PRODUCT_FAR_BIAS = 1.75;
+const PRODUCT_BIAS_RAMP: BiasRamp = [3, 8];
 const CLOTH_PRINT_BIAS = 1.5;
 const CLOTH_NEAR_PRINT_BIAS = 0;
 const FAR_WEAVE = ["#include <normal_fragment_maps>", "#ifdef USE_NORMALMAP_TANGENTSPACE", "normal = normalize(tbn * ((texture2D(normalMap, vNormalMapUv, 1.2).xyz * 2.0 - 1.0) * vec3(normalScale, 1.0)));", "#endif"].join("\n");
@@ -81,7 +88,7 @@ export interface FineDetail {
   readonly relief: number;
 }
 
-export function softenWhenFar<T extends THREE.Material>(material: T, antiTile = false, detail: FineDetail | null = null, printBias = SCAN_PRINT_BIAS, nearPrintBias = printBias): T {
+export function softenWhenFar<T extends THREE.Material>(material: T, antiTile = false, detail: FineDetail | null = null, printBias = SCAN_PRINT_BIAS, nearPrintBias = printBias, biasRamp: BiasRamp = SCAN_BIAS_RAMP): T {
   material.onBeforeCompile = (shader) => {
     let fragment = shader.fragmentShader;
     if (detail) {
@@ -93,9 +100,24 @@ export function softenWhenFar<T extends THREE.Material>(material: T, antiTile = 
       fragment = DETAIL_UNIFORMS + fragment.replace("#include <map_fragment>", DETAIL_COLOUR).replace("#include <normal_fragment_maps>", DETAIL_NORMAL);
     }
     if (antiTile) fragment = fragment.replace("#include <map_fragment>", ANTI_TILE);
-    shader.fragmentShader = fragment.replace("#include <map_fragment>", farPrint(printBias, nearPrintBias)).replace("#include <normal_fragment_maps>", FAR_WEAVE);
+    shader.fragmentShader = fragment.replace("#include <map_fragment>", farPrint(printBias, nearPrintBias, biasRamp)).replace("#include <normal_fragment_maps>", FAR_WEAVE);
   };
-  material.customProgramCacheKey = () => `far${antiTile ? "-anti-tile" : ""}${detail ? "-detail" : ""}-${printBias}-${nearPrintBias}`;
+  material.customProgramCacheKey = () => `far${antiTile ? "-anti-tile" : ""}${detail ? "-detail" : ""}-${printBias}-${nearPrintBias}-${biasRamp.join("-")}`;
+  return material;
+}
+
+const FAR_NORMAL_VERTEX = "#include <defaultnormal_vertex>\nvFarNormal = normalMatrix * farNormal;";
+const farNormalBlend = (ramp: BiasRamp) => `normal = normalize(mix(normal, normalize(vFarNormal) * faceDirection, smoothstep(${ramp[0].toFixed(2)}, ${ramp[1].toFixed(2)}, length(vViewPosition))));\n#include <emissivemap_fragment>`;
+
+function fadeToFarNormals<T extends THREE.Material>(material: T, ramp: BiasRamp): T {
+  const earlierCompile = material.onBeforeCompile;
+  const earlierKey = material.customProgramCacheKey.bind(material);
+  material.onBeforeCompile = (shader, renderer) => {
+    earlierCompile.call(material, shader, renderer);
+    shader.vertexShader = `attribute vec3 farNormal;\nvarying vec3 vFarNormal;\n${shader.vertexShader.replace("#include <defaultnormal_vertex>", FAR_NORMAL_VERTEX)}`;
+    shader.fragmentShader = `varying vec3 vFarNormal;\n${shader.fragmentShader.replace("#include <emissivemap_fragment>", farNormalBlend(ramp))}`;
+  };
+  material.customProgramCacheKey = () => `${earlierKey()}-far-normals-${ramp.join("-")}`;
   return material;
 }
 
@@ -218,6 +240,9 @@ const MODEL_FINE_SCANS: Readonly<Record<string, FineScan>> = {
   wooden_crate_01: { scan: "table", tileMetres: 0.47, tone: 0.4, relief: 0.6 },
   wicker_basket_01: { scan: "bamboo", tileMetres: 0.47, tone: 0.3, relief: 0.5 },
 };
+
+const FAR_NORMAL_RADIUS_METRES: Readonly<Record<string, number>> = { wicker_basket_01: 0.05 };
+const FAR_NORMAL_RAMP: BiasRamp = [1.6, 3.5];
 
 const CLOTH_SKY_LIGHT = 0.26;
 const OPEN_WORK_MODELS: ReadonlySet<string> = new Set(["wicker_basket_01", "wooden_crate_01"]);
@@ -387,14 +412,27 @@ export class MaterialLibrary {
   }
 
   async textileMaterial(file: string, widthMetres: number, heightMetres: number): Promise<THREE.MeshStandardMaterial> {
-    const [photo, weave] = await Promise.all([this.photo(file), this.scan("weave")]);
+    const [photo, weave] = await Promise.all([this.filteredPhoto(file), this.scan("weave")]);
     const normal = weave.normal.clone();
     normal.repeat.set(widthMetres / weave.tileMetres, heightMetres / weave.tileMetres);
     normal.needsUpdate = true;
     const scale: readonly [number, number] = [widthMetres / weave.tileMetres, heightMetres / weave.tileMetres];
     const material = new THREE.MeshStandardMaterial({ map: photo, normalMap: normal, normalScale: new THREE.Vector2(0.4, 0.4), side: THREE.DoubleSide, roughness: 0.95, envMapIntensity: 0.55 });
     noteSurface(material, { label: `printed textile ${file.split("/").pop()}`, kind: "printed-textile", detail: { colour: weave.colour, normal: weave.normal, scale } });
-    return softenWhenFar(material, false, { colour: weave.colour, normal: weave.normal, scale, tone: 0.3, relief: 0.7 }, 0);
+    return softenWhenFar(material, false, { colour: weave.colour, normal: weave.normal, scale, tone: 0.3, relief: 0.7 }, PRODUCT_FAR_BIAS, 0, PRODUCT_BIAS_RAMP);
+  }
+
+  private async filteredPhoto(file: string): Promise<THREE.Texture> {
+    const { bitmap, levels } = await this.decoder.decodeFiltered(file, PRODUCT_MIP_FILTER);
+    const texture = new THREE.Texture(bitmap);
+    texture.mipmaps = [bitmap, ...levels] as unknown as HTMLCanvasElement[];
+    texture.flipY = false;
+    texture.generateMipmaps = false;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = this.anisotropy;
+    texture.needsUpdate = true;
+    return texture;
   }
 
   async rawCottonMaterial(): Promise<THREE.MeshStandardMaterial> {
@@ -446,7 +484,14 @@ export class MaterialLibrary {
       if (fine) {
         const fineScan = await this.scan(fine.scan);
         const ratio = 1 / (fine.tileMetres * medianUvPerMetre(node.geometry as THREE.BufferGeometry));
-        noteSurface(softenWhenFar(material, false, { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio], tone: fine.tone, relief: fine.relief }), { label: `model ${scanId}`, kind: "model", openWork, detail: { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio] } });
+        const farNormalRadius = FAR_NORMAL_RADIUS_METRES[scanId];
+        const softened = softenWhenFar(material, false, { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio], tone: fine.tone, relief: fine.relief });
+        if (farNormalRadius) {
+          const geometry = node.geometry as THREE.BufferGeometry;
+          geometry.setAttribute("farNormal", new THREE.Float32BufferAttribute(smoothedNormals(geometry.attributes.position!.array, geometry.attributes.normal!.array, farNormalRadius), 3));
+          fadeToFarNormals(softened, FAR_NORMAL_RAMP);
+        }
+        noteSurface(softened, { label: `model ${scanId}`, kind: "model", openWork, detail: { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio] } });
       } else {
         noteSurface(softenWhenFar(material), { label: `model ${scanId}`, kind: "model", openWork });
       }
