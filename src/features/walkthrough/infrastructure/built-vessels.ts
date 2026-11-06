@@ -22,5 +22,6 @@ function thrownGeometry(form: ThrownForm): THREE.BufferGeometry {
 
 export async function buildThrownVessel(library: MaterialLibrary, shape: ThrownShape): Promise<THREE.Object3D> {
   const [geometry, material] = await Promise.all([library.shared(`thrown:${shape}`, async () => thrownGeometry(FORMS[shape])), projectedMaterial(library, FIRED_CLAY)]);
+  material.shadowSide = THREE.DoubleSide;
   return solidMesh(geometry, material);
 }

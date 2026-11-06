@@ -110,6 +110,20 @@ test("a signed-in account without a role waits at /awaiting-access until an admi
     await expect(page, path).toHaveURL(/\/awaiting-access$/);
   }
 
+  const uninvited = await newContext(browser, UNINVITED);
+  const stranger = await uninvited.newPage();
+  await signInStaff(stranger, WAITING, PASSWORD);
+  await expect(stranger).toHaveURL(/\/awaiting-access$/);
+  await stranger.goto("/explore");
+  await stranger.getByRole("button", { name: /^Open / }).first().click();
+  await expect(stranger).toHaveURL(/\/invite\?next=%2Fexplore/);
+  await stranger.goto("/study");
+  await stranger.getByLabel("Study code").fill(JOURNEY_STUDY);
+  await stranger.getByRole("button", { name: "Continue" }).click();
+  await expect(stranger).toHaveURL(/\/invite\?next=%2Fstudy/);
+  expect((await uninvited.cookies()).map((c) => c.name).filter((name) => /ie_demo|ie_study_session/.test(name))).toEqual([]);
+  await uninvited.close();
+
   const adminContext = await newContext(browser);
   const admin = await adminContext.newPage();
   await signInStaff(admin, ADMIN, PASSWORD);
@@ -121,9 +135,14 @@ test("a signed-in account without a role waits at /awaiting-access until an admi
   await admin.getByRole("menuitem", { name: "Add a role…" }).click();
   const dialog = admin.getByRole("dialog", { name: "Add a role" });
   await dialog.getByLabel("Role").selectOption({ label: "Researcher" });
+  const status = admin.getByRole("status").filter({ hasText: WAITING });
+  await expect(admin.getByRole("status").filter({ hasText: "role granted" })).toHaveCount(0);
   await dialog.getByRole("button", { name: "Add role" }).click();
   await expect(admin.getByRole("row").filter({ hasText: WAITING })).toHaveCount(0);
   await expect(admin.getByText("No accounts match these filters.")).toBeVisible();
+  await expect(status).toHaveText(`E2E Waiting (${WAITING}): Researcher role granted.`);
+  await expect(status).toBeVisible();
+  await expect(status).toHaveAttribute("aria-live", "polite");
   await admin.goto(`/admin/users?q=${encodeURIComponent(WAITING)}`);
   const granted = admin.getByRole("row").filter({ hasText: WAITING });
   await expect(granted.getByText("Active", { exact: true })).toBeVisible();

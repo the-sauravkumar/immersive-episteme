@@ -478,6 +478,13 @@ win.surfaceAudit = () => {
   const rows = surfaceRows(reachOfParts(objectParts(auditRoot), fieldHere()), fieldHere());
   return rankWorstFirst(rows);
 };
+win.nearestViews = (pattern: string) => {
+  if (!auditRoot) return [];
+  const wanted = new RegExp(pattern);
+  return reachOfParts(objectParts(auditRoot), fieldHere())
+    .map((reach) => ({ label: `${reach.part.auditName} / ${reach.part.label}`, distance: +reach.distance.toFixed(2), eye: reach.eye, target: reach.target }))
+    .filter((view) => wanted.test(view.label) && Number.isFinite(view.distance));
+};
 win.surfacePlanted = () => {
   if (!auditRoot) return null;
   const canvas = document.createElement("canvas");

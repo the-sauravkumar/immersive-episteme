@@ -11,7 +11,7 @@ import { dipInBath, type MaterialLibrary } from "./material-library";
 import { buildBrushAndKalam, buildCarvedBlock, buildCarvingChisels, buildWashingPaddle } from "./built-tools";
 import { buildPrintingTray } from "./built-tray";
 import { buildThrownVessel } from "./built-vessels";
-import { grainAlongHeight, paintCurvedInTurn, paintWordsInTurn, pole, softBox, softBoxGeometry } from "./solid-builders";
+import { grainAlongHeight, paintCurvedInTurn, paintWordsInTurn, pole, poleWidestRadius, softBox, softBoxGeometry } from "./solid-builders";
 import { fillVessel, measureObject, trianglesOf } from "./substance-fill";
 import { liquidBodyColour } from "./substance-materials";
 import type { WorkPacer } from "./work-pacer";
@@ -90,6 +90,15 @@ const WICKED_ABOVE_BATH_METRES = 0.11;
 const LIFTED_WET_METRES = 1.5;
 const TRAY_BENCH_CLEARANCE = 0.02;
 const DOOR_PLANK_SHIFT = 0.37;
+const LEAN_SLATS = 25;
+const LEAN_SLAT_SPACING = 0.098;
+const LEAN_SLAT_RADIUS = 0.034;
+const LEAN_TOP_Y = 3.18;
+const LEAN_FOOT_Y = 2.48;
+const LEAN_FROM_WALL = 0.03;
+const LEAN_RUN = 2.27;
+const LEAN_MAT_THICKNESS = 0.012;
+const LEAN_MAT_CLEARANCE = 0.002;
 
 function dryClothShadowMaterial(): THREE.MeshDepthMaterial {
   const material = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
@@ -253,10 +262,16 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   const leanStart = shed.doorX - 1.2;
   const leanTo = new THREE.Group();
   group.add(leanTo);
-  for (let i = 0; i < 25; i++) {
+  for (let i = 0; i < LEAN_SLATS; i++) {
     await pacer.pace();
-    pole(leanTo, [leanStart + i * 0.098, 3.18, shed.z + 0.03], [leanStart + i * 0.098, 2.48, shed.z + 2.3], 0.034, bamboo);
+    pole(leanTo, [leanStart + i * LEAN_SLAT_SPACING, LEAN_TOP_Y, shed.z + LEAN_FROM_WALL], [leanStart + i * LEAN_SLAT_SPACING, LEAN_FOOT_Y, shed.z + LEAN_FROM_WALL + LEAN_RUN], LEAN_SLAT_RADIUS, bamboo);
   }
+  const fall = LEAN_TOP_Y - LEAN_FOOT_Y;
+  const slope = Math.hypot(fall, LEAN_RUN);
+  const lift = poleWidestRadius(LEAN_SLAT_RADIUS) + LEAN_MAT_THICKNESS / 2 + LEAN_MAT_CLEARANCE;
+  const matSpan = (LEAN_SLATS - 1) * LEAN_SLAT_SPACING + LEAN_SLAT_RADIUS * 2;
+  const mat = softBox(leanTo, [matSpan, LEAN_MAT_THICKNESS, slope], bamboo, [leanStart + ((LEAN_SLATS - 1) * LEAN_SLAT_SPACING) / 2, (LEAN_TOP_Y + LEAN_FOOT_Y) / 2 + (lift * LEAN_RUN) / slope, shed.z + LEAN_FROM_WALL + LEAN_RUN / 2 + (lift * fall) / slope], { radius: 0.004, tile: [0.6, 0.6] });
+  mat.rotation.x = Math.atan2(fall, LEAN_RUN);
   for (const x of [leanStart, leanStart + 2.4]) {
     await pacer.pace();
     blockedBy(pole(leanTo, [x, 0, shed.z + 2.2], [x, 2.5, shed.z + 2.2], 0.055, bamboo));
