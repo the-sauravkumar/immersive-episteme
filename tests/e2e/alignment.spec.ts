@@ -12,12 +12,11 @@
  * The throwaway staff accounts are locked after the run (with any left by earlier runs), so no
  * usable test login accumulates in the users list.
  */
-import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 
 import { expect, newContext, test, type Browser, type Page } from "./fixtures";
 
-import { JOURNEY_STUDY as E2E_STUDY_CODE, closeDb, ensureDemoStudy, retireE2eStaff } from "./study-fixtures";
+import { JOURNEY_STUDY as E2E_STUDY_CODE, closeDb, createE2eStaff, ensureDemoStudy, retireE2eStaff, signInStaff as signInAs } from "./study-fixtures";
 
 // The dev server compiles each route on first visit.
 test.describe.configure({ timeout: 600_000 });
@@ -29,12 +28,7 @@ const DESKTOP = { width: 1280, height: 800 };
 const PHONE = { width: 390, height: 844 };
 
 test.beforeAll(async () => {
-  for (const role of ["platform_admin", "curator"]) {
-    execFileSync(process.execPath, ["--import", "tsx", "scripts/create-admin.ts", "--email", STAFF, "--name", "E2E Alignment", "--role", role], {
-      env: { ...process.env, ADMIN_PASSWORD: PASSWORD },
-      stdio: "pipe",
-    });
-  }
+  for (const role of ["platform_admin", "curator"]) createE2eStaff(STAFF, "E2E Alignment", role, PASSWORD);
 });
 test.afterAll(async () => {
   // Retire this run's account and any left by earlier runs (locked, roles removed, sessions ended).
@@ -43,11 +37,7 @@ test.afterAll(async () => {
 });
 
 async function signInStaff(page: Page) {
-  await page.goto("/sign-in");
-  await page.getByLabel("Email").fill(STAFF);
-  await page.getByLabel("Password").fill(PASSWORD);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 120_000 });
+  await signInAs(page, STAFF, PASSWORD);
 }
 
 async function startDemo(page: Page) {

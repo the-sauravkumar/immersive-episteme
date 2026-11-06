@@ -12,8 +12,8 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? `http://localhost:${PORT}`;
  * Iris Xe (tests/e2e/gpu-mode.ts). So, in hardware mode (the local default):
  *  - "chromium": every spec, full Chromium (channel "chromium") with ANGLE on D3D11, NVIDIA expected;
  *  - "low-spec": the headless shell with the same flags, Intel expected, CPU x4 through CDP,
- *    1366 x 768 at DPR 1. Runs the low-tier museum measurements (immersive-rendering.spec.ts, with
- *    IE_GPU=1) and the renderer check.
+ *    1366 x 768 at DPR 1. Runs the renderer check; the low-spec 3D timing runs through
+ *    tools/walkthrough-lab/route.cjs with LOW_SPEC=1.
  * The automatic fixture in tests/e2e/fixtures.ts fails a worker whose WebGL renderer is not the
  * expected GPU (SwiftShader included). Software mode (CI, or PW_GPU=0): one plain headless
  * "chromium" project as before, no GPU expectation. Pick one project with --project.
@@ -29,7 +29,7 @@ const projects = HARDWARE
       },
       {
         name: LOW_SPEC_PROJECT,
-        testMatch: /(immersive-rendering|gpu-renderer)\.spec\.ts/,
+        testMatch: /gpu-renderer\.spec\.ts/,
         use: {
           ...devices["Desktop Chrome"],
           channel: undefined,

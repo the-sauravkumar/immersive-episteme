@@ -9,8 +9,7 @@
  *    records the renderer.
  *  - page: the built-in page with the project's CPU throttle applied through CDP
  *    (metadata.cpuThrottle, 4 in low-spec). Pages a spec opens itself with browser.newContext()
- *    are not throttled by this; such specs call applyProjectThrottle() (immersive-rendering.spec.ts
- *    already throttles its own page from the same metadata).
+ *    are not throttled by this.
  *  - newContext(browser, options): browser.newContext() with the invite cookie (S11). A context a
  *    spec opens itself does not inherit the config's `use`, so without this it would land on the
  *    invite gate. Every spec opens its own contexts through it; a gate test passes
@@ -57,7 +56,7 @@ export function newContext(browser: Browser, options: ContextOptions = {}): Prom
   return browser.newContext({ storageState: configuredStorageState(), ...options });
 }
 
-export async function applyProjectThrottle(page: Page, info: Pick<TestInfo, "project">): Promise<number> {
+async function applyProjectThrottle(page: Page, info: Pick<TestInfo, "project">): Promise<number> {
   const rate = Number(info.project.metadata?.cpuThrottle ?? 1);
   if (rate > 1) {
     const cdp = await page.context().newCDPSession(page);

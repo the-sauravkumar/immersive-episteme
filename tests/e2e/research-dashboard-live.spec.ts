@@ -13,14 +13,14 @@
  * fixture study of ./study-fixtures.ts, a throwaway researcher account (scripts/create-admin.ts),
  * and the inserted event is purged afterwards with a recorded purge reason.
  */
-import { execFileSync } from "node:child_process";
 import { randomBytes, randomUUID } from "node:crypto";
 
 import { expect, test } from "./fixtures";
 
-import { closeDb, db, ensureDemoStudy, JOURNEY_STUDY, retireE2eStaff } from "./study-fixtures";
+import { closeDb, createE2eStaff, db, ensureDemoStudy, JOURNEY_STUDY, retireE2eStaff, signInStaff } from "./study-fixtures";
+import { enrol, throughConsentToAllocation } from "./study-steps";
 
-test.describe.configure({ timeout: 300_000 });
+test.describe.configure({ timeout: 600_000 });
 test.use({ navigationTimeout: 180_000 });
 
 const PASSWORD = `e2e-${randomBytes(12).toString("hex")}`;
@@ -29,10 +29,7 @@ const TARGET_MS = 2_000;
 const inserted: string[] = [];
 
 test.beforeAll(() => {
-  execFileSync(process.execPath, ["--import", "tsx", "scripts/create-admin.ts", "--email", STAFF, "--name", "E2E Dashboard", "--role", "researcher"], {
-    env: { ...process.env, ADMIN_PASSWORD: PASSWORD },
-    stdio: "pipe",
-  });
+  createE2eStaff(STAFF, "E2E Dashboard", "researcher", PASSWORD);
 });
 
 test.afterAll(async () => {
@@ -51,26 +48,28 @@ test.afterAll(async () => {
   await closeDb();
 });
 
-test("new telemetry appears without a reload, and nothing is cached", async ({ page }) => {
-  ensureDemoStudy(JOURNEY_STUDY, 30);
-  const studyId = (await db().query<{ id: string }>("SELECT id FROM studies WHERE slug = $1", [JOURNEY_STUDY])).rows[0]!.id;
+async function inProgressSession(studyId: string, code: string) {
   const s = await db().query<{ id: string; participant_id: string; condition_id: string; code: string; next_seq: number; events: number }>(
     `SELECT ss.id, ss.participant_id, ss.condition_id, p.code,
             coalesce((SELECT max(seq) + 1 FROM telemetry_events te WHERE te.session_id = ss.id), 0) AS next_seq,
             (SELECT count(*)::int FROM telemetry_events te WHERE te.session_id = ss.id) AS events
        FROM study_sessions ss JOIN participants p ON p.id = ss.participant_id
-      WHERE ss.study_id = $1 AND ss.condition_id IS NOT NULL AND ss.status = 'in_progress' AND NOT ss.excluded AND NOT ss.withdrawn
-      ORDER BY p.code LIMIT 1`,
-    [studyId],
+      WHERE ss.study_id = $1 AND ss.condition_id IS NOT NULL AND ss.status = 'in_progress' AND NOT ss.excluded AND NOT ss.withdrawn AND p.code = $2`,
+    [studyId, code],
   );
-  const session = s.rows[0];
-  test.skip(!session, "the demo fixture study has no allocated in-progress session (run the study-journey e2e first)");
+  return s.rows[0];
+}
 
-  await page.goto("/sign-in");
-  await page.getByLabel("Email").fill(STAFF);
-  await page.getByLabel("Password").fill(PASSWORD);
-  await page.getByRole("button", { name: "Sign in" }).click();
-  await page.waitForURL((u) => !u.pathname.startsWith("/sign-in"), { timeout: 120_000 });
+test("new telemetry appears without a reload, and nothing is cached", async ({ page, browser }) => {
+  ensureDemoStudy(JOURNEY_STUDY, 30);
+  const studyId = (await db().query<{ id: string }>("SELECT id FROM studies WHERE slug = $1", [JOURNEY_STUDY])).rows[0]!.id;
+  const enrolled = await enrol(browser, JOURNEY_STUDY);
+  await throughConsentToAllocation(enrolled.page, { ...enrolled.journey, label: "dashboard" });
+  await enrolled.page.context().close();
+  const session = await inProgressSession(studyId, enrolled.code);
+  expect(session, "the allocated in-progress demo session this test enrolled").toBeDefined();
+
+  await signInStaff(page, STAFF, PASSWORD);
 
   const response = await page.goto(`/research/dashboard?study=${studyId}`);
   expect(response?.headers()["cache-control"] ?? "").toMatch(/no-store|private|no-cache/);
