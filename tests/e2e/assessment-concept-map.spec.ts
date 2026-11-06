@@ -9,7 +9,6 @@
  * account, and a demo reference map with two rater maps that tie on one edge. Requires the
  * seeded demo snapshot (`npm run db:seed` or `npm run dev:bootstrap`).
  */
-import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 
 import { expect, newContext, test, type Page } from "./fixtures";
@@ -18,7 +17,7 @@ import { Pool } from "pg";
 
 import { signParticipantSession } from "../../src/server/auth/participant-session-token";
 
-import { retireE2eStaff } from "./study-fixtures";
+import { createE2eStaff, retireE2eStaff, signInStaff } from "./study-fixtures";
 
 loadEnv({ quiet: true });
 
@@ -45,10 +44,7 @@ test.beforeAll(async () => {
   ids.titles = KEYS.map((k) => byKey.get(k)!.title);
 
   // Researcher account (Better Auth hashing via the bootstrap script).
-  execFileSync(process.execPath, ["--import", "tsx", "scripts/create-admin.ts", "--email", RESEARCHER, "--name", "E2E Researcher", "--role", "researcher"], {
-    env: { ...process.env, ADMIN_PASSWORD: PASSWORD },
-    stdio: "pipe",
-  });
+  createE2eStaff(RESEARCHER, "E2E Researcher", "researcher", PASSWORD);
   const researcher = await one<{ id: string }>("SELECT id FROM users WHERE email = $1", [RESEARCHER]);
   const otherRater = `e2e-rater-${tag}`;
   await pool.query("INSERT INTO users (id, name, email) VALUES ($1, 'E2E second rater', $2)", [otherRater, `${otherRater}@example.test`]);
@@ -235,11 +231,7 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   // --- Researcher --------------------------------------------------------------------------
   const staff = await newContext(browser);
   const r = await staff.newPage();
-  await r.goto("/sign-in");
-  await r.getByLabel("Email").fill(RESEARCHER);
-  await r.getByLabel("Password").fill(PASSWORD);
-  await r.getByRole("button", { name: "Sign in" }).click();
-  await r.waitForURL((u) => !u.pathname.startsWith("/sign-in"));
+  await signInStaff(r, RESEARCHER, PASSWORD);
 
   await r.goto(`/research/assessments/${ids.assessment}/reference/${ids.reference}`);
   await expect(r.getByText("1 tied edge needs an adjudication decision.")).toBeVisible();
