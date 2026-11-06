@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { CreateStaffForm, UserRowActions } from "@/components/admin/user-forms";
+import { CreateStaffForm, UserActionStatus, UserRowActions } from "@/components/admin/user-forms";
 import { Empty, Mono, NativeSelect, one, Pager, Section, Stamp, type SearchParams } from "@/components/cms/bits";
 import { ConsolePage } from "@/components/shell/gates";
 import { Badge } from "@/components/ui/badge";
@@ -162,119 +162,121 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
             ) : null}
           </div>
         </form>
-        {awaiting > 0 && filter.status !== "awaiting" ? (
-          <div className="flex flex-col items-start gap-3">
-            <p className="text-body text-ink">
-              {awaiting === 1 ? "1 account is" : `${awaiting} accounts are`} waiting for a role. Accounts made through Google sign-in start with no role and open nothing until a role is added.
-            </p>
-            <Button asChild variant="outline">
-              <Link href="/admin/users?status=awaiting">Show accounts awaiting access</Link>
-            </Button>
-          </div>
-        ) : null}
-        {users.length === 0 ? (
-          <Empty>{filtered ? "No accounts match these filters." : "No staff accounts yet."}</Empty>
-        ) : (
-          <Table
-            role="table"
-            caption="Accounts, Roles and Status"
-            number={1}
-            hoverRows
-            className={STACK.table}
-            note={`${matching.length === users.length ? `${matching.length} account(s)` : `Accounts ${first} to ${first + users.length - 1} of ${matching.length}`}${filtered ? ` matching the filters (of ${all.length})` : ""}, ${locked} locked; alphabetical by name. Times are UTC. Sessions counts the sign-ins that have not expired.`}
-          >
-            <TableHeader role="rowgroup">
-              <TableRow role="row">
-                <TableHead role="columnheader" scope="col">
-                  Name and email
-                </TableHead>
-                <TableHead role="columnheader" scope="col">
-                  Roles
-                </TableHead>
-                <TableHead role="columnheader" scope="col">
-                  Status
-                </TableHead>
-                <TableHead role="columnheader" scope="col">
-                  Created (UTC)
-                </TableHead>
-                <TableHead role="columnheader" scope="col" numeric>
-                  Sessions
-                </TableHead>
-                <TableHead role="columnheader" scope="col" className="text-right">
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody role="rowgroup">
-              {users.map((u) => (
-                <TableRow role="row" key={u.id} className={STACK.row}>
-                  <TableCell role="cell" className="max-sm:col-span-1 max-sm:h-auto max-sm:p-0 align-top sm:py-3">
-                    <span className="block font-medium text-ink">
-                      {u.name} {u.id === actor.userId ? <span className="font-normal text-ink-3">(you)</span> : null}
-                    </span>
-                    <span className="text-id block text-ink-2 [overflow-wrap:anywhere] sm:whitespace-nowrap">{u.email}</span>
-                    <span className="text-credit block">{signInMethods(u)}</span>
-                    <Mono className="block text-ink-3" title="Account id">
-                      {u.id}
-                    </Mono>
-                  </TableCell>
-                  <TableCell role="cell" className={`${STACK.cell} align-top sm:py-3`}>
-                    <CellLabel>roles</CellLabel>
-                    {u.roles.length ? (
-                      <span className="flex flex-wrap gap-1.5">
-                        {u.roles.map((r) => (
-                          <Badge key={r}>{ROLE_LABELS[r]}</Badge>
-                        ))}
-                      </span>
-                    ) : (
-                      <span className="text-ink-3">No roles</span>
-                    )}
-                  </TableCell>
-                  <TableCell role="cell" className={`${STACK.cell} align-top sm:py-3`}>
-                    <CellLabel>status</CellLabel>
-                    {u.disabledAt ? (
-                      <span className="flex flex-col items-start gap-1">
-                        <Badge variant="danger">
-                          <Lock aria-hidden="true" />
-                          Locked
-                        </Badge>
-                        <span className="text-credit">
-                          since <Stamp at={u.disabledAt} />
-                        </span>
-                      </span>
-                    ) : awaitingAccess(u) ? (
-                      <Badge variant="warn">
-                        <Clock aria-hidden="true" />
-                        Awaiting access
-                      </Badge>
-                    ) : (
-                      <Badge variant="ok">
-                        <CircleCheck aria-hidden="true" />
-                        Active
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell role="cell" className={`${STACK.cell} align-top sm:py-3`}>
-                    <CellLabel>created (UTC)</CellLabel>
-                    <Stamp at={u.createdAt} />
-                  </TableCell>
-                  <TableCell role="cell" numeric className={`${STACK.cell} align-top sm:py-3`}>
-                    <CellLabel>sessions</CellLabel>
-                    <span>{u.activeSessions}</span>
-                  </TableCell>
-                  <TableCell role="cell" className="text-right align-top max-sm:col-start-2 max-sm:row-start-1 max-sm:h-auto max-sm:p-0 sm:py-3">
-                    <UserRowActions
-                      user={{ id: u.id, name: u.name, email: u.email, roles: u.roles, locked: Boolean(u.disabledAt) }}
-                      self={u.id === actor.userId}
-                      manageRoles={manageRoles}
-                    />
-                  </TableCell>
+        <UserActionStatus key={`${filter.q ?? ""}|${filter.role ?? ""}|${filter.status ?? ""}|${page}`}>
+          {awaiting > 0 && filter.status !== "awaiting" ? (
+            <div className="flex flex-col items-start gap-3">
+              <p className="text-body text-ink">
+                {awaiting === 1 ? "1 account is" : `${awaiting} accounts are`} waiting for a role. Accounts made through Google sign-in start with no role and open nothing until a role is added.
+              </p>
+              <Button asChild variant="outline">
+                <Link href="/admin/users?status=awaiting">Show accounts awaiting access</Link>
+              </Button>
+            </div>
+          ) : null}
+          {users.length === 0 ? (
+            <Empty>{filtered ? "No accounts match these filters." : "No staff accounts yet."}</Empty>
+          ) : (
+            <Table
+              role="table"
+              caption="Accounts, Roles and Status"
+              number={1}
+              hoverRows
+              className={STACK.table}
+              note={`${matching.length === users.length ? `${matching.length} account(s)` : `Accounts ${first} to ${first + users.length - 1} of ${matching.length}`}${filtered ? ` matching the filters (of ${all.length})` : ""}, ${locked} locked; alphabetical by name. Times are UTC. Sessions counts the sign-ins that have not expired.`}
+            >
+              <TableHeader role="rowgroup">
+                <TableRow role="row">
+                  <TableHead role="columnheader" scope="col">
+                    Name and email
+                  </TableHead>
+                  <TableHead role="columnheader" scope="col">
+                    Roles
+                  </TableHead>
+                  <TableHead role="columnheader" scope="col">
+                    Status
+                  </TableHead>
+                  <TableHead role="columnheader" scope="col">
+                    Created (UTC)
+                  </TableHead>
+                  <TableHead role="columnheader" scope="col" numeric>
+                    Sessions
+                  </TableHead>
+                  <TableHead role="columnheader" scope="col" className="text-right">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-        <Pager base="/admin/users" params={{ q: filter.q, role: filter.role, status: filter.status }} page={page} total={matching.length} pageSize={PAGE_SIZE} />
+              </TableHeader>
+              <TableBody role="rowgroup">
+                {users.map((u) => (
+                  <TableRow role="row" key={u.id} className={STACK.row}>
+                    <TableCell role="cell" className="max-sm:col-span-1 max-sm:h-auto max-sm:p-0 align-top sm:py-3">
+                      <span className="block font-medium text-ink">
+                        {u.name} {u.id === actor.userId ? <span className="font-normal text-ink-3">(you)</span> : null}
+                      </span>
+                      <span className="text-id block text-ink-2 [overflow-wrap:anywhere] sm:whitespace-nowrap">{u.email}</span>
+                      <span className="text-credit block">{signInMethods(u)}</span>
+                      <Mono className="block text-ink-3" title="Account id">
+                        {u.id}
+                      </Mono>
+                    </TableCell>
+                    <TableCell role="cell" className={`${STACK.cell} align-top sm:py-3`}>
+                      <CellLabel>roles</CellLabel>
+                      {u.roles.length ? (
+                        <span className="flex flex-wrap gap-1.5">
+                          {u.roles.map((r) => (
+                            <Badge key={r}>{ROLE_LABELS[r]}</Badge>
+                          ))}
+                        </span>
+                      ) : (
+                        <span className="text-ink-3">No roles</span>
+                      )}
+                    </TableCell>
+                    <TableCell role="cell" className={`${STACK.cell} align-top sm:py-3`}>
+                      <CellLabel>status</CellLabel>
+                      {u.disabledAt ? (
+                        <span className="flex flex-col items-start gap-1">
+                          <Badge variant="danger">
+                            <Lock aria-hidden="true" />
+                            Locked
+                          </Badge>
+                          <span className="text-credit">
+                            since <Stamp at={u.disabledAt} />
+                          </span>
+                        </span>
+                      ) : awaitingAccess(u) ? (
+                        <Badge variant="warn">
+                          <Clock aria-hidden="true" />
+                          Awaiting access
+                        </Badge>
+                      ) : (
+                        <Badge variant="ok">
+                          <CircleCheck aria-hidden="true" />
+                          Active
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell role="cell" className={`${STACK.cell} align-top sm:py-3`}>
+                      <CellLabel>created (UTC)</CellLabel>
+                      <Stamp at={u.createdAt} />
+                    </TableCell>
+                    <TableCell role="cell" numeric className={`${STACK.cell} align-top sm:py-3`}>
+                      <CellLabel>sessions</CellLabel>
+                      <span>{u.activeSessions}</span>
+                    </TableCell>
+                    <TableCell role="cell" className="text-right align-top max-sm:col-start-2 max-sm:row-start-1 max-sm:h-auto max-sm:p-0 sm:py-3">
+                      <UserRowActions
+                        user={{ id: u.id, name: u.name, email: u.email, roles: u.roles, locked: Boolean(u.disabledAt) }}
+                        self={u.id === actor.userId}
+                        manageRoles={manageRoles}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+          <Pager base="/admin/users" params={{ q: filter.q, role: filter.role, status: filter.status }} page={page} total={matching.length} pageSize={PAGE_SIZE} />
+        </UserActionStatus>
       </section>
 
       {manageRoles ? (
