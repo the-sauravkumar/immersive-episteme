@@ -1712,12 +1712,6 @@ export async function closeStaleSessions(pool: Pool | PoolClient, studyId: strin
 export const WITHDRAWAL_REASONS = ["not_stated", "no_longer_wish_to_take_part", "no_time", "technical_problem", "felt_unwell"] as const;
 export type WithdrawalReason = (typeof WITHDRAWAL_REASONS)[number];
 
-/**
- * Withdraws the participant at any point: a `withdrawn` consent record, the participant marked
- * withdrawn, and the open session (if any) flagged withdrawn. Nothing is deleted: the data
- * already collected is kept under the study's retention policy (config.retentionDays); removing
- * it is a separate, reasoned purge by the research team (app.research_purge_reason).
- */
 export async function withdraw(pool: Pool | PoolClient, input: { participantId: string; sessionId?: string | null; reason: WithdrawalReason }): Promise<{ retentionDays: number | null }> {
   return withTx(pool, async (c) => {
     const p = await loadParticipant(c, input.participantId);
@@ -1740,8 +1734,8 @@ export async function withdraw(pool: Pool | PoolClient, input: { participantId: 
     const sessionId = input.sessionId ?? p.sessionId;
     const retentionDays = study.protocol.config.retentionDays ?? null;
     const after = { reason: input.reason, retentionDays, dataKept: true };
+    await c.query("UPDATE study_sessions SET withdrawn = true, withdrawn_at = coalesce(withdrawn_at, now()) WHERE participant_id = $1 AND NOT withdrawn", [p.id]);
     if (sessionId) {
-      await c.query("UPDATE study_sessions SET withdrawn = true, withdrawn_at = coalesce(withdrawn_at, now()) WHERE id = $1 AND participant_id = $2", [sessionId, p.id]);
       await journal(c, { kind: "participant", code: p.code }, "study.participant_withdrawn", "study_session", sessionId, after);
     } else {
       await journal(c, { kind: "participant", code: p.code }, "study.participant_withdrawn", "participant", p.id, after);

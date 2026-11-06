@@ -458,7 +458,7 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
   }
   const telemetrySessions: SessionTelemetryRow[] = [];
   for (const s of sessionInfo.values()) {
-    if (!s.inScope || !s.conditionId) continue;
+    if (!s.inScope || !s.conditionId || analysedSessionOf(s.id) !== s.id) continue;
     const t = tel(s.id);
     telemetrySessions.push({
       sessionId: s.id,

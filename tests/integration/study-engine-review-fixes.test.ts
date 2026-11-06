@@ -30,10 +30,13 @@ import {
   completeFamiliarisation,
   submitAssessment,
   syncPosition,
+  withdraw,
   type DeviceReport,
   type EnrollableStudy,
   type OpenedSession,
 } from "../../src/server/study/engine";
+import { behaviourDistributions, outcomeDistributions, transitionMatrices } from "../../src/server/research/analytics";
+import { loadDashboard } from "../../src/server/research/dashboard";
 import { seedInstrumentDefinitions } from "../../src/server/study/instruments";
 import {
   TEST_URL,
@@ -279,5 +282,42 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     expect(attempts.rows).toEqual([{ session_id: s.sessionId, attempt: 1 }, { session_id: out.sessionId, attempt: 2 }]);
     const order = (await state(out.sessionId)).traditionOrder;
     expect(order).toEqual((await state(s.sessionId)).traditionOrder);
+  });
+
+  it("a reassigned participant is analysed once, in the arm of the session that replaced the abandoned one, and withdrawing withdraws both", async () => {
+    const study = await activeStudy({ steps: BASIC_STEPS, webglFailurePolicy: "reassign" }, BASIC);
+    const s = await allocatedTo(study, "immersive");
+    await completeOnboarding(t.pool, s.sessionId);
+    const out = await recordWalkthroughWebglFailure(t.pool, s.sessionId, { webglVersion: null, softwareRenderer: false }, { appBuild: BUILD });
+    expect(out.kind).toBe("reassigned");
+    if (out.kind !== "reassigned") return;
+    const conditionOf = async (sessionId: string) => (await one<{ c: string }>(t.pool, "SELECT condition_id AS c FROM study_sessions WHERE id = $1", [sessionId])).c;
+    const immersiveId = await conditionOf(s.sessionId);
+    const twoDId = await conditionOf(out.sessionId);
+    await t.pool.query(
+      `INSERT INTO derived_metrics (study_id, participant_id, session_id, condition_id, metric_name, metric_version, value, input_event_count, input_sha256, pipeline_version)
+       VALUES ($1, $2, $3, $4, 'time.exposure_total_ms', '1.0.0', 1000, 0, $5, 'test')`,
+      [study.id, s.participantId, s.sessionId, immersiveId, "a".repeat(64)],
+    );
+    await t.pool.query(
+      "INSERT INTO derived_scores (session_id, participant_id, assessment_id, metric_name, metric_version, value, pipeline_version) VALUES ($1, $2, $3, 'assessment.key_match_total', '1.0.0', 2, 'test')",
+      [s.sessionId, s.participantId, ids["fx-pre"]],
+    );
+    const preTotal = async () => (await outcomeDistributions(t.pool, study.id)).find((d) => d.metricName === "assessment.key_match_total (pretest fx-pre v1)");
+    expect(Object.keys((await preTotal())?.byCondition ?? {})).toEqual([twoDId]);
+    expect((await preTotal())!.byCondition[twoDId]).toEqual([2]);
+    expect(await behaviourDistributions(t.pool, study.id)).toEqual([]);
+    expect((await transitionMatrices(t.pool, study.id)).map((m) => m.conditionId)).toEqual([twoDId]);
+    const ownRows = async () => (await loadDashboard(t.pool, study.id))!.telemetry.sessions.filter((r) => r.sessionId === s.sessionId || r.sessionId === out.sessionId);
+    const dashboard = (await loadDashboard(t.pool, study.id))!;
+    expect((await ownRows()).map((r) => [r.sessionId, r.conditionId])).toEqual([[out.sessionId, twoDId]]);
+    expect(dashboard.knowledge.find((k) => k.label === "fx-pre v1 (pretest)")!.byCondition.find((c) => c.conditionId === immersiveId)?.stats.n ?? 0).toBe(0);
+
+    await withdraw(t.pool, { participantId: s.participantId, sessionId: out.sessionId, reason: "no_time" });
+    const flags = await t.pool.query<{ id: string; withdrawn: boolean }>("SELECT id, withdrawn FROM study_sessions WHERE participant_id = $1 ORDER BY period", [s.participantId]);
+    expect(flags.rows).toEqual([{ id: s.sessionId, withdrawn: true }, { id: out.sessionId, withdrawn: true }]);
+    expect(await preTotal()).toBeUndefined();
+    expect(await behaviourDistributions(t.pool, study.id, { includeExcluded: true })).toHaveLength(0);
+    expect(await ownRows()).toEqual([]);
   });
 });
