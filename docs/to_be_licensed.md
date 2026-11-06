@@ -103,7 +103,7 @@ Who to write to: vaimages@vam.ac.uk (shown on the object page; also the address 
 | public/walkthrough/models/wicker_basket_01 | stand-in tool or material model | Kuutti Siitonen | https://polyhaven.com/a/wicker_basket_01 |
 | public/walkthrough/models/wooden_crate_01 | stand-in tool or material model | James Ray Cock | https://polyhaven.com/a/wooden_crate_01 |
 | public/walkthrough/sky | sky and image-based light | Greg Zaal | https://polyhaven.com/a/kloofendal_43d_clear_puresky |
-| public/walkthrough/tex/raw_cotton/diff.jpg | raw cotton colour map, recoloured from the Rough Linen colour map (same 2048 by 2052 pixels, luminance correlation 0.988 at ff53fad) | colormass, Rico Cilliers | https://polyhaven.com/a/rough_linen |
+| public/walkthrough/tex/raw_cotton/diff.jpg | raw cotton colour map, recoloured from the Rough Linen colour map (same 2048 by 2052 pixels, luminance correlation 0.988 at 35b6473) | colormass, Rico Cilliers | https://polyhaven.com/a/rough_linen |
 | public/walkthrough/stills/objects/*.jpg | each material in its vessel, and each tool or vat, for Door 1 and the tests; file names are hashes so a test image does not name its answer | Rendered by this project from the CC0 scans listed in this manifest | tools/walkthrough-lab/render-stills.cjs |
 | public/walkthrough/stills/door1-first-panel.jpg | seen through Door 1 in the entrance stills; screenshot of the Door 1 practice panel, plain cotton only | Rendered by this project from the CC0 scans listed in this manifest | tools/walkthrough-lab/render-stills.cjs |
 | public/walkthrough/stills/entrance-closed.jpg | entrance with both doors shut | Rendered by this project from the CC0 scans listed in this manifest | tools/walkthrough-lab/render-stills.cjs |

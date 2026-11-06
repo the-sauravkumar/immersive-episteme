@@ -91,7 +91,7 @@
   },
   {
     "file": "public/walkthrough/tex/raw_cotton/diff.jpg",
-    "usedFor": "raw cotton colour map, recoloured from the Rough Linen colour map (same 2048 by 2052 pixels, luminance correlation 0.988 at ff53fad)",
+    "usedFor": "raw cotton colour map, recoloured from the Rough Linen colour map (same 2048 by 2052 pixels, luminance correlation 0.988 at 35b6473)",
     "holder": "colormass, Rico Cilliers",
     "sourcePage": "https://polyhaven.com/a/rough_linen",
     "directUrl": "https://polyhaven.com/a/rough_linen",
