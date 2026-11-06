@@ -9,7 +9,13 @@ export async function levelBitmapsOf(bitmap: ImageBitmap, filter: MipFilter, bui
   return Promise.all(build(pixels, bitmap.width, bitmap.height, filter).map((level) => createImageBitmap(new ImageData(level.pixels, level.width, level.height))));
 }
 
-const DECODER_SOURCE = `const build=(${filteredMips.toString()});const levelBitmapsOf=(${levelBitmapsOf.toString()});self.onmessage=async(event)=>{const{id,url,options,filter}=event.data;try{const response=await fetch(url);if(!response.ok)throw new Error(response.status+' '+url);const bitmap=await createImageBitmap(await response.blob(),options);const levels=filter?await levelBitmapsOf(bitmap,filter,build):[];self.postMessage({id,bitmap,levels},[bitmap,...levels]);}catch(error){self.postMessage({id,error:String(error)});}};`;
+export async function filteredDrawingOf(image: ImageData, filter: MipFilter, options: ImageBitmapOptions, build: typeof filteredMips): Promise<{ bitmap: ImageBitmap; levels: ImageBitmap[] }> {
+  const levels = build(image.data, image.width, image.height, filter);
+  const [bitmap, ...rest] = await Promise.all([image, ...levels.map((level) => new ImageData(level.pixels, level.width, level.height))].map((data) => createImageBitmap(data, options)));
+  return { bitmap: bitmap!, levels: rest };
+}
+
+const DECODER_SOURCE = `const build=(${filteredMips.toString()});const levelBitmapsOf=(${levelBitmapsOf.toString()});const filteredDrawingOf=(${filteredDrawingOf.toString()});self.onmessage=async(event)=>{const{id,url,image,options,filter}=event.data;try{if(image){const drawn=await filteredDrawingOf(image,filter,options,build);self.postMessage({id,...drawn},[drawn.bitmap,...drawn.levels]);return;}const response=await fetch(url);if(!response.ok)throw new Error(response.status+' '+url);const bitmap=await createImageBitmap(await response.blob(),options);const levels=filter?await levelBitmapsOf(bitmap,filter,build):[];self.postMessage({id,bitmap,levels},[bitmap,...levels]);}catch(error){self.postMessage({id,error:String(error)});}};`;
 
 export interface DecodedImage {
   readonly bitmap: ImageBitmap;
@@ -17,8 +23,7 @@ export interface DecodedImage {
 }
 
 interface Waiting {
-  readonly url: string;
-  readonly filter: MipFilter | null;
+  readonly here: () => Promise<DecodedImage>;
   readonly resolve: (decoded: DecodedImage) => void;
   readonly reject: (error: Error) => void;
 }
@@ -37,12 +42,20 @@ export class BitmapDecoder {
 
   decodeFiltered(path: string, filter: MipFilter | null): Promise<DecodedImage> {
     const url = new URL(path, location.href).href;
+    return this.inWorker({ url, filter }, () => this.decodeHere(url, filter));
+  }
+
+  filterDrawing(image: ImageData, filter: MipFilter): Promise<DecodedImage> {
+    return this.inWorker({ image, filter }, () => filteredDrawingOf(image, filter, this.options, filteredMips));
+  }
+
+  private inWorker(message: { readonly url?: string; readonly image?: ImageData; readonly filter: MipFilter | null }, here: () => Promise<DecodedImage>): Promise<DecodedImage> {
     const worker = this.running();
-    if (!worker) return this.decodeHere(url, filter);
+    if (!worker) return here();
     return new Promise<DecodedImage>((resolve, reject) => {
       const id = this.nextId++;
-      this.waiting.set(id, { url, filter, resolve, reject });
-      worker.postMessage({ id, url, options: this.options, filter });
+      this.waiting.set(id, { here, resolve, reject });
+      worker.postMessage({ id, ...message, options: this.options });
     });
   }
 
@@ -83,7 +96,7 @@ export class BitmapDecoder {
       this.broken = true;
       const stranded = [...this.waiting.values()];
       this.waiting.clear();
-      for (const { url, filter, resolve, reject } of stranded) this.decodeHere(url, filter).then(resolve, reject);
+      for (const { here, resolve, reject } of stranded) here().then(resolve, reject);
     };
     return this.worker;
   }

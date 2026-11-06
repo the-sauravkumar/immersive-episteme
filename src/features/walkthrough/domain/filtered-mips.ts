@@ -2,6 +2,7 @@ export interface MipFilter {
   readonly radius: number;
   readonly beta: number;
   readonly sharpen: number;
+  readonly coverage?: boolean;
 }
 
 export interface MipLevel {
@@ -71,6 +72,7 @@ export function filteredMips(pixels: Uint8ClampedArray, width: number, height: n
     const wide = new Float32Array(nw * h * 3);
     for (let y = 0; y < h; y++) {
       if (source) row.set(source.subarray(y * w * 3, (y + 1) * w * 3));
+      else if (filter.coverage) for (let x = 0, q = y * w * 4; x < w; x++, q += 4) row[x * 3] = row[x * 3 + 1] = row[x * 3 + 2] = pixels[q + 3]! / 255;
       else for (let x = 0, q = y * w * 4; x < w; x++, q += 4) {
         row[x * 3] = toLinear[pixels[q]!]!;
         row[x * 3 + 1] = toLinear[pixels[q + 1]!]!;
@@ -128,9 +130,10 @@ export function filteredMips(pixels: Uint8ClampedArray, width: number, height: n
         for (let c = 0; c < 3; c++) {
           const around = next[left * 3 + c]! + next[right * 3 + c]! + next[(above + x) * 3 + c]! + next[(below + x) * 3 + c]!;
           const value = Math.min(1, Math.max(0, next[out * 3 + c]! * (1 + filter.sharpen) - around * edge));
-          encoded[out * 4 + c] = toDisplay[Math.round(value * encodeSteps)]!;
+          encoded[out * 4 + c] = filter.coverage ? 255 : toDisplay[Math.round(value * encodeSteps)]!;
+          if (filter.coverage && c === 0) encoded[out * 4 + 3] = Math.round(value * 255);
         }
-        encoded[out * 4 + 3] = 255;
+        if (!filter.coverage) encoded[out * 4 + 3] = 255;
       }
     }
     levels.push({ width: nw, height: nh, pixels: encoded });

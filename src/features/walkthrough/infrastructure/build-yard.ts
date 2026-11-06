@@ -282,13 +282,13 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
 
   for (const [i, words] of plan.words.entries()) {
     await pacer.pace();
-    const painted = await paintWordsInTurn(pacer, group, words, words.maxWidth ?? null);
+    const painted = await paintWordsInTurn(kit.library, group, words, words.maxWidth ?? null);
     if (words.maxWidth) painted.mesh.position.y = words.at[1] - painted.height / 2;
     register(`paint ${i}`, "surface", painted.mesh);
   }
   for (const [i, words] of plan.curvedWords.entries()) {
     await pacer.pace();
-    register(`curved paint ${i}`, "surface", await paintCurvedInTurn(pacer, group, words));
+    register(`curved paint ${i}`, "surface", await paintCurvedInTurn(kit.library, group, words));
   }
 
   const work = plan.work;
@@ -460,7 +460,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
       blockedBy(object);
       fills.push(...held);
     });
-    if (placed.benchLabel) register(`bench paint ${itemIndex}`, "surface", (await paintWordsInTurn(pacer, group, placed.benchLabel)).mesh);
+    if (placed.benchLabel) register(`bench paint ${itemIndex}`, "surface", (await paintWordsInTurn(kit.library, group, placed.benchLabel)).mesh);
   }
 
   for (const textile of files.textiles ?? []) {
@@ -493,7 +493,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
     register(frameName(2), "pole", postB, [frameName(0)]);
     register(frameName(3), "frame", board);
     for (const part of [postA, postB, board]) blockedBy(part);
-    register(`textile paint ${textile.name} ${textile.x}`, "surface", (await paintWordsInTurn(pacer, group, textile.label)).mesh);
+    register(`textile paint ${textile.name} ${textile.x}`, "surface", (await paintWordsInTurn(kit.library, group, textile.label)).mesh);
   }
 
   const before = await clothMaterialFor(kit, files.clothBefore, false);
