@@ -11,7 +11,7 @@ import { dipInBath, type MaterialLibrary } from "./material-library";
 import { buildBrushAndKalam, buildCarvedBlock, buildCarvingChisels, buildWashingPaddle } from "./built-tools";
 import { buildPrintingTray } from "./built-tray";
 import { buildThrownVessel } from "./built-vessels";
-import { grainAlongHeight, paintCurved, paintWords, pole, softBox, softBoxGeometry } from "./solid-builders";
+import { grainAlongHeight, paintCurvedInTurn, paintWordsInTurn, pole, softBox, softBoxGeometry } from "./solid-builders";
 import { fillVessel, measureObject, trianglesOf } from "./substance-fill";
 import { liquidBodyColour } from "./substance-materials";
 import type { WorkPacer } from "./work-pacer";
@@ -257,19 +257,23 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
     await pacer.pace();
     pole(leanTo, [leanStart + i * 0.098, 3.18, shed.z + 0.03], [leanStart + i * 0.098, 2.48, shed.z + 2.3], 0.034, bamboo);
   }
-  for (const x of [leanStart, leanStart + 2.4]) blockedBy(pole(leanTo, [x, 0, shed.z + 2.2], [x, 2.5, shed.z + 2.2], 0.055, bamboo));
+  for (const x of [leanStart, leanStart + 2.4]) {
+    await pacer.pace();
+    blockedBy(pole(leanTo, [x, 0, shed.z + 2.2], [x, 2.5, shed.z + 2.2], 0.055, bamboo));
+  }
+  await pacer.pace();
   pole(leanTo, [leanStart - 0.1, 2.47, shed.z + 2.2], [leanStart + 2.5, 2.47, shed.z + 2.2], 0.045, bamboo);
   register("lean-to", "frame", leanTo, [...shedParts, "shed door planks"]);
 
   for (const [i, words] of plan.words.entries()) {
     await pacer.pace();
-    const painted = paintWords(group, words, words.maxWidth ?? null);
+    const painted = await paintWordsInTurn(pacer, group, words, words.maxWidth ?? null);
     if (words.maxWidth) painted.mesh.position.y = words.at[1] - painted.height / 2;
     register(`paint ${i}`, "surface", painted.mesh);
   }
   for (const [i, words] of plan.curvedWords.entries()) {
     await pacer.pace();
-    register(`curved paint ${i}`, "surface", paintCurved(group, words));
+    register(`curved paint ${i}`, "surface", await paintCurvedInTurn(pacer, group, words));
   }
 
   const work = plan.work;
@@ -291,6 +295,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
   };
   if (work.type === "ring") {
     const material = work.finish === "copper" ? await copperMaterial(kit.library) : await plasterMaterial(kit.library);
+    await pacer.yieldSlice();
     const ring = turnedRing(work, material);
     ring.position.set(CLOTH_LINE_X, 0, work.z);
     group.add(ring);
@@ -440,7 +445,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
       blockedBy(object);
       fills.push(...held);
     });
-    if (placed.benchLabel) register(`bench paint ${itemIndex}`, "surface", paintWords(group, placed.benchLabel).mesh);
+    if (placed.benchLabel) register(`bench paint ${itemIndex}`, "surface", (await paintWordsInTurn(pacer, group, placed.benchLabel)).mesh);
   }
 
   for (const textile of files.textiles ?? []) {
@@ -460,8 +465,11 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
     register(`textile ${textile.name} ${textile.x}`, "textile", sheet);
     blockedBy(sheet);
     const half = textile.width / 2 + 0.22;
+    await pacer.pace();
     const rail = pole(group, [textile.x - half, 4.47, textile.z], [textile.x + half, 4.47, textile.z], 0.045, bamboo);
+    await pacer.pace();
     const postA = pole(group, [textile.x - half, 0, textile.z], [textile.x - half, 4.72, textile.z], 0.06, bamboo);
+    await pacer.pace();
     const postB = pole(group, [textile.x + half, 0, textile.z], [textile.x + half, 4.72, textile.z], 0.06, bamboo);
     const board = softBox(group, [half * 2 - 0.14, 0.26, 0.04], timber, [textile.x, 0.56, textile.z + 0.075], { radius: 0.008, tile: [1.8, 1.8] });
     const frameName = (part: number) => `frame ${textile.x} ${textile.z} ${part}`;
@@ -470,7 +478,7 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
     register(frameName(2), "pole", postB, [frameName(0)]);
     register(frameName(3), "frame", board);
     for (const part of [postA, postB, board]) blockedBy(part);
-    register(`textile paint ${textile.name} ${textile.x}`, "surface", paintWords(group, textile.label).mesh);
+    register(`textile paint ${textile.name} ${textile.x}`, "surface", (await paintWordsInTurn(pacer, group, textile.label)).mesh);
   }
 
   const before = await clothMaterialFor(kit, files.clothBefore, false);

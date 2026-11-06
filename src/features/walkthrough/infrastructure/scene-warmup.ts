@@ -7,6 +7,8 @@ const STRIP_ROWS = 128;
 const WARM_TARGET_SIZE = 64;
 const FIRST_DRAW_BATCH = 4;
 const LARGEST_DRAW_BATCH = 64;
+const UPLOAD_BYTES_PER_SLICE = 4 * 1024 * 1024;
+const CARRIERS_PER_SLICE = 96;
 
 type Drawn = THREE.Mesh | THREE.Points | THREE.Line;
 
@@ -67,9 +69,12 @@ function shadowLikeTarget(): THREE.WebGLRenderTarget {
 
 export class SceneWarmup {
   private readonly uploaded = new WeakSet<THREE.Texture>();
-  private readonly shadowStandIns = new Map<THREE.Object3D, THREE.Material[]>();
+  private readonly shadowStandIns = new Map<THREE.Object3D, { readonly materials: THREE.Material[]; readonly instanced: THREE.InstancedMesh[] }>();
   private readonly target = new THREE.WebGLRenderTarget(WARM_TARGET_SIZE, WARM_TARGET_SIZE, MAIN_TARGET_OPTIONS);
   private readonly shadowTarget = shadowLikeTarget();
+  private readonly sentBuffers = new WeakSet<THREE.BufferAttribute>();
+  private readonly carrierScene = new THREE.Scene();
+  private readonly carrierMaterial = new THREE.MeshBasicMaterial();
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
@@ -82,6 +87,8 @@ export class SceneWarmup {
   async ready(group: THREE.Object3D): Promise<void> {
     await this.uploadTextures(group);
     if (this.cancelled()) return;
+    await this.uploadBuffers(group);
+    if (this.cancelled()) return;
     const standIns = this.shadowStandInsOf(group);
     await this.compilePrograms(group, standIns);
     if (this.cancelled()) return;
@@ -91,7 +98,10 @@ export class SceneWarmup {
   }
 
   release(group: THREE.Object3D): void {
-    for (const material of this.shadowStandIns.get(group) ?? []) material.dispose();
+    const standIns = this.shadowStandIns.get(group);
+    if (!standIns) return;
+    for (const material of standIns.materials) material.dispose();
+    for (const standIn of standIns.instanced) standIn.dispose();
     this.shadowStandIns.delete(group);
   }
 
@@ -147,18 +157,64 @@ export class SceneWarmup {
     }
   }
 
+  private async uploadBuffers(group: THREE.Object3D): Promise<void> {
+    const geometries = new Set<THREE.BufferGeometry>();
+    for (const node of this.drawnIn(group)) geometries.add(node.geometry);
+    let sliceBytes = 0;
+    for (const geometry of geometries) {
+      const carriers: THREE.BufferGeometry[] = [];
+      for (const buffer of [geometry.index, ...Object.values(geometry.attributes)]) {
+        if (!(buffer instanceof THREE.BufferAttribute) || this.sentBuffers.has(buffer)) continue;
+        const bytes = buffer.array.byteLength;
+        if (this.carrierScene.children.length >= CARRIERS_PER_SLICE || (sliceBytes > 0 && sliceBytes + bytes > UPLOAD_BYTES_PER_SLICE)) {
+          this.send();
+          sliceBytes = 0;
+          await this.pacer.yieldSlice();
+          if (this.cancelled()) return;
+        }
+        this.sentBuffers.add(buffer);
+        sliceBytes += bytes;
+        const carrier = new THREE.BufferGeometry();
+        if (buffer === geometry.index) carrier.setIndex(buffer);
+        else carrier.setAttribute("carried", buffer);
+        carrier.setDrawRange(0, 0);
+        const mesh = new THREE.Mesh(carrier, this.carrierMaterial);
+        mesh.frustumCulled = false;
+        this.carrierScene.add(mesh);
+        carriers.push(carrier);
+      }
+      if (carriers.length > 0) geometry.addEventListener("dispose", () => carriers.forEach((carrier) => carrier.dispose()));
+    }
+    this.send();
+  }
+
+  private send(): void {
+    if (this.carrierScene.children.length === 0) return;
+    const shadowsDue = this.renderer.shadowMap.needsUpdate;
+    this.renderer.shadowMap.needsUpdate = false;
+    const restore = this.renderer.getRenderTarget();
+    this.renderer.setRenderTarget(this.target);
+    this.renderer.render(this.carrierScene, this.camera);
+    this.renderer.setRenderTarget(restore);
+    this.renderer.shadowMap.needsUpdate = shadowsDue;
+    this.carrierScene.clear();
+  }
+
   private shadowStandInsOf(group: THREE.Object3D): THREE.Group {
     const standIns = new THREE.Group();
-    const depthMaterials: THREE.Material[] = [];
+    const materials: THREE.Material[] = [];
+    const instanced: THREE.InstancedMesh[] = [];
     for (const node of this.drawnIn(group)) {
       if (!(node instanceof THREE.Mesh) || !node.castShadow) continue;
       for (const material of materialsOf(node)) {
         const depth = node.customDepthMaterial ?? shadowDepthOf(material);
-        if (!node.customDepthMaterial) depthMaterials.push(depth);
-        standIns.add(shadowStandIn(node, depth));
+        if (!node.customDepthMaterial) materials.push(depth);
+        const standIn = shadowStandIn(node, depth);
+        if (standIn instanceof THREE.InstancedMesh) instanced.push(standIn);
+        standIns.add(standIn);
       }
     }
-    this.shadowStandIns.set(group, depthMaterials);
+    this.shadowStandIns.set(group, { materials, instanced });
     return standIns;
   }
 
