@@ -69,6 +69,7 @@ function shadowLikeTarget(): THREE.WebGLRenderTarget {
 
 export class SceneWarmup {
   private readonly uploaded = new WeakSet<THREE.Texture>();
+  private readonly released = new WeakSet<THREE.Source>();
   private readonly shadowStandIns = new Map<THREE.Object3D, { readonly materials: THREE.Material[]; readonly instanced: THREE.InstancedMesh[] }>();
   private readonly target = new THREE.WebGLRenderTarget(WARM_TARGET_SIZE, WARM_TARGET_SIZE, MAIN_TARGET_OPTIONS);
   private readonly shadowTarget = shadowLikeTarget();
@@ -128,33 +129,60 @@ export class SceneWarmup {
       this.uploaded.add(texture);
       await this.gap();
       if (this.cancelled()) return;
-      if (this.pacer.walking && stripsFit(texture)) await this.uploadInStrips(texture);
-      else this.renderer.initTexture(texture);
+      if (!stripsFit(texture)) this.renderer.initTexture(texture);
+      else if (!this.allocatedAnew(texture)) continue;
+      else if (this.pacer.walking ? await this.uploadInStrips(texture) : this.uploadWhole(texture)) this.releasePixels(texture);
     }
   }
 
-  private async uploadInStrips(texture: THREE.Texture): Promise<void> {
-    const { width, height } = texture.image as { width: number; height: number };
-    const mipmapped = texture.generateMipmaps;
+  private allocatedAnew(texture: THREE.Texture): boolean {
+    const before = this.renderer.info.memory.textures;
+    const ready = texture.source.dataReady;
     texture.source.dataReady = false;
     this.renderer.initTexture(texture);
-    texture.source.dataReady = true;
+    texture.source.dataReady = ready;
+    const anew = this.renderer.info.memory.textures > before;
+    if (anew && this.released.has(texture.source)) throw new Error(`The pixels of texture "${texture.name}" were released after upload, and a second sampler state now needs them`);
+    return anew;
+  }
+
+  private uploadWhole(texture: THREE.Texture): boolean {
+    this.renderer.copyTextureToTexture(new THREE.Texture(texture.image), texture);
+    return true;
+  }
+
+  private releasePixels(texture: THREE.Texture): void {
+    const image: unknown = texture.image;
+    texture.source.dataReady = false;
+    this.released.add(texture.source);
+    if (typeof ImageBitmap !== "undefined" && image instanceof ImageBitmap) image.close();
+    else if (typeof HTMLCanvasElement !== "undefined" && image instanceof HTMLCanvasElement) {
+      image.width = 1;
+      image.height = 1;
+    }
+  }
+
+  private async uploadInStrips(texture: THREE.Texture): Promise<boolean> {
+    const { width, height } = texture.image as { width: number; height: number };
+    const mipmapped = texture.generateMipmaps;
     texture.generateMipmaps = false;
+    const pixels = new THREE.Texture(texture.image);
     const region = new THREE.Box2();
     const at = new THREE.Vector2();
     for (let top = 0; top < height; top += STRIP_ROWS) {
       if (top > 0) await this.pacer.yieldSlice();
       if (this.cancelled()) {
         texture.generateMipmaps = mipmapped;
-        return;
+        return false;
       }
       const bottom = Math.min(height, top + STRIP_ROWS);
       if (bottom === height) texture.generateMipmaps = mipmapped;
       region.min.set(0, top);
       region.max.set(width, bottom);
       at.set(0, top);
-      this.renderer.copyTextureToTexture(texture, texture, region, at);
+      this.renderer.copyTextureToTexture(pixels, texture, region, at);
     }
+    return true;
   }
 
   private async uploadBuffers(group: THREE.Object3D): Promise<void> {

@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { storeColourTexturesMutably } from "./mutable-colour-storage";
 
 export const CAMERA_NEAR_METRES = 0.15;
 
@@ -65,6 +66,7 @@ export function createRenderView(renderer: THREE.WebGLRenderer, scene: THREE.Sce
 
 export function createRenderer(canvasHost: HTMLElement, width: number, height: number): THREE.WebGLRenderer {
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: true });
+  storeColourTexturesMutably(renderer.getContext() as WebGL2RenderingContext);
   renderer.setPixelRatio(1);
   renderer.setSize(width, height);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
