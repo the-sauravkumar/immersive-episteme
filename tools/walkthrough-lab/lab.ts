@@ -320,36 +320,64 @@ win.walkCheck = () => {
   }
   return { reachedEnd: target === null, seconds: +time.toFixed(1), metres: +walker.walked.toFixed(1), stuckAt: target ? [+walker.x.toFixed(2), +walker.z.toFixed(2)] : null };
 };
-const pixelsWithin = (frame: Uint8Array, mask: Uint8Array) => {
-  const rows: [number, number, number, number][] = [];
+const SEEN_THROUGH_LOOK = /^(liquid|liquid body) /;
+const displayToLinear = (value: number) => (value / 255 <= 0.04045 ? value / 255 / 12.92 : ((value / 255 + 0.055) / 1.055) ** 2.4);
+const linearToDisplay = (value: number) => Math.round(255 * (value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055));
+const pixelsWithin = (frame: Uint8Array, mask: Uint8Array, width: number, beneath: Uint8Array | null, tint: readonly number[]) => {
+  const rows: number[][] = [];
+  const inside = (i: number) => (mask[i] ?? 0) >= 128;
   for (let i = 0; i < mask.length; i += 4) {
-    if (mask[i]! < 128) continue;
+    if (!inside(i) || !inside(i - 4) || !inside(i + 4) || !inside(i - width * 4) || !inside(i + width * 4)) continue;
     const [r, g, b] = [frame[i]!, frame[i + 1]!, frame[i + 2]!];
-    rows.push([r, g, b, r * 0.2126 + g * 0.7152 + b * 0.0722]);
+    const through = beneath ? [0, 1, 2].map((channel) => linearToDisplay(displayToLinear(beneath[i + channel]!) * tint[channel]!)) : [r, g, b];
+    rows.push([r, g, b, r * 0.2126 + g * 0.7152 + b * 0.0722, ...through]);
   }
-  return rows.sort((p, q) => p[3] - q[3]);
+  return rows.sort((p, q) => p[3]! - q[3]!);
 };
-win.colourOfLook = (key: string, centre: readonly number[], target: readonly number[], fov: number) => {
+const frameNow = (width: number, height: number) => {
+  output.render();
+  const frame = new Uint8Array(width * height * 4);
+  gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, frame);
+  return frame;
+};
+const frameWithout = (key: string, width: number, height: number) => {
+  const hidden: THREE.Mesh[] = [];
+  scene.traverse((node) => {
+    if (!(node instanceof THREE.Mesh) || !node.visible) return;
+    const label = ((node.material as THREE.Material).userData.surface as { label?: string } | undefined)?.label ?? "";
+    if (SEEN_THROUGH_LOOK.test(label) && label.endsWith(` ${key}`)) hidden.push(node);
+  });
+  for (const mesh of hidden) mesh.visible = false;
+  const frame = frameNow(width, height);
+  for (const mesh of hidden) mesh.visible = true;
+  return frame;
+};
+win.colourOfLook = (key: string, centre: readonly number[], target: readonly number[], fov: number, tintHex: string | null = null) => {
   camera.fov = fov;
   camera.updateProjectionMatrix();
   camera.position.set(centre[0]!, centre[1]!, centre[2]!);
   camera.lookAt(target[0]!, target[1]!, target[2]!);
   camera.updateMatrixWorld();
-  output.render();
   const width = renderer.domElement.width;
   const height = renderer.domElement.height;
-  const frame = new Uint8Array(width * height * 4);
-  gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, frame);
-  const white = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const black = new THREE.MeshBasicMaterial({ color: 0x000000 });
+  const frame = frameNow(width, height);
+  const beneath = tintHex ? frameWithout(key, width, height) : null;
+  const tint = tintHex ? [1, 3, 5].map((at) => displayToLinear(parseInt(tintHex.slice(at, at + 2), 16))) : [1, 1, 1];
+  const flat = new Map<string, THREE.MeshBasicMaterial>();
+  const flatOf = (colour: number, side: THREE.Side) => {
+    const name = `${colour}:${side}`;
+    if (!flat.has(name)) flat.set(name, new THREE.MeshBasicMaterial({ color: colour, side, fog: false }));
+    return flat.get(name)!;
+  };
   const originals = new Map<THREE.Mesh, THREE.Material>();
   const looksLike = new RegExp(`^(substance|liquid|crystals) ${key}$`);
+  const smearedOnWall = (material: THREE.Material, label: string) => label.startsWith("substance ") && material.transparent && !material.depthWrite;
   scene.traverse((node) => {
     if (!(node instanceof THREE.Mesh)) return;
     const material = node.material as THREE.Material;
     originals.set(node, material);
     const label = (material.userData.surface as { label?: string } | undefined)?.label ?? "";
-    node.material = looksLike.test(label) ? white : black;
+    node.material = flatOf(looksLike.test(label) && !smearedOnWall(material, label) ? 0xffffff : 0x000000, material.side ?? THREE.FrontSide);
   });
   const target2 = new THREE.WebGLRenderTarget(width, height, { type: THREE.UnsignedByteType, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
   const background = scene.background;
@@ -363,19 +391,19 @@ win.colourOfLook = (key: string, centre: readonly number[], target: readonly num
   scene.background = background;
   for (const [mesh, material] of originals) mesh.material = material;
   target2.dispose();
-  white.dispose();
-  black.dispose();
-  const rows = pixelsWithin(frame, mask);
-  if (rows.length === 0) return { pixels: 0, shaded: null, middle: null, lit: null };
-  const at = (share: number) => {
+  for (const material of flat.values()) material.dispose();
+  const rows = pixelsWithin(frame, mask, width, beneath, tint);
+  if (rows.length === 0) return { pixels: 0, shaded: null, middle: null, lit: null, through: null };
+  const at = (share: number, first: number) => {
     const from = Math.floor(rows.length * Math.max(0, share - 0.05));
     const to = Math.max(from + 1, Math.floor(rows.length * Math.min(1, share + 0.05)));
     const picked = rows.slice(from, to);
-    return [0, 1, 2].map((channel) => Math.round(picked.reduce((sum, row) => sum + row[channel]!, 0) / picked.length));
+    return [0, 1, 2].map((channel) => Math.round(picked.reduce((sum, row) => sum + row[first + channel]!, 0) / picked.length));
   };
-  return { pixels: rows.length, shaded: at(0.2), middle: at(0.5), lit: at(0.8) };
+  const through = beneath ? { shaded: at(0.2, 4), middle: at(0.5, 4), lit: at(0.8, 4) } : null;
+  return { pixels: rows.length, shaded: at(0.2, 0), middle: at(0.5, 0), lit: at(0.8, 0), through };
 };
-win.colourOfStill = (key: string) => (win.colourOfLook as (key: string, centre: readonly number[], target: readonly number[], fov: number) => unknown)(key, view.from, view.to, STILL_FOV_DEGREES);
+win.colourOfStill = (key: string, tintHex: string | null = null) => (win.colourOfLook as (key: string, centre: readonly number[], target: readonly number[], fov: number, tintHex: string | null) => unknown)(key, view.from, view.to, STILL_FOV_DEGREES, tintHex);
 win.moveCamera = (from: readonly number[], to: readonly number[], fov = 55) => {
   camera.fov = fov;
   camera.updateProjectionMatrix();
@@ -397,6 +425,7 @@ win.stageContents = () => {
   const work = walkPlan.work;
   return {
     side: walkPlan.side,
+    standpoint: walkPlan.standpoint,
     vessels: walkPlan.items.flatMap((placed) => placed.looks.map((look, i) => ({ look, ...centreOf(`item ${placed.item.key} ${i}`) }))),
     tools: walkPlan.items.filter((placed) => placed.looks.length === 0).map((placed) => ({ modelId: placed.item.modelId, ...centreOf(`item ${placed.item.key} 0`) })),
     liquid: walkPlan.workLiquid && (work.type === "ring" || work.type === "tank") ? { look: walkPlan.workLiquid, x: CLOTH_LINE_X, y: work.level, z: work.z, reach: work.type === "ring" ? work.radius : work.halfX } : null,
