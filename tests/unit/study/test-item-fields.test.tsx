@@ -75,13 +75,20 @@ describe("learning cap", () => {
     expect(capTimings("2026-11-04T10:30:00.000Z", "2026-11-04T10:00:00.000Z", 5)).toEqual({ untilWarningMs: 25 * 60_000, untilCapMs: 30 * 60_000 });
   });
 
-  it("renders the door with no warning before its time", () => {
-    render(
+  it("renders the door with no warning before its time, and a cap past the timer maximum raises no Node warning", async () => {
+    const warnings: string[] = [];
+    const listen = (w: Error) => warnings.push(w.name);
+    process.on("warning", listen);
+    const { unmount } = render(
       <LearningSessionFrame endsAt="2099-01-01T00:00:00.000Z" serverNow="2026-11-04T10:00:00.000Z" warningMinutes={5}>
         <p>Door</p>
       </LearningSessionFrame>,
     );
+    await new Promise((r) => setImmediate(r));
     expect(screen.getByText("Door")).toBeTruthy();
     expect(screen.getByRole("status").textContent).toBe("");
+    unmount();
+    process.off("warning", listen);
+    expect(warnings).toEqual([]);
   });
 });

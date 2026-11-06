@@ -121,9 +121,14 @@ test("a signed-in account without a role waits at /awaiting-access until an admi
   await admin.getByRole("menuitem", { name: "Add a role…" }).click();
   const dialog = admin.getByRole("dialog", { name: "Add a role" });
   await dialog.getByLabel("Role").selectOption({ label: "Researcher" });
+  const status = admin.getByRole("status").filter({ hasText: WAITING });
+  await expect(admin.getByRole("status").filter({ hasText: "role granted" })).toHaveCount(0);
   await dialog.getByRole("button", { name: "Add role" }).click();
   await expect(admin.getByRole("row").filter({ hasText: WAITING })).toHaveCount(0);
   await expect(admin.getByText("No accounts match these filters.")).toBeVisible();
+  await expect(status).toHaveText(`E2E Waiting (${WAITING}): Researcher role granted.`);
+  await expect(status).toBeVisible();
+  await expect(status).toHaveAttribute("aria-live", "polite");
   await admin.goto(`/admin/users?q=${encodeURIComponent(WAITING)}`);
   const granted = admin.getByRole("row").filter({ hasText: WAITING });
   await expect(granted.getByText("Active", { exact: true })).toBeVisible();
