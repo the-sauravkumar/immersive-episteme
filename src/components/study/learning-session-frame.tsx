@@ -5,6 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { bindLearningTelemetry, closeOpenStop, finishLearning, unbindLearningTelemetry } from "@/features/study/learning-progress";
 import { useOptionalTelemetry } from "@/features/telemetry/client";
+import { setLongTimeout } from "@/lib/timers/long-timeout";
 
 export function capTimings(endsAt: string, serverNow: string, warningMinutes: number): { untilWarningMs: number; untilCapMs: number } {
   const untilCapMs = Date.parse(endsAt) - Date.parse(serverNow);
@@ -39,14 +40,14 @@ export function LearningSessionFrame({ endsAt, serverNow, warningMinutes, childr
   useEffect(() => {
     if (!endsAt) return;
     const { untilWarningMs, untilCapMs } = capTimings(endsAt, serverNow, warningMinutes);
-    const warning = setTimeout(() => setWarned(true), Math.max(0, untilWarningMs));
-    const cap = setTimeout(() => {
+    const cancelWarning = setLongTimeout(() => setWarned(true), untilWarningMs);
+    const cancelCap = setLongTimeout(() => {
       closeOpenStop();
       void finishLearning().finally(() => router.replace("/study/session"));
-    }, Math.max(0, untilCapMs));
+    }, untilCapMs);
     return () => {
-      clearTimeout(warning);
-      clearTimeout(cap);
+      cancelWarning();
+      cancelCap();
     };
   }, [endsAt, serverNow, warningMinutes, router]);
 
