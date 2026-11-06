@@ -117,6 +117,7 @@ function surfaceOf(work: RingWork | TankWork): THREE.BufferGeometry {
 }
 
 export async function addWorkLiquid(library: MaterialLibrary, parent: THREE.Object3D, work: RingWork | TankWork, look: SubstanceLook): Promise<Float32Array> {
+  await library.pacer.yieldSlice();
   const geometry = surfaceOf(work);
   const surface = new THREE.Mesh(geometry, await liquidMaterial(library, look));
   surface.position.y = work.level;
