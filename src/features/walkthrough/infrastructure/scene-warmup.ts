@@ -69,7 +69,7 @@ function shadowLikeTarget(): THREE.WebGLRenderTarget {
 
 export class SceneWarmup {
   private readonly uploaded = new WeakSet<THREE.Texture>();
-  private readonly released = new WeakSet<THREE.Source>();
+  private readonly released = new WeakSet<THREE.TextureSource<unknown>>();
   private readonly shadowStandIns = new Map<THREE.Object3D, { readonly materials: THREE.Material[]; readonly instanced: THREE.InstancedMesh[] }>();
   private readonly target = new THREE.WebGLRenderTarget(WARM_TARGET_SIZE, WARM_TARGET_SIZE, MAIN_TARGET_OPTIONS);
   private readonly shadowTarget = shadowLikeTarget();
