@@ -306,7 +306,7 @@ if (args["skip-source"]) {
   // The region row is in the env section (topology), next to the database it depends on.
   report.add("source", "vercel.json npm ci", vj?.installCommand === "npm ci" ? "PASS" : "FAIL", vj ? `install=${vj.installCommand}` : "missing or invalid");
   report.add("source", "vercel.json build runs the gate", /^node scripts\/deploy\/invite-gate\.ts --if-production && /.test(vj?.buildCommand ?? "") ? "PASS" : "FAIL", `buildCommand=${vj?.buildCommand ?? "(none)"} (guards Git and CLI builds)`);
-  report.add("source", "vercel.json invite guard", /invite/i.test(vj?.ignoreCommand ?? "") && /VERCEL_ENV/.test(vj?.ignoreCommand ?? "") ? "PASS" : "FAIL", "ignoreCommand cancels production builds until src/proxy.ts has the invite gate");
+  report.add("source", "vercel.json invite guard", /invite-gate.ts --ignore-step/.test(vj?.ignoreCommand ?? "") && (vj?.ignoreCommand ?? "").length <= 256 ? "PASS" : "FAIL", "ignoreCommand cancels production builds until src/proxy.ts has the invite gate");
   report.add("source", "lockfile tracked", git("ls-files", "--error-unmatch", "package-lock.json") !== null ? "PASS" : "FAIL", "npm ci needs package-lock.json in git");
   const dirty = git("status", "--porcelain");
   report.add("source", "working tree clean", dirty === "" ? "PASS" : "WARN", dirty ? `${dirty.split("\n").length} changed path(s): Git deploys build the pushed commit only` : `HEAD ${head}`);

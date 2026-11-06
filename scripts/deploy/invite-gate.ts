@@ -48,9 +48,15 @@ export function inviteGateProblems(repoRoot: string): string[] {
 const isMain = process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
   const onlyProduction = process.argv.includes("--if-production");
+  const ignoreStep = process.argv.includes("--ignore-step");
   const repo = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
   const problems = inviteGateProblems(repo);
   const enforce = !onlyProduction || process.env.VERCEL_ENV === "production";
+  if (ignoreStep) {
+    const cancel = process.env.VERCEL_ENV === "production" && problems.length > 0;
+    console.log(cancel ? `[invite-gate] Production build CANCELED: the invite-only gate (S11) is not in place: ${problems.join("; ")}` : "[invite-gate] build may proceed");
+    process.exit(cancel ? 0 : 1);
+  }
   if (problems.length === 0) {
     console.log("[invite-gate] in place");
   } else if (enforce) {
