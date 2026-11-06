@@ -7,6 +7,9 @@ const base = "http://127.0.0.1:" + (process.env.LAB_PORT || 8940) + "/?";
 const TRADITIONS = ["ajrakh", "sanganeri", "kalamkari"];
 const WIDTH = onlyColour ? 1280 : 3840;
 const HEIGHT = onlyColour ? 720 : 2160;
+const STANDPOINT_FOV = 55;
+const REACH_FOV = 55;
+const FEWEST_PIXELS = 200;
 
 const linear = (v) => (v / 255 <= 0.04045 ? v / 255 / 12.92 : ((v / 255 + 0.055) / 1.055) ** 2.4);
 function lab([r, g, b]) {
@@ -22,12 +25,18 @@ const delta = (a, b) => {
   return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
 };
 const parseHex = (hex) => [parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16)];
+const hexOf = (rgb) => "#" + rgb.map((value) => value.toString(16).padStart(2, "0").toUpperCase()).join("");
 
-const rowOf = (stage, key, form, look, seen) => {
-  const target = parseHex(look.renderHex);
-  const figure = (colour) => (colour ? +delta(colour, target).toFixed(1) : null);
-  return { stage, key, form, transparency: look.transparency, basis: look.renderBasis, status: look.status, renderHex: look.renderHex, pixels: seen.pixels, shaded: seen.shaded, middle: seen.middle, lit: seen.lit, deltaEMiddle: figure(seen.middle), deltaELit: figure(seen.lit) };
+const seenThrough = (look) => look.transparency === "clear" && (look.fill === "liquid" || look.fill === "paste");
+
+const figureOf = (seen, look) => {
+  if (!seen || seen.pixels < FEWEST_PIXELS) return { pixels: seen ? seen.pixels : 0 };
+  const wanted = (tenth) => (seen.through ? seen.through[tenth] : parseHex(look.renderHex));
+  const deltaE = (tenth) => +delta(seen[tenth], wanted(tenth)).toFixed(1);
+  return { pixels: seen.pixels, middle: hexOf(seen.middle), lit: hexOf(seen.lit), target: seen.through ? hexOf(seen.through.middle) : look.renderHex, deltaEMiddle: deltaE("middle"), deltaELit: deltaE("lit") };
 };
+
+const rowOf = (stage, look, form, reach, standpoint) => ({ stage, key: look.key, form, transparency: look.transparency, basis: look.renderBasis, status: look.status, renderHex: look.renderHex, target: seenThrough(look) ? "seen through" : "renderHex", reach: figureOf(reach, look), standpoint: figureOf(standpoint, look) });
 
 (async () => {
   fs.mkdirSync(out, { recursive: true });
@@ -48,38 +57,38 @@ const rowOf = (stage, key, form, look, seen) => {
       }
       await page.waitForFunction("window.READY===true");
       const stage = await page.evaluate("window.stageContents()");
+      const measure = (look, from, to, fov) => page.evaluate(`window.colourOfLook(${JSON.stringify(look.key)},${JSON.stringify(from)},${JSON.stringify(to)},${fov},${seenThrough(look) ? JSON.stringify(look.renderHex) : "null"})`);
+      const fromStandpoint = (look) => measure(look, stage.standpoint.from, stage.standpoint.to, STANDPOINT_FOV);
+      const shots = [];
       for (const vessel of stage.vessels) {
-        const [cx, cy, cz] = vessel.centre;
+        const [cx, , cz] = vessel.centre;
         const top = vessel.top;
-        const name = `${tag}-${vessel.look.key}`;
         const near = [cx + stage.side * 0.42, top + 0.42, cz + 0.08];
-        const seen = await page.evaluate(`window.colourOfLook(${JSON.stringify(vessel.look.key)},${JSON.stringify([cx + 0.012, top + 0.55, cz + 0.012])},${JSON.stringify([cx, top, cz])},24)`);
-        const row = rowOf(tag, vessel.look.key, vessel.look.fill, vessel.look, seen);
+        const aim = [cx, top - 0.02, cz];
+        const row = rowOf(tag, vessel.look, vessel.look.fill, await measure(vessel.look, near, aim, REACH_FOV), await fromStandpoint(vessel.look));
         rows.push(row);
         console.log(JSON.stringify(row));
-        if (!onlyColour) {
-          await page.evaluate(`window.moveCamera(${JSON.stringify(near)},${JSON.stringify([cx, top - 0.02, cz])},55)`);
-          await page.screenshot({ path: `${out}/${name}.jpg`, type: "jpeg", quality: 90 });
-        }
+        shots.push({ name: `${tag}-${vessel.look.key}`, near, aim });
       }
       if (stage.liquid) {
-        const name = `${tag}-${stage.liquid.look.key}`;
         const { x, y, z, reach } = stage.liquid;
-        const sampleX = 3 + (reach - 0.14);
-        const seen = await page.evaluate(`window.colourOfLook(${JSON.stringify(stage.liquid.look.key)},${JSON.stringify([sampleX + 0.02, y + 1.2, z])},${JSON.stringify([sampleX, y, z])},20)`);
-        const row = rowOf(tag, stage.liquid.look.key, "liquid-work", stage.liquid.look, seen);
+        const near = [x - stage.side * (reach + 0.42), 1.28, z + 0.75];
+        const aim = [x - stage.side * (reach - 0.55), y, z + 0.1];
+        const row = rowOf(tag, stage.liquid.look, "liquid-work", await measure(stage.liquid.look, near, aim, REACH_FOV), await fromStandpoint(stage.liquid.look));
         rows.push(row);
         console.log(JSON.stringify(row));
-        if (!onlyColour) {
-          await page.evaluate(`window.moveCamera(${JSON.stringify([x - stage.side * (reach + 0.42), 1.28, z + 0.75])},${JSON.stringify([x - stage.side * (reach - 0.55), y, z + 0.1])},55)`);
-          await page.screenshot({ path: `${out}/${name}.jpg`, type: "jpeg", quality: 90 });
-        }
+        shots.push({ name: `${tag}-${stage.liquid.look.key}`, near, aim });
       }
-      for (const tool of stage.tools) {
-        if (onlyColour) continue;
-        const [cx, , cz] = tool.centre;
-        await page.evaluate(`window.moveCamera(${JSON.stringify([cx + stage.side * 0.38, tool.top + 0.36, cz + 0.12])},${JSON.stringify([cx, tool.top - 0.02, cz])},55)`);
-        await page.screenshot({ path: `${out}/${tag}-tool-${tool.modelId}.jpg`, type: "jpeg", quality: 90 });
+      if (!onlyColour) {
+        for (const shot of shots) {
+          await page.evaluate(`window.moveCamera(${JSON.stringify(shot.near)},${JSON.stringify(shot.aim)},${REACH_FOV})`);
+          await page.screenshot({ path: `${out}/${shot.name}.jpg`, type: "jpeg", quality: 90 });
+        }
+        for (const tool of stage.tools) {
+          const [cx, , cz] = tool.centre;
+          await page.evaluate(`window.moveCamera(${JSON.stringify([cx + stage.side * 0.38, tool.top + 0.36, cz + 0.12])},${JSON.stringify([cx, tool.top - 0.02, cz])},55)`);
+          await page.screenshot({ path: `${out}/${tag}-tool-${tool.modelId}.jpg`, type: "jpeg", quality: 90 });
+        }
       }
       await page.close();
     }
