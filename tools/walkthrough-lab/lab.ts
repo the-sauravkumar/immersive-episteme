@@ -300,6 +300,23 @@ win.flicker = async (frames = 60, threshold = 10, mode = "pan") => {
   context.putImageData(image, 0, 0);
   return { mode, anyPct: +((any / count) * 100).toFixed(3), fourPlusPct: +((four / count) * 100).toFixed(3), events, heat: heat.toDataURL("image/png") };
 };
+win.shimmerByObject = async (frames = 60, threshold = 10) => {
+  const panShimmer = async () => ((await (win.flicker as (f: number, t: number, m: string) => Promise<{ fourPlusPct: number }>)(frames, threshold, "pan")).fourPlusPct);
+  const whole = await panShimmer();
+  const groups = [
+    ...(auditRoot ? objectParts(auditRoot).map((part) => ({ label: `${part.auditName} / ${part.label}`, meshes: part.meshes as THREE.Object3D[] })) : []),
+    ...environmentOf().map((mesh) => ({ label: `environment / ${mesh.name || (mesh as THREE.Mesh).geometry.type}`, meshes: [mesh] })),
+  ];
+  const rows: { label: string; share: number }[] = [];
+  for (const group of groups) {
+    const shown = group.meshes.map((mesh) => mesh.visible);
+    for (const mesh of group.meshes) mesh.visible = false;
+    const without = await panShimmer();
+    group.meshes.forEach((mesh, index) => (mesh.visible = shown[index]!));
+    rows.push({ label: group.label, share: +(whole - without).toFixed(3) });
+  }
+  return { whole, rows: rows.sort((a, b) => b.share - a.share) };
+};
 win.walkCheck = () => {
   if (!walkPlan || !walkColliders) return null;
   let walker: Walker = walkerAt(walkPlan.standpoint.from, walkPlan.standpoint.to, 0);
