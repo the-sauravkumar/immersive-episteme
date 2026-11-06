@@ -14,7 +14,7 @@
  *    longer exists), and a polite live region announces the result.
  */
 import { ChevronDown, CircleAlert, Lock, LockOpen, ShieldMinus, ShieldPlus } from "lucide-react";
-import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { createContext, useActionState, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { ActionForm, type FormAction } from "@/components/cms/action-form";
 import type { ActionState } from "@/components/cms/action-state";
@@ -95,16 +95,40 @@ export interface RowUser {
 
 type Pending = { kind: "grant" } | { kind: "revoke"; role: StaffRole } | { kind: "lock" } | { kind: "unlock" } | null;
 
+const AnnounceContext = createContext<((message: string) => void) | null>(null);
+
+export function UserActionStatus({ children }: { children: ReactNode }) {
+  const [message, setMessage] = useState("");
+  return (
+    <AnnounceContext value={setMessage}>
+      <p role="status" aria-live="polite" className="text-body text-ink-2 empty:sr-only">
+        {message}
+      </p>
+      {children}
+    </AnnounceContext>
+  );
+}
+
+function useAnnounce(): (message: string) => void {
+  const announce = useContext(AnnounceContext);
+  if (!announce) throw new Error("UserRowActions must sit inside UserActionStatus.");
+  return announce;
+}
+
 export function UserRowActions({ user, self, manageRoles }: { user: RowUser; self: boolean; manageRoles: boolean }) {
   const [open, setOpen] = useState<Pending>(null);
-  const [announcement, setAnnouncement] = useState("");
+  const announce = useAnnounce();
   const triggerRef = useRef<HTMLButtonElement>(null);
   const available = STAFF_ROLES.filter((r) => !user.roles.includes(r));
 
-  const done = (message: string | undefined) => {
-    setOpen(null);
-    setAnnouncement(message ?? "Done.");
-  };
+  const done = () => setOpen(null);
+  const announced =
+    (action: FormAction): FormAction =>
+    async (prev, formData) => {
+      const state = await action(prev, formData);
+      if (state?.ok) announce(`${user.name} (${user.email}): ${state.message ?? "Done."}`);
+      return state;
+    };
   const dialogProps = {
     onOpenChange: (o: boolean) => {
       if (!o) setOpen(null);
@@ -163,9 +187,6 @@ export function UserRowActions({ user, self, manageRoles }: { user: RowUser; sel
           )}
         </DropdownMenuContent>
       </DropdownMenu>
-      <span role="status" aria-live="polite" className="sr-only">
-        {announcement}
-      </span>
 
       <Dialog open={open?.kind === "grant"} {...dialogProps}>
         <DialogContent {...contentProps}>
@@ -175,7 +196,7 @@ export function UserRowActions({ user, self, manageRoles }: { user: RowUser; sel
               {user.name} ({user.email}) gains every permission the role holds, from their next request.
             </DialogDescription>
           </DialogHeader>
-          <GrantRoleForm userId={user.id} available={available} onDone={done} />
+          <GrantRoleForm action={announced(grantRoleAction)} userId={user.id} available={available} onDone={done} />
         </DialogContent>
       </Dialog>
 
@@ -191,7 +212,7 @@ export function UserRowActions({ user, self, manageRoles }: { user: RowUser; sel
                 </DialogDescription>
               </DialogHeader>
               <ConfirmForm
-                action={revokeRoleAction}
+                action={announced(revokeRoleAction)}
                 hidden={{ userId: user.id, role: open.role }}
                 confirmText={user.email}
                 submitLabel={`Remove ${ROLE_LABELS[open.role]}`}
@@ -211,7 +232,7 @@ export function UserRowActions({ user, self, manageRoles }: { user: RowUser; sel
               {user.name} can no longer sign in and every active session ends now. The account is kept, so its history stays attributable; it can be unlocked later.
             </DialogDescription>
           </DialogHeader>
-          <ConfirmForm action={lockStaffAction} hidden={{ userId: user.id }} confirmText={user.email} submitLabel="Lock account" pendingLabel="Locking…" onDone={done}>
+          <ConfirmForm action={announced(lockStaffAction)} hidden={{ userId: user.id }} confirmText={user.email} submitLabel="Lock account" pendingLabel="Locking…" onDone={done}>
             {(errors, ids) => (
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor={ids.reason}>Reason for locking</Label>
@@ -237,7 +258,7 @@ export function UserRowActions({ user, self, manageRoles }: { user: RowUser; sel
             <DialogTitle>Unlock this account</DialogTitle>
             <DialogDescription>{user.name} can sign in again with their existing password and roles.</DialogDescription>
           </DialogHeader>
-          <ActionForm action={unlockStaffAction} submitLabel="Unlock account" pendingLabel="Unlocking…" onDone={(s) => s.ok && done(s.message)}>
+          <ActionForm action={announced(unlockStaffAction)} submitLabel="Unlock account" pendingLabel="Unlocking…" onDone={(s) => s.ok && done()}>
             <input type="hidden" name="userId" value={user.id} />
           </ActionForm>
         </DialogContent>
@@ -246,10 +267,10 @@ export function UserRowActions({ user, self, manageRoles }: { user: RowUser; sel
   );
 }
 
-function GrantRoleForm({ userId, available, onDone }: { userId: string; available: readonly StaffRole[]; onDone: (message: string | undefined) => void }) {
+function GrantRoleForm({ action, userId, available, onDone }: { action: FormAction; userId: string; available: readonly StaffRole[]; onDone: () => void }) {
   const id = useId();
   return (
-    <ActionForm action={grantRoleAction} submitLabel="Add role" pendingLabel="Adding…" onDone={(s) => s.ok && onDone(s.message)}>
+    <ActionForm action={action} submitLabel="Add role" pendingLabel="Adding…" onDone={(s) => s.ok && onDone()}>
       <input type="hidden" name="userId" value={userId} />
       <FormField id={id} name="role" label="Role">
         <RoleSelect id={id} roles={available} describedBy={`${id}-error`} />
@@ -288,7 +309,7 @@ function ConfirmForm({
   confirmText: string;
   submitLabel: string;
   pendingLabel: string;
-  onDone: (message: string | undefined) => void;
+  onDone: () => void;
   children?: (errors: Record<string, string[] | undefined>, ids: { reason: string }) => ReactNode;
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(action, null);
@@ -300,7 +321,7 @@ function ConfirmForm({
 
   useEffect(() => {
     if (!state) return;
-    if (state.ok) onDone(state.message);
+    if (state.ok) onDone();
     else errorRef.current?.focus();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per new state
   }, [state]);

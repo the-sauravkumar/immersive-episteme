@@ -5,6 +5,7 @@
  * re-checks the permission and writes the audit row in the same transaction) -> refresh().
  */
 import type { ActionState } from "@/components/cms/action-state";
+import { ROLE_LABELS } from "@/lib/permissions/roles";
 import { getAuth } from "@/server/auth";
 import { CmsError } from "@/server/cms/core";
 import { formObject, runAction } from "@/server/cms/run-action";
@@ -75,7 +76,7 @@ export async function unlockStaffAction(_prev: ActionState, fd: FormData): Promi
 export async function grantRoleAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
   return runAction("admin.roles", roleInput, formObject(fd), async ({ actor, pool }, input) => {
     await grantStaffRole(pool, actor, input);
-    return `Role ${input.role} granted.`;
+    return `${ROLE_LABELS[input.role]} role granted.`;
   });
 }
 
@@ -85,7 +86,7 @@ export async function revokeRoleAction(_prev: ActionState, fd: FormData): Promis
     await runAction("admin.roles", roleInput, raw, async ({ actor, pool }, input) => {
       await assertConfirmed(pool, input.userId, raw.confirm);
       await revokeStaffRole(pool, actor, input);
-      return `Role ${input.role} removed.`;
+      return `${ROLE_LABELS[input.role]} role removed.`;
     }),
   );
 }
