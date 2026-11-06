@@ -1,12 +1,15 @@
-import { spawnSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 
+import type { Page } from "@playwright/test";
 import { config as loadEnv } from "dotenv";
 import { Pool } from "pg";
 
 loadEnv({ quiet: true });
 
-export const JOURNEY_STUDY = "demo-walking-v3";
-export const CAP_STUDY = "demo-walking-cap-v3";
+const BATTERY_VERSION = 4;
+export const JOURNEY_STUDY = `demo-walking-v${BATTERY_VERSION}`;
+export const CAP_STUDY = `demo-walking-cap-v${BATTERY_VERSION}`;
 
 let pool: Pool | null = null;
 export function db(): Pool {
@@ -26,9 +29,46 @@ export async function retireE2eStaff(client: Pick<Pool, "query"> = db(), own: re
   await client.query(`DELETE FROM auth_sessions WHERE user_id IN (${mine})`, [own]);
 }
 
+export function createE2eStaff(email: string, name: string, role: string, password: string): void {
+  execFileSync(process.execPath, ["--import", "tsx", "scripts/create-admin.ts", "--email", email, "--name", name, "--role", role], { env: { ...process.env, ADMIN_PASSWORD: password }, stdio: "pipe" });
+}
+
+const SIGN_IN_WINDOW_MS = 61_000;
+
+export async function signInStaff(page: Page, email: string, password: string, attempts = 3): Promise<void> {
+  for (let attempt = 1; ; attempt++) {
+    await page.goto("/sign-in");
+    await page.getByLabel("Email").fill(email);
+    await page.getByLabel("Password").fill(password);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    const refusal = page.getByRole("alert").filter({ hasText: "Could Not Sign In" });
+    const outcome = await Promise.race([
+      page.waitForURL((url) => !url.pathname.startsWith("/sign-in"), { timeout: 60_000 }).then(() => "in" as const, () => "timeout" as const),
+      refusal.waitFor({ timeout: 60_000 }).then(() => "refused" as const, () => "timeout" as const),
+    ]);
+    if (outcome === "in") return;
+    if (outcome === "timeout") throw new Error(`Sign-in for ${email} neither left /sign-in nor showed a refusal within 60 s`);
+    const message = (await refusal.textContent())?.trim() ?? "";
+    if (!message.includes("Too many sign-in attempts") || attempt >= attempts) throw new Error(`Sign-in refused for ${email}: ${message}`);
+    await page.waitForTimeout(SIGN_IN_WINDOW_MS);
+  }
+}
+
 export function ensureDemoStudy(slug: string, capMinutes: number): void {
-  const run = spawnSync("npx", ["tsx", "scripts/content/seed-demo-study.ts", `--slug=${slug}`, `--cap-minutes=${capMinutes}`, "--battery-version=3"], { encoding: "utf8", shell: true });
+  const run = spawnSync("npx", ["tsx", "scripts/content/seed-demo-study.ts", `--slug=${slug}`, `--cap-minutes=${capMinutes}`, `--battery-version=${BATTERY_VERSION}`], { encoding: "utf8", shell: true });
   if (run.status !== 0) throw new Error(`Demo study ${slug} could not be seeded: ${run.stderr}`);
+}
+
+export async function missingBatteryImages(slug: string): Promise<string[]> {
+  const found = await db().query<{ path: string }>(
+    `SELECT DISTINCT found #>> '{}' AS path FROM assessment_items ai
+       JOIN study_assessments sa ON sa.assessment_id = ai.assessment_id
+       JOIN studies st ON st.id = sa.study_id AND st.slug = $1
+       CROSS JOIN LATERAL jsonb_path_query(ai.config, 'strict $.**.path') AS found
+      WHERE jsonb_typeof(found) = 'string' AND found #>> '{}' LIKE '/%'`,
+    [slug],
+  );
+  return found.rows.map((row) => row.path).filter((path) => !existsSync(`public${path}`));
 }
 
 export async function sessionByCode(code: string, slug: string): Promise<{ sessionId: string; condition: string }> {
