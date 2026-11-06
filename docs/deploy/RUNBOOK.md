@@ -495,7 +495,7 @@ Staff can sign in with Google as well as with email and password. Participants n
 |---|---|
 | Google email matches an existing staff account, and Google says the email is verified | Google is joined to that account; it signs in with its existing roles |
 | Google email matches an existing staff account, but is not verified by Google | Not joined, no session; the sign-in page says to use the password |
-| New Google account with a verified email | An account with **no role** is made; it lands on "Your account is waiting for an administrator" and opens nothing |
+| New Google account with a verified email | An account with **no role** is made; it lands on "Your account is waiting for an administrator". It cannot start a study, a demo or any staff page: the server-side invite gate admits a signed-in account only when it holds a staff role (DR-105). The proxy cannot read roles, so its session cookie still lets it read the public information pages |
 | New Google account with an unverified email | No account is made |
 | Locked account (`disabled_at` set) | No session, by either method |
 

@@ -100,46 +100,40 @@ export interface MetricDistribution {
   nullCount: number;
 }
 
-const ANALYSABLE = "NOT ss.excluded AND NOT ss.withdrawn";
+const ANALYSED_SESSIONS_SQL = `
+  SELECT DISTINCT ON (participant_id) participant_id, id, condition_id, excluded, withdrawn
+    FROM study_sessions
+   WHERE study_id = $1 AND condition_id IS NOT NULL
+   ORDER BY participant_id, period DESC, id DESC`;
 
-/**
- * Outcome distributions from derived_scores: one value per analysable, allocated session and
- * administration (latest row per session, metric, version, assessment and map phase).
- *
- * Final review scoring-07:
- *  - response-level rows (item.key_match, rubric.rating.*) are left out: one session has one row
- *    per item, so a per-session distribution would keep an arbitrary item (the per-item and
- *    per-rubric statistics are on the dashboard);
- *  - each administration is its own distribution: concept-map scores by map phase (one assessment
- *    yields a pre and a post map), every other score by assessment kind, code and version, so the
- *    pre-test, post-test and transfer totals are never pooled (prior knowledge vs outcome);
- *  - concept-map scores are read against the study's analysis reference map only (scoring-04).
- */
+const ANALYSABLE = "NOT an.excluded AND NOT an.withdrawn";
+
 export async function outcomeDistributions(q: Q, studyId: string, opts: { includeExcluded?: boolean } = {}): Promise<MetricDistribution[]> {
   const r = await q.query<{ metric_name: string; metric_version: string; condition_id: string; value: number | null }>(
-    `WITH ar AS (${ANALYSIS_REFERENCES_SQL})
-     SELECT DISTINCT ON (ds.session_id, ds.metric_name, ds.metric_version, ds.assessment_id, cm.phase)
+    `WITH ar AS (${ANALYSIS_REFERENCES_SQL}), an AS (${ANALYSED_SESSIONS_SQL})
+     SELECT DISTINCT ON (an.id, ds.metric_name, ds.metric_version, ds.assessment_id, cm.phase)
             CASE WHEN cm.phase IS NOT NULL THEN ds.metric_name || ' (' || cm.phase::text || ')'
                  ELSE ds.metric_name || ' (' || a.kind::text || ' ' || a.code || ' v' || a.version || ')' END AS metric_name,
-            ds.metric_version, ss.condition_id, ds.value
+            ds.metric_version, an.condition_id, ds.value
        FROM derived_scores ds JOIN study_sessions ss ON ss.id = ds.session_id
+       JOIN an ON an.participant_id = ss.participant_id
        JOIN assessments a ON a.id = ds.assessment_id
        LEFT JOIN concept_maps cm ON cm.id = ds.concept_map_id
        LEFT JOIN ar ON ar.assessment_id = ds.assessment_id
-      WHERE ss.study_id = $1 AND ss.condition_id IS NOT NULL AND ($2 OR (${ANALYSABLE}))
+      WHERE ss.study_id = $1 AND ($2 OR (${ANALYSABLE}))
         AND ds.response_id IS NULL
         AND (ds.concept_map_id IS NULL OR ds.reference_map_id IS NOT DISTINCT FROM ar.reference_map_id)
-      ORDER BY ds.session_id, ds.metric_name, ds.metric_version, ds.assessment_id, cm.phase, ds.computed_at DESC`,
+      ORDER BY an.id, ds.metric_name, ds.metric_version, ds.assessment_id, cm.phase, ss.period DESC, ds.computed_at DESC`,
     [studyId, opts.includeExcluded ?? false],
   );
   return group(r.rows);
 }
 
-/** Behavioural metric distributions from derived_metrics. */
 export async function behaviourDistributions(q: Q, studyId: string, opts: { includeExcluded?: boolean } = {}): Promise<MetricDistribution[]> {
   const r = await q.query<{ metric_name: string; metric_version: string; condition_id: string; value: number | null }>(
-    `SELECT dm.metric_name, dm.metric_version, dm.condition_id, dm.value
-       FROM derived_metrics dm JOIN study_sessions ss ON ss.id = dm.session_id
+    `WITH an AS (${ANALYSED_SESSIONS_SQL})
+     SELECT dm.metric_name, dm.metric_version, dm.condition_id, dm.value
+       FROM derived_metrics dm JOIN an ON an.id = dm.session_id
       WHERE dm.study_id = $1 AND ($2 OR (${ANALYSABLE}))`,
     [studyId, opts.includeExcluded ?? false],
   );
@@ -157,10 +151,10 @@ function group(rows: { metric_name: string; metric_version: string; condition_id
   return [...by.values()].sort((a, b) => (a.metricName < b.metricName ? -1 : 1));
 }
 
-/** Correspondence details (navigation vs concept map) summed per condition. */
 export async function correspondenceSummary(q: Q, studyId: string) {
   const r = await q.query<{ condition_id: string; details: Record<string, number | boolean> }>(
-    `SELECT dm.condition_id, dm.details FROM derived_metrics dm JOIN study_sessions ss ON ss.id = dm.session_id
+    `WITH an AS (${ANALYSED_SESSIONS_SQL})
+     SELECT dm.condition_id, dm.details FROM derived_metrics dm JOIN an ON an.id = dm.session_id
       WHERE dm.study_id = $1 AND dm.metric_name = 'nav.map_correspondence' AND ${ANALYSABLE}`,
     [studyId],
   );
@@ -183,13 +177,10 @@ export interface TransitionMatrix {
   transitions: number;
 }
 
-/**
- * First-order transition matrices between knowledge categories of consecutive concept visits
- * (visit = exposure interval; ../metrics/navigation.ts), per condition.
- */
 export async function transitionMatrices(q: Q, studyId: string): Promise<TransitionMatrix[]> {
   const sess = await q.query<{ id: string; condition_id: string; snapshot_id: string | null }>(
-    `SELECT ss.id, ss.condition_id, ss.snapshot_id FROM study_sessions ss WHERE ss.study_id = $1 AND ${ANALYSABLE}`,
+    `WITH an AS (${ANALYSED_SESSIONS_SQL})
+     SELECT an.id, an.condition_id, ss.snapshot_id FROM an JOIN study_sessions ss ON ss.id = an.id WHERE ${ANALYSABLE}`,
     [studyId],
   );
   const labels = [...KNOWLEDGE_CATEGORY_CODES];
