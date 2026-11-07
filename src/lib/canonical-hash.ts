@@ -1,13 +1,3 @@
-/**
- * Canonical JSON, SHA-256 and deterministic ids. Pure TypeScript (TextEncoder only), so the
- * same bytes and hashes are produced in Node, the browser and Vitest.
- *
- * Canonical JSON: object keys sorted by UTF-16 code unit order, no whitespace, `undefined`
- * members dropped, numbers rounded by the producer (see `round`) and `-0` normalised to `0`.
- * Two manifests are byte-identical iff their canonical JSON strings are equal.
- */
-
-/** Round to millimetres (3 dp) and normalise -0. Every coordinate in a manifest goes through this. */
 export function round(n: number, dp = 3): number {
   const f = 10 ** dp;
   const r = Math.round(n * f) / f;
@@ -41,10 +31,6 @@ function serialise(value: unknown): string {
   }
 }
 
-// -----------------------------------------------------------------------------------------
-// SHA-256 (FIPS 180-4). Small, synchronous and dependency-free; the compiler must not rely on
-// node:crypto (it also runs in the browser research console) or on async SubtleCrypto.
-// -----------------------------------------------------------------------------------------
 
 const K = new Uint32Array([
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98,
@@ -107,16 +93,10 @@ export function sha256Hex(input: string | Uint8Array): string {
   return Array.from(h, (x) => x.toString(16).padStart(8, "0")).join("");
 }
 
-/** sha256 of the canonical JSON of `value`. */
 export function canonicalHash(value: unknown): string {
   return sha256Hex(canonicalJson(value));
 }
 
-/**
- * Name-based UUID (RFC 9562 version 8, "custom"): the first 128 bits of sha256(namespace:name)
- * with the version and variant bits set. Used where the content files carry keys but the
- * contracts require UUIDs (concepts, relationships, rule sets compiled from content/ JSON).
- */
 export function deterministicUuid(namespace: string, name: string): string {
   const hex = sha256Hex(`${namespace}:${name}`).slice(0, 32).split("");
   hex[12] = "8";

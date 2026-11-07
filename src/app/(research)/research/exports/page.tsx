@@ -15,7 +15,6 @@ import { Disclosure, LINK_44, LINK_BUTTON, Notice, pickStudy, Section, StudyPick
 
 export const metadata: Metadata = { title: "Exports" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/research/exports">) {
@@ -76,7 +75,7 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
               </>
             }
           >
-            <p className="text-credit mb-4 max-w-[52rem]">
+            <p className="t-s text-lime-dim mb-4 max-w-[52rem]">
               The bundle holds every table plus the study configuration snapshot, content and manifest hashes, the data dictionary, reproducibility metadata and per-table checksums. Each
               download reads the database at one moment. The ZIP holds every table as CSV from that one moment, with the same metadata in manifest.json; single-table CSV files below are
               each built when downloaded, so do not combine them while data collection is running.
@@ -95,7 +94,7 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
               <TableBody>
                 {tables.map((t) => (
                   <TableRow key={t.name}>
-                    <TableCell className="text-id">{t.name}</TableCell>
+                    <TableCell className="t-table font-semibold wrap-anywhere">{t.name}</TableCell>
                     <TableCell className="min-w-64 whitespace-normal">{t.description}</TableCell>
                     <TableCell numeric>{t.columns.length}</TableCell>
                     <TableCell>
@@ -117,16 +116,16 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
           <>
             Column definitions. CSV cells holding objects are JSON text; empty cells are null. A text cell that a spreadsheet would read as a formula (starting with = + - @, a tab or a
             carriage return) begins with an added &apos; so that it opens as text: remove it when loading the data. Validate a downloaded bundle offline with{" "}
-            <code className="text-id">python -m episteme_stats validate bundle.json</code> (analysis/).
+            <code className="t-table font-semibold wrap-anywhere">python -m episteme_stats validate bundle.json</code> (analysis/).
           </>
         }
       >
-        <div className="flex flex-col border-y border-rule">
+        <div className="flex flex-col border-y border-line">
           {[...EXPORT_TABLES.filter((t) => identified || !t.identifiedOnly), ...DASHBOARD_TABLES].map((t: TableSpec) => (
             <Disclosure
               key={t.name}
-              className="border-t border-rule first:border-t-0"
-              summary={<span className="text-id">{t.name}</span>}
+              className="border-t border-line first:border-t-0"
+              summary={<span className="t-table font-semibold wrap-anywhere">{t.name}</span>}
               detail={
                 <>
                   {t.description}
@@ -145,8 +144,8 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
                 <TableBody>
                   {t.columns.map((c) => (
                     <TableRow key={c.name}>
-                      <TableCell className="text-id">{c.name}</TableCell>
-                      <TableCell className="text-id">{c.type}</TableCell>
+                      <TableCell className="t-table font-semibold wrap-anywhere">{c.name}</TableCell>
+                      <TableCell className="t-table font-semibold wrap-anywhere">{c.type}</TableCell>
                       <TableCell className="min-w-64 whitespace-normal">{c.description}</TableCell>
                     </TableRow>
                   ))}
@@ -155,8 +154,8 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
             </Disclosure>
           ))}
           <Disclosure
-            className="border-t border-rule"
-            summary={<span className="text-id">metricRoles</span>}
+            className="border-t border-line"
+            summary={<span className="t-table font-semibold wrap-anywhere">metricRoles</span>}
             detail="Preregistration role of each metric (bundle key metricRoles). Primary outcomes: test.sequence and test.stage_placement (H1), ANCOVA at the immediate test with the pre-test score test.pre_test as covariate, then a mixed model of the immediate and delayed tests (DR-075). Metrics not listed are exploratory."
           >
             <Table label="Metric roles" density="compact">
@@ -171,7 +170,7 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
                   .roles.filter((r) => r.role !== "exploratory")
                   .map((r) => (
                     <TableRow key={r.metric}>
-                      <TableCell className="text-id">{r.metric}</TableCell>
+                      <TableCell className="t-table font-semibold wrap-anywhere">{r.metric}</TableCell>
                       <TableCell>{r.role}</TableCell>
                     </TableRow>
                   ))}

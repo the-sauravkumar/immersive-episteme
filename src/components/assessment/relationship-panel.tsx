@@ -1,11 +1,5 @@
 "use client";
 
-/**
- * Keyboard-first relationship controls of the concept-map editor: a form that creates a typed,
- * directed relationship from three native selects (no mouse needed), and the list of every
- * relationship with change-type, reverse and delete controls. The canvas mirrors the same
- * state; this panel is the complete, screen-reader-friendly way to build the map.
- */
 import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -15,9 +9,7 @@ import { cn } from "@/lib/utils";
 import { addEdgeProblem, describeEdge, type EditorRules, type MapAction, type MapState } from "./map-state";
 import { NativeSelect } from "@/components/ui/native-select";
 
-/* Selects are the shared NativeSelect (DESIGN.md 9.2): native semantics, the project chevron, 44 px. */
-/** A label above its control: Atkinson 15/700 `--ink` (the Label primitive's style, on a native label). */
-const fieldLabel = "flex min-w-0 flex-col gap-2 font-sans text-[0.9375rem] leading-5 font-bold text-ink";
+const fieldLabel = "flex min-w-0 flex-col gap-2 t-label text-lime";
 
 export interface PendingConnection {
   source: string;
@@ -38,15 +30,9 @@ export function RelationshipPanel({
   rules: EditorRules;
   dispatch: (action: MapAction) => void;
   readOnly: boolean;
-  /** Expert-rater mode: each relationship can be marked as expected (required). */
   showRequired: boolean;
-  /** A connection drawn on the canvas, waiting for its relationship type. */
   pending: PendingConnection | null;
   onPendingHandled: () => void;
-  /**
-   * Participant mode: under 520 px the form's actions stack at full width in DOM order, like the
-   * study action row (StudyActions) on every other study step. The rater console keeps its row.
-   */
   fullWidthActions?: boolean;
 }) {
   const formId = useId();
@@ -57,7 +43,6 @@ export function RelationshipPanel({
   const [requiredFlag, setRequiredFlag] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
-  // A connection drawn on the canvas pre-fills the form (render-time sync, no effect).
   const [seenPending, setSeenPending] = useState<PendingConnection | null>(null);
   if (pending !== seenPending) {
     setSeenPending(pending);
@@ -90,8 +75,8 @@ export function RelationshipPanel({
   return (
     <div className="flex flex-col gap-6">
       {readOnly ? null : (
-        <form aria-labelledby={`${formId}-title`} onSubmit={add} className="flex flex-col gap-4 border-t border-rule pt-4">
-          <h2 id={`${formId}-title`} className="text-h3 text-ink">
+        <form aria-labelledby={`${formId}-title`} onSubmit={add} className="flex flex-col gap-4 border-t border-line pt-4">
+          <h2 id={`${formId}-title`} className="t-label text-lime">
             {titleCase("Add a relationship")}
           </h2>
           <div className="grid gap-4 sm:grid-cols-3">
@@ -118,7 +103,7 @@ export function RelationshipPanel({
                   ))}
                 </NativeSelect>
               ) : (
-                <span className="flex h-11 items-center font-sans text-base font-normal text-ink-2">is linked to</span>
+                <span className="flex h-11 items-center font-sans text-base font-normal text-lime-dim">is linked to</span>
               )}
             </label>
             <label className={fieldLabel}>
@@ -134,7 +119,7 @@ export function RelationshipPanel({
             </label>
           </div>
           {showRequired ? (
-            <label className="flex min-h-11 cursor-pointer items-center gap-3 font-sans text-[0.9375rem] leading-5 text-ink">
+            <label className="flex min-h-11 cursor-pointer items-center gap-3 font-sans t-s text-lime">
               <input type="checkbox" checked={requiredFlag} onChange={(e) => setRequiredFlag(e.target.checked)} className="ie-check" />
               Expected (must appear for full credit); unticked means acceptable but optional
             </label>
@@ -159,25 +144,25 @@ export function RelationshipPanel({
             ) : null}
             <Button type="submit">Add relationship</Button>
           </div>
-          <p role="status" aria-live="polite" className="text-source min-h-5">
+          <p role="status" aria-live="polite" className="t-s text-lime-dim min-h-5">
             {message}
           </p>
         </form>
       )}
 
       <section aria-labelledby={`${formId}-list`} className="flex flex-col gap-2">
-        <h2 id={`${formId}-list`} className="text-h3 text-ink">
+        <h2 id={`${formId}-list`} className="t-label text-lime">
           {titleCase("Your relationships")} <span className="tabular-nums">({state.edges.length})</span>
         </h2>
         {state.edges.length === 0 ? (
-          <p className="text-source border-y border-rule py-3">No relationships yet.</p>
+          <p className="t-s text-lime-dim border-y border-line py-3">No relationships yet.</p>
         ) : (
-          <ul className="flex flex-col divide-y divide-rule border-y border-rule">
+          <ul className="flex flex-col divide-y divide-line border-y border-line">
             {state.edges.map((edge) => {
               const sentence = describeEdge(edge, labelOf, typeLabel);
               return (
                 <li key={edge.key} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
-                  <span className="font-sans text-base leading-6 text-ink">{sentence}</span>
+                  <span className="t-b text-lime">{sentence}</span>
                   {readOnly ? null : (
                     <div className="flex flex-wrap items-center gap-2">
                       {typed ? (
@@ -197,7 +182,7 @@ export function RelationshipPanel({
                         </label>
                       ) : null}
                       {showRequired ? (
-                        <label className="flex min-h-11 cursor-pointer items-center gap-2 px-1 font-sans text-[0.9375rem] leading-5 text-ink">
+                        <label className="flex min-h-11 cursor-pointer items-center gap-2 px-1 font-sans t-s text-lime">
                           <input
                             type="checkbox"
                             className="ie-check"

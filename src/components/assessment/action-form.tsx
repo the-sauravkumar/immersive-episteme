@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * Small client helpers for research-console server actions: a form bound with useActionState,
- * and a one-click action button with an optional confirmation. Results are announced politely,
- * with an icon and a word, never colour alone (DESIGN.md 9.5, R-A4).
- *
- * `fieldClass` is the 9.5 input style for native inputs, selects and textareas: at least 44 px
- * tall, 1 px --rule-strong border, 4 px radius, paper fill, Atkinson 16 px (no iOS zoom).
- */
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useState, useTransition, type ReactNode } from "react";
@@ -16,25 +8,24 @@ import { Button } from "@/components/ui/button";
 import type { ActionResult } from "@/server/assessment/research-actions";
 
 export const fieldClass =
-  "min-h-11 w-full min-w-0 rounded-control border border-rule-strong bg-ground px-3 py-[9px] font-sans text-base leading-6 text-ink placeholder:text-ink-3 disabled:cursor-not-allowed disabled:border-rule disabled:bg-sunk disabled:text-ink-3 aria-invalid:border-danger";
+  "min-h-11 w-full min-w-0 border border-lime-dim bg-vat px-3 py-[9px] t-b text-lime placeholder:text-lime-dim disabled:cursor-not-allowed disabled:border-line disabled:bg-vat-2 disabled:text-lime-dim aria-invalid:border-madder-text";
 
-/** A full-row 44 px label around a 20 px checkbox or radio (DESIGN.md 9.5). */
-export const checkRowClass = "flex min-h-11 cursor-pointer items-center gap-3 font-sans text-[0.9375rem] leading-5 text-ink";
+export const checkRowClass = "flex min-h-11 cursor-pointer items-center gap-3 font-sans t-s text-lime";
 export const checkBoxClass = "ie-check";
 
 function Outcome({ result }: { result: ActionResult | null }) {
   return (
-    <p role="status" aria-live="polite" className="font-sans text-[0.9375rem] leading-5">
+    <p role="status" aria-live="polite" className="font-sans t-s">
       {result ? (
         result.ok ? (
-          <span className="inline-flex items-center gap-1.5 text-ink">
+          <span className="inline-flex items-center gap-1.5 text-lime">
             <CircleCheck aria-hidden="true" className="size-4 shrink-0 stroke-[1.75] text-ok" />
             <span>
               <span className="font-semibold">Done:</span> {result.message ?? "Saved."}
             </span>
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 text-danger">
+          <span className="inline-flex items-center gap-1.5 text-madder-text">
             <CircleAlert aria-hidden="true" className="size-4 shrink-0 stroke-[1.75]" />
             <span>
               <span className="font-semibold">Error:</span> {result.error}
@@ -57,7 +48,6 @@ export function ActionForm({
   action: (prev: ActionResult | null, fd: FormData) => Promise<ActionResult>;
   submitLabel: string;
   children: ReactNode;
-  /** Navigate after success; `{id}` is replaced with the returned id. */
   redirectTo?: string;
   className?: string;
   resetOnSuccess?: boolean;
@@ -74,7 +64,6 @@ export function ActionForm({
     <form key={formKey} action={run} onSubmit={(e) => (pending ? e.preventDefault() : undefined)} className={className ?? "flex flex-col gap-4"}>
       {children}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        {/* aria-disabled, not disabled: focus stays on the button while the action runs. */}
         <Button type="submit" aria-disabled={pending || undefined}>
           {pending ? "Working…" : submitLabel}
         </Button>
@@ -122,13 +111,12 @@ export function ActionButton({
   );
 }
 
-/** Label above (Atkinson 15/700), the control, then help text in `text-credit` (DESIGN.md 9.5). */
 export function Field({ label, hint, children, className }: { label: string; hint?: string; children: ReactNode; className?: string }) {
   return (
     <label className={["flex min-w-0 flex-col gap-1.5", className].filter(Boolean).join(" ")}>
-      <span className="font-sans text-[0.9375rem] leading-5 font-bold text-ink">{label}</span>
+      <span className="t-label text-lime">{label}</span>
       {children}
-      {hint ? <span className="text-credit">{hint}</span> : null}
+      {hint ? <span className="t-s text-lime-dim">{hint}</span> : null}
     </label>
   );
 }

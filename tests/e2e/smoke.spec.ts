@@ -10,7 +10,7 @@ test("home page renders with tokens and security headers", async ({ page }) => {
   expect(headers["permissions-policy"]).toContain("camera=()");
 
   const bg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-  expect(bg).toBe("rgb(255, 255, 255)"); // --ground, white paper (DR-022)
+  expect(bg).toBe("rgb(14, 22, 38)");
 });
 
 test("staff surfaces forbid framing", async ({ request }) => {

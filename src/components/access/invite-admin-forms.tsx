@@ -1,16 +1,5 @@
 "use client";
 
-/**
- * Client forms for Admin -> Access (deployment source change S11). Every action is re-authorised
- * on the server; nothing here grants anything by itself.
- *
- *  - `CreateInviteForm`: label, optional use limit, optional last day, optional study. On success
- *    the code is shown ONCE with its links (the database keeps only a hash): the site link
- *    `/?invite=<code>` and, for a study, the participant link `/study?code=<slug>&invite=<code>`,
- *    so participants pass the gate without an extra step.
- *  - `RevokeInviteButton`: a dialog with typed confirmation (the code's last four characters),
- *    as for the destructive staff-account actions (DESIGN.md 11.11).
- */
 import { CircleAlert, Copy } from "lucide-react";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 
@@ -33,7 +22,6 @@ export interface StudyOption {
 
 type Created = { code: string; hint: string; studySlug: string | null };
 
-/** The site link and, for a study, the participant link that carries the invite. */
 export function inviteLinks(origin: string, code: string, studySlug: string | null): { site: string; study: string | null } {
   const base = origin.replace(/\/+$/, "");
   const invite = encodeURIComponent(code);
@@ -50,7 +38,7 @@ function CopyField({ label, value }: { label: string; value: string }) {
     <div className="flex min-w-0 flex-col gap-1.5">
       <Label htmlFor={id}>{label}</Label>
       <div className="flex min-w-0 flex-wrap gap-2">
-        <Input id={id} readOnly value={value} onFocus={(e) => e.currentTarget.select()} className="text-id min-w-0 flex-1" spellCheck={false} />
+        <Input id={id} readOnly value={value} onFocus={(e) => e.currentTarget.select()} className="t-table font-semibold wrap-anywhere min-w-0 flex-1" spellCheck={false} />
         <Button
           type="button"
           variant="outline"
@@ -185,7 +173,7 @@ function RevokeForm({ inviteId, hint, onDone }: { inviteId: string; hint: string
       <div className="flex flex-col gap-1.5">
         <Label htmlFor={`${base}-confirm`}>
           <span>
-            Type <span className="text-id text-ink">{hint}</span> (the code&apos;s last four characters) to confirm
+            Type <span className="t-table font-semibold wrap-anywhere text-lime">{hint}</span> (the code&apos;s last four characters) to confirm
           </span>
         </Label>
         <Input
@@ -198,7 +186,7 @@ function RevokeForm({ inviteId, hint, onDone }: { inviteId: string; hint: string
           spellCheck={false}
           aria-describedby={`${base}-why`}
         />
-        <p id={`${base}-why`} className="text-credit">
+        <p id={`${base}-why`} className="t-s text-lime-dim">
           {matches ? "The characters match." : "The button stays inactive until the characters match."}
         </p>
       </div>

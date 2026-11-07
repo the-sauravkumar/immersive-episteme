@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, KeyRound, LogOut, MonitorCog, UserRound } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, UserRound } from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { ChangePasswordDialog } from "./change-password";
-import { DisplaySettings } from "./display-settings";
 import { SIGN_OUT_FAILED, useSignOut } from "./sign-out-button";
 
 export function ConsoleUserMenu({
@@ -31,7 +30,6 @@ export function ConsoleUserMenu({
   hasPassword: boolean;
   minPasswordLength: number;
 }) {
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
   const { pending, failed, signOut, dismiss } = useSignOut();
 
@@ -47,8 +45,8 @@ export function ConsoleUserMenu({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-72">
           <div className="flex flex-col gap-1 px-2 py-2">
-            <span className="text-ui text-ink">{name}</span>
-            <span className="text-id break-all text-ink-3">{email}</span>
+            <span className="t-label text-lime">{name}</span>
+            <span className="t-table font-semibold wrap-anywhere text-lime-dim">{email}</span>
           </div>
           <div className="px-2 pb-2">
             <ul aria-label="Your roles" className="flex flex-wrap gap-1">
@@ -60,10 +58,6 @@ export function ConsoleUserMenu({
             </ul>
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => setSettingsOpen(true)}>
-            <MonitorCog aria-hidden="true" />
-            Display settings
-          </DropdownMenuItem>
           {hasPassword ? (
             <DropdownMenuItem onSelect={() => setPasswordOpen(true)}>
               <KeyRound aria-hidden="true" />
@@ -76,7 +70,6 @@ export function ConsoleUserMenu({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <DisplaySettings zone="console" open={settingsOpen} onOpenChange={setSettingsOpen} trigger={null} />
       {hasPassword ? <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} minPasswordLength={minPasswordLength} /> : null}
       <Dialog open={failed} onOpenChange={(o) => (o ? undefined : dismiss())}>
         <DialogContent role="alertdialog">

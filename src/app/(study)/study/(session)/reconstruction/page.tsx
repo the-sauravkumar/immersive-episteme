@@ -21,7 +21,6 @@ export const metadata: Metadata = { title: titleCase("Connect the concepts") };
 
 const PHASE_LABEL = { pre: "Before the learning task", post: "After the learning task" } as const;
 
-/** May block: access is verified against the participant session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page() {
@@ -34,10 +33,6 @@ export default function Page() {
   );
 }
 
-/**
- * Every state where the editor is not shown: the study state message with one way back (DESIGN.md
- * 9.7), followed by the withdrawal footer that every in-session step carries.
- */
 function BackToSession({ title, tone = "info", children }: { title: string; tone?: "info" | "error" | "done"; children: React.ReactNode }) {
   return (
     <>
@@ -58,20 +53,12 @@ function BackToSession({ title, tone = "info", children }: { title: string; tone
   );
 }
 
-/**
- * The study engine decides when this page may render (its `reconstruction`
- * step must be current; otherwise it redirects to the session hub) and which phase it is. The
- * editor gets the concept set, the allowed relationship types and the stored map. It is never
- * given the learning condition: the task is identical in both conditions. Like every other
- * in-session step, each state ends with the withdrawal footer (StepFooter).
- */
 async function Reconstruction() {
   const step = await requireReconstructionStep();
   const who = await requireParticipantSession();
   let task;
   try {
     task = await loadReconstructionTask(getPool(), { participantId: who.participantId, sessionId: who.sessionId });
-    // The service derives the phase from the learning clock; it must agree with the engine's step.
     if (task.phase !== step.phase) throw new AssessmentError("conflict", "Phase mismatch between the study step and the learning clock");
   } catch (err) {
     if (!(err instanceof AssessmentError)) throw err;
@@ -99,9 +86,8 @@ async function Reconstruction() {
         title="Connect the concepts"
         description={
           <div className="flex flex-col gap-3">
-            {/* Which of the two maps this is, as a plain sentence (DR-022: no eyebrows). */}
             <p>{PHASE_LABEL[task.phase]}.</p>
-            <p className="text-reading whitespace-pre-line text-ink">{task.prompt}</p>
+            <p className="t-b whitespace-pre-line text-lime">{task.prompt}</p>
             <p>
               Move the concepts anywhere you like. Add a relationship with the form below the map, or by dragging from the dot under one
               concept to another. You can change, reverse or delete any relationship until you submit.

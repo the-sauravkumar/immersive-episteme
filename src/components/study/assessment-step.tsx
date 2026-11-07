@@ -1,8 +1,3 @@
-/**
- * Server side of an assessment step page (pre-test, post-test, transfer, questionnaire):
- * guards the step, picks the next assessment of the step not yet submitted, and renders it.
- * Must render inside <Suspense> (reads the participant cookie).
- */
 import { redirect } from "next/navigation";
 
 import { countOf } from "@/components/brand/numbering";
@@ -30,7 +25,6 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
     if (err instanceof StudyEngineError) return <NotReady reasons={[err.message]} />;
     throw err;
   }
-  // The whole step starts only when every instrument of it is showable (verified wording).
   const ready = stepReadiness(all);
   if (!ready.ready) {
     console.error(`[study] step ${step} is not deliverable: ${ready.reasons.join("; ")}`);
@@ -38,7 +32,6 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
   }
   const done = submittedAssessments(state, step);
   const next = all.find((a) => !done.has(a.id));
-  // Nothing left: the engine has completed the step; the hub moves on.
   if (!next) redirect("/study/session");
   const items: RenderItem[] = next.items.map((item) => {
     const cfg = itemConfig(item)!;
@@ -78,7 +71,7 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
   const body = (
     <div>
       <StepProgress count={count} />
-      {all.length > 1 ? <p className="text-ui mb-2 tabular-nums text-ink-3">{countOf("Part", all.indexOf(next) + 1, all.length)}</p> : null}
+      {all.length > 1 ? <p className="t-label mb-2 tabular-nums text-lime-dim">{countOf("Part", all.indexOf(next) + 1, all.length)}</p> : null}
       <AssessmentForm
         key={next.id}
         step={step}
@@ -89,7 +82,6 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
       <StepFooter />
     </div>
   );
-  // Telemetry only once allocated: an unallocated session has no condition to store events under.
   if (state.condition === null) return body;
   return (
     <TelemetryProvider config={{ firstSeq: await nextTelemetrySeq(state.sessionId), sessionId: state.sessionId, contentVersion: state.snapshotLabel ?? "none", appBuild: serverEnv().APP_BUILD_VERSION, mode: "study" }}>
@@ -98,7 +90,6 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
   );
 }
 
-/** Participant-facing refusal with the reason for the research team (e.g. instrument wording pending). */
 function NotReady({ reasons }: { reasons: string[] }) {
   return (
     <>

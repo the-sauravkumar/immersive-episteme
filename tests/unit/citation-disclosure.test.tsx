@@ -1,11 +1,3 @@
-/**
- * CitedClaim / CitationRecord / ReferenceList (DESIGN.md 9.9; DR-022 Addendum A): a quiet numbered
- * marker [n] after the claim, collapsed by default, a 44 x 44 px box that keeps the 30 px reading
- * line, an accessible name with the number and the short label; the record expands IN PLACE under
- * the claim (locator, labelled verbatim evidence, "Open the source") and closes again on the second
- * activation or Escape (focus back to the marker); the reference list gives each source once with
- * its full details; citation telemetry is unchanged.
- */
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
@@ -42,18 +34,15 @@ describe("CitedClaim: the numbered marker", () => {
     render(one());
     const claim = document.querySelector("[data-slot=claim]")!;
     expect(claim.tagName).toBe("P");
-    expect(claim.className).toContain("text-reading");
+    expect(claim.className).toContain("t-b");
     expect(claim.querySelector("[data-slot=claim-text]")!.textContent).toBe("A placeholder statement.");
     const marker = screen.getByRole("button", { name: /^Source 1: Placeholder Author \(2001\), p\.\s12$/ });
     expect(claim.contains(marker)).toBe(true);
     expect(marker).toHaveAttribute("aria-expanded", "false");
-    // The visible marker is "[1]"; its name carries the number (label in name).
     expect(marker.textContent).toBe("[1]");
-    // 44 x 44 px box; negative block margins keep the 30 px reading line box.
     expect(marker.className).toMatch(/\bh-11\b/);
     expect(marker.className).toMatch(/\bmin-w-11\b/);
     expect(marker.className).toContain("-my-[0.4375rem]");
-    // Collapsed: no record text, never the uuid.
     expect(screen.queryByText("a placeholder quote", { exact: false })).toBeNull();
     expect(document.body.textContent).not.toContain(citation.id);
   });
@@ -65,18 +54,16 @@ describe("CitedClaim: the numbered marker", () => {
     await user.click(marker);
     expect(marker).toHaveAttribute("aria-expanded", "true");
     const region = screen.getByRole("region", { name: /^Source 3: Placeholder Author \(2001\), p\.\s12$/ });
-    // In place: the record directly follows the claim paragraph, not a jump to a list.
     expect(document.querySelector("[data-slot=claim]")!.nextElementSibling).toBe(region);
     expect(marker.getAttribute("aria-controls")).toBe(region.id);
     expect(region).toHaveTextContent("Source 3");
     expect(region).toHaveTextContent("p. 12");
     expect(region).toHaveTextContent("Verbatim from the source");
     const quote = region.querySelector("blockquote")!;
-    expect(quote.className).toContain("text-quote");
-    expect(quote.className).toContain("bg-sunk");
+    expect(quote.className).toContain("t-b");
+    expect(quote.className).toContain("bg-vat-2");
     expect(quote.className).not.toMatch(/border-l/);
     expect(quote.textContent).toBe("“a placeholder quote”");
-    // Lean: the full record table moved to the reference list.
     expect(region.querySelector("dl")).toBeNull();
     expect(region).not.toHaveTextContent("Placeholder Press");
     expect(within(region).getByRole("link", { name: /Open the source/ }).className).toContain("min-h-11");

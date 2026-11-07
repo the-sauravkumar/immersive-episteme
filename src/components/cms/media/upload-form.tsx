@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * Media upload. Nothing measured here is trusted: the server sniffs the bytes, hashes them and
- * reads image dimensions itself.
- *  - local storage: multipart POST to /cms/media/upload;
- *  - S3: SHA-256 in the browser (signed into the presigned PUT, so the store rejects other bytes),
- *    PUT straight to the bucket, then a finalize action that re-checks the stored object.
- * Progress is shown with a native <progress>; refusals land in an alert that receives focus.
- */
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState, type FormEvent } from "react";
@@ -50,7 +42,6 @@ async function sha256Hex(file: File): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-/** .glb files often arrive without a browser MIME type. */
 function mimeOf(file: File): string {
   if (file.type) return file.type;
   return file.name.toLowerCase().endsWith(".glb") ? "model/gltf-binary" : "application/octet-stream";
@@ -63,7 +54,6 @@ export function UploadForm({ mode, sources }: { mode: "local" | "s3"; sources: {
   const alertRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const fileId = useId();
-  // Remounts the metadata fields after a successful upload (they hold live counts in state).
   const [round, setRound] = useState(0);
 
   const fail = (s: Extract<Status, { phase: "error" }>) => {
@@ -156,7 +146,7 @@ export function UploadForm({ mode, sources }: { mode: "local" | "s3"; sources: {
             setIsImage(!f || mimeOf(f).startsWith("image/"));
           }}
         />
-        <p id={`${fileId}-hint`} className="text-credit">
+        <p id={`${fileId}-hint`} className="t-s text-lime-dim">
           JPEG, PNG or WebP images up to 25 MiB; PDF up to 50 MiB; glTF binary (.glb) up to 200 MiB. The type is checked against the file
           content; image width and height are read from the file.
         </p>
@@ -169,9 +159,9 @@ export function UploadForm({ mode, sources }: { mode: "local" | "s3"; sources: {
           {working ? `${status.label}…` : "Upload"}
         </Button>
         {working ? (
-          <progress className="h-0.5 w-48 accent-(--ink)" max={1} value={status.progress ?? undefined} aria-label={status.label} />
+          <progress className="h-2 w-48 accent-(--turmeric)" max={1} value={status.progress ?? undefined} aria-label={status.label} />
         ) : null}
-        <p role="status" aria-live="polite" className="text-body text-ink-2">
+        <p role="status" aria-live="polite" className="t-b text-lime-dim">
           {status.phase === "done" ? (
             <>
               {status.message}{" "}

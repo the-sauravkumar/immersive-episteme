@@ -15,7 +15,6 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Roles" };
 
-/** Policy rules encoded in the matrix (docs/architecture/foundation.md §2). */
 const POLICY = [
   "Separation of duties on content: content editors draft and edit, but never review, verify or publish. Verification and publication belong to curators and the principal investigator, and nobody verifies content they authored.",
   "The platform administrator is an operator: users, roles, settings, audit log and read access. It cannot verify or publish content, run studies, or see identifying participant data. A person who needs both holds two roles.",
@@ -25,7 +24,6 @@ const POLICY = [
   "Participant and public are never stored: they come from a signed study-session cookie and from the absence of any credential.",
 ];
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page() {
@@ -37,10 +35,10 @@ export default function Page() {
     >
       <div className="flex flex-col gap-12">
         <section aria-labelledby="policy" className="flex max-w-[40rem] flex-col gap-3">
-          <h2 id="policy" className="text-h2 text-ink">
+          <h2 id="policy" className="t-h4 text-lime">
             {titleCase("policy")}
           </h2>
-          <ol className="text-body flex list-decimal flex-col gap-2 pl-6 text-ink marker:text-ink-3 marker:tabular-nums">
+          <ol className="t-b flex list-decimal flex-col gap-2 pl-6 text-lime marker:text-lime-dim marker:tabular-nums">
             {POLICY.map((p) => (
               <li key={p} className="pl-1">
                 {p}
@@ -56,17 +54,8 @@ export default function Page() {
   );
 }
 
-/*
- * Permission matrix (DESIGN.md 9.3, 11.11): booktabs rules, a check glyph plus visually hidden
- * "Yes"/"No" in each cell, a sticky header row and a sticky first column. The table scrolls inside
- * its own labelled region in both directions (capped to the viewport height), because a sticky
- * header only sticks within its nearest scroll container; so this does not use the Table
- * primitive's horizontal-only container, but keeps its booktabs styling (1.5 px ink top and
- * bottom rules, 1 px ink midrule, 1 px rule between rows, no vertical rules, no zebra).
- * Sticky cells carry an opaque --ground fill so rows never show through.
- */
-const HEAD = "text-label sticky top-0 z-10 h-11 border-b border-b-ink bg-ground px-2 pb-2 align-bottom";
-const ROW_HEAD = "sticky left-0 z-[5] bg-ground py-2 pr-3 pl-0 text-left align-middle font-normal";
+const HEAD = "t-label sticky top-0 z-10 h-11 border-b border-b-lime bg-vat px-2 pb-2 align-bottom";
+const ROW_HEAD = "sticky left-0 z-[5] bg-vat py-2 pr-3 pl-0 text-left align-middle font-normal";
 
 async function Matrix() {
   const actor = await requirePermission("admin.roles");
@@ -78,19 +67,18 @@ function MatrixTable({ holders }: { holders: Awaited<ReturnType<typeof roleHolde
   const captionId = "matrix-caption";
   return (
     <section aria-labelledby="matrix" className="flex min-w-0 flex-col gap-3">
-      <h2 id="matrix" className="text-h2 text-ink">
+      <h2 id="matrix" className="t-h4 text-lime">
         {titleCase("permission matrix")}
       </h2>
-      <p className="text-body max-w-[40rem] text-ink-2">
+      <p className="t-b max-w-[40rem] text-lime-dim">
         A check means the role holds the permission; a dash means it does not. Holder counts exclude locked accounts. Participant and public are never stored, so they have no
         holders.
       </p>
-      <p id={captionId} className="font-sans text-[0.9375rem] leading-6 text-ink">
+      <p id={captionId} className="font-sans t-s text-lime">
         <span className="font-semibold tabular-nums">Table 1. </span>
         {titleCase("permissions granted to each role")}
       </p>
-      {/* The matrix is wider than its frame below about 1500 px (measured: 1271 px of content in a 976 px frame at 1280), so the hint shows at every width up to xl-plus. */}
-      <p id="matrix-scroll-hint" className="text-credit max-w-[40rem] min-[1536px]:hidden">
+      <p id="matrix-scroll-hint" className="t-s text-lime-dim max-w-[40rem] min-[1536px]:hidden">
         Scroll the table sideways to see all {ROLES.length} roles. The Permission column and the role headings stay in place.
       </p>
       <div
@@ -98,9 +86,9 @@ function MatrixTable({ holders }: { holders: Awaited<ReturnType<typeof roleHolde
         tabIndex={0}
         aria-labelledby={captionId}
         aria-describedby="matrix-scroll-hint"
-        className="relative max-h-[min(44rem,calc(100dvh-8rem))] w-full overflow-auto border-y-[1.5px] border-y-ink"
+        className="relative max-h-[min(44rem,calc(100dvh-8rem))] w-full overflow-auto border-y-[1.5px] border-y-lime"
       >
-        <table className="w-full border-separate border-spacing-0 text-left text-table text-ink" aria-labelledby={captionId}>
+        <table className="w-full border-separate border-spacing-0 text-left t-table text-lime" aria-labelledby={captionId}>
           <thead>
             <tr>
               <th scope="col" className={`${HEAD} left-0 z-20 min-w-[11rem] pl-0 text-left`}>
@@ -116,20 +104,20 @@ function MatrixTable({ holders }: { holders: Awaited<ReturnType<typeof roleHolde
           </thead>
           <tbody>
             {PERMISSIONS.map((p, i) => {
-              const rule = i < PERMISSIONS.length - 1 ? "border-b border-b-rule" : "";
+              const rule = i < PERMISSIONS.length - 1 ? "border-b border-b-line" : "";
               return (
-                <tr key={p} className="hover:bg-sunk [&:hover>th]:bg-sunk">
+                <tr key={p} className="hover:bg-vat-2 [&:hover>th]:bg-vat-2">
                   <th scope="row" className={`${ROW_HEAD} ${rule}`}>
-                    <Mono className="text-ink">{p}</Mono>
+                    <Mono className="text-lime">{p}</Mono>
                   </th>
                   {ROLES.map((r) =>
                     roleGrants(r, p) ? (
                       <td key={r} className={`h-11 px-2 text-center align-middle ${rule}`}>
-                        <Check aria-hidden="true" className="inline size-5 stroke-2 text-ink" />
+                        <Check aria-hidden="true" className="inline size-5 stroke-2 text-lime" />
                         <span className="sr-only">Yes</span>
                       </td>
                     ) : (
-                      <td key={r} className={`h-11 px-2 text-center align-middle text-ink-3 ${rule}`}>
+                      <td key={r} className={`h-11 px-2 text-center align-middle text-lime-dim ${rule}`}>
                         <span aria-hidden="true">—</span>
                         <span className="sr-only">No</span>
                       </td>

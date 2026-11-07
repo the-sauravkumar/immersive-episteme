@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * Form bound to a server action through useActionState. Shows the refusal in an alert that takes
- * focus (keyboard and screen-reader users hear it) and the success message in a polite live
- * region. Field errors are exposed to children through `FieldMessage`.
- */
 import { CircleAlert } from "lucide-react";
 import Link from "next/link";
 import { createContext, useActionState, useContext, useEffect, useId, useRef, type ReactNode } from "react";
@@ -38,11 +33,6 @@ export function ActionForm({
   className?: string;
   onDone?: (state: NonNullable<ActionState>) => void;
   resetOnSuccess?: boolean;
-  /**
-   * Why the form cannot be submitted yet (for example "Choose a decision first."). The button stays
-   * focusable with `aria-disabled` and this note as its description (9.1), and a click or Enter does
-   * nothing, so a slip never records a decision nobody chose.
-   */
   submitBlocked?: string | null;
 }) {
   const [state, formAction, pending] = useActionState(action, null);
@@ -71,7 +61,7 @@ export function ActionForm({
                 <ul className="mt-1 list-disc pl-5">
                   {((state.data as { details: { code?: string; message?: string }[] }).details).slice(0, 20).map((d, i) => (
                     <li key={i}>
-                      {d.code ? <code className="text-id mr-1">{d.code}</code> : null}
+                      {d.code ? <code className="t-table font-semibold wrap-anywhere mr-1">{d.code}</code> : null}
                       {d.message}
                     </li>
                   ))}
@@ -92,16 +82,16 @@ export function ActionForm({
             {pending ? pendingLabel : submitLabel}
           </Button>
           {submitBlocked ? (
-            <p id={blockedId} className="text-body text-ink-2">
+            <p id={blockedId} className="t-b text-lime-dim">
               {submitBlocked}
             </p>
           ) : null}
-          <p role="status" aria-live="polite" className="text-body text-ink-2 empty:hidden">
+          <p role="status" aria-live="polite" className="t-b text-lime-dim empty:hidden">
             {state?.ok ? state.message : ""}
             {state?.ok && typeof state.data?.href === "string" ? (
               <>
                 {" "}
-                <Link className="inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[0.2em] hover:decoration-2" href={state.data.href}>
+                <Link className="inline-flex min-h-11 items-center text-turmeric underline decoration-1 underline-offset-[0.2em] hover:decoration-2" href={state.data.href}>
                   {typeof state.data.hrefLabel === "string" ? state.data.hrefLabel : "Open"}
                 </Link>
               </>
@@ -113,31 +103,28 @@ export function ActionForm({
   );
 }
 
-/** Validation messages for one field (`name` = form field name / dotted path). */
 export function FieldMessage({ name, id }: { name: string; id?: string }) {
   const state = useContext(StateContext);
   const msgs = state?.fieldErrors?.[name];
   if (!msgs?.length) return null;
   return (
-    <p id={id} className="flex items-start gap-2 font-sans text-[0.9375rem] leading-5 font-semibold text-danger">
+    <p id={id} className="flex items-start gap-2 t-s font-semibold text-madder-text">
       <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 stroke-2" />
       <span className="min-w-0">{msgs.join(" ")}</span>
     </p>
   );
 }
 
-/** The current action state (for custom rendering inside an ActionForm). */
 export function useFormState(): ActionState {
   return useContext(StateContext);
 }
 
-/** Every validation message whose field path starts with `prefix` (nested lists such as sources.0.locator). */
 export function PrefixErrors({ prefix, describe }: { prefix: string; describe?: (path: string) => string }) {
   const state = useContext(StateContext);
   const msgs = Object.entries(state?.fieldErrors ?? {}).filter(([k]) => k === prefix || k.startsWith(`${prefix}.`));
   if (!msgs.length) return null;
   return (
-    <ul className="list-disc pl-5 font-sans text-[0.9375rem] leading-5 font-semibold text-danger">
+    <ul className="list-disc pl-5 t-s font-semibold text-madder-text">
       {msgs.map(([k, m]) => (
         <li key={k}>
           {describe ? describe(k) : k}: {m.join(" ")}

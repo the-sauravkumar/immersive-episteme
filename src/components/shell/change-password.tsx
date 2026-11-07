@@ -95,7 +95,7 @@ export function ChangePasswordDialog({ open, onOpenChange, minPasswordLength }: 
             ) : null}
             {field("currentPassword", "Current password", "current-password")}
             {field("newPassword", "New password", "new-password", ids.hint)}
-            <p id={ids.hint} className="text-credit">
+            <p id={ids.hint} className="t-s text-lime-dim">
               At least {minPasswordLength} characters.
             </p>
             {field("repeatPassword", "Repeat the new password", "new-password")}

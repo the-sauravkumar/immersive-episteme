@@ -88,8 +88,8 @@ export function SignInForm({ google }: { google: boolean }) {
         </Button>
       </form>
       {google ? (
-        <div className="flex flex-col gap-3 border-t border-rule pt-6">
-          <p className="text-body text-ink-2">Or use your Google account.</p>
+        <div className="flex flex-col gap-3 border-t border-line pt-6">
+          <p className="t-b text-lime-dim">Or use your Google account.</p>
           <GoogleButton disabled={pending !== null} opening={pending === "google"} onClick={() => void onGoogle()} />
         </div>
       ) : null}

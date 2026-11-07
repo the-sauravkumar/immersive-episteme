@@ -1,18 +1,12 @@
-/**
- * Accessibility (DESIGN.md 11.4), in the editorial frame: themes, high contrast, reduced motion,
- * keyboard paths and the Display Settings control. Everything stated here is a feature the
- * platform implements; it states the standard the interface is built to, not a certification.
- */
 import type { Metadata } from "next";
 
 import { EditorialFrame, EditorialRow, EditorialSection, Prose } from "@/components/public/editorial-frame";
 import { Sidenote } from "@/components/public/sidenote";
-import { DisplaySettings } from "@/components/shell/display-settings";
 import { PageHeader } from "@/components/shell/page-header";
 
 export const metadata: Metadata = { title: "Accessibility" };
 
-const LIST = "text-reading flex list-disc flex-col gap-2 pl-6 text-ink marker:text-ink-3";
+const LIST = "t-b flex list-disc flex-col gap-2 pl-6 text-lime marker:text-lime-dim";
 
 export default function AccessibilityPage() {
   return (
@@ -20,7 +14,7 @@ export default function AccessibilityPage() {
       <PageHeader
         className="mb-0"
         title="Accessibility"
-        description="How the platform supports keyboard, screen-reader, high-contrast and reduced-motion use, and how to change the display."
+        description="How the platform supports keyboard, screen-reader and reduced-motion use, and what the display looks like."
       />
       <EditorialFrame>
         <EditorialSection id="standard" title="The standard we build to">
@@ -38,39 +32,20 @@ export default function AccessibilityPage() {
           </EditorialRow>
         </EditorialSection>
 
-        <EditorialSection id="display-settings" title="Display settings">
-          <EditorialRow
-            note={
-              <Sidenote>
-                <p>Settings are saved on this device only, in the browser.</p>
-              </Sidenote>
-            }
-          >
-            <Prose>The Display Settings control, in the footer of every public page and in the console&rsquo;s user menu, offers three switches:</Prose>
-            <ul className={LIST}>
-              <li>
-                <span className="font-semibold">Dark theme</span>: light text on a dark ground. Light is the default.
-              </li>
-              <li>
-                <span className="font-semibold">High contrast</span>: darker text and solid borders, opaque surfaces, no decorative pattern, and a
-                black and white focus ring.
-              </li>
-              <li>
-                <span className="font-semibold">Reduce motion</span>: no transitions or animations. The setting of your operating system is
-                respected as well.
-              </li>
-            </ul>
-            <div>
-              <DisplaySettings zone="public" />
-            </div>
+        <EditorialSection id="display" title="Display">
+          <EditorialRow>
+            <Prose>
+              Every page uses one palette: light text on a deep indigo ground, with turmeric marking the current place, the forward action and the
+              keyboard focus. Body and secondary text keep at least 7:1 contrast, above the AA level. Motion is limited to short
+              fades and is switched off when your operating system asks for reduced motion.
+            </Prose>
           </EditorialRow>
         </EditorialSection>
 
         <EditorialSection id="study-pages" title="In a study">
           <EditorialRow>
             <Prose>
-              Study pages are always shown in the light theme, with no interface transitions or animations, in both learning conditions, so that the
-              display is the same for everyone. High contrast is the one setting offered there, in the same way in both conditions. In the walkthrough
+              Study pages have no interface transitions or animations, in both learning conditions, so that the display is the same for everyone. In the walkthrough
               the view moves only while the learner walks, looks around or uses Walk On or Back.
             </Prose>
           </EditorialRow>

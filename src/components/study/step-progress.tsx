@@ -1,15 +1,6 @@
-/**
- * Progress through a study session (DESIGN.md 11.7): "Step n of N" in tabular figures and a 2 px
- * `--ink`-on-`--rule` line (the Progress primitive, no transition). No percentages, badges or
- * celebration. Rendered at the top of every in-session step page, identically for both
- * conditions: the count comes from the protocol's step list, which is the same for every
- * participant of a study.
- *
- * Positions outside the protocol's step list (allocation, the device check, the final
- * confirmation) show no count: they are not numbered steps of the protocol.
- */
 import { countOf } from "@/components/brand/numbering";
-import { Progress } from "@/components/ui/progress";
+import { clothStripPath } from "@/features/process/domain/asset-catalogue";
+import { cn } from "@/lib/utils";
 import type { StudyStep } from "@/server/study/config";
 import type { Position } from "@/server/study/engine";
 
@@ -18,7 +9,8 @@ export interface StepCount {
   total: number;
 }
 
-/** Pure: the 1-based step number of the current position, or null when it is not a protocol step. */
+const STEP_CLOTH = clothStripPath("ajrakh-raw");
+
 export function stepCountOf(steps: readonly StudyStep[], position: Position): StepCount | null {
   if (position.kind !== "step") return null;
   const index = steps.indexOf(position.step);
@@ -26,23 +18,44 @@ export function stepCountOf(steps: readonly StudyStep[], position: Position): St
   return { current: index + 1, total: steps.length };
 }
 
+function stateOf(index: number, current: number): "done" | "current" | "ahead" {
+  if (index + 1 < current) return "done";
+  return index + 1 === current ? "current" : "ahead";
+}
+
 export function StepProgress({ count }: { count: StepCount | null }) {
   if (!count) return null;
   const text = countOf("Step", count.current, count.total);
   return (
     <div data-slot="study-progress" className="mb-8 flex flex-col gap-2">
-      <p className="text-timer text-ink-2" aria-hidden="true">
+      <p className="t-label tabular-nums text-lime-dim" aria-hidden="true">
         {text}
       </p>
-      {/* High contrast turns --rule into --ink, so a 2 px ink bar on an ink track would read as one
-          solid rule. There the track becomes an 8 px ink-outlined --sunk channel that the ink
-          indicator fills, so the line still shows how far along the participant is. */}
-      <Progress
-        value={(count.current / count.total) * 100}
+      <div
+        role="progressbar"
         aria-label="Study progress"
+        aria-valuemin={0}
+        aria-valuemax={count.total}
+        aria-valuenow={count.current}
         aria-valuetext={text}
-        className="hc:h-2 hc:border hc:border-ink hc:bg-sunk"
-      />
+        className="grid auto-cols-fr grid-flow-col gap-px"
+      >
+        {Array.from({ length: count.total }, (_, index) => {
+          const state = stateOf(index, count.current);
+          return (
+            <span
+              key={index}
+              data-state={state}
+              className={cn(
+                "block h-3 bg-vat bg-cover bg-center",
+                state === "current" && "outline-3 -outline-offset-1 outline-turmeric",
+                state === "ahead" && "bg-[repeating-linear-gradient(0deg,var(--thread)_0_1px,transparent_1px_5px)]",
+              )}
+              style={state === "ahead" ? undefined : { backgroundImage: `url("${STEP_CLOTH}")` }}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -28,7 +28,6 @@ import { DemoBadge, Empty, LINK_44, PublishedBadge, Section, SubHeading, Summary
 
 export const metadata: Metadata = { title: "Assessment" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ params }: PageProps<"/research/assessments/[assessmentId]">) {
@@ -58,9 +57,8 @@ const ITEM_KIND_LABEL: Record<string, string> = {
   concept_map: "Concept map",
 };
 
-/** A JSON block: mono on --sunk, wrapping, never widening the page. */
 function JsonBlock({ value }: { value: unknown }) {
-  return <pre className="text-id max-h-80 overflow-auto bg-sunk p-3 whitespace-pre-wrap [overflow-wrap:anywhere]">{JSON.stringify(value, null, 2)}</pre>;
+  return <pre className="t-table font-semibold wrap-anywhere max-h-80 overflow-auto bg-vat-2 p-3 whitespace-pre-wrap [overflow-wrap:anywhere]">{JSON.stringify(value, null, 2)}</pre>;
 }
 
 async function Detail({ params }: { params: Promise<{ assessmentId: string }> }) {
@@ -90,21 +88,21 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
               </span>
             ),
           },
-          { label: "Code", value: <span className="text-id">{a.code}</span> },
+          { label: "Code", value: <span className="t-table font-semibold wrap-anywhere">{a.code}</span> },
           { label: "Version", value: <span className="tabular-nums">v{a.version}</span> },
           { label: "Kind", value: KIND_LABEL[a.kind] ?? a.kind },
-          { label: "Published (UTC)", value: a.lockedAt ? <span className="text-id">{a.lockedAt.toISOString().slice(0, 10)}</span> : "Not published" },
+          { label: "Published (UTC)", value: a.lockedAt ? <span className="t-table font-semibold wrap-anywhere">{a.lockedAt.toISOString().slice(0, 10)}</span> : "Not published" },
         ]}
       />
-      <nav aria-label="Versions" className="mb-6 flex flex-wrap items-center gap-x-1 border-b border-rule">
-        <span className="text-label mr-3">Versions</span>
+      <nav aria-label="Versions" className="mb-6 flex flex-wrap items-center gap-x-1 border-b border-line">
+        <span className="t-label mr-3">Versions</span>
         {a.versions.map((v) =>
           v.id === a.id ? (
-            <span key={v.id} aria-current="page" className="inline-flex min-h-11 items-center border-b-[3px] border-indigo px-3 font-sans text-[0.9375rem] leading-5 font-medium text-ink tabular-nums">
+            <span key={v.id} aria-current="page" className="inline-flex min-h-11 items-center border-b-[3px] border-turmeric px-3 font-sans t-s font-medium text-lime tabular-nums">
               v{v.version}
             </span>
           ) : (
-            <Link key={v.id} href={`/research/assessments/${v.id}`} className="inline-flex min-h-11 items-center border-b-[3px] border-transparent px-3 font-sans text-[0.9375rem] leading-5 font-medium text-ink-3 tabular-nums hover:text-ink">
+            <Link key={v.id} href={`/research/assessments/${v.id}`} className="inline-flex min-h-11 items-center border-b-[3px] border-transparent px-3 font-sans t-s font-medium text-lime-dim tabular-nums hover:text-lime">
               v{v.version} ({v.status === "locked" ? "published" : "draft"})
             </Link>
           ),
@@ -168,9 +166,8 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
               <Card>
                 <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
                   <div className="flex min-w-0 flex-col gap-1">
-                    {/* Items are numbered from 1 in the order participants see them; the stored (zero-based) position is on the key line. */}
-                    <h3 className="text-h3 text-ink tabular-nums">{titleCase(`Item ${index + 1}: ${ITEM_KIND_LABEL[item.kind] ?? item.kind}`)}</h3>
-                    <p className="text-id break-all text-ink-3">
+                    <h3 className="t-label text-lime tabular-nums">{titleCase(`Item ${index + 1}: ${ITEM_KIND_LABEL[item.kind] ?? item.kind}`)}</h3>
+                    <p className="t-table font-semibold wrap-anywhere break-all text-lime-dim">
                       {item.itemKey}, position {item.position}
                     </p>
                   </div>
@@ -181,7 +178,7 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
                     <ItemForm action={saveItemAction.bind(null, a.id)} value={item} relationshipTypes={types} submitLabel="Save item" />
                   ) : (
                     <>
-                      <p className="text-body whitespace-pre-line text-ink">{item.prompt}</p>
+                      <p className="t-b whitespace-pre-line text-lime">{item.prompt}</p>
                       <JsonBlock value={{ config: item.config, answerKey: item.answerKey ?? null }} />
                     </>
                   )}
@@ -217,25 +214,25 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
                 <Card key={item.id}>
                   <CardHeader>
                     <CardEyebrow>Free-text item</CardEyebrow>
-                    <h3 className="text-h3 text-ink tabular-nums">{titleCase(`Rubrics for item ${a.items.findIndex((x) => x.id === item.id) + 1}`)}</h3>
-                    <p className="text-id break-all text-ink-3">
+                    <h3 className="t-label text-lime tabular-nums">{titleCase(`Rubrics for item ${a.items.findIndex((x) => x.id === item.id) + 1}`)}</h3>
+                    <p className="t-table font-semibold wrap-anywhere break-all text-lime-dim">
                       {item.itemKey}, position {item.position}
                     </p>
                   </CardHeader>
                   <CardContent className="flex flex-col gap-6">
                     {rubrics.length === 0 ? <Empty>No rubric yet.</Empty> : null}
                     {rubrics.map((r) => (
-                      <div key={r.id} className="flex flex-col gap-3 border-t border-rule pt-4">
-                        <p className="flex flex-wrap items-center gap-3 font-sans text-[0.9375rem] leading-5 font-medium text-ink">
+                      <div key={r.id} className="flex flex-col gap-3 border-t border-line pt-4">
+                        <p className="flex flex-wrap items-center gap-3 font-sans t-s font-medium text-lime">
                           Rubric <span className="tabular-nums">v{r.version}</span>
                           <PublishedBadge published={r.status === "locked"} />
                         </p>
-                        <dl className="border-y border-rule">
+                        <dl className="border-y border-line">
                           {r.levels.map((l) => (
-                            <div key={l.value} className="grid min-w-0 gap-x-4 border-t border-rule py-2 first:border-t-0 xs:grid-cols-[3rem_minmax(0,10rem)_minmax(0,1fr)]">
-                              <dt className="text-body font-semibold text-ink tabular-nums xs:text-right">{l.value}</dt>
-                              <dd className="text-body font-medium text-ink">{l.label}</dd>
-                              <dd className="text-body text-ink-2">{l.descriptor}</dd>
+                            <div key={l.value} className="grid min-w-0 gap-x-4 border-t border-line py-2 first:border-t-0 xs:grid-cols-[3rem_minmax(0,10rem)_minmax(0,1fr)]">
+                              <dt className="t-b font-semibold text-lime tabular-nums xs:text-right">{l.value}</dt>
+                              <dd className="t-b font-medium text-lime">{l.label}</dd>
+                              <dd className="t-b text-lime-dim">{l.descriptor}</dd>
                             </div>
                           ))}
                         </dl>
@@ -248,7 +245,7 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
                         )}
                       </div>
                     ))}
-                    <ActionForm action={createRubricAction.bind(null, a.id, item.id)} submitLabel="Create rubric version" resetOnSuccess className="flex flex-col gap-4 border-t border-rule pt-4">
+                    <ActionForm action={createRubricAction.bind(null, a.id, item.id)} submitLabel="Create rubric version" resetOnSuccess className="flex flex-col gap-4 border-t border-line pt-4">
                       <Field label="Levels" hint="One per line as 'value | label | descriptor', e.g. '2 | Full | Explains the mechanism completely'.">
                         <textarea name="levels" required rows={4} className={fieldClass} />
                       </Field>
@@ -266,14 +263,14 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
           {refs.length === 0 ? (
             <Empty className="mb-6">No reference map versions yet.</Empty>
           ) : (
-            <ul className="mb-8 flex max-w-[52rem] flex-col border-y border-rule">
+            <ul className="mb-8 flex max-w-[52rem] flex-col border-y border-line">
               {refs.map((r) => (
-                <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-rule py-1 first:border-t-0">
+                <li key={r.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-line py-1 first:border-t-0">
                   <Link href={`/research/assessments/${a.id}/reference/${r.id}`} className={LINK_44}>
                     <span className="tabular-nums">v{r.version}</span>: {r.title}
                   </Link>
                   <Badge variant={r.status === "locked" || r.adjudicatedAt ? "ok" : "neutral"}>{r.status === "locked" ? "Locked" : r.adjudicatedAt ? "Adjudicated" : "Collecting rater maps"}</Badge>
-                  <span className="text-credit tabular-nums">
+                  <span className="t-s text-lime-dim tabular-nums">
                     {plural(r.raterCount, "rater map")}{r.adjudicatedAt ? `, ${plural(r.edgeCount, "reference edge")}` : ""}
                   </span>
                 </li>
@@ -292,7 +289,7 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
               </Field>
             </ActionForm>
           )}
-          <p className="text-credit mt-4">
+          <p className="t-s text-lime-dim mt-4">
             Scoring against an adjudicated map runs on{" "}
             <Link className={LINK_44} href="/research/scoring">
               Scoring

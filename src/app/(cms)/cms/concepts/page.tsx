@@ -22,7 +22,6 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Concepts" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/cms/concepts">) {
@@ -35,7 +34,6 @@ export default function Page({ searchParams }: PageProps<"/cms/concepts">) {
   );
 }
 
-/** Concept types by their shared display names (the same wording both learning conditions use). */
 const label = (s: string) => CONCEPT_TYPE_LABELS[s as keyof typeof CONCEPT_TYPE_LABELS] ?? s.replace(/_/g, " ");
 
 async function Concepts({ searchParams }: { searchParams: Promise<SearchParams> }) {
@@ -117,7 +115,7 @@ async function Concepts({ searchParams }: { searchParams: Promise<SearchParams> 
                   <Mono className="block">{c.key}</Mono>
                 </TableCell>
                 <TableCell>{label(c.type)}</TableCell>
-                <TableCell>{c.tradition ? (packageName.get(c.tradition) ?? c.tradition) : <span className="text-ink-3">None</span>}</TableCell>
+                <TableCell>{c.tradition ? (packageName.get(c.tradition) ?? c.tradition) : <span className="text-lime-dim">None</span>}</TableCell>
                 <TableCell numeric>{c.claims}</TableCell>
                 <TableCell numeric>{c.incompleteClaims}</TableCell>
                 <TableCell>

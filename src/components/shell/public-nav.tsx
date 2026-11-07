@@ -1,11 +1,5 @@
 "use client";
 
-/**
- * Public header navigation (DESIGN.md 10.1): plain text links in Atkinson 16/600 with 44 px hit
- * areas; the current page is underlined 2 px indigo and carries `aria-current="page"`. From
- * 768 px the links sit in the header; under 768 px they fold into a 44 px "Menu" button that
- * opens a sheet with the same links in the same order.
- */
 import { Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -22,8 +16,8 @@ function isCurrent(pathname: string, href: string): boolean {
 }
 
 const LINK =
-  "inline-flex min-h-11 min-w-11 items-center text-ui text-ink underline-offset-[6px] decoration-indigo hover:underline hover:decoration-1";
-const CURRENT = "underline decoration-2 hover:decoration-2";
+  "inline-flex min-h-11 min-w-11 items-center t-label text-lime underline-offset-[6px] decoration-turmeric hover:underline hover:decoration-1";
+const CURRENT = "text-turmeric underline decoration-4 hover:decoration-4";
 
 export function PublicNav({ links }: { links: readonly PublicNavLink[] }) {
   const pathname = usePathname();
@@ -59,11 +53,11 @@ export function PublicNav({ links }: { links: readonly PublicNavLink[] }) {
             <SheetDescription className="sr-only">Pages of the Immersive Episteme site.</SheetDescription>
           </SheetHeader>
           <nav aria-label="Primary" className="px-6 max-xs:px-4">
-            <ul className="flex flex-col border-t border-rule">
+            <ul className="flex flex-col border-t border-line">
               {links.map((link) => {
                 const current = isCurrent(pathname, link.href);
                 return (
-                  <li key={link.href} className="border-b border-rule">
+                  <li key={link.href} className="border-b border-line">
                     <Link
                       href={link.href}
                       aria-current={current ? "page" : undefined}

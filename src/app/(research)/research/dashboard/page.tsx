@@ -112,8 +112,8 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
     <>
       <StudyPicker studies={studies} current={study.id} />
       <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <span className="text-h3 text-ink">{data.study.title}</span>
-        <span className="text-id text-ink-3">{data.study.slug}</span>
+        <span className="t-label text-lime">{data.study.title}</span>
+        <span className="t-table font-semibold wrap-anywhere text-lime-dim">{data.study.slug}</span>
         <StatusBadge status={data.study.status} />
         {demo ? <DemoBadge label="Demo / pilot: not experimental data" /> : <Badge variant="neutral">Experimental study</Badge>}
       </div>
@@ -123,12 +123,12 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
         <AlertDescription>
           Descriptive only. Means, SDs, medians and 95% t intervals describe the recorded data; they test nothing and show no causal effect. The confirmatory analysis
           (ANCOVA of each primary outcome at the immediate test with the pre-test score as covariate, then a mixed model of the immediate and delayed tests, DR-075)
-          runs in <code className="text-id">analysis/episteme_stats</code>. {ANALYSIS_SCOPE_NOTE} Nothing is imputed: undefined values are counted as missing.
+          runs in <code className="t-table font-semibold wrap-anywhere">analysis/episteme_stats</code>. {ANALYSIS_SCOPE_NOTE} Nothing is imputed: undefined values are counted as missing.
         </AlertDescription>
       </Alert>
       {mayDownload ? (
         <div className="mb-10 flex max-w-[52rem] flex-col gap-1">
-          <p className="text-body text-ink-2">
+          <p className="t-b text-lime-dim">
             Every table has a pseudonymised CSV (participant codes only, metric versions in its first line). The complete study data, with checksums and the data
             dictionary, is the full export.
           </p>
@@ -137,7 +137,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
           </Link>
         </div>
       ) : (
-        <p className="text-body mb-10 max-w-[52rem] text-ink-2">CSV downloads and the full export need the exports.create permission, which your roles do not include.</p>
+        <p className="t-b mb-10 max-w-[52rem] text-lime-dim">CSV downloads and the full export need the exports.create permission, which your roles do not include.</p>
       )}
 
       <StatRow
@@ -226,7 +226,7 @@ function ResultsRow({ data, n, demo, csvHref }: { data: DashboardData; n: Counte
       demo={demo}
       description={
         <>
-          <code className="text-id">test.sequence</code> and <code className="text-id">test.stage_placement</code>, the two primary outcomes of H1 (DR-075): the proportion of
+          <code className="t-table font-semibold wrap-anywhere">test.sequence</code> and <code className="t-table font-semibold wrap-anywhere">test.stage_placement</code>, the two primary outcomes of H1 (DR-075): the proportion of
           keyed items answered correctly on the immediate and the delayed test. The pre-test score is the covariate of the analysis and is shown in the table below. Descriptive;
           no causal reading.
         </>
@@ -258,11 +258,6 @@ function ResultsRow({ data, n, demo, csvHref }: { data: DashboardData; n: Counte
   );
 }
 
-/**
- * Row 3 of 11.9: Figure 3, gain by tradition, small multiples on one y scale in the canonical
- * tradition order (traditions are never colour-coded; the panels are labelled by name). Every
- * session is drawn; the larger marker is the mean with its 95% t interval.
- */
 function TraditionRow({
   conditions,
   gains,
@@ -294,7 +289,7 @@ function TraditionRow({
       description={
         <>
           Proportion of keyed knowledge-test items answered correctly on the post-test minus the pre-test, counting only items whose concept belongs to the tradition (
-          <code className="text-id">item.key_match</code>, latest attempt). A descriptive breakdown of the knowledge test, not a registered outcome; no causal reading.
+          <code className="t-table font-semibold wrap-anywhere">item.key_match</code>, latest attempt). A descriptive breakdown of the knowledge test, not a registered outcome; no causal reading.
         </>
       }
     >
@@ -313,10 +308,6 @@ function TraditionRow({
   );
 }
 
-/**
- * Row 4 of 11.9: the per-item statistics (booktabs, right-aligned tabular, Download CSV), from
- * stored derived values (./_components/dashboard-extras.ts); with none stored, it says so.
- */
 function ItemsRow({
   conditions,
   items,
@@ -365,8 +356,8 @@ function ItemsRow({
               <TableBody>
                 {items.map((it) => (
                   <TableRow key={`${it.assessment}|${it.itemKey}`}>
-                    <TableCell className="text-id">{it.assessment}</TableCell>
-                    <TableCell className="text-id">{it.itemKey}</TableCell>
+                    <TableCell className="t-table font-semibold wrap-anywhere">{it.assessment}</TableCell>
+                    <TableCell className="t-table font-semibold wrap-anywhere">{it.itemKey}</TableCell>
                     {it.byCondition.map((c, i) => [
                       <TableCell key={`${i}-n`} numeric>
                         {c.n}
@@ -387,11 +378,11 @@ function ItemsRow({
           </div>
         ) : (
           <figure className="flex min-w-0 flex-col gap-2">
-            <figcaption className="font-sans text-[0.9375rem] leading-6 text-ink">
+            <figcaption className="font-sans t-s text-lime">
               <span className="font-semibold tabular-nums">Table {n.table()}. </span>
               {titleCase("Per-item statistics")}
             </figcaption>
-            <Empty className="flex min-h-24 items-center bg-sunk px-4">No keyed answers scored yet: keyed items are scored on the Scoring page.</Empty>
+            <Empty className="flex min-h-24 items-center bg-vat-2 px-4">No keyed answers scored yet: keyed items are scored on the Scoring page.</Empty>
           </figure>
         )}
       </div>
@@ -404,11 +395,11 @@ function ParityCard({ rows, studyId }: { rows: ContentParityRow[]; studyId: stri
     <Card plate className="mb-12 max-w-[52rem]">
       <CardHeader>
         <CardEyebrow>Equivalence Monitor</CardEyebrow>
-        <h2 className="text-h3 text-ink">{titleCase("content parity")}</h2>
+        <h2 className="t-label text-lime">{titleCase("content parity")}</h2>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <ContentParity rows={rows} />
-        <p className="text-credit">
+        <p className="t-s text-lime-dim">
           The latest stored parity report of this study: both doors are checked against one stage template for the same stages, words, sources, model ids and file hashes.
           Interface measures are not compared; nothing measures them now.
         </p>
@@ -472,7 +463,7 @@ function PrimarySection({ data, csv, n, demo }: { data: DashboardData; csv: (t: 
             <TableBody>
               {data.primary.ancova.map((r) => (
                 <TableRow key={r.participantCode}>
-                  <TableCell className="text-id">{r.participantCode}</TableCell>
+                  <TableCell className="t-table font-semibold wrap-anywhere">{r.participantCode}</TableCell>
                   <TableCell>{r.conditionCode}</TableCell>
                   <TableCell>{r.stratum ?? "–"}</TableCell>
                   <TableCell numeric>{num(r.preTest)}</TableCell>
@@ -566,11 +557,11 @@ function TelemetrySection({
 function CountList({ items, empty }: { items: { k: string; n: number }[]; empty: string }) {
   if (!items.length) return <Empty>{empty || "None."}</Empty>;
   return (
-    <dl className="border-y border-rule">
+    <dl className="border-y border-line">
       {items.map((i) => (
-        <div key={i.k} className="flex min-h-11 items-center justify-between gap-4 border-t border-rule py-2 first:border-t-0">
-          <dt className="font-sans text-[0.9375rem] leading-5 text-ink">{i.k}</dt>
-          <dd className="font-sans text-[0.9375rem] leading-5 text-ink tabular-nums">{i.n}</dd>
+        <div key={i.k} className="flex min-h-11 items-center justify-between gap-4 border-t border-line py-2 first:border-t-0">
+          <dt className="font-sans t-s text-lime">{i.k}</dt>
+          <dd className="font-sans t-s text-lime tabular-nums">{i.n}</dd>
         </div>
       ))}
     </dl>
@@ -665,31 +656,31 @@ function Definitions() {
       title="definitions"
       description="Every metric on this page: version, preregistration role (primary: test.sequence and test.stage_placement, with the pre-test score as covariate, DR-075), what it measures, unit, how and where it is computed, and its citation (quoted verbatim from docs/research/study-decisions.md) or “Project definition”."
     >
-      <div className="flex flex-col border-y border-rule">
+      <div className="flex flex-col border-y border-line">
         {groups.map((g) => (
-          <div key={g} className="border-t border-rule py-1 first:border-t-0">
+          <div key={g} className="border-t border-line py-1 first:border-t-0">
             <DataDisclosure label={titleCase(GROUP_TITLES[g])}>
               <dl className="flex max-w-[52rem] flex-col gap-5 pb-4">
                 {METRIC_DEFINITIONS.filter((d) => d.group === g).map((d) => (
-                  <div key={d.key} className="flex min-w-0 flex-col gap-1 font-sans text-[0.9375rem] leading-6 text-ink">
+                  <div key={d.key} className="flex min-w-0 flex-col gap-1 font-sans t-s text-lime">
                     <dt className="font-semibold">
-                      {d.label} <span className="text-id font-normal text-ink-3 [overflow-wrap:break-word]">{breakableKey(d.key)} v{d.version}</span>
+                      {d.label} <span className="t-table font-semibold wrap-anywhere font-normal text-lime-dim [overflow-wrap:break-word]">{breakableKey(d.key)} v{d.version}</span>
                     </dt>
                     <dd>
                       <span className="font-medium">Role: {d.role}.</span> {d.measures}
                     </dd>
-                    <dd className="text-ink-2">
-                      Unit: {d.unit}. {d.computation} Computed in <code className="text-id [overflow-wrap:break-word]">{breakableKey(d.computedIn)}</code>.
+                    <dd className="text-lime-dim">
+                      Unit: {d.unit}. {d.computation} Computed in <code className="t-table font-semibold wrap-anywhere [overflow-wrap:break-word]">{breakableKey(d.computedIn)}</code>.
                     </dd>
                     <dd>
                       {d.citation ? (
                         <>
                           {d.citation.source}, {d.citation.locator}
                           {d.citation.secondary ? " (secondary)" : ""}: <q>{d.citation.quote}</q>
-                          {d.note && d.note !== "Project definition." ? <span className="text-ink-2"> {d.note}</span> : null}
+                          {d.note && d.note !== "Project definition." ? <span className="text-lime-dim"> {d.note}</span> : null}
                         </>
                       ) : (
-                        <span className="text-ink-2">{d.note ?? "Project definition."}</span>
+                        <span className="text-lime-dim">{d.note ?? "Project definition."}</span>
                       )}
                     </dd>
                   </div>

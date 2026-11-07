@@ -1,9 +1,5 @@
 "use client";
 
-/**
- * Curator notes / editorial prose (Tiptap). Stored as Tiptap JSON in concepts.body after a
- * server-side allow-list sanitise; NEVER shown to learners (snapshots carry body = null).
- */
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useState } from "react";
@@ -30,7 +26,7 @@ export function NotesEditor({ conceptId, initial, warnAccepted }: { conceptId: s
     editorProps: {
       attributes: {
         class:
-          "min-h-32 rounded-b-control border border-t-0 border-rule-strong bg-ground px-3 py-2 font-sans text-base leading-6 text-ink [&_blockquote]:bg-sunk [&_blockquote]:px-4 [&_blockquote]:py-2 [&_h2]:text-h3 [&_h3]:text-h3 [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_p+p]:mt-2 [&_ul]:list-disc [&_ul]:pl-5",
+          "min-h-32 border border-t-0 border-lime-dim bg-vat px-3 py-2 t-b text-lime [&_blockquote]:bg-vat-2 [&_blockquote]:px-4 [&_blockquote]:py-2 [&_h2]:t-label [&_h3]:t-label [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_p+p]:mt-2 [&_ul]:list-disc [&_ul]:pl-5",
         role: "textbox",
         "aria-multiline": "true",
         "aria-label": "Curator notes",
@@ -40,7 +36,7 @@ export function NotesEditor({ conceptId, initial, warnAccepted }: { conceptId: s
   });
 
   const tool = (label: string, run: () => void, active: boolean) => (
-    <Button type="button" variant={active ? "outline" : "ghost"} aria-pressed={active} onClick={run} disabled={!editor} className={active ? "bg-wash" : undefined}>
+    <Button type="button" variant={active ? "outline" : "ghost"} aria-pressed={active} onClick={run} disabled={!editor} className={active ? "bg-raised-hover" : undefined}>
       {label}
     </Button>
   );
@@ -50,10 +46,10 @@ export function NotesEditor({ conceptId, initial, warnAccepted }: { conceptId: s
       <input type="hidden" name="conceptId" value={conceptId} />
       <input type="hidden" name="doc" value={json} />
       {warnAccepted ? (
-        <p className="text-body text-ink-2">This concept is accepted. Notes are for curators only and never shown to learners, so saving them keeps it accepted.</p>
+        <p className="t-b text-lime-dim">This concept is accepted. Notes are for curators only and never shown to learners, so saving them keeps it accepted.</p>
       ) : null}
       <div>
-        <div role="toolbar" aria-label="Formatting" className="flex flex-wrap gap-1 rounded-t-control border border-rule-strong bg-sunk p-1">
+        <div role="toolbar" aria-label="Formatting" className="flex flex-wrap gap-1 border border-lime-dim bg-vat-2 p-1">
           {tool("Bold", () => editor?.chain().focus().toggleBold().run(), !!editor?.isActive("bold"))}
           {tool("Italic", () => editor?.chain().focus().toggleItalic().run(), !!editor?.isActive("italic"))}
           {tool("Heading", () => editor?.chain().focus().toggleHeading({ level: 3 }).run(), !!editor?.isActive("heading"))}

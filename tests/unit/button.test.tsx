@@ -16,18 +16,12 @@ describe("Button (shadcn, radix-nova)", () => {
   });
 });
 
-/*
- * DESIGN.md 9.1: 44 px default height, 44 x 44 icon buttons, a 36 px compact size that keeps a
- * 44 x 44 hit area (the deprecated size names are removed).
- * jsdom has no layout, so this checks the size classes; the rendered boxes are measured in
- * Playwright (P9 and the section 15 target-size check).
- */
-describe("Button sizes (DESIGN.md 9.1)", () => {
+describe("Button sizes (DESIGN.md Section 6)", () => {
   const classes = (size: Parameters<typeof buttonVariants>[0]) =>
     buttonVariants(size).split(/\s+/);
 
-  it("size default is 44 px tall", () => {
-    expect(classes({ size: "default" })).toContain("h-11");
+  it("size default is at least 46 px tall", () => {
+    expect(classes({ size: "default" })).toContain("min-h-[46px]");
   });
 
   it("size icon is 44 x 44", () => {
@@ -36,7 +30,7 @@ describe("Button sizes (DESIGN.md 9.1)", () => {
 
   it("compact is 36 px visual with a 44 x 44 hit area", () => {
     const c = classes({ size: "compact" });
-    expect(c).toContain("h-9");
+    expect(c).toContain("min-h-9");
     expect(c).toContain("relative");
     expect(c).toEqual(expect.arrayContaining(["after:absolute", "after:min-h-11", "after:min-w-11"]));
   });
@@ -49,11 +43,11 @@ describe("Button sizes (DESIGN.md 9.1)", () => {
     }
   });
 
-  it("the outline (secondary) variant renders a 1.5 px ink boundary, so actions read differently from fields (DR-022)", () => {
+  it("the outline variant renders the 2 px lime border of DESIGN.md Section 6 (DR-119)", () => {
     render(<Button variant="outline">B</Button>);
     const cls = screen.getByRole("button", { name: "B" }).className;
-    expect(cls).toContain("border-[1.5px]");
-    expect(cls).toContain("border-ink");
+    expect(cls).toContain("border-2");
+    expect(cls).toContain("border-lime");
     expect(cls).not.toMatch(/outline-none/);
   });
 });

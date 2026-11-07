@@ -22,15 +22,9 @@ import { getCurrentSession, nextTelemetrySeq, routeFor } from "@/server/study/se
 
 export const metadata: Metadata = { title: titleCase("Your session") };
 
-/**
- * The steps of the session as a numbered list: one 44 px row per step with its number in tabular
- * figures, the label, and the status in words ("Done" with a check, "Current", "To do"), so state
- * is never carried by colour or weight alone (R-A4). The current row carries a 2 px ink bar, not
- * `--wash`, which study reserves for a chosen questionnaire option (DESIGN.md 12.2 rule 5).
- */
 function Progress({ steps, done, position }: { steps: readonly StudyStep[]; done: ReadonlySet<StudyStep>; position: Position }) {
   return (
-    <ol className="flex flex-col divide-y divide-rule border-y border-rule" aria-label="Steps of this session">
+    <ol className="flex flex-col divide-y divide-line border-y border-line" aria-label="Steps of this session">
       {steps.map((s, i) => {
         const current = position.kind === "step" && position.step === s;
         const status = done.has(s) ? "Done" : current ? "Current" : "To do";
@@ -38,12 +32,12 @@ function Progress({ steps, done, position }: { steps: readonly StudyStep[]; done
           <li
             key={s}
             aria-current={current ? "step" : undefined}
-            className="grid min-h-11 grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-x-3 py-2 pr-3 aria-[current=step]:bg-wash"
+            className="grid min-h-11 grid-cols-[2.25rem_minmax(0,1fr)_auto] items-center gap-x-3 py-2 pr-3 aria-[current=step]:bg-raised-hover"
           >
-            <span className="text-ui text-right tabular-nums text-ink-3">{i + 1}</span>
-            <span className={current ? "text-ui font-bold text-ink" : "text-body text-ink"}>{STEP_LABEL[s]}</span>
-            <span className="text-ui inline-flex items-center gap-1.5 text-ink-3">
-              {done.has(s) ? <Check aria-hidden="true" className="size-4 stroke-[1.75] text-ink" /> : null}
+            <span className="t-label text-right tabular-nums text-lime-dim">{i + 1}</span>
+            <span className={current ? "t-label font-bold text-lime" : "t-b text-lime"}>{STEP_LABEL[s]}</span>
+            <span className="t-label inline-flex items-center gap-1.5 text-lime-dim">
+              {done.has(s) ? <Check aria-hidden="true" className="size-4 stroke-[1.75] text-lime" /> : null}
               {status}
             </span>
           </li>
@@ -87,10 +81,10 @@ async function Hub({ searchParams }: { searchParams: PageProps<"/study/session">
       <div className="flex flex-col gap-12">
         {learningOpen && state.condition ? (
           <section aria-labelledby="learning-heading" className="flex flex-col gap-4">
-            <h2 id="learning-heading" className="text-h2 text-ink">
+            <h2 id="learning-heading" className="t-h4 text-lime">
               {titleCase("Learning task")}
             </h2>
-            <p className="text-reading max-w-[34rem] text-ink">
+            <p className="t-b max-w-[34rem] text-lime">
               {state.learning.startedAt ? "Your learning task is still open." : "Your learning task is ready."}
             </p>
             <StudyActions>
@@ -101,27 +95,25 @@ async function Hub({ searchParams }: { searchParams: PageProps<"/study/session">
           </section>
         ) : (
           <section aria-labelledby="finish-heading" className="flex flex-col gap-4">
-            <h2 id="finish-heading" className="text-h2 text-ink">
+            <h2 id="finish-heading" className="t-h4 text-lime">
               {titleCase("All steps are done")}
             </h2>
-            <p className="text-reading max-w-[34rem] text-ink">Submit to finish your session. After this you cannot change your answers.</p>
+            <p className="t-b max-w-[34rem] text-lime">Submit to finish your session. After this you cannot change your answers.</p>
             <FinishForm />
           </section>
         )}
         <section aria-labelledby="progress-heading" className="flex flex-col gap-3">
-          <h2 id="progress-heading" className="text-h3 text-ink">
+          <h2 id="progress-heading" className="t-label text-lime">
             {titleCase("Your progress")}
           </h2>
           <Progress steps={state.study.protocol.steps} done={completedSteps(state)} position={position} />
         </section>
       </div>
-      {/* The step list ends on its own closing rule, so the footer draws none. */}
       <StepFooter ruled={false} />
     </TelemetryProvider>
   );
 }
 
-/** May block: access is verified against the participant session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function SessionPage({ searchParams }: PageProps<"/study/session">) {

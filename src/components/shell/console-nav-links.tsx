@@ -16,13 +16,9 @@ function isActive(pathname: string, href: string, isRoot: boolean): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/*
- * Console rail links (DESIGN.md 10.2): 44 px rows; the active link is --ink at weight 700 on
- * --wash with aria-current. No left bar, card, shadow or pill.
- */
 const ROW =
-  "flex min-h-11 items-center px-4 py-2 text-ui text-ink-2 hover:text-ink hover:underline hover:decoration-1 hover:underline-offset-[0.2em]";
-const ACTIVE = "bg-wash font-bold text-ink";
+  "flex min-h-11 items-center px-4 py-2 t-label text-lime-dim hover:bg-raised-hover hover:text-lime";
+const ACTIVE = "bg-vat-2 text-turmeric";
 
 function LinkList({ links, rootHref, onNavigate }: { links: NavLink[]; rootHref: string; onNavigate?: () => void }) {
   const pathname = usePathname();
@@ -42,12 +38,10 @@ function LinkList({ links, rootHref, onNavigate }: { links: NavLink[]; rootHref:
   );
 }
 
-/** The rail list from 768 px. Items arrive pre-filtered by permission from the server. */
 export function ConsoleNavLinks({ links, rootHref }: { links: NavLink[]; rootHref: string }) {
   return <LinkList links={links} rootHref={rootHref} />;
 }
 
-/** Under 768 px the rail folds into a 44 px "Sections" button that opens the same list in a sheet. */
 export function ConsoleNavMenu({ links, rootHref, label }: { links: NavLink[]; rootHref: string; label: string }) {
   const [open, setOpen] = useState(false);
   if (links.length === 0) return null;

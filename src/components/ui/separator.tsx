@@ -1,6 +1,5 @@
 "use client"
 
-/* Separator: a 1 px --rule hairline drawn with a border, so it survives forced-colors (7.5). */
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
@@ -18,7 +17,7 @@ function Separator({
       decorative={decorative}
       orientation={orientation}
       className={cn(
-        "shrink-0 border-rule data-horizontal:h-0 data-horizontal:w-full data-horizontal:border-t data-vertical:w-0 data-vertical:self-stretch data-vertical:border-l",
+        "shrink-0 border-line data-horizontal:h-0 data-horizontal:w-full data-horizontal:border-t data-vertical:w-0 data-vertical:self-stretch data-vertical:border-l",
         className
       )}
       {...props}

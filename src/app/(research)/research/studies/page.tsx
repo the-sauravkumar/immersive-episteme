@@ -16,7 +16,6 @@ import { createStudyAction } from "../actions";
 
 export const metadata: Metadata = { title: "Studies" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page() {
@@ -52,7 +51,7 @@ async function Studies() {
                       {s.title}
                     </Link>
                     <span className="mt-0.5 flex flex-wrap items-center gap-2">
-                      <span className="text-id text-ink-3">{s.slug}</span>
+                      <span className="t-table font-semibold wrap-anywhere text-lime-dim">{s.slug}</span>
                       {s.isDemo ? <DemoBadge label="Demo" /> : null}
                     </span>
                   </TableCell>

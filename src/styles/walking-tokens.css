@@ -23,7 +23,7 @@
   font-display: swap;
 }
 
-.walking {
+:root {
   color-scheme: dark;
   --vat: #0e1626;
   --vat-2: #16264e;
@@ -36,6 +36,7 @@
   --turmeric-hi: #f4c04a;
   --turmeric-lo: #c48c0c;
   --madder: #b02a20;
+  --madder-lo: #8d1c14;
   --madder-text: #f3a99f;
   --ok: #9ccba6;
   --thread: #5a6478;
@@ -44,9 +45,18 @@
   --plaster: #c8bfae;
   --wall-ink: #101d42;
   --hall-paint: #7a1610;
+  --still-ground: #d2c4b6;
   --product-rail: #6b5238;
   --raised-hover: #21356a;
+  --row-hover: rgba(22, 38, 78, 0.55);
   --backdrop: rgba(6, 10, 20, 0.78);
+  --google-fill: #131314;
+  --google-stroke: #8e918f;
+  --google-text: #e3e3e3;
+  --google-blue: #4285f4;
+  --google-green: #34a853;
+  --google-yellow: #fbbc05;
+  --google-red: #ea4335;
   --disp: Eczar, "Iowan Old Style", Georgia, serif;
   --body: Mukta, "Segoe UI", system-ui, sans-serif;
   --s1: 4px;
@@ -57,56 +67,6 @@
   --s6: 32px;
   --s7: 48px;
   --s8: 72px;
-
-  --ground: var(--vat);
-  --field: var(--vat);
-  --sunk: var(--vat-2);
-  --wash: var(--vat-2);
-  --ink: var(--lime);
-  --ink-2: var(--lime-dim);
-  --ink-3: var(--lime-dim);
-  --rule: var(--line);
-  --rule-strong: var(--lime-dim);
-  --indigo: var(--turmeric);
-  --indigo-hover: var(--turmeric-hi);
-  --primary: var(--turmeric);
-  --primary-foreground: var(--vat);
-  --radius: 0px;
-  --radius-control: 0px;
-  --radius-badge: 0px;
-  --still-ground: #d2c4b6;
-  --sans-stack: var(--body);
-  --on-indigo: var(--vat);
-
-  background: var(--vat);
-  color: var(--lime);
-  font-family: var(--body);
-}
-
-.walking button,
-.walking input:not([type="radio"]),
-.walking select,
-.walking textarea,
-.walking [data-slot="button"] {
-  border-radius: 0;
-}
-
-.walking button,
-.walking [data-slot="button"] {
-  font-family: var(--disp);
-  font-weight: 700;
-}
-
-body:has(.walking) {
-  background: #0e1626;
-}
-
-.walking h1,
-.walking h2,
-.walking h3,
-.walking-heading {
-  font-family: var(--disp);
-  font-weight: 700;
 }
 
 .walking-button {

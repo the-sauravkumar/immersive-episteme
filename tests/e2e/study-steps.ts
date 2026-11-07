@@ -49,7 +49,7 @@ export async function enrol(browser: Browser, slug: string): Promise<{ page: Pag
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(/\/study\/consent$/);
   await expect(page.getByText(/CXA\/ETH\/01/).first()).toBeVisible();
-  const code = (await page.locator("span.text-id").first().textContent())?.trim() ?? "";
+  const code = (await page.locator("[data-slot=participant-code]").first().textContent())?.trim() ?? "";
   expect(code).toMatch(/^P-[0-9A-Z]{10}$/);
   return { page, code, journey };
 }

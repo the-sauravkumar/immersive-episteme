@@ -25,10 +25,8 @@ const METRIC_LABEL: Record<(typeof SUMMARY_METRICS)[number], string> = {
   "cmap.cross_category.valid": "Cross-category valid",
 };
 
-/** Counts as integers, rates with 3 decimals; "–" when not scored, "n/a" when the metric is undefined for the map. */
 const fmt = (v: number | null | undefined) => (v === undefined ? "–" : v === null ? "n/a" : Number.isInteger(v) ? String(v) : v.toFixed(3));
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/research/scoring">) {
@@ -62,21 +60,20 @@ async function Scoring({ searchParams }: { searchParams: Promise<Record<string, 
           <Empty>No adjudicated reference map yet. Build one under Assessments.</Empty>
         ) : (
           <nav aria-label="Reference maps" className="mb-6 max-w-[52rem]">
-            <ul className="flex flex-col border-y border-rule">
+            <ul className="flex flex-col border-y border-line">
               {refs.map((r) => {
                 const current = selected?.id === r.id;
                 return (
-                  <li key={r.id} className="border-t border-rule first:border-t-0">
+                  <li key={r.id} className="border-t border-line first:border-t-0">
                     <Link
                       href={`/research/scoring?ref=${r.id}`}
                       aria-current={current ? "page" : undefined}
-                      className="group/ref flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 font-sans text-base leading-6 text-indigo hover:text-indigo-hover aria-[current=page]:bg-wash aria-[current=page]:font-bold aria-[current=page]:text-ink"
+                      className="group/ref flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 px-3 py-2 t-b text-turmeric hover:text-turmeric-hi aria-[current=page]:bg-raised-hover aria-[current=page]:font-bold aria-[current=page]:text-lime"
                     >
-                      {/* Only the text is underlined (a link is never colour alone, R-A4); the badge is not. */}
                       <span className="underline decoration-1 underline-offset-[0.2em] group-hover/ref:decoration-2 group-aria-[current=page]/ref:no-underline">
                         {r.assessmentTitle} <span className="tabular-nums">v{r.assessmentVersion}</span>, reference <span className="tabular-nums">v{r.version}</span>
                       </span>
-                      {current ? <span className="text-credit">Selected</span> : null}
+                      {current ? <span className="t-s text-lime-dim">Selected</span> : null}
                       {r.isDemo ? <DemoBadge label="Demo" /> : null}
                     </Link>
                   </li>
@@ -89,7 +86,7 @@ async function Scoring({ searchParams }: { searchParams: Promise<Record<string, 
           <>
             <div className="mb-6 flex flex-col gap-2">
               <ActionButton action={scoreMapsAction.bind(null, selected.id)} label="Score all submitted maps" variant="default" />
-              <span className="text-credit">Scores are appended; maps already scored with the same metric versions are skipped.</span>
+              <span className="t-s text-lime-dim">Scores are appended; maps already scored with the same metric versions are skipped.</span>
             </div>
             {rows.length === 0 ? (
               <Empty>No submitted maps for this assessment.</Empty>
@@ -114,7 +111,7 @@ async function Scoring({ searchParams }: { searchParams: Promise<Record<string, 
                 <TableBody>
                   {rows.map((r) => (
                     <TableRow key={r.conceptMapId}>
-                      <TableCell className="text-id">{r.participantCode}</TableCell>
+                      <TableCell className="t-table font-semibold wrap-anywhere">{r.participantCode}</TableCell>
                       <TableCell>{r.condition === "immersive_3d" ? "3D" : "2D"}</TableCell>
                       <TableCell>{r.phase}</TableCell>
                       <TableCell numeric>{r.edgeCount}</TableCell>

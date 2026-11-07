@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * STAFF-ONLY relationship graph editor (React Flow). Rendered only by /cms/relations, which
- * requires `graph.edit`; never imported by /learn or /study (the 3D condition is a museum, not a
- * graph viewer, and participants never see the raw graph).
- *
- * The canvas is a visual aid: drag from one concept's handle to another to start a relationship
- * (the form below is prefilled), click an edge to open it. Everything the canvas does is also
- * possible with the accessible form and the edge table rendered by the page.
- */
 import "@xyflow/react/dist/style.css";
 
 import { Background, Controls, Handle, MarkerType, Position, ReactFlow, type Connection, type Edge, type Node, type NodeProps } from "@xyflow/react";
@@ -30,28 +21,23 @@ const STATE_LABEL: Record<string, string> = {
   archived: "archived",
 };
 
-/**
- * Edge styling by semantics, in ink and the one indigo accent, told apart by line pattern; the type
- * code is always printed on the edge as well (never colour alone, R-A4, R-A12). No status colour
- * (danger) is used for a kind of knowledge.
- */
 const SEMANTIC_STYLE: Record<string, { stroke: string; dash?: string }> = {
-  causal: { stroke: "var(--ink)" },
-  sequential: { stroke: "var(--indigo)" },
-  compositional: { stroke: "var(--ink-2)", dash: "1 0" },
-  explanatory: { stroke: "var(--indigo)", dash: "6 3" },
-  comparative: { stroke: "var(--ink-3)", dash: "2 3" },
-  associative: { stroke: "var(--ink-3)", dash: "8 4" },
+  causal: { stroke: "var(--lime)" },
+  sequential: { stroke: "var(--turmeric)" },
+  compositional: { stroke: "var(--lime-dim)", dash: "1 0" },
+  explanatory: { stroke: "var(--turmeric)", dash: "6 3" },
+  comparative: { stroke: "var(--lime-dim)", dash: "2 3" },
+  associative: { stroke: "var(--lime-dim)", dash: "8 4" },
 };
 
 type ConceptNodeData = { title: string; type: string; state: string; focus: boolean };
 
 function ConceptNode({ data }: NodeProps<Node<ConceptNodeData>>) {
   return (
-    <div className={`max-w-52 rounded-card bg-ground px-3 py-2 font-sans text-[0.8125rem] leading-5 ${data.focus ? "border-2 border-indigo" : "border border-rule-strong"}`}>
+    <div className={`max-w-52 bg-vat px-3 py-2 font-sans text-[0.8125rem] leading-5 ${data.focus ? "border-2 border-turmeric" : "border border-lime-dim"}`}>
       <Handle type="target" position={Position.Left} />
-      <p className="font-semibold text-ink">{data.title}</p>
-      <p className="text-ink-3">
+      <p className="font-semibold text-lime">{data.title}</p>
+      <p className="text-lime-dim">
         {data.type.replace(/_/g, " ")}, {STATE_LABEL[data.state] ?? data.state}
       </p>
       <Handle type="source" position={Position.Right} />
@@ -63,7 +49,6 @@ const nodeTypes = { concept: ConceptNode };
 
 const TYPE_ORDER = ["tradition", "historical_context", "material", "tool", "process_stage", "artisan_decision", "design_principle", "environmental_condition", "scientific_mechanism", "explanation", "outcome", "comparison", "open_question"];
 
-/** Deterministic layered layout: one column per concept type, rows by key. */
 function layout(nodes: GraphNode[]): Map<string, { x: number; y: number }> {
   const byType = new Map<string, GraphNode[]>();
   for (const n of nodes) byType.set(n.type, [...(byType.get(n.type) ?? []), n]);
@@ -124,8 +109,8 @@ export function GraphWorkspace({
           source: e.source,
           target: e.target,
           label: `${e.type}${e.ordinal !== null ? ` #${e.ordinal}` : ""}${e.state === "draft" ? " (draft)" : ""}`,
-          labelStyle: { fontSize: 12, fill: "var(--ink-2)" },
-          labelBgStyle: { fill: "var(--ground)" },
+          labelStyle: { fontSize: 12, fill: "var(--lime-dim)" },
+          labelBgStyle: { fill: "var(--vat)" },
           markerEnd: { type: MarkerType.ArrowClosed, color: style.stroke },
           style: { stroke: style.stroke, strokeDasharray: style.dash, strokeWidth: selected ? 3 : 1.5 },
           ariaLabel: `${e.type} relationship, ${STATE_LABEL[e.state] ?? e.state}`,
@@ -150,12 +135,12 @@ export function GraphWorkspace({
   return (
     <div className="flex flex-col gap-6">
       <div
-        className="h-[32rem] overflow-hidden rounded-card border border-rule-strong bg-ground [&_.react-flow\_\_attribution]:bg-ground! [&_.react-flow\_\_attribution]:p-0! [&_.react-flow\_\_attribution_a]:inline-flex! [&_.react-flow\_\_attribution_a]:min-h-11! [&_.react-flow\_\_attribution_a]:items-center! [&_.react-flow\_\_attribution_a]:px-3! [&_.react-flow\_\_attribution_a]:text-ink-3!"
+        className="h-[32rem] overflow-hidden border border-lime-dim bg-vat [&_.react-flow\_\_attribution]:bg-vat! [&_.react-flow\_\_attribution]:p-0! [&_.react-flow\_\_attribution_a]:inline-flex! [&_.react-flow\_\_attribution_a]:min-h-11! [&_.react-flow\_\_attribution_a]:items-center! [&_.react-flow\_\_attribution_a]:px-3! [&_.react-flow\_\_attribution_a]:text-lime-dim!"
         role="region"
         aria-label="Relationship graph canvas (visual aid; use the forms and table below for keyboard access)"
       >
         {nodes.length === 0 ? (
-          <p className="text-body p-4 text-ink-3">No concepts match the filters.</p>
+          <p className="t-b p-4 text-lime-dim">No concepts match the filters.</p>
         ) : (
           <ReactFlow
             key={`${nodes.length}:${edges.length}:${focusId ?? ""}:${selectedEdgeId ?? ""}:${edges.map((e) => e.state).join("")}`}
@@ -165,32 +150,26 @@ export function GraphWorkspace({
             onConnect={onConnect}
             onEdgeClick={(_, e) => openEdge(e.id)}
             nodesDraggable
-            // The canvas is a pointer aid (C10, cms-admin.md): keyboard and screen-reader users act
-            // through the form and the edge table, so nodes and edges are not Tab stops (dozens of
-            // small stops inside the canvas, each under 44 px, would sit in front of that table).
             nodesFocusable={false}
             edgesFocusable={false}
             fitView
             minZoom={0.1}
             attributionPosition="bottom-right"
-            // React Flow's stylesheet is unlayered and beats Tailwind's layered utilities, so the 44 px
-            // targets of its controls (DESIGN.md 9.1) are set with `!`; `\_` keeps the underscores in
-            // its class names.
           >
-            <Background color="var(--rule)" />
+            <Background color="var(--line)" />
             <Controls
               showInteractive={false}
               position="top-left"
-              className="rounded-card border border-rule-strong shadow-none! [&_.react-flow\_\_controls-button]:size-11! [&_.react-flow\_\_controls-button]:border-rule! [&_.react-flow\_\_controls-button]:bg-ground! [&_.react-flow\_\_controls-button]:text-ink! [&_.react-flow\_\_controls-button:hover]:bg-sunk! [&_.react-flow\_\_controls-button_svg]:fill-current!"
+              className="border border-lime-dim [&_.react-flow\_\_controls-button]:size-11! [&_.react-flow\_\_controls-button]:border-line! [&_.react-flow\_\_controls-button]:bg-vat! [&_.react-flow\_\_controls-button]:text-lime! [&_.react-flow\_\_controls-button:hover]:bg-vat-2! [&_.react-flow\_\_controls-button_svg]:fill-current!"
             />
           </ReactFlow>
         )}
       </div>
-      <section id="new-relationship" aria-labelledby="new-relationship-title" className="flex flex-col gap-4 rounded-card border border-rule bg-ground p-4 xs:p-6">
-        <h2 id="new-relationship-title" className="text-h3 text-ink">
+      <section id="new-relationship" aria-labelledby="new-relationship-title" className="flex flex-col gap-4 border border-line bg-vat p-4 xs:p-6">
+        <h2 id="new-relationship-title" className="t-label text-lime">
           {titleCase("New relationship")}
         </h2>
-        <p className="text-body max-w-[40rem] text-ink-2">Created as a draft. Drag between two concepts on the canvas to fill in the endpoints, or choose them here.</p>
+        <p className="t-b max-w-[40rem] text-lime-dim">Created as a draft. Drag between two concepts on the canvas to fill in the endpoints, or choose them here.</p>
         <RelationshipForm concepts={concepts} types={types} sources={sources} source={source} target={target} onSourceChange={setSource} onTargetChange={setTarget} />
       </section>
     </div>

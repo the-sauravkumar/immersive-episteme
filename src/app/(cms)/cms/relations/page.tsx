@@ -25,7 +25,6 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Relations" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/cms/relations">) {
@@ -57,7 +56,6 @@ async function Relations({ searchParams }: { searchParams: Promise<SearchParams>
   const focus = one(sp.focus);
   const typeFilter = one(sp.type);
   const stateFilter = one(sp.state);
-  // Default view: the first tradition, so the canvas stays legible.
   const tradition = one(sp.tradition) ?? (focus ? undefined : packages.find((p) => p.kind === "tradition")?.slug);
   const depth = Number(one(sp.depth)) || 1;
   const view = subgraph(graph.nodes, graph.edges, { tradition, focus, depth, types: typeFilter ? [typeFilter] : [], states: stateFilter ? [stateFilter] : [] });
@@ -121,7 +119,7 @@ async function Relations({ searchParams }: { searchParams: Promise<SearchParams>
         <Button type="submit" variant="outline">
           Show
         </Button>
-        <p className="text-body text-ink-3" role="status">
+        <p className="t-b text-lime-dim" role="status">
           {view.nodes.length} concepts, {view.edges.length} relationships shown
         </p>
       </form>
@@ -186,10 +184,10 @@ async function Relations({ searchParams }: { searchParams: Promise<SearchParams>
           <Empty>No errors or warnings.</Empty>
         ) : (
           <Disclosure summary={<>Show {integrity.issues.length} error(s) and warning(s)</>}>
-            <ul className="mt-2 flex flex-col gap-1 text-body">
+            <ul className="mt-2 flex flex-col gap-1 t-b">
               {integrity.issues.map((i, n) => (
                 <li key={n}>
-                  <span className={i.severity === "error" ? "font-medium text-danger" : "text-ink-3"}>{i.severity}</span> <code className="text-id">{i.code}</code> {i.message}
+                  <span className={i.severity === "error" ? "font-medium text-madder-text" : "text-lime-dim"}>{i.severity}</span> <code className="t-table font-semibold wrap-anywhere">{i.code}</code> {i.message}
                 </li>
               ))}
             </ul>
@@ -222,14 +220,14 @@ async function EdgePanel({
     <div id="edge" className="grid gap-6 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
       <Section id="edge-edit" title={`${row.sourceTitle} ${row.typeCode} ${row.targetTitle}`} description={<StateBadge state={row.state} />}>
         <div>
-          <h3 className="mb-2 text-body font-medium">Validator, If This Relationship Were in the Review Pipeline</h3>
+          <h3 className="mb-2 t-b font-medium">Validator, If This Relationship Were in the Review Pipeline</h3>
           {issues.length === 0 ? (
-            <p className="text-body text-ink-3">No issues.</p>
+            <p className="t-b text-lime-dim">No issues.</p>
           ) : (
-            <ul className="flex flex-col gap-1 text-body">
+            <ul className="flex flex-col gap-1 t-b">
               {issues.map((i, n) => (
                 <li key={n}>
-                  <span className={i.severity === "error" ? "font-medium text-danger" : "text-ink-3"}>{i.severity}</span> <code className="text-id">{i.code}</code> {i.message}
+                  <span className={i.severity === "error" ? "font-medium text-madder-text" : "text-lime-dim"}>{i.severity}</span> <code className="t-table font-semibold wrap-anywhere">{i.code}</code> {i.message}
                 </li>
               ))}
             </ul>

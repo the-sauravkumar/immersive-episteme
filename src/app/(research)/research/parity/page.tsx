@@ -23,7 +23,6 @@ const GROUPS: Record<ParityGroup, string> = {
   e: "Self-paced learning with one cap",
 };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/research/parity">) {
@@ -85,13 +84,13 @@ async function Parity({ searchParams }: { searchParams: Promise<Record<string, s
                     <Link className={LINK_44} href={`/research/parity?study=${study.id}&report=${r.id}`} aria-current={r.id === shown?.id ? "true" : undefined}>
                       <Timestamp iso={r.createdAt} />
                     </Link>
-                    {r.id === shown?.id ? <span className="ml-2 text-credit">Selected</span> : null}
+                    {r.id === shown?.id ? <span className="ml-2 t-s text-lime-dim">Selected</span> : null}
                   </TableCell>
                   <TableCell>
                     <Verdict passed={r.report.passed} />
                   </TableCell>
                   <TableCell numeric>{r.report.criticalFailures}</TableCell>
-                  <TableCell className="text-id">{r.report.inputSha256.slice(0, 12)}</TableCell>
+                  <TableCell className="t-table font-semibold wrap-anywhere">{r.report.inputSha256.slice(0, 12)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -105,7 +104,7 @@ async function Parity({ searchParams }: { searchParams: Promise<Record<string, s
 function Verdict({ passed }: { passed: boolean }) {
   const Icon = passed ? CircleCheck : CircleX;
   return (
-    <span className={`inline-flex items-center gap-1.5 font-medium whitespace-nowrap ${passed ? "text-ok" : "text-danger"}`}>
+    <span className={`inline-flex items-center gap-1.5 font-medium whitespace-nowrap ${passed ? "text-ok" : "text-madder-text"}`}>
       <Icon aria-hidden="true" className="size-4 stroke-[1.75]" />
       {passed ? "Passed" : "Failed"}
     </span>
@@ -117,7 +116,7 @@ function CheckStatus({ c }: { c: ParityCheck }) {
   const critical = c.severity === "critical";
   const Icon = critical ? CircleX : CircleAlert;
   return (
-    <span className={`inline-flex items-center gap-1.5 font-medium whitespace-nowrap ${critical ? "text-danger" : "text-warn"}`}>
+    <span className={`inline-flex items-center gap-1.5 font-medium whitespace-nowrap ${critical ? "text-madder-text" : "text-turmeric"}`}>
       <Icon aria-hidden="true" className="size-4 stroke-[1.75]" />
       {critical ? "Critical" : "Warning"}
     </span>
@@ -147,10 +146,10 @@ function ReportView({ base, id, createdAt, sha, report, demo }: { base: number; 
         items={[
           { label: "Recorded (UTC)", value: <Timestamp iso={createdAt} /> },
           { label: "Result", value: <Verdict passed={report.passed} /> },
-          { label: "Generator", value: <span className="text-id">{report.generatorVersion}</span> },
+          { label: "Generator", value: <span className="t-table font-semibold wrap-anywhere">{report.generatorVersion}</span> },
           { label: "Snapshot", value: report.snapshotLabel ?? "None" },
-          { label: "Manifest", value: <span className="text-id">{report.manifestId?.slice(0, 12) ?? "None"}</span> },
-          { label: "Report SHA-256", value: <span className="text-id break-all">{sha}</span> },
+          { label: "Manifest", value: <span className="t-table font-semibold wrap-anywhere">{report.manifestId?.slice(0, 12) ?? "None"}</span> },
+          { label: "Report SHA-256", value: <span className="t-table font-semibold wrap-anywhere break-all">{sha}</span> },
           {
             label: "Content set",
             value: report.schemaVersion === 2 ? `${report.contentSet.stages} stages, ${report.contentSet.items} tools and materials, ${report.contentSet.products} product images, citing ${report.contentSet.sources} sources` : "A report from the earlier design",
@@ -176,11 +175,11 @@ function ReportView({ base, id, createdAt, sha, report, demo }: { base: number; 
                 <TableRow key={c.id}>
                   <TableCell className="align-top whitespace-normal">
                     {c.label}
-                    <span className="text-id mt-0.5 block text-ink-3">{c.id}</span>
+                    <span className="t-table font-semibold wrap-anywhere mt-0.5 block text-lime-dim">{c.id}</span>
                     {c.issues.length ? (
                       <div className="mt-1">
                         <DataDisclosure label={c.issues.length === 1 ? "1 issue" : `${c.metrics.issueCount ?? c.issues.length} issues`}>
-                          <ul className="list-disc pl-5 font-sans text-[0.875rem] leading-5 text-ink-2">
+                          <ul className="list-disc pl-5 font-sans text-[0.875rem] leading-5 text-lime-dim">
                             {c.issues.slice(0, 50).map((iss, k) => (
                               <li key={k}>{iss.message}</li>
                             ))}
@@ -192,7 +191,7 @@ function ReportView({ base, id, createdAt, sha, report, demo }: { base: number; 
                   <TableCell className="align-top">
                     <CheckStatus c={c} />
                   </TableCell>
-                  <TableCell className="align-top whitespace-normal tabular-nums text-ink-2">
+                  <TableCell className="align-top whitespace-normal tabular-nums text-lime-dim">
                     {Object.entries(c.metrics)
                       .filter(([k]) => k !== "issueCount")
                       .map(([k, v]) => `${k} ${v}`)
@@ -204,7 +203,7 @@ function ReportView({ base, id, createdAt, sha, report, demo }: { base: number; 
           </Table>
         ))}
       </div>
-      <p className="text-credit mt-4">
+      <p className="t-s text-lime-dim mt-4">
         Issue lists show at most 50 entries per check;{" "}
         <a className={LINK_44} href={`/research/parity/report?id=${id}`} download>
           the JSON report

@@ -11,7 +11,6 @@ import { requirePermission } from "@/server/auth/staff";
 
 export const metadata: Metadata = { title: "Settings" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page() {
@@ -30,12 +29,6 @@ export default function Page() {
 
 const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-/*
- * DESIGN.md 11.11: settings in sections under `text-label` running heads. There is no settings
- * table (src/server/admin/settings.ts): every value is read-only here, so the page has no form,
- * no "Save changes" bar and no Danger zone. A save bar or a destructive control that did nothing
- * would misstate what this console can do (DESIGN.md 13). The note below says so in words.
- */
 async function Settings() {
   const actor = await requirePermission("admin.settings");
   const groups = effectiveSettings(actor);
@@ -51,18 +44,18 @@ async function Settings() {
       </Alert>
       {groups.map((g) => (
         <section key={g.title} aria-labelledby={`s-${slug(g.title)}`} className="flex flex-col">
-          <h2 id={`s-${slug(g.title)}`} className="text-h3 border-b border-b-rule-strong pb-2 text-ink">
+          <h2 id={`s-${slug(g.title)}`} className="t-label border-b border-b-lime-dim pb-2 text-lime">
             {titleCase(g.title)}
           </h2>
           <dl className="flex flex-col">
             {g.items.map((i) => (
               <div
                 key={i.label}
-                className="grid min-h-11 gap-x-6 gap-y-1 border-b border-b-rule py-3 md:grid-cols-[15rem_minmax(0,1fr)_minmax(0,16rem)] md:items-baseline"
+                className="grid min-h-11 gap-x-6 gap-y-1 border-b border-b-line py-3 md:grid-cols-[15rem_minmax(0,1fr)_minmax(0,16rem)] md:items-baseline"
               >
-                <dt className="text-[0.9375rem] leading-6 font-semibold text-ink">{i.label}</dt>
-                <dd className="text-value [overflow-wrap:anywhere]">{i.value}</dd>
-                <dd className="text-id text-ink-3 [overflow-wrap:anywhere] md:text-right">
+                <dt className="t-s font-semibold text-lime">{i.label}</dt>
+                <dd className="t-b [overflow-wrap:anywhere]">{i.value}</dd>
+                <dd className="t-table font-semibold wrap-anywhere text-lime-dim [overflow-wrap:anywhere] md:text-right">
                   <span className="sr-only">Source: </span>
                   {i.source}
                 </dd>

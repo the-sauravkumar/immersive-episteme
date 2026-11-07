@@ -16,14 +16,8 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Access" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
-/**
- * Admin -> Access (deployment source change S11): the site is always invite-only. Administrators
- * create codes with a label, an optional use limit, last day and study, see the use counts, and
- * revoke codes. Codes are stored hashed and shown once.
- */
 export default function Page() {
   return (
     <ConsolePage
@@ -61,7 +55,7 @@ async function Access() {
       </Section>
 
       <section aria-labelledby="invite-list" className="flex min-w-0 flex-col gap-4">
-        <h2 id="invite-list" className="text-h2 text-ink">
+        <h2 id="invite-list" className="t-h4 text-lime">
           {titleCase("invite codes")}
         </h2>
         {invites.length === 0 ? (
@@ -105,11 +99,11 @@ async function Access() {
                 return (
                   <TableRow role="row" key={i.id}>
                     <TableCell role="cell" className="align-top sm:py-3">
-                      <span className="block font-medium text-ink">{i.label}</span>
-                      <span className="text-id block text-ink-3">ending {i.hint}</span>
+                      <span className="block font-medium text-lime">{i.label}</span>
+                      <span className="t-table font-semibold wrap-anywhere block text-lime-dim">ending {i.hint}</span>
                     </TableCell>
                     <TableCell role="cell" className="align-top sm:py-3">
-                      {i.studySlug ? <span className="text-id">{i.studySlug}</span> : <span className="text-ink-3">Site only</span>}
+                      {i.studySlug ? <span className="t-table font-semibold wrap-anywhere">{i.studySlug}</span> : <span className="text-lime-dim">Site only</span>}
                     </TableCell>
                     <TableCell role="cell" className="align-top sm:py-3">
                       <span className="flex flex-col items-start gap-1">
@@ -118,7 +112,7 @@ async function Access() {
                           {s.label}
                         </Badge>
                         {i.revokedAt ? (
-                          <span className="text-credit">
+                          <span className="t-s text-lime-dim">
                             since <Stamp at={i.revokedAt} />
                           </span>
                         ) : null}
@@ -127,17 +121,17 @@ async function Access() {
                     <TableCell role="cell" numeric className="align-top sm:py-3">
                       <span>{uses(i)}</span>
                       {i.lastUsedAt ? (
-                        <span className="text-credit block">
+                        <span className="t-s text-lime-dim block">
                           last <Stamp at={i.lastUsedAt} />
                         </span>
                       ) : null}
                     </TableCell>
                     <TableCell role="cell" className="align-top sm:py-3">
-                      {i.expiresAt ? <Stamp at={i.expiresAt} withTime={false} /> : <span className="text-ink-3">No limit</span>}
+                      {i.expiresAt ? <Stamp at={i.expiresAt} withTime={false} /> : <span className="text-lime-dim">No limit</span>}
                     </TableCell>
                     <TableCell role="cell" className="align-top sm:py-3">
                       <Stamp at={i.createdAt} />
-                      {i.createdByName ? <span className="text-credit block">by {i.createdByName}</span> : null}
+                      {i.createdByName ? <span className="t-s text-lime-dim block">by {i.createdByName}</span> : null}
                     </TableCell>
                     <TableCell role="cell" className="text-right align-top sm:py-3">
                       {i.status === "revoked" ? null : <RevokeInviteButton inviteId={i.id} label={i.label} hint={i.hint} />}

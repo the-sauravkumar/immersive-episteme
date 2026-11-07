@@ -1,13 +1,5 @@
 "use client";
 
-/**
- * "About these links" (DESIGN.md 9.12, 9.5): ONE 44 px native disclosure per relation-verb group in
- * `RelatedConcepts`, holding each link's own explanation, conditions and the sources that state
- * it. Opening and closing are logged as an information layer when a telemetry provider is present
- * (`layerId: rels:<TYPE>:<direction>`), identically in both conditions. Instant (no transition).
- * The shared disclosure look: a chevron and the state word "Show" or "Hide"; the content is
- * indented, with no left bar (DR-022).
- */
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useRef, useState, type ReactNode } from "react";
 
@@ -39,10 +31,10 @@ export function RelationGroupDetails({ layerId, conceptId, roomOrPageId, childre
         }
       }}
     >
-      <summary className="text-ui flex min-h-11 cursor-pointer items-center gap-2 text-ink-2 hover:text-ink">
+      <summary className="t-label flex min-h-11 cursor-pointer items-center gap-2 text-lime-dim hover:text-lime">
         <Chevron aria-hidden="true" strokeWidth={1.75} className="size-5 shrink-0" />
         {SHEET_TEXT.aboutLinks}
-        <span aria-hidden="true" className="text-credit">
+        <span aria-hidden="true" className="t-s text-lime-dim">
           <span className="ie-disclosure__show">Show</span>
           <span className="ie-disclosure__hide">Hide</span>
         </span>

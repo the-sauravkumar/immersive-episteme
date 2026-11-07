@@ -33,8 +33,8 @@ export function ErrorState({ error, retry, homeHref, homeLabel }: ErrorBoundaryP
         </>
       }
     >
-      <p className="text-reading text-ink">This page could not be shown because of an error on the server. Try again; if it keeps happening, tell the research team.</p>
-      {reference ? <p className="text-credit">Reference for the research team: {reference}</p> : null}
+      <p className="t-b text-lime">This page could not be shown because of an error on the server. Try again; if it keeps happening, tell the research team.</p>
+      {reference ? <p className="t-s text-lime-dim">Reference for the research team: {reference}</p> : null}
     </StatePage>
   );
 }

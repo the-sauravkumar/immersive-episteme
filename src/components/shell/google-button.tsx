@@ -33,8 +33,8 @@ export function GoogleButton({ disabled, opening, onClick }: { disabled: boolean
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "inline-flex h-11 w-full shrink-0 items-center justify-center gap-2.5 rounded-control border border-(--google-stroke) bg-(--google-fill) pr-3 pl-3",
-        "font-sans text-base leading-6 font-medium whitespace-nowrap text-(--google-text) select-none",
+        "inline-flex h-11 w-full shrink-0 items-center justify-center gap-2.5 border border-(--google-stroke) bg-(--google-fill) pr-3 pl-3",
+        "t-b whitespace-nowrap text-(--google-text) select-none",
         "cursor-pointer disabled:cursor-not-allowed",
       )}
     >

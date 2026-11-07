@@ -1,23 +1,8 @@
-/**
- * Explore (DESIGN.md 11.3): the public demo entry.
- *
- * PageHeader with the honest lede; the "What is the same" note as an unboxed lead (DR-022); two
- * equal panels (2D always first and left, a fixed order documented on the Colophon), each with a
- * 16:10 line-art schematic (never a screenshot, so neither condition looks richer), a title, a
- * description in a reserved three-line zone and a 44 px primary button pinned to the bottom
- * (`mt-auto`); then "Before You Start" with the controls of each condition in two equal booktabs
- * tables, and the Display Settings button.
- *
- * Starting a demo sets a signed, non-experimental demo cookie (startPublicDemo): nothing done in a
- * demo counts as study data. Refused while a participant study session is open, and whenever the
- * server-side demo policy is off (by default while a real study is running).
- */
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { ConditionSchematic } from "@/components/public/condition-schematic";
 import { PageHeader } from "@/components/shell/page-header";
-import { DisplaySettings } from "@/components/shell/display-settings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -67,13 +52,6 @@ async function UnavailableNotice({ searchParams }: { searchParams: PageProps<"/e
   );
 }
 
-/**
- * Row height of the two side-by-side tables (md and wider): room for two lines in every row (two
- * 20 px lines, 16 px of padding and the 1 px row rule), so a task that wraps in one condition's
- * table never pushes its rows below the other's and both tables end on one rule. Only the shared
- * rows (the source record and the figure, worded identically in both tables) run to three lines at
- * 768 px, and they do so in both (asserted in public-pages.spec.ts).
- */
 const ROW_H = "h-11 md:h-[3.625rem]";
 
 function ControlsTable({ condition, number }: { condition: "2d" | "immersive"; number: number }) {
@@ -93,10 +71,10 @@ function ControlsTable({ condition, number }: { condition: "2d" | "immersive"; n
       <TableBody>
         {CONTROLS[condition].map(([task, how]) => (
           <TableRow key={task}>
-            <TableHead scope="row" className={`${ROW_H} py-2 align-top text-table font-bold text-ink whitespace-normal`}>
+            <TableHead scope="row" className={`${ROW_H} py-2 align-top t-table font-bold text-lime whitespace-normal`}>
               {task}
             </TableHead>
-            <TableCell className={`${ROW_H} align-top whitespace-normal text-ink-2`}>{how}</TableCell>
+            <TableCell className={`${ROW_H} align-top whitespace-normal text-lime-dim`}>{how}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -118,25 +96,22 @@ export default function ExplorePage({ searchParams }: PageProps<"/explore">) {
 
       <div className="flex flex-col gap-6">
         <section aria-labelledby="same-heading" data-slot="same-strip" className="max-w-[48rem]">
-          {/* A lead-in, not a heading: an unboxed note above the panels, and a third h2 size would
-              put the panel titles above a smaller section h2 of the same level. */}
-          <p id="same-heading" className="text-h3 text-ink">
+          <p id="same-heading" className="t-label text-lime">
             {titleCase("What is the same")}
           </p>
-          <p className="text-lead mt-1">
+          <p className="t-l text-lime-dim mt-1">
             Same claims, citations, figures, type and timer. Only how you move through the knowledge differs.
           </p>
         </section>
 
         <ul className="grid gap-6 md:grid-cols-2" aria-label="The two conditions">
           {OPTIONS.map((o) => (
-            <li key={o.condition} data-slot="card" data-parallel="true" className="flex flex-col gap-4 border-t-[1.5px] border-ink pt-4">
-              <div className="bg-sunk p-4">
+            <li key={o.condition} data-slot="card" data-parallel="true" className="flex flex-col gap-4 border-t-[1.5px] border-lime pt-4">
+              <div className="bg-vat-2 p-4">
                 <ConditionSchematic condition={o.condition} />
               </div>
-              <h2 className="text-display-3 text-ink">{titleCase(o.title)}</h2>
-              <p className="text-body min-h-[3lh] text-ink-2">{o.description}</p>
-              {/* mt-auto pins the action to the panel bottom, so both buttons line up. */}
+              <h2 className="t-h4 text-lime">{titleCase(o.title)}</h2>
+              <p className="t-b min-h-[3lh] text-lime-dim">{o.description}</p>
               <form action={startPublicDemo} className="mt-auto" data-slot="card-footer">
                 <input type="hidden" name="condition" value={o.condition} />
                 <Button type="submit">Open {o.title.toLowerCase()}</Button>
@@ -148,20 +123,16 @@ export default function ExplorePage({ searchParams }: PageProps<"/explore">) {
 
       <section aria-labelledby="before-heading" className="flex flex-col gap-6">
         <div className="flex flex-col gap-2 pt-2">
-          <h2 id="before-heading" className="text-display-3 text-ink">
+          <h2 id="before-heading" className="t-h4 text-lime">
             {titleCase("Before you start")}
           </h2>
-          <p className="text-body max-w-[40rem] text-ink-2">
+          <p className="t-b max-w-[40rem] text-lime-dim">
             Both conditions share the same top bar: Time left, Hint and Finish where a task sets them. These are the controls that differ.
           </p>
         </div>
         <div className="grid gap-10 md:grid-cols-2 md:gap-6">
           <ControlsTable condition="2d" number={1} />
           <ControlsTable condition="immersive" number={2} />
-        </div>
-        <div className="flex flex-col items-start gap-3 border-t border-rule pt-6 xs:flex-row xs:items-center">
-          <p className="text-body text-ink-2">Change the theme, the contrast or the motion on this device:</p>
-          <DisplaySettings zone="public" />
         </div>
       </section>
     </div>

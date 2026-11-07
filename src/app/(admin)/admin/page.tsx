@@ -18,7 +18,6 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Administration" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page() {
@@ -31,7 +30,6 @@ export default function Page() {
   );
 }
 
-/** What each admin section holds (the sidebar shows only the names). */
 const SECTION_NOTES: Record<string, string> = {
   "/admin/users": "Staff accounts: create, lock and unlock them, and add or remove roles.",
   "/admin/access": "Invite codes for the invite-only site: create them, see their use counts and revoke them.",
@@ -61,7 +59,6 @@ function duration(ms: number | null): string {
 
 type State = "ok" | "warn" | "error";
 
-/** Status with an icon and a word, never colour alone (R-A4); ok / warn / danger are console-only colours. */
 function StatusBadge({ state }: { state: State }) {
   if (state === "ok")
     return (
@@ -85,17 +82,13 @@ function StatusBadge({ state }: { state: State }) {
   );
 }
 
-/**
- * One health check as an equal-height card (grid stretch): a Title Case h3 with the status badge on
- * its line, then a label/value list. Numeric values are right-aligned with tabular figures.
- */
 function Panel<T>({ id, title, check, status, children }: { id: string; title: string; check: Check<T>; status?: (v: T) => "ok" | "warn"; children: (v: T) => ReactNode }) {
   const state: State = !check.ok ? "error" : status ? status(check.value) : "ok";
   return (
     <Card size="sm" plate className="h-full">
       <section aria-labelledby={`h-${id}`} className="flex flex-col gap-3">
         <CardHeader className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-          <h3 id={`h-${id}`} className="text-h3 text-ink">
+          <h3 id={`h-${id}`} className="t-label text-lime">
             {titleCase(title)}
           </h3>
           <StatusBadge state={state} />
@@ -104,7 +97,7 @@ function Panel<T>({ id, title, check, status, children }: { id: string; title: s
           {check.ok ? (
             <dl className="flex flex-col">{children(check.value)}</dl>
           ) : (
-            <p className="flex items-start gap-2 text-[0.9375rem] leading-6 text-danger">
+            <p className="flex items-start gap-2 t-s text-madder-text">
               <CircleAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0 stroke-[1.75]" />
               <span className="min-w-0">
                 <span className="font-semibold">Error: </span>
@@ -118,14 +111,10 @@ function Panel<T>({ id, title, check, status, children }: { id: string; title: s
   );
 }
 
-/**
- * A version string such as "18.6 (Debian 18.6-1.pgdg12+2)" in mono that wraps only at its spaces,
- * never inside a token (browsers otherwise break after "-").
- */
 function Version({ text }: { text: string }) {
   const parts = text.split(/\s+/).filter(Boolean);
   return (
-    <code className="text-id text-ink">
+    <code className="t-table font-semibold wrap-anywhere text-lime">
       {parts.map((p, i) => (
         <span key={i} className="whitespace-nowrap">
           {i > 0 ? " " : null}
@@ -138,9 +127,9 @@ function Version({ text }: { text: string }) {
 
 function Row({ k, v, numeric = false }: { k: ReactNode; v: ReactNode; numeric?: boolean }) {
   return (
-    <div className="flex items-baseline justify-between gap-x-4 border-b border-b-rule py-2 last:border-b-0">
-      <dt className="min-w-0 text-[0.9375rem] leading-6 text-ink-2">{k}</dt>
-      <dd className={numeric ? "text-value text-right whitespace-nowrap tabular-nums" : "text-value min-w-0 text-right [overflow-wrap:anywhere]"}>{v}</dd>
+    <div className="flex items-baseline justify-between gap-x-4 border-b border-b-line py-2 last:border-b-0">
+      <dt className="shrink-0 t-s text-lime-dim">{k}</dt>
+      <dd className={numeric ? "t-b text-right whitespace-nowrap tabular-nums" : "t-b min-w-0 text-right [overflow-wrap:anywhere]"}>{v}</dd>
     </div>
   );
 }
@@ -153,11 +142,11 @@ async function Overview() {
     <div className="flex flex-col gap-12">
       <section aria-labelledby="health" className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
-          <h2 id="health" className="text-h2 text-ink">
+          <h2 id="health" className="t-h4 text-lime">
             {titleCase("health")}
           </h2>
-          <p className="text-body text-ink-2">
-            Checked <time dateTime={h.checkedAt} className="text-id tabular-nums">{h.checkedAt.slice(0, 19).replace("T", " ")}</time> UTC. Reload the page to check again.
+          <p className="t-b text-lime-dim">
+            Checked <time dateTime={h.checkedAt} className="t-table font-semibold wrap-anywhere tabular-nums">{h.checkedAt.slice(0, 19).replace("T", " ")}</time> UTC. Reload the page to check again.
           </p>
         </div>
         <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -199,7 +188,7 @@ async function Overview() {
                       k="Last batch (UTC)"
                       v={
                         v.lastReceivedAt ? (
-                          <time dateTime={v.lastReceivedAt} className="text-id tabular-nums">
+                          <time dateTime={v.lastReceivedAt} className="t-table font-semibold wrap-anywhere tabular-nums">
                             {v.lastReceivedAt.slice(0, 19).replace("T", " ")}
                           </time>
                         ) : (
@@ -234,7 +223,7 @@ async function Overview() {
               {(v) => (
                 <>
                   <Row k="Mode" v={v.config.mode === "s3" ? `S3 bucket ${v.config.bucket}` : "Local disk"} />
-                  {v.config.mode === "local" ? <Row k="Directory" v={<span className="text-id">{v.config.localDir}</span>} /> : null}
+                  {v.config.mode === "local" ? <Row k="Directory" v={<span className="t-table font-semibold wrap-anywhere">{v.config.localDir}</span>} /> : null}
                   {v.config.mode === "local" ? <Row k="Writable" v={v.localDirWritable ? "yes" : "no (missing or not writable)"} /> : null}
                   <Row k="Assets" v={v.assets} numeric />
                   <Row k="Stored" v={bytes(v.totalBytes)} numeric />
@@ -243,16 +232,16 @@ async function Overview() {
             </Panel>
           </li>
         </ul>
-        <p className="text-credit max-w-[40rem]">
+        <p className="t-s text-lime-dim max-w-[40rem]">
           Ingest lag is the time between the client sending a batch and the server receiving it (client clocks can be wrong, so treat outliers with care).
         </p>
       </section>
 
       <section aria-labelledby="research-dashboard" className="flex max-w-[40rem] flex-col gap-3">
-        <h2 id="research-dashboard" className="text-h2 text-ink">
+        <h2 id="research-dashboard" className="t-h4 text-lime">
           {titleCase("research dashboard")}
         </h2>
-        <p className="text-body text-ink">
+        <p className="t-b text-lime">
           Scores by condition (primary outcomes first), telemetry and time, data quality and metric definitions for one study, updated live. Descriptive reference for the
           research team.
         </p>
@@ -261,7 +250,7 @@ async function Overview() {
             <Link href="/research/dashboard">Open the research dashboard</Link>
           </Button>
         ) : (
-          <p className="text-body text-ink-2">
+          <p className="t-b text-lime-dim">
             Your roles do not include the analytics.view permission, so the dashboard is not available to you. A principal investigator, researcher or research analyst role
             grants it.
           </p>
@@ -270,16 +259,16 @@ async function Overview() {
 
       {links.length ? (
         <section aria-labelledby="sections" className="flex max-w-[48rem] flex-col gap-3">
-          <h2 id="sections" className="text-h2 text-ink">
+          <h2 id="sections" className="t-h4 text-lime">
             {titleCase("sections")}
           </h2>
-          <ul className="flex flex-col border-y-[1.5px] border-y-ink">
+          <ul className="flex flex-col border-y-[1.5px] border-y-lime">
             {links.map((l) => (
-              <li key={l.path} className="grid gap-x-6 border-b border-b-rule py-1 last:border-b-0 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-baseline">
-                <Link href={l.path} className={`${BLOCK_LINK} text-ui`}>
+              <li key={l.path} className="grid gap-x-6 border-b border-b-line py-1 last:border-b-0 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-baseline">
+                <Link href={l.path} className={`${BLOCK_LINK} t-label`}>
                   {l.label}
                 </Link>
-                {SECTION_NOTES[l.path] ? <p className="text-body pb-2 text-ink-2 sm:pb-0">{SECTION_NOTES[l.path]}</p> : null}
+                {SECTION_NOTES[l.path] ? <p className="t-b pb-2 text-lime-dim sm:pb-0">{SECTION_NOTES[l.path]}</p> : null}
               </li>
             ))}
           </ul>

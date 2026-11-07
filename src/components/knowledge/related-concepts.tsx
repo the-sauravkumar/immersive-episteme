@@ -1,18 +1,3 @@
-/**
- * RelatedConcepts (DESIGN.md 9.12): the typed links of a concept, at the END of the knowledge
- * column in BOTH conditions (never a 2D side rail). It replaces both copies of `RelationDetails`.
- *
- * Grouped by relation verb, read from the current concept ("Is Affected By", "Precedes",
- * "Follows"): the verb as an h3 in `text-h3`, then the related concepts as 44 px link rows in Atkinson
- * 15/500 indigo, underlined, then ONE "About these links" disclosure per group with each link's
- * explanation, conditions and the sources stating it. Verbs and explanations come from the
- * snapshot; nothing is written here.
- *
- * How a link acts is the only allowed difference (12.1 rule 3): the 2D page navigates, the museum
- * walks to the exhibit. The placement supplies `renderLink`, which receives the same class names in
- * both, so links look identical; when it returns null (a concept outside the study scope or not
- * placed in the museum) the title is shown as plain text.
- */
 import type { ReactNode } from "react";
 
 import type { RelatedConceptGroups, RelationDirection } from "@/features/knowledge/read/view";
@@ -23,23 +8,18 @@ import { RELATIONSHIP_SEMANTICS, type ConceptType, type RelationshipSemantics } 
 
 import { RelationGroupDetails } from "./relation-group-details";
 
-/** One related-concept link, in a shape both placements can produce. */
 export interface RelatedLink {
   relationshipId: string;
-  /** Relationship type code. */
   type: string;
   semantics: RelationshipSemantics;
   direction: RelationDirection;
-  /** The verb read from the current concept (type label, or inverse label for incoming links). */
   label: string;
   concept: { id: string; title: string; type: ConceptType; traditionSlug: string | null };
   explanation: string | null;
   conditions: string | null;
-  /** Short labels of the sources stating the relationship. */
   statedBy: string[];
 }
 
-/** Read-model groups (2D) -> links. */
 export function relatedLinksFromGroups(groups: RelatedConceptGroups): RelatedLink[] {
   return groups.flatMap((g) =>
     g.relations.map((r) => ({
@@ -64,7 +44,6 @@ export interface RelatedLinkGroup {
   links: RelatedLink[];
 }
 
-/** Groups by verb (type and direction), in RELATIONSHIP_SEMANTICS order, then first appearance. */
 export function groupRelatedLinks(links: readonly RelatedLink[]): RelatedLinkGroup[] {
   const groups = new Map<string, RelatedLinkGroup & { semantics: RelationshipSemantics; first: number }>();
   links.forEach((l, i) => {
@@ -78,21 +57,15 @@ export function groupRelatedLinks(links: readonly RelatedLink[]): RelatedLinkGro
     .map(({ semantics: _s, first: _f, ...g }) => g);
 }
 
-/** Class names every placement's link receives (identical look in both conditions). */
-export const RELATED_LINK_CLASS = "text-ui inline-flex min-h-11 min-w-11 items-center text-left text-indigo underline decoration-1 underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2";
+export const RELATED_LINK_CLASS = "t-label inline-flex min-h-11 min-w-11 items-center text-left text-turmeric underline decoration-1 underline-offset-[0.2em] hover:text-turmeric-hi hover:decoration-2";
 
 export interface RelatedConceptsProps {
-  /** The concept whose links these are (telemetry attribution). */
   conceptId: string;
   traditionSlug: string | null;
   links: readonly RelatedLink[];
-  /** Tradition display names by slug, to name a linked concept from another tradition. */
   traditionNames: Readonly<Record<string, string>>;
-  /** Renders the link of one related concept, or null when it cannot be followed. */
   renderLink(link: RelatedLink, content: ReactNode, className: string): ReactNode;
-  /** Page or room id for the disclosure telemetry. */
   roomOrPageId?: string;
-  /** Id of the h2, for aria-labelledby. */
   headingId: string;
 }
 
@@ -103,13 +76,13 @@ export function RelatedConcepts({ conceptId, traditionSlug, links, traditionName
   if (groups.length === 0) return null;
   return (
     <section aria-labelledby={headingId} data-slot="related-concepts">
-      <h2 id={headingId} className="text-h2 text-ink">
+      <h2 id={headingId} className="t-h4 text-lime">
         {titleCase(SHEET_TEXT.relatedHeading)}
       </h2>
       <div className="mt-4 flex flex-col gap-6">
         {groups.map((g) => (
           <section key={g.key} aria-labelledby={`${headingId}-${g.key}`} data-relationship-type={g.type} data-direction={g.direction}>
-            <h3 id={`${headingId}-${g.key}`} className="text-h3 text-ink">
+            <h3 id={`${headingId}-${g.key}`} className="t-label text-lime">
               {titleCase(g.label)}
             </h3>
             <ul className="mt-1">
@@ -119,8 +92,8 @@ export function RelatedConcepts({ conceptId, traditionSlug, links, traditionName
                 const link = renderLink(l, title, RELATED_LINK_CLASS);
                 return (
                   <li key={l.relationshipId} data-relationship-id={l.relationshipId} className="flex flex-wrap items-baseline gap-x-2">
-                    {link ?? <span className="text-ui inline-flex min-h-11 items-center text-ink">{title}</span>}
-                    <span className="text-credit">{[CONCEPT_TYPE_LABELS[l.concept.type], other].filter(Boolean).join(", ")}</span>
+                    {link ?? <span className="t-label inline-flex min-h-11 items-center text-lime">{title}</span>}
+                    <span className="t-s text-lime-dim">{[CONCEPT_TYPE_LABELS[l.concept.type], other].filter(Boolean).join(", ")}</span>
                   </li>
                 );
               })}
@@ -130,15 +103,15 @@ export function RelatedConcepts({ conceptId, traditionSlug, links, traditionName
                 <dl className="flex flex-col gap-3 py-1">
                   {g.links.map((l) => (
                     <div key={l.relationshipId}>
-                      <dt className="text-value font-medium">{titleCase(l.concept.title)}</dt>
-                      {l.explanation ? <dd className="text-value">{l.explanation}</dd> : null}
+                      <dt className="t-b font-medium">{titleCase(l.concept.title)}</dt>
+                      {l.explanation ? <dd className="t-b">{l.explanation}</dd> : null}
                       {l.conditions ? (
-                        <dd className="text-value">
-                          <span className="text-ink-3">{SHEET_TEXT.conditions}</span> {l.conditions}
+                        <dd className="t-b">
+                          <span className="text-lime-dim">{SHEET_TEXT.conditions}</span> {l.conditions}
                         </dd>
                       ) : null}
                       {l.statedBy.length > 0 ? (
-                        <dd className="text-credit">
+                        <dd className="t-s text-lime-dim">
                           {SHEET_TEXT.statedBy} {l.statedBy.join("; ")}
                         </dd>
                       ) : null}

@@ -90,7 +90,7 @@ export function LiveSessionsTable({
       <TableBody>
         {shown.map((s) => (
           <TableRow key={s.sessionId}>
-            <TableCell className="text-id">{s.participantCode}</TableCell>
+            <TableCell className="t-table font-semibold wrap-anywhere">{s.participantCode}</TableCell>
             <TableCell className="whitespace-nowrap">{conditionNames[s.conditionId] ?? s.conditionId}</TableCell>
             <TableCell className="whitespace-nowrap">{s.status.replace(/_/g, " ")}</TableCell>
             <TableCell numeric>{s.events}</TableCell>

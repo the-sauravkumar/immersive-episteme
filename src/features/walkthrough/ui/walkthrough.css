@@ -121,9 +121,9 @@
 }
 
 .walkthrough button:disabled {
-  background: #262f42;
-  border-color: #262f42;
-  color: #99a0ad;
+  background: var(--off-bg);
+  border-color: var(--off-bg);
+  color: var(--off-fg);
   cursor: not-allowed;
 }
 

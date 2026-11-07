@@ -5,14 +5,13 @@ import { titleCase } from "@/lib/text/title-case";
 
 export const metadata: Metadata = { title: "Sign Out" };
 
-/** Sign-out (DESIGN.md 11.4): the state-message layout in the public chrome. */
 export default function SignOutPage() {
   return (
     <section aria-labelledby="sign-out-title" className="flex w-full max-w-[40rem] flex-col items-start gap-4 py-4">
-      <h1 id="sign-out-title" className="text-title text-ink">
+      <h1 id="sign-out-title" className="t-h3 text-lime">
         {titleCase("Sign out")}
       </h1>
-      <p className="text-reading text-ink">End your staff session on this device.</p>
+      <p className="t-b text-lime">End your staff session on this device.</p>
       <SignOutButton variant="default" />
     </section>
   );

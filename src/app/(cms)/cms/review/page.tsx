@@ -19,7 +19,6 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Review Queue" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/cms/review">) {
@@ -123,7 +122,7 @@ async function Queue({ searchParams }: { searchParams: Promise<SearchParams> }) 
                   </TableCell>
                   <TableCell className="whitespace-normal">
                     {[i.createdBy, i.updatedBy].filter((x, n, a) => x && a.indexOf(x) === n).map((x) => names.get(x!) ?? x).join(" / ") || "import"}
-                    {mine ? <span className="ml-1 text-credit">(yours)</span> : null}
+                    {mine ? <span className="ml-1 t-s text-lime-dim">(yours)</span> : null}
                   </TableCell>
                   <TableCell>
                     <Stamp at={i.updatedAt} />
@@ -150,7 +149,7 @@ async function RelationshipReview({ id, principal }: { id: string; principal: Aw
     <div id="relationship" className="grid gap-6 grid-cols-[minmax(0,1fr)] xl:grid-cols-[minmax(0,2fr)_minmax(18rem,1fr)]">
       <Section id="rel-detail" title="Relationship under review" description={<StateBadge state={row.state} />}>
         <RelationshipTable rows={[row]} perspective="both" />
-        <dl className="grid gap-1 text-body">
+        <dl className="grid gap-1 t-b">
           <dt className="font-medium">Provenance kind</dt>
           <dd>{row.provenanceKind.replace(/_/g, " ")}</dd>
           <dt className="font-medium">Evidence</dt>
@@ -160,7 +159,7 @@ async function RelationshipReview({ id, principal }: { id: string; principal: Aw
                 {row.sources.map((s) => (
                   <li key={s.sourceId}>
                     {s.label} — {s.locator ?? "no locator"}
-                    <blockquote className="text-quote bg-sunk px-4 py-3 text-ink">“{s.quote ?? "no quotation"}”</blockquote>
+                    <blockquote className="t-b bg-vat-2 px-4 py-3 text-lime">“{s.quote ?? "no quotation"}”</blockquote>
                   </li>
                 ))}
               </ul>

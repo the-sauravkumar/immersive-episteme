@@ -1,25 +1,5 @@
 "use client";
 
-/**
- * Live updates of the research dashboard (push, not poll).
- *
- * While the tab is visible the page holds one Server-Sent Events stream
- * (GET /api/research/dashboard/stream, same permission as the page). A `change` event (a commit
- * that touched the study, from PostgreSQL NOTIFY) at once fetches the per-session telemetry rows
- * and updates that table in place (./live-sessions.tsx: no router transition, so it shows within
- * the 2 s target), and schedules ONE page re-render REFRESH_DELAY_MS later for everything else
- * (router.refresh(); bursts of changes coalesce into one refresh, at most one per
- * REFRESH_DELAY_MS, and into at most one rows fetch in flight plus one queued). On (re)connect the `ready` event carries the current fingerprint; if it
- * differs from the rendered one the page refreshes at once, so nothing missed while disconnected
- * is lost. The stream is closed while the tab is hidden and reopened when it becomes visible.
- *
- * Fallback: when the stream fails FALLBACK_AFTER_ERRORS times without delivering an event, the
- * page polls the cheap fingerprint (GET /api/research/dashboard) every FALLBACK_POLL_MS and
- * retries the stream when the tab is shown again.
- *
- * "Updated" is the SERVER time of the latest confirmation (render, stream event or poll). A stale
- * notice appears when no confirmation arrived for STALE_MS (the stream's heartbeat is 25 s).
- */
 import { useRouter } from "next/navigation";
 import { CircleAlert, CircleCheck, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -34,7 +14,6 @@ export const STALE_MS = 30_000;
 export const FALLBACK_POLL_MS = 30_000;
 export const FALLBACK_AFTER_ERRORS = 3;
 
-/** HH:MM:SS of an ISO timestamp, in UTC (identical on server and client render). */
 export function clockUtc(iso: string): string {
   return new Date(iso).toISOString().slice(11, 19);
 }
@@ -49,16 +28,13 @@ export function LiveStatus({ studyId, serverTime, fingerprint }: { studyId: stri
   const [mode, setMode] = useState<Mode>("connecting");
   const [error, setError] = useState<string | null>(null);
   const [stale, setStale] = useState(false);
-  /** Client clock of the latest confirmation (set on mount: the page was just rendered from the database). */
   const lastOk = useRef<number | null>(null);
   const rendered = useRef(fingerprint);
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /** Rows fetch in flight, and whether another change arrived meanwhile. */
   const pulling = useRef<{ again: boolean } | null>(null);
   const updatedAt = later(serverTime, confirmedAt);
 
   useEffect(() => {
-    // A new render (after router.refresh) is a confirmation too.
     rendered.current = fingerprint;
     lastOk.current = Date.now();
   }, [fingerprint, serverTime]);
@@ -81,7 +57,6 @@ export function LiveStatus({ studyId, serverTime, fingerprint }: { studyId: stri
     [router],
   );
 
-  /** Fetches the per-session rows and publishes them (the in-place table update). */
   const pullSessions = useCallback(async () => {
     if (pulling.current) {
       pulling.current.again = true;
@@ -92,13 +67,12 @@ export function LiveStatus({ studyId, serverTime, fingerprint }: { studyId: stri
       do {
         pulling.current.again = false;
         const res = await fetch(`/api/research/dashboard?study=${encodeURIComponent(studyId)}&include=sessions`, { cache: "no-store", headers: { accept: "application/json" } });
-        if (!res.ok) break; // the page refresh still follows; the probe reports errors
+        if (!res.ok) break;
         const body = (await res.json()) as { serverTime: string; generatedAt: string; sessions: SessionTelemetryRow[] };
         publishLiveSessions({ studyId, generatedAt: body.generatedAt, rows: body.sessions });
         confirm(body.serverTime);
       } while (pulling.current.again);
     } catch {
-      // Network error: the scheduled router.refresh() is the fallback.
     } finally {
       pulling.current = null;
     }
@@ -195,34 +169,33 @@ export function LiveStatus({ studyId, serverTime, fingerprint }: { studyId: stri
   }, [confirm, poll, pullSessions, scheduleRefresh, studyId]);
 
   const label = stale ? "Stale" : mode === "live" ? "Live" : mode === "polling" ? "Polling" : "Connecting";
-  // DESIGN.md 10 "Live status": token colour, an icon AND a word, plus an "as of" time in mono.
-  const tone = stale ? "text-danger" : mode === "live" ? "text-ok" : "text-warn";
+  const tone = stale ? "text-madder-text" : mode === "live" ? "text-ok" : "text-turmeric";
   const Icon = stale ? CircleAlert : mode === "live" ? CircleCheck : RefreshCw;
   return (
     <div className="flex min-w-0 flex-col gap-1 sm:items-end">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:justify-end">
-        <span className="inline-flex items-center gap-2 font-sans text-[0.9375rem] leading-5" data-testid="dashboard-updated" data-mode={mode}>
+        <span className="inline-flex items-center gap-2 font-sans t-s" data-testid="dashboard-updated" data-mode={mode}>
           <Icon aria-hidden="true" className={`size-4 shrink-0 stroke-[1.75] ${tone}`} />
           <span>
             <span className={`font-semibold ${tone}`}>{label}</span>
-            <span className="text-ink-2">, as of </span>
-            <time dateTime={updatedAt} className="text-id text-ink">
+            <span className="text-lime-dim">, as of </span>
+            <time dateTime={updatedAt} className="t-table font-semibold wrap-anywhere text-lime">
               {clockUtc(updatedAt)}
             </time>
-            <span className="text-ink-2"> UTC</span>
+            <span className="text-lime-dim"> UTC</span>
           </span>
         </span>
         <Button type="button" variant="outline" onClick={() => void poll(true)}>
           Refresh
         </Button>
       </div>
-      <span className="text-credit sm:text-right">
+      <span className="t-s text-lime-dim sm:text-right">
         {mode === "polling" ? `Live connection unavailable: checking every ${FALLBACK_POLL_MS / 1000} s.` : "Updates as soon as new data are stored, while this tab is visible."}
       </span>
       {stale ? (
-        <p role="alert" className="inline-flex items-start gap-2 border border-danger bg-ground px-3 py-1 font-sans text-base leading-6 text-ink">
+        <p role="alert" className="inline-flex items-start gap-2 border border-madder-text bg-vat px-3 py-1 t-b text-lime">
           <span>
-            <span className="font-semibold text-danger">Stale:</span> the figures were last confirmed at <span className="text-id">{clockUtc(updatedAt)}</span> UTC, more than {STALE_MS / 1000} s ago.{" "}
+            <span className="font-semibold text-madder-text">Stale:</span> the figures were last confirmed at <span className="t-table font-semibold wrap-anywhere">{clockUtc(updatedAt)}</span> UTC, more than {STALE_MS / 1000} s ago.{" "}
             {error ?? "Waiting for the server."}
           </span>
         </p>

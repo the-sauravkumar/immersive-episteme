@@ -23,7 +23,6 @@ import { recomputeMetricsAction } from "../actions";
 
 export const metadata: Metadata = { title: "Analytics" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/research/analytics">) {
@@ -37,7 +36,6 @@ export default function Page({ searchParams }: PageProps<"/research/analytics">)
 const SESSION_STATUSES = ["scheduled", "in_progress", "completed", "abandoned"];
 const STATUS_LABEL: Record<string, string> = { scheduled: "Scheduled", in_progress: "In progress", completed: "Completed", abandoned: "Abandoned" };
 
-/** Every observation plus the mean and its 95% t interval, per condition, 2D first (DESIGN.md 10). */
 function intervalGroups(d: MetricDistribution | undefined, conditions: ConditionRef[], scale = 1): IntervalGroup[] {
   return orderByCondition(
     conditions.map((c) => {
@@ -48,7 +46,6 @@ function intervalGroups(d: MetricDistribution | undefined, conditions: Condition
   );
 }
 
-/** A readable figure title for a metric key (the key itself is printed in the "How to read" line). */
 function metricTitle(key: string): string {
   const known = METRIC_BY_KEY.get(key)?.label;
   if (known) return known;
@@ -73,7 +70,6 @@ async function Analytics({ searchParams }: { searchParams: Promise<Record<string
     staleMetricSessions(pool, study.id),
   ]);
   const ordered = orderByCondition(conditions.map((c) => ({ ...c, kind: conditionKind(c.interface) })));
-  // Sessions not yet allocated carry no condition id (the read model types it as a string).
   const name = (id: string | null) => (id ? (conditions.find((c) => c.id === id)?.label ?? id) : "Not yet allocated");
   const defs = new Map(METRIC_DEFINITIONS.map((d) => [d.name, d]));
   const nav = behaviour.filter((d) => d.metricName.startsWith("nav."));
@@ -83,7 +79,6 @@ async function Analytics({ searchParams }: { searchParams: Promise<Record<string
   const demo = overview.nonExperimental;
   let figure = 0;
   let table = 0;
-  // 2D, then 3D, then the rest (sessions not yet allocated last), as everywhere else (DESIGN.md 10).
   const rankOf = (id: string | null) => {
     const i = ordered.findIndex((c) => c.id === id);
     return i < 0 ? ordered.length : i;
@@ -171,7 +166,7 @@ async function Analytics({ searchParams }: { searchParams: Promise<Record<string
             ))}
           </TableBody>
         </Table>
-        <p className="text-body mt-4 text-ink-2">
+        <p className="t-b mt-4 text-lime-dim">
           {overview.deviations.length
             ? `Protocol deviations: ${overview.deviations.map((d) => `${d.n} ${d.severity} (${d.category})`).join(", ")}.`
             : "No protocol deviations recorded."}
@@ -184,7 +179,7 @@ async function Analytics({ searchParams }: { searchParams: Promise<Record<string
         description={`Behavioural metrics are recomputed from raw telemetry (pipeline versioned). ${stale.stale} of ${plural(stale.total, "session")} have missing or stale metrics.${stale.stale > 0 && !can(principal, "study.configure") ? " Your role cannot recompute them: ask a researcher or the principal investigator." : ""}`}
         actions={can(principal, "metrics.recompute") ? <ActionForm action={recomputeMetricsAction.bind(null, study.id)} submitLabel="Recompute metrics" variant="outline" /> : null}
       >
-        <p className="text-body text-ink-2">Navigation pathways, transition matrices and the navigation-to-concept-map comparison have their own page.</p>
+        <p className="t-b text-lime-dim">Navigation pathways, transition matrices and the navigation-to-concept-map comparison have their own page.</p>
         <Link className={LINK_44} href={`/research/pathways?study=${study.id}`}>
           Open pathways
         </Link>

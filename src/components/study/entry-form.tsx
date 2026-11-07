@@ -27,9 +27,9 @@ export function EntryForm({ defaultCode }: { defaultCode?: string }) {
           defaultValue={defaultCode}
           aria-invalid={codeError ? true : undefined}
           aria-describedby={codeError ? "studyCode-error studyCode-hint" : "studyCode-hint"}
-          className="text-id"
+          className="t-table font-semibold wrap-anywhere"
         />
-        <p id="studyCode-hint" className="text-credit max-w-[34rem]">
+        <p id="studyCode-hint" className="t-s text-lime-dim max-w-[34rem]">
           The code your facilitator gave you. You will not be asked for your name or email.
         </p>
         <FieldErrorText id="studyCode-error" message={codeError} />

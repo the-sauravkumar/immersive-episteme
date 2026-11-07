@@ -22,12 +22,10 @@ import { NativeSelect } from "@/components/ui/native-select";
 
 export const metadata: Metadata = { title: "Session" };
 
-/** Shown in place of researcher free text the viewer's role may not read (pseudonymised scope). */
 const FREE_TEXT_WITHHELD = "Text withheld: it may identify the participant and is shown only to roles with identifying access, and to its author.";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ params }: PageProps<"/research/sessions/[sessionId]">) {
@@ -38,14 +36,13 @@ export default function Page({ params }: PageProps<"/research/sessions/[sessionI
   );
 }
 
-/** A dated note in a list (annotations, deviations): a hairline above each, meta line in `text-credit`. */
 function NoteList({ items }: { items: { key: string; meta: ReactNode; body: ReactNode }[] }) {
   return (
-    <ol className="mb-6 flex max-w-[52rem] flex-col border-y border-rule">
+    <ol className="mb-6 flex max-w-[52rem] flex-col border-y border-line">
       {items.map((it) => (
-        <li key={it.key} className="flex flex-col gap-1 border-t border-rule py-3 first:border-t-0">
-          <span className="text-credit">{it.meta}</span>
-          <div className="text-body text-ink">{it.body}</div>
+        <li key={it.key} className="flex flex-col gap-1 border-t border-line py-3 first:border-t-0">
+          <span className="t-s text-lime-dim">{it.meta}</span>
+          <div className="t-b text-lime">{it.body}</div>
         </li>
       ))}
     </ol>
@@ -57,7 +54,6 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
   if (!UUID_RE.test(sessionId)) notFound();
   const pool = getPool();
   const principal = await getStaffPrincipal();
-  // Researcher free text reaches identified-scope roles only, plus each author's own notes (security-05).
   const viewer = { identified: participantDataScope(principal) === "identified", userId: principal?.userId ?? null };
   const s = await getSession(pool, sessionId, viewer);
   if (!s) notFound();
@@ -86,9 +82,9 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
               </Link>
             ),
           },
-          { label: "Participant", value: <span className="text-id">{s.participantCode}</span> },
+          { label: "Participant", value: <span className="t-table font-semibold wrap-anywhere">{s.participantCode}</span> },
           { label: "Condition", value: `${s.conditionCode} (${s.conditionInterface}), period ${s.period}` },
-          { label: "Build", value: <span className="text-id">{s.appBuild}</span> },
+          { label: "Build", value: <span className="t-table font-semibold wrap-anywhere">{s.appBuild}</span> },
           {
             label: "Started / completed (UTC)",
             value: (
@@ -125,7 +121,7 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
         {flags.length === 0 ? (
           <Empty>No data-quality flags.</Empty>
         ) : (
-          <ul className="flex max-w-[52rem] flex-col gap-2 font-sans text-[0.9375rem] leading-6">
+          <ul className="flex max-w-[52rem] flex-col gap-2 font-sans t-s">
             {flags.map((f, i) => (
               <li key={i}>
                 <FlagLine level={f.level} text={f.text} />
@@ -163,7 +159,7 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
             <TableBody>
               {metrics.rows.map((m) => (
                 <TableRow key={`${m.metric_name}@${m.metric_version}`}>
-                  <TableCell className="text-id">{m.metric_name}</TableCell>
+                  <TableCell className="t-table font-semibold wrap-anywhere">{m.metric_name}</TableCell>
                   <TableCell>{m.metric_version}</TableCell>
                   <TableCell numeric>{m.value === null ? "–" : Number.isInteger(m.value) ? m.value : m.value.toFixed(3)}</TableCell>
                   <TableCell>
@@ -188,7 +184,7 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
                   {a.kind.replace(/_/g, " ")}, <Timestamp iso={a.createdAt} />
                 </>
               ),
-              body: a.body === null ? <p className="text-ink-2">{FREE_TEXT_WITHHELD}</p> : <p className="whitespace-pre-wrap">{a.body}</p>,
+              body: a.body === null ? <p className="text-lime-dim">{FREE_TEXT_WITHHELD}</p> : <p className="whitespace-pre-wrap">{a.body}</p>,
             }))}
           />
         )}
@@ -224,11 +220,11 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
               ),
               body:
                 d.description === null ? (
-                  <p className="text-ink-2">{FREE_TEXT_WITHHELD}</p>
+                  <p className="text-lime-dim">{FREE_TEXT_WITHHELD}</p>
                 ) : (
                   <>
                     <p>{d.description}</p>
-                    {d.resolution ? <p className="text-ink-2">Resolution: {d.resolution}</p> : null}
+                    {d.resolution ? <p className="text-lime-dim">Resolution: {d.resolution}</p> : null}
                   </>
                 ),
             }))}

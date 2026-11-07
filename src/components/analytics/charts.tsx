@@ -1,22 +1,5 @@
 "use client";
 
-/**
- * Research-console charts (DESIGN.md 10: the dashboard reads as the results section of a paper).
- *
- *  - Every chart is a numbered <figure>: "Figure n. Title" above, a "How to read" line stating n,
- *    the measure, the unit and the uncertainty, then the plot, then a "Data table" disclosure
- *    with the same data as a booktabs table and an optional 44 px "Download CSV" button.
- *  - Forms: dot-and-interval strip plots for condition comparisons (every observation drawn),
- *    bars only for counts (from zero), heatmaps on the sequential
- *    indigo ramp with the value printed in every cell. No pie, no 3D, no dual axes, no gradients,
- *    no red/green pairs, no legends (direct labels instead, R-A13).
- *  - Encoding: 2D = --series-2d, circle marker, solid line; 3D = --series-3d, square marker,
- *    4-2 dashed line (R-A12). 2D is always first or left. Traditions are never colour-coded.
- *  - Style: Atkinson 13 --ink-3 axis labels (tabular), axis names Atkinson 15/600 --ink (two label
- *    levels, R-T18), 1 px --ink x axis, --grid y gridlines, plot area on paper, no border,
- *    `animation: false`. No links inside a plot area.
- * Captions describe; they never use causal wording.
- */
 import type { EChartsCoreOption } from "echarts/core";
 import { Download } from "lucide-react";
 import type { ReactNode, Ref } from "react";
@@ -29,19 +12,13 @@ import { fixed, niceScale, orderByCondition, type ConditionKind, type NiceScale 
 import { useEChart, type VizTheme } from "./use-echart";
 import { Disclosure } from "@/components/ui/disclosure";
 
-// ---------------------------------------------------------------------------------------------
-// Condition encoding
-// ---------------------------------------------------------------------------------------------
 
 export function seriesColour(t: VizTheme, kind: ConditionKind): string {
-  return kind === "3d" ? t.series3d : kind === "2d" ? t.series2d : t.ink2;
+  return kind === "3d" ? t.series3d : kind === "2d" ? t.series2d : t.textDim;
 }
 const marker = (kind: ConditionKind) => (kind === "3d" ? "rect" : "circle");
 const dash = (kind: ConditionKind): "solid" | number[] => (kind === "3d" ? [4, 2] : "solid");
 
-// ---------------------------------------------------------------------------------------------
-// Shared option pieces
-// ---------------------------------------------------------------------------------------------
 
 function valueAxis(t: VizTheme, name?: string, extra: Record<string, unknown> = {}) {
   return {
@@ -49,58 +26,53 @@ function valueAxis(t: VizTheme, name?: string, extra: Record<string, unknown> = 
     name,
     nameLocation: "middle",
     nameGap: 44,
-    nameTextStyle: { color: t.ink, fontSize: 15, fontWeight: 600 },
+    nameTextStyle: { color: t.text, fontSize: 15, fontWeight: 600 },
     axisLine: { show: false },
     axisTick: { show: false },
-    axisLabel: { color: t.ink3, fontSize: 13 },
-    splitLine: { lineStyle: { color: t.grid, width: 1 } },
+    axisLabel: { color: t.textDim, fontSize: 13 },
+    splitLine: { lineStyle: { color: t.line, width: 1 } },
     ...extra,
   };
 }
 
-/**
- * Value-axis bounds and ticks from a NiceScale: one tick per interval, each printed with the
- * decimals the interval needs (never duplicated, never "-0.0").
- */
 function scaleAxis(t: VizTheme, scale: NiceScale | null): Record<string, unknown> {
   if (!scale) return {};
   return {
     min: scale.min,
     max: scale.max,
     interval: scale.interval,
-    axisLabel: { color: t.ink3, fontSize: 13, formatter: (v: number) => fixed(v, scale.decimals) },
+    axisLabel: { color: t.textDim, fontSize: 13, formatter: (v: number) => fixed(v, scale.decimals) },
   };
 }
 
 function baseAxis(t: VizTheme, extra: Record<string, unknown> = {}) {
   return {
-    axisLine: { show: true, lineStyle: { color: t.ink, width: 1 } },
+    axisLine: { show: true, lineStyle: { color: t.text, width: 1 } },
     axisTick: { show: false },
-    axisLabel: { color: t.ink3, fontSize: 13 },
+    axisLabel: { color: t.textDim, fontSize: 13 },
     splitLine: { show: false },
     ...extra,
   };
 }
 
 function grid(t: VizTheme, extra: Record<string, unknown> = {}) {
-  return { left: 8, right: 16, top: 16, bottom: 8, outerBoundsMode: "same", outerBoundsContain: "all", show: true, backgroundColor: t.surface, borderWidth: 0, ...extra };
+  return { left: 8, right: 16, top: 16, bottom: 8, outerBoundsMode: "same", outerBoundsContain: "all", show: true, backgroundColor: t.page, borderWidth: 0, ...extra };
 }
 
 function tooltip(t: VizTheme, extra: Record<string, unknown> = {}) {
   return {
-    backgroundColor: t.surface,
-    borderColor: t.ink,
+    backgroundColor: t.page,
+    borderColor: t.text,
     borderWidth: 1,
     padding: [6, 8],
-    textStyle: { color: t.ink, fontSize: 13 },
-    extraCssText: "box-shadow:none;border-radius:2px;",
+    textStyle: { color: t.text, fontSize: 13 },
+    extraCssText: "box-shadow:none;border-radius:0;",
     ...extra,
   };
 }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
-/** Tooltip body as a booktabs mini-table (label / value rows). */
 function miniTable(title: string, rows: [string, string][]): string {
   const cells = rows
     .map(([k, v]) => `<tr><td style="padding:2px 12px 2px 0">${esc(k)}</td><td style="padding:2px 0;text-align:right;font-variant-numeric:tabular-nums">${esc(v)}</td></tr>`)
@@ -109,28 +81,22 @@ function miniTable(title: string, rows: [string, string][]): string {
 }
 
 
-/** Deterministic horizontal offsets so equal values do not hide each other (no randomness). */
 function jitter(j: number, spread = 0.16): number {
   return ((((j * 37) % 21) - 10) / 10) * spread;
 }
 
-// ---------------------------------------------------------------------------------------------
-// Figure frame
-// ---------------------------------------------------------------------------------------------
 
 export type Cell = string | number | null;
 
 export interface DataTableSpec {
   head: string[];
   rows: Cell[][];
-  /** Indexes of numeric columns (right-aligned, tabular). Default: every column whose cells are all numbers or "–". */
   numeric?: number[];
 }
 
 const NUMERIC = /^[-−]?\d+(\.\d+)?$/;
 const isNumericCell = (c: Cell) => c === null || typeof c === "number" || c === "–" || (typeof c === "string" && NUMERIC.test(c));
 
-/** The figure's data, as a booktabs table (inside the disclosure). */
 export function ChartDataTable({ spec, label }: { spec: DataTableSpec; label: string }) {
   const numeric = spec.numeric ?? spec.head.map((_, j) => (spec.rows.length > 0 && spec.rows.every((r) => isNumericCell(r[j] ?? null)) ? j : -1)).filter((j) => j >= 0);
   return (
@@ -159,13 +125,12 @@ export function ChartDataTable({ spec, label }: { spec: DataTableSpec; label: st
   );
 }
 
-/** A 44 px outline link-button that downloads a CSV (DESIGN.md 10). */
 export function CsvButton({ href, label = "Download CSV" }: { href: string; label?: string }) {
   return (
     <a
       href={href}
       download
-      className="inline-flex h-11 shrink-0 items-center gap-2 rounded-control border border-rule-strong px-4 font-sans text-[0.9375rem] leading-5 font-medium text-ink hover:bg-sunk [&_svg]:size-5 [&_svg]:stroke-[1.75]"
+      className="inline-flex h-11 shrink-0 items-center gap-2 border border-lime-dim px-4 font-sans t-s font-medium text-lime hover:bg-vat-2 [&_svg]:size-5 [&_svg]:stroke-[1.75]"
     >
       <Download aria-hidden="true" />
       {label}
@@ -173,7 +138,6 @@ export function CsvButton({ href, label = "Download CSV" }: { href: string; labe
   );
 }
 
-/** A cell as CSV text (RFC 4180 quoting; text that a spreadsheet would run as a formula is prefixed with '). */
 function csvCell(c: Cell): string {
   if (c === null) return "";
   if (typeof c === "number") return Number.isFinite(c) ? String(c) : "";
@@ -182,16 +146,10 @@ function csvCell(c: Cell): string {
   return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
-/** The figure's data table as CSV text (header row first, CRLF line ends). */
 export function tableCsv(spec: Pick<DataTableSpec, "head" | "rows">): string {
   return [spec.head, ...spec.rows].map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
 
-/**
- * "Download CSV" for data that has no server CSV route: builds the file from the table shown on
- * the page (same values, same pseudonymised codes). Callers render it only for staff allowed to
- * download (exports.create), exactly like the server CSV links.
- */
 export function CsvDataButton({ filename, spec, label = "Download CSV" }: { filename: string; spec: Pick<DataTableSpec, "head" | "rows">; label?: string }) {
   return (
     <button
@@ -204,7 +162,7 @@ export function CsvDataButton({ filename, spec, label = "Download CSV" }: { file
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 0);
       }}
-      className="inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-control border border-rule-strong px-4 font-sans text-[0.9375rem] leading-5 font-medium text-ink hover:bg-sunk [&_svg]:size-5 [&_svg]:stroke-[1.75]"
+      className="inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 border border-lime-dim px-4 font-sans t-s font-medium text-lime hover:bg-vat-2 [&_svg]:size-5 [&_svg]:stroke-[1.75]"
     >
       <Download aria-hidden="true" />
       {label}
@@ -212,7 +170,6 @@ export function CsvDataButton({ filename, spec, label = "Download CSV" }: { file
   );
 }
 
-/** "Data table" disclosure: 44 px summary, instant open (no transition). */
 export function DataDisclosure({ children, label = "Data table" }: { children: ReactNode; label?: string }) {
   return (
     <Disclosure className="min-w-0" summary={<>{label}</>}>
@@ -238,31 +195,27 @@ export function ChartFigure({
   title: string;
   howToRead: ReactNode;
   height: number;
-  /** Accessible name of the plot (defaults to the title). */
   label?: string;
   chartRef: Ref<HTMLDivElement>;
   table: DataTableSpec;
   csvHref?: string;
-  /** Client-built CSV of the data table (file name), for data with no server CSV route. */
   csvFile?: string;
-  /** Replaces the plot (not the caption) when there is nothing to draw. */
   empty?: ReactNode;
   className?: string;
 }) {
   const heading = titleCase(title);
-  // The accessible name of the plot: the figure number, then the authored label (title and values).
   const name = `${number !== undefined ? `Figure ${number}. ` : ""}${label ?? heading}`;
   return (
     <figure data-slot="chart-figure" className={cn("flex min-w-0 flex-col gap-3", className)}>
       <figcaption className="flex flex-col gap-1">
-        <span className="font-sans text-[0.9375rem] leading-6 text-ink">
+        <span className="font-sans t-s text-lime">
           {number !== undefined ? <span className="font-semibold tabular-nums">Figure {number}. </span> : null}
           {heading}
         </span>
-        <span className="text-credit">{howToRead}</span>
+        <span className="t-s text-lime-dim">{howToRead}</span>
       </figcaption>
       {empty ? (
-        <div className="text-body flex min-h-24 items-center bg-sunk px-4 text-ink-2">{empty}</div>
+        <div className="t-b flex min-h-24 items-center bg-vat-2 px-4 text-lime-dim">{empty}</div>
       ) : (
         <div style={{ height }} className="min-w-0 [&_text]:tabular-nums">
           <div ref={chartRef} role="img" aria-label={name} className="h-full w-full" />
@@ -280,16 +233,11 @@ export function ChartFigure({
   );
 }
 
-// ---------------------------------------------------------------------------------------------
-// Dot-and-interval strip plot (condition comparisons; small multiples on identical scales)
-// ---------------------------------------------------------------------------------------------
 
 export interface IntervalGroup {
-  /** Direct label under the group, e.g. "2D". */
   name: string;
   kind: ConditionKind;
   values: number[];
-  /** The interval drawn beside the points: centre (mean or median) and its low/high ends. */
   center: number | null;
   low: number | null;
   high: number | null;
@@ -300,7 +248,6 @@ export interface IntervalPanel {
   groups: IntervalGroup[];
 }
 
-/** One y scale for every panel (small multiples on identical scales). */
 export function intervalScale(panels: IntervalPanel[], zero: boolean): NiceScale | null {
   return niceScale(
     panels.flatMap((p) => p.groups.flatMap((g) => [...g.values, g.low, g.high])),
@@ -308,11 +255,6 @@ export function intervalScale(panels: IntervalPanel[], zero: boolean): NiceScale
   );
 }
 
-/**
- * The direct label printed under a group (R-A13): the condition key ("2D", "3D"; any other group
- * by name) and its n, e.g. "2D (n = 4)". Full condition names did not fit side by side under a
- * small multiple; they are in the caption's n line, the tooltip and the data table.
- */
 export const groupLabel = (g: Pick<IntervalGroup, "name" | "kind" | "values">) => `${g.kind === "2d" ? "2D" : g.kind === "3d" ? "3D" : g.name} (n = ${g.values.length})`;
 
 function IntervalPanelChart({
@@ -325,7 +267,6 @@ function IntervalPanelChart({
   intervalName,
   centerName,
 }: {
-  /** "Figure n. Title", the start of the plot's accessible name. */
   figure: string;
   panel: IntervalPanel;
   scale: NiceScale | null;
@@ -336,8 +277,6 @@ function IntervalPanelChart({
   centerName: string;
 }) {
   const groups = orderByCondition(panel.groups);
-  // On an axis pinned at zero (durations) an interval end below zero is drawn at the axis; the
-  // tooltip and the data table keep the computed value.
   const floor = scale && scale.min === 0 ? 0 : -Infinity;
   const ref = useEChart(
     (t): EChartsCoreOption => ({
@@ -348,9 +287,8 @@ function IntervalPanelChart({
         min: -0.5,
         max: groups.length - 0.5,
         ...baseAxis(t),
-        // Direct labels under each group (R-A13): labels only at the group centres 0..n-1.
         axisLabel: {
-          color: t.ink,
+          color: t.text,
           fontSize: 13,
           fontWeight: 500,
           lineHeight: 16,
@@ -370,7 +308,7 @@ function IntervalPanelChart({
             name: `${g.name}: observations`,
             symbol: marker(g.kind),
             symbolSize: 7,
-            itemStyle: { color: colour, opacity: 0.6, borderColor: t.surface, borderWidth: 1 },
+            itemStyle: { color: colour, opacity: 0.6, borderColor: t.page, borderWidth: 1 },
             data: g.values.map((v, j) => [i - 0.12 + jitter(j, 0.1), v]),
             tooltip: { formatter: (p: { value: [number, number] }) => miniTable(g.name, [["Value", fixed(p.value[1], digits)]]) },
             z: 2,
@@ -397,7 +335,7 @@ function IntervalPanelChart({
             name: `${g.name}: ${centerName}`,
             symbol: marker(g.kind),
             symbolSize: 12,
-            itemStyle: { color: colour, borderColor: t.ink, borderWidth: 1.5 },
+            itemStyle: { color: colour, borderColor: t.text, borderWidth: 1.5 },
             data: [[x, g.center]],
             tooltip: {
               formatter: () =>
@@ -420,7 +358,7 @@ function IntervalPanelChart({
     .join("; ");
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      {panel.title ? <p className="font-sans text-[0.9375rem] leading-5 font-bold text-ink">{titleCase(panel.title)}</p> : null}
+      {panel.title ? <p className="t-label text-lime">{titleCase(panel.title)}</p> : null}
       <div style={{ height }} className="min-w-0 [&_text]:tabular-nums">
         <div ref={ref} role="img" aria-label={`${figure}${panel.title ? `, ${titleCase(panel.title)}` : ""}: ${values}.`} className="h-full w-full" />
       </div>
@@ -428,10 +366,6 @@ function IntervalPanelChart({
   );
 }
 
-/**
- * Dot-and-interval strip plot. One panel, or small multiples on identical y scales. Every
- * observation is a point; the larger marker is the centre with its interval drawn beside it.
- */
 export function DotIntervalChart({
   number,
   title,
@@ -453,13 +387,11 @@ export function DotIntervalChart({
   panels: IntervalPanel[];
   unit?: string;
   digits?: number;
-  /** Pin the y scale at zero (durations, counts); interval ends below zero are drawn at the axis. */
   zero?: boolean;
   height?: number;
   intervalName?: string;
   centerName?: string;
   csvHref?: string;
-  /** Client-built CSV of the data table (file name), for data with no server CSV route. */
   csvFile?: string;
   empty?: ReactNode;
 }) {
@@ -476,14 +408,14 @@ export function DotIntervalChart({
   return (
     <figure data-slot="chart-figure" className="flex min-w-0 flex-col gap-3">
       <figcaption className="flex flex-col gap-1">
-        <span className="font-sans text-[0.9375rem] leading-6 text-ink">
+        <span className="font-sans t-s text-lime">
           {number !== undefined ? <span className="font-semibold tabular-nums">Figure {number}. </span> : null}
           {heading}
         </span>
-        <span className="text-credit">{howToRead}</span>
+        <span className="t-s text-lime-dim">{howToRead}</span>
       </figcaption>
       {!hasData ? (
-        <div className="text-body flex min-h-24 items-center bg-sunk px-4 text-ink-2">{empty ?? "No observations yet."}</div>
+        <div className="t-b flex min-h-24 items-center bg-vat-2 px-4 text-lime-dim">{empty ?? "No observations yet."}</div>
       ) : (
         <>
           <div className={cn("grid min-w-0 gap-4", panels.length > 1 && "sm:grid-cols-2 lg:grid-cols-3")}>
@@ -503,19 +435,14 @@ export function DotIntervalChart({
   );
 }
 
-// ---------------------------------------------------------------------------------------------
-// Count bars (counts only, always from zero)
-// ---------------------------------------------------------------------------------------------
 
 export interface CountSeries {
   name: string;
   kind: ConditionKind;
   values: number[];
-  /** Per-bar condition, when the categories are the conditions (one bar per condition). */
   kinds?: ConditionKind[];
 }
 
-/** Bars for counts. Grouped by category, one bar per condition, each bar labelled directly. */
 export function CountBars({
   number,
   title,
@@ -541,26 +468,21 @@ export function CountBars({
     (t): EChartsCoreOption => ({
       grid: grid(t, { top: single ? 24 : 40 }),
       tooltip: tooltip(t, { trigger: "item" }),
-      xAxis: { type: "category", data: categories, ...baseAxis(t), axisLabel: { color: t.ink, fontSize: 13, fontWeight: 600, interval: 0, overflow: "break", width: 96 } },
+      xAxis: { type: "category", data: categories, ...baseAxis(t), axisLabel: { color: t.text, fontSize: 13, fontWeight: 600, interval: 0, overflow: "break", width: 96 } },
       yAxis: valueAxis(t, unit, { min: 0, minInterval: 1 }),
       series: ordered.map((s) => ({
         type: "bar",
         name: s.name,
-        // Each bar is encoded by its own condition (2D solid, 3D dashed outline); a zero bar has
-        // no outline, so nothing is drawn under its label.
         data: s.values.map((v, i) => {
           const kind = s.kinds?.[i] ?? s.kind;
-          return { value: v, itemStyle: { color: seriesColour(t, kind), borderColor: t.ink, borderWidth: kind === "3d" && v > 0 ? 1.5 : 0, borderType: kind === "3d" ? [4, 2] : "solid" } };
+          return { value: v, itemStyle: { color: seriesColour(t, kind), borderColor: t.text, borderWidth: kind === "3d" && v > 0 ? 1.5 : 0, borderType: kind === "3d" ? [4, 2] : "solid" } };
         }),
         barMaxWidth: 32,
         barGap: "12%",
-        // Direct labels (R-A13) that fit over a grouped bar: the value, and under several series a
-        // short condition key on a second line ("2D" / "3D"); full names are in the tooltip, the
-        // caption and the data table. Long names side by side overprinted each other.
         label: {
           show: true,
           position: "top",
-          color: t.ink,
+          color: t.text,
           fontSize: 13,
           lineHeight: 14,
           formatter: (p: { value: number }) => (single ? String(p.value) : `${p.value}\n${s.kind === "2d" ? "2D" : s.kind === "3d" ? "3D" : s.name}`),
@@ -584,17 +506,12 @@ export function CountBars({
   );
 }
 
-// ---------------------------------------------------------------------------------------------
-// Heatmap (sequential indigo ramp, value printed in every cell)
-// ---------------------------------------------------------------------------------------------
 
-/** Ramp step 0-5 for a count (0 is always the lightest step). */
 export function rampStep(v: number, max: number): number {
   if (v <= 0 || max <= 0) return 0;
   return Math.min(5, Math.max(1, Math.ceil((v / max) * 5)));
 }
 
-/** Transition matrix heatmap (from row category to column category). */
 export function TransitionHeatmap({ number, title, howToRead, labels, counts }: { number?: number; title: string; howToRead?: ReactNode; labels: string[]; counts: number[][] }) {
   const keep = labels.map((_, i) => counts[i]!.some((v) => v > 0) || counts.some((r) => (r[i] ?? 0) > 0));
   const idx = labels.map((_, i) => i).filter((i) => keep[i]);
@@ -605,14 +522,14 @@ export function TransitionHeatmap({ number, title, howToRead, labels, counts }: 
     (t): EChartsCoreOption => ({
       tooltip: tooltip(t, { formatter: (p: { value: [number, number, number] }) => miniTable(`${shown[p.value[1]]} to ${shown[p.value[0]]}`, [["Transitions", String(p.value[2])]]) }),
       grid: { left: 8, right: 16, top: 8, bottom: 8, outerBoundsMode: "same", outerBoundsContain: "all", show: false },
-      xAxis: { type: "category", data: shown, name: "To", nameLocation: "middle", nameGap: 0, position: "top", ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.ink3, fontSize: 13, rotate: 45, interval: 0 }, nameTextStyle: { color: t.ink, fontSize: 15, fontWeight: 600 }, splitArea: { show: false } },
-      yAxis: { type: "category", data: shown, name: "From", inverse: true, ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.ink3, fontSize: 13, interval: 0 }, nameTextStyle: { color: t.ink, fontSize: 15, fontWeight: 600 } },
+      xAxis: { type: "category", data: shown, name: "To", nameLocation: "middle", nameGap: 0, position: "top", ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.textDim, fontSize: 13, rotate: 45, interval: 0 }, nameTextStyle: { color: t.text, fontSize: 15, fontWeight: 600 }, splitArea: { show: false } },
+      yAxis: { type: "category", data: shown, name: "From", inverse: true, ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.textDim, fontSize: 13, interval: 0 }, nameTextStyle: { color: t.text, fontSize: 15, fontWeight: 600 } },
       series: [
         {
           type: "heatmap",
           data: data.map(([x, y, v]) => {
             const step = rampStep(v, max);
-            return { value: [x, y, v], itemStyle: { color: t.ramp[step], borderColor: t.surface, borderWidth: 2 }, label: { show: true, color: t.rampLabel[step], fontSize: 13 } };
+            return { value: [x, y, v], itemStyle: { color: t.ramp[step], borderColor: t.page, borderWidth: 2 }, label: { show: true, color: t.rampLabel[step], fontSize: 13 } };
           }),
           label: { show: true },
           emphasis: { disabled: true },
@@ -625,11 +542,11 @@ export function TransitionHeatmap({ number, title, howToRead, labels, counts }: 
   if (shown.length === 0)
     return (
       <figure className="flex min-w-0 flex-col gap-2">
-        <figcaption className="font-sans text-[0.9375rem] leading-6 text-ink">
+        <figcaption className="font-sans t-s text-lime">
           {number !== undefined ? <span className="font-semibold tabular-nums">Figure {number}. </span> : null}
           {heading}
         </figcaption>
-        <p className="text-body bg-sunk px-4 py-3 text-ink-2">No transitions recorded yet.</p>
+        <p className="t-b bg-vat-2 px-4 py-3 text-lime-dim">No transitions recorded yet.</p>
       </figure>
     );
   return (
@@ -651,28 +568,27 @@ export interface TimelinePointView {
   label: string;
 }
 
-/** Interaction timeline: one lane per analytic concept, time on x (seconds since the first event). */
 export function InteractionTimeline({ number, title, points, kind = "other" }: { number?: number; title: string; points: TimelinePointView[]; kind?: ConditionKind }) {
   const lanes = [...new Set(points.map((p) => p.lane))];
   const ref = useEChart(
     (t): EChartsCoreOption => ({
       tooltip: tooltip(t, { formatter: (p: { data: { label: string; value: [number, number] } }) => miniTable(p.data.label, [["Seconds", fixed(p.data.value[0], 1)]]) }),
       grid: grid(t, { bottom: 32 }),
-      xAxis: { type: "value", name: "Seconds since the first event", nameLocation: "middle", nameGap: 28, ...baseAxis(t), nameTextStyle: { color: t.ink, fontSize: 15, fontWeight: 600 } },
-      yAxis: { type: "category", data: lanes, ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.ink3, fontSize: 13, interval: 0 }, splitLine: { show: true, lineStyle: { color: t.grid } } },
+      xAxis: { type: "value", name: "Seconds since the first event", nameLocation: "middle", nameGap: 28, ...baseAxis(t), nameTextStyle: { color: t.text, fontSize: 15, fontWeight: 600 } },
+      yAxis: { type: "category", data: lanes, ...baseAxis(t), axisLine: { show: false }, axisLabel: { color: t.textDim, fontSize: 13, interval: 0 }, splitLine: { show: true, lineStyle: { color: t.line } } },
       series: [
         {
           type: "scatter",
           symbol: marker(kind),
           symbolSize: 8,
-          itemStyle: { color: seriesColour(t, kind), borderColor: t.surface, borderWidth: 1 },
+          itemStyle: { color: seriesColour(t, kind), borderColor: t.page, borderWidth: 1 },
           data: points.map((p) => ({ value: [p.tMs / 1000, lanes.indexOf(p.lane)], label: `#${p.seq} ${p.label}` })),
         },
       ],
     }),
     [JSON.stringify({ points, kind })],
   );
-  if (points.length === 0) return <p className="text-body bg-sunk px-4 py-3 text-ink-2">No events recorded for this session.</p>;
+  if (points.length === 0) return <p className="t-b bg-vat-2 px-4 py-3 text-lime-dim">No events recorded for this session.</p>;
   return (
     <ChartFigure
       number={number}

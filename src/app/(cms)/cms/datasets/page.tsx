@@ -21,7 +21,6 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Dataset Versions" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/cms/datasets">) {
@@ -57,16 +56,16 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
         title="Release readiness"
         description="A release contains everything in the review pipeline (under review, needs evidence, verified, published). It is refused while any of it is unverified or the integrity report has errors; reject, archive or withdraw what should not ship."
       >
-        <p className="text-body">
+        <p className="t-b">
           In the pipeline: {readiness.counts.traditions} traditions, {readiness.counts.concepts} concepts ({readiness.counts.claims} claims), {readiness.counts.relationships} relationships,{" "}
           {readiness.counts.sources} sources. Integrity: {readiness.integrity.error} error(s), {readiness.integrity.warning} warning(s).
         </p>
         {readiness.ok ? (
-          <p className="text-body font-medium">Ready: every item is verified and the graph has no error-level issues.</p>
+          <p className="t-b font-medium">Ready: every item is verified and the graph has no error-level issues.</p>
         ) : (
           <div className="flex flex-col gap-3">
-            <p className="text-body font-medium">Not ready. The release would be refused with:</p>
-            <ul className="list-disc pl-5 text-body">
+            <p className="t-b font-medium">Not ready. The release would be refused with:</p>
+            <ul className="list-disc pl-5 t-b">
               {readiness.refusals.map((r, i) => (
                 <li key={i}>
                   <Mono>{r.code}</Mono> {r.message}
@@ -74,18 +73,18 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
               ))}
             </ul>
             {readiness.pending.length ? (
-              <Disclosure className="text-body" summary={<>Unverified items ({readiness.pending.length}{readiness.pending.length >= 50 ? "+" : ""})</>}>
+              <Disclosure className="t-b" summary={<>Unverified items ({readiness.pending.length}{readiness.pending.length >= 50 ? "+" : ""})</>}>
                 <ul className="mt-2 flex flex-col gap-1">
                   {readiness.pending.map((p) => (
                     <li key={`${p.kind}-${p.id}`}>
-                      {p.kind}: {p.label} <span className="text-ink-3">({p.state.replace("_", " ")})</span>
+                      {p.kind}: {p.label} <span className="text-lime-dim">({p.state.replace("_", " ")})</span>
                     </li>
                   ))}
                 </ul>
               </Disclosure>
             ) : null}
             {readiness.errors.length ? (
-              <Disclosure className="text-body" summary={<>Integrity errors ({readiness.integrity.error})</>}>
+              <Disclosure className="t-b" summary={<>Integrity errors ({readiness.integrity.error})</>}>
                 <ul className="mt-2 flex flex-col gap-1">
                   {readiness.errors.map((e, i) => (
                     <li key={i}>
@@ -123,7 +122,7 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
         title="Review snapshot"
         description="A frozen copy of everything in the review pipeline, for comparing with releases. It never changes by itself: rebuild it after editing. It is never publishable. The staff and demo previews stay on the snapshot that the command-line content import pinned the demo study to."
       >
-        <p className="text-body">{latestReview ? reviewSnapshotLine(latestReview) : "No review snapshot has been built yet."}</p>
+        <p className="t-b">{latestReview ? reviewSnapshotLine(latestReview) : "No review snapshot has been built yet."}</p>
         <ActionForm action={rebuildReviewSnapshotAction} submitLabel="Rebuild review snapshot" pendingLabel="Building…" submitVariant="outline" />
       </Section>
 
@@ -193,12 +192,12 @@ function VersionsTable({ rows }: { rows: SnapshotRowView[] }) {
           <TableRow key={s.id}>
             <TableCell className="whitespace-normal">
               <span className="font-medium">{s.versionLabel}</span>
-              <span className="text-credit block">{s.title}</span>
+              <span className="t-s text-lime-dim block">{s.title}</span>
             </TableCell>
             <TableCell>{s.kind}</TableCell>
             <TableCell>
               <Badge variant="neutral">{s.status}</Badge>
-              {s.includesUnverified ? <span className="text-credit block">includes unverified</span> : null}
+              {s.includesUnverified ? <span className="t-s text-lime-dim block">includes unverified</span> : null}
             </TableCell>
             <TableCell numeric>{s.itemCount}</TableCell>
             <TableCell>
@@ -229,13 +228,13 @@ async function Diff({ a, b }: { a: string; b: string }) {
   ];
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-body">
+      <p className="t-b">
         From {ba.versionLabel} to {bb.versionLabel}
       </p>
       {kinds.map(([label, k]) => (
         <Disclosure
           key={label}
-          className="border-t border-rule py-2 text-body"
+          className="border-t border-line py-2 t-b"
           defaultOpen={k.added.length + k.removed.length + k.changed.length > 0 && k.added.length + k.removed.length + k.changed.length < 40}
           summary={<>{label}: {k.added.length} added, {k.removed.length} removed, {k.changed.length} changed, {k.unchanged} unchanged</>}
         >
@@ -258,7 +257,7 @@ async function Diff({ a, b }: { a: string; b: string }) {
           </ul>
         </Disclosure>
       ))}
-      <p className="text-credit">
+      <p className="t-s text-lime-dim">
         <Link className={ROW_LINK} href="/cms/datasets#compare">
           Clear comparison
         </Link>

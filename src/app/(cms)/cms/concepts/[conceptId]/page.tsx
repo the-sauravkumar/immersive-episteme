@@ -34,7 +34,6 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Concept" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ params }: PageProps<"/cms/concepts/[conceptId]">) {
@@ -68,36 +67,34 @@ async function ConceptEditor({ params }: { params: Promise<{ conceptId: string }
     entityHistory(pool, "concept", concept.id),
     concept.isDemo ? Promise.resolve(null) : reviewOptions(pool, principal, "concept", concept.id, concept.state),
   ]);
-  // Sources already cited stay selectable (and labelled) even if they are no longer citable.
   const choices = new Map(sources.map((s) => [s.id, { id: s.id, label: s.label, key: s.key }]));
   for (const cl of concept.claims) for (const s of cl.sources) if (!choices.has(s.sourceId)) choices.set(s.sourceId, { id: s.sourceId, label: s.label, key: s.key });
   const notes = sanitizeDoc(concept.notes);
   const accepted = concept.state === "verified" || concept.state === "published";
 
-  // DESIGN.md 11.10: form 60 %, Proof 40 % from 1280 px. Under that, the Proof follows the claims.
   return (
     <div className="flex flex-col gap-6">
       <dl aria-label="Concept facts" className="grid grid-cols-1 gap-x-4 gap-y-1 xs:grid-cols-[9rem_minmax(0,1fr)]">
-        <dt className="text-label pt-0.5">Key</dt>
-        <dd className="text-value min-w-0">
+        <dt className="t-label pt-0.5">Key</dt>
+        <dd className="t-b min-w-0">
           <Mono>{concept.key}</Mono>
         </dd>
-        <dt className="text-label pt-0.5">State</dt>
-        <dd className="text-value flex flex-wrap items-center gap-2">
+        <dt className="t-label pt-0.5">State</dt>
+        <dd className="t-b flex flex-wrap items-center gap-2">
           <StateBadge state={concept.state} />
           {concept.isDemo ? (
             <>
               <Badge variant="neutral">Demo</Badge>
-              <span className="text-ink-3">Fixture, read-only, never publishable into a study</span>
+              <span className="text-lime-dim">Fixture, read-only, never publishable into a study</span>
             </>
           ) : null}
         </dd>
-        <dt className="text-label pt-0.5">Package</dt>
-        <dd className="text-value">{concept.traditionName ?? concept.packageSlug ?? "No package"}</dd>
-        <dt className="text-label pt-0.5">Type</dt>
-        <dd className="text-value">{humanise(concept.type)}</dd>
-        <dt className="text-label pt-0.5">Provenance</dt>
-        <dd className="text-value">{PROVENANCE_LABEL[concept.provenanceKind]}</dd>
+        <dt className="t-label pt-0.5">Package</dt>
+        <dd className="t-b">{concept.traditionName ?? concept.packageSlug ?? "No package"}</dd>
+        <dt className="t-label pt-0.5">Type</dt>
+        <dd className="t-b">{humanise(concept.type)}</dd>
+        <dt className="t-label pt-0.5">Provenance</dt>
+        <dd className="t-b">{PROVENANCE_LABEL[concept.provenanceKind]}</dd>
       </dl>
 
       <div className="grid grid-cols-[minmax(0,1fr)] gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
@@ -171,7 +168,7 @@ async function ConceptEditor({ params }: { params: Promise<{ conceptId: string }
         <Section id="notes" className="xl:col-start-1" title="Curator notes" description="Editorial notes for the team (sources to chase, open questions). Never shown to learners.">
           {!isEmptyDoc(notes) ? (
             <div
-              className="text-body rounded-card bg-sunk p-4 text-ink [&_a]:text-indigo [&_a]:underline [&_blockquote]:bg-sunk [&_blockquote]:px-4 [&_blockquote]:py-2 [&_h2]:text-h3 [&_h3]:text-h3 [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_p+p]:mt-2 [&_ul]:list-disc [&_ul]:pl-5"
+              className="t-b bg-vat-2 p-4 text-lime [&_a]:text-turmeric [&_a]:underline [&_blockquote]:bg-vat-2 [&_blockquote]:px-4 [&_blockquote]:py-2 [&_h2]:t-label [&_h3]:t-label [&_h4]:font-semibold [&_ol]:list-decimal [&_ol]:pl-5 [&_p+p]:mt-2 [&_ul]:list-disc [&_ul]:pl-5"
               dangerouslySetInnerHTML={{ __html: renderDocHtml(notes) }}
             />
           ) : (
@@ -201,10 +198,10 @@ async function ConceptEditor({ params }: { params: Promise<{ conceptId: string }
 
         <Section id="learner" className="xl:col-start-1" title="Generated learner text" description="The stored summary and body, generated from the claims (search and export use them; the Proof shows how the claims themselves are set).">
           <dl className="grid grid-cols-1 gap-x-4 gap-y-1 xs:grid-cols-[9rem_minmax(0,1fr)]">
-            <dt className="text-label pt-0.5">Summary</dt>
-            <dd className="text-value min-w-0">{concept.summary || "None"}</dd>
-            <dt className="text-label pt-0.5">Body</dt>
-            <dd className="text-value min-w-0 whitespace-pre-wrap">{concept.bodyMd || "None"}</dd>
+            <dt className="t-label pt-0.5">Summary</dt>
+            <dd className="t-b min-w-0">{concept.summary || "None"}</dd>
+            <dt className="t-label pt-0.5">Body</dt>
+            <dd className="t-b min-w-0 whitespace-pre-wrap">{concept.bodyMd || "None"}</dd>
           </dl>
         </Section>
 
@@ -218,14 +215,6 @@ async function ConceptEditor({ params }: { params: Promise<{ conceptId: string }
 
 const humanise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ");
 
-/**
- * The Proof: the concept as the learner pipeline renders it. When the concept is in the review
- * pipeline (under review, needs evidence, verified, published), the sheet is built from the live
- * review bundle exactly as a release would carry it: claims with their evidence passages, the
- * graph-derived figure (balanced across the study traditions, DR-018), related concepts and the
- * process step. A draft is not in that bundle yet, so its proof is built from the saved claims and
- * their sources, without figure or related concepts, and says so.
- */
 async function Proof({ concept }: { concept: ConceptDetail }) {
   const pool = getPool();
   const built = await buildReviewSnapshotFromDb(pool, { hasher: nodeSha256, generatedAt: new Date().toISOString() }).catch(() => null);
@@ -282,7 +271,6 @@ async function Proof({ concept }: { concept: ConceptDetail }) {
     );
   }
 
-  // Draft (or a pipeline that does not build): the saved claims and their sources only.
   const claims = await draftClaims(concept);
   const tradition = await pool
     .query<{ slug: string; name: string }>("SELECT t.slug, t.name FROM concepts c JOIN traditions t ON t.id = c.tradition_id WHERE c.id = $1", [concept.id])
@@ -322,7 +310,6 @@ function sheetConcept(
   return { id, title, type, category, localTerms, tradition: tradition ? { slug: tradition.slug, name: tradition.name } : null, verificationState };
 }
 
-/** ClaimViews of a draft from the editor's saved claims, citing the source records and their stored passages. */
 async function draftClaims(concept: ConceptDetail): Promise<ClaimView[]> {
   const ids = [...new Set(concept.claims.flatMap((c) => c.sources.map((s) => s.sourceId)))];
   const rows = ids.length

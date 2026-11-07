@@ -3,77 +3,46 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 import { Slot } from "radix-ui"
 
-/*
- * Button (DESIGN.md 9.6). 44 px by default, 4 px radius, Atkinson 16/600, sentence case, optional
- * 20 px icon (stroke 1.75) with an 8 px gap. No translate, lift or shadow; no arrow glyphs. One
- * primary per view. Primary = indigo fill; outline (secondary) = paper with a 1.5 px ink border, so
- * actions read differently from fields; ghost (quiet) = no border, hover --sunk; link = underlined
- * 1 px at 0.2em, 2 px on hover. Focus is the global two-tone ring in globals.css (never removed
- * here), so no ring classes.
- *
- * The deprecated names (variant `secondary`; sizes `xs`, `sm`, `lg`, `icon-xs`, `icon-sm`,
- * `icon-lg`) are removed: tests/unit/design/dead-aliases.test.ts keeps them out (residual risk 6).
- */
-const DISABLED =
-  "disabled:cursor-not-allowed aria-disabled:cursor-not-allowed disabled:text-ink-3 aria-disabled:text-ink-3"
+const OFF =
+  "disabled:cursor-not-allowed aria-disabled:cursor-not-allowed disabled:border-off-bg disabled:bg-off-bg disabled:text-off-fg aria-disabled:border-off-bg aria-disabled:bg-off-bg aria-disabled:text-off-fg"
 
 const PRIMARY = cn(
-  "bg-indigo text-on-indigo hover:bg-indigo-hover aria-expanded:bg-indigo-hover",
-  DISABLED,
-  "disabled:border-rule disabled:bg-transparent aria-disabled:border-rule aria-disabled:bg-transparent"
-)
-const OUTLINE = cn(
-  "border-[1.5px] border-ink bg-ground text-ink hover:bg-sunk aria-expanded:bg-sunk",
-  DISABLED,
-  "disabled:border-rule disabled:hover:bg-transparent aria-disabled:border-rule aria-disabled:hover:bg-transparent"
+  "border-turmeric bg-turmeric text-vat hover:border-turmeric-hi hover:bg-turmeric-hi active:border-turmeric-lo active:bg-turmeric-lo aria-expanded:bg-turmeric-hi",
+  OFF
 )
 
 const buttonVariants = cva(
   cn(
-    "group/button inline-flex shrink-0 items-center justify-center gap-2 rounded-control border border-transparent",
-    "font-sans text-base leading-6 font-semibold whitespace-nowrap select-none",
+    "group/button inline-flex max-w-full shrink-0 items-center justify-center gap-2 border-2 border-transparent",
+    "font-display text-center text-[19px] leading-tight font-bold select-none sm:whitespace-nowrap",
     "transition-colors duration-(--dur-1)",
-    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:stroke-[1.75] [&_svg:not([class*='size-'])]:size-5"
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:stroke-[2.4] [&_svg]:[stroke-linecap:square] [&_svg:not([class*='size-'])]:size-5"
   ),
   {
     variants: {
       variant: {
         default: PRIMARY,
         primary: PRIMARY,
-        outline: OUTLINE,
+        outline: cn("border-lime bg-transparent text-lime hover:bg-raised-hover active:bg-vat-2 aria-expanded:bg-raised-hover", OFF),
         ghost: cn(
-          "bg-transparent text-ink hover:bg-sunk aria-expanded:bg-sunk",
-          DISABLED,
-          "disabled:hover:bg-transparent aria-disabled:hover:bg-transparent"
+          "bg-transparent text-lime underline decoration-1 underline-offset-[0.2em] hover:bg-raised-hover hover:decoration-2 aria-expanded:bg-raised-hover",
+          "disabled:cursor-not-allowed disabled:text-off-fg disabled:no-underline disabled:hover:bg-transparent aria-disabled:cursor-not-allowed aria-disabled:text-off-fg"
         ),
         link: cn(
-          "min-w-11 bg-transparent text-indigo underline decoration-1 underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2",
-          DISABLED,
-          "disabled:no-underline aria-disabled:no-underline"
+          "min-w-11 border-0 bg-transparent text-turmeric underline decoration-1 underline-offset-[0.2em] hover:text-turmeric-hi hover:decoration-2",
+          "disabled:cursor-not-allowed disabled:text-off-fg disabled:no-underline aria-disabled:cursor-not-allowed aria-disabled:text-off-fg aria-disabled:no-underline"
         ),
-        destructive: cn(
-          "border-[1.5px] border-danger bg-ground text-danger hover:bg-sunk aria-expanded:bg-sunk",
-          DISABLED,
-          "disabled:border-rule disabled:hover:bg-transparent aria-disabled:border-rule aria-disabled:hover:bg-transparent"
-        ),
-        /** Filled danger: ONLY the confirm button inside a destructive-action dialog (9.1). */
-        "destructive-solid": cn(
-          "border-danger bg-danger text-on-indigo hover:bg-[color-mix(in_srgb,var(--danger)_88%,var(--ink))]",
-          DISABLED,
-          "disabled:border-rule disabled:bg-transparent aria-disabled:border-rule aria-disabled:bg-transparent"
-        ),
+        destructive: cn("border-madder-text bg-transparent text-madder-text hover:bg-raised-hover aria-expanded:bg-raised-hover", OFF),
+        "destructive-solid": cn("border-madder bg-madder text-lime hover:border-lime active:border-madder-lo active:bg-madder-lo", OFF),
       },
       size: {
-        default: "h-11 px-5",
-        /** 44 x 44 with a 20 px glyph. */
+        default: "min-h-[46px] px-5 py-2",
         icon: "size-11 p-0",
-        /** 36 px visual, console and CMS dense tables only; keeps a 44 x 44 hit area. */
         compact:
-          "relative h-9 px-4 after:absolute after:-inset-1 after:min-h-11 after:min-w-11 after:content-['']",
+          "relative min-h-9 px-4 py-1 text-[17px] after:absolute after:-inset-1 after:min-h-11 after:min-w-11 after:content-['']",
       },
     },
     compoundVariants: [
-      // A link-styled button keeps the 44 px height but sits on the text edge.
       { variant: "link", size: ["default", "compact"], className: "px-0" },
     ],
     defaultVariants: {
