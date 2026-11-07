@@ -177,11 +177,11 @@ describe.skipIf(!TEST_URL)("research console", () => {
 
   it("creates a draft study with both conditions and records its configuration history", async () => {
     studyId = await createStudy(t.pool, actor, { slug: "rc-study", title: "Research console study", protocolVersion: "p1", design: "between" });
-    await updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { mode: "self_paced" }, eligibility: { inclusion: ["Adult"], exclusion: [] } }));
+    await updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { mode: "self_paced" }, notes: "Adult volunteers." }));
     await setBattery(t.pool, actor, studyId, [{ assessmentId, phase: "post", position: 0 }]);
     const s = await getStudy(t.pool, studyId);
     expect(s?.conditions.map((c) => c.interface).sort()).toEqual(["conventional_2d", "immersive_3d"]);
-    expect(s?.config.eligibility.inclusion).toEqual(["Adult"]);
+    expect(s?.config.notes).toBe("Adult volunteers.");
     expect(s?.battery.map((b) => b.phase)).toEqual(["post"]);
     const history = await t.pool.query("SELECT action FROM audit_log WHERE entity = 'study' AND entity_id = $1 ORDER BY occurred_at", [studyId]);
     expect(history.rows.map((r) => r.action)).toEqual(["study.create", "study.configure", "study.battery"]);

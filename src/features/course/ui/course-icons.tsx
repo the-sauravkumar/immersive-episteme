@@ -7,6 +7,15 @@ export function HelpIcon() {
   );
 }
 
+export function HintIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 3a6 6 0 0 0-3.600 10.800c.800.600 1.200 1.400 1.200 2.200v.500h4.800V16c0-.800.400-1.600 1.200-2.200A6 6 0 0 0 12 3z" fill="none" stroke="currentColor" strokeWidth="2.200" />
+      <rect x="9.400" y="18.300" width="5.200" height="2.400" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function PauseIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">

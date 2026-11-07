@@ -36,10 +36,9 @@ interface LearningContext {
   participantPseudonym: string | null; // participant code, study mode only (never a name/email)
   studyId: string | null;
   nonExperimental: boolean;      // demo, preview, demo study or config.nonExperimental
-  unverifiedContent: boolean;    // snapshot includes content no curator verified: SHOW A NOTICE
+  contentUnderReview: boolean;   // snapshot includes content no curator verified: both doors show the under-review notice (DR-112)
   traditionSlugs: string[];      // study config (demo/preview: the demo study's)
-  features: { search: boolean }; // study config `searchEnabled` (demo/preview: true)
-  settings: LearningSettings;    // minimap, webglFailurePolicy, guidance {policy, cueEnabled, stallSeconds, hintText}, learningPrompts
+  guidance: DoorGuidance;        // help time line, hint text and stall cue seconds, the same for both doors (DR-112)
   scope: { minCompareTraditions: number }; // comparison-zone minTraditions of the pinned manifest's rule set
   telemetrySessionId: string;    // sessionId in study mode; stable uuid per demo cookie/staff user otherwise
   appBuild: string;              // APP_BUILD_VERSION
@@ -52,7 +51,7 @@ interface LearningContext {
 - `study`: the session's pinned snapshot and manifest (the database forces them to equal the
   study's). `demo` / `preview`: the newest review snapshot, the manifest and traditions of the
   demo study pinned to it (`demo-review-walkthrough`, created by `dev:bootstrap`), always
-  `nonExperimental: true`, `unverifiedContent: true`.
+  `nonExperimental: true`, `contentUnderReview: true`.
 - Throws `LearningContextUnavailableError` (`reason`: `no_review_snapshot` | `session_not_found` |
   `study_has_no_snapshot`) when there is nothing to show. Render a friendly message.
 - Protocol settings are read ONLY here (`ctx.settings`, type in `src/features/learning/settings.ts`);
@@ -105,14 +104,10 @@ stale. Results are plain serialisable objects; types are exported from
 | `getRelatedConcepts(snapshotId, keyOrSlugOrId)` | `RelatedConceptGroups \| null`: `[{ semantics, relations: RelatedConcept[] }]` in RELATIONSHIP_SEMANTICS order; each relation has `direction` (`outgoing`/`incoming`/`undirected`), a direction-aware `label`, `explanation`, `conditions`, `evidence` |
 | `getComparisons(snapshotId, { traditionSlug? })` | `ComparisonView[]`: comparison concept, compared concepts, claims, SIMILAR_TO / CONTRASTS_WITH links |
 | `getConceptRefs(snapshotId, ids)` | `ConceptRef[]` (search hits, manifest elements, telemetry) |
-| `search(snapshotId, query, { enabled, limit?, traditionSlug? })` | `{ enabled: false }` or `{ enabled: true, query, hits: { concept, score }[] }` |
 
-- **Search** runs over the snapshot payload, not the live tables: `websearch_to_tsquery('simple')`
-  against the same weighted vector as `concepts.search` (title/local terms A, summary B, body C)
-  plus trigram `similarity`/`word_similarity` on titles and local terms (partial and misspelt
-  craft terms match). Score = 2 × ts_rank_cd + best trigram. Always pass
-  `enabled: ctx.features.search`; a study switches it off with `config.searchEnabled = false`
-  (the default for studies, Q-R6 open). Queries under 2 characters return no hits.
+- There is no learner search: the study setting `searchEnabled` was removed with DR-112 because
+  neither door offers a search. `searchSnapshotConcepts` in the snapshot store remains for the
+  content pipeline tests.
 - Not-found keys return `null` (call `notFound()`); an unreadable snapshot throws
   `SnapshotNotReadableError`.
 - Nothing in the read model writes or invents text: every string is from the snapshot. When
@@ -375,7 +370,7 @@ excluded and counted, never estimated.
 `npm run dev:bootstrap`: `docker compose up -d --wait`, migrate main and test databases, seed
 reference + demo data, import content, store the review snapshot, compile manifests for
 ajrakh + sanganeri + machilipatnam-kalamkari (together, and each alone), and create/update the
-draft demo study `demo-review-walkthrough` (is_demo, `config.nonExperimental`, search on) pinned
+draft demo study `demo-review-walkthrough` (is_demo, `config.nonExperimental`) pinned
 to the review snapshot and the combined manifest. Idempotent; prints row counts.
 
 ## 7. Known limits for later waves

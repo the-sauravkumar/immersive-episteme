@@ -207,8 +207,9 @@ stored parity report in the development database (`parity_reports`, generator `p
 ### R10. Study configuration and versioning
 
 - A study is created as a draft with both conditions (2D and 3D, equal weight). Everything the
-  protocol fixes lives in `studies.config` (traditions, allocation, exposure, guidance, search,
-  mini-map, WebGL policy, retention, consent version, inclusion/exclusion criteria) and the
+  protocol fixes lives in `studies.config` (traditions, allocation, exposure, guidance, WebGL
+  policy, retention; search, mini-map, the second consent version and the inclusion/exclusion
+  criteria were removed by DR-112 because nothing read them) and the
   battery in `study_assessments`; every save writes an append-only `audit_log` row with before
   and after state, which is the configuration history shown on the study page.
 - Active and closed studies are frozen by the database; a protocol change is a new version

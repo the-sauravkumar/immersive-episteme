@@ -263,7 +263,6 @@ function ParityAndActivation({
 }
 
 const ALLOCATION = ["simple", "block", "stratified_block", "counterbalanced", "manual"];
-const GUIDANCE = ["none", "exploration_first", "guided", "hybrid"];
 const words = (code: string) => code.charAt(0).toUpperCase() + code.slice(1).replace(/_/g, " ");
 
 function ConfigForm({
@@ -342,29 +341,11 @@ function ConfigForm({
       <FieldLabel label="Exposure (min)">
         <Input name="exposureMinutes" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={c.exposure.minutes ?? ""} />
       </FieldLabel>
-      <FieldLabel label="Guidance policy">
-        <NativeSelect name="guidancePolicy" defaultValue={c.guidance.policy}>
-          {GUIDANCE.map((g) => (
-            <option key={g} value={g}>
-              {words(g)}
-            </option>
-          ))}
-        </NativeSelect>
-      </FieldLabel>
-      <FieldLabel label="Stall cue after (s)" hint="Active seconds without a newly opened concept before the cue shows (D6; a pilot parameter, 10 to 1800).">
+      <FieldLabel label="Stall cue after (s)" hint="Active seconds without reaching a new stage before both doors offer the hint (D6; a pilot parameter, 10 to 1800).">
         <Input name="stallSeconds" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={c.guidance.stallSeconds ?? ""} />
       </FieldLabel>
-      <FieldLabel label="Hint text" className="md:col-span-2" hint="The on-demand hint both conditions show. Needed when the policy is hybrid and guidance cues are on.">
+      <FieldLabel label="Hint text" className="md:col-span-2" hint="The on-demand hint both doors show behind a Hint button. Needed when the hint and stall cue are on.">
         <textarea name="hintText" rows={3} maxLength={2000} defaultValue={c.guidance.hintText ?? ""} className={TEXTAREA} />
-      </FieldLabel>
-      <FieldLabel label="Mini-map (3D)">
-        <NativeSelect name="minimap" defaultValue={c.minimap}>
-          {["toggle", "on", "off"].map((m) => (
-            <option key={m} value={m}>
-              {words(m)}
-            </option>
-          ))}
-        </NativeSelect>
       </FieldLabel>
       <FieldLabel label="WebGL failure policy">
         <NativeSelect name="webglFailurePolicy" defaultValue={c.webglFailurePolicy}>
@@ -378,15 +359,6 @@ function ConfigForm({
       <FieldLabel label="Data retention (days)" hint="After a participant's participation ends. The principal investigator removes the data once it has passed (Participant data section); it is not deleted automatically.">
         <Input name="retentionDays" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={c.retentionDays ?? ""} />
       </FieldLabel>
-      <FieldLabel label="Consent version">
-        <Input name="consentVersion" maxLength={64} defaultValue={c.consentVersion ?? ""} />
-      </FieldLabel>
-      <FieldLabel label="Inclusion criteria" hint="One per line.">
-        <textarea name="inclusion" rows={3} defaultValue={c.eligibility.inclusion.join("\n")} className={TEXTAREA} />
-      </FieldLabel>
-      <FieldLabel label="Exclusion criteria" hint="One per line.">
-        <textarea name="exclusion" rows={3} defaultValue={c.eligibility.exclusion.join("\n")} className={TEXTAREA} />
-      </FieldLabel>
       <fieldset className="flex min-w-0 flex-col gap-1 md:col-span-2">
         <legend className={FIELD_LABEL}>Shared switches (apply to both conditions)</legend>
         <div className="flex flex-wrap gap-x-6">
@@ -396,11 +368,7 @@ function ConfigForm({
           </label>
           <label className={CHECK_ROW}>
             <input type="checkbox" name="cueEnabled" defaultChecked={c.guidance.cueEnabled} className={CHECK_BOX} />
-            Guidance cues on
-          </label>
-          <label className={CHECK_ROW}>
-            <input type="checkbox" name="searchEnabled" defaultChecked={c.searchEnabled} className={CHECK_BOX} />
-            Concept search on
+            Hint and stall cue on (both doors, every use logged)
           </label>
         </div>
       </fieldset>

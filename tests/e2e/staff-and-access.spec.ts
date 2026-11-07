@@ -238,5 +238,10 @@ test("an editor uploads an image, a curator verifies it, and an unready release 
   await expect(curator.getByText("The release was refused; nothing was published.")).toBeVisible();
   const after = await db().query<{ n: number; labelled: number }>("SELECT count(*)::int AS n, count(*) FILTER (WHERE version_label = $1)::int AS labelled FROM content_snapshots", [label]);
   expect(after.rows[0]).toEqual({ n: before, labelled: 0 });
+
+  await curator.goto("/cms/traditions");
+  await curator.getByRole("link", { name: "Open the Door 1 preview" }).click();
+  await expect(curator).toHaveURL(/\/learn\/course-preview$/);
+  await expect(curator.getByRole("button", { name: "Help" })).toBeVisible();
   await curatorContext.close();
 });

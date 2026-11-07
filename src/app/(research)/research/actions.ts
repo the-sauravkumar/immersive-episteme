@@ -37,11 +37,6 @@ const text = (d: FormData, k: string) => {
   const v = d.get(k);
   return typeof v === "string" ? v.trim() : "";
 };
-const lines = (d: FormData, k: string) =>
-  text(d, k)
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
 const optInt = (d: FormData, k: string) => (text(d, k) ? Number(text(d, k)) : undefined);
 
 export async function createStudyAction(_: ActionState, d: FormData): Promise<ActionState> {
@@ -83,13 +78,9 @@ export async function updateStudyAction(studyId: string, _: ActionState, d: Form
       },
       exposure: { ...current.config.exposure, mode: text(d, "exposureMode") || "self_paced", minutes: optInt(d, "exposureMinutes"), allowEarlyFinish: d.get("allowEarlyFinish") === "on" },
       guidance: guidanceFromForm(current.config.guidance, d),
-      searchEnabled: d.get("searchEnabled") === "on",
-      minimap: text(d, "minimap") || "toggle",
       webglFailurePolicy: text(d, "webglFailurePolicy") || "retry",
       retentionDays: optInt(d, "retentionDays"),
-      consentVersion: text(d, "consentVersion") || undefined,
       notes: text(d, "notes") || undefined,
-      eligibility: { inclusion: lines(d, "inclusion"), exclusion: lines(d, "exclusion") },
     });
     await updateStudy(getPool(), { userId: p.userId }, studyId, {
       title: text(d, "title"),

@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 
+import { CoursePractice } from "@/features/course/ui/course-practice";
 import { CourseSession } from "@/features/course/ui/course-session";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
 
@@ -23,6 +24,12 @@ const template: StageTemplate = {
   stages: [stage(1), stage(2)],
   products: [{ id: "p1", file: "/walkthrough/products/p1.jpg", name: "Ajrakh Textile", holder: "A Holder", widthPx: 100, heightPx: 100 }],
 };
+
+beforeAll(() => {
+  HTMLDialogElement.prototype.showModal ??= function showModal(this: HTMLDialogElement) {
+    this.setAttribute("open", "");
+  };
+});
 
 async function settle(): Promise<void> {
   await vi.waitFor(() => {
@@ -48,7 +55,7 @@ describe("CourseSession", () => {
     const back = vi.fn();
     const source = vi.fn();
     const finished = vi.fn();
-    render(<CourseSession templates={[template]} onStageEntered={entered} onStageLeft={left} onBackStep={back} onSourceOpened={source} onFinished={finished} />);
+    render(<CourseSession templates={[template]} studyMode onStageEntered={entered} onStageLeft={left} onBackStep={back} onSourceOpened={source} onFinished={finished} />);
 
     expect(entered).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("heading", { name: "Stage Name 1" })).toBeTruthy();
@@ -88,10 +95,10 @@ describe("CourseSession", () => {
     );
     const entered = vi.fn();
     const finished = vi.fn(async () => false);
-    const { rerender } = render(<CourseSession templates={[template]} onStageEntered={entered} onFinished={finished} />);
+    const { rerender } = render(<CourseSession templates={[template]} studyMode onStageEntered={entered} onFinished={finished} />);
     await settle();
     fireEvent.click(screen.getByRole("button", { name: /^Next/ }));
-    rerender(<CourseSession templates={[template]} onStageEntered={entered} onFinished={finished} restore={{ tradition: 0, stop: 0 }} />);
+    rerender(<CourseSession templates={[template]} studyMode onStageEntered={entered} onFinished={finished} restore={{ tradition: 0, stop: 0 }} />);
     await vi.waitFor(() => expect(screen.getByRole("heading", { name: "Stage Name 1" })).toBeTruthy());
     expect(entered.mock.calls.map(([event]) => event.stageNumber)).toEqual([1, 2, 1]);
     await settle();
@@ -128,5 +135,52 @@ describe("CourseSession", () => {
     expect(left).toHaveBeenCalledTimes(1);
     expect(left.mock.calls[0]![0]).toMatchObject({ stageNumber: 2 });
     vi.unstubAllGlobals();
+  });
+
+  it("labels the last button Finish outside a study, where no questions follow", () => {
+    render(<CourseSession templates={[template]} resume={{ tradition: 0, stop: 2, reached: [2] }} />);
+    expect(screen.getByRole("button", { name: "Finish" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Questions" })).toBeNull();
+  });
+
+  it("states the configured time limit in Help, and that going back stays in the tradition", () => {
+    render(<CourseSession templates={[template]} studyMode guidance={{ time: { limitMinutes: 45, earlyFinish: false }, hint: null, stallSeconds: null }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Help" }));
+    const help = screen.getByRole("dialog").textContent ?? "";
+    expect(help).toContain("The session lasts 45 minutes");
+    expect(help).not.toContain("30 minutes");
+    expect(help).toContain("in the tradition you are in");
+  });
+
+  it("offers the study's hint and the stall cue after the set active time without a new stage, and logs each use", () => {
+    vi.useFakeTimers();
+    try {
+      const report = vi.fn();
+      render(<CourseSession templates={[template]} studyMode guidance={{ time: { limitMinutes: 30, earlyFinish: true }, hint: "Follow the cloth.", stallSeconds: 60 }} onGuidance={report} />);
+      fireEvent.click(screen.getByRole("button", { name: "Hint" }));
+      expect(screen.getByRole("dialog").textContent).toContain("Follow the cloth.");
+      expect(report).toHaveBeenLastCalledWith("followed", "hint");
+      fireEvent.click(screen.getByRole("button", { name: "Close" }));
+      act(() => vi.advanceTimersByTime(59_000));
+      expect(screen.queryByText("A hint is ready if you want one.")).toBeNull();
+      act(() => vi.advanceTimersByTime(1_000));
+      expect(screen.getByText("A hint is ready if you want one.")).toBeTruthy();
+      expect(report).toHaveBeenLastCalledWith("shown", "stall");
+      fireEvent.click(screen.getByRole("button", { name: "Open Hint" }));
+      expect(report).toHaveBeenLastCalledWith("followed", "stall");
+      expect(screen.getByRole("dialog").textContent).toContain("Follow the cloth.");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("CoursePractice", () => {
+  it("tells the practice's own facts in Help, not the session's stages, sources and limit", () => {
+    render(<CoursePractice />);
+    fireEvent.click(screen.getByRole("button", { name: "Help" }));
+    const help = screen.getByRole("dialog").textContent ?? "";
+    expect(help).toContain("Nothing here is part of the test");
+    expect(help).not.toMatch(/stage|sources|30 minutes/i);
   });
 });

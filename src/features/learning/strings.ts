@@ -94,6 +94,12 @@ export const ACCESS_NOTICE_TEXT = {
   },
 } as const;
 
+export const UNVERIFIED_NOTICE_TEXT = {
+  label: "Content state",
+  long: "Some of this content is under review and has not yet been verified by a curator.",
+  short: "Under review: not yet verified.",
+} as const;
+
 /** 2D content that cannot be shown (StateMessage). */
 export const UNAVAILABLE_TEXT = {
   title: "Learning Content Is Not Available",

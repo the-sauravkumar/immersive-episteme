@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
-import { HELP_LINES, HELP_TITLE, PAUSE_TEXT, PAUSE_TITLE, RESUME_LABEL, SOURCES_AND_CREDITS_LABEL, SOURCES_LABEL } from "@/features/process/domain/guidance";
+import { finishLabel, HELP_TITLE, HINT_TITLE, NO_GUIDANCE, PAUSE_TEXT, PAUSE_TITLE, RESUME_LABEL, sessionHelpLines, SOURCES_AND_CREDITS_LABEL, SOURCES_LABEL, type DoorGuidance } from "@/features/process/domain/guidance";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
+import { StallCue } from "@/features/process/ui/stall-cue";
+import { useGuidance, type GuidanceReport } from "@/features/process/ui/use-guidance";
 import { useTabHidden } from "@/lib/use-tab-hidden";
 import type { WalkEngine, WalkEngineFactory } from "../application/walk-engine";
 import { buildRoute, type RouteStation } from "../domain/route-plan";
@@ -36,6 +38,8 @@ export interface WalkthroughSessionEvents {
   readonly onSourceOpened: (stop: WalkStop) => void;
   readonly onFinished: () => Promise<boolean>;
   readonly onRenderFailed: () => void;
+  readonly onContextLost: () => void;
+  readonly onGuidance: GuidanceReport;
   readonly registerExit: (close: () => void) => () => void;
 }
 
@@ -45,6 +49,8 @@ export interface WalkthroughSessionProps {
   readonly createEngine: WalkEngineFactory;
   readonly resume?: WalkResume | null;
   readonly restore?: WalkPosition | null;
+  readonly studyMode?: boolean;
+  readonly guidance?: DoorGuidance;
 }
 
 interface WalkEntry {
@@ -59,7 +65,7 @@ const LOOK_SPEED = 0.0032;
 
 const firstEntry = (resume: WalkResume | null): WalkEntry => (resume ? { tradition: resume.tradition, station: resume.stop, reached: Math.max(resume.stop, resume.reached[resume.tradition] ?? 0), alreadyRecorded: true } : { tradition: 0, station: 0, reached: 0, alreadyRecorded: false });
 
-export function WalkthroughSession({ templates, events, createEngine, resume = null, restore = null }: WalkthroughSessionProps) {
+export function WalkthroughSession({ templates, events, createEngine, resume = null, restore = null, studyMode = false, guidance = NO_GUIDANCE }: WalkthroughSessionProps) {
   const [entry, setEntry] = useState<WalkEntry>(() => firstEntry(resume));
   const [stationIndex, setStationIndex] = useState(entry.station);
   const [reached, setReached] = useState(entry.reached);
@@ -149,7 +155,10 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
         onWrongTurn(station) {
           eventsRef.current.onWrongTurn(stopOf(station));
         },
-        onContextLost: fail,
+        onContextLost() {
+          eventsRef.current.onContextLost();
+          fail();
+        },
       });
     } catch {
       fail();
@@ -205,9 +214,13 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
     };
   }, [ready]);
 
+  const helpLines = useMemo(() => sessionHelpLines(guidance.time), [guidance.time]);
+  const reportGuidance = useCallback<GuidanceReport>((action, cueId) => eventsRef.current.onGuidance(action, cueId), []);
+  const guide = useGuidance({ guidance, progress: `${traditionIndex}.${reached}`, suspended: !ready || failed || paused || sourcesOpen || helpOpen || tabHidden, report: reportGuidance });
+
   useEffect(() => {
-    if (runtime.current) runtime.current.paused = paused || sourcesOpen || helpOpen || tabHidden;
-  }, [entry, paused, sourcesOpen, helpOpen, tabHidden]);
+    if (runtime.current) runtime.current.paused = paused || sourcesOpen || helpOpen || guide.hintOpen || tabHidden;
+  }, [entry, paused, sourcesOpen, helpOpen, guide.hintOpen, tabHidden]);
 
   const dragging = useRef<{ x: number; y: number } | null>(null);
   const station = route[stationIndex];
@@ -265,6 +278,11 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
         </p>
       </div>
       <div className="walkthrough-tools">
+        {guide.hint !== null ? (
+          <button type="button" onClick={guide.openHint}>
+            {HINT_TITLE}
+          </button>
+        ) : null}
         <button type="button" onClick={() => {
           setSourcesOpen(true);
           if (station) events.onSourceOpened({ traditionKey: template.tradition, stageKey: station.stopKey, stageNumber: station.stopNumber });
@@ -279,7 +297,7 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
           Back
         </button>
         <button type="button" className="walkthrough-next" disabled={!ready || finishing} onClick={onwards}>
-          {atHall ? (lastTradition ? "Questions" : "Next Tradition") : "Walk On"}
+          {atHall ? (lastTradition ? finishLabel(studyMode) : "Next Tradition") : "Walk On"}
         </button>
       </div>
       {sourcesOpen && stage ? (
@@ -320,12 +338,20 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
         <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={HELP_TITLE}>
           <h2>{HELP_TITLE}</h2>
           <p>Walk with W, A, S and D or the arrow keys. Drag to look around. Walk On takes you to the next station, and B or Back takes you back along the route. Follow the cloth.</p>
-          {HELP_LINES.map((line) => (
+          {helpLines.map((line) => (
             <p key={line}>{line}</p>
           ))}
           <button type="button" onClick={() => setHelpOpen(false)}>Close</button>
         </div>
       ) : null}
+      {guide.hint !== null && guide.hintOpen ? (
+        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={HINT_TITLE}>
+          <h2>{HINT_TITLE}</h2>
+          <p>{guide.hint}</p>
+          <button type="button" onClick={guide.closeHint}>Close</button>
+        </div>
+      ) : null}
+      <StallCue guidance={guide} />
       {failed ? <div className="walkthrough-cover walkthrough-loading" role="alert">This Device Cannot Show The Yard</div> : null}
     </div>
   );

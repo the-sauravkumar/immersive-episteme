@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { ActionForm } from "@/components/cms/action-form";
-import { Empty, FormField, Mono, NativeSelect, one, Section, StateBadge, type SearchParams, ROW_LINK } from "@/components/cms/bits";
+import { BLOCK_LINK, Empty, FormField, Mono, NativeSelect, one, Section, StateBadge, type SearchParams, ROW_LINK } from "@/components/cms/bits";
 import { HistoryList } from "@/components/cms/history-list";
 import { TransitionPanel } from "@/components/cms/transition-panel";
 import { ConsolePage } from "@/components/shell/gates";
@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { inCanonicalOrder } from "@/features/learning/labels";
 import { can, canAny } from "@/lib/permissions/can";
+import { COURSE_PREVIEW_PATH } from "@/lib/permissions/learning";
 import { requirePermission } from "@/server/auth/staff";
 import { saveTraditionAction, traditionSourceAction } from "@/server/cms/actions";
 import { entityHistory, listTraditions, sourceOptions, type TraditionRow } from "@/server/cms/queries";
@@ -87,6 +88,14 @@ async function Traditions({ searchParams }: { searchParams: Promise<SearchParams
       )}
 
       {selected ? <SelectedTradition t={selected} canEdit={canEdit} principal={principal} /> : null}
+
+      {can(principal, "learn.2d") ? (
+        <Section id="door-1-preview" title="Door 1 preview" description="The Door 1 practice and course for the study traditions as learners see them, with the Stand-In Model, Colour Not Sourced and Proxy Cloth State marks shown.">
+          <Link className={BLOCK_LINK} href={COURSE_PREVIEW_PATH}>
+            Open the Door 1 preview
+          </Link>
+        </Section>
+      ) : null}
 
       {canCreate ? (
         <Section id="new-tradition" title="New tradition" description="Creates the tradition and its content package as a draft. Add its tradition concept and sourced claims in Concepts.">

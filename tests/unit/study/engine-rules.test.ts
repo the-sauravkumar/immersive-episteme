@@ -102,11 +102,15 @@ describe("study protocol config (Concept Note rev2, section 7)", () => {
     expect(issuesOf({ steps: ["familiarisation", "onboarding", "learning"] })).toEqual([]);
   });
 
-  it("needs the researchers' hint text for hybrid guidance (D6)", () => {
-    expect(issuesOf({ guidance: { policy: "hybrid", cueEnabled: true } })).toContain(
-      "guidance: a hybrid policy with cueEnabled needs guidance.hintText (the hint both conditions show)",
-    );
-    expect(issuesOf({ guidance: { policy: "hybrid", cueEnabled: true, hintText: "Researcher text." } })).toEqual([]);
+  it("needs the researchers' hint text when the hint and stall cue are on (D6)", () => {
+    expect(issuesOf({ guidance: { cueEnabled: true } })).toContain("guidance: cueEnabled needs guidance.hintText (the hint both conditions show)");
+    expect(issuesOf({ guidance: { cueEnabled: true, hintText: "Researcher text." } })).toEqual([]);
+  });
+
+  it("drops the removed protocol settings from a stored config instead of keeping them", () => {
+    const parsed = studyConfigSchema.parse({ minimap: "off", searchEnabled: true, consentVersion: "v9", eligibility: { inclusion: ["Adult"], exclusion: [] }, guidance: { policy: "guided", cueEnabled: false } });
+    for (const key of ["minimap", "searchEnabled", "consentVersion", "eligibility"]) expect(parsed).not.toHaveProperty(key);
+    expect(parsed.guidance).toEqual({ cueEnabled: false, stallSeconds: 120 });
   });
 
   it("gives both doors the common questions, and presence and motion sickness to Door 2 only", () => {

@@ -2,8 +2,10 @@
 
 import { CourseSession, type CourseStageEvent } from "@/features/course/ui/course-session";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
-import { registerOpenStop, reportSourceOpened, type StageRef } from "@/features/study/learning-progress";
-import { PRODUCT_STOP_KEY, type LearningResume } from "@/features/study/stage-coverage";
+import { registerOpenStop, reportGuidanceCue, reportSourceOpened, type StageRef } from "@/features/study/learning-progress";
+import { PRODUCT_STOP_KEY } from "@/features/study/stage-coverage";
+
+import type { DoorSessionProps } from "./door-props";
 
 import { useDoorProgress } from "./door-progress";
 
@@ -13,12 +15,15 @@ export function courseStop(event: CourseStageEvent, templates: readonly StageTem
   return { traditionKey: event.tradition, stageKey: PRODUCT_STOP_KEY, stageNumber: template.stages.length + 1 };
 }
 
-export function CourseDoor({ templates, resume }: { readonly templates: readonly StageTemplate[]; readonly resume: LearningResume | null }) {
+export function CourseDoor({ templates, resume, studyMode, guidance }: DoorSessionProps) {
   const { notice, restore, enter, left, finish } = useDoorProgress(templates);
   return (
     <>
       <CourseSession
         templates={templates}
+        studyMode={studyMode}
+        guidance={guidance}
+        onGuidance={reportGuidanceCue}
         resume={resume}
         restore={restore}
         registerExit={registerOpenStop}

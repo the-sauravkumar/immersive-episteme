@@ -123,7 +123,7 @@ export function passingInput(): ParityInput {
       config: {
         traditionSlugs: TRADITIONS,
         exposure: { mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true },
-        guidance: { policy: "none", cueEnabled: false },
+        guidance: { cueEnabled: false },
         steps: ["pre_test", "learning", "post_test"],
       },
       snapshotId: "00000000-0000-4000-8000-0000000000aa",

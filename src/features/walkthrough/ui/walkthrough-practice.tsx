@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { HELP_LINES, HELP_TITLE } from "@/features/process/domain/guidance";
+import { HELP_TITLE, PRACTICE_HELP_LINES } from "@/features/process/domain/guidance";
 import type { WalkEngine, WalkEngineFactory } from "../application/walk-engine";
 import { practiceStation } from "../domain/route-plan";
 import "@/styles/walking-tokens.css";
@@ -135,7 +135,7 @@ export function WalkthroughPractice({ createEngine, onFinished, onRenderFailed }
         <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={HELP_TITLE}>
           <h2>{HELP_TITLE}</h2>
           <p>Walk with W, A, S and D or the arrow keys. Drag to look around.</p>
-          {HELP_LINES.map((line) => (
+          {PRACTICE_HELP_LINES.map((line) => (
             <p key={line}>{line}</p>
           ))}
           <button type="button" onClick={() => setHelpOpen(false)}>Close</button>

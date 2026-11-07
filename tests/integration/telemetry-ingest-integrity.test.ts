@@ -50,7 +50,7 @@ describe.skipIf(!TEST_URL)("telemetry ingest integrity", () => {
     await publishSnapshot(t.pool, snapshotId, curator);
     const manifestId = await createPublishedManifest(t.pool, snapshotId, { by: curator });
     const real = await createStudy(t.pool, { slug: "integrity-study", snapshotId, manifestId });
-    await t.pool.query("UPDATE studies SET status = 'active', config = $2::jsonb WHERE id = $1", [real.studyId, JSON.stringify({ traditionSlugs: ["ii-tradition"], searchEnabled: false })]);
+    await t.pool.query("UPDATE studies SET status = 'active', config = $2::jsonb WHERE id = $1", [real.studyId, JSON.stringify({ traditionSlugs: ["ii-tradition"] })]);
     studyId = real.studyId;
     c2d = real.conditionIds.c2d;
   }, 60_000);
