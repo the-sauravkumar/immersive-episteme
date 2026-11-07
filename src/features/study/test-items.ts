@@ -21,6 +21,7 @@ export interface UnseenTradition {
   readonly name: string;
   readonly stages: readonly UnseenStage[];
   readonly precedes: readonly (readonly [string, string])[];
+  readonly checked: boolean;
 }
 
 export interface GeneratedItem {
@@ -264,7 +265,7 @@ function toolItem(tradition: UnseenTradition, shared: Record<string, unknown>, f
 
 export function transferItems(tradition: UnseenTradition): DraftItem[] {
   const account = accountOf(tradition);
-  const shared = { account, sampleText: true, target: { tradition: tradition.key } };
+  const shared = { account, ...(tradition.checked ? {} : { sampleText: true }), target: { tradition: tradition.key } };
   const items: (DraftItem | null)[] = [];
   const order = linearOrder(tradition);
   if (order) {

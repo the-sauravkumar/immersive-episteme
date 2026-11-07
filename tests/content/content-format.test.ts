@@ -19,6 +19,7 @@ import { RELATIONSHIP_TYPES } from "../../db/seeds/reference-data";
 import {
   checkCrossFileReferences,
   contentPackageFileSchema,
+  importedState,
   slugFromConceptKey,
   type ContentPackageFile,
 } from "../../src/features/knowledge/contracts";
@@ -94,11 +95,23 @@ describe.skipIf(files.length === 0)("content/ interchange files", () => {
     const keys = parsed.flatMap((f) => f.concepts.map((c) => c.key));
     expect(keys.length).toBeGreaterThan(0);
     expect(new Set(keys.map(slugFromConceptKey)).size).toBe(keys.length);
-    const states = new Set(parsed.flatMap((f) => [...f.concepts, ...f.relationships].map((x) => x.verification_state)));
+    const states = new Set(parsed.flatMap((f) => [...f.concepts, ...f.relationships].map((x) => importedState(x.verification_state))));
     expect([...states].every((s) => s === "under_review" || s === "needs_evidence")).toBe(true);
     // No real content namespace may collide with the demo prefix.
     expect(keys.some((k) => k.startsWith("demo"))).toBe(false);
     expect(parsed.some((f) => f.slug.startsWith("demo"))).toBe(false);
+  });
+
+  it("marks a concept or relationship verified only when every source it cites has a located passage", () => {
+    const gaps = parseAll().flatMap((f) => [
+      ...f.concepts
+        .filter((c) => c.verification_state === "verified")
+        .flatMap((c) => c.claims.flatMap((cl, i) => cl.source_ids.filter((id) => !cl.evidence.some((e) => e.source_id === id)).map((id) => `${c.key} claim ${i} ${id}`))),
+      ...f.relationships
+        .filter((r) => r.verification_state === "verified")
+        .flatMap((r) => r.source_ids.filter((id) => !r.evidence.some((e) => e.source_id === id)).map((id) => `${r.source} ${r.type} ${r.target} ${id}`)),
+    ]);
+    expect(gaps).toEqual([]);
   });
 
   it("only uses ordinals on PRECEDES (the only ordered type)", () => {

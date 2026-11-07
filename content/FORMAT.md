@@ -15,8 +15,15 @@ The platform importer (built later) maps these into the knowledge schema.
   IDC IIT Bombay, NID), museum collections (V&A, Met, Anokhi Museum, Calico Museum),
   established craft organisations (Craft Revival Trust, Gaatha, Dastkar).
   Blogs/e-commerce only as a last resort, marked `reliability: "low"`.
-- `verification_state` is always `"under_review"` (or `"needs_evidence"` when sources
-  are weak/conflicting). Never `"verified"` — only a human curator can verify.
+- `verification_state` is `"under_review"` (or `"needs_evidence"` when sources
+  are weak/conflicting). `"verified"` records that a concept or relationship passed the
+  mechanical source check: every evidence quote was re-found verbatim at its locator in the
+  archived source by `content/review/tools/evidence/verify_tradition.py`, every claim and
+  explanation says no more than its quotes, and every cited source has a passage. It is not
+  an acceptance: the loader and the importer read it as `"under_review"`, and only the CMS
+  review (`scripts/content/verify-concepts.ts`, DR-059) accepts content into a release. The
+  test-item generator reads it, so a transfer item built only from checked content carries
+  no `Sample Text` mark (DR-120). Never `"published"`.
 - Do not record personal data about private individuals. Communities (e.g. Chhipa,
   Khatri) and publicly honoured master artisans named in published sources are fine.
 - Paraphrase; quotes ≤ 25 words.
@@ -43,7 +50,7 @@ The platform importer (built later) maps these into the knowledge schema.
       "title": "...", "summary": "1–2 sentences", "body_md": "short paragraph(s), plain markdown",
       "local_terms": ["hindi/local name if sourced"],
       "provenance_kind": "same enum as source.kind",
-      "verification_state": "under_review|needs_evidence",
+      "verification_state": "under_review|needs_evidence|verified",
       "claims": [ { "text": "...", "source_ids": ["S1"], "quote": "optional ≤25 words",
                     "evidence": [ { "source_id": "S1", "locator": "PDF p. 4", "quote": "verbatim passage",
                                     "note": "optional: what a curator must check by hand" } ] } ] }
@@ -52,7 +59,7 @@ The platform importer (built later) maps these into the knowledge schema.
     { "source": "concept key", "target": "concept key",
       "type": "BELONGS_TO|USES|PRECEDES|DEPENDS_ON|PRODUCES|AFFECTED_BY|EXPLAINS|CONTRASTS_WITH|SIMILAR_TO|REQUIRES|ENABLES|CAUSES|PRACTITIONER_EXPLAINS|SCIENTIFICALLY_EXPLAINED_BY",
       "explanation": "why this relation holds", "conditions": "qualifications or null",
-      "ordinal": null, "provenance_kind": "...", "verification_state": "under_review",
+      "ordinal": null, "provenance_kind": "...", "verification_state": "under_review|needs_evidence|verified",
       "source_ids": ["S1"],
       "evidence": [ { "source_id": "S1", "locator": "PDF p. 4", "quote": "verbatim passage, at most 25 words" } ] }
   ],
@@ -70,8 +77,9 @@ The platform importer (built later) maps these into the knowledge schema.
 Each claim carries `evidence[]`: for every source it cites, at least one verbatim passage
 from that source with a locator (`PDF p. N` for PDFs, `§ "<nearest heading>"` for web pages,
 with `(occurrence k of n)` when a heading repeats on the page). `source_id` must be one of the
-claim's `source_ids`. A passage supports the claim; it does not by itself verify it — claims
-stay `under_review` until a curator checks them. `note` marks a passage that could not be
+claim's `source_ids`. A passage supports the claim; it does not by itself verify it — a
+concept is marked `verified` only after the source check above, and stays under review in the
+database until the CMS review accepts it. `note` marks a passage that could not be
 extracted cleanly and must be checked against the original. See
 docs/research/citation-policy.md and content/review/verification.md §V11.
 

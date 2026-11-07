@@ -123,5 +123,21 @@
       "S6"
     ],
     "removal_reason": "No source attributes the pen-to-block shift to the trade; sources only record that blocks later took over."
+  },
+  {
+    "file": "traditions/bagru/tradition.json",
+    "source": "bagru.environmental_condition.groundwater-and-effluent",
+    "target": "bagru.process_stage.final-washing",
+    "type": "AFFECTED_BY",
+    "explanation": "Washing generates effluent (GI dossier: aerated before discharge); Gaatha reports chemicals in the water seeping underground. No source directly measures final-washing effluent as the cause.",
+    "conditions": "Attributed to chemical dyes specifically.",
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1",
+      "S5"
+    ],
+    "removal_reason": "No recorded source ties groundwater pollution to the final washing: the GI dossier says only that effluent is aerated before discharge, and Gaatha attributes the pollution to chemicals in the process water in general (bagru-verification.md, DR-120)."
   }
 ]

@@ -9,7 +9,7 @@
  *
  * Pure: callers supply file contents (see `load-content-dir.ts` for the filesystem reader).
  */
-import { contentPackageFileSchema, type ContentPackageFile } from "@/features/knowledge/contracts";
+import { contentPackageFileSchema, importedState, type ContentPackageFile } from "@/features/knowledge/contracts";
 
 import { RULES } from "./rules";
 import {
@@ -231,7 +231,7 @@ export function loadContentFiles(inputs: readonly ContentFileInput[]): LoadResul
         localTerms: c.local_terms,
         compares: c.compares ?? [],
         provenanceKind: c.provenance_kind,
-        verificationState: c.verification_state,
+        verificationState: importedState(c.verification_state),
         claims: c.claims.map((cl) => ({
           text: cl.text,
           quote: cl.quote ?? null,
@@ -257,7 +257,7 @@ export function loadContentFiles(inputs: readonly ContentFileInput[]): LoadResul
         ordinal: r.ordinal ?? null,
         strength: null,
         provenanceKind: r.provenance_kind,
-        verificationState: r.verification_state,
+        verificationState: importedState(r.verification_state),
         rawSourceIds: r.source_ids,
         sourceRefs: r.source_ids.map((id) => resolve(file.slug, id)),
         evidence: r.evidence.map((e) => ({ ref: resolve(file.slug, e.source_id), locator: e.locator, quote: e.quote })),

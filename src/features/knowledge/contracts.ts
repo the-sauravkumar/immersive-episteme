@@ -4,7 +4,7 @@
  *  1. Interchange format v1 — the JSON files in content/ (content/FORMAT.md). The importer
  *     validates each file with `contentPackageFileSchema`, then resolves concept keys across
  *     files with `checkCrossFileReferences`. Imported content is stored as `under_review` /
- *     `needs_evidence`; it never arrives as verified.
+ *     `needs_evidence`; a file's `verified` arrives as `under_review`, never as verified.
  *  2. Authoring inputs — what the CMS submits to create or edit graph entities, plus the
  *     review-state machine (`VERIFICATION_TRANSITIONS`).
  *  3. Knowledge bundle v1 — the canonical JSON frozen into `content_snapshots.payload` and
@@ -88,9 +88,14 @@ export type VerificationTransition = z.infer<typeof verificationTransitionSchema
 // 1. Interchange format v1 (content/FORMAT.md)
 // =========================================================================================
 
-/** States an imported file may carry (FORMAT.md: never "verified"). */
 export const IMPORTABLE_STATES = ["under_review", "needs_evidence"] as const;
-const importableStateSchema = z.enum(IMPORTABLE_STATES);
+export type ImportableState = (typeof IMPORTABLE_STATES)[number];
+
+export const FILE_STATES = [...IMPORTABLE_STATES, "verified"] as const;
+export type FileState = (typeof FILE_STATES)[number];
+const importableStateSchema = z.enum(FILE_STATES);
+
+export const importedState = (state: FileState): ImportableState => (state === "verified" ? "under_review" : state);
 
 /**
  * File-local source id ("S1"). content/comparisons.json qualifies ids borrowed from a
