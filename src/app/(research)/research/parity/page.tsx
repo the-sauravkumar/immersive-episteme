@@ -3,13 +3,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { DataDisclosure } from "@/components/analytics/charts";
-import { EquivalenceMonitor } from "@/components/parity/equivalence-monitor";
 import { ConsolePage } from "@/components/shell/gates";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getPool } from "@/server/db/client";
 import type { ParityCheck, ParityGroup, ParityReport } from "@/server/research/parity/engine";
 import { getParityReport, listParityReports } from "@/server/research/parity/store";
-import { readInterfaceParity } from "@/server/research/parity/summary";
 import { listStudies } from "@/server/research/studies";
 
 import { ActionForm } from "../_components/action-form";
@@ -43,33 +41,15 @@ export default function Page({ searchParams }: PageProps<"/research/parity">) {
 async function Parity({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const sp = await searchParams;
   const pool = getPool();
-  const [studies, iface] = await Promise.all([listStudies(pool), readInterfaceParity()]);
-  const interfaceSection = (
-    <Section
-      id="interface"
-      eyebrow="Equivalence Monitor"
-      title="Interface parity"
-      description="The suite that compared the earlier interfaces was removed with them (DR-076) and nothing writes analysis/parity/interface-parity.json now. There is no current run unless that file is present."
-    >
-      <EquivalenceMonitor interfaceParity={iface} full numbers={{ interface: 1 }} />
-    </Section>
-  );
+  const studies = await listStudies(pool);
   const study = pickStudy(studies, sp.study);
-  if (!study)
-    return (
-      <>
-        {interfaceSection}
-        <StudyPicker studies={studies} current={null} />
-      </>
-    );
+  if (!study) return <StudyPicker studies={studies} current={null} />;
   const reports = await listParityReports(pool, study.id, 20);
-  // Tables are numbered in page order; Table 1 is the interface table when a run is stored.
-  const base = iface ? 2 : 1;
+  const base = 1;
   const wanted = typeof sp.report === "string" ? await getParityReport(pool, sp.report) : null;
   const shown = wanted && wanted.report.studyId === study.id ? wanted : (reports[0] ?? null);
   return (
     <>
-      {interfaceSection}
       <StudyPicker studies={studies} current={study.id} />
       <Section
         id="run"

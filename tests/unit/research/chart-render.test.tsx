@@ -9,7 +9,7 @@
 import { render, waitFor } from "@testing-library/react";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { CountBars, DotIntervalChart, groupLabel, SlopeChart } from "@/components/analytics/charts";
+import { CountBars, DotIntervalChart, groupLabel } from "@/components/analytics/charts";
 import { fixed, niceScale } from "@/components/analytics/encoding";
 
 const restore: (() => void)[] = [];
@@ -132,25 +132,6 @@ describe("dot-and-interval direct labels and axis", () => {
   it("label any other group by its name", () => {
     expect(groupLabel({ name: "Not yet allocated", kind: "other", values: [1] })).toBe("Not yet allocated (n = 1)");
   });
-});
-
-describe("slope chart axis", () => {
-  it("prints distinct ticks with the interval's decimals", async () => {
-    const { container } = render(
-      <SlopeChart
-        title="Pre/post score"
-        howToRead="Thin lines are participants."
-        lines={[
-          { id: "P-1", condition: "2D", kind: "2d", pre: 0.1, post: 0.4 },
-          { id: "P-2", condition: "3D", kind: "3d", pre: 0.2, post: 0.35 },
-        ]}
-      />,
-    );
-    const ticks = svgTexts(await plot(container)).filter((t) => /^-?\d+(\.\d+)?$/.test(t));
-    expect(ticks.length).toBeGreaterThan(2);
-    expect(new Set(ticks).size).toBe(ticks.length);
-    expect(ticks.every((t) => t.split(".")[1]?.length === 1)).toBe(true);
-  }, 30_000);
 });
 
 describe("niceScale and fixed", () => {

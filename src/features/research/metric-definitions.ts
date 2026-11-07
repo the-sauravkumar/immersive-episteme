@@ -17,7 +17,6 @@ import { TIMING_METRICS_VERSION } from "@/features/telemetry/metrics";
 
 import { SCALE_SCORE_VERSION } from "./scale-scores";
 
-/** Version of the aggregations defined by the dashboard itself (change scores, counts, coverage). */
 export const DASHBOARD_METRICS_VERSION = "1.0.0";
 
 export type MetricRole = "primary" | "secondary" | "exploratory";
@@ -52,10 +51,10 @@ export function metricRole(name: string): MetricRole {
   return (SECONDARY_OUTCOMES as readonly string[]).includes(name) ? "secondary" : "exploratory";
 }
 
-const testScore = (key: string, label: string, measures: string): Omit<MetricDefinition, "role"> => ({
+const testScore = (key: string, label: string, measures: string, group: MetricGroup = "knowledge"): Omit<MetricDefinition, "role"> => ({
   key,
   label,
-  group: "knowledge",
+  group,
   version: "1.0.0",
   measures,
   unit: "proportion 0-1",
@@ -123,7 +122,8 @@ export interface MetricDefinition {
 
 const SCORING = "src/features/assessment/scoring/metrics/overlap.ts (stored by src/server/assessment/scoring.ts)";
 const DASH = "src/server/research/dashboard.ts";
-const TIMING = "src/features/telemetry/metrics.ts (computeTimingMetrics, applied live by src/server/research/dashboard.ts)";
+const TIMING = "src/features/telemetry/metrics.ts (computeTimingMetrics, applied live by src/server/research/dashboard-rollups.ts)";
+const ROLLUP = "src/server/research/dashboard-rollups.ts";
 const SCALES = "src/features/research/scale-scores.ts";
 const PROJECT = "Project definition.";
 
@@ -135,31 +135,17 @@ const RUIZ_PRIMO: Citation = {
 };
 
 const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
-  // ---- Primary outcome (D2) ----------------------------------------------------------------
   {
     key: "cmap.recall.dl",
-    label: "Expert-map coverage (pre and post)",
-    group: "primary",
+    label: "Expert-map coverage",
+    group: "secondary",
     version: METRIC_VERSIONS["cmap.recall"],
-    measures: "Expert-map coverage of a final concept map: matches to expected edges of the adjudicated reference map (direction and relation type must match) ÷ the number of expected edges.",
+    measures: "Expert-map coverage of the final post-learning concept map: matches to expected edges of the adjudicated reference map (direction and relation type must match) ÷ the number of expected edges. Primary under D2; secondary since DR-075, which moved the map to after learning only.",
     unit: "proportion (0–1)",
     computation: "Directed, labelled match against the reference map's expected edges; optional edges neutral, out-of-scope edges excluded.",
     computedIn: SCORING,
     citation: RUIZ_PRIMO,
   },
-  {
-    key: "cmap.recall.dl.change",
-    label: "Expert-map coverage change (post − pre)",
-    group: "primary",
-    version: DASHBOARD_METRICS_VERSION,
-    measures: "Within-participant change of cmap.recall.dl from the pre-test map to the post-learning map.",
-    unit: "proportion points",
-    computation: "post − pre for participants with both scores (same reference map); undefined otherwise, never imputed. The confirmatory analysis is the ANCOVA of post with pre as covariate (analysis/episteme_stats).",
-    computedIn: DASH,
-    citation: null,
-    note: PROJECT,
-  },
-  // ---- Secondary outcomes, in D2 order ------------------------------------------------------
   {
     key: "cmap.recall.du",
     label: "Coverage ignoring relation type",
@@ -388,31 +374,6 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
     },
     note: "The citation is why the SSQ is a screen and covariate only. Scoring: Kennedy, Lane, Berbaum & Lilienthal (1993), p. 212 (PDF p. 11), Table 4 (study-decisions.md D7).",
   },
-  // ---- Telemetry and time (DR-015: descriptive covariates, never outcomes) -----------------
-  {
-    key: "time.exposure_total_ms",
-    label: "Content-exposure time",
-    group: "telemetry",
-    version: TIMING_METRICS_VERSION,
-    measures: "Active time with a concept's KnowledgeSheet open and not covered by a navigation overlay (one rule in both conditions, DR-050: 2D concept page shown, 3D information panel open), pauses excluded.",
-    unit: "minutes (stored in ms)",
-    computation: "Sum of exposure_ended.metadata.activeMs; unterminated intervals are counted, not guessed.",
-    computedIn: TIMING,
-    citation: null,
-    note: PROJECT,
-  },
-  {
-    key: "time.navigation_ms",
-    label: "Navigation time",
-    group: "telemetry",
-    version: TIMING_METRICS_VERSION,
-    measures: "Active time moving or browsing with no concept content open, pauses excluded.",
-    unit: "minutes (stored in ms)",
-    computation: "Sum of navigation_ended.metadata.activeMs.",
-    computedIn: TIMING,
-    citation: null,
-    note: PROJECT,
-  },
   {
     key: "time.pause_ms",
     label: "Pause time",
@@ -422,66 +383,6 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
     unit: "minutes (stored in ms)",
     computation: "Sum of timing_resumed.metadata.pausedMs.",
     computedIn: TIMING,
-    citation: null,
-    note: PROJECT,
-  },
-  {
-    key: "exposure.concepts",
-    label: "Concepts exposed",
-    group: "telemetry",
-    version: DASHBOARD_METRICS_VERSION,
-    measures: "Distinct concepts whose content was shown in the session.",
-    unit: "count",
-    computation: "Distinct concept_id of exposure_started and concept_encountered events.",
-    computedIn: DASH,
-    citation: null,
-    note: PROJECT,
-  },
-  {
-    key: "exposure.coverage",
-    label: "Exposure coverage of the study scope",
-    group: "telemetry",
-    version: DASHBOARD_METRICS_VERSION,
-    measures: "Share of the study's in-scope concepts actually shown (D5: a descriptive variable per condition).",
-    unit: "proportion (0–1)",
-    computation: "Concepts exposed that belong to the study snapshot ÷ concepts in the study snapshot.",
-    computedIn: DASH,
-    citation: null,
-    note: PROJECT,
-  },
-  {
-    key: "nav.relationships_followed",
-    label: "Relationships followed",
-    group: "telemetry",
-    version: DASHBOARD_METRICS_VERSION,
-    measures: "Moves along a typed relationship (2D link, 3D path or portal).",
-    unit: "count",
-    computation: "Count of relationship_followed events.",
-    computedIn: DASH,
-    citation: null,
-    note: PROJECT,
-  },
-  {
-    key: "citation.openings",
-    label: "Citation opens",
-    group: "telemetry",
-    version: TIMING_METRICS_VERSION,
-    measures: "Times a source citation was opened.",
-    unit: "count",
-    computation: "Count of citation_opened events.",
-    computedIn: TIMING,
-    citation: null,
-    note: PROJECT,
-  },
-  {
-    key: "guidance.uses",
-    label: "Guidance uses",
-    group: "telemetry",
-    version: DASHBOARD_METRICS_VERSION,
-    measures: "Hints and stall cues shown and followed or dismissed (D6: every use logged; identical in both pathways).",
-    unit: "count",
-    computation: "Count of guidance_cue_used events.",
-    computedIn: DASH,
     citation: null,
     note: PROJECT,
   },
@@ -499,8 +400,8 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
   },
   testScore("test.pre_test", "Pre-Test Score", "Prior knowledge, the covariate of every test score."),
   testScore("test.identification", "Identification", "Recognition: naming a tool or material from its image (H2)."),
-  testScore("test.stage_placement", "Stage Placement", "Association: the stage at which a tool or material is used (H1)."),
-  testScore("test.sequence", "Sequence", "Order of shuffled stage cards per tradition (H1)."),
+  testScore("test.stage_placement", "Stage Placement", "Association: the stage at which a tool or material is used (H1).", "primary"),
+  testScore("test.sequence", "Sequence", "Order of shuffled stage cards per tradition (H1).", "primary"),
   testScore("test.cloth_state", "Cloth State", "Matching a cloth state to the stage that produces it."),
   testScore("test.attribution", "Attribution", "Assigning a finished product image to its tradition."),
   testScore("test.transfer", "Transfer", "Predicting order or next stage for an unseen tradition."),
@@ -511,6 +412,30 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
   behaviour("stage.total_ms", "Total Stage Time", "Active time across all stages, an outcome of self-paced learning.", "ms"),
   behaviour("stage.revisits", "Stage Revisits", "Returns to a stage already seen, in both doors.", "count"),
   behaviour("stage.back_steps", "Back-Steps", "Moves to an earlier stage of the same tradition, in both doors.", "count"),
+  {
+    key: "stage.stops_visited",
+    label: "Stops Visited",
+    group: "telemetry",
+    version: DASHBOARD_METRICS_VERSION,
+    measures: "Distinct stops entered, stages and the product stop of each tradition, in both doors.",
+    unit: "count",
+    computation: "Distinct tradition and stage keys of stage_entered events.",
+    computedIn: ROLLUP,
+    citation: null,
+    note: PROJECT,
+  },
+  {
+    key: "stage.sources_opened",
+    label: "Sources Opened",
+    group: "telemetry",
+    version: DASHBOARD_METRICS_VERSION,
+    measures: "Times the sources behind a stage caption were opened, in both doors.",
+    unit: "count",
+    computation: "Count of source_opened events.",
+    computedIn: ROLLUP,
+    citation: null,
+    note: PROJECT,
+  },
   behaviour("walk.object_dwell_ms", "Object Dwell", "Door 2: time near labelled objects, by object.", "ms"),
   behaviour("walk.approach_distance_m", "Approach Distance", "Door 2: how close the learner came to each object.", "m"),
   behaviour("walk.viewpoint_changes", "Viewpoint Changes", "Door 2: changes of view direction.", "count"),
@@ -518,7 +443,6 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
   behaviour("walk.walking_ms", "Walking Time", "Door 2: time moving, recorded apart from viewing.", "ms"),
   behaviour("walk.viewing_ms", "Viewing Time", "Door 2: time standing at a station.", "ms"),
   behaviour("walk.path_length_m", "Path Length", "Door 2: length of the walked path.", "m"),
-  // ---- Data quality ------------------------------------------------------------------------
   {
     key: "quality.sequence_gaps",
     label: "Sequence anomalies",
@@ -572,9 +496,9 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
     label: "Device and WebGL failures",
     group: "quality",
     version: DASHBOARD_METRICS_VERSION,
-    measures: "Sessions whose latest device check did not pass, WebGL context losses and uncaught client errors.",
+    measures: "Sessions whose latest device check did not pass, 3D views that failed during practice or learning, and uncaught client errors.",
     unit: "count",
-    computation: "study_sessions.device.check.verdict ≠ passed; counts of webgl_context_lost and client_error events.",
+    computation: "study_sessions.device.check.verdict ≠ passed; study.webgl_failed journal entries of the study's sessions, by step; count of client_error events.",
     computedIn: DASH,
     citation: null,
     note: PROJECT,

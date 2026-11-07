@@ -1,26 +1,7 @@
-/**
- * Research dashboard read model (/research/dashboard): scores, telemetry and data quality of ONE
- * study, read live from the database on every call (nothing cached; the dashboard must never
- * show stale data). Descriptive only; the inferential analysis is analysis/episteme_stats.
- *
- * Reuses the existing services instead of parallel data layers:
- *  - conditions: studyConditions (./analytics.ts);
- *  - time accounting: computeTimingMetrics (src/features/telemetry/metrics.ts) through the
- *    per-session rollups (./dashboard-rollups.ts): only sessions with new events are re-read, so
- *    a refresh costs O(sessions + events of changed sessions), not O(all events);
- *  - the study snapshot's concept set: loadSnapshotFacts (./metrics/pipeline.ts);
- *  - scope: excluded and withdrawn sessions leave every distribution (isAnalysable,
- *    ./analysis-scope.ts); a demo / pilot study is labelled non-experimental as a whole.
- * Definitions and versions: src/features/research/metric-definitions.ts.
- *
- * Sessions are read with one indexed query (not listSessions / studyOverview, whose per-session
- * event counts scan every event); events per session come from the rollups.
- * Queries are study-scoped through indexed columns only (see dashboardFingerprint).
- */
 import { createHash } from "node:crypto";
 
 import { describe, type Descriptives } from "@/features/research/descriptive";
-import { DASHBOARD_METRICS_VERSION, metricDefinition, metricRole, metricVersionHeader } from "@/features/research/metric-definitions";
+import { DASHBOARD_METRICS_VERSION, metricDefinition, metricRole, metricVersionHeader, PRE_TEST_COVARIATE, PRIMARY_OUTCOMES } from "@/features/research/metric-definitions";
 import { numericAnswer, SCALES, scoreScale } from "@/features/research/scale-scores";
 
 import { ANALYSIS_REFERENCES_SQL } from "./analysis-reference";
@@ -30,15 +11,12 @@ import { fullTelemetry, refreshRollups, type SessionTelemetry } from "./dashboar
 import { queryAll, type Q } from "./db";
 import { toCsv } from "./exports/csv";
 import { DASHBOARD_TABLE_BY_NAME, type DashboardTableName } from "./exports/dictionary";
-import { loadSnapshotFacts } from "./metrics/pipeline";
 
-export const MAP_METRIC = "cmap.recall.dl";
-/**
- * The concept-map section: the D2 secondary outcomes in D2 order (SECONDARY_OUTCOMES in
- * metric-definitions.ts; edges drawn and the incorrect count are reported with precision).
- */
-export const SECONDARY_METRICS = ["cmap.recall.du", "cmap.precision.dl", "cmap.edges_drawn", "cmap.incorrect_relationships", "cmap.f1.dl", "cmap.cross_category.valid_normalised", "cmap.valid_relationships"] as const;
-const STORED_MAP_METRICS = [MAP_METRIC, ...SECONDARY_METRICS.filter((m) => m !== "cmap.edges_drawn")];
+const MAP_METRIC = "cmap.recall.dl";
+export const SECONDARY_METRICS = [MAP_METRIC, "cmap.recall.du", "cmap.precision.dl", "cmap.edges_drawn", "cmap.incorrect_relationships", "cmap.f1.dl", "cmap.cross_category.valid_normalised", "cmap.valid_relationships"] as const;
+const STORED_MAP_METRICS = SECONDARY_METRICS.filter((m) => m !== "cmap.edges_drawn");
+const TEST_METRICS = [PRE_TEST_COVARIATE.metric, ...PRIMARY_OUTCOMES];
+const TEST_PHASES = ["post", "follow_up"] as const;
 
 export interface DashboardStudy {
   id: string;
@@ -50,7 +28,6 @@ export interface DashboardStudy {
   snapshotId: string | null;
 }
 
-/** Descriptives of one measure per condition. */
 export interface ConditionStats {
   conditionId: string;
   stats: Descriptives;
@@ -58,12 +35,9 @@ export interface ConditionStats {
 }
 
 export interface MeasureRow {
-  /** Metric key (metric-definitions.ts). */
   key: string;
   version: string;
-  /** pre | post | change | session | post_learning | end … */
   phase: string;
-  /** Extra qualifier, e.g. the assessment code@version. */
   label?: string;
   byCondition: ConditionStats[];
 }
@@ -73,11 +47,12 @@ export interface AncovaRow {
   conditionCode: string;
   conditionInterface: string;
   stratum: string | null;
-  pre: number | null;
-  post: number | null;
-  change: number | null;
+  preTest: number | null;
+  sequence: number | null;
+  sequenceDelayed: number | null;
+  stagePlacement: number | null;
+  stagePlacementDelayed: number | null;
   sessionId: string;
-  referenceMapIds: string[];
 }
 
 export interface SessionTelemetryRow {
@@ -86,15 +61,12 @@ export interface SessionTelemetryRow {
   conditionId: string;
   status: string;
   events: number;
-  exposureMs: number;
-  navigationMs: number;
+  stageMs: number;
+  stopsVisited: number;
+  revisits: number;
+  backSteps: number;
+  sourcesOpened: number;
   pauseMs: number;
-  unterminated: number;
-  conceptsExposed: number;
-  coverage: number | null;
-  relationshipsFollowed: number;
-  citationOpens: number;
-  guidanceUses: number;
 }
 
 export interface QualityData {
@@ -105,7 +77,7 @@ export interface QualityData {
   interruptedSessions: number;
   interruptions: number;
   deviceCheckNotPassed: { verdict: string; n: number }[];
-  webglContextLost: number;
+  webglFailures: { step: string; n: number }[];
   clientErrors: number;
   excluded: { category: string; n: number }[];
   withdrawn: number;
@@ -118,11 +90,11 @@ export interface DashboardData {
   conditions: ConditionRef[];
   sessionsTotal: number;
   sessionsInScope: number;
-  primary: { summary: MeasureRow[]; ancova: AncovaRow[]; referenceMaps: string[] };
+  primary: { summary: MeasureRow[]; ancova: AncovaRow[] };
   secondary: MeasureRow[];
   knowledge: MeasureRow[];
   questionnaires: MeasureRow[];
-  telemetry: { summary: MeasureRow[]; sessions: SessionTelemetryRow[]; scopeConcepts: number | null };
+  telemetry: { summary: MeasureRow[]; sessions: SessionTelemetryRow[] };
   quality: QualityData;
   fingerprint: string;
 }
@@ -137,18 +109,6 @@ export async function dashboardStudy(q: Q, studyId: string): Promise<DashboardSt
   return r.rows[0] ?? null;
 }
 
-/**
- * Change detector (live-update fallback poll, request-coalescing key). ONE statement; cost
- * O(log n) for telemetry_events (max(server_ts) on telemetry_events_study_server_ts_idx) and
- * O(sessions) index probes for the session-keyed tables, never a scan of a study's events:
- *  - study_sessions / participants: a hash of the fields the dashboard shows (study_sessions has
- *    no reliable updated_at: the study engine updates it with plain SQL);
- *  - per session: max(received_at) of batches and quarantine, sequence anomalies, the latest
- *    score, response and final map (indexes led by session_id).
- * max(server_ts) can miss an ingest transaction that commits after a later one; the push channel
- * (NOTIFY at commit) covers that case, and the coalescing key also carries the notification
- * generation (./dashboard-live.ts).
- */
 export async function dashboardFingerprint(q: Q, studyId: string): Promise<{ serverTime: string; fingerprint: string }> {
   const r = await q.query<Record<string, string | null>>(
     `WITH s AS (SELECT id, status, excluded, withdrawn, interrupted, interruption_count, condition_id, device->'check'->>'verdict' AS v
@@ -206,18 +166,17 @@ interface SessionRow {
 }
 
 export interface LoadOptions {
-  /** "rollup" (default): incremental per-session rollups; "full": recompute from all events (reference path). */
   telemetry?: "rollup" | "full";
-  /** A fingerprint read by the caller just before (request coalescing); read here otherwise. */
   fingerprint?: { serverTime: string; fingerprint: string };
 }
+
+type TestPhase = "pre" | (typeof TEST_PHASES)[number];
 
 export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {}): Promise<DashboardData | null> {
   const study = await dashboardStudy(q, studyId);
   if (!study) return null;
-  // The fingerprint is read FIRST: a change committed during the load makes the next check differ.
   const fp = opts.fingerprint ?? (await dashboardFingerprint(q, studyId));
-  const [conditions, sessionRows, strata, mapScores, edges, keyed, rubric, answers, gaps, quarantine] = await queryAll(q, [
+  const [conditions, sessionRows, strata, testScores, mapScores, edges, keyed, rubric, answers, gaps, quarantine, webglFailures] = await queryAll(q, [
     () => studyConditions(q, studyId),
     () => q.query<SessionRow>(
       `SELECT ss.id, p.code AS "participantCode", ss.condition_id AS "conditionId", ss.period, ss.status::text AS status, ss.excluded,
@@ -234,11 +193,20 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
          FROM participants p WHERE p.study_id = $1`,
       [studyId],
     ),
-    // Only scores against the study's analysis reference map and at the scoring library's current
-    // metric version (final review scoring-04): pre and post then share one expected-edge set.
-    () => q.query<{ session_id: string; participant_id: string; phase: "pre" | "post"; metric_name: string; value: number | null; reference_map_id: string | null }>(
+    () => q.query<{ participant_id: string; metric_name: string; phase: TestPhase; value: number | null }>(
+      `SELECT DISTINCT ON (ds.participant_id, ds.metric_name, x.phase) ds.participant_id, ds.metric_name, x.phase, ds.value
+         FROM study_sessions ss
+         JOIN derived_scores ds ON ds.session_id = ss.id
+         CROSS JOIN LATERAL (SELECT coalesce(
+                CASE ds.details->>'step' WHEN 'pre_test' THEN 'pre' WHEN 'post_test' THEN 'post' WHEN 'delayed_test' THEN 'follow_up' END,
+                (SELECT sa.phase::text FROM study_assessments sa WHERE sa.study_id = ss.study_id AND sa.assessment_id = ds.assessment_id ORDER BY sa.phase LIMIT 1)) AS phase) x
+        WHERE ss.study_id = $1 AND ds.metric_name = ANY($2::text[]) AND ds.metric_version = ANY($3::text[]) AND x.phase IN ('pre', 'post', 'follow_up')
+        ORDER BY ds.participant_id, ds.metric_name, x.phase, ds.computed_at DESC`,
+      [studyId, TEST_METRICS, [...new Set(TEST_METRICS.map((m) => metricDefinition(m).version))]],
+    ),
+    () => q.query<{ session_id: string; participant_id: string; phase: "pre" | "post"; metric_name: string; value: number | null }>(
       `WITH ar AS (${ANALYSIS_REFERENCES_SQL})
-       SELECT DISTINCT ON (ds.concept_map_id, ds.metric_name) ds.session_id, ss.participant_id, cm.phase::text AS phase, ds.metric_name, ds.value, ds.reference_map_id
+       SELECT DISTINCT ON (ds.concept_map_id, ds.metric_name) ds.session_id, ss.participant_id, cm.phase::text AS phase, ds.metric_name, ds.value
          FROM study_sessions ss
          JOIN derived_scores ds ON ds.session_id = ss.id
          JOIN concept_maps cm ON cm.id = ds.concept_map_id AND cm.is_final
@@ -268,8 +236,6 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
         GROUP BY ds.session_id, a.code, a.version, a.kind`,
       [studyId],
     ),
-    // `step`: the journey step the administration was given in (the engine's
-    // study.assessment_submitted journal entry); null for rows written without the engine.
     () => q.query<{ session_id: string; code: string; attempt: number; item_key: string; raw: unknown; step: string | null }>(
       `SELECT r.session_id, a.code, r.attempt, i.item_key, r.raw,
               (SELECT al.after->>'step' FROM audit_log al
@@ -294,44 +260,29 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
          FROM study_sessions ss JOIN telemetry_quarantine tq ON tq.session_id = ss.id WHERE ss.study_id = $1 GROUP BY 1 ORDER BY 1`,
       [studyId],
     ),
+    () => q.query<{ step: string; n: number }>(
+      `SELECT coalesce(al.after->>'step', 'unrecorded') AS step, count(*)::int AS n
+         FROM study_sessions ss JOIN audit_log al ON al.entity = 'study_session' AND al.entity_id = ss.id::text AND al.action = 'study.webgl_failed'
+        WHERE ss.study_id = $1 GROUP BY 1 ORDER BY 1`,
+      [studyId],
+    ),
   ]);
 
   const sessions = sessionRows.rows;
   const sessionInfo = new Map<string, SessionRow & { inScope: boolean }>();
   for (const s of sessions) {
-    // Excluded and withdrawn sessions leave every distribution; the study's demo / pilot status is a label of the whole view.
     sessionInfo.set(s.id, { ...s, inScope: s.conditionId !== null && isAnalysable({ excluded: s.excluded, withdrawn: s.withdrawn, nonExperimental: false }) });
   }
   const inScope = (sessionId: string) => sessionInfo.get(sessionId)?.inScope ?? false;
   const conditionOf = (sessionId: string) => sessionInfo.get(sessionId)?.conditionId ?? null;
 
-  // ---- Primary and secondary (concept maps) ------------------------------------------------
-  // Keyed by participant: the pre-test map is condition-blind and may sit on an earlier session
-  // (reassignment after a failed device check); condition and scope come from the post session.
-  type Phase = { value: number | null; sessionId: string; ref: string | null };
-  const byParticipant = new Map<string, Record<string, { pre?: Phase; post?: Phase }>>();
-  for (const r of mapScores.rows) {
-    const m = byParticipant.get(r.participant_id) ?? byParticipant.set(r.participant_id, {}).get(r.participant_id)!;
-    (m[r.metric_name] ??= {})[r.phase] = { value: r.value === null ? null : Number(r.value), sessionId: r.session_id, ref: r.reference_map_id };
-  }
-  for (const r of edges.rows) {
-    const m = byParticipant.get(r.participant_id) ?? byParticipant.set(r.participant_id, {}).get(r.participant_id)!;
-    (m["cmap.edges_drawn"] ??= {})[r.phase] = { value: r.n, sessionId: r.session_id, ref: null };
-  }
   const codeOfParticipant = new Map(strata.rows.map((p) => [p.id, p.code]));
   const idOfCode = new Map(strata.rows.map((p) => [p.code, p.id]));
-  // The participant's analysed session: the latest-period session with a condition.
   const participantSessions = new Map<string, string>();
   for (const s of [...sessions].sort((a, b) => a.period - b.period)) {
     const pid = idOfCode.get(s.participantCode);
     if (pid && sessionInfo.get(s.id)?.conditionId) participantSessions.set(pid, s.id);
   }
-  /**
-   * The analysed session of the participant who owns `sessionId` (null when out of scope).
-   * Condition-blind data (SSQ before learning, the pre-test) may sit on an earlier session that a
-   * reassignment closed; it belongs to the participant, analysed in the condition of their
-   * analysed session, not in the closed session's condition (final review study-03).
-   */
   const analysedSessionOf = (sessionId: string): string | null => {
     const code = sessionInfo.get(sessionId)?.participantCode;
     const pid = code === undefined ? undefined : idOfCode.get(code);
@@ -339,51 +290,76 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     return analysed && inScope(analysed) ? analysed : null;
   };
   const strataByCode = new Map(strata.rows.map((r) => [r.code, r.stratum]));
+
+  const testsByParticipant = new Map<string, Map<string, number | null>>();
+  for (const r of testScores.rows) {
+    const scores = testsByParticipant.get(r.participant_id) ?? testsByParticipant.set(r.participant_id, new Map()).get(r.participant_id)!;
+    scores.set(`${r.metric_name}|${r.phase}`, r.value === null ? null : Number(r.value));
+  }
+  const primaryCells: { key: string; phase: TestPhase; label?: string }[] = [
+    { key: PRE_TEST_COVARIATE.metric, phase: PRE_TEST_COVARIATE.phase, label: "covariate" },
+    ...PRIMARY_OUTCOMES.flatMap((key) => TEST_PHASES.map((phase) => ({ key, phase }))),
+  ];
+  const primaryVals = new Map(primaryCells.map((cell) => [`${cell.key}|${cell.phase}`, new Map<string, (number | null)[]>()]));
   const ancova: AncovaRow[] = [];
-  const primaryVals = { pre: new Map<string, (number | null)[]>(), post: new Map<string, (number | null)[]>(), change: new Map<string, (number | null)[]>() };
-  const secondaryVals = new Map<string, Map<string, (number | null)[]>>();
-  const refs = new Set<string>();
-  for (const [pid, metrics] of byParticipant) {
+  for (const [pid, scores] of testsByParticipant) {
     const sessionId = participantSessions.get(pid);
     if (!sessionId || !inScope(sessionId)) continue;
     const cid = conditionOf(sessionId)!;
-    const prim = metrics[MAP_METRIC];
-    if (prim) {
-      let pre = prim.pre?.value ?? null;
-      const post = prim.post?.value ?? null;
-      const sameRef = prim.pre && prim.post ? prim.pre.ref === prim.post.ref : true;
-      // Belt and braces: a pre score against another reference than the post score is never
-      // paired with it (it would be a different denominator), so it is treated as missing.
-      if (!sameRef) pre = null;
-      const change = pre !== null && post !== null ? post - pre : null;
-      const refIds = [...new Set([prim.pre?.ref, prim.post?.ref].filter((x): x is string => !!x))];
-      refIds.forEach((x) => refs.add(x));
-      const cond = conditions.find((c) => c.id === cid)!;
-      ancova.push({ participantCode: codeOfParticipant.get(pid) ?? "", conditionCode: cond.code, conditionInterface: cond.interface, stratum: strataByCode.get(codeOfParticipant.get(pid) ?? "") ?? null, pre, post, change, sessionId, referenceMapIds: refIds });
-      if (prim.pre && sameRef) push(primaryVals.pre, cid, pre);
-      if (prim.post) push(primaryVals.post, cid, post);
-      if (prim.pre && prim.post) push(primaryVals.change, cid, change);
+    for (const [id, value] of scores) {
+      const vals = primaryVals.get(id);
+      if (vals) push(vals, cid, value);
     }
+    const score = (key: string, phase: TestPhase) => scores.get(`${key}|${phase}`) ?? null;
+    const cond = conditions.find((c) => c.id === cid)!;
+    const code = codeOfParticipant.get(pid) ?? "";
+    ancova.push({
+      participantCode: code,
+      conditionCode: cond.code,
+      conditionInterface: cond.interface,
+      stratum: strataByCode.get(code) ?? null,
+      preTest: score(PRE_TEST_COVARIATE.metric, "pre"),
+      sequence: score("test.sequence", "post"),
+      sequenceDelayed: score("test.sequence", "follow_up"),
+      stagePlacement: score("test.stage_placement", "post"),
+      stagePlacementDelayed: score("test.stage_placement", "follow_up"),
+      sessionId,
+    });
+  }
+  ancova.sort((a, b) => (a.participantCode < b.participantCode ? -1 : a.participantCode > b.participantCode ? 1 : 0));
+  const primarySummary: MeasureRow[] = primaryCells.map((cell) => ({
+    key: cell.key,
+    version: metricDefinition(cell.key).version,
+    phase: cell.phase,
+    ...(cell.label ? { label: cell.label } : {}),
+    byCondition: byCondition(conditions, primaryVals.get(`${cell.key}|${cell.phase}`)!),
+  }));
+
+  const mapsByParticipant = new Map<string, Record<string, { pre?: number | null; post?: number | null }>>();
+  for (const r of mapScores.rows) {
+    const m = mapsByParticipant.get(r.participant_id) ?? mapsByParticipant.set(r.participant_id, {}).get(r.participant_id)!;
+    (m[r.metric_name] ??= {})[r.phase] = r.value === null ? null : Number(r.value);
+  }
+  for (const r of edges.rows) {
+    const m = mapsByParticipant.get(r.participant_id) ?? mapsByParticipant.set(r.participant_id, {}).get(r.participant_id)!;
+    (m["cmap.edges_drawn"] ??= {})[r.phase] = r.n;
+  }
+  const secondaryVals = new Map<string, Map<string, (number | null)[]>>();
+  for (const [pid, metrics] of mapsByParticipant) {
+    const sessionId = participantSessions.get(pid);
+    if (!sessionId || !inScope(sessionId)) continue;
+    const cid = conditionOf(sessionId)!;
     for (const key of SECONDARY_METRICS) {
       const m = metrics[key];
       if (!m) continue;
       for (const phase of ["pre", "post"] as const) {
-        if (!m[phase]) continue;
+        const value = m[phase];
+        if (value === undefined) continue;
         const k = `${key}|${phase}`;
-        const map = secondaryVals.get(k) ?? secondaryVals.set(k, new Map()).get(k)!;
-        push(map, cid, m[phase]!.value);
+        push(secondaryVals.get(k) ?? secondaryVals.set(k, new Map()).get(k)!, cid, value);
       }
     }
   }
-  ancova.sort((a, b) => (a.participantCode < b.participantCode ? -1 : a.participantCode > b.participantCode ? 1 : 0));
-  const primaryKey = metricDefinition(MAP_METRIC);
-  const changeKey = metricDefinition(`${MAP_METRIC}.change`);
-  const primarySummary: MeasureRow[] = (["pre", "post", "change"] as const).map((phase) => ({
-    key: phase === "change" ? changeKey.key : primaryKey.key,
-    version: phase === "change" ? changeKey.version : primaryKey.version,
-    phase,
-    byCondition: byCondition(conditions, primaryVals[phase]),
-  }));
   const secondary: MeasureRow[] = SECONDARY_METRICS.flatMap((key) =>
     (["pre", "post"] as const).flatMap((phase) => {
       const vals = secondaryVals.get(`${key}|${phase}`);
@@ -391,7 +367,6 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     }),
   );
 
-  // ---- Knowledge test and transfer ---------------------------------------------------------
   const knowledgeVals = new Map<string, { row: Omit<MeasureRow, "byCondition">; vals: Map<string, (number | null)[]> }>();
   const addKnowledge = (key: string, r: { session_id: string; code: string; version: number; kind: string; value: number | null }) => {
     const analysed = analysedSessionOf(r.session_id);
@@ -408,7 +383,6 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     .map((e) => ({ ...e.row, byCondition: byCondition(conditions, e.vals) }))
     .sort((a, b) => kindOrder(a.label) - kindOrder(b.label) || (a.key < b.key ? -1 : 1) || ((a.label ?? "") < (b.label ?? "") ? -1 : 1));
 
-  // ---- Questionnaires ----------------------------------------------------------------------
   const administrations = new Map<string, { analysed: string; step: string | null; attempt: number; code: string; items: Map<string, number | null> }>();
   for (const r of answers.rows) {
     const analysed = analysedSessionOf(r.session_id);
@@ -422,9 +396,6 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     const iface = conditions.find((c) => c.id === conditionOf(analysed))?.interface;
     for (const spec of SCALES.filter((s) => s.instrument === code)) {
       if (spec.interfaces && !spec.interfaces.includes(iface as never)) continue;
-      // SSQ: the administration before learning (pre) and the one after (post), told apart by the
-      // journey step it was given in; by the attempt number only for rows without a journal step.
-      // Others: the first administration only.
       const ssqPhase = step === "questionnaire_pre" ? "pre" : step === "questionnaire_post_learning" ? "post" : step ? null : attempt === 1 ? "pre" : attempt === 2 ? "post" : null;
       const phase = spec.instrument === "ssq" ? ssqPhase : attempt === 1 ? "session" : null;
       if (!phase) continue;
@@ -440,22 +411,12 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     }),
   );
 
-  // ---- Telemetry ----------------------------------------------------------------------------
-  const facts = study.snapshotId ? await loadSnapshotFacts(q, study.snapshotId) : null;
-  const scopeConcepts = facts && facts.concepts.size > 0 ? facts.concepts.size : null;
-  // Every allocated session (excluded ones too: their WebGL / client errors are data-quality facts).
   const allocated = sessions.filter((x) => x.conditionId !== null).map((x) => ({ id: x.id, status: x.status }));
-  const scopeMap = facts && facts.concepts.size > 0 ? facts.concepts : null;
-  const telemetryBySession: Map<string, SessionTelemetry> =
-    opts.telemetry === "full" ? await fullTelemetry(q, allocated, scopeMap) : (await refreshRollups(q, studyId, allocated, scopeMap)).bySession;
-  const empty: SessionTelemetry = { eventCount: 0, lastSeq: -1, exposureMs: 0, navigationMs: 0, pauseMs: 0, unterminated: 0, conceptsExposed: 0, conceptsInScope: 0, relationshipsFollowed: 0, citationOpens: 0, guidanceUses: 0, webglContextLost: 0, clientErrors: 0 };
+  const telemetryBySession: Map<string, SessionTelemetry> = opts.telemetry === "full" ? await fullTelemetry(q, allocated) : (await refreshRollups(q, studyId, allocated)).bySession;
+  const empty: SessionTelemetry = { eventCount: 0, lastSeq: -1, stageMs: 0, stopsVisited: 0, revisits: 0, backSteps: 0, sourcesOpened: 0, pauseMs: 0, clientErrors: 0 };
   const tel = (id: string) => telemetryBySession.get(id) ?? empty;
-  let webglContextLost = 0;
   let clientErrors = 0;
-  for (const t of telemetryBySession.values()) {
-    webglContextLost += t.webglContextLost;
-    clientErrors += t.clientErrors;
-  }
+  for (const t of telemetryBySession.values()) clientErrors += t.clientErrors;
   const telemetrySessions: SessionTelemetryRow[] = [];
   for (const s of sessionInfo.values()) {
     if (!s.inScope || !s.conditionId || analysedSessionOf(s.id) !== s.id) continue;
@@ -466,41 +427,32 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
       conditionId: s.conditionId,
       status: s.status,
       events: t.eventCount,
-      exposureMs: t.exposureMs,
-      navigationMs: t.navigationMs,
+      stageMs: t.stageMs,
+      stopsVisited: t.stopsVisited,
+      revisits: t.revisits,
+      backSteps: t.backSteps,
+      sourcesOpened: t.sourcesOpened,
       pauseMs: t.pauseMs,
-      unterminated: t.unterminated,
-      conceptsExposed: t.conceptsExposed,
-      coverage: scopeConcepts ? t.conceptsInScope / scopeConcepts : null,
-      relationshipsFollowed: t.relationshipsFollowed,
-      citationOpens: t.citationOpens,
-      guidanceUses: t.guidanceUses,
     });
   }
   telemetrySessions.sort((a, b) => (a.participantCode < b.participantCode ? -1 : a.participantCode > b.participantCode ? 1 : 0));
-  const tMeasure = (key: string, pick: (r: SessionTelemetryRow) => number | null, scale = 1): MeasureRow => {
+  const tMeasure = (key: string, pick: (r: SessionTelemetryRow) => number, scale = 1): MeasureRow => {
     const vals = new Map<string, (number | null)[]>();
-    for (const r of telemetrySessions) {
-      const v = pick(r);
-      push(vals, r.conditionId, v === null ? null : v / scale);
-    }
+    for (const r of telemetrySessions) push(vals, r.conditionId, pick(r) / scale);
     return { key, version: metricDefinition(key).version, phase: "session", byCondition: byCondition(conditions, vals) };
   };
   const telemetrySummary = telemetrySessions.length
     ? [
-        tMeasure("time.exposure_total_ms", (r) => r.exposureMs, 60_000),
-        tMeasure("time.navigation_ms", (r) => r.navigationMs, 60_000),
+        tMeasure("stage.total_ms", (r) => r.stageMs, 60_000),
         tMeasure("time.pause_ms", (r) => r.pauseMs, 60_000),
-        tMeasure("exposure.concepts", (r) => r.conceptsExposed),
-        tMeasure("exposure.coverage", (r) => r.coverage),
-        tMeasure("nav.relationships_followed", (r) => r.relationshipsFollowed),
-        tMeasure("citation.openings", (r) => r.citationOpens),
-        tMeasure("guidance.uses", (r) => r.guidanceUses),
+        tMeasure("stage.stops_visited", (r) => r.stopsVisited),
+        tMeasure("stage.revisits", (r) => r.revisits),
+        tMeasure("stage.back_steps", (r) => r.backSteps),
+        tMeasure("stage.sources_opened", (r) => r.sourcesOpened),
         tMeasure("telemetry.events", (r) => r.events),
       ]
     : [];
 
-  // ---- Data quality ------------------------------------------------------------------------
   const all = [...sessionInfo.values()];
   const verdicts = new Map<string, number>();
   for (const s of all) {
@@ -522,7 +474,7 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     interruptedSessions: all.filter((s) => s.interrupted).length,
     interruptions: all.reduce((n, s) => n + s.interruptionCount, 0),
     deviceCheckNotPassed: [...verdicts].map(([verdict, n]) => ({ verdict, n })).sort((a, b) => (a.verdict < b.verdict ? -1 : 1)),
-    webglContextLost,
+    webglFailures: webglFailures.rows,
     clientErrors,
     excluded: [...excludedBy].map(([c, n]) => ({ category: c, n })).sort((a, b) => (a.category < b.category ? -1 : 1)),
     withdrawn: all.filter((s) => s.withdrawn).length,
@@ -535,19 +487,15 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     conditions,
     sessionsTotal: sessions.length,
     sessionsInScope: all.filter((s) => s.inScope).length,
-    primary: { summary: primarySummary, ancova, referenceMaps: [...refs] },
+    primary: { summary: primarySummary, ancova },
     secondary,
     knowledge,
     questionnaires,
-    telemetry: { summary: telemetrySummary, sessions: telemetrySessions, scopeConcepts },
+    telemetry: { summary: telemetrySummary, sessions: telemetrySessions },
     quality,
     fingerprint: fp.fingerprint,
   };
 }
-
-// ---------------------------------------------------------------------------------------------
-// CSV (pseudonymised: participant codes only)
-// ---------------------------------------------------------------------------------------------
 
 const round = (v: number | null, digits = 6) => (v === null ? null : Number(v.toFixed(digits)));
 
@@ -576,12 +524,13 @@ function summaryRows(section: string, rows: MeasureRow[], conditions: ConditionR
   );
 }
 
-/** Rows and metric keys of one dashboard table, in dictionary column order. */
+const TELEMETRY_SESSION_METRICS = ["telemetry.events", "stage.total_ms", "stage.stops_visited", "stage.revisits", "stage.back_steps", "stage.sources_opened", "time.pause_ms"];
+
 export function dashboardTableRows(data: DashboardData, table: DashboardTableName): { rows: Record<string, unknown>[]; metrics: string[] } {
   const cond = (id: string | null) => data.conditions.find((c) => c.id === id);
   switch (table) {
     case "dashboard_primary":
-      return { rows: summaryRows("primary", data.primary.summary, data.conditions), metrics: [MAP_METRIC, `${MAP_METRIC}.change`] };
+      return { rows: summaryRows("primary", data.primary.summary, data.conditions), metrics: [...TEST_METRICS] };
     case "dashboard_primary_ancova":
       return {
         rows: data.primary.ancova.map((r) => ({
@@ -589,12 +538,13 @@ export function dashboardTableRows(data: DashboardData, table: DashboardTableNam
           condition_code: r.conditionCode,
           condition_interface: r.conditionInterface,
           stratum: r.stratum,
-          pre_cmap_recall_dl: r.pre,
-          post_cmap_recall_dl: r.post,
-          change_cmap_recall_dl: r.change,
-          reference_map_ids: r.referenceMapIds.join(" "),
+          pre_test: r.preTest,
+          sequence_immediate: r.sequence,
+          sequence_delayed: r.sequenceDelayed,
+          stage_placement_immediate: r.stagePlacement,
+          stage_placement_delayed: r.stagePlacementDelayed,
         })),
-        metrics: [MAP_METRIC, `${MAP_METRIC}.change`],
+        metrics: [...TEST_METRICS],
       };
     case "dashboard_secondary":
       return { rows: summaryRows("secondary", data.secondary, data.conditions), metrics: [...SECONDARY_METRICS] };
@@ -612,17 +562,14 @@ export function dashboardTableRows(data: DashboardData, table: DashboardTableNam
           condition_code: cond(r.conditionId)?.code ?? null,
           status: r.status,
           events: r.events,
-          exposure_ms: r.exposureMs,
-          navigation_ms: r.navigationMs,
+          stage_ms: r.stageMs,
+          stops_visited: r.stopsVisited,
+          revisits: r.revisits,
+          back_steps: r.backSteps,
+          sources_opened: r.sourcesOpened,
           pause_ms: r.pauseMs,
-          unterminated_intervals: r.unterminated,
-          concepts_exposed: r.conceptsExposed,
-          exposure_coverage: round(r.coverage),
-          relationships_followed: r.relationshipsFollowed,
-          citation_opens: r.citationOpens,
-          guidance_uses: r.guidanceUses,
         })),
-        metrics: ["telemetry.events", "time.exposure_total_ms", "time.navigation_ms", "time.pause_ms", "exposure.concepts", "exposure.coverage", "nav.relationships_followed", "citation.openings", "guidance.uses"],
+        metrics: TELEMETRY_SESSION_METRICS,
       };
     case "dashboard_quality": {
       const q = data.quality;
@@ -638,7 +585,7 @@ export function dashboardTableRows(data: DashboardData, table: DashboardTableNam
         { check: "interrupted_sessions", detail: "", condition_code: null, n: q.interruptedSessions },
         { check: "interruptions", detail: "", condition_code: null, n: q.interruptions },
         ...q.deviceCheckNotPassed.map((d) => ({ check: "device_check_not_passed", detail: d.verdict, condition_code: null, n: d.n })),
-        { check: "webgl_context_lost_events", detail: "", condition_code: null, n: q.webglContextLost },
+        ...q.webglFailures.map((w) => ({ check: "webgl_failures", detail: w.step, condition_code: null, n: w.n })),
         { check: "client_error_events", detail: "", condition_code: null, n: q.clientErrors },
         ...q.excluded.map((e) => ({ check: "excluded_sessions", detail: e.category, condition_code: null, n: e.n })),
         { check: "withdrawn_sessions", detail: "", condition_code: null, n: q.withdrawn },
@@ -649,11 +596,6 @@ export function dashboardTableRows(data: DashboardData, table: DashboardTableNam
   }
 }
 
-/**
- * One dashboard table as CSV: a `#` comment line naming the study, its demo / experimental status,
- * the server time and the metric versions, then RFC 4180 CSV (read with e.g. pandas
- * `read_csv(..., comment="#")`).
- */
 export function dashboardTableCsv(data: DashboardData, table: DashboardTableName): string {
   const spec = DASHBOARD_TABLE_BY_NAME.get(table)!;
   const { rows, metrics } = dashboardTableRows(data, table);

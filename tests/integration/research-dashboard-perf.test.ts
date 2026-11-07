@@ -15,7 +15,6 @@ import { bench } from "../../scripts/research/bench-dashboard";
 import { dashboardFingerprint, loadDashboard, type DashboardData } from "../../src/server/research/dashboard";
 import { fullTelemetry, refreshRollups, ROLLUP_VERSION } from "../../src/server/research/dashboard-rollups";
 import { DashboardNotifier } from "../../src/server/research/dashboard-live";
-import { loadSnapshotFacts } from "../../src/server/research/metrics/pipeline";
 import { TEST_URL, createTestDatabase, type TestDb } from "./schema-harness";
 
 describe.skipIf(!TEST_URL)("research dashboard: rollups, notifications, fingerprint", () => {
@@ -30,7 +29,6 @@ describe.skipIf(!TEST_URL)("research dashboard: rollups, notifications, fingerpr
     return a!;
   };
   const sessionsOf = async () => (await t.pool.query<{ id: string; status: string }>("SELECT id, status::text AS status FROM study_sessions WHERE study_id = $1 AND condition_id IS NOT NULL", [f.studyId])).rows;
-  const scope = async () => (await loadSnapshotFacts(t.pool, (await t.pool.query("SELECT snapshot_id FROM studies WHERE id = $1", [f.studyId])).rows[0].snapshot_id)).concepts;
 
   beforeAll(async () => {
     t = await createTestDatabase("dashperf");
@@ -49,10 +47,10 @@ describe.skipIf(!TEST_URL)("research dashboard: rollups, notifications, fingerpr
     expect(first.telemetry.sessions).toHaveLength(12);
     expect(first.telemetry.sessions.reduce((n, s) => n + s.events, 0)).toBe(f.events);
     const sessions = await sessionsOf();
-    expect((await refreshRollups(t.pool, f.studyId, sessions, await scope())).recomputed).toBe(0);
+    expect((await refreshRollups(t.pool, f.studyId, sessions)).recomputed).toBe(0);
 
     await appendEvents(t.pool, f, 0, 37);
-    const again = await refreshRollups(t.pool, f.studyId, sessions, await scope());
+    const again = await refreshRollups(t.pool, f.studyId, sessions);
     expect(again.recomputed).toBe(1);
     expect(again.bySession.get(f.active[0]!.sessionId)!.eventCount).toBe(437);
     await expectSame();
@@ -67,21 +65,21 @@ describe.skipIf(!TEST_URL)("research dashboard: rollups, notifications, fingerpr
     await expectSame();
     await insertEvents(t.pool, s, [ev[2]!], f.snapshotLabel);
     const sessions = await sessionsOf();
-    expect((await refreshRollups(t.pool, f.studyId, sessions, await scope())).recomputed).toBe(1);
+    expect((await refreshRollups(t.pool, f.studyId, sessions)).recomputed).toBe(1);
     a.nextSeq += 4;
     a.clientMs = ev[3]!.clientMs + 1000;
     await t.pool.query("UPDATE study_sessions SET status = 'completed', completed_at = now(), last_activity_at = now() WHERE id = $1", [a.sessionId]);
     await expectSame();
-    expect((await refreshRollups(t.pool, f.studyId, await sessionsOf(), await scope())).recomputed).toBe(0);
+    expect((await refreshRollups(t.pool, f.studyId, await sessionsOf())).recomputed).toBe(0);
   });
 
   it("recomputes everything when the metrics version changes", async () => {
     await t.pool.query("UPDATE session_telemetry_rollups SET metrics_version = 'timing-0/rollup-0' WHERE study_id = $1", [f.studyId]);
-    const r = await refreshRollups(t.pool, f.studyId, await sessionsOf(), await scope());
+    const r = await refreshRollups(t.pool, f.studyId, await sessionsOf());
     expect(r.recomputed).toBe(12);
     const v = await t.pool.query("SELECT DISTINCT metrics_version FROM session_telemetry_rollups WHERE study_id = $1", [f.studyId]);
     expect(v.rows).toEqual([{ metrics_version: ROLLUP_VERSION }]);
-    const full = await fullTelemetry(t.pool, await sessionsOf(), await scope());
+    const full = await fullTelemetry(t.pool, await sessionsOf());
     expect([...r.bySession.entries()].sort()).toEqual([...full.entries()].sort());
   });
 

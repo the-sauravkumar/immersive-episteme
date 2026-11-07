@@ -7,7 +7,7 @@
  *    the measure, the unit and the uncertainty, then the plot, then a "Data table" disclosure
  *    with the same data as a booktabs table and an optional 44 px "Download CSV" button.
  *  - Forms: dot-and-interval strip plots for condition comparisons (every observation drawn),
- *    slope charts for pre to post, bars only for counts (from zero), heatmaps on the sequential
+ *    bars only for counts (from zero), heatmaps on the sequential
  *    indigo ramp with the value printed in every cell. No pie, no 3D, no dual axes, no gradients,
  *    no red/green pairs, no legends (direct labels instead, R-A13).
  *  - Encoding: 2D = --series-2d, circle marker, solid line; 3D = --series-3d, square marker,
@@ -500,105 +500,6 @@ export function DotIntervalChart({
         </>
       )}
     </figure>
-  );
-}
-
-// ---------------------------------------------------------------------------------------------
-// Slope chart (pre to post)
-// ---------------------------------------------------------------------------------------------
-
-export interface SlopeLine {
-  /** Participant code (tooltip and data table only). */
-  id: string;
-  condition: string;
-  kind: ConditionKind;
-  pre: number;
-  post: number;
-}
-
-export function SlopeChart({
-  number,
-  title,
-  howToRead,
-  lines,
-  unit,
-  digits = 2,
-  height = 300,
-  preLabel = "Pre-test",
-  postLabel = "Post-test",
-  csvHref,
-  empty,
-}: {
-  number?: number;
-  title: string;
-  howToRead: ReactNode;
-  lines: SlopeLine[];
-  unit?: string;
-  digits?: number;
-  height?: number;
-  preLabel?: string;
-  postLabel?: string;
-  csvHref?: string;
-  empty?: ReactNode;
-}) {
-  const ordered = orderByCondition(lines);
-  const conditions = orderByCondition([...new Map(ordered.map((l) => [l.condition, { name: l.condition, kind: l.kind }])).values()]);
-  const meanOf = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
-  const means = conditions.map((c) => {
-    const own = ordered.filter((l) => l.condition === c.name);
-    return { ...c, n: own.length, pre: meanOf(own.map((l) => l.pre)), post: meanOf(own.map((l) => l.post)) };
-  });
-  const ref = useEChart(
-    (t): EChartsCoreOption => ({
-      grid: grid(t, { left: 4, right: 104, top: 16, bottom: 4 }),
-      tooltip: tooltip(t, { trigger: "item" }),
-      xAxis: { type: "category", data: [preLabel, postLabel], boundaryGap: false, ...baseAxis(t), axisLabel: { color: t.ink, fontSize: 13, fontWeight: 600 } },
-      yAxis: valueAxis(t, unit, scaleAxis(t, niceScale(ordered.flatMap((l) => [l.pre, l.post])))),
-      series: [
-        ...ordered.map((l) => ({
-          type: "line",
-          name: `${l.condition} ${l.id}`,
-          data: [l.pre, l.post],
-          symbol: marker(l.kind),
-          symbolSize: 5,
-          lineStyle: { color: seriesColour(t, l.kind), width: 1, type: dash(l.kind), opacity: 0.45 },
-          itemStyle: { color: seriesColour(t, l.kind), opacity: 0.6 },
-          tooltip: { formatter: () => miniTable(`${l.condition}, ${l.id}`, [[preLabel, fixed(l.pre, digits)], [postLabel, fixed(l.post, digits)], ["Change", fixed(l.post - l.pre, digits)]]) },
-          z: 2,
-        })),
-        ...means
-          .filter((m) => m.pre !== null && m.post !== null)
-          .map((m) => ({
-            type: "line",
-            name: `${m.name} mean`,
-            data: [m.pre, m.post],
-            symbol: marker(m.kind),
-            symbolSize: 11,
-            lineStyle: { color: seriesColour(t, m.kind), width: 2.5, type: dash(m.kind) },
-            itemStyle: { color: seriesColour(t, m.kind), borderColor: t.ink, borderWidth: 1.5 },
-            endLabel: { show: true, formatter: `${m.name} mean`, color: t.ink, fontSize: 13, fontWeight: 600, distance: 8 },
-            tooltip: { formatter: () => miniTable(`${m.name} mean (n = ${m.n})`, [[preLabel, fixed(m.pre, digits)], [postLabel, fixed(m.post, digits)]]) },
-            z: 4,
-          })),
-      ],
-    }),
-    [JSON.stringify({ ordered, unit, digits, preLabel, postLabel })],
-  );
-  return (
-    <ChartFigure
-      number={number}
-      title={title}
-      howToRead={howToRead}
-      height={height}
-      chartRef={ref}
-      label={`${titleCase(title)}: ${means.map((m) => `${m.name} mean ${fixed(m.pre, digits)} to ${fixed(m.post, digits)}, n = ${m.n}`).join("; ")}`}
-      csvHref={csvHref}
-      empty={lines.length === 0 ? (empty ?? "No participant has both scores yet.") : undefined}
-      table={{
-        head: ["Participant", "Condition", preLabel, postLabel, "Change"],
-        rows: ordered.map((l) => [l.id, l.condition, fixed(l.pre, digits), fixed(l.post, digits), fixed(l.post - l.pre, digits)]),
-      }}
-    />
   );
 }
 

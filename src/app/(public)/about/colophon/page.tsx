@@ -2,8 +2,7 @@
  * Colophon (DESIGN.md 10.1, DR-022): how the platform is set. Typefaces with specimens and the
  * font budget; the palette as plain swatches with their roles (only the indigo carries "Design
  * interpretation; not a measured or historical dye colour", R-C6, since no other token derives
- * from a craft colour); the fixed condition order; and the state of the parity runs, read from the
- * stored report (never sample values).
+ * from a craft colour); the fixed condition order; and how the conditions are kept equivalent.
  *
  * The swatch values are read from `src/app/globals.css` itself (the token file), so the page can
  * never disagree with the colours actually in use.
@@ -12,13 +11,10 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
 import { EditorialFrame, EditorialRow, EditorialSection, Prose } from "@/components/public/editorial-frame";
 import { Sidenote } from "@/components/public/sidenote";
-import { EquivalenceMonitor } from "@/components/parity/equivalence-monitor";
 import { PageHeader } from "@/components/shell/page-header";
-import { getInterfaceParityReport } from "@/server/public/dataset-stats";
 
 export const metadata: Metadata = { title: "Colophon" };
 
@@ -80,18 +76,13 @@ function Palette() {
   );
 }
 
-async function ParityTable() {
-  const report = await getInterfaceParityReport();
-  return <EquivalenceMonitor interfaceParity={report} full tone="neutral" numbers={{ interface: 1 }} />;
-}
-
 export default function ColophonPage() {
   return (
     <div className="flex flex-col gap-12">
       <PageHeader
         className="mb-0"
         title="Colophon"
-        description="How the platform is set: its typefaces, its colours, and the measured equivalence of the two learning conditions."
+        description="How the platform is set: its typefaces, its colours, its fixed order, and how the two learning conditions are kept equivalent."
       />
       <EditorialFrame>
         <EditorialSection id="typefaces" title="Typefaces">
@@ -147,13 +138,10 @@ export default function ColophonPage() {
           <EditorialRow>
             <Prose>
               The doors are compared from one stage template: the same stages, words, sources, model ids and file hashes. A content parity report is
-              stored with each study. The suite that measured the earlier interfaces was removed with them, so there is no current interface parity
-              run.
+              stored with each study. The suite that measured the earlier interfaces was removed with them, so no interface measures are
+              published.
             </Prose>
           </EditorialRow>
-          <Suspense fallback={<Prose className="text-ink-2">Reading the latest parity run…</Prose>}>
-            <ParityTable />
-          </Suspense>
         </EditorialSection>
       </EditorialFrame>
     </div>

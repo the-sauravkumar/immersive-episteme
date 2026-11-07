@@ -157,7 +157,7 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
           <Disclosure
             className="border-t border-rule"
             summary={<span className="text-id">metricRoles</span>}
-            detail="Preregistration role of each metric (bundle key metricRoles). Primary outcome: cmap.recall.dl on the post-learning map, ANCOVA with the pre-test score as covariate (D2). Metrics not listed are exploratory."
+            detail="Preregistration role of each metric (bundle key metricRoles). Primary outcomes: test.sequence and test.stage_placement (H1), ANCOVA at the immediate test with the pre-test score test.pre_test as covariate, then a mixed model of the immediate and delayed tests (DR-075). Metrics not listed are exploratory."
           >
             <Table label="Metric roles" density="compact">
               <TableHeader>

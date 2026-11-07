@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { EquivalenceMonitor } from "@/components/parity/equivalence-monitor";
+import { ContentParity } from "@/components/parity/content-parity";
 import { ConsolePage } from "@/components/shell/gates";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getPool } from "@/server/db/client";
 import { listParityReports } from "@/server/research/parity/store";
-import { contentParityRows, readInterfaceParity } from "@/server/research/parity/summary";
+import { contentParityRows } from "@/server/research/parity/summary";
 import { listSessions, integrityFlags } from "@/server/research/sessions";
 import { listStudies } from "@/server/research/studies";
 
@@ -14,12 +14,11 @@ import { DemoBadge, Empty, LINK_44, Section, StatusBadge } from "./_components/c
 
 export const metadata: Metadata = { title: "Research overview" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page() {
   return (
-    <ConsolePage path="/research" title="Research overview" description="Studies, recruitment progress and data-quality alerts, led by the measured equivalence of the two conditions.">
+    <ConsolePage path="/research" title="Research overview" description="Studies, recruitment progress and data-quality alerts, led by the content parity of the two conditions.">
       <Overview />
     </ConsolePage>
   );
@@ -29,7 +28,7 @@ async function Overview() {
   const pool = getPool();
   const studies = await listStudies(pool);
   const active = studies.filter((s) => s.status === "active");
-  const [rows, content, iface] = await Promise.all([
+  const [rows, content] = await Promise.all([
     Promise.all(
       studies.map(async (s) => {
         const [parity, sessions] = await Promise.all([listParityReports(pool, s.id, 1), listSessions(pool, s.id)]);
@@ -38,7 +37,6 @@ async function Overview() {
       }),
     ),
     contentParityRows(pool, active),
-    readInterfaceParity(),
   ]);
   const anyDemo = studies.some((s) => s.isDemo);
 
@@ -49,7 +47,7 @@ async function Overview() {
         eyebrow="Confound control"
         title="Equivalence Monitor"
         demo={active.some((s) => s.isDemo)}
-        description="The stored parity runs only: the interface checks P1-P33 from the latest committed run, and the latest content parity report of each active study. Nothing here is estimated or sampled."
+        description="The latest stored content parity report of each active study: both doors checked against one stage template for the same stages, words, sources, model ids and file hashes. Nothing here is estimated or sampled."
         actions={
           <Link href="/research/parity" className={LINK_44}>
             Open parity checks
@@ -57,12 +55,9 @@ async function Overview() {
         }
       >
         {active.length ? (
-          <EquivalenceMonitor interfaceParity={iface} content={content} numbers={{ content: 1 }} studyHref={(id) => `/research/parity?study=${id}`} />
+          <ContentParity rows={content} number={1} studyHref={(id) => `/research/parity?study=${id}`} />
         ) : (
-          <div className="flex flex-col gap-4">
-            <EquivalenceMonitor interfaceParity={iface} />
-            <Empty>No study is active, so no content parity is shown here. Each study&apos;s content parity is on its page and on Parity checks.</Empty>
-          </div>
+          <Empty>No study is active, so no content parity is shown here. Each study&apos;s content parity is on its page and on Parity checks.</Empty>
         )}
       </Section>
 

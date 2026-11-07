@@ -1,50 +1,12 @@
-/**
- * Per-session telemetry rollups for the research dashboard (hot/cold split).
- *
- * The dashboard's telemetry figures are a pure function of a session's raw events
- * (`computeSessionTelemetry`, built on the shared `computeTimingMetrics`). Recomputing them for
- * every session on every refresh is O(all events of the study). Instead each session's result is
- * kept in `session_telemetry_rollups` and recomputed only when the session changed:
- *
- *  - no row, or `metrics_version` differs (a metrics change recomputes everything);
- *  - the session's status differs from the one recorded;
- *  - max(seq) differs from `last_seq` (checked for every session: one backward index probe on
- *    telemetry_events (session_id, seq), O(log n));
- *  - for a session still open (scheduled / in_progress) only: count(*) differs from `event_count`
- *    (index-only count over that session), which also catches a late, lower seq.
- * An ended session whose max(seq) and status are unchanged is not probed further (no count).
- * Events emitted before the end are still accepted after it, and a late batch can carry a LOWER
- * seq (page-exit beacons are independent chunks; a failed chunk is re-sent later). Ingest
- * therefore deletes an ended session's rollup row whenever it accepts an event for it
- * (src/server/telemetry/ingest.ts), and the next refresh recomputes the row (final review
- * database-05 / telemetry-08).
- *
- * Order matters for correctness under concurrent ingest: the watermark (max seq, count) is read
- * BEFORE the events, so a row can only under-state its watermark (and is then recomputed on the
- * next load), never claim events it did not include. The upsert is one statement (atomic).
- */
 import type { TelemetryEvent } from "@/features/telemetry/contracts";
 import { computeTimingMetrics, TIMING_METRICS_VERSION } from "@/features/telemetry/metrics";
 
 import { queryAll, type Q } from "./db";
+import { computeStageMetrics, STAGE_METRICS_VERSION } from "./metrics/stage";
 
-/** Bump the suffix when the rollup's own derivation changes; the timing version is included. */
-export const ROLLUP_VERSION = `timing-${TIMING_METRICS_VERSION}/rollup-1`;
+export const ROLLUP_VERSION = `stage-${STAGE_METRICS_VERSION}/timing-${TIMING_METRICS_VERSION}/rollup-2`;
 
-/** Event types the rollup reads (everything else only counts towards event_count). */
-export const ROLLUP_EVENT_TYPES = [
-  "exposure_started",
-  "exposure_ended",
-  "navigation_started",
-  "navigation_ended",
-  "timing_resumed",
-  "citation_opened",
-  "concept_encountered",
-  "relationship_followed",
-  "guidance_cue_used",
-  "webgl_context_lost",
-  "client_error",
-] as const;
+export const ROLLUP_EVENT_TYPES = ["stage_entered", "stage_left", "source_opened", "timing_resumed", "client_error"] as const;
 
 const ENDED = new Set(["completed", "abandoned"]);
 
@@ -58,53 +20,32 @@ export interface RollupEvent {
 export interface SessionTelemetry {
   eventCount: number;
   lastSeq: number;
-  exposureMs: number;
-  navigationMs: number;
+  stageMs: number;
+  stopsVisited: number;
+  revisits: number;
+  backSteps: number;
+  sourcesOpened: number;
   pauseMs: number;
-  unterminated: number;
-  conceptsExposed: number;
-  conceptsInScope: number;
-  relationshipsFollowed: number;
-  citationOpens: number;
-  guidanceUses: number;
-  webglContextLost: number;
   clientErrors: number;
 }
 
-/**
- * The dashboard's telemetry figures of one session from its events (any order). `scope` is the
- * study snapshot's concept set (coverage numerator); `eventCount` / `lastSeq` describe ALL the
- * session's events, including types this function does not read.
- */
-export function computeSessionTelemetry(events: readonly RollupEvent[], scope: ReadonlySet<string> | ReadonlyMap<string, unknown> | null, all: { eventCount: number; lastSeq: number }): SessionTelemetry {
+const text = (value: unknown): string => (typeof value === "string" ? value : "");
+
+export function computeSessionTelemetry(events: readonly RollupEvent[], all: { eventCount: number; lastSeq: number }): SessionTelemetry {
+  const stage = computeStageMetrics(events);
+  const stageValue = (name: string) => stage.find((m) => m.metricName === name)?.value ?? 0;
   const timing = computeTimingMetrics(events.map((e) => ({ type: e.type as TelemetryEvent["type"], seq: e.seq, conceptId: e.conceptId ?? undefined, metadata: e.metadata as TelemetryEvent["metadata"] })));
-  const t = (name: string) => timing.find((x) => x.metricName === name);
-  const exposed = new Set<string>();
-  let relationships = 0;
-  let guidance = 0;
-  let webgl = 0;
-  let errors = 0;
-  for (const e of events) {
-    if ((e.type === "exposure_started" || e.type === "concept_encountered") && e.conceptId) exposed.add(e.conceptId);
-    else if (e.type === "relationship_followed") relationships++;
-    else if (e.type === "guidance_cue_used") guidance++;
-    else if (e.type === "webgl_context_lost") webgl++;
-    else if (e.type === "client_error") errors++;
-  }
+  const stops = new Set(events.filter((e) => e.type === "stage_entered").map((e) => `${text(e.metadata.traditionKey)}/${text(e.metadata.stageKey)}`));
   return {
     eventCount: all.eventCount,
     lastSeq: all.lastSeq,
-    exposureMs: t("time.exposure_total_ms")?.value ?? 0,
-    navigationMs: t("time.navigation_ms")?.value ?? 0,
-    pauseMs: t("time.pause_ms")?.value ?? 0,
-    unterminated: Number(t("time.exposure_total_ms")?.details.unterminated ?? 0),
-    conceptsExposed: exposed.size,
-    conceptsInScope: scope ? [...exposed].filter((c) => scope.has(c)).length : 0,
-    relationshipsFollowed: relationships,
-    citationOpens: t("citation.openings")?.value ?? 0,
-    guidanceUses: guidance,
-    webglContextLost: webgl,
-    clientErrors: errors,
+    stageMs: stageValue("stage.total_ms"),
+    stopsVisited: stops.size,
+    revisits: stageValue("stage.revisits"),
+    backSteps: stageValue("stage.back_steps"),
+    sourcesOpened: events.filter((e) => e.type === "source_opened").length,
+    pauseMs: timing.find((x) => x.metricName === "time.pause_ms")?.value ?? 0,
+    clientErrors: events.filter((e) => e.type === "client_error").length,
   };
 }
 
@@ -131,7 +72,6 @@ async function fetchEvents(q: Q, sessionIds: readonly string[]): Promise<Map<str
   return out;
 }
 
-/** count(*) and max(seq) of the given sessions (index-only on (session_id, seq)). */
 async function watermarks(q: Q, sessionIds: readonly string[], withCount: boolean): Promise<Map<string, { eventCount: number | null; lastSeq: number }>> {
   const out = new Map<string, { eventCount: number | null; lastSeq: number }>();
   if (sessionIds.length === 0) return out;
@@ -154,37 +94,41 @@ export interface RollupSession {
 
 export interface RollupResult {
   bySession: Map<string, SessionTelemetry>;
-  /** Sessions recomputed by this call (0 when nothing changed). */
   recomputed: number;
 }
 
-/**
- * Brings the rollups of `sessions` (all of one study) up to date and returns them. Only sessions
- * whose events changed are read and recomputed.
- */
-export async function refreshRollups(q: Q, studyId: string, sessions: readonly RollupSession[], scope: ReadonlyMap<string, unknown> | null): Promise<RollupResult> {
-  const stored = await q.query<{
-    session_id: string;
-    metrics_version: string;
-    session_status: string;
-    last_seq: number;
-    event_count: number;
-    exposure_ms: number;
-    navigation_ms: number;
-    pause_ms: number;
-    unterminated: number;
-    concepts_exposed: number;
-    concepts_in_scope: number;
-    relationships_followed: number;
-    citation_opens: number;
-    guidance_uses: number;
-    webgl_context_lost: number;
-    client_errors: number;
-  }>("SELECT * FROM session_telemetry_rollups WHERE study_id = $1", [studyId]);
+interface StoredRollup {
+  session_id: string;
+  metrics_version: string;
+  session_status: string;
+  last_seq: number;
+  event_count: number;
+  stage_ms: number;
+  stops_visited: number;
+  revisits: number;
+  back_steps: number;
+  sources_opened: number;
+  pause_ms: number;
+  client_errors: number;
+}
+
+const fromStored = (r: StoredRollup): SessionTelemetry => ({
+  eventCount: r.event_count,
+  lastSeq: r.last_seq,
+  stageMs: Number(r.stage_ms),
+  stopsVisited: r.stops_visited,
+  revisits: r.revisits,
+  backSteps: r.back_steps,
+  sourcesOpened: r.sources_opened,
+  pauseMs: Number(r.pause_ms),
+  clientErrors: r.client_errors,
+});
+
+export async function refreshRollups(q: Q, studyId: string, sessions: readonly RollupSession[]): Promise<RollupResult> {
+  const stored = await q.query<StoredRollup>("SELECT * FROM session_telemetry_rollups WHERE study_id = $1", [studyId]);
   const byId = new Map(stored.rows.map((r) => [r.session_id, r]));
   const open = sessions.filter((s) => !ENDED.has(s.status)).map((s) => s.id);
   const ended = sessions.filter((s) => ENDED.has(s.status)).map((s) => s.id);
-  // Watermarks first (see the header), then the events of the sessions that changed.
   const [wOpen, wEnded] = await queryAll(q, [() => watermarks(q, open, true), () => watermarks(q, ended, false)]);
   const stale: { id: string; status: string; eventCount: number; lastSeq: number }[] = [];
   for (const s of sessions) {
@@ -201,44 +145,26 @@ export async function refreshRollups(q: Q, studyId: string, sessions: readonly R
   const bySession = new Map<string, SessionTelemetry>();
   for (const s of sessions) {
     const r = byId.get(s.id);
-    if (!r) continue;
-    bySession.set(s.id, {
-      eventCount: r.event_count,
-      lastSeq: r.last_seq,
-      exposureMs: Number(r.exposure_ms),
-      navigationMs: Number(r.navigation_ms),
-      pauseMs: Number(r.pause_ms),
-      unterminated: r.unterminated,
-      conceptsExposed: r.concepts_exposed,
-      conceptsInScope: r.concepts_in_scope,
-      relationshipsFollowed: r.relationships_followed,
-      citationOpens: r.citation_opens,
-      guidanceUses: r.guidance_uses,
-      webglContextLost: r.webgl_context_lost,
-      clientErrors: r.client_errors,
-    });
+    if (r) bySession.set(s.id, fromStored(r));
   }
   if (stale.length === 0) return { bySession, recomputed: 0 };
 
-  // Ended sessions were probed for max(seq) only: count them now (they are recomputed once).
   const needCount = stale.filter((s) => s.eventCount < 0).map((s) => s.id);
   const counts = await watermarks(q, needCount, true);
   for (const s of stale) if (s.eventCount < 0) s.eventCount = counts.get(s.id)?.eventCount ?? 0;
   const events = await fetchEvents(q, stale.map((s) => s.id));
-  const fresh = stale.map((s) => ({ s, t: computeSessionTelemetry(events.get(s.id) ?? [], scope, { eventCount: s.eventCount, lastSeq: s.lastSeq }) }));
+  const fresh = stale.map((s) => ({ s, t: computeSessionTelemetry(events.get(s.id) ?? [], { eventCount: s.eventCount, lastSeq: s.lastSeq }) }));
   const col = <K extends keyof SessionTelemetry>(k: K) => fresh.map((f) => f.t[k]);
   await q.query(
-    `INSERT INTO session_telemetry_rollups (session_id, study_id, metrics_version, session_status, last_seq, event_count, exposure_ms, navigation_ms, pause_ms,
-                                            unterminated, concepts_exposed, concepts_in_scope, relationships_followed, citation_opens, guidance_uses,
-                                            webgl_context_lost, client_errors, computed_at)
-     SELECT u.*, now() FROM unnest($1::uuid[], $2::uuid[], $3::text[], $4::text[], $5::int[], $6::int[], $7::float8[], $8::float8[], $9::float8[],
-                                   $10::int[], $11::int[], $12::int[], $13::int[], $14::int[], $15::int[], $16::int[], $17::int[]) AS u
+    `INSERT INTO session_telemetry_rollups (session_id, study_id, metrics_version, session_status, last_seq, event_count, stage_ms, stops_visited, revisits,
+                                            back_steps, sources_opened, pause_ms, client_errors, computed_at)
+     SELECT u.*, now() FROM unnest($1::uuid[], $2::uuid[], $3::text[], $4::text[], $5::int[], $6::int[], $7::float8[], $8::int[], $9::int[],
+                                   $10::int[], $11::int[], $12::float8[], $13::int[]) AS u
      ON CONFLICT (session_id) DO UPDATE SET
        metrics_version = EXCLUDED.metrics_version, session_status = EXCLUDED.session_status, last_seq = EXCLUDED.last_seq,
-       event_count = EXCLUDED.event_count, exposure_ms = EXCLUDED.exposure_ms, navigation_ms = EXCLUDED.navigation_ms, pause_ms = EXCLUDED.pause_ms,
-       unterminated = EXCLUDED.unterminated, concepts_exposed = EXCLUDED.concepts_exposed, concepts_in_scope = EXCLUDED.concepts_in_scope,
-       relationships_followed = EXCLUDED.relationships_followed, citation_opens = EXCLUDED.citation_opens, guidance_uses = EXCLUDED.guidance_uses,
-       webgl_context_lost = EXCLUDED.webgl_context_lost, client_errors = EXCLUDED.client_errors, computed_at = now()`,
+       event_count = EXCLUDED.event_count, stage_ms = EXCLUDED.stage_ms, stops_visited = EXCLUDED.stops_visited, revisits = EXCLUDED.revisits,
+       back_steps = EXCLUDED.back_steps, sources_opened = EXCLUDED.sources_opened, pause_ms = EXCLUDED.pause_ms,
+       client_errors = EXCLUDED.client_errors, computed_at = now()`,
     [
       fresh.map((f) => f.s.id),
       fresh.map(() => studyId),
@@ -246,16 +172,12 @@ export async function refreshRollups(q: Q, studyId: string, sessions: readonly R
       fresh.map((f) => f.s.status),
       col("lastSeq"),
       col("eventCount"),
-      col("exposureMs"),
-      col("navigationMs"),
+      col("stageMs"),
+      col("stopsVisited"),
+      col("revisits"),
+      col("backSteps"),
+      col("sourcesOpened"),
       col("pauseMs"),
-      col("unterminated"),
-      col("conceptsExposed"),
-      col("conceptsInScope"),
-      col("relationshipsFollowed"),
-      col("citationOpens"),
-      col("guidanceUses"),
-      col("webglContextLost"),
       col("clientErrors"),
     ],
   );
@@ -263,9 +185,8 @@ export async function refreshRollups(q: Q, studyId: string, sessions: readonly R
   return { bySession, recomputed: fresh.length };
 }
 
-/** The same figures computed from ALL events, without the rollup table (reference path, tests). */
-export async function fullTelemetry(q: Q, sessions: readonly RollupSession[], scope: ReadonlyMap<string, unknown> | null): Promise<Map<string, SessionTelemetry>> {
+export async function fullTelemetry(q: Q, sessions: readonly RollupSession[]): Promise<Map<string, SessionTelemetry>> {
   const ids = sessions.map((s) => s.id);
   const [w, events] = await queryAll(q, [() => watermarks(q, ids, true), () => fetchEvents(q, ids)]);
-  return new Map(ids.map((id) => [id, computeSessionTelemetry(events.get(id) ?? [], scope, { eventCount: w.get(id)?.eventCount ?? 0, lastSeq: w.get(id)?.lastSeq ?? -1 })]));
+  return new Map(ids.map((id) => [id, computeSessionTelemetry(events.get(id) ?? [], { eventCount: w.get(id)?.eventCount ?? 0, lastSeq: w.get(id)?.lastSeq ?? -1 })]));
 }

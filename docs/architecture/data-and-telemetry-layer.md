@@ -331,8 +331,11 @@ excluded and counted, never estimated.
   pool (`src/server/research/dashboard-live.ts`), reconnecting with backoff; a reconnect wakes
   every subscribed study. It feeds the SSE stream `GET /api/research/dashboard/stream` and the
   request coalescer (`src/server/research/dashboard-cache.ts`).
-- **Rollups (migration 0013).** `session_telemetry_rollups` holds, per session, the dashboard's
-  telemetry figures (`computeSessionTelemetry`, built on `computeTimingMetrics`), with
+- **Rollups (migration 0013, columns replaced in 0024, DR-113).** `session_telemetry_rollups`
+  holds, per session, the dashboard's telemetry figures from the events both learning doors
+  send: stage time, stops visited, revisits, back-steps, sources opened (stage_entered,
+  stage_left, source_opened through `computeStageMetrics`), pause time (timing_resumed through
+  `computeTimingMetrics`) and client errors (`computeSessionTelemetry`), with
   `metrics_version`, `session_status`, `last_seq` and `event_count`. A dashboard load reads
   max(seq) per session (backward probe on the `(session_id, seq)` unique index), count(*) for
   open sessions only, and recomputes just the sessions whose watermark changed

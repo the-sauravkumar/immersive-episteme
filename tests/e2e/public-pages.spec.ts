@@ -9,8 +9,8 @@
  *    itself (tests/integration/public-dataset-stats.test.ts seeds a different dataset and shows
  *    the reads change with it).
  *  - Figure 1 is one static indigo plate (DR-022): no draw-on, nothing animates.
- *  - Explore: the two cards' buttons share one baseline; the Colophon states there is no current interface parity run
- *    and shows a result only from a stored run.
+ *  - Explore: the two cards' buttons share one baseline; the Colophon explains how the doors are kept equivalent
+ *    and shows no interface parity table, since nothing measures one.
  *  - No band, ticks or marker exist anywhere; in high contrast every pane edge is ink; every
  *    control reached by Tab shows the focus ring, in normal and high contrast.
  *  - Layout fit: the home title block is left-aligned with only Plate 1 beside it from 1024 px
@@ -132,7 +132,7 @@ test("Figure 1 is a static indigo plate: no draw-on and nothing animates (DR-022
 });
 
 
-test("Explore cards align their actions and the Colophon shows only stored parity results", async ({ page }) => {
+test("Explore cards align their actions and the Colophon promises no interface parity measurement", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/explore");
   const tops = await Promise.all(
@@ -142,8 +142,10 @@ test("Explore cards align their actions and the Colophon shows only stored parit
   expect(Math.abs(tops[0]!.y + tops[0]!.height - (tops[1]!.y + tops[1]!.height))).toBeLessThanOrEqual(1);
 
   await page.goto("/about/colophon");
-  await expect(page.locator("#parity tbody tr")).toHaveCount(0);
-  await expect(page.getByText("There is no current interface parity run.", { exact: true })).toBeVisible();
+  await expect(page.locator("#parity table")).toHaveCount(0);
+  await expect(page.locator("#parity")).toContainText("one stage template");
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Equivalence of the Two Conditions" })).toHaveCount(0);
 });
 
 test("no decorative graphics exist, and high contrast sets every rule in ink (DR-022)", async ({ browser }) => {

@@ -21,15 +21,12 @@ const row = (events: number): SessionTelemetryRow => ({
   conditionId: "c2d",
   status: "in_progress",
   events,
-  exposureMs: 60_000,
-  navigationMs: 30_000,
+  stageMs: 90_000,
+  stopsVisited: 2,
+  revisits: 1,
+  backSteps: 1,
+  sourcesOpened: 3,
   pauseMs: 0,
-  unterminated: 0,
-  conceptsExposed: 2,
-  coverage: 0.5,
-  relationshipsFollowed: 1,
-  citationOpens: 0,
-  guidanceUses: 0,
 });
 
 class FakeEventSource extends EventTarget {

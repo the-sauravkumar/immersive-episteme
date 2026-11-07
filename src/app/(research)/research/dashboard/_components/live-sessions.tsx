@@ -1,19 +1,5 @@
 "use client";
 
-/**
- * The per-session telemetry table of the research dashboard, updated in place by the live stream.
- *
- * Why not only router.refresh(): a refresh re-renders the whole dashboard (every figure and table)
- * inside a React transition, and on the production build that transition committed 2.2-4.0 s
- * after the insert although the server answered in 200-300 ms (step 3 open item
- * research-dashboard-live). The per-session rows are the figures researchers watch live, so they
- * take a direct path: on every `change` event LiveStatus fetches just these rows
- * (GET /api/research/dashboard?study=…&include=sessions, the same coalesced server computation
- * as the page) and publishes them here; the table re-renders through useSyncExternalStore, which
- * commits synchronously, not as a transition. router.refresh() still follows for the rest of the
- * page. Whichever data are newer (server `generatedAt`) are shown, so a slower refresh can never
- * roll the table back.
- */
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
 
@@ -32,7 +18,6 @@ export interface LiveSessions {
 let current: LiveSessions | null = null;
 const listeners = new Set<() => void>();
 
-/** Publishes rows fetched by the live stream (ignored when older than what is already held). */
 export function publishLiveSessions(next: LiveSessions): void {
   if (current && current.studyId === next.studyId && Date.parse(current.generatedAt) >= Date.parse(next.generatedAt)) return;
   current = next;
@@ -44,7 +29,6 @@ function subscribe(listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
-/** The newer of the server-rendered rows and the live rows of the same study. */
 export function newestSessions(rendered: LiveSessions, live: LiveSessions | null): LiveSessions {
   return live && live.studyId === rendered.studyId && Date.parse(live.generatedAt) > Date.parse(rendered.generatedAt) ? live : rendered;
 }
@@ -83,28 +67,22 @@ export function LiveSessionsTable({
             Events
           </TableHead>
           <TableHead scope="col" numeric>
-            Exposure (min)
+            Stage Time (min)
           </TableHead>
           <TableHead scope="col" numeric>
-            Navigation (min)
+            Stops
+          </TableHead>
+          <TableHead scope="col" numeric>
+            Revisits
+          </TableHead>
+          <TableHead scope="col" numeric>
+            Back-Steps
+          </TableHead>
+          <TableHead scope="col" numeric>
+            Sources
           </TableHead>
           <TableHead scope="col" numeric>
             Pause (min)
-          </TableHead>
-          <TableHead scope="col" numeric>
-            Concepts
-          </TableHead>
-          <TableHead scope="col" numeric>
-            Coverage
-          </TableHead>
-          <TableHead scope="col" numeric>
-            Relations
-          </TableHead>
-          <TableHead scope="col" numeric>
-            Citations
-          </TableHead>
-          <TableHead scope="col" numeric>
-            Guidance
           </TableHead>
           <TableHead scope="col">Timeline</TableHead>
         </TableRow>
@@ -116,14 +94,12 @@ export function LiveSessionsTable({
             <TableCell className="whitespace-nowrap">{conditionNames[s.conditionId] ?? s.conditionId}</TableCell>
             <TableCell className="whitespace-nowrap">{s.status.replace(/_/g, " ")}</TableCell>
             <TableCell numeric>{s.events}</TableCell>
-            <TableCell numeric>{minutes(s.exposureMs)}</TableCell>
-            <TableCell numeric>{minutes(s.navigationMs)}</TableCell>
+            <TableCell numeric>{minutes(s.stageMs)}</TableCell>
+            <TableCell numeric>{s.stopsVisited}</TableCell>
+            <TableCell numeric>{s.revisits}</TableCell>
+            <TableCell numeric>{s.backSteps}</TableCell>
+            <TableCell numeric>{s.sourcesOpened}</TableCell>
             <TableCell numeric>{minutes(s.pauseMs)}</TableCell>
-            <TableCell numeric>{s.conceptsExposed}</TableCell>
-            <TableCell numeric>{fixed(s.coverage, 2)}</TableCell>
-            <TableCell numeric>{s.relationshipsFollowed}</TableCell>
-            <TableCell numeric>{s.citationOpens}</TableCell>
-            <TableCell numeric>{s.guidanceUses}</TableCell>
             <TableCell>
               {maySessions ? (
                 <Link className={LINK_44} href={`/research/sessions/${s.sessionId}`}>

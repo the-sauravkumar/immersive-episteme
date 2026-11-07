@@ -21,12 +21,11 @@ import { formatCount } from "@/components/public/figure-one";
 import { PullQuote } from "@/components/public/pull-quote";
 import { AffiliationList, CitationText, ContactLink, TeamList } from "@/components/public/team-and-ethics";
 import { Sidenote } from "@/components/public/sidenote";
-import { EquivalenceMonitor } from "@/components/parity/equivalence-monitor";
 import { PageHeader } from "@/components/shell/page-header";
 import { howToCite, INSTITUTION } from "@/config/institution";
 import { BLIND_STEPS, DEFAULT_STEPS, NEW_STUDY_CONFIG, STEP_LABEL, type StudyStep } from "@/server/study/config";
 import { studyConfigSchema } from "@/features/study/contracts";
-import { getDatasetStats, getImageCredits, getInterfaceParityReport, getPullQuoteClaim } from "@/server/public/dataset-stats";
+import { getDatasetStats, getImageCredits, getPullQuoteClaim } from "@/server/public/dataset-stats";
 
 export const metadata: Metadata = { title: "About" };
 
@@ -160,12 +159,6 @@ function StepList() {
 
 // ---- Live sections -----------------------------------------------------------------------------
 
-/** The read-only Equivalence Monitor (WP0): the latest stored interface parity run, or "There is no current interface parity run." */
-async function EquivalenceResult() {
-  const report = await getInterfaceParityReport();
-  return <EquivalenceMonitor interfaceParity={report} tone="neutral" />;
-}
-
 async function DatasetLive() {
   const stats = await getDatasetStats();
   if (!stats) return <Prose className="text-ink-2">The dataset counts could not be read just now.</Prose>;
@@ -290,7 +283,7 @@ export default function AboutPage() {
           <EditorialRow
             note={
               <Sidenote>
-                <p>What is compared, and the state of the runs, is on the Colophon.</p>
+                <p>What is compared is set out on the Colophon.</p>
                 <Link href="/about/colophon#parity" className={STANDALONE}>
                   Parity checks on the Colophon
                 </Link>
@@ -303,9 +296,6 @@ export default function AboutPage() {
               configuration and stores its report with the study. The suite that compared the earlier interfaces was removed with them, so no
               interface parity results are published.
             </Prose>
-            <Suspense fallback={<p className="text-reading text-ink-2">Reading the latest parity run…</p>}>
-              <EquivalenceResult />
-            </Suspense>
           </EditorialRow>
         </EditorialSection>
 

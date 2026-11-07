@@ -9,8 +9,8 @@ import { describe, expect, it } from "vitest";
 import { HYPOTHESES, METRIC_DEFINITIONS, metricDefinition, metricRole, PRE_TEST_COVARIATE, PRIMARY_OUTCOME, PRIMARY_OUTCOMES, SECONDARY_OUTCOMES } from "../../../src/features/research/metric-definitions";
 import { SCALES } from "../../../src/features/research/scale-scores";
 import { RUBRIC_METRIC } from "../../../src/server/assessment/scoring";
-import { MAP_METRIC, SECONDARY_METRICS } from "../../../src/server/research/dashboard";
-import { DASHBOARD_TABLE_NAMES, DASHBOARD_TABLES, exportMetricRoles } from "../../../src/server/research/exports/dictionary";
+import { SECONDARY_METRICS } from "../../../src/server/research/dashboard";
+import { DASHBOARD_TABLE_NAMES, DASHBOARD_TABLES, EXPORT_TABLES, exportMetricRoles } from "../../../src/server/research/exports/dictionary";
 import { KEY_MATCH_TOTAL_METRIC } from "../../../src/server/study/engine";
 
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();
@@ -33,14 +33,32 @@ describe("metric definitions", () => {
   it("covers every metric the dashboard shows, with unique keys", () => {
     const keys = METRIC_DEFINITIONS.map((d) => d.key);
     expect(new Set(keys).size).toBe(keys.length);
-    for (const k of [MAP_METRIC, `${MAP_METRIC}.change`, ...SECONDARY_METRICS, ...SCALES.map((s) => s.name), "assessment.key_match_total", "rubric.rating.mean"]) {
+    for (const k of [...PRIMARY_OUTCOMES, PRE_TEST_COVARIATE.metric, ...SECONDARY_METRICS, ...SCALES.map((s) => s.name), "assessment.key_match_total", "rubric.rating.mean", "stage.total_ms", "time.pause_ms", "stage.stops_visited", "stage.revisits", "stage.back_steps", "stage.sources_opened", "telemetry.events"]) {
       expect(() => metricDefinition(k)).not.toThrow();
+    }
+  });
+
+  it("groups the registered primary outcomes as primary and the concept map as secondary (DR-075)", () => {
+    expect(METRIC_DEFINITIONS.filter((d) => d.group === "primary").map((d) => d.key).sort()).toEqual([...PRIMARY_OUTCOMES].sort());
+    expect(metricDefinition("cmap.recall.dl").group).toBe("secondary");
+    expect(METRIC_DEFINITIONS.some((d) => d.key.endsWith(".change"))).toBe(false);
+  });
+
+  it("defines no telemetry metric from events neither door sends", () => {
+    for (const key of ["time.exposure_total_ms", "time.navigation_ms", "exposure.concepts", "exposure.coverage", "nav.relationships_followed", "citation.openings", "guidance.uses"]) {
+      expect(() => metricDefinition(key), key).toThrow();
     }
   });
 
   it("pins the versions of server-side metrics", () => {
     expect(metricDefinition("assessment.key_match_total").version).toBe(KEY_MATCH_TOTAL_METRIC.version);
     expect(metricDefinition("rubric.rating.mean").version).toBe(RUBRIC_METRIC.version);
+  });
+
+  it("tells the analyst which telemetry field identifies the stage templates served", () => {
+    const columns = EXPORT_TABLES.find((t) => t.name === "events")!.columns;
+    expect(columns.find((c) => c.name === "content_version")!.description).toMatch(/stage course .* app_build identifies it/);
+    expect(columns.find((c) => c.name === "app_build")!.description).toMatch(/stage templates/);
   });
 
   it("documents every dashboard CSV table in the data dictionary", () => {
