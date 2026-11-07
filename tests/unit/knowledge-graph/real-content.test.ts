@@ -1,7 +1,7 @@
 /**
  * Runs the validator and the review-snapshot builder over the curated content/ (read-only).
- * The curated data is real and source-cited but unverified: it must have zero error-level
- * issues, must build a review snapshot, and must never build a publishable one.
+ * The curated data is real and source-cited, and only partly verified by source checks: it must
+ * have zero error-level issues, must build a review snapshot, and must never build a publishable one.
  */
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -29,9 +29,9 @@ describe.skipIf(!present)("curated content/", () => {
     expect(report.counts.concepts).toBeGreaterThan(0);
   });
 
-  it("is real, unverified content: never demo, never verified or published", () => {
+  it("is real content in file review states: never demo, never published", () => {
     const states = new Set([...model.concepts, ...model.relationships].map((x) => x.verificationState));
-    expect([...states].every((s) => s === "under_review" || s === "needs_evidence")).toBe(true);
+    expect([...states].every((s) => s === "under_review" || s === "needs_evidence" || s === "verified")).toBe(true);
     expect(model.concepts.some((c) => c.isDemo)).toBe(false);
   });
 

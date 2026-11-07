@@ -74,10 +74,14 @@ describe("interchange format contract (synthetic fixtures)", () => {
     expect(r.data.media_candidates).toHaveLength(1);
   });
 
+  it("accepts a verified state, recorded by a source check", () => {
+    expect(contentPackageFileSchema.safeParse(withStepOne({ verification_state: "verified" })).success).toBe(true);
+  });
+
   it.each([
     ["a claim without a source", withStepOne({ claims: [{ text: "x", source_ids: [] }] })],
     ["an unknown source id", withStepOne({ claims: [{ text: "x", source_ids: ["S9"] }] })],
-    ["a verified state (imports are never verified)", withStepOne({ verification_state: "verified" })],
+    ["a published state (only a release publishes)", withStepOne({ verification_state: "published" })],
     ["a quote longer than 25 words", withStepOne({ claims: [{ text: "x", source_ids: ["S1"], quote: "w ".repeat(26) }] })],
     ["a key whose type segment disagrees", withStepOne({ type: "material" })],
   ])("rejects %s", (_label, file) => {

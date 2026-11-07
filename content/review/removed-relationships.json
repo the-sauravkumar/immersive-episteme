@@ -123,5 +123,51 @@
       "S6"
     ],
     "removal_reason": "No source attributes the pen-to-block shift to the trade; sources only record that blocks later took over."
+  },
+  {
+    "file": "traditions/ajrakh/tradition.json",
+    "source": "ajrakh.process_stage.khariyanu",
+    "target": "ajrakh.tool.tari-printing-tray",
+    "type": "USES",
+    "explanation": "The khariyanu stage uses this tool.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "DR-120 source check: S1 p. 5 describes the tari only as a printing tray layered by the kind of printing; no recorded source names it for khariyanu."
+  },
+  {
+    "file": "traditions/ajrakh/tradition.json",
+    "source": "ajrakh.process_stage.pa",
+    "target": "ajrakh.tool.tari-printing-tray",
+    "type": "USES",
+    "explanation": "The pa stage uses this tool.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "DR-120 source check: S1 p. 5 describes the tari only as a printing tray layered by the kind of printing; no recorded source names it for pa."
+  },
+  {
+    "file": "traditions/ajrakh/tradition.json",
+    "source": "ajrakh.environmental_condition.water-iron-content",
+    "target": "shared.scientific_mechanism.iron-tannin-black",
+    "type": "SCIENTIFICALLY_EXPLAINED_BY",
+    "explanation": "Iron in water darkens tannin-treated cloth (black spots), the same reaction exploited in kut.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1",
+      "S10"
+    ],
+    "removal_reason": "DR-120 source check: S10 reports black spots from iron in water but names no tannin; S1 states the iron-tannic reaction only for kut. No recorded source states the link."
   }
 ]
