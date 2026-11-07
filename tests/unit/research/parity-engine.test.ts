@@ -27,7 +27,7 @@ describe("content parity from one template", () => {
 
   it("checks no wing, room, manifest or exhibit any more", () => {
     const ids = runParityChecks(passingInput()).checks.map((c) => c.id);
-    expect(ids).toEqual(["base.snapshot", "base.config", "t.template", "t.reachable", "t.stages", "t.words", "t.models", "t.files", "d.protocol", "d.journey", "d.review", "e.exposure"]);
+    expect(ids).toEqual(["base.snapshot", "base.config", "base.consent", "t.template", "t.reachable", "t.stages", "t.words", "t.models", "t.files", "d.protocol", "d.journey", "d.review", "e.exposure"]);
   });
 
   it("fails a door with its stages in another order", () => {
@@ -99,12 +99,32 @@ describe("content parity from one template", () => {
       return failingCodes(input, "e.exposure");
     };
     expect(withExposure({ mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true })).toEqual([]);
-    expect(withExposure({ mode: "fixed_time", minutes: 30, requireEveryStage: true })).toEqual(["exposure_not_self_paced"]);
-    expect(withExposure({ mode: "self_paced", requireEveryStage: true })).toEqual(["exposure_no_cap"]);
-    expect(withExposure({ mode: "self_paced", minutes: 30 })).toEqual(["exposure_stages_optional"]);
+    expect(withExposure({ mode: "fixed_time", minutes: 30, allowEarlyFinish: true, requireEveryStage: true })).toEqual(["exposure_not_self_paced"]);
+    expect(withExposure({ mode: "self_paced", allowEarlyFinish: true, requireEveryStage: true })).toEqual(["exposure_no_cap"]);
+    expect(withExposure({ mode: "self_paced", minutes: 30, allowEarlyFinish: true })).toEqual(["exposure_stages_optional"]);
+    expect(withExposure({ mode: "self_paced", minutes: 30, allowEarlyFinish: false, requireEveryStage: true })).toEqual(["exposure_no_early_finish"]);
     const budget = passingInput();
     budget.sessionBudgets = [{ interface: "immersive_3d", learningBudgetSeconds: 1200 }];
     expect(failingCodes(budget, "e.exposure")).toEqual(["session_budget"]);
+  });
+
+  it("refuses a study that cannot take consent: no consent text, no version or no information sheet", () => {
+    const withConsent = (fields: Record<string, unknown>) => {
+      const input = passingInput();
+      const config = input.study.config as Record<string, unknown>;
+      delete config.consent;
+      delete config.participantInformation;
+      Object.assign(config, fields);
+      return runParityChecks(input);
+    };
+    const none = withConsent({});
+    expect(none.checks.find((c) => c.id === "base.consent")!.issues.map((i) => i.code)).toEqual(["consent_missing", "consent_version_missing", "information_sheet_missing"]);
+    expect(none.passed).toBe(false);
+    const blank = withConsent({ consent: { version: "v1", text: "   " }, participantInformation: "Sheet." });
+    expect(blank.checks.find((c) => c.id === "base.consent")!.issues.map((i) => i.code)).toEqual(["consent_missing"]);
+    const noSheet = withConsent({ consent: { version: "v1", text: "I agree." } });
+    expect(noSheet.checks.find((c) => c.id === "base.consent")!.issues.map((i) => i.code)).toEqual(["information_sheet_missing"]);
+    expect(withConsent({ consent: { version: "v1", text: "I agree." }, participantInformation: "Sheet." }).passed).toBe(true);
   });
 
   it("refuses per-door settings and a concept map before learning", () => {

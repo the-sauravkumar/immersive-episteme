@@ -3,7 +3,11 @@ import type { Pool, PoolClient } from "pg";
 import { itemConfigSchema } from "@/features/research/contracts";
 import type { GeneratedAssessment } from "@/features/study/test-items";
 
+import generatedBattery from "../../../db/seeds/study-test-items.generated.json";
+
 type Q = Pick<Pool | PoolClient, "query">;
+
+export const DESIGNED_TEST_BATTERY = generatedBattery as unknown as readonly GeneratedAssessment[];
 
 export async function seedTestBattery(q: Q, battery: readonly GeneratedAssessment[], version = 1): Promise<string[]> {
   const inserted: string[] = [];

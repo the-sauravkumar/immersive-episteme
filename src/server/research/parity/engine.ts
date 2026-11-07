@@ -403,6 +403,12 @@ export function runParityChecks(input: ParityInput): ParityReport {
   if (!interfaces.has("conventional_2d") || !interfaces.has("immersive_3d")) cfgIssues.push({ code: "conditions", message: "The study needs one conventional_2d and one immersive_3d condition." });
   checks.push(check("base.config", "base", "Study configuration is valid and has both doors", "critical", cfgIssues));
 
+  const consentIssues: ParityIssue[] = [];
+  if (config && !config.consent?.text.trim()) consentIssues.push({ code: "consent_missing", message: "The study has no consent text, so no participant can consent or enrol." });
+  if (config && !config.consent?.version.trim()) consentIssues.push({ code: "consent_version_missing", message: "The consent text has no version." });
+  if (config && !config.participantInformation?.trim()) consentIssues.push({ code: "information_sheet_missing", message: "The study has no participant information sheet to show before consent." });
+  checks.push(check("base.consent", "base", "Participant information sheet and versioned consent text are set", "critical", consentIssues));
+
   const studyTemplates = templates.filter((t) => traditionSlugs.includes(t.tradition));
   const templateFindings = checkTemplates(studyTemplates, traditionSlugs);
   checks.push(check("t.template", "t", "Every study tradition has one template with sourced captions", "critical", templateFindings.missing, { templates: studyTemplates.length }));
@@ -473,9 +479,10 @@ export function runParityChecks(input: ParityInput): ParityReport {
 
   const eIssues: ParityIssue[] = [];
   if (config) {
-    const { mode, minutes, requireEveryStage } = config.exposure;
+    const { mode, minutes, allowEarlyFinish, requireEveryStage } = config.exposure;
     if (mode !== "self_paced") eIssues.push({ code: "exposure_not_self_paced", message: "Learning must be self-paced with a cap (Concept Note rev2, section 9)." });
     if (!minutes) eIssues.push({ code: "exposure_no_cap", message: "Self-paced learning needs its cap in exposure.minutes." });
+    if (!allowEarlyFinish) eIssues.push({ code: "exposure_no_early_finish", message: "Self-paced learning lets the learner finish before the cap once every stage is visited: set exposure.allowEarlyFinish." });
     if (!requireEveryStage) eIssues.push({ code: "exposure_stages_optional", message: "Every stage must be visited: set exposure.requireEveryStage." });
   } else eIssues.push({ code: "exposure_unknown", message: "Exposure settings cannot be read from an invalid configuration." });
   for (const c of study.conditions) if (c.config && "exposure" in c.config) eIssues.push({ code: "exposure_override", message: `Condition ${c.code} sets its own exposure.`, ref: c.id });

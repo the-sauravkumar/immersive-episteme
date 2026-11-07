@@ -397,6 +397,12 @@ Every hint and cue is logged (`guidance_used`).
 item wording, and refuses to show them. Items are entered only after their wording is verified
 against the source page.
 
+*Update 2026-11-07 (DR-111).* Since DR-074 the default protocol gives the project's common
+questions straight after learning in place of the cognitive-load scale (Concept Note rev2). The
+research console now lets the researchers choose, per study, which seeded instruments are given
+before the pre-test, straight after learning or at the end, and for which condition, so the
+cognitive-load scale (v2) or UMUX-LITE (v2) can be added without editing the database.
+
 ## D8. Order of measures
 
 **Decision.**

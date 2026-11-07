@@ -10,6 +10,7 @@ import { emptyState, reduceMap, toPayload, type EditorRules, type MapAction, typ
 import { getScore, scoreConceptMap } from "@/features/assessment/scoring";
 import { type AssessmentError } from "@/server/assessment/common";
 import { conceptSetFromTables } from "@/server/assessment/concept-set";
+import { itemFromForm } from "@/server/assessment/forms";
 import { createAssessment, createNewVersion, createRubric, lockRubric, publishAssessment, saveItem, updateAssessmentMeta } from "@/server/assessment/definitions";
 import { loadReconstructionTask, saveParticipantMap, type ParticipantIdentity } from "@/server/assessment/participant-maps";
 import { createReferenceMap, finaliseReferenceMap, getReferenceWorkspace, lockReferenceMap, recordAdjudication, submitRaterMap } from "@/server/assessment/reference-maps";
@@ -400,5 +401,38 @@ run("assessment services", () => {
     expect(keyed).toEqual({ responses: 2, inserted: 2 });
     const values = await t.pool.query<{ participant_id: string; value: number }>("SELECT participant_id, value FROM derived_scores WHERE assessment_id = $1 AND metric_name = 'item.key_match'", [tid]);
     expect(Object.fromEntries(values.rows.map((r) => [r.participant_id, r.value]))).toEqual({ [p1.participantId]: 1, [p2.participantId]: 0 });
+  });
+
+  it("saves console-authored matching and sketch items and locks the layout-sketch and cloth-state assessments", async () => {
+    const fd = (fields: Record<string, string>) => {
+      const d = new FormData();
+      for (const [k, v] of Object.entries(fields)) d.set(k, v);
+      const r = itemFromForm(d);
+      if (!r.ok) throw new Error(r.error);
+      return r.item;
+    };
+    const sketch = await createAssessment(t.pool, researcher, { code: "layout-sketch-test", kind: "sketch", title: "Layout sketch (test)" });
+    await saveItem(t.pool, sketch, fd({ kind: "sketch", itemKey: "layout.sketch", position: "0", prompt: "Sketch the layout." }));
+    await publishAssessment(t.pool, researcher, sketch);
+    const cloth = await createAssessment(t.pool, researcher, { code: "cloth-state-test", kind: "posttest", title: "Cloth state (test)" });
+    const matching = {
+      kind: "matching",
+      itemKey: "cloth.a",
+      position: "0",
+      prompt: "Choose the stage for each image.",
+      pairs: "p1 | /walkthrough/cloth/ajrakh-01.jpg | The cloth after a stage\np3 | /walkthrough/cloth/ajrakh-03.jpg | The cloth after a stage",
+      options: "s1: Washing\ns3: Printing",
+    };
+    await expectError(saveItem(t.pool, cloth, fd({ ...matching, matches: "p1: s1" })), "invalid");
+    const id = await saveItem(t.pool, cloth, fd({ ...matching, matches: "p1: s1\np3: s3" }));
+    await publishAssessment(t.pool, researcher, cloth);
+    const stored = await one<{ kind: string; config: { pairs: unknown[] }; answer_key: unknown; status: string }>(
+      t.pool,
+      "SELECT i.kind, i.config, i.answer_key, a.status::text AS status FROM assessment_items i JOIN assessments a ON a.id = i.assessment_id WHERE i.id = $1",
+      [id],
+    );
+    expect(stored).toMatchObject({ kind: "matching", answer_key: { matches: { p1: "s1", p3: "s3" } }, status: "locked" });
+    expect(stored.config.pairs).toHaveLength(2);
+    expect((await one<{ status: string }>(t.pool, "SELECT status::text AS status FROM assessments WHERE id = $1", [sketch])).status).toBe("locked");
   });
 });

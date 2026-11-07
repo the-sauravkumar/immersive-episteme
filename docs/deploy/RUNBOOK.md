@@ -24,7 +24,7 @@ This runbook takes Immersive Episteme from "code on `main`" (the deploy kit, the
 >
 > - **Neon has no region in India.** https://neon.com/docs/introduction/regions lists AWS regions only; the nearest to India is "AWS Asia Pacific (Singapore) — `aws-ap-southeast-1`". (N§3)
 > - **The Neon region cannot be changed later:** "**You cannot change the region**" after the project is created (same page, N§3). Moving later means a new project and a dump-and-restore.
-> - **What decides it:** the CXA/ETH/01 ethics protocol and the consent and information text. Neither is in the repository. The consent text and participant information sheet are **entered per study in the research console** and stored in the database (`src/features/study/contracts.ts:190-192`: "Versioned consent text, shown verbatim; its sha256 is stored with the decision." ... "Participant information sheet shown before consent."). A repository review found **no text that promises storage in India**, on AWS or on IIT servers (N§9), and data location is still listed as an open ethics question (`docs/research/requirements-digest.md:363`, Q-R11).
+> - **What decides it:** the CXA/ETH/01 ethics protocol and the consent and information text. Neither is in the repository. The consent text and participant information sheet are **entered per study in the research console** (study page, Protocol configuration; activation refuses a study without them, DR-111) and stored in the database (`src/features/study/contracts.ts:172-174`: "Versioned consent text, shown verbatim; its sha256 is stored with the decision." ... "Participant information sheet shown before consent."). A repository review found **no text that promises storage in India**, on AWS or on IIT servers (N§9), and data location is still listed as an open ethics question (`docs/research/requirements-digest.md:363`, Q-R11).
 > - **Action before any real participant data:** the PI (Prof. Patnaik) or the lead reads the CXA/ETH/01 application and the consent text the team will enter. If either promises storage in India, use **Option A** (or amend the protocol). If not, either option is acceptable.
 > - **Recorded so far:** DR-055 records Neon + R2 (Option B) as the lead's default and leaves the provider to the deployer (Ankit), subject to this ethics check: "let him [Ankit] choose, he might choose AWS". The deploy kit detects either option from the env file (`scripts/deploy/lib/topology.ts`); the only per-option change is the `vercel.json` region, set in step 1.1 from what preflight prints.
 >
@@ -502,6 +502,16 @@ Staff can sign in with Google as well as with email and password. Participants n
 **Granting access:** sign in as a platform admin → **Admin → Users**. Accounts waiting for a role show **Awaiting access** in Status, and the Status filter lists them. Use the row menu → **Add role**. Each account's line names its sign-in methods (password, Google). An account that should not exist is locked from the same menu.
 
 **Check by hand on a deployment:** with the variables unset the button is absent; with them set, a new Google account reaches the waiting page, a role granted in Admin → Users opens its console on the next visit, and a locked account is refused.
+
+### 6.5 Setting Up a Real Study in the Research Console (DR-111)
+
+Everything below is done in the console as a researcher or the principal investigator; nothing needs the local demo seed.
+
+1. **Research → Studies → New study → Create draft study.** The draft gets both conditions and the adopted protocol (self-paced, 30-minute cap, every stage, allocation after the pre-test).
+2. **Protocol configuration:** pin the published release snapshot, tick the traditions, check the learning cap, and enter the **participant information sheet**, the **consent version** and the **consent text** approved under CXA/ETH/01. A changed text needs a new consent version. In Table 1 choose which questionnaires are given and when (the cognitive-load scale and UMUX-LITE can be added here). Save.
+3. **Attach the designed test battery** (Assessment battery section). It loads the generated pre-test, post-tests, transfer task, concept map, layout sketch and delayed tests, and the chosen questionnaires, as drafts when they are missing, and puts them in the battery at their designed phases and positions.
+4. **Assessments:** open each draft in the battery, review it, and **Publish this version** (published assessments are locked).
+5. **Run parity check**, then **Activate study**. Activation is refused while any critical check fails, including a missing information sheet or consent text.
 
 ---
 

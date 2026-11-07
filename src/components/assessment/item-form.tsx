@@ -3,7 +3,7 @@
 /**
  * Researcher item editor: the fields shown depend on the item kind. Everything typed here is
  * researcher-authored content; the platform supplies none. Answer keys are the scoring rule of
- * keyed items (choice and numeric); free-text items are scored with rubrics.
+ * keyed items (choice, ranking, matching and numeric); free-text items are scored with rubrics.
  */
 import { useState } from "react";
 
@@ -32,7 +32,13 @@ const KIND_LABEL: Record<string, string> = {
   numeric: "Number",
   ranking: "Ranking",
   concept_map: "Concept map",
+  matching: "Matching (images to options)",
+  sketch: "Sketch",
 };
+
+const TEST_ITEM_KINDS = ["single_choice", "ranking", "matching"];
+
+type TestFields = { image?: { path: string; alt: string }; account?: string; sampleText?: boolean; target?: { tradition: string; stageKey?: string; objectKey?: string } };
 
 const asOptions = (c: Record<string, unknown>) =>
   Array.isArray(c.options) ? (c.options as Array<{ id: string; label: string }>).map((o) => `${o.id}: ${o.label}`).join("\n") : "";
@@ -52,7 +58,8 @@ export function ItemForm({
 }) {
   const [kind, setKind] = useState(value.kind);
   const c = value.config;
-  const key = (value.answerKey ?? {}) as { optionId?: string; optionIds?: string[]; value?: number; tolerance?: number };
+  const key = (value.answerKey ?? {}) as { optionId?: string; optionIds?: string[]; value?: number; tolerance?: number; order?: string[]; matches?: Record<string, string> };
+  const t = c as TestFields;
   const kinds = allowedKinds ?? ASSESSMENT_ITEM_KINDS;
   return (
     <ActionForm action={action} submitLabel={submitLabel} resetOnSuccess={!value.id}>
@@ -81,7 +88,7 @@ export function ItemForm({
         <textarea name="prompt" required rows={3} maxLength={4000} defaultValue={value.prompt} className={fieldClass} />
       </Field>
 
-      {kind === "single_choice" || kind === "multiple_choice" || kind === "ranking" ? (
+      {kind === "single_choice" || kind === "multiple_choice" || kind === "ranking" || kind === "matching" ? (
         <>
           <Field label="Options" hint="One per line as 'id: label', e.g. 'a: First option'.">
             <textarea name="options" required rows={4} defaultValue={asOptions(c)} className={fieldClass} />
@@ -106,7 +113,77 @@ export function ItemForm({
               <input name="answerKey" defaultValue={key.optionIds?.join(", ") ?? ""} className={fieldClass} />
             </Field>
           ) : null}
+          {kind === "ranking" ? (
+            <Field label="Correct order (optional)" hint="Comma-separated option ids, first to last; every option once. Scored as an exact match.">
+              <input name="answerKey" defaultValue={key.order?.join(", ") ?? ""} className={fieldClass} />
+            </Field>
+          ) : null}
+          {kind === "matching" ? (
+            <>
+              <Field label="Images to match" hint="One per line as 'id | /path/to/image.jpg | alt text'. Paths are files the site serves, for example /walkthrough/cloth/ajrakh-01.jpg. At least two.">
+                <textarea
+                  name="pairs"
+                  required
+                  rows={4}
+                  defaultValue={Array.isArray(c.pairs) ? (c.pairs as Array<{ id: string; image: { path: string; alt: string } }>).map((p) => `${p.id} | ${p.image.path} | ${p.image.alt}`).join("\n") : ""}
+                  className={fieldClass}
+                />
+              </Field>
+              <Field label="Answer key (optional)" hint="One line per image as 'image id: option id'. Give every image, or leave it empty.">
+                <textarea
+                  name="matches"
+                  rows={4}
+                  defaultValue={Object.entries(key.matches ?? {})
+                    .map(([pair, option]) => `${pair}: ${option}`)
+                    .join("\n")}
+                  className={fieldClass}
+                />
+              </Field>
+            </>
+          ) : null}
         </>
+      ) : null}
+
+      {TEST_ITEM_KINDS.includes(kind) ? (
+        <fieldset className="flex min-w-0 flex-col gap-4">
+          <legend className="mb-1 font-sans text-[0.9375rem] leading-5 font-bold text-ink">Stimulus and target (optional)</legend>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Image path" hint="A file the site serves, for example /walkthrough/course/plaster.jpg.">
+              <input name="imagePath" defaultValue={t.image?.path ?? ""} className={fieldClass} />
+            </Field>
+            <Field label="Image alt text">
+              <input name="imageAlt" maxLength={300} defaultValue={t.image?.alt ?? ""} className={fieldClass} />
+            </Field>
+          </div>
+          <Field label="Account" hint="Text shown above the question, for example the account of a tradition the participant has not seen (transfer items).">
+            <textarea name="account" rows={5} maxLength={4000} defaultValue={t.account ?? ""} className={fieldClass} />
+          </Field>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field label="Target tradition" hint="Recorded in the export for analysis.">
+              <input name="targetTradition" maxLength={64} defaultValue={t.target?.tradition ?? ""} className={fieldClass} />
+            </Field>
+            <Field label="Target stage key">
+              <input name="targetStage" maxLength={120} defaultValue={t.target?.stageKey ?? ""} className={fieldClass} />
+            </Field>
+            <Field label="Target object key">
+              <input name="targetObject" maxLength={120} defaultValue={t.target?.objectKey ?? ""} className={fieldClass} />
+            </Field>
+          </div>
+          <label className={checkRowClass}>
+            <input type="checkbox" name="sampleText" defaultChecked={t.sampleText === true} className={checkBoxClass} /> Sample text: the wording is a placeholder still to be replaced, and participants see it marked as such
+          </label>
+        </fieldset>
+      ) : null}
+
+      {kind === "sketch" ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Maximum strokes" hint="1 to 2000. Empty uses 600.">
+            <input name="maxStrokes" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={typeof c.maxStrokes === "number" ? c.maxStrokes : ""} className={fieldClass} />
+          </Field>
+          <Field label="Maximum size (bytes)" hint="1 to 400000. Empty uses 200000.">
+            <input name="maxBytes" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={typeof c.maxBytes === "number" ? c.maxBytes : ""} className={fieldClass} />
+          </Field>
+        </div>
       ) : null}
 
       {kind === "short_text" || kind === "long_text" ? (

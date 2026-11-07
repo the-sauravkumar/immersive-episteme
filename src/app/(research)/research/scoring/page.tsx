@@ -7,6 +7,8 @@ import { ConsolePage } from "@/components/shell/gates";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { scoreKeyedAction, scoreMapsAction } from "@/server/assessment/research-actions";
 import { listKeyedAssessments, listMapScores, listRubricsForScoring, listScorableReferences, SUMMARY_METRICS } from "@/server/assessment/scoring";
+import { can } from "@/lib/permissions/can";
+import { getStaffPrincipal } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 
 import { DemoBadge, Empty, LINK_44, LINK_BUTTON, PublishedBadge, Section } from "../_components/common";
@@ -50,6 +52,7 @@ async function Scoring({ searchParams }: { searchParams: Promise<Record<string, 
   const rows = selected ? await listMapScores(pool, selected.id) : [];
   const keyed = await listKeyedAssessments(pool);
   const rubrics = await listRubricsForScoring(pool);
+  const mayExport = can(await getStaffPrincipal(), "exports.create");
   let table = 0;
 
   return (
@@ -202,22 +205,24 @@ async function Scoring({ searchParams }: { searchParams: Promise<Record<string, 
         )}
       </Section>
 
-      <Section id="export" title="Export" description="Pseudonymised, long format, joinable on participant code, session and condition. Demo and non-experimental rows are flagged, not removed.">
-        <div className="flex flex-wrap gap-3">
-          <a className={LINK_BUTTON} href="/research/scoring/export?dataset=scores&format=csv" download>
-            <Download aria-hidden="true" />
-            Derived scores (CSV)
-          </a>
-          <a className={LINK_BUTTON} href="/research/scoring/export?dataset=scores&format=json" download>
-            <Download aria-hidden="true" />
-            Derived scores (JSON)
-          </a>
-          <a className={LINK_BUTTON} href="/research/scoring/export?dataset=map-edges&format=csv" download>
-            <Download aria-hidden="true" />
-            Raw concept-map edges (CSV)
-          </a>
-        </div>
-      </Section>
+      {mayExport ? (
+        <Section id="export" title="Export" description="Pseudonymised, long format, joinable on participant code, session and condition. Demo and non-experimental rows are flagged, not removed. Each download is recorded in the audit log.">
+          <div className="flex flex-wrap gap-3">
+            <a className={LINK_BUTTON} href="/research/scoring/export?dataset=scores&format=csv" download>
+              <Download aria-hidden="true" />
+              Derived scores (CSV)
+            </a>
+            <a className={LINK_BUTTON} href="/research/scoring/export?dataset=scores&format=json" download>
+              <Download aria-hidden="true" />
+              Derived scores (JSON)
+            </a>
+            <a className={LINK_BUTTON} href="/research/scoring/export?dataset=map-edges&format=csv" download>
+              <Download aria-hidden="true" />
+              Raw concept-map edges (CSV)
+            </a>
+          </div>
+        </Section>
+      ) : null}
     </>
   );
 }
