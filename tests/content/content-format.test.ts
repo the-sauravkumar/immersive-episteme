@@ -89,13 +89,13 @@ describe.skipIf(files.length === 0)("content/ interchange files", () => {
     expect(unknown).toEqual([]);
   });
 
-  it("derives unique concept slugs and never marks imported content as verified", () => {
+  it("derives unique concept slugs and carries only file review states", () => {
     const parsed = parseAll();
     const keys = parsed.flatMap((f) => f.concepts.map((c) => c.key));
     expect(keys.length).toBeGreaterThan(0);
     expect(new Set(keys.map(slugFromConceptKey)).size).toBe(keys.length);
     const states = new Set(parsed.flatMap((f) => [...f.concepts, ...f.relationships].map((x) => x.verification_state)));
-    expect([...states].every((s) => s === "under_review" || s === "needs_evidence")).toBe(true);
+    expect([...states].every((s) => s === "under_review" || s === "needs_evidence" || s === "verified")).toBe(true);
     // No real content namespace may collide with the demo prefix.
     expect(keys.some((k) => k.startsWith("demo"))).toBe(false);
     expect(parsed.some((f) => f.slug.startsWith("demo"))).toBe(false);

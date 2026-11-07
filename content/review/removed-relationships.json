@@ -123,5 +123,50 @@
       "S6"
     ],
     "removal_reason": "No source attributes the pen-to-block shift to the trade; sources only record that blocks later took over."
+  },
+  {
+    "file": "traditions/sanganeri/tradition.json",
+    "source": "sanganeri.explanation.tapai-alkali-and-heat",
+    "target": "shared.scientific_mechanism.sun-bleaching",
+    "type": "SCIENTIFICALLY_EXPLAINED_BY",
+    "explanation": "Links the source's alkali-plus-heat account to the shared sun-bleaching mechanism.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "DR-120 source check: S1 p. 11 explains tapai by alkali (cow dung) and the heat of the sun's rays; no recorded Sanganeri source states the shared light-oxidation mechanism."
+  },
+  {
+    "file": "traditions/sanganeri/tradition.json",
+    "source": "sanganeri.process_stage.scouring",
+    "target": "sanganeri.environmental_condition.sun-and-semi-arid-climate",
+    "type": "DEPENDS_ON",
+    "explanation": "Traditional scouring repeats wetting and drying on open ground over days.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "DR-120 source check: S1 p. 10 describes scouring as wetting and drying on open ground for 3 to 6 days; no recorded source ties it to sun or climate."
+  },
+  {
+    "file": "traditions/sanganeri/tradition.json",
+    "source": "sanganeri.process_stage.harda-treatment",
+    "target": "sanganeri.tool.mogri-mallet",
+    "type": "USES",
+    "explanation": "Dried harda cloth is beaten with a wooden mallet.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "DR-120 source check: S1 p. 10 beats the dried harda cloth with 'a wooden mallet'; S1 p. 13 defines the mogri as a mallet for the folds of moist finished cloth, and no recorded source names the harda mallet as the mogri. The mogri stays linked to the tradition through the GI tool list."
   }
 ]
