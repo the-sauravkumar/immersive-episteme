@@ -18,9 +18,9 @@ import { recomputeStudyMetrics } from "@/server/research/metrics/pipeline";
 import { METRICS_PIPELINE_VERSION } from "@/server/research/metrics/session";
 import { runAndStoreParityReport } from "@/server/research/parity/store";
 import { addAnnotation, addDeviation, excludeSession } from "@/server/research/sessions";
-import { allocationFromForm, guidanceFromForm } from "@/server/research/study-form";
+import { allocationFromForm, consentFromForm, exposureFromForm, guidanceFromForm, questionnairesFromForm } from "@/server/research/study-form";
 import { purgeParticipantData, purgeRetentionDue } from "@/server/study/purge";
-import { activateStudy, closeStudy, createStudy, draftStudyConfigSchema, getStudy, newStudyVersion, setBattery, updateStudy } from "@/server/research/studies";
+import { activateStudy, attachDesignedBattery, closeStudy, createStudy, draftStudyConfigSchema, getStudy, newStudyVersion, setBattery, updateStudy } from "@/server/research/studies";
 
 import type { ActionState } from "./_components/action-state";
 
@@ -65,17 +65,22 @@ export async function updateStudyAction(studyId: string, _: ActionState, d: Form
     const p = await assertPermission("study.configure");
     const current = await getStudy(getPool(), studyId);
     if (!current) return { status: "error", message: "Study not found." };
+    const consent = consentFromForm(d);
+    if (!consent.ok) return { status: "error", message: consent.error };
+    const questionnaires = questionnairesFromForm(d);
     const config = draftStudyConfigSchema.parse({
       ...current.config,
       traditionSlugs: d.getAll("traditions").map(String),
       allocation: allocationFromForm(current.config.allocation, text(d, "allocationAlgorithm"), optInt(d, "blockSize")),
-      exposure: { ...current.config.exposure, mode: text(d, "exposureMode") || "self_paced", minutes: optInt(d, "exposureMinutes"), allowEarlyFinish: d.get("allowEarlyFinish") === "on" },
+      exposure: exposureFromForm(current.config.exposure, d),
       guidance: guidanceFromForm(current.config.guidance, d),
       searchEnabled: d.get("searchEnabled") === "on",
       minimap: text(d, "minimap") || "toggle",
       webglFailurePolicy: text(d, "webglFailurePolicy") || "retry",
       retentionDays: optInt(d, "retentionDays"),
-      consentVersion: text(d, "consentVersion") || undefined,
+      consent: consent.consent,
+      participantInformation: consent.participantInformation,
+      questionnaires: questionnaires ?? current.config.questionnaires,
       notes: text(d, "notes") || undefined,
       eligibility: { inclusion: lines(d, "inclusion"), exclusion: lines(d, "exclusion") },
     });
@@ -110,6 +115,23 @@ export async function setBatteryAction(studyId: string, _: ActionState, d: FormD
     await setBattery(getPool(), { userId: p.userId }, studyId, items);
     refresh();
     return ok(`Battery saved (${items.length} assessment${items.length === 1 ? "" : "s"}).`);
+  } catch (err) {
+    return fail(err);
+  }
+}
+
+export async function attachDesignedBatteryAction(studyId: string, _: ActionState): Promise<ActionState> {
+  try {
+    const p = await assertPermission("study.configure");
+    const r = await attachDesignedBattery(getPool(), { userId: p.userId }, studyId);
+    refresh();
+    const notes = [
+      `Battery saved (${plural(r.attached, "assessment")}).`,
+      ...(r.newlyLoaded.length ? [`Loaded as drafts: ${r.newlyLoaded.join(", ")}.`] : []),
+      ...(r.missingInstruments.length ? [`Not found, so not attached: ${r.missingInstruments.join(", ")}.`] : []),
+      "Review and lock each draft assessment under Assessments before activation.",
+    ];
+    return ok(notes.join(" "));
   } catch (err) {
     return fail(err);
   }

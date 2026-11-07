@@ -238,7 +238,7 @@ export async function saveItem(q: Q, assessmentId: string, input: z.input<typeof
       ("optionIds" in key && item.kind === "multiple_choice" && key.optionIds.every((id) => optionIds?.has(id))) ||
       ("value" in key && item.kind === "numeric") ||
       ("order" in key && item.kind === "ranking" && key.order.length === optionIds?.size && key.order.every((id) => optionIds.has(id))) ||
-      ("matches" in key && item.config.kind === "matching" && Object.entries(key.matches).every(([, optionId]) => optionIds?.has(optionId)));
+      ("matches" in key && item.config.kind === "matching" && matchesEveryImage(key.matches, item.config.pairs, optionIds));
     if (!ok) throw new AssessmentError("invalid", "The answer key does not fit this item kind or its options.");
     answerKey = key;
   }
@@ -264,6 +264,11 @@ export async function saveItem(q: Q, assessmentId: string, input: z.input<typeof
     if (err instanceof AssessmentError) throw err;
     mapDbError(err);
   }
+}
+
+function matchesEveryImage(matches: Record<string, string>, images: readonly { id: string }[], optionIds: ReadonlySet<string> | null): boolean {
+  const keys = Object.keys(matches);
+  return keys.length === images.length && images.every((image) => image.id in matches) && Object.values(matches).every((optionId) => optionIds?.has(optionId));
 }
 
 async function checkConceptMapConfig(q: Q, rawConfig: unknown, ownerIsDemo: boolean): Promise<void> {

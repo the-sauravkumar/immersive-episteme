@@ -10,7 +10,6 @@ export const metadata: Metadata = { title: "Questions About the Learning Task" }
 /** May block: access is verified against the participant session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
-/** Study step `questionnaire_post_learning`: immediately after learning (D8: cognitive load, SSQ, presence for the 3D group only). Instruments from `config.questionnaires.postLearning` (study battery). */
 export default function Page() {
   return (
     <>

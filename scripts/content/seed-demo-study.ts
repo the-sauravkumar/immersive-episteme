@@ -1,10 +1,6 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
-
 import { LEARNING_CAP_MINUTES, NEW_STUDY_CONFIG } from "../../src/server/study/config";
 import { seedInstrumentDefinitions } from "../../src/server/study/instruments";
-import { seedTestBattery } from "../../src/server/study/test-battery";
-import type { GeneratedAssessment } from "../../src/features/study/test-items";
+import { DESIGNED_TEST_BATTERY, seedTestBattery } from "../../src/server/study/test-battery";
 import { isLocalHost, makePool, redact, resolveDatabaseUrl } from "../db/_shared";
 
 const SNAPSHOT_LABEL = "demo-snapshot-v1";
@@ -23,7 +19,7 @@ async function main(): Promise<void> {
   if (!slug.startsWith("demo-")) throw new Error("A demo study slug must start with demo-");
   const { url } = resolveDatabaseUrl();
   if (!isLocalHost(url)) throw new Error(`Refusing to seed a demo study into a non-local database: ${redact(url)}`);
-  const battery = JSON.parse(readFileSync(join(process.cwd(), "db", "seeds", "study-test-items.generated.json"), "utf8")) as GeneratedAssessment[];
+  const battery = DESIGNED_TEST_BATTERY;
   const batteryVersion = Number(option("battery-version", "1"));
   const pool = makePool(url);
   const client = await pool.connect();

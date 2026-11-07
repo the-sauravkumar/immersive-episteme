@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { ConsolePage } from "@/components/shell/gates";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { can } from "@/lib/permissions/can";
-import { plural } from "@/lib/text/plural";
+import { staleMetricsAdvice } from "@/features/research/stale-metrics";
 import { getStaffPrincipal } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 import { DASHBOARD_TABLES, EXPORT_TABLES, exportMetricRoles, type TableSpec } from "@/server/research/exports/dictionary";
@@ -47,7 +47,7 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
       <StudyPicker studies={studies} current={study.id} />
       {stale.stale > 0 ? (
         <Notice tone="warn" title="Warning">
-          {plural(stale.stale, "session")} {stale.stale === 1 ? "has" : "have"} missing or stale derived metrics. Recompute them on the Analytics page first, or the re-import check will report them.
+          {staleMetricsAdvice(stale.stale, can(principal, "study.configure"))}
         </Notice>
       ) : null}
       {scopes.map((scope) => {

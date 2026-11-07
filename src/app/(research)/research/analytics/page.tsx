@@ -181,7 +181,7 @@ async function Analytics({ searchParams }: { searchParams: Promise<Record<string
       <Section
         id="derived"
         title="Derived metrics"
-        description={`Behavioural metrics are recomputed from raw telemetry (pipeline versioned). ${stale.stale} of ${plural(stale.total, "session")} have missing or stale metrics.`}
+        description={`Behavioural metrics are recomputed from raw telemetry (pipeline versioned). ${stale.stale} of ${plural(stale.total, "session")} have missing or stale metrics.${stale.stale > 0 && !can(principal, "study.configure") ? " Your role cannot recompute them: ask a researcher or the principal investigator." : ""}`}
         actions={can(principal, "study.configure") ? <ActionForm action={recomputeMetricsAction.bind(null, study.id)} submitLabel="Recompute metrics" variant="outline" /> : null}
       >
         <p className="text-body text-ink-2">Navigation pathways, transition matrices and the navigation-to-concept-map comparison have their own page.</p>

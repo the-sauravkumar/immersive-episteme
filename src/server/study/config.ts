@@ -136,7 +136,22 @@ export function protocolIssues(config: StudyConfig, steps: readonly StudyStep[])
   if (config.guidance.policy === "hybrid" && config.guidance.cueEnabled && !config.guidance.hintText) {
     issues.push("guidance: a hybrid policy with cueEnabled needs guidance.hintText (the hint both conditions show)");
   }
+  if (point === "after_pre_test") {
+    for (const ref of config.questionnaires?.pre ?? []) {
+      if (typeof ref !== "string" && ref.conditions) issues.push(`questionnaires.pre: ${ref.code} is given before allocation, so it cannot be limited to one condition`);
+    }
+  }
   return issues;
+}
+
+type ConsentFields = Pick<StudyConfig, "consent" | "participantInformation">;
+
+export function consentChangeIssue(before: Partial<ConsentFields> | null | undefined, after: ConsentFields): string | null {
+  if (!before?.consent || !after.consent || before.consent.version !== after.consent.version) return null;
+  const textChanged = before.consent.text !== after.consent.text;
+  const sheetChanged = (before.participantInformation ?? "") !== (after.participantInformation ?? "");
+  if (!textChanged && !sheetChanged) return null;
+  return `The ${textChanged ? "consent text" : "participant information sheet"} changed but the consent version is still ${after.consent.version}. Give the changed text a new consent version.`;
 }
 
 /** Parses and validates the raw `studies.config`. Throws StudyConfigError (the protocol is broken, not the participant). */

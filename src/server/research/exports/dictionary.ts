@@ -367,7 +367,7 @@ export const DASHBOARD_TABLES: readonly (TableSpec & { name: DashboardTableName 
   },
   { name: "dashboard_secondary", description: "Secondary concept-map outcomes in D2 order, pre and post, by condition.", columns: SUMMARY_COLUMNS },
   { name: "dashboard_knowledge", description: "Knowledge test and transfer scores (keyed items; rubric ratings) by assessment and condition.", columns: SUMMARY_COLUMNS },
-  { name: "dashboard_questionnaires", description: "Questionnaire scale scores (cognitive load, SUS, presence 3D only, SSQ pre/post) by condition.", columns: SUMMARY_COLUMNS },
+  { name: "dashboard_questionnaires", description: "Questionnaire scale scores (common questions, cognitive load when the study gives it, SUS, presence 3D only, SSQ pre/post) by condition.", columns: SUMMARY_COLUMNS },
   { name: "dashboard_telemetry", description: "Time accounting and interaction counts per session, summarised by condition.", columns: SUMMARY_COLUMNS },
   {
     name: "dashboard_telemetry_sessions",

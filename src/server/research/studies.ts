@@ -8,15 +8,17 @@
  *   by `newStudyVersion`, which clones the study (conditions, battery, config, pins) into a new
  *   draft with a new protocol version and slug.
  * - Activation is guarded twice: here, a freshly generated parity report must pass (no critical
- *   failure) and is stored with the decision; in the database (migration 0005), the snapshot must
- *   be published, the manifest published and compiled from it, the battery locked, etc.
+ *   failure) and is stored with the decision; in the database (migration 0023), the snapshot must
+ *   be published and a non-demo study's battery locked.
  */
 import { createHash, randomBytes } from "node:crypto";
 
 import { z } from "zod";
 
-import { studyConfigSchema } from "@/features/study/contracts";
-import { NEW_STUDY_CONFIG } from "@/server/study/config";
+import { studyConfigSchema, type StudyConfig } from "@/features/study/contracts";
+import { consentChangeIssue, DEFAULT_QUESTIONNAIRES, NEW_STUDY_CONFIG } from "@/server/study/config";
+import { seedInstrumentDefinitions } from "@/server/study/instruments";
+import { DESIGNED_TEST_BATTERY, seedTestBattery } from "@/server/study/test-battery";
 import { slugSchema } from "@/lib/validation/primitives";
 
 import { parityInputHash } from "./parity/engine";
@@ -156,8 +158,6 @@ async function requireDraft(q: Q, studyId: string): Promise<Record<string, unkno
 export async function createStudy(pool: Pool | PoolClient, actor: Actor, input: z.infer<typeof createStudySchema>): Promise<string> {
   const data = createStudySchema.parse(input);
   if (data.slug.startsWith("demo")) throw new ResearchActionError("Slugs starting with 'demo' are reserved for demo studies.");
-  // Adopted study decisions for new studies (D3 allocation after the pre-test, D5 30-minute fixed
-  // learning phase, D7/D8 questionnaires and order): src/server/study/config.ts NEW_STUDY_CONFIG.
   const config = draftStudyConfigSchema.parse(NEW_STUDY_CONFIG);
   return inTransaction(pool, async (c) => {
     const s = await c.query<{ id: string }>(
@@ -181,6 +181,8 @@ export async function updateStudy(pool: Pool | PoolClient, actor: Actor, studyId
   const data = updateStudySchema.parse(input);
   await inTransaction(pool, async (c) => {
     const before = await requireDraft(c, studyId);
+    const consentIssue = consentChangeIssue(before.config as Partial<StudyConfig> | null, data.config);
+    if (consentIssue) throw new ResearchActionError(consentIssue);
     await c.query(
       `UPDATE studies SET title = $2, description = $3, protocol_version = $4, design = 'between', snapshot_id = $5, manifest_id = $6, config = $7::jsonb
         WHERE id = $1`,
@@ -216,6 +218,64 @@ export async function setBattery(pool: Pool | PoolClient, actor: Actor, studyId:
       await c.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position, required) VALUES ($1, $2, $3, $4, $5)", [studyId, r.assessmentId, r.phase, r.position, r.required]);
     }
     await audit(c, actor, "study.battery", "study", studyId, { before: before.rows, after: rows });
+  });
+}
+
+export interface DesignedBatteryResult {
+  attached: number;
+  newlyLoaded: string[];
+  missingInstruments: string[];
+}
+
+type BatteryRow = { assessmentId: string; code: string; phase: string; position: number; required: boolean };
+
+export async function attachDesignedBattery(pool: Pool | PoolClient, actor: Actor, studyId: string): Promise<DesignedBatteryResult> {
+  return inTransaction(pool, async (c) => {
+    const study = await requireDraft(c, studyId);
+    const questionnaires = draftStudyConfigSchema.safeParse(study.config ?? {}).data?.questionnaires ?? DEFAULT_QUESTIONNAIRES;
+    const newlyLoaded = [...(await seedInstrumentDefinitions(c)), ...(await seedTestBattery(c, DESIGNED_TEST_BATTERY)).map((code) => `${code}@1`)];
+    const latest = async (code: string, kind: string, version?: number) =>
+      (
+        await c.query<{ id: string }>(
+          "SELECT id FROM assessments WHERE code = $1 AND kind::text = $2 AND ($3::int IS NULL OR version = $3) AND NOT is_demo ORDER BY version DESC LIMIT 1",
+          [code, kind, version ?? null],
+        )
+      ).rows[0]?.id ?? null;
+    const designed: BatteryRow[] = [];
+    for (const a of DESIGNED_TEST_BATTERY) {
+      const id = await latest(a.code, a.kind);
+      if (id) designed.push({ assessmentId: id, code: a.code, phase: a.phase, position: a.position, required: true });
+    }
+    const refs = new Map<string, number | undefined>();
+    for (const ref of [...questionnaires.pre, ...questionnaires.postLearning, ...questionnaires.end]) {
+      const r = typeof ref === "string" ? { code: ref } : ref;
+      if (!refs.has(r.code)) refs.set(r.code, "version" in r ? r.version : undefined);
+    }
+    const instruments: { assessmentId: string; code: string }[] = [];
+    const missingInstruments: string[] = [];
+    for (const [code, version] of refs) {
+      const id = await latest(code, "questionnaire", version);
+      if (id) instruments.push({ assessmentId: id, code });
+      else missingInstruments.push(version ? `${code} v${version}` : code);
+    }
+    const replaced = new Set([...designed.map((d) => d.code), ...instruments.map((i) => i.code)]);
+    const before = await c.query<BatteryRow>(
+      `SELECT sa.assessment_id AS "assessmentId", a.code, sa.phase::text AS phase, sa.position, sa.required
+         FROM study_assessments sa JOIN assessments a ON a.id = sa.assessment_id WHERE sa.study_id = $1 ORDER BY sa.phase, sa.position`,
+      [studyId],
+    );
+    const rows = [...designed];
+    const nextFree = (phase: string) => Math.max(-1, ...rows.filter((r) => r.phase === phase).map((r) => r.position)) + 1;
+    for (const kept of before.rows.filter((r) => !replaced.has(r.code))) rows.push({ ...kept, position: nextFree(kept.phase) });
+    for (const i of instruments) rows.push({ ...i, phase: "post", position: nextFree("post"), required: true });
+    const items = rows.map((r) => ({ assessmentId: r.assessmentId, phase: r.phase, position: r.position, required: r.required }));
+    const parsed = z.array(batteryItemSchema).max(40).parse(items);
+    await c.query("DELETE FROM study_assessments WHERE study_id = $1", [studyId]);
+    for (const r of parsed) {
+      await c.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position, required) VALUES ($1, $2, $3, $4, $5)", [studyId, r.assessmentId, r.phase, r.position, r.required]);
+    }
+    await audit(c, actor, "study.battery", "study", studyId, { before: before.rows, after: parsed, reason: "Designed test battery and questionnaire instruments attached" });
+    return { attached: parsed.length, newlyLoaded, missingInstruments };
   });
 }
 

@@ -11,12 +11,13 @@ import { getStaffPrincipal } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 import { listParityReports } from "@/server/research/parity/store";
 import { assessmentOptions, getStudy, pinOptions, snapshotTraditions, studyHistory, type StudyDetail } from "@/server/research/studies";
-import { CONSOLE_ALLOCATION_ALGORITHMS } from "@/server/research/study-form";
+import { CONSOLE_ALLOCATION_ALGORITHMS, questionnaireInstruments, type QuestionnaireInstrument, type QuestionnaireSlot } from "@/server/research/study-form";
+import { DEFAULT_QUESTIONNAIRES } from "@/server/study/config";
 import { listRetentionDue } from "@/server/study/purge";
 
 import { ActionForm } from "../../_components/action-form";
 import { CHECK_BOX, CHECK_ROW, DemoBadge, Empty, FieldLabel, FIELD_LABEL, LINK_44, Notice, PublishedBadge, Section, StatusBadge, SummaryList, TEXTAREA, Timestamp } from "../../_components/common";
-import { activateStudyAction, closeStudyAction, newVersionAction, purgeParticipantAction, purgeRetentionAction, runParityAction, setBatteryAction, updateStudyAction } from "../../actions";
+import { activateStudyAction, attachDesignedBatteryAction, closeStudyAction, newVersionAction, purgeParticipantAction, purgeRetentionAction, runParityAction, setBatteryAction, updateStudyAction } from "../../actions";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Disclosure } from "@/components/ui/disclosure";
 
@@ -91,11 +92,11 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
         
         description={draft ? "Saved changes are recorded in the history below." : "Frozen: this study is no longer a draft. Create a new version to change the protocol."}
       >
-        <ConfigForm study={study} pins={pins} traditions={inCanonicalOrder(traditions)} disabled={!mayConfigure} />
+        <ConfigForm study={study} pins={pins} traditions={inCanonicalOrder(traditions)} instruments={questionnaireInstruments(assessments, study.config.questionnaires ?? DEFAULT_QUESTIONNAIRES)} disabled={!mayConfigure} />
       </Section>
 
       <Section demo={study.isDemo} id="conditions" title="Conditions" description="Both conditions share every protocol setting; only the interface differs. Allocation weights set the assignment ratio.">
-        <Table caption="Conditions" number={1}>
+        <Table caption="Conditions" number={2}>
           <TableHeader>
             <TableRow>
               <TableHead scope="col">Code</TableHead>
@@ -116,6 +117,13 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
       </Section>
 
       <Section demo={study.isDemo} id="battery" title="Assessment battery and order" description="The same battery, in the same order, for both conditions. Only locked assessments can be used by an active study. Required: every question must be answered before the participant goes on; otherwise questions may be left blank and are stored as skipped.">
+        {mayConfigure ? (
+          <ActionForm action={attachDesignedBatteryAction.bind(null, study.id)} submitLabel="Attach the designed test battery" variant="outline" className="mb-8 flex max-w-[52rem] flex-col gap-3">
+            <p className="text-body text-ink-2">
+              Adds the designed pre-test, post-tests, transfer task, concept map, layout sketch and delayed tests, and the questionnaires of the saved configuration, at their designed phases and positions. Missing ones are loaded first as drafts. Other assessments in the battery are kept after them.
+            </p>
+          </ActionForm>
+        ) : null}
         <BatteryForm study={study} assessments={assessments} disabled={!mayConfigure} />
       </Section>
 
@@ -233,7 +241,7 @@ function ParityAndActivation({
       demo={study.isDemo}
       eyebrow="Confound control"
       title="Parity and activation"
-      description="Activation generates a fresh parity report and is refused unless every critical check passes; the database separately requires a published release snapshot, a published manifest compiled from it and a locked battery."
+      description="Activation generates a fresh parity report and is refused unless every critical check passes, including the information sheet and versioned consent text. The database separately requires a published release snapshot and, for a non-demo study, a locked battery."
     >
       <SummaryList
         className="mb-6 max-w-[52rem]"
@@ -270,11 +278,13 @@ function ConfigForm({
   study,
   pins,
   traditions,
+  instruments,
   disabled,
 }: {
   study: StudyDetail;
   pins: Awaited<ReturnType<typeof pinOptions>>;
   traditions: { slug: string; name: string }[];
+  instruments: QuestionnaireInstrument[];
   disabled: boolean;
 }) {
   const c = study.config;
@@ -324,14 +334,8 @@ function ConfigForm({
       <FieldLabel label="Block size">
         <Input name="blockSize" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={c.allocation.blockSize ?? ""} />
       </FieldLabel>
-      <FieldLabel label="Exposure">
-        <NativeSelect name="exposureMode" defaultValue={c.exposure.mode}>
-          <option value="fixed_time">Fixed time (equal for both conditions)</option>
-          <option value="self_paced">Self-paced</option>
-        </NativeSelect>
-      </FieldLabel>
-      <FieldLabel label="Exposure (min)">
-        <Input name="exposureMinutes" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={c.exposure.minutes ?? ""} />
+      <FieldLabel label="Learning cap (min)" hint="Learning is self-paced in both conditions (Concept Note rev2, Section 9). Every stage must be visited, and the learner may finish before the cap only after that.">
+        <Input name="exposureMinutes" type="text" inputMode="numeric" pattern="[0-9]*" required defaultValue={c.exposure.minutes ?? ""} />
       </FieldLabel>
       <FieldLabel label="Guidance policy">
         <NativeSelect name="guidancePolicy" defaultValue={c.guidance.policy}>
@@ -369,8 +373,14 @@ function ConfigForm({
       <FieldLabel label="Data retention (days)" hint="After a participant's participation ends. The principal investigator removes the data once it has passed (Participant data section); it is not deleted automatically.">
         <Input name="retentionDays" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={c.retentionDays ?? ""} />
       </FieldLabel>
-      <FieldLabel label="Consent version">
-        <Input name="consentVersion" maxLength={64} defaultValue={c.consentVersion ?? ""} />
+      <FieldLabel label="Participant information sheet" className="md:col-span-2" hint="Shown verbatim on the consent page, before the consent text. The study cannot be activated without it.">
+        <textarea name="participantInformation" rows={8} maxLength={20000} defaultValue={c.participantInformation ?? ""} className={TEXTAREA} />
+      </FieldLabel>
+      <FieldLabel label="Consent version" hint="Recorded with every consent decision. Give a new version whenever the consent text or the information sheet changes.">
+        <Input name="consentVersion" maxLength={64} defaultValue={c.consent?.version ?? ""} />
+      </FieldLabel>
+      <FieldLabel label="Consent text" className="md:col-span-2" hint="Shown verbatim above the agreement; its SHA-256 is stored with each decision. The study cannot be activated without it.">
+        <textarea name="consentText" rows={8} maxLength={20000} defaultValue={c.consent?.text ?? ""} className={TEXTAREA} />
       </FieldLabel>
       <FieldLabel label="Inclusion criteria" hint="One per line.">
         <textarea name="inclusion" rows={3} defaultValue={c.eligibility.inclusion.join("\n")} className={TEXTAREA} />
@@ -382,10 +392,6 @@ function ConfigForm({
         <legend className={FIELD_LABEL}>Shared switches (apply to both conditions)</legend>
         <div className="flex flex-wrap gap-x-6">
           <label className={CHECK_ROW}>
-            <input type="checkbox" name="allowEarlyFinish" defaultChecked={c.exposure.allowEarlyFinish} className={CHECK_BOX} />
-            Allow finishing the learning phase early (a fixed-time study with early finish fails the parity check and cannot be activated)
-          </label>
-          <label className={CHECK_ROW}>
             <input type="checkbox" name="cueEnabled" defaultChecked={c.guidance.cueEnabled} className={CHECK_BOX} />
             Guidance cues on
           </label>
@@ -395,6 +401,7 @@ function ConfigForm({
           </label>
         </div>
       </fieldset>
+      <QuestionnaireFields instruments={instruments} />
       <FieldLabel label="Notes" className="md:col-span-2">
         <textarea name="notes" rows={2} maxLength={4000} defaultValue={c.notes ?? ""} className={TEXTAREA} />
       </FieldLabel>
@@ -408,13 +415,87 @@ function ConfigForm({
   );
 }
 
+const QUESTIONNAIRE_STEP_LABEL: Record<QuestionnaireSlot, string> = {
+  pre: "Before the pre-test",
+  postLearning: "Straight after learning",
+  end: "At the end",
+};
+
+function QuestionnaireFields({ instruments }: { instruments: QuestionnaireInstrument[] }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-2 md:col-span-2">
+      <input type="hidden" name="questionnaireCodes" value={instruments.map((q) => q.code).join(",")} />
+      {instruments.length === 0 ? (
+        <span className="text-credit">No questionnaire instruments exist yet. Attaching the designed test battery below loads the seeded instruments.</span>
+      ) : (
+        <Table caption="Questionnaires" number={1}>
+          <TableHeader>
+            <TableRow>
+              <TableHead scope="col">Instrument</TableHead>
+              <TableHead scope="col">Given</TableHead>
+              <TableHead scope="col">For</TableHead>
+              <TableHead scope="col">Version</TableHead>
+              <TableHead scope="col" numeric>
+                Order
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {instruments.map((q) => (
+              <TableRow key={q.code}>
+                <TableCell className="min-w-56 whitespace-normal">
+                  <span className="font-medium">{q.title}</span>
+                  <span className="text-id block text-ink-3">{q.code}</span>
+                </TableCell>
+                <TableCell>
+                  <NativeSelect name={`questionnaireStep:${q.code}`} defaultValue={q.slot ?? ""} className="w-56" aria-label={`When ${q.title} is given`}>
+                    <option value="">Not used</option>
+                    {(Object.keys(QUESTIONNAIRE_STEP_LABEL) as QuestionnaireSlot[]).map((slot) => (
+                      <option key={slot} value={slot}>
+                        {QUESTIONNAIRE_STEP_LABEL[slot]}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </TableCell>
+                <TableCell>
+                  <NativeSelect name={`questionnaireFor:${q.code}`} defaultValue={q.audience ?? ""} className="w-48" aria-label={`Who answers ${q.title}`}>
+                    <option value="">Both conditions</option>
+                    <option value="2d">Conventional 2D only</option>
+                    <option value="immersive">Immersive 3D only</option>
+                  </NativeSelect>
+                </TableCell>
+                <TableCell>
+                  <NativeSelect name={`questionnaireVersion:${q.code}`} defaultValue={q.version ? String(q.version) : ""} className="w-44" aria-label={`Version of ${q.title}`}>
+                    <option value="">Highest in the battery</option>
+                    {q.versions.map((v) => (
+                      <option key={v} value={String(v)}>
+                        v{v}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </TableCell>
+                <TableCell numeric>
+                  <Input name={`questionnaireOrder:${q.code}`} type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={q.slot ? q.order : ""} className="ml-auto w-20 text-right tabular-nums" aria-label={`Order of ${q.title}`} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+      <span className="text-credit">
+        Each instrument used here must also be in the assessment battery below; the parity check refuses the study otherwise. Before the pre-test no condition is known yet, so an instrument given then is for both conditions.
+      </span>
+    </div>
+  );
+}
+
 const PHASES = ["pre", "learning", "post", "follow_up"];
 
 function BatteryForm({ study, assessments, disabled }: { study: StudyDetail; assessments: Awaited<ReturnType<typeof assessmentOptions>>; disabled: boolean }) {
   const inBattery = new Map(study.battery.map((b) => [b.assessmentId, b]));
   if (assessments.length === 0) return <Empty>No assessments exist yet (authored under Assessments).</Empty>;
   const table = (
-    <Table caption="Assessment Battery" number={2} hoverRows>
+    <Table caption="Assessment Battery" number={3} hoverRows>
       <TableHeader>
         <TableRow>
           <TableHead scope="col">Use</TableHead>

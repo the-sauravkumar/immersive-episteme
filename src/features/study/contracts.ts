@@ -160,7 +160,6 @@ export const studyConfigSchema = z.object({
       exclusion: z.array(z.string().trim().min(1).max(300)).max(30).default([]),
     })
     .default({ inclusion: [], exclusion: [] }),
-  consentVersion: z.string().min(1).max(64).optional(),
   // ---- participant journey (study engine, src/server/study/config.ts validates the order) ----
   /** Versioned consent text, shown verbatim; its sha256 is stored with the decision. */
   consent: z.object({ version: z.string().min(1).max(64), text: z.string().min(1).max(20_000) }).optional(),

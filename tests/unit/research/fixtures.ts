@@ -125,6 +125,8 @@ export function passingInput(): ParityInput {
         exposure: { mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true },
         guidance: { policy: "none", cueEnabled: false },
         steps: ["pre_test", "learning", "post_test"],
+        consent: { version: "fixture-1", text: "Sample Text consent." },
+        participantInformation: "Sample Text information sheet.",
       },
       snapshotId: "00000000-0000-4000-8000-0000000000aa",
       manifestId: null,
