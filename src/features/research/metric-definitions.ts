@@ -343,6 +343,22 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
     note: "The citation concerns reliability only. The scoring rule is the conventional SUS rule and a project definition here: study-decisions.md quotes no scoring rule (Brooke 1996 is not archived).",
   },
   {
+    key: "umux_lite.score",
+    label: "UMUX-LITE score",
+    group: "questionnaire",
+    version: SCALE_SCORE_VERSION,
+    measures: "Perceived usability from the two UMUX-LITE items (umux-lite.1, umux-lite.2), when a study gives the instrument instead of or beside the SUS.",
+    unit: "score (0–100)",
+    computation: "Each 7-point answer minus 1, the two summed, times 100/12; undefined if either item is missing. The regression adjustment to the SUS scale (.65 × score + 22.9) is not applied.",
+    computedIn: SCALES,
+    citation: {
+      source: "Lewis, Utesch & Maher (2013), CHI 2013",
+      locator: "p. 2102 (PDF p. 4)",
+      quote: "subtract 1 from each 7-point item, add them together, then multiply by 100/12",
+    },
+    note: "The unadjusted score is kept: the regression to the SUS was fitted on the original wording, which D7 changes.",
+  },
+  {
     key: "presence.physical",
     label: "Physical presence (3D only)",
     group: "questionnaire",

@@ -23,7 +23,6 @@ export type StageLeftOutcome = "delivered" | "unavailable" | "not_learning";
 export type FinishOutcome =
   | { readonly ok: true; readonly next: string }
   | { readonly ok: false; readonly reason: "stages_unvisited"; readonly unvisited: readonly { readonly traditionKey: string; readonly stageKey: string; readonly stageNumber: number }[] }
-  | { readonly ok: false; readonly reason: "time_remaining"; readonly endsAt: string }
   | { readonly ok: false; readonly reason: "not_learning" | "unavailable" };
 
 export interface ObjectDwell {

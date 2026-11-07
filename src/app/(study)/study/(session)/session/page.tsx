@@ -80,8 +80,6 @@ async function Hub({ searchParams }: { searchParams: PageProps<"/study/session">
   }
 
   const telemetry = { firstSeq: await nextTelemetrySeq(state.sessionId), sessionId: state.sessionId, contentVersion: state.snapshotLabel ?? "none", appBuild: serverEnv().APP_BUILD_VERSION, mode: "study" as const };
-  const remainingMinutes =
-    state.learning.endsAt && state.learning.endsAt > state.now && !state.study.protocol.config.exposure.requireEveryStage ? Math.ceil((state.learning.endsAt.getTime() - state.now.getTime()) / 60_000) : null;
 
   return (
     <TelemetryProvider config={telemetry}>
@@ -94,7 +92,6 @@ async function Hub({ searchParams }: { searchParams: PageProps<"/study/session">
             </h2>
             <p className="text-reading max-w-[34rem] text-ink">
               {state.learning.startedAt ? "Your learning task is still open." : "Your learning task is ready."}
-              {remainingMinutes !== null ? ` About ${remainingMinutes} ${remainingMinutes === 1 ? "minute" : "minutes"} of learning time are left.` : ""}
             </p>
             <StudyActions>
               <Button asChild>

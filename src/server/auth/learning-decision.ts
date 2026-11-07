@@ -202,12 +202,11 @@ async function resolveSessionCookie(
   if (record.condition !== verified.claims.condition && !allocatedSince) {
     return { allowed: false, redirectTo: LEARNING_DENY_REDIRECT.invalid_participant_session };
   }
+  const excludedMayWithdraw = record.excluded && purpose === "withdraw" && record.participantStatus === "excluded";
   if (
     record.withdrawn ||
     (record.excluded && purpose === "take_part") ||
-    record.status === "completed" ||
-    record.status === "abandoned" ||
-    !ACTIVE_PARTICIPANT_STATUSES.includes(record.participantStatus)
+    (!excludedMayWithdraw && (record.status === "completed" || record.status === "abandoned" || !ACTIVE_PARTICIPANT_STATUSES.includes(record.participantStatus)))
   ) {
     return { allowed: false, redirectTo: LEARNING_DENY_REDIRECT.session_not_active };
   }

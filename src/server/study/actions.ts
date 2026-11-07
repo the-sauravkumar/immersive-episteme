@@ -39,7 +39,6 @@ import {
   recordWalkthroughWebglFailure,
   resumeSession,
   returnForDelayedTest,
-  stratumChoiceNeeded,
   markAssessmentPresented,
   submitAssessment,
   withdraw,
@@ -51,9 +50,7 @@ import { addHistory } from "./tokens";
 
 export type FormState = { error?: string; fieldErrors?: Record<string, string> };
 
-export type EntryFormState = FormState & { strata?: string[] };
-
-const CHOOSE_GROUP_MESSAGE = "Choose the group the facilitator told you.";
+export type EntryFormState = FormState;
 
 const appBuild = () => serverEnv().APP_BUILD_VERSION;
 
@@ -65,7 +62,6 @@ function messageFor(err: unknown): string {
       case "study_not_open":
         return "This study is not open for participation at the moment.";
       case "study_misconfigured":
-      case "unsupported_design":
       case "assessment_not_ready":
         return "This study cannot start right now. Please tell the facilitator.";
       case "repeat_browser":
@@ -78,8 +74,6 @@ function messageFor(err: unknown): string {
         return "Some answers need attention.";
       case "learning_incomplete":
         return "Every stage must be visited before you finish.";
-      case "learning_time_remaining":
-        return "The questions open when the learning time is up.";
       case "delayed_test_not_open":
         return "The delayed test is not open yet.";
       case "learning_not_started":
@@ -119,8 +113,6 @@ async function withdrawableParticipant() {
 
 export async function enterStudy(_prev: EntryFormState, formData: FormData): Promise<EntryFormState> {
   const code = String(formData.get("studyCode") ?? "");
-  const posted = formData.get("stratum");
-  const stratum = typeof posted === "string" && posted ? posted : null;
   if (!code.trim()) return { fieldErrors: { studyCode: "Enter the study code." } };
   // Invite gate, server side (S11): enrolment is the first step that writes study data.
   await requireSiteAccess("/study");
@@ -133,7 +125,6 @@ export async function enterStudy(_prev: EntryFormState, formData: FormData): Pro
       target = "/study";
     } else {
       const study = await findEnrollableStudy(pool, code);
-      if (stratumChoiceNeeded(study) && (!stratum || !study.strata.includes(stratum))) return { strata: study.strata, fieldErrors: { stratum: CHOOSE_GROUP_MESSAGE } };
       const pending = await readEnrolment();
       const pendingParticipant = pending && pending.studyId === study.id ? await loadParticipant(pool, pending.participantId) : null;
       // An enrolment still waiting for its consent decision (or for its allocation after a
@@ -150,7 +141,7 @@ export async function enterStudy(_prev: EntryFormState, formData: FormData): Pro
         }
         const history = await readHistory();
         const previous = history.filter(([s]) => s === study.id).map(([, p]) => p);
-        const r = await enrolParticipant(pool, study, { stratum, previousParticipantIds: previous });
+        const r = await enrolParticipant(pool, study, { previousParticipantIds: previous });
         await setEnrolment({ participantId: r.participantId, studyId: study.id });
         await writeHistory(addHistory(history, study.id, r.participantId));
       }
@@ -236,11 +227,7 @@ export async function submitDeviceCheck(report: unknown): Promise<DeviceCheckRes
   const parsed = deviceReportSchema.safeParse(report);
   if (!parsed.success) return { ok: false, error: "The check could not be read. Please try again." };
   try {
-    const outcome = await recordDeviceCheck(getPool(), participant.sessionId, parsed.data, { appBuild: appBuild() });
-    if (outcome.kind === "reassigned") {
-      await issueParticipantSessionCookie({ participantId: participant.participantId, sessionId: outcome.sessionId, condition: outcome.condition });
-    }
-    if (outcome.kind === "excluded") await clearParticipantSessionCookie();
+    const outcome = await recordDeviceCheck(getPool(), participant.sessionId, parsed.data);
     return { ok: true, outcome: outcome.kind, reason: outcome.kind === "retry" ? outcome.reason : undefined, minViewport: outcome.kind === "retry" ? outcome.minViewport : undefined };
   } catch (err) {
     return { ok: false, error: messageFor(err) };
@@ -262,7 +249,6 @@ export async function reportWalkthroughUnavailable(report: unknown): Promise<Dev
     if (outcome.kind === "reassigned") {
       await issueParticipantSessionCookie({ participantId: participant.participantId, sessionId: outcome.sessionId, condition: outcome.condition });
     }
-    if (outcome.kind === "excluded") await clearParticipantSessionCookie();
     return { ok: true, outcome: outcome.kind, reason: outcome.kind === "retry" ? outcome.reason : undefined };
   } catch (err) {
     return { ok: false, error: messageFor(err) };

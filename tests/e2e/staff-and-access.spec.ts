@@ -117,11 +117,8 @@ test("a signed-in account without a role waits at /awaiting-access until an admi
   await signInStaff(stranger, WAITING, PASSWORD);
   await expect(stranger).toHaveURL(/\/awaiting-access$/);
   await stranger.goto("/explore");
-  await stranger.getByRole("button", { name: /^Open / }).first().click();
   await expect(stranger).toHaveURL(/\/invite\?next=%2Fexplore/);
   await stranger.goto("/study");
-  await stranger.getByLabel("Study code").fill(JOURNEY_STUDY);
-  await stranger.getByRole("button", { name: "Continue" }).click();
   await expect(stranger).toHaveURL(/\/invite\?next=%2Fstudy/);
   expect((await uninvited.cookies()).map((c) => c.name).filter((name) => /ie_demo|ie_study_session/.test(name))).toEqual([]);
   await uninvited.close();

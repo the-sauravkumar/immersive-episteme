@@ -121,6 +121,7 @@ export async function attachDesignedBatteryAction(studyId: string, _: ActionStat
       `Battery saved (${plural(r.attached, "assessment")}).`,
       ...(r.newlyLoaded.length ? [`Loaded as drafts: ${r.newlyLoaded.join(", ")}.`] : []),
       ...(r.missingInstruments.length ? [`Not found, so not attached: ${r.missingInstruments.join(", ")}.`] : []),
+      ...(r.demoOnly.length ? [`Left out because they still hold Sample Text, so they can serve only the demo study: ${r.demoOnly.join(", ")}.`] : []),
       "Review and lock each draft assessment under Assessments before activation.",
     ];
     return ok(notes.join(" "));
@@ -246,7 +247,7 @@ export async function excludeAction(sessionId: string, _: ActionState, d: FormDa
 
 export async function recomputeMetricsAction(studyId: string, _: ActionState): Promise<ActionState> {
   try {
-    await assertPermission("study.configure");
+    await assertPermission("metrics.recompute");
     const r = await recomputeStudyMetrics(getPool(), studyId);
     refresh();
     return ok(`Recomputed ${plural(r.sessions, "session")}: ${plural(r.rowsWritten, "metric row")} written, ${r.unchanged} unchanged (pipeline ${METRICS_PIPELINE_VERSION}).`);

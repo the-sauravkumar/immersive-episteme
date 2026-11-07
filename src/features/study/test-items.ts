@@ -213,9 +213,15 @@ export function linearOrder(tradition: UnseenTradition): UnseenStage[] | null {
   return order.length === tradition.stages.length ? order : null;
 }
 
+const ORDER_WORDS = /\b(after|afterwards|again|before|beforehand|earlier|final|finally|first|following|later|next|once|previous|previously|repeat|repeated|subsequently|then|until|when)\b/i;
+
+export function accountLine(stage: UnseenStage): string {
+  return ORDER_WORDS.test(stage.summary) ? stage.title : `${stage.title}: ${stage.summary}`;
+}
+
 function accountOf(tradition: UnseenTradition): string {
   const stages = [...tradition.stages].sort((a, b) => a.key.localeCompare(b.key));
-  return [`${tradition.name} is a tradition you have not seen. These are its stages, in no particular order.`, ...stages.map((stage) => `${stage.title}: ${stage.summary}`)].join("\n");
+  return [`${tradition.name} is a tradition you have not seen. These are its stages, in no particular order.`, ...stages.map(accountLine)].join("\n");
 }
 
 const fromIndex = <T>(list: readonly T[], start: number): T[] => list.map((_, offset) => list[(start + offset) % list.length]!);
@@ -223,7 +229,7 @@ const fromIndex = <T>(list: readonly T[], start: number): T[] => list.map((_, of
 function nextStageItem(tradition: UnseenTradition, shared: Record<string, unknown>, pairs: readonly (readonly [UnseenStage, UnseenStage])[]): DraftItem | null {
   for (const [before, after] of fromIndex(pairs, Math.floor(pairs.length / 2))) {
     const prompt = `Which stage comes straight after ${before.title}?`;
-    if (sharesCue(prompt, after.title)) continue;
+    if (sharesCue(prompt, after.title) || sharesCue(accountLine(before), after.title) || sharesCue(accountLine(after), before.title)) continue;
     const others = tradition.stages.filter((stage) => stage !== before && stage !== after && !sharesCue(prompt, stage.title)).slice(0, OPTION_COUNT - 1);
     if (others.length < OPTION_COUNT - 1) continue;
     return {
@@ -237,11 +243,11 @@ function nextStageItem(tradition: UnseenTradition, shared: Record<string, unknow
   return null;
 }
 
-function toolItem(tradition: UnseenTradition, shared: Record<string, unknown>, first: UnseenStage): DraftItem | null {
+function toolItem(tradition: UnseenTradition, shared: Record<string, unknown>, first: UnseenStage, account: string): DraftItem | null {
   const allTools = [...new Set(tradition.stages.flatMap((stage) => stage.tools))];
   for (const stage of fromIndex(tradition.stages, tradition.stages.indexOf(first))) {
     const prompt = `Which of these is used at ${stage.title}?`;
-    const cue = `${prompt} ${stage.summary}`;
+    const cue = `${prompt} ${account}`;
     const tool = stage.tools.find((candidate) => !sharesCue(cue, candidate));
     const wrongTools = allTools.filter((candidate) => !stage.tools.includes(candidate) && !sharesCue(cue, candidate)).slice(0, OPTION_COUNT - 1);
     if (!tool || wrongTools.length < OPTION_COUNT - 1) continue;
@@ -275,7 +281,7 @@ export function transferItems(tradition: UnseenTradition): DraftItem[] {
     .filter(([from, to], _, all) => byKey.has(from) && byKey.has(to) && all.filter(([other]) => other === from).length === 1)
     .map(([from, to]) => [byKey.get(from)!, byKey.get(to)!] as const);
   const middle = pairs[Math.floor(pairs.length / 2)];
-  if (middle) items.push(nextStageItem(tradition, shared, pairs), toolItem(tradition, shared, middle[1]));
+  if (middle) items.push(nextStageItem(tradition, shared, pairs), toolItem(tradition, shared, middle[1], account));
   return items.filter((item): item is DraftItem => item !== null);
 }
 
@@ -319,9 +325,10 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
     });
     objects.filter(placeable).forEach((object, turn) => {
       if (turn < PRE_ITEMS_PER_TRADITION) pre.push(withDontKnow(placementItem(object, turn, "pre.place")));
-      else ((turn - PRE_ITEMS_PER_TRADITION) % 3 === 2 ? placement.delayed : placement.immediate).push(placementItem(object, turn, "place"));
+      else (placement.immediate.length > placement.delayed.length ? placement.delayed : placement.immediate).push(placementItem(object, turn, "place"));
     });
   });
+  placement.immediate.length = Math.min(placement.immediate.length, placement.delayed.length);
   const alternate = (stages: readonly TemplateStage[], remainder: number) => stages.filter((_, index) => index % 2 === remainder);
   const assessment = (code: string, phase: GeneratedAssessment["phase"], position: number, title: string, testType: TestItemType, items: readonly (DraftItem | null)[], kind: GeneratedAssessment["kind"] = phase === "pre" ? "pretest" : "posttest", description: string | null = null): GeneratedAssessment => ({
     code,

@@ -15,6 +15,11 @@ describe("scale scores", () => {
     expect(scoreScale(sus, answers(sus.items, [1, 5, 1, 5, 1, 5, 1, 5, 1, 5]))).toBe(0);
     // odd: 4,3,2,1,0 = 10; even: 5-2,5-2,5-2,5-2,5-2 = 15; (10 + 15) × 2.5 = 62.5
     expect(scoreScale(sus, answers(sus.items, [5, 2, 4, 2, 3, 2, 2, 2, 1, 2]))).toBe(62.5);
+    const umux = spec("umux_lite.score");
+    expect(scoreScale(umux, answers(umux.items, [7, 7]))).toBe(100);
+    expect(scoreScale(umux, answers(umux.items, [1, 1]))).toBe(0);
+    expect(scoreScale(umux, answers(umux.items, [4, 5]))).toBeCloseTo(58.333, 3);
+    expect(scoreScale(umux, new Map([["umux-lite.1", 4]]))).toBeNull();
   });
 
   it("cognitive-load subscale means and the SSQ Total Score (Kennedy et al. 1993, Table 4)", () => {

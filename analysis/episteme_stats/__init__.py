@@ -11,7 +11,7 @@ Modules:
     compare      two-group comparison with effect sizes and confidence intervals
     adjust       baseline (pre-test) adjusted comparison (ANCOVA by least squares)
     missing      missing-data report
-    roles        preregistration role of a metric (primary cmap.recall.dl post, pre covariate; D2)
+    roles        preregistration role of a metric (primary test.sequence and test.stage_placement post, pre-test covariate; Concept Note rev2, H1)
     power        a-priori power: the D4 ANCOVA plan, with the concept note's t-test as a comparison
     __main__     command line: ``python -m episteme_stats report <bundle.json> --metric <name>``
 """

@@ -147,7 +147,7 @@ export async function buildExportBundle(q: Q, studyId: string, opts: { scope: Ex
     sessions: await rows(
       `SELECT ss.id AS session_id, p.code AS participant_code, ss.condition_id, ss.period, ss.status::text AS status, ss.snapshot_id, ss.manifest_id,
               ss.app_build, ss.compiler_version, ${ts("ss.started_at")} AS started_at, ${ts("ss.completed_at")} AS completed_at,
-              ${ts("ss.learning_started_at")} AS learning_started_at, ss.learning_budget_seconds, ${ts("ss.learning_ended_at")} AS learning_ended_at, ss.tradition_order,
+              ${ts("ss.learning_started_at")} AS learning_started_at, ss.learning_budget_seconds, ${ts("ss.learning_ended_at")} AS learning_ended_at, ss.template_sha256, ss.tradition_order,
               ss.interrupted, ss.interruption_count, ss.device, ss.withdrawn, ss.excluded, ${category("ss.exclusion_reason")} AS exclusion_category,
               CASE WHEN $2 THEN ss.exclusion_reason END AS exclusion_reason,
               (st.is_demo OR coalesce((st.config->>'nonExperimental')::boolean, false)) AS non_experimental,

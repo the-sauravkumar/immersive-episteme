@@ -13,7 +13,6 @@ const study = (slug: string, isDemo: boolean): StudySummary => ({
   title: slug,
   status: "active",
   protocolVersion: "1",
-  design: "between",
   isDemo,
   participants: 0,
   sessions: 0,

@@ -13,20 +13,23 @@ export interface WalkthroughPracticeProps {
   readonly createEngine: WalkEngineFactory;
   readonly onFinished: () => void;
   readonly onRenderFailed: () => void;
+  readonly onContextLost: () => void;
 }
 
-export function WalkthroughPractice({ createEngine, onFinished, onRenderFailed }: WalkthroughPracticeProps) {
+export function WalkthroughPractice({ createEngine, onFinished, onRenderFailed, onContextLost }: WalkthroughPracticeProps) {
   const host = useRef<HTMLDivElement>(null);
   const runtime = useRef<WalkEngine | null>(null);
   const dragging = useRef<{ x: number; y: number } | null>(null);
   const failedHandler = useRef(onRenderFailed);
+  const lostHandler = useRef(onContextLost);
   const [helpOpen, setHelpOpen] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     failedHandler.current = onRenderFailed;
-  }, [onRenderFailed]);
+    lostHandler.current = onContextLost;
+  }, [onRenderFailed, onContextLost]);
 
   useEffect(() => {
     const element = host.current;
@@ -37,8 +40,14 @@ export function WalkthroughPractice({ createEngine, onFinished, onRenderFailed }
       instance = null;
       runtime.current = null;
     };
+    let leaving = false;
+    const markLeaving = () => {
+      leaving = true;
+    };
+    window.addEventListener("pagehide", markLeaving);
     const fail = () => {
       close();
+      if (leaving) return;
       setFailed(true);
       failedHandler.current();
     };
@@ -51,11 +60,14 @@ export function WalkthroughPractice({ createEngine, onFinished, onRenderFailed }
         onObjectDwell() {},
         onPath() {},
         onWrongTurn() {},
-        onContextLost: fail,
+        onContextLost() {
+          if (!leaving) lostHandler.current();
+          fail();
+        },
       });
     } catch {
       fail();
-      return;
+      return () => window.removeEventListener("pagehide", markLeaving);
     }
     runtime.current = instance;
     instance.start(0).catch(() => {
@@ -65,6 +77,7 @@ export function WalkthroughPractice({ createEngine, onFinished, onRenderFailed }
     window.addEventListener("resize", resize);
     return () => {
       window.removeEventListener("resize", resize);
+      window.removeEventListener("pagehide", markLeaving);
       close();
     };
   }, [createEngine]);

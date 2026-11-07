@@ -294,19 +294,17 @@ provider is present (`useOptionalTelemetry`).
 
 ### 4e. Learning time budget
 
-- Config: `studies.config.exposure = { mode: "fixed_time" | "self_paced", minutes?, allowEarlyFinish = false }`
-  (frozen when the study activates, so both conditions share it).
-- Server: on the first learning-context resolution of a study session the database stamps
-  `study_sessions.learning_started_at`; a trigger copies the budget from the config and sets
-  `learning_ends_at`; all set once (migration 0009). `recordLearningEnded(pool, sessionId)`
-  (context-data, for the study engine) sets `learning_ended_at` and throws
-  `LearningFinishRefusedError` before the end unless `allowEarlyFinish`.
-- Read: `getLearningTimeBudget(condition)` (server) or `ctx.learningTime`:
-  `{ mode, budgetSeconds, allowEarlyFinish, startedAt, endsAt, endedAt, serverNow, persisted }`.
-  Client: `useLearningTimeBudget(budget)` (src/features/learning) returns
-  `{ remainingSeconds, elapsedSeconds, expired, canFinish }`, counting from the server clock plus
-  monotonic time, so a wrong device clock cannot change it. Demo/preview: same rule from the demo
-  study config, counted from `serverNow`, nothing stored.
+- Config: `studies.config.exposure = { minutes? }`, the learning cap (frozen when the study
+  activates, so both conditions share it). Learning is self-paced in both conditions; every stage
+  must be visited before the learner may finish, and the cap ends learning on the server clock
+  (DR-116).
+- Server: when learning starts the database stamps `study_sessions.learning_started_at` and the
+  `template_sha256` of the stage templates served; a trigger copies the cap from the config and
+  sets `learning_ends_at`; all set once (migrations 0009, 0026). `recordLearningEnded(pool,
+  sessionId)` (context-data, for the study engine) sets `learning_ended_at` once; the engine's
+  `finishLearning` refuses a finish with stages unvisited before the cap (`learning_incomplete`).
+- Read: the doors receive only `guidance.time.limitMinutes` for Help; the cap warning and the end
+  are driven by `learning_ends_at` through `LearningSessionFrame`.
 
 ### 4f. Derived timing metrics (v1)
 

@@ -68,8 +68,8 @@ export const CAP_WARNING_MINUTES = 5;
 export const DEFAULT_PRE_TEST_CUTOFF = 2;
 
 export const NEW_STUDY_CONFIG = {
-  exposure: { mode: "self_paced", minutes: LEARNING_CAP_MINUTES, allowEarlyFinish: true, requireEveryStage: true },
-  allocation: { algorithm: "stratified_block", blockSize: 4, point: "after_pre_test", strata: [], stratifyBy: { source: "pre_test_score", cutoff: DEFAULT_PRE_TEST_CUTOFF } },
+  exposure: { minutes: LEARNING_CAP_MINUTES },
+  allocation: { algorithm: "stratified_block", blockSize: 4, stratifyBy: { source: "pre_test_score", cutoff: DEFAULT_PRE_TEST_CUTOFF } },
   steps: [...DEFAULT_STEPS],
   questionnaires: DEFAULT_QUESTIONNAIRES,
 } as const;
@@ -114,31 +114,23 @@ export function protocolIssues(config: StudyConfig, steps: readonly StudyStep[])
   if (has("entrance") && has("familiarisation") && at("entrance") > at("familiarisation")) issues.push("steps: entrance must come before familiarisation");
 
   if (!DRAWN_ALGORITHMS.includes(config.allocation.algorithm)) issues.push(`allocation.algorithm ${config.allocation.algorithm} cannot be drawn by the study engine (use ${DRAWN_ALGORITHMS.join(", ")})`);
-  const point = config.allocation.point;
-  if (point === "after_pre_test") {
-    // Everything before allocation must be condition-blind, and come first.
-    const firstNonBlind = steps.findIndex((s) => !BLIND_STEPS.includes(s));
-    for (const s of BLIND_STEPS) {
-      if (has(s) && firstNonBlind >= 0 && at(s) > firstNonBlind) issues.push(`steps: ${s} must come before every condition-specific step (allocation follows it)`);
-    }
-    if (config.allocation.strata.length > 0) issues.push("allocation.strata: researcher-entered strata are only used when allocation.point = enrolment");
+  const firstNonBlind = steps.findIndex((s) => !BLIND_STEPS.includes(s));
+  for (const s of BLIND_STEPS) {
+    if (has(s) && firstNonBlind >= 0 && at(s) > firstNonBlind) issues.push(`steps: ${s} must come before every condition-specific step (allocation follows it)`);
   }
   const by = config.allocation.stratifyBy;
   if (by) {
-    if (point !== "after_pre_test") issues.push("allocation.stratifyBy needs allocation.point = after_pre_test");
     if (config.allocation.algorithm !== "stratified_block") issues.push("allocation.stratifyBy needs allocation.algorithm = stratified_block");
     if (!has("pre_test")) issues.push("allocation.stratifyBy pre_test_score needs the pre_test step");
-  } else if (config.allocation.algorithm === "stratified_block" && point === "after_pre_test") {
+  } else if (config.allocation.algorithm === "stratified_block") {
     issues.push("allocation.algorithm stratified_block after the pre-test needs allocation.stratifyBy");
   }
 
   if (config.guidance.cueEnabled && !config.guidance.hintText) {
     issues.push("guidance: cueEnabled needs guidance.hintText (the hint both conditions show)");
   }
-  if (point === "after_pre_test") {
-    for (const ref of config.questionnaires?.pre ?? []) {
-      if (typeof ref !== "string" && ref.conditions) issues.push(`questionnaires.pre: ${ref.code} is given before allocation, so it cannot be limited to one condition`);
-    }
+  for (const ref of config.questionnaires?.pre ?? []) {
+    if (typeof ref !== "string" && ref.conditions) issues.push(`questionnaires.pre: ${ref.code} is given before allocation, so it cannot be limited to one condition`);
   }
   return issues;
 }

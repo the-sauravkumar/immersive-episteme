@@ -80,7 +80,7 @@ test.beforeAll(async () => {
     traditionSlugs: ["demo-tradition-a"],
     nonExperimental: true,
     steps: ["learning", "reconstruction"],
-    exposure: { mode: "self_paced" },
+    exposure: {},
   };
   ids.study = (
     await one<{ id: string }>(

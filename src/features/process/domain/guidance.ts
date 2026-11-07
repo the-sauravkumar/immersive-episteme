@@ -2,7 +2,6 @@ export const HELP_TITLE = "Help";
 
 export interface SessionTime {
   readonly limitMinutes: number | null;
-  readonly earlyFinish: boolean;
 }
 
 export interface DoorGuidance {
@@ -11,15 +10,14 @@ export interface DoorGuidance {
   readonly stallSeconds: number | null;
 }
 
-export const UNTIMED_SESSION: SessionTime = { limitMinutes: null, earlyFinish: true };
+export const UNTIMED_SESSION: SessionTime = { limitMinutes: null };
 export const NO_GUIDANCE: DoorGuidance = { time: UNTIMED_SESSION, hint: null, stallSeconds: null };
 
 const minutes = (count: number): string => `${count} ${count === 1 ? "minute" : "minutes"}`;
 
-function timeLine({ limitMinutes, earlyFinish }: SessionTime): string {
+function timeLine({ limitMinutes }: SessionTime): string {
   if (limitMinutes === null) return "There is no time limit. Take the time you need.";
-  if (earlyFinish) return `Take the time you need, up to the session limit of ${minutes(limitMinutes)}. The session moves on by itself when the time is up.`;
-  return `The session lasts ${minutes(limitMinutes)} and moves on by itself when the time is up.`;
+  return `Take the time you need, up to the session limit of ${minutes(limitMinutes)}. The time keeps running while you pause, and the session moves on by itself when the time is up.`;
 }
 
 export function sessionHelpLines(time: SessionTime): readonly string[] {

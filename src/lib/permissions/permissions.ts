@@ -35,6 +35,8 @@ export const PERMISSIONS = [
   /** Exports that include identifying linkage (consent records, enrolment contact). */
   "exports.identified",
   "parity.run",
+  /** Rebuild the derived behavioural metrics from the stored raw events (deterministic, versioned). */
+  "metrics.recompute",
   // Platform administration
   "admin.users",
   "admin.roles",

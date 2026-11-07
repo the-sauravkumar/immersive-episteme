@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import { UNVERIFIED_NOTICE_TEXT } from "@/features/learning/strings";
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
 import { finishLabel, HELP_TITLE, HINT_TITLE, NO_GUIDANCE, PAUSE_TEXT, PAUSE_TITLE, RESUME_LABEL, sessionHelpLines, SOURCES_AND_CREDITS_LABEL, SOURCES_LABEL, type DoorGuidance } from "@/features/process/domain/guidance";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
@@ -122,8 +124,14 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
       closing?.dispose();
       flushPath();
     };
+    let leaving = false;
+    const markLeaving = () => {
+      leaving = true;
+    };
+    window.addEventListener("pagehide", markLeaving);
     const fail = () => {
       close();
+      if (leaving) return;
       setFailed(true);
       eventsRef.current.onRenderFailed();
     };
@@ -156,13 +164,13 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
           eventsRef.current.onWrongTurn(stopOf(station));
         },
         onContextLost() {
-          eventsRef.current.onContextLost();
+          if (!leaving) eventsRef.current.onContextLost();
           fail();
         },
       });
     } catch {
       fail();
-      return;
+      return () => window.removeEventListener("pagehide", markLeaving);
     }
     runtime.current = instance;
     unregister = eventsRef.current.registerExit(close);
@@ -173,6 +181,7 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
     window.addEventListener("resize", resize);
     return () => {
       window.removeEventListener("resize", resize);
+      window.removeEventListener("pagehide", markLeaving);
       close();
     };
   }, [createEngine, entry, route, template.tradition]);
@@ -276,6 +285,11 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
           <b>{template.traditionName}</b>
           <span>{atHall ? station?.name : `Station ${station?.stageNumber ?? ""} Of ${template.stages.length}`}</span>
         </p>
+        {stage?.caption.underReview ? (
+          <p className="walkthrough-review" data-slot="caption-review">
+            {UNVERIFIED_NOTICE_TEXT.caption}
+          </p>
+        ) : null}
       </div>
       <div className="walkthrough-tools">
         {guide.hint !== null ? (
@@ -304,6 +318,7 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
         <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={SOURCES_LABEL}>
           <h2>{SOURCES_LABEL}</h2>
           <p>{stage.caption.text}</p>
+          {stage.caption.underReview ? <p data-slot="caption-review">{UNVERIFIED_NOTICE_TEXT.caption}</p> : null}
           <ul>
             {stage.caption.sources.map((source) => (
               <li key={`${source.sourceId}${source.locator}`}>

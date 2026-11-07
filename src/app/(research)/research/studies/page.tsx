@@ -40,7 +40,6 @@ async function Studies() {
               <TableRow>
                 <TableHead scope="col">Study</TableHead>
                 <TableHead scope="col">Protocol</TableHead>
-                <TableHead scope="col">Design</TableHead>
                 <TableHead scope="col">Status</TableHead>
                 <TableHead scope="col">Updated (UTC)</TableHead>
               </TableRow>
@@ -58,7 +57,6 @@ async function Studies() {
                     </span>
                   </TableCell>
                   <TableCell className="tabular-nums">{s.protocolVersion}</TableCell>
-                  <TableCell>{s.design === "within" ? "Within subjects" : s.design === "between" ? "Between subjects" : s.design}</TableCell>
                   <TableCell>
                     <StatusBadge status={s.status} />
                   </TableCell>

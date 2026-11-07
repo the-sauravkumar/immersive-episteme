@@ -95,6 +95,7 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
       c("learning_started_at", "timestamp", "Learning phase start (server clock)."),
       c("learning_budget_seconds", "integer", "Learning cap copied from the frozen study config."),
       c("learning_ended_at", "timestamp", "Learning phase end. End minus start is total learning time, an outcome of self-paced learning."),
+      c("template_sha256", "text", "SHA-256 of the canonical JSON of the stage templates both doors served, recorded when learning started; it names the captions and stops the session saw, whatever the build label."),
       c("tradition_order", "json", "Counterbalanced order of the traditions assigned to this session."),
       c("interrupted", "boolean", "Session was interrupted."),
       c("interruption_count", "integer", "Number of interruptions."),
@@ -368,7 +369,7 @@ export const DASHBOARD_TABLES: readonly (TableSpec & { name: DashboardTableName 
   },
   { name: "dashboard_secondary", description: "Concept-map outcomes in D2 order from the post-learning map, by condition.", columns: SUMMARY_COLUMNS },
   { name: "dashboard_knowledge", description: "Knowledge test and transfer scores (keyed items; rubric ratings) by assessment and condition.", columns: SUMMARY_COLUMNS },
-  { name: "dashboard_questionnaires", description: "Questionnaire scale scores (common questions, cognitive load when the study gives it, SUS, presence 3D only, SSQ pre/post) by condition.", columns: SUMMARY_COLUMNS },
+  { name: "dashboard_questionnaires", description: "Questionnaire scale scores (common questions, cognitive load when the study gives it, SUS, UMUX-LITE when the study gives it, presence 3D only, SSQ pre/post) by condition.", columns: SUMMARY_COLUMNS },
   { name: "dashboard_telemetry", description: "Stage time, pauses, stops, revisits, back-steps, sources opened and events per session, summarised by condition.", columns: SUMMARY_COLUMNS },
   {
     name: "dashboard_telemetry_sessions",
@@ -402,11 +403,11 @@ export const DASHBOARD_TABLES: readonly (TableSpec & { name: DashboardTableName 
 export const DASHBOARD_TABLE_BY_NAME: ReadonlyMap<string, TableSpec> = new Map(DASHBOARD_TABLES.map((t) => [t.name, t]));
 
 /**
- * Dashboard rows 3 and 4 of DESIGN.md 11.9 (Figure 3 "Gain by Tradition", Figure 4 "Dwell Time per
- * Layer", Table 2 "Per-Item Statistics"), read from stored derived values by
+ * Dashboard rows 3 and 4 of DESIGN.md 11.9 (Figure 3 "Gain by Tradition", Table 2 "Per-Item
+ * Statistics"), read from stored derived values by
  * src/server/research/dashboard-extra-tables.ts. Same CSV rules as the tables above.
  */
-export const DASHBOARD_EXTRA_TABLE_NAMES = ["dashboard_tradition_gain", "dashboard_dwell", "dashboard_items"] as const;
+export const DASHBOARD_EXTRA_TABLE_NAMES = ["dashboard_tradition_gain", "dashboard_items"] as const;
 
 export type DashboardExtraTableName = (typeof DASHBOARD_EXTRA_TABLE_NAMES)[number];
 
@@ -426,18 +427,6 @@ export const DASHBOARD_EXTRA_TABLES: readonly (TableSpec & { name: DashboardExtr
       c("median", "number", "Median."),
       c("ci95_low", "number", "Lower bound of the 95% t confidence interval of the mean."),
       c("ci95_high", "number", "Upper bound of the 95% t confidence interval of the mean."),
-    ],
-  },
-  {
-    name: "dashboard_dwell",
-    description: "Dwell time per knowledge layer: mean active minutes per session with each layer open (pauses excluded), by condition, from time.exposure_by_layer_ms details.byLayer.",
-    columns: [
-      c("condition_code", "text", "Condition code."),
-      c("condition_interface", "text", "conventional_2d or immersive_3d."),
-      c("layer", "text", "Telemetry layer id (overview, artisan, process, science, comparison, citation)."),
-      c("sessions", "integer", "Sessions with the stored metric."),
-      c("mean_minutes", "number", "Mean active minutes per session with the layer open."),
-      c("metric_versions", "text", "Stored versions of time.exposure_by_layer_ms (space-separated)."),
     ],
   },
   {

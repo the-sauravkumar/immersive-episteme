@@ -187,14 +187,7 @@ export const allocations = pgTable(
     studyId: uuid().notNull(),
     participantId: uuid().notNull(),
     conditionId: uuid().notNull(),
-    /** 1 for between-subjects; 1..n for within-subjects periods. */
     period: smallint().notNull().default(1),
-    /**
-     * Content (tradition) set the participant receives in this period, e.g. "set-a". Required
-     * for within-subjects designs; must be a key of `studies.config.contentSets` when the study
-     * declares them. Lets exports join outcomes to the content each participant actually saw.
-     */
-    contentSetCode: text(),
     /** Learning task the participant receives in this period (optional, protocol-defined). */
     taskCode: text(),
     algorithm: allocationAlgorithmEnum().notNull(),
@@ -224,7 +217,6 @@ export const allocations = pgTable(
     check("allocations_period_ck", sql`${t.period} > 0`),
     check("allocations_sequence_ck", sql`${t.sequenceIndex} >= 0`),
     check("allocations_manual_ck", sql`${t.algorithm} <> 'manual' OR ${t.overrideReason} IS NOT NULL`),
-    check("allocations_content_set_ck", sql`${t.contentSetCode} IS NULL OR ${t.contentSetCode} ~ '^[a-z0-9][a-z0-9_.-]{0,63}$'`),
     check("allocations_task_ck", sql`${t.taskCode} IS NULL OR ${t.taskCode} ~ '^[a-z0-9][a-z0-9_.-]{0,63}$'`),
   ],
 );
@@ -244,8 +236,6 @@ export const studySessions = pgTable(
     conditionId: uuid(),
     allocationId: uuid(),
     period: smallint().notNull().default(1),
-    /** Copied from the allocation by trigger; immutable (see allocations.contentSetCode). */
-    contentSetCode: text(),
     /** Copied from the allocation by trigger; immutable. */
     taskCode: text(),
     /** Filled from the study by trigger when omitted; must equal the study's. */
@@ -263,6 +253,7 @@ export const studySessions = pgTable(
     learningBudgetSeconds: integer(),
     learningEndsAt: tsz(),
     learningEndedAt: tsz(),
+    templateSha256: text(),
     traditionOrder: jsonb().notNull().default(sql`'[]'::jsonb`),
     interrupted: boolean().notNull().default(false),
     interruptionCount: integer().notNull().default(0),
@@ -303,6 +294,7 @@ export const studySessions = pgTable(
       sql`${t.status} <> 'completed' OR (${t.completedAt} IS NOT NULL AND ${t.completedAt} >= ${t.startedAt})`,
     ),
     check("study_sessions_excluded_ck", sql`NOT ${t.excluded} OR (${t.exclusionReason} IS NOT NULL AND ${t.excludedAt} IS NOT NULL)`),
+    check("study_sessions_template_sha_ck", sql`${t.templateSha256} IS NULL OR ${t.templateSha256} ~ ${sql.raw(`'${SHA256_HEX_RE}'`)}`),
     check("study_sessions_learning_budget_ck", sql`${t.learningBudgetSeconds} IS NULL OR ${t.learningBudgetSeconds} > 0`),
     check(
       "study_sessions_learning_clock_ck",

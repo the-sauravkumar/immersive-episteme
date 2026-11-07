@@ -2,9 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CoursePractice } from "@/features/course/ui/course-practice";
+import { bindLearningTelemetry, reportWebglContextLost, unbindLearningTelemetry } from "@/features/study/learning-progress";
+import { useOptionalTelemetry } from "@/features/telemetry/client";
 import { endFamiliarisation } from "@/server/study/actions";
 
 import { useRenderFailureReport } from "./door-progress";
@@ -66,12 +68,23 @@ export function CoursePracticeDoor(props: PracticeDoorProps) {
   );
 }
 
+function usePracticeTelemetry(): void {
+  const telemetry = useOptionalTelemetry();
+  useEffect(() => {
+    if (!telemetry) return;
+    const track = telemetry.track.bind(telemetry) as unknown as Parameters<typeof bindLearningTelemetry>[0] & object;
+    bindLearningTelemetry(track);
+    return () => queueMicrotask(() => unbindLearningTelemetry(track));
+  }, [telemetry]);
+}
+
 export function WalkthroughPracticeDoor(props: PracticeDoorProps) {
   const { error, finish } = usePracticeFinish(props);
   const { failureNotice, onRenderFailed } = useRenderFailureReport(props.studyMode);
+  usePracticeTelemetry();
   return (
     <>
-      <WalkthroughPractice onFinished={finish} onRenderFailed={onRenderFailed} />
+      <WalkthroughPractice onFinished={finish} onRenderFailed={onRenderFailed} onContextLost={reportWebglContextLost} />
       <PracticeError message={failureNotice ?? error} />
     </>
   );

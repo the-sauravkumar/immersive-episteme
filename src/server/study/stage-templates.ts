@@ -2,6 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import type { StageTemplate } from "@/features/process/domain/stage-template";
+import { canonicalHash } from "@/lib/canonical-hash";
 
 export type StageTemplateSource = () => Promise<readonly StageTemplate[]>;
 
@@ -26,4 +27,8 @@ export function setStageTemplateSource(next: StageTemplateSource | null): void {
 
 export function loadStageTemplates(): Promise<readonly StageTemplate[]> {
   return source();
+}
+
+export async function stageTemplateSha256(): Promise<string> {
+  return canonicalHash(await source());
 }

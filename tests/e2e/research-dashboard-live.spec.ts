@@ -74,7 +74,7 @@ test("new telemetry appears without a reload, and nothing is cached", async ({ p
   const response = await page.goto(`/research/dashboard?study=${studyId}`);
   expect(response?.headers()["cache-control"] ?? "").toMatch(/no-store|private|no-cache/);
   await expect(page.getByTestId("dashboard-updated")).toHaveAttribute("data-mode", "live", { timeout: 60_000 });
-  const eventsCell = page.getByRole("row", { name: new RegExp(`^${session!.code}\\b`) }).getByRole("cell").nth(3);
+  const eventsCell = page.getByRole("table", { name: /Per-Session Telemetry/ }).getByRole("row", { name: new RegExp(`^${session!.code}\\b`) }).getByRole("cell").nth(3);
   await expect(eventsCell).toHaveText(String(session!.events));
 
   // The live probe and the CSV: same permission check, never cached.

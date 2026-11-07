@@ -46,16 +46,15 @@ describe("study protocol config (Concept Note rev2, section 7)", () => {
     const p = parseStudyProtocol({});
     expect(p.steps).toEqual(DEFAULT_STEPS);
     // The default order needs the practice minutes: refused loudly, never silently dropped.
-    expect(p.config.allocation.point).toBe("after_pre_test");
     expect(p.config.resume).toEqual({ allowed: true });
   });
 
   it("gives new studies the adopted defaults: self-paced, a 30-minute cap, every stage, balanced by the pre-test", () => {
     const p = parseStudyProtocol(NEW_STUDY_CONFIG);
-    expect(p.config.exposure).toEqual({ mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true });
+    expect(p.config.exposure).toEqual({ minutes: 30 });
     expect(p.config.delayedTest).toEqual({ opensAfterDays: 6, dueAfterDays: 7, closesAfterDays: 14 });
     expect(p.steps.indexOf("familiarisation")).toBe(p.steps.indexOf("onboarding") - 1);
-    expect(p.config.allocation).toMatchObject({ algorithm: "stratified_block", blockSize: 4, point: "after_pre_test", stratifyBy: { source: "pre_test_score" } });
+    expect(p.config.allocation).toMatchObject({ algorithm: "stratified_block", blockSize: 4, stratifyBy: { source: "pre_test_score" } });
   });
 
   it("rejects anything between learning and questionnaire_post_learning", () => {
@@ -70,9 +69,6 @@ describe("study protocol config (Concept Note rev2, section 7)", () => {
       expect.arrayContaining(["steps: pre_test must come before learning"]),
     );
     expect(issuesOf({ steps: ["questionnaire_pre", "onboarding", "pre_test", "learning"] }).some((i) => i.includes("before every condition-specific step"))).toBe(true);
-    // Allocation at enrolment: the old flexibility, and researcher strata allowed.
-    expect(issuesOf({ steps: ["onboarding", "learning"], allocation: { point: "enrolment", algorithm: "stratified_block", strata: ["a", "b"] } })).toEqual([]);
-    expect(issuesOf({ allocation: { strata: ["a"] } })).toContain("allocation.strata: researcher-entered strata are only used when allocation.point = enrolment");
   });
 
   it("validates stratification from the pre-test", () => {
@@ -132,39 +128,27 @@ describe("journey rules", () => {
     expect(positionOf({ steps, blind, done: new Set(blind), allocated: true, devicePassed: true })).toMatchObject({ step: "entrance" });
     expect(positionOf({ steps, blind, done: new Set([...blind, "entrance"]), allocated: true, devicePassed: true })).toMatchObject({ step: "familiarisation" });
     expect(positionOf({ steps, blind, done: new Set(steps), allocated: true, devicePassed: true })).toEqual({ kind: "finish" });
-    // Allocation at enrolment: device check first.
-    expect(positionOf({ steps, blind: [], done: new Set(), allocated: true, devicePassed: false })).toEqual({ kind: "device_check" });
   });
 
   it("applies one device rule to everyone, before any door is known", () => {
     const r: DeviceReport = { viewport: { width: 1280, height: 800 }, webglVersion: null, inputDevices: [] };
-    const blind = { condition: null };
-    expect(evaluateDevice(r, { policy: "exclude", ...blind })).toBe("webgl_exclude");
-    expect(evaluateDevice(r, { policy: "reassign", ...blind })).toBe("webgl_retry");
-    expect(evaluateDevice(r, { policy: "retry", ...blind })).toBe("webgl_retry");
-    expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "retry", minViewport: { width: 1400, height: 800 }, ...blind })).toBe("viewport_too_small");
-    expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "retry", ...blind })).toBe("passed");
-    expect(evaluateDevice({ ...r, webglVersion: 1 }, { policy: "exclude", ...blind })).toBe("webgl_exclude");
-    expect(evaluateDevice({ ...r, webglVersion: 2, softwareRenderer: true }, { policy: "retry", ...blind })).toBe("webgl_retry");
-  });
-
-  it("applies the reassign policy once the door is known (allocation at enrolment), the same for both doors", () => {
-    const r: DeviceReport = { viewport: { width: 1280, height: 800 }, webglVersion: null, inputDevices: [] };
-    expect(evaluateDevice(r, { policy: "reassign", condition: "immersive" })).toBe("webgl_reassign");
-    expect(evaluateDevice(r, { policy: "reassign", condition: "2d" })).toBe("webgl_reassign");
-    expect(evaluateDevice(r, { policy: "retry", condition: "immersive" })).toBe("webgl_retry");
-    expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "reassign", condition: "immersive" })).toBe("passed");
+    expect(evaluateDevice(r, { policy: "exclude" })).toBe("webgl_exclude");
+    expect(evaluateDevice(r, { policy: "reassign" })).toBe("webgl_retry");
+    expect(evaluateDevice(r, { policy: "retry" })).toBe("webgl_retry");
+    expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "retry", minViewport: { width: 1400, height: 800 } })).toBe("viewport_too_small");
+    expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "retry" })).toBe("passed");
+    expect(evaluateDevice({ ...r, webglVersion: 1 }, { policy: "exclude" })).toBe("webgl_exclude");
+    expect(evaluateDevice({ ...r, webglVersion: 2, softwareRenderer: true }, { policy: "retry" })).toBe("webgl_retry");
   });
 
   it("ends learning only when the cap has passed, or when every required stage was visited", () => {
-    const at = (exposure: Record<string, unknown>, endsAt: Date | null) => ({ learning: { startedAt: new Date(0), endsAt, endedAt: null }, now: new Date(1000), study: { protocol: { config: { exposure } } } }) as unknown as Parameters<typeof learningMayEnd>[0];
+    const at = (endsAt: Date | null) => ({ learning: { startedAt: new Date(0), endsAt, endedAt: null }, now: new Date(1000) }) as unknown as Parameters<typeof learningMayEnd>[0];
     const future = new Date(5000);
-    const guarded = { allowEarlyFinish: true, requireEveryStage: true };
-    expect(learningMayEnd(at(guarded, future), false)).toBe(false);
-    expect(learningMayEnd(at(guarded, future), true)).toBe(true);
-    expect(learningMayEnd(at(guarded, new Date(500)), false)).toBe(true);
-    expect(learningMayEnd(at({ allowEarlyFinish: false, requireEveryStage: false }, future), true)).toBe(false);
-    expect(learningMayEnd(at({ allowEarlyFinish: false, requireEveryStage: false }, null), true)).toBe(true);
+    expect(learningMayEnd(at(future), false)).toBe(false);
+    expect(learningMayEnd(at(future), true)).toBe(true);
+    expect(learningMayEnd(at(new Date(500)), false)).toBe(true);
+    expect(learningMayEnd(at(null), false)).toBe(false);
+    expect(learningMayEnd(at(null), true)).toBe(true);
   });
 
   it("opens the delayed test only inside its window", () => {
@@ -257,13 +241,15 @@ describe("participant cookie before and after allocation", () => {
     expect(learn).toEqual({ allowed: false, reason: "session_not_active", redirectTo: "/study/exit?reason=session-ended" });
   });
 
-  it("still lets an excluded session withdraw, and nothing that has ended", async () => {
+  it("still lets an excluded participant withdraw after the exclusion ended the session, and nothing else that has ended", async () => {
     const token = await signParticipantSession({ participantId: P, sessionId: S, condition: "2d" }, SECRET);
     const participant = { participantId: P, sessionId: S, condition: "2d" };
-    expect(await resolveWithdrawalSession(token, { secret: SECRET, lookup: lookup({ ...record("2d"), excluded: true }) })).toEqual({ allowed: true, participant });
+    const excludedAfterFailure = { ...record("2d"), excluded: true, status: "abandoned" as const, participantStatus: "excluded" as const };
+    expect(await resolveWithdrawalSession(token, { secret: SECRET, lookup: lookup(excludedAfterFailure) })).toEqual({ allowed: true, participant });
+    expect(await resolveParticipantSession(token, { secret: SECRET, lookup: lookup(excludedAfterFailure) })).toEqual({ allowed: false, redirectTo: "/study/exit?reason=session-ended" });
     expect(await resolveWithdrawalSession(token, { secret: SECRET, lookup: lookup(record("2d")) })).toEqual({ allowed: true, participant });
-    for (const ended of [{ withdrawn: true }, { status: "completed" as const }, { status: "abandoned" as const }, { participantStatus: "excluded" as const }]) {
-      expect(await resolveWithdrawalSession(token, { secret: SECRET, lookup: lookup({ ...record("2d"), excluded: true, ...ended }) })).toEqual({ allowed: false, redirectTo: "/study/exit?reason=session-ended" });
+    for (const ended of [{ ...excludedAfterFailure, withdrawn: true }, { status: "completed" as const }, { status: "abandoned" as const }, { participantStatus: "completed" as const }]) {
+      expect(await resolveWithdrawalSession(token, { secret: SECRET, lookup: lookup({ ...record("2d"), ...ended }) })).toEqual({ allowed: false, redirectTo: "/study/exit?reason=session-ended" });
     }
     const twoD = await signParticipantSession({ participantId: P, sessionId: S, condition: "2d" }, SECRET);
     expect(await resolveWithdrawalSession(twoD, { secret: SECRET, lookup: lookup({ ...record("immersive"), excluded: true }) })).toEqual({ allowed: false, redirectTo: "/study/exit?reason=invalid-session" });

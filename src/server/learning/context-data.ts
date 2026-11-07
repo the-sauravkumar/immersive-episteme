@@ -6,6 +6,7 @@ import type { LearningCondition } from "@/lib/permissions/learning";
 import type { LearningAccess } from "@/server/auth/learning-decision";
 import { nameBasedUuid } from "@/features/knowledge/graph/hash";
 import { nodeSha256 } from "@/features/knowledge/graph/hash-node";
+import { stageTemplateSha256 } from "@/server/study/stage-templates";
 
 type Q = Pick<Pool | PoolClient, "query">;
 
@@ -19,7 +20,7 @@ export interface LearningContext {
   telemetrySessionId: string;
   appBuild: string;
   guidance: DoorGuidance;
-  contentUnderReview: boolean;
+  verifiedStageConcepts: readonly string[];
 }
 
 export class LearningContextUnavailableError extends Error {
@@ -40,13 +41,13 @@ export interface StudySessionContextRow {
   studyConfig: unknown;
   snapshotId: string | null;
   snapshotLabel: string | null;
-  includesUnverified: boolean;
+  verifiedStageConcepts: string[];
 }
 
 export interface PreviewContentRow {
   snapshotLabel: string;
   studyConfig: unknown;
-  includesUnverified: boolean;
+  verifiedStageConcepts: string[];
 }
 
 export interface LearningClockRow {
@@ -66,8 +67,10 @@ export interface LearningContextData {
 export function pgLearningContextData(q: Q): LearningContextData {
   return {
     async findStudySession(sessionId) {
-      const r = await q.query<{ session_id: string; config: unknown; snapshot_id: string | null; version_label: string | null; includes_unverified: boolean | null }>(
-        `SELECT ss.id AS session_id, st.config, ss.snapshot_id, cs.version_label, cs.includes_unverified
+      const r = await q.query<{ session_id: string; config: unknown; snapshot_id: string | null; version_label: string | null; verified_stages: string[] }>(
+        `SELECT ss.id AS session_id, st.config, ss.snapshot_id, cs.version_label,
+                (SELECT coalesce(array_agg(c->>'key' ORDER BY c->>'key'), '{}') FROM jsonb_array_elements(cs.payload->'concepts') c
+                     WHERE c->>'type' = 'process_stage' AND c->>'verificationState' IN ('verified', 'published')) AS verified_stages
            FROM study_sessions ss
            JOIN studies st ON st.id = ss.study_id
            LEFT JOIN content_snapshots cs ON cs.id = ss.snapshot_id
@@ -75,14 +78,16 @@ export function pgLearningContextData(q: Q): LearningContextData {
         [sessionId],
       );
       const row = r.rows[0];
-      return row ? { sessionId: row.session_id, studyConfig: row.config, snapshotId: row.snapshot_id, snapshotLabel: row.version_label, includesUnverified: row.includes_unverified === true } : null;
+      return row ? { sessionId: row.session_id, studyConfig: row.config, snapshotId: row.snapshot_id, snapshotLabel: row.version_label, verifiedStageConcepts: row.verified_stages } : null;
     },
     async startLearningClock(sessionId) {
-      await q.query("UPDATE study_sessions SET learning_started_at = now() WHERE id = $1 AND learning_started_at IS NULL", [sessionId]);
+      await q.query("UPDATE study_sessions SET learning_started_at = now(), template_sha256 = $2 WHERE id = $1 AND learning_started_at IS NULL", [sessionId, await stageTemplateSha256()]);
     },
     async findPreviewContent() {
-      const r = await q.query<{ version_label: string; config: unknown; includes_unverified: boolean }>(
-        `SELECT s.version_label, st.config, s.includes_unverified
+      const r = await q.query<{ version_label: string; config: unknown; verified_stages: string[] }>(
+        `SELECT s.version_label, st.config,
+                (SELECT coalesce(array_agg(c->>'key' ORDER BY c->>'key'), '{}') FROM jsonb_array_elements(s.payload->'concepts') c
+                     WHERE c->>'type' = 'process_stage' AND c->>'verificationState' IN ('verified', 'published')) AS verified_stages
            FROM content_snapshots s
            LEFT JOIN LATERAL (SELECT config FROM studies WHERE is_demo AND snapshot_id = s.id ORDER BY created_at DESC, id DESC LIMIT 1) st ON true
           WHERE s.kind = 'review' AND NOT s.is_demo
@@ -90,7 +95,7 @@ export function pgLearningContextData(q: Q): LearningContextData {
           LIMIT 1`,
       );
       const row = r.rows[0];
-      return row ? { snapshotLabel: row.version_label, studyConfig: row.config ?? {}, includesUnverified: row.includes_unverified } : null;
+      return row ? { snapshotLabel: row.version_label, studyConfig: row.config ?? {}, verifiedStageConcepts: row.verified_stages } : null;
     },
   };
 }
@@ -113,25 +118,11 @@ async function readClock(q: Q, sessionId: string): Promise<LearningClockRow> {
   };
 }
 
-export class LearningFinishRefusedError extends Error {
-  constructor() {
-    super("The learning time budget has not run out and this study does not allow finishing early.");
-    this.name = "LearningFinishRefusedError";
-  }
-}
-
 export async function recordLearningEnded(q: Q, sessionId: string): Promise<LearningClockRow> {
-  const r = await q.query<{ ended: boolean; allowed: boolean }>(
-    `SELECT ss.learning_ended_at IS NOT NULL AS ended,
-            (ss.learning_ends_at IS NULL OR now() >= ss.learning_ends_at
-             OR coalesce((st.config #>> '{exposure,allowEarlyFinish}')::boolean, false)) AS allowed
-       FROM study_sessions ss JOIN studies st ON st.id = ss.study_id WHERE ss.id = $1`,
-    [sessionId],
-  );
+  const r = await q.query<{ ended: boolean }>("SELECT learning_ended_at IS NOT NULL AS ended FROM study_sessions WHERE id = $1", [sessionId]);
   const row = r.rows[0];
   if (!row) throw new LearningContextUnavailableError("session_not_found");
   if (!row.ended) {
-    if (!row.allowed) throw new LearningFinishRefusedError();
     await q.query("UPDATE study_sessions SET learning_ended_at = LEAST(now(), learning_ends_at) WHERE id = $1 AND learning_ended_at IS NULL AND learning_started_at IS NOT NULL", [sessionId]);
   }
   return readClock(q, sessionId);
@@ -148,9 +139,8 @@ function configOf(raw: unknown): StudyConfig {
 
 export function doorGuidanceOf(config: StudyConfig): DoorGuidance {
   const hint = config.guidance.cueEnabled ? (config.guidance.hintText ?? null) : null;
-  const limitMinutes = config.exposure.minutes ?? null;
   return {
-    time: { limitMinutes, earlyFinish: limitMinutes === null || config.exposure.allowEarlyFinish },
+    time: { limitMinutes: config.exposure.minutes ?? null },
     hint,
     stallSeconds: hint === null ? null : config.guidance.stallSeconds,
   };
@@ -173,7 +163,7 @@ export async function resolveLearningContext(
       sessionId: s.sessionId,
       telemetrySessionId: s.sessionId,
       guidance: doorGuidanceOf(cfg),
-      contentUnderReview: s.includesUnverified,
+      verifiedStageConcepts: s.verifiedStageConcepts,
       appBuild: deps.appBuild,
     };
   }
@@ -188,7 +178,7 @@ export async function resolveLearningContext(
     sessionId: null,
     telemetrySessionId: nonStudyTelemetrySessionId(access.kind === "demo" ? "demo" : "preview", access.kind === "demo" ? access.demoId : access.userId),
     guidance: doorGuidanceOf(cfg),
-    contentUnderReview: preview.includesUnverified,
+    verifiedStageConcepts: preview.verifiedStageConcepts,
     appBuild: deps.appBuild,
   };
 }

@@ -184,15 +184,28 @@ describe("no option can be found from the question's wording", () => {
     expect(promptCues(items)).toEqual([]);
   });
 
-  it("keeps the keyed tool of a transfer item out of the account line of the stage it asks about", () => {
-    const tools = generated.flatMap((a) => a.items).filter((item) => item.itemKey.endsWith(".tool"));
-    expect(tools.map((item) => item.itemKey)).toEqual(["transfer.bagru.tool", "transfer.dabu.tool"]);
+  it("keeps every option of a transfer tool item out of the whole account, and hides account lines that state an order", () => {
+    const transfer = generated.flatMap((a) => a.items).filter((item) => item.itemKey.startsWith("transfer."));
+    const tools = transfer.filter((item) => item.itemKey.endsWith(".tool"));
+    expect(tools.map((item) => item.itemKey)).toEqual(["transfer.dabu.tool"]);
     for (const item of tools) {
-      const stage = item.prompt.replace(/^Which of these is used at /, "").replace(/\?$/, "");
-      const line = (item.config.account as string).split("\n").find((entry) => entry.startsWith(`${stage}: `))!;
+      for (const option of optionsOf(item)) expect(overlap(item.config.account as string, option.label), `${item.itemKey} ${option.label}`).toEqual([]);
+    }
+    for (const item of transfer) {
+      const lines = (item.config.account as string).split("\n").slice(1);
+      for (const line of lines) expect(line, item.itemKey).not.toMatch(/: .*\b(after|again|before|final|finally|first|later|next|once|then|until|when)\b/i);
+    }
+    for (const item of transfer.filter((x) => x.itemKey.endsWith(".next"))) {
+      const asked = item.prompt.replace(/^Which stage comes straight after /, "").replace(/\?$/, "");
+      const line = (item.config.account as string).split("\n").find((entry) => entry === asked || entry.startsWith(`${asked}: `))!;
       const key = optionsOf(item).find((option) => option.id === (item.answerKey as { optionId: string }).optionId)!;
       expect(overlap(line, key.label), item.itemKey).toEqual([]);
     }
+  });
+
+  it("gives the delayed stage placement form as many items as the immediate one", () => {
+    expect(byCode("test-stage-placement").items.length).toBeGreaterThan(0);
+    expect(byCode("test-stage-placement-delayed").items.length).toBe(byCode("test-stage-placement").items.length);
   });
 
   it("skips a tool, a next stage or a distractor that repeats the stage named in the question", () => {

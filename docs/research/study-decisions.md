@@ -386,7 +386,10 @@ Every hint and cue is logged (`guidance_used`).
   relatively weak loadings on all three factors".
 - **UMUX-LITE.** Kept as the backup if the battery proves too long. Schrepp & Kollmorgen (2023)
   p. 99 (PDF p. 14): "the 10 detailed questions of the SUS provide more information about
-  potential problems than the two items of the UMUX-LITE."
+  potential problems than the two items of the UMUX-LITE." When a study gives it, the dashboard
+  scores it as Lewis, Utesch & Maher (2013), CHI 2013, p. 2102 (PDF p. 4) describe: "subtract 1
+  from each 7-point item, add them together, then multiply by 100/12". Their regression to the
+  SUS scale is not applied (DR-116).
 - **UEQ-S.** Its hedonic half would reward novelty (p. 99, PDF p. 14: "UEQ-S measures pragmatic
   and hedonic quality and both qualities are equally weighted").
 - **A partial IPQ.** The igroup IPQ page, PDF p. 3: "we recommend to always use the full item

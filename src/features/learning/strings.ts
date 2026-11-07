@@ -98,6 +98,7 @@ export const UNVERIFIED_NOTICE_TEXT = {
   label: "Content state",
   long: "Some of this content is under review and has not yet been verified by a curator.",
   short: "Under review: not yet verified.",
+  caption: "This caption is under review: a curator has not yet verified it.",
 } as const;
 
 /** 2D content that cannot be shown (StateMessage). */

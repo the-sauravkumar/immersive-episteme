@@ -92,17 +92,14 @@ describe("content parity from one template", () => {
     expect(failingCodes(unsourced, "t.template")).toEqual(["caption_unsourced"]);
   });
 
-  it("accepts self-paced learning with the cap and refuses fixed time, no cap or optional stages", () => {
+  it("accepts self-paced learning with the cap and refuses it without one", () => {
     const withExposure = (exposure: Record<string, unknown>) => {
       const input = passingInput();
       (input.study.config as Record<string, unknown>).exposure = exposure;
       return failingCodes(input, "e.exposure");
     };
-    expect(withExposure({ mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true })).toEqual([]);
-    expect(withExposure({ mode: "fixed_time", minutes: 30, allowEarlyFinish: true, requireEveryStage: true })).toEqual(["exposure_not_self_paced"]);
-    expect(withExposure({ mode: "self_paced", allowEarlyFinish: true, requireEveryStage: true })).toEqual(["exposure_no_cap"]);
-    expect(withExposure({ mode: "self_paced", minutes: 30, allowEarlyFinish: true })).toEqual(["exposure_stages_optional"]);
-    expect(withExposure({ mode: "self_paced", minutes: 30, allowEarlyFinish: false, requireEveryStage: true })).toEqual(["exposure_no_early_finish"]);
+    expect(withExposure({ minutes: 30 })).toEqual([]);
+    expect(withExposure({})).toEqual(["exposure_no_cap"]);
     const budget = passingInput();
     budget.sessionBudgets = [{ interface: "immersive_3d", learningBudgetSeconds: 1200 }];
     expect(failingCodes(budget, "e.exposure")).toEqual(["session_budget"]);
@@ -136,18 +133,10 @@ describe("content parity from one template", () => {
     expect(failingCodes(map, "d.journey")).toContain("pre_concept_map");
   });
 
-  it("refuses a within-subjects design, which the study engine cannot run (D3)", () => {
-    const within = passingInput();
-    within.study.design = "within";
-    expect(failingCodes(within, "d.journey")).toContain("design_not_between");
-    expect(runParityChecks(within).passed).toBe(false);
-    expect(failingCodes(passingInput(), "d.journey")).toEqual([]);
-  });
-
   it("refuses an allocation algorithm the study engine cannot draw", () => {
     for (const algorithm of ["counterbalanced", "manual"]) {
       const input = passingInput();
-      (input.study.config as Record<string, unknown>).allocation = { algorithm, point: "after_pre_test" };
+      (input.study.config as Record<string, unknown>).allocation = { algorithm };
       expect(failingCodes(input, "d.journey")).toContain("protocol_rule");
     }
   });

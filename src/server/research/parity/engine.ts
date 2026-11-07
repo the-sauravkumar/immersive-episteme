@@ -119,7 +119,7 @@ export interface ParityInput {
   sessionBudgets?: { interface: string; learningBudgetSeconds: number | null }[];
 }
 
-const CONDITION_OVERRIDE_KEYS = /^(exposure|guidance|assessments?|battery|prompts?|tasks?|instructions?|search(Enabled)?|minimap|cue(Enabled)?|traditions?|traditionSlugs|contentSets)$/i;
+const CONDITION_OVERRIDE_KEYS = /^(exposure|guidance|assessments?|battery|prompts?|tasks?|instructions?|cue(Enabled)?|traditions?|traditionSlugs)$/i;
 
 // ---- figure balance (DESIGN.md 9.9, 11.10, 12.3 rules 8-10; DR-018, DR-020) ------------------
 
@@ -450,7 +450,6 @@ export function runParityChecks(input: ParityInput): ParityReport {
   checks.push(check("d.protocol", "d", "Prompts, assessment battery and guidance are study-wide and identical", "critical", dIssues, { batteryItems: study.battery.length }));
 
   const jIssues: ParityIssue[] = [];
-  if (study.design !== "between") jIssues.push({ code: "design_not_between", message: `The study design is ${study.design}; the study engine runs only the between-groups design (study decision D3).` });
   if (config) {
     const steps = config.steps ?? DEFAULT_STEPS;
     for (const message of protocolIssues(config, steps)) jIssues.push({ code: "protocol_rule", message });
@@ -475,16 +474,11 @@ export function runParityChecks(input: ParityInput): ParityReport {
   const dWarn: ParityIssue[] = [];
   const phases = new Set(study.battery.map((a) => a.phase));
   if (!phases.has("pre") || !phases.has("post")) dWarn.push({ code: "battery_incomplete", message: "The assessment battery has no pre- and/or post-learning assessment." });
-  if (config?.guidance.cueEnabled) dWarn.push({ code: "cue_both_doors", message: "Guidance cues are on: confirm both doors offer the same cue." });
   checks.push(check("d.review", "d", "Battery and guidance points that need researcher review", "warning", dWarn));
 
   const eIssues: ParityIssue[] = [];
   if (config) {
-    const { mode, minutes, allowEarlyFinish, requireEveryStage } = config.exposure;
-    if (mode !== "self_paced") eIssues.push({ code: "exposure_not_self_paced", message: "Learning must be self-paced with a cap (Concept Note rev2, section 9)." });
-    if (!minutes) eIssues.push({ code: "exposure_no_cap", message: "Self-paced learning needs its cap in exposure.minutes." });
-    if (!allowEarlyFinish) eIssues.push({ code: "exposure_no_early_finish", message: "Self-paced learning lets the learner finish before the cap once every stage is visited: set exposure.allowEarlyFinish." });
-    if (!requireEveryStage) eIssues.push({ code: "exposure_stages_optional", message: "Every stage must be visited: set exposure.requireEveryStage." });
+    if (!config.exposure.minutes) eIssues.push({ code: "exposure_no_cap", message: "Self-paced learning needs its cap in exposure.minutes." });
   } else eIssues.push({ code: "exposure_unknown", message: "Exposure settings cannot be read from an invalid configuration." });
   for (const c of study.conditions) if (c.config && "exposure" in c.config) eIssues.push({ code: "exposure_override", message: `Condition ${c.code} sets its own exposure.`, ref: c.id });
   const expected = config?.exposure.minutes ? config.exposure.minutes * 60 : null;

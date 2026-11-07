@@ -15,9 +15,7 @@ import { titleCase } from "@/lib/text/title-case";
 import { PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
 import { resolveParticipantSession, resolveWithdrawalSession } from "@/server/auth/learning-decision";
 import { getStudySessionLookup } from "@/server/auth/study-session-port";
-import { getPool } from "@/server/db/client";
 import { resumeStudy } from "@/server/study/actions";
-import { findEnrollableStudy, stratumChoiceNeeded, StudyEngineError } from "@/server/study/engine";
 
 export const metadata: Metadata = { title: titleCase("Take part in a study") };
 
@@ -70,16 +68,7 @@ async function Entry({ searchParams }: { searchParams: PageProps<"/study">["sear
     );
   }
 
-  let strata: string[] = [];
   const defaultCode = typeof code === "string" ? code.slice(0, 120) : undefined;
-  if (defaultCode) {
-    try {
-      const study = await findEnrollableStudy(getPool(), defaultCode);
-      strata = stratumChoiceNeeded(study) ? study.strata : [];
-    } catch (err) {
-      if (!(err instanceof StudyEngineError)) throw err;
-    }
-  }
   // The full 40rem study column, so the note, the field and the action row end at the header's
   // right edge, as on consent and every in-session step; running text keeps the 34rem measure.
   return (
@@ -91,7 +80,7 @@ async function Entry({ searchParams }: { searchParams: PageProps<"/study">["sear
           <AlertDescription>{message}</AlertDescription>
         </Alert>
       ) : null}
-      <EntryForm defaultCode={defaultCode} strata={strata} />
+      <EntryForm defaultCode={defaultCode} />
     </div>
   );
 }

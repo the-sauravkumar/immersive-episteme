@@ -20,7 +20,11 @@ async function Message({ searchParams }: { searchParams: PageProps<"/study/compl
       tone={m.tone}
       live="status"
       action={
-        m.known ? undefined : (
+        m.offersWithdrawal ? (
+          <Link href="/study/withdraw" className={STUDY_LINK_CLASS}>
+            Withdraw from the study
+          </Link>
+        ) : m.known ? undefined : (
           <Link href="/study" className={STUDY_LINK_CLASS}>
             Open the study page
           </Link>

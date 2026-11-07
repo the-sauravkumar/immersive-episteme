@@ -18,6 +18,7 @@ import { z } from "zod";
 import { studyConfigSchema, type StudyConfig } from "@/features/study/contracts";
 import { consentChangeIssue, DEFAULT_QUESTIONNAIRES, NEW_STUDY_CONFIG } from "@/server/study/config";
 import { seedInstrumentDefinitions } from "@/server/study/instruments";
+import { carriesSampleText } from "@/features/study/test-items";
 import { DESIGNED_TEST_BATTERY, seedTestBattery } from "@/server/study/test-battery";
 import { slugSchema } from "@/lib/validation/primitives";
 
@@ -64,7 +65,6 @@ export interface StudySummary {
   title: string;
   status: string;
   protocolVersion: string;
-  design: string;
   isDemo: boolean;
   participants: number;
   sessions: number;
@@ -73,7 +73,7 @@ export interface StudySummary {
 
 export async function listStudies(q: Q): Promise<StudySummary[]> {
   const r = await q.query<StudySummary>(
-    `SELECT s.id, s.slug, s.title, s.status::text AS status, s.protocol_version AS "protocolVersion", s.design::text AS design,
+    `SELECT s.id, s.slug, s.title, s.status::text AS status, s.protocol_version AS "protocolVersion",
             s.is_demo AS "isDemo",
             (SELECT count(*)::int FROM participants p WHERE p.study_id = s.id) AS participants,
             (SELECT count(*)::int FROM study_sessions ss WHERE ss.study_id = s.id) AS sessions,
@@ -221,6 +221,7 @@ export interface DesignedBatteryResult {
   attached: number;
   newlyLoaded: string[];
   missingInstruments: string[];
+  demoOnly: string[];
 }
 
 type BatteryRow = { assessmentId: string; code: string; phase: string; position: number; required: boolean };
@@ -238,7 +239,8 @@ export async function attachDesignedBattery(pool: Pool | PoolClient, actor: Acto
         )
       ).rows[0]?.id ?? null;
     const designed: BatteryRow[] = [];
-    for (const a of DESIGNED_TEST_BATTERY) {
+    const demoOnly = DESIGNED_TEST_BATTERY.filter(carriesSampleText).map((a) => a.code);
+    for (const a of DESIGNED_TEST_BATTERY.filter((form) => !carriesSampleText(form))) {
       const id = await latest(a.code, a.kind);
       if (id) designed.push({ assessmentId: id, code: a.code, phase: a.phase, position: a.position, required: true });
     }
@@ -271,7 +273,7 @@ export async function attachDesignedBattery(pool: Pool | PoolClient, actor: Acto
       await c.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position, required) VALUES ($1, $2, $3, $4, $5)", [studyId, r.assessmentId, r.phase, r.position, r.required]);
     }
     await audit(c, actor, "study.battery", "study", studyId, { before: before.rows, after: parsed, reason: "Designed test battery and questionnaire instruments attached" });
-    return { attached: parsed.length, newlyLoaded, missingInstruments };
+    return { attached: parsed.length, newlyLoaded, missingInstruments, demoOnly };
   });
 }
 

@@ -22,7 +22,7 @@ describe("the under-review notice", () => {
     expect(css("src/features/walkthrough/ui/walkthrough.css")).toContain(':has(> [data-access-notice], > [data-slot="unverified-notice"]) .walkthrough');
   });
 
-  it("is rendered by the shared door session when the snapshot holds unverified content", () => {
-    expect(css("src/app/(learning)/learn/door-session.tsx")).toContain("ctx.contentUnderReview ? <UnverifiedContentNotice /> : null");
+  it("is rendered by the shared door session when a caption the learner will see is under review", () => {
+    expect(css("src/app/(learning)/learn/door-session.tsx")).toContain("anyCaptionUnderReview(templates) ? <UnverifiedContentNotice /> : null");
   });
 });

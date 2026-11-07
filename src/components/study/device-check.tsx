@@ -158,7 +158,7 @@ export function DeviceCheck() {
     busy.current = true;
     setView({ kind: "checking" });
     const result = await sendDeviceCheck();
-    if (result.ok && (result.outcome === "passed" || result.outcome === "reassigned")) {
+    if (result.ok && result.outcome === "passed") {
       router.replace("/study/session");
       return;
     }

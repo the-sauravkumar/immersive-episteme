@@ -1,7 +1,7 @@
 /**
  * Dashboard rows 3 and 4 of DESIGN.md 11.9 that the live read model (src/server/research/
- * dashboard.ts) does not carry: Figure 3 "Gain by Tradition", Figure 4 "Dwell Time per Layer" and
- * Table 2 "Per-Item Statistics". All are read from stored derived values only; nothing is
+ * dashboard.ts) does not carry: Figure 3 "Gain by Tradition" and Table 2 "Per-Item
+ * Statistics". All are read from stored derived values only; nothing is
  * estimated, imputed or sampled.
  *
  *  - Gain by tradition: the knowledge test split by the tradition of each keyed item's concept
@@ -11,10 +11,6 @@
  *    session counts for a tradition only when it has scored items of that tradition in both tests.
  *    Items without a concept, or whose concept belongs to no tradition, are not counted. This is
  *    a descriptive breakdown of the knowledge test, not a registered outcome.
- *  - Dwell time per layer: the versioned session metric `time.exposure_by_layer_ms`
- *    (src/features/telemetry/metrics.ts), whose `details.byLayer` splits the active exposure time
- *    of a session by the telemetry layer. It is written by the metrics pipeline (Analytics,
- *    "Recompute metrics"), so it is as current as the last recompute; the caption says so.
  *  - Per-item statistics: the stored `item.key_match` score of each keyed answer
  *    (src/features/assessment/responses.ts KEY_MATCH_METRIC: 1 = matches the answer key): one
  *    score per session and item (latest attempt, latest computation), as keyed scoring itself
@@ -24,65 +20,11 @@
  * (the dashboard labels a demo study as non-experimental as a whole, so demo sessions stay in).
  * The aggregation functions are pure, so tests feed them rows.
  */
-import { EXPOSURE_LAYERS } from "@/features/telemetry/contracts";
-import { inCanonicalOrder, KNOWLEDGE_LAYERS } from "@/features/learning/labels";
+import { inCanonicalOrder } from "@/features/learning/labels";
 import type { Q } from "@/server/research/db";
 
-/** The dwell-time metric and its layer split (src/features/telemetry/metrics.ts). */
-export const LAYER_METRIC = "time.exposure_by_layer_ms";
 /** The per-answer keyed score (src/features/assessment/responses.ts). */
 export const ITEM_METRIC = "item.key_match";
-
-/** Layer columns in the one canonical order (labels.ts), then the citation layer telemetry also records. */
-export const LAYER_COLUMNS: readonly { id: string; label: string }[] = [
-  ...KNOWLEDGE_LAYERS.map((l) => ({ id: l.id as string, label: l.label as string })),
-  ...EXPOSURE_LAYERS.filter((id) => !KNOWLEDGE_LAYERS.some((l) => l.id === id)).map((id) => ({ id: id as string, label: id.charAt(0).toUpperCase() + id.slice(1) })),
-];
-
-export interface LayerMetricRow {
-  conditionId: string;
-  sessionId: string;
-  metricVersion: string;
-  /** `details.byLayer` as stored: layer id -> active milliseconds. */
-  byLayer: Record<string, unknown> | null;
-}
-
-export interface LayerDwell {
-  /** Condition ids, in the order given. */
-  conditions: string[];
-  /** Sessions contributing per condition. */
-  n: number[];
-  /** Mean active minutes per session, [condition][layer column]; null when no session. */
-  meanMinutes: (number | null)[][];
-  /** Metric versions present (normally one). */
-  versions: string[];
-}
-
-/**
- * Mean active minutes per session for every layer, by condition. A session that has the metric
- * but never opened a layer contributes 0 to that layer (its split simply has no key for it).
- */
-export function layerDwell(rows: readonly LayerMetricRow[], conditionIds: readonly string[]): LayerDwell {
-  const sums = conditionIds.map(() => LAYER_COLUMNS.map(() => 0));
-  const n = conditionIds.map(() => 0);
-  const versions = new Set<string>();
-  for (const r of rows) {
-    const ci = conditionIds.indexOf(r.conditionId);
-    if (ci < 0) continue;
-    n[ci]!++;
-    versions.add(r.metricVersion);
-    LAYER_COLUMNS.forEach((col, li) => {
-      const v = Number(r.byLayer?.[col.id] ?? 0);
-      if (Number.isFinite(v) && v > 0) sums[ci]![li]! += v;
-    });
-  }
-  return {
-    conditions: [...conditionIds],
-    n,
-    meanMinutes: sums.map((row, ci) => row.map((ms) => (n[ci]! > 0 ? ms / n[ci]! / 60000 : null))),
-    versions: [...versions].sort(),
-  };
-}
 
 export interface ItemScoreRow {
   conditionId: string;
@@ -180,17 +122,6 @@ export function traditionGains(rows: readonly TraditionItemRow[], conditionIds: 
 
 /** In-scope sessions of the study (the dashboard's rule). */
 const IN_SCOPE = "ss.condition_id IS NOT NULL AND NOT ss.excluded AND NOT ss.withdrawn";
-
-export async function loadLayerMetricRows(q: Q, studyId: string): Promise<LayerMetricRow[]> {
-  const r = await q.query<{ condition_id: string; session_id: string; metric_version: string; by_layer: Record<string, unknown> | null }>(
-    `SELECT DISTINCT ON (dm.session_id) dm.condition_id, dm.session_id, dm.metric_version, dm.details->'byLayer' AS by_layer
-       FROM derived_metrics dm JOIN study_sessions ss ON ss.id = dm.session_id
-      WHERE dm.study_id = $1 AND dm.metric_name = $2 AND ${IN_SCOPE}
-      ORDER BY dm.session_id, dm.computed_at DESC`,
-    [studyId, LAYER_METRIC],
-  );
-  return r.rows.map((x) => ({ conditionId: x.condition_id, sessionId: x.session_id, metricVersion: x.metric_version, byLayer: x.by_layer }));
-}
 
 export async function loadItemScoreRows(q: Q, studyId: string): Promise<ItemScoreRow[]> {
   const r = await q.query<{ condition_id: string; code: string; version: number; kind: string; item_key: string; position: number; value: number | null }>(

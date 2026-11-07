@@ -57,6 +57,8 @@ import {
   one,
   publishSnapshot,
   type TestDb,
+  fixtureStageTemplates,
+  visitEveryStage,
 } from "./schema-harness";
 
 const CONSENT = { version: "c-1.0", text: "Test consent text written for this test.\nSecond line." };
@@ -97,7 +99,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     }
     await t.pool.query("UPDATE studies SET config = $2::jsonb, status = 'active' WHERE id = $1", [
       s.studyId,
-      JSON.stringify({ traditionSlugs: ["se-tradition"], consent: CONSENT, allocation: { algorithm: "block", seed: `seed-${slug}` }, exposure: { mode: "self_paced" }, ...config }),
+      JSON.stringify({ traditionSlugs: ["se-tradition"], consent: CONSENT, allocation: { algorithm: "block", seed: `seed-${slug}` }, ...config }),
     ]);
     return findEnrollableStudy(t.pool, slug);
   }
@@ -113,6 +115,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
   const state = async (sessionId: string) => (await loadSessionState(t.pool, sessionId))!;
   const position = async (sessionId: string) => syncPosition(t.pool, await state(sessionId));
   const finished = async (sessionId: string) => {
+    await visitEveryStage(t.pool, sessionId);
     await finishLearning(t.pool, sessionId);
     return position(sessionId);
   };
@@ -121,12 +124,13 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
   async function allocated(study: EnrollableStudy, preValues: Record<string, string[]> = {}): Promise<OpenedSession & { condition: "2d" | "immersive" }> {
     const s = await consented(study);
     await pre(s.sessionId, preValues);
-    await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD });
+    await recordDeviceCheck(t.pool, s.sessionId, report(2));
     const a = await allocateSession(t.pool, s.sessionId);
     return { ...s, condition: a.condition, conditionId: a.conditionId };
   }
 
   beforeAll(async () => {
+    setStageTemplateSource(async () => fixtureStageTemplates("se-tradition"));
     t = await createTestDatabase("study");
     curator = await createUser(t.pool);
     const g = await createRealGraph(t.pool, { prefix: "se", acceptBy: curator });
@@ -162,6 +166,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
   }, 120_000);
 
   afterAll(async () => {
+    setStageTemplateSource(null);
     await t?.drop();
   });
 
@@ -205,7 +210,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     expect(scores.rows.map((x) => `${x.metric_name}:${x.value}`).sort()).toEqual(["assessment.key_match_total:1", "item.key_match:0", "item.key_match:1"]);
     expect(await position(s.sessionId)).toEqual({ kind: "device_check" });
     await expect(allocateSession(t.pool, s.sessionId)).rejects.toMatchObject({ code: "not_current_step" });
-    expect(await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD })).toEqual({ kind: "passed" });
+    expect(await recordDeviceCheck(t.pool, s.sessionId, report(2))).toEqual({ kind: "passed" });
     expect(await position(s.sessionId)).toEqual({ kind: "allocation" });
 
     const a = await allocateSession(t.pool, s.sessionId);
@@ -245,7 +250,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     );
     const s = await consented(study);
     await submitAssessment(t.pool, { sessionId: s.sessionId, step: "pre_test", assessmentId: ids["se-pre-nokey"]!, values: {} });
-    await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD });
+    await recordDeviceCheck(t.pool, s.sessionId, report(2));
     await expect(allocateSession(t.pool, s.sessionId)).rejects.toMatchObject({ code: "allocation_refused" });
     expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM allocations WHERE participant_id = $1", [s.participantId])).n).toBe(0);
     expect((await state(s.sessionId)).journal.some((e) => e.action === "study.allocation_refused")).toBe(true);
@@ -256,7 +261,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     for (let i = 0; i < 8; i++) {
       const s = await consented(study);
       expect(s.condition).toBeNull();
-      await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD });
+      await recordDeviceCheck(t.pool, s.sessionId, report(2));
       await allocateSession(t.pool, s.sessionId);
     }
     const conds = await t.pool.query<{ id: string; code: string; allocation_weight: number }>("SELECT id, code, allocation_weight FROM study_conditions WHERE study_id = $1", [study.id]);
@@ -286,7 +291,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       expect(await position(s.sessionId)).toMatchObject({ step: "questionnaire_pre" });
       await submitAssessment(t.pool, { sessionId: s.sessionId, step: "questionnaire_pre", assessmentId: ids["se-q-pre"]!, values: { [ids["se-q-pre:a"]!]: ["3"] } });
       await pre(s.sessionId);
-      expect(await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD })).toEqual({ kind: "passed" });
+      expect(await recordDeviceCheck(t.pool, s.sessionId, report(2))).toEqual({ kind: "passed" });
       const a = await allocateSession(t.pool, s.sessionId);
       await completeOnboarding(t.pool, s.sessionId);
       expect(await position(s.sessionId)).toMatchObject({ step: "learning" });
@@ -323,7 +328,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     const item = ids["se-q-pre:a"]!;
     await submitAssessment(t.pool, { sessionId: s.sessionId, step: "questionnaire_pre", assessmentId: ids["se-q-pre"]!, values: { [item]: ["2"] } });
     await pre(s.sessionId);
-    await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD });
+    await recordDeviceCheck(t.pool, s.sessionId, report(2));
     await allocateSession(t.pool, s.sessionId);
     await completeOnboarding(t.pool, s.sessionId);
     expect(await finished(s.sessionId)).toMatchObject({ step: "questionnaire_post_learning" });
@@ -397,8 +402,8 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     expect(r.raw).toEqual({ value: 0, itemKind: "likert", assessmentVersion: 2 });
   });
 
-  it("ends a fixed learning budget on the server clock; the hub cannot end it early", async () => {
-    const study = await activeStudy({ steps: BASIC_STEPS, exposure: { mode: "fixed_time", minutes: 1, allowEarlyFinish: false } }, BASIC);
+  it("ends learning at the cap on the server clock; the hub cannot end it early", async () => {
+    const study = await activeStudy({ steps: BASIC_STEPS, exposure: { minutes: 1 } }, BASIC);
     const a = await allocated(study);
     const b = await allocated(study);
     await t.pool.query("UPDATE study_sessions SET learning_started_at = now() - interval '2 minutes' WHERE id = $1", [b.sessionId]);
@@ -417,10 +422,10 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       products: [],
       stages: [1, 2].map((number) => ({ number, key: `${tradition}-s${number}`, sourceStageKeys: [], name: `Stage ${number}`, localName: null, kind: "table" as const, caption: { text: "Sample Text", sources: [] }, items: [], clothStateId: `c${number}` })),
     });
-    const guarded = { mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true };
+    const guarded = { minutes: 30 };
     const traditions: TraditionKey[] = ["ajrakh", "sanganeri", "machilipatnam-kalamkari"];
     beforeAll(() => setStageTemplateSource(async () => traditions.map(template)));
-    afterAll(() => setStageTemplateSource(null));
+    afterAll(() => setStageTemplateSource(async () => fixtureStageTemplates("se-tradition")));
 
     async function learning(exposure: Record<string, unknown> = guarded) {
       const study = await activeStudy({ steps: BASIC_STEPS, traditionSlugs: traditions, exposure }, BASIC);
@@ -745,8 +750,8 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       const s = await consented(study);
       await pre(s.sessionId);
       expect((await state(s.sessionId)).condition).toBeNull();
-      expect(await recordDeviceCheck(t.pool, s.sessionId, report(2, 800, 600), { appBuild: BUILD })).toMatchObject({ kind: "retry", reason: "viewport_too_small" });
-      const out = await recordDeviceCheck(t.pool, s.sessionId, report(null), { appBuild: BUILD });
+      expect(await recordDeviceCheck(t.pool, s.sessionId, report(2, 800, 600))).toMatchObject({ kind: "retry", reason: "viewport_too_small" });
+      const out = await recordDeviceCheck(t.pool, s.sessionId, report(null));
       if (policy === "exclude") {
         expect(out).toEqual({ kind: "excluded" });
         expect(await one(t.pool, "SELECT excluded, status FROM study_sessions WHERE id = $1", [s.sessionId])).toEqual({ excluded: true, status: "abandoned" });

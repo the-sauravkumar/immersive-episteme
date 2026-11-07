@@ -59,9 +59,9 @@ below. Every number cites the test, command or file that produced it.
   them as the 2D page does); (c) the claim-to-source citation pairs and the cited sources are
   identical; (d) no condition overrides exposure, guidance, prompts, assessments, search or
   traditions, condition configs are identical, every battery assessment is locked (battery
-  completeness and guidance cues are warnings for researcher review); (e) exposure is
-  `fixed_time` with minutes, not overridden per condition, and every learning budget already
-  stamped on a session equals it; (f) no condition-specific extra text.
+  completeness is a warning for researcher review); (e) exposure has its cap in minutes, is not
+  overridden per condition, and every learning budget already stamped on a session equals it
+  (DR-116); (f) no condition-specific extra text.
 - **Rejected.** Comparing rendered 2D pages with the 3D scene (needs a browser per check and is
   brittle); comparing only counts (would miss a swapped concept).
 

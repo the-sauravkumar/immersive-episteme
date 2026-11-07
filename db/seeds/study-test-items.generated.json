@@ -1721,9 +1721,9 @@
         "position": 0
       },
       {
-        "itemKey": "place.ajrakh.4.3",
+        "itemKey": "place.ajrakh.7.4",
         "kind": "single_choice",
-        "prompt": "At which stage of Ajrakh is Dusting Agents used?",
+        "prompt": "At which stage of Ajrakh is Indian Madder used?",
         "config": {
           "kind": "single_choice",
           "options": [
@@ -1766,79 +1766,19 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/9a5fcbce.jpg",
-            "alt": "Dusting Agents"
-          },
-          "target": {
-            "tradition": "ajrakh",
-            "stageKey": "ajrakh.alum-and-mud-resist-printing",
-            "objectKey": "ajrakh.material.dusting-agents"
-          }
-        },
-        "answerKey": {
-          "optionId": "s4"
-        },
-        "position": 1
-      },
-      {
-        "itemKey": "place.ajrakh.7.5",
-        "kind": "single_choice",
-        "prompt": "At which stage of Ajrakh is Synthetic Alizarin used?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "s1",
-              "label": "Scouring And Washing"
-            },
-            {
-              "id": "s2",
-              "label": "Harde Pre-Mordanting"
-            },
-            {
-              "id": "s3",
-              "label": "Resist Outline And Iron-Black Printing"
-            },
-            {
-              "id": "s4",
-              "label": "Alum Mordant Printing And Mud Resist"
-            },
-            {
-              "id": "s5",
-              "label": "Indigo Dyeing"
-            },
-            {
-              "id": "s6",
-              "label": "Washing Out Resists"
-            },
-            {
-              "id": "s7",
-              "label": "Red Dyeing"
-            },
-            {
-              "id": "s8",
-              "label": "Dung Soak And Sun-Bleaching"
-            },
-            {
-              "id": "s9",
-              "label": "Final Wash And Finishing"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/objects/cacfbaa3.jpg",
-            "alt": "Synthetic Alizarin"
+            "path": "/walkthrough/stills/objects/95e96ffe.jpg",
+            "alt": "Indian Madder"
           },
           "target": {
             "tradition": "ajrakh",
             "stageKey": "ajrakh.red-dyeing",
-            "objectKey": "ajrakh.material.synthetic-alizarin"
+            "objectKey": "ajrakh.material.madder"
           }
         },
         "answerKey": {
           "optionId": "s7"
         },
-        "position": 2
+        "position": 1
       },
       {
         "itemKey": "place.ajrakh.7.6",
@@ -1898,67 +1838,7 @@
         "answerKey": {
           "optionId": "s7"
         },
-        "position": 3
-      },
-      {
-        "itemKey": "place.machilipatnam-kalamkari.6.2",
-        "kind": "single_choice",
-        "prompt": "At which stage of Machilipatnam Kalamkari is Alizarin, Madder And Chay Root used?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "s1",
-              "label": "Block Carving"
-            },
-            {
-              "id": "s2",
-              "label": "Scouring / Dung Bleaching"
-            },
-            {
-              "id": "s3",
-              "label": "Myrobalan Treatment"
-            },
-            {
-              "id": "s4",
-              "label": "Printing Iron Mordant And Alum Mordant"
-            },
-            {
-              "id": "s5",
-              "label": "Drying / Curing And Degumming Wash"
-            },
-            {
-              "id": "s6",
-              "label": "Dye-Bath Boiling And Sun-Drying"
-            },
-            {
-              "id": "s7",
-              "label": "Second Printing"
-            },
-            {
-              "id": "s8",
-              "label": "Alum Fixing Dip"
-            },
-            {
-              "id": "s9",
-              "label": "Soaping And Final Sun-Drying"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/objects/cd8ea0d2.jpg",
-            "alt": "Alizarin, Madder And Chay Root"
-          },
-          "target": {
-            "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
-            "objectKey": "machilipatnam-kalamkari.material.alizarin-and-red-roots"
-          }
-        },
-        "answerKey": {
-          "optionId": "s6"
-        },
-        "position": 4
+        "position": 2
       },
       {
         "itemKey": "place.machilipatnam-kalamkari.7.3",
@@ -2018,7 +1898,7 @@
         "answerKey": {
           "optionId": "s7"
         },
-        "position": 5
+        "position": 3
       },
       {
         "itemKey": "place.machilipatnam-kalamkari.7.5",
@@ -2078,63 +1958,7 @@
         "answerKey": {
           "optionId": "s7"
         },
-        "position": 6
-      },
-      {
-        "itemKey": "place.sanganeri.3.2",
-        "kind": "single_choice",
-        "prompt": "At which stage of Sanganeri is Block Set: Rekh (Outline), Datta (Filler) And Background Blocks used?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "s2",
-              "label": "Scouring And Harda Pre-Treatment"
-            },
-            {
-              "id": "s3",
-              "label": "Printing The Mordants And Ageing"
-            },
-            {
-              "id": "s4",
-              "label": "Washing And Alizarin / Madder Dyeing"
-            },
-            {
-              "id": "s5",
-              "label": "Sun-Bleaching"
-            },
-            {
-              "id": "s6",
-              "label": "Dabu Resist Printing"
-            },
-            {
-              "id": "s7",
-              "label": "Indigo Dyeing"
-            },
-            {
-              "id": "s8",
-              "label": "Yellow Dyeing And Alum Post-Mordanting"
-            },
-            {
-              "id": "s9",
-              "label": "Final Washing"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/objects/50cf60bc.jpg",
-            "alt": "Block Set: Rekh (Outline), Datta (Filler) And Background Blocks"
-          },
-          "target": {
-            "tradition": "sanganeri",
-            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
-            "objectKey": "sanganeri.tool.rekh-datta-gadh-block-set"
-          }
-        },
-        "answerKey": {
-          "optionId": "s3"
-        },
-        "position": 7
+        "position": 4
       },
       {
         "itemKey": "place.sanganeri.3.3",
@@ -2194,7 +2018,7 @@
         "answerKey": {
           "optionId": "s3"
         },
-        "position": 8
+        "position": 5
       },
       {
         "itemKey": "place.sanganeri.4.5",
@@ -2254,67 +2078,7 @@
         "answerKey": {
           "optionId": "s4"
         },
-        "position": 9
-      },
-      {
-        "itemKey": "place.sanganeri.6.6",
-        "kind": "single_choice",
-        "prompt": "At which stage of Sanganeri is Sawdust used?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "s1",
-              "label": "Block Carving"
-            },
-            {
-              "id": "s2",
-              "label": "Scouring And Harda Pre-Treatment"
-            },
-            {
-              "id": "s3",
-              "label": "Printing The Mordants And Ageing"
-            },
-            {
-              "id": "s4",
-              "label": "Washing And Alizarin / Madder Dyeing"
-            },
-            {
-              "id": "s5",
-              "label": "Sun-Bleaching"
-            },
-            {
-              "id": "s6",
-              "label": "Dabu Resist Printing"
-            },
-            {
-              "id": "s7",
-              "label": "Indigo Dyeing"
-            },
-            {
-              "id": "s8",
-              "label": "Yellow Dyeing And Alum Post-Mordanting"
-            },
-            {
-              "id": "s9",
-              "label": "Final Washing"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/objects/e69e6ae1.jpg",
-            "alt": "Sawdust"
-          },
-          "target": {
-            "tradition": "sanganeri",
-            "stageKey": "sanganeri.dabu-resist-printing",
-            "objectKey": "sanganeri.material.sawdust"
-          }
-        },
-        "answerKey": {
-          "optionId": "s6"
-        },
-        "position": 10
+        "position": 6
       }
     ]
   },
@@ -2998,7 +2762,7 @@
               "label": "Final washing (dhulai) and finishing"
             }
           ],
-          "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.\nMordant printing (chhapai) with syahi and begar: The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar.\nResist printing with dabu (dabu chhapai): Dabu is applied with a wooden block, sawdust is sprinkled over it, and the fabric is dried in the sun before dipping in indigo.\nWashing off excess mordant (khulai): The printed fabric is washed in running water to remove excess mordant before dyeing.\nFinal washing (dhulai) and finishing: The fabric is left in tanks 3-4 hours until the resist softens, then beaten on a flat stone slab where water flows.\nAlum after-mordanting (fitkari rangai): The fabric is dipped for a few minutes in diluted alum, squeezed, dried flat, then stored folded in dark places for at least 3-4 days so the yellow sets.\nYellow over-dyeing by sponging (haldi-naspal putai / potai): Before yellow dyeing, the fabric is again printed with dabu to retain some blue areas.\nScouring (hari sarana / teluni): Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water.\nIndigo dyeing (neel rangai): The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly.\nHarda treatment (peela karna): Harda powder is mixed with water, the cloth submerged, squeezed and dried flat; then folded and beaten to remove excess harda. This is called peela karna.\nDyeing in alizarin/madder (rangai, bhatti): The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous).\nAgeing / drying (sukhai): Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
+          "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.\nMordant printing (chhapai) with syahi and begar: The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar.\nResist printing with dabu (dabu chhapai)\nWashing off excess mordant (khulai)\nFinal washing (dhulai) and finishing\nAlum after-mordanting (fitkari rangai)\nYellow over-dyeing by sponging (haldi-naspal putai / potai)\nScouring (hari sarana / teluni): Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water.\nIndigo dyeing (neel rangai): The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly.\nHarda treatment (peela karna)\nDyeing in alizarin/madder (rangai, bhatti): The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous).\nAgeing / drying (sukhai): Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
           "sampleText": true,
           "target": {
             "tradition": "bagru"
@@ -3024,13 +2788,13 @@
       {
         "itemKey": "transfer.bagru.next",
         "kind": "single_choice",
-        "prompt": "Which stage comes straight after Dyeing in alizarin/madder (rangai, bhatti)?",
+        "prompt": "Which stage comes straight after Resist printing with dabu (dabu chhapai)?",
         "config": {
           "kind": "single_choice",
           "options": [
             {
               "id": "o1",
-              "label": "Resist printing with dabu (dabu chhapai)"
+              "label": "Indigo dyeing (neel rangai)"
             },
             {
               "id": "o2",
@@ -3042,11 +2806,11 @@
             },
             {
               "id": "o4",
-              "label": "Mordant printing (chhapai) with syahi and begar"
+              "label": "Ageing / drying (sukhai)"
             }
           ],
           "shuffle": true,
-          "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.\nMordant printing (chhapai) with syahi and begar: The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar.\nResist printing with dabu (dabu chhapai): Dabu is applied with a wooden block, sawdust is sprinkled over it, and the fabric is dried in the sun before dipping in indigo.\nWashing off excess mordant (khulai): The printed fabric is washed in running water to remove excess mordant before dyeing.\nFinal washing (dhulai) and finishing: The fabric is left in tanks 3-4 hours until the resist softens, then beaten on a flat stone slab where water flows.\nAlum after-mordanting (fitkari rangai): The fabric is dipped for a few minutes in diluted alum, squeezed, dried flat, then stored folded in dark places for at least 3-4 days so the yellow sets.\nYellow over-dyeing by sponging (haldi-naspal putai / potai): Before yellow dyeing, the fabric is again printed with dabu to retain some blue areas.\nScouring (hari sarana / teluni): Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water.\nIndigo dyeing (neel rangai): The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly.\nHarda treatment (peela karna): Harda powder is mixed with water, the cloth submerged, squeezed and dried flat; then folded and beaten to remove excess harda. This is called peela karna.\nDyeing in alizarin/madder (rangai, bhatti): The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous).\nAgeing / drying (sukhai): Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
+          "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.\nMordant printing (chhapai) with syahi and begar: The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar.\nResist printing with dabu (dabu chhapai)\nWashing off excess mordant (khulai)\nFinal washing (dhulai) and finishing\nAlum after-mordanting (fitkari rangai)\nYellow over-dyeing by sponging (haldi-naspal putai / potai)\nScouring (hari sarana / teluni): Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water.\nIndigo dyeing (neel rangai): The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly.\nHarda treatment (peela karna)\nDyeing in alizarin/madder (rangai, bhatti): The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous).\nAgeing / drying (sukhai): Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
           "sampleText": true,
           "target": {
             "tradition": "bagru"
@@ -3056,42 +2820,6 @@
           "optionId": "o1"
         },
         "position": 1
-      },
-      {
-        "itemKey": "transfer.bagru.tool",
-        "kind": "single_choice",
-        "prompt": "Which of these is used at Harda treatment (peela karna)?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "o1",
-              "label": "Mogri (wooden mallet) and stone slab"
-            },
-            {
-              "id": "o2",
-              "label": "Scouring agents: cow dung, soda/soap, sesame oil (telkhar)"
-            },
-            {
-              "id": "o3",
-              "label": "Syahi (fermented iron black)"
-            },
-            {
-              "id": "o4",
-              "label": "Begar (alum mordant paste for red)"
-            }
-          ],
-          "shuffle": true,
-          "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.\nMordant printing (chhapai) with syahi and begar: The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar.\nResist printing with dabu (dabu chhapai): Dabu is applied with a wooden block, sawdust is sprinkled over it, and the fabric is dried in the sun before dipping in indigo.\nWashing off excess mordant (khulai): The printed fabric is washed in running water to remove excess mordant before dyeing.\nFinal washing (dhulai) and finishing: The fabric is left in tanks 3-4 hours until the resist softens, then beaten on a flat stone slab where water flows.\nAlum after-mordanting (fitkari rangai): The fabric is dipped for a few minutes in diluted alum, squeezed, dried flat, then stored folded in dark places for at least 3-4 days so the yellow sets.\nYellow over-dyeing by sponging (haldi-naspal putai / potai): Before yellow dyeing, the fabric is again printed with dabu to retain some blue areas.\nScouring (hari sarana / teluni): Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water.\nIndigo dyeing (neel rangai): The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly.\nHarda treatment (peela karna): Harda powder is mixed with water, the cloth submerged, squeezed and dried flat; then folded and beaten to remove excess harda. This is called peela karna.\nDyeing in alizarin/madder (rangai, bhatti): The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous).\nAgeing / drying (sukhai): Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
-          "sampleText": true,
-          "target": {
-            "tradition": "bagru"
-          }
-        },
-        "answerKey": {
-          "optionId": "o1"
-        },
-        "position": 2
       }
     ]
   },
@@ -3682,9 +3410,9 @@
     "paged": false,
     "items": [
       {
-        "itemKey": "place.ajrakh.7.4",
+        "itemKey": "place.ajrakh.4.3",
         "kind": "single_choice",
-        "prompt": "At which stage of Ajrakh is Indian Madder used?",
+        "prompt": "At which stage of Ajrakh is Dusting Agents used?",
         "config": {
           "kind": "single_choice",
           "options": [
@@ -3727,19 +3455,139 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/95e96ffe.jpg",
-            "alt": "Indian Madder"
+            "path": "/walkthrough/stills/objects/9a5fcbce.jpg",
+            "alt": "Dusting Agents"
+          },
+          "target": {
+            "tradition": "ajrakh",
+            "stageKey": "ajrakh.alum-and-mud-resist-printing",
+            "objectKey": "ajrakh.material.dusting-agents"
+          }
+        },
+        "answerKey": {
+          "optionId": "s4"
+        },
+        "position": 0
+      },
+      {
+        "itemKey": "place.ajrakh.7.5",
+        "kind": "single_choice",
+        "prompt": "At which stage of Ajrakh is Synthetic Alizarin used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Scouring And Washing"
+            },
+            {
+              "id": "s2",
+              "label": "Harde Pre-Mordanting"
+            },
+            {
+              "id": "s3",
+              "label": "Resist Outline And Iron-Black Printing"
+            },
+            {
+              "id": "s4",
+              "label": "Alum Mordant Printing And Mud Resist"
+            },
+            {
+              "id": "s5",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s6",
+              "label": "Washing Out Resists"
+            },
+            {
+              "id": "s7",
+              "label": "Red Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Dung Soak And Sun-Bleaching"
+            },
+            {
+              "id": "s9",
+              "label": "Final Wash And Finishing"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/objects/cacfbaa3.jpg",
+            "alt": "Synthetic Alizarin"
           },
           "target": {
             "tradition": "ajrakh",
             "stageKey": "ajrakh.red-dyeing",
-            "objectKey": "ajrakh.material.madder"
+            "objectKey": "ajrakh.material.synthetic-alizarin"
           }
         },
         "answerKey": {
           "optionId": "s7"
         },
-        "position": 0
+        "position": 1
+      },
+      {
+        "itemKey": "place.machilipatnam-kalamkari.6.2",
+        "kind": "single_choice",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Alizarin, Madder And Chay Root used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring / Dung Bleaching"
+            },
+            {
+              "id": "s3",
+              "label": "Myrobalan Treatment"
+            },
+            {
+              "id": "s4",
+              "label": "Printing Iron Mordant And Alum Mordant"
+            },
+            {
+              "id": "s5",
+              "label": "Drying / Curing And Degumming Wash"
+            },
+            {
+              "id": "s6",
+              "label": "Dye-Bath Boiling And Sun-Drying"
+            },
+            {
+              "id": "s7",
+              "label": "Second Printing"
+            },
+            {
+              "id": "s8",
+              "label": "Alum Fixing Dip"
+            },
+            {
+              "id": "s9",
+              "label": "Soaping And Final Sun-Drying"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/objects/cd8ea0d2.jpg",
+            "alt": "Alizarin, Madder And Chay Root"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
+            "objectKey": "machilipatnam-kalamkari.material.alizarin-and-red-roots"
+          }
+        },
+        "answerKey": {
+          "optionId": "s6"
+        },
+        "position": 2
       },
       {
         "itemKey": "place.machilipatnam-kalamkari.7.4",
@@ -3799,7 +3647,63 @@
         "answerKey": {
           "optionId": "s7"
         },
-        "position": 1
+        "position": 3
+      },
+      {
+        "itemKey": "place.sanganeri.3.2",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Block Set: Rekh (Outline), Datta (Filler) And Background Blocks used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/objects/50cf60bc.jpg",
+            "alt": "Block Set: Rekh (Outline), Datta (Filler) And Background Blocks"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
+            "objectKey": "sanganeri.tool.rekh-datta-gadh-block-set"
+          }
+        },
+        "answerKey": {
+          "optionId": "s3"
+        },
+        "position": 4
       },
       {
         "itemKey": "place.sanganeri.3.4",
@@ -3859,7 +3763,67 @@
         "answerKey": {
           "optionId": "s3"
         },
-        "position": 2
+        "position": 5
+      },
+      {
+        "itemKey": "place.sanganeri.6.6",
+        "kind": "single_choice",
+        "prompt": "At which stage of Sanganeri is Sawdust used?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
+              "id": "s2",
+              "label": "Scouring And Harda Pre-Treatment"
+            },
+            {
+              "id": "s3",
+              "label": "Printing The Mordants And Ageing"
+            },
+            {
+              "id": "s4",
+              "label": "Washing And Alizarin / Madder Dyeing"
+            },
+            {
+              "id": "s5",
+              "label": "Sun-Bleaching"
+            },
+            {
+              "id": "s6",
+              "label": "Dabu Resist Printing"
+            },
+            {
+              "id": "s7",
+              "label": "Indigo Dyeing"
+            },
+            {
+              "id": "s8",
+              "label": "Yellow Dyeing And Alum Post-Mordanting"
+            },
+            {
+              "id": "s9",
+              "label": "Final Washing"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/objects/e69e6ae1.jpg",
+            "alt": "Sawdust"
+          },
+          "target": {
+            "tradition": "sanganeri",
+            "stageKey": "sanganeri.dabu-resist-printing",
+            "objectKey": "sanganeri.material.sawdust"
+          }
+        },
+        "answerKey": {
+          "optionId": "s6"
+        },
+        "position": 6
       }
     ]
   },
@@ -4417,7 +4381,7 @@
             }
           ],
           "shuffle": true,
-          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo): The cloth is dip-dyed after the paste hardens.\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth: The fabric is first washed to remove impurities that could block dyeing.\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying: The cloth turns green, then deepens to indigo as it oxidises in air.\nPreparing the resist paste: The paste is kneaded by stamping over several days, then strained before use.\nOptional pre-printing of colour (naphthol red): Naphthol is printed on areas to be red, sun-dried, then dipped in red salt.\nRepeating resist-dye cycles (double/triple dabu): The resist-and-dye sequence is repeated through a dye bath for each colour needed.\nBlock-printing the resist: Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric.\nSun-drying the resist: The fabric is sun-dried until the paste hardens.\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
+          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo)\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying\nPreparing the resist paste\nOptional pre-printing of colour (naphthol red)\nRepeating resist-dye cycles (double/triple dabu)\nBlock-printing the resist: Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric.\nSun-drying the resist\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
           "sampleText": true,
           "target": {
             "tradition": "dabu"
@@ -4441,19 +4405,19 @@
             },
             {
               "id": "o2",
-              "label": "Mud / black clay (kali mitti)"
+              "label": "Wheat chaff / beedan (insect-eaten wheat flour)"
             },
             {
               "id": "o3",
-              "label": "Lime (chuna, calcium hydroxide)"
+              "label": "Sugarcane molasses (Deesa recipe)"
             },
             {
               "id": "o4",
-              "label": "Natural gum (gond)"
+              "label": "Harda (myrobalan), alum and iron"
             }
           ],
           "shuffle": true,
-          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo): The cloth is dip-dyed after the paste hardens.\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth: The fabric is first washed to remove impurities that could block dyeing.\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying: The cloth turns green, then deepens to indigo as it oxidises in air.\nPreparing the resist paste: The paste is kneaded by stamping over several days, then strained before use.\nOptional pre-printing of colour (naphthol red): Naphthol is printed on areas to be red, sun-dried, then dipped in red salt.\nRepeating resist-dye cycles (double/triple dabu): The resist-and-dye sequence is repeated through a dye bath for each colour needed.\nBlock-printing the resist: Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric.\nSun-drying the resist: The fabric is sun-dried until the paste hardens.\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
+          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo)\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying\nPreparing the resist paste\nOptional pre-printing of colour (naphthol red)\nRepeating resist-dye cycles (double/triple dabu)\nBlock-printing the resist: Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric.\nSun-drying the resist\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
           "sampleText": true,
           "target": {
             "tradition": "dabu"

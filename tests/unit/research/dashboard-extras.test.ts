@@ -1,49 +1,11 @@
 /**
- * Dashboard row 4 (DESIGN.md 11.9): dwell time per layer and per-item statistics are aggregated
- * only from stored derived values, in the canonical layer order, conditions in the order given
- * (the page passes 2D first). No value is imputed: a session without a layer contributes 0
- * minutes to it, an undefined score is counted apart, and a condition without data is null.
+ * Dashboard row 4 (DESIGN.md 11.9): per-item statistics are aggregated only from stored derived
+ * values, conditions in the order given (the page passes 2D first). No value is imputed: an
+ * undefined score is counted apart, and a condition without data is null.
  */
 import { describe, expect, it } from "vitest";
 
-import { itemStatistics, LAYER_COLUMNS, layerDwell, traditionGains, type TraditionItemRow } from "@/app/(research)/research/dashboard/_components/dashboard-extras";
-import { KNOWLEDGE_LAYERS } from "@/features/learning/labels";
-
-describe("layer columns", () => {
-  it("follow the one canonical layer order, then the citation layer telemetry records", () => {
-    expect(LAYER_COLUMNS.map((c) => c.id)).toEqual([...KNOWLEDGE_LAYERS.map((l) => l.id), "citation"]);
-    expect(LAYER_COLUMNS.map((c) => c.label)).toEqual(["Overview", "Artisan", "Process", "Science", "Compare", "Citation"]);
-  });
-});
-
-describe("layerDwell", () => {
-  it("averages active minutes per session per layer, by condition", () => {
-    const d = layerDwell(
-      [
-        { conditionId: "c2d", sessionId: "s1", metricVersion: "1.0.0", byLayer: { overview: 120_000, science: 60_000 } },
-        { conditionId: "c2d", sessionId: "s2", metricVersion: "1.0.0", byLayer: { overview: 60_000 } },
-        { conditionId: "c3d", sessionId: "s3", metricVersion: "1.0.0", byLayer: { process: 30_000, citation: 6_000 } },
-        { conditionId: "other", sessionId: "s4", metricVersion: "1.0.0", byLayer: { overview: 999_999 } },
-      ],
-      ["c2d", "c3d"],
-    );
-    expect(d.n).toEqual([2, 1]);
-    expect(d.versions).toEqual(["1.0.0"]);
-    const col = (id: string) => LAYER_COLUMNS.findIndex((c) => c.id === id);
-    expect(d.meanMinutes[0]![col("overview")]).toBeCloseTo(1.5);
-    expect(d.meanMinutes[0]![col("science")]).toBeCloseTo(0.5);
-    expect(d.meanMinutes[0]![col("process")]).toBe(0);
-    expect(d.meanMinutes[1]![col("process")]).toBeCloseTo(0.5);
-    expect(d.meanMinutes[1]![col("citation")]).toBeCloseTo(0.1);
-  });
-
-  it("is null, not zero, for a condition with no session", () => {
-    const d = layerDwell([{ conditionId: "c2d", sessionId: "s1", metricVersion: "1.0.0", byLayer: null }], ["c2d", "c3d"]);
-    expect(d.n).toEqual([1, 0]);
-    expect(d.meanMinutes[0]!.every((v) => v === 0)).toBe(true);
-    expect(d.meanMinutes[1]!.every((v) => v === null)).toBe(true);
-  });
-});
+import { itemStatistics, traditionGains, type TraditionItemRow } from "@/app/(research)/research/dashboard/_components/dashboard-extras";
 
 describe("itemStatistics", () => {
   const row = (conditionId: string, kind: string, code: string, itemKey: string, position: number, value: number | null) => ({

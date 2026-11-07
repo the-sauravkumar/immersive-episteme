@@ -324,38 +324,13 @@ describe.skipIf(!TEST_URL)("schema: review-fix integrity rules (0005)", () => {
       await expect(createSession(t.pool, studyId, conditionIds.c2d, "P-GRANTED", 12)).resolves.toBeDefined();
     });
 
-    it("records the content set per period in within-subjects designs and copies it to the session", async () => {
-      const s = await one<{ id: string }>(
-        t.pool,
-        `INSERT INTO studies (slug, title, protocol_version, design, snapshot_id, manifest_id, config)
-         VALUES ('within-study', 'Within', 'p1', 'within', $1, $2, '{"contentSets": {"set-a": {}, "set-b": {}}}') RETURNING id`,
-        [snap, manifest],
-      );
-      const c2d = await one<{ id: string }>(
-        t.pool,
-        "INSERT INTO study_conditions (study_id, code, label, interface, position) VALUES ($1, 'conventional', '2D', 'conventional_2d', 0) RETURNING id",
-        [s.id],
-      );
-      await t.pool.query(
-        "INSERT INTO study_conditions (study_id, code, label, interface, position) VALUES ($1, 'immersive', '3D', 'immersive_3d', 1)",
-        [s.id],
-      );
-      await t.pool.query("UPDATE studies SET status = 'active' WHERE id = $1", [s.id]);
-
-      await expect(createSession(t.pool, s.id, c2d.id, "W-0001", 0)).rejects.toThrow(/must record its content set/);
-      await expect(createSession(t.pool, s.id, c2d.id, "W-0002", 1, { contentSetCode: "set-z" })).rejects.toThrow(
-        /content set set-z is not declared/,
-      );
-      const ok = await createSession(t.pool, s.id, c2d.id, "W-0003", 2, { contentSetCode: "set-a" });
-      const row = await one<{ content_set_code: string; compiler_version: string }>(
-        t.pool,
-        "SELECT content_set_code, compiler_version FROM study_sessions WHERE id = $1",
-        [ok.sessionId],
-      );
-      expect(row).toEqual({ content_set_code: "set-a", compiler_version: "test-1.0.0" });
-      await expect(t.pool.query("UPDATE study_sessions SET content_set_code = 'set-b' WHERE id = $1", [ok.sessionId])).rejects.toThrow(
-        /immutable/,
-      );
+    it("knows only the between-groups design", async () => {
+      await expect(
+        t.pool.query(
+          `INSERT INTO studies (slug, title, protocol_version, design, snapshot_id, manifest_id) VALUES ('within-study', 'Within', 'p1', 'within', $1, $2)`,
+          [snap, manifest],
+        ),
+      ).rejects.toThrow(/invalid input value for enum study_design/);
     });
 
     it("activates only on a released release manifest, which records the database environment", async () => {

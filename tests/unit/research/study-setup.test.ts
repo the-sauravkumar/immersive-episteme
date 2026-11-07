@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { studyConfigSchema } from "@/features/study/contracts";
 import { staleMetricsAdvice } from "@/features/research/stale-metrics";
+import { can } from "@/lib/permissions/can";
+import { ROLES } from "@/lib/permissions/roles";
 import { runParityChecks } from "@/server/research/parity/engine";
 import { consentFromForm, exposureFromForm, questionnaireInstruments, questionnairesFromForm } from "@/server/research/study-form";
 import { consentChangeIssue, DEFAULT_QUESTIONNAIRES, DEFAULT_STEPS, instrumentsFor, NEW_STUDY_CONFIG, parseStudyProtocol, protocolIssues } from "@/server/study/config";
@@ -51,9 +53,9 @@ describe("consent authoring in the research console", () => {
 });
 
 describe("pacing in the research console", () => {
-  it("always writes self-paced learning with a cap, early finish after every stage, whatever the form posts", () => {
-    const e = exposureFromForm({ mode: "fixed_time", minutes: 20, allowEarlyFinish: false, requireEveryStage: false }, form({ exposureMode: "fixed_time", exposureMinutes: "25", allowEarlyFinish: "" }));
-    expect(e).toEqual({ mode: "self_paced", minutes: 25, allowEarlyFinish: true, requireEveryStage: true });
+  it("writes the learning cap the form posts and nothing else", () => {
+    const e = exposureFromForm({ minutes: 20 }, form({ exposureMode: "fixed_time", exposureMinutes: "25", allowEarlyFinish: "" }));
+    expect(e).toEqual({ minutes: 25 });
     const input = passingInput();
     (input.study.config as Record<string, unknown>).exposure = e;
     expect(runParityChecks(input).checks.find((c) => c.id === "e.exposure")!.passed).toBe(true);
@@ -113,8 +115,9 @@ describe("questionnaire instruments in the research console", () => {
 });
 
 describe("stale metrics advice on the exports page", () => {
-  it("sends only roles that can recompute to the Recompute button", () => {
-    expect(staleMetricsAdvice(2, true)).toBe("2 sessions have missing or stale derived metrics. Recompute them on the Analytics page first, or the re-import check will report them.");
-    expect(staleMetricsAdvice(1, false)).toMatch(/^1 session has missing or stale derived metrics\. Your role cannot recompute them: ask a researcher or the principal investigator/);
+  it("sends every role that exports to the Recompute button, which each of them holds", () => {
+    expect(staleMetricsAdvice(2)).toBe("2 sessions have missing or stale derived metrics. Recompute them on the Analytics page first, or the re-import check will report them.");
+    expect(staleMetricsAdvice(1)).toMatch(/^1 session has missing or stale derived metrics\. Recompute them/);
+    for (const role of ROLES) if (can({ roles: [role] }, "exports.create")) expect(can({ roles: [role] }, "metrics.recompute"), role).toBe(true);
   });
 });

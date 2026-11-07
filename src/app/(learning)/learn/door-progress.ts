@@ -18,7 +18,6 @@ const RETURNED_NOTICE = "You are back at the first stop the study has not record
 const DELAYED_NOTICE = "Your progress is not reaching the study. It will be sent when the connection returns.";
 const FAILURE_UNREPORTED_NOTICE = "The study could not be told about this. Check the connection and reload the page.";
 const UNSAVED_NOTICE = "Your progress could not be saved. Check the connection and press the button again.";
-export const TIME_REMAINING_NOTICE = "The questions open when the learning time is up. Until then you can go back to any stop you have visited.";
 
 export function routeAfterRenderFailure(result: Extract<DeviceCheckResult, { ok: true }>): string {
   return result.outcome === "excluded" ? EXCLUDED_PAGE : STUDY_HUB;
@@ -112,10 +111,6 @@ export function useDoorProgress(templates: readonly StageTemplate[]): DoorProgre
       const missing = outcome.unvisited.map((stop) => `${titleCase(stop.traditionKey.replace(/-/g, " "))} ${stop.stageNumber}`).join(", ");
       setNotice(`Some stops are still to visit: ${missing}.`);
       returnTo(outcome.unvisited[0]);
-      return false;
-    }
-    if (outcome.reason === "time_remaining") {
-      setNotice(TIME_REMAINING_NOTICE);
       return false;
     }
     setNotice(UNSAVED_NOTICE);

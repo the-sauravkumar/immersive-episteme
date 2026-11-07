@@ -7,7 +7,7 @@ import { Pool } from "pg";
 
 loadEnv({ quiet: true });
 
-const BATTERY_VERSION = 5;
+const BATTERY_VERSION = 6;
 export const JOURNEY_STUDY = `demo-walking-v${BATTERY_VERSION}`;
 export const CAP_STUDY = `demo-walking-cap-v${BATTERY_VERSION}`;
 

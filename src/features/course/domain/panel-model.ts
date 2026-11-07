@@ -20,6 +20,7 @@ export interface StagePanelModel {
   readonly name: string;
   readonly localName: string | null;
   readonly caption: string;
+  readonly captionUnderReview: boolean;
   readonly sources: readonly SourceRef[];
   readonly objects: readonly PanelObject[];
   readonly clothStateId: string;
@@ -55,6 +56,7 @@ export function stagePanelModel(template: StageTemplate, stageIndex: number): St
     name: stage.name,
     localName: stage.localName,
     caption: stage.caption.text,
+    captionUnderReview: stage.caption.underReview === true,
     sources: stage.caption.sources,
     objects: stage.items.map((item) => ({
       key: item.key,
@@ -94,6 +96,7 @@ export function practicePanelModel(stepIndex: number): StagePanelModel {
     name,
     localName: null,
     caption,
+    captionUnderReview: false,
     sources: [],
     objects: [{ key: "practice-object", role: "tool", label: PRACTICE_OBJECT_LABEL, localName: null, modelId: PRACTICE_MODEL, stillSrc: stillPath(PRACTICE_MODEL), colourUnsettled: false }],
     clothStateId: PRACTICE_CLOTH_STATE,

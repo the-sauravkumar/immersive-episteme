@@ -35,7 +35,10 @@ import {
   one,
   publishSnapshot,
   type TestDb,
+  fixtureStageTemplates,
+  visitEveryStage,
 } from "./schema-harness";
+import { setStageTemplateSource } from "../../src/server/study/stage-templates";
 
 const CONSENT = { version: "c-1.0", text: "Test consent text written for this test." };
 const BUILD = "test-build";
@@ -55,9 +58,10 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
     await recordConsent(t.pool, { participantId: p.participantId, study, decision: "granted", shownVersion: CONSENT.version });
     const s = await openSessionAfterConsent(t.pool, { participantId: p.participantId, studyId: study.id, appBuild: BUILD });
     await submitAssessment(t.pool, { sessionId: s.sessionId, step: "pre_test", assessmentId: ids["pu-pre"]!, values: { [ids["pu-pre:q1"]!]: ["b"] } });
-    await recordDeviceCheck(t.pool, s.sessionId, { viewport: { width: 1280, height: 800 }, webglVersion: 2, inputDevices: ["keyboard"] }, { appBuild: "test" });
+    await recordDeviceCheck(t.pool, s.sessionId, { viewport: { width: 1280, height: 800 }, webglVersion: 2, inputDevices: ["keyboard"] });
     const a = await allocateSession(t.pool, s.sessionId);
     await completeOnboarding(t.pool, s.sessionId);
+    await visitEveryStage(t.pool, s.sessionId);
     await finishLearning(t.pool, s.sessionId);
     // A final post map with an edge (revisions by trigger), a derived score on it.
     const nodes = conceptIds.map((c, i) => ({ key: `n${i}`, conceptId: c, label: `c${i}`, x: 0, y: 0 }));
@@ -99,6 +103,7 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
   }
 
   beforeAll(async () => {
+    setStageTemplateSource(async () => fixtureStageTemplates("pu-tradition"));
     t = await createTestDatabase("purge");
     pi = await createUser(t.pool);
     const g = await createRealGraph(t.pool, { prefix: "pu", acceptBy: pi });
@@ -128,12 +133,13 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
     }
     await t.pool.query("UPDATE studies SET status = 'active', config = $2::jsonb WHERE id = $1", [
       s.studyId,
-      JSON.stringify({ traditionSlugs: ["pu-tradition"], consent: CONSENT, allocation: { algorithm: "block", seed: "purge" }, exposure: { mode: "self_paced" }, steps: ["pre_test", "onboarding", "learning", "post_test"], retentionDays: 30 }),
+      JSON.stringify({ traditionSlugs: ["pu-tradition"], consent: CONSENT, allocation: { algorithm: "block", seed: "purge" }, exposure: {}, steps: ["pre_test", "onboarding", "learning", "post_test"], retentionDays: 30 }),
     ]);
     study = await findEnrollableStudy(t.pool, "purge-study");
   }, 120_000);
 
   afterAll(async () => {
+    setStageTemplateSource(null);
     await t?.drop();
   });
 

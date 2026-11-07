@@ -47,7 +47,7 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
       <StudyPicker studies={studies} current={study.id} />
       {stale.stale > 0 ? (
         <Notice tone="warn" title="Warning">
-          {staleMetricsAdvice(stale.stale, can(principal, "study.configure"))}
+          {staleMetricsAdvice(stale.stale)}
         </Notice>
       ) : null}
       {scopes.map((scope) => {

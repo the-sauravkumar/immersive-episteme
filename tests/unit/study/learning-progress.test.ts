@@ -71,9 +71,10 @@ describe("learning progress client", () => {
     expect(await finishLearning()).toEqual({ ok: false, reason: "unavailable" });
   });
 
-  it("passes a refused early finish through with its end time", async () => {
-    respond({ ok: false, reason: "time_remaining", endsAt: "2026-11-07T10:30:00.000Z" }, 409);
-    expect(await finishLearning()).toEqual({ ok: false, reason: "time_remaining", endsAt: "2026-11-07T10:30:00.000Z" });
+  it("passes a finish refused before the cap through with the stops still to visit", async () => {
+    const unvisited = [{ traditionKey: "ajrakh", stageKey: "ajrakh-s2", stageNumber: 2 }];
+    respond({ ok: false, reason: "stages_unvisited", unvisited }, 409);
+    expect(await finishLearning()).toEqual({ ok: false, reason: "stages_unvisited", unvisited });
   });
 
   it("treats a server that no longer knows the participant as the end of learning", async () => {

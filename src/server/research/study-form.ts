@@ -7,7 +7,7 @@ export const CONSOLE_ALLOCATION_ALGORITHMS = ["stratified_block", "block", "simp
 export function allocationFromForm(current: StudyConfig["allocation"], algorithm: string, blockSize: number | undefined): Record<string, unknown> {
   const { stratifyBy, ...rest } = current;
   const chosen = (CONSOLE_ALLOCATION_ALGORITHMS as readonly string[]).includes(algorithm) ? algorithm : current.algorithm;
-  const stratified = chosen === "stratified_block" && current.point === "after_pre_test";
+  const stratified = chosen === "stratified_block";
   return {
     ...rest,
     algorithm: chosen,
@@ -39,7 +39,7 @@ const longText = (d: FormData, k: string) => field(d, k).replace(/\r\n?/g, "\n")
 
 export function exposureFromForm(current: Partial<StudyConfig["exposure"]> | undefined, d: FormData): StudyConfig["exposure"] {
   const minutes = field(d, "exposureMinutes");
-  return { ...current, mode: "self_paced", minutes: minutes ? Number(minutes) : undefined, allowEarlyFinish: true, requireEveryStage: true };
+  return { ...current, minutes: minutes ? Number(minutes) : undefined };
 }
 
 export type ConsentFromForm = { ok: true; consent: StudyConfig["consent"]; participantInformation: string | undefined } | { ok: false; error: string };

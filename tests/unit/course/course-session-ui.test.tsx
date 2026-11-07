@@ -144,10 +144,10 @@ describe("CourseSession", () => {
   });
 
   it("states the configured time limit in Help, and that going back stays in the tradition", () => {
-    render(<CourseSession templates={[template]} studyMode guidance={{ time: { limitMinutes: 45, earlyFinish: false }, hint: null, stallSeconds: null }} />);
+    render(<CourseSession templates={[template]} studyMode guidance={{ time: { limitMinutes: 45 }, hint: null, stallSeconds: null }} />);
     fireEvent.click(screen.getByRole("button", { name: "Help" }));
     const help = screen.getByRole("dialog").textContent ?? "";
-    expect(help).toContain("The session lasts 45 minutes");
+    expect(help).toContain("the session limit of 45 minutes");
     expect(help).not.toContain("30 minutes");
     expect(help).toContain("in the tradition you are in");
   });
@@ -156,7 +156,7 @@ describe("CourseSession", () => {
     vi.useFakeTimers();
     try {
       const report = vi.fn();
-      render(<CourseSession templates={[template]} studyMode guidance={{ time: { limitMinutes: 30, earlyFinish: true }, hint: "Follow the cloth.", stallSeconds: 60 }} onGuidance={report} />);
+      render(<CourseSession templates={[template]} studyMode guidance={{ time: { limitMinutes: 30 }, hint: "Follow the cloth.", stallSeconds: 60 }} onGuidance={report} />);
       fireEvent.click(screen.getByRole("button", { name: "Hint" }));
       expect(screen.getByRole("dialog").textContent).toContain("Follow the cloth.");
       expect(report).toHaveBeenLastCalledWith("followed", "hint");

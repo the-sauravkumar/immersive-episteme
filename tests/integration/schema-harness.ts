@@ -12,6 +12,8 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { Pool, type PoolClient } from "pg";
 
 import { seedReferenceData } from "../../db/seeds/reference";
+import type { StageTemplate } from "../../src/features/process/domain/stage-template";
+import { assignedStops, loadSessionState, recordStageEntered } from "../../src/server/study/engine";
 import { runMigrations } from "../../scripts/db/_shared";
 
 export const TEST_URL = process.env.TEST_DATABASE_URL;
@@ -312,15 +314,15 @@ export async function createSession(
   conditionId: string,
   code: string,
   sequenceIndex = 0,
-  opts: { consent?: boolean; contentSetCode?: string | null } = {},
+  opts: { consent?: boolean } = {},
 ): Promise<{ participantId: string; allocationId: string; sessionId: string }> {
   const p = await one<{ id: string }>(pool, "INSERT INTO participants (study_id, code) VALUES ($1, $2) RETURNING id", [studyId, code]);
   if (opts.consent !== false) await recordConsent(pool, p.id);
   const a = await one<{ id: string }>(
     pool,
-    `INSERT INTO allocations (study_id, participant_id, condition_id, algorithm, seed, sequence_index, study_protocol_version, content_set_code)
-     VALUES ($1, $2, $3, 'block', 'seed-1', $4, 'p1', $5) RETURNING id`,
-    [studyId, p.id, conditionId, sequenceIndex, opts.contentSetCode ?? null],
+    `INSERT INTO allocations (study_id, participant_id, condition_id, algorithm, seed, sequence_index, study_protocol_version)
+     VALUES ($1, $2, $3, 'block', 'seed-1', $4, 'p1') RETURNING id`,
+    [studyId, p.id, conditionId, sequenceIndex],
   );
   const s = await one<{ id: string }>(
     pool,
@@ -329,4 +331,20 @@ export async function createSession(
     [studyId, p.id, conditionId, a.id],
   );
   return { participantId: p.id, allocationId: a.id, sessionId: s.id };
+}
+
+export function fixtureStageTemplates(...traditions: string[]): StageTemplate[] {
+  return traditions.map((tradition) => ({
+    tradition: tradition as StageTemplate["tradition"],
+    traditionName: `Sample Text ${tradition}`,
+    rawClothStateId: "raw",
+    products: [],
+    stages: [{ number: 1, key: `${tradition}-s1`, sourceStageKeys: [], name: "Stage 1", localName: null, kind: "table", caption: { text: "Sample Text", sources: [] }, items: [], clothStateId: "c1" }],
+  }));
+}
+
+export async function visitEveryStage(pool: Pool, sessionId: string): Promise<void> {
+  const state = await loadSessionState(pool, sessionId);
+  if (!state) throw new Error(`No session ${sessionId}`);
+  for (const stop of await assignedStops(state)) await recordStageEntered(pool, sessionId, { traditionKey: stop.traditionKey, stageKey: stop.stageKey });
 }

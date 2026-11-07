@@ -39,7 +39,6 @@ export const conditionCodeSchema = z.string().regex(/^[a-z][a-z0-9_]{0,47}$/);
 /** Content set / task code recorded per allocation period (db: allocations_content_set_ck). */
 export const periodCodeSchema = z.string().regex(/^[a-z0-9][a-z0-9_.-]{0,63}$/, "lowercase letters, digits, '.', '_' or '-'");
 
-export const ALLOCATION_POINTS = ["enrolment", "after_pre_test"] as const;
 export const STRATUM_SOURCES = ["pre_test_score"] as const;
 
 export const STUDY_STEPS = [
@@ -78,23 +77,12 @@ export const studyConfigSchema = z.object({
     .object({
       algorithm: allocationAlgorithmSchema.default("block"),
       blockSize: z.number().int().positive().optional(),
-      /** Researcher-entered strata, used only when `point = "enrolment"`. */
-      strata: z.array(z.string().min(1)).default([]),
       /** Randomisation seed, recorded on every allocation (study engine). Keep it secret for concealment. */
       seed: z.string().min(1).max(128).optional(),
-      point: z.enum(ALLOCATION_POINTS).default("after_pre_test"),
       stratifyBy: z.object({ source: z.enum(STRATUM_SOURCES), cutoff: z.number().finite() }).optional(),
     })
-    .default({ algorithm: "block", strata: [], point: "after_pre_test" }),
-  exposure: z
-    .object({
-      mode: z.enum(["fixed_time", "self_paced"]).default("self_paced"),
-      minutes: z.number().int().positive().optional(),
-      allowEarlyFinish: z.boolean().default(false),
-      requireEveryStage: z.boolean().default(false),
-    })
-    .refine((e) => e.mode !== "fixed_time" || e.minutes !== undefined, { path: ["minutes"], message: "A fixed_time study needs exposure.minutes" })
-    .default({ mode: "self_paced", allowEarlyFinish: false, requireEveryStage: false }),
+    .default({ algorithm: "block" }),
+  exposure: z.object({ minutes: z.number().int().positive().optional() }).default({}),
   delayedTest: z
     .object({
       opensAfterDays: z.number().int().min(1).max(60).default(6),
@@ -244,8 +232,6 @@ export const allocationRecordSchema = z
     stratum: z.string().max(64).nullish(),
     studyProtocolVersion: z.string().min(1).max(64),
     overrideReason: z.string().max(2000).nullish(),
-    /** Content set received in this period (required for within-subjects designs, by trigger). */
-    contentSetCode: periodCodeSchema.nullish(),
     /** Learning task received in this period, if the protocol defines tasks. */
     taskCode: periodCodeSchema.nullish(),
   })

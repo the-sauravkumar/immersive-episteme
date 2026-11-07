@@ -5,10 +5,9 @@ import { finishLabel, PRACTICE_HELP_LINES, sessionHelpLines, UNTIMED_SESSION } f
 
 describe("help lines", () => {
   it("states the study's own limit, never a fixed 30 minutes", () => {
-    expect(sessionHelpLines({ limitMinutes: 45, earlyFinish: true }).join(" ")).toContain("up to the session limit of 45 minutes");
-    expect(sessionHelpLines({ limitMinutes: 45, earlyFinish: false }).join(" ")).toContain("The session lasts 45 minutes");
-    expect(sessionHelpLines({ limitMinutes: 1, earlyFinish: false }).join(" ")).toContain("1 minute and");
-    expect(sessionHelpLines({ limitMinutes: 20, earlyFinish: true }).join(" ")).not.toContain("30");
+    expect(sessionHelpLines({ limitMinutes: 45 }).join(" ")).toContain("up to the session limit of 45 minutes");
+    expect(sessionHelpLines({ limitMinutes: 1 }).join(" ")).toContain("limit of 1 minute.");
+    expect(sessionHelpLines({ limitMinutes: 20 }).join(" ")).not.toContain("30");
   });
 
   it("states that there is no limit when no cap runs", () => {

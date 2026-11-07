@@ -182,6 +182,17 @@ describe("WalkthroughSession", () => {
     expect(f.events.onContextLost).toHaveBeenCalledTimes(1);
   });
 
+  it("reports nothing when the context is lost because the page is closing", () => {
+    const f = fixture();
+    render(<WalkthroughSession templates={templates} events={f.events} createEngine={f.createEngine} />);
+    act(() => {
+      window.dispatchEvent(new Event("pagehide"));
+      f.engines[0]!.events.onContextLost();
+    });
+    expect(f.events.onRenderFailed).not.toHaveBeenCalled();
+    expect(f.events.onContextLost).not.toHaveBeenCalled();
+  });
+
   it("reports a context loss only when the context is lost, not when the yard fails to start", async () => {
     const f = fixture({ rejects: true });
     render(<WalkthroughSession templates={templates} events={f.events} createEngine={f.createEngine} />);
@@ -220,7 +231,7 @@ describe("WalkthroughSession", () => {
 
   it("states the configured time limit in Help, and no limit when there is none", () => {
     const f = fixture();
-    const { unmount } = render(<WalkthroughSession templates={templates} events={f.events} createEngine={f.createEngine} studyMode guidance={{ time: { limitMinutes: 45, earlyFinish: true }, hint: null, stallSeconds: null }} />);
+    const { unmount } = render(<WalkthroughSession templates={templates} events={f.events} createEngine={f.createEngine} studyMode guidance={{ time: { limitMinutes: 45 }, hint: null, stallSeconds: null }} />);
     fireEvent.click(screen.getByRole("button", { name: "Help" }));
     const help = screen.getByRole("dialog", { name: "Help" }).textContent ?? "";
     expect(help).toContain("45 minutes");
@@ -236,7 +247,7 @@ describe("WalkthroughSession", () => {
     vi.useFakeTimers();
     try {
       const f = fixture();
-      render(<WalkthroughSession templates={templates} events={f.events} createEngine={f.createEngine} studyMode guidance={{ time: { limitMinutes: 30, earlyFinish: true }, hint: "Follow the cloth.", stallSeconds: 60 }} />);
+      render(<WalkthroughSession templates={templates} events={f.events} createEngine={f.createEngine} studyMode guidance={{ time: { limitMinutes: 30 }, hint: "Follow the cloth.", stallSeconds: 60 }} />);
       fireEvent.click(screen.getByRole("button", { name: "Hint" }));
       expect(screen.getByRole("dialog", { name: "Hint" }).textContent).toContain("Follow the cloth.");
       expect(f.events.onGuidance).toHaveBeenLastCalledWith("followed", "hint");
@@ -294,7 +305,7 @@ describe("WalkthroughPractice", () => {
   it("keeps Finish Practice and the keys off until the yard is ready", () => {
     const f = fixture({ entering: false });
     const finished = vi.fn();
-    render(<WalkthroughPractice createEngine={f.createEngine} onFinished={finished} onRenderFailed={vi.fn()} />);
+    render(<WalkthroughPractice createEngine={f.createEngine} onFinished={finished} onRenderFailed={vi.fn()} onContextLost={vi.fn()} />);
     const finish = screen.getByRole("button", { name: "Finish Practice" });
     expect(finish).toHaveProperty("disabled", true);
     fireEvent.keyDown(window, { code: "KeyW" });
@@ -307,7 +318,7 @@ describe("WalkthroughPractice", () => {
 
   it("tells the practice yard's own facts in Help, not the session's stages, sources and limit", () => {
     const f = fixture();
-    render(<WalkthroughPractice createEngine={f.createEngine} onFinished={vi.fn()} onRenderFailed={vi.fn()} />);
+    render(<WalkthroughPractice createEngine={f.createEngine} onFinished={vi.fn()} onRenderFailed={vi.fn()} onContextLost={vi.fn()} />);
     fireEvent.click(screen.getByRole("button", { name: "Help" }));
     const help = screen.getByRole("dialog", { name: "Help" }).textContent ?? "";
     expect(help).toContain("Nothing here is part of the test");
@@ -317,8 +328,16 @@ describe("WalkthroughPractice", () => {
   it("reports a failure to the door", () => {
     const f = fixture({ throws: true });
     const failed = vi.fn();
-    render(<WalkthroughPractice createEngine={f.createEngine} onFinished={vi.fn()} onRenderFailed={failed} />);
+    render(<WalkthroughPractice createEngine={f.createEngine} onFinished={vi.fn()} onRenderFailed={failed} onContextLost={vi.fn()} />);
     expect(failed).toHaveBeenCalledTimes(1);
+  });
+
+  it("logs a lost WebGL context in the practice yard before it reports the failure", () => {
+    const f = fixture();
+    const order: string[] = [];
+    render(<WalkthroughPractice createEngine={f.createEngine} onFinished={vi.fn()} onRenderFailed={() => order.push("failed")} onContextLost={() => order.push("lost")} />);
+    act(() => f.engines[0]!.events.onContextLost());
+    expect(order).toEqual(["lost", "failed"]);
   });
 });
 

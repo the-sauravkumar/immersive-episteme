@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { CsvButton, DataDisclosure, DotIntervalChart, ValueHeatmap, type IntervalGroup } from "@/components/analytics/charts";
+import { CsvButton, DataDisclosure, DotIntervalChart, type IntervalGroup } from "@/components/analytics/charts";
 import { conditionKind } from "@/components/analytics/encoding";
 import { ContentParity } from "@/components/parity/content-parity";
 import { ConsolePage } from "@/components/shell/gates";
@@ -28,15 +28,10 @@ import { listStudies } from "@/server/research/studies";
 import { DemoBadge, Empty, LINK_44, pickStudy, Section, StatRow, StatusBadge, StudyPicker, SubHeading } from "../_components/common";
 import {
   itemStatistics,
-  LAYER_COLUMNS,
-  LAYER_METRIC,
-  layerDwell,
   loadItemScoreRows,
-  loadLayerMetricRows,
   loadTraditionItemRows,
   traditionGains,
   type ItemStat,
-  type LayerDwell,
   type TraditionGain,
 } from "./_components/dashboard-extras";
 import { LiveSessionsTable } from "./_components/live-sessions";
@@ -89,11 +84,10 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
   const studies = await listStudies(pool);
   const study = pickStudy(studies, sp.study);
   if (!study) return <StudyPicker studies={studies} current={null} />;
-  const [principal, { data }, parity, layerRows, itemRows, traditionRows] = await Promise.all([
+  const [principal, { data }, parity, itemRows, traditionRows] = await Promise.all([
     getStaffPrincipal(),
     serveDashboard(study.id),
     contentParityRows(pool, [study]),
-    loadLayerMetricRows(pool, study.id),
     loadItemScoreRows(pool, study.id),
     loadTraditionItemRows(pool, study.id),
   ]);
@@ -162,9 +156,8 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
 
       <TraditionRow conditions={conditions} gains={traditionGains(traditionRows, conditions.map((c) => c.id))} n={n} demo={demo} csvHref={extraCsvHref} />
 
-      <DwellAndItemsRow
+      <ItemsRow
         conditions={conditions}
-        dwell={layerDwell(layerRows, conditions.map((c) => c.id))}
         items={itemStatistics(itemRows, conditions.map((c) => c.id))}
         n={n}
         demo={demo}
@@ -321,54 +314,31 @@ function TraditionRow({
 }
 
 /**
- * Row 4 of 11.9: dwell time per layer (heatmap on the sequential ramp, values in cells) and the
- * per-item statistics (booktabs, right-aligned tabular, Download CSV). Both from stored derived
- * values (./_components/dashboard-extras.ts); with none stored, each says so and draws nothing.
+ * Row 4 of 11.9: the per-item statistics (booktabs, right-aligned tabular, Download CSV), from
+ * stored derived values (./_components/dashboard-extras.ts); with none stored, it says so.
  */
-function DwellAndItemsRow({
+function ItemsRow({
   conditions,
-  dwell,
   items,
   n,
   demo,
   csvHref,
 }: {
   conditions: { id: string; label: string }[];
-  dwell: LayerDwell;
   items: ItemStat[];
   n: Counter;
   demo: boolean;
   csvHref: (table: DashboardExtraTableName) => string | undefined;
 }) {
-  const hasDwell = dwell.n.some((k) => k > 0);
-  const label = (id: string) => conditions.find((c) => c.id === id)?.label ?? id;
   return (
     <Section
       id="layers-items"
       eyebrow="Process"
-      title="Dwell time and item statistics"
+      title="Item statistics"
       demo={demo}
-      description="Where active exposure time went, by knowledge layer, and how each keyed test item was answered, by condition. Descriptive; no causal reading."
+      description="How each keyed test item was answered, by condition. Descriptive; no causal reading."
     >
       <div className="flex flex-col gap-10">
-        <ValueHeatmap
-          number={n.figure()}
-          title="Dwell time per layer"
-          howToRead={
-            hasDwell
-              ? `Cells print the mean active minutes per session spent with each layer open (pauses excluded), 1 decimal; a darker cell means more time. ${dwell.conditions.map((id, i) => `${label(id)} n = ${dwell.n[i]}`).join(", ")} sessions. From ${LAYER_METRIC} ${dwell.versions.map((v) => `v${v}`).join(", ")}, current as of the last metrics recompute (Analytics).`
-              : `Mean active minutes per session per layer, from ${LAYER_METRIC}.`
-          }
-          rowLabels={dwell.conditions.map(label)}
-          colLabels={LAYER_COLUMNS.map((c) => c.label)}
-          values={dwell.meanMinutes}
-          digits={1}
-          valueName="Mean minutes per session"
-          rowName="Condition"
-          colName="Layer"
-          csvHref={csvHref("dashboard_dwell")}
-          empty={hasDwell ? undefined : "No per-layer exposure metrics yet: they are computed by “Recompute metrics” on the Analytics page."}
-        />
         {items.length ? (
           <div className="flex min-w-0 flex-col gap-3">
             <Table

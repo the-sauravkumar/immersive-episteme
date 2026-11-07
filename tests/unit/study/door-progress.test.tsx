@@ -10,7 +10,7 @@ const router = vi.hoisted(() => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 vi.mock("next/dynamic", () => ({ default: () => () => null }));
 
-import { EXCLUDED_PAGE, STUDY_HUB, TIME_REMAINING_NOTICE, routeAfterRenderFailure, useDoorProgress, useRenderFailureReport } from "@/app/(learning)/learn/door-progress";
+import { EXCLUDED_PAGE, STUDY_HUB, routeAfterRenderFailure, useDoorProgress, useRenderFailureReport } from "@/app/(learning)/learn/door-progress";
 import { PRACTICE_UNSENT, usePracticeFinish } from "@/app/(learning)/learn/practice-doors";
 
 const fetchMock = vi.fn();
@@ -24,15 +24,15 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("finishing the learning task", () => {
-  it("explains that the questions open when the time is up, instead of blaming the connection", async () => {
-    reply(409, { ok: false, reason: "time_remaining", endsAt: "2026-11-07T10:30:00.000Z" });
+  it("names the stops still to visit when a finish comes before the cap, instead of blaming the connection", async () => {
+    reply(409, { ok: false, reason: "stages_unvisited", unvisited: [{ traditionKey: "ajrakh", stageKey: "ajrakh-s2", stageNumber: 2 }] });
     const { result } = renderHook(() => useDoorProgress([]));
     let accepted: boolean | undefined;
     await act(async () => {
       accepted = await result.current.finish();
     });
     expect(accepted).toBe(false);
-    expect(result.current.notice).toBe(TIME_REMAINING_NOTICE);
+    expect(result.current.notice).toBe("Some stops are still to visit: Ajrakh 2.");
     expect(router.replace).not.toHaveBeenCalled();
   });
 

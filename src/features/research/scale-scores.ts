@@ -12,7 +12,7 @@
  *    summed, and TS = ([1] + [2] + [3]) × 3.74. The weight matrix was read from the rendered page
  *    (its OCR text is scrambled); see study-decisions.md D7.
  */
-export const SCALE_SCORE_VERSION = "1.1.0";
+export const SCALE_SCORE_VERSION = "1.2.0";
 
 /**
  * Kennedy et al. (1993) Table 4 unit weights, by symptom position in the seeded order
@@ -28,10 +28,10 @@ export const SSQ_TOTAL_FACTOR = 3.74;
 export interface ScaleSpec {
   /** Score name (metric-name style). */
   name: string;
-  instrument: "cognitive-load" | "sus" | "mps-physical-presence" | "ssq" | "common-questions";
+  instrument: "cognitive-load" | "sus" | "umux-lite" | "mps-physical-presence" | "ssq" | "common-questions";
   label: string;
   items: readonly string[];
-  rule: "mean" | "sum" | "sus" | "ssq-total";
+  rule: "mean" | "sum" | "sus" | "umux-lite" | "ssq-total";
   /** Possible range of the score. */
   range: readonly [number, number];
   /** Shown for these interfaces only (null = both). */
@@ -50,6 +50,7 @@ export const SCALES: readonly ScaleSpec[] = [
   { name: "common.comfort", instrument: "common-questions", label: "Comfort", items: ["common.comfort"], rule: "mean", range: [1, 7], interfaces: null },
   { name: "common.engagement", instrument: "common-questions", label: "Engagement", items: ["common.engagement"], rule: "mean", range: [1, 7], interfaces: null },
   { name: "sus.score", instrument: "sus", label: "SUS score", items: keys("sus", 1, 10), rule: "sus", range: [0, 100], interfaces: null },
+  { name: "umux_lite.score", instrument: "umux-lite", label: "UMUX-LITE score", items: keys("umux-lite", 1, 2), rule: "umux-lite", range: [0, 100], interfaces: null },
   { name: "presence.physical", instrument: "mps-physical-presence", label: "Physical presence", items: keys("p", 1, 5), rule: "mean", range: [1, 5], interfaces: ["immersive_3d"] },
   // Maximum: each column holds 7 symptoms rated 0–3, so (21 + 21 + 21) × 3.74 = 235.62.
   { name: "ssq.total", instrument: "ssq", label: "SSQ total score", items: keys("ssq", 1, 16), rule: "ssq-total", range: [0, 235.62], interfaces: null },
@@ -72,6 +73,8 @@ export function scoreScale(spec: ScaleSpec, answers: ReadonlyMap<string, number 
     case "sus":
       // Items 1, 3, 5, 7, 9: response − 1; items 2, 4, 6, 8, 10: 5 − response; total × 2.5.
       return values.reduce((a, v, i) => a + (i % 2 === 0 ? v - 1 : 5 - v), 0) * 2.5;
+    case "umux-lite":
+      return values.reduce((a, v) => a + v - 1, 0) * (100 / 12);
     case "ssq-total": {
       const column = (positions: readonly number[]) => positions.reduce((a, p) => a + values[p - 1]!, 0);
       return (column(SSQ_COLUMNS.nausea) + column(SSQ_COLUMNS.oculomotor) + column(SSQ_COLUMNS.disorientation)) * SSQ_TOTAL_FACTOR;

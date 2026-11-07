@@ -4,7 +4,8 @@
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { LearningFinishRefusedError, pgLearningContextData, recordLearningEnded, resolveLearningContext } from "../../src/server/learning/context-data";
+import { pgLearningContextData, recordLearningEnded, resolveLearningContext } from "../../src/server/learning/context-data";
+import { stageTemplateSha256 } from "../../src/server/study/stage-templates";
 import {
   TEST_URL,
   addSnapshotItem,
@@ -63,7 +64,7 @@ describe.skipIf(!TEST_URL)("learning clock and outcome separation", () => {
   };
 
   it("gives both conditions the same server-stamped budget, set once", async () => {
-    const { a, b } = await study({ mode: "fixed_time", minutes: 20 });
+    const { a, b } = await study({ minutes: 20 });
     await ctxFor(a, "2d");
     await ctxFor(b, "immersive");
     for (const sessionId of [a.sessionId, b.sessionId]) {
@@ -78,28 +79,31 @@ describe.skipIf(!TEST_URL)("learning clock and outcome separation", () => {
     await expect(t.pool.query("UPDATE study_sessions SET learning_budget_seconds = 99999 WHERE id = $1", [a.sessionId])).rejects.toThrow(/set once/);
   });
 
-  it("refuses an early finish unless the study allows it, and records the end once", async () => {
-    const strict = await study({ mode: "fixed_time", minutes: 20 });
-    await ctxFor(strict.a, "2d");
-    await expect(recordLearningEnded(t.pool, strict.a.sessionId)).rejects.toBeInstanceOf(LearningFinishRefusedError);
-
-    const lenient = await study({ mode: "fixed_time", minutes: 20, allowEarlyFinish: true });
-    await ctxFor(lenient.a, "2d");
-    const ended = await recordLearningEnded(t.pool, lenient.a.sessionId);
-    expect(ended.endedAt).not.toBeNull();
-    await ctxFor(lenient.a, "2d");
-    expect((await clockOf(lenient.a.sessionId)).endedAt).toBe(ended.endedAt);
-    await expect(t.pool.query("UPDATE study_sessions SET learning_ended_at = now() WHERE id = $1", [lenient.a.sessionId])).rejects.toThrow(/set once/);
+  it("records the hash of the stage templates served when learning starts, once", async () => {
+    const { a } = await study({ minutes: 20 });
+    await ctxFor(a, "2d");
+    const row = await one<{ template_sha256: string | null }>(t.pool, "SELECT template_sha256 FROM study_sessions WHERE id = $1", [a.sessionId]);
+    expect(row.template_sha256).toBe(await stageTemplateSha256());
+    await expect(t.pool.query("UPDATE study_sessions SET template_sha256 = $2 WHERE id = $1", [a.sessionId, "0".repeat(64)])).rejects.toThrow(/set once/);
   });
 
-  it("self-paced studies have no budget; fixed_time needs minutes", async () => {
-    const { a } = await study({ mode: "self_paced" });
+  it("records the end of learning once, before the cap", async () => {
+    const capped = await study({ minutes: 20 });
+    await ctxFor(capped.a, "2d");
+    const ended = await recordLearningEnded(t.pool, capped.a.sessionId);
+    expect(ended.endedAt).not.toBeNull();
+    expect(Date.parse(ended.endedAt!)).toBeLessThan(Date.parse(ended.endsAt!));
+    await ctxFor(capped.a, "2d");
+    expect((await clockOf(capped.a.sessionId)).endedAt).toBe(ended.endedAt);
+    await expect(t.pool.query("UPDATE study_sessions SET learning_ended_at = now() WHERE id = $1", [capped.a.sessionId])).rejects.toThrow(/set once/);
+  });
+
+  it("gives a study without a cap no budget", async () => {
+    const { a } = await study({});
     await ctxFor(a, "2d");
     const c = await clockOf(a.sessionId);
     expect(c).toMatchObject({ budgetSeconds: null, endsAt: null });
     expect(c.startedAt).not.toBeNull();
-    const bad = await study({ mode: "fixed_time" });
-    await expect(t.pool.query("UPDATE study_sessions SET learning_started_at = now() WHERE id = $1", [bad.a.sessionId])).rejects.toThrow(/exposure.minutes/);
   });
 
   it("keeps exposure, navigation, pause and citation timings out of every learning-outcome table", async () => {

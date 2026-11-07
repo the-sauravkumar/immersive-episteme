@@ -43,7 +43,7 @@ import {
   type StudyStep,
 } from "./config";
 import { instrumentBlocker, instrumentConditions } from "./instruments";
-import { loadStageTemplates } from "./stage-templates";
+import { loadStageTemplates, stageTemplateSha256 } from "./stage-templates";
 
 type Q = Pick<Pool | PoolClient, "query">;
 
@@ -54,7 +54,6 @@ export type StudyEngineErrorCode =
   | "participant_not_found"
   | "consent_already_recorded"
   | "consent_required"
-  | "unsupported_design"
   | "not_current_step"
   | "not_allocated"
   | "allocation_refused"
@@ -63,7 +62,6 @@ export type StudyEngineErrorCode =
   | "invalid_answers"
   | "learning_not_started"
   | "learning_incomplete"
-  | "learning_time_remaining"
   | "stage_refused"
   | "delayed_test_not_open"
   | "delayed_test_closed"
@@ -135,11 +133,8 @@ export interface EnrollableStudy {
   description: string | null;
   isDemo: boolean;
   protocolVersion: string;
-  design: "between" | "within";
   snapshotId: string | null;
   protocol: StudyProtocol;
-  /** Researcher-entered strata offered at enrolment (only when allocation.point = enrolment). */
-  strata: string[];
 }
 
 interface StudyRow {
@@ -149,13 +144,12 @@ interface StudyRow {
   description: string | null;
   is_demo: boolean;
   protocol_version: string;
-  design: "between" | "within";
   status: string;
   config: unknown;
   snapshot_id: string | null;
 }
 
-const STUDY_COLUMNS = "id, slug, title, description, is_demo, protocol_version, design, status, config, snapshot_id";
+const STUDY_COLUMNS = "id, slug, title, description, is_demo, protocol_version, status, config, snapshot_id";
 
 function toStudy(row: StudyRow): EnrollableStudy {
   let protocol: StudyProtocol;
@@ -165,7 +159,6 @@ function toStudy(row: StudyRow): EnrollableStudy {
     if (err instanceof StudyConfigError) throw new StudyEngineError("study_misconfigured", err.message, { issues: err.issues });
     throw err;
   }
-  const a = protocol.config.allocation;
   return {
     id: row.id,
     slug: row.slug,
@@ -173,16 +166,9 @@ function toStudy(row: StudyRow): EnrollableStudy {
     description: row.description,
     isDemo: row.is_demo,
     protocolVersion: row.protocol_version,
-    design: row.design,
     snapshotId: row.snapshot_id,
     protocol,
-    strata: a.point === "enrolment" ? a.strata : [],
   };
-}
-
-export function stratumChoiceNeeded(study: Pick<EnrollableStudy, "protocol">): boolean {
-  const a = study.protocol.config.allocation;
-  return a.point === "enrolment" && a.algorithm === "stratified_block";
 }
 
 /** Normalises what a participant types as the study code (the study slug). */
@@ -215,9 +201,6 @@ export async function findEnrollableStudy(q: Q, code: string): Promise<Enrollabl
   if (!study.protocol.config.consent) {
     throw new StudyEngineError("study_misconfigured", "The study has no consent text configured.", { missing: "consent" });
   }
-  if (study.design !== "between") {
-    throw new StudyEngineError("unsupported_design", "Within-subjects sessions are not supported by the study engine (D3 rejects that design).");
-  }
   return study;
 }
 
@@ -241,22 +224,11 @@ export interface EnrolResult {
   repeatOf: string | null;
 }
 
-/**
- * Creates a pseudonymous participant (no PII). A researcher-entered stratum is accepted only when
- * the study allocates at enrolment; otherwise the stratum comes from the scored pre-test.
- * `previousParticipantIds` (participation-history cookie) flag or refuse a repeat enrolment.
- */
 export async function enrolParticipant(
   pool: Pool | PoolClient,
   study: EnrollableStudy,
-  opts: { stratum?: string | null; previousParticipantIds?: string[] } = {},
+  opts: { previousParticipantIds?: string[] } = {},
 ): Promise<EnrolResult> {
-  const stratum = opts.stratum ?? null;
-  if (stratumChoiceNeeded(study)) {
-    if (!stratum || !study.strata.includes(stratum)) throw new StudyEngineError("study_misconfigured", "Choose your group.", { missing: "stratum" });
-  } else if (stratum !== null && !study.strata.includes(stratum)) {
-    throw new StudyEngineError("study_misconfigured", "Unknown group.");
-  }
   const previous = opts.previousParticipantIds ?? [];
   let repeatOf: string | null = null;
   if (previous.length > 0) {
@@ -282,12 +254,12 @@ export async function enrolParticipant(
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = generateParticipantCode();
       const r = await c.query<{ id: string }>(
-        "INSERT INTO participants (study_id, code, stratum) VALUES ($1, $2, $3) ON CONFLICT (study_id, code) DO NOTHING RETURNING id",
-        [study.id, code, stratum],
+        "INSERT INTO participants (study_id, code) VALUES ($1, $2) ON CONFLICT (study_id, code) DO NOTHING RETURNING id",
+        [study.id, code],
       );
       const id = r.rows[0]?.id;
       if (!id) continue;
-      await journal(c, { kind: "participant", code }, "study.participant_enrolled", "participant", id, { studyId: study.id, stratum });
+      await journal(c, { kind: "participant", code }, "study.participant_enrolled", "participant", id, { studyId: study.id });
       if (repeatOf) {
         await journal(c, { kind: "system" }, "study.repeat_enrolment_detected", "participant", id, { studyId: study.id, previousParticipantId: repeatOf });
       }
@@ -396,7 +368,6 @@ export function allocationSeed(study: Pick<EnrollableStudy, "id" | "protocolVers
 
 /** Leading condition-blind steps of the journey (taken before allocation). */
 export function blindPrefix(protocol: StudyProtocol): StudyStep[] {
-  if (protocol.config.allocation.point !== "after_pre_test") return [];
   const out: StudyStep[] = [];
   for (const s of protocol.steps) {
     if (!BLIND_STEPS.includes(s)) break;
@@ -405,14 +376,8 @@ export function blindPrefix(protocol: StudyProtocol): StudyStep[] {
   return out;
 }
 
-/**
- * Opens the participant's session after granted consent. At `point = enrolment` the participant
- * is allocated at once; otherwise the session starts without a condition and is allocated after
- * the blind steps (immediately, if the protocol has none).
- */
 export async function openSessionAfterConsent(pool: Pool | PoolClient, input: { participantId: string; studyId: string; appBuild: string }): Promise<OpenedSession> {
   const study = await loadStudy(pool, input.studyId);
-  if (study.protocol.config.allocation.point === "enrolment") return allocateAndOpenSession(pool, input);
   const opened = await withTx(pool, async (c) => {
     const p = await loadParticipant(c, input.participantId);
     if (!p || p.studyId !== study.id) throw new StudyEngineError("participant_not_found", "Participant not found.");
@@ -499,47 +464,11 @@ async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise
       blockSize: draw.blockIndex === null ? null : (alloc.blockSize ?? null),
       conditionCode: draw.conditionCode,
       traditionOrder,
-      allocationPoint: alloc.point,
+      allocationPoint: "after_pre_test",
       studyProtocolVersion: study.protocolVersion,
       allocatedAt: a.rows[0]!.allocated_at.toISOString(),
     },
   };
-}
-
-/**
- * Allocation at enrolment (`allocation.point = enrolment`): allocates and opens the session in
- * one step. Idempotent: a participant who already has a session gets it back.
- */
-export async function allocateAndOpenSession(pool: Pool | PoolClient, input: { participantId: string; studyId: string; appBuild: string }): Promise<OpenedSession> {
-  return withTx(pool, async (c) => {
-    await c.query("SELECT pg_advisory_xact_lock(hashtextextended('ie-allocation:' || $1, 0))", [input.studyId]);
-    const study = await loadStudy(c, input.studyId);
-    if (study.design !== "between") throw new StudyEngineError("unsupported_design", "Within-subjects sessions are not supported by the study engine.");
-    const p = await loadParticipant(c, input.participantId);
-    if (!p || p.studyId !== study.id) throw new StudyEngineError("participant_not_found", "Participant not found.");
-    if (p.latestConsent?.decision !== "granted") throw new StudyEngineError("consent_required", "Consent is required before allocation.");
-    const existing = await c.query<{ id: string; condition_id: string | null; interface: ConditionInterface | null }>(
-      `SELECT ss.id, ss.condition_id, sc.interface FROM study_sessions ss LEFT JOIN study_conditions sc ON sc.id = ss.condition_id
-        WHERE ss.participant_id = $1 ORDER BY ss.period DESC LIMIT 1`,
-      [p.id],
-    );
-    if (existing.rows[0]) {
-      const e = existing.rows[0];
-      return { sessionId: e.id, participantId: p.id, condition: conditionFromInterface(e.interface), conditionId: e.condition_id, created: false };
-    }
-    const stratumRow = await c.query<{ stratum: string | null }>("SELECT stratum FROM participants WHERE id = $1", [p.id]);
-    const stratum = stratumRow.rows[0]?.stratum ?? null;
-    const d = await drawAndInsertAllocation(c, { study, participantId: p.id, stratum, stratumSource: stratum ? { source: "researcher_entered" } : null });
-    const s = await c.query<{ id: string }>(
-      `INSERT INTO study_sessions (study_id, participant_id, condition_id, allocation_id, period, app_build, status, started_at, last_activity_at, tradition_order)
-       VALUES ($1, $2, $3, $4, 1, $5, 'in_progress', now(), now(), $6::jsonb) RETURNING id`,
-      [study.id, p.id, d.conditionId, d.allocationId, input.appBuild, JSON.stringify(d.traditionOrder)],
-    );
-    await c.query("UPDATE participants SET status = 'active' WHERE id = $1 AND status = 'enrolled'", [p.id]);
-    const sessionId = s.rows[0]!.id;
-    await journal(c, { kind: "system" }, "study.allocated", "study_session", sessionId, d.record);
-    return { sessionId, participantId: p.id, condition: conditionFromInterface(d.iface), conditionId: d.conditionId, created: true };
-  });
 }
 
 /**
@@ -883,12 +812,10 @@ export function submittedAssessments(s: Pick<SessionState, "journal">, step: Stu
   return out;
 }
 
-export function learningMayEnd(s: Pick<SessionState, "learning" | "now" | "study">, everyStageVisited = true): boolean {
+export function learningMayEnd(s: Pick<SessionState, "learning" | "now">, everyStageVisited: boolean): boolean {
   if (!s.learning.startedAt) return false;
   if (s.learning.endsAt && s.now >= s.learning.endsAt) return true;
-  const { allowEarlyFinish, requireEveryStage } = s.study.protocol.config.exposure;
-  if (requireEveryStage && !everyStageVisited) return false;
-  return s.learning.endsAt ? allowEarlyFinish : true;
+  return everyStageVisited;
 }
 
 export async function assignedStops(s: Pick<SessionState, "traditionOrder">): Promise<StageStop[]> {
@@ -900,8 +827,7 @@ export async function stageVisitsOf(q: Q, sessionId: string): Promise<StageVisit
   return r.rows.map((row) => ({ traditionKey: row.tradition_key, stageKey: row.stage_key }));
 }
 
-export async function stageCoverage(q: Q, s: SessionState): Promise<StageCoverage | null> {
-  if (!s.study.protocol.config.exposure.requireEveryStage) return null;
+export async function stageCoverage(q: Q, s: SessionState): Promise<StageCoverage> {
   return coverageOf(await assignedStops(s), await stageVisitsOf(q, s.sessionId));
 }
 
@@ -1213,23 +1139,22 @@ export type DeviceOutcome =
 
 export function evaluateDevice(
   report: DeviceReport,
-  ctx: { policy: "exclude" | "retry" | "reassign"; minViewport?: { width: number; height: number }; condition: LearningCondition | null },
-): "passed" | "viewport_too_small" | "webgl_retry" | "webgl_exclude" | "webgl_reassign" {
+  ctx: { policy: "exclude" | "retry" | "reassign"; minViewport?: { width: number; height: number } },
+): "passed" | "viewport_too_small" | "webgl_retry" | "webgl_exclude" {
   const min = ctx.minViewport;
   if (min && (report.viewport.width < min.width || report.viewport.height < min.height)) return "viewport_too_small";
   if (walkthroughCanRender(report)) return "passed";
-  if (ctx.policy === "exclude") return "webgl_exclude";
-  return ctx.policy === "reassign" && ctx.condition !== null ? "webgl_reassign" : "webgl_retry";
+  return ctx.policy === "exclude" ? "webgl_exclude" : "webgl_retry";
 }
 
-export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: string, report: DeviceReport, opts: { appBuild: string }): Promise<DeviceOutcome> {
+export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: string, report: DeviceReport): Promise<Exclude<DeviceOutcome, { kind: "reassigned" }>> {
   return withTx(pool, async (c) => {
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
     if (deviceCheckPassed(s)) return { kind: "passed" };
     const minViewport = s.study.protocol.config.device.minViewport;
     const policy = s.study.protocol.config.webglFailurePolicy;
-    const verdict = evaluateDevice(report, { policy, minViewport, condition: s.condition });
+    const verdict = evaluateDevice(report, { policy, minViewport });
     const attempt = s.journal.filter((e) => e.action === "study.device_checked").length + 1;
     const device = {
       viewport: report.viewport,
@@ -1245,8 +1170,7 @@ export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: stri
     };
     await c.query("UPDATE study_sessions SET device = $2::jsonb, last_activity_at = now() WHERE id = $1", [sessionId, JSON.stringify(device)]);
     const actor: Actor = { kind: "participant", code: s.participantCode };
-    const outcome =
-      verdict === "passed" || (verdict === "webgl_reassign" && s.condition === "2d") ? "passed" : verdict === "webgl_exclude" ? "excluded" : verdict === "webgl_reassign" ? "reassigned" : "retry";
+    const outcome = verdict === "passed" ? "passed" : verdict === "webgl_exclude" ? "excluded" : "retry";
     await journal(c, actor, "study.device_checked", "study_session", sessionId, { outcome, verdict, attempt, webglVersion: report.webglVersion, softwareRenderer: report.softwareRenderer ?? null, viewport: report.viewport });
 
     switch (verdict) {
@@ -1258,15 +1182,13 @@ export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: stri
         return { kind: "retry", reason: "webgl_unavailable" };
       case "webgl_exclude":
         return excludeForWebgl(c, s, policy);
-      case "webgl_reassign":
-        return s.condition === "2d" ? { kind: "passed" } : reassignToConventional(c, s, device, opts.appBuild);
     }
   });
 }
 
 const WEBGL_RUNTIME_ATTEMPTS = 2;
 
-async function excludeForWebgl(c: PoolClient, s: SessionState, policy: string, reason = "webgl_unavailable: excluded by webglFailurePolicy=exclude"): Promise<DeviceOutcome> {
+async function excludeForWebgl(c: PoolClient, s: SessionState, policy: string, reason = "webgl_unavailable: excluded by webglFailurePolicy=exclude"): Promise<{ kind: "excluded" }> {
   await c.query("UPDATE study_sessions SET excluded = true, exclusion_reason = $2, excluded_at = now(), status = 'abandoned' WHERE id = $1", [s.sessionId, reason]);
   await c.query("UPDATE participants SET status = 'excluded', exclusion_reason = $2 WHERE id = $1", [s.participantId, reason]);
   await journal(c, { kind: "system" }, "study.participant_excluded", "study_session", s.sessionId, { rule: "webglFailurePolicy", policy }, reason);
@@ -1562,7 +1484,7 @@ export async function completeOnboarding(pool: Pool | PoolClient, sessionId: str
       // The learning clock starts when the participant starts the task, the same moment in both
       // conditions (the learning context would otherwise stamp it on the first page render).
       // Set-once: a later stamp by the learning context is a no-op.
-      await c.query("UPDATE study_sessions SET learning_started_at = now() WHERE id = $1 AND learning_started_at IS NULL", [sessionId]);
+      await c.query("UPDATE study_sessions SET learning_started_at = now(), template_sha256 = $2 WHERE id = $1 AND learning_started_at IS NULL", [sessionId, await stageTemplateSha256()]);
       await touch(c, sessionId);
     } else if (!completedSteps(s).has("onboarding")) {
       throw new StudyEngineError("not_current_step", "The introduction is not the current step.");
@@ -1570,7 +1492,7 @@ export async function completeOnboarding(pool: Pool | PoolClient, sessionId: str
   });
 }
 
-type FinishRefusal = { kind: "unvisited"; unvisited: readonly StageStop[] } | { kind: "time_remaining"; endsAt: Date };
+type FinishRefusal = { kind: "unvisited"; unvisited: readonly StageStop[] };
 
 export async function finishLearning(pool: Pool | PoolClient, sessionId: string): Promise<void> {
   const refused = await withTx(pool, async (c): Promise<FinishRefusal | null> => {
@@ -1580,18 +1502,14 @@ export async function finishLearning(pool: Pool | PoolClient, sessionId: string)
     if (pos.kind !== "step" || pos.step !== "learning") return null;
     if (!s.learning.startedAt) throw new StudyEngineError("learning_not_started", "Open the learning task first.");
     const coverage = await stageCoverage(c, s);
-    if (coverage && !coverage.complete && !learningMayEnd(s, false)) return { kind: "unvisited", unvisited: coverage.unvisited };
-    if (!learningMayEnd(s) && s.learning.endsAt) return { kind: "time_remaining", endsAt: s.learning.endsAt };
+    if (!learningMayEnd(s, coverage.complete)) return { kind: "unvisited", unvisited: coverage.unvisited };
     const clock = await recordLearningEnded(c, sessionId);
     s.learning.endedAt = clock.endedAt ? new Date(clock.endedAt) : null;
     await syncPosition(c, s);
     await touch(c, sessionId);
     return null;
   });
-  if (refused?.kind === "unvisited") throw new StudyEngineError("learning_incomplete", "Every stage must be visited before learning can finish.", { unvisited: refused.unvisited });
-  if (refused?.kind === "time_remaining") {
-    throw new StudyEngineError("learning_time_remaining", "This study does not allow finishing before the learning time is up.", { endsAt: refused.endsAt.toISOString() });
-  }
+  if (refused) throw new StudyEngineError("learning_incomplete", "Every stage must be visited before learning can finish.", { unvisited: refused.unvisited });
 }
 
 // ---------------------------------------------------------------------------------------------

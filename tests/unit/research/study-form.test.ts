@@ -53,7 +53,7 @@ describe("allocationFromForm: every algorithm the console offers can be activate
   it("brings the pre-test stratification back when stratified blocks are chosen again, and keeps the seed", () => {
     const simple = studyConfigSchema.parse({ allocation: allocationFromForm({ ...created.allocation, seed: "s1" }, "simple", undefined) }).allocation;
     const back = studyConfigSchema.parse({ allocation: allocationFromForm(simple, "stratified_block", 4) }).allocation;
-    expect(back).toMatchObject({ algorithm: "stratified_block", blockSize: 4, seed: "s1", point: "after_pre_test", stratifyBy: { source: "pre_test_score" } });
+    expect(back).toMatchObject({ algorithm: "stratified_block", blockSize: 4, seed: "s1", stratifyBy: { source: "pre_test_score" } });
   });
 
   it("ignores an algorithm the form does not offer", () => {

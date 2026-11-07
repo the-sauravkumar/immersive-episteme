@@ -3,6 +3,7 @@ import type { ComponentType, ReactNode } from "react";
 import { LearningUnavailable } from "@/components/learning/learning-unavailable";
 import { UnverifiedContentNotice } from "@/components/learning/unverified-content-notice";
 import { LearningSessionFrame } from "@/components/study/learning-session-frame";
+import { anyCaptionUnderReview, withCaptionReview } from "@/features/process/domain/stage-template";
 import { inAssignedOrder, resumeFrom } from "@/features/study/stage-coverage";
 import { TelemetryProvider } from "@/features/telemetry/client";
 import type { LearningCondition } from "@/lib/permissions/learning";
@@ -23,12 +24,12 @@ async function doorSessionFor(condition: LearningCondition, ctx: LearningContext
   const Door = DOOR_SESSIONS[condition];
   const all = await loadStageTemplates();
   const state = ctx.sessionId ? await loadSessionState(getPool(), ctx.sessionId) : null;
-  const templates = state ? inAssignedOrder(all, state.traditionOrder) : all;
+  const templates = withCaptionReview(state ? inAssignedOrder(all, state.traditionOrder) : all, new Set(ctx.verifiedStageConcepts));
   const resume = ctx.sessionId ? resumeFrom(templates, await stageVisitsOf(getPool(), ctx.sessionId)) : null;
   const telemetry = { ...(ctx.sessionId ? { firstSeq: await nextTelemetrySeq(ctx.sessionId) } : {}), sessionId: ctx.telemetrySessionId, contentVersion: ctx.contentVersion, appBuild: ctx.appBuild, mode: ctx.mode };
   return (
     <>
-      {ctx.contentUnderReview ? <UnverifiedContentNotice /> : null}
+      {anyCaptionUnderReview(templates) ? <UnverifiedContentNotice /> : null}
       <TelemetryProvider config={telemetry}>
         <LearningSessionFrame endsAt={state?.learning.endsAt?.toISOString() ?? null} serverNow={(state?.now ?? new Date()).toISOString()} warningMinutes={CAP_WARNING_MINUTES}>
           <Door templates={templates} resume={resume} studyMode={ctx.mode === "study"} guidance={ctx.guidance} />

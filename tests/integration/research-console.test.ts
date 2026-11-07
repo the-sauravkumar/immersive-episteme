@@ -26,6 +26,7 @@ import { setStageTemplateSource } from "../../src/server/study/stage-templates";
 import { addAnnotation, addDeviation, excludeSession, getSession, integrityFlags, listAnnotations, listDeviations, listSessions } from "../../src/server/research/sessions";
 import { activateStudy, attachDesignedBattery, createStudy, getStudy, newStudyVersion, researchStudyConfigSchema, setBattery, updateStudy, type UpdateStudyInput } from "../../src/server/research/studies";
 import { DEFAULT_STEPS, STEP_ASSESSMENTS } from "../../src/server/study/config";
+import { carriesSampleText } from "../../src/features/study/test-items";
 import { DESIGNED_TEST_BATTERY } from "../../src/server/study/test-battery";
 import { ingestTelemetryBatch } from "../../src/server/telemetry/ingest";
 import { TEST_URL, createRealGraph, createSession, createTestDatabase, createUser, one, recordConsent, withSettings, type TestDb } from "./schema-harness";
@@ -179,7 +180,7 @@ describe.skipIf(!TEST_URL)("research console", () => {
 
   it("creates a draft study with both conditions and records its configuration history", async () => {
     studyId = await createStudy(t.pool, actor, { slug: "rc-study", title: "Research console study", protocolVersion: "p1" });
-    await updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { mode: "self_paced" }, notes: "Adult volunteers." }));
+    await updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: {}, notes: "Adult volunteers." }));
     await setBattery(t.pool, actor, studyId, [{ assessmentId, phase: "post", position: 0 }]);
     const s = await getStudy(t.pool, studyId);
     expect(s?.conditions.map((c) => c.interface).sort()).toEqual(["conventional_2d", "immersive_3d"]);
@@ -201,7 +202,7 @@ describe.skipIf(!TEST_URL)("research console", () => {
   });
 
   it("activates once the parity report passes", async () => {
-    await updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true } }));
+    await updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { minutes: 30 } }));
     const r = await activateStudy(t.pool, actor, studyId);
     expect(r.failures).toEqual([]);
     expect(r.activated).toBe(true);
@@ -210,7 +211,7 @@ describe.skipIf(!TEST_URL)("research console", () => {
     const reports = await listParityReports(t.pool, studyId);
     expect(reports[0]!.id).toBe(r.parityReportId);
     expect(reports[0]!.report.contentSet).toMatchObject({ stages: 1, items: 1, products: 0, sources: 1 });
-    await expect(updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { mode: "self_paced", minutes: 25 } }))).rejects.toBeInstanceOf(ResearchActionError);
+    await expect(updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { minutes: 25 } }))).rejects.toBeInstanceOf(ResearchActionError);
     // Activation gave the study a secret allocation seed (study-07): journalled only as a fingerprint.
     const seed = (s?.config as { allocation: { seed?: string } }).allocation.seed!;
     expect(seed).toMatch(/^[A-Za-z0-9_-]{43}$/);
@@ -396,32 +397,37 @@ describe.skipIf(!TEST_URL)("research console", () => {
   });
 
   it("refuses to activate a console-created study without an information sheet and consent text", async () => {
-    const id = await createStudy(t.pool, actor, { slug: "rc-no-consent", title: "No consent", protocolVersion: "p1", design: "between" });
-    await updateStudy(t.pool, actor, id, { ...baseUpdate({ exposure: { mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true } }), config: researchStudyConfigSchema.parse({ traditionSlugs: ["rc-tradition"], steps: ["learning", "reconstruction"], exposure: { mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true } }) });
+    const id = await createStudy(t.pool, actor, { slug: "rc-no-consent", title: "No consent", protocolVersion: "p1" });
+    await updateStudy(t.pool, actor, id, { ...baseUpdate({ exposure: { minutes: 30 } }), config: researchStudyConfigSchema.parse({ traditionSlugs: ["rc-tradition"], steps: ["learning", "reconstruction"], exposure: { minutes: 30 } }) });
     await setBattery(t.pool, actor, id, [{ assessmentId, phase: "post", position: 0 }]);
     const refused = await activateStudy(t.pool, actor, id);
     expect(refused.activated).toBe(false);
     expect(refused.failures).toEqual([expect.stringMatching(/^Participant information sheet and versioned consent text are set: The study has no consent text/)]);
-    await updateStudy(t.pool, actor, id, baseUpdate({ exposure: { mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true } }));
-    await expect(updateStudy(t.pool, actor, id, baseUpdate({ consent: { version: "1.0", text: "Changed consent." }, exposure: { mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true } }))).rejects.toThrow(/new consent version/);
+    await updateStudy(t.pool, actor, id, baseUpdate({ exposure: { minutes: 30 } }));
+    await expect(updateStudy(t.pool, actor, id, baseUpdate({ consent: { version: "1.0", text: "Changed consent." }, exposure: { minutes: 30 } }))).rejects.toThrow(/new consent version/);
     const activated = await activateStudy(t.pool, actor, id);
     expect(activated.failures).toEqual([]);
     expect(activated.activated).toBe(true);
   });
 
   it("attaches the designed test battery and the questionnaire instruments to a console-created study", async () => {
-    const id = await createStudy(t.pool, actor, { slug: "rc-designed", title: "Designed battery", protocolVersion: "p1", design: "between" });
+    const id = await createStudy(t.pool, actor, { slug: "rc-designed", title: "Designed battery", protocolVersion: "p1" });
     await setBattery(t.pool, actor, id, [{ assessmentId, phase: "post", position: 0 }]);
     const first = await attachDesignedBattery(t.pool, actor, id);
     expect(first.missingInstruments).toEqual([]);
     expect(first.newlyLoaded).toEqual(expect.arrayContaining(["test-layout-sketch@1", "test-cloth-state@1", "sus@2", "common-questions@1"]));
     const s = (await getStudy(t.pool, id))!;
+    const demoForms = DESIGNED_TEST_BATTERY.filter(carriesSampleText);
+    expect(first.demoOnly).toEqual(demoForms.map((a) => a.code));
+    expect(demoForms.length).toBeGreaterThan(0);
+    for (const a of demoForms) expect(s.battery.some((b) => b.code === a.code), a.code).toBe(false);
     for (const step of DEFAULT_STEPS) {
       const spec = STEP_ASSESSMENTS[step];
-      if (spec) expect(s.battery.some((b) => b.phase === spec.phase && b.kind === spec.kind), step).toBe(true);
+      const real = DESIGNED_TEST_BATTERY.some((a) => !carriesSampleText(a) && a.phase === spec?.phase && a.kind === spec?.kind);
+      if (spec && real) expect(s.battery.some((b) => b.phase === spec.phase && b.kind === spec.kind), step).toBe(true);
     }
     for (const code of ["background", "common-questions", "mps-physical-presence", "ssq", "sus"]) expect(s.battery.some((b) => b.kind === "questionnaire" && b.code === code), code).toBe(true);
-    for (const a of DESIGNED_TEST_BATTERY) expect(s.battery.find((b) => b.code === a.code)).toMatchObject({ phase: a.phase, position: a.position, status: "draft" });
+    for (const a of DESIGNED_TEST_BATTERY.filter((form) => !carriesSampleText(form))) expect(s.battery.find((b) => b.code === a.code)).toMatchObject({ phase: a.phase, position: a.position, status: "draft" });
     const kept = s.battery.find((b) => b.assessmentId === assessmentId)!;
     expect(kept.phase).toBe("post");
     expect(kept.position).toBeGreaterThan(Math.max(...DESIGNED_TEST_BATTERY.filter((a) => a.phase === "post").map((a) => a.position)));

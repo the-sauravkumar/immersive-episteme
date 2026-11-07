@@ -70,6 +70,7 @@ const EXPECTED: Record<Role, Permission[]> = {
     "exports.create",
     "exports.identified",
     "parity.run",
+    "metrics.recompute",
     "admin.audit",
     ...LEARN,
   ],
@@ -86,6 +87,7 @@ const EXPECTED: Record<Role, Permission[]> = {
     "analytics.view",
     "exports.create",
     "parity.run",
+    "metrics.recompute",
     ...LEARN,
   ],
   curator: [
@@ -117,7 +119,7 @@ const EXPECTED: Record<Role, Permission[]> = {
     "sessions.annotate",
     ...LEARN,
   ],
-  research_analyst: ["study.view", "sessions.view", "analytics.view", "exports.create", "parity.run", ...LEARN],
+  research_analyst: ["study.view", "sessions.view", "analytics.view", "exports.create", "parity.run", "metrics.recompute", ...LEARN],
   participant: ["study.participate", ...LEARN],
   public: [...LEARN],
 };
@@ -133,9 +135,10 @@ const WRITE_PERMISSIONS: Permission[] = PERMISSIONS.filter(
       "admin.audit",
       "learn.2d",
       "learn.immersive",
-      // Pseudonymised export and the parity check are read-only derivations of existing data.
+      // Pseudonymised export, the parity check and the metric recompute are derivations of existing data.
       "exports.create",
       "parity.run",
+      "metrics.recompute",
     ].includes(p),
 );
 

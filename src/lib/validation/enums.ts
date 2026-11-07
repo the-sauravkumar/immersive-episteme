@@ -184,7 +184,7 @@ export type SpatialElementKind = (typeof SPATIAL_ELEMENT_KINDS)[number];
 // Study
 // ---------------------------------------------------------------------------------------
 
-export const STUDY_DESIGNS = ["between", "within"] as const;
+export const STUDY_DESIGNS = ["between"] as const;
 export type StudyDesign = (typeof STUDY_DESIGNS)[number];
 
 export const STUDY_STATUSES = ["draft", "active", "closed"] as const;

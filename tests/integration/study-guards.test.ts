@@ -46,7 +46,7 @@ describe.skipIf(!TEST_URL)("study guards (migration 0018)", { timeout: 60_000 },
     conds = s.conditionIds;
     await t.pool.query("UPDATE studies SET status = 'active', config = $2::jsonb WHERE id = $1", [
       studyId,
-      JSON.stringify({ traditionSlugs: ["sg-tradition"], consent: CONSENT, allocation: { algorithm: "block", seed: "g" }, exposure: { mode: "self_paced" }, steps: ["onboarding", "learning"], enrolment: { maxParticipants: 1000 } }),
+      JSON.stringify({ traditionSlugs: ["sg-tradition"], consent: CONSENT, allocation: { algorithm: "block", seed: "g" }, exposure: {}, steps: ["onboarding", "learning"], enrolment: { maxParticipants: 1000 } }),
     ]);
   }, 120_000);
 

@@ -22,6 +22,7 @@ export interface StageItem {
 export interface StageCaption {
   readonly text: string;
   readonly sources: readonly SourceRef[];
+  readonly underReview?: boolean;
 }
 
 export interface TemplateStage {
@@ -57,6 +58,20 @@ export const CLOTH_AFTER_LABEL = "Cloth After This Stage";
 export const FOLLOWED_CLOTH_LABEL = "The Cloth You Followed";
 export const PRODUCT_TITLE = "Finished Textiles";
 export const PRODUCT_SENTENCE = "The cloth you followed from Stage 1, and others from the same tradition.";
+
+export function withCaptionReview(templates: readonly StageTemplate[], verifiedStageConcepts: ReadonlySet<string>): StageTemplate[] {
+  return templates.map((template) => ({
+    ...template,
+    stages: template.stages.map((stage) => ({
+      ...stage,
+      caption: { ...stage.caption, underReview: stage.sourceStageKeys.length === 0 || stage.sourceStageKeys.some((key) => !verifiedStageConcepts.has(key)) },
+    })),
+  }));
+}
+
+export function anyCaptionUnderReview(templates: readonly StageTemplate[]): boolean {
+  return templates.some((template) => template.stages.some((stage) => stage.caption.underReview === true));
+}
 
 export function itemsByRole(stage: TemplateStage, role: ItemRole): readonly StageItem[] {
   return stage.items.filter((item) => item.role === role);

@@ -8,7 +8,8 @@
  *    and the audit log and can read, but cannot verify/publish content, run studies or see
  *    identifying participant data. A person who is both holds two roles.
  *  - research_analyst is read-only and pseudonymised: no participants.identify, no
- *    exports.identified, no write permission of any kind.
+ *    exports.identified, no write permission of any kind. Pseudonymised exports, the parity
+ *    check and the metric recompute only derive stored rows from data that already exists.
  *  - Only the principal investigator activates studies, excludes sessions, creates identified
  *    exports and removes a participant's data (participants.purge, DR-030).
  *  - Every staff role may preview both learning conditions (always flagged non-experimental by
@@ -51,6 +52,7 @@ export const ROLE_PERMISSIONS = {
     "exports.create",
     "exports.identified",
     "parity.run",
+    "metrics.recompute",
     "admin.audit",
     ...LEARN,
   ],
@@ -67,6 +69,7 @@ export const ROLE_PERMISSIONS = {
     "analytics.view",
     "exports.create",
     "parity.run",
+    "metrics.recompute",
     ...LEARN,
   ],
   curator: [
@@ -98,7 +101,7 @@ export const ROLE_PERMISSIONS = {
     "sessions.annotate",
     ...LEARN,
   ],
-  research_analyst: ["study.view", "sessions.view", "analytics.view", "exports.create", "parity.run", ...LEARN],
+  research_analyst: ["study.view", "sessions.view", "analytics.view", "exports.create", "parity.run", "metrics.recompute", ...LEARN],
   participant: ["study.participate", ...LEARN],
   public: [...LEARN],
 } as const satisfies Record<Role, readonly Permission[]>;

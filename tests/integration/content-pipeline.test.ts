@@ -12,7 +12,7 @@ import { buildSnapshot } from "../../src/features/knowledge/graph/snapshot";
 import { createKnowledgeView } from "../../src/features/knowledge/read/view";
 import { importContent, ContentImportRefused, type ImportSummary } from "../../src/server/content/import-content";
 import { storeReviewSnapshot, type StoredReviewSnapshot } from "../../src/server/content/review-snapshot";
-import { loadSnapshotPayload, searchSnapshotConcepts, SnapshotNotReadableError } from "../../src/server/knowledge/snapshot-store";
+import { loadSnapshotPayload, SnapshotNotReadableError } from "../../src/server/knowledge/snapshot-store";
 import { pgLearningContextData, resolveLearningContext } from "../../src/server/learning/context-data";
 import { REPO_ROOT, loadAndValidate } from "../../scripts/content/_shared";
 import { TEST_URL, createSnapshot, createStudy, createTestDatabase, createUser, one, withSettings, type TestDb } from "./schema-harness";
@@ -178,22 +178,6 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
       const draft = await createSnapshot(t.pool, { label: "draft-release" });
       await expect(loadSnapshotPayload(t.pool, draft)).rejects.toBeInstanceOf(SnapshotNotReadableError);
       await expect(loadSnapshotPayload(t.pool, "not-a-uuid")).rejects.toBeInstanceOf(SnapshotNotReadableError);
-    });
-
-    it("finds concepts by full text and by trigram similarity, within the snapshot", async () => {
-      const bundle = await loadSnapshotPayload(t.pool, snap.id);
-      // Use a real title from the snapshot rather than an assumed craft term.
-      const target = bundle.concepts.find((c) => c.type === "process_stage" && c.title.split(/\s+/)[0]!.length >= 5)!;
-      const word = target.title.split(/\s+/)[0]!;
-      const fts = await searchSnapshotConcepts(t.pool, snap.id, word, { limit: 50 });
-      expect(fts.map((h) => h.conceptId)).toContain(target.id);
-      expect(fts.find((h) => h.conceptId === target.id)!.fullText).toBeGreaterThan(0);
-      const typo = word.slice(0, -1); // a prefix still matches by trigram
-      const tri = await searchSnapshotConcepts(t.pool, snap.id, typo, { limit: 50 });
-      expect(tri.length).toBeGreaterThan(0);
-      const scoped = await searchSnapshotConcepts(t.pool, snap.id, word, { limit: 50, traditionId: target.traditionId! });
-      expect(scoped.every((h) => bundle.concepts.find((c) => c.id === h.conceptId)!.traditionId === target.traditionId)).toBe(true);
-      expect(await searchSnapshotConcepts(t.pool, snap.id, "a")).toEqual([]);
     });
   });
 

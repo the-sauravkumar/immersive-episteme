@@ -176,6 +176,20 @@
       "when": 1794051423197,
       "tag": "0024_dashboard_stage_rollups",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794061403839,
+      "tag": "0025_drop_within_design",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794062482400,
+      "tag": "0026_learning_clock_template",
+      "breakpoints": true
     }
   ]
 }

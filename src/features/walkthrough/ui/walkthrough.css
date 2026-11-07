@@ -61,6 +61,12 @@
   font: 700 20px/1 Eczar, Georgia, serif;
 }
 
+.walkthrough-route .walkthrough-review {
+  max-width: 24ch;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
 .walkthrough-map {
   list-style: none;
   margin: 0;

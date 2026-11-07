@@ -58,15 +58,6 @@ describe("dashboard extra tables (server CSV)", () => {
     expect(rows.map((r) => `${r.tradition_slug} ${r.condition_code} ${r.n} ${r.mean}`)).toEqual(["ajrakh A 1 0", "ajrakh B 0 ", "sanganeri A 1 1", "sanganeri B 0 "]);
   });
 
-  it("dwell time: mean minutes per layer and condition, with the stored metric version", async () => {
-    const csv = await dashboardExtraTableCsv(q, data, "dashboard_dwell");
-    expect(csv.split("\r\n")[0]).toContain("metric versions: time.exposure_by_layer_ms@1");
-    const { rows } = parseCsv(csv.split("\r\n").slice(1).join("\r\n"));
-    const overview3d = rows.find((r) => r.condition_code === "B" && r.layer === "overview");
-    expect(overview3d?.mean_minutes).toBe("2");
-    expect(rows.find((r) => r.condition_code === "B" && r.layer === "artisan")?.mean_minutes).toBe("1");
-  });
-
   it("per-item statistics: proportion correct per item and condition", async () => {
     const csv = await dashboardExtraTableCsv(q, data, "dashboard_items");
     const { rows } = parseCsv(csv.split("\r\n").slice(1).join("\r\n"));
