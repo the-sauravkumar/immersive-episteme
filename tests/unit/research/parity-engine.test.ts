@@ -115,4 +115,20 @@ describe("content parity from one template", () => {
     map.study.battery.push({ assessmentId: "a-map", code: "pre-map", version: 1, kind: "reconstruction", phase: "pre", position: 1, status: "locked", required: true });
     expect(failingCodes(map, "d.journey")).toContain("pre_concept_map");
   });
+
+  it("refuses a within-subjects design, which the study engine cannot run (D3)", () => {
+    const within = passingInput();
+    within.study.design = "within";
+    expect(failingCodes(within, "d.journey")).toContain("design_not_between");
+    expect(runParityChecks(within).passed).toBe(false);
+    expect(failingCodes(passingInput(), "d.journey")).toEqual([]);
+  });
+
+  it("refuses an allocation algorithm the study engine cannot draw", () => {
+    for (const algorithm of ["counterbalanced", "manual"]) {
+      const input = passingInput();
+      (input.study.config as Record<string, unknown>).allocation = { algorithm, point: "after_pre_test" };
+      expect(failingCodes(input, "d.journey")).toContain("protocol_rule");
+    }
+  });
 });

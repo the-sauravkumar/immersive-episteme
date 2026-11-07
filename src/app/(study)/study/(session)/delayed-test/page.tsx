@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 
 import { GateFallback } from "@/components/shell/gate-fallback";
+import { PageHeader } from "@/components/shell/page-header";
 import { AssessmentStep } from "@/components/study/assessment-step";
+import { STUDY_LINK_CLASS, StepFooter } from "@/components/study/step-footer";
+import { serverEnv } from "@/lib/env";
+import { titleCase } from "@/lib/text/title-case";
 import { getPool } from "@/server/db/client";
-import { delayedTestStatus } from "@/server/study/engine";
+import { delayedReturnLink, delayedTestStatus } from "@/server/study/engine";
 import { requireStep } from "@/server/study/session";
 
-export const metadata: Metadata = { title: "Delayed Test" };
+export const metadata: Metadata = { title: titleCase("Delayed test") };
 
 export const instant = false;
 
@@ -16,21 +20,41 @@ const dateText = (date: Date) => date.toLocaleDateString("en-GB", { day: "numeri
 async function Delayed() {
   const { state } = await requireStep("delayed_test");
   const { schedule, availability } = await delayedTestStatus(getPool(), state);
-  if (availability === "open") return <AssessmentStep step="delayed_test" route="/study/delayed-test" />;
-  const link = `/study/return?study=${encodeURIComponent(state.study.slug)}&code=${encodeURIComponent(state.participantCode)}`;
+  if (availability === "open") {
+    return (
+      <>
+        <PageHeader title="Delayed test" description="The last set of questions, about a week after your first session." />
+        <AssessmentStep step="delayed_test" route="/study/delayed-test" />
+      </>
+    );
+  }
+  const link = delayedReturnLink(serverEnv().BETTER_AUTH_URL, state.study.slug, state.participantCode);
   return (
-    <section className="flex flex-col gap-6">
-      <h1 className="text-[clamp(38px,6vw,64px)] leading-none">Come Back In About A Week</h1>
-      <p className="max-w-[65ch] text-[22px] leading-[1.4]">
-        You are done for today. One short set of questions is left, online, on or after {dateText(schedule.dueAt)}. It closes on {dateText(schedule.closesAt)}.
-      </p>
-      <p className="text-[18px]">
-        Your code is <strong className="walking-heading tabular-nums">{state.participantCode}</strong>. Keep it. It is the only way back to your answers.
-      </p>
-      <p className="text-[18px]">
-        Return link: <a className="underline" href={link}>{link}</a>
-      </p>
-    </section>
+    <>
+      <PageHeader title="Come back in about a week" description="You are done for today." />
+      <section aria-labelledby="return-heading" className="flex flex-col gap-4">
+        <h2 id="return-heading" className="text-h2 text-ink">
+          {titleCase("When and how to come back")}
+        </h2>
+        <p className="text-reading max-w-[34rem] text-ink">
+          One short set of questions is left, online, on or after {dateText(schedule.dueAt)}. It closes on {dateText(schedule.closesAt)}.
+        </p>
+        <p className="text-reading max-w-[34rem] text-ink">
+          Your code is <span className="text-id whitespace-nowrap text-ink">{state.participantCode}</span>. Keep it with the study code{" "}
+          <span className="text-id whitespace-nowrap text-ink">{state.study.slug}</span>. Together they are the only way back to your answers.
+        </p>
+        <p className="text-reading max-w-[34rem] break-all text-ink">
+          Return link:{" "}
+          <a className={STUDY_LINK_CLASS} href={link}>
+            {link}
+          </a>
+        </p>
+        <p className="text-reading max-w-[34rem] text-ink">
+          On another device or browser, the site first asks for its invite code. The facilitator can give it to you again.
+        </p>
+      </section>
+      <StepFooter />
+    </>
   );
 }
 

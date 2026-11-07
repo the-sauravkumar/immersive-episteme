@@ -1,9 +1,9 @@
-import type { StageEntryOutcome, StageRef } from "./learning-progress";
+import type { StageEntryOutcome, StageLeftOutcome, StageRef } from "./learning-progress";
 import type { StageVisit } from "./stage-coverage";
 
 export interface StopLedgerPort {
   readonly enter: (stop: StageRef) => Promise<StageEntryOutcome>;
-  readonly left: (stop: StageRef, activeMs: number) => Promise<boolean>;
+  readonly left: (stop: StageRef, activeMs: number) => Promise<StageLeftOutcome>;
 }
 
 export interface StopLedgerEvents {
@@ -74,6 +74,12 @@ export function createStopLedger(port: StopLedgerPort, events: StopLedgerEvents,
     abandon(() => events.onRefused(outcome.expected));
   };
 
+  const onLeft = (outcome: StageLeftOutcome) => {
+    if (outcome === "delivered") return delivered();
+    if (outcome === "unavailable") return lost();
+    abandon(events.onEnded);
+  };
+
   function drain(): void {
     if (sending || retry !== null) return;
     const head = queue[0];
@@ -82,7 +88,7 @@ export function createStopLedger(port: StopLedgerPort, events: StopLedgerEvents,
       return;
     }
     sending = true;
-    const sent: Promise<void> = head.kind === "entered" ? port.enter(head.stop).then(onEntry) : port.left(head.stop, head.activeMs).then((accepted) => (accepted ? delivered() : lost()));
+    const sent: Promise<void> = head.kind === "entered" ? port.enter(head.stop).then(onEntry) : port.left(head.stop, head.activeMs).then(onLeft);
     void sent.finally(() => {
       sending = false;
       drain();

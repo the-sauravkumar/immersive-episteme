@@ -41,14 +41,12 @@ export const createStudySchema = z.object({
   title: z.string().trim().min(1).max(300),
   description: z.string().trim().max(4000).optional(),
   protocolVersion: z.string().trim().min(1).max(64),
-  design: z.enum(["between", "within"]),
 });
 
 export const updateStudySchema = z.object({
   title: z.string().trim().min(1).max(300),
   description: z.string().trim().max(4000).nullable(),
   protocolVersion: z.string().trim().min(1).max(64),
-  design: z.enum(["between", "within"]),
   snapshotId: z.uuid().nullable(),
   manifestId: z.uuid().nullable(),
   config: draftStudyConfigSchema,
@@ -164,8 +162,8 @@ export async function createStudy(pool: Pool | PoolClient, actor: Actor, input: 
   return inTransaction(pool, async (c) => {
     const s = await c.query<{ id: string }>(
       `INSERT INTO studies (slug, title, description, protocol_version, design, config, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7) RETURNING id`,
-      [data.slug, data.title, data.description ?? null, data.protocolVersion, data.design, JSON.stringify(config), actor.userId],
+       VALUES ($1, $2, $3, $4, 'between', $5::jsonb, $6) RETURNING id`,
+      [data.slug, data.title, data.description ?? null, data.protocolVersion, JSON.stringify(config), actor.userId],
     );
     const id = s.rows[0]!.id;
     await c.query(
@@ -181,19 +179,16 @@ export async function createStudy(pool: Pool | PoolClient, actor: Actor, input: 
 
 export async function updateStudy(pool: Pool | PoolClient, actor: Actor, studyId: string, input: UpdateStudyInput): Promise<void> {
   const data = updateStudySchema.parse(input);
-  if (data.design === "within" && Object.keys(data.config.contentSets ?? {}).length < 2) {
-    throw new ResearchActionError("A within-subjects study needs at least two matched content sets.");
-  }
   await inTransaction(pool, async (c) => {
     const before = await requireDraft(c, studyId);
     await c.query(
-      `UPDATE studies SET title = $2, description = $3, protocol_version = $4, design = $5, snapshot_id = $6, manifest_id = $7, config = $8::jsonb
+      `UPDATE studies SET title = $2, description = $3, protocol_version = $4, design = 'between', snapshot_id = $5, manifest_id = $6, config = $7::jsonb
         WHERE id = $1`,
-      [studyId, data.title, data.description, data.protocolVersion, data.design, data.snapshotId, data.manifestId, JSON.stringify(data.config)],
+      [studyId, data.title, data.description, data.protocolVersion, data.snapshotId, data.manifestId, JSON.stringify(data.config)],
     );
     await audit(c, actor, "study.configure", "study", studyId, {
       before: pickProtocol(before),
-      after: { title: data.title, description: data.description, protocol_version: data.protocolVersion, design: data.design, snapshot_id: data.snapshotId, manifest_id: data.manifestId, config: data.config },
+      after: { title: data.title, description: data.description, protocol_version: data.protocolVersion, design: "between", snapshot_id: data.snapshotId, manifest_id: data.manifestId, config: data.config },
     });
   });
 }

@@ -26,6 +26,7 @@ import {
   recordConsent,
   recordDeviceCheck,
   recordWalkthroughWebglFailure,
+  returnForDelayedTest,
   startFamiliarisation,
   completeFamiliarisation,
   submitAssessment,
@@ -38,6 +39,7 @@ import {
 import { behaviourDistributions, outcomeDistributions, transitionMatrices } from "../../src/server/research/analytics";
 import { loadDashboard } from "../../src/server/research/dashboard";
 import { seedInstrumentDefinitions } from "../../src/server/study/instruments";
+import { REQUIRED_ANSWER_MESSAGE } from "../../src/features/study/answer-presence";
 import {
   TEST_URL,
   addSnapshotItem,
@@ -78,11 +80,11 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     ids[code] = a.id;
   }
 
-  async function activeStudy(config: Record<string, unknown>, battery: [string, "pre" | "post"][]): Promise<EnrollableStudy> {
+  async function activeStudy(config: Record<string, unknown>, battery: [string, "pre" | "post"][], required = false): Promise<EnrollableStudy> {
     const slug = `fix-${++n}`;
     const s = await createStudy(t.pool, { slug, snapshotId, manifestId });
     for (const [i, [code, phase]] of battery.entries()) {
-      await t.pool.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position) SELECT $1, id, $2, $3 FROM assessments WHERE code = $4 AND status = 'locked'", [s.studyId, phase, i, code]);
+      await t.pool.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position, required) SELECT $1, id, $2, $3, $5 FROM assessments WHERE code = $4 AND status = 'locked'", [s.studyId, phase, i, code, required]);
     }
     await t.pool.query("UPDATE studies SET config = $2::jsonb, status = 'active' WHERE id = $1", [
       s.studyId,
@@ -110,7 +112,7 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
       const s = await consented(study);
       await beforePre?.(s);
       await pre(s.sessionId);
-      await recordDeviceCheck(t.pool, s.sessionId, report(2));
+      await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD });
       const a = await allocateSession(t.pool, s.sessionId);
       if (a.condition === condition) return { ...s, condition: a.condition, conditionId: a.conditionId };
     }
@@ -150,9 +152,9 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     const study = await activeStudy({ steps: BASIC_STEPS, webglFailurePolicy: "retry" }, BASIC);
     const s = await consented(study);
     await pre(s.sessionId);
-    expect(await recordDeviceCheck(t.pool, s.sessionId, report(2, true))).toEqual({ kind: "retry", reason: "webgl_unavailable" });
-    expect(await recordDeviceCheck(t.pool, s.sessionId, report(1))).toEqual({ kind: "retry", reason: "webgl_unavailable" });
-    expect(await recordDeviceCheck(t.pool, s.sessionId, report(2))).toEqual({ kind: "passed" });
+    expect(await recordDeviceCheck(t.pool, s.sessionId, report(2, true), { appBuild: BUILD })).toEqual({ kind: "retry", reason: "webgl_unavailable" });
+    expect(await recordDeviceCheck(t.pool, s.sessionId, report(1), { appBuild: BUILD })).toEqual({ kind: "retry", reason: "webgl_unavailable" });
+    expect(await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD })).toEqual({ kind: "passed" });
     const device = await one<{ device: { softwareRenderer?: boolean } }>(t.pool, "SELECT device FROM study_sessions WHERE id = $1", [s.sessionId]);
     expect(device.device.softwareRenderer).toBe(false);
   });
@@ -161,7 +163,7 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     for (const policy of ["retry", "exclude", "reassign"] as const) {
       const study = await activeStudy({ steps: BASIC_STEPS, webglFailurePolicy: policy }, BASIC);
       const s = await allocatedTo(study, "immersive");
-      expect(await recordDeviceCheck(t.pool, s.sessionId, report(2))).toEqual({ kind: "passed" });
+      expect(await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD })).toEqual({ kind: "passed" });
       // Before the learning step the report is ignored (only practice and learning show the museum).
       expect(await recordWalkthroughWebglFailure(t.pool, s.sessionId, { webglVersion: 2, softwareRenderer: true }, { appBuild: BUILD })).toEqual({ kind: "ignored" });
       await completeOnboarding(t.pool, s.sessionId);
@@ -211,7 +213,7 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
   it("study-09: a presentation stamp is refused for any step but the current one", async () => {
     const study = await activeStudy({ steps: BASIC_STEPS }, BASIC);
     const s = await allocatedTo(study, "2d");
-    await recordDeviceCheck(t.pool, s.sessionId, report(2));
+    await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD });
     await completeOnboarding(t.pool, s.sessionId);
     await expect(markAssessmentPresented(t.pool, { sessionId: s.sessionId, step: "post_test", assessmentId: ids["fx-post"]! })).rejects.toMatchObject({ code: "not_current_step" });
     expect((await state(s.sessionId)).journal.some((e) => e.action === "study.assessment_started" && e.after.step === "post_test")).toBe(false);
@@ -230,7 +232,7 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     expect(await currentReconstructionPhase(t.pool, s.sessionId)).toBeNull(); // pre-test
     await pre(s.sessionId);
     expect(await currentReconstructionPhase(t.pool, s.sessionId)).toBeNull();
-    await recordDeviceCheck(t.pool, s.sessionId, report(2));
+    await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD });
     await allocateSession(t.pool, s.sessionId);
     await completeOnboarding(t.pool, s.sessionId);
     expect(await currentReconstructionPhase(t.pool, s.sessionId)).toBeNull(); // learning: no map save
@@ -244,14 +246,14 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     const study = await activeStudy({ steps: BASIC_STEPS, allocation: { algorithm: "stratified_block", seed: "s", stratifyBy: { source: "pre_test_score", cutoff: 0 } } }, BASIC);
     const blank = await consented(study);
     await pre(blank.sessionId, {});
-    await recordDeviceCheck(t.pool, blank.sessionId, report(2));
+    await recordDeviceCheck(t.pool, blank.sessionId, report(2), { appBuild: BUILD });
     await allocateSession(t.pool, blank.sessionId);
     const j = (await state(blank.sessionId)).journal.find((e) => e.action === "study.allocated")!;
     expect(j.after.stratum).toBe("low");
     expect(j.after.stratumSource).toMatchObject({ source: "pre_test_score", score: 0, keyedItems: 2, answeredKeyedItems: 0, skippedKeyedItems: 2 });
     const partial = await consented(study);
     await pre(partial.sessionId, { [ids["fx-pre:q1"]!]: ["b"] });
-    await recordDeviceCheck(t.pool, partial.sessionId, report(2));
+    await recordDeviceCheck(t.pool, partial.sessionId, report(2), { appBuild: BUILD });
     await allocateSession(t.pool, partial.sessionId);
     const jp = (await state(partial.sessionId)).journal.find((e) => e.action === "study.allocated")!;
     expect(jp.after.stratumSource).toMatchObject({ score: 1, keyedItems: 2, answeredKeyedItems: 1, skippedKeyedItems: 1 });
@@ -319,5 +321,89 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     expect(await preTotal()).toBeUndefined();
     expect(await behaviourDistributions(t.pool, study.id, { includeExcluded: true })).toHaveLength(0);
     expect(await ownRows()).toEqual([]);
+  });
+
+  it("refuses a blank answer in an assessment the battery marks required, item by item, and scores a complete one as before", async () => {
+    const study = await activeStudy({ steps: BASIC_STEPS }, BASIC, true);
+    const s = await consented(study);
+    const refusal = await pre(s.sessionId, { [ids["fx-pre:q1"]!]: ["b"] }).catch((err: unknown) => err);
+    expect(refusal).toMatchObject({ code: "invalid_answers" });
+    expect((refusal as { details: { errors: Record<string, string> } }).details.errors).toEqual({
+      [ids["fx-pre:q2"]!]: REQUIRED_ANSWER_MESSAGE,
+      [ids["fx-pre:why"]!]: REQUIRED_ANSWER_MESSAGE,
+    });
+    expect(await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM responses WHERE session_id = $1", [s.sessionId])).toEqual({ n: 0 });
+    const done = await pre(s.sessionId, { [ids["fx-pre:q1"]!]: ["b"], [ids["fx-pre:q2"]!]: ["b"], [ids["fx-pre:why"]!]: ["Because."] });
+    expect(done).toMatchObject({ answered: 3, skipped: 0, scored: 2, correct: 1, stepCompleted: true });
+
+    const optional = await activeStudy({ steps: BASIC_STEPS }, BASIC);
+    const o = await consented(optional);
+    expect(await pre(o.sessionId, {})).toMatchObject({ answered: 0, skipped: 3, scored: 0, stepCompleted: true });
+  });
+
+  it("refuses an early finish with its own reason, not a server error, when the study keeps everyone for the full time", async () => {
+    const strict = await activeStudy({ steps: BASIC_STEPS, exposure: { mode: "self_paced", minutes: 30, allowEarlyFinish: false } }, BASIC);
+    const s = await allocatedTo(strict, "2d");
+    await completeOnboarding(t.pool, s.sessionId);
+    const endsAt = (await state(s.sessionId)).learning.endsAt!;
+    await expect(finishLearning(t.pool, s.sessionId)).rejects.toMatchObject({ name: "StudyEngineError", code: "learning_time_remaining", details: { endsAt: endsAt.toISOString() } });
+    expect(await position(s.sessionId)).toMatchObject({ step: "learning" });
+    expect((await state(s.sessionId)).learning.endedAt).toBeNull();
+
+    const lenient = await activeStudy({ steps: BASIC_STEPS, exposure: { mode: "self_paced", minutes: 30, allowEarlyFinish: true } }, BASIC);
+    const l = await allocatedTo(lenient, "2d");
+    await completeOnboarding(t.pool, l.sessionId);
+    expect(await finished(l.sessionId)).toMatchObject({ step: "post_test" });
+  });
+
+  it("stops the retry loop: a second walkthrough failure on the same device ends the session as excluded", async () => {
+    const study = await activeStudy({ steps: BASIC_STEPS, webglFailurePolicy: "retry" }, BASIC);
+    const s = await allocatedTo(study, "immersive");
+    await completeOnboarding(t.pool, s.sessionId);
+    const gpu = { webglVersion: 2 as const, softwareRenderer: false };
+    expect(await recordWalkthroughWebglFailure(t.pool, s.sessionId, gpu, { appBuild: BUILD })).toEqual({ kind: "retry", reason: "webgl_unavailable" });
+    expect(await position(s.sessionId)).toEqual({ kind: "device_check" });
+    expect(await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD })).toEqual({ kind: "passed" });
+    expect(await position(s.sessionId)).toMatchObject({ step: "learning" });
+    expect(await recordWalkthroughWebglFailure(t.pool, s.sessionId, gpu, { appBuild: BUILD })).toEqual({ kind: "excluded" });
+    expect(await one(t.pool, "SELECT excluded, status::text AS status, exclusion_reason FROM study_sessions WHERE id = $1", [s.sessionId])).toEqual({
+      excluded: true,
+      status: "abandoned",
+      exclusion_reason: "webgl_runtime_failure: the walkthrough failed 2 times on this device under webglFailurePolicy=retry",
+    });
+    const failures = (await state(s.sessionId)).journal.filter((e) => e.action === "study.webgl_failed").map((e) => e.after.failure);
+    expect(failures).toEqual([1, 2]);
+  });
+
+  it("applies the reassign policy at the device check once the door is known, so no one is held at the check", async () => {
+    const study = await activeStudy({ steps: BASIC_STEPS, webglFailurePolicy: "reassign", allocation: { algorithm: "block", seed: "enrol-reassign", point: "enrolment" } }, BASIC);
+    const seen = new Set<string>();
+    for (let i = 0; i < 12 && seen.size < 2; i++) {
+      const s = await consented(study);
+      expect(await position(s.sessionId)).toEqual({ kind: "device_check" });
+      const out = await recordDeviceCheck(t.pool, s.sessionId, report(null), { appBuild: BUILD });
+      seen.add(s.condition!);
+      if (s.condition === "immersive") {
+        expect(out).toMatchObject({ kind: "reassigned", condition: "2d" });
+        if (out.kind !== "reassigned") return;
+        expect(await one(t.pool, "SELECT status::text AS status FROM study_sessions WHERE id = $1", [s.sessionId])).toEqual({ status: "abandoned" });
+        expect(await position(out.sessionId)).toMatchObject({ step: "pre_test" });
+      } else {
+        expect(out).toEqual({ kind: "passed" });
+        expect(await position(s.sessionId)).toMatchObject({ step: "pre_test" });
+      }
+    }
+    expect([...seen].sort()).toEqual(["2d", "immersive"]);
+  });
+
+  it("returns by code straight after the last immediate step, with no page shown in between", async () => {
+    await assessment("fx-delayed", "posttest", [{ key: "q1", kind: "single_choice", prompt: "Pick a", config: { kind: "single_choice", options: [{ id: "a", label: "Option a" }, { id: "b", label: "Option b" }] }, answerKey: { optionId: "a" } }]);
+    const study = await activeStudy({ steps: [...BASIC_STEPS, "delayed_test"] }, [...BASIC, ["fx-delayed", "follow_up" as "post"]]);
+    const s = await allocatedTo(study, "2d");
+    await completeOnboarding(t.pool, s.sessionId);
+    await finishLearning(t.pool, s.sessionId);
+    await submitAssessment(t.pool, { sessionId: s.sessionId, step: "post_test", assessmentId: ids["fx-post"]!, values: {} });
+    const participantCode = (await one<{ code: string }>(t.pool, "SELECT code FROM participants WHERE id = $1", [s.participantId])).code;
+    expect(await returnForDelayedTest(t.pool, { studyCode: study.slug, participantCode })).toMatchObject({ sessionId: s.sessionId, availability: "early" });
   });
 });

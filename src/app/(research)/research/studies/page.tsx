@@ -13,7 +13,6 @@ import { listStudies } from "@/server/research/studies";
 import { ActionForm } from "../_components/action-form";
 import { DemoBadge, Empty, FieldLabel, LINK_44, Section, StatusBadge, Timestamp } from "../_components/common";
 import { createStudyAction } from "../actions";
-import { NativeSelect } from "@/components/ui/native-select";
 
 export const metadata: Metadata = { title: "Studies" };
 
@@ -83,12 +82,6 @@ async function Studies() {
             </FieldLabel>
             <FieldLabel label="Protocol version">
               <Input name="protocolVersion" required maxLength={64} defaultValue="1.0" />
-            </FieldLabel>
-            <FieldLabel label="Design">
-              <NativeSelect name="design" defaultValue="between">
-                <option value="between">Between subjects</option>
-                <option value="within">Within subjects (needs matched content sets)</option>
-              </NativeSelect>
             </FieldLabel>
             <FieldLabel label="Description (optional)">
               <Textarea name="description" rows={3} maxLength={4000} />

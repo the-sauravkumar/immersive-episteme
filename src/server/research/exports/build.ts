@@ -139,7 +139,7 @@ export async function buildExportBundle(q: Q, studyId: string, opts: { scope: Ex
          FROM participants WHERE study_id = $1 ORDER BY code`,
     ),
     allocations: await rows(
-      `SELECT p.code AS participant_code, a.condition_id, a.period, a.content_set_code, a.algorithm::text AS algorithm,
+      `SELECT p.code AS participant_code, a.condition_id, a.period, a.algorithm::text AS algorithm,
               CASE WHEN (SELECT status FROM studies WHERE id = $1) = 'closed' THEN a.seed END AS seed, a.sequence_index,
               a.block_index, a.stratum, a.study_protocol_version, ${ts("a.allocated_at")} AS allocated_at
          FROM allocations a JOIN participants p ON p.id = a.participant_id WHERE a.study_id = $1 ORDER BY a.sequence_index, a.period`,

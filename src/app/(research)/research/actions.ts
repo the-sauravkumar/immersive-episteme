@@ -18,7 +18,7 @@ import { recomputeStudyMetrics } from "@/server/research/metrics/pipeline";
 import { METRICS_PIPELINE_VERSION } from "@/server/research/metrics/session";
 import { runAndStoreParityReport } from "@/server/research/parity/store";
 import { addAnnotation, addDeviation, excludeSession } from "@/server/research/sessions";
-import { guidanceFromForm } from "@/server/research/study-form";
+import { allocationFromForm, guidanceFromForm } from "@/server/research/study-form";
 import { purgeParticipantData, purgeRetentionDue } from "@/server/study/purge";
 import { activateStudy, closeStudy, createStudy, draftStudyConfigSchema, getStudy, newStudyVersion, setBattery, updateStudy } from "@/server/research/studies";
 
@@ -53,7 +53,6 @@ export async function createStudyAction(_: ActionState, d: FormData): Promise<Ac
       title: text(d, "title"),
       description: text(d, "description") || undefined,
       protocolVersion: text(d, "protocolVersion"),
-      design: text(d, "design") as "between" | "within",
     });
   } catch (err) {
     return fail(err);
@@ -66,21 +65,10 @@ export async function updateStudyAction(studyId: string, _: ActionState, d: Form
     const p = await assertPermission("study.configure");
     const current = await getStudy(getPool(), studyId);
     if (!current) return { status: "error", message: "Study not found." };
-    const contentSetsRaw = text(d, "contentSets");
     const config = draftStudyConfigSchema.parse({
       ...current.config,
       traditionSlugs: d.getAll("traditions").map(String),
-      contentSets: contentSetsRaw ? JSON.parse(contentSetsRaw) : undefined,
-      allocation: {
-        // Keep the engine's allocation fields the form does not edit (seed, point, stratifyBy).
-        ...current.config.allocation,
-        algorithm: text(d, "allocationAlgorithm") || "block",
-        blockSize: optInt(d, "blockSize"),
-        strata: text(d, "strata")
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean),
-      },
+      allocation: allocationFromForm(current.config.allocation, text(d, "allocationAlgorithm"), optInt(d, "blockSize")),
       exposure: { ...current.config.exposure, mode: text(d, "exposureMode") || "self_paced", minutes: optInt(d, "exposureMinutes"), allowEarlyFinish: d.get("allowEarlyFinish") === "on" },
       guidance: guidanceFromForm(current.config.guidance, d),
       searchEnabled: d.get("searchEnabled") === "on",
@@ -95,7 +83,6 @@ export async function updateStudyAction(studyId: string, _: ActionState, d: Form
       title: text(d, "title"),
       description: text(d, "description") || null,
       protocolVersion: text(d, "protocolVersion"),
-      design: text(d, "design") as "between" | "within",
       snapshotId: text(d, "snapshotId") || null,
       manifestId: text(d, "manifestId") || null,
       config,
@@ -103,7 +90,6 @@ export async function updateStudyAction(studyId: string, _: ActionState, d: Form
     refresh();
     return ok("Configuration saved. Run the parity check again before activating.");
   } catch (err) {
-    if (err instanceof SyntaxError) return { status: "error", message: "Content sets must be valid JSON." };
     return fail(err);
   }
 }

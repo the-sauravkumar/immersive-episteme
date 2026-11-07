@@ -80,6 +80,16 @@ const serverContrast = () => false;
 
 type View = { kind: "ready" } | { kind: "checking" } | { kind: "result"; result: DeviceCheckResult };
 
+const CHECK_UNSENT = "The check could not reach the study. Check the connection, then check again.";
+
+async function sendDeviceCheck(): Promise<DeviceCheckResult> {
+  try {
+    return await submitDeviceCheck(collectDeviceReport());
+  } catch {
+    return { ok: false, error: CHECK_UNSENT };
+  }
+}
+
 /** The High contrast state in words (one ruled `<dl>` row), shared by the choice and the record. */
 function ContrastState({ on }: { on: boolean }) {
   return (
@@ -147,7 +157,7 @@ export function DeviceCheck() {
     if (busy.current) return;
     busy.current = true;
     setView({ kind: "checking" });
-    const result = await submitDeviceCheck(collectDeviceReport());
+    const result = await sendDeviceCheck();
     if (result.ok && (result.outcome === "passed" || result.outcome === "reassigned")) {
       router.replace("/study/session");
       return;
@@ -156,7 +166,6 @@ export function DeviceCheck() {
       router.replace("/study/complete?status=excluded");
       return;
     }
-    // A refused check: the button stays where the participant pressed it, now "Check again".
     busy.current = false;
     setView({ kind: "result", result });
   }, [router]);

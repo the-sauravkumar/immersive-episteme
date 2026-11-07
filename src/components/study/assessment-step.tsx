@@ -83,7 +83,7 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
         key={next.id}
         step={step}
         returnTo={route}
-        assessment={{ id: next.id, code: next.code, version: next.version, title: next.title, description: next.description, presentation, paged }}
+        assessment={{ id: next.id, code: next.code, version: next.version, title: next.title, description: next.description, presentation, paged, required: next.required }}
         items={items}
       />
       <StepFooter />

@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { CoursePractice } from "@/features/course/ui/course-practice";
 import { endFamiliarisation } from "@/server/study/actions";
@@ -19,15 +19,30 @@ interface PracticeDoorProps {
   readonly returnTo: string;
 }
 
-function usePracticeFinish({ studyMode, returnTo }: PracticeDoorProps): { readonly error: string | null; readonly finish: () => void } {
+export const PRACTICE_UNSENT = "The study could not be told that the practice is over. Check the connection and press the button again.";
+
+export function usePracticeFinish({ studyMode, returnTo }: PracticeDoorProps): { readonly error: string | null; readonly finish: () => void } {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const pending = useRef(false);
   const finish = useCallback(() => {
     if (!studyMode) {
       router.replace(returnTo);
       return;
     }
-    void endFamiliarisation({}).then((state) => setError(state?.error ?? null));
+    if (pending.current) return;
+    pending.current = true;
+    setError(null);
+    endFamiliarisation({}).then(
+      (state) => {
+        pending.current = false;
+        setError(state?.error ?? null);
+      },
+      () => {
+        pending.current = false;
+        setError(PRACTICE_UNSENT);
+      },
+    );
   }, [returnTo, router, studyMode]);
   return { error, finish };
 }

@@ -11,6 +11,7 @@ import { getStaffPrincipal } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 import { listParityReports } from "@/server/research/parity/store";
 import { assessmentOptions, getStudy, pinOptions, snapshotTraditions, studyHistory, type StudyDetail } from "@/server/research/studies";
+import { CONSOLE_ALLOCATION_ALGORITHMS } from "@/server/research/study-form";
 import { listRetentionDue } from "@/server/study/purge";
 
 import { ActionForm } from "../../_components/action-form";
@@ -114,7 +115,7 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
         </Table>
       </Section>
 
-      <Section demo={study.isDemo} id="battery" title="Assessment battery and order" description="The same battery, in the same order, for both conditions. Only locked assessments can be used by an active study.">
+      <Section demo={study.isDemo} id="battery" title="Assessment battery and order" description="The same battery, in the same order, for both conditions. Only locked assessments can be used by an active study. Required: every question must be answered before the participant goes on; otherwise questions may be left blank and are stored as skipped.">
         <BatteryForm study={study} assessments={assessments} disabled={!mayConfigure} />
       </Section>
 
@@ -262,7 +263,6 @@ function ParityAndActivation({
   );
 }
 
-const ALLOCATION = ["simple", "block", "stratified_block", "counterbalanced", "manual"];
 const GUIDANCE = ["none", "exploration_first", "guided", "hybrid"];
 const words = (code: string) => code.charAt(0).toUpperCase() + code.slice(1).replace(/_/g, " ");
 
@@ -289,12 +289,6 @@ function ConfigForm({
       <FieldLabel label="Description" className="md:col-span-2">
         <textarea name="description" rows={2} defaultValue={study.description ?? ""} className={TEXTAREA} />
       </FieldLabel>
-      <FieldLabel label="Design">
-        <NativeSelect name="design" defaultValue={study.design}>
-          <option value="between">Between subjects</option>
-          <option value="within">Within subjects</option>
-        </NativeSelect>
-      </FieldLabel>
       <FieldLabel label="Content snapshot (release)">
         <NativeSelect name="snapshotId" defaultValue={study.snapshotId ?? ""}>
           <option value="">None</option>
@@ -320,7 +314,7 @@ function ConfigForm({
       </fieldset>
       <FieldLabel label="Allocation algorithm">
         <NativeSelect name="allocationAlgorithm" defaultValue={c.allocation.algorithm}>
-          {ALLOCATION.map((a) => (
+          {CONSOLE_ALLOCATION_ALGORITHMS.map((a) => (
             <option key={a} value={a}>
               {words(a)}
             </option>
@@ -329,9 +323,6 @@ function ConfigForm({
       </FieldLabel>
       <FieldLabel label="Block size">
         <Input name="blockSize" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={c.allocation.blockSize ?? ""} />
-      </FieldLabel>
-      <FieldLabel label="Strata" hint="Comma-separated.">
-        <Input name="strata" defaultValue={c.allocation.strata.join(", ")} />
       </FieldLabel>
       <FieldLabel label="Exposure">
         <NativeSelect name="exposureMode" defaultValue={c.exposure.mode}>
@@ -404,9 +395,6 @@ function ConfigForm({
           </label>
         </div>
       </fieldset>
-      <FieldLabel label="Matched content sets" className="md:col-span-2" hint="JSON, within-subjects designs only.">
-        <textarea name="contentSets" rows={3} defaultValue={c.contentSets ? JSON.stringify(c.contentSets, null, 2) : ""} className={`${TEXTAREA} font-mono text-[0.875rem]`} />
-      </FieldLabel>
       <FieldLabel label="Notes" className="md:col-span-2">
         <textarea name="notes" rows={2} maxLength={4000} defaultValue={c.notes ?? ""} className={TEXTAREA} />
       </FieldLabel>
@@ -472,7 +460,7 @@ function BatteryForm({ study, assessments, disabled }: { study: StudyDetail; ass
               </TableCell>
               <TableCell>
                 <label className="flex size-11 cursor-pointer items-center justify-center">
-                  <input type="checkbox" name={`required:${a.id}`} defaultChecked={b?.required ?? true} disabled={disabled} aria-label={`${a.title} required`} className={CHECK_BOX} />
+                  <input type="checkbox" name={`required:${a.id}`} defaultChecked={b?.required ?? true} disabled={disabled} aria-label={`${a.title} required: every question must be answered`} className={CHECK_BOX} />
                 </label>
               </TableCell>
             </TableRow>

@@ -16,14 +16,13 @@ import {
   DEVIATION_SEVERITIES,
   PARTICIPANT_STATUSES,
   SESSION_STATUSES,
-  STUDY_DESIGNS,
   STUDY_PHASES,
   STUDY_STATUSES,
 } from "@/lib/validation/enums";
 import { LEARNING_CONDITIONS } from "@/lib/permissions/learning";
 import { demoConsistencyIssue, nonBlank, sha256Schema, slugSchema, uuidSchema } from "@/lib/validation/primitives";
 
-export const studyDesignSchema = z.enum(STUDY_DESIGNS);
+export const studyDesignSchema = z.literal("between");
 export const studyStatusSchema = z.enum(STUDY_STATUSES);
 export const conditionInterfaceSchema = z.enum(CONDITION_INTERFACES);
 export const allocationAlgorithmSchema = z.enum(ALLOCATION_ALGORITHMS);
@@ -75,13 +74,6 @@ export type InstrumentRef = z.infer<typeof instrumentRefSchema>;
 export const studyConfigSchema = z.object({
   /** Tradition slugs included in the study (default three; not a constant, see digest §2). */
   traditionSlugs: z.array(slugSchema).min(1).default([]),
-  /**
-   * Matched content sets for within-subjects / counterbalanced designs (digest §6: a
-   * participant may receive more than one tradition set). Each allocation period records
-   * which set it used (allocations.content_set_code); the database rejects codes not declared
-   * here.
-   */
-  contentSets: z.record(periodCodeSchema, z.object({ traditionSlugs: z.array(slugSchema).min(1), label: z.string().max(120).optional() })).optional(),
   allocation: z
     .object({
       algorithm: allocationAlgorithmSchema.default("block"),
@@ -241,13 +233,6 @@ export const studyInputSchema = z
     const interfaces = new Set(s.conditions.map((c) => c.interface));
     if (interfaces.size < 2) {
       ctx.addIssue({ code: "custom", path: ["conditions"], message: "Include both the 2D and the 3D condition" });
-    }
-    if (s.design === "within" && Object.keys(s.config.contentSets ?? {}).length < 2) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["config", "contentSets"],
-        message: "A within-subjects study needs at least two matched content sets",
-      });
     }
   });
 export type StudyInput = z.infer<typeof studyInputSchema>;

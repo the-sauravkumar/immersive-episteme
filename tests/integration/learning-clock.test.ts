@@ -52,17 +52,28 @@ describe.skipIf(!TEST_URL)("learning clock and outcome separation", () => {
   }
   const ctxFor = (sess: { participantId: string; sessionId: string }, condition: "2d" | "immersive") =>
     resolveLearningContext({ kind: "participant", experimental: true, condition, participantId: sess.participantId, sessionId: sess.sessionId }, { data: pgLearningContextData(t.pool), appBuild: "test" });
+  const clockOf = async (sessionId: string) => {
+    const row = await one<{ started_at: Date | null; budget_seconds: number | null; ends_at: Date | null; ended_at: Date | null }>(
+      t.pool,
+      "SELECT learning_started_at AS started_at, learning_budget_seconds AS budget_seconds, learning_ends_at AS ends_at, learning_ended_at AS ended_at FROM study_sessions WHERE id = $1",
+      [sessionId],
+    );
+    const iso = (d: Date | null) => (d ? d.toISOString() : null);
+    return { startedAt: iso(row.started_at), budgetSeconds: row.budget_seconds, endsAt: iso(row.ends_at), endedAt: iso(row.ended_at) };
+  };
 
   it("gives both conditions the same server-stamped budget, set once", async () => {
     const { a, b } = await study({ mode: "fixed_time", minutes: 20 });
-    const c2d = await ctxFor(a, "2d");
-    const c3d = await ctxFor(b, "immersive");
-    for (const c of [c2d, c3d]) {
-      expect(c.learningTime).toMatchObject({ mode: "fixed_time", budgetSeconds: 1200, allowEarlyFinish: false, persisted: true, endedAt: null });
-      expect(Date.parse(c.learningTime.endsAt!) - Date.parse(c.learningTime.startedAt!)).toBe(1_200_000);
+    await ctxFor(a, "2d");
+    await ctxFor(b, "immersive");
+    for (const sessionId of [a.sessionId, b.sessionId]) {
+      const c = await clockOf(sessionId);
+      expect(c).toMatchObject({ budgetSeconds: 1200, endedAt: null });
+      expect(Date.parse(c.endsAt!) - Date.parse(c.startedAt!)).toBe(1_200_000);
     }
-    const again = await ctxFor(a, "2d");
-    expect(again.learningTime.startedAt).toBe(c2d.learningTime.startedAt);
+    const first = (await clockOf(a.sessionId)).startedAt;
+    await ctxFor(a, "2d");
+    expect((await clockOf(a.sessionId)).startedAt).toBe(first);
     await expect(t.pool.query("UPDATE study_sessions SET learning_started_at = now() - interval '1 hour' WHERE id = $1", [a.sessionId])).rejects.toThrow(/set once/);
     await expect(t.pool.query("UPDATE study_sessions SET learning_budget_seconds = 99999 WHERE id = $1", [a.sessionId])).rejects.toThrow(/set once/);
   });
@@ -76,16 +87,17 @@ describe.skipIf(!TEST_URL)("learning clock and outcome separation", () => {
     await ctxFor(lenient.a, "2d");
     const ended = await recordLearningEnded(t.pool, lenient.a.sessionId);
     expect(ended.endedAt).not.toBeNull();
-    const ctx = await ctxFor(lenient.a, "2d");
-    expect(ctx.learningTime.endedAt).toBe(ended.endedAt);
+    await ctxFor(lenient.a, "2d");
+    expect((await clockOf(lenient.a.sessionId)).endedAt).toBe(ended.endedAt);
     await expect(t.pool.query("UPDATE study_sessions SET learning_ended_at = now() WHERE id = $1", [lenient.a.sessionId])).rejects.toThrow(/set once/);
   });
 
   it("self-paced studies have no budget; fixed_time needs minutes", async () => {
     const { a } = await study({ mode: "self_paced" });
-    const ctx = await ctxFor(a, "2d");
-    expect(ctx.learningTime).toMatchObject({ mode: "self_paced", budgetSeconds: null, endsAt: null });
-    expect(ctx.learningTime.startedAt).not.toBeNull();
+    await ctxFor(a, "2d");
+    const c = await clockOf(a.sessionId);
+    expect(c).toMatchObject({ budgetSeconds: null, endsAt: null });
+    expect(c.startedAt).not.toBeNull();
     const bad = await study({ mode: "fixed_time" });
     await expect(t.pool.query("UPDATE study_sessions SET learning_started_at = now() WHERE id = $1", [bad.a.sessionId])).rejects.toThrow(/exposure.minutes/);
   });

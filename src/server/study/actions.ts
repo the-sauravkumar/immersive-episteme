@@ -39,6 +39,7 @@ import {
   recordWalkthroughWebglFailure,
   resumeSession,
   returnForDelayedTest,
+  stratumChoiceNeeded,
   markAssessmentPresented,
   submitAssessment,
   withdraw,
@@ -49,6 +50,10 @@ import { clearEnrolment, readEnrolment, readHistory, setEnrolment, writeHistory 
 import { addHistory } from "./tokens";
 
 export type FormState = { error?: string; fieldErrors?: Record<string, string> };
+
+export type EntryFormState = FormState & { strata?: string[] };
+
+const CHOOSE_GROUP_MESSAGE = "Choose the group the facilitator told you.";
 
 const appBuild = () => serverEnv().APP_BUILD_VERSION;
 
@@ -73,6 +78,8 @@ function messageFor(err: unknown): string {
         return "Some answers need attention.";
       case "learning_incomplete":
         return "Every stage must be visited before you finish.";
+      case "learning_time_remaining":
+        return "The questions open when the learning time is up.";
       case "delayed_test_not_open":
         return "The delayed test is not open yet.";
       case "learning_not_started":
@@ -110,9 +117,10 @@ async function withdrawableParticipant() {
 
 // ---- entry -----------------------------------------------------------------------------------
 
-export async function enterStudy(_prev: FormState, formData: FormData): Promise<FormState> {
+export async function enterStudy(_prev: EntryFormState, formData: FormData): Promise<EntryFormState> {
   const code = String(formData.get("studyCode") ?? "");
-  const stratum = formData.get("stratum");
+  const posted = formData.get("stratum");
+  const stratum = typeof posted === "string" && posted ? posted : null;
   if (!code.trim()) return { fieldErrors: { studyCode: "Enter the study code." } };
   // Invite gate, server side (S11): enrolment is the first step that writes study data.
   await requireSiteAccess("/study");
@@ -125,6 +133,7 @@ export async function enterStudy(_prev: FormState, formData: FormData): Promise<
       target = "/study";
     } else {
       const study = await findEnrollableStudy(pool, code);
+      if (stratumChoiceNeeded(study) && (!stratum || !study.strata.includes(stratum))) return { strata: study.strata, fieldErrors: { stratum: CHOOSE_GROUP_MESSAGE } };
       const pending = await readEnrolment();
       const pendingParticipant = pending && pending.studyId === study.id ? await loadParticipant(pool, pending.participantId) : null;
       // An enrolment still waiting for its consent decision (or for its allocation after a
@@ -141,7 +150,7 @@ export async function enterStudy(_prev: FormState, formData: FormData): Promise<
         }
         const history = await readHistory();
         const previous = history.filter(([s]) => s === study.id).map(([, p]) => p);
-        const r = await enrolParticipant(pool, study, { stratum: typeof stratum === "string" && stratum ? stratum : null, previousParticipantIds: previous });
+        const r = await enrolParticipant(pool, study, { stratum, previousParticipantIds: previous });
         await setEnrolment({ participantId: r.participantId, studyId: study.id });
         await writeHistory(addHistory(history, study.id, r.participantId));
       }
@@ -227,7 +236,10 @@ export async function submitDeviceCheck(report: unknown): Promise<DeviceCheckRes
   const parsed = deviceReportSchema.safeParse(report);
   if (!parsed.success) return { ok: false, error: "The check could not be read. Please try again." };
   try {
-    const outcome = await recordDeviceCheck(getPool(), participant.sessionId, parsed.data);
+    const outcome = await recordDeviceCheck(getPool(), participant.sessionId, parsed.data, { appBuild: appBuild() });
+    if (outcome.kind === "reassigned") {
+      await issueParticipantSessionCookie({ participantId: participant.participantId, sessionId: outcome.sessionId, condition: outcome.condition });
+    }
     if (outcome.kind === "excluded") await clearParticipantSessionCookie();
     return { ok: true, outcome: outcome.kind, reason: outcome.kind === "retry" ? outcome.reason : undefined, minViewport: outcome.kind === "retry" ? outcome.minViewport : undefined };
   } catch (err) {
@@ -377,18 +389,11 @@ export async function withdrawFromStudy(_prev: FormState, formData: FormData): P
   const reasonParsed = z.enum(WITHDRAWAL_REASONS).safeParse(formData.get("reason") ?? "not_stated");
   const reason = reasonParsed.success ? reasonParsed.data : "not_stated";
   if (formData.get("confirm") !== "yes") return { fieldErrors: { confirm: "Tick the box to confirm that you want to withdraw." } };
-  const pool = getPool();
   try {
     const live = await withdrawableParticipant();
-    if (live) {
-      await withdraw(pool, { participantId: live.participantId, sessionId: live.sessionId, reason });
-      await clearParticipantSessionCookie();
-    } else {
-      const enrolment = await readEnrolment();
-      if (!enrolment) return { error: "There is no study session to withdraw from in this browser. Please speak to the facilitator." };
-      await withdraw(pool, { participantId: enrolment.participantId, sessionId: null, reason });
-      await clearEnrolment();
-    }
+    if (!live) return { error: "There is no study session to withdraw from in this browser. Please speak to the facilitator." };
+    await withdraw(getPool(), { participantId: live.participantId, sessionId: live.sessionId, reason });
+    await clearParticipantSessionCookie();
   } catch (err) {
     return { error: messageFor(err) };
   }
