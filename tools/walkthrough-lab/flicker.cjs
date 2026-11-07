@@ -7,12 +7,12 @@ const out = process.argv[3];
   const browser = await launchGpu();
   let renderer = "";
   for (const scene of SCENES) {
-    const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
+    const page = await browser.newPage({ viewport: { width: 1366, height: 768 }, deviceScaleFactor: +(process.env.DPR || 1) });
     page.setDefaultTimeout(170000);
     await page.goto(base + scene);
     if (!renderer) {
       renderer = await rendererOf(page);
-      console.log(renderer);
+      console.log(renderer, "device pixel ratio", process.env.DPR || 1);
     }
     await page.waitForFunction("window.READY===true");
     for (const mode of ["pan", "walk"]) {

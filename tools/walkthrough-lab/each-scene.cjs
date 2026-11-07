@@ -5,6 +5,8 @@ const ALL_SCENES = ["s=practice", "s=entrance", ...ROUTES];
 const SCENES_PER_BROWSER = 6;
 const base = "http://127.0.0.1:" + (process.env.LAB_PORT || 8940) + "/?";
 
+const deviceScaleFactor = +(process.env.DPR || 1);
+
 const scenesFrom = (argument) => (argument && argument !== "all" ? argument.split(",") : ALL_SCENES);
 
 async function eachScene(scenes, viewport, visit, onPageError) {
@@ -19,14 +21,14 @@ async function eachScene(scenes, viewport, visit, onPageError) {
   for (const scene of scenes) {
     if (used >= SCENES_PER_BROWSER) await restart();
     for (let attempt = 1; ; attempt++) {
-      const page = await browser.newPage({ viewport });
+      const page = await browser.newPage({ viewport, deviceScaleFactor });
       page.setDefaultTimeout(400000);
       page.on("pageerror", (error) => onPageError(scene, error));
       try {
         await page.goto(base + scene);
         if (!renderer) {
           renderer = await rendererOf(page);
-          console.log(renderer);
+          console.log(renderer, "device pixel ratio", deviceScaleFactor);
         }
         await page.waitForFunction("window.READY===true");
         await visit(scene, page);

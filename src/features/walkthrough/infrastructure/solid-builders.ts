@@ -175,19 +175,30 @@ function* paintingSteps(words: Pick<PaintedWords, "lines" | "height" | "weight" 
   return { drawing: context.getImageData(0, 0, width, height), width: width / effective, height: height / effective };
 }
 
+const PAINT_SHIMMER_BIAS = 1.3;
+const PAINT_READABLE_EM_PIXELS = [16, 24] as const;
+const PAINT_DISPLAY_READABLE_EM_PIXELS = [20, 28] as const;
+const PAINT_DISPLAY_HEIGHT_METRES = 0.3;
 const PAINT_EDGE = [
-  "float paintSpread = min(length(dFdx(vMapUv) * vec2(textureSize(map, 0))), length(dFdy(vMapUv) * vec2(textureSize(map, 0))));",
+  "vec2 paintTexels = vec2(textureSize(map, 0));",
+  "float paintSpread = min(length(dFdx(vMapUv) * paintTexels), length(dFdy(vMapUv) * paintTexels));",
+  "float paintEmPixels = paintEmTexels / max(length(vec2(dFdx(vMapUv.y), dFdy(vMapUv.y))) * paintTexels.y, 1e-4);",
   "float paintSharp = texture2D(map, vMapUv).a;",
   "float paintEdge = max(fwidth(paintSharp) * 0.75, 0.015);",
   "float paintCrisp = smoothstep(0.5 - paintEdge, 0.5 + paintEdge, paintSharp);",
-  "float paintFar = texture2D(map, vMapUv, 1.3).a;",
-  "diffuseColor.a *= mix(paintCrisp, paintFar, smoothstep(1.4, 2.4, paintSpread));",
+  `float paintFar = texture2D(map, vMapUv, ${PAINT_SHIMMER_BIAS.toFixed(2)}).a;`,
+  "float paintUnread = 1.0 - smoothstep(paintReadableEm.x, paintReadableEm.y, paintEmPixels);",
+  "diffuseColor.a *= mix(paintCrisp, paintFar, smoothstep(1.4, 2.4, paintSpread) * paintUnread);",
 ].join("\n");
 
-function paintMaterial(texture: THREE.Texture, colour: PaintedWords["colour"], textHeight: number): THREE.MeshStandardMaterial {
+function paintMaterial(texture: THREE.Texture, colour: PaintedWords["colour"], textHeight: number, layerHeight: number): THREE.MeshStandardMaterial {
+  const emTexels = { value: (textHeight / layerHeight) * (texture.image as ImageBitmap).height };
+  const readableEm = { value: new THREE.Vector2(...(textHeight >= PAINT_DISPLAY_HEIGHT_METRES ? PAINT_DISPLAY_READABLE_EM_PIXELS : PAINT_READABLE_EM_PIXELS)) };
   const material = new THREE.MeshStandardMaterial({ map: texture, color: COLOURS[colour], transparent: true, depthWrite: false, roughness: 0.9, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4, envMapIntensity: 0.3 });
   material.onBeforeCompile = (shader) => {
-    shader.fragmentShader = shader.fragmentShader.replace("#include <map_fragment>", PAINT_EDGE);
+    shader.uniforms.paintEmTexels = emTexels;
+    shader.uniforms.paintReadableEm = readableEm;
+    shader.fragmentShader = "uniform float paintEmTexels;\nuniform vec2 paintReadableEm;\n" + shader.fragmentShader.replace("#include <map_fragment>", PAINT_EDGE);
   };
   material.customProgramCacheKey = () => "paint-edge";
   return noteSurface(material, { label: "painted words", kind: "painted", textHeight });
@@ -201,7 +212,7 @@ export async function paintWordsInTurn(library: MaterialLibrary, parent: THREE.O
 }
 
 function wordsOnSurface(parent: THREE.Object3D, words: PaintedWords, layer: PaintLayer, texture: THREE.Texture): PaintedMesh {
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(layer.width, layer.height), paintMaterial(texture, words.colour, words.height));
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(layer.width, layer.height), paintMaterial(texture, words.colour, words.height, layer.height));
   const offset = words.align === "center" ? 0 : words.align === "right" ? -layer.width / 2 : layer.width / 2;
   mesh.position.set(words.at[0] + Math.cos(words.facing) * offset, words.at[1], words.at[2] - Math.sin(words.facing) * offset);
   mesh.rotation.y = words.facing;
@@ -215,7 +226,7 @@ export async function paintCurvedInTurn(library: MaterialLibrary, parent: THREE.
   const layer = await library.pacer.run(paintingSteps({ lines: words.lines, height: words.height, weight: 700, family: "Eczar", pixelsPerMetre: 1800, wear: 0.6, lineHeight: 1.2, align: "center" }, null));
   const arc = layer.width / words.radius;
   const geometry = new THREE.CylinderGeometry(words.radius, words.radius, layer.height, 96, 1, true, words.angle - arc / 2, arc);
-  const mesh = new THREE.Mesh(geometry, paintMaterial(await library.paintTexture(layer.drawing), words.colour, words.height));
+  const mesh = new THREE.Mesh(geometry, paintMaterial(await library.paintTexture(layer.drawing), words.colour, words.height, layer.height));
   mesh.position.set(words.centre[0], words.y, words.centre[1]);
   mesh.receiveShadow = true;
   mesh.renderOrder = 2;

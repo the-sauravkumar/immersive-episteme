@@ -6,6 +6,7 @@ import sanganeri from "../../content/study/sanganeri.template.json";
 import kalamkari from "../../content/study/machilipatnam-kalamkari.template.json";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
 import { checkScene } from "@/features/walkthrough/domain/scene-check";
+import { topRenderScale } from "@/features/walkthrough/domain/render-scale";
 import { buildRoute, practiceStation } from "@/features/walkthrough/domain/route-plan";
 import { buildYardPlan, CLOTH_LINE_X, NEXT_YARD_OFFSET, YARD_FRONT_Z, YARD_HALF_WIDTH, type YardPlan } from "@/features/walkthrough/domain/yard-plan";
 import type { Box } from "@/features/walkthrough/domain/geometry";
@@ -28,7 +29,7 @@ const TEMPLATES: Record<string, StageTemplate> = { ajrakh: ajrakh as StageTempla
 const query = new URLSearchParams(location.search);
 const sceneName = query.get("s") ?? "route";
 await Promise.all(["800 40px Eczar", "700 40px Eczar", "600 40px Eczar", "600 40px Mukta"].map((font) => document.fonts.load(font)));
-const renderer = createRenderer(document.body, innerWidth, innerHeight);
+const renderer = createRenderer(document.body, innerWidth, innerHeight, topRenderScale(devicePixelRatio));
 const scene = new THREE.Scene();
 scene.fog = new THREE.Fog(0xdfe4e6, 60, 420);
 const library = new MaterialLibrary(renderer);
@@ -484,6 +485,83 @@ win.nearestViews = (pattern: string) => {
   return reachOfParts(objectParts(auditRoot), fieldHere())
     .map((reach) => ({ label: `${reach.part.auditName} / ${reach.part.label}`, distance: +reach.distance.toFixed(2), eye: reach.eye, target: reach.target }))
     .filter((view) => wanted.test(view.label) && Number.isFinite(view.distance));
+};
+const PAINT_OWNER = /^(paint|bench paint|curved paint) (\d+)/;
+const paintKindOf = (owner: string, index: number): string => {
+  if (owner === "bench paint") return "bench label";
+  if (owner === "curved paint") return "curved label";
+  const words = walkPlan?.words[index];
+  if (!words) return "painted words";
+  if (words.family === "Mukta") return "caption";
+  if (words.height >= 1) return "number";
+  if (words.colour === "lime") return "lime label";
+  return words.height >= 0.3 ? "heading" : "local name";
+};
+const paintMeshes = () => {
+  const found: { name: string; kind: string; mesh: THREE.Mesh }[] = [];
+  auditRoot?.traverse((node) => {
+    const name = node.userData.auditName as string | undefined;
+    const owner = name ? PAINT_OWNER.exec(name) : null;
+    if (owner && node instanceof THREE.Mesh) found.push({ name: name!, kind: paintKindOf(owner[1]!, Number(owner[2])), mesh: node });
+  });
+  return found;
+};
+win.paintViews = () => {
+  if (!auditRoot) return [];
+  auditRoot.updateWorldMatrix(true, true);
+  const reaches = new Map(reachOfParts(objectParts(auditRoot), fieldHere()).map((reach) => [reach.part.auditName, reach]));
+  return paintMeshes().map(({ name, kind, mesh }) => {
+    const centre = new THREE.Box3().setFromObject(mesh).getCenter(new THREE.Vector3());
+    const outward = mesh.geometry instanceof THREE.PlaneGeometry ? new THREE.Vector3(0, 0, 1).transformDirection(mesh.matrixWorld) : centre.clone().sub(mesh.getWorldPosition(new THREE.Vector3()));
+    outward.setY(0).normalize();
+    const along = (distance: number) => ({ eye: [centre.x + outward.x * distance, 1.6, centre.z + outward.z * distance], target: centre.toArray() });
+    const reach = reaches.get(name);
+    return {
+      name,
+      kind,
+      views: {
+        arrival: { eye: [...view.from], target: [...view.to] },
+        "6m": along(6),
+        "3.6m": along(3.6),
+        nearest: reach && Number.isFinite(reach.distance) ? { eye: [...reach.eye], target: [...reach.target], distance: +reach.distance.toFixed(2) } : along(0.6),
+      },
+    };
+  });
+};
+win.shimmerByPaintKind = async (frames = 60, threshold = 10) => {
+  const panShimmer = async () => (await (win.flicker as (f: number, t: number, m: string) => Promise<{ fourPlusPct: number }>)(frames, threshold, "pan")).fourPlusPct;
+  const whole = await panShimmer();
+  const paints = paintMeshes();
+  const rows: { kind: string; share: number }[] = [];
+  for (const kind of ["all painted words", ...new Set(paints.map((paint) => paint.kind))]) {
+    const hidden = paints.filter((paint) => kind === "all painted words" || paint.kind === kind).map((paint) => paint.mesh);
+    for (const mesh of hidden) mesh.visible = false;
+    const without = await panShimmer();
+    for (const mesh of hidden) mesh.visible = true;
+    rows.push({ kind, share: +(whole - without).toFixed(3) });
+  }
+  return { whole, rows };
+};
+win.paintBox = (name: string) => {
+  const found = paintMeshes().find((row) => row.name === name);
+  if (!found) return null;
+  camera.updateMatrixWorld();
+  const box = new THREE.Box3().setFromObject(found.mesh);
+  let [minX, minY, maxX, maxY] = [Infinity, Infinity, -Infinity, -Infinity];
+  for (let bit = 0; bit < 8; bit++) {
+    const corner = new THREE.Vector3(bit & 1 ? box.max.x : box.min.x, bit & 2 ? box.max.y : box.min.y, bit & 4 ? box.max.z : box.min.z);
+    if (corner.clone().applyMatrix4(camera.matrixWorldInverse).z > -CAMERA_NEAR_METRES) return null;
+    corner.project(camera);
+    minX = Math.min(minX, ((corner.x + 1) / 2) * innerWidth);
+    maxX = Math.max(maxX, ((corner.x + 1) / 2) * innerWidth);
+    minY = Math.min(minY, ((1 - corner.y) / 2) * innerHeight);
+    maxY = Math.max(maxY, ((1 - corner.y) / 2) * innerHeight);
+  }
+  const x = Math.max(0, Math.floor(minX));
+  const y = Math.max(0, Math.floor(minY));
+  const width = Math.min(innerWidth, Math.ceil(maxX)) - x;
+  const height = Math.min(innerHeight, Math.ceil(maxY)) - y;
+  return width > 3 && height > 3 ? { x, y, width, height } : null;
 };
 win.surfacePlanted = () => {
   if (!auditRoot) return null;

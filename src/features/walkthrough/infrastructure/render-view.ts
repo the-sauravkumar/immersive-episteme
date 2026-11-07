@@ -5,7 +5,7 @@ export const CAMERA_NEAR_METRES = 0.15;
 
 export interface RenderView {
   readonly render: () => void;
-  readonly resize: (width: number, height: number) => void;
+  readonly resize: () => void;
 }
 
 const VERTEX = "varying vec2 v;void main(){v=uv;gl_Position=vec4(position.xy,0.,1.);}";
@@ -48,26 +48,27 @@ export function createRenderView(renderer: THREE.WebGLRenderer, scene: THREE.Sce
       threshold.uniforms.t!.value = main.texture;
       run(threshold, bloomA);
       blur.uniforms.t!.value = bloomA.texture;
-      (blur.uniforms.d!.value as THREE.Vector2).set(1.4 / bloomA.width, 0);
+      (blur.uniforms.d!.value as THREE.Vector2).set((1.4 * renderer.getPixelRatio()) / bloomA.width, 0);
       run(blur, bloomB);
       blur.uniforms.t!.value = bloomB.texture;
-      (blur.uniforms.d!.value as THREE.Vector2).set(0, 1.4 / bloomA.height);
+      (blur.uniforms.d!.value as THREE.Vector2).set(0, (1.4 * renderer.getPixelRatio()) / bloomA.height);
       run(blur, bloomA);
       composite.uniforms.b!.value = bloomA.texture;
       run(composite, null);
     },
-    resize(width, height) {
-      main.setSize(width, height);
-      bloomA.setSize(width >> 2, height >> 2);
-      bloomB.setSize(width >> 2, height >> 2);
+    resize() {
+      renderer.getDrawingBufferSize(size);
+      main.setSize(size.x, size.y);
+      bloomA.setSize(size.x >> 2, size.y >> 2);
+      bloomB.setSize(size.x >> 2, size.y >> 2);
     },
   };
 }
 
-export function createRenderer(canvasHost: HTMLElement, width: number, height: number): THREE.WebGLRenderer {
-  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: true });
+export function createRenderer(canvasHost: HTMLElement, width: number, height: number, scale: number): THREE.WebGLRenderer {
+  const renderer = new THREE.WebGLRenderer({ antialias: false, depth: false, powerPreference: "high-performance", preserveDrawingBuffer: true });
   storeColourTexturesMutably(renderer.getContext() as WebGL2RenderingContext);
-  renderer.setPixelRatio(1);
+  renderer.setPixelRatio(scale);
   renderer.setSize(width, height);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;

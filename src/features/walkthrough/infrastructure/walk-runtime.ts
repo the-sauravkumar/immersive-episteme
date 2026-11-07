@@ -2,8 +2,10 @@ import * as THREE from "three";
 import type { Box } from "../domain/geometry";
 import { NEXT_YARD_OFFSET } from "../domain/yard-plan";
 import type { RouteStation } from "../domain/route-plan";
+import { RenderScaleGovernor } from "../domain/render-scale";
 import { easeYaw, eyeOf, localZ, moveTowards, nearestWaypoint, stationIndexAt, steerAlong, stepWalker, turnBetween, walkerAt, worldZ, type WalkInput, type WalkTarget, type Walker } from "../domain/walk-state";
 import { buildYard, releaseYard, YardKit, type BuiltYard } from "./build-yard";
+import { GpuFrameTimer } from "./gpu-frame-timer";
 import { addHorizon } from "./horizon";
 import { setLiquidTime } from "./substance-materials";
 import { MaterialLibrary, texturesOf } from "./material-library";
@@ -37,6 +39,10 @@ export class WalkRuntime {
   private readonly built = new Map<number, BuiltYard>();
   private readonly warmup: SceneWarmup;
   private view: RenderView | null = null;
+  private governor: RenderScaleGovernor;
+  private readonly gpuTimer: GpuFrameTimer;
+  private width: number;
+  private height: number;
   private sky: THREE.Mesh | null = null;
   private hills: THREE.Object3D | null = null;
   private sun: THREE.DirectionalLight | null = null;
@@ -70,7 +76,11 @@ export class WalkRuntime {
     private readonly textiles: (station: RouteStation) => readonly { file: string; name: string; x: number; z: number; width: number; height: number; label: RouteStation["textiles"][number]["label"] }[],
     private readonly events: WalkEvents,
   ) {
-    this.renderer = createRenderer(host, host.clientWidth, host.clientHeight);
+    this.width = host.clientWidth;
+    this.height = host.clientHeight;
+    this.governor = new RenderScaleGovernor(devicePixelRatio, performance.now());
+    this.renderer = createRenderer(host, this.width, this.height, this.governor.scale);
+    this.gpuTimer = new GpuFrameTimer(this.renderer.getContext() as WebGL2RenderingContext);
     this.scene.fog = new THREE.Fog(0xdfe4e6, 60, 420);
     this.camera = new THREE.PerspectiveCamera(55, host.clientWidth / host.clientHeight, CAMERA_NEAR_METRES, 1200);
     this.library = new MaterialLibrary(this.renderer);
@@ -338,6 +348,8 @@ export class WalkRuntime {
     const seconds = Math.min(0.1, elapsed);
     const counted = Math.min(LONGEST_COUNTED_FRAME_SECONDS, elapsed);
     this.last = now;
+    const scale = this.governor.observe({ frameMs: elapsed * 1000, gpuMs: this.gpuTimer.latestMs() }, now);
+    if (scale !== null) this.applyScale(scale);
     if (!this.paused) {
       const moving = this.autoInput();
       const input: WalkInput = { forward: moving.forward, strafe: moving.strafe, lookX: this.input.lookX, lookY: this.input.lookY };
@@ -364,14 +376,29 @@ export class WalkRuntime {
       }
     }
     this.applyCamera();
+    this.gpuTimer.begin();
     this.view!.render();
+    this.gpuTimer.end();
+  }
+
+  get renderScale(): number {
+    return this.governor.scale;
+  }
+
+  private applyScale(scale: number): void {
+    this.renderer.setPixelRatio(scale);
+    this.renderer.setSize(this.width, this.height);
+    this.view?.resize();
+    this.gpuTimer.forgetEarlier();
   }
 
   resize(width: number, height: number): void {
-    this.renderer.setSize(width, height);
+    this.width = width;
+    this.height = height;
+    if (devicePixelRatio !== this.governor.devicePixelRatio) this.governor = new RenderScaleGovernor(devicePixelRatio, performance.now());
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
-    this.view?.resize(width, height);
+    this.applyScale(this.governor.scale);
   }
 
   dispose(): void {
@@ -384,6 +411,7 @@ export class WalkRuntime {
     }
     this.renderer.domElement.removeEventListener("webglcontextlost", this.contextLost);
     this.library.close();
+    this.gpuTimer.dispose();
     this.renderer.dispose();
     this.renderer.forceContextLoss();
     this.renderer.domElement.remove();

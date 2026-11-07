@@ -417,7 +417,7 @@ export function measureTearing(view: TearingScene, reaches: readonly ObjectReach
     }
     const id = objectIds.get(`${reach.part.auditName}|${reach.part.label}`)!;
     const single = reach.part.meshes.every((mesh) => (originals.get(mesh) as THREE.Material).side === THREE.FrontSide);
-    const shift = Math.max(reach.distance * OFFSET_PER_METRE, 3e-5);
+    const shift = Math.max(reach.distance * OFFSET_PER_METRE, 3e-5) / renderer.getPixelRatio();
     offset.set(shift, shift * 0.6, shift * 0.3);
     showIds(true, reach.part.meshes);
     const place = (eye: Vec3) => {

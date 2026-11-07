@@ -34,10 +34,12 @@ const runtime = new WalkRuntime(host, route, texturesFor, {
 const started = performance.now();
 await runtime.start(Number(query.get("start") ?? 0));
 const frames: number[] = [];
+const scales: number[] = [];
 let last = performance.now();
 const watch = () => {
   const now = performance.now();
   frames.push(now - last);
+  scales.push(runtime.renderScale);
   last = now;
   requestAnimationFrame(watch);
 };
@@ -46,6 +48,7 @@ const win = window as unknown as Record<string, unknown>;
 win.runtime = runtime;
 win.walkLog = log;
 win.frames = frames;
+win.scales = scales;
 win.stations = route.length;
 win.loadSeconds = (performance.now() - started) / 1000;
 win.READY = true;
