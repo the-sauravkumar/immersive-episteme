@@ -96,7 +96,12 @@ async function Overview() {
               "No release has been published yet."
             )}
           </p>
-          {latestReview ? <p className="text-body text-ink-3">Latest review snapshot (not publishable): {latestReview.versionLabel}.</p> : null}
+          {latestReview ? (
+            <p className="text-body text-ink-3">
+              Latest review snapshot (not publishable): {latestReview.versionLabel}, frozen {fmt.format(new Date(latestReview.createdAt))} UTC; later edits are not in it
+              until it is rebuilt on Dataset versions.
+            </p>
+          ) : null}
           {can(principal, "content.publish") ? (
             <Link className={cn(BLOCK_LINK, "mt-auto self-start")} href="/cms/datasets">
               Release readiness and versions

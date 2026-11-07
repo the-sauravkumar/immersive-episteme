@@ -1,15 +1,11 @@
 "use client";
 
-/**
- * Console user menu (DESIGN.md 9.16): the signed-in name opens a menu with the email, the role
- * badges, Display Settings and Sign out. The menu is non-modal so the Display Settings dialog can
- * take focus cleanly after the menu closes.
- */
-import { ChevronDown, LogOut, MonitorCog, UserRound } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, MonitorCog, UserRound } from "lucide-react";
 import { useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,12 +14,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { ChangePasswordDialog } from "./change-password";
 import { DisplaySettings } from "./display-settings";
-import { useSignOut } from "./sign-out-button";
+import { SIGN_OUT_FAILED, useSignOut } from "./sign-out-button";
 
-export function ConsoleUserMenu({ name, email, roles }: { name: string; email: string; roles: readonly string[] }) {
+export function ConsoleUserMenu({
+  name,
+  email,
+  roles,
+  hasPassword,
+  minPasswordLength,
+}: {
+  name: string;
+  email: string;
+  roles: readonly string[];
+  hasPassword: boolean;
+  minPasswordLength: number;
+}) {
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const { pending, signOut } = useSignOut();
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const { pending, failed, signOut, dismiss } = useSignOut();
 
   return (
     <>
@@ -54,6 +64,12 @@ export function ConsoleUserMenu({ name, email, roles }: { name: string; email: s
             <MonitorCog aria-hidden="true" />
             Display settings
           </DropdownMenuItem>
+          {hasPassword ? (
+            <DropdownMenuItem onSelect={() => setPasswordOpen(true)}>
+              <KeyRound aria-hidden="true" />
+              Change password
+            </DropdownMenuItem>
+          ) : null}
           <DropdownMenuItem disabled={pending} onSelect={() => void signOut()}>
             <LogOut aria-hidden="true" />
             {pending ? "Signing out…" : "Sign out"}
@@ -61,6 +77,25 @@ export function ConsoleUserMenu({ name, email, roles }: { name: string; email: s
         </DropdownMenuContent>
       </DropdownMenu>
       <DisplaySettings zone="console" open={settingsOpen} onOpenChange={setSettingsOpen} trigger={null} />
+      {hasPassword ? <ChangePasswordDialog open={passwordOpen} onOpenChange={setPasswordOpen} minPasswordLength={minPasswordLength} /> : null}
+      <Dialog open={failed} onOpenChange={(o) => (o ? undefined : dismiss())}>
+        <DialogContent role="alertdialog">
+          <DialogHeader>
+            <DialogTitle>Still Signed In</DialogTitle>
+            <DialogDescription>{SIGN_OUT_FAILED}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline">
+                Close
+              </Button>
+            </DialogClose>
+            <Button type="button" disabled={pending} onClick={() => void signOut()}>
+              {pending ? "Signing out…" : "Try again"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

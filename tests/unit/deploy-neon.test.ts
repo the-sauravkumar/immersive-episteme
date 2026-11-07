@@ -115,6 +115,8 @@ describe("Invite gate before every production build (CLI deploys too)", () => {
       const proxy = readFileSync("src/proxy.ts", "utf8");
       writeFileSync(join(dir, "src/proxy.ts"), proxy.replace(/if \(!invited\) \{/, "if (false) {"));
       expect(inviteGateProblems(dir)).toEqual(["src/proxy.ts has no branch refusing visitors without an invite"]);
+      writeFileSync(join(dir, "src/proxy.ts"), proxy.replace("await inviteIsLive(verified.claims.inviteId)", "true"));
+      expect(inviteGateProblems(dir)).toEqual(["src/proxy.ts never checks that the invite code is not revoked"]);
       writeFileSync(join(dir, "src/proxy.ts"), proxy.replace("const invited = ", "const invited = process.env.SITE_OPEN === '1' || "));
       expect(inviteGateProblems(dir).join()).toMatch(/environment switch/);
       rmSync(join(dir, "src/proxy.ts"));

@@ -605,6 +605,33 @@ export async function reviewMediaCandidate(pool: Pool, actor: Actor, raw: z.inpu
   });
 }
 
+export const candidateImportSchema = z.object({ candidateId: z.uuid({ error: "Choose a candidate" }), assetId: z.uuid() });
+
+export async function recordCandidateImport(pool: Pool, actor: Actor, raw: z.input<typeof candidateImportSchema>): Promise<void> {
+  ensure(actor, "media.upload");
+  const input = candidateImportSchema.parse(raw);
+  await inActorTx(pool, actor, null, async (tx) => {
+    const r = await tx.query<{ status: string; is_demo: boolean; url: string }>("SELECT status, is_demo, url FROM media_candidates WHERE id = $1 FOR UPDATE", [input.candidateId]);
+    const candidate = r.rows[0];
+    if (!candidate) throw new CmsError("not_found", "Media candidate not found.", 404);
+    if (candidate.is_demo) throw new CmsError("demo_readonly", "Demo media is managed by the seed script.", 409);
+    if (candidate.status !== "approved") {
+      throw new CmsError("invalid_transition", "Only a candidate whose licence a reviewer approved can be recorded as imported.", 409, [{ code: "candidateId", message: "Choose an approved candidate." }]);
+    }
+    const asset = await tx.query<{ id: string }>("SELECT id FROM assets WHERE id = $1 AND NOT is_demo", [input.assetId]);
+    if (!asset.rows[0]) throw new CmsError("not_found", "Asset not found.", 404);
+    await tx.query("UPDATE media_candidates SET status = 'imported', asset_id = $2 WHERE id = $1", [input.candidateId, input.assetId]);
+    await audit(tx, actor, {
+      action: "media.candidate_imported",
+      entity: "media_candidates",
+      entityId: input.candidateId,
+      before: { status: candidate.status },
+      after: { status: "imported", assetId: input.assetId, url: candidate.url },
+      reason: "the asset uploaded from this approved candidate was recorded",
+    });
+  });
+}
+
 // -----------------------------------------------------------------------------------------
 // Reads
 // -----------------------------------------------------------------------------------------
@@ -647,10 +674,26 @@ export interface AssetListItem {
     position: number;
     /** The anchor claim's text (illustrations), or null when the position names no claim. */
     anchorClaim: string | null;
+    captionOverride: string | null;
   }[];
 }
 
-export async function listAssets(q: Q, opts: { state?: string | null; limit?: number } = {}): Promise<AssetListItem[]> {
+export const ASSET_PAGE_SIZE = 50;
+
+export async function countAssets(q: Q, opts: { state?: string | null } = {}): Promise<number> {
+  const r = await q.query<{ n: number }>(
+    "SELECT count(*)::int AS n FROM assets a WHERE NOT a.is_demo AND ($1::verification_state IS NULL OR a.verification_state = $1::verification_state)",
+    [opts.state ?? null],
+  );
+  return r.rows[0]?.n ?? 0;
+}
+
+export async function findAsset(q: Q, assetId: string): Promise<AssetListItem | null> {
+  if (!isUuid(assetId)) return null;
+  return (await listAssets(q, { id: assetId, limit: 1 }))[0] ?? null;
+}
+
+export async function listAssets(q: Q, opts: { state?: string | null; id?: string; limit?: number; offset?: number } = {}): Promise<AssetListItem[]> {
   const r = await q.query<{
     id: string; kind: string; title: string; mime_type: string; byte_size: string | number; sha256: string; width: number | null; height: number | null;
     alt_text: string | null; caption: string | null; credit: string | null; licence: string | null; licence_url: string | null; source_url: string | null;
@@ -664,7 +707,7 @@ export async function listAssets(q: Q, opts: { state?: string | null; limit?: nu
             a.updated_by, a.created_at,
             (SELECT json_agg(json_build_object('id', l.id, 'conceptId', c.id, 'conceptKey', c.key, 'conceptTitle', c.title, 'conceptType', c.type,
                                                'traditionSlug', t.slug, 'traditionName', t.name, 'role', l.role, 'position', l.position,
-                                               'anchorClaim', CASE WHEN l.role = 'illustration' THEN cc.text END)
+                                               'anchorClaim', CASE WHEN l.role = 'illustration' THEN cc.text END, 'captionOverride', l.caption_override)
                              ORDER BY l.position, c.key)
                FROM asset_links l JOIN concepts c ON c.id = l.concept_id
                LEFT JOIN traditions t ON t.id = c.tradition_id
@@ -673,10 +716,10 @@ export async function listAssets(q: Q, opts: { state?: string | null; limit?: nu
        FROM assets a
        LEFT JOIN sources s ON s.id = a.source_id
        LEFT JOIN users u ON u.id = a.created_by
-      WHERE NOT a.is_demo AND ($1::verification_state IS NULL OR a.verification_state = $1::verification_state)
-      ORDER BY a.created_at DESC
-      LIMIT $2`,
-    [opts.state ?? null, opts.limit ?? 200],
+      WHERE NOT a.is_demo AND ($1::verification_state IS NULL OR a.verification_state = $1::verification_state) AND ($4::uuid IS NULL OR a.id = $4::uuid)
+      ORDER BY a.created_at DESC, a.id
+      LIMIT $2 OFFSET $3`,
+    [opts.state ?? null, opts.limit ?? ASSET_PAGE_SIZE, opts.offset ?? 0, opts.id ?? null],
   );
   return r.rows.map((a) => ({
     id: a.id, kind: a.kind, title: a.title, mimeType: a.mime_type, byteSize: Number(a.byte_size), sha256: a.sha256, width: a.width, height: a.height,
@@ -721,16 +764,19 @@ export interface MediaCandidateItem {
   status: string;
   notes: string | null;
   packageSlug: string | null;
+  assetId: string | null;
+  assetTitle: string | null;
 }
 
 export async function listMediaCandidates(q: Q, opts: { status?: string | null } = {}): Promise<MediaCandidateItem[]> {
   const r = await q.query<{
     id: string; url: string; title: string; licence: string | null; author: string | null; depicts_key: string | null; depicts_concept_id: string | null;
     width: number | null; height: number | null; mime_type: string | null; dimensions_source: string | null; status: string; notes: string | null; package_slug: string | null;
+    asset_id: string | null; asset_title: string | null;
   }>(
     `SELECT m.id, m.url, m.title, m.licence, m.author, m.depicts_key, m.depicts_concept_id, m.width, m.height, m.mime_type, m.dimensions_source,
-            m.status, m.notes, p.slug AS package_slug
-       FROM media_candidates m LEFT JOIN content_packages p ON p.id = m.package_id
+            m.status, m.notes, p.slug AS package_slug, m.asset_id, a.title AS asset_title
+       FROM media_candidates m LEFT JOIN content_packages p ON p.id = m.package_id LEFT JOIN assets a ON a.id = m.asset_id
       WHERE NOT m.is_demo AND ($1::media_candidate_status IS NULL OR m.status = $1::media_candidate_status)
       ORDER BY p.slug NULLS LAST, m.depicts_key NULLS LAST, m.url`,
     [opts.status ?? null],
@@ -738,6 +784,7 @@ export async function listMediaCandidates(q: Q, opts: { status?: string | null }
   return r.rows.map((m) => ({
     id: m.id, url: m.url, title: m.title, licence: m.licence, author: m.author, depictsKey: m.depicts_key, depictsConceptId: m.depicts_concept_id,
     width: m.width, height: m.height, mimeType: m.mime_type, dimensionsSource: m.dimensions_source, status: m.status, notes: m.notes, packageSlug: m.package_slug,
+    assetId: m.asset_id, assetTitle: m.asset_title,
   }));
 }
 

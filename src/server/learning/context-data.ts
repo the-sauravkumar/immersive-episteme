@@ -91,7 +91,7 @@ export function pgLearningContextData(q: Q): LearningContextData {
            FROM content_snapshots s
            LEFT JOIN LATERAL (SELECT config FROM studies WHERE is_demo AND snapshot_id = s.id ORDER BY created_at DESC, id DESC LIMIT 1) st ON true
           WHERE s.kind = 'review' AND NOT s.is_demo
-          ORDER BY s.created_at DESC, s.id DESC
+          ORDER BY (st.config IS NOT NULL) DESC, s.created_at DESC, s.id DESC
           LIMIT 1`,
       );
       const row = r.rows[0];

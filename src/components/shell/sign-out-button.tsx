@@ -8,25 +8,46 @@ import { Button } from "@/components/ui/button";
 
 import { authClient } from "./auth-client";
 
-/** Signs the staff member out through Better Auth, then returns to the sign-in page. */
+export const SIGN_OUT_FAILED = "Sign-out failed: you are still signed in on this device. Check your connection and try again.";
+
+async function endSession(): Promise<boolean> {
+  try {
+    const { error } = await authClient.signOut();
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export function useSignOut() {
   const router = useRouter();
   const [pending, setPending] = useState(false);
+  const [failed, setFailed] = useState(false);
   async function signOut() {
     setPending(true);
-    await authClient.signOut();
+    setFailed(false);
+    if (!(await endSession())) {
+      setPending(false);
+      setFailed(true);
+      return;
+    }
     router.replace("/sign-in");
     router.refresh();
   }
-  return { pending, signOut };
+  return { pending, failed, signOut, dismiss: () => setFailed(false) };
 }
 
 export function SignOutButton({ variant = "ghost" }: { variant?: "ghost" | "outline" | "default" }) {
-  const { pending, signOut } = useSignOut();
+  const { pending, failed, signOut } = useSignOut();
   return (
-    <Button type="button" variant={variant} disabled={pending} onClick={() => void signOut()}>
-      <LogOut aria-hidden="true" />
-      {pending ? "Signing out…" : "Sign out"}
-    </Button>
+    <div className="flex flex-col items-start gap-2">
+      <Button type="button" variant={variant} disabled={pending} onClick={() => void signOut()}>
+        <LogOut aria-hidden="true" />
+        {pending ? "Signing out…" : "Sign out"}
+      </Button>
+      <p role="alert" className="text-body font-semibold text-danger empty:hidden">
+        {failed ? SIGN_OUT_FAILED : ""}
+      </p>
+    </div>
   );
 }

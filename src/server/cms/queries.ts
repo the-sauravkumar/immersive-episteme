@@ -208,7 +208,13 @@ export interface ClaimDetail {
   position: number;
   text: string;
   quote: string | null;
-  sources: { sourceId: string; locator: string | null; label: string; key: string; state: VerificationState }[];
+  sources: { sourceId: string; locator: string | null; label: string; key: string; state: VerificationState; evidence: StoredPassage[] }[];
+}
+
+export interface StoredPassage {
+  locator?: string | null;
+  quote: string;
+  note?: string | null;
 }
 
 export interface RelationshipRow {
@@ -274,7 +280,7 @@ export async function getConcept(q: Q, id: string): Promise<ConceptDetail | null
   if (!c) return null;
   const cl = await q.query(
     `SELECT cc.id, cc.position, cc.text, cc.quote,
-            coalesce(json_agg(json_build_object('sourceId', s.id, 'locator', cs.locator, 'label', ${sourceLabelSql}, 'key', coalesce(s.local_key, s.id::text), 'state', s.verification_state) ORDER BY s.id) FILTER (WHERE s.id IS NOT NULL), '[]') AS sources
+            coalesce(json_agg(json_build_object('sourceId', s.id, 'locator', cs.locator, 'label', ${sourceLabelSql}, 'key', coalesce(s.local_key, s.id::text), 'state', s.verification_state, 'evidence', cs.evidence) ORDER BY s.id) FILTER (WHERE s.id IS NOT NULL), '[]') AS sources
        FROM concept_claims cc LEFT JOIN concept_claim_sources cs ON cs.claim_id = cc.id LEFT JOIN sources s ON s.id = cs.source_id LEFT JOIN content_packages p ON p.id = s.package_id
       WHERE cc.concept_id = $1 GROUP BY cc.id ORDER BY cc.position`,
     [id],

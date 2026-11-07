@@ -1,4 +1,4 @@
-import { CircleCheck, Clock, Lock } from "lucide-react";
+import { CircleCheck, Clock, Lock, TimerReset } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -233,27 +233,40 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                     </TableCell>
                     <TableCell role="cell" className={`${STACK.cell} align-top sm:py-3`}>
                       <CellLabel>status</CellLabel>
-                      {u.disabledAt ? (
-                        <span className="flex flex-col items-start gap-1">
-                          <Badge variant="danger">
-                            <Lock aria-hidden="true" />
-                            Locked
-                          </Badge>
-                          <span className="text-credit">
-                            since <Stamp at={u.disabledAt} />
+                      <span className="flex flex-col items-start gap-2">
+                        {u.disabledAt ? (
+                          <span className="flex flex-col items-start gap-1">
+                            <Badge variant="danger">
+                              <Lock aria-hidden="true" />
+                              Locked
+                            </Badge>
+                            <span className="text-credit">
+                              since <Stamp at={u.disabledAt} />
+                            </span>
                           </span>
-                        </span>
-                      ) : awaitingAccess(u) ? (
-                        <Badge variant="warn">
-                          <Clock aria-hidden="true" />
-                          Awaiting access
-                        </Badge>
-                      ) : (
-                        <Badge variant="ok">
-                          <CircleCheck aria-hidden="true" />
-                          Active
-                        </Badge>
-                      )}
+                        ) : awaitingAccess(u) ? (
+                          <Badge variant="warn">
+                            <Clock aria-hidden="true" />
+                            Awaiting access
+                          </Badge>
+                        ) : (
+                          <Badge variant="ok">
+                            <CircleCheck aria-hidden="true" />
+                            Active
+                          </Badge>
+                        )}
+                        {u.signInLockedUntil ? (
+                          <span className="flex flex-col items-start gap-1">
+                            <Badge variant="warn">
+                              <TimerReset aria-hidden="true" />
+                              Sign-in locked
+                            </Badge>
+                            <span className="text-credit">
+                              until <Stamp at={u.signInLockedUntil} />
+                            </span>
+                          </span>
+                        ) : null}
+                      </span>
                     </TableCell>
                     <TableCell role="cell" className={`${STACK.cell} align-top sm:py-3`}>
                       <CellLabel>created (UTC)</CellLabel>
@@ -265,9 +278,18 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                     </TableCell>
                     <TableCell role="cell" className="text-right align-top max-sm:col-start-2 max-sm:row-start-1 max-sm:h-auto max-sm:p-0 sm:py-3">
                       <UserRowActions
-                        user={{ id: u.id, name: u.name, email: u.email, roles: u.roles, locked: Boolean(u.disabledAt) }}
+                        user={{
+                          id: u.id,
+                          name: u.name,
+                          email: u.email,
+                          roles: u.roles,
+                          locked: Boolean(u.disabledAt),
+                          signInLocked: u.signInLockedUntil !== null,
+                          hasPassword: u.signInMethods.includes("credential"),
+                        }}
                         self={u.id === actor.userId}
                         manageRoles={manageRoles}
+                        minPasswordLength={MIN_PASSWORD_LENGTH}
                       />
                     </TableCell>
                   </TableRow>

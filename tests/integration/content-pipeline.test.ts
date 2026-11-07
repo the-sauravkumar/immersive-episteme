@@ -12,7 +12,7 @@ import { buildSnapshot } from "../../src/features/knowledge/graph/snapshot";
 import { createKnowledgeView } from "../../src/features/knowledge/read/view";
 import { importContent, ContentImportRefused, type ImportSummary } from "../../src/server/content/import-content";
 import { storeReviewSnapshot, type StoredReviewSnapshot } from "../../src/server/content/review-snapshot";
-import { loadSnapshotPayload, searchSnapshotConcepts, SnapshotNotReadableError, latestReviewSnapshotId } from "../../src/server/knowledge/snapshot-store";
+import { loadSnapshotPayload, searchSnapshotConcepts, SnapshotNotReadableError } from "../../src/server/knowledge/snapshot-store";
 import { pgLearningContextData, resolveLearningContext } from "../../src/server/learning/context-data";
 import { REPO_ROOT, loadAndValidate } from "../../scripts/content/_shared";
 import { TEST_URL, createSnapshot, createStudy, createTestDatabase, createUser, one, withSettings, type TestDb } from "./schema-harness";
@@ -199,13 +199,25 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
 
   describe("learning context", () => {
     it("gives demo and preview the newest review snapshot", async () => {
-      expect(await latestReviewSnapshotId(t.pool)).toBe(snap.id);
       const data = pgLearningContextData(t.pool);
       const demo = await resolveLearningContext({ kind: "demo", experimental: false, condition: "immersive", demoId: "demo1234567890abcdef" }, { data, appBuild: "test" });
       expect(demo).toMatchObject({ mode: "demo", contentVersion: snap.versionLabel, sessionId: null });
       const preview = await resolveLearningContext({ kind: "staff_preview", experimental: false, condition: "2d", userId: "u1" }, { data, appBuild: "test" });
       expect(preview).toMatchObject({ mode: "preview", contentVersion: snap.versionLabel });
       expect(preview.telemetrySessionId).toMatch(/^[0-9a-f-]{36}$/);
+    });
+
+    it("keeps the previews on the review snapshot the demo study is pinned to when a newer one is rebuilt from the CMS (DR-114)", async () => {
+      const newer = await one<{ id: string }>(
+        t.pool,
+        `INSERT INTO content_snapshots (version_label, title, kind, status, schema_version, payload, includes_unverified, is_demo, created_at)
+         SELECT 'review-rebuilt-later', title, 'review', 'draft', schema_version, payload, true, false, created_at + interval '1 hour' FROM content_snapshots WHERE id = $1
+         RETURNING id`,
+        [snap.id],
+      );
+      const preview = await resolveLearningContext({ kind: "staff_preview", experimental: false, condition: "2d", userId: "u1" }, { data: pgLearningContextData(t.pool), appBuild: "test" });
+      expect(preview).toMatchObject({ mode: "preview", contentVersion: snap.versionLabel });
+      await t.pool.query("DELETE FROM content_snapshots WHERE id = $1", [newer.id]);
     });
 
     it("keeps curator-accepted rows untouched on re-import", async () => {

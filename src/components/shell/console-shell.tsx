@@ -7,7 +7,7 @@
  *    ink 700 on --wash with `aria-current`, no left bar). Under 768 px the rail becomes a top
  *    strip and the links fold into a "Sections" sheet.
  *  - A 56 px top bar on paper with ONE 1 px --rule-strong line: the area switcher as underline
- *    tabs and the user menu (name, role badges, Display Settings, sign out).
+ *    tabs and the user menu (name, role badges, Display Settings, Change Password, sign out).
  *  - No band and no second rule above the PageHeader (DR-022).
  *
  * The frame (brand, landmarks) is static. Everything that depends on who is signed in (nav
@@ -23,6 +23,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { areaLanding, enterableAreas, visibleNav, type ConsoleArea } from "@/lib/permissions/console-routes";
 import { ROLE_LABELS } from "@/lib/permissions/roles";
 import { cn } from "@/lib/utils";
+import { MIN_PASSWORD_LENGTH } from "@/server/auth/config";
+import { hasPasswordSignIn } from "@/server/auth/password-sign-in";
 import { getStaffPrincipal } from "@/server/auth/staff";
 
 import { ConsoleNavLinks, ConsoleNavMenu } from "./console-nav-links";
@@ -146,5 +148,13 @@ async function AreaSwitcher({ current }: { current: ConsoleArea }) {
 async function UserMenu() {
   const principal = await getStaffPrincipal();
   if (!principal) return null;
-  return <ConsoleUserMenu name={principal.name} email={principal.email} roles={principal.roles.map((r) => ROLE_LABELS[r])} />;
+  return (
+    <ConsoleUserMenu
+      name={principal.name}
+      email={principal.email}
+      roles={principal.roles.map((r) => ROLE_LABELS[r])}
+      hasPassword={await hasPasswordSignIn(principal.userId)}
+      minPasswordLength={MIN_PASSWORD_LENGTH}
+    />
+  );
 }

@@ -28,7 +28,7 @@ export interface ClaimDraft {
   text: string;
   quote: string;
   /** `quote`: the verbatim passage from this source (asked for when a claim has several sources). */
-  sources: { sourceId: string; locator: string; quote?: string }[];
+  sources: { sourceId: string; locator: string; quote?: string; keptPassages?: number }[];
 }
 
 export interface SourceChoice {
@@ -235,6 +235,7 @@ function ClaimRow({
                       {n} of {MAX_QUOTE_WORDS} words
                     </span>
                     {n > MAX_QUOTE_WORDS ? " (too long)" : ""}.
+                    {s.keptPassages && !s.quote ? ` ${s.keptPassages} imported passages are stored for this citation and kept while the statement, source and locator stay the same.` : ""}
                   </p>
                 </div>
               );
@@ -258,6 +259,18 @@ function ClaimsReadOnly({ claims, keyOf }: { claims: ClaimDraft[]; keyOf: Map<st
             <p className="text-body text-ink">{c.text}</p>
             <blockquote className="text-body mt-2 bg-sunk px-3 py-2 text-ink">“{c.quote || "no quotation"}”</blockquote>
             <p className="text-credit mt-1">{c.sources.map((s) => `${keyOf.get(s.sourceId) ?? "?"}, ${s.locator || "no locator"}`).join("; ")}</p>
+            {c.sources.length > 1 ? (
+              <ul className="mt-2 flex flex-col gap-2" aria-label={`Quotations per citation, claim ${i + 1}`}>
+                {c.sources.map((s, j) => (
+                  <li key={j} className="text-body">
+                    <span className="text-label">{`Citation ${j + 1} (${keyOf.get(s.sourceId) ?? "?"})`}</span>
+                    <blockquote className="mt-1 bg-sunk px-3 py-2 text-ink">
+                      {s.quote ? `“${s.quote}”` : s.keptPassages ? `${s.keptPassages} imported passages` : "no quotation"}
+                    </blockquote>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
         </li>
       ))}

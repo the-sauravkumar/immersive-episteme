@@ -4,11 +4,13 @@
  * Server actions for knowledge authoring, review and release publishing. Each one:
  * permission (assertPermission via runAction) -> Zod -> service (re-checks, writes, audits).
  */
+import { z } from "zod";
+
 import type { ActionState } from "@/components/cms/action-state";
 
 import { formObject, runAction } from "./run-action";
 import { createConcept, deleteRelationship, saveClaims, saveCuratorNotes, saveRelationship, saveSource, saveTradition, setTraditionSource, updateConcept } from "./knowledge";
-import { publishRelease } from "./release";
+import { publishRelease, rebuildReviewSnapshot } from "./release";
 import {
   conceptCreateSchema,
   conceptUpdateSchema,
@@ -107,5 +109,14 @@ export async function publishReleaseAction(_: ActionState, fd: FormData): Promis
   return runAction("content.publish", releaseSchema, formObject(fd), async ({ actor, pool }, input) => {
     const r = await publishRelease(pool, actor, { versionLabel: input.versionLabel, title: input.title, description: input.description });
     return { message: `Release ${r.versionLabel} published: ${r.itemCount} items, payload sha256 ${r.payloadSha256.slice(0, 12)}….`, data: { id: r.id } };
+  });
+}
+
+export async function rebuildReviewSnapshotAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  return runAction("content.publish", z.object({}), formObject(fd), async ({ actor, pool }) => {
+    const r = await rebuildReviewSnapshot(pool, actor);
+    return r.created
+      ? `Review snapshot ${r.versionLabel} built from the current pipeline: ${r.itemCount} items.`
+      : `Nothing changed since review snapshot ${r.versionLabel}; it already matches the current pipeline.`;
   });
 }

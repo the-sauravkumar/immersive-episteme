@@ -83,11 +83,13 @@ test("the invite gate admits a valid code once, refuses a used-up one, and a rev
   await expect(other.getByText("Code not accepted")).toBeVisible();
   await second.close();
 
-  await db().query("UPDATE invite_codes SET revoked_at = now() WHERE id = $1", [id]);
   await page.goto("/study");
-  await page.getByLabel("Study code").fill(JOURNEY_STUDY);
-  await page.getByRole("button", { name: "Continue" }).click();
-  await expect(page).toHaveURL(/\/invite\?next=%2Fstudy/);
+  await expect(page.getByLabel("Study code")).toBeVisible();
+  await db().query("UPDATE invite_codes SET revoked_at = now() WHERE id = $1", [id]);
+  for (const path of ["/study", "/explore", "/study/consent"]) {
+    await page.goto(path);
+    await expect(page, `${path} after revocation`).toHaveURL(new RegExp(`/invite\\?next=${encodeURIComponent(path)}$`));
+  }
   await first.close();
 
   const linked = await newContext(browser, UNINVITED);

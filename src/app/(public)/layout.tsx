@@ -1,5 +1,4 @@
-import { Anek_Latin } from "next/font/google";
-
+import { publicDisplayFont } from "@/components/shell/public-font";
 import { PublicShell } from "@/components/shell/public-shell";
 
 /*
@@ -8,17 +7,9 @@ import { PublicShell } from "@/components/shell/public-shell";
  * 3D, console, CMS or admin routes, so those preload one font file and both study conditions use
  * one face. Self-hosted by next/font at build time; the CSP is unchanged.
  */
-const anek = Anek_Latin({
-  subsets: ["latin"],
-  axes: ["wdth"],
-  display: "swap",
-  variable: "--font-anek",
-});
-
-/** Public pages: static editorial shell, no session reads. */
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${anek.variable} contents`}>
+    <div className={`${publicDisplayFont.variable} contents`}>
       <PublicShell>{children}</PublicShell>
     </div>
   );

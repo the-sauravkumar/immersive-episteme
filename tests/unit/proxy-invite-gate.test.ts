@@ -5,6 +5,20 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const gate = vi.hoisted(() => ({ revoked: new Set<string>(), staffTokens: new Set<string>(), down: false }));
+
+vi.mock("@/server/access/gate-lookups", () => ({
+  inviteIsLive: async (id: string) => {
+    if (gate.down) throw new Error("database unreachable");
+    return !gate.revoked.has(id);
+  },
+  sessionHoldsStaffRole: async (headers: Headers) => {
+    if (gate.down) throw new Error("database unreachable");
+    const token = /ie\.session_token=([^;]+)/.exec(headers.get("cookie") ?? "")?.[1];
+    return token !== undefined && gate.staffTokens.has(token);
+  },
+}));
+
 import { signInviteAccess } from "@/server/access/invite-cookie";
 import { INVITE_COOKIE } from "@/server/auth/cookie-names";
 import { proxy } from "@/proxy";
@@ -26,6 +40,9 @@ const location = (res: Response) => {
 
 beforeEach(() => {
   vi.stubEnv("BETTER_AUTH_SECRET", SECRET);
+  gate.revoked.clear();
+  gate.staffTokens.clear();
+  gate.down = false;
 });
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -57,11 +74,12 @@ describe("invite gate (S11)", () => {
     expect(location(await at("/research"))).toBe("/sign-in?next=%2Fresearch");
   });
 
-  it("admits a valid invite cookie and a staff session cookie", async () => {
+  it("admits a valid invite cookie and a staff session the database confirms", async () => {
     const cookie = await invited();
+    gate.staffTokens.add("real-staff-token");
     expect((await at("/", { headers: cookie })).status).toBe(200);
     expect((await at("/explore", { headers: cookie })).status).toBe(200);
-    expect((await at("/", { headers: { cookie: "ie.session_token=anything" } })).status).toBe(200);
+    expect((await at("/", { headers: { cookie: "ie.session_token=real-staff-token" } })).status).toBe(200);
     // The participant guard still applies behind the gate.
     expect(location(await at("/learn/2d", { headers: cookie }))).toBe("/study");
   });
@@ -74,6 +92,27 @@ describe("invite gate (S11)", () => {
     const cookie = await invited();
     vi.stubEnv("BETTER_AUTH_SECRET", "");
     expect(location(await at("/", { headers: cookie }))).toBe("/invite");
+  });
+
+  it("locks out a browser holding a revoked code on its next request", async () => {
+    const cookie = await invited();
+    expect((await at("/study", { headers: cookie })).status).toBe(200);
+    gate.revoked.add(INVITE_ID);
+    for (const path of ["/", "/study", "/study/consent", "/explore"]) expect(location(await at(path, { headers: cookie })), path).toBe(`/invite${path === "/" ? "" : `?next=${encodeURIComponent(path)}`}`);
+    expect((await at("/explore", { method: "POST", headers: cookie })).status).toBe(403);
+  });
+
+  it("refuses a forged staff session cookie that the database does not confirm", async () => {
+    for (const name of ["ie.session_token", "__Secure-ie.session_token"]) {
+      expect(location(await at("/study/consent", { headers: { cookie: `${name}=forged` } })), name).toBe("/invite?next=%2Fstudy%2Fconsent");
+    }
+  });
+
+  it("answers 503 instead of guessing when the database cannot be reached", async () => {
+    gate.down = true;
+    const res = await at("/", { headers: await invited() });
+    expect(res.status).toBe(503);
+    expect(res.headers.get("cache-control")).toBe("no-store");
   });
 
   it("rewrites ?invite= to the redeem route with the code and the clean target, setting no cookie itself", async () => {

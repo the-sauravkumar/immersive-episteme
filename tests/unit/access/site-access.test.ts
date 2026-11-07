@@ -14,7 +14,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("react", async (importOriginal) => ({ ...(await importOriginal<object>()), cache: <T>(fn: T) => fn }));
 vi.mock("@/server/auth/staff", () => ({ getStaffPrincipal: async () => state.principal }));
-vi.mock("@/server/db/client", () => ({ getPool: () => ({}) }));
+vi.mock("@/server/access/gate-lookups", () => ({ inviteIsLive: async () => true }));
 
 const { hasSiteAccess, requireSiteAccess } = await import("@/server/access/site-access");
 

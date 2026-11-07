@@ -5,6 +5,8 @@
 import { NextRequest } from "next/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+vi.mock("@/server/access/gate-lookups", () => ({ inviteIsLive: async () => true, sessionHoldsStaffRole: async () => false }));
+
 import { clientIpPolicy } from "@/lib/client-ip";
 import { contentSecurityPolicy } from "@/lib/security/csp";
 import { signInviteAccess } from "@/server/access/invite-cookie";

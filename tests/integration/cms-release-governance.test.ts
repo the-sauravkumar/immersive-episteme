@@ -20,7 +20,9 @@ import { CmsError, type Actor } from "@/server/cms/core";
 import { createConcept, saveClaims, saveRelationship, saveSource, saveTradition, setTraditionSource } from "@/server/cms/knowledge";
 import { createAssetFromBytes, linkAssetToConcept, MEDIA_EVIDENCE_CHECKS, reviewAsset, submitAssetForReview } from "@/server/cms/media/service";
 import { createLocalStorage } from "@/server/cms/media/storage";
-import { publishRelease, releaseReadiness } from "@/server/cms/release";
+import { getConcept } from "@/server/cms/queries";
+import { publishRelease, rebuildReviewSnapshot, releaseReadiness } from "@/server/cms/release";
+import { claimDraftsOf } from "@/components/cms/claim-drafts";
 import { EVIDENCE_CHECK_KEYS, relationshipSchema, sourceSchema, traditionSchema } from "@/server/cms/schemas";
 import { citationProblems, transition } from "@/server/cms/workflow";
 
@@ -166,6 +168,34 @@ describe.skipIf(!TEST_URL)("CMS release governance (final review)", () => {
     expect((await citationProblems(t.pool, "concept", tool)).map((p) => p.code)).toEqual(["claim_no_quote"]);
     await move(curatorA, "concept", tool, "under_review");
     await transition(t.pool, curatorB, { entityKind: "concept", entityId: tool, to: "rejected", reason: "test fixture", evidenceChecked: [] });
+  });
+
+  it("loads each citation's own quotation back into the editor and keeps it through a reworded claim (DR-114)", async () => {
+    const s2 = await newSource("Fourth dyeing treatise");
+    await move(curatorA, "source", s2, "under_review");
+    const vat = (await createConcept(t.pool, curatorA, { packageSlug: "gov", type: "tool", name: "vat", categoryCode: "tools", title: "Vat", provenanceKind: "historical_documentation", localTerms: [] })).id;
+    await saveClaims(t.pool, curatorA, vat, [
+      claim("Vats are sunk in the ground.", [
+        { sourceId: s1, quote: "the vats are sunk into the floor" },
+        { sourceId: s2, quote: "earthen vats set in the ground" },
+      ]),
+    ]);
+    const drafts = claimDraftsOf((await getConcept(t.pool, vat))!.claims);
+    expect(drafts[0]!.sources.map((x) => x.quote).sort()).toEqual(["earthen vats set in the ground", "the vats are sunk into the floor"]);
+    await saveClaims(t.pool, curatorA, vat, [{ ...drafts[0]!, text: "Vats are set into the ground." }]);
+    expect(await citationProblems(t.pool, "concept", vat)).toEqual([]);
+    expect(claimDraftsOf((await getConcept(t.pool, vat))!.claims)[0]!.sources.map((x) => x.quote).sort()).toEqual(["earthen vats set in the ground", "the vats are sunk into the floor"]);
+    await move(curatorA, "concept", vat, "under_review");
+    await transition(t.pool, curatorB, { entityKind: "concept", entityId: vat, to: "rejected", reason: "test fixture", evidenceChecked: [] });
+  });
+
+  it("rebuilds the review snapshot from the CMS, attributed and audited, and only when the pipeline changed (DR-114)", async () => {
+    expect(await errorCode(rebuildReviewSnapshot(t.pool, editor))).toBe("forbidden");
+    const first = await rebuildReviewSnapshot(t.pool, pi);
+    const row = await one<{ kind: string; status: string; created_by: string }>(t.pool, "SELECT kind::text AS kind, status::text AS status, created_by FROM content_snapshots WHERE id = $1", [first.id]);
+    expect(row).toEqual({ kind: "review", status: "draft", created_by: pi.userId });
+    expect(await one(t.pool, "SELECT actor_kind::text AS actor_kind, actor_id FROM audit_log WHERE action = 'snapshot.review_built' AND entity_id = $1", [first.id])).toEqual({ actor_kind: "user", actor_id: pi.userId });
+    expect((await rebuildReviewSnapshot(t.pool, pi)).created).toBe(false);
   });
 
   it("refuses to verify or release a claim citing a source outside the pipeline, and reopens what a leaving source supports (knowledge-03)", async () => {
