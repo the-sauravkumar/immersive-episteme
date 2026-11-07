@@ -41,6 +41,7 @@ const headingCase = (text: string): string =>
 
 interface ProductRow {
   readonly file: string;
+  readonly sourcePage: string;
   readonly product?: { readonly tradition: TraditionKey; readonly id: string; readonly name: string; readonly holder: string; readonly widthPx: number; readonly heightPx: number };
 }
 
@@ -48,7 +49,7 @@ function productsFor(tradition: TraditionKey): readonly ProductImage[] {
   const manifest = JSON.parse(readFileSync("public/walkthrough/manifest.images.json", "utf8")) as { rows: readonly ProductRow[] };
   return manifest.rows.flatMap((row) =>
     row.product && row.product.tradition === tradition
-      ? [{ id: row.product.id, file: row.file, name: row.product.name, holder: row.product.holder, widthPx: row.product.widthPx, heightPx: row.product.heightPx }]
+      ? [{ id: row.product.id, file: row.file, name: row.product.name, holder: row.product.holder, widthPx: row.product.widthPx, heightPx: row.product.heightPx, record: row.sourcePage }]
       : [],
   );
 }

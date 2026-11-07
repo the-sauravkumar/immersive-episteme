@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { UNVERIFIED_NOTICE_TEXT } from "@/features/learning/strings";
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
 import { finishLabel, HELP_TITLE, HINT_TITLE, NO_GUIDANCE, PAUSE_TEXT, PAUSE_TITLE, RESUME_LABEL, sessionHelpLines, SOURCES_AND_CREDITS_LABEL, SOURCES_LABEL, type DoorGuidance } from "@/features/process/domain/guidance";
-import type { StageTemplate } from "@/features/process/domain/stage-template";
+import { exhibitCreditLines, exhibitImages, type StageTemplate } from "@/features/process/domain/stage-template";
 import { StallCue } from "@/features/process/ui/stall-cue";
 import { useGuidance, type GuidanceReport } from "@/features/process/ui/use-guidance";
 import { useTabHidden } from "@/lib/use-tab-hidden";
@@ -333,9 +333,14 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
         <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={SOURCES_AND_CREDITS_LABEL}>
           <h2>{SOURCES_AND_CREDITS_LABEL}</h2>
           <ul>
-            {template.products.map((product) => (
-              <li key={product.id}>
-                <b>{product.name}</b>, {product.holder}
+            {exhibitImages(template).map((image) => (
+              <li key={image.id}>
+                <b>{image.name}</b>
+                {exhibitCreditLines(image).map((line) => (
+                  <span key={line} className="credit-line">
+                    {line}
+                  </span>
+                ))}
               </li>
             ))}
           </ul>

@@ -21,6 +21,8 @@ export interface LearningContext {
   appBuild: string;
   guidance: DoorGuidance;
   verifiedStageConcepts: readonly string[];
+  snapshotId: string;
+  photosShown: boolean;
 }
 
 export class LearningContextUnavailableError extends Error {
@@ -45,6 +47,7 @@ export interface StudySessionContextRow {
 }
 
 export interface PreviewContentRow {
+  snapshotId: string;
   snapshotLabel: string;
   studyConfig: unknown;
   verifiedStageConcepts: string[];
@@ -84,8 +87,8 @@ export function pgLearningContextData(q: Q): LearningContextData {
       await q.query("UPDATE study_sessions SET learning_started_at = now(), template_sha256 = $2 WHERE id = $1 AND learning_started_at IS NULL", [sessionId, await stageTemplateSha256()]);
     },
     async findPreviewContent() {
-      const r = await q.query<{ version_label: string; config: unknown; verified_stages: string[] }>(
-        `SELECT s.version_label, st.config,
+      const r = await q.query<{ id: string; version_label: string; config: unknown; verified_stages: string[] }>(
+        `SELECT s.id, s.version_label, st.config,
                 (SELECT coalesce(array_agg(c->>'key' ORDER BY c->>'key'), '{}') FROM jsonb_array_elements(s.payload->'concepts') c
                      WHERE c->>'type' = 'process_stage' AND c->>'verificationState' IN ('verified', 'published')) AS verified_stages
            FROM content_snapshots s
@@ -95,7 +98,7 @@ export function pgLearningContextData(q: Q): LearningContextData {
           LIMIT 1`,
       );
       const row = r.rows[0];
-      return row ? { snapshotLabel: row.version_label, studyConfig: row.config ?? {}, verifiedStageConcepts: row.verified_stages } : null;
+      return row ? { snapshotId: row.id, snapshotLabel: row.version_label, studyConfig: row.config ?? {}, verifiedStageConcepts: row.verified_stages } : null;
     },
   };
 }
@@ -164,6 +167,8 @@ export async function resolveLearningContext(
       telemetrySessionId: s.sessionId,
       guidance: doorGuidanceOf(cfg),
       verifiedStageConcepts: s.verifiedStageConcepts,
+      snapshotId: s.snapshotId,
+      photosShown: cfg.figures.photos,
       appBuild: deps.appBuild,
     };
   }
@@ -179,6 +184,8 @@ export async function resolveLearningContext(
     telemetrySessionId: nonStudyTelemetrySessionId(access.kind === "demo" ? "demo" : "preview", access.kind === "demo" ? access.demoId : access.userId),
     guidance: doorGuidanceOf(cfg),
     verifiedStageConcepts: preview.verifiedStageConcepts,
+    snapshotId: preview.snapshotId,
+    photosShown: cfg.figures.photos,
     appBuild: deps.appBuild,
   };
 }

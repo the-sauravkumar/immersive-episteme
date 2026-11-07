@@ -4,7 +4,8 @@ import { PRACTICE_MODEL } from "@/features/course/domain/panel-model";
 import ajrakh from "../../content/study/ajrakh.template.json";
 import sanganeri from "../../content/study/sanganeri.template.json";
 import kalamkari from "../../content/study/machilipatnam-kalamkari.template.json";
-import type { StageTemplate } from "@/features/process/domain/stage-template";
+import { withStudyPhotos, type StageTemplate, type StudyPhotoSource } from "@/features/process/domain/stage-template";
+import studyPhotos from "./study-photos.json";
 import { checkScene } from "@/features/walkthrough/domain/scene-check";
 import { topRenderScale } from "@/features/walkthrough/domain/render-scale";
 import { buildRoute, practiceStation } from "@/features/walkthrough/domain/route-plan";
@@ -24,7 +25,8 @@ import { paintWordsInTurn } from "@/features/walkthrough/infrastructure/solid-bu
 import { setLiquidTime } from "@/features/walkthrough/infrastructure/substance-materials";
 import { addSun, CAMERA_NEAR_METRES, createRenderer, createRenderView } from "@/features/walkthrough/infrastructure/render-view";
 
-const TEMPLATES: Record<string, StageTemplate> = { ajrakh: ajrakh as StageTemplate, sanganeri: sanganeri as StageTemplate, kalamkari: kalamkari as unknown as StageTemplate };
+const [ajrakhShown, sanganeriShown, kalamkariShown] = withStudyPhotos([ajrakh as StageTemplate, sanganeri as StageTemplate, kalamkari as unknown as StageTemplate], studyPhotos as StudyPhotoSource[]);
+const TEMPLATES: Record<string, StageTemplate> = { ajrakh: ajrakhShown!, sanganeri: sanganeriShown!, kalamkari: kalamkariShown! };
 
 const query = new URLSearchParams(location.search);
 const sceneName = query.get("s") ?? "route";

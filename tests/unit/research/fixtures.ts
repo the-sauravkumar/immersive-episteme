@@ -86,7 +86,7 @@ export function fixtureTemplate(tradition: TraditionKey): StageTemplate {
     tradition,
     traditionName: `Sample Text ${tradition}`,
     rawClothStateId: `${tradition}-raw`,
-    products: [{ id: `${tradition}-product`, file: `/walkthrough/products/${tradition}.jpg`, name: "Sample Text", holder: "Sample Text", widthPx: 100, heightPx: 100 }],
+    products: [{ id: `${tradition}-product`, file: `/walkthrough/products/${tradition}.jpg`, name: "Sample Text", holder: "Sample Text", widthPx: 100, heightPx: 100, record: "https://example.org/record" }],
     stages: [1, 2].map((number) => ({
       number,
       key: `${tradition}-s${number}`,

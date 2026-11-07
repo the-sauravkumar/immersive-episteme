@@ -406,7 +406,8 @@
       "name": "Machilipatnam Kalamkari Textile",
       "holder": "Victoria and Albert Museum, London",
       "widthPx": 1836,
-      "heightPx": 2445
+      "heightPx": 2445,
+      "record": "https://collections.vam.ac.uk/item/O481864/"
     },
     {
       "id": "machilipatnam-kalamkari-p2",
@@ -414,7 +415,8 @@
       "name": "Machilipatnam Kalamkari Textile",
       "holder": "Victoria and Albert Museum, London",
       "widthPx": 1434,
-      "heightPx": 2429
+      "heightPx": 2429,
+      "record": "https://collections.vam.ac.uk/item/O481948/"
     },
     {
       "id": "machilipatnam-kalamkari-p3",
@@ -422,7 +424,8 @@
       "name": "Machilipatnam Kalamkari Textile",
       "holder": "Victoria and Albert Museum, London",
       "widthPx": 1764,
-      "heightPx": 1773
+      "heightPx": 1773,
+      "record": "https://collections.vam.ac.uk/item/O481958/"
     },
     {
       "id": "machilipatnam-kalamkari-p4",
@@ -430,7 +433,8 @@
       "name": "Machilipatnam Kalamkari Textile",
       "holder": "Rooftop",
       "widthPx": 3840,
-      "heightPx": 5772
+      "heightPx": 5772,
+      "record": "https://rooftopapp.com/art-wiki/kalamkari-machilipatnam-style"
     },
     {
       "id": "machilipatnam-kalamkari-p5",
@@ -438,7 +442,8 @@
       "name": "Machilipatnam Kalamkari Textile",
       "holder": "Rooftop",
       "widthPx": 3840,
-      "heightPx": 3017
+      "heightPx": 3017,
+      "record": "https://rooftopapp.com/art-wiki/kalamkari-machilipatnam-style"
     },
     {
       "id": "machilipatnam-kalamkari-p6",
@@ -446,7 +451,8 @@
       "name": "Machilipatnam Kalamkari Textile",
       "holder": "MAP Academy",
       "widthPx": 1172,
-      "heightPx": 1144
+      "heightPx": 1144,
+      "record": "https://mapacademy.io/?p=3281"
     }
   ]
 }

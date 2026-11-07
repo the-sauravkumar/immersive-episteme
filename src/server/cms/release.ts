@@ -41,7 +41,7 @@ import type { RelationshipTypeDefinition } from "@/features/knowledge/contracts"
 import { loadModelFromDb, storeReviewSnapshot, type StoredReviewSnapshot } from "@/server/content/review-snapshot";
 
 import { audit, CmsError, ensure, inActorTx, setChangeReason, type Actor, type Q } from "./core";
-import { freezeReleaseFigures, stampFirstPublication } from "./media/service";
+import { freezeReleaseFigures } from "./media/service";
 
 export interface ReleaseReadiness {
   ok: boolean;
@@ -324,9 +324,6 @@ export async function publishRelease(pool: Pool, actor: Actor, input: ReleaseInp
       },
       reason: input.description,
     });
-    // Illustrations of the released concepts become visible now: record their first publication
-    // (DR-020 addendum; a licence term such as the V&A's five years counts from this day).
-    await stampFirstPublication(c, actor);
     return { id, versionLabel: input.versionLabel, payloadSha256: pub.rows[0]!.payload_sha256, contentSha256, itemCount: pub.rows[0]!.item_count, promoted };
   });
 }

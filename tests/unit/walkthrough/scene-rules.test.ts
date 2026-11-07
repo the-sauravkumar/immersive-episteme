@@ -68,7 +68,7 @@ describe("scene check", () => {
 });
 
 describe("product hall layout", () => {
-  const products: ProductImage[] = Array.from({ length: 12 }, (_, i) => ({ id: `p${i}`, file: "", name: "Name", holder: "Holder", widthPx: 1400, heightPx: 1000 }));
+  const products: ProductImage[] = Array.from({ length: 12 }, (_, i) => ({ id: `p${i}`, file: "", name: "Name", holder: "Holder", widthPx: 1400, heightPx: 1000, record: `https://example.org/${i}` }));
 
   it("keeps every textile inside the walls and clear of its neighbours", () => {
     const placed = layoutTextiles(products);

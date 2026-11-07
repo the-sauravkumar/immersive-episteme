@@ -1,10 +1,10 @@
-import { PRODUCT_SENTENCE, PRODUCT_TITLE, FOLLOWED_CLOTH_LABEL, type ProductImage, type StageTemplate } from "@/features/process/domain/stage-template";
+import { exhibitImages, PRODUCT_SENTENCE, PRODUCT_TITLE, FOLLOWED_CLOTH_LABEL, type ExhibitImage, type StageTemplate } from "@/features/process/domain/stage-template";
 import { settleCloth } from "./cloth-surface";
 import type { Vec3 } from "./geometry";
 import { buildYardPlan, CLOTH_COLUMNS, CLOTH_LINE_X, CLOTH_WIDTH, EYE_HEIGHT, foldAmount, heightFieldFor, RAIL_HEIGHT, TIE_BOARD_OFFSET, TIE_BOARD_THICKNESS, YARD_FRONT_Z, YARD_HALF_WIDTH, type PaintedWords, type YardPlan, type YardStage } from "./yard-plan";
 
 export interface PlacedTextile {
-  readonly product: ProductImage;
+  readonly product: ExhibitImage;
   readonly x: number;
   readonly z: number;
   readonly width: number;
@@ -53,7 +53,7 @@ const ROW_DEPTH = 9;
 const FIRST_ROW_Z = 1;
 const FIRST_COLUMN_X = CLOTH_LINE_X + 3.2;
 
-export function layoutTextiles(products: readonly ProductImage[]): PlacedTextile[] {
+export function layoutTextiles(products: readonly ExhibitImage[]): PlacedTextile[] {
   const rightLimit = CLOTH_LINE_X + YARD_HALF_WIDTH - 1.5;
   const placed: PlacedTextile[] = [];
   let x = FIRST_COLUMN_X;
@@ -144,7 +144,7 @@ export function buildRoute(template: StageTemplate, stateFile: (stateId: string)
       textiles: [],
     };
   });
-  const textiles = layoutTextiles(template.products);
+  const textiles = layoutTextiles(exhibitImages(template));
   const lastState = template.stages[template.stages.length - 1]!.clothStateId;
   stations.push({
     id: `${template.tradition}-hall`,

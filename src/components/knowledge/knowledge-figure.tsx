@@ -9,9 +9,9 @@
  *    the same footprint. No ticks, radius or shadow.
  *  - kind `diagram`: the graph-derived SVG (DR-018). kind `photo`: next/image with explicit size,
  *    the literal `sizes` below, eager for the first figure of a view and lazy otherwise, and
- *    `unoptimized`: the browser loads /figures/<id> itself, so the licence gate of that route runs
- *    on every cache miss and a withdrawn or expired photograph is never re-served from the image
- *    optimiser's cache (final review knowledge-05; the files are already 768 px derivatives).
+ *    `unoptimized`: the browser loads /figures/<id> itself, so the gate of that route runs on every
+ *    cache miss and a withdrawn photograph is never re-served from the image optimiser's cache
+ *    (final review knowledge-05).
  *  - figcaption: "Fig. n" (600) and the caption in `text-caption`; the credit line in
  *    `text-credit` (a photo: "Photo: <credit>. Licence: <licence>", the licence linked when it
  *    has a URL); and ONE control, a 44 x 44 outline "Enlarge figure n" button in the caption row

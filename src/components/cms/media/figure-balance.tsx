@@ -23,7 +23,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { knowledgeBundleSchema, type KnowledgeBundle } from "@/features/knowledge/contracts";
 import { nodeSha256 } from "@/features/knowledge/graph/hash-node";
 import { KNOWLEDGE_LAYERS, STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
-import { STUDY_FIGURE_CAP } from "@/features/media/contracts";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
 import { listSnapshotFigureAssets } from "@/server/cms/media/service";
@@ -253,8 +252,8 @@ const VIEW_LINK = cn(
 );
 
 /**
- * The Figure Balance section of /cms/media: loads the bundle, the illustration links with their
- * licence governance, and runs the engine's balance with today's date.
+ * The Figure Balance section of /cms/media: loads the bundle and the illustration links, and runs
+ * the engine's balance.
  *  - `source`: the latest published release (what a study pins) or the review build (what the next
  *    release would carry);
  *  - `diagrams`: the protocol switch `figures.structureDiagrams` (on by default), both settings shown
@@ -271,7 +270,6 @@ export async function FigureBalanceSection({
   diagrams: boolean;
   hrefFor: (v: { source: Source; diagrams: boolean }) => string;
 }) {
-  const day = new Date().toISOString().slice(0, 10);
   const loaded = await loadBundle(q, source);
   // A published release is judged on the figures frozen into it (DR-037); the review build on the live links.
   const links = await listSnapshotFigureAssets(q, loaded?.snapshotId ?? null);
@@ -279,7 +277,6 @@ export async function FigureBalanceSection({
     ? figureBalance(loaded.bundle, [...STUDY_TRADITION_SLUGS], {
         structureDiagrams: diagrams,
         figureAssets: links,
-        asOf: day,
       })
     : null;
   const otherIssues = balance?.issues.filter((i) => i.code !== "figures_unbalanced") ?? [];
@@ -292,7 +289,7 @@ export async function FigureBalanceSection({
       description={
         <>
           Figures each study tradition shows learners, per section, exactly as both conditions resolve them: at most one per concept, the structure diagram
-          first while the protocol shows diagrams, then an approved, licence-valid photograph that reaches the {STUDY_FIGURE_CAP} px lightbox cap. Study
+          first while the protocol shows diagrams, then an approved photograph with its caption, credit and alt text. Study
           activation runs the same check and is refused while any row is unbalanced.
         </>
       }
@@ -342,7 +339,7 @@ export async function FigureBalanceSection({
         <>
           <FigureBalanceMatrix
             balance={balance}
-            caption={`Figures per section in ${loaded.label}, structure diagrams ${diagrams ? "on" : "off"}, licences judged on ${day}`}
+            caption={`Figures per section in ${loaded.label}, structure diagrams ${diagrams ? "on" : "off"}`}
           />
           <p className="text-credit">
             {balance.metrics.diagrams} diagram(s) and {balance.metrics.photos} photograph(s) shown; {balance.metrics.photosHeldBack} approved photograph(s) held

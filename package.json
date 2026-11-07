@@ -40,7 +40,8 @@
     "content:test-items": "tsx scripts/content/build-test-items.ts",
     "study:seed-demo": "tsx scripts/content/seed-demo-study.ts",
     "content:walkthrough-images": "tsx scripts/content/build-walkthrough-images.ts",
-    "content:to-be-licensed": "tsx scripts/content/build-to-be-licensed.ts",
+    "content:image-credits": "tsx scripts/content/build-image-credits.ts",
+    "content:study-photos": "tsx scripts/content/build-study-photos.ts",
     "dev:bootstrap": "npm run db:up && tsx scripts/dev/bootstrap.ts"
   },
   "dependencies": {

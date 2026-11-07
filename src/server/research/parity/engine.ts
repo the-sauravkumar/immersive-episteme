@@ -3,7 +3,6 @@ import { balanceDiagramSets, buildStructureDiagrams } from "@/features/knowledge
 import { photoGateOpen } from "@/features/knowledge/read/view";
 import { compareTraditionSlugs, exposureLayerOf, KNOWLEDGE_LAYER_LABELS, KNOWLEDGE_LAYERS, STUDY_TRADITION_SLUGS, type KnowledgeLayerId } from "@/features/learning/labels";
 import { EPISTEMIC_SECTIONS, sectionOfType } from "@/features/learning/epistemic-sections";
-import { displayLongEdge, licenceValidOn, STUDY_FIGURE_CAP } from "@/features/media/contracts";
 import { ASSET_CATALOGUE } from "@/features/process/domain/asset-catalogue";
 import type { SourceRef, StageItem, StageTemplate } from "@/features/process/domain/stage-template";
 import { canonicalHash } from "@/lib/canonical-hash";
@@ -103,8 +102,6 @@ export interface ParityFigureAsset {
   isDemo: boolean;
   width: number | null;
   height: number | null;
-  maxPixels: number | null;
-  licenceExpiresOn: string | null;
   credit: string | null;
   caption: string | null;
   altText: string | null;
@@ -162,8 +159,8 @@ function sectionLayer(sectionId: string): KnowledgeLayerId {
 /**
  * The figures each study tradition would show, per section, resolved exactly as the read model
  * resolves them for BOTH conditions (`resolveConceptFigures`: at most one figure per concept; the
- * structure diagram, while the protocol shows them, takes the slot; otherwise an approved,
- * licence-valid illustration photograph anchored to an existing claim). Pure and deterministic.
+ * structure diagram, while the protocol shows them, takes the slot; otherwise an approved
+ * illustration photograph anchored to an existing claim). Pure and deterministic.
  *
  * The rule (12.3 rule 9) is per section: within each tradition-page section (the museum room), the
  * balance traditions show exactly the same number of figures. Sections are the EPISTEMIC_SECTIONS
@@ -178,7 +175,7 @@ function sectionLayer(sectionId: string): KnowledgeLayerId {
 export function figureBalance(
   bundle: KnowledgeBundle,
   traditionSlugs: readonly string[],
-  opts: { structureDiagrams: boolean; photos?: boolean; figureAssets?: readonly ParityFigureAsset[]; asOf?: string | null },
+  opts: { structureDiagrams: boolean; photos?: boolean; figureAssets?: readonly ParityFigureAsset[] },
 ): FigureBalance {
   const inBundle = new Set(bundle.traditions.map((t) => t.slug));
   const scope = [...new Set(traditionSlugs)].filter((s) => inBundle.has(s));
@@ -202,8 +199,7 @@ export function figureBalance(
     }
   }
 
-  // Photographs: approved, licence-valid illustration links of the bundle's concepts.
-  const day = opts.asOf ?? null;
+  // Photographs: approved illustration links of the bundle's concepts.
   const photoCandidates = new Map<string, ParityFigureAsset[]>();
   // The protocol switch `figures.photos` (DR-020): off shows no photograph in either condition.
   for (const a of opts.photos === false ? [] : (opts.figureAssets ?? [])) {
@@ -219,10 +215,6 @@ export function figureBalance(
     if (absent.length) {
       // The learner route refuses such an image, so it is not counted as shown; it still blocks activation.
       issues.push({ code: "figure_metadata", message: `Image ${a.assetId} on ${c.key} has no ${absent.join(", ")}: every study figure prints a caption and a credit and licence line, and has alt text.`, ref: a.assetId });
-      continue;
-    }
-    if (day && !licenceValidOn(a.licenceExpiresOn, day)) {
-      issues.push({ code: "figure_licence_expired", message: `Image ${a.assetId} on ${c.key}: its licence expired on ${a.licenceExpiresOn}.`, ref: a.assetId });
       continue;
     }
     if (!Number.isInteger(a.position) || a.position < 0 || a.position >= c.claims.length) {
@@ -265,14 +257,6 @@ export function figureBalance(
     const photo = candidates[0];
     if (!photo) continue;
     photosHeldBack += candidates.length - 1;
-    const edge = displayLongEdge(photo);
-    if (edge === null || edge < STUDY_FIGURE_CAP) {
-      issues.push({
-        code: "figure_below_cap",
-        message: `Image ${photo.assetId} on ${c.key} can be shown at ${edge ?? "an unknown number of"} px on its long edge; every study figure must reach the ${STUDY_FIGURE_CAP} px lightbox cap.`,
-        ref: photo.assetId,
-      });
-    }
     const section = sectionOfType(c.type).id;
     bump(section, slug, c.type);
     shown.push({ traditionSlug: slug, conceptId: c.id, conceptKey: c.key, sectionId: section, kind: "photo", ref: photo.assetId });

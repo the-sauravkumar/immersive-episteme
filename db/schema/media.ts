@@ -4,17 +4,7 @@
  * awaiting licence review.
  *
  * Figure governance (DESIGN.md 9.9, 11.10, 12.3, 16; DR-018, DR-020; migration 0016):
- *  - `maxPixels`: the longest side, in px, the licence allows the platform to display (the V&A
- *    terms allow 768). NULL = the licence sets no cap.
- *  - `licenceExpiresOn`: the last day the licence permits use (the V&A term is five years from
- *    first publication). NULL = no expiry. The learner figure route refuses an asset after it.
  *  - `publicPlate`: cleared for public-page plates as well as study figures.
- *  - `licenceTermMonths` (migration 0017): a licence term that runs from first publication (the
- *    V&A term is 60 months). NULL = no such term.
- *  - `firstPublishedOn` (migration 0017): the day the asset first became visible to learners or on
- *    a public plate, stamped once and never changed (DR-020: "recorded on each asset when it is
- *    first published"). With a term, it also sets `licenceExpiresOn` (the day before the term's
- *    anniversary), and the learner route refuses a termed asset that has no stamp.
  *  - `sourceUrl` (already present): the record page the file was obtained from.
  *  - `asset_links.position` of an `illustration` link is the anchor claim index: the zero-based
  *    position of the claim the figure renders after, in both conditions.
@@ -24,7 +14,6 @@ import {
   bigint,
   boolean,
   check,
-  date,
   foreignKey,
   index,
   integer,
@@ -76,16 +65,8 @@ export const assets = pgTable(
     licenceUrl: text(),
     sourceUrl: text(),
     sourceId: uuid(),
-    /** Longest side (px) the licence allows on screen; NULL = no cap. */
-    maxPixels: integer(),
-    /** Last day the licence permits use; NULL = no expiry. */
-    licenceExpiresOn: date({ mode: "string" }),
     /** Cleared for public-page plates (study figures need no flag). */
     publicPlate: boolean().notNull().default(false),
-    /** Licence term in months counted from first publication (V&A: 60); NULL = none. */
-    licenceTermMonths: smallint(),
-    /** First day the asset was visible to learners or on a public plate; stamped once. */
-    firstPublishedOn: date({ mode: "string" }),
     provenanceKind: provenanceKindEnum().notNull(),
     verificationState: verificationStateEnum().notNull().default("draft"),
     currentVersion: integer().notNull().default(1),
@@ -107,8 +88,6 @@ export const assets = pgTable(
     check("assets_size_ck", sql`${t.byteSize} > 0`),
     check("assets_dims_ck", sql`(${t.width} IS NULL OR ${t.width} > 0) AND (${t.height} IS NULL OR ${t.height} > 0)`),
     check("assets_duration_ck", sql`${t.durationMs} IS NULL OR ${t.durationMs} >= 0`),
-    check("assets_max_pixels_ck", sql`${t.maxPixels} IS NULL OR ${t.maxPixels} > 0`),
-    check("assets_licence_term_ck", sql`${t.licenceTermMonths} IS NULL OR ${t.licenceTermMonths} > 0`),
     check("assets_alt_ck", sql`${t.kind} NOT IN ('image', 'texture') OR ${t.altText} IS NOT NULL`),
     check(
       "assets_accepted_licence_ck",

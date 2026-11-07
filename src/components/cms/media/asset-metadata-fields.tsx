@@ -8,8 +8,7 @@
  *    figure rules of 9.9 (alt text about 15 words and different from the caption; caption at most 180
  *    characters). The server applies the same rules (src/features/media/contracts.ts), so the counts
  *    only help; they never replace the check;
- *  - licence governance (11.10, DR-020): the longest side the licence allows on screen, the last
- *    day of the licence, and the public-plate flag.
+ *  - the public-plate flag.
  * Plain named inputs, so the values travel as FormData.
  */
 import { useId, useState, type ReactNode } from "react";
@@ -19,7 +18,7 @@ import { CHECK_BOX, CHECK_ROW, NativeSelect, PROVENANCE_LABELS } from "@/compone
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { altTextProblem, ALT_TARGET_WORDS, captionProblem, countWords, FIGURE_CAPTION_MAX, STUDY_FIGURE_CAP } from "@/features/media/contracts";
+import { altTextProblem, ALT_TARGET_WORDS, captionProblem, countWords, FIGURE_CAPTION_MAX } from "@/features/media/contracts";
 import { PROVENANCE_KINDS } from "@/lib/validation/enums";
 import { cn } from "@/lib/utils";
 
@@ -33,8 +32,6 @@ export interface AssetMetadataDefaults {
   sourceUrl?: string | null;
   sourceId?: string | null;
   provenanceKind?: string | null;
-  maxPixels?: number | null;
-  licenceExpiresOn?: string | null;
   publicPlate?: boolean | null;
 }
 
@@ -162,12 +159,6 @@ export function AssetMetadataFields({
           </Row>
           <Row label="Licence URL" name="licenceUrl">
             {(id) => <Input id={id} name="licenceUrl" type="url" inputMode="url" defaultValue={defaults.licenceUrl ?? ""} />}
-          </Row>
-          <Row label="Max pixels (long edge)" name="maxPixels" hint={`The longest side the licence allows on screen; empty when it sets none. Study figures are shown at ${STUDY_FIGURE_CAP} px at most.`}>
-            {(id, d) => <Input id={id} name="maxPixels" type="text" inputMode="numeric" pattern="[0-9]*" aria-describedby={d} defaultValue={defaults.maxPixels ?? ""} className="tabular-nums" />}
-          </Row>
-          <Row label="Licence expiry" name="licenceExpiresOn" hint="Format: YYYY-MM-DD. The last day the licence permits use; empty when it does not expire. Expired figures are no longer served.">
-            {(id, d) => <Input id={id} name="licenceExpiresOn" type="date" aria-describedby={d} defaultValue={defaults.licenceExpiresOn ?? ""} className="tabular-nums" />}
           </Row>
         </div>
         {isImage ? (

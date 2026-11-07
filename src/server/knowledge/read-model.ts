@@ -20,8 +20,10 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 
 import {
+  conceptPhotosOf,
   createKnowledgeView,
   type ComparisonView,
+  type ConceptPhoto,
   type ConceptDetail,
   type ConceptRef,
   type KnowledgeView,
@@ -31,6 +33,7 @@ import {
   type TraditionDetail,
   type TraditionSummary,
 } from "@/features/knowledge/read/view";
+import { listSnapshotPhotoLinks } from "@/server/cms/media/service";
 import { getPool } from "@/server/db/client";
 
 import { loadSnapshotPayload } from "./snapshot-store";
@@ -120,7 +123,10 @@ export async function getConceptRefs(snapshotId: string, conceptIds: readonly st
   return (await viewFor(snapshotId)).conceptRefsById(conceptIds);
 }
 
-// ---------------------------------------------------------------------------------------
-// Knowledge figures (DESIGN.md 9.9, 12.3; DR-018)
-// ---------------------------------------------------------------------------------------
+export async function listStudyPhotos(snapshotId: string): Promise<ConceptPhoto[]> {
+  "use cache";
+  cacheTag(KNOWLEDGE_CACHE_TAG, snapshotCacheTag(snapshotId), MEDIA_FIGURES_CACHE_TAG);
+  cacheLife("hours");
+  return conceptPhotosOf(await viewFor(snapshotId), await listSnapshotPhotoLinks(getPool(), snapshotId));
+}
 

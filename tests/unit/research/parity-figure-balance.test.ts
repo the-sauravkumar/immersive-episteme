@@ -23,8 +23,7 @@ import { buildSnapshot } from "@/features/knowledge/graph/snapshot";
 import { parseSourceManifest } from "@/features/knowledge/graph/source-manifest";
 import { EPISTEMIC_SECTIONS } from "@/features/learning/epistemic-sections";
 import { STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
-import { altTextProblem, captionProblem, displayLongEdge, licenceValidOn, STUDY_FIGURE_CAP } from "@/features/media/contracts";
-import { LIGHTBOX_MAX_EDGE } from "@/components/knowledge/figure-lightbox";
+import { altTextProblem, captionProblem } from "@/features/media/contracts";
 import { figureBalance, type ParityFigureAsset } from "@/server/research/parity/engine";
 
 import { demoBundle } from "./fixtures";
@@ -33,13 +32,12 @@ interface FigureInput {
   bundle: KnowledgeBundle;
   structureDiagrams: boolean;
   figureAssets?: ParityFigureAsset[];
-  asOf?: string;
 }
 
 const passingInput = (): FigureInput => ({ bundle: demoBundle(), structureDiagrams: true });
 
 function balanceOf(i: FigureInput) {
-  const fb = figureBalance(i.bundle, ["demo-alpha", "demo-beta"], { structureDiagrams: i.structureDiagrams, figureAssets: i.figureAssets, asOf: i.asOf ?? null });
+  const fb = figureBalance(i.bundle, ["demo-alpha", "demo-beta"], { structureDiagrams: i.structureDiagrams, figureAssets: i.figureAssets });
   return { passed: fb.issues.length === 0, issues: fb.issues, metrics: fb.metrics };
 }
 
@@ -62,8 +60,6 @@ function photo(i: FigureInput, key: string, over: Partial<ParityFigureAsset> = {
     isDemo: true,
     width: 2000,
     height: 1500,
-    maxPixels: 768,
-    licenceExpiresOn: "2031-01-01",
     credit: "Example Museum",
     caption: "Block used for the first impression",
     altText: "A carved wooden printing block resting on a folded length of printed cotton cloth",
@@ -126,17 +122,16 @@ describe("figure balance", () => {
     expect(cOff.issues.map((x) => x.code)).toEqual(["figures_unbalanced"]);
   });
 
-  it("refuses photographs that cannot fill the lightbox cap, are expired or anchor to no claim", () => {
+  it("refuses photographs that anchor to no claim, and holds no photograph to a licence cap or expiry (DR-118)", () => {
     const input = passingInput();
-    input.asOf = "2027-06-01";
     input.figureAssets = [
-      photo(input, "demo-alpha.tool.block", { maxPixels: 600 }),
-      photo(input, "demo-beta.tool.block", { width: 700, height: 500, maxPixels: null }),
-      photo(input, "demo-alpha.material.dye", { licenceExpiresOn: "2027-05-31" }),
+      photo(input, "demo-alpha.tool.block", { width: 700, height: 500 }),
+      photo(input, "demo-beta.tool.block", { width: 4033, height: 2778 }),
       photo(input, "demo-beta.material.dye", { position: 4 }),
     ];
-    const codes = balanceOf(input).issues.map((x) => x.code).sort();
-    expect(codes).toEqual(["figure_anchor", "figure_below_cap", "figure_below_cap", "figure_licence_expired"]);
+    const result = balanceOf(input);
+    expect(result.issues.map((x) => x.code)).toEqual(["figure_anchor"]);
+    expect(result.metrics.photos).toBe(2);
   });
 
   it("refuses approved photographs without a credit, caption or alt text, and does not count them", () => {
@@ -200,16 +195,6 @@ describe("figure balance per knowledge layer (DR-024: a section can span two lay
 });
 
 describe("figure governance rules", () => {
-  it("keeps one study cap, equal to the lightbox cap", () => {
-    expect(STUDY_FIGURE_CAP).toBe(LIGHTBOX_MAX_EDGE);
-    expect(displayLongEdge({ width: 2400, height: 1600, maxPixels: 768 })).toBe(768);
-    expect(displayLongEdge({ width: 600, height: 900, maxPixels: null })).toBe(900);
-    expect(displayLongEdge({ width: null, height: 900, maxPixels: 768 })).toBeNull();
-    expect(licenceValidOn(null, "2030-01-01")).toBe(true);
-    expect(licenceValidOn("2030-01-01", "2030-01-01")).toBe(true);
-    expect(licenceValidOn("2030-01-01", "2030-01-02")).toBe(false);
-  });
-
   it("asks for about 15 words of alt text that never repeats the caption, and short captions", () => {
     expect(altTextProblem("A cloth", null)).toMatch(/at least 8/);
     expect(altTextProblem(Array(31).fill("word").join(" "), null)).toMatch(/at most 30/);

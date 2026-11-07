@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { productRails, stagePanelModel, type StagePanelModel } from "@/features/course/domain/panel-model";
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
-import type { StageItem, StageTemplate } from "@/features/process/domain/stage-template";
+import { exhibitImages, type StageItem, type StageTemplate } from "@/features/process/domain/stage-template";
 import { buildRoute, type RouteStation } from "@/features/walkthrough/domain/route-plan";
 import type { YardPlan } from "@/features/walkthrough/domain/yard-plan";
 import type { LearningCondition } from "@/lib/permissions/learning";
@@ -26,7 +26,7 @@ export function courseView(template: StageTemplate, panels: readonly StagePanelM
       clothStateId: panel.clothStateId,
       clothFile: panel.clothAfterSrc,
     })),
-    products: productRails(template.products.length).flatMap((rail) => template.products.slice(rail.start, rail.end)).map((product) => ({ id: product.id, file: product.file })),
+    products: productRails(exhibitImages(template).length).flatMap((rail) => exhibitImages(template).slice(rail.start, rail.end)).map((image) => ({ id: image.id, file: image.file })),
   };
 }
 
@@ -80,8 +80,8 @@ async function hashOf(publicPath: string): Promise<string | null> {
   }
 }
 
-export async function hashDoorFiles(doors: readonly DoorView[]): Promise<Record<string, string | null>> {
+export async function hashDoorFiles(doors: readonly DoorView[], knownHashes: Readonly<Record<string, string>> = {}): Promise<Record<string, string | null>> {
   const files = new Set(doors.flatMap((door) => door.traditions.flatMap((tradition) => [...tradition.stages.map((stage) => stage.clothFile), ...tradition.products.map((product) => product.file)])));
-  const entries = await Promise.all([...files].map(async (file) => [file, await hashOf(file)] as const));
+  const entries = await Promise.all([...files].map(async (file) => [file, knownHashes[file] ?? (await hashOf(file))] as const));
   return Object.fromEntries(entries);
 }

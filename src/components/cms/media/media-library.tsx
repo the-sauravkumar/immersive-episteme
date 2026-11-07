@@ -3,14 +3,13 @@
  *  1. Figure Balance, the review gate (./figure-balance.tsx);
  *  2. the selected asset (preview in the fixed 3:2 slot, metadata, review, concept links with
  *     their anchor claims);
- *  3. the library: a dense booktabs table with Thumbnail (3:2), Credit, Licence, Max Pixels,
- *     Licence Expiry (tabular date; expiring rows flagged with --warn and the word), Linked
- *     Concept, Anchor Claim, Tradition and Layer;
+ *  3. the library: a dense booktabs table with Thumbnail (3:2), Credit, Licence, Linked Concept,
+ *     Anchor Claim, Tradition and Layer;
  *  4. upload;
  *  5. imported media candidates with their licence decisions, and the asset each was imported as.
  * Which forms show is cosmetic; every action re-checks permissions on the server. No madder.
  */
-import { Check, CircleAlert, CircleCheck, Clock } from "lucide-react";
+import { Check, CircleAlert, CircleCheck } from "lucide-react";
 import Link from "next/link";
 
 import { ActionForm, FieldMessage } from "@/components/cms/action-form";
@@ -21,7 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { exposureLayerOf, KNOWLEDGE_LAYERS } from "@/features/learning/labels";
-import { displayLongEdge, FIGURE_CAPTION_MAX, licenceValidOn, STUDY_FIGURE_CAP } from "@/features/media/contracts";
+import { FIGURE_CAPTION_MAX } from "@/features/media/contracts";
 import { can } from "@/lib/permissions/can";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
@@ -54,41 +53,6 @@ import { getPool } from "@/server/db/client";
 import { AssetMetadataFields } from "./asset-metadata-fields";
 import { FigureBalanceSection } from "./figure-balance";
 import { UploadForm } from "./upload-form";
-
-/** A licence that ends within this many days is flagged as expiring (11.10). */
-export const LICENCE_WARN_DAYS = 90;
-
-export type LicenceStatus = { kind: "none" } | { kind: "valid"; day: string } | { kind: "expiring"; day: string; daysLeft: number } | { kind: "expired"; day: string };
-
-/** The licence expiry state of an asset on `today` (YYYY-MM-DD). */
-export function licenceStatus(expiresOn: string | null, today: string): LicenceStatus {
-  if (!expiresOn) return { kind: "none" };
-  if (!licenceValidOn(expiresOn, today)) return { kind: "expired", day: expiresOn };
-  const daysLeft = Math.round((Date.parse(`${expiresOn}T00:00:00Z`) - Date.parse(`${today}T00:00:00Z`)) / 86_400_000);
-  return daysLeft <= LICENCE_WARN_DAYS ? { kind: "expiring", day: expiresOn, daysLeft } : { kind: "valid", day: expiresOn };
-}
-
-function LicenceExpiry({ status }: { status: LicenceStatus }) {
-  if (status.kind === "none") return <span className="text-ink-3">No expiry</span>;
-  const date = <time dateTime={status.day} className="text-id tabular-nums whitespace-nowrap text-ink">{status.day}</time>;
-  if (status.kind === "valid") return date;
-  return (
-    <span className="flex flex-col items-end gap-1">
-      {date}
-      {status.kind === "expiring" ? (
-        <Badge variant="warn">
-          <Clock aria-hidden="true" />
-          Expiring
-        </Badge>
-      ) : (
-        <Badge variant="danger">
-          <CircleAlert aria-hidden="true" />
-          Expired
-        </Badge>
-      )}
-    </span>
-  );
-}
 
 function bytes(n: number): string {
   if (n < 1024) return `${n} B`;
@@ -150,7 +114,6 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
   const canReview = can(principal, "media.review");
   const selectedId = one(sp.asset);
   const selected = selectedId ? (assets.find((a) => a.id === selectedId) ?? (await findAsset(pool, selectedId)) ?? undefined) : undefined;
-  const today = new Date().toISOString().slice(0, 10);
 
   const query = (over: Record<string, string | null>) => {
     const p = new URLSearchParams();
@@ -186,7 +149,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
       <Section
         id="library"
         title="Library"
-        description={`Stored assets with their licence governance. Study figures are shown at ${STUDY_FIGURE_CAP} px at most on the long edge; a licence that ends within ${LICENCE_WARN_DAYS} days is flagged.`}
+        description="Stored assets with their credit, licence and concept links. Study figures are shown at the full size of their file."
       >
         <nav aria-label="Filter by review state" className="flex flex-wrap gap-x-5">
           {[null, ...VERIFICATION_STATES.filter((s) => s !== "published")].map((s) => (
@@ -219,12 +182,6 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                 <TableHead scope="col">Asset</TableHead>
                 <TableHead scope="col">Credit</TableHead>
                 <TableHead scope="col">Licence</TableHead>
-                <TableHead scope="col" numeric>
-                  Max pixels
-                </TableHead>
-                <TableHead scope="col" numeric>
-                  Licence expiry
-                </TableHead>
                 <TableHead scope="col">Linked concept</TableHead>
                 <TableHead scope="col" numeric>
                   Anchor claim
@@ -275,12 +232,6 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                         </TableCell>
                         <TableCell rowSpan={span} className="max-w-40 py-2 align-top whitespace-normal">
                           {a.licence ?? <span className="text-ink-3">None</span>}
-                        </TableCell>
-                        <TableCell rowSpan={span} numeric className="py-2 align-top">
-                          {a.maxPixels ?? <span className="text-ink-3">No cap</span>}
-                        </TableCell>
-                        <TableCell rowSpan={span} numeric className="py-2 align-top">
-                          <LicenceExpiry status={licenceStatus(a.licenceExpiresOn, today)} />
                         </TableCell>
                       </>
                     ) : null}
@@ -469,7 +420,6 @@ function SelectedAsset({
 }) {
   const isImage = a.kind === "image" || a.kind === "texture";
   const ownWork = a.createdBy === userId || a.updatedBy === userId;
-  const edge = displayLongEdge(a);
   return (
     <Section
       id="asset"
@@ -506,10 +456,7 @@ function SelectedAsset({
           ) : null}
           <dl className="grid grid-cols-[8rem_minmax(0,1fr)] gap-x-3 gap-y-1">
             <dt className="text-label pt-0.5">Shown at</dt>
-            <dd className="text-value tabular-nums">
-              {edge === null ? "Unknown" : `${Math.min(edge, STUDY_FIGURE_CAP)} px long edge`}
-              {edge !== null && edge < STUDY_FIGURE_CAP ? <span className="block text-danger">Below the {STUDY_FIGURE_CAP} px study cap</span> : null}
-            </dd>
+            <dd className="text-value tabular-nums">{a.width && a.height ? `${Math.max(a.width, a.height)} px long edge` : "Unknown"}</dd>
             <dt className="text-label pt-0.5">Public plate</dt>
             <dd className="text-value">{a.publicPlate ? "Cleared" : "No"}</dd>
             <dt className="text-label pt-0.5">Checksum</dt>

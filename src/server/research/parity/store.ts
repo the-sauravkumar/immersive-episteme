@@ -1,8 +1,19 @@
+import { conceptPhotosOf, createKnowledgeView, type ConceptPhoto } from "@/features/knowledge/read/view";
+import { withStudyPhotos } from "@/features/process/domain/stage-template";
+import { studyConfigSchema } from "@/features/study/contracts";
+import { listSnapshotPhotoLinks } from "@/server/cms/media/service";
+import { loadSnapshotPayload } from "@/server/knowledge/snapshot-store";
 import { loadStageTemplates } from "@/server/study/stage-templates";
 
 import { buildDoorViews, hashDoorFiles } from "./door-views";
 import { runParityChecks, type ParityInput, type ParityReport } from "./engine";
 import { audit, queryAll, ResearchActionError, type Actor, type Q } from "../db";
+
+async function studyPhotosOf(q: Q, snapshotId: string | null, config: unknown): Promise<ConceptPhoto[]> {
+  const settings = studyConfigSchema.safeParse(config ?? {});
+  if (!snapshotId || (settings.success && !settings.data.figures.photos)) return [];
+  return conceptPhotosOf(createKnowledgeView(await loadSnapshotPayload(q, snapshotId)), await listSnapshotPhotoLinks(q, snapshotId));
+}
 
 export async function loadParityInput(q: Q, studyId: string): Promise<ParityInput> {
   const s = await q.query<{
@@ -41,7 +52,8 @@ export async function loadParityInput(q: Q, studyId: string): Promise<ParityInpu
       [studyId],
     ),
   ]);
-  const templates = await loadStageTemplates();
+  const photos = await studyPhotosOf(q, study.snapshot_id, study.config);
+  const templates = withStudyPhotos(await loadStageTemplates(), photos);
   const doors = buildDoorViews(templates);
   return {
     study: {
@@ -59,7 +71,7 @@ export async function loadParityInput(q: Q, studyId: string): Promise<ParityInpu
     snapshot: snapshot?.rows[0] ?? null,
     templates,
     doors,
-    fileHashes: await hashDoorFiles(doors),
+    fileHashes: await hashDoorFiles(doors, Object.fromEntries(photos.map((photo) => [photo.src, photo.sha256]))),
     sessionBudgets: budgets.rows,
   };
 }
