@@ -77,7 +77,7 @@ describe("interchange format contract (synthetic fixtures)", () => {
   it.each([
     ["a claim without a source", withStepOne({ claims: [{ text: "x", source_ids: [] }] })],
     ["an unknown source id", withStepOne({ claims: [{ text: "x", source_ids: ["S9"] }] })],
-    ["a verified state (imports are never verified)", withStepOne({ verification_state: "verified" })],
+    ["a published state (files carry at most a recorded source check)", withStepOne({ verification_state: "published" })],
     ["a quote longer than 25 words", withStepOne({ claims: [{ text: "x", source_ids: ["S1"], quote: "w ".repeat(26) }] })],
     ["a key whose type segment disagrees", withStepOne({ type: "material" })],
   ])("rejects %s", (_label, file) => {

@@ -47,9 +47,17 @@ describe("baseline fixture", () => {
 describe("loader (FORMAT contract)", () => {
   it("rejects a file that breaks the contract (KG100) and unreadable JSON (KG101)", () => {
     const bad = alphaFile();
-    conceptsOf(bad)[1]!.verification_state = "verified"; // interchange files may never carry verified
+    conceptsOf(bad)[1]!.verification_state = "published";
     const { issues } = loadContentFiles([...files(bad), { path: "content/broken.json", text: "{ nope" }]);
     expect(codes(issues)).toEqual(["KG100", "KG101"]);
+  });
+
+  it("loads a file's recorded source check (verified) as under review", () => {
+    const checked = alphaFile();
+    conceptsOf(checked)[1]!.verification_state = "verified";
+    const { model, issues } = loadContentFiles(files(checked));
+    expect(issues).toEqual([]);
+    expect(model.concepts.map((c) => c.verificationState)).not.toContain("verified");
   });
 
   it("flags duplicate slugs (KG102) and qualified-source copies that differ (KG410)", () => {

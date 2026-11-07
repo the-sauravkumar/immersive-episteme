@@ -89,16 +89,49 @@ describe.skipIf(files.length === 0)("content/ interchange files", () => {
     expect(unknown).toEqual([]);
   });
 
-  it("derives unique concept slugs and never marks imported content as verified", () => {
+  it("derives unique concept slugs and never marks content as published", () => {
     const parsed = parseAll();
     const keys = parsed.flatMap((f) => f.concepts.map((c) => c.key));
     expect(keys.length).toBeGreaterThan(0);
     expect(new Set(keys.map(slugFromConceptKey)).size).toBe(keys.length);
     const states = new Set(parsed.flatMap((f) => [...f.concepts, ...f.relationships].map((x) => x.verification_state)));
-    expect([...states].every((s) => s === "under_review" || s === "needs_evidence")).toBe(true);
+    expect([...states].every((s) => s === "under_review" || s === "needs_evidence" || s === "verified")).toBe(true);
     // No real content namespace may collide with the demo prefix.
     expect(keys.some((k) => k.startsWith("demo"))).toBe(false);
     expect(parsed.some((f) => f.slug.startsWith("demo"))).toBe(false);
+  });
+
+  it("marks an item verified only with a recorded source check that names it, a passage per cited source and verified concepts at both ends", () => {
+    const parsed = parseAll();
+    const state = new Map(parsed.flatMap((f) => f.concepts.map((c) => [c.key, c.verification_state] as const)));
+    const problems: string[] = [];
+    for (const f of parsed) {
+      const concepts = f.concepts.filter((c) => c.verification_state === "verified");
+      const rels = f.relationships.filter((r) => r.verification_state === "verified");
+      if (concepts.length + rels.length === 0) continue;
+      const record = join(CONTENT, "review", `${f.slug}-verification.md`);
+      const table = existsSync(record) ? readFileSync(record, "utf8") : "";
+      if (!table) problems.push(`${f.slug}: no content/review/${f.slug}-verification.md`);
+      for (const c of concepts) {
+        if (table && !table.includes(c.key)) problems.push(`${c.key}: not in the verification record`);
+        for (const [i, cl] of c.claims.entries()) {
+          const located = new Set(cl.evidence.map((e) => e.source_id));
+          const missing = cl.source_ids.filter((s) => !located.has(s));
+          if (missing.length) problems.push(`${c.key} claim ${i + 1}: no passage for ${missing.join(", ")}`);
+        }
+      }
+      for (const r of rels) {
+        const id = `${r.source} ${r.type} ${r.target}`;
+        if (table && !table.includes(id)) problems.push(`${id}: not in the verification record`);
+        const located = new Set(r.evidence.map((e) => e.source_id));
+        const missing = r.source_ids.filter((s) => !located.has(s));
+        if (missing.length) problems.push(`${id}: no passage for ${missing.join(", ")}`);
+        for (const end of [r.source, r.target]) {
+          if (state.get(end) !== "verified") problems.push(`${id}: ${end} is ${state.get(end) ?? "missing"}`);
+        }
+      }
+    }
+    expect(problems).toEqual([]);
   });
 
   it("only uses ordinals on PRECEDES (the only ordered type)", () => {

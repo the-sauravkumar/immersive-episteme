@@ -2,11 +2,6 @@
 PDF -> one segment per page (locator "PDF p. N"); HTML -> one segment per section under its nearest
 h1-h4 heading (locator '§ "<heading>"'). Output: segments.json {url: [{locator, text}]}."""
 import html, json, os, re, subprocess, sys
-SCR = sys.argv[1]
-SRC = os.path.join(SCR, "src")
-GI = os.path.join(SCR, "gi-pdfs")
-rows = [l.rstrip("\n").split("\t") for l in open(os.path.join(SRC, "manifest.tsv"), encoding="utf-8")]
-rows = [r for r in rows if len(r) == 5]
 
 def pdf_pages(path, label=""):
     out, i = [], 1
@@ -40,25 +35,34 @@ def html_sections(path):
             segs.append({"locator": f'§ "{head}"', "text": t})
     return segs
 
-out = {}
-for h, code, ctype, size, url in rows:
-    b = os.path.join(SRC, h + ".bin")
-    if code != "200" or not os.path.exists(b):
-        continue
-    if open(b, "rb").read(5).startswith(b"%PDF"):
-        segs = pdf_pages(b)
-    else:
-        segs = html_sections(b)
-    out[url.strip()] = segs
+def main():
+    SCR = sys.argv[1]
+    SRC = os.path.join(SCR, "src")
+    GI = os.path.join(SCR, "gi-pdfs")
+    rows = [l.rstrip("\n").split("\t") for l in open(os.path.join(SRC, "manifest.tsv"), encoding="utf-8")]
+    rows = [r for r in rows if len(r) == 5]
+    out = {}
+    for h, code, ctype, size, url in rows:
+        b = os.path.join(SRC, h + ".bin")
+        if code != "200" or not os.path.exists(b):
+            continue
+        if open(b, "rb").read(5).startswith(b"%PDF"):
+            segs = pdf_pages(b)
+        else:
+            segs = html_sections(b)
+        out[url.strip()] = segs
 
-# Sources recovered through other routes (see content/review/verification.md §V3, §V5).
-aj = "https://search.ipindia.gov.in/GIRPublicSearch/Application/Details/1050"
-out[aj] = out.get(aj, []) + pdf_pages(os.path.join(GI, "aj-journal.pdf"), "GI Journal No. 188 copy (application 1050), ")
-ax = "https://arxiv.org/abs/1412.2842"
-out[ax] = out.get(ax, []) + pdf_pages(os.path.join(GI, "arxiv1412.2842.pdf"), "arXiv:1412.2842 full text, ")
-doi = "https://doi.org/10.3906/muh-1310-8"
-out[doi] = [{"locator": "Abstract (OpenAlex record; full text not reachable)", "text": open(os.path.join(SRC, "115389d60da6.txt"), encoding="utf-8").read()}]
+    # Sources recovered through other routes (see content/review/verification.md §V3, §V5).
+    aj = "https://search.ipindia.gov.in/GIRPublicSearch/Application/Details/1050"
+    out[aj] = out.get(aj, []) + pdf_pages(os.path.join(GI, "aj-journal.pdf"), "GI Journal No. 188 copy (application 1050), ")
+    ax = "https://arxiv.org/abs/1412.2842"
+    out[ax] = out.get(ax, []) + pdf_pages(os.path.join(GI, "arxiv1412.2842.pdf"), "arXiv:1412.2842 full text, ")
+    doi = "https://doi.org/10.3906/muh-1310-8"
+    out[doi] = [{"locator": "Abstract (OpenAlex record; full text not reachable)", "text": open(os.path.join(SRC, "115389d60da6.txt"), encoding="utf-8").read()}]
 
-json.dump(out, open(os.path.join(SCR, "evidence", "segments.json"), "w", encoding="utf-8"), ensure_ascii=False)
-print("sources:", len(out), "segments:", sum(len(v) for v in out.values()),
-      "pdf-page segments:", sum(1 for v in out.values() for s in v if "PDF p." in s["locator"]))
+    json.dump(out, open(os.path.join(SCR, "evidence", "segments.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    print("sources:", len(out), "segments:", sum(len(v) for v in out.values()),
+          "pdf-page segments:", sum(1 for v in out.values() for s in v if "PDF p." in s["locator"]))
+
+if __name__ == "__main__":
+    main()

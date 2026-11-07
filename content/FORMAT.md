@@ -15,8 +15,16 @@ The platform importer (built later) maps these into the knowledge schema.
   IDC IIT Bombay, NID), museum collections (V&A, Met, Anokhi Museum, Calico Museum),
   established craft organisations (Craft Revival Trust, Gaatha, Dastkar).
   Blogs/e-commerce only as a last resort, marked `reliability: "low"`.
-- `verification_state` is always `"under_review"` (or `"needs_evidence"` when sources
-  are weak/conflicting). Never `"verified"` — only a human curator can verify.
+- `verification_state` is `"under_review"` (or `"needs_evidence"` when sources are
+  weak/conflicting) until a source check is recorded. `"verified"` means a recorded
+  mechanical source check passed: every claim passage, and for a relationship one passage
+  per cited source, was found verbatim at its locator in an archived copy of that source
+  by `content/review/tools/evidence/verify_tradition.py`, and the claim or explanation says
+  no more than its passages. The check is written up in `content/review/<slug>-verification.md`,
+  which names every verified item. A relationship is verified only when both of its concepts
+  are. The loader reads `"verified"` as `"under_review"`, so the importer and every snapshot
+  still treat the item as unaccepted until a named curator accepts it in the CMS (or through
+  `scripts/content/verify-concepts.ts`). Never `"published"`.
 - Do not record personal data about private individuals. Communities (e.g. Chhipa,
   Khatri) and publicly honoured master artisans named in published sources are fine.
 - Paraphrase; quotes ≤ 25 words.
@@ -43,7 +51,7 @@ The platform importer (built later) maps these into the knowledge schema.
       "title": "...", "summary": "1–2 sentences", "body_md": "short paragraph(s), plain markdown",
       "local_terms": ["hindi/local name if sourced"],
       "provenance_kind": "same enum as source.kind",
-      "verification_state": "under_review|needs_evidence",
+      "verification_state": "under_review|needs_evidence|verified",
       "claims": [ { "text": "...", "source_ids": ["S1"], "quote": "optional ≤25 words",
                     "evidence": [ { "source_id": "S1", "locator": "PDF p. 4", "quote": "verbatim passage",
                                     "note": "optional: what a curator must check by hand" } ] } ] }
@@ -52,7 +60,7 @@ The platform importer (built later) maps these into the knowledge schema.
     { "source": "concept key", "target": "concept key",
       "type": "BELONGS_TO|USES|PRECEDES|DEPENDS_ON|PRODUCES|AFFECTED_BY|EXPLAINS|CONTRASTS_WITH|SIMILAR_TO|REQUIRES|ENABLES|CAUSES|PRACTITIONER_EXPLAINS|SCIENTIFICALLY_EXPLAINED_BY",
       "explanation": "why this relation holds", "conditions": "qualifications or null",
-      "ordinal": null, "provenance_kind": "...", "verification_state": "under_review",
+      "ordinal": null, "provenance_kind": "...", "verification_state": "under_review|needs_evidence|verified",
       "source_ids": ["S1"],
       "evidence": [ { "source_id": "S1", "locator": "PDF p. 4", "quote": "verbatim passage, at most 25 words" } ] }
   ],

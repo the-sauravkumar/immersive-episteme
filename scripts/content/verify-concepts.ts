@@ -5,7 +5,8 @@
  *   npx tsx scripts/content/verify-concepts.ts --as <staff email> --keys <keys.json> \
  *     --evidence <https URL or repo path> --reason "<why>" (--dry-run | --apply) [--test]
  *
- * <keys.json> is a JSON array of concept keys, or { "keys": [...] }. Only those concepts are read
+ * <keys.json> is a JSON array of concept keys, { "keys": [...] }, or a content/ interchange file
+ * (its concepts marked "verified", FORMAT.md). Only those concepts are read
  * or changed; nothing else is touched. For each listed key it moves under_review → verified with
  * all four evidence checks confirmed and the reason (plus the evidence link) recorded, so the
  * verification_records trigger and the audit log carry the actor, the reason and the checklist
@@ -66,7 +67,10 @@ export interface Deps {
 
 const DEFAULT_DEPS: Deps = { transition, authorsOf, citationProblems };
 
-/** Parses the keys file: a JSON array of strings or { keys: [...] }. Throws on anything else. */
+/**
+ * Parses the keys file: a JSON array of strings, { keys: [...] }, or a content/ interchange file,
+ * whose concepts marked "verified" by a recorded source check are listed. Throws on anything else.
+ */
 export function parseKeysFile(text: string): string[] {
   let raw: unknown;
   try {
@@ -74,12 +78,20 @@ export function parseKeysFile(text: string): string[] {
   } catch {
     throw new Error("keys file is not valid JSON");
   }
-  const list = Array.isArray(raw) ? raw : raw && typeof raw === "object" && Array.isArray((raw as { keys?: unknown }).keys) ? (raw as { keys: unknown[] }).keys : null;
-  if (!list) throw new Error('keys file must be a JSON array of concept keys or { "keys": [...] }');
+  const list = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? listedKeys(raw as { keys?: unknown; concepts?: unknown }) : null;
+  if (!list) throw new Error('keys file must be a JSON array of concept keys, { "keys": [...] } or a content/ interchange file');
   if (list.length === 0) throw new Error("keys file lists no concepts");
   const bad = list.filter((k) => typeof k !== "string" || !KEY_RE.test(k));
   if (bad.length) throw new Error(`not concept keys: ${bad.map((b) => JSON.stringify(b)).join(", ")}`);
   return list as string[];
+}
+
+function listedKeys(raw: { keys?: unknown; concepts?: unknown }): unknown[] | null {
+  if (Array.isArray(raw.keys)) return raw.keys;
+  if (!Array.isArray(raw.concepts)) return null;
+  return raw.concepts
+    .filter((c): c is { key: unknown } => typeof c === "object" && c !== null && (c as { verification_state?: unknown }).verification_state === "verified")
+    .map((c) => c.key);
 }
 
 /** The evidence link must be an https URL or an existing file inside the repository. */
