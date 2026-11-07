@@ -54,6 +54,30 @@ type DraftItem = Omit<GeneratedItem, "position">;
 
 const asSample = (item: DraftItem): DraftItem => ({ ...item, config: { ...item.config, sampleText: true } });
 
+const CUE_STOP_WORDS = new Set(["the", "and", "for", "with", "which", "these", "this", "what", "used", "stage", "stages", "comes", "straight", "after", "called", "from", "its", "into", "then", "are", "was", "each", "not", "has", "that"]);
+
+function cueStems(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^a-z]+/)
+    .filter((word) => word.length >= 3 && !CUE_STOP_WORDS.has(word))
+    .map((word) => word.replace(/^(.{3,}?)(?:ing|ed|es|s)$/, "$1"));
+}
+
+function sameStem(a: string, b: string): boolean {
+  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
+  return long.startsWith(short) && (short.length >= 4 || long.length - short.length <= 1);
+}
+
+function sharesCue(cue: string, label: string): boolean {
+  const cues = cueStems(cue);
+  return cueStems(label).some((stem) => cues.some((other) => sameStem(stem, other)));
+}
+
+export const carriesSampleText = (assessment: Pick<GeneratedAssessment, "items">) => assessment.items.some((item) => item.config.sampleText === true);
+
+const asDemoWhereSampled = (assessment: GeneratedAssessment): GeneratedAssessment => (carriesSampleText(assessment) ? { ...assessment, code: `demo-${assessment.code}`, title: `Demo: ${assessment.title}` } : assessment);
+
 function uniqueObjects(template: StageTemplate): PlacedObject[] {
   const uses = template.stages.flatMap((stage) => stage.items.map((item) => ({ template, stage, item })));
   return uses.filter((use) => uses.filter((other) => other.item.key === use.item.key).length === 1);
@@ -105,12 +129,18 @@ function identificationItem(object: PlacedObject, pool: readonly PooledObject[],
   return itemColourIsUnsettled(object.stage.key, object.item) ? asSample(item) : item;
 }
 
+const placementPrompt = (object: PlacedObject) => `At which stage of ${object.template.traditionName} is ${object.item.label} used?`;
+
+const placementOptions = (object: PlacedObject) => stageOptions(object.template).filter((option) => !sharesCue(placementPrompt(object), option.label));
+
+const placeable = (object: PlacedObject) => !sharesCue(placementPrompt(object), object.stage.name) && placementOptions(object).length >= OPTION_COUNT;
+
 function placementItem(object: PlacedObject, turn: number, prefix: string): DraftItem {
   return {
     itemKey: `${prefix}.${object.template.tradition}.${object.stage.number}.${turn}`.slice(0, 64),
     kind: "single_choice",
-    prompt: `At which stage of ${object.template.traditionName} is ${object.item.label} used?`,
-    config: { kind: "single_choice", options: stageOptions(object.template), shuffle: true, image: { path: stillOf(object.stage, object.item), alt: object.item.label }, target: placedTarget(object) },
+    prompt: placementPrompt(object),
+    config: { kind: "single_choice", options: placementOptions(object), shuffle: true, image: { path: stillOf(object.stage, object.item), alt: object.item.label }, target: placedTarget(object) },
     answerKey: { optionId: `s${object.stage.number}` },
   };
 }
@@ -188,10 +218,48 @@ function accountOf(tradition: UnseenTradition): string {
   return [`${tradition.name} is a tradition you have not seen. These are its stages, in no particular order.`, ...stages.map((stage) => `${stage.title}: ${stage.summary}`)].join("\n");
 }
 
+const fromIndex = <T>(list: readonly T[], start: number): T[] => list.map((_, offset) => list[(start + offset) % list.length]!);
+
+function nextStageItem(tradition: UnseenTradition, shared: Record<string, unknown>, pairs: readonly (readonly [UnseenStage, UnseenStage])[]): DraftItem | null {
+  for (const [before, after] of fromIndex(pairs, Math.floor(pairs.length / 2))) {
+    const prompt = `Which stage comes straight after ${before.title}?`;
+    if (sharesCue(prompt, after.title)) continue;
+    const others = tradition.stages.filter((stage) => stage !== before && stage !== after && !sharesCue(prompt, stage.title)).slice(0, OPTION_COUNT - 1);
+    if (others.length < OPTION_COUNT - 1) continue;
+    return {
+      itemKey: `transfer.${tradition.key}.next`,
+      kind: "single_choice",
+      prompt,
+      config: { kind: "single_choice", options: [after, ...others].map((stage, index) => ({ id: `o${index + 1}`, label: stage.title })), shuffle: true, ...shared },
+      answerKey: { optionId: "o1" },
+    };
+  }
+  return null;
+}
+
+function toolItem(tradition: UnseenTradition, shared: Record<string, unknown>, first: UnseenStage): DraftItem | null {
+  const allTools = [...new Set(tradition.stages.flatMap((stage) => stage.tools))];
+  for (const stage of fromIndex(tradition.stages, tradition.stages.indexOf(first))) {
+    const prompt = `Which of these is used at ${stage.title}?`;
+    const cue = `${prompt} ${stage.summary}`;
+    const tool = stage.tools.find((candidate) => !sharesCue(cue, candidate));
+    const wrongTools = allTools.filter((candidate) => !stage.tools.includes(candidate) && !sharesCue(cue, candidate)).slice(0, OPTION_COUNT - 1);
+    if (!tool || wrongTools.length < OPTION_COUNT - 1) continue;
+    return {
+      itemKey: `transfer.${tradition.key}.tool`,
+      kind: "single_choice",
+      prompt,
+      config: { kind: "single_choice", options: [tool, ...wrongTools].map((label, index) => ({ id: `o${index + 1}`, label })), shuffle: true, ...shared },
+      answerKey: { optionId: "o1" },
+    };
+  }
+  return null;
+}
+
 export function transferItems(tradition: UnseenTradition): DraftItem[] {
   const account = accountOf(tradition);
   const shared = { account, sampleText: true, target: { tradition: tradition.key } };
-  const items: DraftItem[] = [];
+  const items: (DraftItem | null)[] = [];
   const order = linearOrder(tradition);
   if (order) {
     items.push({
@@ -203,34 +271,12 @@ export function transferItems(tradition: UnseenTradition): DraftItem[] {
     });
   }
   const byKey = new Map(tradition.stages.map((stage) => [stage.key, stage]));
-  const successors = tradition.precedes.filter(([from, to], _, all) => byKey.has(from) && byKey.has(to) && all.filter(([other]) => other === from).length === 1);
-  const pair = successors[Math.floor(successors.length / 2)];
-  if (pair) {
-    const after = byKey.get(pair[1])!;
-    const others = tradition.stages.filter((stage) => stage.key !== pair[0] && stage.key !== pair[1]).slice(0, OPTION_COUNT - 1);
-    if (others.length === OPTION_COUNT - 1) {
-      items.push({
-        itemKey: `transfer.${tradition.key}.next`,
-        kind: "single_choice",
-        prompt: `Which stage comes straight after ${byKey.get(pair[0])!.title}?`,
-        config: { kind: "single_choice", options: [after, ...others].map((stage, index) => ({ id: `o${index + 1}`, label: stage.title })), shuffle: true, ...shared },
-        answerKey: { optionId: "o1" },
-      });
-    }
-    const allTools = [...new Set(tradition.stages.flatMap((stage) => stage.tools))];
-    const tool = after.tools[0];
-    const wrongTools = allTools.filter((candidate) => !after.tools.includes(candidate)).slice(0, OPTION_COUNT - 1);
-    if (tool && wrongTools.length === OPTION_COUNT - 1) {
-      items.push({
-        itemKey: `transfer.${tradition.key}.tool`,
-        kind: "single_choice",
-        prompt: `Which of these is used at ${after.title}?`,
-        config: { kind: "single_choice", options: [tool, ...wrongTools].map((label, index) => ({ id: `o${index + 1}`, label })), shuffle: true, ...shared },
-        answerKey: { optionId: "o1" },
-      });
-    }
-  }
-  return items;
+  const pairs = tradition.precedes
+    .filter(([from, to], _, all) => byKey.has(from) && byKey.has(to) && all.filter(([other]) => other === from).length === 1)
+    .map(([from, to]) => [byKey.get(from)!, byKey.get(to)!] as const);
+  const middle = pairs[Math.floor(pairs.length / 2)];
+  if (middle) items.push(nextStageItem(tradition, shared, pairs), toolItem(tradition, shared, middle[1]));
+  return items.filter((item): item is DraftItem => item !== null);
 }
 
 const positioned = (items: readonly (DraftItem | null)[]): GeneratedItem[] => items.filter((item): item is DraftItem => item !== null).map((item, position) => ({ ...item, position }));
@@ -271,7 +317,7 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
         pre.push(item ? withDontKnow(item) : null);
       }
     });
-    objects.forEach((object, turn) => {
+    objects.filter(placeable).forEach((object, turn) => {
       if (turn < PRE_ITEMS_PER_TRADITION) pre.push(withDontKnow(placementItem(object, turn, "pre.place")));
       else ((turn - PRE_ITEMS_PER_TRADITION) % 3 === 2 ? placement.delayed : placement.immediate).push(placementItem(object, turn, "place"));
     });
@@ -326,5 +372,5 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
     assessment("test-attribution-delayed", "follow_up", 4, "Name The Tradition", "attribution", templates.map((template) => attributionItem(template, templates, "delayed"))),
     assessment("test-transfer-delayed", "follow_up", 5, "A Tradition You Have Not Seen", "transfer", delayedUnseen ? transferItems(delayedUnseen) : []),
   ];
-  return battery.filter((entry) => entry.items.length > 0);
+  return battery.filter((entry) => entry.items.length > 0).map(asDemoWhereSampled);
 }
