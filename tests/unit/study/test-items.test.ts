@@ -1,16 +1,19 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import { stageItemStillPath } from "@/features/process/domain/substance-look";
 import { describe, expect, it } from "vitest";
 
 import { itemConfigSchema } from "@/features/research/contracts";
 import type { StageTemplate, TemplateStage, TraditionKey } from "@/features/process/domain/stage-template";
-import { buildTestBattery, DONT_KNOW_OPTION, LAYOUT_SKETCH_PROMPT, linearOrder, transferItems, type GeneratedAssessment, type UnseenTradition } from "@/features/study/test-items";
+import { buildTestBattery, carriesSampleText, DONT_KNOW_OPTION, LAYOUT_SKETCH_PROMPT, linearOrder, transferItems, type GeneratedAssessment, type GeneratedItem, type UnseenTradition } from "@/features/study/test-items";
 
 function template(tradition: TraditionKey): StageTemplate {
   const stages: TemplateStage[] = [1, 2, 3, 4, 5, 6].map((number) => ({
     number,
     key: `${tradition}-s${number}`,
     sourceStageKeys: [`${tradition}.process_stage.s${number}`],
-    name: `${tradition} Stage ${number}`,
+    name: `Stage ${number}`,
     localName: null,
     kind: "table",
     caption: { text: "Sample Text", sources: [] },
@@ -20,10 +23,12 @@ function template(tradition: TraditionKey): StageTemplate {
   return { tradition, traditionName: `${tradition} Name`, rawClothStateId: "raw", stages, products: [{ id: "p1", file: `walkthrough/${tradition}-1.jpg`, name: "Sample Text", holder: "Sample Text", widthPx: 100, heightPx: 100 }, { id: "p2", file: `/walkthrough/${tradition}-2.jpg`, name: "Sample Text", holder: "Sample Text", widthPx: 100, heightPx: 100 }] };
 }
 
+const UNSEEN_TITLES = { a: "Soaking", b: "Pasting", c: "Printing", d: "Dyeing", e: "Washing" } as const;
+
 const unseen = (key: string): UnseenTradition => ({
   key,
   name: `${key} Name`,
-  stages: ["a", "b", "c", "d", "e"].map((s) => ({ key: `${key}.${s}`, title: `Title ${s}`, summary: `Summary ${s}.`, tools: [`Tool ${s}`] })),
+  stages: (["a", "b", "c", "d", "e"] as const).map((s) => ({ key: `${key}.${s}`, title: UNSEEN_TITLES[s], summary: `Summary ${s}.`, tools: [`Tool ${s}`] })),
   precedes: [[`${key}.a`, `${key}.b`], [`${key}.b`, `${key}.c`], [`${key}.c`, `${key}.d`], [`${key}.d`, `${key}.e`]],
 });
 
@@ -40,8 +45,8 @@ const objectsOf = (assessment: GeneratedAssessment) => assessment.items.map((ite
 describe("test item generation", () => {
   it("builds each form with valid configs and keys", () => {
     expect(battery.map((a) => a.code)).toEqual([
-      "test-pre", "test-identification", "test-stage-placement", "test-sequence", "test-cloth-state", "test-attribution", "test-transfer", "test-concept-map", "test-layout-sketch",
-      "test-identification-delayed", "test-stage-placement-delayed", "test-sequence-delayed", "test-cloth-state-delayed", "test-attribution-delayed", "test-transfer-delayed",
+      "test-pre", "test-identification", "test-stage-placement", "test-sequence", "test-cloth-state", "test-attribution", "demo-test-transfer", "test-concept-map", "test-layout-sketch",
+      "test-identification-delayed", "test-stage-placement-delayed", "test-sequence-delayed", "test-cloth-state-delayed", "test-attribution-delayed", "demo-test-transfer-delayed",
     ]);
     for (const assessment of battery) {
       expect(new Set(assessment.items.map((i) => i.itemKey)).size, assessment.code).toBe(assessment.items.length);
@@ -136,7 +141,7 @@ describe("test item generation", () => {
   });
 
   it("marks the transfer account as Sample Text, draws only from the relations, and uses another tradition later", () => {
-    const now = byCode("test-transfer");
+    const now = byCode("demo-test-transfer");
     expect(now.kind).toBe("transfer");
     expect(now.items.map((i) => i.itemKey)).toEqual(["transfer.bagru.order", "transfer.bagru.next", "transfer.bagru.tool"]);
     for (const item of now.items) {
@@ -144,18 +149,107 @@ describe("test item generation", () => {
       expect(item.config.account).toContain("Summary a.");
     }
     expect(now.items[0]!.answerKey).toEqual({ order: ["s1", "s2", "s3", "s4", "s5"] });
-    expect(byCode("test-transfer-delayed").items[0]!.itemKey).toBe("transfer.dabu.order");
+    expect(byCode("demo-test-transfer-delayed").items[0]!.itemKey).toBe("transfer.dabu.order");
   });
 
   it("asks no order question when the relations branch, and finds the order when they do not", () => {
     const branching: UnseenTradition = { ...unseen("dabu"), precedes: [["dabu.a", "dabu.b"], ["dabu.a", "dabu.c"], ["dabu.c", "dabu.d"], ["dabu.d", "dabu.e"]] };
     expect(linearOrder(branching)).toBeNull();
     expect(transferItems(branching).map((i) => i.itemKey)).not.toContain("transfer.dabu.order");
-    expect(linearOrder(unseen("bagru"))!.map((s) => s.title)).toEqual(["Title a", "Title b", "Title c", "Title d", "Title e"]);
+    expect(linearOrder(unseen("bagru"))!.map((s) => s.title)).toEqual(["Soaking", "Pasting", "Printing", "Dyeing", "Washing"]);
   });
 
   it("gives both doors one sketch prompt", () => {
     const sketch = byCode("test-layout-sketch");
     expect([sketch.kind, sketch.phase, sketch.items[0]!.kind, sketch.items[0]!.prompt]).toEqual(["sketch", "post", "sketch", LAYOUT_SKETCH_PROMPT]);
+  });
+});
+
+const STOP_WORDS = new Set(["the", "and", "for", "with", "which", "these", "this", "what", "used", "stage", "stages", "comes", "straight", "after", "called", "from", "its", "into", "then", "are", "was", "each", "not", "has", "that", "does", "come", "know"]);
+const stems = (text: string) => text.toLowerCase().split(/[^a-z]+/).filter((w) => w.length >= 3 && !STOP_WORDS.has(w)).map((w) => w.replace(/^(.{3,}?)(ing|ed|es|s)$/, "$1"));
+const overlap = (a: string, b: string) => {
+  const left = stems(a);
+  const related = (x: string, y: string): boolean => (x.length <= y.length ? y.startsWith(x) && (x.length >= 4 || y.length - x.length <= 1) : related(y, x));
+  return stems(b).filter((x) => left.some((y) => related(x, y)));
+};
+const optionsOf = (item: Pick<GeneratedItem, "config">) => (item.config.options as { id: string; label: string }[] | undefined) ?? [];
+const promptCues = (items: readonly Pick<GeneratedItem, "itemKey" | "kind" | "prompt" | "config">[]) =>
+  items.filter((item) => item.kind === "single_choice").flatMap((item) => optionsOf(item).flatMap((option) => overlap(item.prompt, option.label).map((word) => `${item.itemKey} ${option.id} "${option.label}" shares "${word}" with "${item.prompt}"`)));
+const generated = JSON.parse(readFileSync(join(process.cwd(), "db", "seeds", "study-test-items.generated.json"), "utf8")) as GeneratedAssessment[];
+
+describe("no option can be found from the question's wording", () => {
+  it("holds for every single-choice item of the generated battery", () => {
+    const items = generated.flatMap((a) => a.items);
+    expect(items.filter((item) => item.kind === "single_choice").length).toBeGreaterThan(40);
+    expect(promptCues(items)).toEqual([]);
+  });
+
+  it("keeps the keyed tool of a transfer item out of the account line of the stage it asks about", () => {
+    const tools = generated.flatMap((a) => a.items).filter((item) => item.itemKey.endsWith(".tool"));
+    expect(tools.map((item) => item.itemKey)).toEqual(["transfer.bagru.tool", "transfer.dabu.tool"]);
+    for (const item of tools) {
+      const stage = item.prompt.replace(/^Which of these is used at /, "").replace(/\?$/, "");
+      const line = (item.config.account as string).split("\n").find((entry) => entry.startsWith(`${stage}: `))!;
+      const key = optionsOf(item).find((option) => option.id === (item.answerKey as { optionId: string }).optionId)!;
+      expect(overlap(line, key.label), item.itemKey).toEqual([]);
+    }
+  });
+
+  it("skips a tool, a next stage or a distractor that repeats the stage named in the question", () => {
+    const leaky: UnseenTradition = {
+      key: "dabu",
+      name: "dabu Name",
+      stages: [
+        { key: "dabu.a", title: "Mud soaking", summary: "Summary a.", tools: ["Mud pit"] },
+        { key: "dabu.b", title: "Paste making", summary: "Summary b.", tools: ["Lime"] },
+        { key: "dabu.c", title: "Indigo dyeing", summary: "The cloth goes into the vat.", tools: ["Indigo", "Clay vat", "Long pole"] },
+        { key: "dabu.d", title: "Mud printing", summary: "Summary d.", tools: ["Wooden block"] },
+        { key: "dabu.e", title: "Washing", summary: "Summary e.", tools: ["Stone slab"] },
+      ],
+      precedes: [["dabu.c", "dabu.d"], ["dabu.d", "dabu.e"], ["dabu.b", "dabu.c"], ["dabu.a", "dabu.b"]],
+    };
+    const items = transferItems(leaky);
+    const tool = items.find((item) => item.itemKey === "transfer.dabu.tool")!;
+    expect(tool.prompt).toBe("Which of these is used at Indigo dyeing?");
+    expect(optionsOf(tool)[0]!.label).toBe("Long pole");
+    const next = items.find((item) => item.itemKey === "transfer.dabu.next")!;
+    expect(next.prompt).toBe("Which stage comes straight after Paste making?");
+    expect(optionsOf(next).map((option) => option.label)).toEqual(["Indigo dyeing", "Mud soaking", "Mud printing", "Washing"]);
+    const fromMud: UnseenTradition = { ...leaky, precedes: [["dabu.b", "dabu.c"], ["dabu.c", "dabu.e"], ["dabu.a", "dabu.d"], ["dabu.d", "dabu.b"]] };
+    const afterMud = transferItems(fromMud).find((item) => item.itemKey === "transfer.dabu.next")!;
+    expect(afterMud.prompt).toBe("Which stage comes straight after Paste making?");
+    expect(promptCues([...items, ...transferItems(fromMud)])).toEqual([]);
+  });
+
+  it("leaves out a placement object named after its own stage and drops distractor stages that share its words", () => {
+    const leaky = template("ajrakh");
+    const stages = leaky.stages as (TemplateStage & { name: string; items: { label: string }[] })[];
+    stages[2]!.name = "Indigo Dyeing";
+    stages[2]!.items[0]!.label = "Indigo Vat";
+    stages[4]!.name = "Red Dyeing";
+    stages[3]!.items[0]!.label = "Red Pot";
+    const result = buildTestBattery({ templates: [leaky, templates[1]!, templates[2]!], unseen: [], knownConceptKeys: new Set() });
+    const placement = result.flatMap((a) => a.items).filter((item) => item.prompt.startsWith("At which stage of ajrakh"));
+    expect(placement.some((item) => item.prompt.includes("Indigo Vat"))).toBe(false);
+    const redPot = placement.find((item) => item.prompt.includes("Red Pot"))!;
+    expect(optionsOf(redPot).map((option) => option.label)).not.toContain("Red Dyeing");
+    expect(optionsOf(redPot).map((option) => option.id)).toContain("s4");
+    expect(promptCues(result.flatMap((a) => a.items))).toEqual([]);
+  });
+});
+
+describe("Sample Text items never reach a real study", () => {
+  it("makes every assessment holding a Sample Text item a demo assessment, and leaves the rest alone", () => {
+    for (const assessment of battery) {
+      const sampled = carriesSampleText(assessment);
+      expect(assessment.code.startsWith("demo-"), assessment.code).toBe(sampled);
+      expect(assessment.title.startsWith("Demo: "), assessment.code).toBe(sampled);
+    }
+    expect(battery.filter(carriesSampleText).map((a) => a.code)).toEqual(["demo-test-transfer", "demo-test-transfer-delayed"]);
+  });
+
+  it("holds for the generated battery, where unchecked colours and the unchecked transfer traditions carry the mark", () => {
+    for (const assessment of generated) expect(assessment.code.startsWith("demo-") && assessment.title.startsWith("Demo: "), assessment.code).toBe(carriesSampleText(assessment));
+    expect(generated.filter(carriesSampleText).map((a) => a.code)).toEqual(expect.arrayContaining(["demo-test-transfer", "demo-test-transfer-delayed"]));
   });
 });

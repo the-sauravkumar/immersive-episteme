@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 import type { Page } from "@playwright/test";
 import { config as loadEnv } from "dotenv";
@@ -7,7 +7,7 @@ import { Pool } from "pg";
 
 loadEnv({ quiet: true });
 
-const BATTERY_VERSION = 4;
+const BATTERY_VERSION = 5;
 export const JOURNEY_STUDY = `demo-walking-v${BATTERY_VERSION}`;
 export const CAP_STUDY = `demo-walking-cap-v${BATTERY_VERSION}`;
 
@@ -69,6 +69,21 @@ export async function missingBatteryImages(slug: string): Promise<string[]> {
     [slug],
   );
   return found.rows.map((row) => row.path).filter((path) => !existsSync(`public${path}`));
+}
+
+export async function batteryDriftFromGenerated(slug: string): Promise<string[]> {
+  const generated = JSON.parse(readFileSync("db/seeds/study-test-items.generated.json", "utf8")) as { code: string; items: { itemKey: string; prompt: string }[] }[];
+  const expected = generated.flatMap((assessment) => assessment.items.map((item) => `${assessment.code} ${item.itemKey} ${item.prompt}`)).sort();
+  const found = await db().query<{ line: string }>(
+    `SELECT a.code || ' ' || ai.item_key || ' ' || ai.prompt AS line FROM assessment_items ai
+       JOIN assessments a ON a.id = ai.assessment_id
+       JOIN study_assessments sa ON sa.assessment_id = a.id
+       JOIN studies st ON st.id = sa.study_id AND st.slug = $1
+      WHERE a.version = $2 AND a.config ? 'generatedFrom'`,
+    [slug, BATTERY_VERSION],
+  );
+  const seeded = found.rows.map((row) => row.line).sort();
+  return [...expected.filter((line) => !seeded.includes(line)).map((line) => `missing: ${line}`), ...seeded.filter((line) => !expected.includes(line)).map((line) => `extra: ${line}`)];
 }
 
 export async function sessionByCode(code: string, slug: string): Promise<{ sessionId: string; condition: string }> {

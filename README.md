@@ -89,7 +89,7 @@ Integration tests that need their own schema state create and drop throwaway dat
 | `dev:bootstrap` | DB up + migrate (main and test) + seed + content import + review snapshot + manifests + demo study |
 | `content:import` | Import `content/` and build the review snapshot (`-- --test`, `-- --no-snapshot`) |
 | `study:seed-demo` | Create an active demo study with the generated test battery (`-- --slug demo-x --cap-minutes 30`) |
-| `content:test-items` | Generate `db/seeds/study-test-items.generated.json` from the stage templates |
+| `content:test-items` | Generate `db/seeds/study-test-items.generated.json` from the stage templates. A form holding a `Sample Text` item is written as a demo assessment (`demo-` code, `Demo:` title), which no real study can include (DR-115) |
 
 ## Migrations
 

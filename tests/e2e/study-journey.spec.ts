@@ -2,7 +2,7 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { expect as baseExpect, newContext, test, type Browser, type Page } from "./fixtures";
-import { closeDb, db, ensureDemoStudy, JOURNEY_STUDY, CAP_STUDY, missingBatteryImages, sessionByCode } from "./study-fixtures";
+import { batteryDriftFromGenerated, closeDb, db, ensureDemoStudy, JOURNEY_STUDY, CAP_STUDY, missingBatteryImages, sessionByCode } from "./study-fixtures";
 import { answerAssessment, enrol, linkConceptMap, shot, SHOTS, throughConsentToAllocation, throughPracticeToLearning, watch, type Journey } from "./study-steps";
 
 test.describe.configure({ mode: "serial", timeout: 2_400_000 });
@@ -189,7 +189,10 @@ async function provePersisted(sessionId: string, door: Journey["door"]): Promise
 test.beforeAll(async () => {
   ensureDemoStudy(JOURNEY_STUDY, 30);
   ensureDemoStudy(CAP_STUDY, 2);
-  expect(await missingBatteryImages(JOURNEY_STUDY), "images the pinned test battery shows but public/ lacks").toEqual([]);
+  for (const slug of [JOURNEY_STUDY, CAP_STUDY]) {
+    expect(await missingBatteryImages(slug), `images the pinned test battery of ${slug} shows but public/ lacks`).toEqual([]);
+    expect(await batteryDriftFromGenerated(slug), `items of ${slug} that differ from db/seeds/study-test-items.generated.json`).toEqual([]);
+  }
 });
 
 test.afterAll(async () => {

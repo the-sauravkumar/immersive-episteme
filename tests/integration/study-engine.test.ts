@@ -588,6 +588,26 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       await assessment("se-delayed", "posttest", [{ key: "q1", kind: "single_choice", prompt: "Pick a", config: { kind: "single_choice", options: [choice("a"), choice("b")] }, answerKey: { optionId: "a" } }], { testType: "sequence" });
     });
 
+    it("seeds an assessment holding Sample Text items as a demo record that no real study can include", async () => {
+      const sampled = (code: string, title: string): GeneratedAssessment => ({
+        code,
+        kind: "transfer",
+        phase: "post",
+        position: 0,
+        title,
+        description: null,
+        testType: "transfer",
+        paged: false,
+        items: [{ itemKey: "transfer.x.order", position: 0, kind: "ranking", prompt: "Order", config: { kind: "ranking", options: [{ id: "s1", label: "One" }, { id: "s2", label: "Two" }], account: "An account.", sampleText: true }, answerKey: { order: ["s1", "s2"] } }],
+      });
+      expect(await seedTestBattery(t.pool, [sampled("demo-gen-transfer", "Demo: A Tradition You Have Not Seen")])).toEqual(["demo-gen-transfer"]);
+      const seeded = await t.pool.query<{ is_demo: boolean }>("SELECT is_demo FROM assessments WHERE code = 'demo-gen-transfer'");
+      expect(seeded.rows).toEqual([{ is_demo: true }]);
+      const real = await createStudy(t.pool, { slug: "sample-text-refused", snapshotId, manifestId });
+      await expect(t.pool.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position) SELECT $1, id, 'post', 0 FROM assessments WHERE code = 'demo-gen-transfer'", [real.studyId])).rejects.toThrow(/non-demo study cannot include a demo assessment/);
+      await expect(seedTestBattery(t.pool, [sampled("gen-transfer", "A Tradition You Have Not Seen")])).rejects.toThrow(/assessments_demo_ck/);
+    });
+
     it("seeds the generated battery once, and delivers and scores sequence, matching and sketch items", async () => {
       const battery: GeneratedAssessment[] = [
         { code: "gen-seq", kind: "posttest", phase: "post", position: 0, title: "Put The Stages In Order", description: null, testType: "sequence", paged: false, items: [{ itemKey: "seq.a", position: 0, kind: "ranking", prompt: "Order", config: { kind: "ranking", options: [{ id: "s1", label: "One" }, { id: "s2", label: "Two" }, { id: "s3", label: "Three" }] }, answerKey: { order: ["s1", "s2", "s3"] } }] },
