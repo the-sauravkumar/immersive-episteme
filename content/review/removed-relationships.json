@@ -123,5 +123,21 @@
       "S6"
     ],
     "removal_reason": "No source attributes the pen-to-block shift to the trade; sources only record that blocks later took over."
+  },
+  {
+    "file": "traditions/dabu/tradition.json",
+    "source": "dabu.historical_context.chhipa-and-allied-communities",
+    "target": "dabu.process_stage.resist-printing",
+    "type": "PRACTITIONER_EXPLAINS",
+    "explanation": "Chhipa printers carry out the resist printing.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "practitioner_testimony",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S1",
+      "S2"
+    ],
+    "removal_reason": "No recorded source has a Chippa practitioner explain resist printing: S1 (as told by a master craftsman) and S2 say only that Chippas print, so the link states more than its sources (DR-120)."
   }
 ]

@@ -69,5 +69,5 @@ None. Every concept still has at least one supported claim.
 - Much of the Akola detail rests on two Gaatha pages (S1, S2) that are partly the same text, plus low-reliability blogs (S16, S17, S19, S22) that largely echo S1.
 - S2's process describes the **tar** resist, not mud. The generalised mud PRECEDES chain is assembled from S3 (Deesa), S18 and S19.
 - The district is contested: Chittorgarh (S2, S10) vs Udaipur (S6, S2 intro, S15 "near Udaipur").
-- The S24 text was read from a scratchpad copy because the site returned 429. Re-fetch to confirm.
+- The S24 text was read from a scratchpad copy because the site returned 429. Resolved 2026-11-07: the page was fetched (HTTP 200) and its quotes were found at their locator (`dabu-verification.md`, DR-120).
 - All antiquity claims (8th c, 675 AD, 500 yr, 200 yr) are unreferenced assertions. They are kept only as contested context.
