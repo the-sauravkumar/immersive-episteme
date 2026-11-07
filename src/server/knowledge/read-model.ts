@@ -10,8 +10,7 @@
  * one snapshot's entries; nothing needs to call it in normal operation.
  *
  * Errors: an unknown, draft-release or malformed snapshot throws SnapshotNotReadableError.
- * Unknown slugs/keys return null (render notFound()). Search returns `{ enabled: false }`
- * when the caller's context disables it (study config `searchEnabled`).
+ * Unknown slugs/keys return null (render notFound()).
  *
  * The pure query logic lives in src/features/knowledge/read/view.ts; this file only adds I/O
  * and caching. Request-time APIs (cookies, headers) are never read here.
@@ -34,7 +33,7 @@ import {
 } from "@/features/knowledge/read/view";
 import { getPool } from "@/server/db/client";
 
-import { loadSnapshotPayload, searchSnapshotConcepts, MAX_QUERY_LENGTH } from "./snapshot-store";
+import { loadSnapshotPayload } from "./snapshot-store";
 
 export type * from "@/features/knowledge/read/view";
 export { SnapshotNotReadableError } from "./snapshot-store";
@@ -119,44 +118,6 @@ export async function getConceptRefs(snapshotId: string, conceptIds: readonly st
   "use cache";
   tag(snapshotId);
   return (await viewFor(snapshotId)).conceptRefsById(conceptIds);
-}
-
-export interface SearchHit {
-  concept: ConceptRef;
-  score: number;
-}
-
-export type SearchResult = { enabled: false } | { enabled: true; query: string; hits: SearchHit[] };
-
-export interface SearchRequest {
-  /** Pass `context.features.search` from the learning context. False short-circuits to `{ enabled: false }`. */
-  enabled: boolean;
-  limit?: number;
-  traditionSlug?: string;
-}
-
-/**
- * Full-text plus trigram search over the snapshot's concepts (ranking in ./snapshot-store.ts).
- * Queries shorter than 2 characters return no hits; longer than 200 are truncated.
- */
-export async function search(snapshotId: string, query: string, request: SearchRequest): Promise<SearchResult> {
-  if (!request.enabled) return { enabled: false };
-  return searchCached(snapshotId, query.trim().slice(0, MAX_QUERY_LENGTH), request.limit ?? 20, request.traditionSlug ?? null);
-}
-
-async function searchCached(snapshotId: string, query: string, limit: number, traditionSlug: string | null): Promise<SearchResult> {
-  "use cache";
-  tag(snapshotId);
-  const view = await viewFor(snapshotId);
-  const traditionId = traditionSlug ? view.getTradition(traditionSlug)?.id : undefined;
-  if (traditionSlug && !traditionId) return { enabled: true, query, hits: [] };
-  const rows = await searchSnapshotConcepts(getPool(), snapshotId, query, { limit, traditionId });
-  const refs = new Map(view.conceptRefsById(rows.map((r) => r.conceptId)).map((c) => [c.id, c]));
-  return {
-    enabled: true,
-    query,
-    hits: rows.filter((r) => refs.has(r.conceptId)).map((r) => ({ concept: refs.get(r.conceptId)!, score: r.score })),
-  };
 }
 
 // ---------------------------------------------------------------------------------------

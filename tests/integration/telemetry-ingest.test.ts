@@ -47,7 +47,7 @@ describe.skipIf(!TEST_URL)("telemetry ingestion", () => {
     manifestId = await createPublishedManifest(t.pool, snapshotId, { by: curator });
 
     const real = await createStudy(t.pool, { slug: "ingest-study", snapshotId, manifestId });
-    await t.pool.query("UPDATE studies SET status = 'active', config = $2::jsonb WHERE id = $1", [real.studyId, JSON.stringify({ traditionSlugs: ["ing-tradition"], searchEnabled: false })]);
+    await t.pool.query("UPDATE studies SET status = 'active', config = $2::jsonb WHERE id = $1", [real.studyId, JSON.stringify({ traditionSlugs: ["ing-tradition"] })]);
     s2d = await createSession(t.pool, real.studyId, real.conditionIds.c2d, "P-ING01", 0);
     s3d = await createSession(t.pool, real.studyId, real.conditionIds.c3d, "P-ING02", 1);
 

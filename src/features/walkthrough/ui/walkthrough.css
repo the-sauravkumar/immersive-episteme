@@ -6,7 +6,7 @@
   font-family: Mukta, "Segoe UI", system-ui, sans-serif;
 }
 
-:has(> [data-access-notice]) .walkthrough {
+:has(> [data-access-notice], > [data-slot="unverified-notice"]) .walkthrough {
   top: 40px;
 }
 

@@ -260,3 +260,49 @@ select.walking-field {
 .walking-toast[data-visible="false"] {
   display: none;
 }
+
+.walking-cue {
+  position: fixed;
+  left: 50%;
+  top: 72px;
+  z-index: 60;
+  transform: translateX(-50%);
+  width: min(440px, calc(100vw - 32px));
+  display: grid;
+  gap: var(--s3);
+  padding: var(--s4);
+  background: var(--cotton);
+  color: var(--stamp);
+  border: 2px solid var(--stamp);
+  font: 400 18px/1.4 var(--body);
+}
+
+.walking-cue p {
+  margin: 0;
+}
+
+.walking-cue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.walking-cue .walking-cue-button {
+  min-height: 46px;
+  padding: 8px 20px;
+  border: 2px solid var(--stamp);
+  background: var(--stamp);
+  color: var(--cotton);
+  font: 700 19px/1 var(--disp);
+  cursor: pointer;
+}
+
+.walking-cue .walking-cue-button + .walking-cue-button {
+  background: transparent;
+  color: var(--stamp);
+}
+
+.walking-cue .walking-cue-button:focus-visible {
+  outline: 3px solid var(--madder);
+  outline-offset: 2px;
+}

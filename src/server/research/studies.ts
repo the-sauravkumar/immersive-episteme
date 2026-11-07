@@ -2,7 +2,7 @@
  * Study configuration service (research console): create, configure, version, activate, close.
  *
  * - Configuration is protocol-as-data in `studies.config` (studyConfigSchema from the study
- *   contracts, eligibility included). Every change writes an append-only audit_log row with
+ *   contracts). Every change writes an append-only audit_log row with
  *   the before and after state, which is the study's configuration history.
  * - Versioning: an active or closed study is frozen by the database; a protocol change is made
  *   by `newStudyVersion`, which clones the study (conditions, battery, config, pins) into a new
@@ -26,10 +26,6 @@ import { loadParityInput, runAndStoreParityReport } from "./parity/store";
 import { audit, inTransaction, queryAll, ResearchActionError, type Actor, type Q } from "./db";
 import type { Pool, PoolClient } from "pg";
 
-/** Inclusion / exclusion criteria: part of the shared study contract. */
-export const eligibilitySchema = studyConfigSchema.shape.eligibility.unwrap();
-
-/** studies.config as the console writes it (the shared study contract, eligibility included). */
 export const researchStudyConfigSchema = studyConfigSchema;
 /**
  * What a DRAFT may hold: as above, but traditions may still be empty while the researcher

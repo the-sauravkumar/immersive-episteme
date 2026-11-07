@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { bindLearningTelemetry, closeOpenStop, finishLearning, LEARNING_PROGRESS_ENDPOINT, learningProgressRequestSchema, logStageLeft, registerOpenStop, reportMovement, reportObjectDwell, reportPathSample, reportStageEntered, reportViewpointChanges, reportWrongTurn, sendStageLeft, unbindLearningTelemetry } from "@/features/study/learning-progress";
+import { bindLearningTelemetry, closeOpenStop, finishLearning, LEARNING_PROGRESS_ENDPOINT, learningProgressRequestSchema, logStageLeft, registerOpenStop, reportMovement, reportObjectDwell, reportGuidanceCue, reportPathSample, reportStageEntered, reportViewpointChanges, reportWebglContextLost, reportWrongTurn, sendStageLeft, unbindLearningTelemetry } from "@/features/study/learning-progress";
+import { EVENT_METADATA_SCHEMAS } from "@/features/telemetry/contracts";
 
 const stage = { traditionKey: "ajrakh", stageKey: "s1", stageNumber: 1 };
 
@@ -19,6 +20,14 @@ describe("learning progress client", () => {
     vi.unstubAllGlobals();
   });
   const respond = (body: unknown, status = 200) => fetchMock.mockResolvedValue({ status, ok: status >= 200 && status < 300, json: async () => body });
+
+  it("logs a WebGL context loss and every guidance use as events the telemetry contract accepts", () => {
+    reportWebglContextLost();
+    reportGuidanceCue("shown", "stall");
+    reportGuidanceCue("followed", "hint");
+    expect(sink.mock.calls.map(([type]) => type)).toEqual(["webgl_context_lost", "guidance_cue_used", "guidance_cue_used"]);
+    for (const [type, input] of sink.mock.calls) expect(EVENT_METADATA_SCHEMAS[type as keyof typeof EVENT_METADATA_SCHEMAS].safeParse(input.metadata).success).toBe(true);
+  });
 
   it("posts a stage entry and logs it once the server admits it", async () => {
     respond({ ok: true, persisted: true, visitCount: 2, backStep: true, complete: false, unvisited: 3 });

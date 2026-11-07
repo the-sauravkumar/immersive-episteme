@@ -3,11 +3,10 @@
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 
-import type { StageTemplate } from "@/features/process/domain/stage-template";
-import { registerOpenStop, reportMovement, reportObjectDwell, reportPathSample, reportSourceOpened, reportViewpointChanges, reportWrongTurn } from "@/features/study/learning-progress";
-import type { LearningResume } from "@/features/study/stage-coverage";
+import { registerOpenStop, reportGuidanceCue, reportMovement, reportObjectDwell, reportPathSample, reportSourceOpened, reportViewpointChanges, reportWebglContextLost, reportWrongTurn } from "@/features/study/learning-progress";
 import type { WalkthroughSessionEvents } from "@/features/walkthrough/ui/walkthrough-session";
 
+import type { DoorSessionProps } from "./door-props";
 import { useDoorProgress, useRenderFailureReport } from "./door-progress";
 
 const WalkthroughSession = dynamic(() => import("./composed-walkthrough").then((module) => module.ComposedWalkthroughSession), {
@@ -15,7 +14,7 @@ const WalkthroughSession = dynamic(() => import("./composed-walkthrough").then((
   loading: () => <div className="walkthrough walkthrough-loading walking" role="status">Opening The Yard</div>,
 });
 
-export function WalkthroughDoor({ templates, resume, studyMode }: { readonly templates: readonly StageTemplate[]; readonly resume: LearningResume | null; readonly studyMode: boolean }) {
+export function WalkthroughDoor({ templates, resume, studyMode, guidance }: DoorSessionProps) {
   const { notice, restore, enter, left, finish } = useDoorProgress(templates);
   const { failureNotice, onRenderFailed } = useRenderFailureReport(studyMode);
   const events = useMemo<WalkthroughSessionEvents>(
@@ -30,6 +29,8 @@ export function WalkthroughDoor({ templates, resume, studyMode }: { readonly tem
       onSourceOpened: reportSourceOpened,
       onFinished: finish,
       onRenderFailed,
+      onContextLost: reportWebglContextLost,
+      onGuidance: reportGuidanceCue,
       registerExit: registerOpenStop,
     }),
     [enter, finish, left, onRenderFailed],
@@ -37,7 +38,7 @@ export function WalkthroughDoor({ templates, resume, studyMode }: { readonly tem
   const shown = failureNotice ?? notice;
   return (
     <>
-      <WalkthroughSession templates={templates} events={events} resume={resume} restore={restore} />
+      <WalkthroughSession templates={templates} events={events} resume={resume} restore={restore} studyMode={studyMode} guidance={guidance} />
       {shown ? (
         <div role="alert" className="walking-toast" data-visible="true">
           {shown}

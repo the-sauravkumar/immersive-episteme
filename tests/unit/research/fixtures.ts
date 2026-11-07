@@ -123,7 +123,7 @@ export function passingInput(): ParityInput {
       config: {
         traditionSlugs: TRADITIONS,
         exposure: { mode: "self_paced", minutes: 30, allowEarlyFinish: true, requireEveryStage: true },
-        guidance: { policy: "none", cueEnabled: false },
+        guidance: { cueEnabled: false },
         steps: ["pre_test", "learning", "post_test"],
         consent: { version: "fixture-1", text: "Sample Text consent." },
         participantInformation: "Sample Text information sheet.",

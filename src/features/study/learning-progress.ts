@@ -112,6 +112,14 @@ export async function sendStageLeft(stage: StageRef, activeMs: number): Promise<
   return reply.kind === "outcome" ? "delivered" : "unavailable";
 }
 
+export function reportGuidanceCue(action: "shown" | "followed" | "dismissed", cueId: string): void {
+  sink?.("guidance_cue_used", { metadata: { action, cueId } });
+}
+
+export function reportWebglContextLost(): void {
+  sink?.("webgl_context_lost", { metadata: {} });
+}
+
 export function reportSourceOpened(stage: StageRef): void {
   sink?.("source_opened", { metadata: { ...stage }, roomOrPageId: stagePage(stage) });
 }

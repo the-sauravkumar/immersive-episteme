@@ -132,9 +132,8 @@ export function protocolIssues(config: StudyConfig, steps: readonly StudyStep[])
     issues.push("allocation.algorithm stratified_block after the pre-test needs allocation.stratifyBy");
   }
 
-  // D6: the hybrid guidance's always-available hint shows researcher-written text, the same in both conditions.
-  if (config.guidance.policy === "hybrid" && config.guidance.cueEnabled && !config.guidance.hintText) {
-    issues.push("guidance: a hybrid policy with cueEnabled needs guidance.hintText (the hint both conditions show)");
+  if (config.guidance.cueEnabled && !config.guidance.hintText) {
+    issues.push("guidance: cueEnabled needs guidance.hintText (the hint both conditions show)");
   }
   if (point === "after_pre_test") {
     for (const ref of config.questionnaires?.pre ?? []) {

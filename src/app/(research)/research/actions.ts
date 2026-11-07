@@ -37,11 +37,6 @@ const text = (d: FormData, k: string) => {
   const v = d.get(k);
   return typeof v === "string" ? v.trim() : "";
 };
-const lines = (d: FormData, k: string) =>
-  text(d, k)
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter(Boolean);
 const optInt = (d: FormData, k: string) => (text(d, k) ? Number(text(d, k)) : undefined);
 
 export async function createStudyAction(_: ActionState, d: FormData): Promise<ActionState> {
@@ -74,15 +69,12 @@ export async function updateStudyAction(studyId: string, _: ActionState, d: Form
       allocation: allocationFromForm(current.config.allocation, text(d, "allocationAlgorithm"), optInt(d, "blockSize")),
       exposure: exposureFromForm(current.config.exposure, d),
       guidance: guidanceFromForm(current.config.guidance, d),
-      searchEnabled: d.get("searchEnabled") === "on",
-      minimap: text(d, "minimap") || "toggle",
       webglFailurePolicy: text(d, "webglFailurePolicy") || "retry",
       retentionDays: optInt(d, "retentionDays"),
       consent: consent.consent,
       participantInformation: consent.participantInformation,
       questionnaires: questionnaires ?? current.config.questionnaires,
       notes: text(d, "notes") || undefined,
-      eligibility: { inclusion: lines(d, "inclusion"), exclusion: lines(d, "exclusion") },
     });
     await updateStudy(getPool(), { userId: p.userId }, studyId, {
       title: text(d, "title"),

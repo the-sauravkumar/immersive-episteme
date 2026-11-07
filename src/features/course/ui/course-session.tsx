@@ -5,8 +5,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { closeOpenCourseStop, reopenCourseStop, restoreCourseStop, startCourseSession, stepCourse, suspendCourseClock, type CourseAction, type CourseEvent, type CoursePanelRef, type CourseSessionModel, type CourseStep } from "@/features/course/application/course-session";
 import { canFinish, canGoBack, canGoNext, isLastTradition, isProductPanel, reachedPanel, type CoursePosition, type CourseResume } from "@/features/course/domain/course-state";
 import { barSegments, stagePanelModel } from "@/features/course/domain/panel-model";
-import { QUESTIONS_LABEL } from "@/features/process/domain/guidance";
+import { finishLabel, NO_GUIDANCE, sessionHelpLines, type DoorGuidance } from "@/features/process/domain/guidance";
 import { PRODUCT_TITLE, type StageTemplate } from "@/features/process/domain/stage-template";
+import { StallCue } from "@/features/process/ui/stall-cue";
+import { useGuidance, type GuidanceReport } from "@/features/process/ui/use-guidance";
 import { useTabHidden } from "@/lib/use-tab-hidden";
 
 import { usePanelControls } from "./course-dialogs";
@@ -28,6 +30,9 @@ export interface CourseStageEvent {
 export interface CourseSessionProps {
   readonly templates: readonly StageTemplate[];
   readonly reviewMarks?: boolean;
+  readonly studyMode?: boolean;
+  readonly guidance?: DoorGuidance;
+  readonly onGuidance?: GuidanceReport;
   readonly resume?: CourseResume | null;
   readonly restore?: CoursePosition | null;
   readonly registerExit?: (close: () => void) => () => void;
@@ -48,7 +53,7 @@ function imagesFor(template: StageTemplate, panel: number): readonly string[] {
   return panel < template.stages.length ? panelImageSources(stagePanelModel(template, panel)) : productImageSources(template);
 }
 
-export function CourseSession({ templates, reviewMarks = false, resume = null, restore = null, registerExit, onStageEntered, onStageLeft, onBackStep, onSourceOpened, onFinished }: CourseSessionProps) {
+export function CourseSession({ templates, reviewMarks = false, studyMode = false, guidance = NO_GUIDANCE, onGuidance, resume = null, restore = null, registerExit, onStageEntered, onStageLeft, onBackStep, onSourceOpened, onFinished }: CourseSessionProps) {
   const stageCounts = useMemo(() => templates.map((template) => template.stages.length), [templates]);
   const [model, setModel] = useState<CourseSessionModel>(() => startCourseSession(stageCounts, 0, resume).model);
   const [sourcesOpenAt, setSourcesOpenAt] = useState<CoursePosition | null>(null);
@@ -128,10 +133,14 @@ export function CourseSession({ templates, reviewMarks = false, resume = null, r
   const onProduct = isProductPanel(state);
   const sources = useMemo(() => imagesFor(template, state.panel), [template, state.panel]);
   const images = usePanelImages(sources);
-  const { controls, dialogOpen } = usePanelControls();
+  const helpLines = useMemo(() => sessionHelpLines(guidance.time), [guidance.time]);
+  const panelControls = usePanelControls(helpLines);
   const tabHidden = useTabHidden();
   const sourcesOpen = sourcesOpenAt?.tradition === state.tradition && sourcesOpenAt.stop === state.panel;
-  const suspended = dialogOpen || sourcesOpen || tabHidden;
+  const progress = state.reached.join(".");
+  const guide = useGuidance({ guidance, progress, suspended: panelControls.dialogOpen || sourcesOpen || tabHidden, report: onGuidance });
+  const controls = panelControls.controls(guide);
+  const suspended = panelControls.dialogOpen || guide.hintOpen || sourcesOpen || tabHidden;
 
   useEffect(() => {
     modelRef.current = suspendCourseClock(modelRef.current, suspended, Date.now());
@@ -178,7 +187,7 @@ export function CourseSession({ templates, reviewMarks = false, resume = null, r
           onPress: () => dispatch({ type: "back" }),
         }}
         forward={{
-          label: finishing ? QUESTIONS_LABEL : "Next",
+          label: finishing ? finishLabel(studyMode) : "Next",
           detail: finishing ? null : forwardDetail,
           disabled: !images.settled || (finishing ? !canFinish(state) || model.finishing : !canGoNext(state)),
           onPress: () => dispatch({ type: finishing ? "finish" : "next" }),
@@ -189,6 +198,7 @@ export function CourseSession({ templates, reviewMarks = false, resume = null, r
         onJump={(panel) => dispatch({ type: "jump", panel })}
       />
       </div>
+      <StallCue guidance={guide} />
     </div>
   );
 }

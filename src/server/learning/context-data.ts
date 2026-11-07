@@ -1,10 +1,7 @@
-/**
- * Pure resolution of the learning and practice contexts, plus their database port. Not
- * `server-only`, so the integration tests can run it; pages call `getLearningContext()` (or
- * `getPracticeContext()`) in ./context.ts.
- */
 import type { Pool, PoolClient } from "pg";
 
+import type { DoorGuidance } from "@/features/process/domain/guidance";
+import { studyConfigSchema, type StudyConfig } from "@/features/study/contracts";
 import type { LearningCondition } from "@/lib/permissions/learning";
 import type { LearningAccess } from "@/server/auth/learning-decision";
 import { nameBasedUuid } from "@/features/knowledge/graph/hash";
@@ -21,6 +18,8 @@ export interface LearningContext {
   sessionId: string | null;
   telemetrySessionId: string;
   appBuild: string;
+  guidance: DoorGuidance;
+  contentUnderReview: boolean;
 }
 
 export class LearningContextUnavailableError extends Error {
@@ -38,12 +37,16 @@ export class LearningContextUnavailableError extends Error {
 
 export interface StudySessionContextRow {
   sessionId: string;
+  studyConfig: unknown;
   snapshotId: string | null;
   snapshotLabel: string | null;
+  includesUnverified: boolean;
 }
 
 export interface PreviewContentRow {
   snapshotLabel: string;
+  studyConfig: unknown;
+  includesUnverified: boolean;
 }
 
 export interface LearningClockRow {
@@ -63,29 +66,31 @@ export interface LearningContextData {
 export function pgLearningContextData(q: Q): LearningContextData {
   return {
     async findStudySession(sessionId) {
-      const r = await q.query<{ session_id: string; snapshot_id: string | null; version_label: string | null }>(
-        `SELECT ss.id AS session_id, ss.snapshot_id, cs.version_label
+      const r = await q.query<{ session_id: string; config: unknown; snapshot_id: string | null; version_label: string | null; includes_unverified: boolean | null }>(
+        `SELECT ss.id AS session_id, st.config, ss.snapshot_id, cs.version_label, cs.includes_unverified
            FROM study_sessions ss
+           JOIN studies st ON st.id = ss.study_id
            LEFT JOIN content_snapshots cs ON cs.id = ss.snapshot_id
           WHERE ss.id = $1`,
         [sessionId],
       );
       const row = r.rows[0];
-      return row ? { sessionId: row.session_id, snapshotId: row.snapshot_id, snapshotLabel: row.version_label } : null;
+      return row ? { sessionId: row.session_id, studyConfig: row.config, snapshotId: row.snapshot_id, snapshotLabel: row.version_label, includesUnverified: row.includes_unverified === true } : null;
     },
     async startLearningClock(sessionId) {
       await q.query("UPDATE study_sessions SET learning_started_at = now() WHERE id = $1 AND learning_started_at IS NULL", [sessionId]);
     },
     async findPreviewContent() {
-      const r = await q.query<{ version_label: string }>(
-        `SELECT s.version_label
+      const r = await q.query<{ version_label: string; config: unknown; includes_unverified: boolean }>(
+        `SELECT s.version_label, st.config, s.includes_unverified
            FROM content_snapshots s
+           LEFT JOIN LATERAL (SELECT config FROM studies WHERE is_demo AND snapshot_id = s.id ORDER BY created_at DESC, id DESC LIMIT 1) st ON true
           WHERE s.kind = 'review' AND NOT s.is_demo
           ORDER BY s.created_at DESC, s.id DESC
           LIMIT 1`,
       );
       const row = r.rows[0];
-      return row ? { snapshotLabel: row.version_label } : null;
+      return row ? { snapshotLabel: row.version_label, studyConfig: row.config ?? {}, includesUnverified: row.includes_unverified } : null;
     },
   };
 }
@@ -115,10 +120,6 @@ export class LearningFinishRefusedError extends Error {
   }
 }
 
-/**
- * Records the end of the learning phase (set once; server time). Refused before the budget runs
- * out unless the study config allows an early finish. For the study engine (server action).
- */
 export async function recordLearningEnded(q: Q, sessionId: string): Promise<LearningClockRow> {
   const r = await q.query<{ ended: boolean; allowed: boolean }>(
     `SELECT ss.learning_ended_at IS NOT NULL AS ended,
@@ -136,9 +137,23 @@ export async function recordLearningEnded(q: Q, sessionId: string): Promise<Lear
   return readClock(q, sessionId);
 }
 
-/** Stable uuid for non-study telemetry (demo cookie id or staff user id); never stored. */
 export function nonStudyTelemetrySessionId(kind: "demo" | "preview", id: string): string {
   return nameBasedUuid(nodeSha256, "telemetry-session", kind, id);
+}
+
+function configOf(raw: unknown): StudyConfig {
+  const parsed = studyConfigSchema.safeParse(raw ?? {});
+  return parsed.success ? parsed.data : studyConfigSchema.parse({});
+}
+
+export function doorGuidanceOf(config: StudyConfig): DoorGuidance {
+  const hint = config.guidance.cueEnabled ? (config.guidance.hintText ?? null) : null;
+  const limitMinutes = config.exposure.minutes ?? null;
+  return {
+    time: { limitMinutes, earlyFinish: limitMinutes === null || config.exposure.allowEarlyFinish },
+    hint,
+    stallSeconds: hint === null ? null : config.guidance.stallSeconds,
+  };
 }
 
 export async function resolveLearningContext(
@@ -149,6 +164,7 @@ export async function resolveLearningContext(
     const s = await deps.data.findStudySession(access.sessionId);
     if (!s) throw new LearningContextUnavailableError("session_not_found");
     if (!s.snapshotId || !s.snapshotLabel) throw new LearningContextUnavailableError("study_has_no_snapshot");
+    const cfg = configOf(s.studyConfig);
     await deps.data.startLearningClock(s.sessionId);
     return {
       mode: "study",
@@ -156,18 +172,23 @@ export async function resolveLearningContext(
       contentVersion: s.snapshotLabel,
       sessionId: s.sessionId,
       telemetrySessionId: s.sessionId,
+      guidance: doorGuidanceOf(cfg),
+      contentUnderReview: s.includesUnverified,
       appBuild: deps.appBuild,
     };
   }
 
   const preview = await deps.data.findPreviewContent();
   if (!preview) throw new LearningContextUnavailableError("no_review_snapshot");
+  const cfg = configOf(preview.studyConfig);
   return {
     mode: access.kind === "demo" ? "demo" : "preview",
     condition: access.condition,
     contentVersion: preview.snapshotLabel,
     sessionId: null,
     telemetrySessionId: nonStudyTelemetrySessionId(access.kind === "demo" ? "demo" : "preview", access.kind === "demo" ? access.demoId : access.userId),
+    guidance: doorGuidanceOf(cfg),
+    contentUnderReview: preview.includesUnverified,
     appBuild: deps.appBuild,
   };
 }

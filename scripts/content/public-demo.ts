@@ -30,7 +30,6 @@ export async function ensureDemoStudy(
   const config = {
     traditionSlugs: [...SHORTLIST],
     nonExperimental: true,
-    searchEnabled: true,
     notes:
       "Development demo pinned to the REVIEW snapshot (content not verified by a curator). Never experimental, " +
       "never activatable: review snapshots cannot be published.",

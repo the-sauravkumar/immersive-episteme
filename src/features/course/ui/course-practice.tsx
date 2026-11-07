@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { practicePanelModel, practiceSegments, PRACTICE_STEP_COUNT } from "@/features/course/domain/panel-model";
+import { PRACTICE_HELP_LINES } from "@/features/process/domain/guidance";
 
 import { usePanelControls } from "./course-dialogs";
 import { ProgressBar } from "./progress-bar";
@@ -22,7 +23,7 @@ export function CoursePractice({ reviewMarks = false, onFinished }: CoursePracti
   const [reached, setReached] = useState(0);
   const model = useMemo(() => practicePanelModel(step), [step]);
   const images = usePanelImages(panelImageSources(model));
-  const { controls } = usePanelControls();
+  const { controls } = usePanelControls(PRACTICE_HELP_LINES);
   const segments = practiceSegments();
   const last = step === PRACTICE_STEP_COUNT - 1;
 
@@ -34,7 +35,7 @@ export function CoursePractice({ reviewMarks = false, onFinished }: CoursePracti
   return (
     <div className="course walking" data-course-root="" data-panel="practice">
       <div className="course-frame">
-      <StagePanel model={model} reviewMarks={reviewMarks} imageStatus={images.status} controls={controls} onSourcesOpened={() => undefined} />
+      <StagePanel model={model} reviewMarks={reviewMarks} imageStatus={images.status} controls={controls()} onSourcesOpened={() => undefined} />
       <ProgressBar
         back={{ label: "Back", detail: step > 0 ? segments[step - 1]!.label : null, disabled: step === 0, onPress: () => goTo(step - 1) }}
         forward={{

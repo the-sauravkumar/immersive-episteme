@@ -1,9 +1,9 @@
 import type { ComponentType, ReactNode } from "react";
 
 import { LearningUnavailable } from "@/components/learning/learning-unavailable";
+import { UnverifiedContentNotice } from "@/components/learning/unverified-content-notice";
 import { LearningSessionFrame } from "@/components/study/learning-session-frame";
-import type { StageTemplate } from "@/features/process/domain/stage-template";
-import { inAssignedOrder, resumeFrom, type LearningResume } from "@/features/study/stage-coverage";
+import { inAssignedOrder, resumeFrom } from "@/features/study/stage-coverage";
 import { TelemetryProvider } from "@/features/telemetry/client";
 import type { LearningCondition } from "@/lib/permissions/learning";
 import { getPool } from "@/server/db/client";
@@ -14,13 +14,8 @@ import { nextTelemetrySeq } from "@/server/study/session";
 import { loadStageTemplates } from "@/server/study/stage-templates";
 
 import { CourseDoor } from "./course-door";
+import type { DoorSessionProps } from "./door-props";
 import { WalkthroughDoor } from "./walkthrough-door";
-
-export interface DoorSessionProps {
-  readonly templates: readonly StageTemplate[];
-  readonly resume: LearningResume | null;
-  readonly studyMode: boolean;
-}
 
 export const DOOR_SESSIONS: Record<LearningCondition, ComponentType<DoorSessionProps>> = { "2d": CourseDoor, immersive: WalkthroughDoor };
 
@@ -32,11 +27,14 @@ async function doorSessionFor(condition: LearningCondition, ctx: LearningContext
   const resume = ctx.sessionId ? resumeFrom(templates, await stageVisitsOf(getPool(), ctx.sessionId)) : null;
   const telemetry = { ...(ctx.sessionId ? { firstSeq: await nextTelemetrySeq(ctx.sessionId) } : {}), sessionId: ctx.telemetrySessionId, contentVersion: ctx.contentVersion, appBuild: ctx.appBuild, mode: ctx.mode };
   return (
-    <TelemetryProvider config={telemetry}>
-      <LearningSessionFrame endsAt={state?.learning.endsAt?.toISOString() ?? null} serverNow={(state?.now ?? new Date()).toISOString()} warningMinutes={CAP_WARNING_MINUTES}>
-        <Door templates={templates} resume={resume} studyMode={ctx.mode === "study"} />
-      </LearningSessionFrame>
-    </TelemetryProvider>
+    <>
+      {ctx.contentUnderReview ? <UnverifiedContentNotice /> : null}
+      <TelemetryProvider config={telemetry}>
+        <LearningSessionFrame endsAt={state?.learning.endsAt?.toISOString() ?? null} serverNow={(state?.now ?? new Date()).toISOString()} warningMinutes={CAP_WARNING_MINUTES}>
+          <Door templates={templates} resume={resume} studyMode={ctx.mode === "study"} guidance={ctx.guidance} />
+        </LearningSessionFrame>
+      </TelemetryProvider>
+    </>
   );
 }
 

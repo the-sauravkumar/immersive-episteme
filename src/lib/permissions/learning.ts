@@ -16,3 +16,5 @@ export const LEARNING_ROUTE = {
   "2d": "/learn/2d",
   immersive: "/learn/immersive",
 } as const satisfies Record<LearningCondition, string>;
+
+export const COURSE_PREVIEW_PATH = "/learn/course-preview";

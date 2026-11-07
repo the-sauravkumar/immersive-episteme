@@ -103,30 +103,15 @@ export const studyConfigSchema = z.object({
     })
     .refine((d) => d.opensAfterDays <= d.dueAfterDays && d.dueAfterDays <= d.closesAfterDays, { message: "The delayed test window must open, fall due and close in that order" })
     .default({ opensAfterDays: 6, dueAfterDays: 7, closesAfterDays: 14 }),
-  /**
-   * Guidance, identical in both conditions and not manipulated (Q-R5, study decision D6). With
-   * `policy = "hybrid"` and `cueEnabled`, both conditions show the same on-demand hint
-   * (`hintText`, written by the researchers) and the same stall cue after `stallSeconds` of
-   * active time without a newly exposed concept (a pilot parameter, provisionally 120 s in D6).
-   * Read through the learning context (`settings.guidance`), never per page.
-   */
   guidance: z
     .object({
-      policy: z.enum(["exploration_first", "guided", "hybrid", "none"]).default("none"),
       cueEnabled: z.boolean().default(false),
       stallSeconds: z.number().int().min(10).max(1800).default(120),
       hintText: z.string().trim().min(1).max(2000).optional(),
     })
-    .default({ policy: "none", cueEnabled: false, stallSeconds: 120 }),
+    .default({ cueEnabled: false, stallSeconds: 120 }),
   /** What happens when WebGL fails for an immersive participant (Q-R10). */
   webglFailurePolicy: z.enum(["exclude", "retry", "reassign"]).default("retry"),
-  minimap: z.enum(["on", "off", "toggle"]).default("toggle"),
-  /**
-   * Concept search in the learning conditions (Q-R6: which query affordance exists is still
-   * open). Off unless the protocol enables it; when on it must be on for both conditions.
-   * Read through the learning context (`features.search`), never per page.
-   */
-  searchEnabled: z.boolean().default(false),
   /**
    * Knowledge figures (DR-018). `structureDiagrams` (default on) shows the graph-derived structure
    * diagrams (process sequence, materials and tools, colour mechanism); off removes them from BOTH
@@ -153,13 +138,6 @@ export const studyConfigSchema = z.object({
    * Demo studies (is_demo) are always non-experimental regardless of this flag.
    */
   nonExperimental: z.boolean().default(false),
-  /** Inclusion / exclusion criteria (free text, one criterion per line; never participant data). */
-  eligibility: z
-    .object({
-      inclusion: z.array(z.string().trim().min(1).max(300)).max(30).default([]),
-      exclusion: z.array(z.string().trim().min(1).max(300)).max(30).default([]),
-    })
-    .default({ inclusion: [], exclusion: [] }),
   // ---- participant journey (study engine, src/server/study/config.ts validates the order) ----
   /** Versioned consent text, shown verbatim; its sha256 is stored with the decision. */
   consent: z.object({ version: z.string().min(1).max(64), text: z.string().min(1).max(20_000) }).optional(),

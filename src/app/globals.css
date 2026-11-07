@@ -922,11 +922,6 @@
   }
 }
 
-/* ---- AccessNotice merge (DESIGN.md 9.15, P7). Unlayered, so these win over utilities. ----
-   ONE notice strip above the StudyBar, identical in both conditions: while an AccessNotice (demo,
-   staff preview) is present, the separate "under review" strip is hidden and the AccessNotice
-   shows its merged wording; a participant on unverified content sees the "under review" strip
-   alone. --notice-offset (the StudyBar's sticky top) is the strip height whenever one is shown. */
 [data-access-notice] [data-notice-variant="review"] {
   display: none;
 }
@@ -938,19 +933,6 @@
 }
 [data-condition]:has([data-access-notice]) [data-slot="unverified-notice"] {
   display: none;
-}
-[data-condition]:has([data-access-notice], [data-slot="unverified-notice"]) {
-  --notice-offset: var(--notice-h);
-}
-/* 3D: the scene starts below the chrome; the chrome holds the strip only when it is shown there. */
-[data-testid="museum-root"] {
-  --museum-notice: 0px;
-}
-[data-testid="museum-root"]:has([data-slot="unverified-notice"]) {
-  --museum-notice: var(--notice-h);
-}
-[data-condition]:has([data-access-notice]) [data-testid="museum-root"] {
-  --museum-notice: 0px;
 }
 
 /* React Flow's attribution link (rater and research views only; participants never see it): a

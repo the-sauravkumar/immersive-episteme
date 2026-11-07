@@ -97,6 +97,8 @@ function fixture(options: { entering?: boolean; throws?: boolean; rejects?: bool
     onSourceOpened: vi.fn(),
     onFinished: vi.fn(async () => false),
     onRenderFailed: vi.fn(),
+    onContextLost: vi.fn(),
+    onGuidance: vi.fn(),
     registerExit: registerOpenStop,
   };
   return { engines, createEngine, events };
@@ -177,6 +179,17 @@ describe("WalkthroughSession", () => {
     act(() => f.engines[0]!.events.onContextLost());
     expect(f.events.onStageLeft).toHaveBeenCalledTimes(1);
     expect(f.events.onRenderFailed).toHaveBeenCalledTimes(1);
+    expect(f.events.onContextLost).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports a context loss only when the context is lost, not when the yard fails to start", async () => {
+    const f = fixture({ rejects: true });
+    render(<WalkthroughSession templates={templates} events={f.events} createEngine={f.createEngine} />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(f.events.onRenderFailed).toHaveBeenCalledTimes(1);
+    expect(f.events.onContextLost).not.toHaveBeenCalled();
   });
 
   it("does not report a failed start after the session has gone", async () => {
@@ -198,9 +211,75 @@ describe("WalkthroughSession", () => {
     expect(f.engines[0]!.walks).toEqual([0]);
   });
 
-  it("lets a refused finish be pressed again", async () => {
+  it("labels the last button Finish outside a study, where no questions follow", () => {
     const f = fixture();
     render(<WalkthroughSession templates={[templates[0]!]} events={f.events} createEngine={f.createEngine} resume={{ tradition: 0, stop: 2, reached: [2] }} />);
+    expect(screen.getByRole("button", { name: "Finish" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Questions" })).toBeNull();
+  });
+
+  it("states the configured time limit in Help, and no limit when there is none", () => {
+    const f = fixture();
+    const { unmount } = render(<WalkthroughSession templates={templates} events={f.events} createEngine={f.createEngine} studyMode guidance={{ time: { limitMinutes: 45, earlyFinish: true }, hint: null, stallSeconds: null }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Help" }));
+    const help = screen.getByRole("dialog", { name: "Help" }).textContent ?? "";
+    expect(help).toContain("45 minutes");
+    expect(help).not.toContain("30 minutes");
+    expect(help).toContain("in the tradition you are in");
+    unmount();
+    render(<WalkthroughSession templates={templates} events={fixture().events} createEngine={fixture().createEngine} />);
+    fireEvent.click(screen.getByRole("button", { name: "Help" }));
+    expect(screen.getByRole("dialog", { name: "Help" }).textContent).toContain("There is no time limit");
+  });
+
+  it("offers the study's hint and logs it, and shows the stall cue after the set active time without a new stage", () => {
+    vi.useFakeTimers();
+    try {
+      const f = fixture();
+      render(<WalkthroughSession templates={templates} events={f.events} createEngine={f.createEngine} studyMode guidance={{ time: { limitMinutes: 30, earlyFinish: true }, hint: "Follow the cloth.", stallSeconds: 60 }} />);
+      fireEvent.click(screen.getByRole("button", { name: "Hint" }));
+      expect(screen.getByRole("dialog", { name: "Hint" }).textContent).toContain("Follow the cloth.");
+      expect(f.events.onGuidance).toHaveBeenLastCalledWith("followed", "hint");
+      act(() => vi.advanceTimersByTime(120_000));
+      expect(screen.queryByText("A hint is ready if you want one.")).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Close" }));
+      act(() => vi.advanceTimersByTime(59_000));
+      expect(screen.queryByText("A hint is ready if you want one.")).toBeNull();
+      act(() => vi.advanceTimersByTime(1_000));
+      expect(screen.getByText("A hint is ready if you want one.")).toBeTruthy();
+      expect(f.events.onGuidance).toHaveBeenLastCalledWith("shown", "stall");
+      fireEvent.click(screen.getByRole("button", { name: "Not Now" }));
+      expect(f.events.onGuidance).toHaveBeenLastCalledWith("dismissed", "stall");
+      act(() => vi.advanceTimersByTime(30_000));
+      act(() => f.engines[0]!.enter(1));
+      act(() => vi.advanceTimersByTime(59_000));
+      expect(screen.queryByText("A hint is ready if you want one.")).toBeNull();
+      act(() => vi.advanceTimersByTime(1_000));
+      fireEvent.click(screen.getByRole("button", { name: "Open Hint" }));
+      expect(f.events.onGuidance).toHaveBeenLastCalledWith("followed", "stall");
+      expect(screen.getByRole("dialog", { name: "Hint" })).toBeTruthy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("shows no hint and no cue when the study sets none", () => {
+    vi.useFakeTimers();
+    try {
+      const f = fixture();
+      render(<WalkthroughSession templates={templates} events={f.events} createEngine={f.createEngine} studyMode />);
+      act(() => vi.advanceTimersByTime(3_600_000));
+      expect(screen.queryByRole("button", { name: "Hint" })).toBeNull();
+      expect(screen.queryByText("A hint is ready if you want one.")).toBeNull();
+      expect(f.events.onGuidance).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("lets a refused finish be pressed again", async () => {
+    const f = fixture();
+    render(<WalkthroughSession templates={[templates[0]!]} events={f.events} createEngine={f.createEngine} resume={{ tradition: 0, stop: 2, reached: [2] }} studyMode />);
     const questions = screen.getByRole("button", { name: "Questions" });
     await act(async () => {
       fireEvent.click(questions);
@@ -224,6 +303,15 @@ describe("WalkthroughPractice", () => {
     expect(finish).toHaveProperty("disabled", false);
     fireEvent.keyDown(window, { code: "KeyW" });
     expect(f.engines[0]!.moves).toEqual([[1, 0]]);
+  });
+
+  it("tells the practice yard's own facts in Help, not the session's stages, sources and limit", () => {
+    const f = fixture();
+    render(<WalkthroughPractice createEngine={f.createEngine} onFinished={vi.fn()} onRenderFailed={vi.fn()} />);
+    fireEvent.click(screen.getByRole("button", { name: "Help" }));
+    const help = screen.getByRole("dialog", { name: "Help" }).textContent ?? "";
+    expect(help).toContain("Nothing here is part of the test");
+    expect(help).not.toMatch(/stage|sources|30 minutes/i);
   });
 
   it("reports a failure to the door", () => {

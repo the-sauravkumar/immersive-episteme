@@ -8,7 +8,7 @@
   font: 400 18px/1.5 var(--body);
   overflow: auto;
 }
-:has(> [data-access-notice]) .course {
+:has(> [data-access-notice], > [data-slot="unverified-notice"]) .course {
   top: 40px;
 }
 .course-frame {
