@@ -17,11 +17,13 @@ import {
   assetLinkSchema,
   assetMetadataSchema,
   assetReviewSchema,
+  candidateImportSchema,
   candidateReviewSchema,
   finalizeAssetUpload,
   linkAssetToConcept,
   presignAssetUpload,
   presignRequestSchema,
+  recordCandidateImport,
   reviewAsset,
   reviewMediaCandidate,
   submitAssetForReview,
@@ -125,5 +127,12 @@ export async function reviewCandidateAction(_prev: ActionState, fd: FormData): P
   return runAction("media.review", candidateReviewSchema, formObject(fd), async ({ actor, pool }, data) => {
     await reviewMediaCandidate(pool, actor, data);
     return `Candidate marked ${data.status}.`;
+  });
+}
+
+export async function recordCandidateImportAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  return runAction("media.upload", candidateImportSchema, formObject(fd), async ({ actor, pool }, data) => {
+    await recordCandidateImport(pool, actor, data);
+    return "Recorded: the candidate is marked imported as this asset.";
   });
 }

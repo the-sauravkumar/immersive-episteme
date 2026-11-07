@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { ActionForm } from "@/components/cms/action-form";
 import { BLOCK_LINK, Empty, FormField, Mono, NativeSelect, RunningHead, Section, StateBadge } from "@/components/cms/bits";
 import { ClaimsEditor } from "@/components/cms/claims-editor";
+import { claimDraftsOf } from "@/components/cms/claim-drafts";
 import { HistoryList } from "@/components/cms/history-list";
 import { NotesEditor } from "@/components/cms/notes-editor";
 import { ProofFrame } from "@/components/cms/proof-frame";
@@ -110,7 +111,7 @@ async function ConceptEditor({ params }: { params: Promise<{ conceptId: string }
             conceptId={concept.id}
             readOnly={!editable}
             sources={[...choices.values()]}
-            initial={concept.claims.map((c) => ({ text: c.text, quote: c.quote ?? "", sources: c.sources.map((s) => ({ sourceId: s.sourceId, locator: s.locator ?? "" })) }))}
+            initial={claimDraftsOf(concept.claims)}
           />
         </Section>
 
@@ -321,7 +322,7 @@ function sheetConcept(
   return { id, title, type, category, localTerms, tradition: tradition ? { slug: tradition.slug, name: tradition.name } : null, verificationState };
 }
 
-/** ClaimViews of a draft from the editor's saved claims, citing the source records (no passages). */
+/** ClaimViews of a draft from the editor's saved claims, citing the source records and their stored passages. */
 async function draftClaims(concept: ConceptDetail): Promise<ClaimView[]> {
   const ids = [...new Set(concept.claims.flatMap((c) => c.sources.map((s) => s.sourceId)))];
   const rows = ids.length
@@ -355,7 +356,7 @@ async function draftClaims(concept: ConceptDetail): Promise<ClaimView[]> {
           verificationState: s.verification_state,
           locator: ref.locator,
           quote: cl.sources.length === 1 ? cl.quote : null,
-          passages: [],
+          passages: ref.evidence.map((p) => ({ locator: p.locator ?? ref.locator ?? "", quote: p.quote, note: p.note ?? null })),
         };
       })
       .filter((x): x is Citation => x !== null),

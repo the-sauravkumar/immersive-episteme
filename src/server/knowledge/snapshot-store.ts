@@ -62,14 +62,6 @@ export async function loadSnapshotPayload(q: Q, snapshotId: string): Promise<Kno
   return parsed.data;
 }
 
-/** The newest real (non-demo) review snapshot, or null. Used by the demo and staff preview. */
-export async function latestReviewSnapshotId(q: Q): Promise<string | null> {
-  const r = await q.query<{ id: string }>(
-    "SELECT id FROM content_snapshots WHERE kind = 'review' AND NOT is_demo ORDER BY created_at DESC, id DESC LIMIT 1",
-  );
-  return r.rows[0]?.id ?? null;
-}
-
 export interface SearchOptions {
   /** Maximum hits (1..50, default 20). */
   limit?: number;

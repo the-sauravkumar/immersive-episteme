@@ -12,7 +12,8 @@
  * licence-valid today, no larger than the licence's display cap, and either approved and an
  * illustration of a concept in a published release snapshot (or cleared for public plates), or
  * frozen into a published release and not withdrawn (DR-037). Anything else answers 404 (an
- * unservable asset is indistinguishable from a missing one).
+ * unservable asset is indistinguishable from a missing one). A database or storage failure is
+ * logged and answers 503 with no-store, so an outage is never mistaken for a withdrawal (DR-114).
  *
  * Caching: `private, max-age=300, must-revalidate` (FIGURE_MAX_AGE), never longer than the time left
  * in the licence, with the file's sha256 as a strong ETag, so a withdrawal or an expiry reaches
@@ -27,7 +28,13 @@ import { figureMaxAge, loadLearnerFigure } from "@/server/cms/media/service";
 import { getMediaStorage } from "@/server/cms/media/storage";
 import { getPool } from "@/server/db/client";
 
-const notFound = () => NextResponse.json({ error: "not_found" }, { status: 404, headers: { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" } });
+const NO_STORE = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" };
+const notFound = () => NextResponse.json({ error: "not_found" }, { status: 404, headers: NO_STORE });
+
+function unavailable(stage: "database" | "storage", assetId: string, error: unknown): Response {
+  console.error(`[figures] ${stage} failure serving ${assetId}`, error);
+  return NextResponse.json({ error: "unavailable" }, { status: 503, headers: { ...NO_STORE, "Retry-After": "60" } });
+}
 
 export async function GET(request: NextRequest, ctx: RouteContext<"/figures/[assetId]">): Promise<Response> {
   // Request time: licence validity is judged on today's date, never on a prerendered one.
@@ -35,7 +42,12 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/figures/[ass
   const { assetId } = await ctx.params;
   const now = new Date();
   const day = now.toISOString().slice(0, 10);
-  const asset = await loadLearnerFigure(getPool(), assetId, day).catch(() => null);
+  let asset: Awaited<ReturnType<typeof loadLearnerFigure>>;
+  try {
+    asset = await loadLearnerFigure(getPool(), assetId, day);
+  } catch (error) {
+    return unavailable("database", assetId, error);
+  }
   if (!asset) return notFound();
 
   const maxAge = figureMaxAge(asset.licenceExpiresOn, now);
@@ -63,12 +75,12 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/figures/[ass
       // would expire long before the cache entry.
       const url = await storage.presignGet(asset.storageKey, { mime: asset.mimeType, disposition: "inline" });
       const res = await fetch(url);
-      if (!res.ok || !res.body) return notFound();
+      if (!res.ok || !res.body) return unavailable("storage", assetId, new Error(`object store answered ${res.status}`));
       return new Response(res.body, { status: 200, headers });
     }
     const bytes = await storage.read(asset.storageKey);
     return new Response(new Uint8Array(bytes), { status: 200, headers });
-  } catch {
-    return notFound();
+  } catch (error) {
+    return unavailable("storage", assetId, error);
   }
 }

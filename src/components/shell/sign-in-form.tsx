@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { googleStartErrorMessage, signInErrorMessage } from "@/lib/access/sign-in-errors";
 import { AWAITING_ACCESS_PATH, STAFF_HOME } from "@/lib/permissions/console-routes";
 import { safeNextPath } from "@/lib/permissions/safe-redirect";
 
@@ -15,17 +16,6 @@ import { GoogleButton } from "./google-button";
 import { googleSignInErrorMessage } from "./google-sign-in-errors";
 
 const SIGN_IN_PATH = "/sign-in";
-
-function messageFor(status: number | undefined, fallback: string | undefined): string {
-  if (status === 429) return "Too many sign-in attempts. Wait a minute and try again.";
-  if (status === 401 || status === 403) return "That email and password do not match an active staff account.";
-  return fallback ?? "Sign-in failed. Try again.";
-}
-
-function googleMessageFor(status: number | undefined): string {
-  if (status === 429) return "Too many sign-in attempts. Wait a minute and try again.";
-  return "Google sign-in could not start. Try again, or sign in with your email.";
-}
 
 function errorPathFor(next: string): string {
   return next === STAFF_HOME ? SIGN_IN_PATH : `${SIGN_IN_PATH}?next=${encodeURIComponent(next)}`;
@@ -57,7 +47,7 @@ export function SignInForm({ google }: { google: boolean }) {
       password: String(form.get("password") ?? ""),
     });
     if (err) {
-      showError(messageFor(err.status, err.message));
+      showError(signInErrorMessage(err));
       return;
     }
     router.replace(next);
@@ -73,7 +63,7 @@ export function SignInForm({ google }: { google: boolean }) {
       newUserCallbackURL: AWAITING_ACCESS_PATH,
       errorCallbackURL: errorPathFor(next),
     });
-    if (err) showError(googleMessageFor(err.status));
+    if (err) showError(googleStartErrorMessage(err.status));
   }
 
   return (

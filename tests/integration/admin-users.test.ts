@@ -14,14 +14,17 @@ import { auditEntities, parseAuditFilter, queryAuditLog } from "@/server/admin/a
 import { getHealthReport } from "@/server/admin/health";
 import { effectiveSettings } from "@/server/admin/settings";
 import {
+  clearStaffSignInLock,
   createStaffUser,
   grantStaffRole,
   listStaffUsers,
   lockStaffUser,
+  resetStaffPassword,
   revokeStaffRole,
   roleHolderCounts,
   unlockStaffUser,
 } from "@/server/admin/users";
+import { consumeSignInAttempt } from "@/server/auth/account-throttle";
 import { createAuth, type Auth } from "@/server/auth/config";
 import { CmsError, type Actor } from "@/server/cms/core";
 
@@ -170,6 +173,47 @@ describe.skipIf(!TEST_URL)("admin services", () => {
     await expectCode(lockStaffUser(t.pool, admin, { userId: target, reason: "again" }), "already_locked");
     await unlockStaffUser(t.pool, admin, { userId: target });
     expect(await auditCount("admin.user_unlocked", target)).toBe(1);
+  });
+
+  it("shows a sign-in lock in the user list and lets an administrator lift it, audited", async () => {
+    const { userId } = await createStaffUser(deps(), admin, { name: "Locked Out", email: "locked-out@example.test", password: "a-long-password-1", role: "curator" });
+    const db = drizzle(t.pool, { schema, casing: "snake_case" });
+    const limits = { maxAttempts: 2, windowSeconds: 900, lockSeconds: 900 };
+    for (let i = 0; i < 3; i++) await consumeSignInAttempt(db, "locked-out@example.test", limits);
+    const listed = (await listStaffUsers(t.pool, admin)).find((u) => u.id === userId)!;
+    expect(listed.signInLockedUntil).not.toBeNull();
+    await expectCode(clearStaffSignInLock(t.pool, { userId: "x", roles: ["curator"] }, { userId, reason: "owner asked" }), "forbidden");
+    expect(await clearStaffSignInLock(t.pool, admin, { userId, reason: "owner locked out by mistyped password" })).toEqual({ wasLocked: true });
+    expect((await listStaffUsers(t.pool, admin)).find((u) => u.id === userId)!.signInLockedUntil).toBeNull();
+    expect(await auditCount("admin.sign_in_lock_cleared", userId)).toBe(1);
+    await expectCode(clearStaffSignInLock(t.pool, admin, { userId, reason: "again" }), "not_sign_in_locked");
+  });
+
+  it("resets a staff password: the new one signs in, the old one does not, sessions end, audited without the password", async () => {
+    const { userId } = await createStaffUser(deps(), admin, { name: "Forgetful", email: "forgetful@example.test", password: "the-first-password-1", role: "curator" });
+    const before = await auth.api.signInEmail({ body: { email: "forgetful@example.test", password: "the-first-password-1" } });
+    expect(before.token).toBeTruthy();
+    await expectCode(resetStaffPassword({ pool: t.pool, auth }, { userId: "x", roles: ["curator"] }, { userId, password: "a-new-password-22", reason: "forgotten" }), "forbidden");
+    await expectCode(resetStaffPassword({ pool: t.pool, auth }, admin, { userId: admin.userId, password: "a-new-password-22", reason: "self" }), "self_reset");
+    expect(await resetStaffPassword({ pool: t.pool, auth }, admin, { userId, password: "a-new-password-22", reason: "forgotten password" })).toEqual({ sessionsEnded: 1 });
+    await expect(auth.api.signInEmail({ body: { email: "forgetful@example.test", password: "the-first-password-1" } })).rejects.toThrow();
+    expect((await auth.api.signInEmail({ body: { email: "forgetful@example.test", password: "a-new-password-22" } })).token).toBeTruthy();
+    expect(await auditCount("admin.password_reset", userId)).toBe(1);
+    const row = await one<{ after: unknown }>(t.pool, "SELECT after FROM audit_log WHERE action = 'admin.password_reset' AND entity_id = $1", [userId]);
+    expect(JSON.stringify(row.after)).not.toContain("a-new-password-22");
+    const google = await createUser(t.pool, "google_only");
+    await grant(google, "curator");
+    await expectCode(resetStaffPassword({ pool: t.pool, auth }, admin, { userId: google, password: "a-new-password-22", reason: "no password" }), "no_password");
+  });
+
+  it("says whether Google sign-in is on and what that means for sign-up", () => {
+    const text = (env: Record<string, string>) => JSON.stringify(effectiveSettings(admin, env));
+    expect(text({})).toContain("off: the Google OAuth client is not configured");
+    expect(text({})).toContain("off; administrators create staff accounts");
+    const on = text({ GOOGLE_CLIENT_ID: "id", GOOGLE_CLIENT_SECRET: "secret" });
+    expect(on).toContain("on: staff can sign in with Google");
+    expect(on).toContain("anyone with a verified Google account who signs in gets an account with no role");
+    expect(on).not.toContain("off; administrators create staff accounts");
   });
 
   it("reads the audit log with filters and pagination", async () => {

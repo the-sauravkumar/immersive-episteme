@@ -3,6 +3,7 @@
  * table: every value here is fixed by the deployment (environment variables) or by code, and
  * changing one is a deployment change. Secrets are never returned.
  */
+import { googleOAuthCredentials } from "@/lib/env";
 import { DEFAULT_ACCOUNT_THROTTLE } from "@/server/auth/account-throttle";
 import { MIN_PASSWORD_LENGTH } from "@/server/auth/config";
 import { ensure, type Actor } from "@/server/cms/core";
@@ -24,6 +25,7 @@ export interface SettingGroup {
 export function effectiveSettings(actor: Actor, env: Record<string, string | undefined> = process.env): SettingGroup[] {
   ensure(actor, "admin.settings");
   const media = mediaStorageConfig(env);
+  const google = googleOAuthCredentials(env) !== null;
   const proxies = (env.AUTH_TRUSTED_PROXIES ?? "").split(",").map((s) => s.trim()).filter(Boolean);
   return [
     {
@@ -45,7 +47,18 @@ export function effectiveSettings(actor: Actor, env: Record<string, string | und
         { label: "Minimum password length", value: `${MIN_PASSWORD_LENGTH} characters`, source: "src/server/auth/config.ts" },
         { label: "Sign-in rate limit (per IP)", value: "5 attempts per minute", source: "src/server/auth/config.ts" },
         { label: "Sign-in throttle (per account)", value: `${DEFAULT_ACCOUNT_THROTTLE.maxAttempts} attempts per ${DEFAULT_ACCOUNT_THROTTLE.windowSeconds / 60} minutes, then a ${DEFAULT_ACCOUNT_THROTTLE.lockSeconds / 60}-minute lock`, source: "src/server/auth/account-throttle.ts" },
-        { label: "Self sign-up", value: "disabled; administrators create staff accounts", source: "src/server/auth/config.ts" },
+        {
+          label: "Google sign-in",
+          value: google ? "on: staff can sign in with Google" : "off: the Google OAuth client is not configured",
+          source: "GOOGLE_CLIENT_ID",
+        },
+        {
+          label: "Self sign-up",
+          value: google
+            ? "email and password sign-up is off; anyone with a verified Google account who signs in gets an account with no role, which opens nothing until an administrator adds a role"
+            : "off; administrators create staff accounts",
+          source: "src/server/auth/config.ts, src/server/auth/google-sign-in.ts",
+        },
         { label: "Trusted reverse proxies", value: proxies.length ? `${proxies.length} configured` : "none (socket address used)", source: "AUTH_TRUSTED_PROXIES" },
         { label: "Client IP header", value: env.AUTH_CLIENT_IP_HEADER || "x-forwarded-for (only from trusted proxies)", source: "AUTH_CLIENT_IP_HEADER" },
       ],

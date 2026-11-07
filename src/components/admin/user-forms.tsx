@@ -6,14 +6,14 @@
  *
  *  - `CreateStaffForm`: 44 px fields (no height overrides), labels above, hints in `text-credit`.
  *  - `UserRowActions`: the trailing 44 px row-action menu of the staff table. Each item opens a
- *    dialog. Removing a role and locking an account are destructive, so their dialogs ask for typed
+ *    dialog. Removing a role, locking an account and resetting a password are destructive, so their dialogs ask for typed
  *    confirmation (the account's email address) before the filled danger button will submit; the
  *    filled danger variant appears only there (9.1). Granting a role and unlocking an account are
  *    not destructive and need no typed confirmation.
  *  - Focus: closing a dialog returns focus to the row's menu button (the menu item that opened it no
  *    longer exists), and a polite live region announces the result.
  */
-import { ChevronDown, CircleAlert, Lock, LockOpen, ShieldMinus, ShieldPlus } from "lucide-react";
+import { ChevronDown, CircleAlert, KeyRound, Lock, LockOpen, ShieldMinus, ShieldPlus, TimerReset } from "lucide-react";
 import { createContext, useActionState, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 
 import { ActionForm, type FormAction } from "@/components/cms/action-form";
@@ -33,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ROLE_LABELS, STAFF_ROLES, type StaffRole } from "@/lib/permissions/roles";
-import { createStaffAction, grantRoleAction, lockStaffAction, revokeRoleAction, unlockStaffAction } from "@/server/admin/actions";
+import { clearSignInLockAction, createStaffAction, grantRoleAction, lockStaffAction, resetPasswordAction, revokeRoleAction, unlockStaffAction } from "@/server/admin/actions";
 
 function TextField({ name, label, type = "text", autoComplete, hint }: { name: string; label: string; type?: string; autoComplete?: string; hint?: string }) {
   const id = useId();
@@ -71,7 +71,7 @@ export function CreateStaffForm({ minPasswordLength }: { minPasswordLength: numb
           label="Initial password"
           type="password"
           autoComplete="new-password"
-          hint={`At least ${minPasswordLength} characters. Share it out of band; the person should change it after signing in.`}
+          hint={`At least ${minPasswordLength} characters. Share it out of band; the person can change it after signing in, from Change password in their account menu.`}
         />
         <FormField id={roleId} name="role" label="Initial role">
           <RoleSelect id={roleId} roles={STAFF_ROLES} describedBy={`${roleId}-error`} />
@@ -91,9 +91,11 @@ export interface RowUser {
   email: string;
   roles: readonly StaffRole[];
   locked: boolean;
+  signInLocked: boolean;
+  hasPassword: boolean;
 }
 
-type Pending = { kind: "grant" } | { kind: "revoke"; role: StaffRole } | { kind: "lock" } | { kind: "unlock" } | null;
+type Pending = { kind: "grant" } | { kind: "revoke"; role: StaffRole } | { kind: "lock" } | { kind: "unlock" } | { kind: "liftLock" } | { kind: "resetPassword" } | null;
 
 const AnnounceContext = createContext<((message: string) => void) | null>(null);
 
@@ -115,7 +117,7 @@ function useAnnounce(): (message: string) => void {
   return announce;
 }
 
-export function UserRowActions({ user, self, manageRoles }: { user: RowUser; self: boolean; manageRoles: boolean }) {
+export function UserRowActions({ user, self, manageRoles, minPasswordLength }: { user: RowUser; self: boolean; manageRoles: boolean; minPasswordLength: number }) {
   const [open, setOpen] = useState<Pending>(null);
   const announce = useAnnounce();
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -185,6 +187,18 @@ export function UserRowActions({ user, self, manageRoles }: { user: RowUser; sel
               Lock account…
             </DropdownMenuItem>
           )}
+          {user.signInLocked ? (
+            <DropdownMenuItem onSelect={() => setOpen({ kind: "liftLock" })}>
+              <TimerReset aria-hidden="true" />
+              Lift sign-in lock…
+            </DropdownMenuItem>
+          ) : null}
+          {!self && user.hasPassword ? (
+            <DropdownMenuItem variant="destructive" onSelect={() => setOpen({ kind: "resetPassword" })}>
+              <KeyRound aria-hidden="true" />
+              Reset password…
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -263,7 +277,78 @@ export function UserRowActions({ user, self, manageRoles }: { user: RowUser; sel
           </ActionForm>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={open?.kind === "liftLock"} {...dialogProps}>
+        <DialogContent {...contentProps}>
+          <DialogHeader>
+            <DialogTitle>Lift the sign-in lock</DialogTitle>
+            <DialogDescription>
+              Too many sign-in attempts have locked {user.name}&apos;s sign-in; the Status column shows until when. Lifting the lock lets them try again now. Their password, roles and
+              sessions do not change. The reason is written to the audit log.
+            </DialogDescription>
+          </DialogHeader>
+          <ActionForm action={announced(clearSignInLockAction)} submitLabel="Lift sign-in lock" pendingLabel="Lifting…" onDone={(s) => s.ok && done()}>
+            <input type="hidden" name="userId" value={user.id} />
+            <ReasonField label="Reason for lifting the lock" />
+          </ActionForm>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={open?.kind === "resetPassword"} {...dialogProps}>
+        <DialogContent {...contentProps}>
+          <DialogHeader>
+            <DialogTitle>Reset the password</DialogTitle>
+            <DialogDescription>
+              {user.name}&apos;s password is replaced by the one you enter, and every active session ends now. Share the new password out of band; they can change it
+              after signing in, from Change password in their account menu.
+            </DialogDescription>
+          </DialogHeader>
+          <ConfirmForm action={announced(resetPasswordAction)} hidden={{ userId: user.id }} confirmText={user.email} submitLabel="Reset password" pendingLabel="Resetting…" onDone={done}>
+            {(errors, ids) => (
+              <>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor={ids.password}>New password</Label>
+                  <Input
+                    id={ids.password}
+                    name="password"
+                    type="password"
+                    autoComplete="new-password"
+                    required
+                    minLength={minPasswordLength}
+                    maxLength={256}
+                    aria-invalid={errors.password ? true : undefined}
+                    aria-describedby={errors.password ? `${ids.password}-error` : undefined}
+                  />
+                  <FieldErrors id={`${ids.password}-error`} messages={errors.password} />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor={ids.reason}>Reason for the reset</Label>
+                  <Input
+                    id={ids.reason}
+                    name="reason"
+                    required
+                    minLength={3}
+                    maxLength={500}
+                    aria-invalid={errors.reason ? true : undefined}
+                    aria-describedby={errors.reason ? `${ids.reason}-error` : undefined}
+                  />
+                  <FieldErrors id={`${ids.reason}-error`} messages={errors.reason} />
+                </div>
+              </>
+            )}
+          </ConfirmForm>
+        </DialogContent>
+      </Dialog>
     </>
+  );
+}
+
+function ReasonField({ label }: { label: string }) {
+  const id = useId();
+  return (
+    <FormField id={id} name="reason" label={label}>
+      <Input id={id} name="reason" required minLength={3} maxLength={500} aria-describedby={`${id}-error`} />
+    </FormField>
   );
 }
 
@@ -310,13 +395,13 @@ function ConfirmForm({
   submitLabel: string;
   pendingLabel: string;
   onDone: () => void;
-  children?: (errors: Record<string, string[] | undefined>, ids: { reason: string }) => ReactNode;
+  children?: (errors: Record<string, string[] | undefined>, ids: { reason: string; password: string }) => ReactNode;
 }) {
   const [state, formAction, pending] = useActionState<ActionState, FormData>(action, null);
   const [typed, setTyped] = useState("");
   const errorRef = useRef<HTMLDivElement>(null);
   const base = useId();
-  const ids = { reason: `${base}-reason`, confirm: `${base}-confirm`, why: `${base}-why` };
+  const ids = { reason: `${base}-reason`, password: `${base}-password`, confirm: `${base}-confirm`, why: `${base}-why` };
   const matches = typed.trim().toLowerCase() === confirmText.trim().toLowerCase();
 
   useEffect(() => {

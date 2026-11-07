@@ -1,5 +1,6 @@
 /**
- * Staff account administration: list, create, lock/unlock, grant/revoke roles.
+ * Staff account administration: list, create, lock/unlock, lift sign-in locks, reset passwords,
+ * grant/revoke roles.
  *
  * Rules (foundation.md §1-2):
  *  - accounts are never hard-deleted (40 actor FKs keep provenance); an administrator locks one
@@ -18,6 +19,7 @@ import type { Pool, PoolClient } from "pg";
 import { z } from "zod";
 
 import { STAFF_ROLES, type StaffRole } from "@/lib/permissions/roles";
+import { clearSignInLock, knownDeviceThrottleKey, signInThrottleKey } from "@/server/auth/account-throttle";
 import { createStaffAccount } from "@/server/auth/bootstrap";
 import type { Auth } from "@/server/auth/config";
 import { MIN_PASSWORD_LENGTH } from "@/server/auth/config";
@@ -36,6 +38,19 @@ export interface StaffUserRow {
   roles: StaffRole[];
   activeSessions: number;
   signInMethods: string[];
+  signInLockedUntil: string | null;
+}
+
+async function activeSignInLocks(pool: Pool): Promise<Map<string, Date>> {
+  const r = await pool.query<{ email_sha256: string; locked_until: Date }>(
+    "SELECT email_sha256, locked_until FROM auth_sign_in_throttle WHERE locked_until > now()",
+  );
+  return new Map(r.rows.map((row) => [row.email_sha256, row.locked_until]));
+}
+
+function signInLockedUntil(locks: Map<string, Date>, email: string): string | null {
+  const until = [locks.get(signInThrottleKey(email)), locks.get(knownDeviceThrottleKey(email))].filter((d): d is Date => d !== undefined);
+  return until.length ? new Date(Math.max(...until.map((d) => d.getTime()))).toISOString() : null;
 }
 
 export async function listStaffUsers(pool: Pool, actor: Actor): Promise<StaffUserRow[]> {
@@ -48,6 +63,7 @@ export async function listStaffUsers(pool: Pool, actor: Actor): Promise<StaffUse
        FROM users u LEFT JOIN user_roles ur ON ur.user_id = u.id
       GROUP BY u.id ORDER BY lower(u.name), u.email`,
   );
+  const locks = await activeSignInLocks(pool);
   return r.rows.map((u) => ({
     id: u.id,
     name: u.name,
@@ -57,6 +73,7 @@ export async function listStaffUsers(pool: Pool, actor: Actor): Promise<StaffUse
     roles: u.roles ?? [],
     activeSessions: u.sessions,
     signInMethods: u.sign_in_methods ?? [],
+    signInLockedUntil: signInLockedUntil(locks, u.email),
   }));
 }
 
@@ -167,6 +184,57 @@ export async function unlockStaffUser(pool: Pool, actor: Actor, raw: z.input<typ
       before: { disabledAt: u.disabled_at.toISOString() },
       after: { disabled: false },
     });
+  });
+}
+
+export async function clearStaffSignInLock(pool: Pool, actor: Actor, raw: z.input<typeof lockInput>): Promise<{ wasLocked: boolean }> {
+  ensure(actor, "admin.users");
+  const input = lockInput.parse(raw);
+  return inActorTx(pool, actor, input.reason, async (c) => {
+    const u = await loadUser(c, input.userId);
+    const { wasLocked } = await clearSignInLock(drizzleOn(c), u.email);
+    if (!wasLocked) throw new CmsError("not_sign_in_locked", "This account has no sign-in lock to lift.", 409);
+    await audit(c, actor, {
+      action: "admin.sign_in_lock_cleared",
+      entity: "users",
+      entityId: u.id,
+      after: { wasLocked, via: "admin.users" },
+      reason: input.reason,
+    });
+    return { wasLocked };
+  });
+}
+
+export const resetPasswordInput = userIdInput.extend({
+  password: z
+    .string()
+    .min(MIN_PASSWORD_LENGTH, `Use at least ${MIN_PASSWORD_LENGTH} characters`)
+    .max(256),
+  reason: z.string().trim().min(3, "Give a reason (at least 3 characters)").max(500),
+});
+
+export async function resetStaffPassword(
+  deps: { pool: Pool; auth: Auth },
+  actor: Actor,
+  raw: z.input<typeof resetPasswordInput>,
+): Promise<{ sessionsEnded: number }> {
+  ensure(actor, "admin.users");
+  const input = resetPasswordInput.parse(raw);
+  if (input.userId === actor.userId) throw new CmsError("self_reset", "Change your own password from your account menu instead.", 409);
+  const hash = await (await deps.auth.$context).password.hash(input.password);
+  return inActorTx(deps.pool, actor, input.reason, async (c) => {
+    const u = await loadUser(c, input.userId);
+    const updated = await c.query("UPDATE auth_accounts SET password = $2, updated_at = now() WHERE user_id = $1 AND provider_id = 'credential'", [u.id, hash]);
+    if (!updated.rowCount) throw new CmsError("no_password", "This account signs in with Google only and has no password to reset.", 409);
+    const ended = await c.query("DELETE FROM auth_sessions WHERE user_id = $1", [u.id]);
+    await audit(c, actor, {
+      action: "admin.password_reset",
+      entity: "users",
+      entityId: u.id,
+      after: { sessionsEnded: ended.rowCount ?? 0 },
+      reason: input.reason,
+    });
+    return { sessionsEnded: ended.rowCount ?? 0 };
   });
 }
 

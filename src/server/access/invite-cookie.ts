@@ -3,9 +3,9 @@
  * invite code. Same HMAC token format as the demo and participant cookies (src/server/auth/signed-token.ts),
  * with its own purpose, so no other token verifies as an invite.
  *
- * Pure (secret passed explicitly, WebCrypto only), so src/proxy.ts can verify it on every request
- * without a database round trip. The server-side check (./site-access.ts) additionally confirms
- * the code has not been revoked.
+ * Pure (secret passed explicitly, WebCrypto only). src/proxy.ts and ./site-access.ts verify the
+ * signature here and then confirm in the database that the code has not been revoked
+ * (./gate-lookups.ts).
  */
 import { z } from "zod";
 

@@ -12,11 +12,14 @@ import { formObject, runAction } from "@/server/cms/run-action";
 import { getDb } from "@/server/db/client";
 
 import {
+  clearStaffSignInLock,
   createStaffInput,
   createStaffUser,
   grantStaffRole,
   lockInput,
   lockStaffUser,
+  resetPasswordInput,
+  resetStaffPassword,
   revokeStaffRole,
   roleInput,
   unlockStaffUser,
@@ -71,6 +74,24 @@ export async function unlockStaffAction(_prev: ActionState, fd: FormData): Promi
     await unlockStaffUser(pool, actor, input);
     return "Account unlocked.";
   });
+}
+
+export async function clearSignInLockAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  return runAction("admin.users", lockInput, formObject(fd), async ({ actor, pool }, input) => {
+    await clearStaffSignInLock(pool, actor, input);
+    return "Sign-in lock lifted. The account can sign in again now.";
+  });
+}
+
+export async function resetPasswordAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const raw = formObject(fd);
+  return withConfirmField(
+    await runAction("admin.users", resetPasswordInput, raw, async ({ actor, pool }, input) => {
+      await assertConfirmed(pool, input.userId, raw.confirm);
+      const res = await resetStaffPassword({ pool, auth: getAuth() }, actor, input);
+      return `Password reset; ${res.sessionsEnded} active session(s) ended. Share the new password out of band; the person can change it from their account menu.`;
+    }),
+  );
 }
 
 export async function grantRoleAction(_prev: ActionState, fd: FormData): Promise<ActionState> {

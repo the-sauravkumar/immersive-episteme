@@ -138,7 +138,7 @@ export function RevokeInviteButton({ inviteId, label, hint }: { inviteId: string
           <DialogHeader>
             <DialogTitle>Revoke this code</DialogTitle>
             <DialogDescription>
-              The code for {label} stops working now: nobody can redeem it, and browsers that already used it are refused at their next study or demo start. This
+              The code for {label} stops working now: nobody can redeem it, and every browser that already used it, including a participant part-way through a study, is sent to the invite page on its next request. This
               cannot be undone; create a new code instead.
             </DialogDescription>
           </DialogHeader>

@@ -400,7 +400,7 @@ This builds what `/explore` and the professor's review of the deployed site show
 1. imports `content/` (concepts, claims, relationships, sources, media candidates; state `under_review`);
 2. builds the **review** snapshot (draft, never publishable);
 3. compiles the spatial manifests: the three shortlisted traditions together, and each alone;
-4. creates the demo study `demo-review-walkthrough` (`is_demo`, non-experimental, draft) pinned to that snapshot and the combined manifest. `/explore` and the staff preview read the newest review snapshot and the demo study pinned to it (`findPreviewContent` in `src/server/learning/context-data.ts`).
+4. creates the demo study `demo-review-walkthrough` (`is_demo`, non-experimental, draft) pinned to that snapshot and the combined manifest. `/explore` and the staff preview read the newest review snapshot that a demo study is pinned to, and that demo study (`findPreviewContent` in `src/server/learning/context-data.ts`). A review snapshot rebuilt from **CMS → Dataset versions → Rebuild review snapshot** has no demo study and is used only for comparison (DR-114).
 
 Unlike `dev:bootstrap` it **never** migrates (or touches a test database), never loads the demo seed, never creates staff, test or demo users or passwords, and never creates participants.
 
@@ -449,6 +449,8 @@ unset ADMIN_PASSWORD
 
 The role defaults to `platform_admin`. The script is idempotent: an existing account keeps its password and gains the role. Further staff (researchers, curators): sign in as the admin → **Admin → Users**.
 
+**Passwords and sign-in locks (DR-114).** A staff member changes their own password from the account menu → **Change password** (their other sessions end). An administrator who must replace someone's password uses **Admin → Users** → row menu → **Reset password…** (typed confirmation and a reason; every session of that account ends; the audit log records who did it, never the password). After 10 failed sign-ins in 15 minutes an account's sign-in is locked for 15 minutes; Admin → Users shows **Sign-in locked** with the time, and row menu → **Lift sign-in lock…** clears it with a reason in the audit log. `scripts/unlock-account.ts` does the same from the command line.
+
 ### 6.2 Invite Codes in Admin → Access
 
 The site is **always invite-only**. Until a code exists, only signed-in staff can open it.
@@ -466,7 +468,7 @@ The site is **always invite-only**. Until a code exists, only signed-in staff ca
 | Site link | `https://<domain>/?invite=<CODE>` | reviewers, guests |
 | Participant link (when a study was chosen) | `https://<domain>/study?code=<study-slug>&invite=<CODE>` | participants: one link opens the study with the invite included, so they see no extra step |
 
-What happens (`src/proxy.ts`): any gated URL with `?invite=<code>` goes to `/invite/redeem`, which checks the code, sets a signed, HttpOnly, Secure, SameSite=Lax cookie (valid 30 days) and redirects to the same URL without the code. A bad, expired, revoked or used-up code sets nothing and lands on `/invite`. Visitors without the cookie are redirected to `/invite`. Staff pass by signing in and never need a code. The gate sits before consent and allocation, identical in both conditions.
+What happens (`src/proxy.ts`): any gated URL with `?invite=<code>` goes to `/invite/redeem`, which checks the code, sets a signed, HttpOnly, Secure, SameSite=Lax cookie (valid 30 days) and redirects to the same URL without the code. A bad, expired, revoked or used-up code sets nothing and lands on `/invite`. Visitors without the cookie are redirected to `/invite`. On every page request the proxy checks the cookie's signature and then asks the database whether its code has been revoked, so revoking a code sends every browser that used it, including a participant part-way through a study, to `/invite` on its next request (DR-114). Staff pass by signing in and never need a code: the proxy confirms the session in the database and admits it only when the account holds a staff role. If the database cannot be reached the gate answers 503 rather than guessing. The gate sits before consent and allocation, identical in both conditions.
 
 **Check by hand in a private window:** no code → `/invite`; the link admits you; an expired or revoked code is refused; staff sign-in works without a code.
 
@@ -495,7 +497,7 @@ Staff can sign in with Google as well as with email and password. Participants n
 |---|---|
 | Google email matches an existing staff account, and Google says the email is verified | Google is joined to that account; it signs in with its existing roles |
 | Google email matches an existing staff account, but is not verified by Google | Not joined, no session; the sign-in page says to use the password |
-| New Google account with a verified email | An account with **no role** is made; it lands on "Your account is waiting for an administrator". It cannot start a study, a demo or any staff page: the server-side invite gate admits a signed-in account only when it holds a staff role (DR-105). The proxy cannot read roles, so its session cookie still lets it read the public information pages |
+| New Google account with a verified email | An account with **no role** is made; it lands on "Your account is waiting for an administrator". It cannot open any gated page, start a study, a demo or any staff page: the invite gate admits a signed-in account only when it holds a staff role (DR-105, DR-114) |
 | New Google account with an unverified email | No account is made |
 | Locked account (`disabled_at` set) | No session, by either method |
 
@@ -636,7 +638,7 @@ unset URL
 - **App:** `npx vercel@60.1.3 rollback`. "On the hobby plan, you can only roll back to the previous production deployment." Undo with `npx vercel@60.1.3 promote <deployment-url>` (https://vercel.com/docs/cli/rollback).
 - **Env variable:** push the old value with `push-env.ps1 -Only NAME -Force -Yes`, then redeploy.
 - **Database:** a rollback does not undo migrations. Restore the pre-migration snapshot (A) or dump (B) only when the lead asks.
-- **Leaked invite code:** Admin → Access → Revoke (takes effect for new visitors immediately). **Leaked `BETTER_AUTH_SECRET`:** new value, push, redeploy; everyone is signed out and must redeem their invite again.
+- **Leaked invite code:** Admin → Access → Revoke. It takes effect at once for new visitors and, on their next request, for every browser that already used the code, including participants part-way through a study (DR-114). **Leaked `BETTER_AUTH_SECRET`:** new value, push, redeploy; everyone is signed out and must redeem their invite again.
 - **Leaked bucket key:** delete it (IAM user key, or R2 token), create a new one, push, redeploy.
 - **Remove everything** (lead's request only): Vercel project; Option A: RDS (deletion keeps a final snapshot), bucket, IAM user, budget; Option B: Neon project (deletes the data), R2 token, then bucket.
 

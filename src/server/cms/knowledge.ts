@@ -259,6 +259,12 @@ export async function updateConcept(pool: Pool, actor: Actor, input: z.infer<typ
  * asset goes back to review, because the reviewed "caption restates its anchor claim" no longer
  * holds. Both are audited.
  */
+function isSinglePassage(keptJson: string | undefined, quote: string): boolean {
+  if (!keptJson) return false;
+  const kept: unknown = JSON.parse(keptJson);
+  return Array.isArray(kept) && kept.length === 1 && typeof kept[0]?.quote === "string" && kept[0].quote.trim() === quote.trim();
+}
+
 export async function saveClaims(pool: Pool, actor: Actor, conceptId: string, claims: readonly z.infer<typeof cmsClaimSchema>[]): Promise<{ summary: string }> {
   ensure(actor, "content.edit");
   return inActorTx(pool, actor, null, async (c) => {
@@ -303,13 +309,13 @@ export async function saveClaims(pool: Pool, actor: Actor, conceptId: string, cl
     for (const [i, cl] of claims.entries()) {
       const r = await c.query<{ id: string }>("INSERT INTO concept_claims (concept_id, position, text, quote) VALUES ($1, $2, $3, $4) RETURNING id", [conceptId, i, cl.text, cl.quote]);
       for (const s of cl.sources) {
-        // The curator's quote for this citation wins; else passages kept from an unchanged citation.
-        const own = s.quote ? JSON.stringify([{ locator: s.locator, quote: s.quote }]) : null;
+        const kept = evidenceFor.get(evidenceKey(cl.text, s.sourceId, s.locator));
+        const own = s.quote && !isSinglePassage(kept, s.quote) ? JSON.stringify([{ locator: s.locator, quote: s.quote }]) : null;
         await c.query("INSERT INTO concept_claim_sources (claim_id, source_id, locator, evidence) VALUES ($1, $2, $3, $4::jsonb)", [
           r.rows[0]!.id,
           s.sourceId,
           s.locator,
-          own ?? evidenceFor.get(evidenceKey(cl.text, s.sourceId, s.locator)) ?? "[]",
+          own ?? kept ?? "[]",
         ]);
       }
     }

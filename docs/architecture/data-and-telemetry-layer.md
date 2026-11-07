@@ -114,7 +114,7 @@ stale. Results are plain serialisable objects; types are exported from
   `ctx.unverifiedContent` (or `info.includesUnverified`) is true, pages must label the content as
   not yet verified by a curator.
 - DB-level helpers (not cached, usable from scripts/tests): `loadSnapshotPayload`,
-  `searchSnapshotConcepts`, `latestReviewSnapshotId` in `src/server/knowledge/snapshot-store.ts`.
+  `searchSnapshotConcepts` in `src/server/knowledge/snapshot-store.ts`. A review snapshot is rebuilt by `npm run content:import` or by Rebuild review snapshot on CMS > Dataset versions (DR-114).
 
 ## 3. Spatial manifests
 

@@ -11,8 +11,9 @@
  *  - a redemption is ONE conditional UPDATE (not revoked, not expired, under the use limit), so
  *    concurrent redemptions cannot exceed `max_uses`; a refused code says nothing about why, so
  *    the answer does not reveal whether a code exists;
- *  - revocation is immediate for new redemptions AND for browsers that already redeemed the code
- *    (the server-side check reads `revoked_at`); expiry only ends redemption: an invite cookie
+ *  - revocation is immediate for new redemptions AND for browsers that already redeemed the code:
+ *    the proxy reads `revoked_at` on every gated request (src/proxy.ts, DR-114), so a holder is
+ *    sent to /invite on their next request; expiry only ends redemption: an invite cookie
  *    issued before the expiry stays valid for its own 30 days, so a participant is never shut out
  *    in the middle of a session because the code's sign-up window closed.
  *

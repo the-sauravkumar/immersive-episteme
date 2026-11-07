@@ -1,9 +1,9 @@
 /**
- * Next.js 16 Proxy (formerly middleware). CHEAP CHECKS ONLY: it looks for the presence of the
- * relevant cookie and redirects early so an anonymous visitor never waits on a render. It never
- * decides authorisation: cookies are not verified here. Real checks run server-side in the
- * layouts AND pages (src/components/shell/gates.tsx -> src/server/auth/staff.ts,
- * learning-access.ts) and in route handlers.
+ * Next.js 16 Proxy (formerly middleware). Staff areas and the participant steps get presence
+ * checks only: they redirect early so an anonymous visitor never waits on a render, and the real
+ * checks run server-side in the layouts AND pages (src/components/shell/gates.tsx ->
+ * src/server/auth/staff.ts, learning-access.ts) and in route handlers. The invite gate below is
+ * the exception: it is decided here, against the database.
  *
  * It also forbids framing of the staff sign-in surfaces (clickjacking of the credential form),
  * matching what next.config.ts sends for /admin, /research and /cms, and on its own redirects
@@ -14,16 +14,18 @@
  * rate-limit bucket by sending a fresh `X-Forwarded-For` on every attempt. With the header
  * gone, Next.js fills `x-forwarded-for` from the socket address.
  *
- * INVITE GATE (deployment source change S11; docs/deploy/RUNBOOK.md "Invite-only access"). The site
- * is always invite-only; there is no open mode. Every page outside the exempt list
- * (src/lib/access/invite-paths.ts: /invite, /sign-in, /sign-out, /forbidden, /awaiting-access, /console, /api, static
- * assets) needs either an invite cookie whose HMAC signature verifies here (no database round
- * trip) or a staff session cookie (presence only; staff areas redirect to /sign-in as before, so
- * staff never need a code). Without one, GET/HEAD redirect to /invite?next=<path> and other
- * methods get 403. `?invite=<code>` on any gated URL is rewritten to the redeem route
- * (/invite/redeem), which sets the cookie and redirects to the same URL without the code. The
- * server-side half (src/server/access/site-access.ts) re-checks with the database where sessions
- * are created. The gate runs before consent and allocation and is identical in both conditions.
+ * INVITE GATE (deployment source change S11, DR-114; docs/deploy/RUNBOOK.md "Invite-only access").
+ * The site is always invite-only; there is no open mode. Every page outside the exempt list
+ * (src/lib/access/invite-paths.ts: /invite, /sign-in, /sign-out, /forbidden, /awaiting-access,
+ * /console, /api, static assets) needs either an invite cookie whose HMAC signature verifies AND
+ * whose code is not revoked in the database, or a staff session that the database confirms and
+ * that holds a staff role (src/server/access/gate-lookups.ts). Both are checked on every gated
+ * request, so revoking a code locks out every browser that redeemed it on its next request.
+ * Without access, GET/HEAD redirect to /invite?next=<path> and other methods get 403; when the
+ * database cannot be reached the gate answers 503. `?invite=<code>` on any gated URL is rewritten
+ * to the redeem route (/invite/redeem), which sets the cookie and redirects to the same URL
+ * without the code. The gate runs before consent and allocation and is identical in both
+ * conditions.
  */
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
@@ -39,6 +41,7 @@ import {
 } from "@/lib/access/invite-paths";
 import { clientIpPolicy, stripClientIpHeaders } from "@/lib/client-ip";
 import { contentSecurityPolicy, isDevBuild } from "@/lib/security/csp";
+import { inviteIsLive, sessionHoldsStaffRole } from "@/server/access/gate-lookups";
 import { verifyInviteAccess } from "@/server/access/invite-cookie";
 import { AUTH_COOKIE_PREFIX, DEMO_COOKIE, INVITE_COOKIE, PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
 
@@ -68,14 +71,23 @@ function authApi(request: NextRequest): NextResponse {
   return NextResponse.next({ request: { headers } });
 }
 
-/** A signed, unexpired invite cookie (signature only: revocation is checked server-side). */
 async function hasInviteCookie(request: NextRequest): Promise<boolean> {
   const token = request.cookies.get(INVITE_COOKIE)?.value;
   if (!token) return false;
-  // Read directly (not serverEnv()): the proxy must not fail on unrelated variables. No secret
-  // means no valid cookie (fail closed).
   const verified = await verifyInviteAccess(token, process.env.BETTER_AUTH_SECRET ?? "");
-  return verified.ok;
+  return verified.ok && (await inviteIsLive(verified.claims.inviteId));
+}
+
+type SiteAccess = "admitted" | "refused" | "unavailable";
+
+async function siteAccess(request: NextRequest, hasStaffCookie: boolean): Promise<SiteAccess> {
+  try {
+    if (await hasInviteCookie(request)) return "admitted";
+    return hasStaffCookie && (await sessionHoldsStaffRole(request.headers)) ? "admitted" : "refused";
+  } catch (error) {
+    console.error("[proxy] site access check failed", error);
+    return "unavailable";
+  }
 }
 
 const NO_STORE = { "Cache-Control": "no-store" };
@@ -100,8 +112,14 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   if (isInviteExemptPath(pathname)) return NextResponse.next();
 
-  // ---- Invite gate (S11) -----------------------------------------------------------------------
-  const invited = hasStaffCookie || (await hasInviteCookie(request));
+  const access = await siteAccess(request, hasStaffCookie);
+  if (access === "unavailable") {
+    return new NextResponse("The site is temporarily unavailable. Try again in a few minutes.", {
+      status: 503,
+      headers: { ...NO_STORE, "Content-Type": "text/plain; charset=utf-8", "Retry-After": "60" },
+    });
+  }
+  const invited = access === "admitted";
   const readOnly = request.method === "GET" || request.method === "HEAD";
   const code = request.nextUrl.searchParams.get(INVITE_PARAM);
   if (code !== null && readOnly) {

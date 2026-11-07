@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { requirePermission } from "@/server/auth/staff";
-import { publishReleaseAction } from "@/server/cms/actions";
+import { publishReleaseAction, rebuildReviewSnapshotAction } from "@/server/cms/actions";
 import { diffBundles, type BundleDiff, type KindDiff } from "@/server/cms/diff";
 import { listSnapshots, snapshotBundle, type SnapshotRowView } from "@/server/cms/queries";
 import { releaseReadiness } from "@/server/cms/release";
@@ -48,6 +48,7 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
   const a = one(sp.a);
   const b = one(sp.b);
   const comparable = snapshots.filter((s) => s.status === "published" || s.kind === "review");
+  const latestReview = snapshots.find((s) => s.kind === "review");
 
   return (
     <div className="flex flex-col gap-6">
@@ -117,6 +118,15 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
         </ActionForm>
       </Section>
 
+      <Section
+        id="review-snapshot"
+        title="Review snapshot"
+        description="A frozen copy of everything in the review pipeline, for comparing with releases. It never changes by itself: rebuild it after editing. It is never publishable. The staff and demo previews stay on the snapshot that the command-line content import pinned the demo study to."
+      >
+        <p className="text-body">{latestReview ? reviewSnapshotLine(latestReview) : "No review snapshot has been built yet."}</p>
+        <ActionForm action={rebuildReviewSnapshotAction} submitLabel="Rebuild review snapshot" pendingLabel="Building…" submitVariant="outline" />
+      </Section>
+
       <Section id="versions" title="Versions">
         <VersionsTable rows={snapshots} />
       </Section>
@@ -157,6 +167,10 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
       </Section>
     </div>
   );
+}
+
+function reviewSnapshotLine(s: SnapshotRowView): string {
+  return `Latest: ${s.versionLabel}, ${s.itemCount} items, built ${fmt.format(new Date(s.createdAt))} UTC ${s.createdBy ? `by ${s.createdBy}` : "by the command-line content import"}.`;
 }
 
 function VersionsTable({ rows }: { rows: SnapshotRowView[] }) {

@@ -9,17 +9,11 @@ import type { Metadata } from "next";
 import { EditorialFrame, EditorialRow, EditorialSection, Prose } from "@/components/public/editorial-frame";
 import { Sidenote } from "@/components/public/sidenote";
 import { PageHeader } from "@/components/shell/page-header";
-import { DEMO_SESSION_TTL_SECONDS } from "@/server/auth/demo-session";
-import { PARTICIPANT_SESSION_TTL_SECONDS } from "@/server/auth/participant-session-token";
+import { duration, STAFF_COOKIES, VISITOR_COOKIES } from "@/server/public/cookie-inventory";
 
 export const metadata: Metadata = { title: "Privacy" };
 
 const LIST = "text-reading flex list-disc flex-col gap-2 pl-6 text-ink marker:text-ink-3";
-
-const hours = (seconds: number) => {
-  const h = Math.round(seconds / 3600);
-  return `${h} ${h === 1 ? "hour" : "hours"}`;
-};
 
 export default function PrivacyPage() {
   return (
@@ -63,19 +57,21 @@ export default function PrivacyPage() {
               </Sidenote>
             }
           >
-            <Prose>The platform sets only the cookies it needs to work:</Prose>
+            <Prose>The platform sets only the cookies it needs to work. For participants and visitors:</Prose>
             <ul className={LIST}>
-              <li>
-                <span className="font-semibold">Study session</span>: your pseudonymous identifier and condition during one sitting, for at most{" "}
-                {hours(PARTICIPANT_SESSION_TTL_SECONDS)}.
-              </li>
-              <li>
-                <span className="font-semibold">Demo</span>: that you started the public demo, for at most {hours(DEMO_SESSION_TTL_SECONDS)}. It holds
-                no personal data.
-              </li>
-              <li>
-                <span className="font-semibold">Staff sign-in</span>: for researchers, curators and administrators only.
-              </li>
+              {VISITOR_COOKIES.map((c) => (
+                <li key={c.name}>
+                  <span className="font-semibold">{c.name}</span>: {c.purpose}, for at most {duration(c.seconds)}.
+                </li>
+              ))}
+            </ul>
+            <Prose>For researchers, curators and administrators only:</Prose>
+            <ul className={LIST}>
+              {STAFF_COOKIES.map((c) => (
+                <li key={c.name}>
+                  <span className="font-semibold">{c.name}</span>: {c.purpose}, for at most {duration(c.seconds)}.
+                </li>
+              ))}
             </ul>
             <Prose>
               Your browser also keeps, on this device only, your display settings and, during a study,
@@ -87,8 +83,10 @@ export default function PrivacyPage() {
         <EditorialSection id="staff" title="Research team accounts">
           <EditorialRow>
             <Prose>
-              Staff sign in with an email address and password. Their name, email address and roles are stored so that each person sees only the
-              parts of the platform their role allows, and changes to content and settings are recorded with who made them.
+              Staff sign in with an email address and password or, when the team has turned it on, with a Google account. Google then gives the
+              platform the account&rsquo;s name, email address and profile picture link. A staff member&rsquo;s name, email address and roles are stored
+              so that each person sees only the parts of the platform their role allows, and changes to content and settings are recorded with who
+              made them.
             </Prose>
           </EditorialRow>
         </EditorialSection>

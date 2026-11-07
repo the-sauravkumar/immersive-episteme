@@ -15,11 +15,10 @@
  */
 import { z } from "zod";
 
-import { ASSET_KINDS, ASSET_LINK_ROLES, MEDIA_CANDIDATE_STATUSES, PROVENANCE_KINDS } from "@/lib/validation/enums";
+import { ASSET_KINDS, PROVENANCE_KINDS } from "@/lib/validation/enums";
 import { httpUrlSchema, nonBlank, sha256Schema, uuidSchema } from "@/lib/validation/primitives";
 
 export const assetKindSchema = z.enum(ASSET_KINDS);
-export const assetLinkRoleSchema = z.enum(ASSET_LINK_ROLES);
 export const mimeTypeSchema = z.string().regex(/^[a-z]+\/[a-z0-9][a-z0-9.+-]*$/);
 
 /** 500 MiB upper bound for any single upload (3D models with textures included). */
@@ -117,20 +116,5 @@ export const assetVersionInputSchema = z.object({
   height: z.number().int().positive().nullish(),
 });
 
-export const assetLinkInputSchema = z.object({
-  assetId: uuidSchema,
-  conceptId: uuidSchema,
-  role: assetLinkRoleSchema.default("illustration"),
-  /** For `illustration`: the anchor claim index (zero-based); the figure renders after that claim. */
-  position: z.number().int().min(0).default(0),
-  captionOverride: z.string().max(2000).nullish(),
-});
-
 /** The anchor claim index of an illustration link (its `position`), or null for other roles. */
 export const anchorClaimIndexOf = (l: { role: string; position: number }): number | null => (l.role === "illustration" ? l.position : null);
-
-export const mediaCandidateReviewSchema = z.object({
-  candidateId: uuidSchema,
-  status: z.enum(MEDIA_CANDIDATE_STATUSES),
-  notes: z.string().max(2000).nullish(),
-});

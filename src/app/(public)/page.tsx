@@ -24,34 +24,24 @@ import { InstitutionStrip } from "@/components/public/institution-strip";
 import { TraditionIndex } from "@/components/public/tradition-plates";
 import { Button } from "@/components/ui/button";
 import { INSTITUTION } from "@/config/institution";
-import { countWord, getDatasetStats } from "@/server/public/dataset-stats";
+import { countWord, getDatasetStats, homeDeck } from "@/server/public/dataset-stats";
 import { titleCase } from "@/lib/text/title-case";
-
-const DECK_TAIL = "as one cited body of knowledge, learned two ways.";
 
 const LINK =
   "text-ui inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[0.2em] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-indigo-hover hover:decoration-2";
 
-/** "A, B and C". */
-function listOf(items: readonly string[]): string {
-  if (items.length <= 1) return items.join("");
-  return `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
-}
-
 async function Deck() {
   const stats = await getDatasetStats();
   if (!stats || stats.traditions.length === 0) return <DeckFallback />;
-  const names = stats.traditions.map((t) => t.shortName);
-  const lead = countWord(names.length);
   return (
     <p className="text-deck max-w-[36rem]" data-live="true">
-      {`${lead.charAt(0).toUpperCase()}${lead.slice(1)} traditions of Indian hand-block printing, ${listOf(names)}, ${DECK_TAIL}`}
+      {homeDeck(stats.traditions)}
     </p>
   );
 }
 
 function DeckFallback() {
-  return <p className="text-deck max-w-[36rem]">{`Traditions of Indian hand-block printing ${DECK_TAIL}`}</p>;
+  return <p className="text-deck max-w-[36rem]">Traditions of Indian hand-block printing as one cited body of knowledge, with two learning conditions built from it.</p>;
 }
 
 async function FigureOneLive() {
@@ -152,8 +142,9 @@ export default function HomePage() {
             <FigureOneLive />
           </Suspense>
           <figcaption className="text-caption max-w-[48rem]">
-            <span className="font-bold text-ink">{chartFigureLabel(1)}.</span> One knowledge model, with its live counts, compiled into two learning
-            conditions of equal weight: a visual course and a walkthrough.
+            <span className="font-bold text-ink">{chartFigureLabel(1)}.</span> One knowledge model, with its live counts for every tradition in the
+            dataset. The two learning conditions of equal weight, a visual course and a walkthrough, are compiled from it and teach only the study traditions
+            named above.
           </figcaption>
         </figure>
         <ul className="grid gap-x-6 gap-y-8 md:grid-cols-2" aria-label="The two conditions">

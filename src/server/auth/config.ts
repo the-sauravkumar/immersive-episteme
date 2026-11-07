@@ -33,6 +33,7 @@ import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 import { authAccounts, authRateLimits, authSessions, authVerifications, users } from "@db/schema/auth";
+import { ACCOUNT_THROTTLED_CODE, accountThrottledMessage } from "@/lib/access/sign-in-errors";
 import type { GoogleOAuthCredentials } from "@/lib/env";
 
 import {
@@ -87,7 +88,8 @@ const SIGN_IN_ERROR_PATH = "/sign-in";
  * value is the account's throttle key (sha256 of the email), never the address itself.
  */
 export const KNOWN_DEVICE_COOKIE = "known_device";
-const KNOWN_DEVICE_MAX_AGE = 60 * 60 * 24 * 90;
+export const KNOWN_DEVICE_MAX_AGE = 60 * 60 * 24 * 90;
+export const STAFF_SESSION_SECONDS = 60 * 60 * 12;
 
 export function createAuth(opts: CreateAuthOptions) {
   const { db } = opts;
@@ -118,7 +120,7 @@ export function createAuth(opts: CreateAuthOptions) {
       },
     },
     session: {
-      expiresIn: 60 * 60 * 12,
+      expiresIn: STAFF_SESSION_SECONDS,
       updateAge: 60 * 60,
     },
     rateLimit: {
@@ -155,7 +157,7 @@ export function createAuth(opts: CreateAuthOptions) {
         if (!decision.allowed) {
           throw new APIError(
             "TOO_MANY_REQUESTS",
-            { message: "Too many sign-in attempts for this account. Try again later.", code: "ACCOUNT_THROTTLED" },
+            { message: accountThrottledMessage(decision.retryAfterSeconds), code: ACCOUNT_THROTTLED_CODE },
             { "Retry-After": String(decision.retryAfterSeconds) },
           );
         }

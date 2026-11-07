@@ -15,16 +15,21 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { CmsError, type Actor } from "../../src/server/cms/core";
 import {
+  countAssets,
   createAssetFromBytes,
   FIGURE_MAX_AGE,
+  findAsset,
   figureMaxAge,
   freezeReleaseFigures,
   linkAssetToConcept,
+  listAssets,
   listIllustrationLinks,
+  listMediaCandidates,
   listSnapshotFigureAssets,
   listSnapshotPhotoLinks,
   loadLearnerFigure,
   MEDIA_EVIDENCE_CHECKS,
+  recordCandidateImport,
   reviewAsset,
   reviewMediaCandidate,
   submitAssetForReview,
@@ -368,5 +373,43 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     await reviewMediaCandidate(t.pool, curator, { candidateId: c.id, status: "approved", notes: "Licence checked on the file page" });
     const row = await one<{ status: string; notes: string }>(t.pool, "SELECT status, notes FROM media_candidates WHERE id = $1", [c.id]);
     expect(row).toEqual({ status: "approved", notes: "Licence checked on the file page" });
+
+    const pending = await one<{ id: string }>(
+      t.pool,
+      "INSERT INTO media_candidates (package_id, url, title, licence) VALUES ($1, 'https://commons.wikimedia.org/wiki/File:B.jpg', 'B', 'CC BY 4.0') RETURNING id",
+      [pkg.id],
+    );
+    const asset = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(800, 600, 90), declaredMime: "image/png", metadata: META });
+    expect(await code(recordCandidateImport(t.pool, { userId: editor.userId, roles: ["researcher"] }, { candidateId: c.id, assetId: asset.id }))).toBe("forbidden");
+    expect(await code(recordCandidateImport(t.pool, editor, { candidateId: pending.id, assetId: asset.id }))).toBe("invalid_transition");
+    await recordCandidateImport(t.pool, editor, { candidateId: c.id, assetId: asset.id });
+    expect(await one(t.pool, "SELECT status::text AS status, asset_id FROM media_candidates WHERE id = $1", [c.id])).toEqual({ status: "imported", asset_id: asset.id });
+    expect((await listMediaCandidates(t.pool)).find((x) => x.id === c.id)).toMatchObject({ status: "imported", assetId: asset.id, assetTitle: META.title });
+    expect(await one(t.pool, "SELECT actor_id FROM audit_log WHERE action = 'media.candidate_imported' AND entity_id = $1", [c.id])).toEqual({ actor_id: editor.userId });
+    expect(await code(reviewMediaCandidate(t.pool, curator, { candidateId: c.id, status: "candidate" }))).toBe("invalid_transition");
+    expect(await code(recordCandidateImport(t.pool, editor, { candidateId: c.id, assetId: asset.id }))).toBe("invalid_transition");
+  });
+
+  it("pages the library and opens any asset by id, however old (DR-114)", async () => {
+    const total = await countAssets(t.pool);
+    expect(total).toBeGreaterThan(2);
+    const first = await listAssets(t.pool, { limit: 2 });
+    const second = await listAssets(t.pool, { limit: 2, offset: 2 });
+    expect(first).toHaveLength(2);
+    expect(second.map((a) => a.id)).not.toContain(first[0]!.id);
+    const oldest = (await listAssets(t.pool, { limit: total }))[total - 1]!;
+    expect(first.map((a) => a.id)).not.toContain(oldest.id);
+    expect((await findAsset(t.pool, oldest.id))?.id).toBe(oldest.id);
+    expect(await findAsset(t.pool, "not-a-uuid")).toBeNull();
+  });
+
+  it("lets a screen set and keep a link's caption for one concept (DR-114)", async () => {
+    const g = await createRealGraph(t.pool, { prefix: "mcap" });
+    const a = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(768, 512, 91), declaredMime: "image/png", metadata: META });
+    const form = { assetId: a.id, conceptId: g.conceptIds[0]!, role: "illustration" as const, position: 0 };
+    await linkAssetToConcept(t.pool, editor, { ...form, captionOverride: "Caption for this concept" });
+    expect((await findAsset(t.pool, a.id))!.links[0]).toMatchObject({ captionOverride: "Caption for this concept" });
+    await linkAssetToConcept(t.pool, editor, { ...form, captionOverride: "" });
+    expect((await findAsset(t.pool, a.id))!.links[0]).toMatchObject({ captionOverride: null });
   });
 });

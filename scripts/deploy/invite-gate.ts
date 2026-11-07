@@ -33,6 +33,7 @@ export function inviteGateProblems(repoRoot: string): string[] {
     [/import\s*\{[^}]*\bverifyInviteAccess\b[^}]*\}\s*from\s*["']@\/server\/access\/invite-cookie["']/, "src/proxy.ts does not import verifyInviteAccess"],
     [/import\s*\{[^}]*\bisInviteExemptPath\b[^}]*\}\s*from\s*["']@\/lib\/access\/invite-paths["']/, "src/proxy.ts does not import isInviteExemptPath"],
     [/await\s+hasInviteCookie\(\s*request\s*\)/, "src/proxy.ts never checks the invite cookie"],
+    [/await\s+inviteIsLive\(/, "src/proxy.ts never checks that the invite code is not revoked"],
     [/if\s*\(\s*!invited\s*\)/, "src/proxy.ts has no branch refusing visitors without an invite"],
     [/invitePath\(/, "src/proxy.ts never redirects to the invite page"],
   ];

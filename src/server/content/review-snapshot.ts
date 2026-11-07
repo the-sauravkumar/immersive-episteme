@@ -337,11 +337,15 @@ export async function storeReviewSnapshot(
     );
     await client.query(
       `INSERT INTO audit_log (actor_kind, actor_id, action, entity, entity_id, after, reason)
-       VALUES ('system', 'content-importer', 'snapshot.review_built', 'content_snapshots', $1, $2::jsonb, $3)`,
+       VALUES ($4, $5, 'snapshot.review_built', 'content_snapshots', $1, $2::jsonb, $3)`,
       [
         id,
         JSON.stringify({ versionLabel: e.versionLabel, contentSha256: e.contentSha256, payloadSha256: ins.rows[0]!.payload_sha256, items: e.itemCount, verificationCounts: e.verificationCounts, integrity: e.integrity }),
-        "review snapshot built from the database (not publishable, not for use in a study)",
+        opts.createdBy
+          ? "review snapshot rebuilt from the CMS by a staff member (not publishable, not for use in a study)"
+          : "review snapshot built from the database (not publishable, not for use in a study)",
+        opts.createdBy ? "user" : "system",
+        opts.createdBy ?? "content-importer",
       ],
     );
     await client.query("COMMIT");

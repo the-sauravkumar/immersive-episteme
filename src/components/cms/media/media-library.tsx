@@ -7,21 +7,21 @@
  *     Licence Expiry (tabular date; expiring rows flagged with --warn and the word), Linked
  *     Concept, Anchor Claim, Tradition and Layer;
  *  4. upload;
- *  5. imported media candidates with their licence decisions.
+ *  5. imported media candidates with their licence decisions, and the asset each was imported as.
  * Which forms show is cosmetic; every action re-checks permissions on the server. No madder.
  */
 import { Check, CircleAlert, CircleCheck, Clock } from "lucide-react";
 import Link from "next/link";
 
 import { ActionForm, FieldMessage } from "@/components/cms/action-form";
-import { BLOCK_LINK, CHECK_BOX, CHECK_ROW, Empty, LINK, Mono, NativeSelect, PROVENANCE_LABELS, ROW_LINK, Section, StateBadge, STATE_LABELS, Disclosure } from "@/components/cms/bits";
+import { BLOCK_LINK, CHECK_BOX, CHECK_ROW, Empty, LINK, Mono, NativeSelect, Pager, PROVENANCE_LABELS, ROW_LINK, Section, StateBadge, STATE_LABELS, Disclosure } from "@/components/cms/bits";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { exposureLayerOf, KNOWLEDGE_LAYERS } from "@/features/learning/labels";
-import { displayLongEdge, licenceValidOn, STUDY_FIGURE_CAP } from "@/features/media/contracts";
+import { displayLongEdge, FIGURE_CAPTION_MAX, licenceValidOn, STUDY_FIGURE_CAP } from "@/features/media/contracts";
 import { can } from "@/lib/permissions/can";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ import { ASSET_LINK_ROLES, VERIFICATION_STATES, type ConceptType } from "@/lib/v
 import { getStaffPrincipal } from "@/server/auth/staff";
 import {
   linkAssetAction,
+  recordCandidateImportAction,
   reviewAssetAction,
   reviewCandidateAction,
   submitAssetAction,
@@ -36,12 +37,16 @@ import {
   updateAssetAction,
 } from "@/server/cms/media/actions";
 import {
+  ASSET_PAGE_SIZE,
+  countAssets,
+  findAsset,
   listAssets,
   listMediaCandidates,
   listMediaFormOptions,
   MEDIA_EVIDENCE_CHECKS,
   MEDIA_EVIDENCE_LABELS,
   type AssetListItem,
+  type MediaCandidateItem,
 } from "@/server/cms/media/service";
 import { describeMediaStorage, getMediaStorage } from "@/server/cms/media/storage";
 import { getPool } from "@/server/db/client";
@@ -131,8 +136,11 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
   const fbSource = one(sp.fb) === "review" ? "review" : one(sp.fb) === "release" ? "release" : null;
   const fbDiagrams = one(sp.diagrams) !== "off";
   const pool = getPool();
+  const total = await countAssets(pool, { state });
+  const requestedPage = Number.parseInt(one(sp.page) ?? "1", 10);
+  const page = Math.min(Math.max(1, Number.isFinite(requestedPage) ? requestedPage : 1), Math.max(1, Math.ceil(total / ASSET_PAGE_SIZE)));
   const [assets, candidates, options, hasRelease] = await Promise.all([
-    listAssets(pool, { state }),
+    listAssets(pool, { state, offset: (page - 1) * ASSET_PAGE_SIZE }),
     listMediaCandidates(pool),
     listMediaFormOptions(pool),
     pool.query("SELECT 1 FROM content_snapshots WHERE kind = 'release' AND status = 'published' AND NOT is_demo LIMIT 1").then((r) => r.rows.length > 0),
@@ -141,12 +149,12 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
   const canUpload = can(principal, "media.upload");
   const canReview = can(principal, "media.review");
   const selectedId = one(sp.asset);
-  const selected = selectedId ? (assets.find((a) => a.id === selectedId) ?? (await listAssets(pool, {})).find((a) => a.id === selectedId)) : undefined;
+  const selected = selectedId ? (assets.find((a) => a.id === selectedId) ?? (await findAsset(pool, selectedId)) ?? undefined) : undefined;
   const today = new Date().toISOString().slice(0, 10);
 
   const query = (over: Record<string, string | null>) => {
     const p = new URLSearchParams();
-    const cur: Record<string, string | null> = { state, asset: selectedId ?? null, fb: fbSource, diagrams: fbDiagrams ? null : "off", ...over };
+    const cur: Record<string, string | null> = { state, page: page > 1 ? String(page) : null, asset: selectedId ?? null, fb: fbSource, diagrams: fbDiagrams ? null : "off", ...over };
     for (const [k, v] of Object.entries(cur)) if (v) p.set(k, v);
     const s = p.toString();
     return s ? `/cms/media?${s}` : "/cms/media";
@@ -161,7 +169,19 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
         hrefFor={(v) => `${query({ fb: v.source, diagrams: v.diagrams ? null : "off" })}#figure-balance`}
       />
 
-      {selected ? <SelectedAsset asset={selected} canUpload={canUpload} canReview={canReview} userId={principal?.userId ?? ""} options={options} closeHref={query({ asset: null })} /> : null}
+      {selected ? (
+        <SelectedAsset
+          asset={selected}
+          canUpload={canUpload}
+          canReview={canReview}
+          userId={principal?.userId ?? ""}
+          options={options}
+          approvedCandidates={candidates.filter((c) => c.status === "approved")}
+          closeHref={query({ asset: null })}
+        />
+      ) : selectedId ? (
+        <Empty>No asset with this id. It may have been removed, or the link is mistyped.</Empty>
+      ) : null}
 
       <Section
         id="library"
@@ -172,7 +192,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
           {[null, ...VERIFICATION_STATES.filter((s) => s !== "published")].map((s) => (
             <Link
               key={s ?? "all"}
-              href={query({ state: s, asset: null })}
+              href={query({ state: s, asset: null, page: null })}
               aria-current={state === s ? "page" : undefined}
               className={cn(BLOCK_LINK, "min-w-11 justify-center aria-[current=page]:font-semibold aria-[current=page]:text-ink aria-[current=page]:no-underline")}
             >
@@ -183,7 +203,16 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
         {assets.length === 0 ? (
           <Empty>{state ? `No assets in the state “${STATE_LABELS[state]}”.` : "No assets yet. Upload one below; it starts as a draft and needs a reviewer before use."}</Empty>
         ) : (
-          <Table caption={`${assets.length} asset(s)`} density="compact" hoverRows className="min-w-[72rem]">
+          <Table
+            caption={
+              assets.length === total
+                ? `${total} asset(s)`
+                : `Assets ${(page - 1) * ASSET_PAGE_SIZE + 1} to ${(page - 1) * ASSET_PAGE_SIZE + assets.length} of ${total}, newest first`
+            }
+            density="compact"
+            hoverRows
+            className="min-w-[72rem]"
+          >
             <TableHeader>
               <TableRow>
                 <TableHead scope="col">Thumbnail</TableHead>
@@ -304,6 +333,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
             </TableBody>
           </Table>
         )}
+        <Pager base="/cms/media" params={{ state: state ?? undefined, fb: fbSource ?? undefined, diagrams: fbDiagrams ? undefined : "off" }} page={page} total={total} pageSize={ASSET_PAGE_SIZE} />
       </Section>
 
       {canUpload ? (
@@ -391,6 +421,10 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                               </div>
                             </ActionForm>
                           </Disclosure>
+                        ) : c.assetId ? (
+                          <Link href={`/cms/media?asset=${c.assetId}#asset`} className={cn(LINK, "inline-flex min-h-11 items-center")}>
+                            Imported as {c.assetTitle ?? "an asset"}
+                          </Link>
                         ) : (
                           <span className="text-ink-3">Imported</span>
                         )}
@@ -422,6 +456,7 @@ function SelectedAsset({
   canReview,
   userId,
   options,
+  approvedCandidates,
   closeHref,
 }: {
   asset: AssetListItem;
@@ -429,6 +464,7 @@ function SelectedAsset({
   canReview: boolean;
   userId: string;
   options: { sources: { id: string; label: string }[]; concepts: { id: string; label: string }[] };
+  approvedCandidates: readonly MediaCandidateItem[];
   closeHref: string;
 }) {
   const isImage = a.kind === "image" || a.kind === "texture";
@@ -510,6 +546,33 @@ function SelectedAsset({
             </div>
           ) : null}
 
+          {canUpload && approvedCandidates.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              <h3 className="text-label border-b border-rule pb-1">{titleCase("Made from a media candidate")}</h3>
+              <p className="text-body text-ink-2">
+                If you uploaded this file from a candidate whose licence a reviewer approved, record it here. The candidate is then marked imported and links to this asset.
+              </p>
+              <ActionForm action={recordCandidateImportAction} submitLabel="Record import" submitVariant="outline">
+                <input type="hidden" name="assetId" value={a.id} />
+                <div className="flex min-w-0 flex-col gap-1.5">
+                  <Label htmlFor={`cand-import-${a.id}`}>Approved candidate</Label>
+                  <NativeSelect id={`cand-import-${a.id}`} name="candidateId" required defaultValue="">
+                    <option value="" disabled>
+                      Choose…
+                    </option>
+                    {approvedCandidates.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.title}
+                        {c.depictsKey ? ` (${c.depictsKey})` : ""}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                  <FieldMessage name="candidateId" />
+                </div>
+              </ActionForm>
+            </div>
+          ) : null}
+
           {canReview && a.verificationState === "under_review" ? (
             <div className="flex flex-col gap-3">
               <h3 className="text-label border-b border-rule pb-1">Review</h3>
@@ -569,11 +632,25 @@ function SelectedAsset({
                         {l.traditionName ? `, ${l.traditionName}` : ""}, {layerOf(l.conceptType)} layer
                       </span>
                       {l.role === "illustration" && l.anchorClaim ? <span className="text-body mt-1 max-w-[34rem] bg-sunk px-3 py-1 text-ink-2">{l.anchorClaim}</span> : null}
+                      <span className="text-credit mt-1">
+                        {l.captionOverride ? `Caption for this concept: ${l.captionOverride}` : "Caption: the asset's own caption"}
+                      </span>
                     </div>
                     {canUpload ? (
-                      <ActionForm action={unlinkAssetAction} submitLabel="Remove link" submitVariant="outline" pendingLabel="Removing…">
-                        <input type="hidden" name="linkId" value={l.id} />
-                      </ActionForm>
+                      <div className="flex flex-col items-end gap-2">
+                        <ActionForm action={unlinkAssetAction} submitLabel="Remove link" submitVariant="outline" pendingLabel="Removing…">
+                          <input type="hidden" name="linkId" value={l.id} />
+                        </ActionForm>
+                        <Disclosure className="group w-full" summary={<>Change caption<span className="sr-only"> for {l.conceptTitle}</span></>}>
+                          <ActionForm action={linkAssetAction} submitLabel="Save caption" submitVariant="outline" className="pt-2 pb-3">
+                            <input type="hidden" name="assetId" value={a.id} />
+                            <input type="hidden" name="conceptId" value={l.conceptId} />
+                            <input type="hidden" name="role" value={l.role} />
+                            <input type="hidden" name="anchorClaim" value={l.position + 1} />
+                            <CaptionOverrideField id={`link-caption-${l.id}`} defaultValue={l.captionOverride ?? ""} />
+                          </ActionForm>
+                        </Disclosure>
+                      </div>
                     ) : null}
                   </li>
                 ))}
@@ -619,6 +696,7 @@ function SelectedAsset({
                     <FieldMessage name="position" />
                   </div>
                 </div>
+                <CaptionOverrideField id={`link-caption-new-${a.id}`} defaultValue="" />
                 <p id={`link-anchor-${a.id}-hint`} className="text-credit">
                   Anchor claim: the number of the claim the figure follows, as the proof numbers it (1 for the first claim). A concept shows at most one
                   illustration. For other roles the number is the display order.
@@ -629,5 +707,19 @@ function SelectedAsset({
         </div>
       </div>
     </Section>
+  );
+}
+
+function CaptionOverrideField({ id, defaultValue }: { id: string; defaultValue: string }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-1.5">
+      <Label htmlFor={id}>Caption for this concept (optional)</Label>
+      <Textarea id={id} name="captionOverride" rows={2} maxLength={FIGURE_CAPTION_MAX} defaultValue={defaultValue} aria-describedby={`${id}-hint`} />
+      <p id={`${id}-hint`} className="text-credit">
+        Shown to learners under the figure in place of the asset&apos;s caption, at most {FIGURE_CAPTION_MAX} characters and never the alt text. Leave it empty to use the asset&apos;s
+        caption. Changing it on a verified asset sends the asset back to review.
+      </p>
+      <FieldMessage name="captionOverride" />
+    </div>
   );
 }

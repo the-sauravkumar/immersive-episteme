@@ -38,7 +38,7 @@ import { buildSnapshot, contentHash, snapshotItems, type SnapshotRefusal } from 
 import type { IntegrityIssue } from "@/features/knowledge/graph/types";
 import { validateGraph } from "@/features/knowledge/graph/validate";
 import type { RelationshipTypeDefinition } from "@/features/knowledge/contracts";
-import { loadModelFromDb } from "@/server/content/review-snapshot";
+import { loadModelFromDb, storeReviewSnapshot, type StoredReviewSnapshot } from "@/server/content/review-snapshot";
 
 import { audit, CmsError, ensure, inActorTx, setChangeReason, type Actor, type Q } from "./core";
 import { freezeReleaseFigures, stampFirstPublication } from "./media/service";
@@ -236,6 +236,19 @@ export interface ReleaseInput {
   versionLabel: string;
   title: string;
   description: string | null;
+}
+
+export async function rebuildReviewSnapshot(pool: Pool, actor: Actor): Promise<StoredReviewSnapshot> {
+  ensure(actor, "content.publish");
+  const client = await pool.connect();
+  try {
+    return await storeReviewSnapshot(client, { hasher: nodeSha256, createdBy: actor.userId });
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("Review snapshot refused:")) throw new CmsError("review_snapshot_refused", err.message, 422);
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 export async function publishRelease(pool: Pool, actor: Actor, input: ReleaseInput, opts: { generatedAt?: string } = {}): Promise<PublishedRelease> {
