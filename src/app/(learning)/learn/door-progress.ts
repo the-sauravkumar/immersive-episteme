@@ -9,14 +9,20 @@ import { finishLearning, logStageLeft, reportStageEntered, sendStageLeft, type S
 import { stopPosition, type StageVisit, type StopPosition } from "@/features/study/stage-coverage";
 import { createStopLedger } from "@/features/study/stop-ledger";
 import { titleCase } from "@/lib/text/title-case";
-import { reportWalkthroughUnavailable } from "@/server/study/actions";
+import { reportWalkthroughUnavailable, type DeviceCheckResult } from "@/server/study/actions";
 
 export const STUDY_HUB = "/study/session";
+export const EXCLUDED_PAGE = "/study/complete?status=excluded";
 
 const RETURNED_NOTICE = "You are back at the first stop the study has not recorded, so that every stop is counted.";
 const DELAYED_NOTICE = "Your progress is not reaching the study. It will be sent when the connection returns.";
 const FAILURE_UNREPORTED_NOTICE = "The study could not be told about this. Check the connection and reload the page.";
 const UNSAVED_NOTICE = "Your progress could not be saved. Check the connection and press the button again.";
+export const TIME_REMAINING_NOTICE = "The questions open when the learning time is up. Until then you can go back to any stop you have visited.";
+
+export function routeAfterRenderFailure(result: Extract<DeviceCheckResult, { ok: true }>): string {
+  return result.outcome === "excluded" ? EXCLUDED_PAGE : STUDY_HUB;
+}
 
 export function useRenderFailureReport(studyMode: boolean): { readonly failureNotice: string | null; readonly onRenderFailed: () => void } {
   const router = useRouter();
@@ -25,7 +31,7 @@ export function useRenderFailureReport(studyMode: boolean): { readonly failureNo
     if (!studyMode) return;
     reportWalkthroughUnavailable(probeGpu()).then(
       (result) => {
-        if (result.ok) router.replace(STUDY_HUB);
+        if (result.ok) router.replace(routeAfterRenderFailure(result));
         else setFailureNotice(result.error);
       },
       () => setFailureNotice(FAILURE_UNREPORTED_NOTICE),
@@ -106,6 +112,10 @@ export function useDoorProgress(templates: readonly StageTemplate[]): DoorProgre
       const missing = outcome.unvisited.map((stop) => `${titleCase(stop.traditionKey.replace(/-/g, " "))} ${stop.stageNumber}`).join(", ");
       setNotice(`Some stops are still to visit: ${missing}.`);
       returnTo(outcome.unvisited[0]);
+      return false;
+    }
+    if (outcome.reason === "time_remaining") {
+      setNotice(TIME_REMAINING_NOTICE);
       return false;
     }
     setNotice(UNSAVED_NOTICE);

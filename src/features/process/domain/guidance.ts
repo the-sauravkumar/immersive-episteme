@@ -2,11 +2,11 @@ export const HELP_TITLE = "Help";
 export const HELP_LINES: readonly string[] = [
   "Go through every stage, in order. You can go back to any stage you have reached.",
   "Each caption has its sources behind it. Open them if you want to see where the words come from.",
-  "Take the time you need, up to the session limit of 30 minutes.",
+  "Take the time you need. If the task has a time limit, it keeps running while you pause.",
 ];
 
 export const PAUSE_TITLE = "Paused";
-export const PAUSE_TEXT = "Take a moment. Your place is kept. Press Resume when you are ready.";
+export const PAUSE_TEXT = "Take a moment. Your place is kept. If the task has a time limit, it keeps running while you are paused. Press Resume when you are ready.";
 export const RESUME_LABEL = "Resume";
 
 export const SOURCES_LABEL = "Sources Behind This Caption";

@@ -68,7 +68,6 @@ export const EXPORT_TABLES: readonly TableSpec[] = [
       c("participant_code", "text", "Participant."),
       c("condition_id", "uuid", "Assigned condition."),
       c("period", "integer", "Period (1 for between-subjects)."),
-      c("content_set_code", "text", "Content set of the period (within-subjects)."),
       c("algorithm", "text", "Allocation algorithm."),
       c("seed", "text", "Allocation seed; empty until the study is closed (allocation concealment), as is the seed in the study configuration."),
       c("sequence_index", "integer", "Position in the allocation sequence."),

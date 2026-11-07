@@ -26,7 +26,7 @@ import { DeviceCheck, StudyDisplayChoice } from "@/components/study/device-check
 import { WithdrawForm } from "@/components/study/withdraw-form";
 import { stepCountOf } from "@/components/study/step-progress";
 
-const assessment = { id: "00000000-0000-4000-8000-000000000001", code: "demo", version: 1, title: "Demo questions", description: null, presentation: "standard" as const };
+const assessment = { id: "00000000-0000-4000-8000-000000000001", code: "demo", version: 1, title: "Demo questions", description: null, presentation: "standard" as const, required: false };
 const items: RenderItem[] = [
   { id: "q1", kind: "single_choice", prompt: "Which one?", options: [{ id: "a", label: "Option A" }, { id: "b", label: "Option B" }] },
   { id: "q2", kind: "likert", prompt: "How much?", points: 5, min: 1, anchors: { "1": "Not at all", "5": "Very much" } },
@@ -136,6 +136,43 @@ describe("AssessmentForm (DESIGN.md 11.7)", () => {
     expect(screen.getByRole("radio", { name: /^4/ })).toBeChecked();
     expect(screen.getByRole("textbox")).toHaveValue("Because.");
   });
+
+  it("refuses a required assessment with unanswered questions before it is sent, naming each one", async () => {
+    render(<AssessmentForm step="pre_test" assessment={{ ...assessment, required: true }} items={items} returnTo="/study/pre-test" />);
+    expect(screen.getByText("Every question in this part needs an answer.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: /^4/ }));
+    await act(async () => {
+      fireEvent.submit(screen.getByRole("button", { name: "Submit answers" }).closest("form")!);
+    });
+    const summary = await waitFor(() => {
+      const el = document.querySelector("[data-slot=error-summary]") as HTMLElement | null;
+      expect(el).not.toBeNull();
+      return el!;
+    });
+    expect(actions.submitAssessmentForm).not.toHaveBeenCalled();
+    expect(within(summary).getByRole("link", { name: "Question 1 of 3: Answer this question to continue." })).toHaveAttribute("href", "#q1-a");
+    expect(within(summary).getByRole("link", { name: "Question 3 of 3: Answer this question to continue." })).toHaveAttribute("href", "#q3");
+    expect(within(summary).queryByRole("link", { name: /Question 2 of 3/ })).toBeNull();
+    expect(screen.getByRole("group", { name: /Which one\?/ })).toHaveAttribute("aria-describedby", "error-q1");
+    expect(screen.getByLabelText(/Why\?/)).toHaveAccessibleDescription("Answer this question to continue.");
+  });
+
+  it("sends a required assessment once every question has an answer, and an optional one with blanks", async () => {
+    const first = render(<AssessmentForm step="pre_test" assessment={{ ...assessment, required: true }} items={items} returnTo="/study/pre-test" />);
+    fireEvent.click(screen.getByLabelText("Option A"));
+    fireEvent.click(screen.getByRole("radio", { name: /^4/ }));
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "Because." } });
+    await act(async () => {
+      fireEvent.submit(screen.getByRole("button", { name: "Submit answers" }).closest("form")!);
+    });
+    await waitFor(() => expect(actions.submitAssessmentForm).toHaveBeenCalledTimes(1));
+    first.unmount();
+    render(<AssessmentForm step="post_test" assessment={assessment} items={items} returnTo="/study/post-test" />);
+    await act(async () => {
+      fireEvent.submit(screen.getByRole("button", { name: "Submit answers" }).closest("form")!);
+    });
+    await waitFor(() => expect(actions.submitAssessmentForm).toHaveBeenCalledTimes(2));
+  });
 });
 
 describe("ConsentForm action row", () => {
@@ -237,6 +274,19 @@ describe("Display and browser check (DR-019)", () => {
     const again = screen.getByRole("button", { name: "Check again" });
     expect(again).not.toBeDisabled();
     expect(again).toHaveFocus();
+  });
+
+  it("leaves 'Checking' and offers to check again when the check cannot reach the server", async () => {
+    actions.submitDeviceCheck.mockRejectedValueOnce(new Error("network") as never);
+    render(<DeviceCheck />);
+    await userEvent.setup().click(screen.getByRole("button", { name: "Check and continue" }));
+    expect(await screen.findByText("The check could not reach the study. Check the connection, then check again.")).toBeInTheDocument();
+    expect(screen.queryByText("Checking this browser…")).toBeNull();
+    const again = screen.getByRole("button", { name: "Check again" });
+    expect(again).toHaveAttribute("aria-disabled", "false");
+    actions.submitDeviceCheck.mockResolvedValueOnce({ ok: true, outcome: "passed" } as never);
+    await userEvent.setup().click(again);
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/study/session"));
   });
 
   it("records Off when no choice was made", async () => {

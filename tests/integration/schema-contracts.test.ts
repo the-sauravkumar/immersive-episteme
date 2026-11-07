@@ -70,20 +70,14 @@ describe("schema contracts", () => {
     ).toBe(true);
   });
 
-  it("require matched content sets for within-subjects studies", () => {
+  it("accept only the between-groups design the study engine runs (D3)", () => {
     const conditions = [
       { code: "a", label: "A", interface: "conventional_2d" },
       { code: "b", label: "B", interface: "immersive_3d" },
     ];
-    const within = { slug: "w1", title: "Within", protocolVersion: "1", design: "within", conditions };
-    expect(studyInputSchema.safeParse({ ...within, config: { traditionSlugs: ["t-a", "t-b"] } }).success).toBe(false);
-    expect(
-      studyInputSchema.safeParse({
-        ...within,
-        config: { traditionSlugs: ["t-a", "t-b"], contentSets: { "set-a": { traditionSlugs: ["t-a"] }, "set-b": { traditionSlugs: ["t-b"] } } },
-      }).success,
-    ).toBe(true);
-    expect(studyInputSchema.safeParse({ ...within, design: "between", config: { traditionSlugs: ["t-a"] } }).success).toBe(true);
+    const study = { slug: "w1", title: "Design", protocolVersion: "1", conditions, config: { traditionSlugs: ["t-a", "t-b"] } };
+    expect(studyInputSchema.safeParse({ ...study, design: "within" }).success).toBe(false);
+    expect(studyInputSchema.safeParse({ ...study, design: "between" }).success).toBe(true);
   });
 
   it("reject duplicate events within a telemetry batch", () => {

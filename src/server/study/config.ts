@@ -26,6 +26,8 @@ export const STEP_ASSESSMENTS: Partial<Record<StudyStep, { phase: "pre" | "post"
   delayed_test: { phase: "follow_up", kind: "posttest" },
 };
 
+export const DRAWN_ALGORITHMS: readonly string[] = ["simple", "block", "stratified_block"];
+
 export const BLIND_STEPS: readonly StudyStep[] = ["questionnaire_pre", "pre_test"];
 
 export const QUESTIONNAIRE_STEPS = ["questionnaire_pre", "questionnaire_post_learning", "questionnaire_end"] as const;
@@ -111,6 +113,7 @@ export function protocolIssues(config: StudyConfig, steps: readonly StudyStep[])
   if (has("post_test") && has("questionnaire_post_learning") && at("post_test") < at("questionnaire_post_learning")) issues.push("steps: the common questions come before the immediate test");
   if (has("entrance") && has("familiarisation") && at("entrance") > at("familiarisation")) issues.push("steps: entrance must come before familiarisation");
 
+  if (!DRAWN_ALGORITHMS.includes(config.allocation.algorithm)) issues.push(`allocation.algorithm ${config.allocation.algorithm} cannot be drawn by the study engine (use ${DRAWN_ALGORITHMS.join(", ")})`);
   const point = config.allocation.point;
   if (point === "after_pre_test") {
     // Everything before allocation must be condition-blind, and come first.

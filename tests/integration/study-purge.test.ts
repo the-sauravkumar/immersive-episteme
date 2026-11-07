@@ -55,7 +55,7 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
     await recordConsent(t.pool, { participantId: p.participantId, study, decision: "granted", shownVersion: CONSENT.version });
     const s = await openSessionAfterConsent(t.pool, { participantId: p.participantId, studyId: study.id, appBuild: BUILD });
     await submitAssessment(t.pool, { sessionId: s.sessionId, step: "pre_test", assessmentId: ids["pu-pre"]!, values: { [ids["pu-pre:q1"]!]: ["b"] } });
-    await recordDeviceCheck(t.pool, s.sessionId, { viewport: { width: 1280, height: 800 }, webglVersion: 2, inputDevices: ["keyboard"] });
+    await recordDeviceCheck(t.pool, s.sessionId, { viewport: { width: 1280, height: 800 }, webglVersion: 2, inputDevices: ["keyboard"] }, { appBuild: "test" });
     const a = await allocateSession(t.pool, s.sessionId);
     await completeOnboarding(t.pool, s.sessionId);
     await finishLearning(t.pool, s.sessionId);
@@ -124,7 +124,7 @@ describe.skipIf(!TEST_URL)("participant data removal", { timeout: 60_000 }, () =
     await assessment("pu-recon", "reconstruction", { key: "map", kind: "concept_map", config: { kind: "concept_map", conceptKeys: ["pu.process_stage.step-1", "pu.process_stage.step-2"], relationshipTypes: ["PRECEDES"], directed: true } });
     const s = await createStudy(t.pool, { slug: "purge-study", snapshotId, manifestId });
     for (const [i, [code, phase]] of ([["pu-pre", "pre"], ["pu-post", "post"]] as const).entries()) {
-      await t.pool.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position) VALUES ($1, $2, $3, $4)", [s.studyId, ids[code], phase, i]);
+      await t.pool.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position, required) VALUES ($1, $2, $3, $4, false)", [s.studyId, ids[code], phase, i]);
     }
     await t.pool.query("UPDATE studies SET status = 'active', config = $2::jsonb WHERE id = $1", [
       s.studyId,

@@ -28,6 +28,7 @@ import { Button } from "@/components/ui/button";
 import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { REQUIRED_ANSWERS_SUMMARY, unansweredItems } from "@/features/study/answer-presence";
 import { useOptionalTelemetry } from "@/features/telemetry/client";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
@@ -59,6 +60,7 @@ export interface RenderAssessment {
   description: string | null;
   presentation: "standard" | "semantic_differential";
   paged?: boolean;
+  required: boolean;
 }
 
 export function assessmentTaskCode(a: Pick<RenderAssessment, "code" | "version">): string {
@@ -97,6 +99,10 @@ export function AssessmentForm({ step, assessment, items, returnTo }: { step: st
   }, [t, step, assessment.id, taskCode]);
 
   const [state, action, pending] = useActionState(async (prev: FormState, fd: FormData) => {
+    if (assessment.required) {
+      const missing = unansweredItems(items, (id) => fd.getAll(`item:${id}`).map(String));
+      if (Object.keys(missing).length > 0) return { error: REQUIRED_ANSWERS_SUMMARY, fieldErrors: missing };
+    }
     fd.set("clientTs", new Date().toISOString());
     const durationMs = startedAt.current === null ? undefined : Math.max(0, Math.round(performance.now() - startedAt.current));
     await t?.taskCompleted({ metadata: { taskCode, durationMs }, roomOrPageId: `study:${step}`, target: assessment.id });
@@ -139,6 +145,7 @@ export function AssessmentForm({ step, assessment, items, returnTo }: { step: st
           {titleCase(assessment.title)}
         </h2>
         {assessment.description ? <p className="text-reading max-w-[34rem] whitespace-pre-line text-ink-2">{assessment.description}</p> : null}
+        {assessment.required ? <p className="text-credit">{REQUIRED_ANSWERS_SUMMARY}</p> : null}
       </div>
       {state.error || flagged.length > 0 ? (
         <Alert ref={summaryRef} tabIndex={-1} variant="destructive" data-slot="error-summary" className="outline-none focus-visible:outline-2">

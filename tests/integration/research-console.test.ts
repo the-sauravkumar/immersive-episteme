@@ -169,14 +169,13 @@ describe.skipIf(!TEST_URL)("research console", () => {
     description: null,
     protocolVersion: "p1",
     manifestId: null,
-    design: "between",
     snapshotId,
     // The journey matches the battery (one post-learning reconstruction): parity check d.journey.
     config: researchStudyConfigSchema.parse({ traditionSlugs: ["rc-tradition"], steps: ["learning", "reconstruction"], ...config }),
   });
 
   it("creates a draft study with both conditions and records its configuration history", async () => {
-    studyId = await createStudy(t.pool, actor, { slug: "rc-study", title: "Research console study", protocolVersion: "p1", design: "between" });
+    studyId = await createStudy(t.pool, actor, { slug: "rc-study", title: "Research console study", protocolVersion: "p1" });
     await updateStudy(t.pool, actor, studyId, baseUpdate({ exposure: { mode: "self_paced" }, eligibility: { inclusion: ["Adult"], exclusion: [] } }));
     await setBattery(t.pool, actor, studyId, [{ assessmentId, phase: "post", position: 0 }]);
     const s = await getStudy(t.pool, studyId);

@@ -134,13 +134,22 @@ describe("journey rules", () => {
 
   it("applies one device rule to everyone, before any door is known", () => {
     const r: DeviceReport = { viewport: { width: 1280, height: 800 }, webglVersion: null, inputDevices: [] };
-    expect(evaluateDevice(r, { policy: "exclude" })).toBe("webgl_exclude");
-    expect(evaluateDevice(r, { policy: "reassign" })).toBe("webgl_retry");
-    expect(evaluateDevice(r, { policy: "retry" })).toBe("webgl_retry");
-    expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "retry", minViewport: { width: 1400, height: 800 } })).toBe("viewport_too_small");
-    expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "retry" })).toBe("passed");
-    expect(evaluateDevice({ ...r, webglVersion: 1 }, { policy: "exclude" })).toBe("webgl_exclude");
-    expect(evaluateDevice({ ...r, webglVersion: 2, softwareRenderer: true }, { policy: "retry" })).toBe("webgl_retry");
+    const blind = { condition: null };
+    expect(evaluateDevice(r, { policy: "exclude", ...blind })).toBe("webgl_exclude");
+    expect(evaluateDevice(r, { policy: "reassign", ...blind })).toBe("webgl_retry");
+    expect(evaluateDevice(r, { policy: "retry", ...blind })).toBe("webgl_retry");
+    expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "retry", minViewport: { width: 1400, height: 800 }, ...blind })).toBe("viewport_too_small");
+    expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "retry", ...blind })).toBe("passed");
+    expect(evaluateDevice({ ...r, webglVersion: 1 }, { policy: "exclude", ...blind })).toBe("webgl_exclude");
+    expect(evaluateDevice({ ...r, webglVersion: 2, softwareRenderer: true }, { policy: "retry", ...blind })).toBe("webgl_retry");
+  });
+
+  it("applies the reassign policy once the door is known (allocation at enrolment), the same for both doors", () => {
+    const r: DeviceReport = { viewport: { width: 1280, height: 800 }, webglVersion: null, inputDevices: [] };
+    expect(evaluateDevice(r, { policy: "reassign", condition: "immersive" })).toBe("webgl_reassign");
+    expect(evaluateDevice(r, { policy: "reassign", condition: "2d" })).toBe("webgl_reassign");
+    expect(evaluateDevice(r, { policy: "retry", condition: "immersive" })).toBe("webgl_retry");
+    expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "reassign", condition: "immersive" })).toBe("passed");
   });
 
   it("ends learning only when the cap has passed, or when every required stage was visited", () => {

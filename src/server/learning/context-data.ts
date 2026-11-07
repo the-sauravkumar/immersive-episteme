@@ -5,9 +5,7 @@
  */
 import type { Pool, PoolClient } from "pg";
 
-import { studyConfigSchema, type StudyConfig } from "@/features/study/contracts";
 import type { LearningCondition } from "@/lib/permissions/learning";
-import type { LearningTimeBudget } from "@/features/learning/time-budget";
 import type { LearningAccess } from "@/server/auth/learning-decision";
 import { nameBasedUuid } from "@/features/knowledge/graph/hash";
 import { nodeSha256 } from "@/features/knowledge/graph/hash-node";
@@ -23,7 +21,6 @@ export interface LearningContext {
   sessionId: string | null;
   telemetrySessionId: string;
   appBuild: string;
-  learningTime: LearningTimeBudget;
 }
 
 export class LearningContextUnavailableError extends Error {
@@ -41,14 +38,12 @@ export class LearningContextUnavailableError extends Error {
 
 export interface StudySessionContextRow {
   sessionId: string;
-  studyConfig: unknown;
   snapshotId: string | null;
   snapshotLabel: string | null;
 }
 
 export interface PreviewContentRow {
   snapshotLabel: string;
-  studyConfig: unknown;
 }
 
 export interface LearningClockRow {
@@ -60,42 +55,37 @@ export interface LearningClockRow {
 }
 
 export interface LearningContextData {
-  /** Stamps learning_started_at once (no-op afterwards) and returns the clock with the DB time. */
-  startLearningClock(sessionId: string): Promise<LearningClockRow>;
+  startLearningClock(sessionId: string): Promise<void>;
   findStudySession(sessionId: string): Promise<StudySessionContextRow | null>;
-  /** Newest real review snapshot, with the manifest and traditions of the demo study pinned to it (if any). */
   findPreviewContent(): Promise<PreviewContentRow | null>;
 }
 
 export function pgLearningContextData(q: Q): LearningContextData {
   return {
     async findStudySession(sessionId) {
-      const r = await q.query<{ session_id: string; config: unknown; snapshot_id: string | null; version_label: string | null }>(
-        `SELECT ss.id AS session_id, st.config, ss.snapshot_id, cs.version_label
+      const r = await q.query<{ session_id: string; snapshot_id: string | null; version_label: string | null }>(
+        `SELECT ss.id AS session_id, ss.snapshot_id, cs.version_label
            FROM study_sessions ss
-           JOIN studies st ON st.id = ss.study_id
            LEFT JOIN content_snapshots cs ON cs.id = ss.snapshot_id
           WHERE ss.id = $1`,
         [sessionId],
       );
       const row = r.rows[0];
-      return row ? { sessionId: row.session_id, studyConfig: row.config, snapshotId: row.snapshot_id, snapshotLabel: row.version_label } : null;
+      return row ? { sessionId: row.session_id, snapshotId: row.snapshot_id, snapshotLabel: row.version_label } : null;
     },
     async startLearningClock(sessionId) {
       await q.query("UPDATE study_sessions SET learning_started_at = now() WHERE id = $1 AND learning_started_at IS NULL", [sessionId]);
-      return readClock(q, sessionId);
     },
     async findPreviewContent() {
-      const r = await q.query<{ version_label: string; config: unknown }>(
-        `SELECT s.version_label, st.config
+      const r = await q.query<{ version_label: string }>(
+        `SELECT s.version_label
            FROM content_snapshots s
-           LEFT JOIN LATERAL (SELECT config FROM studies WHERE is_demo AND snapshot_id = s.id ORDER BY created_at DESC, id DESC LIMIT 1) st ON true
           WHERE s.kind = 'review' AND NOT s.is_demo
           ORDER BY s.created_at DESC, s.id DESC
           LIMIT 1`,
       );
       const row = r.rows[0];
-      return row ? { snapshotLabel: row.version_label, studyConfig: row.config ?? {} } : null;
+      return row ? { snapshotLabel: row.version_label } : null;
     },
   };
 }
@@ -151,68 +141,33 @@ export function nonStudyTelemetrySessionId(kind: "demo" | "preview", id: string)
   return nameBasedUuid(nodeSha256, "telemetry-session", kind, id);
 }
 
-function configOf(raw: unknown): StudyConfig {
-  const parsed = studyConfigSchema.safeParse(raw ?? {});
-  return parsed.success ? parsed.data : studyConfigSchema.parse({});
-}
-
 export async function resolveLearningContext(
   access: LearningAccess,
-  deps: { data: LearningContextData; appBuild: string; now?: () => string },
+  deps: { data: LearningContextData; appBuild: string },
 ): Promise<LearningContext> {
   if (access.kind === "participant") {
     const s = await deps.data.findStudySession(access.sessionId);
     if (!s) throw new LearningContextUnavailableError("session_not_found");
     if (!s.snapshotId || !s.snapshotLabel) throw new LearningContextUnavailableError("study_has_no_snapshot");
-    const cfg = configOf(s.studyConfig);
+    await deps.data.startLearningClock(s.sessionId);
     return {
       mode: "study",
       condition: access.condition,
       contentVersion: s.snapshotLabel,
       sessionId: s.sessionId,
       telemetrySessionId: s.sessionId,
-      learningTime: await (async () => {
-        const clock = await deps.data.startLearningClock(s.sessionId);
-        return {
-          mode: cfg.exposure.mode,
-          budgetSeconds: clock.budgetSeconds,
-          allowEarlyFinish: cfg.exposure.allowEarlyFinish,
-          startedAt: clock.startedAt,
-          endsAt: clock.endsAt,
-          endedAt: clock.endedAt,
-          serverNow: clock.serverNow,
-          persisted: true,
-        };
-      })(),
       appBuild: deps.appBuild,
     };
   }
 
   const preview = await deps.data.findPreviewContent();
   if (!preview) throw new LearningContextUnavailableError("no_review_snapshot");
-  const cfg = studyConfigSchema.safeParse(preview.studyConfig);
   return {
     mode: access.kind === "demo" ? "demo" : "preview",
     condition: access.condition,
     contentVersion: preview.snapshotLabel,
     sessionId: null,
     telemetrySessionId: nonStudyTelemetrySessionId(access.kind === "demo" ? "demo" : "preview", access.kind === "demo" ? access.demoId : access.userId),
-    // Same budget rule as a study (demo study config), but nothing is stored: the client counts
-    // from serverNow.
-    learningTime: (() => {
-      const exposure = cfg.success ? cfg.data.exposure : { mode: "self_paced" as const, minutes: undefined, allowEarlyFinish: false };
-      const fixed = exposure.mode === "fixed_time" && exposure.minutes !== undefined;
-      return {
-        mode: exposure.mode,
-        budgetSeconds: fixed ? exposure.minutes! * 60 : null,
-        allowEarlyFinish: exposure.allowEarlyFinish,
-        startedAt: null,
-        endsAt: null,
-        endedAt: null,
-        serverNow: deps.now?.() ?? new Date().toISOString(),
-        persisted: false,
-      };
-    })(),
     appBuild: deps.appBuild,
   };
 }

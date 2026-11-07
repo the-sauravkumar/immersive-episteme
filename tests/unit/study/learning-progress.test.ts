@@ -18,7 +18,7 @@ describe("learning progress client", () => {
     bindLearningTelemetry(null);
     vi.unstubAllGlobals();
   });
-  const respond = (body: unknown) => fetchMock.mockResolvedValue({ json: async () => body });
+  const respond = (body: unknown, status = 200) => fetchMock.mockResolvedValue({ status, ok: status >= 200 && status < 300, json: async () => body });
 
   it("posts a stage entry and logs it once the server admits it", async () => {
     respond({ ok: true, persisted: true, visitCount: 2, backStep: true, complete: false, unvisited: 3 });
@@ -30,28 +30,45 @@ describe("learning progress client", () => {
   });
 
   it("logs nothing when the server refuses a stage ahead, and reports an unreachable server", async () => {
-    respond({ ok: false, reason: "stop_ahead", expected: { traditionKey: "ajrakh", stageKey: "s0" } });
+    respond({ ok: false, reason: "stop_ahead", expected: { traditionKey: "ajrakh", stageKey: "s0" } }, 409);
     expect(await reportStageEntered(stage)).toMatchObject({ ok: false, reason: "stop_ahead" });
     expect(sink).not.toHaveBeenCalled();
     fetchMock.mockRejectedValue(new Error("offline"));
     expect(await reportStageEntered(stage)).toEqual({ ok: false, reason: "unavailable", expected: null });
-    expect(await finishLearning()).toEqual({ ok: false, reason: "unavailable", unvisited: [] });
+    expect(await finishLearning()).toEqual({ ok: false, reason: "unavailable" });
   });
 
   it("sends a stage exit with keepalive and whole milliseconds, and says when it did not arrive", async () => {
     respond({ ok: true });
     logStageLeft(stage, 1234.6);
     expect(sink).toHaveBeenCalledWith("stage_left", { metadata: { ...stage, activeMs: 1235 }, roomOrPageId: "stage:ajrakh:s1" });
-    expect(await sendStageLeft(stage, 1234.6)).toBe(true);
+    expect(await sendStageLeft(stage, 1234.6)).toBe("delivered");
     const init = fetchMock.mock.calls[0]![1];
     expect(init.keepalive).toBe(true);
     expect(JSON.parse(init.body)).toEqual({ kind: "stage_left", stage, activeMs: 1235 });
     fetchMock.mockRejectedValue(new Error("offline"));
-    expect(await sendStageLeft(stage, 1)).toBe(false);
+    expect(await sendStageLeft(stage, 1)).toBe("unavailable");
+  });
+
+  it("never counts a refused or failed request as delivered", async () => {
+    respond({ error: "unauthenticated" }, 401);
+    expect(await sendStageLeft(stage, 1)).toBe("not_learning");
+    expect(await finishLearning()).toEqual({ ok: false, reason: "not_learning" });
+    fetchMock.mockResolvedValue({ status: 500, ok: false, json: async () => ({ error: "server" }) });
+    expect(await sendStageLeft(stage, 1)).toBe("unavailable");
+    expect(await finishLearning()).toEqual({ ok: false, reason: "unavailable" });
+    expect(await reportStageEntered(stage)).toEqual({ ok: false, reason: "unavailable", expected: null });
+    fetchMock.mockResolvedValue({ status: 500, ok: false, json: async () => Promise.reject(new SyntaxError("html")) });
+    expect(await finishLearning()).toEqual({ ok: false, reason: "unavailable" });
+  });
+
+  it("passes a refused early finish through with its end time", async () => {
+    respond({ ok: false, reason: "time_remaining", endsAt: "2026-11-07T10:30:00.000Z" }, 409);
+    expect(await finishLearning()).toEqual({ ok: false, reason: "time_remaining", endsAt: "2026-11-07T10:30:00.000Z" });
   });
 
   it("treats a server that no longer knows the participant as the end of learning", async () => {
-    respond({ error: "unauthenticated" });
+    respond({ error: "unauthenticated" }, 401);
     expect(await reportStageEntered(stage)).toEqual({ ok: false, reason: "not_learning", expected: null });
   });
 

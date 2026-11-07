@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { StageEntryOutcome, StageRef } from "@/features/study/learning-progress";
+import type { StageEntryOutcome, StageLeftOutcome, StageRef } from "@/features/study/learning-progress";
 import { resumeFrom, stopPosition } from "@/features/study/stage-coverage";
 import { createStopLedger, type StopLedgerTimers } from "@/features/study/stop-ledger";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
@@ -12,7 +12,7 @@ const unavailable: StageEntryOutcome = { ok: false, reason: "unavailable", expec
 function harness() {
   const answers = new Map<string, StageEntryOutcome[]>();
   const sent: string[] = [];
-  let leftOk = true;
+  let leftOutcome: StageLeftOutcome = "delivered";
   const events = { onRefused: vi.fn(), onEnded: vi.fn(), onDelayed: vi.fn() };
   const pending: (() => void)[] = [];
   const timers: StopLedgerTimers = {
@@ -29,7 +29,7 @@ function harness() {
       },
       left: async (gone) => {
         sent.push(`out:${gone.stageKey}`);
-        return leftOk;
+        return leftOutcome;
       },
     },
     events,
@@ -43,7 +43,7 @@ function harness() {
     run?.();
     await settle();
   };
-  return { ledger, answers, sent, events, settle, retry, pending, setLeftOk: (ok: boolean) => (leftOk = ok) };
+  return { ledger, answers, sent, events, settle, retry, pending, setLeftOutcome: (outcome: StageLeftOutcome) => (leftOutcome = outcome) };
 }
 
 describe("stop ledger", () => {
@@ -66,12 +66,24 @@ describe("stop ledger", () => {
 
   it("re-reports a lost exit", async () => {
     const h = harness();
-    h.setLeftOk(false);
+    h.setLeftOutcome("unavailable");
     h.ledger.left(stop(1), 500);
     await h.settle();
-    h.setLeftOk(true);
+    h.setLeftOutcome("delivered");
     await h.retry();
     expect(h.sent).toEqual(["out:s1", "out:s1"]);
+  });
+
+  it("ends the walk when the server no longer accepts an exit, instead of counting it delivered", async () => {
+    const h = harness();
+    h.setLeftOutcome("not_learning");
+    h.ledger.left(stop(1), 500);
+    h.ledger.entered(stop(2));
+    await h.settle();
+    expect(h.sent).toEqual(["out:s1"]);
+    expect(h.events.onEnded).toHaveBeenCalledTimes(1);
+    expect(h.pending).toHaveLength(0);
+    expect(await h.ledger.flush()).toBe(true);
   });
 
   it("acts on a refusal: drops what follows and names the stop the server expects", async () => {

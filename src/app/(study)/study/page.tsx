@@ -17,7 +17,7 @@ import { resolveParticipantSession, resolveWithdrawalSession } from "@/server/au
 import { getStudySessionLookup } from "@/server/auth/study-session-port";
 import { getPool } from "@/server/db/client";
 import { resumeStudy } from "@/server/study/actions";
-import { findEnrollableStudy, StudyEngineError } from "@/server/study/engine";
+import { findEnrollableStudy, stratumChoiceNeeded, StudyEngineError } from "@/server/study/engine";
 
 export const metadata: Metadata = { title: titleCase("Take part in a study") };
 
@@ -70,13 +70,12 @@ async function Entry({ searchParams }: { searchParams: PageProps<"/study">["sear
     );
   }
 
-  // A link with ?code= can show the study's groups (stratified allocation) before enrolment.
   let strata: string[] = [];
   const defaultCode = typeof code === "string" ? code.slice(0, 120) : undefined;
   if (defaultCode) {
     try {
       const study = await findEnrollableStudy(getPool(), defaultCode);
-      strata = study.protocol.config.allocation.algorithm === "stratified_block" ? study.strata : [];
+      strata = stratumChoiceNeeded(study) ? study.strata : [];
     } catch (err) {
       if (!(err instanceof StudyEngineError)) throw err;
     }

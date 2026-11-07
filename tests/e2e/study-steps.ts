@@ -61,6 +61,8 @@ async function answerVisibleQuestions(page: Page): Promise<void> {
     const fieldset = fieldsets.nth(index);
     const radios = fieldset.locator("input[type=radio]");
     if ((await radios.count()) > 0) await fieldset.locator("label").first().click();
+    const boxes = fieldset.locator("input[type=checkbox]");
+    if ((await boxes.count()) > 0) await boxes.first().check();
     const selects = fieldset.locator("select");
     for (let at = 0; at < (await selects.count()); at++) await selects.nth(at).selectOption({ index: at + 1 });
     const down = fieldset.getByRole("button", { name: /^Move .* down$/ }).first();
@@ -75,6 +77,11 @@ async function answerVisibleQuestions(page: Page): Promise<void> {
       await page.mouse.up();
       await expect(fieldset.getByRole("button", { name: "Undo" })).toBeEnabled();
     }
+  }
+  const texts = page.locator("form li:visible input[name^='item:']:not([type=radio]):not([type=checkbox]):not([type=hidden]), form li:visible textarea[name^='item:']");
+  for (let index = 0; index < (await texts.count()); index++) {
+    const field = texts.nth(index);
+    await field.fill((await field.getAttribute("inputmode")) === "decimal" ? "1" : "Demo answer");
   }
 }
 

@@ -86,7 +86,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (err instanceof StudyEngineError && err.code === "learning_incomplete") {
       return json({ ok: false, reason: "stages_unvisited", unvisited: err.details.unvisited as { traditionKey: string; stageKey: string; stageNumber: number }[] } satisfies FinishOutcome, 409);
     }
-    if (err instanceof StudyEngineError) return json({ ok: false, reason: "not_learning", unvisited: [] } satisfies FinishOutcome, 409);
+    if (err instanceof StudyEngineError && err.code === "learning_time_remaining") {
+      return json({ ok: false, reason: "time_remaining", endsAt: String(err.details.endsAt) } satisfies FinishOutcome, 409);
+    }
+    if (err instanceof StudyEngineError) return json({ ok: false, reason: "not_learning" } satisfies FinishOutcome, 409);
     throw err;
   }
 }

@@ -18,9 +18,13 @@ export type StageEntryOutcome =
   | { readonly ok: true; readonly persisted: boolean; readonly visitCount: number; readonly backStep: boolean; readonly complete: boolean; readonly unvisited: number }
   | { readonly ok: false; readonly reason: "stop_ahead" | "unknown_stop" | "not_learning" | "unavailable"; readonly expected: { readonly traditionKey: string; readonly stageKey: string } | null };
 
+export type StageLeftOutcome = "delivered" | "unavailable" | "not_learning";
+
 export type FinishOutcome =
   | { readonly ok: true; readonly next: string }
-  | { readonly ok: false; readonly reason: "stages_unvisited" | "not_learning" | "unavailable"; readonly unvisited: readonly { readonly traditionKey: string; readonly stageKey: string; readonly stageNumber: number }[] };
+  | { readonly ok: false; readonly reason: "stages_unvisited"; readonly unvisited: readonly { readonly traditionKey: string; readonly stageKey: string; readonly stageNumber: number }[] }
+  | { readonly ok: false; readonly reason: "time_remaining"; readonly endsAt: string }
+  | { readonly ok: false; readonly reason: "not_learning" | "unavailable" };
 
 export interface ObjectDwell {
   readonly objectKey: string;
@@ -58,16 +62,27 @@ const stagePage = (stage: Pick<StageRef, "traditionKey" | "stageKey">) => `stage
 let lastPost: Promise<unknown> = Promise.resolve();
 let inFlight = 0;
 
-async function send<T>(body: LearningProgressRequest, keepalive: boolean): Promise<T | null> {
+type Reply<T> = { readonly kind: "outcome"; readonly outcome: T } | { readonly kind: "refused" } | { readonly kind: "unavailable" };
+
+const REFUSED_STATUSES: readonly number[] = [400, 401, 403];
+
+async function send<T>(body: LearningProgressRequest, keepalive: boolean): Promise<Reply<T>> {
+  let response: Response;
   try {
-    const response = await fetch(LEARNING_PROGRESS_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), keepalive, credentials: "same-origin" });
-    return (await response.json()) as T;
+    response = await fetch(LEARNING_PROGRESS_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), keepalive, credentials: "same-origin" });
   } catch {
-    return null;
+    return { kind: "unavailable" };
+  }
+  if (REFUSED_STATUSES.includes(response.status)) return { kind: "refused" };
+  if (!response.ok && response.status !== 409) return { kind: "unavailable" };
+  try {
+    return { kind: "outcome", outcome: (await response.json()) as T };
+  } catch {
+    return { kind: "unavailable" };
   }
 }
 
-function post<T>(body: LearningProgressRequest, keepalive = false): Promise<T | null> {
+function post<T>(body: LearningProgressRequest, keepalive = false): Promise<Reply<T>> {
   inFlight += 1;
   const next = (inFlight === 1 ? send<T>(body, keepalive) : lastPost.then(() => send<T>(body, keepalive))).finally(() => {
     inFlight -= 1;
@@ -77,9 +92,10 @@ function post<T>(body: LearningProgressRequest, keepalive = false): Promise<T | 
 }
 
 export async function reportStageEntered(stage: StageRef): Promise<StageEntryOutcome> {
-  const outcome = await post<StageEntryOutcome | { readonly error: string }>({ kind: "stage_entered", stage });
-  if (outcome === null) return { ok: false, reason: "unavailable", expected: null };
-  if ("error" in outcome) return { ok: false, reason: "not_learning", expected: null };
+  const reply = await post<StageEntryOutcome>({ kind: "stage_entered", stage });
+  if (reply.kind === "unavailable") return { ok: false, reason: "unavailable", expected: null };
+  if (reply.kind === "refused") return { ok: false, reason: "not_learning", expected: null };
+  const outcome = reply.outcome;
   if (outcome.ok) sink?.("stage_entered", { metadata: { ...stage, visitCount: outcome.visitCount, backStep: outcome.backStep }, roomOrPageId: stagePage(stage) });
   return outcome;
 }
@@ -90,8 +106,10 @@ export function logStageLeft(stage: StageRef, activeMs: number): void {
   sink?.("stage_left", { metadata: { ...stage, activeMs: wholeMs(activeMs) }, roomOrPageId: stagePage(stage) });
 }
 
-export async function sendStageLeft(stage: StageRef, activeMs: number): Promise<boolean> {
-  return (await post({ kind: "stage_left", stage, activeMs: wholeMs(activeMs) }, true)) !== null;
+export async function sendStageLeft(stage: StageRef, activeMs: number): Promise<StageLeftOutcome> {
+  const reply = await post({ kind: "stage_left", stage, activeMs: wholeMs(activeMs) }, true);
+  if (reply.kind === "refused") return "not_learning";
+  return reply.kind === "outcome" ? "delivered" : "unavailable";
 }
 
 export function reportSourceOpened(stage: StageRef): void {
@@ -119,5 +137,7 @@ export function reportMovement(stage: Pick<StageRef, "traditionKey" | "stageKey"
 }
 
 export async function finishLearning(): Promise<FinishOutcome> {
-  return (await post<FinishOutcome>({ kind: "finish" })) ?? { ok: false, reason: "unavailable", unvisited: [] };
+  const reply = await post<FinishOutcome>({ kind: "finish" });
+  if (reply.kind === "refused") return { ok: false, reason: "not_learning" };
+  return reply.kind === "outcome" ? reply.outcome : { ok: false, reason: "unavailable" };
 }

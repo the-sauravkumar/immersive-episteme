@@ -444,6 +444,7 @@ export function runParityChecks(input: ParityInput): ParityReport {
   checks.push(check("d.protocol", "d", "Prompts, assessment battery and guidance are study-wide and identical", "critical", dIssues, { batteryItems: study.battery.length }));
 
   const jIssues: ParityIssue[] = [];
+  if (study.design !== "between") jIssues.push({ code: "design_not_between", message: `The study design is ${study.design}; the study engine runs only the between-groups design (study decision D3).` });
   if (config) {
     const steps = config.steps ?? DEFAULT_STEPS;
     for (const message of protocolIssues(config, steps)) jIssues.push({ code: "protocol_rule", message });

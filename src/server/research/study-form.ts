@@ -3,6 +3,21 @@
  * src/app/(research)/research/actions.ts), kept here so unit tests can run them.
  */
 import type { StudyConfig } from "@/features/study/contracts";
+import { DEFAULT_PRE_TEST_CUTOFF } from "@/server/study/config";
+
+export const CONSOLE_ALLOCATION_ALGORITHMS = ["stratified_block", "block", "simple"] as const;
+
+export function allocationFromForm(current: StudyConfig["allocation"], algorithm: string, blockSize: number | undefined): Record<string, unknown> {
+  const { stratifyBy, ...rest } = current;
+  const chosen = (CONSOLE_ALLOCATION_ALGORITHMS as readonly string[]).includes(algorithm) ? algorithm : current.algorithm;
+  const stratified = chosen === "stratified_block" && current.point === "after_pre_test";
+  return {
+    ...rest,
+    algorithm: chosen,
+    blockSize,
+    ...(stratified ? { stratifyBy: stratifyBy ?? { source: "pre_test_score", cutoff: DEFAULT_PRE_TEST_CUTOFF } } : {}),
+  };
+}
 
 /**
  * D6 guidance from the form, on top of the stored guidance: fields the form does not carry are

@@ -11,13 +11,7 @@ import { learningStepIsCurrent } from "@/server/study/engine";
 
 import { pgLearningContextData, resolveLearningContext, type LearningContext } from "./context-data";
 
-export {
-  LearningContextUnavailableError,
-  LearningFinishRefusedError,
-  recordLearningEnded,
-  type LearningContext,
-  type LearningMode,
-} from "./context-data";
+export { LearningContextUnavailableError, type LearningContext } from "./context-data";
 
 export const getLearningContext = cache(async (condition: LearningCondition): Promise<LearningContext> => {
   const access = await requireLearningAccess(condition);

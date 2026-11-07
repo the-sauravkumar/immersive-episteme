@@ -93,7 +93,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     const slug = `study-${++n}`;
     const s = await createStudy(t.pool, { slug, snapshotId, manifestId });
     for (const [i, [code, phase]] of battery.entries()) {
-      await t.pool.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position) SELECT $1, id, $2, $3 FROM assessments WHERE code = $4", [s.studyId, phase, i, code]);
+      await t.pool.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position, required) SELECT $1, id, $2, $3, false FROM assessments WHERE code = $4", [s.studyId, phase, i, code]);
     }
     await t.pool.query("UPDATE studies SET config = $2::jsonb, status = 'active' WHERE id = $1", [
       s.studyId,
@@ -121,7 +121,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
   async function allocated(study: EnrollableStudy, preValues: Record<string, string[]> = {}): Promise<OpenedSession & { condition: "2d" | "immersive" }> {
     const s = await consented(study);
     await pre(s.sessionId, preValues);
-    await recordDeviceCheck(t.pool, s.sessionId, report(2));
+    await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD });
     const a = await allocateSession(t.pool, s.sessionId);
     return { ...s, condition: a.condition, conditionId: a.conditionId };
   }
@@ -205,7 +205,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     expect(scores.rows.map((x) => `${x.metric_name}:${x.value}`).sort()).toEqual(["assessment.key_match_total:1", "item.key_match:0", "item.key_match:1"]);
     expect(await position(s.sessionId)).toEqual({ kind: "device_check" });
     await expect(allocateSession(t.pool, s.sessionId)).rejects.toMatchObject({ code: "not_current_step" });
-    expect(await recordDeviceCheck(t.pool, s.sessionId, report(2))).toEqual({ kind: "passed" });
+    expect(await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD })).toEqual({ kind: "passed" });
     expect(await position(s.sessionId)).toEqual({ kind: "allocation" });
 
     const a = await allocateSession(t.pool, s.sessionId);
@@ -245,7 +245,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     );
     const s = await consented(study);
     await submitAssessment(t.pool, { sessionId: s.sessionId, step: "pre_test", assessmentId: ids["se-pre-nokey"]!, values: {} });
-    await recordDeviceCheck(t.pool, s.sessionId, report(2));
+    await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD });
     await expect(allocateSession(t.pool, s.sessionId)).rejects.toMatchObject({ code: "allocation_refused" });
     expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM allocations WHERE participant_id = $1", [s.participantId])).n).toBe(0);
     expect((await state(s.sessionId)).journal.some((e) => e.action === "study.allocation_refused")).toBe(true);
@@ -256,7 +256,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     for (let i = 0; i < 8; i++) {
       const s = await consented(study);
       expect(s.condition).toBeNull();
-      await recordDeviceCheck(t.pool, s.sessionId, report(2));
+      await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD });
       await allocateSession(t.pool, s.sessionId);
     }
     const conds = await t.pool.query<{ id: string; code: string; allocation_weight: number }>("SELECT id, code, allocation_weight FROM study_conditions WHERE study_id = $1", [study.id]);
@@ -286,7 +286,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       expect(await position(s.sessionId)).toMatchObject({ step: "questionnaire_pre" });
       await submitAssessment(t.pool, { sessionId: s.sessionId, step: "questionnaire_pre", assessmentId: ids["se-q-pre"]!, values: { [ids["se-q-pre:a"]!]: ["3"] } });
       await pre(s.sessionId);
-      expect(await recordDeviceCheck(t.pool, s.sessionId, report(2))).toEqual({ kind: "passed" });
+      expect(await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD })).toEqual({ kind: "passed" });
       const a = await allocateSession(t.pool, s.sessionId);
       await completeOnboarding(t.pool, s.sessionId);
       expect(await position(s.sessionId)).toMatchObject({ step: "learning" });
@@ -323,7 +323,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
     const item = ids["se-q-pre:a"]!;
     await submitAssessment(t.pool, { sessionId: s.sessionId, step: "questionnaire_pre", assessmentId: ids["se-q-pre"]!, values: { [item]: ["2"] } });
     await pre(s.sessionId);
-    await recordDeviceCheck(t.pool, s.sessionId, report(2));
+    await recordDeviceCheck(t.pool, s.sessionId, report(2), { appBuild: BUILD });
     await allocateSession(t.pool, s.sessionId);
     await completeOnboarding(t.pool, s.sessionId);
     expect(await finished(s.sessionId)).toMatchObject({ step: "questionnaire_post_learning" });
@@ -361,7 +361,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       instrument: { pendingItems: [{ key: "b", reason: "wording not verified" }] },
     });
     for (const [i, code] of ["sus", "cognitive-load", "common-questions", "pending-scale", "se-pre"].entries()) {
-      await t.pool.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position) SELECT $1, id, 'pre', $2 FROM assessments WHERE code = $3", [study0.studyId, i, code]);
+      await t.pool.query("INSERT INTO study_assessments (study_id, assessment_id, phase, position, required) SELECT $1, id, 'pre', $2, false FROM assessments WHERE code = $3", [study0.studyId, i, code]);
     }
     await t.pool.query("UPDATE studies SET config = $2::jsonb, status = 'active' WHERE id = $1", [
       study0.studyId,
@@ -688,13 +688,19 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       await expect(returnForDelayedTest(t.pool, { studyCode: lapsed.study.slug, participantCode: (await state(lapsed.s.sessionId)).participantCode })).rejects.toMatchObject({ code: "session_closed" });
     });
 
-    it("never creates or moves a delayed schedule when ending sessions by timing, and times the window from the last immediate step", async () => {
+    it("schedules the delayed test when the last immediate step is submitted, timed from that step, and never moves it when ending sessions by timing", async () => {
       const { study, s } = await atDelayedTest();
+      expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM delayed_test_schedule WHERE session_id = $1", [s.sessionId])).n).toBe(1);
+      expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM audit_log WHERE entity_id = $1 AND action = 'study.delayed_test_scheduled'", [s.sessionId])).n).toBe(1);
+      const participantCode = (await state(s.sessionId)).participantCode;
+      await t.pool.query("UPDATE delayed_test_schedule SET opens_at = now() - interval '1 hour' WHERE session_id = $1", [s.sessionId]);
+      expect(await returnForDelayedTest(t.pool, { studyCode: study.slug, participantCode })).toMatchObject({ sessionId: s.sessionId, availability: "open" });
+      await t.pool.query(
+        "UPDATE delayed_test_schedule SET opens_at = d.closes_at - interval '8 days', returned_at = NULL FROM (SELECT closes_at FROM delayed_test_schedule WHERE session_id = $1) d WHERE session_id = $1",
+        [s.sessionId],
+      );
       await t.pool.query("UPDATE study_sessions SET started_at = now() - interval '11 days', last_activity_at = now() - interval '10 days' WHERE id = $1", [s.sessionId]);
       expect(await closeStaleSessions(t.pool, study.id)).toEqual([]);
-      expect(await closeStaleSessions(t.pool, study.id)).toEqual([]);
-      expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM delayed_test_schedule WHERE session_id = $1", [s.sessionId])).n).toBe(0);
-      expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM audit_log WHERE entity_id = $1 AND action = 'study.delayed_test_scheduled'", [s.sessionId])).n).toBe(0);
       expect((await state(s.sessionId)).status).toBe("in_progress");
 
       expect(await position(s.sessionId)).toMatchObject({ step: "delayed_test" });
@@ -719,8 +725,8 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       const s = await consented(study);
       await pre(s.sessionId);
       expect((await state(s.sessionId)).condition).toBeNull();
-      expect(await recordDeviceCheck(t.pool, s.sessionId, report(2, 800, 600))).toMatchObject({ kind: "retry", reason: "viewport_too_small" });
-      const out = await recordDeviceCheck(t.pool, s.sessionId, report(null));
+      expect(await recordDeviceCheck(t.pool, s.sessionId, report(2, 800, 600), { appBuild: BUILD })).toMatchObject({ kind: "retry", reason: "viewport_too_small" });
+      const out = await recordDeviceCheck(t.pool, s.sessionId, report(null), { appBuild: BUILD });
       if (policy === "exclude") {
         expect(out).toEqual({ kind: "excluded" });
         expect(await one(t.pool, "SELECT excluded, status FROM study_sessions WHERE id = $1", [s.sessionId])).toEqual({ excluded: true, status: "abandoned" });
