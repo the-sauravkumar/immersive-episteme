@@ -26,7 +26,7 @@ export function breakableKey(key: string): ReactNode {
   ));
 }
 
-const PHASE: Record<string, string> = { pre: "Pre", post: "Post", change: "Change", session: "Per session" };
+const PHASE: Record<string, string> = { pre: "Pre", post: "Post", follow_up: "Delayed", session: "Per session" };
 
 /** Conditions with 2D first (DESIGN.md 10: 2D is always first or left). */
 export function conditionOrder(conditions: ConditionRef[]): (id: string) => number {

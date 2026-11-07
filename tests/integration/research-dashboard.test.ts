@@ -1,11 +1,3 @@
-/**
- * Integration: the research dashboard (/research/dashboard) against a throwaway database.
- * Seeds sessions in both conditions with concept-map scores, a knowledge test, questionnaire
- * answers, telemetry and data-quality anomalies, then checks the dashboard numbers against
- * hand-computed values, the CSV content, live change detection, and the permission checks of
- * the CSV and live-probe route handlers (real authorizeRequest; only the session lookup is
- * stubbed).
- */
 import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -104,6 +96,38 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
       );
     }
 
+    const testScores: [string, string, string, number][] = [
+      ["P01", "test.pre_test", "pre_test", 0.25],
+      ["P01", "test.sequence", "post_test", 0.5],
+      ["P01", "test.sequence", "delayed_test", 0.4],
+      ["P01", "test.stage_placement", "post_test", 0.6],
+      ["P02", "test.pre_test", "pre_test", 0.5],
+      ["P02", "test.sequence", "post_test", 0.7],
+      ["P02", "test.stage_placement", "post_test", 0.8],
+      ["P03", "test.pre_test", "pre_test", 0.25],
+      ["P03", "test.sequence", "post_test", 0.9],
+      ["P03", "test.sequence", "delayed_test", 0.85],
+      ["P03", "test.stage_placement", "post_test", 0.7],
+      ["P04", "test.pre_test", "pre_test", 0],
+      ["P04", "test.sequence", "post_test", 1],
+      ["P04", "test.stage_placement", "post_test", 1],
+    ];
+    const testAssessments = new Map<string, string>();
+    for (const [, metric, step] of testScores) {
+      const code = `dash-${metric.replace("test.", "")}-${step}`.replace(/_/g, "-");
+      if (!testAssessments.has(code)) {
+        const kind = step === "pre_test" ? "pretest" : "posttest";
+        testAssessments.set(code, (await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ($1, 1, $2, $1) RETURNING id", [code, kind])).id);
+      }
+    }
+    for (const [who, metric, step, value] of testScores) {
+      const code = `dash-${metric.replace("test.", "")}-${step}`.replace(/_/g, "-");
+      await t.pool.query(
+        "INSERT INTO derived_scores (session_id, participant_id, assessment_id, metric_name, metric_version, value, details, pipeline_version) VALUES ($1, $2, $3, $4, '1.0.0', $5, $6, 'test')",
+        [s[who]!.sessionId, s[who]!.participantId, testAssessments.get(code), metric, value, JSON.stringify({ step })],
+      );
+    }
+
     // Knowledge pre-test totals.
     const kt = await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ('dash-kt', 1, 'pretest', 'Pre-test') RETURNING id");
     for (const [who, v] of [["P01", 3], ["P02", 5]] as const) {
@@ -138,21 +162,23 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
     await answer("P01", ssq, 1, Array(16).fill(0));
     await answer("P01", ssq, 2, Array(16).fill(1));
 
-    // Telemetry. P01: 1 min exposure, 0.5 min navigation, 0.1 min paused, 1 concept, one each of relationship / citation / guidance.
-    const [a, b] = concepts;
-    await event("P01", c2d, 0, "exposure_started", { intervalId: "i1", layer: "overview", startMonoMs: 0 }, a);
-    await event("P01", c2d, 1, "exposure_ended", { intervalId: "i1", layer: "overview", startMonoMs: 0, endMonoMs: 66000, activeMs: 60000, pausedMs: 6000, reason: "switched" }, a);
-    await event("P01", c2d, 2, "navigation_started", { intervalId: "n1", startMonoMs: 66000 });
-    await event("P01", c2d, 5, "navigation_ended", { intervalId: "n1", startMonoMs: 66000, endMonoMs: 96000, activeMs: 30000, pausedMs: 0, reason: "content" });
-    await event("P01", c2d, 6, "timing_resumed", { pausedMs: 6000 });
-    await event("P01", c2d, 7, "citation_opened", { sourceId: g.sourceId, claimIndex: 0 }, a);
-    await event("P01", c2d, 8, "relationship_followed", { relationshipId: g.relationshipId });
+    const stage = (stageKey: string, stageNumber: number) => ({ traditionKey: "ajrakh", stageKey, stageNumber });
+    await event("P01", c2d, 0, "stage_entered", { ...stage("saaj", 1), visitCount: 1, backStep: false });
+    await event("P01", c2d, 1, "stage_left", { ...stage("saaj", 1), activeMs: 60000 });
+    await event("P01", c2d, 2, "stage_entered", { ...stage("kasano", 2), visitCount: 1, backStep: false });
+    await event("P01", c2d, 5, "source_opened", stage("kasano", 2));
+    await event("P01", c2d, 6, "stage_left", { ...stage("kasano", 2), activeMs: 30000 });
+    await event("P01", c2d, 7, "stage_entered", { ...stage("saaj", 1), visitCount: 2, backStep: true });
+    await event("P01", c2d, 8, "timing_resumed", { pausedMs: 6000, causes: ["hidden"] });
     await event("P01", c2d, 9, "guidance_cue_used", { action: "followed" });
-    // P03: 2 min exposure on a, then b shown with no end event (unterminated, not guessed), a WebGL context loss.
-    await event("P03", c3d, 0, "exposure_started", { intervalId: "j1", layer: "overview", startMonoMs: 0 }, a);
-    await event("P03", c3d, 1, "exposure_ended", { intervalId: "j1", layer: "overview", startMonoMs: 0, endMonoMs: 120000, activeMs: 120000, pausedMs: 0, reason: "closed" }, a);
-    await event("P03", c3d, 2, "exposure_started", { intervalId: "j2", layer: "overview", startMonoMs: 120000 }, b);
-    await event("P03", c3d, 3, "webgl_context_lost", {});
+    await event("P03", c3d, 0, "stage_entered", { ...stage("saaj", 1), visitCount: 1, backStep: false });
+    await event("P03", c3d, 1, "movement_summary", { traditionKey: "ajrakh", stageKey: "saaj", walkingMs: 20000, viewingMs: 40000 });
+    await event("P03", c3d, 2, "source_opened", stage("saaj", 1));
+    await event("P03", c3d, 3, "client_error", { messageHash: "abc" });
+    await t.pool.query(
+      `INSERT INTO audit_log (actor_kind, actor_id, action, entity, entity_id, after) VALUES ('participant', 'P03', 'study.webgl_failed', 'study_session', $1, '{"step": "learning"}'::jsonb)`,
+      [s.P03!.sessionId],
+    );
 
     // Data quality: an open gap (seq 3–4 of P01), a seq_conflict quarantine (P03), P02 interrupted twice,
     // P03's device check asked for a retry, P04 excluded.
@@ -230,7 +256,8 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
       [s.P01!.sessionId, s.P01!.participantId, mapId, mapOf("post")],
     );
     const fresh = (await loadDashboard(t.pool, studyId))!;
-    expect(fresh.primary.ancova.find((r) => r.participantCode === "P01")).toMatchObject({ pre: 0.2, post: 0.6, change: expect.closeTo(0.4, 10) });
+    expect(cell(fresh.secondary, "cmap.recall.dl", "post", c2d).mean).toBeCloseTo(0.55, 10);
+    expect(cell(fresh.secondary, "cmap.recall.dl", "pre", c2d).mean).toBeCloseTo(0.3, 10);
     const pre = (await outcomeDistributions(t.pool, studyId)).find((x) => x.metricName === "cmap.recall.dl (pre)")!;
     expect([...(pre.byCondition[c2d] ?? [])].sort()).toEqual([0.2, 0.4]);
   });
@@ -259,23 +286,30 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
     expect(await analysisReferences(t.pool, st.studyId)).toEqual([{ assessmentId: a.id, referenceMapId: r1, version: 1, basis: "locked" }]);
   });
 
-  it("primary outcome: pre, post and change by condition, excluded session left out", () => {
-    const post2d = cell(data.primary.summary, "cmap.recall.dl", "post", c2d);
-    expect(post2d.n).toBe(2);
-    expect(post2d.mean).toBeCloseTo(0.55, 10);
-    expect(post2d.sd).toBeCloseTo(Math.sqrt(0.005), 10);
-    const change2d = cell(data.primary.summary, "cmap.recall.dl.change", "change", c2d);
-    expect(change2d.mean).toBeCloseTo(0.25, 10);
-    expect(change2d.sd).toBeCloseTo(0.212132, 5);
-    // 0.25 ± t(0.975, 1) · 0.212132 / √2 = 0.25 ± 12.706205 · 0.15
-    expect(change2d.ciLow).toBeCloseTo(0.25 - 1.905931, 4);
-    const post3d = cell(data.primary.summary, "cmap.recall.dl", "post", c3d);
-    expect(post3d).toMatchObject({ n: 1, mean: 0.7, sd: null, ciLow: null });
-    expect(data.primary.ancova.map((r) => [r.participantCode, r.conditionCode, r.stratum, r.pre, r.post])).toEqual([
-      ["P01", "conventional", "low", 0.2, 0.6],
-      ["P02", "conventional", null, 0.4, 0.5],
-      ["P03", "immersive", "low", 0.1, 0.7],
+  it("primary outcomes: sequence and stage placement, immediate and delayed, with the pre-test covariate, excluded session left out", () => {
+    expect(data.primary.summary.map((m) => [m.key, m.phase, m.label ?? null])).toEqual([
+      ["test.pre_test", "pre", "covariate"],
+      ["test.sequence", "post", null],
+      ["test.sequence", "follow_up", null],
+      ["test.stage_placement", "post", null],
+      ["test.stage_placement", "follow_up", null],
     ]);
+    expect(cell(data.primary.summary, "test.sequence", "post", c2d)).toMatchObject({ n: 2, mean: expect.closeTo(0.6, 10) });
+    expect(cell(data.primary.summary, "test.sequence", "post", c3d)).toMatchObject({ n: 1, mean: 0.9 });
+    expect(cell(data.primary.summary, "test.sequence", "follow_up", c2d)).toMatchObject({ n: 1, mean: 0.4 });
+    expect(cell(data.primary.summary, "test.stage_placement", "post", c2d).mean).toBeCloseTo(0.7, 10);
+    expect(cell(data.primary.summary, "test.pre_test", "pre", c2d).mean).toBeCloseTo(0.375, 10);
+    expect(cell(data.primary.summary, "test.stage_placement", "follow_up", c3d).n).toBe(0);
+    expect(data.primary.ancova.map((r) => [r.participantCode, r.conditionCode, r.stratum, r.preTest, r.sequence, r.sequenceDelayed, r.stagePlacement, r.stagePlacementDelayed])).toEqual([
+      ["P01", "conventional", "low", 0.25, 0.5, 0.4, 0.6, null],
+      ["P02", "conventional", null, 0.5, 0.7, null, 0.8, null],
+      ["P03", "immersive", "low", 0.25, 0.9, 0.85, 0.7, null],
+    ]);
+  });
+
+  it("the concept map is a secondary measure, read from the post-learning map", () => {
+    expect(cell(data.secondary, "cmap.recall.dl", "post", c2d)).toMatchObject({ n: 2, mean: expect.closeTo(0.55, 10) });
+    expect(cell(data.secondary, "cmap.recall.dl", "post", c3d)).toMatchObject({ n: 1, mean: 0.7 });
   });
 
   it("secondary edges drawn, knowledge test and questionnaire scales", () => {
@@ -287,14 +321,14 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
     expect(cell(data.questionnaires, "ssq.total", "post", c2d).mean).toBeCloseTo(78.54, 10);
   });
 
-  it("telemetry and time per session and by condition", () => {
+  it("telemetry per session and by condition, from the events both doors send", () => {
     const p1 = data.telemetry.sessions.find((r) => r.participantCode === "P01")!;
-    expect(p1).toMatchObject({ events: 8, exposureMs: 60000, navigationMs: 30000, pauseMs: 6000, conceptsExposed: 1, coverage: 0.5, relationshipsFollowed: 1, citationOpens: 1, guidanceUses: 1 });
+    expect(p1).toMatchObject({ events: 8, stageMs: 90000, stopsVisited: 2, revisits: 1, backSteps: 1, sourcesOpened: 1, pauseMs: 6000 });
     const p3 = data.telemetry.sessions.find((r) => r.participantCode === "P03")!;
-    expect(p3).toMatchObject({ events: 4, exposureMs: 120000, unterminated: 1, conceptsExposed: 2, coverage: 1 });
-    expect(data.telemetry.scopeConcepts).toBe(2);
-    // 2D: P01 1 min, P02 0 min → mean 0.5 min.
-    expect(cell(data.telemetry.summary, "time.exposure_total_ms", "session", c2d).mean).toBeCloseTo(0.5, 10);
+    expect(p3).toMatchObject({ events: 4, stageMs: 0, stopsVisited: 1, revisits: 0, backSteps: 0, sourcesOpened: 1, pauseMs: 0 });
+    expect(cell(data.telemetry.summary, "stage.total_ms", "session", c2d).mean).toBeCloseTo(0.75, 10);
+    expect(cell(data.telemetry.summary, "stage.sources_opened", "session", c3d).mean).toBe(1);
+    expect(data.telemetry.summary.map((m) => m.key)).toEqual(["stage.total_ms", "time.pause_ms", "stage.stops_visited", "stage.revisits", "stage.back_steps", "stage.sources_opened", "telemetry.events"]);
     expect(data.telemetry.sessions.some((r) => r.participantCode === "P04")).toBe(false);
   });
 
@@ -305,7 +339,8 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
     expect(q.interruptedSessions).toBe(1);
     expect(q.interruptions).toBe(2);
     expect(q.deviceCheckNotPassed).toEqual([{ verdict: "webgl_retry", n: 1 }]);
-    expect(q.webglContextLost).toBe(1);
+    expect(q.webglFailures).toEqual([{ step: "learning", n: 1 }]);
+    expect(q.clientErrors).toBe(1);
     expect(q.excluded).toEqual([{ category: "technical_failure", n: 1 }]);
   });
 
@@ -324,7 +359,7 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
     const after = await dashboardFingerprint(t.pool, studyId);
     expect(after.fingerprint).not.toBe(before.fingerprint);
     expect(Date.parse(after.serverTime)).toBeGreaterThanOrEqual(Date.parse(before.serverTime));
-    expect((await loadDashboard(t.pool, studyId))!.telemetry.sessions.find((r) => r.participantCode === "P02")!.guidanceUses).toBe(1);
+    expect((await loadDashboard(t.pool, studyId))!.telemetry.sessions.find((r) => r.participantCode === "P02")!.events).toBe(1);
   });
 
   describe("route handlers", () => {
@@ -368,18 +403,19 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
       const text = await r.text();
       const [first, ...rest] = text.split("\r\n");
       expect(first).toMatch(/^# immersive-episteme dashboard table dashboard_primary_ancova; study=dash-study; non_experimental=false;/);
-      expect(first).toContain("cmap.recall.dl@1.0.0");
+      expect(first).toContain("test.pre_test@1.0.0; test.sequence@1.0.0; test.stage_placement@1.0.0");
       const parsed = parseCsv(rest.join("\r\n"));
-      expect(parsed.columns).toEqual(["participant_code", "condition_code", "condition_interface", "stratum", "pre_cmap_recall_dl", "post_cmap_recall_dl", "change_cmap_recall_dl", "reference_map_ids"]);
-      expect(parsed.rows.map((x) => [x.participant_code, x.pre_cmap_recall_dl, x.post_cmap_recall_dl])).toEqual([
-        ["P01", "0.2", "0.6"],
-        ["P02", "0.4", "0.5"],
-        ["P03", "0.1", "0.7"],
+      expect(parsed.columns).toEqual(["participant_code", "condition_code", "condition_interface", "stratum", "pre_test", "sequence_immediate", "sequence_delayed", "stage_placement_immediate", "stage_placement_delayed"]);
+      expect(parsed.rows.map((x) => [x.participant_code, x.pre_test, x.sequence_immediate, x.sequence_delayed, x.stage_placement_immediate])).toEqual([
+        ["P01", "0.25", "0.5", "0.4", "0.6"],
+        ["P02", "0.5", "0.7", "", "0.8"],
+        ["P03", "0.25", "0.9", "0.85", "0.7"],
       ]);
       expect(text).not.toMatch(/Renderer crashed/);
       const summary = parseCsv((await (await csvGet("dashboard_primary")).text()).split("\r\n").slice(1).join("\r\n"));
-      const post2d = summary.rows.find((x) => x.phase === "post" && x.condition_code === "conventional")!;
-      expect(post2d).toMatchObject({ metric: "cmap.recall.dl", metric_version: "1.0.0", role: "secondary", n: "2", mean: "0.55" });
+      const post2d = summary.rows.find((x) => x.metric === "test.sequence" && x.phase === "post" && x.condition_code === "conventional")!;
+      expect(post2d).toMatchObject({ metric_version: "1.0.0", role: "primary", n: "2", mean: "0.6" });
+      expect(summary.rows.find((x) => x.metric === "test.pre_test" && x.condition_code === "conventional")).toMatchObject({ phase: "pre", qualifier: "covariate" });
       expect((await csvGet("nope")).status).toBe(400);
       const audit = await t.pool.query("SELECT count(*)::int AS n FROM audit_log WHERE action = 'export.dashboard_csv'");
       expect(audit.rows[0].n).toBe(2);

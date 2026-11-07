@@ -13,8 +13,8 @@
  * - telemetry_quarantine: unknown types / invalid events are kept, never silently dropped.
  * - sequence_gaps: detected gaps, duplicates and out-of-order arrivals per session.
  * - derived_metrics: versioned computations, kept apart from the raw events.
- * - session_telemetry_rollups: per-session read model of the research dashboard (time accounting
- *   and interaction counts), recomputed from the raw events only when a session has new events
+ * - session_telemetry_rollups: per-session read model of the research dashboard (stage time,
+ *   stops visited, revisits, back-steps, sources opened, pauses), recomputed from the raw events only when a session has new events
  *   (src/server/research/dashboard-rollups.ts). A cache of derived values, never source data.
  */
 import { sql } from "drizzle-orm";
@@ -257,16 +257,12 @@ export const sessionTelemetryRollups = pgTable(
     /** max(seq) of the session's events when computed; -1 when it had none. */
     lastSeq: integer().notNull(),
     eventCount: integer().notNull(),
-    exposureMs: doublePrecision().notNull(),
-    navigationMs: doublePrecision().notNull(),
+    stageMs: doublePrecision().notNull(),
+    stopsVisited: integer().notNull(),
+    revisits: integer().notNull(),
+    backSteps: integer().notNull(),
+    sourcesOpened: integer().notNull(),
     pauseMs: doublePrecision().notNull(),
-    unterminated: integer().notNull(),
-    conceptsExposed: integer().notNull(),
-    conceptsInScope: integer().notNull(),
-    relationshipsFollowed: integer().notNull(),
-    citationOpens: integer().notNull(),
-    guidanceUses: integer().notNull(),
-    webglContextLost: integer().notNull(),
     clientErrors: integer().notNull(),
     computedAt: tsz().notNull().defaultNow(),
   },

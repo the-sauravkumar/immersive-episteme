@@ -169,6 +169,13 @@
       "when": 1793787321581,
       "tag": "0023_manifest_not_required",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794051423197,
+      "tag": "0024_dashboard_stage_rollups",
+      "breakpoints": true
     }
   ]
 }

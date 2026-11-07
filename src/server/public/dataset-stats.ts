@@ -22,10 +22,8 @@ import { connection } from "next/server";
 import { cache } from "react";
 
 import { sourceDisplayLabel, type Citation } from "@/features/knowledge/read/view";
-import type { InterfaceParitySummary } from "@/features/research/interface-parity";
 import { compareTraditions, STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
 import type { ProvenanceKind, SourceReliability, VerificationState } from "@/lib/validation/enums";
-import { readInterfaceParity } from "@/server/research/parity/summary";
 import { getPool } from "@/server/db/client";
 
 /** The part of a `pg` Pool or client these reads need. */
@@ -339,15 +337,6 @@ export const getPullQuoteClaim = cache(() =>
   }),
 );
 export const getImageCredits = cache(() => atRequestTime(loadImageCredits));
-
-/**
- * The stored interface parity report, read by WP0's `readInterfaceParity` (the one reader every
- * surface of the Equivalence Monitor uses), or null when no real run is recorded.
- */
-export async function getInterfaceParityReport(): Promise<InterfaceParitySummary | null> {
-  await connection();
-  return readInterfaceParity();
-}
 
 /** "six" for 6; numerals above twelve. Used where a count opens a sentence or heading. */
 export function countWord(n: number): string {

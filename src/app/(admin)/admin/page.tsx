@@ -253,7 +253,7 @@ async function Overview() {
           {titleCase("research dashboard")}
         </h2>
         <p className="text-body text-ink">
-          Scores by condition (primary outcome first), telemetry and time, data quality and metric definitions for one study, updated live. Descriptive reference for the
+          Scores by condition (primary outcomes first), telemetry and time, data quality and metric definitions for one study, updated live. Descriptive reference for the
           research team.
         </p>
         {can(actor, "analytics.view") ? (

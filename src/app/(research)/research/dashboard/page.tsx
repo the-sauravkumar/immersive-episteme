@@ -3,16 +3,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { CsvButton, DataDisclosure, DotIntervalChart, SlopeChart, ValueHeatmap, type IntervalGroup } from "@/components/analytics/charts";
-import { conditionKind, orderByCondition } from "@/components/analytics/encoding";
-import { interfaceRunLine, NO_PARITY_RUN } from "@/components/parity/equivalence-monitor";
+import { CsvButton, DataDisclosure, DotIntervalChart, ValueHeatmap, type IntervalGroup } from "@/components/analytics/charts";
+import { conditionKind } from "@/components/analytics/encoding";
+import { ContentParity } from "@/components/parity/content-parity";
 import { ConsolePage } from "@/components/shell/gates";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardEyebrow, CardFooter, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { describe } from "@/features/research/descriptive";
-import { METRIC_DEFINITIONS, type MetricGroup } from "@/features/research/metric-definitions";
+import { METRIC_BY_KEY, METRIC_DEFINITIONS, PRIMARY_OUTCOMES, type MetricGroup } from "@/features/research/metric-definitions";
 import { can } from "@/lib/permissions/can";
 import { plural } from "@/lib/text/plural";
 import { titleCase } from "@/lib/text/title-case";
@@ -22,7 +22,7 @@ import { ANALYSIS_SCOPE_NOTE } from "@/server/research/analysis-scope";
 import type { DashboardData, MeasureRow } from "@/server/research/dashboard";
 import { serveDashboard } from "@/server/research/dashboard-service";
 import type { DashboardExtraTableName, DashboardTableName } from "@/server/research/exports/dictionary";
-import { readInterfaceParity } from "@/server/research/parity/summary";
+import { contentParityRows, type ContentParityRow } from "@/server/research/parity/summary";
 import { listStudies } from "@/server/research/studies";
 
 import { DemoBadge, Empty, LINK_44, pickStudy, Section, StatRow, StatusBadge, StudyPicker, SubHeading } from "../_components/common";
@@ -45,24 +45,7 @@ import { breakableKey, conditionOrder, num, StatsTable } from "./_components/sta
 
 export const metadata: Metadata = { title: "Research Dashboard" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
-
-/*
- * The dashboard reads as the results section of a paper (DESIGN.md 10, 11.9):
- *  1. Table 1, Enrolment and Completion, with the live status at its right;
- *  2. Figure 1 (pre/post slope chart) and Figure 2 (gain, dot plus 95% CI with raw points);
- *  3. Figure 3, gain by tradition: small multiples for the traditions on identical y scales,
- *     canonical order. The primary outcome is one map-level score per participant, so the split
- *     by tradition is drawn from the knowledge test, whose keyed items carry a concept and so a
- *     tradition (./_components/dashboard-extras.ts); a descriptive breakdown, not a registered
- *     outcome, and labelled so;
- *  4. dwell time per layer (heatmap) and Table 2, per-item statistics (./_components/
- *     dashboard-extras.ts, from stored derived values);
- *  5. the Interface Parity card, so the confound control sits next to the results;
- *  then the descriptive tables, telemetry (small multiples on identical scales), data quality
- *  and the metric definitions. Figures and tables are numbered in page order.
- */
 
 export default function Page({ searchParams }: PageProps<"/research/dashboard">) {
   return (
@@ -80,7 +63,6 @@ function hasData(rows: MeasureRow[]): boolean {
   return rows.some((r) => r.byCondition.some((c) => c.stats.n + c.stats.missing > 0));
 }
 
-/** Figure and table numbers in page order (DESIGN.md 7.6). */
 function counter() {
   let figure = 0;
   let table = 0;
@@ -88,7 +70,6 @@ function counter() {
 }
 type Counter = ReturnType<typeof counter>;
 
-/** Dot-and-interval groups (mean and 95% t interval, every value drawn) for one measure row, 2D first. */
 function intervalGroups(row: MeasureRow | undefined, data: DashboardData): IntervalGroup[] {
   if (!row) return [];
   const rank = conditionOrder(data.conditions);
@@ -108,10 +89,10 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
   const studies = await listStudies(pool);
   const study = pickStudy(studies, sp.study);
   if (!study) return <StudyPicker studies={studies} current={null} />;
-  const [principal, { data }, iface, layerRows, itemRows, traditionRows] = await Promise.all([
+  const [principal, { data }, parity, layerRows, itemRows, traditionRows] = await Promise.all([
     getStaffPrincipal(),
     serveDashboard(study.id),
-    readInterfaceParity(),
+    contentParityRows(pool, [study]),
     loadLayerMetricRows(pool, study.id),
     loadItemScoreRows(pool, study.id),
     loadTraditionItemRows(pool, study.id),
@@ -120,7 +101,6 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
   const mayDownload = can(principal, "exports.create") || can(principal, "exports.identified");
   const maySessions = can(principal, "sessions.view");
   const csvHref = (table: DashboardTableName) => (mayDownload ? `/research/dashboard/csv?study=${data.study.id}&table=${table}` : undefined);
-  // Rows 3 and 4: server CSV with the metric-version header (src/server/research/dashboard-extra-tables.ts).
   const extraCsvHref = (table: DashboardExtraTableName) => (mayDownload ? `/research/dashboard/csv?study=${data.study.id}&table=${table}` : undefined);
   const csv = (table: DashboardTableName) => (mayDownload ? <CsvButton href={`/research/dashboard/csv?study=${data.study.id}&table=${table}`} /> : null);
   const n = counter();
@@ -130,7 +110,8 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
   const perCondition = (count: (c: { id: string; code: string }) => number) => conditions.map((c) => `${c.label} ${count(c)}`).join(", ");
   const completed = (c: { id: string }) => data.quality.sessionsByStatus.filter((x) => x.conditionId === c.id && x.status === "completed").reduce((a, x) => a + x.n, 0);
   const inScope = (c: { id: string }) => data.telemetry.sessions.filter((x) => x.conditionId === c.id).length;
-  const withPrimary = (c: { code: string }) => data.primary.ancova.filter((r) => r.conditionCode === c.code && r.post !== null).length;
+  const hasPrimary = (r: DashboardData["primary"]["ancova"][number]) => r.sequence !== null && r.stagePlacement !== null;
+  const withPrimary = (c: { code: string }) => data.primary.ancova.filter((r) => r.conditionCode === c.code && hasPrimary(r)).length;
   const totalCompleted = data.quality.sessionsByStatus.filter((x) => x.status === "completed").reduce((a, x) => a + x.n, 0);
 
   return (
@@ -147,8 +128,8 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
         <AlertTitle>Note</AlertTitle>
         <AlertDescription>
           Descriptive only. Means, SDs, medians and 95% t intervals describe the recorded data; they test nothing and show no causal effect. The confirmatory analysis
-          (ANCOVA of the post score with the pre score as covariate, D2) runs in <code className="text-id">analysis/episteme_stats</code>. {ANALYSIS_SCOPE_NOTE} Nothing
-          is imputed: undefined values are counted as missing.
+          (ANCOVA of each primary outcome at the immediate test with the pre-test score as covariate, then a mixed model of the immediate and delayed tests, DR-075)
+          runs in <code className="text-id">analysis/episteme_stats</code>. {ANALYSIS_SCOPE_NOTE} Nothing is imputed: undefined values are counted as missing.
         </AlertDescription>
       </Alert>
       {mayDownload ? (
@@ -173,7 +154,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
           { label: "Sessions", value: data.sessionsTotal, note: `${data.conditions.length} conditions` },
           { label: "Completed sessions", value: totalCompleted, note: perCondition(completed) },
           { label: "Sessions in scope", value: data.sessionsInScope, note: perCondition(inScope) },
-          { label: "Participants with primary score", value: data.primary.ancova.filter((r) => r.post !== null).length, note: perCondition(withPrimary) },
+          { label: "Participants with both primary scores", value: data.primary.ancova.filter(hasPrimary).length, note: perCondition(withPrimary) },
         ]}
       />
 
@@ -190,10 +171,10 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
         csvHref={extraCsvHref}
       />
 
-      <InterfaceParityCard summary={iface} />
+      <ParityCard rows={parity} studyId={data.study.id} />
 
       <PrimarySection data={data} csv={csv} n={n} demo={demo} />
-      <Section id="secondary" title="secondary outcomes" demo={demo} description="Concept-map secondary outcomes in the order of study decision D2, pre-test and post-learning maps." actions={csv("dashboard_secondary")}>
+      <Section id="secondary" title="secondary outcomes" demo={demo} description="Concept-map outcomes in the order of study decision D2, from the post-learning map; secondary measures of relational structure since DR-075." actions={csv("dashboard_secondary")}>
         {hasData(data.secondary) ? (
           <StatsTable rows={data.secondary} conditions={data.conditions} caption="Secondary Outcomes by Condition" number={n.table()} />
         ) : (
@@ -233,58 +214,51 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
   );
 }
 
-function conditionCounts(lines: { condition: string }[]): string {
-  const counts = new Map<string, number>();
-  for (const l of lines) counts.set(l.condition, (counts.get(l.condition) ?? 0) + 1);
-  return counts.size ? [...counts].map(([c, k]) => `${c} n = ${k}`).join(", ") : "none yet";
+const OUTCOME_LABEL = (key: string) => METRIC_BY_KEY.get(key)?.label ?? key;
+
+function outcomePanels(data: DashboardData, phase: "post" | "follow_up") {
+  return PRIMARY_OUTCOMES.map((key) => ({ title: OUTCOME_LABEL(key), groups: intervalGroups(data.primary.summary.find((m) => m.key === key && m.phase === phase), data) }));
 }
 
-/** Row 2 of 11.9: Figure 1 (pre to post, slope chart) and Figure 2 (gain, dot plus 95% CI), two equal columns. */
 function ResultsRow({ data, n, demo, csvHref }: { data: DashboardData; n: Counter; demo: boolean; csvHref: (t: DashboardTableName) => string | undefined }) {
-  const name = (code: string) => data.conditions.find((c) => c.code === code)?.label ?? code;
-  const lines = orderByCondition(
-    data.primary.ancova.flatMap((r) =>
-      r.pre !== null && r.post !== null ? [{ id: r.participantCode, condition: name(r.conditionCode), kind: conditionKind(r.conditionInterface), pre: r.pre, post: r.post }] : [],
-    ),
-  );
-  const gain = intervalGroups(
-    data.primary.summary.find((m) => m.phase === "change"),
-    data,
-  );
+  const immediate = outcomePanels(data, "post");
+  const delayed = outcomePanels(data, "follow_up");
+  const counts = (panels: ReturnType<typeof outcomePanels>) => panels.map((p) => `${p.title}: ${p.groups.length ? nOf(p.groups) : "none yet"}`).join("; ");
+  const anyValue = (panels: ReturnType<typeof outcomePanels>) => panels.some((p) => p.groups.some((g) => g.values.length > 0));
   return (
     <Section
       id="results"
-      eyebrow="Primary outcome"
+      eyebrow="Primary outcomes"
       title="Score by condition"
       demo={demo}
       description={
         <>
-          <code className="text-id">cmap.recall.dl</code> on the pre-test and post-learning concept maps (study decision D2): the proportion of the adjudicated reference map a participant reproduced. Descriptive; no causal reading.
+          <code className="text-id">test.sequence</code> and <code className="text-id">test.stage_placement</code>, the two primary outcomes of H1 (DR-075): the proportion of
+          keyed items answered correctly on the immediate and the delayed test. The pre-test score is the covariate of the analysis and is shown in the table below. Descriptive;
+          no causal reading.
         </>
       }
     >
       <div className="grid min-w-0 gap-10 lg:grid-cols-2 lg:gap-8">
-        <SlopeChart
+        <DotIntervalChart
           number={n.figure()}
-          title="Pre/post score by condition"
-          howToRead={`Thin lines are participants (${conditionCounts(lines)}); thick lines join each condition's mean pre and post score. Proportion, 2 decimals.`}
-          lines={lines}
-          unit="cmap.recall.dl (proportion)"
+          title="Immediate test by condition"
+          howToRead={`Points show participants; the larger marker is the mean and the line its 95% t interval; ${counts(immediate)}. Proportion correct, 2 decimals.`}
+          panels={immediate}
+          unit="Proportion correct"
           digits={2}
-          preLabel="Pre-test map"
-          postLabel="Post-learning map"
-          csvHref={csvHref("dashboard_primary_ancova")}
-          empty="No participant has both a pre-test and a post-learning score yet."
+          csvHref={csvHref("dashboard_primary")}
+          empty={anyValue(immediate) ? undefined : "No immediate test scores yet."}
         />
         <DotIntervalChart
           number={n.figure()}
-          title="Learning gain by condition"
-          howToRead={`Points show participant gains (post − pre); the larger marker is the mean and the line its 95% t interval; ${gain.length ? nOf(gain) : "no participants yet"}. Proportion points, 2 decimals.`}
-          panels={[{ title: "", groups: gain }]}
-          unit="Change (proportion points)"
+          title="Delayed test by condition"
+          howToRead={`The parallel form taken about 7 days later. Points show participants; the larger marker is the mean and the line its 95% t interval; ${counts(delayed)}. Proportion correct, 2 decimals.`}
+          panels={delayed}
+          unit="Proportion correct"
           digits={2}
           csvHref={csvHref("dashboard_primary")}
-          empty="No gain scores yet: both maps must be scored against the reference map."
+          empty={anyValue(delayed) ? undefined : "No delayed test scores yet."}
         />
       </div>
     </Section>
@@ -455,20 +429,22 @@ function DwellAndItemsRow({
   );
 }
 
-/** Row 5 of 11.9: the confound control next to the results (DESIGN.md 3, signature 6). */
-function InterfaceParityCard({ summary }: { summary: Awaited<ReturnType<typeof readInterfaceParity>> }) {
+function ParityCard({ rows, studyId }: { rows: ContentParityRow[]; studyId: string }) {
   return (
     <Card plate className="mb-12 max-w-[52rem]">
       <CardHeader>
         <CardEyebrow>Equivalence Monitor</CardEyebrow>
-        <h2 className="text-h3 text-ink">{titleCase("interface parity")}</h2>
+        <h2 className="text-h3 text-ink">{titleCase("content parity")}</h2>
       </CardHeader>
-      <CardContent className="flex flex-col gap-1">
-        <p className="text-body text-ink">{summary ? `${interfaceRunLine(summary)}.` : NO_PARITY_RUN}</p>
-        <p className="text-credit">The 2D and 3D interfaces are compared check by check (P1-P33), so these results can be read against a measured, not an assumed, equivalence.</p>
+      <CardContent className="flex flex-col gap-3">
+        <ContentParity rows={rows} />
+        <p className="text-credit">
+          The latest stored parity report of this study: both doors are checked against one stage template for the same stages, words, sources, model ids and file hashes.
+          Interface measures are not compared; nothing measures them now.
+        </p>
       </CardContent>
       <CardFooter>
-        <Link href="/research/parity" className={LINK_44}>
+        <Link href={`/research/parity?study=${studyId}`} className={LINK_44}>
           Open parity checks
         </Link>
       </CardFooter>
@@ -481,44 +457,45 @@ function PrimarySection({ data, csv, n, demo }: { data: DashboardData; csv: (t: 
     <>
       <Section
         id="primary"
-        title="primary outcome: expert-map coverage"
+        title="primary outcomes: sequence and stage placement"
         demo={demo}
-        description={
-          <>
-            <code className="text-id">cmap.recall.dl</code> on the pre-test and post-learning maps, and its change, by condition (study decision D2).
-            {data.primary.referenceMaps.length > 1 ? ` Scores come from ${data.primary.referenceMaps.length} reference maps; compare only scores of the same reference map.` : ""}
-          </>
-        }
+        description="The pre-test score (the covariate) and test.sequence and test.stage_placement at the immediate and the delayed test, by condition (H1, DR-075)."
         actions={csv("dashboard_primary")}
       >
         {hasData(data.primary.summary) ? (
-          <StatsTable rows={data.primary.summary} conditions={data.conditions} caption="Primary Outcome by Condition" number={n.table()} />
+          <StatsTable rows={data.primary.summary} conditions={data.conditions} caption="Primary Outcomes by Condition" number={n.table()} />
         ) : (
-          <Empty>No primary-outcome scores yet: concept maps are scored on the Scoring page against an adjudicated reference map.</Empty>
+          <Empty>No test scores yet: the pre-test and the tests are scored when the participant submits them.</Empty>
         )}
       </Section>
       <Section
         id="ancova"
         title="ANCOVA-ready table"
         demo={demo}
-        description="One row per participant in scope: pseudonym, condition, stratum, pre and post cmap.recall.dl. Input for analysis/episteme_stats."
+        description="One row per participant in scope: pseudonym, condition, stratum, pre-test score and both primary outcomes at the immediate and the delayed test. Input for analysis/episteme_stats."
         actions={csv("dashboard_primary_ancova")}
       >
         {data.primary.ancova.length ? (
-          <Table caption="ANCOVA-Ready Primary Outcome" number={n.table()} hoverRows>
+          <Table caption="ANCOVA-Ready Primary Outcomes" number={n.table()} hoverRows>
             <TableHeader>
               <TableRow>
                 <TableHead scope="col">Participant</TableHead>
                 <TableHead scope="col">Condition</TableHead>
                 <TableHead scope="col">Stratum</TableHead>
                 <TableHead scope="col" numeric>
-                  Pre
+                  Pre-Test
                 </TableHead>
                 <TableHead scope="col" numeric>
-                  Post
+                  Sequence
                 </TableHead>
                 <TableHead scope="col" numeric>
-                  Change
+                  Sequence Delayed
+                </TableHead>
+                <TableHead scope="col" numeric>
+                  Stage Placement
+                </TableHead>
+                <TableHead scope="col" numeric>
+                  Stage Placement Delayed
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -528,15 +505,17 @@ function PrimarySection({ data, csv, n, demo }: { data: DashboardData; csv: (t: 
                   <TableCell className="text-id">{r.participantCode}</TableCell>
                   <TableCell>{r.conditionCode}</TableCell>
                   <TableCell>{r.stratum ?? "–"}</TableCell>
-                  <TableCell numeric>{num(r.pre)}</TableCell>
-                  <TableCell numeric>{num(r.post)}</TableCell>
-                  <TableCell numeric>{num(r.change)}</TableCell>
+                  <TableCell numeric>{num(r.preTest)}</TableCell>
+                  <TableCell numeric>{num(r.sequence)}</TableCell>
+                  <TableCell numeric>{num(r.sequenceDelayed)}</TableCell>
+                  <TableCell numeric>{num(r.stagePlacement)}</TableCell>
+                  <TableCell numeric>{num(r.stagePlacementDelayed)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         ) : (
-          <Empty>No participant has a primary-outcome score yet.</Empty>
+          <Empty>No participant has a test score yet.</Empty>
         )}
       </Section>
     </>
@@ -544,8 +523,7 @@ function PrimarySection({ data, csv, n, demo }: { data: DashboardData; csv: (t: 
 }
 
 const TIME_PANELS: [string, string][] = [
-  ["time.exposure_total_ms", "Content exposure"],
-  ["time.navigation_ms", "Navigation"],
+  ["stage.total_ms", "Stage time"],
   ["time.pause_ms", "Pause"],
 ];
 
@@ -572,9 +550,9 @@ function TelemetrySection({
         demo={demo}
         description={
           <>
-            Active minutes per session from the shared time accountant (pauses excluded), concepts exposed, coverage of the study snapshot
-            {t.scopeConcepts ? ` (${t.scopeConcepts} concepts)` : ""}, relationships followed, citation opens, guidance uses and events. Computed live from the raw events. Descriptive
-            covariates kept separate from outcomes (DR-015); exposure time is held equal by design.
+            From the events both doors send: active minutes at the stages (pauses excluded), paused minutes, stops visited, revisits, back-steps, source panels opened and
+            events per session. Computed live from the raw events. Time on the stages is an outcome of self-paced learning (DR-075); the rest describe how the course was
+            used.
           </>
         }
         actions={csv("dashboard_telemetry")}
@@ -583,7 +561,7 @@ function TelemetrySection({
           <div className="flex flex-col gap-10">
             <DotIntervalChart
               number={n.figure()}
-              title="Active minutes per session by condition"
+              title="Minutes per session by condition"
               howToRead={`Small multiples on one minute scale from zero. Points show sessions in scope; the larger marker is the mean and the line its 95% t interval, clipped at zero; ${nOf(panels[0]!.groups)}.`}
               panels={panels}
               unit="Minutes"
@@ -599,7 +577,6 @@ function TelemetrySection({
       </Section>
       <Section id="sessions" title="sessions" demo={demo} description="Per-session telemetry (in scope only). Open a session for its interaction timeline." actions={csv("dashboard_telemetry_sessions")}>
         {t.sessions.length ? (
-          // Updated in place by the live stream (./_components/live-sessions.tsx).
           <LiveSessionsTable
             studyId={data.study.id}
             generatedAt={data.generatedAt}
@@ -616,7 +593,6 @@ function TelemetrySection({
   );
 }
 
-/** A labelled list of counts: label left, tabular count right, hairlines between rows. */
 function CountList({ items, empty }: { items: { k: string; n: number }[]; empty: string }) {
   if (!items.length) return <Empty>{empty || "None."}</Empty>;
   return (
@@ -638,6 +614,7 @@ function QualitySection({ data, csv, n, demo }: { data: DashboardData; csv: (t: 
   const openGaps = q.sequence.find((g) => g.kind === "gap")?.open ?? 0;
   const excluded = q.excluded.reduce((a, x) => a + x.n, 0);
   const deviceFailures = q.deviceCheckNotPassed.reduce((a, x) => a + x.n, 0);
+  const webglFailures = q.webglFailures.reduce((a, x) => a + x.n, 0);
   return (
     <Section
       id="quality"
@@ -654,7 +631,7 @@ function QualitySection({ data, csv, n, demo }: { data: DashboardData; csv: (t: 
           { label: "Quarantined events", value: quarantined },
           { label: "Duplicate uploads", value: q.duplicates },
           { label: "Interrupted sessions", value: q.interruptedSessions, note: plural(q.interruptions, "interruption") },
-          { label: "Device / WebGL failures", value: deviceFailures + q.webglContextLost, note: plural(q.clientErrors, "client error") },
+          { label: "Device / WebGL failures", value: deviceFailures + webglFailures, note: plural(q.clientErrors, "client error") },
           { label: "Excluded sessions", value: excluded, note: `${q.withdrawn} withdrawn` },
         ]}
       />
@@ -683,7 +660,7 @@ function QualitySection({ data, csv, n, demo }: { data: DashboardData; csv: (t: 
           <CountList
             items={[
               ...q.deviceCheckNotPassed.map((d) => ({ k: `device check: ${d.verdict}`, n: d.n })),
-              { k: "WebGL context lost (events)", n: q.webglContextLost },
+              ...q.webglFailures.map((w) => ({ k: `3D view failed during ${w.step}`, n: w.n })),
               { k: "client errors (events)", n: q.clientErrors },
             ]}
             empty=""
@@ -702,7 +679,7 @@ function QualitySection({ data, csv, n, demo }: { data: DashboardData; csv: (t: 
 }
 
 const GROUP_TITLES: Record<MetricGroup, string> = {
-  primary: "primary outcome",
+  primary: "primary outcomes",
   secondary: "secondary outcomes",
   knowledge: "knowledge test and transfer",
   questionnaire: "questionnaires",
@@ -716,7 +693,7 @@ function Definitions() {
     <Section
       id="definitions"
       title="definitions"
-      description="Every metric on this page: version, preregistration role (primary: cmap.recall.dl post with pre as covariate, D2), what it measures, unit, how and where it is computed, and its citation (quoted verbatim from docs/research/study-decisions.md) or “Project definition”."
+      description="Every metric on this page: version, preregistration role (primary: test.sequence and test.stage_placement, with the pre-test score as covariate, DR-075), what it measures, unit, how and where it is computed, and its citation (quoted verbatim from docs/research/study-decisions.md) or “Project definition”."
     >
       <div className="flex flex-col border-y border-rule">
         {groups.map((g) => (

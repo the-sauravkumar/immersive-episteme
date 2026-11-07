@@ -7,8 +7,7 @@
  *     equivalents follow: the count list, the two conditions as text and the booktabs table;
  *  3. the six traditions as an index of equal rows, without images (DR-020);
  *  4. Table 1, the dataset counts;
- *  5. the latest parity run, or "There is no current interface parity run";
- *  6. the institution strip (hidden while its fields are null).
+ *  5. the institution strip (hidden while its fields are null).
  *
  * Every number on this page is read from the database at request time inside <Suspense>
  * (cacheComponents); each fallback is the same layout without numbers, never an invented value.
@@ -18,7 +17,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { chartFigureLabel } from "@/components/brand/numbering";
-import { EquivalenceMonitor } from "@/components/parity/equivalence-monitor";
 import { DatasetTable } from "@/components/public/dataset-table";
 import { FigureOneCountList, FigureOneDiagram } from "@/components/public/figure-one";
 import { IdenticalDiffersTable } from "@/components/public/identical-differs-table";
@@ -26,7 +24,7 @@ import { InstitutionStrip } from "@/components/public/institution-strip";
 import { TraditionIndex } from "@/components/public/tradition-plates";
 import { Button } from "@/components/ui/button";
 import { INSTITUTION } from "@/config/institution";
-import { countWord, getDatasetStats, getInterfaceParityReport } from "@/server/public/dataset-stats";
+import { countWord, getDatasetStats } from "@/server/public/dataset-stats";
 import { titleCase } from "@/lib/text/title-case";
 
 const DECK_TAIL = "as one cited body of knowledge, learned two ways.";
@@ -93,11 +91,6 @@ async function DatasetLive() {
   const stats = await getDatasetStats();
   if (!stats) return <p className="text-body text-ink-2">The dataset counts could not be read just now.</p>;
   return <DatasetTable stats={stats} number={1} />;
-}
-
-async function ParityLive() {
-  const report = await getInterfaceParityReport();
-  return <EquivalenceMonitor interfaceParity={report} tone="neutral" numbers={{ interface: 2 }} />;
 }
 
 /**
@@ -197,17 +190,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. The latest parity run, from the stored report only. */}
-      <section aria-labelledby="parity-heading" className="flex flex-col gap-8">
-        <SectionHead id="parity-heading" title="Equivalence of the Two Conditions" />
-        <div className="max-w-[56rem]">
-          <Suspense fallback={<p className="text-body text-ink-2">Reading the latest parity run…</p>}>
-            <ParityLive />
-          </Suspense>
-        </div>
-      </section>
-
-      {/* 6. Institution strip: renders nothing while every field is null (DESIGN.md 13). */}
+      {/* 5. Institution strip: renders nothing while every field is null (DESIGN.md 13). */}
       <InstitutionStrip institution={INSTITUTION} />
     </div>
   );

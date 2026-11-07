@@ -106,6 +106,13 @@ trimmed to word parity in the study scope (D5).
 
 ## D2. Primary outcome
 
+**Superseded for the primary outcome (DR-075 item 8; dashboard aligned in DR-113).** Concept Note
+rev2 H1 names two measures, so `test.sequence` and `test.stage_placement` are the primary
+outcomes, analysed by ANCOVA at the immediate test with the pre-test score `test.pre_test` as
+covariate and by a mixed model of the immediate and delayed tests. The concept map is drawn after
+learning only and `cmap.recall.dl` is a secondary measure of relational structure. The text below
+is kept as the record of the earlier decision.
+
 **Decision.** The primary outcome is expert-map coverage on the post-learning concept map. The
 literature calls it the "convergence" score; in our library it is `cmap.recall.dl`:
 

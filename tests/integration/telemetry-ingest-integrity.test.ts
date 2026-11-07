@@ -13,7 +13,6 @@ import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { loadSnapshotFacts } from "../../src/server/research/metrics/pipeline";
 import { refreshRollups } from "../../src/server/research/dashboard-rollups";
 import { ingestTelemetryBatch, type TelemetryPrincipal } from "../../src/server/telemetry/ingest";
 import {
@@ -114,15 +113,14 @@ describe.skipIf(!TEST_URL)("telemetry ingest integrity", () => {
     await ingestTelemetryBatch(t.pool, who(s), batch(s, [ev(s, 0, { clientTs: early }), ev(s, 1, { clientTs: early }), ev(s, 3, { clientTs: early })]));
     await t.pool.query("UPDATE study_sessions SET status = 'completed', completed_at = now(), last_activity_at = now() WHERE id = $1", [s.sessionId]);
     const sessions = async () => (await t.pool.query<{ id: string; status: string }>("SELECT id, status::text AS status FROM study_sessions WHERE study_id = $1 AND condition_id IS NOT NULL", [studyId])).rows;
-    const scope = (await loadSnapshotFacts(t.pool, snapshotId)).concepts;
-    await refreshRollups(t.pool, studyId, await sessions(), scope);
+    await refreshRollups(t.pool, studyId, await sessions());
     const before = await one<{ event_count: number }>(t.pool, "SELECT event_count FROM session_telemetry_rollups WHERE session_id = $1", [s.sessionId]);
     expect(before.event_count).toBe(3);
 
     // A retried lower chunk emitted before the end: the trigger accepts it, max(seq) is unchanged.
     const late = await ingestTelemetryBatch(t.pool, who(s), batch(s, [ev(s, 2, { clientTs: early })]));
     expect(late.status === 200 && late.body.accepted).toBe(1);
-    const r = await refreshRollups(t.pool, studyId, await sessions(), scope);
+    const r = await refreshRollups(t.pool, studyId, await sessions());
     expect(r.bySession.get(s.sessionId)!.eventCount).toBe(4);
   });
 
