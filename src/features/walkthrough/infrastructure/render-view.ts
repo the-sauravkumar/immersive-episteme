@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { BLOOM_CENTRE_WEIGHT, BLOOM_SIDE_TAPS, bloomBlurPasses } from "../domain/bloom-blur";
 import { storeColourTexturesMutably } from "./mutable-colour-storage";
 
 export const CAMERA_NEAR_METRES = 0.15;
@@ -9,6 +10,9 @@ export interface RenderView {
 }
 
 const VERTEX = "varying vec2 v;void main(){v=uv;gl_Position=vec4(position.xy,0.,1.);}";
+
+const BLUR_SIDES = BLOOM_SIDE_TAPS.map(({ offset, weight }) => `c+=(texture2D(t,v+d*${offset.toFixed(6)}).rgb+texture2D(t,v-d*${offset.toFixed(6)}).rgb)*${weight.toFixed(6)};`).join("");
+const BLUR = `varying vec2 v;uniform sampler2D t;uniform vec2 d;void main(){vec3 c=texture2D(t,v).rgb*${BLOOM_CENTRE_WEIGHT.toFixed(6)};${BLUR_SIDES}gl_FragColor=vec4(c,1.);}`;
 
 export const MAIN_TARGET_OPTIONS: THREE.RenderTargetOptions = { type: THREE.HalfFloatType, samples: 4 };
 
@@ -25,10 +29,8 @@ export function createRenderView(renderer: THREE.WebGLRenderer, scene: THREE.Sce
   triangle.setAttribute("uv", new THREE.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2));
   const pass = (fragmentShader: string, uniforms: Record<string, THREE.IUniform>) => new THREE.ShaderMaterial({ vertexShader: VERTEX, fragmentShader, uniforms, depthTest: false, depthWrite: false, toneMapped: false });
   const threshold = pass("varying vec2 v;uniform sampler2D t;void main(){vec3 c=min(texture2D(t,v).rgb,vec3(2.5));float l=max(c.r,max(c.g,c.b));gl_FragColor=vec4(c*smoothstep(1.05,1.65,l),1.);}", { t: { value: null } });
-  const blur = pass(
-    "varying vec2 v;uniform sampler2D t;uniform vec2 d;void main(){vec3 c=texture2D(t,v).rgb*.227;c+=(texture2D(t,v+d*1.38).rgb+texture2D(t,v-d*1.38).rgb)*.316;c+=(texture2D(t,v+d*3.23).rgb+texture2D(t,v-d*3.23).rgb)*.07;gl_FragColor=vec4(c,1.);}",
-    { t: { value: null }, d: { value: new THREE.Vector2() } },
-  );
+  const blur = pass(BLUR, { t: { value: null }, d: { value: new THREE.Vector2() } });
+  const step = blur.uniforms.d!.value as THREE.Vector2;
   const composite = pass(
     "varying vec2 v;uniform sampler2D t,b;vec3 aces(vec3 x){return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);}void main(){vec3 c=texture2D(t,v).rgb+texture2D(b,v).rgb*.28;c=aces(c*.82);vec2 q=v-.5;c*=1.-.1*smoothstep(.28,.82,length(q*vec2(1.05,1.)));c=mix(12.92*c,1.055*pow(c,vec3(1./2.4))-.055,step(.0031308,c));gl_FragColor=vec4(c,1.);}",
     { t: { value: main.texture }, b: { value: null } },
@@ -47,12 +49,14 @@ export function createRenderView(renderer: THREE.WebGLRenderer, scene: THREE.Sce
       renderer.render(scene, camera);
       threshold.uniforms.t!.value = main.texture;
       run(threshold, bloomA);
-      blur.uniforms.t!.value = bloomA.texture;
-      (blur.uniforms.d!.value as THREE.Vector2).set((1.4 * renderer.getPixelRatio()) / bloomA.width, 0);
-      run(blur, bloomB);
-      blur.uniforms.t!.value = bloomB.texture;
-      (blur.uniforms.d!.value as THREE.Vector2).set(0, (1.4 * renderer.getPixelRatio()) / bloomA.height);
-      run(blur, bloomA);
+      for (let passes = bloomBlurPasses(renderer.getPixelRatio()); passes > 0; passes--) {
+        blur.uniforms.t!.value = bloomA.texture;
+        step.set(1 / bloomA.width, 0);
+        run(blur, bloomB);
+        blur.uniforms.t!.value = bloomB.texture;
+        step.set(0, 1 / bloomA.height);
+        run(blur, bloomA);
+      }
       composite.uniforms.b!.value = bloomA.texture;
       run(composite, null);
     },

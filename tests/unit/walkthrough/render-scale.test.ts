@@ -8,6 +8,7 @@ import {
   renderScaleLevels,
   SCALE_RETRY_MS,
   SCALE_SETTLE_MS,
+  SLOW_DEVICE_RUN,
   STALLED_FRAME_MS,
   topRenderScale,
 } from "@/features/walkthrough/domain/render-scale";
@@ -19,6 +20,25 @@ const feed = (governor: RenderScaleGovernor, clock: Clock, frames: number, frame
   for (let i = 0; i < frames; i++) {
     clock.now += frameMs;
     const change = governor.observe({ frameMs, gpuMs }, clock.now);
+    if (change !== null) changes.push(change);
+  }
+  return changes;
+};
+
+interface Device {
+  readonly paceMs: number;
+  readonly msAtCss: number;
+  readonly timer: boolean;
+}
+
+const run = (governor: RenderScaleGovernor, clock: Clock, durationMs: number, device: Device): number[] => {
+  const changes: number[] = [];
+  const end = clock.now + durationMs;
+  while (clock.now < end) {
+    const gpuMs = device.msAtCss * governor.scale ** 2;
+    const frameMs = Math.max(device.paceMs, gpuMs);
+    clock.now += frameMs;
+    const change = governor.observe({ frameMs, gpuMs: device.timer ? gpuMs : null }, clock.now);
     if (change !== null) changes.push(change);
   }
   return changes;
@@ -183,7 +203,62 @@ describe("render scale governor", () => {
     const governor = new RenderScaleGovernor(2, clock.now);
     overload(governor, clock, 60);
     expect(governor.scale).toBe(1);
-    expect(feed(governor, clock, LOWER_WINDOW_FRAMES * 10, 60)).toEqual([]);
+    expect(feed(governor, clock, LOWER_WINDOW_FRAMES * 10, 30)).toEqual([]);
     expect(governor.scale).toBe(1);
+  });
+
+  it("without a GPU timer, keeps the device density when the display paces frames at 30 or 50 Hz and lowering does not shorten them", () => {
+    for (const paceMs of [33.3, 20]) {
+      const clock = { now: 0 };
+      const governor = new RenderScaleGovernor(2, clock.now);
+      const changes = run(governor, clock, 120_000, { paceMs, msAtCss: 2, timer: false });
+      expect(changes.length).toBeLessThanOrEqual(2);
+      expect(governor.scale).toBe(2);
+    }
+  });
+
+  it("without a GPU timer, still lowers on a 30 Hz display when lowering does shorten the frames", () => {
+    const clock = { now: 0 };
+    const governor = new RenderScaleGovernor(2, clock.now);
+    run(governor, clock, 30_000, { paceMs: 33.3, msAtCss: 16, timer: false });
+    expect(governor.scale).toBeLessThan(2);
+  });
+
+  it("forgets a learned 30 Hz pace once frames meet the 60 Hz budget again", () => {
+    const clock = { now: 0 };
+    const governor = new RenderScaleGovernor(2, clock.now);
+    run(governor, clock, 10_000, { paceMs: 33.3, msAtCss: 2, timer: false });
+    expect(governor.scale).toBe(2);
+    run(governor, clock, 3_000, { paceMs: 16.7, msAtCss: 2, timer: false });
+    run(governor, clock, 3_000, { paceMs: 16.7, msAtCss: 7, timer: false });
+    expect(governor.scale).toBeLessThan(2);
+  });
+
+  it("with a GPU timer, climbs back to the device density at a 30 Hz pace once the GPU has headroom again", () => {
+    const clock = { now: 0 };
+    const governor = new RenderScaleGovernor(2, clock.now);
+    overload(governor, clock, 33.3, 25);
+    expect(governor.scale).toBeLessThan(2);
+    run(governor, clock, 60_000, { paceMs: 33.3, msAtCss: 1.25, timer: true });
+    expect(governor.scale).toBe(2);
+  });
+
+  it("lowers on a device whose every frame takes longer than a stall, with or without a GPU timer", () => {
+    for (const timer of [true, false]) {
+      const clock = { now: 0 };
+      const governor = new RenderScaleGovernor(2, clock.now);
+      run(governor, clock, 120_000, { paceMs: 16.7, msAtCss: 75, timer });
+      expect(governor.scale).toBe(1);
+    }
+  });
+
+  it("ignores up to two stalls in a row", () => {
+    const clock = { now: 0 };
+    const governor = new RenderScaleGovernor(2, clock.now);
+    for (let round = 0; round < 20; round++) {
+      feed(governor, clock, SLOW_DEVICE_RUN - 1, STALLED_FRAME_MS + 400);
+      feed(governor, clock, 10, 16.7);
+    }
+    expect(governor.scale).toBe(2);
   });
 });
