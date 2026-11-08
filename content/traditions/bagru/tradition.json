@@ -4254,26 +4254,6 @@
     },
     {
       "source": "bagru.process_stage.hari-sarana-scouring",
-      "target": "shared.scientific_mechanism.sun-bleaching",
-      "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "The cloth is wetted and dried in the open, again and again, until it becomes white and bright.",
-      "conditions": "Source describes the practice, not the mechanism.",
-      "ordinal": null,
-      "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
-      "source_ids": [
-        "S1"
-      ],
-      "evidence": [
-        {
-          "source_id": "S1",
-          "locator": "PDF p. 9",
-          "quote": "This process of sprinkling water and drying is repeated 5-6 times a day. This procedure is carried out until the cloth becomes white and briglrt."
-        }
-      ]
-    },
-    {
-      "source": "bagru.process_stage.hari-sarana-scouring",
       "target": "bagru.environmental_condition.sun-and-open-ground",
       "type": "DEPENDS_ON",
       "explanation": "Scoured cloth is spread on large open grounds and wetted again before it dries.",
@@ -4340,7 +4320,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S4"
@@ -4544,7 +4524,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -4748,7 +4728,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -4768,7 +4748,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -4946,7 +4926,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5078,7 +5058,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5230,7 +5210,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],

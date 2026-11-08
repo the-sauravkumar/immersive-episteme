@@ -386,5 +386,20 @@
       "sanganeri:S2"
     ],
     "removal_reason": "DR-124: no recorded source states the link; the juxtaposition was the curators' own and the Sanganeri side rested on sanganeri:S14 (unverified kind), as the round 2 source check of 2026-10-16 found."
+  },
+  {
+    "file": "traditions/bagru/tradition.json",
+    "source": "bagru.process_stage.hari-sarana-scouring",
+    "target": "shared.scientific_mechanism.sun-bleaching",
+    "type": "SCIENTIFICALLY_EXPLAINED_BY",
+    "explanation": "The cloth is wetted and dried in the open, again and again, until it becomes white and bright.",
+    "conditions": "Source describes the practice, not the mechanism.",
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "Integration of DR-122 and DR-124: S1 p. 9 describes scouring as sprinkling and drying on large open grounds until the cloth is white; it names neither the sun nor bleaching, so no recorded Bagru source states the shared light-oxidation mechanism (as for Sanganeri scouring in DR-120)."
   }
 ]
