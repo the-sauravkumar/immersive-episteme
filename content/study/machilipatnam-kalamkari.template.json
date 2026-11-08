@@ -373,11 +373,11 @@
       },
       "items": [
         {
-          "key": "machilipatnam-kalamkari.material.alum-karam",
+          "key": "machilipatnam-kalamkari.material.alum",
           "role": "material",
           "label": "Alum",
-          "localName": "Karam",
-          "modelId": "paste-bowl"
+          "localName": null,
+          "modelId": "crystal-bowl"
         }
       ],
       "clothStateId": "machilipatnam-kalamkari-08"

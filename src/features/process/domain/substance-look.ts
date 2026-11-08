@@ -107,20 +107,16 @@ export function trayPadLookOf(stageKey: string): SubstanceLook | null {
 
 const toolStillPath = (modelId: string, liquidHex: string): string => stillPath(`${modelId}-${liquidHex.replace("#", "").toLowerCase()}`);
 
+export function stageItemLooks(stageKey: string, items: readonly StageItem[], item: StageItem): readonly SubstanceLook[] {
+  if (item.role === "material") return looksOfItem(stageKey, item);
+  const look = item.modelId === TRAY_MODEL ? trayPadLookOf(stageKey) : WORK_LIQUID_MODELS.has(item.modelId) ? workLiquidOf(stageKey, items) : null;
+  return look ? [look] : [];
+}
+
 export function stageItemStillPath(stageKey: string, items: readonly StageItem[], item: StageItem): string {
-  if (item.role === "material") {
-    const looks = looksOfItem(stageKey, item);
-    return stillPath(looks.length > 0 ? looks.map((look) => look.key).join("+") : item.modelId);
-  }
-  if (item.modelId === TRAY_MODEL) {
-    const pad = trayPadLookOf(stageKey);
-    return pad ? toolStillPath(item.modelId, pad.renderHex) : stillPath(item.modelId);
-  }
-  if (WORK_LIQUID_MODELS.has(item.modelId)) {
-    const liquid = workLiquidOf(stageKey, items);
-    return liquid ? toolStillPath(item.modelId, liquid.renderHex) : stillPath(item.modelId);
-  }
-  return stillPath(item.modelId);
+  const looks = stageItemLooks(stageKey, items, item);
+  if (item.role === "material") return stillPath(looks.length > 0 ? looks.map((look) => look.key).join("+") : item.modelId);
+  return looks[0] ? toolStillPath(item.modelId, looks[0].renderHex) : stillPath(item.modelId);
 }
 
 const LATHER_SHARE = 0.5;
@@ -137,6 +133,10 @@ export function liquidMarks(look: Pick<SubstanceLook, "surface">): { readonly sc
 
 export function itemColourIsUnsettled(stageKey: string, item: Pick<StageItem, "label" | "role">): boolean {
   return looksOfItem(stageKey, item).some((look) => look.renderBasis !== "evidence");
+}
+
+export function itemLookIsUnsupported(stageKey: string, item: Pick<StageItem, "label" | "role">): boolean {
+  return looksOfItem(stageKey, item).some((look) => look.renderBasis === "provisional");
 }
 
 export function itemVesselModel(stageKey: string, item: Pick<StageItem, "label" | "role">): string | null {

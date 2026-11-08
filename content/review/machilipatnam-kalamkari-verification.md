@@ -575,7 +575,7 @@ The tradition-level `alt_names` were checked under DR-124: 'Masulipatnam kalamka
 | 94 | `machilipatnam-kalamkari.process_stage.second-printing` USES `machilipatnam-kalamkari.material.indigo` | verified | Indigo printed directly. | S4 | PDF p. 12 | This involves the printing of yellow, green, pink, gray and indigo. | yes |
 | 95 | `machilipatnam-kalamkari.process_stage.second-printing` USES `machilipatnam-kalamkari.material.myrobalan-karakkaya` | verified | Yellow from myrobalan brushed on. | S4 | PDF p. 12 | This is the only stage where a brush (made of date-palm stick) is used to apply the yellow color (prepared myrobalan solution). | yes |
 | 96 | `machilipatnam-kalamkari.process_stage.second-printing` USES `machilipatnam-kalamkari.tool.date-palm-brush-and-kalam` | verified | Date-palm brush for yellow. | S4 | PDF p. 12 | This is the only stage where a brush (made of date-palm stick) is used to apply the yellow color (prepared myrobalan solution). | yes |
-| 97 | `machilipatnam-kalamkari.process_stage.alum-fixing-dip` USES `machilipatnam-kalamkari.material.alum-karam` | verified | Alum bath fixes colours. | S4 | PDF p. 12 | 6.e Final Processing The alum solution is made by adding cool water to pounded alum crystals. | yes |
+| 97 | `machilipatnam-kalamkari.process_stage.alum-fixing-dip` USES `machilipatnam-kalamkari.material.alum` | verified | Alum bath fixes colours. | S4 | PDF p. 12 | 6.e Final Processing The alum solution is made by adding cool water to pounded alum crystals. | yes |
 | 97 | 〃 | 〃 | 〃 | S15 | § "The original art form" | Alum water ensures the colour stays on the cloth. | yes |
 | 98 | `machilipatnam-kalamkari.material.kasim-iron-acetate` REQUIRES `machilipatnam-kalamkari.tool.kasim-fermentation-pot` | verified | Kasim is fermented in a buried pot. | S4 | PDF p. 4 | The cleaned strips are placed in a barrelshaped stone pot. | yes |
 | 98 | 〃 | 〃 | 〃 | S15 | § "The original art form" | making black colour requires mixing iron scraps, jaggery and salt water kept in a mud jar, which is immersed inside the soil | yes |
@@ -642,3 +642,15 @@ Each name in `alt_names` is printed by a recorded source; the quote was re-found
 | Machilipatnam Kalamkari | S1 | § "Application Details" | Geographical Indications Machilipatnam Kalamkari |
 | Kalamkari Cloth printing of Masulipatnam | S4 | PDF p. 14 | Kalamkari Cloth printing of Masulipatnam, Census of India Vol II AP Part VIIA Selected Crafts of AP. |
 | qalamkar | S8 | § "Object details" | It also calls the textile Qalamkar |
+
+## DR-125: Alum At The Fixing Dip Is Its Own Concept (2026-11-08)
+
+`material.alum-karam` carried the Telugu name karam into the fixing dip, where no source uses it: Census 1961 and Varadarajan give karam for the alum printing mordant, and S4 glosses alum as karam in its printing-mordant section (DR-084). The dip now uses a concept of its own, `machilipatnam-kalamkari.material.alum`, whose one claim and BELONGS_TO link quote the dip passage of S4; relationship 97 points to it, and `alum-karam` keeps the printing stage. `verify_tradition.py` on the 2026-11-08 archive finds 538 of 538 quotes at their locators. Concepts: 69 verified; relationships: 129 verified.
+
+| Concept | Claim | Claim text | Source | Locator | Verbatim quote | At locator |
+|---|---|---|---|---|---|---|
+| `machilipatnam-kalamkari.material.alum` | 0 | The alum solution for the fixing dip is made by adding cool water to pounded alum crystals. | S4 | PDF p. 12 | The alum solution is made by adding cool water to pounded alum crystals. The fabric is then submerged in this solution for a while. | yes |
+
+| # | Relationship | State | Explanation | Source | Locator | Verbatim quote | At locator |
+|---|---|---|---|---|---|---|---|
+| 128 | `machilipatnam-kalamkari.material.alum` BELONGS_TO `machilipatnam-kalamkari.tradition.machilipatnam-kalamkari` | verified | Alum is documented as part of Machilipatnam block-printed kalamkari. | S4 | PDF p. 12 | The alum solution is made by adding cool water to pounded alum crystals. The fabric is then submerged in this solution for a while. | yes |

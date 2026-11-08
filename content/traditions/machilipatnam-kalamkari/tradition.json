@@ -1202,6 +1202,33 @@
       "prose_policy": "claims-only"
     },
     {
+      "key": "machilipatnam-kalamkari.material.alum",
+      "type": "material",
+      "category": "materials",
+      "title": "Alum",
+      "summary": "The alum solution for the fixing dip is made by adding cool water to pounded alum crystals.",
+      "body_md": "The alum solution for the fixing dip is made by adding cool water to pounded alum crystals. [S4]",
+      "local_terms": [],
+      "provenance_kind": "historical_documentation",
+      "verification_state": "verified",
+      "claims": [
+        {
+          "text": "The alum solution for the fixing dip is made by adding cool water to pounded alum crystals.",
+          "source_ids": [
+            "S4"
+          ],
+          "evidence": [
+            {
+              "source_id": "S4",
+              "locator": "PDF p. 12",
+              "quote": "The alum solution is made by adding cool water to pounded alum crystals. The fabric is then submerged in this solution for a while."
+            }
+          ]
+        }
+      ],
+      "prose_policy": "claims-only"
+    },
+    {
       "key": "machilipatnam-kalamkari.material.alizarin-and-red-roots",
       "type": "material",
       "category": "materials",
@@ -1907,7 +1934,7 @@
       "key": "machilipatnam-kalamkari.tool.kasim-fermentation-pot",
       "type": "tool",
       "category": "tools",
-      "title": "Buried stone pot for kasim",
+      "title": "Earthen pot for kasim",
       "summary": "The cleaned iron strips are placed in a barrel-shaped stone pot, securely covered, 90 per cent below ground level.",
       "body_md": "The cleaned iron strips are placed in a barrel-shaped stone pot, securely covered, 90 per cent below ground level. [S4]\n\nThe iron mixture is sealed in a mud jar buried in soil. [S15]",
       "local_terms": [],
@@ -2593,9 +2620,7 @@
       "title": "Alum fixing dip",
       "summary": "The fabric is submerged in alum solution; the excess yellow runs off and all colours are fixed.",
       "body_md": "The fabric is submerged in alum solution; the excess yellow runs off and all colours are fixed. [S4]\n\nThe cloth is treated in alum water before soap washing. [S15]",
-      "local_terms": [
-        "karam"
-      ],
+      "local_terms": [],
       "provenance_kind": "historical_documentation",
       "verification_state": "verified",
       "claims": [
@@ -4615,6 +4640,26 @@
       ]
     },
     {
+      "source": "machilipatnam-kalamkari.material.alum",
+      "target": "machilipatnam-kalamkari.tradition.machilipatnam-kalamkari",
+      "type": "BELONGS_TO",
+      "explanation": "Alum is documented as part of Machilipatnam block-printed kalamkari.",
+      "conditions": null,
+      "ordinal": null,
+      "provenance_kind": "historical_documentation",
+      "verification_state": "verified",
+      "source_ids": [
+        "S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "S4",
+          "locator": "PDF p. 12",
+          "quote": "The alum solution is made by adding cool water to pounded alum crystals. The fabric is then submerged in this solution for a while."
+        }
+      ]
+    },
+    {
       "source": "machilipatnam-kalamkari.material.alizarin-and-red-roots",
       "target": "machilipatnam-kalamkari.tradition.machilipatnam-kalamkari",
       "type": "BELONGS_TO",
@@ -4924,7 +4969,7 @@
       "source": "machilipatnam-kalamkari.tool.kasim-fermentation-pot",
       "target": "machilipatnam-kalamkari.tradition.machilipatnam-kalamkari",
       "type": "BELONGS_TO",
-      "explanation": "Buried stone pot for kasim is documented as part of Machilipatnam block-printed kalamkari.",
+      "explanation": "Earthen pot for kasim is documented as part of Machilipatnam block-printed kalamkari.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
@@ -6720,7 +6765,7 @@
     },
     {
       "source": "machilipatnam-kalamkari.process_stage.alum-fixing-dip",
-      "target": "machilipatnam-kalamkari.material.alum-karam",
+      "target": "machilipatnam-kalamkari.material.alum",
       "type": "USES",
       "explanation": "Alum bath fixes colours.",
       "conditions": null,

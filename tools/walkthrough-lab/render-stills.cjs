@@ -8,7 +8,8 @@ const STILLS = "/walkthrough/stills";
 const BROWSER_LIFE = 12;
 const READY_LIMIT_MS = 90000;
 const only = process.argv.slice(2);
-const wanted = (name) => only.length === 0 || only.includes(name);
+const stillFiles = only.filter((name) => name.startsWith(`${STILLS}/objects/`));
+const wanted = (name) => only.length === 0 || only.includes(name) || (name === "objects" && stillFiles.length > 0);
 
 async function openReady(browser, url, width, height, scale) {
   for (let attempt = 1; ; attempt++) {
@@ -46,7 +47,7 @@ async function shoot(browser, url, file, width, height, scale = 1) {
     const seen = new Set();
     let shot = 0;
     for (const job of jobs) {
-      if (seen.has(job.file)) continue;
+      if (seen.has(job.file) || (stillFiles.length > 0 && !stillFiles.includes(job.file))) continue;
       seen.add(job.file);
       if (++shot % BROWSER_LIFE === 0) {
         await browser.close();

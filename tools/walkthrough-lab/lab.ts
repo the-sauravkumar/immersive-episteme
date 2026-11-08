@@ -14,7 +14,7 @@ import type { Box } from "@/features/walkthrough/domain/geometry";
 import { reachField, type ReachField } from "@/features/walkthrough/domain/reach";
 import { rankWorstFirst, tearingFailures } from "@/features/walkthrough/domain/surface-density";
 import { measureTearing, objectParts, reachOfParts, surfaceRows } from "./surface-audit";
-import { looksOfItem, stageItemStillPath, trayPadLookOf, workLiquidOf, type SubstanceLook } from "@/features/process/domain/substance-look";
+import { looksOfItem, stageItemLooks, stageItemStillPath, trayPadLookOf, workLiquidOf, type SubstanceLook } from "@/features/process/domain/substance-look";
 import { easeYaw, moveTowards, steerAlong, stepWalker, walkerAt, type WalkTarget, type Walker } from "@/features/walkthrough/domain/walk-state";
 import { buildEntrance } from "@/features/walkthrough/infrastructure/build-entrance";
 import { buildYard, YardKit, type BuiltYard, type YardTextile } from "@/features/walkthrough/infrastructure/build-yard";
@@ -669,16 +669,18 @@ win.paintOffPlanted = async () => {
   floating.removeFromParent();
   return off;
 };
+const shownLooks = (looks: readonly SubstanceLook[]) => looks.map(({ key, renderHex, transparency, fill }) => ({ key, renderHex, transparency, fill }));
 win.stillJobs = () => [
-  { name: `practice ${PRACTICE_MODEL}`, form: "tool", file: stillPath(PRACTICE_MODEL), query: `s=still&m=${PRACTICE_MODEL}` },
+  { name: `practice ${PRACTICE_MODEL}`, form: "tool", file: stillPath(PRACTICE_MODEL), query: `s=still&m=${PRACTICE_MODEL}`, looks: [] },
   ...Object.values(TEMPLATES).flatMap((template) =>
     template.stages.flatMap((stage) =>
       stage.items.map((item) => {
         const looks = looksOfItem(stage.key, item);
         const stageQuery = `stage=${encodeURIComponent(stage.key)}`;
+        const shown = shownLooks(stageItemLooks(stage.key, stage.items, item));
         return looks.length > 0
-          ? { name: `${stage.key} / ${item.label} / ${looks.map((look) => look.key).join("+")}`, form: looks.map((look) => `${look.fill} ${look.renderHex} ${look.transparency}`).join(" + "), file: stageItemStillPath(stage.key, stage.items, item), query: `s=still&${stageQuery}&item=${encodeURIComponent(item.label)}` }
-          : { name: `${stage.key} / ${item.label} / ${item.modelId}`, form: "tool", file: stageItemStillPath(stage.key, stage.items, item), query: `s=still&m=${item.modelId}&${stageQuery}` };
+          ? { name: `${stage.key} / ${item.label} / ${looks.map((look) => look.key).join("+")}`, form: looks.map((look) => `${look.fill} ${look.renderHex} ${look.transparency}`).join(" + "), file: stageItemStillPath(stage.key, stage.items, item), query: `s=still&${stageQuery}&item=${encodeURIComponent(item.label)}`, looks: shown }
+          : { name: `${stage.key} / ${item.label} / ${item.modelId}`, form: "tool", file: stageItemStillPath(stage.key, stage.items, item), query: `s=still&m=${item.modelId}&${stageQuery}`, looks: shown };
       }),
     ),
   ),
