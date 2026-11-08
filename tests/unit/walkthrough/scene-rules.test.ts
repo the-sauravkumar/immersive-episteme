@@ -1,10 +1,17 @@
-import { EASE_BELOW_FIELD_METRES } from "@/features/walkthrough/domain/cloth-surface";
+import { EASE_BELOW_FIELD_METRES, settledClothSteps } from "@/features/walkthrough/domain/cloth-surface";
 import { describe, expect, it } from "vitest";
 import type { ProductImage, StationKind } from "@/features/process/domain/stage-template";
 import { checkScene } from "@/features/walkthrough/domain/scene-check";
 import { layoutTextiles } from "@/features/walkthrough/domain/route-plan";
 import { buildYardPlan, CLOTH_LINE_X, YARD_HALF_WIDTH, type YardStage } from "@/features/walkthrough/domain/yard-plan";
 import { stepWalker, type Walker } from "@/features/walkthrough/domain/walk-state";
+
+function settle<T>(steps: Generator<void, T>): T {
+  for (;;) {
+    const step = steps.next();
+    if (step.done) return step.value;
+  }
+}
 
 const KINDS: readonly StationKind[] = ["table", "vat", "boil", "wash", "soak", "dry", "carve", "finish"];
 const stage = (kind: StationKind, index: number): YardStage => ({ number: index + 1, name: "Stage", localName: null, caption: "Caption", kind, items: [], next: { number: index + 2, name: "Next" }, index });
@@ -14,8 +21,8 @@ describe("cloth settles on what it touches", () => {
     for (const index of [0, 1]) {
       it(`${kind} yard ${index}`, () => {
         const plan = buildYardPlan(stage(kind, index));
-        for (const piece of plan.cloth) {
-          const p = piece.surface.positions;
+        for (const surface of settle(settledClothSteps(plan.cloth.map((piece) => piece.spec)))) {
+          const p = surface.positions;
           for (let k = 0; k < p.length; k += 3) {
             const floor = plan.heightField(p[k]!, p[k + 2]!, p[k + 1]!);
             expect(p[k + 1]!).toBeGreaterThanOrEqual(floor - EASE_BELOW_FIELD_METRES - 1e-4);

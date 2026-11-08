@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { CLAY_BOWL, CLAY_POT, sampledPath, throwVessel, type ThrownForm } from "@/features/walkthrough/domain/thrown-vessel";
+import { CLAY_BOWL, CLAY_POT, sampledPath, throwingSteps, type ThrownForm, type ThrownMesh } from "@/features/walkthrough/domain/thrown-vessel";
 import { measureVesselProfile, wallRadius } from "@/features/walkthrough/domain/vessel-profile";
+
+function throwVessel(form: ThrownForm): ThrownMesh {
+  const steps = throwingSteps(form);
+  for (;;) {
+    const step = steps.next();
+    if (step.done) return step.value;
+  }
+}
 
 function trianglesOf(form: ThrownForm): Float32Array {
   const mesh = throwVessel(form);

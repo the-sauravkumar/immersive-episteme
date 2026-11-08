@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { catalogueModel } from "@/features/process/domain/asset-catalogue";
 import { clothShadingSteps } from "../domain/cloth-shading";
-import { clothBodyBoxes, type ClothSurface } from "../domain/cloth-surface";
+import { clothBodyBoxes, settledClothSteps, type ClothSurface } from "../domain/cloth-surface";
 import { FAR_WALL_Z, GAP_WIDTH, CLOTH_LINE_X, NEXT_YARD_OFFSET, RAIL_HEIGHT, TIE_BOARD_THICKNESS, WALL_HEIGHT, WORK_FLOOR_Y, YARD_FRONT_Z, YARD_HALF_WIDTH, type PaintedWords, type YardPlan } from "../domain/yard-plan";
 import type { SubstanceLook } from "@/features/process/domain/substance-look";
 import { makeVesselProbe, vertexOutsideVessel, type VesselProbe } from "../domain/mesh-probe";
@@ -496,27 +496,29 @@ export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, 
     register(`textile paint ${textile.name} ${textile.x}`, "surface", (await paintWordsInTurn(kit.library, group, textile.label)).mesh);
   }
 
+  const surfaces = await pacer.run(settledClothSteps(plan.cloth.map((piece) => piece.spec)));
   const before = await clothMaterialFor(kit, files.clothBefore, false);
   const after = await clothMaterialFor(kit, files.clothAfter, files.wetAfter);
   if ((work.type === "ring" || work.type === "tank") && plan.workLiquid) {
     const seesThrough = plan.workLiquid.transparency === "clear";
     const bath = { level: work.level, bodyDepth: seesThrough ? 0 : BATH_BODY_DEPTH_METRES, body: liquidBodyColour(plan.workLiquid) };
     const earlierRepeat: readonly [number, number] = [before.map!.repeat.x, before.map!.repeat.y];
-    const joinAlong = plan.cloth[0]!.surface.endAlong;
+    const joinAlong = surfaces[0]!.endAlong;
     dipInBath(before, { ...bath, wetRise: WICKED_ABOVE_BATH_METRES, earlier: null, earlierRepeat, joinAlong: null });
     dipInBath(after, { ...bath, wetRise: LIFTED_WET_METRES, earlier: before.map, earlierRepeat, joinAlong });
   }
   const clothMeshes: ClothMesh[] = [];
-  for (const piece of plan.cloth) {
+  for (const [index, piece] of plan.cloth.entries()) {
+    const surface = surfaces[index]!;
     await pacer.pace();
-    const mesh = new THREE.Mesh(await clothGeometry(pacer, piece.surface), piece.state === "before" ? before : after);
+    const mesh = new THREE.Mesh(await clothGeometry(pacer, surface), piece.state === "before" ? before : after);
     mesh.customDepthMaterial = await kit.library.shared("cloth-shadow", async () => dryClothShadowMaterial());
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     group.add(mesh);
     register(piece.name, "surface", mesh);
-    clothMeshes.push({ name: piece.name, positions: piece.surface.positions, indices: piece.surface.indices });
-    colliders.push(...clothBodyBoxes(piece.surface));
+    clothMeshes.push({ name: piece.name, positions: surface.positions, indices: surface.indices });
+    colliders.push(...clothBodyBoxes(surface));
   }
 
   const audit = (): YardAudit => {

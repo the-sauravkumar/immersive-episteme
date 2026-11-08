@@ -37,6 +37,7 @@ const BEND_SAGITTA_METRES = 0.00014;
 const MOST_PIECES_PER_ROW = 7;
 const LOW_CLOTH_METRES = 1.1;
 const SETTLE_ROUNDS = 3;
+const ROWS_PER_STEP = 24;
 const EASE_ROUNDS = 6;
 export const EASE_BELOW_FIELD_METRES = 0.01;
 const turnAt = (a: Vec3, b: Vec3, c: Vec3): number => {
@@ -84,7 +85,7 @@ export function clothBodyBoxes(surface: ClothSurface): Box[] {
   return boxes;
 }
 
-export function settleCloth(spec: ClothSpec): ClothSurface {
+export function* clothSettlingSteps(spec: ClothSpec): Generator<void, ClothSurface> {
   const path = samplePath(spec.points, spec.step);
   const rows = path.length;
   const cols = spec.columns + 1;
@@ -92,6 +93,7 @@ export function settleCloth(spec: ClothSpec): ClothSurface {
   const uvs = new Float32Array(rows * cols * 2);
   let side: Vec3 = [1, 0, 0];
   for (let i = 0; i < rows; i++) {
+    if (i % ROWS_PER_STEP === 0) yield;
     const point = path[i]!;
     const before = path[Math.max(0, i - 1)]!;
     const after = path[Math.min(rows - 1, i + 1)]!;
@@ -123,18 +125,17 @@ export function settleCloth(spec: ClothSpec): ClothSurface {
       uvs[m + 1] = v;
     }
   }
-  const lift = () => {
-    for (let k = 0; k < positions.length; k += 3) {
-      const floor = spec.field(positions[k]!, positions[k + 2]!, positions[k + 1]!);
-      if (positions[k + 1]! < floor) positions[k + 1] = floor;
-    }
-  };
-  lift();
+  for (let k = 0; k < positions.length; k += 3) {
+    if (k % (ROWS_PER_STEP * cols * 3) === 0) yield;
+    const floor = spec.field(positions[k]!, positions[k + 2]!, positions[k + 1]!);
+    if (positions[k + 1]! < floor) positions[k + 1] = floor;
+  }
   const lowRows: number[] = [];
   for (let i = 1; i < rows - 1; i++) if (positions[(i * cols + (cols >> 1)) * 3 + 1]! < LOW_CLOTH_METRES) lowRows.push(i);
-  const relax = (below: number) => {
+  function* relax(below: number): Generator<void, void> {
     const next = positions.slice();
-    for (const i of lowRows) {
+    for (const [n, i] of lowRows.entries()) {
+      if (n % ROWS_PER_STEP === 0) yield;
       for (let j = 0; j < cols; j++) {
         const k = (i * cols + j) * 3;
         if (positions[k + 1]! >= LOW_CLOTH_METRES) continue;
@@ -145,13 +146,22 @@ export function settleCloth(spec: ClothSpec): ClothSurface {
       }
     }
     positions.set(next);
-  };
-  for (let iteration = 0; iteration < SETTLE_ROUNDS; iteration++) relax(0);
-  for (let iteration = 0; iteration < EASE_ROUNDS; iteration++) relax(EASE_BELOW_FIELD_METRES);
-  return refineBends(positions, uvs, rows, cols, spec);
+  }
+  for (let iteration = 0; iteration < SETTLE_ROUNDS; iteration++) yield* relax(0);
+  for (let iteration = 0; iteration < EASE_ROUNDS; iteration++) yield* relax(EASE_BELOW_FIELD_METRES);
+  return yield* refinedBendSteps(positions, uvs, rows, cols, spec);
 }
 
-function refineBends(positions: Float32Array, uvs: Float32Array, rows: number, cols: number, spec: ClothSpec): ClothSurface {
+export function* settledClothSteps(specs: readonly ClothSpec[]): Generator<void, ClothSurface[]> {
+  const surfaces: ClothSurface[] = [];
+  for (const spec of specs) {
+    const startAlong = surfaces[surfaces.length - 1]?.endAlong;
+    surfaces.push(yield* clothSettlingSteps(startAlong ? { ...spec, startAlong } : spec));
+  }
+  return surfaces;
+}
+
+function* refinedBendSteps(positions: Float32Array, uvs: Float32Array, rows: number, cols: number, spec: ClothSpec): Generator<void, ClothSurface> {
   const centre = (row: number): Vec3 => {
     const k = (row * cols + (cols >> 1)) * 3;
     return [positions[k]!, positions[k + 1]!, positions[k + 2]!];
@@ -176,6 +186,7 @@ function refineBends(positions: Float32Array, uvs: Float32Array, rows: number, c
   const hermite = (p0: number, p1: number, p2: number, p3: number, t: number) => 0.5 * (2 * p1 + (p2 - p0) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t * t + (3 * p1 - p0 - 3 * p2 + p3) * t * t * t);
   const clampRow = (r: number) => (r < 0 ? 0 : r > rows - 1 ? rows - 1 : r);
   for (let i = 0; i < rows - 1; i++) {
+    if (i % ROWS_PER_STEP === 0) yield;
     const pieces = steps[i]!;
     for (let piece = 0; piece < pieces; piece++) {
       const t = piece / pieces;

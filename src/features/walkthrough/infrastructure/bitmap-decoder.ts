@@ -1,4 +1,6 @@
 import { filteredMips, type MipFilter } from "../domain/filtered-mips";
+import { paintedLayerOf, type PaintFont, type PaintSpec } from "./painted-layer";
+import { decodedSkyOf, type DecodedSky } from "./rgbe-sky";
 
 export async function levelBitmapsOf(bitmap: ImageBitmap, filter: MipFilter, build: typeof filteredMips): Promise<ImageBitmap[]> {
   const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
@@ -15,16 +17,21 @@ export async function filteredDrawingOf(image: ImageData, filter: MipFilter, opt
   return { bitmap: bitmap!, levels: rest };
 }
 
-const DECODER_SOURCE = `const build=(${filteredMips.toString()});const levelBitmapsOf=(${levelBitmapsOf.toString()});const filteredDrawingOf=(${filteredDrawingOf.toString()});self.onmessage=async(event)=>{const{id,url,image,options,filter}=event.data;try{if(image){const drawn=await filteredDrawingOf(image,filter,options,build);self.postMessage({id,...drawn},[drawn.bitmap,...drawn.levels]);return;}const response=await fetch(url);if(!response.ok)throw new Error(response.status+' '+url);const bitmap=await createImageBitmap(await response.blob(),options);const levels=filter?await levelBitmapsOf(bitmap,filter,build):[];self.postMessage({id,bitmap,levels},[bitmap,...levels]);}catch(error){self.postMessage({id,error:String(error)});}};`;
+const DECODER_SOURCE = `const build=(${filteredMips.toString()});const levelBitmapsOf=(${levelBitmapsOf.toString()});const filteredDrawingOf=(${filteredDrawingOf.toString()});const paintedLayerOf=(${paintedLayerOf.toString()});const decodedSkyOf=(${decodedSkyOf.toString()});let fontsLoading=null;const fontsReady=(fonts)=>fontsLoading??=Promise.all(fonts.map((font)=>{const face=new FontFace(font.family,'url('+font.url+')',{weight:font.weight});self.fonts.add(face);return face.load();}));self.onmessage=async(event)=>{const{id,url,image,paint,fonts,sky,options,filter}=event.data;try{if(sky){const response=await fetch(sky.url);if(!response.ok)throw new Error(response.status+' '+sky.url);const decoded=decodedSkyOf(await response.arrayBuffer(),sky.knee);self.postMessage({id,sky:decoded},[decoded.plain.buffer,decoded.softened.buffer]);return;}if(paint){await fontsReady(fonts);const layer=paintedLayerOf(paint);const drawn=await filteredDrawingOf(layer.drawing,filter,options,build);self.postMessage({id,...drawn,width:layer.width,height:layer.height},[drawn.bitmap,...drawn.levels]);return;}if(image){const drawn=await filteredDrawingOf(image,filter,options,build);self.postMessage({id,...drawn},[drawn.bitmap,...drawn.levels]);return;}const response=await fetch(url);if(!response.ok)throw new Error(response.status+' '+url);const bitmap=await createImageBitmap(await response.blob(),options);const levels=filter?await levelBitmapsOf(bitmap,filter,build):[];self.postMessage({id,bitmap,levels},[bitmap,...levels]);}catch(error){self.postMessage({id,error:String(error)});}};`;
 
 export interface DecodedImage {
   readonly bitmap: ImageBitmap;
   readonly levels: readonly ImageBitmap[];
 }
 
+export interface PaintedImage extends DecodedImage {
+  readonly width: number;
+  readonly height: number;
+}
+
 interface Waiting {
-  readonly here: () => Promise<DecodedImage>;
-  readonly resolve: (decoded: DecodedImage) => void;
+  readonly here: () => Promise<unknown>;
+  readonly resolve: (decoded: never) => void;
   readonly reject: (error: Error) => void;
 }
 
@@ -45,16 +52,32 @@ export class BitmapDecoder {
     return this.inWorker({ url, filter }, () => this.decodeHere(url, filter));
   }
 
-  filterDrawing(image: ImageData, filter: MipFilter): Promise<DecodedImage> {
-    return this.inWorker({ image, filter }, () => filteredDrawingOf(image, filter, this.options, filteredMips));
+  decodeSky(path: string, sunSoftKnee: number): Promise<DecodedSky> {
+    const url = new URL(path, location.href).href;
+    return this.inWorker({ sky: { url, knee: sunSoftKnee }, filter: null }, async () => {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`${response.status} ${url}`);
+      return decodedSkyOf(await response.arrayBuffer(), sunSoftKnee);
+    });
   }
 
-  private inWorker(message: { readonly url?: string; readonly image?: ImageData; readonly filter: MipFilter | null }, here: () => Promise<DecodedImage>): Promise<DecodedImage> {
+  paint(paint: PaintSpec, fonts: readonly PaintFont[], filter: MipFilter): Promise<PaintedImage> {
+    const absolute = fonts.map((font) => ({ ...font, url: new URL(font.url, location.href).href }));
+    return this.inWorker({ paint, fonts: absolute, filter }, () => this.paintHere(paint, absolute, filter));
+  }
+
+  private async paintHere(paint: PaintSpec, fonts: readonly PaintFont[], filter: MipFilter): Promise<PaintedImage> {
+    await Promise.all(fonts.map((font) => document.fonts.load(`${font.weight.split(" ").pop()} 40px ${font.family}`)));
+    const layer = paintedLayerOf(paint);
+    return { ...(await filteredDrawingOf(layer.drawing, filter, this.options, filteredMips)), width: layer.width, height: layer.height };
+  }
+
+  private inWorker<T>(message: { readonly url?: string; readonly paint?: PaintSpec; readonly fonts?: readonly PaintFont[]; readonly sky?: { readonly url: string; readonly knee: number }; readonly filter: MipFilter | null }, here: () => Promise<T>): Promise<T> {
     const worker = this.running();
     if (!worker) return here();
-    return new Promise<DecodedImage>((resolve, reject) => {
+    return new Promise<T>((resolve, reject) => {
       const id = this.nextId++;
-      this.waiting.set(id, { here, resolve, reject });
+      this.waiting.set(id, { here, resolve: resolve as (decoded: never) => void, reject });
       worker.postMessage({ id, ...message, options: this.options });
     });
   }
@@ -83,11 +106,12 @@ export class BitmapDecoder {
       this.broken = true;
       return null;
     }
-    this.worker.onmessage = (event: MessageEvent<{ id: number; bitmap?: ImageBitmap; levels?: ImageBitmap[]; error?: string }>) => {
+    this.worker.onmessage = (event: MessageEvent<{ id: number; bitmap?: ImageBitmap; levels?: ImageBitmap[]; width?: number; height?: number; sky?: DecodedSky; error?: string }>) => {
       const waiting = this.waiting.get(event.data.id);
       if (!waiting) return;
       this.waiting.delete(event.data.id);
-      if (event.data.bitmap) waiting.resolve({ bitmap: event.data.bitmap, levels: event.data.levels ?? [] });
+      if (event.data.sky) waiting.resolve(event.data.sky as never);
+      else if (event.data.bitmap) waiting.resolve({ bitmap: event.data.bitmap, levels: event.data.levels ?? [], width: event.data.width ?? 0, height: event.data.height ?? 0 } as never);
       else waiting.reject(new Error(event.data.error ?? "decode failed"));
     };
     this.worker.onerror = () => {
@@ -96,7 +120,7 @@ export class BitmapDecoder {
       this.broken = true;
       const stranded = [...this.waiting.values()];
       this.waiting.clear();
-      for (const { here, resolve, reject } of stranded) here().then(resolve, reject);
+      for (const { here, resolve, reject } of stranded) here().then((decoded) => resolve(decoded as never), reject);
     };
     return this.worker;
   }

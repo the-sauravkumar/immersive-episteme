@@ -67,7 +67,9 @@ function phasesFrom(seed: number): readonly number[] {
   return Array.from({ length: 8 }, (_, i) => (Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453) % TAU);
 }
 
-export function throwVessel(form: ThrownForm): ThrownMesh {
+const RINGS_PER_STEP = 12;
+
+export function* throwingSteps(form: ThrownForm): Generator<void, ThrownMesh> {
   const profile = sampledPath(form.path, form.rings);
   const height = Math.max(...profile.map(([, y]) => y));
   const topRing = profile.findIndex(([, y]) => y === height);
@@ -76,6 +78,7 @@ export function throwVessel(form: ThrownForm): ThrownMesh {
   const positions = new Float32Array(form.rings * form.segments * 3);
   const tones = new Float32Array(form.rings * form.segments);
   for (let ring = 0; ring < form.rings; ring++) {
+    if (ring % RINGS_PER_STEP === 0) yield;
     const [radius, y] = profile[ring]!;
     const share = y / height;
     const inside = ring > topRing;

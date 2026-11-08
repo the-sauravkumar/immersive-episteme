@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { roundSegments } from "../domain/surface-density";
 import type { CurvedWords, PaintedWords } from "../domain/yard-plan";
-import { noteSurface, type MaterialLibrary } from "./material-library";
+import { noteSurface, type MaterialLibrary, type PaintedTexture } from "./material-library";
 
 const COLOURS: Record<PaintedWords["colour"], string> = { ink: "#14234e", lime: "#efe7d2", caption: "#0a1636", sample: "#8d1c14" };
 
@@ -100,81 +100,6 @@ export function pole(parent: THREE.Object3D, from: readonly [number, number, num
   return mesh;
 }
 
-let measuringContext: CanvasRenderingContext2D | null = null;
-
-function measuring(): CanvasRenderingContext2D {
-  measuringContext ??= document.createElement("canvas").getContext("2d")!;
-  return measuringContext;
-}
-
-interface PaintLayer {
-  readonly drawing: ImageData;
-  readonly width: number;
-  readonly height: number;
-}
-
-function wrapped(lines: readonly string[], font: string, maxPixels: number): string[] {
-  const measure = measuring();
-  measure.font = font;
-  const out: string[] = [];
-  for (const line of lines) {
-    let current = "";
-    for (const word of line.split(" ")) {
-      const candidate = current ? `${current} ${word}` : word;
-      if (measure.measureText(candidate).width > maxPixels && current) {
-        out.push(current);
-        current = word;
-      } else current = candidate;
-    }
-    out.push(current);
-  }
-  return out;
-}
-
-const EDGE_BLUR_PIXELS = 2.2;
-const LOWEST_WEAR_ALPHA = 0.42;
-
-const WEAR_MARKS_PER_STEP = 800;
-
-function* paintingSteps(words: Pick<PaintedWords, "lines" | "height" | "weight" | "family" | "pixelsPerMetre" | "wear" | "lineHeight" | "align">, maxWidthMetres: number | null): Generator<void, PaintLayer> {
-  let size = words.height * words.pixelsPerMetre;
-  const font = (pixels: number) => `${words.weight} ${pixels}px ${words.family}`;
-  const lines = maxWidthMetres ? wrapped(words.lines, font(size), maxWidthMetres * words.pixelsPerMetre) : [...words.lines];
-  const measure = measuring();
-  measure.font = font(size);
-  const textWidth = Math.max(...lines.map((line) => measure.measureText(line).width));
-  const padding = size * 0.22;
-  let width = textWidth + padding * 2;
-  let height = size * words.lineHeight * lines.length + padding * 1.4;
-  const scale = Math.min(1, 8192 / width, 8192 / height);
-  size *= scale;
-  width = Math.ceil(width * scale);
-  height = Math.ceil(height * scale);
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext("2d", { willReadFrequently: true })!;
-  context.font = font(size);
-  context.fillStyle = "#ffffff";
-  context.filter = `blur(${EDGE_BLUR_PIXELS}px)`;
-  context.textBaseline = "alphabetic";
-  context.textAlign = words.align;
-  const anchor = words.align === "center" ? width / 2 : words.align === "right" ? width - padding * scale : padding * scale;
-  lines.forEach((line, index) => context.fillText(line, anchor, size * (0.98 + index * words.lineHeight) + padding * scale * 0.2));
-  context.filter = "none";
-  context.globalCompositeOperation = "destination-out";
-  const marks = ((width * height) / 900) * words.wear;
-  for (let i = 0; i < marks; i++) {
-    if (i % WEAR_MARKS_PER_STEP === 0) yield;
-    context.fillStyle = `rgba(0,0,0,${Math.random() * LOWEST_WEAR_ALPHA})`;
-    context.beginPath();
-    context.ellipse(Math.random() * width, Math.random() * height, 0.5 + Math.random() * size * 0.014, 0.4 + Math.random() * size * 0.006, Math.random() * 3, 0, 7);
-    context.fill();
-  }
-  const effective = words.pixelsPerMetre * scale;
-  return { drawing: context.getImageData(0, 0, width, height), width: width / effective, height: height / effective };
-}
-
 const PAINT_SHIMMER_BIAS = 1.3;
 const PAINT_READABLE_EM_PIXELS = [16, 24] as const;
 const PAINT_DISPLAY_READABLE_EM_PIXELS = [20, 28] as const;
@@ -207,12 +132,12 @@ function paintMaterial(texture: THREE.Texture, colour: PaintedWords["colour"], t
 type PaintedMesh = { width: number; height: number; mesh: THREE.Mesh };
 
 export async function paintWordsInTurn(library: MaterialLibrary, parent: THREE.Object3D, words: PaintedWords, maxWidthMetres: number | null = null): Promise<PaintedMesh> {
-  const layer = await library.pacer.run(paintingSteps(words, maxWidthMetres));
-  return wordsOnSurface(parent, words, layer, await library.paintTexture(layer.drawing));
+  const layer = await library.paintedWords({ lines: words.lines, height: words.height, weight: words.weight, family: words.family, pixelsPerMetre: words.pixelsPerMetre, wear: words.wear, lineHeight: words.lineHeight, align: words.align, maxWidthMetres });
+  return wordsOnSurface(parent, words, layer);
 }
 
-function wordsOnSurface(parent: THREE.Object3D, words: PaintedWords, layer: PaintLayer, texture: THREE.Texture): PaintedMesh {
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(layer.width, layer.height), paintMaterial(texture, words.colour, words.height, layer.height));
+function wordsOnSurface(parent: THREE.Object3D, words: PaintedWords, layer: PaintedTexture): PaintedMesh {
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(layer.width, layer.height), paintMaterial(layer.texture, words.colour, words.height, layer.height));
   const offset = words.align === "center" ? 0 : words.align === "right" ? -layer.width / 2 : layer.width / 2;
   mesh.position.set(words.at[0] + Math.cos(words.facing) * offset, words.at[1], words.at[2] - Math.sin(words.facing) * offset);
   mesh.rotation.y = words.facing;
@@ -223,10 +148,10 @@ function wordsOnSurface(parent: THREE.Object3D, words: PaintedWords, layer: Pain
 }
 
 export async function paintCurvedInTurn(library: MaterialLibrary, parent: THREE.Object3D, words: CurvedWords): Promise<THREE.Mesh> {
-  const layer = await library.pacer.run(paintingSteps({ lines: words.lines, height: words.height, weight: 700, family: "Eczar", pixelsPerMetre: 1800, wear: 0.6, lineHeight: 1.2, align: "center" }, null));
+  const layer = await library.paintedWords({ lines: words.lines, height: words.height, weight: 700, family: "Eczar", pixelsPerMetre: 1800, wear: 0.6, lineHeight: 1.2, align: "center", maxWidthMetres: null });
   const arc = layer.width / words.radius;
   const geometry = new THREE.CylinderGeometry(words.radius, words.radius, layer.height, 96, 1, true, words.angle - arc / 2, arc);
-  const mesh = new THREE.Mesh(geometry, paintMaterial(await library.paintTexture(layer.drawing), words.colour, words.height, layer.height));
+  const mesh = new THREE.Mesh(geometry, paintMaterial(layer.texture, words.colour, words.height, layer.height));
   mesh.position.set(words.centre[0], words.y, words.centre[1]);
   mesh.receiveShadow = true;
   mesh.renderOrder = 2;

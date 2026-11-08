@@ -6,7 +6,7 @@ const RUST_FOLD: Tone = [0.72, 0.58, 0.5];
 const PALE_MIDRIB: Tone = [1.42, 1.3, 1.02];
 const DARK_BLOTCH: Tone = [0.52, 0.44, 0.38];
 
-export function driedFlake(seed: number, length: number): PieceVariant {
+export function* driedFlake(seed: number, length: number): Generator<void, PieceVariant> {
   const random = seededRandom(seed * 313 + 11);
   const width = length * (0.2 + random() * 0.16);
   const curl = width * (0.18 + random() * 0.26);
@@ -38,14 +38,14 @@ export function driedFlake(seed: number, length: number): PieceVariant {
     }
     return mesh;
   };
-  const geometry = build(10, 4).build();
+  const geometry = yield* build(10, 4).buildSteps();
   const centres: Point[] = [];
   const count = Math.max(3, Math.round(length / (width * 0.8)));
   for (let i = 0; i < count; i++) centres.push([((i + 0.5) / count - 0.5) * length, camber * Math.sin(Math.PI * ((i + 0.5) / count)) + curl * 0.3, 0]);
-  return { geometry, buried: build(6, 3).build(), spheres: coverWithSpheres(geometry, centres) };
+  return { geometry, buried: yield* build(6, 3).buildSteps(), spheres: coverWithSpheres(geometry, centres) };
 }
 
-export function driedCalyx(seed: number, length: number): PieceVariant {
+export function* driedCalyx(seed: number, length: number): Generator<void, PieceVariant> {
   const random = seededRandom(seed * 677 + 13);
   const bodyRadius = length * (0.1 + random() * 0.05);
   const stalk = length * (0.14 + random() * 0.14);
@@ -72,12 +72,12 @@ export function driedCalyx(seed: number, length: number): PieceVariant {
     addTube(mesh, { rings, sides, lengthMetres: length, pathAt: path, radiusAt, surfaceAt, capStart: () => ({ lift: 0, tone: shadeTone(PLAIN, 0.8) }), capEnd: () => ({ lift: -length * 0.14, tone: shadeTone(RUST_FOLD, 0.6) }), capRings: 1 });
     return mesh;
   };
-  const geometry = build(10, 7).build();
+  const geometry = yield* build(10, 7).buildSteps();
   const centres: Point[] = [path(0.12), path(0.32), path(0.5), path(0.68), path(0.86)];
-  return { geometry, buried: build(6, 7).build(), spheres: coverWithSpheres(geometry, centres) };
+  return { geometry, buried: yield* build(6, 7).buildSteps(), spheres: coverWithSpheres(geometry, centres) };
 }
 
-export function dryLeaf(seed: number, length: number, breadth: number): PieceVariant {
+export function* dryLeaf(seed: number, length: number, breadth: number): Generator<void, PieceVariant> {
   const random = seededRandom(seed * 313 + 11);
   const stalkShare = 0.07 + random() * 0.04;
   const tipShare = 0.84 + random() * 0.05;
@@ -123,6 +123,6 @@ export function dryLeaf(seed: number, length: number, breadth: number): PieceVar
     }
     return mesh;
   };
-  const geometry = build(52, 18).build();
-  return { geometry, buried: build(24, 8).build(), spheres: surfaceCover(geometry, 0.0055, 0) };
+  const geometry = yield* build(52, 18).buildSteps();
+  return { geometry, buried: yield* build(24, 8).buildSteps(), spheres: surfaceCover(geometry, 0.0055, 0) };
 }

@@ -6,7 +6,7 @@ export interface ClothShading {
 const TRIANGLES_PER_STEP = 2048;
 const VERTICES_PER_STEP = 4096;
 
-function* vertexNormalSteps(positions: Float32Array, indices: Uint32Array, normals: Float32Array): Generator<void, void> {
+export function* vertexNormalSteps(positions: ArrayLike<number>, indices: ArrayLike<number>, normals: Float32Array): Generator<void, void> {
   for (let i = 0; i < indices.length; i += 3) {
     if (i % (TRIANGLES_PER_STEP * 3) === 0) yield;
     const a = indices[i]! * 3;
