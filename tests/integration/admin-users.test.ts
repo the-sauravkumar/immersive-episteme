@@ -20,7 +20,8 @@ import {
   unlockStaffUser,
 } from "@/server/admin/users";
 import { consumeSignInAttempt } from "@/server/auth/account-throttle";
-import { createInvite, revokeInvite } from "@/server/access/invites";
+import { generateInviteCode, hashInviteCode, normaliseInviteCode } from "@/server/access/invite-code";
+import { createInvite, listInvites, revealInvite, revokeInvite } from "@/server/access/invites";
 import { grantRoleToExistingAccount, LastSuperAdminError } from "@/server/auth/bootstrap";
 import { createAuth, type Auth } from "@/server/auth/config";
 import { grantListedSuperAdmin } from "@/server/auth/super-admin";
@@ -177,7 +178,22 @@ describe.skipIf(!TEST_URL)("admin services", () => {
     await revokeStaffRole(t.pool, admin, { userId: waiting });
     expect(await auditCount("admin.role_revoked", waiting)).toBe(1);
     const invite = await createInvite(t.pool, admin, { label: "Admin-made code" });
+    const stored = await one<{ code_sealed: string }>(t.pool, "SELECT code_sealed FROM invite_codes WHERE id = $1", [invite.id]);
+    expect(stored.code_sealed).not.toContain(normaliseInviteCode(invite.code)!);
+    expect(await revealInvite(t.pool, admin, { inviteId: invite.id })).toEqual({ code: invite.code, studySlug: null });
+    expect(await revealInvite(t.pool, superAdmin, { inviteId: invite.id })).toEqual({ code: invite.code, studySlug: null });
+    expect(await auditCount("admin.invite_revealed", invite.id)).toBe(2);
+    expect((await listInvites(t.pool, admin)).find((i) => i.id === invite.id)).toMatchObject({ revealable: true, status: "active" });
+    const legacyCode = normaliseInviteCode(generateInviteCode())!;
+    const legacy = await one<{ id: string }>(t.pool, "INSERT INTO invite_codes (label, code_hash, code_hint, created_by) VALUES ('Hint-only code', $1, $2, $3) RETURNING id", [hashInviteCode(legacyCode), legacyCode.slice(-4), adminId]);
+    await expectCode(revealInvite(t.pool, admin, { inviteId: legacy.id }), "not_revealable");
+    expect((await listInvites(t.pool, admin)).find((i) => i.id === legacy.id)).toMatchObject({ revealable: false });
+    await t.pool.query("UPDATE invite_codes SET code_sealed = $2 WHERE id = $1", [legacy.id, stored.code_sealed]);
+    await expectCode(revealInvite(t.pool, admin, { inviteId: legacy.id }), "not_revealable");
+    await revokeInvite(t.pool, admin, { inviteId: legacy.id });
     await revokeInvite(t.pool, admin, { inviteId: invite.id });
+    await expectCode(revealInvite(t.pool, admin, { inviteId: invite.id }), "not_active");
+    expect(await auditCount("admin.invite_revealed", invite.id)).toBe(2);
 
     await expectCode(setStaffRole(t.pool, admin, { userId: waiting, role: "platform_admin" }), "super_admin_only");
     await expectCode(setStaffRole(t.pool, admin, { userId: waiting, role: "super_admin" }), "super_admin_only");

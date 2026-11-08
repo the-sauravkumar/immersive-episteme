@@ -117,7 +117,17 @@ async function runJourney(browser: Browser, door: Journey["door"]): Promise<{ co
     await page.getByRole("button", { name: "Finish Practice" }).click();
   }
   await expect(page).toHaveURL(/\/study\/task/);
+  const returnLink = page.getByRole("region", { name: "Keep Your Codes Before You Start" }).getByRole("link");
+  await expect(returnLink).toHaveAttribute("href", new RegExp(`/study/return\\?study=${JOURNEY_STUDY}&code=${code}$`));
   await shot(page, journey, "introduction");
+  const closed = await newContext(browser, { viewport: { width: 390, height: 844 }, storageState: { cookies: [], origins: [] } });
+  const resumed = await closed.newPage();
+  await resumed.goto((await returnLink.getAttribute("href"))!);
+  await expect(resumed.getByRole("textbox", { name: "Your participant code" })).toHaveValue(code);
+  await resumed.getByRole("button", { name: "Continue" }).click();
+  await expect(resumed).toHaveURL(/\/study\/task/);
+  expect((await closed.cookies()).map((c) => c.name).filter((name) => /ie_invite|ie_study_session/.test(name))).toHaveLength(2);
+  await closed.close();
   await page.getByRole("button", { name: "Start the learning task" }).click();
   await expect(page).toHaveURL(door === "2d" ? /\/learn\/2d$/ : /\/learn\/immersive$/);
   expect(await stopsRefusedAhead(page)).toBe(409);
@@ -142,7 +152,7 @@ async function runJourney(browser: Browser, door: Journey["door"]): Promise<{ co
 
   const opened = await db().query("UPDATE delayed_test_schedule SET opens_at = now() - interval '1 hour', due_at = now() WHERE session_id = $1", [session.sessionId]);
   expect(opened.rowCount).toBe(1);
-  const later = await newContext(browser, { viewport: { width: 1366, height: 768 } });
+  const later = await newContext(browser, { viewport: { width: 1366, height: 768 }, storageState: { cookies: [], origins: [] } });
   const back = await later.newPage();
   watch(back, journey);
   await back.goto(`/study/return?study=${encodeURIComponent(JOURNEY_STUDY)}&code=${encodeURIComponent(code)}`);

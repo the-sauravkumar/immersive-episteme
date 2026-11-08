@@ -1,0 +1,4 @@
+ALTER TABLE "invite_codes" ADD COLUMN "code_sealed" text;--> statement-breakpoint
+ALTER TABLE "participants" ADD COLUMN "admitted_by_invite_id" uuid;--> statement-breakpoint
+ALTER TABLE "participants" ADD CONSTRAINT "participants_admitted_by_invite_id_invite_codes_id_fk" FOREIGN KEY ("admitted_by_invite_id") REFERENCES "public"."invite_codes"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "invite_codes" ADD CONSTRAINT "invite_codes_sealed_ck" CHECK ("invite_codes"."code_sealed" IS NULL OR "invite_codes"."code_sealed" ~ '^v1[.][A-Za-z0-9_-]{16}[.][A-Za-z0-9_-]{48}$');

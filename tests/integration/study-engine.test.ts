@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { listParticipantReturns } from "../../src/server/admin/participants";
 import { ingestTelemetryBatch } from "../../src/server/telemetry/ingest";
 import { auditAllocations } from "../../src/server/study/allocation";
 import type { StageTemplate, TraditionKey } from "../../src/features/process/domain/stage-template";
@@ -22,6 +23,8 @@ import {
   enrolParticipant,
   findEnrollableStudy,
   findReturnableStudy,
+  findReturningParticipant,
+  returnToStudy,
   listStepAssessments,
   loadSessionState,
   openSessionAfterConsent,
@@ -693,6 +696,7 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       const code = (await state(s.sessionId)).participantCode;
       expect(await returnForDelayedTest(t.pool, { studyCode: study.slug, participantCode: code.toLowerCase() })).toMatchObject({ sessionId: s.sessionId, availability: "early" });
       await expect(returnForDelayedTest(t.pool, { studyCode: study.slug, participantCode: "P-NOSUCHCODE" })).rejects.toMatchObject({ code: "participant_not_found" });
+      expect(await returnToStudy(t.pool, { studyCode: study.slug, participantCode: code })).toMatchObject({ kind: "delayed", sessionId: s.sessionId, availability: "early" });
 
       await t.pool.query("UPDATE delayed_test_schedule SET opens_at = now() - interval '1 hour', due_at = now(), closes_at = now() + interval '1 day' WHERE session_id = $1", [s.sessionId]);
       expect(await returnForDelayedTest(t.pool, { studyCode: study.slug, participantCode: code })).toMatchObject({ availability: "open" });
@@ -815,6 +819,27 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
         expect(await position(s.sessionId)).toEqual({ kind: "device_check" });
       }
     }
+  });
+
+  it("brings a participant back by study and participant code to their open session within the resume rules, records the break, and names why it cannot", async () => {
+    const study = await activeStudy({ steps: BASIC_STEPS, resume: { allowed: true, maxInterruptions: 1 }, retentionDays: 365 }, BASIC);
+    const invite = await one<{ id: string }>(t.pool, "INSERT INTO invite_codes (label, code_hash, code_hint, created_by) VALUES ('Return test', encode(sha256(gen_random_uuid()::text::bytea), 'hex'), 'ABCD', $1) RETURNING id", [curator]);
+    const p = await enrolParticipant(t.pool, study, { admittedByInviteId: invite.id });
+    await expect(returnToStudy(t.pool, { studyCode: study.slug, participantCode: p.code })).rejects.toMatchObject({ code: "session_not_started" });
+    await recordConsent(t.pool, { participantId: p.participantId, study, decision: "granted", shownVersion: CONSENT.version });
+    const s = await openSessionAfterConsent(t.pool, { participantId: p.participantId, studyId: study.id, appBuild: BUILD });
+    expect(await findReturningParticipant(t.pool, { studyCode: study.slug.toUpperCase(), participantCode: p.code.toLowerCase() })).toEqual({ participantId: p.participantId, sessionId: s.sessionId, admittedByInviteId: invite.id });
+    expect(await returnToStudy(t.pool, { studyCode: study.slug, participantCode: p.code })).toMatchObject({ kind: "resumed", participantId: p.participantId, sessionId: s.sessionId });
+    expect((await state(s.sessionId)).journal.filter((e) => e.action === "study.session_resumed")).toHaveLength(1);
+    expect(await returnToStudy(t.pool, { studyCode: study.slug, participantCode: p.code })).toEqual({ kind: "refused", reason: "too_many_interruptions" });
+    await expect(returnToStudy(t.pool, { studyCode: study.slug, participantCode: p.code })).rejects.toMatchObject({ code: "session_closed" });
+    await expect(returnToStudy(t.pool, { studyCode: study.slug, participantCode: "P-NOSUCHCODE" })).rejects.toMatchObject({ code: "participant_not_found" });
+    const gap = await activeStudy({ steps: BASIC_STEPS, resume: { allowed: true, maxGapMinutes: 5 }, retentionDays: 365 }, BASIC);
+    const late = await consented(gap);
+    await t.pool.query("UPDATE study_sessions SET last_activity_at = now() - interval '1 hour' WHERE id = $1", [late.sessionId]);
+    expect(await returnToStudy(t.pool, { studyCode: gap.slug, participantCode: (await state(late.sessionId)).participantCode })).toEqual({ kind: "refused", reason: "gap_too_long" });
+    expect(await listParticipantReturns(t.pool, { userId: curator, roles: ["platform_admin"] }, study.id)).toEqual([expect.objectContaining({ code: p.code, status: "ended" })]);
+    await expect(listParticipantReturns(t.pool, { userId: curator, roles: ["researcher"] }, study.id)).rejects.toMatchObject({ code: "forbidden" });
   });
 
   it("records interruptions, refuses resumes beyond the limits, and withdraws keeping the data", async () => {

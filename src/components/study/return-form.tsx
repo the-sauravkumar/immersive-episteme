@@ -15,7 +15,7 @@ export function ReturnForm({ study, code }: { study: string; code: string }) {
   const guard = useStudyFormGuard(state, pending);
   return (
     <>
-      <PageHeader title="Return to the study" />
+      <PageHeader title="Return to the study" description="Enter the study code and your participant code to carry on where you stopped." />
       <form action={action} {...guard} className="flex max-w-[28rem] flex-col gap-6" noValidate>
         <div className="flex flex-col gap-2">
           <Label htmlFor="studyCode">Study code</Label>

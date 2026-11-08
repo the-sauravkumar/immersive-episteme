@@ -380,8 +380,8 @@ describe("console route table", () => {
     expect(staffLanding({ roles: ["researcher", "principal_investigator"] })).toBe("/research");
     expect(staffLanding({ roles: ["platform_admin"] })).toBe("/admin");
     expect(staffLanding({ roles: ["super_admin"] })).toBe("/admin");
-    expect(visibleNav({ roles: ["platform_admin"] }, "admin").map((r) => r.path)).toEqual(["/admin", "/admin/users", "/admin/access"]);
-    expect(visibleNav({ roles: ["super_admin"] }, "admin").map((r) => r.path)).toEqual(["/admin", "/admin/users", "/admin/access", "/admin/settings", "/admin/roles", "/admin/audit"]);
+    expect(visibleNav({ roles: ["platform_admin"] }, "admin").map((r) => r.path)).toEqual(["/admin", "/admin/users", "/admin/access", "/admin/participants"]);
+    expect(visibleNav({ roles: ["super_admin"] }, "admin").map((r) => r.path)).toEqual(["/admin", "/admin/users", "/admin/access", "/admin/participants", "/admin/settings", "/admin/roles", "/admin/audit"]);
     expect(staffLanding({ roles: [] })).toBeNull();
     expect(staffLanding(null)).toBeNull();
   });

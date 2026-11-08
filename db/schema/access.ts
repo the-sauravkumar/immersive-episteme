@@ -13,6 +13,7 @@ export const inviteCodes = pgTable(
     label: text().notNull(),
     codeHash: text().notNull().unique(),
     codeHint: text().notNull(),
+    codeSealed: text(),
     studyId: uuid().references(() => studies.id, { onDelete: "set null" }),
     maxUses: integer(),
     useCount: integer().notNull().default(0),
@@ -26,6 +27,7 @@ export const inviteCodes = pgTable(
   (t) => [
     check("invite_codes_hash_ck", sql`${t.codeHash} ~ ${SHA}`),
     check("invite_codes_hint_ck", sql`${t.codeHint} ~ '^[0-9A-Z]{4}$'`),
+    check("invite_codes_sealed_ck", sql`${t.codeSealed} IS NULL OR ${t.codeSealed} ~ '^v1[.][A-Za-z0-9_-]{16}[.][A-Za-z0-9_-]{48}$'`),
     check("invite_codes_label_ck", sql`btrim(${t.label}) <> '' AND char_length(${t.label}) <= 120`),
     check("invite_codes_max_uses_ck", sql`${t.maxUses} IS NULL OR ${t.maxUses} > 0`),
     check("invite_codes_use_count_ck", sql`${t.useCount} >= 0 AND (${t.maxUses} IS NULL OR ${t.useCount} <= ${t.maxUses})`),

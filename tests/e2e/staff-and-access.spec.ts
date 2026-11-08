@@ -174,6 +174,47 @@ test("a signed-in account without a role waits at /awaiting-access until an admi
   await waiting.close();
 });
 
+test("an Admin shows an active code and its links again on Invite Codes and Admin Home, audited, and finds each participant's return link", async ({ browser }) => {
+  const context = await newContext(browser, { viewport: { width: 390, height: 844 } });
+  const admin = await context.newPage();
+  await signInStaff(admin, ADMIN, PASSWORD);
+  await admin.goto("/admin/access");
+  const label = `Demo: e2e shown again ${tag}`;
+  await admin.getByRole("textbox", { name: "Label" }).fill(label);
+  await admin.getByRole("button", { name: "Create code" }).click();
+  const made = admin.getByRole("note").filter({ hasText: "New Code" });
+  const code = await made.getByRole("textbox", { name: "Code" }).inputValue();
+  expect(code).toMatch(/^([0-9A-Z]{4}-){4}[0-9A-Z]{4}$/);
+  const row = await db().query<{ id: string }>("SELECT id FROM invite_codes WHERE label = $1", [label]);
+  invites.push(row.rows[0]!.id);
+
+  for (const path of ["/admin/access", "/admin"]) {
+    await admin.goto(path);
+    await admin.getByRole("button", { name: `Show the code for ${label} (ending ${code.slice(-4)}) and its links` }).click();
+    const dialog = admin.getByRole("dialog", { name: "Code and links" });
+    await expect(dialog.getByRole("textbox", { name: "Code" })).toHaveValue(code);
+    await expect(dialog.getByRole("textbox", { name: "Site link" })).toHaveValue(new RegExp(`/\\?invite=${code}$`));
+    expect(await admin.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await dialog.getByRole("button", { name: "Close" }).first().click();
+  }
+  const audited = await db().query<{ n: number }>("SELECT count(*)::int AS n FROM audit_log WHERE action = 'admin.invite_revealed' AND entity_id = $1", [row.rows[0]!.id]);
+  expect(audited.rows[0]!.n).toBe(2);
+
+  const legacy = await inviteCode(null);
+  await admin.goto("/admin/access");
+  await expect(admin.getByRole("row").filter({ hasText: `ending ${legacy.code.slice(-4)}` }).getByText("Created before codes could be shown again: revoke it and create a new one.")).toBeVisible();
+
+  await admin.goto("/admin/participants");
+  await expect(admin.getByRole("heading", { level: 1, name: "Participants" })).toBeVisible();
+  await admin.getByLabel("Study").selectOption({ label: (await db().query<{ title: string }>("SELECT title FROM studies WHERE slug = $1", [JOURNEY_STUDY])).rows[0]!.title });
+  await admin.getByRole("button", { name: "Show study" }).click();
+  const participants = admin.getByRole("table", { name: /Participants and Return Links/ });
+  await expect(participants.or(admin.getByText("Nobody has joined this study yet.")).first()).toBeVisible();
+  if (await participants.isVisible()) expect(await participants.textContent()).not.toContain("@");
+  expect(await admin.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  await context.close();
+});
+
 test("one curator uploads an image, another verifies it, and an unready release publishes nothing", async ({ browser }, info) => {
   const file = await uniquePng(info.outputPath("upload"));
   const editorContext = await newContext(browser);

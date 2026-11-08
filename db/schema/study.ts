@@ -33,6 +33,7 @@ import {
   tsz,
   updatedAt,
 } from "./_common";
+import { inviteCodes } from "./access";
 import { contentSnapshots } from "./publishing";
 import { releaseManifests } from "./release";
 import { spatialManifests } from "./spatial";
@@ -114,6 +115,7 @@ export const participants = pgTable(
     withdrawalReason: text(),
     exclusionReason: text(),
     returningFrom: uuid(),
+    admittedByInviteId: uuid().references(() => inviteCodes.id, { onDelete: "set null" }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

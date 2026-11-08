@@ -3,7 +3,8 @@ import { z } from "zod";
 
 import { CmsError, audit, ensure, inActorTx, type Actor, type Q } from "@/server/cms/core";
 
-import { generateInviteCode, hashInviteCode, inviteCodeHint, normaliseInviteCode } from "./invite-code";
+import { formatInviteCode, generateInviteCode, hashInviteCode, inviteCodeHint, normaliseInviteCode } from "./invite-code";
+import { openInviteCode, sealInviteCode } from "./invite-seal";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const blank = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
@@ -17,6 +18,7 @@ export const createInviteInput = z.object({
 export type CreateInviteInput = z.input<typeof createInviteInput>;
 
 export const revokeInviteInput = z.object({ inviteId: z.string().regex(UUID_RE, "Unknown code") });
+export const revealInviteInput = revokeInviteInput;
 
 export function endOfUtcDay(isoDate: string): Date {
   return new Date(`${isoDate}T23:59:59.999Z`);
@@ -39,6 +41,8 @@ export async function createInvite(pool: Pool, actor: Actor, raw: CreateInviteIn
   const code = generateInviteCode();
   const normalised = normaliseInviteCode(code)!;
   const hint = inviteCodeHint(normalised);
+  const hash = hashInviteCode(normalised);
+  const sealed = sealInviteCode(normalised, hash);
   return inActorTx(pool, actor, null, async (c) => {
     let studySlug: string | null = null;
     if (input.studyId) {
@@ -47,9 +51,9 @@ export async function createInvite(pool: Pool, actor: Actor, raw: CreateInviteIn
       studySlug = s.rows[0].slug;
     }
     const r = await c.query<{ id: string }>(
-      `INSERT INTO invite_codes (label, code_hash, code_hint, study_id, max_uses, expires_at, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-      [input.label, hashInviteCode(normalised), hint, input.studyId ?? null, input.maxUses ?? null, expiresAt, actor.userId],
+      `INSERT INTO invite_codes (label, code_hash, code_hint, code_sealed, study_id, max_uses, expires_at, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+      [input.label, hash, hint, sealed, input.studyId ?? null, input.maxUses ?? null, expiresAt, actor.userId],
     );
     const id = r.rows[0]!.id;
     await audit(c, actor, {
@@ -71,6 +75,7 @@ export interface InviteRow {
   id: string;
   label: string;
   hint: string;
+  revealable: boolean;
   studyId: string | null;
   studySlug: string | null;
   studyTitle: string | null;
@@ -98,6 +103,7 @@ export async function listInvites(q: Q, actor: Actor, now: Date = new Date()): P
     id: string;
     label: string;
     code_hint: string;
+    revealable: boolean;
     study_id: string | null;
     slug: string | null;
     title: string | null;
@@ -109,7 +115,7 @@ export async function listInvites(q: Q, actor: Actor, now: Date = new Date()): P
     created_at: Date;
     created_by_name: string | null;
   }>(
-    `SELECT i.id, i.label, i.code_hint, i.study_id, s.slug, s.title, i.max_uses, i.use_count, i.expires_at,
+    `SELECT i.id, i.label, i.code_hint, i.code_sealed IS NOT NULL AS revealable, i.study_id, s.slug, s.title, i.max_uses, i.use_count, i.expires_at,
             i.revoked_at, i.last_used_at, i.created_at, u.name AS created_by_name
        FROM invite_codes i
        LEFT JOIN studies s ON s.id = i.study_id
@@ -121,6 +127,7 @@ export async function listInvites(q: Q, actor: Actor, now: Date = new Date()): P
       id: x.id,
       label: x.label,
       hint: x.code_hint,
+      revealable: x.revealable,
       studyId: x.study_id,
       studySlug: x.slug,
       studyTitle: x.title,
@@ -157,6 +164,40 @@ export async function revokeInvite(pool: Pool, actor: Actor, raw: z.input<typeof
       after: { label: row.label, hint: row.code_hint, useCount: row.use_count },
       reason: "invite code revoked by an administrator",
     });
+  });
+}
+
+export interface RevealedInvite {
+  code: string;
+  studySlug: string | null;
+}
+
+export async function revealInvite(pool: Pool, actor: Actor, raw: z.input<typeof revealInviteInput>, now: Date = new Date()): Promise<RevealedInvite> {
+  ensure(actor, "admin.users");
+  const input = revealInviteInput.parse(raw);
+  return inActorTx(pool, actor, "invite code shown again", async (c) => {
+    const r = await c.query<{ label: string; code_hash: string; code_hint: string; code_sealed: string | null; slug: string | null; revoked_at: Date | null; expires_at: Date | null; max_uses: number | null; use_count: number }>(
+      `SELECT i.label, i.code_hash, i.code_hint, i.code_sealed, s.slug, i.revoked_at, i.expires_at, i.max_uses, i.use_count
+         FROM invite_codes i LEFT JOIN studies s ON s.id = i.study_id WHERE i.id = $1`,
+      [input.inviteId],
+    );
+    const row = r.rows[0];
+    if (!row) throw new CmsError("not_found", "No such invite code.", 404);
+    if (inviteStatus({ revokedAt: row.revoked_at, expiresAt: row.expires_at, maxUses: row.max_uses, useCount: row.use_count }, now) !== "active") {
+      throw new CmsError("not_active", "This code no longer lets anyone in, so it is not shown. Create a new code instead.", 409);
+    }
+    const normalised = row.code_sealed ? openInviteCode(row.code_sealed, row.code_hash) : null;
+    if (!normalised || hashInviteCode(normalised) !== row.code_hash) {
+      throw new CmsError("not_revealable", "This code was created before codes could be shown again. Revoke it and create a new one.", 409);
+    }
+    await audit(c, actor, {
+      action: "admin.invite_revealed",
+      entity: "invite_codes",
+      entityId: input.inviteId,
+      after: { label: row.label, hint: row.code_hint },
+      reason: "invite code shown again to an administrator",
+    });
+    return { code: formatInviteCode(normalised), studySlug: row.slug };
   });
 }
 

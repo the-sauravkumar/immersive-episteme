@@ -218,6 +218,13 @@
       "when": 1794220000000,
       "tag": "0030_super_admin",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794230000000,
+      "tag": "0031_return_details",
+      "breakpoints": true
     }
   ]
 }

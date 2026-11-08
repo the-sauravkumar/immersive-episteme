@@ -3,12 +3,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 
+import { RevealInviteButton } from "@/components/access/invite-admin-forms";
 import { Empty, Section, Stamp } from "@/components/cms/bits";
 import { ConsolePage } from "@/components/shell/gates";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { serverEnv } from "@/lib/env";
 import { can } from "@/lib/permissions/can";
 import { titleCase } from "@/lib/text/title-case";
 import { listInvites } from "@/server/access/invites";
@@ -30,8 +32,8 @@ export default async function Page() {
       title={superAdmin ? "Super Admin home" : "Admin home"}
       description={
         superAdmin
-          ? "People waiting for access, the invite codes in use, whether the platform is healthy, and the settings, audit log and roles that only a Super Admin can open."
-          : "People waiting for access and the invite codes in use."
+          ? "People waiting for access, the invite codes in use and their links, whether the platform is healthy, and the settings, audit log and roles that only a Super Admin can open."
+          : "People waiting for access, and the invite codes in use and their links."
       }
     >
       <Suspense fallback={<Skeleton className="h-96 w-full" />}>
@@ -148,6 +150,7 @@ async function NeedsYou() {
   const active = invites.filter((i) => i.status === "active");
   const ending = active.filter((i) => i.endsWithinWeek);
   const full = invites.filter((i) => i.status === "used_up");
+  const origin = serverEnv().BETTER_AUTH_URL;
   return (
     <div className="grid items-stretch gap-6 lg:grid-cols-2">
       <Section
@@ -182,9 +185,14 @@ async function NeedsYou() {
         title="Invite codes"
         description={`${active.length} code${active.length === 1 ? "" : "s"} let people in now.${ending.length ? ` ${ending.length} end${ending.length === 1 ? "s" : ""} within a week.` : ""}${full.length ? ` ${full.length} ${full.length === 1 ? "is" : "are"} used up: make a new one if recruitment goes on.` : ""}`}
         actions={
-          <Button asChild variant="outline">
-            <Link href="/admin/access">Open invite codes</Link>
-          </Button>
+          <span className="flex flex-wrap gap-3">
+            <Button asChild variant="outline">
+              <Link href="/admin/access">Open invite codes</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/admin/participants">Participants&apos; return links</Link>
+            </Button>
+          </span>
         }
       >
         {active.length === 0 ? (
@@ -192,19 +200,22 @@ async function NeedsYou() {
         ) : (
           <ul className="flex flex-col">
             {active.slice(0, SHOWN).map((i) => (
-              <li key={i.id} className="flex flex-wrap items-baseline justify-between gap-x-4 border-t border-line py-2 first:border-t-0">
-                <span className="min-w-0">
-                  <span className="text-lime">{i.label}</span>
-                  {i.studyTitle ? <span className="t-s text-lime-dim"> for {i.studyTitle}</span> : null}
+              <li key={i.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-line py-2 first:border-t-0">
+                <span className="flex min-w-0 flex-col">
+                  <span>
+                    <span className="text-lime">{i.label}</span>
+                    {i.studyTitle ? <span className="t-s text-lime-dim"> for {i.studyTitle}</span> : null}
+                  </span>
+                  <span className="t-s text-lime-dim tabular-nums">
+                    {i.maxUses === null ? `${i.useCount} used` : `${i.useCount} of ${i.maxUses} used`}
+                    {i.expiresAt ? (
+                      <>
+                        , last day <Stamp at={i.expiresAt} withTime={false} />
+                      </>
+                    ) : null}
+                  </span>
                 </span>
-                <span className="t-s text-lime-dim tabular-nums">
-                  {i.maxUses === null ? `${i.useCount} used` : `${i.useCount} of ${i.maxUses} used`}
-                  {i.expiresAt ? (
-                    <>
-                      , last day <Stamp at={i.expiresAt} withTime={false} />
-                    </>
-                  ) : null}
-                </span>
+                {i.revealable ? <RevealInviteButton inviteId={i.id} label={i.label} hint={i.hint} origin={origin} /> : <span className="t-s text-lime-dim">Made before codes could be shown again</span>}
               </li>
             ))}
           </ul>

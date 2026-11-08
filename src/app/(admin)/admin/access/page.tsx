@@ -2,7 +2,7 @@ import { CircleCheck, CircleSlash, Clock } from "lucide-react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
-import { CreateInviteForm, RevokeInviteButton } from "@/components/access/invite-admin-forms";
+import { CreateInviteForm, RevealInviteButton, RevokeInviteButton } from "@/components/access/invite-admin-forms";
 import { Empty, Section, Stamp } from "@/components/cms/bits";
 import { ConsolePage } from "@/components/shell/gates";
 import { InviteParticipantsGuide } from "@/components/shell/staff-guides";
@@ -24,7 +24,7 @@ export default function Page() {
     <ConsolePage
       path="/admin/access"
       title="Invite codes"
-      description="The site is invite-only: visitors need an invite code or link, and staff get in by signing in. A code is shown only once, when it is made."
+      description="The site is invite-only: visitors need an invite code or link, and staff get in by signing in. Show code brings back an active code and its links; each look is recorded in the audit log."
     >
       <Suspense fallback={<Skeleton className="h-64 w-full" />}>
         <Access />
@@ -49,11 +49,12 @@ async function Access() {
   const pool = getPool();
   const [invites, studies] = await Promise.all([listInvites(pool, actor), listStudyChoices(pool, actor)]);
   const active = invites.filter((i) => i.status === "active").length;
+  const origin = serverEnv().BETTER_AUTH_URL;
   return (
     <div className="flex flex-col gap-12">
       <InviteParticipantsGuide study={null} mayMakeCodes mayWatch={false} className="max-w-3xl" />
       <Section id="create-invite" title="Create an invite code" description="One code per audience. Share links privately; never post a code publicly or put it in a document." className="max-w-3xl">
-        <CreateInviteForm studies={studies} origin={serverEnv().BETTER_AUTH_URL} />
+        <CreateInviteForm studies={studies} origin={origin} />
       </Section>
 
       <section aria-labelledby="invite-list" className="flex min-w-0 flex-col gap-4">
@@ -103,6 +104,7 @@ async function Access() {
                     <TableCell role="cell" className="align-top sm:py-3">
                       <span className="block font-medium text-lime">{i.label}</span>
                       <span className="t-table font-semibold wrap-anywhere block text-lime-dim">ending {i.hint}</span>
+                      {i.status === "active" && !i.revealable ? <span className="t-s block text-lime-dim">Created before codes could be shown again: revoke it and create a new one.</span> : null}
                     </TableCell>
                     <TableCell role="cell" className="align-top sm:py-3">
                       {i.studyTitle ? <span>{i.studyTitle}</span> : <span className="text-lime-dim">Site only</span>}
@@ -136,7 +138,10 @@ async function Access() {
                       {i.createdByName ? <span className="t-s text-lime-dim block">by {i.createdByName}</span> : null}
                     </TableCell>
                     <TableCell role="cell" className="text-right align-top sm:py-3">
-                      {i.status === "revoked" ? null : <RevokeInviteButton inviteId={i.id} label={i.label} hint={i.hint} />}
+                      <span className="flex flex-wrap justify-end gap-2">
+                        {i.status === "active" && i.revealable ? <RevealInviteButton inviteId={i.id} label={i.label} hint={i.hint} origin={origin} /> : null}
+                        {i.status === "revoked" ? null : <RevokeInviteButton inviteId={i.id} label={i.label} hint={i.hint} />}
+                      </span>
                     </TableCell>
                   </TableRow>
                 );

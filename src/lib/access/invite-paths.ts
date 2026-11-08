@@ -3,7 +3,7 @@ import { safeNextPath } from "@/lib/permissions/safe-redirect";
 export const INVITE_PATH = "/invite";
 export const INVITE_PARAM = "invite";
 
-const EXEMPT_PREFIXES = ["/invite", "/sign-in", "/sign-out", "/forbidden", "/awaiting-access", "/console", "/api", "/_next", "/about", "/accessibility", "/privacy", "/walkthrough/fonts"] as const;
+const EXEMPT_PREFIXES = ["/invite", "/sign-in", "/sign-out", "/forbidden", "/awaiting-access", "/console", "/api", "/_next", "/about", "/accessibility", "/privacy", "/study/return", "/walkthrough/fonts"] as const;
 const EXEMPT_FILES = new Set(["/favicon.ico", "/robots.txt", "/walkthrough/course/plaster.jpg"]);
 
 function underPrefix(pathname: string, prefix: string): boolean {

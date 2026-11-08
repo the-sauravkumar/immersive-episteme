@@ -1,18 +1,15 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import type { ActionState } from "@/components/cms/action-state";
 import { inviteNextPath } from "@/lib/access/invite-paths";
-import { serverEnv } from "@/lib/env";
-import { SECURE_COOKIES } from "@/server/auth/cookie-names";
 import { CmsError } from "@/server/cms/core";
 import { formObject, runAction } from "@/server/cms/run-action";
 import { getPool } from "@/server/db/client";
 
-import { INVITE_ACCESS_TTL_SECONDS, INVITE_COOKIE, signInviteAccess } from "./invite-cookie";
-import { createInvite, createInviteInput, redeemInvite, revokeInvite, revokeInviteInput } from "./invites";
+import { createInvite, createInviteInput, redeemInvite, revealInvite, revealInviteInput, revokeInvite, revokeInviteInput } from "./invites";
+import { grantSiteAccess } from "./site-access";
 
 export type InviteFormState = { error?: string; fieldError?: string } | null;
 
@@ -24,8 +21,7 @@ export async function redeemInviteAction(_prev: InviteFormState, formData: FormD
       ? { fieldError: "Enter the code exactly as you received it: 20 letters and digits, with or without the dashes." }
       : { error: "This code cannot be used. It may have expired, been withdrawn or been used up. Ask the person who invited you for a new one." };
   }
-  const token = await signInviteAccess(result.inviteId, serverEnv().BETTER_AUTH_SECRET);
-  (await cookies()).set(INVITE_COOKIE, token, { httpOnly: true, secure: SECURE_COOKIES, sameSite: "lax", path: "/", maxAge: INVITE_ACCESS_TTL_SECONDS });
+  await grantSiteAccess(result.inviteId);
   redirect(next);
 }
 
@@ -33,9 +29,16 @@ export async function createInviteAction(_prev: ActionState, fd: FormData): Prom
   return runAction("admin.users", createInviteInput, formObject(fd), async ({ actor, pool }, input) => {
     const created = await createInvite(pool, actor, input);
     return {
-      message: `Code created for "${input.label}". Copy it now: it is not shown again.`,
+      message: `Code created for "${input.label}". Share it privately; you can show it again from the list while it lets people in.`,
       data: { inviteId: created.id, code: created.code, hint: created.hint, studySlug: created.studySlug },
     };
+  });
+}
+
+export async function revealInviteAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  return runAction("admin.users", revealInviteInput, formObject(fd), async ({ actor, pool }, input) => {
+    const shown = await revealInvite(pool, actor, input);
+    return { message: "Code shown. This look is recorded in the audit log.", data: { code: shown.code, studySlug: shown.studySlug } };
   });
 }
 

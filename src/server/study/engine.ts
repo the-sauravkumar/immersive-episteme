@@ -37,6 +37,7 @@ export type StudyEngineErrorCode =
   | "study_not_open"
   | "study_misconfigured"
   | "participant_not_found"
+  | "session_not_started"
   | "consent_already_recorded"
   | "consent_required"
   | "not_current_step"
@@ -219,7 +220,7 @@ async function earlierParticipant(q: Q, study: EnrollableStudy, earlierCode: str
 export async function enrolParticipant(
   pool: Pool | PoolClient,
   study: EnrollableStudy,
-  opts: { previousParticipantIds?: string[]; earlierParticipantCode?: string | null } = {},
+  opts: { previousParticipantIds?: string[]; earlierParticipantCode?: string | null; admittedByInviteId?: string | null } = {},
 ): Promise<EnrolResult> {
   const previous = opts.previousParticipantIds ?? [];
   const earlier = opts.earlierParticipantCode?.trim() ? await earlierParticipant(pool, study, opts.earlierParticipantCode) : null;
@@ -240,8 +241,8 @@ export async function enrolParticipant(
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = generateParticipantCode();
       const r = await c.query<{ id: string }>(
-        "INSERT INTO participants (study_id, code, returning_from) VALUES ($1, $2, $3) ON CONFLICT (study_id, code) DO NOTHING RETURNING id",
-        [study.id, code, earlier?.id ?? null],
+        "INSERT INTO participants (study_id, code, returning_from, admitted_by_invite_id) VALUES ($1, $2, $3, $4) ON CONFLICT (study_id, code) DO NOTHING RETURNING id",
+        [study.id, code, earlier?.id ?? null, opts.admittedByInviteId ?? null],
       );
       const id = r.rows[0]?.id;
       if (!id) continue;
@@ -1009,13 +1010,6 @@ export async function delayedTestStatus(q: Q, s: SessionState): Promise<{ schedu
   return { schedule, availability: delayedAvailability(schedule, s.now) };
 }
 
-export function delayedReturnLink(siteOrigin: string, studySlug: string, participantCode: string): string {
-  const url = new URL("/study/return", siteOrigin);
-  url.searchParams.set("study", studySlug);
-  url.searchParams.set("code", participantCode);
-  return url.toString();
-}
-
 export interface DelayedReturn {
   participantId: string;
   sessionId: string;
@@ -1443,12 +1437,16 @@ export async function finishLearning(pool: Pool | PoolClient, sessionId: string)
   if (refused) throw new StudyEngineError("learning_incomplete", "Every stage must be visited before learning can finish.", { unvisited: refused.unvisited });
 }
 
-export type ResumeResult = { kind: "resumed"; gapSeconds: number; interruptionCount: number } | { kind: "refused"; reason: "resume_not_allowed" | "too_many_interruptions" | "gap_too_long" };
+export type ResumeRefusal = "resume_not_allowed" | "too_many_interruptions" | "gap_too_long";
+
+export type ResumeResult =
+  | { kind: "resumed"; gapSeconds: number; interruptionCount: number; participantId: string; condition: LearningCondition | null }
+  | { kind: "refused"; reason: ResumeRefusal };
 
 export function resumeDecision(
   rules: { allowed: boolean; maxInterruptions?: number; maxGapMinutes?: number },
   input: { interruptionCount: number; gapSeconds: number },
-): { ok: true } | { ok: false; reason: "resume_not_allowed" | "too_many_interruptions" | "gap_too_long" } {
+): { ok: true } | { ok: false; reason: ResumeRefusal } {
   if (!rules.allowed) return { ok: false, reason: "resume_not_allowed" };
   if (rules.maxInterruptions !== undefined && input.interruptionCount + 1 > rules.maxInterruptions) return { ok: false, reason: "too_many_interruptions" };
   if (rules.maxGapMinutes !== undefined && input.gapSeconds > rules.maxGapMinutes * 60) return { ok: false, reason: "gap_too_long" };
@@ -1471,8 +1469,45 @@ export async function resumeSession(pool: Pool | PoolClient, sessionId: string):
     }
     await c.query("UPDATE study_sessions SET interrupted = true, interruption_count = interruption_count + 1, last_activity_at = now() WHERE id = $1", [sessionId]);
     await journal(c, actor, "study.session_resumed", "study_session", sessionId, { gapSeconds, interruptionCount: s.interruptionCount + 1 });
-    return { kind: "resumed", gapSeconds, interruptionCount: s.interruptionCount + 1 };
+    return { kind: "resumed", gapSeconds, interruptionCount: s.interruptionCount + 1, participantId: s.participantId, condition: s.condition };
   });
+}
+
+export interface ReturningParticipant {
+  participantId: string;
+  sessionId: string | null;
+  admittedByInviteId: string | null;
+}
+
+export async function findReturningParticipant(q: Q, input: { studyCode: string; participantCode: string }): Promise<ReturningParticipant | null> {
+  const r = await q.query<{ id: string; admitted_by_invite_id: string | null; session_id: string | null }>(
+    `SELECT p.id, p.admitted_by_invite_id,
+            (SELECT ss.id FROM study_sessions ss WHERE ss.participant_id = p.id ORDER BY ss.period DESC LIMIT 1) AS session_id
+       FROM participants p JOIN studies st ON st.id = p.study_id
+      WHERE st.slug = $1 AND upper(p.code) = upper($2)`,
+    [normaliseStudyCode(input.studyCode), input.participantCode.trim()],
+  );
+  const row = r.rows[0];
+  return row ? { participantId: row.id, sessionId: row.session_id, admittedByInviteId: row.admitted_by_invite_id } : null;
+}
+
+export type StudyReturn =
+  | ({ kind: "delayed" } & DelayedReturn)
+  | { kind: "resumed"; participantId: string; sessionId: string; condition: LearningCondition | null }
+  | { kind: "refused"; reason: ResumeRefusal };
+
+export async function returnToStudy(pool: Pool, input: { studyCode: string; participantCode: string }): Promise<StudyReturn> {
+  const who = await findReturningParticipant(pool, input);
+  if (!who) throw new StudyEngineError("participant_not_found", "No participant has this code in this study.");
+  if (!who.sessionId) throw new StudyEngineError("session_not_started", "This participant has not started a session.");
+  const delayed = await returnForDelayedTest(pool, input).catch((err: unknown) => {
+    if (err instanceof StudyEngineError && err.code === "participant_not_found") return null;
+    throw err;
+  });
+  if (delayed) return { kind: "delayed", ...delayed };
+  const resumed = await resumeSession(pool, who.sessionId);
+  if (resumed.kind === "refused") return resumed;
+  return { kind: "resumed", participantId: resumed.participantId, sessionId: who.sessionId, condition: resumed.condition };
 }
 
 export function sessionReachMs(learningCapMinutes: number | null): number {

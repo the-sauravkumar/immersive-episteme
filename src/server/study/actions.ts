@@ -7,7 +7,8 @@ import { participantCodeSchema } from "@/features/study/contracts";
 import { clientIpPolicy } from "@/lib/client-ip";
 import { serverEnv } from "@/lib/env";
 import { LEARNING_ROUTE } from "@/lib/permissions/learning";
-import { requireSiteAccess } from "@/server/access/site-access";
+import { inviteNotRevoked } from "@/server/access/invites";
+import { admittingInviteId, grantSiteAccess, hasSiteAccess, requireSiteAccess } from "@/server/access/site-access";
 import { PARTICIPANT_COOKIE } from "@/server/auth/cookie-names";
 import { resolveParticipantSession, resolveWithdrawalSession } from "@/server/auth/learning-decision";
 import { requireParticipantSession } from "@/server/auth/learning-access";
@@ -32,7 +33,8 @@ import {
   recordDeviceCheck,
   recordWalkthroughWebglFailure,
   resumeSession,
-  returnForDelayedTest,
+  returnToStudy,
+  findReturningParticipant,
   markAssessmentPresented,
   submitAssessment,
   withdraw,
@@ -131,7 +133,7 @@ export async function enterStudy(_prev: EntryFormState, formData: FormData): Pro
         }
         const history = await readHistory();
         const previous = history.filter(([s]) => s === study.id).map(([, p]) => p);
-        const r = await enrolParticipant(pool, study, { previousParticipantIds: previous, earlierParticipantCode: earlierCode || null });
+        const r = await enrolParticipant(pool, study, { previousParticipantIds: previous, earlierParticipantCode: earlierCode || null, admittedByInviteId: await admittingInviteId() });
         await setEnrolment({ participantId: r.participantId, studyId: study.id });
         await writeHistory(addHistory(history, study.id, r.participantId));
       }
@@ -298,24 +300,42 @@ export async function endFamiliarisation(_prev: FormState): Promise<FormState> {
   redirect("/study/session");
 }
 
+const RETURN_REFUSED: Record<string, string> = {
+  participant_not_found: "No participant in this study has this code. Check both codes, or ask the facilitator.",
+  session_not_started: "You have not started the study yet. Open the study link the facilitator gave you and enter the study code.",
+  session_closed: "Your session has already ended, so there is nothing to come back to. Thank you for taking part. Ask the facilitator if you think this is wrong.",
+  resume_not_allowed: "This study does not allow a break, so your session has ended. Thank you for taking part. Please tell the facilitator.",
+  too_many_interruptions: "Your session was paused more times than this study allows, so it has ended. Thank you for taking part. Please tell the facilitator.",
+  gap_too_long: "Your break was longer than this study allows, so your session has ended. Thank you for taking part. Please tell the facilitator.",
+};
+
+const INVITE_WITHDRAWN = "The invite you joined with no longer lets anyone in. Ask the facilitator for a new invite link, open it, then use your return link again.";
+
 export async function returnWithCode(_prev: FormState, formData: FormData): Promise<FormState> {
   const studyCode = String(formData.get("studyCode") ?? "");
-  const participantCode = String(formData.get("participantCode") ?? "");
-  if (!studyCode.trim() || !participantCode.trim()) return { error: "Enter the study code and your participant code." };
-  await requireSiteAccess("/study");
+  const participantCode = String(formData.get("participantCode") ?? "").trim();
+  if (!studyCode.trim() || !participantCode) return { error: "Enter the study code and your participant code." };
+  if (!participantCodeSchema.safeParse(participantCode).success) return { error: RETURN_REFUSED.participant_not_found };
   const pool = getPool();
+  const admitted = await hasSiteAccess();
   try {
     const study = await findReturnableStudy(pool, studyCode);
-    if (!study.isDemo) {
+    if (!study.isDemo || !admitted) {
       const policy = clientIpPolicy();
       const address = clientAddress(await headers(), { header: policy.header, trustedProxies: policy.trustedProxies });
       const gate = await consumeEnrolmentAttempt(pool, { studyId: study.id, address, limits: study.protocol.config.enrolment, purpose: "return" });
       if (!gate.allowed) return { error: "Too many return attempts from this network right now. Please wait a few minutes and try again, or ask the facilitator." };
     }
-    const back = await returnForDelayedTest(pool, { studyCode, participantCode });
+    const who = await findReturningParticipant(pool, { studyCode, participantCode });
+    if (!who) return { error: RETURN_REFUSED.participant_not_found };
+    const readmitWith = admitted ? null : who.admittedByInviteId;
+    if (!admitted && (readmitWith === null || !(await inviteNotRevoked(pool, readmitWith)))) return { error: INVITE_WITHDRAWN };
+    const back = await returnToStudy(pool, { studyCode, participantCode });
+    if (back.kind === "refused") return { error: RETURN_REFUSED[back.reason] };
+    if (readmitWith) await grantSiteAccess(readmitWith);
     await issueParticipantSessionCookie({ participantId: back.participantId, sessionId: back.sessionId, condition: back.condition });
   } catch (err) {
-    return { error: err instanceof StudyEngineError && (err.code === "participant_not_found" || err.code === "session_closed") ? "This code has no delayed test waiting. Check it with the facilitator." : messageFor(err) };
+    return { error: err instanceof StudyEngineError && RETURN_REFUSED[err.code] ? RETURN_REFUSED[err.code] : messageFor(err) };
   }
   redirect("/study/session");
 }

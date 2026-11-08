@@ -4,9 +4,11 @@ import { Suspense } from "react";
 import { GateFallback } from "@/components/shell/gate-fallback";
 import { PageHeader } from "@/components/shell/page-header";
 import { ActionForm } from "@/components/study/action-form";
+import { ReturnDetails } from "@/components/study/return-details";
 import { StepFooter } from "@/components/study/step-footer";
 import { StepProgress, stepCountOf } from "@/components/study/step-progress";
 import { LEARNING_TASK_OPENING, learningTaskRules } from "@/features/study/learning-task-rules";
+import { serverEnv } from "@/lib/env";
 import { titleCase } from "@/lib/text/title-case";
 import { startLearning } from "@/server/study/actions";
 import { requireStep } from "@/server/study/session";
@@ -26,6 +28,13 @@ async function Onboarding() {
             {rule}
           </p>
         ))}
+        <ReturnDetails
+          origin={serverEnv().BETTER_AUTH_URL}
+          studySlug={state.study.slug}
+          participantCode={state.participantCode}
+          title="Keep your codes before you start"
+          lead="Write these down or save the link now. If the window closes, the return link brings you back to where you stopped."
+        />
         <ActionForm action={startLearning} submitLabel="Start the learning task" pendingLabel="Opening…" />
       </div>
       <StepFooter />

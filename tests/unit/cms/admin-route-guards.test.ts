@@ -14,12 +14,12 @@ describe("admin console route guards", () => {
     }
   });
 
-  it("only super_admin opens every admin route; platform_admin opens home, people and invite codes; others open none (PI: audit log and overview only)", () => {
+  it("only super_admin opens every admin route; platform_admin opens home, people, invite codes and participants; others open none (PI: audit log and overview only)", () => {
     for (const role of ROLES) {
       const subject = { roles: [role] };
       const open = CONSOLE_ROUTES.admin.filter((r) => canAny(subject, r.anyOf)).map((r) => r.path);
       if (role === "super_admin") expect(open).toEqual(CONSOLE_ROUTES.admin.map((r) => r.path));
-      else if (role === "platform_admin") expect(open).toEqual(["/admin", "/admin/users", "/admin/access"]);
+      else if (role === "platform_admin") expect(open).toEqual(["/admin", "/admin/users", "/admin/access", "/admin/participants"]);
       else if (role === "principal_investigator") expect(open.sort()).toEqual(["/admin", "/admin/audit"]);
       else {
         expect(open).toEqual([]);

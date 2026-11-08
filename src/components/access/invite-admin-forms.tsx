@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleAlert, Copy } from "lucide-react";
+import { CircleAlert, Copy, Eye } from "lucide-react";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 
 import { ActionForm } from "@/components/cms/action-form";
@@ -11,7 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createInviteAction, revokeInviteAction } from "@/server/access/actions";
+import { inviteLinks } from "@/lib/access/share-links";
+import { createInviteAction, revealInviteAction, revokeInviteAction } from "@/server/access/actions";
 
 export interface StudyOption {
   id: string;
@@ -22,33 +23,31 @@ export interface StudyOption {
 
 type Created = { code: string; hint: string; studySlug: string | null };
 
-function inviteLinks(origin: string, code: string, studySlug: string | null): { site: string; study: string | null } {
-  const base = origin.replace(/\/+$/, "");
-  const invite = encodeURIComponent(code);
-  return {
-    site: `${base}/?invite=${invite}`,
-    study: studySlug ? `${base}/study?code=${encodeURIComponent(studySlug)}&invite=${invite}` : null,
-  };
+export function CopyButton({ value, what }: { value: string; what?: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      onClick={() => {
+        void navigator.clipboard?.writeText(value).then(() => setCopied(true));
+      }}
+    >
+      <Copy aria-hidden="true" />
+      {copied ? "Copied" : "Copy"}
+      {what ? <span className="sr-only"> {what}</span> : null}
+    </Button>
+  );
 }
 
 function CopyField({ label, value }: { label: string; value: string }) {
   const id = useId();
-  const [copied, setCopied] = useState(false);
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
       <Label htmlFor={id}>{label}</Label>
       <div className="flex min-w-0 flex-wrap gap-2">
         <Input id={id} readOnly value={value} onFocus={(e) => e.currentTarget.select()} className="t-table font-semibold wrap-anywhere min-w-0 flex-1" spellCheck={false} />
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            void navigator.clipboard?.writeText(value).then(() => setCopied(true));
-          }}
-        >
-          <Copy aria-hidden="true" />
-          {copied ? "Copied" : "Copy"}
-        </Button>
+        <CopyButton value={value} />
       </div>
     </div>
   );
@@ -57,7 +56,6 @@ function CopyField({ label, value }: { label: string; value: string }) {
 export function CreateInviteForm({ studies, origin }: { studies: StudyOption[]; origin: string }) {
   const [created, setCreated] = useState<Created | null>(null);
   const ids = { label: useId(), maxUses: useId(), expiresOn: useId(), study: useId() };
-  const links = created ? inviteLinks(origin, created.code, created.studySlug) : null;
   return (
     <div className="flex flex-col gap-6">
       <ActionForm
@@ -93,20 +91,71 @@ export function CreateInviteForm({ studies, origin }: { studies: StudyOption[]; 
           </FormField>
         </div>
       </ActionForm>
-      {created && links ? (
+      {created ? (
         <Alert variant="info" role="note">
-          <AlertTitle>New Code (Shown Once)</AlertTitle>
+          <AlertTitle>New Code</AlertTitle>
           <AlertDescription>
             <div className="flex flex-col gap-4 pt-2">
-              <p>Copy the code or a link now and share it privately. Only a hash is stored, so it cannot be shown again; if it is lost, revoke it and create a new one.</p>
-              <CopyField label="Code" value={created.code} />
-              <CopyField label="Site link" value={links.site} />
-              {links.study ? <CopyField label="Participant link (study)" value={links.study} /> : null}
+              <p>Share the code or a link privately. While the code lets people in, Show code on its row brings it and its links back.</p>
+              <CodeAndLinks origin={origin} code={created.code} studySlug={created.studySlug} />
             </div>
           </AlertDescription>
         </Alert>
       ) : null}
     </div>
+  );
+}
+
+function CodeAndLinks({ origin, code, studySlug }: { origin: string; code: string; studySlug: string | null }) {
+  const links = inviteLinks(origin, code, studySlug);
+  return (
+    <>
+      <CopyField label="Code" value={code} />
+      <CopyField label="Site link" value={links.site} />
+      {links.study ? <CopyField label="Participant link (study)" value={links.study} /> : null}
+    </>
+  );
+}
+
+export function RevealInviteButton({ inviteId, label, hint, origin }: { inviteId: string; label: string; hint: string; origin: string }) {
+  const [state, formAction, pending] = useActionState<ActionState, FormData>(revealInviteAction, null);
+  const [dismissed, setDismissed] = useState<ActionState>(null);
+  const open = state !== null && state !== dismissed;
+  const code = state?.ok ? state.data?.code : undefined;
+  const studySlug = state?.ok && typeof state.data?.studySlug === "string" ? state.data.studySlug : null;
+
+  return (
+    <>
+      <form action={formAction}>
+        <input type="hidden" name="inviteId" value={inviteId} />
+        <Button type="submit" variant="outline" disabled={pending} aria-label={`Show the code for ${label} (ending ${hint}) and its links`}>
+          <Eye aria-hidden="true" />
+          {pending ? "Showing…" : "Show code"}
+        </Button>
+      </form>
+      <Dialog open={open} onOpenChange={(next) => {
+          if (!next) setDismissed(state);
+        }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{typeof code === "string" ? "Code and links" : "Code not shown"}</DialogTitle>
+            <DialogDescription>{typeof code === "string" ? `The code for ${label}. Share it privately. This look is recorded in the audit log.` : (state?.error ?? "The code could not be shown.")}</DialogDescription>
+          </DialogHeader>
+          {typeof code === "string" ? (
+            <div className="flex min-w-0 flex-col gap-4">
+              <CodeAndLinks origin={origin} code={code} studySlug={studySlug} />
+            </div>
+          ) : null}
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="outline">
+                Close
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
