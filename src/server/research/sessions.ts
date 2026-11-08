@@ -197,7 +197,7 @@ export async function excludeSession(pool: Pool | PoolClient, actor: Actor, inpu
     if (!r.rows[0]) throw new ResearchActionError("Session not found");
     if (r.rows[0].excluded) throw new ResearchActionError("The session is already excluded.");
     const reason = `${e.category}: ${e.detail}`;
-    await c.query("UPDATE study_sessions SET excluded = true, exclusion_reason = $2, excluded_by = $3, excluded_at = now() WHERE id = $1", [e.sessionId, reason, actor.userId]);
+    await c.query("UPDATE study_sessions SET excluded = true, exclusion_reason = $2, excluded_by = $3, excluded_at = now(), status = CASE WHEN status = 'in_progress' THEN 'abandoned' ELSE status END WHERE id = $1", [e.sessionId, reason, actor.userId]);
     await audit(c, actor, "session.exclude", "study_session", e.sessionId, { after: { excluded: true, category: e.category }, reason: e.category });
   });
 }

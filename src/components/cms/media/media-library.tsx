@@ -13,7 +13,7 @@ import { FIGURE_CAPTION_MAX } from "@/features/media/contracts";
 import { can } from "@/lib/permissions/can";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
-import { ASSET_LINK_ROLES, VERIFICATION_STATES, type ConceptType } from "@/lib/validation/enums";
+import { VERIFICATION_STATES, type ConceptType } from "@/lib/validation/enums";
 import { getStaffPrincipal } from "@/server/auth/staff";
 import {
   linkAssetAction,
@@ -27,6 +27,7 @@ import {
 import {
   ASSET_PAGE_SIZE,
   countAssets,
+  assetAuthors,
   findAsset,
   listAssets,
   listMediaCandidates,
@@ -85,7 +86,6 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
   const stateFilter = one(sp.state);
   const state = stateFilter && (VERIFICATION_STATES as readonly string[]).includes(stateFilter) ? stateFilter : null;
   const fbSource = one(sp.fb) === "review" ? "review" : one(sp.fb) === "release" ? "release" : null;
-  const fbDiagrams = one(sp.diagrams) !== "off";
   const pool = getPool();
   const total = await countAssets(pool, { state });
   const requestedPage = Number.parseInt(one(sp.page) ?? "1", 10);
@@ -104,7 +104,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
 
   const query = (over: Record<string, string | null>) => {
     const p = new URLSearchParams();
-    const cur: Record<string, string | null> = { state, page: page > 1 ? String(page) : null, asset: selectedId ?? null, fb: fbSource, diagrams: fbDiagrams ? null : "off", ...over };
+    const cur: Record<string, string | null> = { state, page: page > 1 ? String(page) : null, asset: selectedId ?? null, fb: fbSource, ...over };
     for (const [k, v] of Object.entries(cur)) if (v) p.set(k, v);
     const s = p.toString();
     return s ? `/cms/media?${s}` : "/cms/media";
@@ -115,8 +115,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
       <FigureBalanceSection
         q={pool}
         source={fbSource ?? (hasRelease ? "release" : "review")}
-        diagrams={fbDiagrams}
-        hrefFor={(v) => `${query({ fb: v.source, diagrams: v.diagrams ? null : "off" })}#figure-balance`}
+        hrefFor={(v) => `${query({ fb: v.source })}#figure-balance`}
       />
 
       {selected ? (
@@ -124,7 +123,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
           asset={selected}
           canUpload={canUpload}
           canReview={canReview}
-          userId={principal?.userId ?? ""}
+          ownWork={(await assetAuthors(pool, { id: selected.id, created_by: selected.createdBy, updated_by: selected.updatedBy })).has(principal?.userId ?? "")}
           options={options}
           approvedCandidates={candidates.filter((c) => c.status === "approved")}
           closeHref={query({ asset: null })}
@@ -136,7 +135,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
       <Section
         id="library"
         title="Library"
-        description="Stored assets with their credit, licence and concept links. Study figures are shown at the full size of their file."
+        description="Stored assets with their credit, licence and concept links. A study figure opens at up to the size of its file, within 90% of the window's width and 85% of its height."
       >
         <nav aria-label="Filter by review state" className="flex flex-wrap gap-x-5">
           {[null, ...VERIFICATION_STATES.filter((s) => s !== "published")].map((s) => (
@@ -271,7 +270,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
             </TableBody>
           </Table>
         )}
-        <Pager base="/cms/media" params={{ state: state ?? undefined, fb: fbSource ?? undefined, diagrams: fbDiagrams ? undefined : "off" }} page={page} total={total} pageSize={ASSET_PAGE_SIZE} />
+        <Pager base="/cms/media" params={{ state: state ?? undefined, fb: fbSource ?? undefined }} page={page} total={total} pageSize={ASSET_PAGE_SIZE} />
       </Section>
 
       {canUpload ? (
@@ -391,7 +390,7 @@ function SelectedAsset({
   asset: a,
   canUpload,
   canReview,
-  userId,
+  ownWork,
   options,
   approvedCandidates,
   closeHref,
@@ -399,13 +398,12 @@ function SelectedAsset({
   asset: AssetListItem;
   canUpload: boolean;
   canReview: boolean;
-  userId: string;
+  ownWork: boolean;
   options: { sources: { id: string; label: string }[]; concepts: { id: string; label: string }[] };
   approvedCandidates: readonly MediaCandidateItem[];
   closeHref: string;
 }) {
   const isImage = a.kind === "image" || a.kind === "texture";
-  const ownWork = a.createdBy === userId || a.updatedBy === userId;
   return (
     <Section
       id="asset"
@@ -440,12 +438,10 @@ function SelectedAsset({
             </figure>
           ) : null}
           <dl className="grid grid-cols-[8rem_minmax(0,1fr)] gap-x-3 gap-y-1">
-            <dt className="t-label pt-0.5">Shown at</dt>
+            <dt className="t-label pt-0.5">File size</dt>
             <dd className="t-b tabular-nums">
               {a.width && a.height ? `${Math.max(a.width, a.height)} px long edge` : "Unknown"}
             </dd>
-            <dt className="t-label pt-0.5">Public plate</dt>
-            <dd className="t-b">{a.publicPlate ? "Cleared" : "No"}</dd>
             <dt className="t-label pt-0.5">Checksum</dt>
             <dd className="t-b min-w-0">
               <Mono>{a.sha256}</Mono>
@@ -510,7 +506,7 @@ function SelectedAsset({
           {canReview && a.verificationState === "under_review" ? (
             <div className="flex flex-col gap-3">
               <h3 className="t-label border-b border-line pb-1">Review</h3>
-              {ownWork ? <p className="t-b text-lime-dim">You uploaded or last edited this asset, so another reviewer must verify it.</p> : null}
+              {ownWork ? <p className="t-b text-lime-dim">You uploaded, edited or linked this asset, so another reviewer must verify it.</p> : null}
               <ActionForm action={reviewAssetAction} submitLabel="Record decision">
                 <input type="hidden" name="assetId" value={a.id} />
                 <fieldset className="flex min-w-0 flex-col">
@@ -607,16 +603,7 @@ function SelectedAsset({
                     </NativeSelect>
                     <FieldMessage name="conceptId" />
                   </div>
-                  <div className="flex min-w-0 flex-col gap-1.5">
-                    <Label htmlFor={`link-role-${a.id}`}>Role</Label>
-                    <NativeSelect id={`link-role-${a.id}`} name="role" defaultValue="illustration">
-                      {ASSET_LINK_ROLES.map((r) => (
-                        <option key={r} value={r}>
-                          {roleLabel(r)}
-                        </option>
-                      ))}
-                    </NativeSelect>
-                  </div>
+                  <input type="hidden" name="role" value="illustration" />
                   <div className="flex min-w-0 flex-col gap-1.5">
                     <Label htmlFor={`link-anchor-${a.id}`}>Anchor claim</Label>
                     <Input
@@ -631,8 +618,8 @@ function SelectedAsset({
                 </div>
                 <CaptionOverrideField id={`link-caption-new-${a.id}`} defaultValue="" />
                 <p id={`link-anchor-${a.id}-hint`} className="t-s text-lime-dim">
-                  Anchor claim: the number of the claim the figure follows, as the proof numbers it (1 for the first claim). A concept shows at most one
-                  illustration. For other roles the number is the display order.
+                  Anchor claim: the number of the claim the figure follows, as the proof numbers it (1 for the first claim). The asset is linked as the
+                  concept&rsquo;s illustration; a concept shows at most one.
                 </p>
               </ActionForm>
             ) : null}

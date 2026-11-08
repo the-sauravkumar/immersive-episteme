@@ -164,7 +164,6 @@ export function Section({
   className,
 }: {
   title: string;
-  eyebrow?: string;
   description?: ReactNode;
   children: ReactNode;
   actions?: ReactNode;

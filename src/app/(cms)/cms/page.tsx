@@ -45,7 +45,7 @@ async function Overview() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Table density="compact" hoverRows caption={<>Real (non-demo) content by review state. Imported content arrives as under review or needs evidence; only curators verify it.</>}>
+      <Table density="compact" hoverRows caption={<>Real (non-demo) content by review state. Imported content arrives as under review or needs evidence; curators and principal investigators verify it.</>}>
         <TableHeader>
           <TableRow>
             <TableHead scope="col">Entity</TableHead>

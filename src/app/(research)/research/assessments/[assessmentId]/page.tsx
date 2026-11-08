@@ -25,6 +25,7 @@ import { getPool } from "@/server/db/client";
 import { titleCase } from "@/lib/text/title-case";
 
 import { DemoBadge, Empty, LINK_44, PublishedBadge, Section, SubHeading, SummaryList } from "../../_components/common";
+import { kindLabel } from "../kind-labels";
 
 export const metadata: Metadata = { title: "Assessment" };
 
@@ -37,14 +38,6 @@ export default function Page({ params }: PageProps<"/research/assessments/[asses
     </ConsolePage>
   );
 }
-
-const KIND_LABEL: Record<string, string> = {
-  pretest: "Pre-test",
-  posttest: "Post-test",
-  reconstruction: "Concept-map reconstruction",
-  transfer: "Transfer task",
-  questionnaire: "Questionnaire",
-};
 
 const ITEM_KIND_LABEL: Record<string, string> = {
   single_choice: "Single choice",
@@ -90,7 +83,7 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
           },
           { label: "Code", value: <span className="t-table font-semibold wrap-anywhere">{a.code}</span> },
           { label: "Version", value: <span className="tabular-nums">v{a.version}</span> },
-          { label: "Kind", value: KIND_LABEL[a.kind] ?? a.kind },
+          { label: "Kind", value: kindLabel(a.kind) },
           { label: "Published (UTC)", value: a.lockedAt ? <span className="t-table font-semibold wrap-anywhere">{a.lockedAt.toISOString().slice(0, 10)}</span> : "Not published" },
         ]}
       />
@@ -98,11 +91,11 @@ async function Detail({ params }: { params: Promise<{ assessmentId: string }> })
         <span className="t-label mr-3">Versions</span>
         {a.versions.map((v) =>
           v.id === a.id ? (
-            <span key={v.id} aria-current="page" className="inline-flex min-h-11 items-center border-b-[3px] border-turmeric px-3 font-sans t-s font-medium text-lime tabular-nums">
+            <span key={v.id} aria-current="page" className="inline-flex min-h-11 items-center border-b-4 border-turmeric px-3 font-display text-[1.125rem] font-bold text-lime tabular-nums">
               v{v.version}
             </span>
           ) : (
-            <Link key={v.id} href={`/research/assessments/${v.id}`} className="inline-flex min-h-11 items-center border-b-[3px] border-transparent px-3 font-sans t-s font-medium text-lime-dim tabular-nums hover:text-lime">
+            <Link key={v.id} href={`/research/assessments/${v.id}`} className="inline-flex min-h-11 items-center border-b-4 border-transparent px-3 font-display text-[1.125rem] font-bold text-lime-dim tabular-nums hover:text-lime">
               v{v.version} ({v.status === "locked" ? "published" : "draft"})
             </Link>
           ),

@@ -3,7 +3,7 @@ import type { TelemetryEvent } from "@/features/telemetry/contracts";
 import { computeTimingMetrics, TIMING_METRIC_DEFINITIONS } from "@/features/telemetry/metrics";
 
 import { computeMapCorrespondence, CORRESPONDENCE_METRIC, CORRESPONDENCE_VERSION, type MapEdgeInput, type SnapshotRelationship } from "./correspondence";
-import { computeNavigationMetrics, NAVIGATION_METRIC_DEFINITIONS, NAVIGATION_METRICS_VERSION, type ConceptFacts, type MetricValue, type NavEvent } from "./navigation";
+import { computeNavigationMetrics, NAVIGATION_METRIC_DEFINITIONS, NAVIGATION_METRICS_VERSION, type MetricValue, type NavEvent } from "./navigation";
 import { computeStageMetrics, STAGE_METRIC_DEFINITIONS, STAGE_METRICS_VERSION } from "./stage";
 
 export const METRICS_PIPELINE_VERSION = "research-metrics/1";
@@ -31,7 +31,6 @@ export const METRIC_DEFINITIONS: readonly MetricDefinition[] = [
 
 export interface SessionMetricInput {
   events: readonly (NavEvent & { eventId: string })[];
-  concepts: ReadonlyMap<string, ConceptFacts>;
   relationships: readonly SnapshotRelationship[];
   map: { id: string; revision: number; edges: readonly MapEdgeInput[] } | null;
 }
@@ -56,7 +55,7 @@ export function computeSessionMetrics(input: SessionMetricInput): ComputedMetric
       metadata: (e.metadata ?? {}) as TelemetryEvent["metadata"],
     })),
   );
-  const nav = computeNavigationMetrics(input.events, input.concepts);
+  const nav = computeNavigationMetrics(input.events);
   const corr = computeMapCorrespondence(input.events, input.map ? input.map.edges : null, input.relationships);
   return {
     values: [...timing.map((t) => ({ ...t, details: t.details })), ...nav, ...computeStageMetrics(input.events), corr],

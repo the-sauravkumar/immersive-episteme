@@ -1,5 +1,5 @@
 import type { KnowledgeBundle } from "@/features/knowledge/contracts";
-import { balanceDiagramSets, buildStructureDiagrams, type StructureDiagram } from "@/features/knowledge/read/diagrams";
+import { buildStructureDiagrams, type StructureDiagram } from "@/features/knowledge/read/diagrams";
 import {
   RELATIONSHIP_SEMANTICS,
   type ConceptType,
@@ -326,48 +326,6 @@ export function conceptPhotosOf(view: Pick<KnowledgeView, "getConcept">, links: 
       },
     ];
   });
-}
-
-export function diagramCredit(snapshotLabel: string): string {
-  return `Diagram generated from the project's knowledge graph (snapshot ${snapshotLabel})`;
-}
-
-export function diagramFigureOf(d: StructureDiagram, credit: string): DiagramFigure {
-  return { kind: "diagram", id: d.id, conceptId: d.anchor.conceptId, anchorClaimIndex: d.anchor.claimIndex, caption: d.caption, alt: d.alt, credit, diagram: d };
-}
-
-export function resolveConceptFigures(input: {
-  diagrams: readonly DiagramFigure[];
-  photos: readonly PhotoFigure[];
-  structureDiagrams: boolean;
-  photosOn?: boolean;
-}): KnowledgeFigureData[] {
-  const diagram = input.structureDiagrams ? input.diagrams[0] : undefined;
-  if (diagram) return [diagram];
-  const photo = input.photosOn === false ? undefined : input.photos[0];
-  return photo ? [photo] : [];
-}
-
-export interface DiagramScope {
-  traditionSlugs: readonly string[];
-  balanceSlugs: readonly string[];
-}
-
-export function diagramFiguresByConcept(view: Pick<KnowledgeView, "info" | "structureDiagrams">, scope: DiagramScope): Map<string, DiagramFigure[]> {
-  const credit = diagramCredit(view.info().versionLabel);
-  const slugs = [...new Set([...scope.traditionSlugs, ...scope.balanceSlugs])];
-  const all = new Map(slugs.map((slug) => [slug, view.structureDiagrams(slug)]));
-  const balanced = balanceDiagramSets(all, scope.balanceSlugs);
-  const allowed = new Set([...balanced.values()].flat().map((d) => d.type));
-  const byConcept = new Map<string, DiagramFigure[]>();
-  for (const slug of scope.traditionSlugs) {
-    for (const d of all.get(slug) ?? []) {
-      if (!allowed.has(d.type)) continue;
-      const f = diagramFigureOf(d, credit);
-      byConcept.set(f.conceptId, [...(byConcept.get(f.conceptId) ?? []), f]);
-    }
-  }
-  return byConcept;
 }
 
 export interface KnowledgeView {

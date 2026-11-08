@@ -14,7 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { requirePermission } from "@/server/auth/staff";
 import { edgeIssues } from "@/server/cms/graph";
 import { entityHistory, relationshipsWhere, reviewQueue, userNames, type ReviewItem } from "@/server/cms/queries";
-import { reviewOptions } from "@/server/cms/workflow";
+import { itemsAuthoredBy, reviewOptions } from "@/server/cms/workflow";
 import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Review Queue" };
@@ -57,7 +57,7 @@ async function Queue({ searchParams }: { searchParams: Promise<SearchParams> }) 
   const state = one(sp.state);
   const pool = getPool();
   const items = await reviewQueue(pool, { kind, state });
-  const names = await userNames(pool, items.flatMap((i) => [i.createdBy, i.updatedBy]));
+  const [names, authored] = await Promise.all([userNames(pool, items.flatMap((i) => [i.createdBy, i.updatedBy])), itemsAuthoredBy(pool, principal.userId, items)]);
   const rel = one(sp.rel);
 
   return (
@@ -98,7 +98,7 @@ async function Queue({ searchParams }: { searchParams: Promise<SearchParams> }) 
       {items.length === 0 ? (
         <Empty>Nothing is waiting.</Empty>
       ) : (
-        <Table density="compact" hoverRows caption={<>{items.length} item(s), most recently changed first. Items marked “yours” were authored or last edited by you, so another curator must verify them.</>}>
+        <Table density="compact" hoverRows caption={<>{items.length} item(s), most recently changed first. Items marked “yours” were authored, edited or linked by you at some point, so another curator must verify them.</>}>
           <TableHeader>
             <TableRow>
               <TableHead scope="col">Kind</TableHead>
@@ -110,7 +110,7 @@ async function Queue({ searchParams }: { searchParams: Promise<SearchParams> }) 
           </TableHeader>
           <TableBody>
             {items.map((i) => {
-              const mine = i.createdBy === principal.userId || i.updatedBy === principal.userId;
+              const mine = authored.has(`${i.kind}:${i.id}`);
               return (
                 <TableRow key={`${i.kind}-${i.id}`}>
                   <TableCell>{KIND_LABEL[i.kind]}</TableCell>

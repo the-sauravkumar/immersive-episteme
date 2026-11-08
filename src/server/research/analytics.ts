@@ -1,9 +1,7 @@
 import { EVENT_TYPE_REGISTRY } from "@/features/telemetry/contracts";
-import { KNOWLEDGE_CATEGORY_CODES } from "@/lib/validation/enums";
 
 import { ANALYSIS_REFERENCES_SQL } from "./analysis-reference";
 import { loadSnapshotFacts } from "./metrics/pipeline";
-import { visitSequence, type NavEvent } from "./metrics/navigation";
 import { queryAll, type Q } from "./db";
 
 export interface ConditionRef {
@@ -65,8 +63,8 @@ export async function studyOverview(q: Q, studyId: string): Promise<StudyOvervie
               coalesce(sum(ev.starts - ev.ends), 0)::int AS "unterminatedIntervals"
          FROM study_sessions ss
          LEFT JOIN LATERAL (SELECT count(*) AS n,
-                                   count(*) FILTER (WHERE event_type_code IN ('exposure_started', 'navigation_started')) AS starts,
-                                   count(*) FILTER (WHERE event_type_code IN ('exposure_ended', 'navigation_ended')) AS ends
+                                   count(*) FILTER (WHERE event_type_code = 'stage_entered') AS starts,
+                                   count(*) FILTER (WHERE event_type_code = 'stage_left') AS ends
                               FROM telemetry_events te WHERE te.session_id = ss.id) ev ON true
          LEFT JOIN LATERAL (SELECT count(*) AS n FROM telemetry_quarantine tq WHERE tq.session_id = ss.id) qu ON true
          LEFT JOIN LATERAL (SELECT count(*) AS n, sum(to_seq - from_seq + 1) AS missing FROM sequence_gaps g
@@ -152,7 +150,7 @@ export async function correspondenceSummary(q: Q, studyId: string) {
       WHERE dm.study_id = $1 AND dm.metric_name = 'nav.map_correspondence' AND ${ANALYSABLE}`,
     [studyId],
   );
-  const keys = ["conceptsExposed", "conceptsInspected", "relationshipsFollowed", "mapEdges", "reconstructedCorrect", "reconstructedIncorrect", "correctAndFollowed", "correctWithBothEndpointsInspected", "incorrectWithBothEndpointsInspected"] as const;
+  const keys = ["mapEdges", "reconstructedCorrect", "reconstructedIncorrect"] as const;
   const out: Record<string, { sessions: number; withMap: number } & Record<(typeof keys)[number], number>> = {};
   for (const row of r.rows) {
     const o = (out[row.condition_id] ??= { sessions: 0, withMap: 0, ...Object.fromEntries(keys.map((k) => [k, 0])) } as never);
@@ -172,31 +170,36 @@ export interface TransitionMatrix {
 }
 
 export async function transitionMatrices(q: Q, studyId: string): Promise<TransitionMatrix[]> {
-  const sess = await q.query<{ id: string; condition_id: string; snapshot_id: string | null }>(
+  const ev = await q.query<{ session_id: string; condition_id: string; seq: number; stage: number | null }>(
     `WITH an AS (${ANALYSED_SESSIONS_SQL})
-     SELECT an.id, an.condition_id, ss.snapshot_id FROM an JOIN study_sessions ss ON ss.id = an.id WHERE ${ANALYSABLE}`,
+     SELECT an.id AS session_id, an.condition_id, te.seq, (te.metadata->>'stageNumber')::int AS stage
+       FROM an JOIN study_sessions ss ON ss.id = an.id
+       LEFT JOIN telemetry_events te ON te.session_id = an.id AND te.event_type_code = 'stage_entered'
+      WHERE ${ANALYSABLE}
+      ORDER BY an.id, te.seq`,
     [studyId],
   );
-  const labels = [...KNOWLEDGE_CATEGORY_CODES];
-  const index = new Map(labels.map((l, i) => [l, i]));
+  const stages = [...new Set(ev.rows.flatMap((r) => (r.stage === null ? [] : [r.stage])))].sort((a, b) => a - b);
+  const labels = stages.map((n) => `Stop ${n}`);
+  const index = new Map(stages.map((n, i) => [n, i]));
   const out = new Map<string, TransitionMatrix>();
-  for (const s of sess.rows) {
-    if (!s.snapshot_id) continue;
-    const facts = await loadSnapshotFacts(q, s.snapshot_id);
-    const ev = await q.query<NavEvent>(
-      `SELECT seq, event_type_code AS type, concept_id AS "conceptId" FROM telemetry_events WHERE session_id = $1 AND event_type_code = 'exposure_started' ORDER BY seq`,
-      [s.id],
-    );
-    const m = out.get(s.condition_id) ?? out.set(s.condition_id, { conditionId: s.condition_id, labels, counts: labels.map(() => labels.map(() => 0)), sessions: 0, transitions: 0 }).get(s.condition_id)!;
-    m.sessions++;
-    const visits = visitSequence(ev.rows);
-    for (let i = 1; i < visits.length; i++) {
-      const a = index.get(facts.concepts.get(visits[i - 1]!.conceptId)?.category as never);
-      const b = index.get(facts.concepts.get(visits[i]!.conceptId)?.category as never);
-      if (a === undefined || b === undefined) continue;
-      m.counts[a]![b]!++;
+  let previous = null as { session: string; stage: number } | null;
+  for (const row of ev.rows) {
+    let m = out.get(row.condition_id);
+    if (!m) {
+      m = { conditionId: row.condition_id, labels, counts: labels.map(() => labels.map(() => 0)), sessions: 0, transitions: 0 };
+      out.set(row.condition_id, m);
+    }
+    if (previous?.session !== row.session_id) {
+      m.sessions++;
+      previous = null;
+    }
+    if (row.stage === null) continue;
+    if (previous && previous.stage !== row.stage) {
+      m.counts[index.get(previous.stage)!]![index.get(row.stage)!]!++;
       m.transitions++;
     }
+    previous = { session: row.session_id, stage: row.stage };
   }
   return [...out.values()];
 }

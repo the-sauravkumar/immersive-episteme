@@ -83,7 +83,7 @@ run("public dataset reads", () => {
     expect(after.totals).not.toEqual(before.totals);
   });
 
-  it("the featured claim is a real seeded claim from a non-study tradition, chosen in canonical order", async () => {
+  it("the pull-quote claim is a real seeded claim from a non-study tradition, chosen in canonical order", async () => {
     const first = await loadFeaturedClaim(q);
     expect(first).toMatchObject({ traditionSlug: "bagh", text: "Seeded claim B.", position: 0 });
     expect(first?.citation).toMatchObject({ title: "Source Two", quote: "Seeded quote B.", locator: "p. 1" });
@@ -93,25 +93,11 @@ run("public dataset reads", () => {
     const cD = await concept("dabu.tradition.seeded", "Seeded Dabu Overview", dabu);
     await claim(cD, 0, "A longer seeded Dabu claim that comes first by position.", s3, "A longer seeded Dabu quote.");
     await claim(cD, 1, "Short Dabu claim.", s3, "Short quote.");
-    await claim(cD, 2, "x".repeat(140), s3, "y".repeat(150));
+    await claim(cD, 2, "x".repeat(170), s3, "y".repeat(150));
 
     expect((await loadFeaturedClaim(q))?.traditionSlug).toBe("bagh");
-    const second = await loadFeaturedClaim(q, { skip: 1 });
-    expect(second).toMatchObject({ traditionSlug: "dabu", text: "Short Dabu claim.", position: 1 });
-    for (const skip of [0, 1, 2, 3]) {
-      expect(["ajrakh", "machilipatnam-kalamkari", "sanganeri"]).not.toContain((await loadFeaturedClaim(q, { skip }))?.traditionSlug);
-    }
-    expect(await loadFeaturedClaim(q, { skip: 2 })).toBeNull();
-
-    const s4 = await source("Source Four");
-    const bagru = await tradition("bagru", "Seeded Bagru");
-    const cB = await concept("bagru.tradition.seeded", "Seeded Bagru Overview", bagru);
-    await claim(cB, 0, "A Bagru claim with a long quote.", s4, "q".repeat(400));
-    expect((await loadFeaturedClaim(q, { skip: 1 }))?.traditionSlug).toBe("dabu");
-    const pull = await loadFeaturedClaim(q, { fit: "pull-quote", excludeSlugs: ["bagh"] });
-    expect(pull).toMatchObject({ traditionSlug: "bagru", text: "A Bagru claim with a long quote." });
-    const pullNoBagru = await loadFeaturedClaim(q, { fit: "pull-quote", excludeSlugs: ["bagh", "bagru"] });
-    expect(pullNoBagru).toMatchObject({ traditionSlug: "dabu", text: "Short Dabu claim." });
+    expect(await loadFeaturedClaim(q, { excludeSlugs: ["bagh"] })).toMatchObject({ traditionSlug: "dabu", text: "Short Dabu claim.", position: 1 });
+    expect(await loadFeaturedClaim(q, { excludeSlugs: ["bagh", "dabu"] })).toBeNull();
   });
 
   it("lists no image credits while no image is verified", async () => {

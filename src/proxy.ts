@@ -1,15 +1,7 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
-import {
-  INVITE_PARAM,
-  INVITE_REDEEM_CODE_HEADER,
-  INVITE_REDEEM_NEXT_HEADER,
-  INVITE_REDEEM_PATH,
-  invitePath,
-  isInviteExemptPath,
-  withoutInviteParam,
-} from "@/lib/access/invite-paths";
+import { INVITE_PARAM, invitePath, isInviteExemptPath, withoutInviteParam } from "@/lib/access/invite-paths";
 import { clientIpPolicy, stripClientIpHeaders } from "@/lib/client-ip";
 import { contentSecurityPolicy, isDevBuild } from "@/lib/security/csp";
 import { inviteIsLive, sessionHoldsStaffRole } from "@/server/access/gate-lookups";
@@ -19,6 +11,7 @@ import { AUTH_COOKIE_PREFIX, DEMO_COOKIE, INVITE_COOKIE, PARTICIPANT_COOKIE } fr
 const STAFF_PREFIXES = ["/cms", "/research", "/admin"];
 const NO_FRAME_PAGES = ["/sign-in", "/sign-out", "/forbidden", "/awaiting-access"];
 const PUBLIC_STUDY_PAGES = ["/study/consent", "/study/complete", "/study/exit", "/study/return"];
+const PARTICIPANT_APIS = ["/api/study", "/api/telemetry"];
 
 function startsWithSegment(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
@@ -67,6 +60,15 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
   const hasStaffCookie = getSessionCookie(request, { cookiePrefix: AUTH_COOKIE_PREFIX }) !== null;
 
+  if (PARTICIPANT_APIS.some((p) => startsWithSegment(pathname, p))) {
+    const access = await siteAccess(request, hasStaffCookie);
+    if (access === "admitted") return NextResponse.next();
+    return new NextResponse(access === "unavailable" ? "The site is temporarily unavailable." : "An invite is required.", {
+      status: access === "unavailable" ? 503 : 403,
+      headers: { ...NO_STORE, "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
+
   if (STAFF_PREFIXES.some((p) => startsWithSegment(pathname, p))) {
     if (!hasStaffCookie) {
       const url = new URL("/sign-in", request.url);
@@ -90,14 +92,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   const code = request.nextUrl.searchParams.get(INVITE_PARAM);
   if (code !== null && readOnly) {
     const target = withoutInviteParam(request.nextUrl);
-    if (invited) return NextResponse.redirect(new URL(target, request.url));
-    const redeem = new URL(INVITE_REDEEM_PATH, request.url);
-    redeem.searchParams.set("code", code);
-    redeem.searchParams.set("next", target);
-    const headers = new Headers(request.headers);
-    headers.set(INVITE_REDEEM_CODE_HEADER, encodeURIComponent(code));
-    headers.set(INVITE_REDEEM_NEXT_HEADER, encodeURIComponent(target));
-    return NextResponse.rewrite(redeem, { request: { headers } });
+    const response = NextResponse.redirect(new URL(invited ? target : invitePath(target, undefined, code), request.url));
+    response.headers.set("Referrer-Policy", "no-referrer");
+    return response;
   }
   if (!invited) {
     if (readOnly) return NextResponse.redirect(new URL(invitePath(`${pathname}${search}`), request.url));
@@ -121,5 +118,5 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: ["/api/auth/:path*", "/((?!api/|_next/static/|_next/image|favicon.ico|robots.txt).*)"],
+  matcher: ["/api/auth/:path*", "/api/study/:path*", "/api/telemetry/:path*", "/((?!api/|_next/static/|_next/image|favicon.ico|robots.txt).*)"],
 };

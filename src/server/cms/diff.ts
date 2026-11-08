@@ -47,7 +47,15 @@ function diffBy<T>(a: readonly T[], b: readonly T[], key: (x: T) => string, labe
   return out;
 }
 
-export function diffBundles(a: KnowledgeBundle, b: KnowledgeBundle): BundleDiff {
+const withoutCitationDetail = (x: KnowledgeBundle): KnowledgeBundle => ({
+  ...x,
+  concepts: x.concepts.map((c) => ({ ...c, claims: c.claims.map((cl) => ({ ...cl, sources: cl.sources.map(({ locator: _locator, ...s }) => s) })) })),
+  relationships: x.relationships.map((r) => ({ ...r, sources: r.sources.map(({ locator: _locator, quote: _quote, ...s }) => s) })),
+}) as KnowledgeBundle;
+
+export function diffBundles(first: KnowledgeBundle, second: KnowledgeBundle, opts: { citationDetail: boolean }): BundleDiff {
+  const a = opts.citationDetail ? first : withoutCitationDetail(first);
+  const b = opts.citationDetail ? second : withoutCitationDetail(second);
   const claimsOf = (x: KnowledgeBundle) =>
     x.concepts.flatMap((c) => c.claims.map((cl, i) => ({ ...cl, id: undefined, conceptKey: c.key, position: i })));
   const keyOf = (x: KnowledgeBundle) => new Map(x.concepts.map((c) => [c.key, c.title]));

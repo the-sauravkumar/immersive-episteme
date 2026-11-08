@@ -121,12 +121,19 @@ export function LiveStatus({ studyId, serverTime, fingerprint }: { studyId: stri
       }
       setMode("connecting");
       es = new EventSource(`/api/research/dashboard/stream?study=${encodeURIComponent(studyId)}`);
+      const notListening = (listening: boolean | undefined): boolean => {
+        if (listening !== false) return false;
+        close();
+        startPolling();
+        return true;
+      };
       es.addEventListener("ready", (e) => {
         errors = 0;
+        const d = JSON.parse((e as MessageEvent<string>).data) as { serverTime: string; fingerprint: string | null; listening?: boolean };
+        confirm(d.serverTime);
+        if (notListening(d.listening)) return;
         stopPolling();
         setMode("live");
-        const d = JSON.parse((e as MessageEvent<string>).data) as { serverTime: string; fingerprint: string | null };
-        confirm(d.serverTime);
         if (d.fingerprint && d.fingerprint !== rendered.current) scheduleRefresh(0);
       });
       es.addEventListener("change", (e) => {
@@ -134,7 +141,11 @@ export function LiveStatus({ studyId, serverTime, fingerprint }: { studyId: stri
         void pullSessions();
         scheduleRefresh();
       });
-      es.addEventListener("ping", (e) => confirm((JSON.parse((e as MessageEvent<string>).data) as { serverTime: string }).serverTime));
+      es.addEventListener("ping", (e) => {
+        const d = JSON.parse((e as MessageEvent<string>).data) as { serverTime: string; listening?: boolean };
+        confirm(d.serverTime);
+        notListening(d.listening);
+      });
       es.onerror = () => {
         errors++;
         setError("The live connection was interrupted; reconnecting.");

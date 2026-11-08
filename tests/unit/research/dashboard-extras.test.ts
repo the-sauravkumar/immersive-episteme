@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { itemStatistics, traditionGains, type TraditionItemRow } from "@/app/(research)/research/dashboard/_components/dashboard-extras";
+import { itemStatistics, traditionGains, type TraditionItemRow } from "@/server/research/dashboard-extras";
 
 describe("itemStatistics", () => {
   const row = (conditionId: string, kind: string, code: string, itemKey: string, position: number, value: number | null) => ({

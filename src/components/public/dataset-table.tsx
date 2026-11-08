@@ -19,8 +19,8 @@ export function DatasetTable({ stats, number, title = "Knowledge Dataset by Trad
         <>
           Live counts of the records in the platform database, demonstration records excluded. Sources: the distinct sources cited by the
           claims. Concepts verified or published by curators:{" "}
-          <span className="tabular-nums">{formatCount(totals.verifiedConcepts)}</span> of <span className="tabular-nums">{formatCount(totals.concepts)}</span>; the rest are under
-          review. A source cited by several traditions is counted once in the total.
+          <span className="tabular-nums">{formatCount(totals.verifiedConcepts)}</span> of <span className="tabular-nums">{formatCount(totals.concepts)}</span>; the rest are drafts, under
+          review, awaiting evidence, rejected or archived. A source cited by several traditions is counted once in the total.
         </>
       }
     >

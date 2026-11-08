@@ -28,15 +28,16 @@ async function bump(q: Q, key: string, windowSeconds: number, now: Date): Promis
 
 export async function consumeEnrolmentAttempt(
   q: Q,
-  input: { studyId: string; address: string | null; limits?: { maxPerAddressPer10Minutes?: number; maxPerHour?: number } },
+  input: { studyId: string; address: string | null; limits?: { maxPerAddressPer10Minutes?: number; maxPerHour?: number }; purpose?: "enrol" | "return" },
   now: Date = new Date(),
 ): Promise<EnrolmentThrottleDecision> {
   const perAddress = input.limits?.maxPerAddressPer10Minutes ?? ENROLMENT_LIMIT_DEFAULTS.maxPerAddressPer10Minutes;
   const perStudy = input.limits?.maxPerHour ?? ENROLMENT_LIMIT_DEFAULTS.maxPerHour;
   const retry = (endsMs: number) => Math.max(1, Math.ceil((endsMs - now.getTime()) / 1000));
-  const study = await bump(q, sha256(`study\0${input.studyId}`), STUDY_WINDOW_SECONDS, now);
+  const prefix = input.purpose === "return" ? "return\0" : "";
+  const study = await bump(q, sha256(`${prefix}study\0${input.studyId}`), STUDY_WINDOW_SECONDS, now);
   if (input.address) {
-    const addr = await bump(q, sha256(`address\0${input.studyId}\0${input.address}`), ADDRESS_WINDOW_SECONDS, now);
+    const addr = await bump(q, sha256(`${prefix}address\0${input.studyId}\0${input.address}`), ADDRESS_WINDOW_SECONDS, now);
     if (addr.attempts > perAddress) return { allowed: false, scope: "address", retryAfterSeconds: retry(addr.windowEndsMs) };
   }
   if (study.attempts > perStudy) return { allowed: false, scope: "study", retryAfterSeconds: retry(study.windowEndsMs) };

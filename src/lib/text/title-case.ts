@@ -1,11 +1,5 @@
 import { Children, cloneElement, isValidElement, type ReactNode } from "react";
 
-const MINOR_WORDS = new Set([
-  "a", "an", "the",
-  "and", "but", "or", "nor", "for", "so", "yet",
-  "as", "at", "by", "in", "of", "off", "on", "per", "to", "up", "via", "vs", "vs.",
-]);
-
 const hasInnerCapital = (w: string) => /[A-Z]/.test(w.slice(1)) || /^\d/.test(w);
 
 function capitaliseWord(w: string): string {
@@ -14,20 +8,10 @@ function capitaliseWord(w: string): string {
 }
 
 export function titleCase(input: string): string {
-  const words = input.split(/(\s+)/);
-  const last = words.length - 1 - [...words].reverse().findIndex((w) => w.trim() !== "");
-  let seenWord = false;
-  return words
-    .map((token, i) => {
-      if (token.trim() === "") return token;
-      const first = !seenWord;
-      seenWord = true;
-      const bare = token.toLowerCase().replace(/[^\p{L}.]/gu, "");
-      if (!first && i !== last && MINOR_WORDS.has(bare) && token === token.toLowerCase()) return token;
-      return token.split("-").map(capitaliseWord).join("-");
-    })
-    .join("")
-    .replace(/([:—–]\s+)(\p{Ll})/gu, (_m, sep: string, ch: string) => sep + ch.toUpperCase());
+  return input
+    .split(/(\s+)/)
+    .map((token) => (token.trim() === "" ? token : token.split("-").map(capitaliseWord).join("-")))
+    .join("");
 }
 
 export function titleCaseNode(node: ReactNode): ReactNode {

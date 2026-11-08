@@ -18,8 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { nodeSha256 } from "@/features/knowledge/graph/hash-node";
-import { createKnowledgeView, diagramFiguresByConcept, resolveConceptFigures, sourceDisplayLabel, type Citation, type ClaimView, type KnowledgeFigureData } from "@/features/knowledge/read/view";
-import { STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
+import { createKnowledgeView, sourceDisplayLabel, type Citation, type ClaimView } from "@/features/knowledge/read/view";
 import { KNOWLEDGE_CATEGORIES } from "@db/seeds/reference-data";
 import { can } from "@/lib/permissions/can";
 import type { ConceptType, KnowledgeCategoryCode, ProvenanceKind, SourceReliability, VerificationState } from "@/lib/validation/enums";
@@ -38,7 +37,7 @@ export const instant = false;
 
 export default function Page({ params }: PageProps<"/cms/concepts/[conceptId]">) {
   return (
-    <ConsolePage path="/cms/concepts/[conceptId]" title="Concept" description="Claims with their evidence, curator notes, relationships and review history, beside a proof of what learners see.">
+    <ConsolePage path="/cms/concepts/[conceptId]" title="Concept" description="Claims with their evidence, curator notes, relationships and review history, beside a preview of the record as the next release carries it.">
       <Suspense fallback={<Skeleton className="h-96 w-full" />}>
         <ConceptEditor params={params} />
       </Suspense>
@@ -222,10 +221,6 @@ async function Proof({ concept }: { concept: ConceptDetail }) {
   const detail = view?.getConcept(concept.id) ?? null;
 
   if (view && detail) {
-    const slugs = view.listTraditions().map((t) => t.slug);
-    const study = slugs.filter((s) => (STUDY_TRADITION_SLUGS as readonly string[]).includes(s));
-    const diagrams = diagramFiguresByConcept(view, { traditionSlugs: slugs, balanceSlugs: study.length > 0 ? study : slugs }).get(detail.id) ?? [];
-    const figures: KnowledgeFigureData[] = resolveConceptFigures({ diagrams, photos: [], structureDiagrams: true });
     const chain = detail.tradition ? view.getProcessChain(detail.tradition.slug) : null;
     const at = chain?.steps.findIndex((s) => s.id === detail.id) ?? -1;
     const traditionNames = Object.fromEntries(view.listTraditions().map((t) => [t.slug, t.name]));
@@ -255,7 +250,7 @@ async function Proof({ concept }: { concept: ConceptDetail }) {
           ) : null
         }
       >
-        <ClaimList conceptId={detail.id} claims={detail.claims} figures={figures} references="sheet" />
+        <ClaimList conceptId={detail.id} claims={detail.claims} references="sheet" />
       </KnowledgeSheet>
     );
     return (
@@ -263,8 +258,8 @@ async function Proof({ concept }: { concept: ConceptDetail }) {
         sheet={sheet}
         note={
           <>
-            Built from the review pipeline as the next release would carry it ({built?.ok ? built.envelope.versionLabel : ""}), with the figure both conditions show while
-            structure diagrams are on. The same sheet is placed in the 2D column and the 3D panel.
+            Built from the review pipeline as the next release would carry it ({built?.ok ? built.envelope.versionLabel : ""}). This is the record for review, not a
+            learner screen: the doors show each stage&rsquo;s caption, names and sources from the stage template, and the six study photographs.
           </>
         }
       />
@@ -291,8 +286,8 @@ async function Proof({ concept }: { concept: ConceptDetail }) {
       sheet={sheet}
       note={
         built && !built.ok
-          ? "The review pipeline does not build right now (see the validator report), so this proof shows the saved claims only, without figure or related concepts."
-          : "This concept is not in the review pipeline yet, so this proof shows its saved claims only. Its figure and related concepts appear once it is submitted for review."
+          ? "The review pipeline does not build right now (see the validator report), so this preview shows the saved claims only, without related concepts."
+          : "This concept is not in the review pipeline yet, so this preview shows its saved claims only. Its related concepts appear once it is submitted for review."
       }
     />
   );

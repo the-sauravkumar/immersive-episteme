@@ -753,6 +753,9 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       if (policy === "exclude") {
         expect(out).toEqual({ kind: "excluded" });
         expect(await one(t.pool, "SELECT excluded, status FROM study_sessions WHERE id = $1", [s.sessionId])).toEqual({ excluded: true, status: "abandoned" });
+      } else if (policy === "reassign") {
+        expect(out).toEqual({ kind: "passed" });
+        expect(await position(s.sessionId)).toEqual({ kind: "allocation" });
       } else {
         expect(out).toEqual({ kind: "retry", reason: "webgl_unavailable" });
         expect(await position(s.sessionId)).toEqual({ kind: "device_check" });

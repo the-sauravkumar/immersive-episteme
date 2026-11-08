@@ -3,6 +3,8 @@ import { Suspense } from "react";
 
 import { ConditionSchematic } from "@/components/public/condition-schematic";
 import { PageHeader } from "@/components/shell/page-header";
+import { Info } from "lucide-react";
+
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -44,6 +46,7 @@ async function UnavailableNotice({ searchParams }: { searchParams: PageProps<"/e
   if (demo !== "unavailable") return null;
   return (
     <Alert className="mb-8">
+      <Info aria-hidden="true" />
       <AlertTitle>Note</AlertTitle>
       <AlertDescription>
         The demo is not available at the moment, for example while a study is running. Please try again later.
@@ -100,16 +103,14 @@ export default function ExplorePage({ searchParams }: PageProps<"/explore">) {
             {titleCase("What is the same")}
           </p>
           <p className="t-l text-lime-dim mt-1">
-            Same claims, citations, figures, type and timer. Only how you move through the knowledge differs.
+            Same claims, sources, photographs, type and time limit. Only how you move through the knowledge differs.
           </p>
         </section>
 
         <ul className="grid gap-6 md:grid-cols-2" aria-label="The two conditions">
           {OPTIONS.map((o) => (
-            <li key={o.condition} data-slot="card" data-parallel="true" className="flex flex-col gap-4 border-t-[1.5px] border-lime pt-4">
-              <div className="bg-vat-2 p-4">
-                <ConditionSchematic condition={o.condition} />
-              </div>
+            <li key={o.condition} data-slot="card" data-parallel="true" className="flex flex-col gap-4 bg-vat-2 p-4">
+              <ConditionSchematic condition={o.condition} />
               <h2 className="t-h4 text-lime">{titleCase(o.title)}</h2>
               <p className="t-b min-h-[3lh] text-lime-dim">{o.description}</p>
               <form action={startPublicDemo} className="mt-auto" data-slot="card-footer">
@@ -127,7 +128,7 @@ export default function ExplorePage({ searchParams }: PageProps<"/explore">) {
             {titleCase("Before you start")}
           </h2>
           <p className="t-b max-w-[40rem] text-lime-dim">
-            Both conditions share the same top bar: Time left, Hint and Finish where a task sets them. These are the controls that differ.
+            Both conditions share the same Help, Pause and Hint controls, the same time limit with one warning before it ends, and a Finish button at the last stop. These are the controls that differ.
           </p>
         </div>
         <div className="grid gap-10 md:grid-cols-2 md:gap-6">

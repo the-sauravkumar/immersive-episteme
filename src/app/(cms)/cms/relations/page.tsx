@@ -91,7 +91,7 @@ async function Relations({ searchParams }: { searchParams: Promise<SearchParams>
           </NativeSelect>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="g-depth">Depth (1 to 4)</Label>
+          <Label htmlFor="g-depth">Depth from the focus concept (1 to 4)</Label>
           <Input id="g-depth" name="depth" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={depth} className="w-20" />
         </div>
         <div className="flex flex-col gap-1.5">
@@ -159,7 +159,7 @@ async function Relations({ searchParams }: { searchParams: Promise<SearchParams>
                 <TableRow key={e.id}>
                   <TableCell className="whitespace-normal">{titles.get(e.source)}</TableCell>
                   <TableCell>
-                    <Link className={ROW_LINK} href={`/cms/relations?${new URLSearchParams({ ...(tradition ? { tradition } : {}), ...(focus ? { focus } : {}), edge: e.id }).toString()}#edge`}>
+                    <Link className={ROW_LINK} href={`/cms/relations?${new URLSearchParams({ ...(tradition !== undefined ? { tradition } : {}), ...(focus ? { focus } : {}), ...(typeFilter ? { type: typeFilter } : {}), ...(stateFilter ? { state: stateFilter } : {}), ...(focus ? { depth: String(depth) } : {}), edge: e.id }).toString()}#edge`}>
                       {e.type}
                       {e.ordinal !== null ? ` #${e.ordinal}` : ""}
                     </Link>

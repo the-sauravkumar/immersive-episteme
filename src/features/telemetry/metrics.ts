@@ -1,14 +1,13 @@
 import type { TelemetryEvent } from "./contracts";
 
-export const TIMING_METRICS_VERSION = "1";
+export const TIMING_METRICS_VERSION = "2";
 
 export const TIMING_METRIC_DEFINITIONS = [
-  { name: "time.exposure_total_ms", version: TIMING_METRICS_VERSION, unit: "ms", definition: "Sum of exposure_ended.metadata.activeMs (content visible, pauses excluded)." },
-  { name: "time.exposure_by_layer_ms", version: TIMING_METRICS_VERSION, unit: "ms", definition: "Exposure active time per metadata.layer (overview, artisan, process, science, comparison, citation); value is the total, details.byLayer the split." },
-  { name: "time.navigation_ms", version: TIMING_METRICS_VERSION, unit: "ms", definition: "Sum of navigation_ended.metadata.activeMs (moving or browsing with no concept content open, pauses excluded)." },
-  { name: "time.navigation_share", version: TIMING_METRICS_VERSION, unit: "ratio", definition: "navigation_ms / (navigation_ms + exposure_total_ms); null when both are zero." },
-  { name: "time.pause_ms", version: TIMING_METRICS_VERSION, unit: "ms", definition: "Sum of timing_resumed.metadata.pausedMs (tab hidden, window blurred, non-content modal)." },
-  { name: "citation.openings", version: TIMING_METRICS_VERSION, unit: "count", definition: "Number of citation_opened events; details: distinct sources and openings per concept." },
+  { name: "time.exposure_total_ms", version: TIMING_METRICS_VERSION, unit: "ms", definition: "Sum of stage_left.metadata.activeMs (a stop open, pauses excluded) less the walking time in movement_summary; null when no stop was left." },
+  { name: "time.navigation_ms", version: TIMING_METRICS_VERSION, unit: "ms", definition: "Sum of movement_summary.metadata.walkingMs (walking between stops in Door 2; Door 1 turns pages without a walking interval, so it records none); null when no stop was left." },
+  { name: "time.navigation_share", version: TIMING_METRICS_VERSION, unit: "ratio", definition: "navigation_ms / (navigation_ms + exposure_total_ms); null when both are zero or absent." },
+  { name: "time.pause_ms", version: TIMING_METRICS_VERSION, unit: "ms", definition: "Sum of timing_resumed.metadata.pausedMs (tab hidden or window blurred)." },
+  { name: "citation.openings", version: TIMING_METRICS_VERSION, unit: "count", definition: "Number of source_opened events (the sources behind a stop's caption); details: distinct stops." },
 ] as const;
 
 type TimingMetricName = (typeof TIMING_METRIC_DEFINITIONS)[number]["name"];
@@ -22,51 +21,46 @@ export interface TimingMetricValue {
 
 type Ev = Pick<TelemetryEvent, "type" | "seq" | "conceptId" | "metadata">;
 
+const stopOf = (m: Record<string, unknown>) => `${String(m.traditionKey)}:${String(m.stageKey)}`;
+
 export function computeTimingMetrics(events: readonly Ev[]): TimingMetricValue[] {
   const sorted = [...events].sort((a, b) => a.seq - b.seq);
-  const started = new Map<string, "exposure" | "navigation">();
-  const ended = new Set<string>();
-  let exposure = 0;
-  let navigation = 0;
+  let stopsLeft = 0;
+  let open = 0;
+  let active = 0;
+  let walking = 0;
   let pause = 0;
-  const byLayer: Record<string, number> = {};
   let citations = 0;
-  const citedSources = new Set<string>();
-  const perConcept: Record<string, number> = {};
+  const citedStops = new Set<string>();
 
   for (const e of sorted) {
     const m = e.metadata as Record<string, unknown>;
     switch (e.type) {
-      case "exposure_started":
-        started.set(String(m.intervalId), "exposure");
+      case "stage_entered":
+        open = 1;
         break;
-      case "navigation_started":
-        started.set(String(m.intervalId), "navigation");
+      case "stage_left":
+        stopsLeft++;
+        open = 0;
+        active += Number(m.activeMs);
         break;
-      case "exposure_ended": {
-        const ms = Number(m.activeMs);
-        exposure += ms;
-        byLayer[String(m.layer)] = (byLayer[String(m.layer)] ?? 0) + ms;
-        ended.add(String(m.intervalId));
-        break;
-      }
-      case "navigation_ended":
-        navigation += Number(m.activeMs);
-        ended.add(String(m.intervalId));
+      case "movement_summary":
+        walking += Number(m.walkingMs);
         break;
       case "timing_resumed":
         pause += Number(m.pausedMs);
         break;
-      case "citation_opened":
+      case "source_opened":
         citations++;
-        citedSources.add(String(m.sourceId));
-        if (e.conceptId) perConcept[e.conceptId] = (perConcept[e.conceptId] ?? 0) + 1;
+        citedStops.add(stopOf(m));
         break;
       default:
         break;
     }
   }
-  const unterminated = [...started.keys()].filter((id) => !ended.has(id)).length;
+  const measured = stopsLeft > 0;
+  const exposure = measured ? Math.max(0, active - walking) : null;
+  const navigation = measured ? walking : null;
   const v = (metricName: TimingMetricName, value: number | null, details: Record<string, unknown> = {}): TimingMetricValue => ({
     metricName,
     metricVersion: TIMING_METRICS_VERSION,
@@ -74,11 +68,10 @@ export function computeTimingMetrics(events: readonly Ev[]): TimingMetricValue[]
     details,
   });
   return [
-    v("time.exposure_total_ms", exposure, { unterminated }),
-    v("time.exposure_by_layer_ms", exposure, { byLayer }),
-    v("time.navigation_ms", navigation, { unterminated }),
-    v("time.navigation_share", navigation + exposure === 0 ? null : navigation / (navigation + exposure)),
+    v("time.exposure_total_ms", exposure, { stopsLeft, unterminated: open }),
+    v("time.navigation_ms", navigation, { stopsLeft }),
+    v("time.navigation_share", exposure === null || navigation === null || navigation + exposure === 0 ? null : navigation / (navigation + exposure)),
     v("time.pause_ms", pause),
-    v("citation.openings", citations, { distinctSources: citedSources.size, perConcept }),
+    v("citation.openings", citations, { distinctStops: citedStops.size }),
   ];
 }

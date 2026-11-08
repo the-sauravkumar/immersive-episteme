@@ -39,7 +39,6 @@ export interface RenderAssessment {
   version: number;
   title: string;
   description: string | null;
-  presentation: "standard" | "semantic_differential";
   paged?: boolean;
   required: boolean;
 }

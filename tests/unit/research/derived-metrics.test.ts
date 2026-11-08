@@ -1,20 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { computeMapCorrespondence } from "@/server/research/metrics/correspondence";
-import { computeNavigationMetrics, visitSequence, type NavEvent } from "@/server/research/metrics/navigation";
+import { computeNavigationMetrics, stopSequence, type NavEvent } from "@/server/research/metrics/navigation";
 import { computeSessionMetrics, metricInputHash } from "@/server/research/metrics/session";
 
 const A = "aaaaaaaa-0000-4000-8000-000000000001";
 const B = "bbbbbbbb-0000-4000-8000-000000000002";
 const C = "cccccccc-0000-4000-8000-000000000003";
-const T1 = "11111111-0000-4000-8000-000000000001";
 const R_AB = "abababab-0000-4000-8000-000000000001";
 
-const concepts = new Map([
-  [A, { traditionId: T1, category: "materials" }],
-  [B, { traditionId: T1, category: "process_stages" }],
-  [C, { traditionId: null, category: "scientific_mechanisms" }],
-]);
 const relationships = [{ id: R_AB, sourceId: A, targetId: B, type: "PRECEDES", directed: true }];
 
 let seq = 0;
@@ -49,53 +43,42 @@ const events = [
 
 const byName = (vals: { metricName: string; value: number | null; details: Record<string, unknown> }[]) => Object.fromEntries(vals.map((v) => [v.metricName, v]));
 
-describe("navigation metrics v1", () => {
-  it("builds the visit sequence from exposure starts, collapsing consecutive repeats", () => {
-    expect(visitSequence(events).map((v) => v.conceptId)).toEqual([A, B, C, A, B]);
-    expect(visitSequence([...events].reverse()).map((v) => v.conceptId)).toEqual([A, B, C, A, B]);
+const enter = (tradition: string, stage: number) => ev("stage_entered", null, { traditionKey: tradition, stageKey: `s${stage}`, stageNumber: stage, visitCount: 1, backStep: false });
+
+describe("navigation metrics v2", () => {
+  it("builds the visit sequence from stop entries, collapsing consecutive repeats", () => {
+    const stops = [enter("ajrakh", 1), enter("ajrakh", 1), enter("ajrakh", 2), enter("bagru", 1), enter("ajrakh", 2)];
+    expect(stopSequence(stops).map((v) => v.stop)).toEqual(["ajrakh:s1", "ajrakh:s2", "bagru:s1", "ajrakh:s2"]);
+    expect(stopSequence([...stops].reverse()).map((v) => v.stop)).toEqual(["ajrakh:s1", "ajrakh:s2", "bagru:s1", "ajrakh:s2"]);
   });
 
-  it("computes path length, breadth, depth, revisits, cross-domain transitions, science engagement, entropy", () => {
-    const m = byName(computeNavigationMetrics(events, concepts));
+  it("computes path length, breadth, revisits, cross-tradition moves and entropy from stops", () => {
+    const m = byName(computeNavigationMetrics([enter("ajrakh", 1), enter("ajrakh", 2), enter("bagru", 1), enter("ajrakh", 2), enter("bagru", 1)]));
     expect(m["nav.path_length"]!.value).toBe(5);
     expect(m["nav.breadth"]!.value).toBe(3);
-    expect(m["nav.breadth"]!.details).toEqual({ traditions: 2, categories: 3 });
-    expect(m["nav.depth"]!.value).toBeCloseTo(4 / 3, 6);
+    expect(m["nav.breadth"]!.details).toEqual({ traditions: 2 });
     expect(m["nav.revisit_rate"]!.value).toBeCloseTo(0.4, 9);
-    expect(m["nav.cross_domain_transitions"]!.value).toBe(2);
-    expect(m["nav.cross_domain_transitions"]!.details).toMatchObject({ crossCategory: 4, transitions: 4 });
-    expect(m["nav.science_layer_engagement"]!.value).toBeCloseTo(2000 / 7500, 6);
+    expect(m["nav.cross_domain_transitions"]!.value).toBe(3);
     expect(m["nav.path_entropy"]!.value).toBe(0);
-    expect(m["nav.path_entropy"]!.details.visitEntropy).toBeCloseTo(-(2 * 0.4 * Math.log2(0.4) + 0.2 * Math.log2(0.2)), 6);
-    expect(m["nav.relationships_followed"]!.value).toBe(1);
-    expect(m["nav.sequence_patterns"]!.value).toBeGreaterThan(0);
   });
 
-  it("gives null rather than guessing when there are no visits or too few transitions", () => {
-    const m = byName(computeNavigationMetrics([ev("session_started")], concepts));
-    expect(m["nav.path_length"]!.value).toBe(0);
-    expect(m["nav.revisit_rate"]!.value).toBeNull();
+  it("gives null rather than zero for what the stop doors do not record", () => {
+    const m = byName(computeNavigationMetrics([ev("session_started"), enter("ajrakh", 1)]));
+    expect(m["nav.path_length"]!.value).toBe(1);
+    expect(m["nav.revisit_rate"]!.value).toBe(0);
     expect(m["nav.depth"]!.value).toBeNull();
     expect(m["nav.science_layer_engagement"]!.value).toBeNull();
+    expect(m["nav.relationships_followed"]!.value).toBeNull();
     expect(m["nav.path_entropy"]!.value).toBeNull();
-  });
-
-  it("measures branching with conditional entropy", () => {
-    seq = 1000;
-    const branchy = [start("x1", A, "overview"), start("x2", B, "overview"), start("x3", A, "overview"), start("x4", C, "overview"), start("x5", A, "overview")];
-    const m = byName(computeNavigationMetrics(branchy, concepts));
-    expect(m["nav.path_entropy"]!.value).toBeCloseTo(0.5, 9);
   });
 });
 
 describe("session metrics (timing + navigation + correspondence)", () => {
-  it("keeps exposure and navigation time separate and counts the unterminated interval", () => {
-    const out = computeSessionMetrics({ events, concepts, relationships, map: null });
+  it("measures time from the stops and leaves concept-level intervals out", () => {
+    const out = computeSessionMetrics({ events, relationships, map: null });
     const m = byName(out.values);
-    expect(m["time.exposure_total_ms"]!.value).toBe(7500);
-    expect(m["time.exposure_total_ms"]!.details).toEqual({ unterminated: 1 });
-    expect(m["time.navigation_ms"]!.value).toBe(1000);
-    expect(m["time.navigation_share"]!.value).toBeCloseTo(1000 / 8500, 9);
+    expect(m["time.exposure_total_ms"]!.value).toBeNull();
+    expect(m["time.navigation_ms"]!.value).toBeNull();
     expect(m["nav.map_correspondence"]!.value).toBeNull();
     expect(out.inputEventCount).toBe(events.length);
     expect(out.inputSha256).toBe(metricInputHash([...events].reverse(), null));

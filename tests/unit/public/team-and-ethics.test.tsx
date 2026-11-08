@@ -45,7 +45,7 @@ describe("team and ethics components", () => {
 
   it("shows the team, the ethics approval and the contact on the consent page block", () => {
     render(<StudyTeamAndEthics institution={INSTITUTION} />);
-    expect(screen.getByRole("heading", { level: 2, name: "Research Team and Ethics" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: "Research Team And Ethics" })).toBeInTheDocument();
     expect(screen.getByText(/Approval Number CXA\/ETH\/01/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "cxa.craftecosystem@gmail.com" })).toHaveAttribute("href", "mailto:cxa.craftecosystem@gmail.com");
   });

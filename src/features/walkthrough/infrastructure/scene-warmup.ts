@@ -205,7 +205,8 @@ export class SceneWarmup {
     let sliceBytes = 0;
     for (const geometry of geometries) {
       const carriers: THREE.BufferGeometry[] = [];
-      for (const buffer of [geometry.index, ...levelIndicesOf(geometry), ...Object.values(geometry.attributes)]) {
+      const indices = new Set<unknown>([geometry.index, ...levelIndicesOf(geometry)]);
+      for (const buffer of [...indices, ...Object.values(geometry.attributes)]) {
         if (!(buffer instanceof THREE.BufferAttribute) || this.sentBuffers.has(buffer)) continue;
         const bytes = buffer.array.byteLength;
         if (this.carrierScene.children.length >= CARRIERS_PER_SLICE || (sliceBytes > 0 && sliceBytes + bytes > UPLOAD_BYTES_PER_SLICE)) {
@@ -217,7 +218,7 @@ export class SceneWarmup {
         this.sentBuffers.add(buffer);
         sliceBytes += bytes;
         const carrier = new THREE.BufferGeometry();
-        if (buffer === geometry.index) carrier.setIndex(buffer);
+        if (indices.has(buffer)) carrier.setIndex(buffer);
         else carrier.setAttribute("carried", buffer);
         carrier.setDrawRange(0, 0);
         const mesh = new THREE.Mesh(carrier, this.carrierMaterial);

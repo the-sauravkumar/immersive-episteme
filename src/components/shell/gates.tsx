@@ -27,7 +27,6 @@ export async function ConsolePage({
 }: {
   path: ConsolePath;
   title?: string;
-  kicker?: string;
   description?: ReactNode;
   permission?: Permission | readonly Permission[];
   children?: ReactNode;

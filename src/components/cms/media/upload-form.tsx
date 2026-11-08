@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { finalizeUploadAction, presignUploadAction } from "@/server/cms/media/actions";
 import { CircleAlert } from "lucide-react";
 
+import { FormStateProvider } from "@/components/cms/action-form";
 import { LINK } from "@/components/cms/bits";
 
 import { AssetMetadataFields } from "./asset-metadata-fields";
@@ -103,7 +104,9 @@ export function UploadForm({ mode, sources }: { mode: "local" | "s3"; sources: {
   }
 
   const working = status.phase === "working";
+  const fieldState = status.phase === "error" && status.fieldErrors ? { ok: false, error: status.message, fieldErrors: status.fieldErrors } : null;
   return (
+    <FormStateProvider state={fieldState}>
     <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-4" aria-busy={working}>
       {status.phase === "error" ? (
         <Alert variant="destructive" ref={alertRef} tabIndex={-1}>
@@ -117,15 +120,6 @@ export function UploadForm({ mode, sources }: { mode: "local" | "s3"; sources: {
                   Open the existing asset
                 </Link>
               </p>
-            ) : null}
-            {status.fieldErrors ? (
-              <ul className="mt-1 list-disc pl-5">
-                {Object.entries(status.fieldErrors).map(([k, v]) => (
-                  <li key={k}>
-                    <span className="font-medium">{k}</span>: {v.join(" ")}
-                  </li>
-                ))}
-              </ul>
             ) : null}
           </AlertDescription>
         </Alert>
@@ -177,5 +171,6 @@ export function UploadForm({ mode, sources }: { mode: "local" | "s3"; sources: {
         </p>
       </div>
     </form>
+    </FormStateProvider>
   );
 }

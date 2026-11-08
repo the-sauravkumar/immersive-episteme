@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import type { StageTemplate } from "@/features/process/domain/stage-template";
-import { probeGpu } from "@/features/study/gpu-acceptance";
+import { probeGpu, walkthroughCanRender } from "@/features/study/gpu-acceptance";
 import { finishLearning, logStageLeft, reportStageEntered, sendStageLeft, type StageRef } from "@/features/study/learning-progress";
 import { stopPosition, type StageVisit, type StopPosition } from "@/features/study/stage-coverage";
 import { createStopLedger } from "@/features/study/stop-ledger";
@@ -13,6 +13,7 @@ import { reportWalkthroughUnavailable, type DeviceCheckResult } from "@/server/s
 
 export const STUDY_HUB = "/study/session";
 export const EXCLUDED_PAGE = "/study/complete?status=excluded";
+export const DEMO_EXIT = "/explore";
 
 const RETURNED_NOTICE = "You are back at the first stop the study has not recorded, so that every stop is counted.";
 const DELAYED_NOTICE = "Your progress is not reaching the study. It will be sent when the connection returns.";
@@ -36,6 +37,9 @@ export function useRenderFailureReport(studyMode: boolean): { readonly failureNo
       () => setFailureNotice(FAILURE_UNREPORTED_NOTICE),
     );
   }, [router, studyMode]);
+  useEffect(() => {
+    if (studyMode && !walkthroughCanRender(probeGpu())) onRenderFailed();
+  }, [onRenderFailed, studyMode]);
   return { failureNotice, onRenderFailed };
 }
 
@@ -48,12 +52,12 @@ export interface DoorProgress {
   readonly leave: () => void;
 }
 
-export function useDoorProgress(templates: readonly StageTemplate[]): DoorProgress {
+export function useDoorProgress(templates: readonly StageTemplate[], studyMode: boolean): DoorProgress {
   const router = useRouter();
   const [notice, setNotice] = useState<string | null>(null);
   const [delayed, setDelayed] = useState(false);
   const [restore, setRestore] = useState<StopPosition | null>(null);
-  const leave = useCallback(() => router.replace(STUDY_HUB), [router]);
+  const leave = useCallback(() => router.replace(studyMode ? STUDY_HUB : DEMO_EXIT), [router, studyMode]);
   const returnTo = useCallback(
     (visit: StageVisit | undefined | null): boolean => {
       const position = visit ? stopPosition(templates, visit) : null;

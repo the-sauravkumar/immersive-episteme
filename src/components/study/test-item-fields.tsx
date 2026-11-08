@@ -135,7 +135,7 @@ export function SketchField({ name, maxBytes }: { name: string; maxBytes: number
     const context = canvas.current?.getContext("2d");
     if (!context) return;
     context.clearRect(0, 0, SKETCH_WIDTH, SKETCH_HEIGHT);
-    context.strokeStyle = "#101d42";
+    context.strokeStyle = getComputedStyle(context.canvas).getPropertyValue("--wall-ink").trim();
     context.lineWidth = 5;
     context.lineJoin = "round";
     context.lineCap = "round";

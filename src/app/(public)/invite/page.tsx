@@ -26,8 +26,19 @@ export default function InvitePage({ searchParams }: PageProps<"/invite">) {
       <aside aria-label="About invites" className="flex flex-col gap-4 lg:col-span-5 lg:col-start-7 lg:pt-14">
         <h2 className="t-label text-lime">{titleCase("Where do I find a code?")}</h2>
         <p className="t-b text-lime-dim">
-          The research team sends invite links and codes. If you were given a link, opening it again lets you in without typing anything. You are asked only once in
-          this browser.
+          The research team sends invite links and codes. A link fills in the code for you; press Continue. This browser is then let in for 30 days while the
+          code stays valid, and after that the code is asked for again.
+        </p>
+        <p className="t-b text-lime-dim">
+          You can read the{" "}
+          <Link className="text-turmeric underline decoration-1 underline-offset-[0.2em] hover:decoration-2" href="/privacy">
+            privacy notice
+          </Link>{" "}
+          and the{" "}
+          <Link className="text-turmeric underline decoration-1 underline-offset-[0.2em] hover:decoration-2" href="/accessibility">
+            accessibility statement
+          </Link>{" "}
+          before entering a code.
         </p>
         <p className="t-b text-lime-dim">
           Research team members do not need a code:{" "}
@@ -44,5 +55,5 @@ export default function InvitePage({ searchParams }: PageProps<"/invite">) {
 async function InviteFormFromParams({ searchParams }: { searchParams: PageProps<"/invite">["searchParams"] }) {
   const sp = await searchParams;
   const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
-  return <InviteForm next={inviteNextPath(first(sp.next))} refused={first(sp.error) === "invalid"} />;
+  return <InviteForm next={inviteNextPath(first(sp.next))} refused={first(sp.error) === "invalid"} defaultCode={first(sp.code) ?? ""} />;
 }

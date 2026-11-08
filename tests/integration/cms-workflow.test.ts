@@ -193,8 +193,7 @@ describe.skipIf(!TEST_URL)("CMS workflow and release", () => {
   it("saving curator notes keeps a verified concept verified (notes are not learner-facing)", async () => {
     const before = await one<{ verification_state: string }>(t.pool, "SELECT verification_state FROM concepts WHERE id = $1", [materialId]);
     expect(["verified", "published"]).toContain(before.verification_state);
-    const r = await saveCuratorNotes(t.pool, curatorA, materialId, { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Check the vat temperature claim against the PDF." }] }] });
-    expect(r.returnedToReview).toBe(false);
+    await saveCuratorNotes(t.pool, curatorA, materialId, { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Check the vat temperature claim against the PDF." }] }] });
     const after = await one<{ verification_state: string }>(t.pool, "SELECT verification_state FROM concepts WHERE id = $1", [materialId]);
     expect(after.verification_state).toBe(before.verification_state);
   });
@@ -211,7 +210,7 @@ describe.skipIf(!TEST_URL)("CMS workflow and release", () => {
     const r2 = await publishRelease(t.pool, pi, { versionLabel: "release-2", title: "Release 2", description: null });
     const a = await loadSnapshotPayload(t.pool, (await one<{ id: string }>(t.pool, "SELECT id FROM content_snapshots WHERE version_label = 'release-1'")).id);
     const b = await loadSnapshotPayload(t.pool, r2.id);
-    const d = diffBundles(a, b);
+    const d = diffBundles(a, b, { citationDetail: true });
     expect(d.claims.added.map((x) => x.key)).toEqual(["tst.material.indigo#3"]);
     expect(d.concepts.changed.find((c) => c.key === "tst.material.indigo")?.fields).toEqual(expect.arrayContaining(["bodyMd"]));
     await expectCmsError(publishRelease(t.pool, pi, { versionLabel: "release-2", title: "dup", description: null }), "label_taken");

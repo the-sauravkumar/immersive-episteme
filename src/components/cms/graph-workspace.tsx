@@ -34,7 +34,7 @@ type ConceptNodeData = { title: string; type: string; state: string; focus: bool
 
 function ConceptNode({ data }: NodeProps<Node<ConceptNodeData>>) {
   return (
-    <div className={`max-w-52 bg-vat px-3 py-2 font-sans text-[0.8125rem] leading-5 ${data.focus ? "border-2 border-turmeric" : "border border-lime-dim"}`}>
+    <div className={`max-w-52 bg-vat px-3 py-2 font-sans text-[0.875rem] leading-5 ${data.focus ? "border-2 border-turmeric" : "border border-lime-dim"}`}>
       <Handle type="target" position={Position.Left} />
       <p className="font-semibold text-lime">{data.title}</p>
       <p className="text-lime-dim">
@@ -109,7 +109,7 @@ export function GraphWorkspace({
           source: e.source,
           target: e.target,
           label: `${e.type}${e.ordinal !== null ? ` #${e.ordinal}` : ""}${e.state === "draft" ? " (draft)" : ""}`,
-          labelStyle: { fontSize: 12, fill: "var(--lime-dim)" },
+          labelStyle: { fontSize: 13, fill: "var(--lime-dim)" },
           labelBgStyle: { fill: "var(--vat)" },
           markerEnd: { type: MarkerType.ArrowClosed, color: style.stroke },
           style: { stroke: style.stroke, strokeDasharray: style.dash, strokeWidth: selected ? 3 : 1.5 },
@@ -160,7 +160,7 @@ export function GraphWorkspace({
             <Controls
               showInteractive={false}
               position="top-left"
-              className="border border-lime-dim [&_.react-flow\_\_controls-button]:size-11! [&_.react-flow\_\_controls-button]:border-line! [&_.react-flow\_\_controls-button]:bg-vat! [&_.react-flow\_\_controls-button]:text-lime! [&_.react-flow\_\_controls-button:hover]:bg-vat-2! [&_.react-flow\_\_controls-button_svg]:fill-current!"
+              className="border border-lime-dim shadow-none! [&_.react-flow\_\_controls-button]:size-11! [&_.react-flow\_\_controls-button]:border-line! [&_.react-flow\_\_controls-button]:bg-vat! [&_.react-flow\_\_controls-button]:text-lime! [&_.react-flow\_\_controls-button:hover]:bg-vat-2! [&_.react-flow\_\_controls-button_svg]:fill-current!"
             />
           </ReactFlow>
         )}

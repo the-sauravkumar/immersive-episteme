@@ -75,14 +75,7 @@ export const studyConfigSchema = z.object({
     })
     .default({ cueEnabled: false, stallSeconds: 120 }),
   webglFailurePolicy: z.enum(["exclude", "retry", "reassign"]).default("retry"),
-  figures: z
-    .object({ structureDiagrams: z.boolean().default(true), photos: z.boolean().default(true) })
-    .default({ structureDiagrams: true, photos: true }),
-  learningPrompts: z
-    .array(z.object({ id: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,63}$/), text: z.string().trim().min(1).max(1000) }))
-    .max(20)
-    .refine((ps) => new Set(ps.map((p) => p.id)).size === ps.length, "Prompt ids must be unique")
-    .default([]),
+  figures: z.object({ photos: z.boolean().default(true) }).default({ photos: true }),
   nonExperimental: z.boolean().default(false),
   consent: z.object({ version: z.string().min(1).max(64), text: z.string().min(1).max(20_000) }).optional(),
   participantInformation: z.string().max(20_000).optional(),

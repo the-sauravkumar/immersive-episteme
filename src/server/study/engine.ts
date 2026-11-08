@@ -202,12 +202,7 @@ export async function enrolParticipant(
     }
   }
   return inTransaction(pool, async (c) => {
-    const cap = study.protocol.config.enrolment.maxParticipants;
-    if (cap !== undefined) {
-      await c.query("SELECT pg_advisory_xact_lock(hashtextextended('ie-enrolment:' || $1, 0))", [study.id]);
-      const n = (await c.query<{ n: number }>("SELECT count(*)::int AS n FROM participants WHERE study_id = $1", [study.id])).rows[0]!.n;
-      if (n >= cap) throw new StudyEngineError("study_full", "This study has all the participants it needs.");
-    }
+    await refuseWhenFull(c, study);
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = generateParticipantCode();
       const r = await c.query<{ id: string }>(
@@ -261,6 +256,19 @@ export async function loadParticipant(q: Q, participantId: string): Promise<Part
   };
 }
 
+async function refuseWhenFull(c: PoolClient, study: EnrollableStudy): Promise<void> {
+  const cap = study.protocol.config.enrolment.maxParticipants;
+  if (cap === undefined) return;
+  await c.query("SELECT pg_advisory_xact_lock(hashtextextended('ie-enrolment:' || $1, 0))", [study.id]);
+  const n = (
+    await c.query<{ n: number }>(
+      "SELECT count(DISTINCT p.id)::int AS n FROM participants p JOIN consent_records cr ON cr.participant_id = p.id AND cr.decision = 'granted' WHERE p.study_id = $1",
+      [study.id],
+    )
+  ).rows[0]!.n;
+  if (n >= cap) throw new StudyEngineError("study_full", "This study has all the participants it needs.");
+}
+
 export function consentTextSha256(text: string): string {
   return sha256(text);
 }
@@ -278,6 +286,7 @@ export async function recordConsent(
       const p = await loadParticipant(c, input.participantId);
       if (!p || p.studyId !== input.study.id) throw new StudyEngineError("participant_not_found", "Participant not found.");
       if (p.latestConsent) throw new StudyEngineError("consent_already_recorded", "A consent decision is already recorded.");
+      if (input.decision === "granted") await refuseWhenFull(c, input.study);
       await c.query(
         "INSERT INTO consent_records (participant_id, consent_version, consent_text_sha256, decision, method) VALUES ($1, $2, $3, $4, 'on_screen')",
         [p.id, consent.version, consentTextSha256(consent.text), input.decision],
@@ -811,7 +820,13 @@ export async function syncPosition(q: Q, s: SessionState): Promise<Position> {
       continue;
     }
     if (!isAssessmentStep(step)) return pos;
-    const assessments = await listStepAssessments(q, s, step);
+    let assessments: StepAssessment[];
+    try {
+      assessments = await listStepAssessments(q, s, step);
+    } catch (err) {
+      if (err instanceof StudyEngineError && err.code === "assessment_not_ready") return pos;
+      throw err;
+    }
     if (assessments.length === 0) {
       await markStepCompleted(q, s, step, { empty: true });
       continue;
@@ -1022,14 +1037,18 @@ export type DeviceOutcome =
   | { kind: "excluded" }
   | { kind: "reassigned"; sessionId: string; condition: LearningCondition };
 
+export const DEVICE_WEBGL_ATTEMPTS = 3;
+
 export function evaluateDevice(
   report: DeviceReport,
-  ctx: { policy: "exclude" | "retry" | "reassign"; minViewport?: { width: number; height: number } },
-): "passed" | "viewport_too_small" | "webgl_retry" | "webgl_exclude" {
+  ctx: { policy: "exclude" | "retry" | "reassign"; minViewport?: { width: number; height: number }; webglFailuresBefore?: number },
+): "passed" | "viewport_too_small" | "webgl_retry" | "webgl_exclude" | "webgl_reassign" {
   const min = ctx.minViewport;
   if (min && (report.viewport.width < min.width || report.viewport.height < min.height)) return "viewport_too_small";
   if (walkthroughCanRender(report)) return "passed";
-  return ctx.policy === "exclude" ? "webgl_exclude" : "webgl_retry";
+  if (ctx.policy === "reassign") return "webgl_reassign";
+  if (ctx.policy === "exclude" || (ctx.webglFailuresBefore ?? 0) + 1 >= DEVICE_WEBGL_ATTEMPTS) return "webgl_exclude";
+  return "webgl_retry";
 }
 
 export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: string, report: DeviceReport): Promise<Exclude<DeviceOutcome, { kind: "reassigned" }>> {
@@ -1039,8 +1058,10 @@ export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: stri
     if (deviceCheckPassed(s)) return { kind: "passed" };
     const minViewport = s.study.protocol.config.device.minViewport;
     const policy = s.study.protocol.config.webglFailurePolicy;
-    const verdict = evaluateDevice(report, { policy, minViewport });
-    const attempt = s.journal.filter((e) => e.action === "study.device_checked").length + 1;
+    const checks = s.journal.filter((e) => e.action === "study.device_checked");
+    const webglFailuresBefore = checks.filter((e) => e.after.verdict === "webgl_retry").length;
+    const verdict = evaluateDevice(report, { policy, minViewport, webglFailuresBefore });
+    const attempt = checks.length + 1;
     const device = {
       viewport: report.viewport,
       devicePixelRatio: report.devicePixelRatio,
@@ -1054,18 +1075,19 @@ export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: stri
     };
     await c.query("UPDATE study_sessions SET device = $2::jsonb, last_activity_at = now() WHERE id = $1", [sessionId, JSON.stringify(device)]);
     const actor: Actor = { kind: "participant", code: s.participantCode };
-    const outcome = verdict === "passed" ? "passed" : verdict === "webgl_exclude" ? "excluded" : "retry";
+    const outcome = verdict === "passed" || verdict === "webgl_reassign" ? "passed" : verdict === "webgl_exclude" ? "excluded" : "retry";
     await journal(c, actor, "study.device_checked", "study_session", sessionId, { outcome, verdict, attempt, webglVersion: report.webglVersion, softwareRenderer: report.softwareRenderer ?? null, viewport: report.viewport });
 
     switch (verdict) {
       case "passed":
+      case "webgl_reassign":
         return { kind: "passed" };
       case "viewport_too_small":
         return { kind: "retry", reason: "viewport_too_small", minViewport };
       case "webgl_retry":
         return { kind: "retry", reason: "webgl_unavailable" };
       case "webgl_exclude":
-        return excludeForWebgl(c, s, policy);
+        return policy === "exclude" ? excludeForWebgl(c, s, policy) : excludeForWebgl(c, s, policy, `webgl_unavailable: ${webglFailuresBefore + 1} failed device checks under webglFailurePolicy=retry`);
     }
   });
 }

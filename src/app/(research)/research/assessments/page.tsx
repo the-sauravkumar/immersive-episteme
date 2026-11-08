@@ -10,17 +10,10 @@ import { createAssessmentAction } from "@/server/assessment/research-actions";
 import { getPool } from "@/server/db/client";
 
 import { DemoBadge, Empty, LINK_44, PublishedBadge, Section } from "../_components/common";
+import { kindLabel } from "./kind-labels";
 import { NativeSelect } from "@/components/ui/native-select";
 
 export const metadata: Metadata = { title: "Assessments" };
-
-const KIND_LABEL: Record<string, string> = {
-  pretest: "Pre-test",
-  posttest: "Post-test",
-  reconstruction: "Concept-map reconstruction",
-  transfer: "Transfer task",
-  questionnaire: "Questionnaire",
-};
 
 export const instant = false;
 
@@ -69,7 +62,7 @@ async function AssessmentList() {
                   </TableCell>
                   <TableCell className="t-table font-semibold wrap-anywhere">{a.code}</TableCell>
                   <TableCell numeric>v{a.version}</TableCell>
-                  <TableCell>{KIND_LABEL[a.kind] ?? a.kind}</TableCell>
+                  <TableCell>{kindLabel(a.kind)}</TableCell>
                   <TableCell numeric>{a.itemCount}</TableCell>
                   <TableCell>
                     <span className="flex flex-wrap gap-2">
@@ -96,7 +89,7 @@ async function AssessmentList() {
               </option>
               {ASSESSMENT_KINDS.map((k) => (
                 <option key={k} value={k}>
-                  {KIND_LABEL[k] ?? k}
+                  {kindLabel(k)}
                 </option>
               ))}
             </NativeSelect>

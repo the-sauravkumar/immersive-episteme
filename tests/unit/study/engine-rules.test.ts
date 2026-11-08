@@ -132,7 +132,9 @@ describe("journey rules", () => {
   it("applies one device rule to everyone, before any door is known", () => {
     const r: DeviceReport = { viewport: { width: 1280, height: 800 }, webglVersion: null, inputDevices: [] };
     expect(evaluateDevice(r, { policy: "exclude" })).toBe("webgl_exclude");
-    expect(evaluateDevice(r, { policy: "reassign" })).toBe("webgl_retry");
+    expect(evaluateDevice(r, { policy: "reassign" })).toBe("webgl_reassign");
+    expect(evaluateDevice(r, { policy: "retry", webglFailuresBefore: 1 })).toBe("webgl_retry");
+    expect(evaluateDevice(r, { policy: "retry", webglFailuresBefore: 2 })).toBe("webgl_exclude");
     expect(evaluateDevice(r, { policy: "retry" })).toBe("webgl_retry");
     expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "retry", minViewport: { width: 1400, height: 800 } })).toBe("viewport_too_small");
     expect(evaluateDevice({ ...r, webglVersion: 2 }, { policy: "retry" })).toBe("passed");

@@ -19,10 +19,9 @@ import {
   STRUCTURE_DIAGRAM_TYPES,
   type StructureDiagram,
 } from "@/features/knowledge/read/diagrams";
-import { createKnowledgeView, diagramFiguresByConcept, resolveConceptFigures, shortCitationLabel } from "@/features/knowledge/read/view";
+import { shortCitationLabel } from "@/features/knowledge/read/view";
 import { EPISTEMIC_SECTIONS } from "@/features/learning/epistemic-sections";
 import { CANONICAL_TRADITION_SLUGS, compareTraditions, STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
-import { studyConfigSchema } from "@/features/study/contracts";
 import { titleCase } from "@/lib/text/title-case";
 
 const CONTENT = join(process.cwd(), "content");
@@ -149,26 +148,6 @@ describe.skipIf(!present)("structure diagrams over the real content", () => {
     for (const slug of STUDY_TRADITION_SLUGS) expect(balanced.get(slug)!.map((d) => d.type)).toEqual(["process-sequence", "materials-tools"]);
   });
 
-  it("attaches one figure per anchor concept, balanced across the study traditions, and the switch turns them all off", () => {
-    const view = createKnowledgeView(bundle);
-    const byConcept = diagramFiguresByConcept(view, { traditionSlugs: [...STUDY_TRADITION_SLUGS], balanceSlugs: [...STUDY_TRADITION_SLUGS] });
-    expect([...byConcept.values()].every((list) => list.length === 1)).toBe(true);
-    const perTradition = STUDY_TRADITION_SLUGS.map((slug) => [...byConcept.values()].flat().filter((f) => f.diagram.traditionSlug === slug).length);
-    expect(perTradition).toEqual([3, 3, 3]);
-    for (const list of byConcept.values()) {
-      expect(resolveConceptFigures({ diagrams: list, photos: [], structureDiagrams: true })).toHaveLength(1);
-      expect(resolveConceptFigures({ diagrams: list, photos: [], structureDiagrams: false })).toEqual([]);
-    }
-    const f = [...byConcept.values()][0]![0]!;
-    expect(f.credit).toBe(`Diagram generated from the project's knowledge graph (snapshot ${bundle.versionLabel})`);
-  });
-});
-
-describe("the structure-diagram switch in the study contract", () => {
-  it("defaults on and reaches both conditions through the shared learning settings", () => {
-    expect(studyConfigSchema.parse({}).figures).toEqual({ structureDiagrams: true, photos: true });
-    expect(studyConfigSchema.parse({ figures: { structureDiagrams: false } }).figures).toEqual({ structureDiagrams: false, photos: true });
-  });
 });
 
 describe("canonical tradition order (DR-019)", () => {

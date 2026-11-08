@@ -29,7 +29,6 @@ export interface KnowledgeSheetProps {
   children?: ReactNode;
   references?: ReactNode;
   related?: ReactNode;
-  pager?: ReactNode;
   localTermsLang?: string;
   autoFocusTitle?: boolean;
   titleAs?: "h1" | "h2";
@@ -49,7 +48,6 @@ export function KnowledgeSheet({
   children,
   references,
   related,
-  pager,
   localTermsLang,
   autoFocusTitle = true,
   titleAs = "h1",
@@ -108,7 +106,6 @@ export function KnowledgeSheet({
 
       {references ? <div className="mt-12">{references}</div> : null}
       {related ? <div className="mt-12">{related}</div> : null}
-      {pager ? <div className="mt-12">{pager}</div> : null}
     </section>
   );
 }

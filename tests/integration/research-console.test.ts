@@ -229,12 +229,15 @@ describe.skipIf(!TEST_URL)("research console", () => {
       });
       expect(r.status === 200 && r.body.quarantined).toBe(0);
     };
-    const exposure = (id: string, c: string, ms: number) => [
-      { type: "exposure_started", conceptId: c, metadata: { intervalId: id, layer: "overview", startMonoMs: 0 } },
-      { type: "exposure_ended", conceptId: c, metadata: { intervalId: id, layer: "overview", startMonoMs: 0, endMonoMs: ms, activeMs: ms, pausedMs: 0, reason: "switched" } },
-    ];
-    await send(s2d, [{ type: "page_entered", roomOrPageId: "home" }, ...exposure("i1", a, 4000), { type: "relationship_followed", metadata: { relationshipId, relationshipTypeCode: "PRECEDES", fromConceptId: a, toConceptId: b } }, ...exposure("i2", b, 3000)]);
-    await send(s3d, [{ type: "room_entered", roomOrPageId: "room:x" }, ...exposure("j1", b, 2000), ...exposure("j2", a, 1000), ...exposure("j3", b, 500)]);
+    const stop = (stageNumber: number, ms: number) => {
+      const ref = { traditionKey: "rc", stageKey: `s${stageNumber}`, stageNumber };
+      return [
+        { type: "stage_entered", metadata: { ...ref, visitCount: 1, backStep: false } },
+        { type: "stage_left", metadata: { ...ref, activeMs: ms } },
+      ];
+    };
+    await send(s2d, [{ type: "page_entered", roomOrPageId: "home" }, ...stop(1, 4000), { type: "relationship_followed", metadata: { relationshipId, relationshipTypeCode: "PRECEDES", fromConceptId: a, toConceptId: b } }, ...stop(2, 3000)]);
+    await send(s3d, [{ type: "room_entered", roomOrPageId: "room:x" }, ...stop(2, 2000), ...stop(1, 1000), ...stop(2, 500)]);
 
     const map = await one<{ id: string }>(
       t.pool,
@@ -342,7 +345,7 @@ describe.skipIf(!TEST_URL)("research console", () => {
     const row = wrongMetric.tables.derived_metrics!.find((r) => r.metric_name === "nav.path_length")!;
     row.value = 99;
     wrongMetric.checksums.derived_metrics = tableChecksum(wrongMetric.tables.derived_metrics!);
-    expect(validateExportBundle(wrongMetric).errors.join("\n")).toMatch(/nav\.path_length#1: exported 99 but recomputed \d/);
+    expect(validateExportBundle(wrongMetric).errors.join("\n")).toMatch(/nav.path_length#2: exported 99 but recomputed \d/);
   });
 
   it("names the analysis reference maps and the current scoring versions (final review scoring-04)", async () => {

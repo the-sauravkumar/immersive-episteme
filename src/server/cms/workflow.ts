@@ -65,6 +65,21 @@ export async function authorsOf(q: Q, kind: CmsEntityKind, id: string): Promise<
   return out;
 }
 
+export async function itemsAuthoredBy(q: Q, userId: string, items: readonly { kind: CmsEntityKind; id: string; createdBy: string | null; updatedBy: string | null }[]): Promise<Set<string>> {
+  const out = new Set(items.filter((i) => i.createdBy === userId || i.updatedBy === userId).map((i) => `${i.kind}:${i.id}`));
+  if (items.length === 0) return out;
+  const r = await q.query<{ entity: string; entity_id: string; action: string }>(
+    `SELECT DISTINCT entity, entity_id::text AS entity_id, action FROM audit_log
+      WHERE actor_kind = 'user' AND actor_id = $1 AND entity_id::text = ANY($2::text[]) AND NOT (action = ANY($3::text[]))`,
+    [userId, items.map((i) => i.id), NON_AUTHORING],
+  );
+  for (const row of r.rows) {
+    const kind = (Object.keys(TABLE) as CmsEntityKind[]).find((k) => TABLE[k] === row.entity);
+    if (kind && row.action.startsWith(AUTHORING_ACTIONS[kind])) out.add(`${kind}:${row.entity_id}`);
+  }
+  return out;
+}
+
 const PIPELINE_SQL = "('under_review','needs_evidence','verified','published')";
 const PIPELINE_STATES: readonly VerificationState[] = ["under_review", "needs_evidence", "verified", "published"];
 

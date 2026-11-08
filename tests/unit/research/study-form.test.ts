@@ -23,9 +23,9 @@ describe("guidanceFromForm (study-05)", () => {
     expect(studyConfigSchema.parse({ guidance: g }).guidance).toEqual({ cueEnabled: true, stallSeconds: 150, hintText: "New hint." });
   });
 
-  it("an emptied hint box removes the hint; an empty stall box keeps the stored value", () => {
+  it("an emptied hint box removes the hint; an emptied stall box returns to the default", () => {
     const g = guidanceFromForm(stored, form({ hintText: "", stallSeconds: "" }));
-    expect(studyConfigSchema.parse({ guidance: g }).guidance).toEqual({ cueEnabled: false, stallSeconds: 90 });
+    expect(studyConfigSchema.parse({ guidance: g }).guidance).toEqual({ cueEnabled: false, stallSeconds: 120 });
   });
 
   it("no longer writes a guidance policy the doors never read", () => {

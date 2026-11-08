@@ -4,6 +4,7 @@ import { LearningUnavailable } from "@/components/learning/learning-unavailable"
 import { UnverifiedContentNotice } from "@/components/learning/unverified-content-notice";
 import { LearningSessionFrame } from "@/components/study/learning-session-frame";
 import { anyCaptionUnderReview, withCaptionReview, withStudyPhotos } from "@/features/process/domain/stage-template";
+import { StudyExitProvider } from "@/features/process/ui/door-dialog";
 import { inAssignedOrder, resumeFrom } from "@/features/study/stage-coverage";
 import { TelemetryProvider } from "@/features/telemetry/client";
 import type { LearningCondition } from "@/lib/permissions/learning";
@@ -18,6 +19,8 @@ import { loadStageTemplates } from "@/server/study/stage-templates";
 import { CourseDoor } from "./course-door";
 import type { DoorSessionProps } from "./door-props";
 import { WalkthroughDoor } from "./walkthrough-door";
+
+const WITHDRAW_PATH = "/study/withdraw";
 
 const DOOR_SESSIONS: Record<LearningCondition, ComponentType<DoorSessionProps>> = { "2d": CourseDoor, immersive: WalkthroughDoor };
 
@@ -34,7 +37,9 @@ async function doorSessionFor(condition: LearningCondition, ctx: LearningContext
       {anyCaptionUnderReview(templates) ? <UnverifiedContentNotice /> : null}
       <TelemetryProvider config={telemetry}>
         <LearningSessionFrame endsAt={state?.learning.endsAt?.toISOString() ?? null} serverNow={(state?.now ?? new Date()).toISOString()} warningMinutes={CAP_WARNING_MINUTES}>
-          <Door templates={templates} resume={resume} studyMode={ctx.mode === "study"} guidance={ctx.guidance} />
+          <StudyExitProvider href={ctx.mode === "study" ? WITHDRAW_PATH : null}>
+            <Door templates={templates} resume={resume} studyMode={ctx.mode === "study"} guidance={ctx.guidance} />
+          </StudyExitProvider>
         </LearningSessionFrame>
       </TelemetryProvider>
     </>

@@ -21,7 +21,6 @@ export interface AssetMetadataDefaults {
   sourceUrl?: string | null;
   sourceId?: string | null;
   provenanceKind?: string | null;
-  publicPlate?: boolean | null;
 }
 
 function Row({
@@ -74,7 +73,6 @@ export function AssetMetadataFields({
   const [alt, setAlt] = useState(defaults.altText ?? "");
   const [caption, setCaption] = useState(defaults.caption ?? "");
   const decorativeId = useId();
-  const plateId = useId();
   const words = countWords(alt);
   const altIssue = !decorative && alt.trim() ? altTextProblem(alt, caption) : null;
   const captionIssue = captionProblem(caption);
@@ -147,12 +145,6 @@ export function AssetMetadataFields({
             {(id) => <Input id={id} name="licenceUrl" type="url" inputMode="url" defaultValue={defaults.licenceUrl ?? ""} />}
           </Row>
         </div>
-        {isImage ? (
-          <label htmlFor={plateId} className={CHECK_ROW}>
-            <input id={plateId} type="checkbox" name="publicPlate" className={CHECK_BOX} defaultChecked={defaults.publicPlate ?? false} />
-            Cleared for public-page plates as well (only when the licence allows promotional and home-page use).
-          </label>
-        ) : null}
       </fieldset>
 
       <fieldset className="flex min-w-0 flex-col gap-4 border-t border-lime-dim pt-3 md:col-span-2">

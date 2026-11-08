@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { redeemInviteAction } from "@/server/access/actions";
 
-export function InviteForm({ next, refused }: { next: string; refused: boolean }) {
+export function InviteForm({ next, refused, defaultCode }: { next: string; refused: boolean; defaultCode: string }) {
   const [state, action, pending] = useActionState(redeemInviteAction, null);
   const id = useId();
   const errorRef = useRef<HTMLDivElement>(null);
@@ -37,6 +37,7 @@ export function InviteForm({ next, refused }: { next: string; refused: boolean }
           ref={inputRef}
           id={id}
           name="code"
+          defaultValue={defaultCode}
           autoComplete="off"
           autoCapitalize="characters"
           spellCheck={false}
@@ -50,7 +51,7 @@ export function InviteForm({ next, refused }: { next: string; refused: boolean }
         </p>
         {state?.fieldError ? (
           <p id={`${id}-error`} className="flex items-start gap-2 t-s font-semibold text-madder-text">
-            <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 stroke-2" />
+            <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
             <span className="min-w-0">{state.fieldError}</span>
           </p>
         ) : null}

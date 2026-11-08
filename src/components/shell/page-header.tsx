@@ -3,8 +3,6 @@ import type { ReactNode } from "react";
 import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
 
-export type PageHeaderTop = "none" | "band" | "rule";
-
 export function PageHeader({
   title,
   description,
@@ -12,11 +10,8 @@ export function PageHeader({
   className,
 }: {
   title: string;
-  eyebrow?: string;
-  kicker?: string;
   description?: ReactNode;
   actions?: ReactNode;
-  top?: PageHeaderTop;
   className?: string;
 }) {
   return (

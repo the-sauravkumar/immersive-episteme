@@ -2,11 +2,8 @@ import { safeNextPath } from "@/lib/permissions/safe-redirect";
 
 export const INVITE_PATH = "/invite";
 export const INVITE_PARAM = "invite";
-export const INVITE_REDEEM_PATH = "/invite/redeem";
-export const INVITE_REDEEM_CODE_HEADER = "x-invite-redeem-code";
-export const INVITE_REDEEM_NEXT_HEADER = "x-invite-redeem-next";
 
-const EXEMPT_PREFIXES = ["/invite", "/sign-in", "/sign-out", "/forbidden", "/awaiting-access", "/console", "/api", "/_next"] as const;
+const EXEMPT_PREFIXES = ["/invite", "/sign-in", "/sign-out", "/forbidden", "/awaiting-access", "/console", "/api", "/_next", "/about", "/accessibility", "/privacy", "/walkthrough/fonts"] as const;
 const EXEMPT_FILES = new Set(["/favicon.ico", "/robots.txt"]);
 
 function underPrefix(pathname: string, prefix: string): boolean {
@@ -23,11 +20,12 @@ export function inviteNextPath(value: unknown): string {
   return underPrefix(path, INVITE_PATH) ? "/" : next;
 }
 
-export function invitePath(next?: string, error?: "invalid"): string {
+export function invitePath(next?: string, error?: "invalid", code?: string): string {
   const params = new URLSearchParams();
   const target = next === undefined ? "/" : inviteNextPath(next);
   if (target !== "/") params.set("next", target);
   if (error) params.set("error", error);
+  if (code) params.set("code", code);
   const qs = params.toString();
   return qs ? `${INVITE_PATH}?${qs}` : INVITE_PATH;
 }

@@ -103,8 +103,9 @@ export default function ColophonPage() {
         <EditorialSection id="order" title="Fixed order">
           <EditorialRow>
             <Prose>
-              The visual course is always shown first and on the left, and the walkthrough second, on Explore and in Figure 1. Traditions
-              are always listed in one alphabetical order, the same in both conditions.
+              The visual course is always shown first and on the left, and the walkthrough second, on Explore and in Figure 1. Public pages
+              and the demo list traditions in one alphabetical order. In a study, each participant meets the traditions in a counterbalanced order
+              drawn at allocation, and the same order applies whichever condition they are in.
             </Prose>
           </EditorialRow>
         </EditorialSection>

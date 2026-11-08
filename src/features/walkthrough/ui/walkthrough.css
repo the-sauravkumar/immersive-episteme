@@ -138,21 +138,52 @@
   border-color: var(--turmeric-hi);
 }
 
-.walkthrough-dialog {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: min(560px, calc(100vw - 32px));
-  max-height: calc(100vh - 64px);
+.walkthrough-dialog[open] {
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
   overflow: auto;
   display: grid;
   gap: 12px;
   padding: 24px;
   background: var(--vat-2);
+  color: var(--lime);
   border: 2px solid var(--lime);
+  border-radius: 0;
   font-size: 18px;
   line-height: 1.5;
+}
+
+.walkthrough-dialog::backdrop {
+  background: var(--backdrop);
+}
+
+.walkthrough-dialog a {
+  color: var(--lime);
+  text-decoration: underline;
+}
+
+.walkthrough .walkthrough-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  padding: 0;
+}
+
+.walkthrough-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 640px) {
+  .walkthrough-route {
+    right: 14px;
+    flex-wrap: wrap;
+  }
+
+  .walkthrough-tools {
+    top: auto;
+    bottom: 74px;
+  }
 }
 
 .walkthrough-dialog h2 {

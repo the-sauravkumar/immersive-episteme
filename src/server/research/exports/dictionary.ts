@@ -391,7 +391,7 @@ export const DASHBOARD_EXTRA_TABLE_NAMES = ["dashboard_tradition_gain", "dashboa
 
 export type DashboardExtraTableName = (typeof DASHBOARD_EXTRA_TABLE_NAMES)[number];
 
-const DASHBOARD_EXTRA_TABLES: readonly (TableSpec & { name: DashboardExtraTableName })[] = [
+export const DASHBOARD_EXTRA_TABLES: readonly (TableSpec & { name: DashboardExtraTableName })[] = [
   {
     name: "dashboard_tradition_gain",
     description:

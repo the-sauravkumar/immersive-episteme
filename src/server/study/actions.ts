@@ -313,8 +313,8 @@ export async function returnWithCode(_prev: FormState, formData: FormData): Prom
     if (!study.isDemo) {
       const policy = clientIpPolicy();
       const address = clientAddress(await headers(), { header: policy.header, trustedProxies: policy.trustedProxies });
-      const gate = await consumeEnrolmentAttempt(pool, { studyId: study.id, address, limits: study.protocol.config.enrolment });
-      if (!gate.allowed) throw new StudyEngineError("enrolment_throttled", "Too many attempts right now.", { scope: gate.scope, retryAfterSeconds: gate.retryAfterSeconds });
+      const gate = await consumeEnrolmentAttempt(pool, { studyId: study.id, address, limits: study.protocol.config.enrolment, purpose: "return" });
+      if (!gate.allowed) return { error: "Too many return attempts from this network right now. Please wait a few minutes and try again, or ask the facilitator." };
     }
     const back = await returnForDelayedTest(pool, { studyCode, participantCode });
     await issueParticipantSessionCookie({ participantId: back.participantId, sessionId: back.sessionId, condition: back.condition });

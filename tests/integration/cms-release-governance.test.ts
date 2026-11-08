@@ -14,6 +14,10 @@ import { publishRelease, rebuildReviewSnapshot, releaseReadiness } from "@/serve
 import { claimDraftsOf } from "@/components/cms/claim-drafts";
 import { EVIDENCE_CHECK_KEYS, relationshipSchema, sourceSchema, traditionSchema } from "@/server/cms/schemas";
 import { citationProblems, transition } from "@/server/cms/workflow";
+import { diffBundles } from "@/server/cms/diff";
+import { buildReviewSnapshotFromDb } from "@/server/content/review-snapshot";
+import { nodeSha256 } from "@/features/knowledge/graph/hash-node";
+import type { KnowledgeBundle } from "@/features/knowledge/contracts";
 
 import { TEST_URL, createTestDatabase, createUser, one, type TestDb } from "./schema-harness";
 
@@ -118,6 +122,11 @@ describe.skipIf(!TEST_URL)("CMS release governance (final review)", () => {
     expect(fig).toEqual({ asset_id: assetId, position: 1, caption: "The vat that claim 2 describes." });
     const audit = await one<{ after: { figures: number } }>(t.pool, "SELECT after FROM audit_log WHERE action = 'cms.release.published' AND entity_id = $1", [r.id]);
     expect(audit.after.figures).toBe(1);
+    const release = await one<{ payload: KnowledgeBundle }>(t.pool, "SELECT payload FROM content_snapshots WHERE id = $1", [r.id]);
+    const review = await buildReviewSnapshotFromDb(t.pool, { hasher: nodeSha256, generatedAt: new Date().toISOString() });
+    if (!review.ok) throw new Error("the review build failed");
+    const diff = diffBundles(review.envelope.payload, release.payload, { citationDetail: false });
+    expect([...diff.claims.changed, ...diff.relationships.changed].filter((c) => c.fields.includes("sources"))).toEqual([]);
   });
 
   it("moves a photograph's anchor with its claim, and returns the asset to review when the claim is reworded (knowledge-07)", async () => {

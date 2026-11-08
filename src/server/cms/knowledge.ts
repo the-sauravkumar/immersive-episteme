@@ -96,7 +96,7 @@ function strip(row: Record<string, unknown>): Record<string, unknown> {
 
 type TraditionInput = z.infer<typeof traditionSchema>;
 
-export async function saveTradition(pool: Pool, actor: Actor, input: TraditionInput): Promise<{ id: string; created: boolean }> {
+export async function saveTradition(pool: Pool, actor: Actor, input: TraditionInput): Promise<{ id: string; created: boolean; returnedToReview: boolean }> {
   ensure(actor, input.traditionId ? "content.edit" : ["content.draft", "content.edit"]);
   if (input.slug.startsWith("demo")) throw new CmsError("demo_reserved", "Slugs starting with 'demo' are reserved for demo fixtures");
   const fields = [
@@ -117,7 +117,7 @@ export async function saveTradition(pool: Pool, actor: Actor, input: TraditionIn
       );
       const id = r.rows[0]!.id;
       await audit(c, actor, { action: "cms.tradition.created", entity: "traditions", entityId: id, after: input });
-      return { id, created: true };
+      return { id, created: true, returnedToReview: false };
     }
     const before = await c.query<Record<string, unknown>>("SELECT * FROM traditions WHERE id = $1 FOR UPDATE", [input.traditionId]);
     const row = before.rows[0];
@@ -130,8 +130,9 @@ export async function saveTradition(pool: Pool, actor: Actor, input: TraditionIn
         WHERE id = $1`,
       [input.traditionId, ...fields, actor.userId],
     );
+    const after = await c.query<{ verification_state: string }>("SELECT verification_state FROM traditions WHERE id = $1", [input.traditionId]);
     await audit(c, actor, { action: "cms.tradition.updated", entity: "traditions", entityId: input.traditionId, before: row, after: input });
-    return { id: input.traditionId, created: false };
+    return { id: input.traditionId, created: false, returnedToReview: after.rows[0]!.verification_state !== row.verification_state };
   });
 }
 
@@ -298,17 +299,15 @@ export async function saveClaims(pool: Pool, actor: Actor, conceptId: string, cl
   });
 }
 
-export async function saveCuratorNotes(pool: Pool, actor: Actor, conceptId: string, rawDoc: unknown): Promise<{ returnedToReview: boolean }> {
+export async function saveCuratorNotes(pool: Pool, actor: Actor, conceptId: string, rawDoc: unknown): Promise<void> {
   ensure(actor, ["content.edit", "content.review"]);
   const doc = sanitizeDoc(rawDoc);
   return inActorTx(pool, actor, "curator notes edited", async (c) => {
-    const b = await c.query<{ body: unknown; is_demo: boolean; verification_state: string }>("SELECT body, is_demo, verification_state FROM concepts WHERE id = $1 FOR UPDATE", [conceptId]);
+    const b = await c.query<{ body: unknown; is_demo: boolean }>("SELECT body, is_demo FROM concepts WHERE id = $1 FOR UPDATE", [conceptId]);
     if (!b.rows[0]) throw new CmsError("not_found", "Concept not found", 404);
     if (b.rows[0].is_demo) throw new CmsError("demo_readonly", "Demo concepts cannot be edited here", 409);
     await c.query("UPDATE concepts SET body = $2::jsonb, updated_by = $3 WHERE id = $1", [conceptId, JSON.stringify(doc), actor.userId]);
-    const after = await c.query<{ verification_state: string }>("SELECT verification_state FROM concepts WHERE id = $1", [conceptId]);
     await audit(c, actor, { action: "cms.concept.notes_saved", entity: "concepts", entityId: conceptId, before: { body: b.rows[0].body }, after: { body: doc } });
-    return { returnedToReview: after.rows[0]!.verification_state !== b.rows[0].verification_state };
   });
 }
 

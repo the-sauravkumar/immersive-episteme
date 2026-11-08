@@ -48,7 +48,7 @@ export async function revokeInviteAction(_prev: ActionState, fd: FormData): Prom
     const typed = typeof raw.confirm === "string" ? raw.confirm.trim().toUpperCase() : "";
     if (typed !== expected) throw new CmsError("confirm_mismatch", "Type the last four characters of the code exactly to confirm.", 422);
     await revokeInvite(pool, actor, input);
-    return "Code revoked. It no longer admits anyone: browsers that already used it, including participants part-way through a study, are sent to the invite page on their next request.";
+    return "Code revoked. It no longer admits anyone: browsers that already used it, including participants part-way through a study, are refused on their next page or study request.";
   });
   return state && !state.ok && state.code === "confirm_mismatch" ? { ...state, fieldErrors: { confirm: [state.error ?? ""] } } : state;
 }

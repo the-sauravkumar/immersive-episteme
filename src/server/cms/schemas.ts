@@ -124,7 +124,7 @@ export const sourceSchema = z.object({
   title: required(1000),
   author: optionalText(500),
   publisher: optionalText(500),
-  year: optionalInt(0, 2100),
+  year: optionalInt(1000, 2100),
   url: optionalUrl,
   accessedOn: z
     .union([z.iso.date(), z.literal(""), z.null()]).optional()

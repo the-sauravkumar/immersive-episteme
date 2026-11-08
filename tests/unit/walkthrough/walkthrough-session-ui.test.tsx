@@ -1,5 +1,5 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { LearningSessionFrame } from "@/components/study/learning-session-frame";
@@ -10,8 +10,10 @@ import type { WalkEngine, WalkEngineEvents, WalkEngineFactory } from "@/features
 import type { RouteStation } from "@/features/walkthrough/domain/route-plan";
 import { WalkthroughPractice } from "@/features/walkthrough/ui/walkthrough-practice";
 import { WalkthroughSession, type WalkthroughSessionEvents } from "@/features/walkthrough/ui/walkthrough-session";
+import { StudyExitProvider } from "@/features/process/ui/door-dialog";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ replace: vi.fn() }) }));
+vi.mock("next/link", () => ({ default: ({ href, children }: { href: string; children: ReactNode }) => <a href={href}>{children}</a> }));
 
 const stage = (tradition: string, number: number) => ({
   number,
@@ -220,6 +222,28 @@ describe("WalkthroughSession", () => {
     act(() => f.engines[0]!.enter(1));
     fireEvent.keyDown(window, { code: "KeyB" });
     expect(f.engines[0]!.walks).toEqual([0]);
+  });
+
+  it("opens Help, Pause and Sources as native modal dialogs that hold the walk still, and offers withdrawal in a study", () => {
+    const f = fixture();
+    render(
+      <StudyExitProvider href="/study/withdraw">
+        <WalkthroughSession templates={templates} events={f.events} createEngine={f.createEngine} studyMode />
+      </StudyExitProvider>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Pause" }));
+    const pause = screen.getByRole("dialog", { name: "Paused" });
+    expect(pause.tagName).toBe("DIALOG");
+    expect(pause).toHaveAttribute("open");
+    expect(f.engines[0]!.paused).toBe(true);
+    fireEvent.keyDown(window, { code: "KeyW" });
+    fireEvent.keyDown(window, { code: "KeyB" });
+    expect(f.engines[0]!.moves.filter(([forward, strafe]) => forward !== 0 || strafe !== 0)).toEqual([]);
+    expect(f.engines[0]!.walks).toEqual([]);
+    expect(screen.getByRole("link", { name: "Withdraw from the study" })).toHaveAttribute("href", "/study/withdraw");
+    act(() => (pause as HTMLDialogElement).close());
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(f.engines[0]!.paused).toBe(false);
   });
 
   it("labels the last button Finish outside a study, where no questions follow", () => {

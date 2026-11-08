@@ -66,7 +66,7 @@ async function Access() {
             caption="Invite Codes, Uses and Status"
             number={1}
             hoverRows
-            note={`${invites.length} code(s), ${active} active; newest first. Times are UTC. Uses counts the browsers that redeemed the code.`}
+            note={`${invites.length} code(s), ${active} active; newest first. Times are UTC. Uses counts each time the code was entered and confirmed with Continue.`}
           >
             <TableHeader role="rowgroup">
               <TableRow role="row">

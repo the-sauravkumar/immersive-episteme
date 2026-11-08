@@ -28,7 +28,6 @@ export function EditorialSection({
 }: {
   id: string;
   title: string;
-  eyebrow?: string;
   children: ReactNode;
   className?: string;
 }) {

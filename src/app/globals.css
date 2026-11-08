@@ -9,9 +9,8 @@
   --measure: 34rem;
   --hang: 2.25rem;
   --rail-w: 18rem;
-  --studybar-h: 3.5rem;
   --notice-h: 2.5rem;
-  --sticky-chrome: calc(var(--notice-h) + var(--studybar-h) + 1px);
+  --sticky-chrome: calc(var(--notice-h) + 1px);
 }
 
 @theme {
@@ -76,6 +75,11 @@
   ::after,
   ::backdrop {
     border-color: var(--line);
+  }
+  svg.lucide {
+    stroke-width: 2.4;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
   }
   html {
     color-scheme: dark;

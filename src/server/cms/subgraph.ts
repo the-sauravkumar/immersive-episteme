@@ -11,6 +11,10 @@ export interface SubgraphFilter {
 export function subgraph(nodes: readonly GraphNode[], edges: readonly GraphEdge[], f: SubgraphFilter): { nodes: GraphNode[]; edges: GraphEdge[] } {
   let es = edges.filter((e) => (!f.types?.length || f.types.includes(e.type)) && (!f.states?.length || f.states.includes(e.state)));
   if (f.focus && nodes.some((n) => n.id === f.focus)) {
+    if (f.tradition) {
+      const inTradition = new Set(nodes.filter((n) => n.tradition === f.tradition || n.id === f.focus).map((n) => n.id));
+      es = es.filter((e) => inTradition.has(e.source) && inTradition.has(e.target));
+    }
     const depth = Math.min(Math.max(f.depth ?? 1, 1), 4);
     const reached = new Set([f.focus]);
     let frontier = new Set([f.focus]);

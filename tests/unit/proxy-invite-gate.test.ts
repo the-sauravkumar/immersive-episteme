@@ -46,7 +46,7 @@ afterEach(() => {
 
 describe("invite gate (S11)", () => {
   it("redirects every gated page to /invite, remembering where the visitor was going", async () => {
-    for (const path of ["/", "/explore", "/study", "/about", "/learn/2d", "/learn/immersive", "/figures/0190f3a4-1b2c-7d3e-8f40-123456789abc"]) {
+    for (const path of ["/", "/explore", "/study", "/learn/2d", "/learn/immersive", "/figures/0190f3a4-1b2c-7d3e-8f40-123456789abc"]) {
       const res = await at(path);
       expect(res.status, path).toBe(307);
       expect(new URL(res.headers.get("location")!).pathname, path).toBe("/invite");
@@ -110,15 +110,21 @@ describe("invite gate (S11)", () => {
     expect(res.headers.get("cache-control")).toBe("no-store");
   });
 
-  it("rewrites ?invite= to the redeem route with the code and the clean target, setting no cookie itself", async () => {
+  it("sends ?invite= to the invite page with the code filled in, redeeming nothing until the visitor presses Continue", async () => {
     const res = await at("/study?code=demo-x&invite=ABCD-EFGH");
-    const rewrite = new URL(res.headers.get("x-middleware-rewrite")!);
-    expect(rewrite.pathname).toBe("/invite/redeem");
-    expect(rewrite.searchParams.get("code")).toBe("ABCD-EFGH");
-    expect(rewrite.searchParams.get("next")).toBe("/study?code=demo-x");
+    expect(res.status).toBe(307);
+    expect(res.headers.get("x-middleware-rewrite")).toBeNull();
     expect(res.headers.get("set-cookie")).toBeNull();
-    expect(res.headers.get("x-middleware-request-x-invite-redeem-code")).toBe(encodeURIComponent("ABCD-EFGH"));
-    expect(res.headers.get("x-middleware-request-x-invite-redeem-next")).toBe(encodeURIComponent("/study?code=demo-x"));
+    expect(res.headers.get("referrer-policy")).toBe("no-referrer");
+    const target = new URL(res.headers.get("location")!);
+    expect(target.pathname).toBe("/invite");
+    expect(target.searchParams.get("code")).toBe("ABCD-EFGH");
+    expect(target.searchParams.get("next")).toBe("/study?code=demo-x");
+  });
+
+  it("refuses the participant APIs to a browser without a live invite", async () => {
+    expect((await at("/api/telemetry/batch", { method: "POST" })).status).toBe(403);
+    expect((await at("/api/study/learning-progress", { method: "POST", headers: await invited() })).status).toBe(200);
   });
 
   it("drops ?invite= without redeeming it again when the browser is already admitted", async () => {

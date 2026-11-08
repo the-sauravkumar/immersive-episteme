@@ -39,18 +39,29 @@ export function ActionForm({
   const blockedId = useId();
   const errorRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const resetting = useRef(false);
 
   useEffect(() => {
     if (!state) return;
     if (!state.ok) errorRef.current?.focus();
-    if (state.ok && resetOnSuccess) formRef.current?.reset();
+    if (state.ok && resetOnSuccess) {
+      resetting.current = true;
+      formRef.current?.reset();
+      resetting.current = false;
+    }
     onDone?.(state);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per new state
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
   return (
     <StateContext value={state}>
-      <form ref={formRef} action={formAction} onSubmit={(e) => (pending ? e.preventDefault() : undefined)} className={cn("flex flex-col gap-4", className)}>
+      <form
+        ref={formRef}
+        action={formAction}
+        onSubmit={(e) => (pending ? e.preventDefault() : undefined)}
+        onReset={(e) => (resetting.current ? undefined : e.preventDefault())}
+        className={cn("flex flex-col gap-4", className)}
+      >
         {state && !state.ok ? (
           <Alert variant="destructive" ref={errorRef} tabIndex={-1}>
             <CircleAlert aria-hidden="true" />
@@ -103,13 +114,17 @@ export function ActionForm({
   );
 }
 
+export function FormStateProvider({ state, children }: { state: ActionState; children: ReactNode }) {
+  return <StateContext value={state}>{children}</StateContext>;
+}
+
 export function FieldMessage({ name, id }: { name: string; id?: string }) {
   const state = useContext(StateContext);
   const msgs = state?.fieldErrors?.[name];
   if (!msgs?.length) return null;
   return (
     <p id={id} className="flex items-start gap-2 t-s font-semibold text-madder-text">
-      <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 stroke-2" />
+      <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
       <span className="min-w-0">{msgs.join(" ")}</span>
     </p>
   );

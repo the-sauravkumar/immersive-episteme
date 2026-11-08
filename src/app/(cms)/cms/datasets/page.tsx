@@ -218,7 +218,8 @@ async function Diff({ a, b }: { a: string; b: string }) {
   const pool = getPool();
   const [ba, bb] = await Promise.all([snapshotBundle(pool, a), snapshotBundle(pool, b)]);
   if (!ba || !bb) return <Empty>One of the snapshots cannot be read (only published releases and review snapshots can be compared).</Empty>;
-  const d: BundleDiff = diffBundles(ba, bb);
+  const snapshotKinds = await pool.query<{ kind: string }>("SELECT kind FROM content_snapshots WHERE id = ANY($1::uuid[])", [[a, b]]);
+  const d: BundleDiff = diffBundles(ba, bb, { citationDetail: snapshotKinds.rows.every((row) => row.kind === "release") });
   const kinds: [string, KindDiff][] = [
     ["Traditions", d.traditions],
     ["Concepts", d.concepts],

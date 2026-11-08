@@ -20,6 +20,7 @@ export function LearningShell({ condition, children }: { condition: LearningCond
       )}
     >
       <main id="main" tabIndex={-1} className={cn("outline-none", condition === "immersive" ? "flex h-full w-full flex-col" : "flex-1")}>
+        <h1 className="sr-only">{condition === "immersive" ? "The Walkthrough" : "The Visual Course"}</h1>
         {children}
       </main>
     </div>

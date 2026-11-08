@@ -92,7 +92,7 @@ async function computeStoredSession(q: Q, s: SessionRow): Promise<ComputedMetric
   if (!s.snapshot_id || !s.condition_id) return null;
   const snapshotId = s.snapshot_id;
   const [events, facts, map] = await queryAll(q, [() => loadSessionEvents(q, s.id), () => loadSnapshotFacts(q, snapshotId), () => loadFinalPostMap(q, s.id)]);
-  return computeSessionMetrics({ events, concepts: facts.concepts, relationships: facts.relationships, map });
+  return computeSessionMetrics({ events, relationships: facts.relationships, map });
 }
 
 export interface RecomputeSummary {

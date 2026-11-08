@@ -41,7 +41,7 @@ export async function saveSourceAction(_: ActionState, fd: FormData): Promise<Ac
 export async function saveTraditionAction(_: ActionState, fd: FormData): Promise<ActionState> {
   return runAction(["content.draft", "content.edit"], traditionSchema, formObject(fd), async ({ actor, pool }, input) => {
     const r = await saveTradition(pool, actor, input);
-    return { message: r.created ? "Tradition created (draft)." : "Saved.", data: { id: r.id } };
+    return { message: r.created ? "Tradition created (draft)." : r.returnedToReview ? "Saved. The tradition was accepted, so it is back under review." : "Saved.", data: { id: r.id } };
   });
 }
 
@@ -75,8 +75,8 @@ export async function saveClaimsAction(_: ActionState, fd: FormData): Promise<Ac
 
 export async function saveNotesAction(_: ActionState, fd: FormData): Promise<ActionState> {
   return runAction(["content.edit", "content.review"], notesSchema, formObject(fd), async ({ actor, pool }, input) => {
-    const r = await saveCuratorNotes(pool, actor, input.conceptId, input.doc);
-    return r.returnedToReview ? "Notes saved. The concept was accepted, so it is back under review." : "Notes saved.";
+    await saveCuratorNotes(pool, actor, input.conceptId, input.doc);
+    return "Notes saved.";
   });
 }
 

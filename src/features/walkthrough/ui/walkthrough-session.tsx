@@ -6,6 +6,8 @@ import { UNVERIFIED_NOTICE_TEXT } from "@/features/learning/strings";
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
 import { finishLabel, HELP_TITLE, HINT_TITLE, NO_GUIDANCE, PAUSE_TEXT, PAUSE_TITLE, RESUME_LABEL, sessionHelpLines, SOURCES_AND_CREDITS_LABEL, SOURCES_LABEL, type DoorGuidance } from "@/features/process/domain/guidance";
 import { exhibitCreditLines, exhibitImages, type StageTemplate } from "@/features/process/domain/stage-template";
+import { DoorDialog } from "@/features/process/ui/door-dialog";
+import { HelpIcon, HintIcon, PauseIcon } from "@/features/process/ui/door-icons";
 import { StallCue } from "@/features/process/ui/stall-cue";
 import { useGuidance, type GuidanceReport } from "@/features/process/ui/use-guidance";
 import { useTabHidden } from "@/lib/use-tab-hidden";
@@ -82,6 +84,7 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
   const traditionIndex = entry.tradition;
   const template = templates[traditionIndex]!;
   const route = useMemo(() => buildRoute(template, (id) => clothStatePath(id)), [template]);
+  const blocked = useRef(false);
   const eventsRef = useRef(events);
   useEffect(() => {
     eventsRef.current = events;
@@ -201,6 +204,7 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
       runtime.current?.setMove(Math.sign(forward), Math.sign(strafe));
     };
     const down = (event: KeyboardEvent) => {
+      if (blocked.current) return;
       if (event.code === "KeyB") {
         runtime.current?.walkTo(Math.max(0, (runtime.current?.stationIndex ?? 0) - 1));
         return;
@@ -226,9 +230,14 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
   const reportGuidance = useCallback<GuidanceReport>((action, cueId) => eventsRef.current.onGuidance(action, cueId), []);
   const guide = useGuidance({ guidance, progress: `${traditionIndex}.${reached}`, suspended: !ready || failed || paused || sourcesOpen || helpOpen || tabHidden, report: reportGuidance });
 
+  const dialogOpen = paused || sourcesOpen || helpOpen || guide.hintOpen;
   useEffect(() => {
-    if (runtime.current) runtime.current.paused = paused || sourcesOpen || helpOpen || guide.hintOpen || tabHidden;
-  }, [entry, paused, sourcesOpen, helpOpen, guide.hintOpen, tabHidden]);
+    blocked.current = dialogOpen;
+    if (runtime.current) {
+      if (dialogOpen) runtime.current.setMove(0, 0);
+      runtime.current.paused = dialogOpen || tabHidden;
+    }
+  }, [entry, dialogOpen, tabHidden]);
 
   const dragging = useRef<{ x: number; y: number } | null>(null);
   const station = route[stationIndex];
@@ -292,8 +301,8 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
       </div>
       <div className="walkthrough-tools">
         {guide.hint !== null ? (
-          <button type="button" onClick={guide.openHint}>
-            {HINT_TITLE}
+          <button type="button" className="walkthrough-icon" aria-label={HINT_TITLE} onClick={guide.openHint}>
+            <HintIcon />
           </button>
         ) : null}
         <button type="button" onClick={() => {
@@ -302,8 +311,12 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
         }}>
           Sources
         </button>
-        <button type="button" onClick={() => setHelpOpen(true)}>{HELP_TITLE}</button>
-        <button type="button" onClick={() => setPaused(true)}>Pause</button>
+        <button type="button" className="walkthrough-icon" aria-label={HELP_TITLE} onClick={() => setHelpOpen(true)}>
+          <HelpIcon />
+        </button>
+        <button type="button" className="walkthrough-icon" aria-label="Pause" onClick={() => setPaused(true)}>
+          <PauseIcon />
+        </button>
       </div>
       <div className="walkthrough-move">
         <button type="button" disabled={!ready || stationIndex === 0} onClick={() => runtime.current?.walkTo(stationIndex - 1)}>
@@ -314,8 +327,7 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
         </button>
       </div>
       {sourcesOpen && stage ? (
-        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={SOURCES_LABEL}>
-          <h2>{SOURCES_LABEL}</h2>
+        <DoorDialog className="walkthrough-dialog" title={SOURCES_LABEL} action="Close" onClose={() => setSourcesOpen(false)}>
           <p>{stage.caption.text}</p>
           {stage.caption.underReview ? <p data-slot="caption-review">{UNVERIFIED_NOTICE_TEXT.caption}</p> : null}
           <ul>
@@ -325,12 +337,10 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
               </li>
             ))}
           </ul>
-          <button type="button" onClick={() => setSourcesOpen(false)}>Close</button>
-        </div>
+        </DoorDialog>
       ) : null}
       {sourcesOpen && !stage ? (
-        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={SOURCES_AND_CREDITS_LABEL}>
-          <h2>{SOURCES_AND_CREDITS_LABEL}</h2>
+        <DoorDialog className="walkthrough-dialog" title={SOURCES_AND_CREDITS_LABEL} action="Close" onClose={() => setSourcesOpen(false)}>
           <ul>
             {exhibitImages(template).map((image) => (
               <li key={image.id}>
@@ -343,32 +353,25 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
               </li>
             ))}
           </ul>
-          <button type="button" onClick={() => setSourcesOpen(false)}>Close</button>
-        </div>
+        </DoorDialog>
       ) : null}
       {paused ? (
-        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={PAUSE_TITLE}>
-          <h2>{PAUSE_TITLE}</h2>
+        <DoorDialog className="walkthrough-dialog" title={PAUSE_TITLE} action={RESUME_LABEL} onClose={() => setPaused(false)} offersWithdrawal>
           <p>{PAUSE_TEXT}</p>
-          <button type="button" onClick={() => setPaused(false)}>{RESUME_LABEL}</button>
-        </div>
+        </DoorDialog>
       ) : null}
       {helpOpen ? (
-        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={HELP_TITLE}>
-          <h2>{HELP_TITLE}</h2>
+        <DoorDialog className="walkthrough-dialog" title={HELP_TITLE} action="Close" onClose={() => setHelpOpen(false)} offersWithdrawal>
           <p>Walk with W, A, S and D or the arrow keys. Drag to look around. Walk On takes you to the next station, and B or Back takes you back along the route. Follow the cloth.</p>
           {helpLines.map((line) => (
             <p key={line}>{line}</p>
           ))}
-          <button type="button" onClick={() => setHelpOpen(false)}>Close</button>
-        </div>
+        </DoorDialog>
       ) : null}
       {guide.hint !== null && guide.hintOpen ? (
-        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={HINT_TITLE}>
-          <h2>{HINT_TITLE}</h2>
+        <DoorDialog className="walkthrough-dialog" title={HINT_TITLE} action="Close" onClose={guide.closeHint}>
           <p>{guide.hint}</p>
-          <button type="button" onClick={guide.closeHint}>Close</button>
-        </div>
+        </DoorDialog>
       ) : null}
       <StallCue guidance={guide} />
       {failed ? <div className="walkthrough-cover walkthrough-loading" role="alert">This Device Cannot Show The Yard</div> : null}

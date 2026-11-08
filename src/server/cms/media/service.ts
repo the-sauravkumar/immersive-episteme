@@ -50,7 +50,6 @@ export const assetMetadataSchema = z
       .transform((v) => (v ? v : null))
       .pipe(z.uuid({ error: "Choose a source from the list" }).nullable()),
     provenanceKind: z.enum(PROVENANCE_KINDS, { error: "Choose a provenance kind" }),
-    publicPlate: checkbox,
   })
   .superRefine((m, ctx) => {
     if (!m.sourceUrl && !m.sourceId) {
@@ -123,15 +122,12 @@ async function insertAsset(
     if (dup) throw duplicateError(dup);
     const r = await tx.query<{ id: string }>(
       `INSERT INTO assets (kind, title, storage_key, mime_type, byte_size, sha256, width, height, alt_text, caption, credit,
-                           licence, licence_url, source_url, source_id, provenance_kind, verification_state, is_demo, created_by, updated_by,
-                           public_plate)
-       VALUES ($1::asset_kind, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::provenance_kind, 'draft', false, $17, $17,
-               $18)
+                           licence, licence_url, source_url, source_id, provenance_kind, verification_state, is_demo, created_by, updated_by)
+       VALUES ($1::asset_kind, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16::provenance_kind, 'draft', false, $17, $17)
        RETURNING id`,
       [
         c.checked.kind, c.meta.title, c.storageKey, c.checked.mime, c.byteSize, c.sha256, c.checked.width, c.checked.height, alt,
         c.meta.caption, c.meta.credit, c.meta.licence, c.meta.licenceUrl, c.meta.sourceUrl, c.meta.sourceId, c.meta.provenanceKind, actor.userId,
-        c.meta.publicPlate,
       ],
     );
     const id = r.rows[0]!.id;
@@ -144,7 +140,7 @@ async function insertAsset(
       action: "media.asset_uploaded",
       entity: "assets",
       entityId: id,
-      after: { title: c.meta.title, kind: c.checked.kind, mime: c.checked.mime, byteSize: c.byteSize, sha256: c.sha256, width: c.checked.width, height: c.checked.height, licence: c.meta.licence, publicPlate: c.meta.publicPlate, provenanceKind: c.meta.provenanceKind, sourceUrl: c.meta.sourceUrl, sourceId: c.meta.sourceId, storage: c.via },
+      after: { title: c.meta.title, kind: c.checked.kind, mime: c.checked.mime, byteSize: c.byteSize, sha256: c.sha256, width: c.checked.width, height: c.checked.height, licence: c.meta.licence, provenanceKind: c.meta.provenanceKind, sourceUrl: c.meta.sourceUrl, sourceId: c.meta.sourceId, storage: c.via },
       reason: "asset uploaded to the media library",
     });
     return { id, sha256: c.sha256, storageKey: c.storageKey, mime: c.checked.mime, kind: c.checked.kind, byteSize: c.byteSize, width: c.checked.width, height: c.checked.height };
@@ -219,7 +215,6 @@ interface AssetRow {
   licence_url: string | null;
   source_url: string | null;
   source_id: string | null;
-  public_plate: boolean;
   width: number | null;
   height: number | null;
   provenance_kind: string;
@@ -233,7 +228,7 @@ async function lockAsset(q: Q, assetId: string): Promise<AssetRow> {
   if (!isUuid(assetId)) throw new CmsError("not_found", "Asset not found.", 404);
   const r = await q.query<AssetRow>(
     `SELECT id, kind, title, alt_text, caption, credit, licence, licence_url, source_url, source_id,
-            public_plate, width, height, provenance_kind,
+            width, height, provenance_kind,
             verification_state, created_by, updated_by, is_demo
        FROM assets WHERE id = $1 FOR UPDATE`,
     [assetId],
@@ -246,7 +241,7 @@ async function lockAsset(q: Q, assetId: string): Promise<AssetRow> {
 
 const metaOf = (a: AssetRow) => ({
   title: a.title, altText: a.alt_text, caption: a.caption, credit: a.credit, licence: a.licence, licenceUrl: a.licence_url,
-  sourceUrl: a.source_url, sourceId: a.source_id, publicPlate: a.public_plate,
+  sourceUrl: a.source_url, sourceId: a.source_id,
   provenanceKind: a.provenance_kind, verificationState: a.verification_state,
 });
 
@@ -264,10 +259,9 @@ export async function updateAssetMetadata(pool: Pool, actor: Actor, input: { ass
     }
     await tx.query(
       `UPDATE assets SET title = $2, alt_text = $3, caption = $4, credit = $5, licence = $6, licence_url = $7, source_url = $8,
-                         source_id = $9, provenance_kind = $10::provenance_kind, verification_state = $11::verification_state, updated_by = $12,
-                         public_plate = $13
+                         source_id = $9, provenance_kind = $10::provenance_kind, verification_state = $11::verification_state, updated_by = $12
         WHERE id = $1`,
-      [before.id, meta.title, alt, meta.caption, meta.credit, meta.licence, meta.licenceUrl, meta.sourceUrl, meta.sourceId, meta.provenanceKind, nextState, actor.userId, meta.publicPlate],
+      [before.id, meta.title, alt, meta.caption, meta.credit, meta.licence, meta.licenceUrl, meta.sourceUrl, meta.sourceId, meta.provenanceKind, nextState, actor.userId],
     );
     const after = await lockAsset(tx, before.id);
     await audit(tx, actor, { action: "media.asset_updated", entity: "assets", entityId: before.id, before: metaOf(before), after: metaOf(after), reason: accepted ? "edited after acceptance: returned to review" : null });
@@ -526,7 +520,6 @@ export interface AssetListItem {
   sourceUrl: string | null;
   sourceId: string | null;
   sourceTitle: string | null;
-  publicPlate: boolean;
   provenanceKind: string;
   verificationState: VerificationState;
   createdBy: string | null;
@@ -567,12 +560,12 @@ export async function listAssets(q: Q, opts: { state?: string | null; id?: strin
   const r = await q.query<{
     id: string; kind: string; title: string; mime_type: string; byte_size: string | number; sha256: string; width: number | null; height: number | null;
     alt_text: string | null; caption: string | null; credit: string | null; licence: string | null; licence_url: string | null; source_url: string | null;
-    source_id: string | null; source_title: string | null; public_plate: boolean;
+    source_id: string | null; source_title: string | null;
     provenance_kind: string; verification_state: VerificationState; created_by: string | null;
     created_by_name: string | null; updated_by: string | null; created_at: Date; links: AssetListItem["links"] | null;
   }>(
     `SELECT a.id, a.kind, a.title, a.mime_type, a.byte_size, a.sha256, a.width, a.height, a.alt_text, a.caption, a.credit, a.licence, a.licence_url,
-            a.source_url, a.source_id, s.title AS source_title, a.public_plate,
+            a.source_url, a.source_id, s.title AS source_title,
             a.provenance_kind, a.verification_state, a.created_by, u.name AS created_by_name,
             a.updated_by, a.created_at,
             (SELECT json_agg(json_build_object('id', l.id, 'conceptId', c.id, 'conceptKey', c.key, 'conceptTitle', c.title, 'conceptType', c.type,
@@ -594,7 +587,7 @@ export async function listAssets(q: Q, opts: { state?: string | null; id?: strin
   return r.rows.map((a) => ({
     id: a.id, kind: a.kind, title: a.title, mimeType: a.mime_type, byteSize: Number(a.byte_size), sha256: a.sha256, width: a.width, height: a.height,
     altText: a.alt_text, caption: a.caption, credit: a.credit, licence: a.licence, licenceUrl: a.licence_url, sourceUrl: a.source_url, sourceId: a.source_id,
-    sourceTitle: a.source_title, publicPlate: a.public_plate,
+    sourceTitle: a.source_title,
     provenanceKind: a.provenance_kind, verificationState: a.verification_state, createdBy: a.created_by,
     createdByName: a.created_by_name, updatedBy: a.updated_by, createdAt: a.created_at.toISOString(), links: a.links ?? [],
   }));
@@ -723,14 +716,11 @@ function servableSql(opts: { frozen: boolean }): string {
           AND btrim(coalesce(a.credit, '')) <> ''
           AND btrim(coalesce(a.caption, '')) <> ''
           AND btrim(coalesce(a.alt_text, '')) <> ''
-          AND (
-            a.public_plate
-            OR EXISTS (
-              SELECT 1
-                FROM asset_links l
-                JOIN concepts c ON c.id = l.concept_id
-               WHERE l.asset_id = a.id AND l.role = 'illustration' AND NOT l.is_demo AND NOT c.is_demo
-            )
+          AND EXISTS (
+            SELECT 1
+              FROM asset_links l
+              JOIN concepts c ON c.id = l.concept_id
+             WHERE l.asset_id = a.id AND l.role = 'illustration' AND NOT l.is_demo AND NOT c.is_demo
           ))`;
   const frozen = `(a.verification_state IN ${FROZEN_SERVED_STATES}
           AND EXISTS (

@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+const optionalText = z
+  .string()
+  .optional()
+  .transform((v) => (v && v.trim() ? v.trim() : undefined));
+
 const postgresUrl = z
   .url({ protocol: /^postgres(ql)?$/, error: "must be a postgres:// or postgresql:// URL" })
   .describe("PostgreSQL connection string");
@@ -20,24 +25,19 @@ const MIN_PRODUCTION_SECRET_DISTINCT_CHARS = 16;
 
 const SECRET_HINT = "generate one with the command in .env.example";
 
-const optionalText = z
-  .string()
-  .optional()
-  .transform((v) => (v && v.trim() ? v.trim() : undefined));
-
 const ipOrCidr = /^(?:\d{1,3}(?:\.\d{1,3}){3}|[0-9a-fA-F:]*:[0-9a-fA-F:.]*)(?:\/\d{1,3})?$/;
 
 export const serverEnvSchema = z
   .object({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     DATABASE_URL: postgresUrl,
-    DATABASE_URL_UNPOOLED: postgresUrl.optional(),
+    DATABASE_URL_UNPOOLED: optionalText.pipe(postgresUrl.optional()),
     DATABASE_CA_PEM: z
       .string()
       .optional()
       .transform((v) => (v && v.trim() ? v.replace(/\\n/g, "\n").trim() : undefined))
       .refine((v) => v === undefined || /-----BEGIN CERTIFICATE-----[\s\S]+-----END CERTIFICATE-----/.test(v), "must be a PEM certificate bundle"),
-    TEST_DATABASE_URL: postgresUrl.optional(),
+    TEST_DATABASE_URL: optionalText.pipe(postgresUrl.optional()),
     BETTER_AUTH_SECRET: z
       .string()
       .min(32, "must be at least 32 characters")
@@ -53,11 +53,13 @@ export const serverEnvSchema = z
       .optional()
       .transform((v) => (v ?? "").split(",").map((s) => s.trim()).filter(Boolean))
       .refine((list) => list.every((e) => ipOrCidr.test(e)), "must be comma-separated IP addresses or CIDR ranges"),
-    AUTH_CLIENT_IP_HEADER: z
-      .string()
-      .regex(/^[A-Za-z0-9-]{1,64}$/, "must be an HTTP header name")
-      .transform((v) => v.toLowerCase())
-      .optional(),
+    AUTH_CLIENT_IP_HEADER: optionalText.pipe(
+      z
+        .string()
+        .regex(/^[A-Za-z0-9-]{1,64}$/, "must be an HTTP header name")
+        .transform((v) => v.toLowerCase())
+        .optional(),
+    ),
     PUBLIC_DEMO: z.enum(["auto", "on", "off"]).default("auto"),
     GOOGLE_CLIENT_ID: optionalText.pipe(z.string().regex(/^[A-Za-z0-9._-]{8,200}$/, "must be a Google OAuth client ID").optional()),
     GOOGLE_CLIENT_SECRET: optionalText.pipe(z.string().min(8, "must be the Google OAuth client secret").max(200).optional()),

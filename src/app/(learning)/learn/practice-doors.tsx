@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CoursePractice } from "@/features/course/ui/course-practice";
+import { StudyExitProvider } from "@/features/process/ui/door-dialog";
 import { bindLearningTelemetry, reportWebglContextLost, unbindLearningTelemetry } from "@/features/study/learning-progress";
 import { useOptionalTelemetry } from "@/features/telemetry/client";
 import { endFamiliarisation } from "@/server/study/actions";
@@ -20,6 +21,8 @@ interface PracticeDoorProps {
   readonly studyMode: boolean;
   readonly returnTo: string;
 }
+
+const WITHDRAW_PATH = "/study/withdraw";
 
 export const PRACTICE_UNSENT = "The study could not be told that the practice is over. Check the connection and press the button again.";
 
@@ -61,10 +64,10 @@ function PracticeError({ message }: { readonly message: string | null }) {
 export function CoursePracticeDoor(props: PracticeDoorProps) {
   const { error, finish } = usePracticeFinish(props);
   return (
-    <>
+    <StudyExitProvider href={props.studyMode ? WITHDRAW_PATH : null}>
       <CoursePractice onFinished={finish} />
       <PracticeError message={error} />
-    </>
+    </StudyExitProvider>
   );
 }
 
@@ -83,9 +86,9 @@ export function WalkthroughPracticeDoor(props: PracticeDoorProps) {
   const { failureNotice, onRenderFailed } = useRenderFailureReport(props.studyMode);
   usePracticeTelemetry();
   return (
-    <>
+    <StudyExitProvider href={props.studyMode ? WITHDRAW_PATH : null}>
       <WalkthroughPractice onFinished={finish} onRenderFailed={onRenderFailed} onContextLost={reportWebglContextLost} />
       <PracticeError message={failureNotice ?? error} />
-    </>
+    </StudyExitProvider>
   );
 }

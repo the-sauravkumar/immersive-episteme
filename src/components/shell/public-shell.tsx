@@ -11,7 +11,7 @@ const NAV: readonly PublicNavLink[] = [
   { href: "/explore", label: "Explore" },
   { href: "/accessibility", label: "Accessibility" },
   { href: "/privacy", label: "Privacy" },
-  { href: "/sign-in", label: "Staff sign in" },
+  { href: "/console", label: "Staff" },
 ];
 
 const FOOTER: readonly PublicNavLink[] = [
@@ -21,7 +21,7 @@ const FOOTER: readonly PublicNavLink[] = [
   { href: "/about#images-and-licences", label: "Image credits" },
 ];
 
-const COLUMN = "mx-auto w-full max-w-[80rem] px-4 xs:px-6 lg:px-8";
+const COLUMN = "mx-auto w-full max-w-[82.5rem] px-4 xs:px-6 lg:px-8";
 
 export function PublicShell({ children }: { children: ReactNode }) {
   return (

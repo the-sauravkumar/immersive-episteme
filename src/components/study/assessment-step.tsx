@@ -66,7 +66,6 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
         throw new Error(`item kind ${cfg.kind} is not deliverable`);
     }
   });
-  const presentation = next.config.presentation === "semantic_differential" ? "semantic_differential" : "standard";
   const paged = next.config.paged === true || (next.config.instrument as { paged?: boolean } | undefined)?.paged === true;
   const body = (
     <div>
@@ -76,7 +75,7 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
         key={next.id}
         step={step}
         returnTo={route}
-        assessment={{ id: next.id, code: next.code, version: next.version, title: next.title, description: next.description, presentation, paged, required: next.required }}
+        assessment={{ id: next.id, code: next.code, version: next.version, title: next.title, description: next.description, paged, required: next.required }}
         items={items}
       />
       <StepFooter />

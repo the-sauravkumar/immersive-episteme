@@ -59,11 +59,11 @@ describe("invite cookie", () => {
 });
 
 describe("invite gate paths", () => {
-  it("exempts sign-in, the invite page, staff home, APIs and static assets only", () => {
-    for (const p of ["/invite", "/invite/redeem", "/sign-in", "/sign-out", "/forbidden", "/console", "/api/auth/ok", "/api/telemetry/batch", "/_next/static/x.js", "/favicon.ico"]) {
+  it("exempts sign-in, the invite page, staff home, the notices a visitor reads before an invite, APIs and static assets only", () => {
+    for (const p of ["/invite", "/invite/redeem", "/sign-in", "/sign-out", "/forbidden", "/console", "/api/auth/ok", "/api/telemetry/batch", "/_next/static/x.js", "/favicon.ico", "/about", "/about/colophon", "/accessibility", "/privacy", "/walkthrough/fonts/Mukta-400.woff2"]) {
       expect(isInviteExemptPath(p), p).toBe(true);
     }
-    for (const p of ["/", "/explore", "/study", "/study/consent", "/learn/2d", "/learn/immersive", "/about", "/figures/x", "/invitex", "/museumx", "/apix"]) {
+    for (const p of ["/", "/explore", "/study", "/study/consent", "/learn/2d", "/learn/immersive", "/aboutx", "/walkthrough/stills/entrance-closed.jpg", "/figures/x", "/invitex", "/museumx", "/apix"]) {
       expect(isInviteExemptPath(p), p).toBe(false);
     }
   });

@@ -69,6 +69,7 @@ export async function updateStudyAction(studyId: string, _: ActionState, d: Form
       participantInformation: consent.participantInformation,
       questionnaires: questionnaires ?? current.config.questionnaires,
       notes: text(d, "notes") || undefined,
+      nonExperimental: d.get("nonExperimental") === "on",
     });
     await updateStudy(getPool(), { userId: p.userId }, studyId, {
       title: text(d, "title"),
@@ -129,6 +130,10 @@ export async function runParityAction(studyId: string, _: ActionState): Promise<
     const p = await assertPermission("parity.run");
     const r = await runAndStoreParityReport(getPool(), studyId, { userId: p.userId });
     refresh();
+    if (r.id === null) {
+      const failing = r.report.checks.filter((c) => !c.passed && c.severity === "critical").flatMap((c) => c.issues.map((i) => i.message));
+      return { status: "error", message: `Parity failed and was not stored, because the study has no pinned snapshot: ${failing.join(" ")}` };
+    }
     return r.report.passed
       ? ok(`Parity passed (${r.report.warnings} warning${r.report.warnings === 1 ? "" : "s"}).`)
       : { status: "error", message: `Parity failed: ${plural(r.report.criticalFailures, "critical check")}.` };

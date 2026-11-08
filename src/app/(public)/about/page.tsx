@@ -13,12 +13,9 @@ import { Sidenote } from "@/components/public/sidenote";
 import { PageHeader } from "@/components/shell/page-header";
 import { howToCite, INSTITUTION } from "@/config/institution";
 import { BLIND_STEPS, DEFAULT_STEPS, NEW_STUDY_CONFIG, STEP_LABEL, type StudyStep } from "@/server/study/config";
-import { studyConfigSchema } from "@/features/study/contracts";
 import { getDatasetStats, getImageCredits, getPullQuoteClaim } from "@/server/public/dataset-stats";
 
 export const metadata: Metadata = { title: "About" };
-
-const STRUCTURE_DIAGRAMS_BY_DEFAULT = studyConfigSchema.shape.figures.parse(undefined).structureDiagrams;
 
 const STANDALONE =
   "inline-flex min-h-11 items-center text-turmeric underline decoration-1 underline-offset-[0.2em] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-turmeric-hi hover:decoration-2";
@@ -156,7 +153,7 @@ async function DatasetLive() {
       >
         <Prose>
           Every claim in the dataset names the source it comes from, with a precise location in that source, and carries the verbatim passage that
-          supports it. Learners open that record from the source note under each claim, in both conditions. A passage supports curator review; it does
+          supports it. Learners open the sources behind each stage caption, with the same locator and passage, in both conditions: under the caption in the visual course and from the Sources button in the walkthrough. A passage supports curator review; it does
           not by itself verify the claim, so records still under review are labelled as such.
         </Prose>
       </EditorialRow>
@@ -247,8 +244,9 @@ export default function AboutPage() {
           >
             <Prose>
               Participants consent, answer the questions before learning, and are then allocated to one condition. After a short practice with the
-              controls, they learn for a fixed time that is the same in both conditions ({minutes} minutes in a new study), then answer the same
-              questions and tasks after learning.
+              controls, they visit every stop of the route under the same time limit in both conditions ({minutes} minutes in a new study),
+              and may finish once every stop has been visited, so each participant&rsquo;s learning time is recorded rather than fixed. They then
+              answer the same questions and tasks after learning.
             </Prose>
           </EditorialRow>
           <FigureTwo />
@@ -270,7 +268,7 @@ export default function AboutPage() {
           >
             <Prose>
               The two conditions present one stage template: the same stages, words, sources, tool and material models and image files, with the same
-              typefaces and timer. Only the spatial organisation and the navigation differ. A content parity check compares these for a study
+              typefaces and time limit. Only the spatial organisation and the navigation differ. A content parity check compares these for a study
               configuration and stores its report with the study. The suite that compared the earlier interfaces was removed with them, so no
               interface parity results are published.
             </Prose>
@@ -295,11 +293,9 @@ export default function AboutPage() {
             }
           >
             <Prose>
-              {STRUCTURE_DIAGRAMS_BY_DEFAULT
-                ? "By default, a study shows diagrams generated from the concepts and relationships of the knowledge graph, in both conditions alike. A study protocol can switch them off, again in both conditions together."
-                : "By default, a study shows no diagrams generated from the knowledge graph. A study protocol can switch them on, in both conditions together."}{" "}
-              Each such diagram is credited &ldquo;Diagram generated from the project&rsquo;s knowledge graph&rdquo; and shows nothing the claims do
-              not state. Photographs are shown only when their licence has been checked, always with their credit and licence.
+              Each tradition&rsquo;s product stop shows the same two study photographs in both conditions, a textile and a set of printing blocks. A
+              study protocol can switch photographs off, in both conditions together. Neither condition shows diagrams generated from the knowledge
+              graph. Photographs are shown only when their licence has been checked, always with their credit and licence.
             </Prose>
             <Suspense fallback={<Prose className="text-lime-dim">Reading the image records…</Prose>}>
               <ImageCreditsLive />

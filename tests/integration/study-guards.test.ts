@@ -172,7 +172,7 @@ describe.skipIf(!TEST_URL)("study guards (migration 0018)", { timeout: 60_000 },
     expect(JSON.stringify(keys.rows)).not.toContain("198.51.100");
   });
 
-  it("security-04: the client address is the last untrusted hop; a cap stops enrolment when the study is full", async () => {
+  it("security-04: the client address is the last untrusted hop; a cap counts consented participants only", async () => {
     const h = (v: string) => new Headers({ "x-forwarded-for": v });
     expect(clientAddress(h("203.0.113.7"))).toBe("203.0.113.7");
     expect(clientAddress(h("1.2.3.4, 203.0.113.7, 10.0.0.1"), { trustedProxies: ["10.0.0.1"] })).toBe("203.0.113.7");
@@ -183,8 +183,12 @@ describe.skipIf(!TEST_URL)("study guards (migration 0018)", { timeout: 60_000 },
       JSON.stringify({ traditionSlugs: ["sg-tradition"], consent: CONSENT, steps: ["onboarding", "learning"], enrolment: { maxParticipants: 2 } }),
     ]);
     const capped = await findEnrollableStudy(t.pool, "guards-cap");
-    const results = await Promise.allSettled([enrolParticipant(t.pool, capped), enrolParticipant(t.pool, capped), enrolParticipant(t.pool, capped)]);
-    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(2);
-    expect((results.find((r) => r.status === "rejected") as PromiseRejectedResult).reason).toMatchObject({ code: "study_full" });
+    const enrolled = await Promise.all([0, 1, 2, 3].map(() => enrolParticipant(t.pool, capped)));
+    const consent = (participantId: string, decision: "granted" | "declined") => engineConsent(t.pool, { participantId, study: capped, decision, shownVersion: CONSENT.version });
+    await consent(enrolled[0]!.participantId, "declined");
+    const granted = await Promise.allSettled(enrolled.slice(1).map((e) => consent(e.participantId, "granted")));
+    expect(granted.filter((r) => r.status === "fulfilled")).toHaveLength(2);
+    expect((granted.find((r) => r.status === "rejected") as PromiseRejectedResult).reason).toMatchObject({ code: "study_full" });
+    await expect(enrolParticipant(t.pool, capped)).rejects.toMatchObject({ code: "study_full" });
   });
 });

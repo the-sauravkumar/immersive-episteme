@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { CoursePractice } from "@/features/course/ui/course-practice";
 import { CourseSession } from "@/features/course/ui/course-session";
@@ -24,12 +24,6 @@ const template: StageTemplate = {
   stages: [stage(1), stage(2)],
   products: [{ id: "p1", file: "/walkthrough/products/p1.jpg", name: "Ajrakh Textile", holder: "A Holder", widthPx: 100, heightPx: 100, record: "https://example.org/record" }],
 };
-
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal ??= function showModal(this: HTMLDialogElement) {
-    this.setAttribute("open", "");
-  };
-});
 
 async function settle(): Promise<void> {
   await vi.waitFor(() => {

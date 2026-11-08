@@ -1,5 +1,4 @@
 import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -30,34 +29,15 @@ function sheet() {
   );
 }
 
-function normalise(html: string): string {
-  const ids = new Map<string, string>();
-  return html.replace(/(«r[0-9a-z]+»|_r_[0-9a-z]+_|:r[0-9a-z]+:)/g, (m) => {
-    if (!ids.has(m)) ids.set(m, `ID${ids.size}`);
-    return ids.get(m)!;
-  });
-}
-
-describe("ProofFrame: one sheet, two placements", () => {
-  it("renders the identical sheet DOM in the 2D column and the 3D panel, and changes only the container", async () => {
-    const user = userEvent.setup();
+describe("ProofFrame: the record preview", () => {
+  it("shows the sheet once, offers no 3D panel and does not take focus", () => {
     const before = document.activeElement;
     const { container } = render(<ProofFrame sheet={sheet()} />);
     expect(document.activeElement).toBe(before);
-
-    const visible = () => container.querySelector<HTMLElement>("[data-slot=proof-viewport]")!;
-    const page = visible();
-    expect(page.dataset.placement).toBe("page");
-    const pageSheet = normalise(page.innerHTML);
-
-    await user.click(screen.getByRole("radio", { name: "3D panel" }));
-    const panel = visible();
-    expect(panel.dataset.placement).toBe("panel");
-    expect(panel).toHaveAttribute("role", "region");
-    expect(panel.className).toContain("overflow-y-auto");
-    expect(normalise(panel.innerHTML)).toBe(pageSheet);
-    expect(within(panel).getByRole("heading", { level: 1 })).toHaveTextContent(new RegExp(c.title.split(" ")[0]!, "i"));
-    expect(document.activeElement).not.toBe(within(panel).getByRole("heading", { level: 1 }));
+    expect(screen.queryByRole("radio")).toBeNull();
+    expect(screen.queryByText(/3D panel/i)).toBeNull();
+    expect(screen.getByRole("heading", { name: "Record Preview" })).toBeInTheDocument();
+    expect(within(container.querySelector<HTMLElement>("[data-slot=proof-viewport]")!).getByRole("heading", { level: 1 })).toHaveTextContent(new RegExp(c.title.split(" ")[0]!, "i"));
   });
 });
 

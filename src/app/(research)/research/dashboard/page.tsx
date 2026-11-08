@@ -33,7 +33,7 @@ import {
   traditionGains,
   type ItemStat,
   type TraditionGain,
-} from "./_components/dashboard-extras";
+} from "@/server/research/dashboard-extras";
 import { LiveSessionsTable } from "./_components/live-sessions";
 import { LiveStatus } from "./_components/live-status";
 import { breakableKey, conditionOrder, num, StatsTable } from "./_components/stats-table";
@@ -164,7 +164,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
         csvHref={extraCsvHref}
       />
 
-      <ParityCard rows={parity} studyId={data.study.id} />
+      <ParityCard rows={parity} studyId={data.study.id} mayOpen={can(principal, "parity.run")} />
 
       <PrimarySection data={data} csv={csv} n={n} demo={demo} />
       <Section id="secondary" title="secondary outcomes" demo={demo} description="Concept-map outcomes in the order of study decision D2, from the post-learning map; secondary measures of relational structure since DR-075." actions={csv("dashboard_secondary")}>
@@ -191,13 +191,13 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
         id="questionnaires"
         title="questionnaire scale scores"
         demo={demo}
-        description="Cognitive-load subscales, SUS, physical presence (3D condition only) and SSQ before and after learning. A scale is scored only when every item was answered."
+        description="The common questions after learning (mental effort, navigation effort, comfort, engagement); physical presence and SSQ straight after learning, for the 3D condition only; SUS at the end. Other instruments appear when a study's protocol gives them. A scale is scored only when every item was answered."
         actions={csv("dashboard_questionnaires")}
       >
         {hasData(data.questionnaires) ? (
           <StatsTable rows={data.questionnaires} conditions={data.conditions} digits={2} caption="Questionnaire Scale Scores by Condition" number={n.table()} />
         ) : (
-          <Empty>No questionnaire answers yet for the D7 instruments in this study.</Empty>
+          <Empty>No questionnaire answers yet for this study.</Empty>
         )}
       </Section>
       <TelemetrySection data={data} csv={csv} maySessions={maySessions} n={n} demo={demo} />
@@ -221,7 +221,6 @@ function ResultsRow({ data, n, demo, csvHref }: { data: DashboardData; n: Counte
   return (
     <Section
       id="results"
-      eyebrow="Primary outcomes"
       title="Score by condition"
       demo={demo}
       description={
@@ -283,7 +282,6 @@ function TraditionRow({
   return (
     <Section
       id="traditions"
-      eyebrow="Knowledge test"
       title="Gain by tradition"
       demo={demo}
       description={
@@ -324,7 +322,6 @@ function ItemsRow({
   return (
     <Section
       id="layers-items"
-      eyebrow="Process"
       title="Item statistics"
       demo={demo}
       description="How each keyed test item was answered, by condition. Descriptive; no causal reading."
@@ -390,7 +387,7 @@ function ItemsRow({
   );
 }
 
-function ParityCard({ rows, studyId }: { rows: ContentParityRow[]; studyId: string }) {
+function ParityCard({ rows, studyId, mayOpen }: { rows: ContentParityRow[]; studyId: string; mayOpen: boolean }) {
   return (
     <Card plate className="mb-12 max-w-[52rem]">
       <CardHeader>
@@ -404,11 +401,13 @@ function ParityCard({ rows, studyId }: { rows: ContentParityRow[]; studyId: stri
           Interface measures are not compared; nothing measures them now.
         </p>
       </CardContent>
-      <CardFooter>
-        <Link href={`/research/parity?study=${studyId}`} className={LINK_44}>
-          Open parity checks
-        </Link>
-      </CardFooter>
+      {mayOpen ? (
+        <CardFooter>
+          <Link href={`/research/parity?study=${studyId}`} className={LINK_44}>
+            Open parity checks
+          </Link>
+        </CardFooter>
+      ) : null}
     </Card>
   );
 }

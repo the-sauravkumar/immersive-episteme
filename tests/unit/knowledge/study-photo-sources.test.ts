@@ -95,8 +95,8 @@ describe("no cap and no term for any source (DR-118)", () => {
   it("serves every source at the full size of its file with no expiry, never as a public plate", () => {
     for (const p of [rickBradley(), sahapedia(), ericParker(), pari()]) {
       const plan = planPhoto(p);
-      expect(Object.keys(plan.metadata).sort()).toEqual(["altText", "caption", "credit", "licence", "licenceUrl", "provenanceKind", "publicPlate", "sourceUrl", "title"]);
-      expect(plan.metadata).toMatchObject({ publicPlate: false, provenanceKind: "historical_documentation" });
+      expect(Object.keys(plan.metadata).sort()).toEqual(["altText", "caption", "credit", "licence", "licenceUrl", "provenanceKind", "sourceUrl", "title"]);
+      expect(plan.metadata).toMatchObject({ provenanceKind: "historical_documentation" });
       expect(plan.file).toBe(`${p.tradition}-blocks.jpg`);
     }
   });

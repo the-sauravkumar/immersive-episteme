@@ -246,6 +246,21 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
     expect(jp.after.stratum).toBe("high");
   });
 
+  it("a questionnaire step whose instrument is missing from the battery stops at that step instead of failing the session", async () => {
+    const study = await activeStudy({ steps: ["questionnaire_pre", "pre_test", "onboarding", "learning"], questionnaires: { pre: ["not-in-battery"], postLearning: [], end: [] } }, [["fx-pre", "pre"]]);
+    const s = await consented(study);
+    expect(await position(s.sessionId)).toMatchObject({ kind: "step", step: "questionnaire_pre" });
+    await expect(listStepAssessments(t.pool, await state(s.sessionId), "questionnaire_pre")).rejects.toMatchObject({ code: "assessment_not_ready" });
+  });
+
+  it("a failed device check under webglFailurePolicy=reassign lets the participant reach allocation", async () => {
+    const study = await activeStudy({ steps: ["pre_test", "onboarding", "learning"], webglFailurePolicy: "reassign" }, [["fx-pre", "pre"]]);
+    const s = await consented(study);
+    await pre(s.sessionId);
+    expect(await recordDeviceCheck(t.pool, s.sessionId, report(null))).toEqual({ kind: "passed" });
+    expect(await position(s.sessionId)).toEqual({ kind: "allocation" });
+  });
+
   it("study-03: after a runtime reassignment a repeated instrument is attempt 1 and 2, across both sessions", async () => {
     const steps = ["questionnaire_pre", "pre_test", "onboarding", "learning", "questionnaire_post_learning"];
     await t.pool.query("UPDATE assessments SET status = 'locked', locked_at = now() WHERE code = 'cognitive-load' AND status = 'draft'");

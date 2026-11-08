@@ -61,7 +61,7 @@ export function ActionForm({
     return r;
   }, null);
   return (
-    <form key={formKey} action={run} onSubmit={(e) => (pending ? e.preventDefault() : undefined)} className={className ?? "flex flex-col gap-4"}>
+    <form key={formKey} action={run} onSubmit={(e) => (pending ? e.preventDefault() : undefined)} onReset={(e) => e.preventDefault()} className={className ?? "flex flex-col gap-4"}>
       {children}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <Button type="submit" aria-disabled={pending || undefined}>

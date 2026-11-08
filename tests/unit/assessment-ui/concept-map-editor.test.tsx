@@ -23,7 +23,7 @@ function setup(onSave = vi.fn<OnSave>(async () => ({ ok: true }))) {
 describe("ConceptMapEditor (keyboard path)", () => {
   it("creates a typed, directed relationship with labelled selects and keyboard only", async () => {
     const { user } = setup();
-    const form = screen.getByRole("form", { name: "Add a Relationship" });
+    const form = screen.getByRole("form", { name: "Add A Relationship" });
     await user.selectOptions(within(form).getByLabelText("From concept"), "Alpha");
     await user.selectOptions(within(form).getByLabelText("Relationship"), "precedes");
     await user.selectOptions(within(form).getByLabelText("To concept"), "Beta");
@@ -38,7 +38,7 @@ describe("ConceptMapEditor (keyboard path)", () => {
 
   it("explains refusals instead of adding duplicates or untyped links", async () => {
     const { user } = setup();
-    const form = screen.getByRole("form", { name: "Add a Relationship" });
+    const form = screen.getByRole("form", { name: "Add A Relationship" });
     await user.selectOptions(within(form).getByLabelText("From concept"), "Alpha");
     await user.selectOptions(within(form).getByLabelText("To concept"), "Beta");
     await user.click(within(form).getByRole("button", { name: "Add relationship" }));
@@ -48,7 +48,7 @@ describe("ConceptMapEditor (keyboard path)", () => {
 
   it("revises, reverses and deletes, then submits the raw graph with its edit log", async () => {
     const { user, onSave } = setup();
-    const form = screen.getByRole("form", { name: "Add a Relationship" });
+    const form = screen.getByRole("form", { name: "Add A Relationship" });
     await user.selectOptions(within(form).getByLabelText("From concept"), "Alpha");
     await user.selectOptions(within(form).getByLabelText("Relationship"), "precedes");
     await user.selectOptions(within(form).getByLabelText("To concept"), "Beta");
@@ -75,12 +75,12 @@ describe("ConceptMapEditor (keyboard path)", () => {
     expect(payload.nodes).toHaveLength(3);
     expect(payload.editLog.map((l) => l.op)).toEqual(["add_edge", "retype_edge", "reverse_edge", "add_edge", "delete_edge"]);
     expect(await screen.findByText("Submitted. Thank you.")).toBeInTheDocument();
-    expect(screen.queryByRole("form", { name: "Add a Relationship" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("form", { name: "Add A Relationship" })).not.toBeInTheDocument();
   });
 
   it("autosaves after a pause and reports the save state politely", async () => {
     const { user, onSave } = setup();
-    const form = screen.getByRole("form", { name: "Add a Relationship" });
+    const form = screen.getByRole("form", { name: "Add A Relationship" });
     await user.selectOptions(within(form).getByLabelText("From concept"), "Alpha");
     await user.selectOptions(within(form).getByLabelText("Relationship"), "uses");
     await user.selectOptions(within(form).getByLabelText("To concept"), "Gamma");
@@ -91,7 +91,7 @@ describe("ConceptMapEditor (keyboard path)", () => {
 
   it("shows a save error without losing the map", async () => {
     const { user } = setup(vi.fn<OnSave>(async () => ({ ok: false, error: "Your study session has ended." })));
-    const form = screen.getByRole("form", { name: "Add a Relationship" });
+    const form = screen.getByRole("form", { name: "Add A Relationship" });
     await user.selectOptions(within(form).getByLabelText("From concept"), "Alpha");
     await user.selectOptions(within(form).getByLabelText("Relationship"), "uses");
     await user.selectOptions(within(form).getByLabelText("To concept"), "Gamma");

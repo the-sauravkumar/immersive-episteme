@@ -23,7 +23,7 @@ async function Withdraw() {
         <p className="t-b max-w-[34rem] text-lime">You can stop taking part at any time without giving a reason. Your session will end now.</p>
         <p className="t-b max-w-[34rem] text-lime">
           Your answers and records from this session up to now are kept as described in the information you agreed to
-          {days ? `, for ${days} days after your participation ends, and then removed` : ""}. If you want them removed sooner, tell the facilitator your participant code{" "}
+          {days ? `, for ${days} days after your participation ends, after which the research team removes them` : ""}. If you want them removed sooner, tell the facilitator your participant code{" "}
           <span className="t-table font-semibold wrap-anywhere whitespace-nowrap text-lime">{state.participantCode}</span>: the research team then deletes your answers, maps and activity
           records.
         </p>

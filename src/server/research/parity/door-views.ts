@@ -37,14 +37,15 @@ function paintedLines(plan: YardPlan): readonly string[] {
 }
 
 const NOT_PAINTED = "(not painted)";
+const NOT_SHOWN = "(not shown)";
 
 export function walkthroughView(template: StageTemplate, route: readonly RouteStation[] = buildRoute(template, clothStatePath)): DoorTraditionView {
   const stations = route.filter((station) => station.stageNumber !== null);
   const hall = route.find((station) => station.stageNumber === null);
   return {
     tradition: template.tradition,
-    stages: stations.map((station, index): DoorStageView => {
-      const stage = template.stages[index]!;
+    stages: stations.map((station): DoorStageView => {
+      const stage = template.stages.find((entry) => entry.number === station.stageNumber);
       const [numberWord, nameWord] = station.plan.words;
       const lines = paintedLines(station.plan);
       return {
@@ -52,13 +53,13 @@ export function walkthroughView(template: StageTemplate, route: readonly RouteSt
         key: station.stopKey,
         name: nameWord?.lines[0] ?? NOT_PAINTED,
         caption: station.plan.words.find((word) => word.colour === "caption")?.lines[0] ?? NOT_PAINTED,
-        sources: stage.caption.sources,
-        items: stage.items.map((item) => {
+        sources: stage?.caption.sources ?? [],
+        items: (stage?.items ?? []).map((item) => {
           const placed = station.plan.items.find((candidate) => candidate.item.key === item.key);
           const painted = lines.some((line) => line.includes(paintedOf(item)));
           return { key: item.key, label: painted ? item.label : NOT_PAINTED, localName: item.localName, modelId: placed?.item.modelId ?? item.modelId };
         }),
-        clothStateId: stage.clothStateId,
+        clothStateId: stage && clothStatePath(stage.clothStateId) === station.clothAfter ? stage.clothStateId : NOT_SHOWN,
         clothFile: station.clothAfter,
       };
     }),
@@ -69,7 +70,11 @@ export function walkthroughView(template: StageTemplate, route: readonly RouteSt
 export const DOOR_VIEW_BUILDERS: Record<LearningCondition, DoorViewBuilder> = { "2d": courseView, immersive: walkthroughView };
 
 export function buildDoorViews(templates: readonly StageTemplate[], builders: Partial<Record<LearningCondition, DoorViewBuilder>> = DOOR_VIEW_BUILDERS): DoorView[] {
-  return (Object.entries(builders) as [LearningCondition, DoorViewBuilder][]).map(([door, build]) => ({ door, reachable: true, traditions: templates.map((template) => build(template)) }));
+  return (Object.entries(builders) as [LearningCondition, DoorViewBuilder][]).map(([door, build]) => {
+    const traditions = templates.map((template) => build(template));
+    const reachable = traditions.every((view, index) => view.stages.length > 0 && view.stages.length === templates[index]!.stages.length && view.stages.every((stage, at) => stage.key === templates[index]!.stages[at]!.key));
+    return { door, reachable, traditions };
+  });
 }
 
 async function hashOf(publicPath: string): Promise<string | null> {

@@ -86,7 +86,6 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
 
       <Section
         id="protocol"
-        eyebrow="Protocol"
         title="Protocol configuration"
         
         description={draft ? "Saved changes are recorded in the history below." : "Frozen: this study is no longer a draft. Create a new version to change the protocol."}
@@ -234,7 +233,6 @@ function ParityAndActivation({
     <Section
       id="parity"
       demo={study.isDemo}
-      eyebrow="Confound control"
       title="Parity and activation"
       description="Activation generates a fresh parity report and is refused unless every critical check passes, including the information sheet and versioned consent text. The database separately requires a published release snapshot and, for a non-demo study, a locked battery."
     >
@@ -248,9 +246,11 @@ function ParityAndActivation({
                 <span className="font-medium">{latest.report.passed ? "Passed" : `Failed: ${latest.report.criticalFailures} critical check(s)`}</span>
                 {latest.report.warnings ? <span className="text-lime-dim">{latest.report.warnings} warning(s)</span> : null}
                 <Timestamp iso={latest.createdAt} />
-                <Link className={LINK_44} href={`/research/parity?study=${study.id}`}>
-                  Open the report
-                </Link>
+                {principalCan("parity.run") ? (
+                  <Link className={LINK_44} href={`/research/parity?study=${study.id}`}>
+                    Open the report
+                  </Link>
+                ) : null}
               </span>
             ) : (
               "No parity report yet."
@@ -365,6 +365,10 @@ function ConfigForm({
             <input type="checkbox" name="cueEnabled" defaultChecked={c.guidance.cueEnabled} className={CHECK_BOX} />
             Hint and stall cue on (both doors, every use logged)
           </label>
+          <label className={CHECK_ROW}>
+            <input type="checkbox" name="nonExperimental" defaultChecked={c.nonExperimental} className={CHECK_BOX} />
+            Non-experimental (a pilot: its data are never analysed as observations)
+          </label>
         </div>
       </fieldset>
       <QuestionnaireFields instruments={instruments} />
@@ -409,12 +413,12 @@ function QuestionnaireFields({ instruments }: { instruments: QuestionnaireInstru
           <TableBody>
             {instruments.map((q) => (
               <TableRow key={q.code}>
-                <TableCell className="min-w-56 whitespace-normal">
+                <TableCell className="min-w-40 whitespace-normal">
                   <span className="font-medium">{q.title}</span>
                   <span className="t-table font-semibold wrap-anywhere block text-lime-dim">{q.code}</span>
                 </TableCell>
                 <TableCell>
-                  <NativeSelect name={`questionnaireStep:${q.code}`} defaultValue={q.slot ?? ""} className="w-56" aria-label={`When ${q.title} is given`}>
+                  <NativeSelect name={`questionnaireStep:${q.code}`} defaultValue={q.slot ?? ""} className="w-full min-w-40" aria-label={`When ${q.title} is given`}>
                     <option value="">Not used</option>
                     {(Object.keys(QUESTIONNAIRE_STEP_LABEL) as QuestionnaireSlot[]).map((slot) => (
                       <option key={slot} value={slot}>
@@ -424,14 +428,14 @@ function QuestionnaireFields({ instruments }: { instruments: QuestionnaireInstru
                   </NativeSelect>
                 </TableCell>
                 <TableCell>
-                  <NativeSelect name={`questionnaireFor:${q.code}`} defaultValue={q.audience ?? ""} className="w-48" aria-label={`Who answers ${q.title}`}>
+                  <NativeSelect name={`questionnaireFor:${q.code}`} defaultValue={q.audience ?? ""} className="w-full min-w-36" aria-label={`Who answers ${q.title}`}>
                     <option value="">Both conditions</option>
                     <option value="2d">Conventional 2D only</option>
                     <option value="immersive">Immersive 3D only</option>
                   </NativeSelect>
                 </TableCell>
                 <TableCell>
-                  <NativeSelect name={`questionnaireVersion:${q.code}`} defaultValue={q.version ? String(q.version) : ""} className="w-44" aria-label={`Version of ${q.title}`}>
+                  <NativeSelect name={`questionnaireVersion:${q.code}`} defaultValue={q.version ? String(q.version) : ""} className="w-full min-w-32" aria-label={`Version of ${q.title}`}>
                     <option value="">Highest in the battery</option>
                     {q.versions.map((v) => (
                       <option key={v} value={String(v)}>
@@ -441,7 +445,7 @@ function QuestionnaireFields({ instruments }: { instruments: QuestionnaireInstru
                   </NativeSelect>
                 </TableCell>
                 <TableCell numeric>
-                  <Input name={`questionnaireOrder:${q.code}`} type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={q.slot ? q.order : ""} className="ml-auto w-20 text-right tabular-nums" aria-label={`Order of ${q.title}`} />
+                  <Input name={`questionnaireOrder:${q.code}`} type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={q.slot ? q.order : ""} className="ml-auto w-16 text-right tabular-nums" aria-label={`Order of ${q.title}`} />
                 </TableCell>
               </TableRow>
             ))}
@@ -455,7 +459,7 @@ function QuestionnaireFields({ instruments }: { instruments: QuestionnaireInstru
   );
 }
 
-const PHASES = ["pre", "learning", "post", "follow_up"];
+const PHASES = ["pre", "post", "follow_up"];
 
 function BatteryForm({ study, assessments, disabled }: { study: StudyDetail; assessments: Awaited<ReturnType<typeof assessmentOptions>>; disabled: boolean }) {
   const inBattery = new Map(study.battery.map((b) => [b.assessmentId, b]));
@@ -493,18 +497,28 @@ function BatteryForm({ study, assessments, disabled }: { study: StudyDetail; ass
               <TableCell>
                 <PublishedBadge published={a.status === "locked"} label={words(a.status)} />
               </TableCell>
-              <TableCell>
-                <NativeSelect name={`phase:${a.id}`} defaultValue={b?.phase ?? (a.kind === "pretest" ? "pre" : "post")} className="w-40" disabled={disabled} aria-label={`Phase of ${a.title}`}>
-                  {PHASES.map((p) => (
-                    <option key={p} value={p}>
-                      {words(p)}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </TableCell>
-              <TableCell numeric>
-                <Input name={`position:${a.id}`} type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={b?.position ?? 0} className="ml-auto w-20 text-right tabular-nums" disabled={disabled} aria-label={`Position of ${a.title}`} />
-              </TableCell>
+              {a.kind === "questionnaire" ? (
+                <TableCell colSpan={2} className="whitespace-normal text-lime-dim">
+                  <input type="hidden" name={`phase:${a.id}`} value={b?.phase ?? "post"} />
+                  <input type="hidden" name={`position:${a.id}`} value={b?.position ?? 0} />
+                  When and in what order it is given is set in Table 1.
+                </TableCell>
+              ) : (
+                <>
+                  <TableCell>
+                    <NativeSelect name={`phase:${a.id}`} defaultValue={b?.phase ?? (a.kind === "pretest" ? "pre" : "post")} className="w-40" disabled={disabled} aria-label={`Phase of ${a.title}`}>
+                      {PHASES.map((p) => (
+                        <option key={p} value={p}>
+                          {words(p)}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </TableCell>
+                  <TableCell numeric>
+                    <Input name={`position:${a.id}`} type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={b?.position ?? 0} className="ml-auto w-20 text-right tabular-nums" disabled={disabled} aria-label={`Position of ${a.title}`} />
+                  </TableCell>
+                </>
+              )}
               <TableCell>
                 <label className="flex size-11 cursor-pointer items-center justify-center">
                   <input type="checkbox" name={`required:${a.id}`} defaultChecked={b?.required ?? true} disabled={disabled} aria-label={`${a.title} required: every question must be answered`} className={CHECK_BOX} />

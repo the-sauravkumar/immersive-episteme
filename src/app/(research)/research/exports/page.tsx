@@ -7,7 +7,7 @@ import { can } from "@/lib/permissions/can";
 import { staleMetricsAdvice } from "@/features/research/stale-metrics";
 import { getStaffPrincipal } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
-import { DASHBOARD_TABLES, EXPORT_TABLES, exportMetricRoles, type TableSpec } from "@/server/research/exports/dictionary";
+import { DASHBOARD_EXTRA_TABLES, DASHBOARD_TABLES, EXPORT_TABLES, exportMetricRoles, type TableSpec } from "@/server/research/exports/dictionary";
 import { staleMetricSessions } from "@/server/research/metrics/pipeline";
 import { listStudies } from "@/server/research/studies";
 
@@ -121,7 +121,7 @@ async function Exports({ searchParams }: { searchParams: Promise<Record<string, 
         }
       >
         <div className="flex flex-col border-y border-line">
-          {[...EXPORT_TABLES.filter((t) => identified || !t.identifiedOnly), ...DASHBOARD_TABLES].map((t: TableSpec) => (
+          {[...EXPORT_TABLES.filter((t) => identified || !t.identifiedOnly), ...DASHBOARD_TABLES, ...DASHBOARD_EXTRA_TABLES].map((t: TableSpec) => (
             <Disclosure
               key={t.name}
               className="border-t border-line first:border-t-0"

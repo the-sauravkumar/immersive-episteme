@@ -91,4 +91,11 @@ describe("door views read each door's own generator", () => {
     const input = inputFor(doors);
     expect(failed({ ...input, fileHashes: { ...input.fileHashes, "/walkthrough/other.jpg": "a-different-hash" } })).toContain("file_hash_differs");
   });
+
+  it("marks a door unreachable when its route does not reach every stage of the template", () => {
+    const shortened = buildDoorViews(templates, { "2d": courseView, immersive: (template) => ({ ...walkthroughView(template), stages: walkthroughView(template).stages.slice(1) }) });
+    expect(shortened.find((door) => door.door === "immersive")!.reachable).toBe(false);
+    expect(shortened.find((door) => door.door === "2d")!.reachable).toBe(true);
+    expect(failed(inputFor(shortened))).toContain("door_unreachable");
+  });
 });

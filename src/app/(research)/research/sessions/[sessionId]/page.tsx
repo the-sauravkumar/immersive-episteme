@@ -260,7 +260,7 @@ async function SessionView({ params }: { params: Promise<{ sessionId: string }> 
       </Section>
 
       {can(principal, "sessions.exclude") && !s.excluded ? (
-        <Section demo={s.nonExperimental} id="exclude" title="Exclude from analysis" description="Flags the session; raw data is kept and exports carry the flag and its category. This cannot be undone here.">
+        <Section demo={s.nonExperimental} id="exclude" title="Exclude from analysis" description="Flags the session and ends it: a participant still taking part is stopped at their next step and told the session has ended. Raw data is kept and exports carry the flag and its category. This cannot be undone here.">
           <ActionForm action={excludeAction.bind(null, s.id)} submitLabel="Exclude session" variant="destructive" className="grid max-w-xl gap-4">
             <FieldLabel label="Reason category">
               <NativeSelect name="category" defaultValue="technical_failure">

@@ -140,14 +140,7 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     expect(await code(reviewAsset(t.pool, curator, { assetId: asset.id, to: "verified", evidenceChecked: [...all] }))).toBe("self_verification");
   });
 
-  it("records the public-plate flag, keeps no licence cap, expiry or term, and applies the figure text rules", async () => {
-    const asset = await createAssetFromBytes(t.pool, editor, storage, {
-      bytes: png(768, 512, 20),
-      declaredMime: "image/png",
-      metadata: { ...META, publicPlate: "on" },
-    });
-    const row = await one<{ public_plate: boolean }>(t.pool, "SELECT public_plate FROM assets WHERE id = $1", [asset.id]);
-    expect(row).toEqual({ public_plate: true });
+  it("keeps no licence cap, expiry or term, and applies the figure text rules", async () => {
     const dropped = await t.pool.query(
       "SELECT column_name FROM information_schema.columns WHERE table_name = 'assets' AND column_name IN ('max_pixels', 'licence_expires_on', 'licence_term_months', 'first_published_on')",
     );
@@ -219,11 +212,10 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     }
     expect(await loadLearnerFigure(t.pool, fig.id)).toMatchObject({ id: fig.id });
 
-    const plate = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(1600, 1000, 51), declaredMime: "image/png", metadata: { ...META, publicPlate: "on" } });
-    expect(await loadLearnerFigure(t.pool, plate.id)).toBeNull();
-    await submitAssetForReview(t.pool, editor, { assetId: plate.id });
-    await reviewAsset(t.pool, curator2, { assetId: plate.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
-    expect(await loadLearnerFigure(t.pool, plate.id)).toMatchObject({ id: plate.id });
+    const unlinked = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(1600, 1000, 51), declaredMime: "image/png", metadata: META });
+    await submitAssetForReview(t.pool, editor, { assetId: unlinked.id });
+    await reviewAsset(t.pool, curator2, { assetId: unlinked.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
+    expect(await loadLearnerFigure(t.pool, unlinked.id)).toBeNull();
 
     expect(FIGURE_MAX_AGE).toBe(300);
   });

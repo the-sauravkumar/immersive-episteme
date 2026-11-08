@@ -176,7 +176,7 @@ function SourceForm({ s }: { s: SourceRow | null }) {
           <Input id={`${p}-publisher`} name="publisher" defaultValue={s?.publisher ?? ""} />
         </FormField>
         <FormField id={`${p}-year`} name="year" label="Year (four digits)">
-          <Input id={`${p}-year`} name="year" type="text" inputMode="numeric" pattern="[0-9]*" defaultValue={s?.year ?? ""} />
+          <Input id={`${p}-year`} name="year" type="text" inputMode="numeric" pattern="[0-9]{4}" maxLength={4} defaultValue={s?.year ?? ""} />
         </FormField>
         <FormField id={`${p}-accessed`} name="accessedOn" label="Accessed on (web pages)" hint="Format: YYYY-MM-DD">
           <Input id={`${p}-accessed`} name="accessedOn" type="date" aria-describedby={`${p}-accessed-hint`} defaultValue={s?.accessedOn ?? ""} className="tabular-nums" />

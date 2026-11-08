@@ -82,17 +82,22 @@ export async function createStaffUser(
   const input = createStaffInput.parse(raw);
   const exists = await deps.pool.query("SELECT 1 FROM users WHERE email = $1", [input.email]);
   if (exists.rowCount) throw new CmsError("email_taken", "A staff account with this email already exists. Assign roles to it instead.", 409);
-  const res = await createStaffAccount(deps.auth, deps.db, input, actor.userId);
-  await inActorTx(deps.pool, actor, null, (c) =>
-    audit(c, actor, {
-      action: "admin.user_created",
-      entity: "users",
-      entityId: res.userId,
-      after: { name: input.name, email: input.email, roles: res.roles },
-      reason: "staff account created by an administrator",
-    }),
-  );
-  return { userId: res.userId };
+  try {
+    const res = await createStaffAccount(deps.auth, deps.db, input, actor.userId);
+    await inActorTx(deps.pool, actor, null, (c) =>
+      audit(c, actor, {
+        action: "admin.user_created",
+        entity: "users",
+        entityId: res.userId,
+        after: { name: input.name, email: input.email, roles: res.roles },
+        reason: "staff account created by an administrator",
+      }),
+    );
+    return { userId: res.userId };
+  } catch (err) {
+    await deps.pool.query("DELETE FROM users WHERE email = $1", [input.email]);
+    throw err;
+  }
 }
 
 export const userIdInput = z.object({ userId: z.string().trim().min(1).max(128) });

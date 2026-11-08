@@ -252,7 +252,7 @@ export function UserRowActions({ user, self, manageRoles, minPasswordLength }: {
         <DialogContent {...contentProps}>
           <DialogHeader>
             <DialogTitle>Unlock this account</DialogTitle>
-            <DialogDescription>{user.name} can sign in again with their existing password and roles.</DialogDescription>
+            <DialogDescription>{user.name} can sign in again {user.hasPassword ? "with their existing password" : "with Google"} and keeps their roles.</DialogDescription>
           </DialogHeader>
           <ActionForm action={announced(unlockStaffAction)} submitLabel="Unlock account" pendingLabel="Unlocking…" onDone={(s) => s.ok && done()}>
             <input type="hidden" name="userId" value={user.id} />

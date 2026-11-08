@@ -58,8 +58,9 @@ export interface ParityStudyInput {
   config: unknown;
   snapshotId: string | null;
   manifestId: string | null;
+  allowUnverifiedContent?: boolean;
   conditions: { id: string; code: string; label: string; interface: string; config: Record<string, unknown> }[];
-  battery: { assessmentId: string; code: string; version: number; kind: string; phase: string; position: number; status: string; required: boolean }[];
+  battery: { assessmentId: string; code: string; version: number; kind: string; phase: string; position: number; status: string; required: boolean; anchorsUnconfirmed?: boolean }[];
 }
 
 interface ParitySnapshotInput {
@@ -68,6 +69,7 @@ interface ParitySnapshotInput {
   status: string;
   kind: string;
   isDemo: boolean;
+  includesUnverified?: boolean;
 }
 
 export interface DoorStageView {
@@ -346,6 +348,9 @@ export function runParityChecks(input: ParityInput): ParityReport {
     if (snapshot.kind !== "release") baseSnap.push({ code: "snapshot_not_release", message: `Snapshot ${snapshot.versionLabel} is a ${snapshot.kind} snapshot, not a release.`, ref: snapshot.id });
     if (snapshot.status !== "published") baseSnap.push({ code: "snapshot_not_published", message: `Snapshot ${snapshot.versionLabel} is ${snapshot.status}, not published.`, ref: snapshot.id });
     if (snapshot.isDemo && !study.isDemo) baseSnap.push({ code: "snapshot_demo", message: "A non-demo study cannot use a demo snapshot.", ref: snapshot.id });
+    if (snapshot.includesUnverified && !study.allowUnverifiedContent) {
+      baseSnap.push({ code: "snapshot_unverified", message: `Snapshot ${snapshot.versionLabel} includes unverified content, which the database refuses at activation unless the study explicitly allows it. Pin a snapshot whose content is verified.`, ref: snapshot.id });
+    }
   }
   checks.push(check("base.snapshot", "base", "Pinned snapshot is a published release snapshot", "critical", baseSnap));
 
@@ -427,6 +432,9 @@ export function runParityChecks(input: ParityInput): ParityReport {
   const dWarn: ParityIssue[] = [];
   const phases = new Set(study.battery.map((a) => a.phase));
   if (!phases.has("pre") || !phases.has("post")) dWarn.push({ code: "battery_incomplete", message: "The assessment battery has no pre- and/or post-learning assessment." });
+  for (const a of study.battery.filter((entry) => entry.anchorsUnconfirmed)) {
+    dWarn.push({ code: "anchors_unconfirmed", message: `${a.code} v${a.version} shows scale end labels that are a platform choice, not taken from its source. Confirm them before the study runs.`, ref: a.assessmentId });
+  }
   checks.push(check("d.review", "d", "Battery and guidance points that need researcher review", "warning", dWarn));
 
   const eIssues: ParityIssue[] = [];
@@ -452,7 +460,7 @@ export function runParityChecks(input: ParityInput): ParityReport {
     snapshotId: snapshot?.id ?? null,
     snapshotLabel: snapshot?.versionLabel ?? null,
     manifestId: study.manifestId,
-    inputSha256: parityInputHash(study),
+    inputSha256: parityInputHash(input),
     passed: criticalFailures === 0,
     criticalFailures,
     warnings: failed.length - criticalFailures,
@@ -466,8 +474,10 @@ export function runParityChecks(input: ParityInput): ParityReport {
   };
 }
 
-export function parityInputHash(study: ParityStudyInput): string {
+export function parityInputHash({ study, templates, fileHashes }: Pick<ParityInput, "study" | "templates" | "fileHashes">): string {
   return canonicalHash({
+    templates,
+    fileHashes,
     protocolVersion: study.protocolVersion,
     design: study.design,
     config: study.config ?? {},

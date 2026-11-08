@@ -19,7 +19,6 @@ import { requireReconstructionStep } from "@/server/study/session";
 
 export const metadata: Metadata = { title: titleCase("Connect the concepts") };
 
-const PHASE_LABEL = { pre: "Before the learning task", post: "After the learning task" } as const;
 
 export const instant = false;
 
@@ -86,7 +85,7 @@ async function Reconstruction() {
         title="Connect the concepts"
         description={
           <div className="flex flex-col gap-3">
-            <p>{PHASE_LABEL[task.phase]}.</p>
+            <p>After the learning task.</p>
             <p className="t-b whitespace-pre-line text-lime">{task.prompt}</p>
             <p>
               Move the concepts anywhere you like. Add a relationship with the form below the map, or by dragging from the dot under one

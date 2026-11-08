@@ -85,10 +85,10 @@ export function CreateInviteForm({ studies, origin }: { studies: StudyOption[]; 
               ))}
             </NativeSelect>
           </FormField>
-          <FormField id={ids.maxUses} name="maxUses" label="Use limit (optional)" hint="How many browsers may redeem it. Empty means no limit.">
+          <FormField id={ids.maxUses} name="maxUses" label="Use limit (optional)" hint="How many times it may be entered and confirmed with Continue. Empty means no limit.">
             <Input id={ids.maxUses} name="maxUses" type="text" inputMode="numeric" pattern="[0-9]*" aria-describedby={`${ids.maxUses}-hint ${ids.maxUses}-error`} />
           </FormField>
-          <FormField id={ids.expiresOn} name="expiresOn" label="Last day to redeem (optional, UTC)" hint="It stops admitting new browsers after this day. Browsers that already used it stay in.">
+          <FormField id={ids.expiresOn} name="expiresOn" label="Last day to redeem (optional, UTC)" hint="It stops admitting new browsers after this day. A browser that already used it stays in until its 30-day access ends or its cookies are cleared.">
             <Input id={ids.expiresOn} name="expiresOn" type="date" aria-describedby={`${ids.expiresOn}-hint ${ids.expiresOn}-error`} />
           </FormField>
         </div>
@@ -126,7 +126,7 @@ export function RevokeInviteButton({ inviteId, label, hint }: { inviteId: string
           <DialogHeader>
             <DialogTitle>Revoke this code</DialogTitle>
             <DialogDescription>
-              The code for {label} stops working now: nobody can redeem it, and every browser that already used it, including a participant part-way through a study, is sent to the invite page on its next request. This
+              The code for {label} stops working now: nobody can redeem it, and every browser that already used it, including a participant part-way through a study, is refused on its next page or study request. This
               cannot be undone; create a new code instead.
             </DialogDescription>
           </DialogHeader>

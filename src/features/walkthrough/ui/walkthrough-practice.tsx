@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { HELP_TITLE, PRACTICE_HELP_LINES } from "@/features/process/domain/guidance";
+import { DoorDialog } from "@/features/process/ui/door-dialog";
+import { HelpIcon } from "@/features/process/ui/door-icons";
 import type { WalkEngine, WalkEngineFactory } from "../application/walk-engine";
 import { practiceStation } from "../domain/route-plan";
 import "./walkthrough.css";
@@ -24,6 +26,11 @@ export function WalkthroughPractice({ createEngine, onFinished, onRenderFailed, 
   const [helpOpen, setHelpOpen] = useState(false);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
+  const blocked = useRef(false);
+  useEffect(() => {
+    blocked.current = helpOpen;
+    if (helpOpen) runtime.current?.setMove(0, 0);
+  }, [helpOpen]);
 
   useEffect(() => {
     failedHandler.current = onRenderFailed;
@@ -97,6 +104,7 @@ export function WalkthroughPractice({ createEngine, onFinished, onRenderFailed, 
       runtime.current?.setMove(Math.sign(forward), Math.sign(strafe));
     };
     const down = (event: KeyboardEvent) => {
+      if (blocked.current) return;
       if (KEY_MOVES[event.code]) {
         pressed.add(event.code);
         apply();
@@ -138,20 +146,20 @@ export function WalkthroughPractice({ createEngine, onFinished, onRenderFailed, 
       />
       {ready ? null : <div className="walkthrough-cover walkthrough-loading" role="status">Opening The Yard</div>}
       <div className="walkthrough-tools">
-        <button type="button" onClick={() => setHelpOpen(true)}>{HELP_TITLE}</button>
+        <button type="button" className="walkthrough-icon" aria-label={HELP_TITLE} onClick={() => setHelpOpen(true)}>
+          <HelpIcon />
+        </button>
       </div>
       <div className="walkthrough-move">
         <button type="button" className="walkthrough-next" disabled={!ready} onClick={onFinished}>Finish Practice</button>
       </div>
       {helpOpen ? (
-        <div className="walkthrough-dialog" role="dialog" aria-modal="true" aria-label={HELP_TITLE}>
-          <h2>{HELP_TITLE}</h2>
+        <DoorDialog className="walkthrough-dialog" title={HELP_TITLE} action="Close" onClose={() => setHelpOpen(false)} offersWithdrawal>
           <p>Walk with W, A, S and D or the arrow keys. Drag to look around.</p>
           {PRACTICE_HELP_LINES.map((line) => (
             <p key={line}>{line}</p>
           ))}
-          <button type="button" onClick={() => setHelpOpen(false)}>Close</button>
-        </div>
+        </DoorDialog>
       ) : null}
       {failed ? <div className="walkthrough-cover walkthrough-loading" role="alert">This Device Cannot Show The Yard</div> : null}
     </div>

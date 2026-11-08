@@ -1,3 +1,4 @@
+import { clientIpPolicy } from "@/lib/client-ip";
 import { googleOAuthCredentials } from "@/lib/env";
 import { DEFAULT_ACCOUNT_THROTTLE } from "@/server/auth/account-throttle";
 import { MIN_PASSWORD_LENGTH } from "@/server/auth/config";
@@ -21,6 +22,7 @@ export function effectiveSettings(actor: Actor, env: Record<string, string | und
   const media = mediaStorageConfig(env);
   const google = googleOAuthCredentials(env) !== null;
   const proxies = (env.AUTH_TRUSTED_PROXIES ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+  const knowsClientAddress = clientIpPolicy(env).trustForwardedHeaders;
   return [
     {
       title: "Build and access",
@@ -39,7 +41,13 @@ export function effectiveSettings(actor: Actor, env: Record<string, string | und
       items: [
         { label: "Session lifetime", value: "12 hours, refreshed hourly", source: "src/server/auth/config.ts" },
         { label: "Minimum password length", value: `${MIN_PASSWORD_LENGTH} characters`, source: "src/server/auth/config.ts" },
-        { label: "Sign-in rate limit (per IP)", value: "5 attempts per minute", source: "src/server/auth/config.ts" },
+        {
+          label: "Sign-in rate limit",
+          value: knowsClientAddress
+            ? "5 attempts per minute per client address"
+            : "5 attempts per minute shared by the whole site: no client address is known, so every visitor counts against one limit. Set AUTH_CLIENT_IP_HEADER or AUTH_TRUSTED_PROXIES",
+          source: "src/server/auth/config.ts",
+        },
         { label: "Sign-in throttle (per account)", value: `${DEFAULT_ACCOUNT_THROTTLE.maxAttempts} attempts per ${DEFAULT_ACCOUNT_THROTTLE.windowSeconds / 60} minutes, then a ${DEFAULT_ACCOUNT_THROTTLE.lockSeconds / 60}-minute lock`, source: "src/server/auth/account-throttle.ts" },
         {
           label: "Google sign-in",
@@ -53,8 +61,12 @@ export function effectiveSettings(actor: Actor, env: Record<string, string | und
             : "off; administrators create staff accounts",
           source: "src/server/auth/config.ts, src/server/auth/google-sign-in.ts",
         },
-        { label: "Trusted reverse proxies", value: proxies.length ? `${proxies.length} configured` : "none (socket address used)", source: "AUTH_TRUSTED_PROXIES" },
-        { label: "Client IP header", value: env.AUTH_CLIENT_IP_HEADER || "x-forwarded-for (only from trusted proxies)", source: "AUTH_CLIENT_IP_HEADER" },
+        { label: "Trusted reverse proxies", value: proxies.length ? `${proxies.length} configured` : "none", source: "AUTH_TRUSTED_PROXIES" },
+        {
+          label: "Client IP header",
+          value: env.AUTH_CLIENT_IP_HEADER || (proxies.length ? "x-forwarded-for, read only from the trusted proxies" : "none: client address headers are removed and no address is read"),
+          source: "AUTH_CLIENT_IP_HEADER",
+        },
       ],
     },
     {

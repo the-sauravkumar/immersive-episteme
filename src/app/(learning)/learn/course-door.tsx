@@ -16,7 +16,7 @@ function courseStop(event: CourseStageEvent, templates: readonly StageTemplate[]
 }
 
 export function CourseDoor({ templates, resume, studyMode, guidance }: DoorSessionProps) {
-  const { notice, restore, enter, left, finish } = useDoorProgress(templates);
+  const { notice, restore, enter, left, finish } = useDoorProgress(templates, studyMode);
   return (
     <>
       <CourseSession

@@ -1,17 +1,17 @@
 import { EVENT_TYPE_REGISTRY } from "@/features/telemetry/contracts";
 
-export const NAVIGATION_METRICS_VERSION = "1";
+export const NAVIGATION_METRICS_VERSION = "2";
 
 export const NAVIGATION_METRIC_DEFINITIONS = [
-  { name: "nav.path_length", unit: "visits", definition: "Number of concept visits (exposure intervals), consecutive repeats of the same concept collapsed." },
-  { name: "nav.breadth", unit: "concepts", definition: "Distinct concepts visited. details: distinct traditions and categories." },
-  { name: "nav.depth", unit: "layers/concept", definition: "Mean distinct content layers (overview, artisan, process, science, comparison) opened per visited concept." },
-  { name: "nav.revisit_rate", unit: "ratio", definition: "(visits - distinct concepts) / visits; null without visits." },
-  { name: "nav.cross_domain_transitions", unit: "transitions", definition: "Consecutive visits whose tradition differs (shared/comparison concepts = 'shared'). details: cross-category transitions." },
-  { name: "nav.science_layer_engagement", unit: "ratio", definition: "Science-layer exposure ms / total exposure ms over completed intervals; null without exposure." },
-  { name: "nav.path_entropy", unit: "bits", definition: "Conditional entropy H(next|current) of first-order concept transitions; null with < 2 transitions. Provisional." },
+  { name: "nav.path_length", unit: "visits", definition: "Number of stop visits (stage_entered, either door), consecutive repeats of the same stop collapsed." },
+  { name: "nav.breadth", unit: "stops", definition: "Distinct stops visited. details: distinct traditions." },
+  { name: "nav.depth", unit: "layers/concept", definition: "Mean distinct content layers opened per visited concept; null when the doors record no layer intervals, as the Paper 1 doors do not." },
+  { name: "nav.revisit_rate", unit: "ratio", definition: "(visits - distinct stops) / visits; null without visits." },
+  { name: "nav.cross_domain_transitions", unit: "transitions", definition: "Consecutive stop visits whose tradition differs." },
+  { name: "nav.science_layer_engagement", unit: "ratio", definition: "Science-layer exposure ms / total exposure ms; null when the doors record no layer intervals, as the Paper 1 doors do not." },
+  { name: "nav.path_entropy", unit: "bits", definition: "Conditional entropy H(next|current) of first-order stop transitions; null with < 2 transitions. Provisional." },
   { name: "nav.sequence_patterns", unit: "bigrams", definition: "Distinct bigrams of the analytic-concept sequence; details: top bigrams and trigrams." },
-  { name: "nav.relationships_followed", unit: "count", definition: "relationship_followed events; details: distinct relationships." },
+  { name: "nav.relationships_followed", unit: "count", definition: "relationship_followed events; null when the doors offer no relationship to follow, as the Paper 1 doors do not." },
 ] as const;
 
 type NavigationMetricName = (typeof NAVIGATION_METRIC_DEFINITIONS)[number]["name"];
@@ -56,6 +56,26 @@ export function visitSequence(events: readonly NavEvent[]): Visit[] {
   return out;
 }
 
+export interface StopVisit {
+  stop: string;
+  tradition: string;
+  seq: number;
+}
+
+export function stopSequence(events: readonly NavEvent[]): StopVisit[] {
+  const sorted = [...events].sort((a, b) => a.seq - b.seq);
+  const out: StopVisit[] = [];
+  for (const e of sorted) {
+    if (e.type !== "stage_entered") continue;
+    const m = (e.metadata ?? {}) as Record<string, unknown>;
+    const tradition = String(m.traditionKey);
+    const stop = `${tradition}:${String(m.stageKey)}`;
+    if (out.length && out[out.length - 1]!.stop === stop) continue;
+    out.push({ stop, tradition, seq: e.seq });
+  }
+  return out;
+}
+
 const log2 = (x: number) => Math.log(x) / Math.LN2;
 
 function entropy(counts: Iterable<number>): number {
@@ -76,12 +96,10 @@ function topN(m: Map<string, number>, n: number): { pattern: string; count: numb
     .map(([pattern, count]) => ({ pattern, count }));
 }
 
-export function computeNavigationMetrics(events: readonly NavEvent[], concepts: ReadonlyMap<string, ConceptFacts>): MetricValue[] {
+export function computeNavigationMetrics(events: readonly NavEvent[]): MetricValue[] {
   const sorted = [...events].sort((a, b) => a.seq - b.seq);
-  const visits = visitSequence(sorted);
-  const distinct = new Set(visits.map((v) => v.conceptId));
-  const domainOf = (id: string) => concepts.get(id)?.traditionId ?? "shared";
-  const categoryOf = (id: string) => concepts.get(id)?.category ?? "unknown";
+  const visits = stopSequence(sorted);
+  const distinct = new Set(visits.map((v) => v.stop));
 
   const layers = new Map<string, Set<string>>();
   const layerTotals: Record<string, number> = {};
@@ -118,14 +136,12 @@ export function computeNavigationMetrics(events: readonly NavEvent[], concepts: 
   const layerCounts = [...layers.values()].map((s) => s.size);
 
   let crossDomain = 0;
-  let crossCategory = 0;
   const transitions = new Map<string, number>();
   const fromCounts = new Map<string, Map<string, number>>();
   for (let i = 1; i < visits.length; i++) {
-    const a = visits[i - 1]!.conceptId;
-    const b = visits[i]!.conceptId;
-    if (domainOf(a) !== domainOf(b)) crossDomain++;
-    if (categoryOf(a) !== categoryOf(b)) crossCategory++;
+    const a = visits[i - 1]!.stop;
+    const b = visits[i]!.stop;
+    if (visits[i - 1]!.tradition !== visits[i]!.tradition) crossDomain++;
     transitions.set(`${a}>${b}`, (transitions.get(`${a}>${b}`) ?? 0) + 1);
     const row = fromCounts.get(a) ?? fromCounts.set(a, new Map()).get(a)!;
     row.set(b, (row.get(b) ?? 0) + 1);
@@ -141,7 +157,7 @@ export function computeNavigationMetrics(events: readonly NavEvent[], concepts: 
     condEntropy = round(h);
   }
   const visitCounts = new Map<string, number>();
-  for (const v of visits) visitCounts.set(v.conceptId, (visitCounts.get(v.conceptId) ?? 0) + 1);
+  for (const v of visits) visitCounts.set(v.stop, (visitCounts.get(v.stop) ?? 0) + 1);
 
   const seq = sorted.filter((e) => ANALYTIC.has(e.type) && !ANALYTIC.get(e.type)!.technical).map((e) => ANALYTIC.get(e.type)!.concept);
   const bigrams = new Map<string, number>();
@@ -163,16 +179,13 @@ export function computeNavigationMetrics(events: readonly NavEvent[], concepts: 
   });
   return [
     v("nav.path_length", visits.length, { transitions: nTransitions }),
-    v("nav.breadth", distinct.size, {
-      traditions: new Set([...distinct].map(domainOf)).size,
-      categories: new Set([...distinct].map(categoryOf)).size,
-    }),
+    v("nav.breadth", distinct.size, { traditions: new Set(visits.map((visit) => visit.tradition)).size }),
     v("nav.depth", layerCounts.length ? round(layerCounts.reduce((a, b) => a + b, 0) / layerCounts.length) : null, {
       maxLayers: layerCounts.length ? Math.max(...layerCounts) : 0,
       completedIntervalsByLayer: layerTotals,
     }),
     v("nav.revisit_rate", visits.length ? round((visits.length - distinct.size) / visits.length) : null, { revisits: visits.length - distinct.size }),
-    v("nav.cross_domain_transitions", crossDomain, { crossCategory, transitions: nTransitions, share: nTransitions ? round(crossDomain / nTransitions) : null }),
+    v("nav.cross_domain_transitions", crossDomain, { transitions: nTransitions, share: nTransitions ? round(crossDomain / nTransitions) : null }),
     v("nav.science_layer_engagement", exposureMs > 0 ? round(scienceMs / exposureMs) : null, {
       scienceMs,
       exposureMs,
@@ -182,6 +195,6 @@ export function computeNavigationMetrics(events: readonly NavEvent[], concepts: 
     }),
     v("nav.path_entropy", condEntropy, { visitEntropy: round(entropy(visitCounts.values())), distinctTransitions: transitions.size }),
     v("nav.sequence_patterns", bigrams.size, { topBigrams: topN(bigrams, 10), topTrigrams: topN(trigrams, 10), events: seq.length }),
-    v("nav.relationships_followed", followed, { distinct: followedIds.size }),
+    v("nav.relationships_followed", followed > 0 ? followed : null, { distinct: followedIds.size }),
   ];
 }

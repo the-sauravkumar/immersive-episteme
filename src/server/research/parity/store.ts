@@ -25,7 +25,8 @@ export async function loadParityInput(q: Q, studyId: string): Promise<ParityInpu
     config: unknown;
     snapshot_id: string | null;
     manifest_id: string | null;
-  }>("SELECT id, slug, protocol_version, design, is_demo, config, snapshot_id, manifest_id FROM studies WHERE id = $1", [studyId]);
+    allow_unverified_content: boolean;
+  }>("SELECT id, slug, protocol_version, design, is_demo, config, snapshot_id, manifest_id, allow_unverified_content FROM studies WHERE id = $1", [studyId]);
   const study = s.rows[0];
   if (!study) throw new ResearchActionError("Study not found");
   const [conditions, battery, snapshot, budgets] = await queryAll(q, [
@@ -33,15 +34,16 @@ export async function loadParityInput(q: Q, studyId: string): Promise<ParityInpu
       "SELECT id, code, label, interface::text, config FROM study_conditions WHERE study_id = $1 ORDER BY position, code",
       [studyId],
     ),
-    () => q.query<{ assessmentId: string; code: string; version: number; kind: string; phase: string; position: number; status: string; required: boolean }>(
-      `SELECT sa.assessment_id AS "assessmentId", a.code, a.version, a.kind::text AS kind, sa.phase::text AS phase, sa.position, a.status::text AS status, sa.required
+    () => q.query<{ assessmentId: string; code: string; version: number; kind: string; phase: string; position: number; status: string; required: boolean; anchorsUnconfirmed: boolean }>(
+      `SELECT sa.assessment_id AS "assessmentId", a.code, a.version, a.kind::text AS kind, sa.phase::text AS phase, sa.position, a.status::text AS status, sa.required,
+              coalesce((a.config->'instrument'->'responseScale'->>'anchorsVerified')::boolean, true) = false AS "anchorsUnconfirmed"
          FROM study_assessments sa JOIN assessments a ON a.id = sa.assessment_id
         WHERE sa.study_id = $1 ORDER BY sa.phase, sa.position`,
       [studyId],
     ),
     () => study.snapshot_id
-      ? q.query<{ id: string; versionLabel: string; status: string; kind: string; isDemo: boolean }>(
-          `SELECT id, version_label AS "versionLabel", status::text AS status, kind, is_demo AS "isDemo" FROM content_snapshots WHERE id = $1`,
+      ? q.query<{ id: string; versionLabel: string; status: string; kind: string; isDemo: boolean; includesUnverified: boolean }>(
+          `SELECT id, version_label AS "versionLabel", status::text AS status, kind, is_demo AS "isDemo", includes_unverified AS "includesUnverified" FROM content_snapshots WHERE id = $1`,
           [study.snapshot_id],
         )
       : null,
@@ -65,6 +67,7 @@ export async function loadParityInput(q: Q, studyId: string): Promise<ParityInpu
       config: study.config,
       snapshotId: study.snapshot_id,
       manifestId: study.manifest_id,
+      allowUnverifiedContent: study.allow_unverified_content,
       conditions: conditions.rows,
       battery: battery.rows,
     },

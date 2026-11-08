@@ -4,6 +4,8 @@ import Link from "next/link";
 import { ContentParity } from "@/components/parity/content-parity";
 import { ConsolePage } from "@/components/shell/gates";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { can } from "@/lib/permissions/can";
+import { requireStaff } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 import { latestParityReports } from "@/server/research/parity/store";
 import { contentParityRows } from "@/server/research/parity/summary";
@@ -26,6 +28,7 @@ export default function Page() {
 
 async function Overview() {
   const pool = getPool();
+  const mayOpenParity = can(await requireStaff(), "parity.run");
   const studies = await listStudies(pool);
   const active = studies.filter((s) => s.status === "active");
   const ids = studies.map((s) => s.id);
@@ -41,18 +44,19 @@ async function Overview() {
     <>
       <Section
         id="equivalence"
-        eyebrow="Confound control"
         title="Equivalence Monitor"
         demo={active.some((s) => s.isDemo)}
         description="The latest stored content parity report of each active study: both doors checked against one stage template for the same stages, words, sources, model ids and file hashes. Nothing here is estimated or sampled."
         actions={
-          <Link href="/research/parity" className={LINK_44}>
-            Open parity checks
-          </Link>
+          mayOpenParity ? (
+            <Link href="/research/parity" className={LINK_44}>
+              Open parity checks
+            </Link>
+          ) : null
         }
       >
         {active.length ? (
-          <ContentParity rows={content} number={1} studyHref={(id) => `/research/parity?study=${id}`} />
+          <ContentParity rows={content} number={1} studyHref={mayOpenParity ? (id) => `/research/parity?study=${id}` : undefined} />
         ) : (
           <Empty>No study is active, so no content parity is shown here. Each study&apos;s content parity is on its page and on Parity checks.</Empty>
         )}
@@ -111,10 +115,12 @@ async function Overview() {
                     {s.sessions} ({completed})
                   </TableCell>
                   <TableCell className="whitespace-nowrap">
-                    {parity ? (
+                    {parity && mayOpenParity ? (
                       <Link className={LINK_44} href={`/research/parity?study=${s.id}`}>
                         {parity.report.passed ? "Passed" : `Failed (${parity.report.criticalFailures} critical)`}
                       </Link>
+                    ) : parity ? (
+                      <span>{parity.report.passed ? "Passed" : `Failed (${parity.report.criticalFailures} critical)`}</span>
                     ) : (
                       <span className="text-lime-dim">Not run</span>
                     )}

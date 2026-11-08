@@ -2,11 +2,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 const IDENTICAL: readonly [string, string][] = [
   ["Claims", "The same cited claims, in the same order, from one knowledge snapshot"],
-  ["Citations", "The same source note under every claim, opening the same record and verbatim quote"],
+  ["Citations", "The same sources behind every stage caption, with the same locator and verbatim quote"],
   ["Figures", "The same figures, in the same fixed 3:2 slot, with the same captions and credits"],
   ["Typefaces and sizes", "The same faces, sizes, line lengths and colours for every knowledge text"],
-  ["Controls", "The same top bar, buttons and 44 px targets"],
-  ["Timer", "The same fixed learning time, shown the same way"],
+  ["Controls", "The same Help, Pause and Hint controls, and 44 px targets"],
+  ["Time", "The same time limit, with the same warning before it ends; a participant may finish once every stop is visited"],
   ["Hints", "The same hint control and the same hint wording"],
 ];
 

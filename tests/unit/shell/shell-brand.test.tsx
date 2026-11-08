@@ -12,9 +12,9 @@ vi.mock("@/server/auth/actions", () => ({ endPublicDemo: vi.fn() }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/about", useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }) }));
 
 describe("StudyShell", () => {
-  it("is a study root with no outbound link, a Study label and an optional tabular step count", () => {
+  it("is a study root with no outbound link and a Study label", () => {
     const { container } = render(
-      <StudyShell step={{ current: 2, total: 7 }}>
+      <StudyShell>
         <p>Body</p>
       </StudyShell>,
     );
@@ -22,21 +22,16 @@ describe("StudyShell", () => {
     expect(root).toHaveClass("study-root");
     expect(container.querySelector("a")).toBeNull();
     expect(screen.getByText("Study")).toHaveClass("t-label");
-    expect(screen.getByText("Step 2 of 7")).toHaveClass("t-label", "tabular-nums");
     expect(screen.getByText(/ask the study facilitator/)).toBeInTheDocument();
   });
 });
 
 describe("PageHeader", () => {
-  it("title-cases the h1 and draws no band, no rule and no eyebrow (DR-022)", () => {
-    const band = renderToStaticMarkup(<PageHeader title="research overview" eyebrow="console" top="band" />);
-    expect(band).toContain("Research Overview");
-    expect(band).not.toContain("ie-band");
-    expect(band).not.toContain("data-rule");
-    expect(band).not.toMatch(/>console</i);
-    const plain = renderToStaticMarkup(<PageHeader title="questions before learning" kicker="study" />);
-    expect(plain).toContain("Questions Before Learning");
-    expect(plain).not.toMatch(/>study</i);
+  it("title-cases the h1 and draws no band and no rule (DR-022)", () => {
+    const header = renderToStaticMarkup(<PageHeader title="questions before learning" />);
+    expect(header).toContain("Questions Before Learning");
+    expect(header).not.toContain("ie-band");
+    expect(header).not.toContain("data-rule");
   });
 
 });

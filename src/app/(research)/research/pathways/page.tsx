@@ -20,22 +20,16 @@ export const metadata: Metadata = { title: "Pathways" };
 const KIND_RANK = { "2d": 0, "3d": 1, other: 2 } as const;
 
 const LABELS: Record<string, string> = {
-  conceptsExposed: "Concepts exposed",
-  conceptsInspected: "Concepts inspected (sheet open)",
-  relationshipsFollowed: "Relationships followed",
   mapEdges: "Concept-map links drawn",
   reconstructedCorrect: "Links matching a snapshot relationship",
   reconstructedIncorrect: "Links matching no snapshot relationship",
-  correctAndFollowed: "Matching links that were followed during learning",
-  correctWithBothEndpointsInspected: "Matching links with both concepts inspected",
-  incorrectWithBothEndpointsInspected: "Non-matching links with both concepts inspected",
 };
 
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/research/pathways">) {
   return (
-    <ConsolePage path="/research/pathways" title="Pathways" description="Navigation structure by condition: transition matrices, interaction timelines and the comparison of navigation with the post-learning concept map.">
+    <ConsolePage path="/research/pathways" title="Pathways" description="Navigation structure by condition: moves between stops, interaction timelines and the post-learning concept map against the snapshot.">
       <Pathways searchParams={searchParams} />
     </ConsolePage>
   );
@@ -63,7 +57,7 @@ async function Pathways({ searchParams }: { searchParams: Promise<Record<string,
         id="transitions"
         title="Transition matrices"
         demo={study.isDemo}
-        description={`Moves between knowledge categories of consecutive concept visits (a visit = a concept's sheet open, DR-050). Rows are where the participant came from. ${ANALYSIS_SCOPE_NOTE}`}
+        description={`Moves between consecutive stops by stop number, in either door (a visit = a stop entered). Rows are where the participant came from; cells below the diagonal are steps back. ${ANALYSIS_SCOPE_NOTE}`}
       >
         {orderedMatrices.length === 0 ? (
           <Empty>No telemetry yet.</Empty>
@@ -78,9 +72,9 @@ async function Pathways({ searchParams }: { searchParams: Promise<Record<string,
 
       <Section
         id="correspondence"
-        title="Navigation compared with the concept map"
+        title="Concept map compared with the snapshot"
         demo={study.isDemo}
-        description="Totals over sessions with a final post-learning concept map. A link 'matches' when the content snapshot has a relationship between the two concepts (direction and type respected when given). Descriptive only; outcome scores against the adjudicated reference map are in Analytics."
+        description="Totals over sessions with a final post-learning concept map. A link 'matches' when the content snapshot has a relationship between the two concepts (direction and type respected when given). The doors record stops, not concept visits, so the map is not compared with concept-level navigation. Descriptive only; outcome scores against the adjudicated reference map are in Analytics."
       >
         {conditions.length === 0 || Object.keys(corr.byCondition).length === 0 ? (
           <Empty>No correspondence metrics yet (recompute metrics on the Analytics page).</Empty>

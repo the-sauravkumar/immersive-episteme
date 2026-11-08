@@ -58,7 +58,7 @@ describe("chart accessible names", () => {
       />,
     );
     const img = await plot(container);
-    expect(img.getAttribute("aria-label")).toBe("Figure 1. Allocation by Condition: Conventional 2D, 0 participants; Immersive 3D, 7 participants.");
+    expect(img.getAttribute("aria-label")).toBe("Figure 1. Allocation By Condition: Conventional 2D, 0 participants; Immersive 3D, 7 participants.");
     expect(img.getAttribute("aria-label")).not.toMatch(/This is a chart/);
     expect(container.innerHTML).not.toMatch(/This is a chart/);
   }, 30_000);
@@ -84,7 +84,7 @@ describe("chart accessible names", () => {
     );
     const img = await plot(container);
     expect(img.getAttribute("aria-label")).toBe(
-      "Figure 4. Active Minutes per Session, Navigation: Conventional 2D, n = 3: mean 2.0, 95% CI -0.5 to 4.5; Immersive 3D, n = 2: mean 1.5, 95% CI -4.8 to 7.8.",
+      "Figure 4. Active Minutes Per Session, Navigation: Conventional 2D, n = 3: mean 2.0, 95% CI -0.5 to 4.5; Immersive 3D, n = 2: mean 1.5, 95% CI -4.8 to 7.8.",
     );
   }, 30_000);
 });

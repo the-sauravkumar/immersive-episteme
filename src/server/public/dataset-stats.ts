@@ -129,22 +129,9 @@ export interface FeaturedClaim {
   citation: Citation;
 }
 
-const MAX_CLAIM_CHARS = 150;
-const MAX_QUOTE_CHARS = 180;
-const MAX_SPECIMEN_CHARS = 240;
-const MAX_SOURCE_TITLE_CHARS = 90;
 const MAX_PULL_QUOTE_CLAIM_CHARS = 160;
 
-export type FeaturedClaimFit = "specimen" | "pull-quote";
-
-export async function loadFeaturedClaim(
-  q: Queryable,
-  opts: { skip?: number; fit?: FeaturedClaimFit; excludeSlugs?: readonly string[] } = {},
-): Promise<FeaturedClaim | null> {
-  const pullQuote = opts.fit === "pull-quote";
-  const limits = pullQuote
-    ? [MAX_PULL_QUOTE_CLAIM_CHARS, null, null, null]
-    : [MAX_CLAIM_CHARS, MAX_QUOTE_CHARS, MAX_SPECIMEN_CHARS, MAX_SOURCE_TITLE_CHARS];
+export async function loadFeaturedClaim(q: Queryable, opts: { excludeSlugs?: readonly string[] } = {}): Promise<FeaturedClaim | null> {
   const r = await q.query<{
     concept_id: string;
     concept_title: string;
@@ -175,23 +162,20 @@ export async function loadFeaturedClaim(
        JOIN concept_claim_sources cs ON cs.claim_id = cc.id
        JOIN sources s ON s.id = cs.source_id
       WHERE NOT c.is_demo AND NOT t.is_demo AND c.type = 'tradition'
-        AND NOT (t.slug = ANY($5::text[]))
+        AND NOT (t.slug = ANY($2::text[]))
         AND (SELECT count(*) FROM concept_claim_sources x WHERE x.claim_id = cc.id) = 1
         AND jsonb_array_length(cs.evidence) > 0
         AND char_length(cs.evidence->0->>'quote') > 0
         AND char_length(cc.text) <= $1::int
-        AND ($2::int IS NULL OR char_length(cs.evidence->0->>'quote') <= $2::int)
-        AND ($3::int IS NULL OR char_length(cc.text) + char_length(cs.evidence->0->>'quote') <= $3::int)
-        AND ($4::int IS NULL OR char_length(s.title) <= $4::int)
-      ORDER BY CASE WHEN $6::boolean THEN char_length(cc.text) ELSE char_length(cc.text) + char_length(cs.evidence->0->>'quote') END, cc.position`,
-    [...limits, [...STUDY_TRADITION_SLUGS, ...(opts.excludeSlugs ?? [])], pullQuote],
+      ORDER BY char_length(cc.text), cc.position`,
+    [MAX_PULL_QUOTE_CLAIM_CHARS, [...STUDY_TRADITION_SLUGS, ...(opts.excludeSlugs ?? [])]],
   );
   const bySlug = new Map<string, (typeof r.rows)[number]>();
   for (const row of r.rows) if (!bySlug.has(row.slug)) bySlug.set(row.slug, row);
   const ordered = [...bySlug.values()].sort((a, b) =>
     compareTraditions({ name: displayNameFromSlug(a.slug), slug: a.slug }, { name: displayNameFromSlug(b.slug), slug: b.slug }),
   );
-  const row = ordered[opts.skip ?? 0];
+  const row = ordered[0];
   if (!row) return null;
   const passages = row.evidence.map((e) => ({ locator: e.locator, quote: e.quote, note: e.note ?? null }));
   const first = passages[0]!;
@@ -253,12 +237,7 @@ async function atRequestTime<T>(read: (q: Queryable) => Promise<T>): Promise<T |
 }
 
 export const getDatasetStats = cache(() => atRequestTime(loadDatasetStats));
-export const getPullQuoteClaim = cache(() =>
-  atRequestTime(async (q) => {
-    const specimen = await loadFeaturedClaim(q);
-    return loadFeaturedClaim(q, { fit: "pull-quote", excludeSlugs: specimen ? [specimen.traditionSlug] : [] });
-  }),
-);
+export const getPullQuoteClaim = cache(() => atRequestTime((q) => loadFeaturedClaim(q)));
 export const getImageCredits = cache(() => atRequestTime(loadImageCredits));
 
 export function countWord(n: number): string {

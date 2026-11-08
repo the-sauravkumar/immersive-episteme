@@ -52,10 +52,9 @@ async function Parity({ searchParams }: { searchParams: Promise<Record<string, s
       <StudyPicker studies={studies} current={study.id} />
       <Section
         id="run"
-        eyebrow="Content parity"
         title="Run"
         demo={study.isDemo}
-        description="Generates a report from the study's current configuration, stage templates and door views, and stores it (append-only)."
+        description="Generates a report from the study's current configuration, stage templates and door views, and stores it (append-only) once the study has a pinned snapshot; without one the failed checks are shown in the result instead."
       >
         <ActionForm action={runParityAction.bind(null, study.id)} submitLabel="Run parity check" />
       </Section>
@@ -132,7 +131,6 @@ function ReportView({ base, id, createdAt, sha, report, demo }: { base: number; 
   return (
     <Section
       id="report"
-      eyebrow="Content parity"
       title={report.passed ? "Report: passed" : `Report: failed (${report.criticalFailures} critical)`}
       demo={demo}
       actions={

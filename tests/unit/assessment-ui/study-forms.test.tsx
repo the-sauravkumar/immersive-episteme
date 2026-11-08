@@ -19,7 +19,7 @@ import { DeviceCheck } from "@/components/study/device-check";
 import { WithdrawForm } from "@/components/study/withdraw-form";
 import { stepCountOf } from "@/components/study/step-progress";
 
-const assessment = { id: "00000000-0000-4000-8000-000000000001", code: "demo", version: 1, title: "Demo questions", description: null, presentation: "standard" as const, required: false };
+const assessment = { id: "00000000-0000-4000-8000-000000000001", code: "demo", version: 1, title: "Demo questions", description: null, required: false };
 const items: RenderItem[] = [
   { id: "q1", kind: "single_choice", prompt: "Which one?", options: [{ id: "a", label: "Option A" }, { id: "b", label: "Option B" }] },
   { id: "q2", kind: "likert", prompt: "How much?", points: 5, min: 1, anchors: { "1": "Not at all", "5": "Very much" } },

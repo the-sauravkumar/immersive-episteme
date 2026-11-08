@@ -3,8 +3,8 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { ClaimList, KnowledgeSheet, LayeredField, Pager, RelatedConcepts, relatedLinksFromGroups, SheetReferences, type SheetConcept } from "@/components/knowledge";
-import { diagramCredit, diagramFigureOf, referenceNumbers, type ConceptDetail, type DiagramFigure } from "@/features/knowledge/read/view";
+import { ClaimList, KnowledgeSheet, LayeredField, RelatedConcepts, relatedLinksFromGroups, SheetReferences, type SheetConcept } from "@/components/knowledge";
+import { referenceNumbers, type ConceptDetail, type DiagramFigure } from "@/features/knowledge/read/view";
 import { KNOWLEDGE_LAYERS } from "@/features/learning/labels";
 
 import { fixtureView, renderWithTelemetry } from "./harness";
@@ -25,7 +25,9 @@ const sheetConcept = (c: ConceptDetail): SheetConcept => ({
 });
 const diagrams = view.structureDiagrams("alpha");
 const figureFor = (c: ConceptDetail): DiagramFigure[] =>
-  diagrams.filter((d) => d.anchor.conceptId === c.id).map((d) => diagramFigureOf(d, diagramCredit(view.info().versionLabel)));
+  diagrams
+    .filter((d) => d.anchor.conceptId === c.id)
+    .map((d) => ({ kind: "diagram", id: d.id, conceptId: d.anchor.conceptId, anchorClaimIndex: d.anchor.claimIndex, caption: d.caption, alt: d.alt, credit: `Diagram generated from the project's knowledge graph (snapshot ${view.info().versionLabel})`, diagram: d }));
 
 function normalise(html: string): string {
   const ids = new Map<string, string>();
@@ -44,7 +46,6 @@ function Sheet({ c, placement, action }: { c: ConceptDetail; placement: "page" |
       step={{ index: 2, total: 3 }}
       action={action}
       related={<RelatedConcepts conceptId={c.id} traditionSlug={c.traditionSlug} links={relatedLinksFromGroups(related)} traditionNames={{ alpha: "Alpha", beta: "Beta" }} headingId="related" renderLink={(l, content, className) => <a href={`#${l.concept.id}`} className={className}>{content}</a>} />}
-      pager={<Pager prev={{ conceptId: "p", title: "previous concept" }} next={{ conceptId: "n", title: "next concept" }} renderLink={(item, _dir, content, className) => <a href={`#${item.conceptId}`} className={className}>{content}</a>} />}
     >
       <ClaimList conceptId={c.id} claims={c.claims} figures={figureFor(c)} />
     </KnowledgeSheet>
@@ -63,13 +64,13 @@ describe("KnowledgeSheet: one container, two placements", () => {
     expect(normalise(panel.container.innerHTML)).toBe(pageHtml);
   });
 
-  it("orders header, metadata, progress, field, related concepts and pager, and focuses the h1", () => {
+  it("orders header, metadata, progress, field and related concepts, and focuses the h1", () => {
     render(<Sheet c={concept} placement="page" />);
     const sheet = screen.getByRole("region", { name: /stage two/i });
     const h1 = within(sheet).getByRole("heading", { level: 1 });
     expect(h1).toHaveFocus();
     expect(h1).toHaveAttribute("tabindex", "-1");
-    const order = ["sheet-action", "sheet-meta", "reading-progress", "sheet-field", "related-concepts", "pager"].map((s) => sheet.querySelector(`[data-slot=${s}]`)!);
+    const order = ["sheet-action", "sheet-meta", "reading-progress", "sheet-field", "related-concepts"].map((s) => sheet.querySelector(`[data-slot=${s}]`)!);
     for (let i = 1; i < order.length; i++) expect(order[i - 1]!.compareDocumentPosition(order[i]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     const meta = sheet.querySelector("[data-slot=sheet-meta]")!;
     expect(within(meta as HTMLElement).getByText("Step")).toBeInTheDocument();
@@ -78,7 +79,7 @@ describe("KnowledgeSheet: one container, two placements", () => {
     expect(within(sheet).getByRole("progressbar", { name: "Reading progress" })).toHaveAttribute("aria-valuenow");
     expect(sheet.querySelector("[data-slot=tradition-marker]")).toBeNull();
     expect(sheet.querySelector("[data-slot=tradition-name]")).not.toBeNull();
-    expect(within(sheet).getByRole("heading", { level: 2, name: "From the Sources" })).toBeInTheDocument();
+    expect(within(sheet).getByRole("heading", { level: 2, name: "From The Sources" })).toBeInTheDocument();
   });
 });
 

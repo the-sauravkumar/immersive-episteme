@@ -45,12 +45,12 @@ export function routeMiniature(prefix: string, x: number, y: number, w: number, 
   return nodes;
 }
 
-export const SCHEMATIC_BOX = { width: 288, height: 180 } as const;
+export const SCHEMATIC_BOX = { width: 288, height: 192 } as const;
 
 export function ConditionSchematic({ condition }: { condition: SchematicCondition }) {
-  const nodes = condition === "2d" ? pageMiniature("s2d", 36, 18, 216, 144, 4) : routeMiniature("s3d", 36, 18, 216, 144);
+  const nodes = condition === "2d" ? pageMiniature("s2d", 36, 24, 216, 144, 4) : routeMiniature("s3d", 36, 24, 216, 144);
   return (
-    <div data-slot="condition-schematic" data-condition-schematic={condition} className="aspect-[16/10] w-full border border-line bg-vat">
+    <div data-slot="condition-schematic" data-condition-schematic={condition} className="aspect-[3/2] w-full border border-line bg-vat">
       <OutlineDiagram {...SCHEMATIC_BOX} nodes={nodes} className="h-full" />
     </div>
   );

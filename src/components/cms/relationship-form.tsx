@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { saveRelationshipAction } from "@/server/cms/actions";
 
 import { ActionForm, FieldMessage, PrefixErrors } from "./action-form";
+import { PROVENANCE_KINDS } from "@/lib/validation/enums";
+import { PROVENANCE_LABELS } from "./bits";
 import { NativeSelect } from "@/components/ui/native-select";
 
 export interface ConceptChoice {
@@ -37,8 +39,6 @@ export interface RelationshipInitial {
   provenanceKind: string;
   sources: { sourceId: string; locator: string; quote: string }[];
 }
-
-const PROVENANCE = ["practitioner_testimony", "historical_documentation", "scientific_evidence", "researcher_interpretation", "hypothesis"] as const;
 
 export function RelationshipForm({
   concepts,
@@ -114,9 +114,9 @@ export function RelationshipForm({
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${id}-prov`}>Provenance kind</Label>
           <NativeSelect id={`${id}-prov`} name="provenanceKind" defaultValue={initial?.provenanceKind ?? "historical_documentation"}>
-            {PROVENANCE.map((p) => (
+            {PROVENANCE_KINDS.map((p) => (
               <option key={p} value={p}>
-                {p.replace(/_/g, " ")}
+                {PROVENANCE_LABELS[p]}
               </option>
             ))}
           </NativeSelect>

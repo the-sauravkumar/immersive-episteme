@@ -9,6 +9,8 @@ vi.mock("@/server/study/actions", () => actions);
 const router = vi.hoisted(() => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 vi.mock("next/dynamic", () => ({ default: () => () => null }));
+const gpu = vi.hoisted(() => ({ probe: vi.fn(() => ({ webglVersion: 2 as 1 | 2 | null, softwareRenderer: false })) }));
+vi.mock("@/features/study/gpu-acceptance", async (original) => ({ ...(await original<object>()), probeGpu: gpu.probe }));
 
 import { EXCLUDED_PAGE, STUDY_HUB, routeAfterRenderFailure, useDoorProgress, useRenderFailureReport } from "@/app/(learning)/learn/door-progress";
 import { PRACTICE_UNSENT, usePracticeFinish } from "@/app/(learning)/learn/practice-doors";
@@ -26,7 +28,7 @@ afterEach(() => vi.unstubAllGlobals());
 describe("finishing the learning task", () => {
   it("names the stops still to visit when a finish comes before the cap, instead of blaming the connection", async () => {
     reply(409, { ok: false, reason: "stages_unvisited", unvisited: [{ traditionKey: "ajrakh", stageKey: "ajrakh-s2", stageNumber: 2 }] });
-    const { result } = renderHook(() => useDoorProgress([]));
+    const { result } = renderHook(() => useDoorProgress([], true));
     let accepted: boolean | undefined;
     await act(async () => {
       accepted = await result.current.finish();
@@ -38,7 +40,7 @@ describe("finishing the learning task", () => {
 
   it("sends a participant whose session is no longer valid to the study hub", async () => {
     reply(401, { error: "unauthenticated" });
-    const { result } = renderHook(() => useDoorProgress([]));
+    const { result } = renderHook(() => useDoorProgress([], true));
     await act(async () => {
       await result.current.finish();
     });
@@ -56,6 +58,14 @@ describe("a walkthrough that cannot render", () => {
     const { result } = renderHook(() => useRenderFailureReport(true));
     act(() => result.current.onRenderFailed());
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith(EXCLUDED_PAGE));
+  });
+
+  it("reports a browser that cannot draw the walkthrough as soon as a study door opens, so the study's policy can reassign it", async () => {
+    gpu.probe.mockReturnValueOnce({ webglVersion: null, softwareRenderer: false }).mockReturnValueOnce({ webglVersion: null, softwareRenderer: false });
+    actions.reportWalkthroughUnavailable.mockResolvedValueOnce({ ok: true, outcome: "reassigned" });
+    renderHook(() => useRenderFailureReport(true));
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith(STUDY_HUB));
+    expect(actions.reportWalkthroughUnavailable).toHaveBeenCalledWith({ webglVersion: null, softwareRenderer: false });
   });
 });
 

@@ -15,7 +15,7 @@ const WalkthroughSession = dynamic(() => import("./composed-walkthrough").then((
 });
 
 export function WalkthroughDoor({ templates, resume, studyMode, guidance }: DoorSessionProps) {
-  const { notice, restore, enter, left, finish } = useDoorProgress(templates);
+  const { notice, restore, enter, left, finish } = useDoorProgress(templates, studyMode);
   const { failureNotice, onRenderFailed } = useRenderFailureReport(studyMode);
   const events = useMemo<WalkthroughSessionEvents>(
     () => ({

@@ -109,7 +109,7 @@ describe("snapshot diff", () => {
     }) as KnowledgeBundle;
 
   it("reports added claims and changed fields, ignoring claim ids", () => {
-    const d = diffBundles(bundle(["A"]), bundle(["A", "B"], "Indigo dye"));
+    const d = diffBundles(bundle(["A"]), bundle(["A", "B"], "Indigo dye"), { citationDetail: true });
     expect(d.claims.added.map((c) => c.key)).toEqual(["x.material.indigo#2"]);
     expect(d.claims.unchanged).toBe(1);
     expect(d.concepts.changed[0]!.fields).toEqual(["title"]);

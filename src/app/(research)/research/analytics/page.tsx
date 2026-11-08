@@ -11,7 +11,6 @@ import { can } from "@/lib/permissions/can";
 import { plural } from "@/lib/text/plural";
 import { getStaffPrincipal } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
-import { ANALYSIS_SCOPE_NOTE } from "@/server/research/analysis-scope";
 import { behaviourDistributions, outcomeDistributions, studyConditions, studyOverview, type ConditionRef, type MetricDistribution } from "@/server/research/analytics";
 import { staleMetricSessions } from "@/server/research/metrics/pipeline";
 import { METRIC_DEFINITIONS } from "@/server/research/metrics/session";
@@ -95,7 +94,7 @@ async function Analytics({ searchParams }: { searchParams: Promise<Record<string
         </Notice>
       ) : null}
 
-      <Section id="overview" title="Study overview" demo={demo} description={ANALYSIS_SCOPE_NOTE}>
+      <Section id="overview" title="Study overview" demo={demo} description="Every enrolment, allocation and session is counted here, excluded and withdrawn ones included; those are also counted on their own. The analyses below leave them out.">
         <StatRow
           number={++table}
           title="Enrolment and Sessions"
@@ -147,7 +146,7 @@ async function Analytics({ searchParams }: { searchParams: Promise<Record<string
                 Missing Seq
               </TableHead>
               <TableHead scope="col" numeric>
-                Unterminated
+                Stops Not Left
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -176,7 +175,7 @@ async function Analytics({ searchParams }: { searchParams: Promise<Record<string
       <Section
         id="derived"
         title="Derived metrics"
-        description={`Behavioural metrics are recomputed from raw telemetry (pipeline versioned). ${stale.stale} of ${plural(stale.total, "session")} have missing or stale metrics.${stale.stale > 0 && !can(principal, "study.configure") ? " Your role cannot recompute them: ask a researcher or the principal investigator." : ""}`}
+        description={`Behavioural metrics are recomputed from raw telemetry (pipeline versioned). ${stale.stale} of ${plural(stale.total, "session")} have missing or stale metrics.${stale.stale > 0 && !can(principal, "metrics.recompute") ? " Your role cannot recompute them: ask a researcher or the principal investigator." : ""}`}
         actions={can(principal, "metrics.recompute") ? <ActionForm action={recomputeMetricsAction.bind(null, study.id)} submitLabel="Recompute metrics" variant="outline" /> : null}
       >
         <p className="t-b text-lime-dim">Navigation pathways, transition matrices and the navigation-to-concept-map comparison have their own page.</p>
@@ -211,7 +210,7 @@ async function Analytics({ searchParams }: { searchParams: Promise<Record<string
         id="time"
         title="Content exposure and navigation time"
         demo={demo}
-        description="Active minutes per session (pauses excluded), from the shared time accountant. Exposure is held equal by design; these are descriptive covariates, never outcomes."
+        description="Active minutes per session (pauses excluded), from the stops both doors record: time with a stop open, less walking, is exposure; walking between Door 2 stops is navigation, and Door 1 has none. Exposure is capped equally; these are descriptive covariates, never outcomes."
       >
         {exposure || navigation ? (
           <DotIntervalChart

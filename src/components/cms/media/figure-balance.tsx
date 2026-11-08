@@ -35,7 +35,7 @@ const shortName = (slug: string) =>
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(" ");
 
-export const UNBALANCED_TEXT = "Unbalanced: blocks publication to a study";
+export const UNBALANCED_TEXT = "Unbalanced";
 
 export function FigureBalanceMatrix({ balance, caption }: { balance: FigureBalance; caption: string }) {
   const slugs = balance.traditionSlugs;
@@ -222,22 +222,12 @@ const VIEW_LINK = cn(
   "inline-flex min-h-11 min-w-11 items-center justify-center aria-[current=true]:font-semibold aria-[current=true]:no-underline aria-[current=true]:text-lime",
 );
 
-export async function FigureBalanceSection({
-  q,
-  source,
-  diagrams,
-  hrefFor,
-}: {
-  q: Q;
-  source: Source;
-  diagrams: boolean;
-  hrefFor: (v: { source: Source; diagrams: boolean }) => string;
-}) {
+export async function FigureBalanceSection({ q, source, hrefFor }: { q: Q; source: Source; hrefFor: (v: { source: Source }) => string }) {
   const loaded = await loadBundle(q, source);
   const links = await listSnapshotFigureAssets(q, loaded?.snapshotId ?? null);
   const balance = loaded
     ? figureBalance(loaded.bundle, [...STUDY_TRADITION_SLUGS], {
-        structureDiagrams: diagrams,
+        structureDiagrams: false,
         figureAssets: links,
       })
     : null;
@@ -250,9 +240,9 @@ export async function FigureBalanceSection({
       title="Figure balance"
       description={
         <>
-          Figures each study tradition shows learners, per section, exactly as both conditions resolve them: at most one per concept, the structure diagram
-          first while the protocol shows diagrams, then an approved photograph with its caption, credit and alt text. Study
-          activation runs the same check and is refused while any row is unbalanced.
+          Approved photographs linked to concepts as illustrations, per section and study tradition: at most one per concept, each with its caption,
+          credit and alt text. This is a curation check of the knowledge record. Learners do not see these figures: both doors show the six study
+          photographs, one textile and one printing-blocks photograph per tradition (DR-118). It does not gate study activation.
         </>
       }
       actions={
@@ -274,20 +264,11 @@ export async function FigureBalanceSection({
       <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:gap-x-8">
         <nav aria-label="Bundle" className="flex flex-wrap items-center gap-x-4">
           <span className="t-label">Bundle</span>
-          <Link className={VIEW_LINK} aria-current={source === "release" ? "true" : undefined} href={hrefFor({ source: "release", diagrams })}>
+          <Link className={VIEW_LINK} aria-current={source === "release" ? "true" : undefined} href={hrefFor({ source: "release" })}>
             Latest release
           </Link>
-          <Link className={VIEW_LINK} aria-current={source === "review" ? "true" : undefined} href={hrefFor({ source: "review", diagrams })}>
+          <Link className={VIEW_LINK} aria-current={source === "review" ? "true" : undefined} href={hrefFor({ source: "review" })}>
             Next release (review build)
-          </Link>
-        </nav>
-        <nav aria-label="Structure diagrams" className="flex flex-wrap items-center gap-x-4">
-          <span className="t-label">Structure diagrams</span>
-          <Link className={VIEW_LINK} aria-current={diagrams ? "true" : undefined} href={hrefFor({ source, diagrams: true })}>
-            On
-          </Link>
-          <Link className={VIEW_LINK} aria-current={!diagrams ? "true" : undefined} href={hrefFor({ source, diagrams: false })}>
-            Off
           </Link>
         </nav>
       </div>
@@ -301,11 +282,11 @@ export async function FigureBalanceSection({
         <>
           <FigureBalanceMatrix
             balance={balance}
-            caption={`Figures per section in ${loaded.label}, structure diagrams ${diagrams ? "on" : "off"}`}
+            caption={`Figures per section in ${loaded.label}`}
           />
           <p className="t-s text-lime-dim">
-            {balance.metrics.diagrams} diagram(s) and {balance.metrics.photos} photograph(s) shown; {balance.metrics.photosHeldBack} approved photograph(s) held
-            back (a concept shows one figure). Counts are printed in every cell; darker cells hold more figures.
+            {balance.metrics.photos} photograph(s) counted; {balance.metrics.photosHeldBack} approved photograph(s) held back (a concept carries one
+            figure). Counts are printed in every cell; brighter cells hold more figures.
           </p>
           {otherIssues.length > 0 ? (
             <div className="flex flex-col gap-2">

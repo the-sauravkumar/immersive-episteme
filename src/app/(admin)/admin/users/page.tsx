@@ -92,7 +92,7 @@ function matches(u: StaffUserRow, f: UserFilter): boolean {
   }
   if (f.role && !(u.roles as string[]).includes(f.role)) return false;
   if (f.status === "locked" && !u.disabledAt) return false;
-  if (f.status === "active" && u.disabledAt) return false;
+  if (f.status === "active" && (u.disabledAt || awaitingAccess(u))) return false;
   if (f.status === "awaiting" && !awaitingAccess(u)) return false;
   return true;
 }

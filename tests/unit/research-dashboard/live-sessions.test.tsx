@@ -80,4 +80,15 @@ describe("live per-session table", () => {
     expect(fetchMock.mock.calls[0]![0]).toContain("include=sessions");
     expect(router.refresh).not.toHaveBeenCalled();
   });
+
+  it("polls instead of claiming to be live when the server is not listening for changes", async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify({ serverTime: "2026-10-16T10:00:03.000Z", fingerprint: "f1" }), { status: 200, headers: { "content-type": "application/json" } }));
+    render(<LiveStatus studyId={STUDY} serverTime="2026-10-16T10:00:01.000Z" fingerprint="f1" />);
+    await act(async () => {
+      FakeEventSource.last!.emit("ready", { serverTime: "2026-10-16T10:00:02.000Z", fingerprint: "f1", listening: false });
+      await Promise.resolve();
+    });
+    expect(screen.getByTestId("dashboard-updated")).toHaveAttribute("data-mode", "polling");
+    expect(screen.getByText(/Live connection unavailable/)).toBeInTheDocument();
+  });
 });

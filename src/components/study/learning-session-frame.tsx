@@ -12,9 +12,13 @@ export function capTimings(endsAt: string, serverNow: string, warningMinutes: nu
   return { untilWarningMs: untilCapMs - warningMinutes * 60_000, untilCapMs };
 }
 
+export function warningText(minutesLeft: number): string {
+  return minutesLeft === 1 ? "1 minute of learning time is left." : `${minutesLeft} minutes of learning time are left.`;
+}
+
 export function LearningSessionFrame({ endsAt, serverNow, warningMinutes, children }: { endsAt: string | null; serverNow: string; warningMinutes: number; children: ReactNode }) {
   const telemetry = useOptionalTelemetry();
-  const [warned, setWarned] = useState(false);
+  const [minutesLeft, setMinutesLeft] = useState<number | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -40,7 +44,8 @@ export function LearningSessionFrame({ endsAt, serverNow, warningMinutes, childr
   useEffect(() => {
     if (!endsAt) return;
     const { untilWarningMs, untilCapMs } = capTimings(endsAt, serverNow, warningMinutes);
-    const cancelWarning = setLongTimeout(() => setWarned(true), untilWarningMs);
+    const capAt = Date.now() + untilCapMs;
+    const cancelWarning = setLongTimeout(() => setMinutesLeft(Math.max(1, Math.ceil((capAt - Date.now()) / 60_000))), untilWarningMs);
     const cancelCap = setLongTimeout(() => {
       closeOpenStop();
       void finishLearning().finally(() => router.replace("/study/session"));
@@ -54,8 +59,8 @@ export function LearningSessionFrame({ endsAt, serverNow, warningMinutes, childr
   return (
     <>
       {children}
-      <div role="status" aria-live="polite" className="walking-toast" data-visible={warned}>
-        {warned ? `${warningMinutes} minutes of learning time are left.` : null}
+      <div role="status" aria-live="polite" className="walking-toast" data-visible={minutesLeft !== null}>
+        {minutesLeft !== null ? warningText(minutesLeft) : null}
       </div>
     </>
   );

@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { photoFiguresOf, photoGateOpen, resolveConceptFigures, type DiagramFigure, type IllustrationLink } from "@/features/knowledge/read/view";
+import { photoFiguresOf, photoGateOpen, type IllustrationLink } from "@/features/knowledge/read/view";
 import { STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
 import { studyConfigSchema } from "@/features/study/contracts";
 import { figureBalance, type ParityFigureAsset } from "@/server/research/parity/engine";
@@ -51,22 +51,11 @@ describe("anchor-claim gate", () => {
 });
 
 describe("protocol switch figures.photos", () => {
-  const photos = photoFiguresOf({ id: "c1", claimCount: 3, verificationState: "verified" }, [link()]);
 
   it("defaults to on and reaches both conditions through the learning settings", () => {
     const cfg = studyConfigSchema.parse({});
-    expect(cfg.figures).toEqual({ structureDiagrams: true, photos: true });
-    expect(studyConfigSchema.parse({ figures: { photos: false } }).figures).toEqual({ structureDiagrams: true, photos: false });
-  });
-
-  it("removes the photograph from the one resolution both conditions call", () => {
-    expect(resolveConceptFigures({ diagrams: [], photos, structureDiagrams: true, photosOn: true })).toHaveLength(1);
-    expect(resolveConceptFigures({ diagrams: [], photos, structureDiagrams: true, photosOn: false })).toEqual([]);
-  });
-
-  it("leaves the structure diagram's slot alone", () => {
-    const diagram = { kind: "diagram", id: "d1", conceptId: "c1", anchorClaimIndex: 0, caption: "", alt: "", credit: "", diagram: {} } as unknown as DiagramFigure;
-    expect(resolveConceptFigures({ diagrams: [diagram], photos, structureDiagrams: true, photosOn: false })).toEqual([diagram]);
+    expect(cfg.figures).toEqual({ photos: true });
+    expect(studyConfigSchema.parse({ figures: { photos: false } }).figures).toEqual({ photos: false });
   });
 
   it("is applied by the parity engine's figure balance, as is the gate", () => {
@@ -123,7 +112,7 @@ describe("ingest plan of the three V&A photographs", () => {
 
   it("records the V&A record page as provenance and never a public plate", () => {
     for (const p of plans) {
-      expect(p.metadata).toMatchObject({ publicPlate: false, provenanceKind: "historical_documentation" });
+      expect(p.metadata).toMatchObject({ provenanceKind: "historical_documentation" });
       expect(p.metadata.sourceUrl).toMatch(/^https:\/\/collections\.vam\.ac\.uk\/item\//);
     }
   });

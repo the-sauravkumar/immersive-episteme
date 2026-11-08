@@ -1,4 +1,4 @@
-import { ITEM_METRIC, itemStatistics, loadItemScoreRows, loadTraditionItemRows, traditionGains } from "@/app/(research)/research/dashboard/_components/dashboard-extras";
+import { ITEM_METRIC, itemStatistics, loadItemScoreRows, loadTraditionItemRows, traditionGains } from "./dashboard-extras";
 import { KEY_MATCH_METRIC } from "@/features/assessment/responses";
 import { describe } from "@/features/research/descriptive";
 import { DASHBOARD_METRICS_VERSION } from "@/features/research/metric-definitions";

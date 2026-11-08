@@ -1,7 +1,6 @@
 import { canonicalHash } from "@/lib/canonical-hash";
 
 import type { MapEdgeInput } from "../metrics/correspondence";
-import type { ConceptFacts } from "../metrics/navigation";
 import { computeSessionMetrics } from "../metrics/session";
 import type { Row } from "./csv";
 import { EXPORT_FORMAT, EXPORT_SCHEMA_VERSION, type ExportBundle } from "./build";
@@ -83,7 +82,6 @@ export function validateExportBundle(bundle: ExportBundle): ExportValidation {
     for (const k of ["source_concept_id", "target_concept_id"] as const) if (r[k] && !concepts.has(String(r[k]))) err(`edge ${str(r.edge_key)} references concept ${String(r[k])} not in the content manifest`);
   }
 
-  const facts = new Map<string, ConceptFacts>((bundle.contentManifest?.concepts ?? []).map((c) => [c.id, { traditionId: c.traditionId, category: c.category }]));
   const rels = bundle.contentManifest?.relationships ?? [];
   const eventsBySession = new Map<string, Row[]>();
   for (const e of t("events")) (eventsBySession.get(String(e.session_id)) ?? eventsBySession.set(String(e.session_id), []).get(String(e.session_id))!).push(e);
@@ -112,7 +110,7 @@ export function validateExportBundle(bundle: ExportBundle): ExportValidation {
       conceptId: str(e.concept_id),
       metadata: (e.metadata ?? {}) as Record<string, unknown>,
     }));
-    const out = computeSessionMetrics({ events, concepts: facts, relationships: rels, map: finalPostMap(sessionId) });
+    const out = computeSessionMetrics({ events, relationships: rels, map: finalPostMap(sessionId) });
     for (const v of out.values) recomputed.set(`${sessionId}#${v.metricName}#${v.metricVersion}`, { value: v.value, sha: out.inputSha256 });
   }
   let matched = 0;

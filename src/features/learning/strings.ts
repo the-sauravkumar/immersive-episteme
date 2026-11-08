@@ -10,7 +10,6 @@ export const SHEET_TEXT = {
   layersLabel: "Information layers",
   metaLabel: "About this concept",
   meta: { localTerms: "Local terms", tradition: "Tradition", category: "Category", step: "Step" },
-  pagerLabel: "Previous and next",
   previous: "Previous",
   next: "Next",
   close: "Close",

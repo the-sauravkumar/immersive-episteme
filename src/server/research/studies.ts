@@ -276,7 +276,7 @@ export async function activateStudy(pool: Pool | PoolClient, actor: Actor, study
       return { activated: false, parityReportId: stored.id, passed: false, failures };
     }
     const current = await loadParityInput(c, studyId);
-    if (parityInputHash(current.study) !== stored.report.inputSha256) throw new ResearchActionError("The study changed while it was being checked; run the activation again.");
+    if (parityInputHash(current) !== stored.report.inputSha256) throw new ResearchActionError("The study changed while it was being checked; run the activation again.");
     const pins = activationPins(current.study.config);
     await c.query("UPDATE studies SET config = $3::jsonb, status = 'active', activated_by = $2, activated_at = now() WHERE id = $1", [studyId, actor.userId, JSON.stringify(pins.config)]);
     await audit(c, actor, "study.activate", "study", studyId, {

@@ -123,7 +123,6 @@ export interface PhotoIngestPlan {
     licenceUrl: string;
     sourceUrl: string;
     provenanceKind: "historical_documentation";
-    publicPlate: false;
   };
 }
 
@@ -189,7 +188,6 @@ export function planPhoto(p: PhotoProposal): PhotoIngestPlan {
       licenceUrl: src.licenceUrl,
       sourceUrl: p.pageUrl,
       provenanceKind: "historical_documentation",
-      publicPlate: false,
     },
   };
 }

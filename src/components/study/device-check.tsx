@@ -98,7 +98,7 @@ export function DeviceCheck() {
           {titleCase("Browser check")}
         </h2>
         <p className="t-b max-w-[34rem] text-lime">
-          When you continue, a quick check makes sure this browser and window can show the study. Nothing about you is collected.
+          When you continue, a quick check makes sure this browser and window can show the study. It records the window size, the screen density, the input devices, the browser family, its graphics support and whether you have asked for reduced motion or high contrast. It records nothing that names you.
         </p>
         {view.kind === "checking" ? (
           <p role="status" aria-live="polite" className="t-b text-lime-dim">

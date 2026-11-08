@@ -15,15 +15,18 @@ export const metadata: Metadata = { title: titleCase("Delayed test") };
 
 export const instant = false;
 
+const daysText = (days: number) => (days === 1 ? "1 day" : `${days} days`);
+
 const dateText = (date: Date) => date.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
 
 async function Delayed() {
   const { state } = await requireStep("delayed_test");
   const { schedule, availability } = await delayedTestStatus(getPool(), state);
+  const after = daysText(state.study.protocol.config.delayedTest.dueAfterDays);
   if (availability === "open") {
     return (
       <>
-        <PageHeader title="Delayed test" description="The last set of questions, about a week after your first session." />
+        <PageHeader title="Delayed test" description={`The last set of questions, ${after} after your first session.`} />
         <AssessmentStep step="delayed_test" route="/study/delayed-test" />
       </>
     );
@@ -31,7 +34,7 @@ async function Delayed() {
   const link = delayedReturnLink(serverEnv().BETTER_AUTH_URL, state.study.slug, state.participantCode);
   return (
     <>
-      <PageHeader title="Come back in about a week" description="You are done for today." />
+      <PageHeader title={`Come back in ${after}`} description="You are done for today." />
       <section aria-labelledby="return-heading" className="flex flex-col gap-4">
         <h2 id="return-heading" className="t-h4 text-lime">
           {titleCase("When and how to come back")}

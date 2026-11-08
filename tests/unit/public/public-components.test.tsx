@@ -43,7 +43,7 @@ describe("Condition schematics", () => {
       const { container, unmount } = render(<ConditionSchematic condition={condition} />);
       const fills = [...container.querySelectorAll("[data-layer=fill] rect")].map((r) => r.getAttribute("fill"));
       expect(fills.filter((f) => f === "var(--turmeric)")).toHaveLength(1);
-      expect(container.querySelector("svg")).toHaveAttribute("viewBox", "0 0 288 180");
+      expect(container.querySelector("svg")).toHaveAttribute("viewBox", "0 0 288 192");
       unmount();
     }
   });

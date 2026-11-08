@@ -16,7 +16,7 @@ export function TraditionIndex({ traditions }: { traditions: readonly TraditionI
           data-tradition-key={t.slug}
           className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-x-3 gap-y-1 border-b border-line py-4 last:border-b-0 md:grid-cols-[2.25rem_minmax(0,16rem)_minmax(0,1fr)_minmax(0,16rem)] md:items-baseline md:gap-x-6"
         >
-          <span aria-hidden="true" className="t-b font-semibold tabular-nums text-lime-dim text-right text-left">
+          <span aria-hidden="true" className="t-b font-semibold tabular-nums text-lime-dim text-right">
             {i + 1}
           </span>
           <h3 className="t-label text-lime">{titleCase(t.shortName)}</h3>

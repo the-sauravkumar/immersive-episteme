@@ -26,7 +26,7 @@ export function guidanceFromForm(current: Partial<StudyConfig["guidance"]> | und
     ...current,
     cueEnabled: d.get("cueEnabled") === "on",
     ...(d.has("hintText") ? { hintText: text("hintText") || undefined } : {}),
-    ...(d.has("stallSeconds") && stall ? { stallSeconds: Number(stall) } : {}),
+    ...(d.has("stallSeconds") ? { stallSeconds: stall ? Number(stall) : undefined } : {}),
   };
 }
 
