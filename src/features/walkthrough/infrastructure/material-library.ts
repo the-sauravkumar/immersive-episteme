@@ -4,6 +4,7 @@ import type { SurfaceClass } from "../domain/surface-density";
 import { phongTessellateSteps } from "./smooth-tessellate";
 import { BitmapDecoder } from "./bitmap-decoder";
 import { WorkPacer } from "./work-pacer";
+import { GeometryLevels } from "./geometry-levels";
 import type { MipFilter } from "../domain/filtered-mips";
 import { wallPlaneNormalSteps } from "../domain/far-normals";
 import { PIXEL_FOOTPRINT_UNIFORM, pixelMetresAt, trackPixelFootprint } from "./pixel-footprint";
@@ -350,6 +351,7 @@ export class MaterialLibrary {
   private readonly anisotropy: number;
   private openSky: THREE.Texture | null = null;
   readonly pacer = new WorkPacer();
+  readonly levels = new GeometryLevels(this.pacer);
 
   constructor(renderer: THREE.WebGLRenderer) {
     this.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
@@ -417,6 +419,7 @@ export class MaterialLibrary {
 
   close(): void {
     this.decoder.close();
+    this.levels.close();
   }
 
   keeps(resource: object): boolean {

@@ -1,8 +1,7 @@
 const LOADING_SLICE_MS = 12;
 const WALKING_SLICE_MS = 5;
 const GPU_POLL_MS = 2;
-const WALKING_GPU_BEHIND_MS = 2 * WALKING_SLICE_MS;
-const LOADING_GPU_BEHIND_MS = 80;
+const GPU_BEHIND_MS = 2 * WALKING_SLICE_MS;
 
 type FenceContext = Pick<WebGL2RenderingContext, "fenceSync" | "getSyncParameter" | "deleteSync" | "flush" | "SYNC_GPU_COMMANDS_COMPLETE" | "SYNC_STATUS" | "SIGNALED">;
 
@@ -38,7 +37,7 @@ export class WorkPacer {
     const turn = this.turns.then(
       () =>
         new Promise<void>((resolve) => {
-          const gl = this.gl;
+          const gl = this.walkingStarted ? this.gl : null;
           if (gl && !this.pending) {
             this.pending = { sync: gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)!, at: performance.now() };
             gl.flush();
@@ -49,7 +48,7 @@ export class WorkPacer {
               if (gl.getSyncParameter(pending.sync, gl.SYNC_STATUS) === gl.SIGNALED) {
                 gl.deleteSync(pending.sync);
                 this.pending = null;
-              } else if (performance.now() - pending.at > (this.walkingStarted ? WALKING_GPU_BEHIND_MS : LOADING_GPU_BEHIND_MS)) {
+              } else if (performance.now() - pending.at > GPU_BEHIND_MS) {
                 setTimeout(open, GPU_POLL_MS);
                 return;
               }

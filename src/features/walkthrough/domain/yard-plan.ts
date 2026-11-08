@@ -11,6 +11,7 @@ export const FAR_WALL_Z = -21;
 export const NEXT_YARD_OFFSET = 44;
 export const GAP_WIDTH = 3.6;
 export const WALL_HEIGHT = 2.6;
+export const WALL_HALF_DEPTH = 0.15;
 export const EYE_HEIGHT = 1.6;
 export const YARD_HALF_WIDTH = 24;
 
