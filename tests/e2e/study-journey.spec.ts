@@ -2,6 +2,7 @@ import { writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { expect as baseExpect, newContext, test, type Browser, type Page } from "./fixtures";
+import { hardwareGpu } from "./gpu-mode";
 import { batteryDriftFromGenerated, closeDb, db, ensureDemoStudy, JOURNEY_STUDY, CAP_STUDY, missingBatteryImages, sessionByCode } from "./study-fixtures";
 import { answerAssessment, enrol, linkConceptMap, shot, SHOTS, throughConsentToAllocation, throughPracticeToLearning, watch, type Journey } from "./study-steps";
 
@@ -18,8 +19,10 @@ async function assertOtherDoorShut(page: Page, door: Journey["door"]): Promise<v
   await page.goto(other);
   await page.waitForLoadState("domcontentloaded");
   await expect.poll(() => new URL(page.url()).pathname).not.toBe(other);
+  await page.waitForLoadState("networkidle");
   await page.goto(`${other}/practice`);
   await expect.poll(() => new URL(page.url()).pathname).not.toBe(`${other}/practice`);
+  await page.waitForLoadState("networkidle");
 }
 
 async function stopsRefusedAhead(page: Page): Promise<number> {
@@ -201,6 +204,7 @@ test.afterAll(async () => {
 
 for (const door of ["2d", "immersive"] as const) {
   test(`whole journey through ${door === "2d" ? "Door 1" : "Door 2"}`, async ({ browser }) => {
+    test.skip(door === "immersive" && !hardwareGpu(), "Door 2 draws the walk only on a hardware GPU; this runner renders WebGL in software");
     let result: Awaited<ReturnType<typeof runJourney>> = null;
     for (let attempt = 0; attempt < 6 && !result; attempt++) result = await runJourney(browser, door);
     expect(result, "no participant was allocated this door").not.toBeNull();
