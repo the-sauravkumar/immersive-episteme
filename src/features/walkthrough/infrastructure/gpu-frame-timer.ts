@@ -21,6 +21,10 @@ export class GpuFrameTimer {
     this.extension = gl.getExtension("EXT_disjoint_timer_query_webgl2") as TimerQueryExtension | null;
   }
 
+  get timed(): boolean {
+    return this.extension !== null;
+  }
+
   begin(): void {
     if (!this.extension || this.active || this.pending.length >= MOST_PENDING) return;
     const query = this.spare.pop() ?? this.gl.createQuery();

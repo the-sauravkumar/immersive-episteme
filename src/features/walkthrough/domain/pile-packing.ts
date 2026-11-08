@@ -124,6 +124,8 @@ class SettledColumns {
 
 const SMALLEST_COLUMN_METRES = 0.006;
 
+const CANDIDATES_PER_STEP = 24;
+
 export function* packingSteps(profile: VesselProfile, blueprints: readonly PileBlueprint[], options: PackOptions): Generator<void, PlacedPiece[]> {
   const random = seededRandom(options.seed);
   const placed: PlacedPiece[] = [];
@@ -136,6 +138,7 @@ export function* packingSteps(profile: VesselProfile, blueprints: readonly PileB
   for (const blueprint of blueprints) {
     let best: { piece: PlacedPiece; spheres: PieceSphere[]; score: number } | null = null;
     for (let c = 0; c < options.candidates; c++) {
+      if (c > 0 && c % CANDIDATES_PER_STEP === 0) yield;
       const yaw = random() * Math.PI * 2;
       const pitch = options.anyTumble || options.spins ? random() * Math.PI * 2 : (random() - 0.5) * options.maxTilt;
       const roll = options.anyTumble ? random() * Math.PI * 2 : (random() - 0.5) * options.maxTilt;

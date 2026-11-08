@@ -52,12 +52,9 @@ export function blueprintsFrom(variants: readonly PieceShape[], count: number, s
   });
 }
 
-async function builtInTurn(pacer: WorkPacer, makers: readonly (() => PieceVariant)[]): Promise<PieceVariant[]> {
+async function builtInTurn(pacer: WorkPacer, makers: readonly (() => Generator<void, PieceVariant>)[]): Promise<PieceVariant[]> {
   const variants: PieceVariant[] = [];
-  for (const make of makers) {
-    await pacer.yieldSlice();
-    variants.push(make());
-  }
+  for (const make of makers) variants.push(await pacer.run(make()));
   return variants;
 }
 

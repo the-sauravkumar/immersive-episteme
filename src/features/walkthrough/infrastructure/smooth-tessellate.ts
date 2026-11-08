@@ -4,8 +4,9 @@ const WELD_METRES = 1e-5;
 const SAME_NORMAL_COSINE = 0.999;
 const PHONG_SHAPE = 0.75;
 const LEAST_CURVED_COSINE = 0.906;
+const ITEMS_PER_STEP = 1024;
 
-export function phongTessellate(source: THREE.BufferGeometry): THREE.BufferGeometry {
+export function* phongTessellateSteps(source: THREE.BufferGeometry): Generator<void, THREE.BufferGeometry> {
   const geometry = source.index ? source : source.toNonIndexed();
   const position = geometry.attributes.position!;
   const normal = geometry.attributes.normal!;
@@ -16,6 +17,7 @@ export function phongTessellate(source: THREE.BufferGeometry): THREE.BufferGeome
   const weldIds = new Map<string, number>();
   const welded = new Int32Array(position.count);
   for (let i = 0; i < position.count; i++) {
+    if (i % ITEMS_PER_STEP === 0) yield;
     const key = `${Math.round(position.getX(i) / WELD_METRES)},${Math.round(position.getY(i) / WELD_METRES)},${Math.round(position.getZ(i) / WELD_METRES)}`;
     let id = weldIds.get(key);
     if (id === undefined) {
@@ -35,6 +37,7 @@ export function phongTessellate(source: THREE.BufferGeometry): THREE.BufferGeome
     return na.dot(nb) >= SAME_NORMAL_COSINE;
   };
   for (let t = 0; t + 2 < count; t += 3) {
+    if (t % (ITEMS_PER_STEP * 3) === 0) yield;
     const corners = [indexAt(t), indexAt(t + 1), indexAt(t + 2)];
     for (let e = 0; e < 3; e++) {
       const p = corners[e]!;
@@ -81,8 +84,10 @@ export function phongTessellate(source: THREE.BufferGeometry): THREE.BufferGeome
     middles.set(key, added);
     return added;
   };
+  yield;
   const indices: number[] = [];
   for (let t = 0; t + 2 < count; t += 3) {
+    if (t % (ITEMS_PER_STEP * 3) === 0) yield;
     const a = indexAt(t);
     const b = indexAt(t + 1);
     const c = indexAt(t + 2);
@@ -91,6 +96,7 @@ export function phongTessellate(source: THREE.BufferGeometry): THREE.BufferGeome
     const ca = middleOf(c, a);
     indices.push(a, ab, ca, ab, b, bc, ca, bc, c, ab, bc, ca);
   }
+  yield;
   const refined = new THREE.BufferGeometry();
   refined.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
   refined.setAttribute("normal", new THREE.Float32BufferAttribute(normals, 3));

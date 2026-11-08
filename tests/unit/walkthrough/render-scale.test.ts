@@ -10,6 +10,7 @@ import {
   SCALE_SETTLE_MS,
   SLOW_DEVICE_RUN,
   STALLED_FRAME_MS,
+  startingRenderScale,
   topRenderScale,
 } from "@/features/walkthrough/domain/render-scale";
 
@@ -45,6 +46,29 @@ const run = (governor: RenderScaleGovernor, clock: Clock, durationMs: number, de
 };
 
 const overload = (governor: RenderScaleGovernor, clock: Clock, frameMs: number, gpuMs: number | null = null) => feed(governor, clock, LOWER_WINDOW_FRAMES, frameMs, gpuMs);
+
+describe("starting render scale", () => {
+  it("keeps the measured level when it fits and rises as far as the timed headroom allows", () => {
+    expect(startingRenderScale(2, { frameMs: 16.7, gpuMs: 14.3 }, 2)).toBe(2);
+    expect(startingRenderScale(2, { frameMs: 16.7, gpuMs: null }, 1)).toBe(1);
+    expect(startingRenderScale(2, { frameMs: 16.7, gpuMs: 4 }, 1)).toBe(1.75);
+    expect(startingRenderScale(1, { frameMs: 80, gpuMs: 70 }, 1)).toBe(1);
+  });
+
+  it("starts at the largest level whose pixel cost fits the raise headroom", () => {
+    expect(startingRenderScale(2, { frameMs: 60, gpuMs: 52 }, 2)).toBe(1);
+    expect(startingRenderScale(2, { frameMs: 25, gpuMs: 22 }, 2)).toBe(1.5);
+    expect(startingRenderScale(2, { frameMs: 25, gpuMs: null }, 2)).toBe(1.25);
+  });
+
+  it("starts a governor at the given level and lowers or raises from there", () => {
+    const clock = { now: 0 };
+    const governor = new RenderScaleGovernor(2, clock.now, 1.25);
+    expect(governor.scale).toBe(1.25);
+    expect(governor.top).toBe(2);
+    expect(run(governor, clock, 12000, { paceMs: 16.7, msAtCss: 2, timer: true })).toEqual([1.5, 1.75, 2]);
+  });
+});
 
 describe("render scale levels", () => {
   it("renders at the device pixel ratio, capped at 2", () => {

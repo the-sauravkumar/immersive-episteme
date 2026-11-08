@@ -1,13 +1,14 @@
 import * as THREE from "three";
 import type { SubstanceLook } from "@/features/process/domain/substance-look";
 import { foldedPile } from "../domain/cloth-surface";
-import { fittedSurfaceSteps, flatLevel, heapHeight, levelInVessel, meanWallRadius, moundHeight, pasteHeight, surfaceShade, valueNoise, wallFilm, type HeapShape, type HeightAt, type SurfaceGrid, type SurfaceShading } from "../domain/fill-surface";
+import { fittedSurfaceSteps, flatLevel, heapHeight, levelInVessel, meanWallRadius, moundHeight, pasteHeight, surfaceShadeSteps, valueNoise, wallFilmSteps as filmGridSteps, type HeapShape, type HeightAt, type SurfaceGrid, type SurfaceShading } from "../domain/fill-surface";
 import { pileFormOf, type PileForm } from "../domain/pile-form";
 import { packingSteps, piecesNearTop, rotateYXZ, seededRandom, worldSpheresOf, type PieceSphere, type PlacedPiece } from "../domain/pile-packing";
 import { firstHit, makeVesselProbe, vertexOutsideVessel, VESSEL_TUCK_METRES, type VesselProbe } from "../domain/mesh-probe";
 import type { FillAudit, CheckedSphere } from "../domain/scene-check";
 import { measuringSteps, wallRadius, widestWallRadius, type VesselProfile } from "../domain/vessel-profile";
 import type { MaterialLibrary } from "./material-library";
+import { normalSteps } from "./stepped-geometry";
 import type { WorkPacer } from "./work-pacer";
 import { hasCakePieces, isLumpCrystal, PASTE_FORMS, pasteThicknessOf, POWDER_FORMS, powderGrainOf, type PowderGrain } from "../domain/substance-body";
 import { scatterSteps, type ScatterKind } from "../domain/surface-scatter";
@@ -81,12 +82,15 @@ function outsideTest(measured: MeasuredVessel): FillAudit["vertexOutside"] {
   return (point) => vertexOutsideVessel(probeOf(measured), point, VESSEL_TUCK_METRES);
 }
 
-function gridGeometry(grid: SurfaceGrid): THREE.BufferGeometry {
+function* gridSteps(grid: SurfaceGrid): Generator<void, THREE.BufferGeometry> {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(grid.positions, 3));
   geometry.setIndex(new THREE.BufferAttribute(grid.indices, 1));
-  geometry.computeVertexNormals();
-  return geometry;
+  return yield* normalSteps(geometry);
+}
+
+function* fittedGridSteps(surface: Generator<void, SurfaceGrid>): Generator<void, THREE.BufferGeometry> {
+  return yield* gridSteps(yield* surface);
 }
 
 function stillMesh(geometry: THREE.BufferGeometry, material: THREE.Material): THREE.Mesh {
@@ -134,7 +138,7 @@ async function addLiquid(library: MaterialLibrary, parent: THREE.Object3D, scanI
   const profile = measured.profile;
   const level = levelInVessel(profile, LIQUID_FRACTION);
   const geometry = await library.shared(`surface:liquid:${scanId}`, async () => {
-    const built = gridGeometry(await library.pacer.run(fittedSurfaceSteps(profile, level, 32, 192, flatLevel(level))));
+    const built = await library.pacer.run(fittedGridSteps(fittedSurfaceSteps(profile, level, 32, 192, flatLevel(level))));
     liquidColumnDepths(built, profile, level);
     return built;
   });
@@ -150,13 +154,14 @@ function plainWhite(geometry: THREE.BufferGeometry, shade = 1): THREE.BufferGeom
   return geometry;
 }
 
-function shadedGeometry(grid: SurfaceGrid, rings: number, spokes: number, shading: SurfaceShading): THREE.BufferGeometry {
-  const geometry = gridGeometry(grid);
-  geometry.setAttribute("color", new THREE.BufferAttribute(surfaceShade(grid, rings, spokes, shading), 3));
+function* shadedSteps(profile: VesselProfile, level: number, rings: number, spokes: number, heightAt: HeightAt, shading: SurfaceShading): Generator<void, THREE.BufferGeometry> {
+  const grid = yield* fittedSurfaceSteps(profile, level, rings, spokes, heightAt);
+  const geometry = yield* gridSteps(grid);
+  geometry.setAttribute("color", new THREE.BufferAttribute(yield* surfaceShadeSteps(grid, rings, spokes, shading), 3));
   return geometry;
 }
 
-function wallFilmGeometry(measured: MeasuredVessel, level: number, height: number, seed: number): THREE.BufferGeometry {
+function* wallFilmSteps(measured: MeasuredVessel, level: number, height: number, seed: number): Generator<void, THREE.BufferGeometry> {
   const profile = measured.profile;
   const probe = probeOf(measured);
   const wallAt = (theta: number, y: number): number => {
@@ -174,8 +179,8 @@ function wallFilmGeometry(measured: MeasuredVessel, level: number, height: numbe
     while (y > level && !(enclosed(theta, y + FILM_BELOW_RIM_METRES) && enclosed(theta, y))) y -= FILM_TOP_STEP_METRES;
     return y;
   };
-  const grid = wallFilm(12, 320, () => level - FILM_BELOW_LEVEL_METRES, topOf, wallAt, FILM_INSET_METRES);
-  const geometry = plainWhite(gridGeometry(grid), FILM_SHADE);
+  const grid = yield* filmGridSteps(12, 320, () => level - FILM_BELOW_LEVEL_METRES, topOf, wallAt, FILM_INSET_METRES);
+  const geometry = plainWhite(yield* gridSteps(grid), FILM_SHADE);
   geometry.setAttribute("filmShare", new THREE.BufferAttribute(grid.share, 1));
   return geometry;
 }
@@ -257,8 +262,8 @@ async function addPaste(library: MaterialLibrary, parent: THREE.Object3D, scanId
   const depth = profile.rimY - profile.floorY;
   const seed = keySeed(look.key);
   const body = { ...form, strokes: Math.max(1, form.strokes - (seed % 3)), furrowDepth: form.furrowDepth * (0.55 + (seed % 5) * 0.15), reach: meanWallRadius(profile, level), seed };
-  const geometry = await library.shared(`surface:paste:${scanId}:${look.key}`, async () => shadedGeometry(await library.pacer.run(fittedSurfaceSteps(profile, level, 72, 320, pasteHeight(level, depth, body))), 72, 320, PASTE_SHADING));
-  const smear = await library.shared(`film:paste:${scanId}:${thickness}`, async () => wallFilmGeometry(measured, level + depth * form.meniscus * 0.3, depth * form.smearHeight, 5));
+  const geometry = await library.shared(`surface:paste:${scanId}:${look.key}`, () => library.pacer.run(shadedSteps(profile, level, 72, 320, pasteHeight(level, depth, body), PASTE_SHADING)));
+  const smear = await library.shared(`film:paste:${scanId}:${thickness}`, () => library.pacer.run(wallFilmSteps(measured, level + depth * form.meniscus * 0.3, depth * form.smearHeight, 5)));
   const mass = stillMesh(geometry, await substanceMaterial(library, look));
   mass.castShadow = true;
   parent.add(mass);
@@ -323,8 +328,8 @@ async function addPowder(library: MaterialLibrary, parent: THREE.Object3D, scanI
   const level = levelInVessel(profile, form.level);
   const depth = profile.rimY - profile.floorY;
   const heightAt = heapHeight(level, depth * form.heap, heapShapeOf(grain, meanWallRadius(profile, level)));
-  const geometry = await library.shared(`surface:powder:${scanId}:${grain}`, async () => shadedGeometry(await library.pacer.run(fittedSurfaceSteps(profile, level, 96, 384, heightAt)), 96, 384, HEAP_SHADING));
-  const dust = await library.shared(`film:powder:${scanId}:${grain}`, async () => wallFilmGeometry(measured, level, depth * form.filmHeight, 9));
+  const geometry = await library.shared(`surface:powder:${scanId}:${grain}`, () => library.pacer.run(shadedSteps(profile, level, 96, 384, heightAt, HEAP_SHADING)));
+  const dust = await library.shared(`film:powder:${scanId}:${grain}`, () => library.pacer.run(wallFilmSteps(measured, level, depth * form.filmHeight, 9)));
   const material = await substanceMaterial(library, look);
   if (grain === "fibrous") material.side = THREE.DoubleSide;
   const mound = stillMesh(geometry, material);
@@ -360,8 +365,8 @@ async function addCrystalLumps(library: MaterialLibrary, parent: THREE.Object3D,
   const level = levelInVessel(profile, LUMP_BED_FRACTION);
   const depth = profile.rimY - profile.floorY;
   const heightAt = heapHeight(level, 0, { ...heapShapeOf("fine", meanWallRadius(profile, level)), slumps: 0, lineDepth: 0, lumpDepth: 0.0014, fineDepth: 0.0003 });
-  const bed = await library.shared(`surface:lump-bed:${scanId}`, async () => gridGeometry(await library.pacer.run(fittedSurfaceSteps(profile, level, 64, 320, heightAt))));
-  const dust = await library.shared(`film:lump-bed:${scanId}`, async () => wallFilmGeometry(measured, level, depth * POWDER_FORMS.fine.filmHeight, 13));
+  const bed = await library.shared(`surface:lump-bed:${scanId}`, () => library.pacer.run(fittedGridSteps(fittedSurfaceSteps(profile, level, 64, 320, heightAt))));
+  const dust = await library.shared(`film:lump-bed:${scanId}`, () => library.pacer.run(wallFilmSteps(measured, level, depth * POWDER_FORMS.fine.filmHeight, 13)));
   const powder = await substanceMaterial(library, look);
   parent.add(stillMesh(bed, await pileBedMaterial(library, look)));
   parent.add(stillMesh(dust, await filmMaterial(library, look, POWDER_FEATHER)));
@@ -461,7 +466,7 @@ async function addPile(library: MaterialLibrary, parent: THREE.Object3D, scanId:
   const { recipe, placed, world, seen } = await packedPile(library, scanId, form, measured.profile);
   const material = await pileMaterial(library, look, recipe.meanTone);
   const profile = measured.profile;
-  const bedGeometry = await library.shared(`surface:bed:${scanId}:${form}`, async () => gridGeometry(await library.pacer.run(fittedSurfaceSteps(profile, levelInVessel(profile, recipe.bedShare ?? PILE_BED_FRACTION), 48, 192, bedHeightOf(profile, recipe), PILE_BED_INSET_METRES))));
+  const bedGeometry = await library.shared(`surface:bed:${scanId}:${form}`, () => library.pacer.run(fittedGridSteps(fittedSurfaceSteps(profile, levelInVessel(profile, recipe.bedShare ?? PILE_BED_FRACTION), 48, 192, bedHeightOf(profile, recipe), PILE_BED_INSET_METRES))));
   if (!recipe.bare) parent.add(stillMesh(bedGeometry, await pileBedMaterial(library, look)));
   const holder = new THREE.Object3D();
   holder.rotation.order = "YXZ";
@@ -547,8 +552,7 @@ async function addFoldedCloth(library: MaterialLibrary, parent: THREE.Object3D, 
     built.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     built.setAttribute("color", new THREE.BufferAttribute(colours, 3));
     built.setIndex(new THREE.BufferAttribute(indices, 1));
-    built.computeVertexNormals();
-    return built;
+    return library.pacer.run(normalSteps(built));
   });
   const stack = stillMesh(geometry, material);
   stack.castShadow = true;

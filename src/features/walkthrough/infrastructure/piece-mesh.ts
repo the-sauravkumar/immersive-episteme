@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { seededRandom, type PieceSphere } from "../domain/pile-packing";
-import { smoothedValues } from "../domain/neighbourhood-grid";
+import { smoothedValueSteps } from "../domain/neighbourhood-grid";
+import { normalSteps } from "./stepped-geometry";
 
 export type Tone = readonly [number, number, number];
 export type Point = readonly [number, number, number];
@@ -83,16 +84,15 @@ export class PieceMesh {
     this.indices.push(a, b, d, b, c, d);
   }
 
-  build(): THREE.BufferGeometry {
+  *buildSteps(): Generator<void, THREE.BufferGeometry> {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(this.positions, 3));
     geometry.setAttribute("color", new THREE.Float32BufferAttribute(this.colours, 3));
     geometry.setAttribute("uv", new THREE.Float32BufferAttribute(this.uvs, 2));
     geometry.setAttribute("girth", new THREE.Float32BufferAttribute(this.girths, 1));
-    geometry.setAttribute("farColour", new THREE.Float32BufferAttribute(smoothedValues(this.positions, this.colours, 3, FAR_TONE_RADIUS_METRES), 3));
+    geometry.setAttribute("farColour", new THREE.Float32BufferAttribute(yield* smoothedValueSteps(this.positions, this.colours, 3, FAR_TONE_RADIUS_METRES), 3));
     geometry.setIndex(this.indices);
-    geometry.computeVertexNormals();
-    return geometry;
+    return yield* normalSteps(geometry);
   }
 }
 

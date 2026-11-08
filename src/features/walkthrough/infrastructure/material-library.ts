@@ -1,15 +1,21 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 import type { SurfaceClass } from "../domain/surface-density";
-import { phongTessellate } from "./smooth-tessellate";
+import { phongTessellateSteps } from "./smooth-tessellate";
 import { BitmapDecoder } from "./bitmap-decoder";
 import { WorkPacer } from "./work-pacer";
 import type { MipFilter } from "../domain/filtered-mips";
-import { wallPlaneNormals } from "../domain/far-normals";
+import { wallPlaneNormalSteps } from "../domain/far-normals";
 import { PIXEL_FOOTPRINT_UNIFORM, pixelMetresAt, trackPixelFootprint } from "./pixel-footprint";
+import { PAINT_FONTS, type PaintSpec } from "./painted-layer";
 
 const ROOT = "/walkthrough";
+
+export interface PaintedTexture {
+  readonly texture: THREE.Texture;
+  readonly width: number;
+  readonly height: number;
+}
 
 export interface ScanSpec {
   readonly id: string;
@@ -265,7 +271,9 @@ const FAR_NORMAL_RAMP: BiasRamp = [1.6, 3.5];
 const CLOTH_SKY_LIGHT = 0.26;
 const OPEN_WORK_MODELS: ReadonlySet<string> = new Set(["wicker_basket_01", "wooden_crate_01"]);
 
-function medianUvPerMetre(geometry: THREE.BufferGeometry): number {
+const TRIANGLES_PER_STEP = 3 * 2048;
+
+function* medianUvPerMetreSteps(geometry: THREE.BufferGeometry): Generator<void, number> {
   const position = geometry.attributes.position!;
   const uv = geometry.attributes.uv!;
   const index = geometry.index;
@@ -276,6 +284,7 @@ function medianUvPerMetre(geometry: THREE.BufferGeometry): number {
   const c = new THREE.Vector3();
   const ratios: number[] = [];
   for (let t = 0; t + 2 < count; t += 3) {
+    if (t % TRIANGLES_PER_STEP === 0) yield;
     const [i0, i1, i2] = [at(t), at(t + 1), at(t + 2)];
     a.fromBufferAttribute(position, i0);
     b.fromBufferAttribute(position, i1);
@@ -285,6 +294,7 @@ function medianUvPerMetre(geometry: THREE.BufferGeometry): number {
     const uvArea = Math.abs((uv.getX(i1) - uv.getX(i0)) * (uv.getY(i2) - uv.getY(i0)) - (uv.getX(i2) - uv.getX(i0)) * (uv.getY(i1) - uv.getY(i0))) / 2;
     ratios.push(Math.sqrt(uvArea / area));
   }
+  yield;
   ratios.sort((p, q) => p - q);
   return ratios[ratios.length >> 1] ?? 1;
 }
@@ -292,24 +302,45 @@ function medianUvPerMetre(geometry: THREE.BufferGeometry): number {
 const OPEN_SKY_TURN_RADIANS = -1.8;
 const SUN_SOFT_KNEE = 3.5;
 
-function softenSun(sky: THREE.DataTexture): void {
-  const values = sky.image.data as unknown as Uint16Array;
-  const { fromHalfFloat, toHalfFloat } = THREE.DataUtils;
-  for (let i = 0; i < values.length; i += 4) {
-    const red = fromHalfFloat(values[i]!);
-    const green = fromHalfFloat(values[i + 1]!);
-    const blue = fromHalfFloat(values[i + 2]!);
-    const brightest = Math.max(red, green, blue);
-    if (brightest <= SUN_SOFT_KNEE * 0.5) continue;
-    const scale = SUN_SOFT_KNEE / (SUN_SOFT_KNEE + brightest - SUN_SOFT_KNEE * 0.5) ;
-    values[i] = toHalfFloat(red * scale);
-    values[i + 1] = toHalfFloat(green * scale);
-    values[i + 2] = toHalfFloat(blue * scale);
-  }
+interface PmremInternals {
+  _setSize(cubeSize: number): void;
+  _allocateTargets(): THREE.WebGLRenderTarget;
+  readonly _ggxMaterial: THREE.ShaderMaterial;
+  readonly _blurMaterial: THREE.ShaderMaterial;
+  readonly _equirectMaterial: THREE.ShaderMaterial | null;
+}
+
+async function compiledPmremTargets(generator: THREE.PMREMGenerator, renderer: THREE.WebGLRenderer, width: number, count: number): Promise<THREE.WebGLRenderTarget[]> {
+  const internals = generator as unknown as PmremInternals;
+  internals._setSize(width / 4);
+  const targets = Array.from({ length: count }, () => internals._allocateTargets());
+  const restore = renderer.getRenderTarget();
+  renderer.setRenderTarget(targets[0]!);
+  generator.compileEquirectangularShader();
+  const holder = new THREE.Scene();
+  const placed = new THREE.BufferGeometry();
+  placed.setAttribute("position", new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));
+  for (const material of [internals._equirectMaterial!, internals._ggxMaterial, internals._blurMaterial]) holder.add(new THREE.Mesh(placed, material));
+  const compiled = renderer.compileAsync(holder, new THREE.OrthographicCamera());
+  renderer.setRenderTarget(restore);
+  await compiled;
+  placed.dispose();
+  return targets;
+}
+
+function equirectangularSky(data: Uint16Array, width: number, height: number): THREE.DataTexture {
+  const texture = new THREE.DataTexture(data, width, height, THREE.RGBAFormat, THREE.HalfFloatType);
+  texture.colorSpace = THREE.LinearSRGBColorSpace;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.generateMipmaps = false;
+  texture.flipY = true;
+  texture.mapping = THREE.EquirectangularReflectionMapping;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 export class MaterialLibrary {
-  private readonly textures = new THREE.TextureLoader();
   private readonly decoder = new BitmapDecoder({ imageOrientation: "flipY", premultiplyAlpha: "none", colorSpaceConversion: "none" });
   private readonly models = new GLTFLoader();
   private readonly scans = new Map<ScanName, Promise<ScanTextures>>();
@@ -322,6 +353,7 @@ export class MaterialLibrary {
 
   constructor(renderer: THREE.WebGLRenderer) {
     this.anisotropy = Math.min(16, renderer.capabilities.getMaxAnisotropy());
+    this.pacer.trackGpu(renderer.getContext() as WebGL2RenderingContext);
   }
 
   private async decoded(path: string): Promise<THREE.Texture> {
@@ -338,6 +370,14 @@ export class MaterialLibrary {
     const texture = await this.decoded(path);
     if (srgb) texture.colorSpace = THREE.SRGBColorSpace;
     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    texture.anisotropy = this.anisotropy;
+    return texture;
+  }
+
+  async horizonScrub(): Promise<THREE.Texture> {
+    const texture = await this.decoded(`${ROOT}/tex/horizon/scrub.png`);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.wrapS = THREE.RepeatWrapping;
     texture.anisotropy = this.anisotropy;
     return texture;
   }
@@ -453,8 +493,8 @@ export class MaterialLibrary {
     return texture;
   }
 
-  async paintTexture(drawing: ImageData): Promise<THREE.Texture> {
-    const { bitmap, levels } = await this.decoder.filterDrawing(drawing, PAINT_MIP_FILTER);
+  async paintedWords(spec: PaintSpec): Promise<PaintedTexture> {
+    const { bitmap, levels, width, height } = await this.decoder.paint(spec, PAINT_FONTS, PAINT_MIP_FILTER);
     const texture = new THREE.Texture(bitmap);
     texture.mipmaps = [bitmap, ...levels] as unknown as HTMLCanvasElement[];
     texture.flipY = false;
@@ -462,7 +502,7 @@ export class MaterialLibrary {
     texture.minFilter = THREE.LinearMipmapLinearFilter;
     texture.anisotropy = this.anisotropy;
     texture.needsUpdate = true;
-    return texture;
+    return { texture, width, height };
   }
 
   async rawCottonMaterial(): Promise<THREE.MeshStandardMaterial> {
@@ -502,7 +542,7 @@ export class MaterialLibrary {
     });
     for (const node of meshes) {
       if (MODEL_FINE_SCANS[scanId]) {
-        const refined = phongTessellate(node.geometry as THREE.BufferGeometry);
+        const refined = await this.pacer.run(phongTessellateSteps(node.geometry as THREE.BufferGeometry));
         (node.geometry as THREE.BufferGeometry).dispose();
         node.geometry = refined;
       }
@@ -513,12 +553,12 @@ export class MaterialLibrary {
       const openWork = OPEN_WORK_MODELS.has(scanId);
       if (fine) {
         const fineScan = await this.scan(fine.scan);
-        const ratio = 1 / (fine.tileMetres * medianUvPerMetre(node.geometry as THREE.BufferGeometry));
+        const ratio = 1 / (fine.tileMetres * (await this.pacer.run(medianUvPerMetreSteps(node.geometry as THREE.BufferGeometry))));
         const farNormalRadius = FAR_NORMAL_RADIUS_METRES[scanId];
         const softened = softenWhenFar(material, false, { colour: fineScan.colour, normal: fineScan.normal, scale: [ratio, ratio], tone: fine.tone, relief: fine.relief });
         if (farNormalRadius) {
           const geometry = node.geometry as THREE.BufferGeometry;
-          geometry.setAttribute("farNormal", new THREE.Float32BufferAttribute(wallPlaneNormals(geometry.attributes.position!.array, farNormalRadius), 3));
+          geometry.setAttribute("farNormal", new THREE.Float32BufferAttribute(await this.pacer.run(wallPlaneNormalSteps(geometry.attributes.position!.array, farNormalRadius)), 3));
           fadeToFarNormals(softened, FAR_NORMAL_RAMP);
         }
         if (openWork) closeSubPixelGaps(softened);
@@ -545,19 +585,22 @@ export class MaterialLibrary {
   }
 
   async sky(scene: THREE.Scene, renderer: THREE.WebGLRenderer): Promise<THREE.Mesh> {
-    const [dome, environment] = await Promise.all([this.textures.loadAsync(`${ROOT}/sky/dome.jpg`), new HDRLoader().loadAsync(`${ROOT}/sky/env.hdr`)]);
+    const [dome, decoded] = await Promise.all([this.decoded(`${ROOT}/sky/dome.jpg`), this.decoder.decodeSky(`${ROOT}/sky/env.hdr`, SUN_SOFT_KNEE)]);
     dome.colorSpace = THREE.SRGBColorSpace;
     dome.mapping = THREE.EquirectangularReflectionMapping;
-    environment.mapping = THREE.EquirectangularReflectionMapping;
     const generator = new THREE.PMREMGenerator(renderer);
-    scene.environment = generator.fromEquirectangular(environment).texture;
+    const [litTarget, openTarget] = await compiledPmremTargets(generator, renderer, decoded.width, 2);
+    const environment = equirectangularSky(decoded.plain, decoded.width, decoded.height);
+    const softened = equirectangularSky(decoded.softened, decoded.width, decoded.height);
+    scene.environment = generator.fromEquirectangular(environment, litTarget).texture;
     scene.environmentIntensity = 0.62;
-    softenSun(environment);
-    environment.needsUpdate = true;
-    this.openSky = generator.fromEquirectangular(environment).texture;
+    await this.pacer.settle();
+    this.openSky = generator.fromEquirectangular(softened, openTarget).texture;
+    await this.pacer.settle();
     this.kept.add(this.openSky);
     generator.dispose();
     environment.dispose();
+    softened.dispose();
     dome.wrapS = THREE.RepeatWrapping;
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(900, 64, 32), new THREE.MeshBasicMaterial({ map: dome, side: THREE.BackSide, fog: false, depthWrite: false }));
     mesh.renderOrder = -10;

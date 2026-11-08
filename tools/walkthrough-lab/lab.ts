@@ -130,7 +130,7 @@ if (sceneName === "still") {
   view = fitStillView(subject.group.children[0]!, subject.bounds, camera, STILL_CAMERA_DIRECTION);
 } else {
   const sky = await library.sky(scene, renderer);
-  addHorizon(scene, (await library.scan("earth")).colour);
+  addHorizon(scene, (await library.scan("earth")).colour, await library.horizonScrub());
   addSun(scene, new THREE.Vector3(1, 0, -2));
   if (sceneName === "entrance") {
     const open = (query.get("open") ?? "none") as "none" | "door-1" | "door-2";

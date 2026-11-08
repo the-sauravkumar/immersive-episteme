@@ -1,6 +1,8 @@
 import * as THREE from "three";
+import type { WorkPacer } from "./work-pacer";
 import type { SubstanceLook } from "@/features/process/domain/substance-look";
 import { creasedNormals } from "./creased-normals";
+import { normalSteps } from "./stepped-geometry";
 import { noteSurface, type MaterialLibrary } from "./material-library";
 import { projectedMaterial, solidMesh } from "./built-materials";
 import { displayAlbedo, projectScan } from "./substance-materials";
@@ -14,6 +16,7 @@ const PAD_CLEARANCE_METRES = 0.0007;
 const UNLOADED_HEX = "#9A8F78";
 const PAD_COLUMNS = 128;
 const PAD_ROWS = 96;
+const PAD_ROWS_PER_STEP = 6;
 const HUMP_X = -0.11;
 const HUMP_Z = 0.07;
 const HUMP_REACH_X = 0.12;
@@ -46,7 +49,7 @@ function roundedRect(path: THREE.Path, halfX: number, halfZ: number, radius: num
   path.absarc(-halfX + radius, -halfZ + radius, radius, Math.PI, Math.PI * 1.5, false);
 }
 
-function trayShell(depth: number): THREE.BufferGeometry {
+async function trayShell(depth: number, pacer: WorkPacer): Promise<THREE.BufferGeometry> {
   const outer = new THREE.Shape();
   roundedRect(outer, WIDTH / 2, depth / 2, CORNER);
   const inner = new THREE.Path();
@@ -55,6 +58,7 @@ function trayShell(depth: number): THREE.BufferGeometry {
   const walls = new THREE.ExtrudeGeometry(outer, { depth: RIM_HEIGHT - 0.003, bevelEnabled: true, bevelThickness: 0.0015, bevelSize: 0.0015, bevelOffset: -0.0015, bevelSegments: 2, curveSegments: 8 });
   walls.rotateX(-Math.PI / 2);
   walls.translate(0, 0.0015, 0);
+  await pacer.yieldSlice();
   return creasedNormals(walls, 0.7);
 }
 
@@ -92,7 +96,7 @@ function insideRoundedCorner(x: number, z: number, halfX: number, halfZ: number)
   return [Math.sign(x) * (halfX - radius + fromX * pull), Math.sign(z) * (halfZ - radius + fromZ * pull)];
 }
 
-function padGeometry(layer: PadLayer, below: HeightField): { geometry: THREE.BufferGeometry; top: HeightField } {
+function* padSteps(layer: PadLayer, below: HeightField): Generator<void, { geometry: THREE.BufferGeometry; top: HeightField }> {
   const edgeOf = (x: number, z: number) => {
     const angle = Math.atan2(z / layer.halfZ, x / layer.halfX);
     const inset = layer.edgeWander * wanderAt(angle, layer.phase);
@@ -108,6 +112,7 @@ function padGeometry(layer: PadLayer, below: HeightField): { geometry: THREE.Buf
   const positions = new Float32Array(count * 3);
   const colours = new Float32Array(count * 3);
   for (let row = 0; row <= PAD_ROWS; row++) {
+    if (row % PAD_ROWS_PER_STEP === 0) yield;
     for (let column = 0; column <= PAD_COLUMNS; column++) {
       const s = (column / PAD_COLUMNS) * 2 - 1;
       const t = (row / PAD_ROWS) * 2 - 1;
@@ -139,7 +144,7 @@ function padGeometry(layer: PadLayer, below: HeightField): { geometry: THREE.Buf
   geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
   geometry.setAttribute("color", new THREE.BufferAttribute(colours, 3));
   geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-  geometry.computeVertexNormals();
+  yield* normalSteps(geometry);
   return { geometry, top };
 }
 
@@ -168,17 +173,14 @@ export async function buildPrintingTray(library: MaterialLibrary, look: Substanc
   const { pacer } = library;
   const group = new THREE.Group();
   await pacer.yieldSlice();
-  group.add(solidMesh(trayShell(depth), wood));
+  group.add(solidMesh(await trayShell(depth, pacer), wood));
   await pacer.yieldSlice();
   group.add(solidMesh(trayFloor(depth), wood));
   const clearX = WIDTH / 2 - WALL - PAD_CLEARANCE_METRES;
   const clearZ = depth / 2 - WALL - PAD_CLEARANCE_METRES;
-  await pacer.yieldSlice();
-  const lower = padGeometry({ halfX: clearX, halfZ: clearZ, edgeWander: 0.0012, thickness: 0.0075, swell: 0.2, phase: 0.9, edgeTone: 0.34, soakedShare: 0.1, centreTone: 0.42, hump: 0.4 }, () => FLOOR_THICKNESS);
-  await pacer.yieldSlice();
-  const middle = padGeometry({ halfX: clearX - 0.004, halfZ: clearZ - 0.004, edgeWander: 0.009, thickness: 0.0085, swell: 0.3, phase: 2.2, edgeTone: 0.42, soakedShare: 0.12, centreTone: 0.62, hump: 0.8 }, lower.top);
-  await pacer.yieldSlice();
-  const upper = padGeometry({ halfX: clearX - 0.01, halfZ: clearZ - 0.012, edgeWander: 0.024, thickness: 0.006, swell: 0.75, phase: 4.1, edgeTone: 0.44, soakedShare: 0.34, centreTone: 1, hump: 1.6 }, middle.top);
+  const lower = await pacer.run(padSteps({ halfX: clearX, halfZ: clearZ, edgeWander: 0.0012, thickness: 0.0075, swell: 0.2, phase: 0.9, edgeTone: 0.34, soakedShare: 0.1, centreTone: 0.42, hump: 0.4 }, () => FLOOR_THICKNESS));
+  const middle = await pacer.run(padSteps({ halfX: clearX - 0.004, halfZ: clearZ - 0.004, edgeWander: 0.009, thickness: 0.0085, swell: 0.3, phase: 2.2, edgeTone: 0.42, soakedShare: 0.12, centreTone: 0.62, hump: 0.8 }, lower.top));
+  const upper = await pacer.run(padSteps({ halfX: clearX - 0.01, halfZ: clearZ - 0.012, edgeWander: 0.024, thickness: 0.006, swell: 0.75, phase: 4.1, edgeTone: 0.44, soakedShare: 0.34, centreTone: 1, hump: 1.6 }, middle.top));
   group.add(solidMesh(lower.geometry, under), solidMesh(middle.geometry, under), solidMesh(upper.geometry, looped));
   return group;
 }

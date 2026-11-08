@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { neighbourhoodGrid, smoothedValues } from "@/features/walkthrough/domain/neighbourhood-grid";
+import { neighbourhoodGrid, smoothedValueSteps } from "@/features/walkthrough/domain/neighbourhood-grid";
+
+function smoothedValues(...args: Parameters<typeof smoothedValueSteps>): Float32Array {
+  const steps = smoothedValueSteps(...args);
+  for (;;) {
+    const step = steps.next();
+    if (step.done) return step.value;
+  }
+}
 
 function line(count: number, spacing: number): Float32Array {
   return Float32Array.from({ length: count * 3 }, (_, i) => (i % 3 === 0 ? Math.floor(i / 3) * spacing : 0));
