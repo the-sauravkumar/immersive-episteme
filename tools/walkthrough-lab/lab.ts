@@ -509,6 +509,7 @@ win.paintViews = () => {
       kind,
       views: {
         arrival: { eye: [...view.from], target: [...view.to] },
+        "12m": along(12),
         "6m": along(6),
         "3.6m": along(3.6),
         nearest: reach && Number.isFinite(reach.distance) ? { eye: [...reach.eye], target: [...reach.target], distance: +reach.distance.toFixed(2) } : along(0.6),
@@ -550,6 +551,67 @@ win.paintBox = (name: string) => {
   const width = Math.min(innerWidth, Math.ceil(maxX)) - x;
   const height = Math.min(innerHeight, Math.ceil(maxY)) - y;
   return width > 3 && height > 3 ? { x, y, width, height } : null;
+};
+const PAN_MARGIN_PIXELS = 16;
+const PAN_PIXELS_PER_FRAME = 0.25;
+win.paintPan = async (name: string, frames = 40) => {
+  const found = paintMeshes().find((row) => row.name === name);
+  const clip = (win.paintBox as (wanted: string) => { x: number; y: number; width: number; height: number } | null)(name);
+  if (!found || !clip) return null;
+  if (clip.x <= 0 || clip.y <= 0 || clip.x + clip.width >= innerWidth || clip.y + clip.height >= innerHeight) return { clipped: true };
+  const canvasWidth = renderer.domElement.width;
+  const canvasHeight = renderer.domElement.height;
+  const density = canvasWidth / innerWidth;
+  const x0 = Math.max(0, Math.floor(clip.x * density) - PAN_MARGIN_PIXELS);
+  const x1 = Math.min(canvasWidth, Math.ceil((clip.x + clip.width) * density) + PAN_MARGIN_PIXELS);
+  const y0 = Math.max(0, canvasHeight - Math.ceil((clip.y + clip.height) * density));
+  const y1 = Math.min(canvasHeight, canvasHeight - Math.floor(clip.y * density));
+  const width = x1 - x0;
+  const height = y1 - y0;
+  const pixels = new Uint8Array(width * height * 4);
+  const luma = () => {
+    output.render();
+    gl.readPixels(x0, y0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    const tones = new Float32Array(width * height);
+    for (let p = 0, q = 0; p < tones.length; p++, q += 4) tones[p] = pixels[q]! * 0.3 + pixels[q + 1]! * 0.59 + pixels[q + 2]! * 0.11;
+    return tones;
+  };
+  const start = camera.quaternion.clone();
+  const up = new THREE.Vector3(0, 1, 0);
+  const pixelAngle = ((camera.fov * Math.PI) / 180) / canvasHeight;
+  let inkSum = 0;
+  let inkSquares = 0;
+  let first: Float32Array | null = null;
+  for (let i = 0; i < frames; i++) {
+    camera.quaternion.copy(start);
+    camera.rotateOnWorldAxis(up, -pixelAngle * PAN_PIXELS_PER_FRAME * i);
+    camera.updateMatrixWorld();
+    found.mesh.visible = true;
+    const shown = luma();
+    found.mesh.visible = false;
+    const bare = luma();
+    found.mesh.visible = true;
+    for (let p = 0; p < shown.length; p++) shown[p]! -= bare[p]!;
+    if (!first) first = shown;
+    let total = 0;
+    for (let p = 0; p < shown.length; p++) total += shown[p]!;
+    inkSum += total;
+    inkSquares += total * total;
+    await new Promise(requestAnimationFrame);
+  }
+  camera.quaternion.copy(start);
+  camera.updateMatrixWorld();
+  output.render();
+  const inkMean = inkSum / frames;
+  const spread = Math.sqrt(Math.max(0, inkSquares / frames - inkMean * inkMean));
+  const mass = Math.abs(inkMean);
+  const ink = first!;
+  const sorted = Float32Array.from(ink).sort();
+  const contrast = Math.max(1, sorted[Math.floor(sorted.length * 0.98)]! - sorted[Math.floor(sorted.length * 0.02)]!);
+  const steps: number[] = [];
+  for (let y = 0; y < height - 1; y++) for (let x = 0; x < width - 1; x++) steps.push(Math.max(Math.abs(ink[y * width + x + 1]! - ink[y * width + x]!), Math.abs(ink[(y + 1) * width + x]! - ink[y * width + x]!)));
+  steps.sort((a, b) => a - b);
+  return { edge: +(steps[Math.floor(steps.length * 0.99)]! / contrast).toFixed(3), shimmer: +(spread / Math.max(1, mass)).toFixed(4), contrast: Math.round(contrast), pixels: [width, height] };
 };
 win.surfacePlanted = () => {
   if (!auditRoot) return null;
