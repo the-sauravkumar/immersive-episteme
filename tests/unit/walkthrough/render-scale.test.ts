@@ -65,7 +65,6 @@ describe("starting render scale", () => {
     const clock = { now: 0 };
     const governor = new RenderScaleGovernor(2, clock.now, 1.25);
     expect(governor.scale).toBe(1.25);
-    expect(governor.top).toBe(2);
     expect(run(governor, clock, 12000, { paceMs: 16.7, msAtCss: 2, timer: true })).toEqual([1.5, 1.75, 2]);
   });
 });

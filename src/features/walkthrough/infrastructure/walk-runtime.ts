@@ -12,6 +12,7 @@ import { MaterialLibrary } from "./material-library";
 import { addSun, CAMERA_NEAR_METRES, createRenderer, createRenderView, type RenderView } from "./render-view";
 import { SceneWarmup } from "./scene-warmup";
 import { prepareFillPieces } from "./substance-fill";
+import { YardCulling } from "./yard-culling";
 
 export interface WalkEvents {
   readonly onStationEntered: (station: RouteStation, index: number) => void;
@@ -40,6 +41,7 @@ export class WalkRuntime {
   private readonly yards = new Map<number, Promise<BuiltYard>>();
   private readonly built = new Map<number, BuiltYard>();
   private readonly warmup: SceneWarmup;
+  private readonly culling = new YardCulling();
   private view: RenderView | null = null;
   private governor: RenderScaleGovernor;
   private readonly gpuTimer: GpuFrameTimer;
@@ -99,7 +101,7 @@ export class WalkRuntime {
     const station = this.stations[startIndex]!;
     this.walker = walkerAt(station.plan.standpoint.from, station.plan.standpoint.to, startIndex);
     this.applyCamera();
-    this.view = createRenderView(this.renderer, this.scene, this.camera, this.governor.top);
+    this.view = createRenderView(this.renderer, this.scene, this.camera, this.renderer.getPixelRatio());
     this.applyScale(this.governor.scale);
     await Promise.all([this.warmup.ready(surroundings), this.view.prepare()]);
     if (this.disposed) return;
@@ -110,6 +112,8 @@ export class WalkRuntime {
     if (this.disposed) return;
     this.enter(startIndex);
     this.applyCamera();
+    await this.library.pacer.settle();
+    if (this.disposed) return;
     const cost = await this.startViewCost();
     if (this.disposed) return;
     this.governor = new RenderScaleGovernor(devicePixelRatio, performance.now(), startingRenderScale(devicePixelRatio, cost, this.governor.scale));
@@ -140,9 +144,7 @@ export class WalkRuntime {
           resolve({ frameMs: median(frames.slice(1)), gpuMs: gpu.length > 0 ? median(gpu) : null });
           return;
         }
-        this.gpuTimer.begin();
-        this.view!.render();
-        this.gpuTimer.end();
+        this.draw();
         requestAnimationFrame(measure);
       };
       requestAnimationFrame(measure);
@@ -162,6 +164,7 @@ export class WalkRuntime {
     const wanted = this.wantedAround(this.streamCentre);
     for (const [i, yard] of this.built) {
       if (!wanted.includes(i)) {
+        this.culling.remove(yard.group);
         this.scene.remove(yard.group);
         releaseYard(this.kit, yard.group);
         this.warmup.release(yard.group);
@@ -187,6 +190,7 @@ export class WalkRuntime {
       await this.warmup.ready(yard.group);
       if (this.disposed) return yard;
       this.scene.add(yard.group);
+      this.culling.add(yard.group);
       this.built.set(index, yard);
       return yard;
     });
@@ -390,6 +394,11 @@ export class WalkRuntime {
       }
     }
     this.applyCamera();
+    this.draw();
+  }
+
+  private draw(): void {
+    this.culling.apply(this.camera, this.renderer.shadowMap.needsUpdate);
     this.gpuTimer.begin();
     this.view!.render();
     this.gpuTimer.end();
@@ -400,8 +409,11 @@ export class WalkRuntime {
   }
 
   private applyScale(scale: number): void {
-    if (scale > this.renderer.getPixelRatio()) this.renderer.setPixelRatio(scale);
-    this.view?.drawShare(scale / this.governor.top);
+    if (scale > this.renderer.getPixelRatio()) {
+      this.renderer.setPixelRatio(scale);
+      this.view?.resize(scale);
+    }
+    this.view?.drawShare(scale / this.renderer.getPixelRatio());
     this.gpuTimer.forgetEarlier();
   }
 
@@ -411,7 +423,7 @@ export class WalkRuntime {
     this.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(this.governor.scale);
     this.renderer.setSize(width, height);
-    this.view?.resize(this.governor.top);
+    this.view?.resize(this.governor.scale);
     this.applyScale(this.governor.scale);
   }
 

@@ -92,10 +92,6 @@ export class RenderScaleGovernor {
     return this.levels[this.index]!;
   }
 
-  get top(): number {
-    return this.levels[this.levels.length - 1]!;
-  }
-
   observe(sample: FrameSample, now: number): number | null {
     if (!(sample.frameMs > 0) || this.isStall(sample)) return null;
     this.recent.push(sample);

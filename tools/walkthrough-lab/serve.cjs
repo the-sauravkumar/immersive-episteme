@@ -24,7 +24,7 @@ const bundle = (entry) => {
   return { js: outputFiles.find((file) => file.path.endsWith(".js")).text, css: outputFiles.find((file) => file.path.endsWith(".css"))?.text ?? "" };
 };
 
-const BUNDLED = { "/lab.js": () => bundle(process.env.LAB_ENTRY || "lab.ts").js, "/panel.js": () => bundle("panel.tsx").js, "/panel.css": () => bundle("panel.tsx").css };
+const BUNDLED = { "/lab.js": () => bundle(process.env.LAB_ENTRY || "lab.ts").js, "/geometry-levels-worker.ts": () => bundle("../../src/features/walkthrough/infrastructure/geometry-levels-worker.ts").js, "/panel.js": () => bundle("panel.tsx").js, "/panel.css": () => bundle("panel.tsx").css };
 
 const fileFor = (url) => {
   if (url === "/") return path.join(__dirname, "index.html");

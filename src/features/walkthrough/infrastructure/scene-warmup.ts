@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { levelIndicesOf } from "./geometry-levels";
 import { texturesOf } from "./material-library";
 import { MAIN_TARGET_OPTIONS } from "./render-view";
 import type { WorkPacer } from "./work-pacer";
@@ -204,7 +205,7 @@ export class SceneWarmup {
     let sliceBytes = 0;
     for (const geometry of geometries) {
       const carriers: THREE.BufferGeometry[] = [];
-      for (const buffer of [geometry.index, ...Object.values(geometry.attributes)]) {
+      for (const buffer of [geometry.index, ...levelIndicesOf(geometry), ...Object.values(geometry.attributes)]) {
         if (!(buffer instanceof THREE.BufferAttribute) || this.sentBuffers.has(buffer)) continue;
         const bytes = buffer.array.byteLength;
         if (this.carrierScene.children.length >= CARRIERS_PER_SLICE || (sliceBytes > 0 && sliceBytes + bytes > UPLOAD_BYTES_PER_SLICE)) {
