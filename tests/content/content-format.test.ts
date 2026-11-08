@@ -172,7 +172,7 @@ describe.skipIf(files.length === 0)("content/ interchange files", () => {
 
 describe("shipped content holds only approved states", () => {
   const PENDING = new Set(["under_review", "needs_evidence", "pending", "proposed", "held", "draft"]);
-  const NOT_SHIPPED = new Set([join(CONTENT, "review", "removed-relationships.json")]);
+  const NOT_SHIPPED = new Set(["removed-relationships.json", "removed-concepts.json"].map((archive) => join(CONTENT, "review", archive)));
   const HISTORY = new Set(["earlierPass", "earlierStatus"]);
   const jsonFiles = (dir: string): string[] =>
     readdirSync(dir, { withFileTypes: true }).flatMap((entry) => (entry.isDirectory() ? jsonFiles(join(dir, entry.name)) : entry.name.endsWith(".json") ? [join(dir, entry.name)] : []));

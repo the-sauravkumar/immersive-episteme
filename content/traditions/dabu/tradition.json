@@ -3695,38 +3695,6 @@
       "prose_policy": "claims-only"
     },
     {
-      "key": "dabu.comparison.mud-resist-vs-wax-and-direct-print",
-      "type": "comparison",
-      "category": "cross_tradition_comparisons",
-      "title": "Dabu and other Rajasthani block prints (Bagru, Sanganeri)",
-      "summary": "Bagru and Sanganeri are other Rajasthani block prints distinct in look and method from Daboo.",
-      "body_md": "Bagru and Sanganeri are other Rajasthani block prints distinct in look and method from Daboo. [S19]",
-      "local_terms": [],
-      "provenance_kind": "unverified",
-      "verification_state": "under_review",
-      "claims": [
-        {
-          "text": "Bagru and Sanganeri are other Rajasthani block prints distinct in look and method from Daboo.",
-          "source_ids": [
-            "S19"
-          ],
-          "evidence": [
-            {
-              "source_id": "S19",
-              "locator": "§ \"Origin & History\"",
-              "quote": "Daboo printing is often grouped together with other Rajasthani hand block prints like Sanganeri and Bagru, but is in fact quite distinct in terms of its look and method."
-            }
-          ]
-        }
-      ],
-      "prose_policy": "claims-only",
-      "compares": [
-        "dabu.tradition.dabu-mud-resist-printing",
-        "bagru.tradition.bagru-hand-block-print",
-        "sanganeri.tradition.sanganeri-hand-block-printing"
-      ]
-    },
-    {
       "key": "dabu.open_question.paste-recipe",
       "type": "open_question",
       "category": "open_questions",
@@ -5776,26 +5744,6 @@
           "source_id": "S2",
           "locator": "§ \"Challenges:\"",
           "quote": "The tar used for resist is continuously heated and the fumes developed, prove hazardous for the printers."
-        }
-      ]
-    },
-    {
-      "source": "dabu.tradition.dabu-mud-resist-printing",
-      "target": "dabu.comparison.mud-resist-vs-wax-and-direct-print",
-      "type": "CONTRASTS_WITH",
-      "explanation": "Daboo is described as distinct from Bagru and Sanganeri prints in look and method.",
-      "conditions": null,
-      "ordinal": null,
-      "provenance_kind": "unverified",
-      "verification_state": "under_review",
-      "source_ids": [
-        "S19"
-      ],
-      "evidence": [
-        {
-          "source_id": "S19",
-          "locator": "§ \"Origin & History\"",
-          "quote": "grouped together with other Rajasthani hand block prints like Sanganeri and Bagru, but is in fact quite distinct in terms of its look and method."
         }
       ]
     },
