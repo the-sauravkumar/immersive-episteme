@@ -4261,7 +4261,7 @@
       "conditions": "Source describes the practice, not the mechanism.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "source_ids": [
         "S1"
       ],
@@ -4341,7 +4341,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "source_ids": [
         "S1",
         "S4"
@@ -4545,7 +4545,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "source_ids": [
         "S1"
       ],
@@ -4749,7 +4749,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "source_ids": [
         "S1"
       ],
@@ -4769,7 +4769,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "source_ids": [
         "S1"
       ],
@@ -4947,7 +4947,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "source_ids": [
         "S1"
       ],
@@ -5079,7 +5079,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "source_ids": [
         "S1"
       ],
@@ -5231,7 +5231,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "source_ids": [
         "S1"
       ],

@@ -19,7 +19,6 @@ import { RELATIONSHIP_TYPES } from "../../db/seeds/reference-data";
 import {
   checkCrossFileReferences,
   contentPackageFileSchema,
-  importedState,
   slugFromConceptKey,
   type ContentPackageFile,
 } from "../../src/features/knowledge/contracts";
@@ -111,7 +110,7 @@ describe.skipIf(files.length === 0)("content/ interchange files", () => {
       const rels = f.relationships.filter((r) => r.verification_state === "verified");
       if (concepts.length + rels.length === 0) continue;
       const record = join(CONTENT, "review", `${f.slug}-verification.md`);
-      const table = existsSync(record) ? readFileSync(record, "utf8") : "";
+      const table = existsSync(record) ? readFileSync(record, "utf8").replaceAll("`", "") : "";
       if (!table) problems.push(`${f.slug}: no content/review/${f.slug}-verification.md`);
       for (const c of concepts) {
         if (table && !table.includes(c.key)) problems.push(`${c.key}: not in the verification record`);

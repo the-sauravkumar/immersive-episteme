@@ -4345,11 +4345,11 @@
     ]
   },
   {
-    "code": "demo-test-transfer-delayed",
+    "code": "test-transfer-delayed",
     "kind": "posttest",
     "phase": "follow_up",
     "position": 5,
-    "title": "Demo: A Tradition You Have Not Seen",
+    "title": "A Tradition You Have Not Seen",
     "description": null,
     "testType": "transfer",
     "paged": false,
@@ -4379,8 +4379,7 @@
             }
           ],
           "shuffle": true,
-          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo)\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying\nPreparing the resist paste\nOptional pre-printing of colour (naphthol red)\nRepeating resist-dye cycles (double/triple dabu)\nBlock-printing the resist: Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric.\nSun-drying the resist\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
-          "sampleText": true,
+          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo)\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying\nPreparing the resist paste\nOptional pre-printing of colour (naphthol red)\nRepeating resist-dye cycles (double/triple dabu)\nBlock-printing the resist: Craftsmen dip the blocks into a viscous paste of mud, gum and lime; the method's name comes from dabaana, to press.\nSun-drying the resist\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
           "target": {
             "tradition": "dabu"
           }
@@ -4415,8 +4414,7 @@
             }
           ],
           "shuffle": true,
-          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo)\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying\nPreparing the resist paste\nOptional pre-printing of colour (naphthol red)\nRepeating resist-dye cycles (double/triple dabu)\nBlock-printing the resist: Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric.\nSun-drying the resist\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
-          "sampleText": true,
+          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo)\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying\nPreparing the resist paste\nOptional pre-printing of colour (naphthol red)\nRepeating resist-dye cycles (double/triple dabu)\nBlock-printing the resist: Craftsmen dip the blocks into a viscous paste of mud, gum and lime; the method's name comes from dabaana, to press.\nSun-drying the resist\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
           "target": {
             "tradition": "dabu"
           }

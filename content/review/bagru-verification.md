@@ -69,7 +69,7 @@ A passage was added where a claim said more than its quotes (for example the Kha
 
 ### States
 
-Every concept (65) and relationship (78) is now `verified` in the file. FORMAT.md defines this as a passed source check, not an acceptance: the loader and importer read it as `under_review`, and the CMS review (`scripts/content/verify-concepts.ts`, DR-059) is still the only route into a release.
+Every concept (65) and 70 of the 78 relationships are now `verified` in the file. The 8 links to concepts of `content/shared/craft-science.json` stay `under_review` (set at the integration on 2026-11-08), because a relationship is verified only when both of its concepts are and the shared concepts are not. FORMAT.md defines this as a passed source check, not an acceptance: the loader and importer read it as `under_review`, and the CMS review (`scripts/content/verify-concepts.ts`, DR-059) is still the only route into a release.
 
 The `Sample Text` mark follows from these states. The test-item generator (`scripts/content/build-test-items.ts`) marks a transfer item only while a stage, a stage's tool or material, or a link it draws on is not `verified`. Bagru's stages, tools and links all are, so the Bagru transfer items lost the mark and the immediate transfer form is no longer a demo form (`test-transfer`, battery v7). The delayed transfer form draws on Dabu and keeps the mark until Dabu passes the same check.
 
