@@ -1,10 +1,21 @@
 const LOADING_SLICE_MS = 12;
 const WALKING_SLICE_MS = 5;
+const GPU_POLL_MS = 2;
+const WALKING_GPU_BEHIND_MS = 2 * WALKING_SLICE_MS;
+const LOADING_GPU_BEHIND_MS = 80;
+
+type FenceContext = Pick<WebGL2RenderingContext, "fenceSync" | "getSyncParameter" | "deleteSync" | "flush" | "SYNC_GPU_COMMANDS_COMPLETE" | "SYNC_STATUS" | "SIGNALED">;
 
 export class WorkPacer {
   private sliceStarted = performance.now();
   private walkingStarted = false;
   private turns: Promise<void> = Promise.resolve();
+  private gl: FenceContext | null = null;
+  private pending: { readonly sync: WebGLSync; readonly at: number } | null = null;
+
+  trackGpu(gl: FenceContext): void {
+    this.gl = gl;
+  }
 
   beginWalking(): void {
     this.walkingStarted = true;
@@ -27,7 +38,22 @@ export class WorkPacer {
     const turn = this.turns.then(
       () =>
         new Promise<void>((resolve) => {
+          const gl = this.gl;
+          if (gl && !this.pending) {
+            this.pending = { sync: gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)!, at: performance.now() };
+            gl.flush();
+          }
           const open = () => {
+            const pending = this.pending;
+            if (gl && pending) {
+              if (gl.getSyncParameter(pending.sync, gl.SYNC_STATUS) === gl.SIGNALED) {
+                gl.deleteSync(pending.sync);
+                this.pending = null;
+              } else if (performance.now() - pending.at > (this.walkingStarted ? WALKING_GPU_BEHIND_MS : LOADING_GPU_BEHIND_MS)) {
+                setTimeout(open, GPU_POLL_MS);
+                return;
+              }
+            }
             this.sliceStarted = performance.now();
             resolve();
           };
@@ -37,6 +63,16 @@ export class WorkPacer {
     );
     this.turns = turn;
     return turn;
+  }
+
+  async settle(): Promise<void> {
+    const gl = this.gl;
+    if (!gl) return this.yieldSlice();
+    const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0)!;
+    gl.flush();
+    while (gl.getSyncParameter(sync, gl.SYNC_STATUS) !== gl.SIGNALED) await new Promise((resolve) => setTimeout(resolve, GPU_POLL_MS));
+    gl.deleteSync(sync);
+    this.sliceStarted = performance.now();
   }
 
   async run<T>(steps: Generator<void, T>): Promise<T> {

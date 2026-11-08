@@ -101,7 +101,7 @@ function pelletShape(seed: number, length: number, ratio: number, seamed: boolea
   };
 }
 
-export function camelPellet(seed: number, length: number, ratio: number, seamed: boolean): PieceVariant {
+export function* camelPellet(seed: number, length: number, ratio: number, seamed: boolean): Generator<void, PieceVariant> {
   const shape = pelletShape(seed, length, ratio, seamed);
   const surface = (x: number, y: number, z: number) => pelletPoint(shape, x, y, z);
   const fine = new PieceMesh();
@@ -109,9 +109,9 @@ export function camelPellet(seed: number, length: number, ratio: number, seamed:
   for (let f = 0; f < 5; f++) fibreOnSkin(fine, surface, seed * 37 + f, 0.05 + f * 0.012, 0.00022 + f * 0.00004);
   const coarse = new PieceMesh();
   addBody(coarse, COARSE_DETAIL, surface);
-  const geometry = fine.build();
+  const geometry = yield* fine.buildSteps();
   const thickness = (shape.halfLength / shape.ratio) * 2 * (1 - shape.taper * 0.5);
-  return { geometry, buried: coarse.build(), spheres: surfaceCover(geometry, thickness * 0.75, thickness * 0.38) };
+  return { geometry, buried: yield* coarse.buildSteps(), spheres: surfaceCover(geometry, thickness * 0.75, thickness * 0.38) };
 }
 
 interface Lobe {
@@ -125,7 +125,7 @@ function exitAlong(lobe: Lobe, dx: number, dy: number, dz: number): number {
   return within <= 0 ? 0 : along + Math.sqrt(within);
 }
 
-export function camelCluster(seed: number, spread: number, lobes: number): PieceVariant {
+export function* camelCluster(seed: number, spread: number, lobes: number): Generator<void, PieceVariant> {
   const random = seededRandom(seed * 211 + 5);
   const parts: Lobe[] = Array.from({ length: lobes }, (_, i) => {
     const theta = (i / lobes) * Math.PI * 2 + random() * 0.7;
@@ -147,11 +147,11 @@ export function camelCluster(seed: number, spread: number, lobes: number): Piece
   addBody(fine, FINE_DETAIL + 6, surface);
   const coarse = new PieceMesh();
   addBody(coarse, COARSE_DETAIL + 1, surface);
-  const geometry = fine.build();
-  return { geometry, buried: coarse.build(), spheres: surfaceCover(geometry, spread * 0.8, spread * 0.4) };
+  const geometry = yield* fine.buildSteps();
+  return { geometry, buried: yield* coarse.buildSteps(), spheres: surfaceCover(geometry, spread * 0.8, spread * 0.4) };
 }
 
-export function moistDungLump(seed: number, size: number): PieceVariant {
+export function* moistDungLump(seed: number, size: number): Generator<void, PieceVariant> {
   const random = seededRandom(seed * 773 + 29);
   const bulges = Array.from({ length: 3 + Math.floor(random() * 3) }, () => {
     const theta = random() * Math.PI * 2;
@@ -178,6 +178,6 @@ export function moistDungLump(seed: number, size: number): PieceVariant {
   for (let f = 0; f < 4; f++) fibreOnSkin(fine, surface, seed * 41 + f, 0.035 + f * 0.01, 0.00045 + f * 0.00008);
   const coarse = new PieceMesh();
   addBody(coarse, 6, surface);
-  const geometry = fine.build();
-  return { geometry, buried: coarse.build(), spheres: surfaceCover(geometry, stretch[1] * 1.6, stretch[1] * 0.8) };
+  const geometry = yield* fine.buildSteps();
+  return { geometry, buried: yield* coarse.buildSteps(), spheres: surfaceCover(geometry, stretch[1] * 1.6, stretch[1] * 0.8) };
 }

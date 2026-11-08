@@ -7,6 +7,8 @@ const FLAKED_UNDER: Tone = [0.6, 0.5, 0.44];
 const PALE_TIP: Tone = [1.22, 1.2, 1.12];
 const BINDING_FIBRE: Tone = [1.25, 0.95, 0.6];
 
+const STRANDS_PER_STEP = 16;
+
 function barkSurface(seed: number) {
   return (_t: number, angle: number, along: number) => {
     const cx = Math.cos(angle);
@@ -72,7 +74,7 @@ function tubeOf(mesh: PieceMesh, shape: RootShape, ringsPerMetre: number, sides:
   });
 }
 
-function rootVariant(shape: RootShape, showsCore: boolean): PieceVariant {
+function* rootVariant(shape: RootShape, showsCore: boolean): Generator<void, PieceVariant> {
   const random = seededRandom(shape.seed * 41 + 9);
   const path = wanderingPath(shape.seed, shape.length, shape.wander, shape.kinks);
   const fine = new PieceMesh();
@@ -105,20 +107,20 @@ function rootVariant(shape: RootShape, showsCore: boolean): PieceVariant {
     addBody(coarse, 7, body);
     centres.push([at[0] - size * 0.4, at[1], at[2]]);
   }
-  const geometry = fine.build();
-  return { geometry, buried: coarse.build(), spheres: coverWithSpheres(geometry, centres) };
+  const geometry = yield* fine.buildSteps();
+  return { geometry, buried: yield* coarse.buildSteps(), spheres: coverWithSpheres(geometry, centres) };
 }
 
-export function madderRoot(seed: number, length: number, radius: number, kinks: number): PieceVariant {
-  return rootVariant({ seed, length, radius, taper: 0.45, wander: radius * 1.5, kinks, rootlets: 2, cutBoth: false }, true);
+export function* madderRoot(seed: number, length: number, radius: number, kinks: number): Generator<void, PieceVariant> {
+  return yield* rootVariant({ seed, length, radius, taper: 0.45, wander: radius * 1.5, kinks, rootlets: 2, cutBoth: false }, true);
 }
 
-export function madderCutLength(seed: number, length: number, radius: number): PieceVariant {
-  return rootVariant({ seed, length, radius, taper: 0.14, wander: radius * 0.7, kinks: 0, rootlets: 0, cutBoth: true }, true);
+export function* madderCutLength(seed: number, length: number, radius: number): Generator<void, PieceVariant> {
+  return yield* rootVariant({ seed, length, radius, taper: 0.14, wander: radius * 0.7, kinks: 0, rootlets: 0, cutBoth: true }, true);
 }
 
-export function madderCrown(seed: number, size: number, length: number, radius: number): PieceVariant {
-  return rootVariant({ seed, length, radius, taper: 0.5, wander: radius * 1.5, kinks: 1, rootlets: 1, cutBoth: false, crown: size }, true);
+export function* madderCrown(seed: number, size: number, length: number, radius: number): Generator<void, PieceVariant> {
+  return yield* rootVariant({ seed, length, radius, taper: 0.5, wander: radius * 1.5, kinks: 1, rootlets: 1, cutBoth: false, crown: size }, true);
 }
 
 const STRAND_RADIUS = 0.001;
@@ -126,7 +128,7 @@ const CORE_REACH = 0.5;
 const WAIST_PINCH = 0.78;
 const GOLDEN_ANGLE = 2.39996;
 
-export function chaySheaf(seed: number, sheafLength: number, sheafRadius: number, strands: number): PieceVariant {
+export function* chaySheaf(seed: number, sheafLength: number, sheafRadius: number, strands: number): Generator<void, PieceVariant> {
   const random = seededRandom(seed * 89 + 3);
   const fine = new PieceMesh();
   const coarse = new PieceMesh();
@@ -147,6 +149,7 @@ export function chaySheaf(seed: number, sheafLength: number, sheafRadius: number
   coreTube(fine, 16, 36);
   coreTube(coarse, 8, 16);
   for (let i = 0; i < strands; i++) {
+    if (i % STRANDS_PER_STEP === 0) yield;
     const share = (i + 0.5) / strands;
     const rank = CORE_REACH * 0.9 + (1 - CORE_REACH * 0.9) * Math.sqrt(share);
     const angle = i * GOLDEN_ANGLE;
@@ -205,9 +208,9 @@ export function chaySheaf(seed: number, sheafLength: number, sheafRadius: number
       capRings: 1,
     });
   }
-  const geometry = fine.build();
+  const geometry = yield* fine.buildSteps();
   const centres: Point[] = [];
   const count = 8;
   for (let i = 0; i <= count; i++) centres.push([-sheafLength / 2 + (i / count) * sheafLength, 0, 0]);
-  return { geometry, buried: coarse.build(), spheres: coverWithSpheres(geometry, centres) };
+  return { geometry, buried: yield* coarse.buildSteps(), spheres: coverWithSpheres(geometry, centres) };
 }

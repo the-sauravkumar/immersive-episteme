@@ -7,7 +7,9 @@ const STRIP_ROWS = 128;
 const WARM_TARGET_SIZE = 64;
 const FIRST_DRAW_BATCH = 4;
 const LARGEST_DRAW_BATCH = 64;
+const WARM_DRAW_VERTICES = 3;
 const UPLOAD_BYTES_PER_SLICE = 4 * 1024 * 1024;
+const LOADING_UPLOAD_BYTES_PER_SLICE = 2 * 1024 * 1024;
 const CARRIERS_PER_SLICE = 96;
 
 type Drawn = THREE.Mesh | THREE.Points | THREE.Line;
@@ -76,6 +78,8 @@ export class SceneWarmup {
   private readonly sentBuffers = new WeakSet<THREE.BufferAttribute>();
   private readonly carrierScene = new THREE.Scene();
   private readonly carrierMaterial = new THREE.MeshBasicMaterial();
+  private stripBytes = 0;
+  private readonly usedPrograms = new WeakSet<object>();
 
   constructor(
     private readonly renderer: THREE.WebGLRenderer,
@@ -115,6 +119,7 @@ export class SceneWarmup {
   }
 
   private gap(): Promise<void> {
+    this.stripBytes = 0;
     return this.pacer.walking ? this.pacer.yieldSlice() : this.pacer.pace();
   }
 
@@ -131,7 +136,7 @@ export class SceneWarmup {
       if (this.cancelled()) return;
       if (!stripsFit(texture)) this.renderer.initTexture(texture);
       else if (!this.allocatedAnew(texture)) continue;
-      else if (await this.uploadByCarrier(texture, this.pacer.walking)) this.releasePixels(texture);
+      else if (await this.uploadByCarrier(texture)) this.releasePixels(texture);
     }
   }
 
@@ -162,7 +167,7 @@ export class SceneWarmup {
     }
   }
 
-  private async uploadByCarrier(texture: THREE.Texture, paced: boolean): Promise<boolean> {
+  private async uploadByCarrier(texture: THREE.Texture): Promise<boolean> {
     const levels = this.levelsOf(texture);
     const mipmapped = texture.generateMipmaps;
     texture.generateMipmaps = false;
@@ -171,14 +176,18 @@ export class SceneWarmup {
     for (const [level, image] of levels.entries()) {
       const { width, height } = image as { width: number; height: number };
       const carrier = new THREE.Texture(image);
-      const rows = paced ? STRIP_ROWS : height;
-      for (let top = 0; top < height; top += rows) {
-        if (paced && (top > 0 || level > 0)) await this.pacer.yieldSlice();
+      for (let top = 0; top < height; top += STRIP_ROWS) {
+        const bottom = Math.min(height, top + STRIP_ROWS);
+        const bytes = width * (bottom - top) * 4;
+        if (this.stripBytes > 0 && (this.pacer.walking || this.stripBytes + bytes > LOADING_UPLOAD_BYTES_PER_SLICE)) {
+          this.stripBytes = 0;
+          await this.pacer.yieldSlice();
+        }
         if (this.cancelled()) {
           texture.generateMipmaps = mipmapped;
           return false;
         }
-        const bottom = Math.min(height, top + rows);
+        this.stripBytes += bytes;
         if (level === 0 && bottom === height) texture.generateMipmaps = mipmapped;
         region.min.set(0, top);
         region.max.set(width, bottom);
@@ -250,16 +259,31 @@ export class SceneWarmup {
     return standIns;
   }
 
+  private lightsOf(foggy: boolean): THREE.Scene {
+    const lit = new THREE.Scene();
+    lit.environment = this.scene.environment;
+    lit.environmentRotation.copy(this.scene.environmentRotation);
+    lit.fog = foggy ? this.scene.fog : null;
+    this.scene.traverseVisible((node) => {
+      if (node instanceof THREE.Light) lit.add(node.clone(false));
+    });
+    return lit;
+  }
+
   private async compilePrograms(group: THREE.Object3D, standIns: THREE.Group): Promise<void> {
-    const restore = this.renderer.getRenderTarget();
-    this.renderer.setRenderTarget(this.target);
-    const lit = this.renderer.compileAsync(group, this.camera, this.scene);
-    const fog = this.scene.fog;
-    this.scene.fog = null;
-    const shadowed = this.renderer.compileAsync(standIns, this.camera, this.scene);
-    this.scene.fog = fog;
-    this.renderer.setRenderTarget(restore);
-    await Promise.all([lit, shadowed]);
+    const compiling: Promise<unknown>[] = [];
+    for (const [root, foggy] of [[group, true], [standIns, false]] as const) {
+      const lit = this.lightsOf(foggy);
+      for (const node of this.drawnIn(root)) {
+        await this.pacer.pace();
+        if (this.cancelled()) return;
+        const restore = this.renderer.getRenderTarget();
+        this.renderer.setRenderTarget(this.target);
+        compiling.push(this.renderer.compileAsync(node, this.camera, lit));
+        this.renderer.setRenderTarget(restore);
+      }
+    }
+    await Promise.all(compiling);
   }
 
   private async drawOnce(group: THREE.Object3D, target: THREE.WebGLRenderTarget, foggy: boolean): Promise<void> {
@@ -269,12 +293,32 @@ export class SceneWarmup {
       await this.gap();
       if (this.cancelled()) return;
       const began = performance.now();
-      const taken = drawn.slice(start, start + batch);
+      const taken = this.batchFrom(drawn, start, batch);
       this.drawBatch(group, taken, target, foggy);
+      for (const node of taken) for (const program of this.programsOf(node)) this.usedPrograms.add(program);
       start += taken.length;
       const eachMs = Math.max(0.05, (performance.now() - began) / taken.length);
       batch = Math.max(1, Math.min(LARGEST_DRAW_BATCH, batch * 2, Math.floor(this.pacer.sliceMs / 2 / eachMs)));
     }
+  }
+
+  private programsOf(node: Drawn): object[] {
+    return materialsOf(node).flatMap((material) => {
+      const program = (this.renderer.properties.get(material) as { currentProgram?: object }).currentProgram;
+      return program ? [program] : [];
+    });
+  }
+
+  private batchFrom(drawn: readonly Drawn[], start: number, batch: number): Drawn[] {
+    const taken: Drawn[] = [];
+    let fresh = false;
+    for (let i = start; i < drawn.length && taken.length < batch; i++) {
+      const unseen = this.programsOf(drawn[i]!).some((program) => !this.usedPrograms.has(program));
+      if (unseen && fresh) break;
+      fresh ||= unseen;
+      taken.push(drawn[i]!);
+    }
+    return taken;
   }
 
   private drawBatch(group: THREE.Object3D, batch: readonly Drawn[], target: THREE.WebGLRenderTarget, foggy: boolean): void {
@@ -285,6 +329,18 @@ export class SceneWarmup {
       changed.push([node, node.visible, node.frustumCulled]);
       node.visible = shown.has(node) && node.visible;
       node.frustumCulled = false;
+    }
+    const ranges = new Map<THREE.BufferGeometry, number>();
+    const instances: [THREE.InstancedMesh, number][] = [];
+    for (const node of batch) {
+      if (!ranges.has(node.geometry)) {
+        ranges.set(node.geometry, node.geometry.drawRange.count);
+        node.geometry.drawRange.count = Math.min(node.geometry.drawRange.count, WARM_DRAW_VERTICES);
+      }
+      if (node instanceof THREE.InstancedMesh) {
+        instances.push([node, node.count]);
+        node.count = Math.min(node.count, 1);
+      }
     }
     const hidden = this.scene.children.filter((child) => child.visible && !(child instanceof THREE.Light));
     for (const child of hidden) child.visible = false;
@@ -307,5 +363,7 @@ export class SceneWarmup {
       node.visible = visible;
       node.frustumCulled = culled;
     }
+    for (const [geometry, count] of ranges) geometry.drawRange.count = count;
+    for (const [node, count] of instances) node.count = count;
   }
 }

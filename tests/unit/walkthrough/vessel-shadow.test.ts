@@ -2,8 +2,10 @@ import * as THREE from "three";
 import { describe, expect, it } from "vitest";
 import { buildThrownVessel } from "@/features/walkthrough/infrastructure/built-vessels";
 import type { MaterialLibrary } from "@/features/walkthrough/infrastructure/material-library";
+import { WorkPacer } from "@/features/walkthrough/infrastructure/work-pacer";
 
 const library = {
+  pacer: new WorkPacer(),
   shared: <T extends object>(_key: string, build: () => Promise<T>) => build(),
   scan: async () => ({ colour: new THREE.Texture(), normal: new THREE.Texture(), roughness: new THREE.Texture(), tileMetres: 0.36 }),
 } as unknown as MaterialLibrary;

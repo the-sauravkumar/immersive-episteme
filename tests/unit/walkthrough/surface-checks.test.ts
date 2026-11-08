@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { clothBodyBoxes, settleCloth } from "@/features/walkthrough/domain/cloth-surface";
+import { clothBodyBoxes, clothSettlingSteps, type ClothSpec } from "@/features/walkthrough/domain/cloth-surface";
 import { firstHit, buildTriangleGrid, makeVesselProbe, vertexOutsideVessel, VESSEL_TUCK_METRES } from "@/features/walkthrough/domain/mesh-probe";
 import { nearestEye, reachField } from "@/features/walkthrough/domain/reach";
 import { checkScene } from "@/features/walkthrough/domain/scene-check";
 import { chordSagitta, judgeSurface, rankWorstFirst, roundSegments, screenPixelsPerMetre, tearingFailures, type SurfaceFact } from "@/features/walkthrough/domain/surface-density";
 import { BODY_RADIUS, stepWalker } from "@/features/walkthrough/domain/walk-state";
 import { buildYardPlan, CLOTH_LINE_X } from "@/features/walkthrough/domain/yard-plan";
+
+function settleCloth(spec: ClothSpec) {
+  const steps = clothSettlingSteps(spec);
+  for (;;) {
+    const step = steps.next();
+    if (step.done) return step.value;
+  }
+}
 
 function lathe(profile: readonly (readonly [number, number])[], sides = 64): Float32Array {
   const out: number[] = [];

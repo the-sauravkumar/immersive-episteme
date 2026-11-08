@@ -2,13 +2,13 @@ import * as THREE from "three";
 import type { Box } from "../domain/geometry";
 import { NEXT_YARD_OFFSET } from "../domain/yard-plan";
 import type { RouteStation } from "../domain/route-plan";
-import { RenderScaleGovernor } from "../domain/render-scale";
+import { RenderScaleGovernor, startingRenderScale, topRenderScale, type FrameSample } from "../domain/render-scale";
 import { easeYaw, eyeOf, localZ, moveTowards, nearestWaypoint, stationIndexAt, steerAlong, stepWalker, turnBetween, walkerAt, worldZ, type WalkInput, type WalkTarget, type Walker } from "../domain/walk-state";
 import { buildYard, releaseYard, YardKit, type BuiltYard } from "./build-yard";
 import { GpuFrameTimer } from "./gpu-frame-timer";
 import { addHorizon } from "./horizon";
 import { setLiquidTime } from "./substance-materials";
-import { MaterialLibrary, texturesOf } from "./material-library";
+import { MaterialLibrary } from "./material-library";
 import { addSun, CAMERA_NEAR_METRES, createRenderer, createRenderView, type RenderView } from "./render-view";
 import { SceneWarmup } from "./scene-warmup";
 import { prepareFillPieces } from "./substance-fill";
@@ -28,6 +28,8 @@ const STREAM_BEHIND = 1;
 const STREAM_AHEAD = 1;
 const STREAM_RETRY_MS = 3000;
 const LONGEST_COUNTED_FRAME_SECONDS = 2;
+const CALIBRATION_FRAMES = 8;
+const LONGEST_CALIBRATION_FRAMES = 40;
 
 export class WalkRuntime {
   private readonly renderer: THREE.WebGLRenderer;
@@ -41,8 +43,6 @@ export class WalkRuntime {
   private view: RenderView | null = null;
   private governor: RenderScaleGovernor;
   private readonly gpuTimer: GpuFrameTimer;
-  private width: number;
-  private height: number;
   private sky: THREE.Mesh | null = null;
   private hills: THREE.Object3D | null = null;
   private sun: THREE.DirectionalLight | null = null;
@@ -76,10 +76,8 @@ export class WalkRuntime {
     private readonly textiles: (station: RouteStation) => readonly { file: string; name: string; x: number; z: number; width: number; height: number; label: RouteStation["textiles"][number]["label"] }[],
     private readonly events: WalkEvents,
   ) {
-    this.width = host.clientWidth;
-    this.height = host.clientHeight;
-    this.governor = new RenderScaleGovernor(devicePixelRatio, performance.now());
-    this.renderer = createRenderer(host, this.width, this.height, this.governor.scale);
+    this.governor = new RenderScaleGovernor(devicePixelRatio, performance.now(), 0);
+    this.renderer = createRenderer(host, host.clientWidth, host.clientHeight, this.governor.scale);
     this.gpuTimer = new GpuFrameTimer(this.renderer.getContext() as WebGL2RenderingContext);
     this.scene.fog = new THREE.Fog(0xdfe4e6, 60, 420);
     this.camera = new THREE.PerspectiveCamera(55, host.clientWidth / host.clientHeight, CAMERA_NEAR_METRES, 1200);
@@ -92,20 +90,32 @@ export class WalkRuntime {
   async start(startIndex = 0): Promise<void> {
     this.sky = await this.library.sky(this.scene, this.renderer);
     if (this.disposed) return;
-    const earth = await this.library.scan("earth");
+    const [earth, scrub] = await Promise.all([this.library.scan("earth"), this.library.horizonScrub()]);
     if (this.disposed) return;
-    this.hills = addHorizon(this.scene, earth.colour);
+    this.hills = addHorizon(this.scene, earth.colour, scrub);
+    const surroundings = new THREE.Group();
+    surroundings.add(...this.scene.children.filter((child) => !(child instanceof THREE.Light)));
     this.sun = addSun(this.scene, new THREE.Vector3(1, 0, -2));
     const station = this.stations[startIndex]!;
     this.walker = walkerAt(station.plan.standpoint.from, station.plan.standpoint.to, startIndex);
-    this.view = createRenderView(this.renderer, this.scene, this.camera);
+    this.applyCamera();
+    this.view = createRenderView(this.renderer, this.scene, this.camera, this.governor.top);
+    this.applyScale(this.governor.scale);
+    await Promise.all([this.warmup.ready(surroundings), this.view.prepare()]);
+    if (this.disposed) return;
+    this.scene.add(surroundings);
     await prepareFillPieces(this.library, this.stations.flatMap((each) => each.plan.items.flatMap((placed) => placed.looks)));
     if (this.disposed) return;
     await this.stream(startIndex);
     if (this.disposed) return;
     this.enter(startIndex);
-    this.prepareFirstFrame();
+    this.applyCamera();
+    const cost = await this.startViewCost();
+    if (this.disposed) return;
+    this.governor = new RenderScaleGovernor(devicePixelRatio, performance.now(), startingRenderScale(devicePixelRatio, cost, this.governor.scale));
+    this.applyScale(this.governor.scale);
     this.library.pacer.beginWalking();
+    this.renderer.debug.checkShaderErrors = false;
     this.last = performance.now();
     const tick = () => {
       this.frame = requestAnimationFrame(tick);
@@ -114,25 +124,29 @@ export class WalkRuntime {
     tick();
   }
 
-  private prepareFirstFrame(): void {
-    this.renderer.compile(this.scene, this.camera);
-    const seen = new Set<THREE.Texture>();
-    const restore: [THREE.Object3D, boolean][] = [];
-    this.scene.traverse((node) => {
-      if (node instanceof THREE.Mesh || node instanceof THREE.InstancedMesh) {
-        restore.push([node, node.frustumCulled]);
-        node.frustumCulled = false;
-        for (const texture of texturesOf(node.material as THREE.Material)) {
-          if (!seen.has(texture)) {
-            seen.add(texture);
-            this.renderer.initTexture(texture);
-          }
+  private startViewCost(): Promise<FrameSample> {
+    const frames: number[] = [];
+    const gpu: number[] = [];
+    const median = (values: number[]) => [...values].sort((a, b) => a - b)[values.length >> 1]!;
+    return new Promise((resolve) => {
+      let last = performance.now();
+      const measure = () => {
+        const now = performance.now();
+        frames.push(now - last);
+        last = now;
+        const timed = this.gpuTimer.latestMs();
+        if (timed !== null) gpu.push(timed);
+        if (this.disposed || gpu.length >= CALIBRATION_FRAMES || frames.length > (this.gpuTimer.timed ? LONGEST_CALIBRATION_FRAMES : CALIBRATION_FRAMES)) {
+          resolve({ frameMs: median(frames.slice(1)), gpuMs: gpu.length > 0 ? median(gpu) : null });
+          return;
         }
-      }
+        this.gpuTimer.begin();
+        this.view!.render();
+        this.gpuTimer.end();
+        requestAnimationFrame(measure);
+      };
+      requestAnimationFrame(measure);
     });
-    this.applyCamera();
-    this.view!.render();
-    for (const [node, culled] of restore) node.frustumCulled = culled;
   }
 
   private wantedAround(index: number): number[] {
@@ -386,18 +400,18 @@ export class WalkRuntime {
   }
 
   private applyScale(scale: number): void {
-    this.renderer.setPixelRatio(scale);
-    this.renderer.setSize(this.width, this.height);
-    this.view?.resize();
+    if (scale > this.renderer.getPixelRatio()) this.renderer.setPixelRatio(scale);
+    this.view?.drawShare(scale / this.governor.top);
     this.gpuTimer.forgetEarlier();
   }
 
   resize(width: number, height: number): void {
-    this.width = width;
-    this.height = height;
-    if (devicePixelRatio !== this.governor.devicePixelRatio) this.governor = new RenderScaleGovernor(devicePixelRatio, performance.now());
+    if (devicePixelRatio !== this.governor.devicePixelRatio) this.governor = new RenderScaleGovernor(devicePixelRatio, performance.now(), Math.min(this.governor.scale, topRenderScale(devicePixelRatio)));
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
+    this.renderer.setPixelRatio(this.governor.scale);
+    this.renderer.setSize(width, height);
+    this.view?.resize(this.governor.top);
     this.applyScale(this.governor.scale);
   }
 

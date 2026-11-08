@@ -32,6 +32,15 @@ export function renderScaleLevels(devicePixelRatio: number): number[] {
   return levels;
 }
 
+export function startingRenderScale(devicePixelRatio: number, sample: FrameSample, measuredAt: number): number {
+  const levels = renderScaleLevels(devicePixelRatio);
+  const cost = sample.gpuMs ?? sample.frameMs;
+  if (!(cost > 0)) return levels[0]!;
+  const extrapolated = measuredAt * Math.sqrt((FRAME_BUDGET_MS * RAISE_HEADROOM) / cost);
+  const affordable = cost <= FRAME_BUDGET_MS ? Math.max(measuredAt, extrapolated) : extrapolated;
+  return levels.filter((level) => level <= affordable + 1e-6).pop() ?? levels[0]!;
+}
+
 const medianOf = (values: readonly number[]): number => {
   const sorted = [...values].sort((a, b) => a - b);
   const middle = sorted.length >> 1;
@@ -70,9 +79,10 @@ export class RenderScaleGovernor {
   constructor(
     readonly devicePixelRatio: number,
     now: number,
+    startScale: number = topRenderScale(devicePixelRatio),
   ) {
     this.levels = renderScaleLevels(devicePixelRatio);
-    this.index = this.levels.length - 1;
+    this.index = Math.max(0, this.levels.findLastIndex((level) => level <= startScale + 1e-6));
     this.changedAt = now;
     this.failures = this.levels.map(() => 0);
     this.blockedUntil = this.levels.map(() => 0);
@@ -80,6 +90,10 @@ export class RenderScaleGovernor {
 
   get scale(): number {
     return this.levels[this.index]!;
+  }
+
+  get top(): number {
+    return this.levels[this.levels.length - 1]!;
   }
 
   observe(sample: FrameSample, now: number): number | null {
