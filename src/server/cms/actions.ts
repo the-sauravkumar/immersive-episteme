@@ -112,7 +112,7 @@ export async function rebuildReviewSnapshotAction(_: ActionState, fd: FormData):
   return runAction("content.publish", z.object({}), formObject(fd), async ({ actor, pool }) => {
     const r = await rebuildReviewSnapshot(pool, actor);
     return r.created
-      ? `Review snapshot ${r.versionLabel} built from the current pipeline: ${r.itemCount} items.`
+      ? `Review copy ${r.versionLabel} built from the current pipeline: ${r.itemCount} items.`
       : `Nothing changed since review snapshot ${r.versionLabel}; it already matches the current pipeline.`;
   });
 }

@@ -7,21 +7,22 @@ import { ConsolePage } from "@/components/shell/gates";
 import { Skeleton } from "@/components/ui/skeleton";
 import { roleGrants } from "@/lib/permissions/matrix";
 import { PERMISSIONS } from "@/lib/permissions/permissions";
-import { ROLES, ROLE_LABELS, isStaffRole } from "@/lib/permissions/roles";
+import { PRINCIPAL_INVESTIGATOR, ROLE_LABELS, STAFF_ROLES, type StaffGrant } from "@/lib/permissions/roles";
 import { titleCase } from "@/lib/text/title-case";
 import { roleHolderCounts } from "@/server/admin/users";
 import { requirePermission } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 
-export const metadata: Metadata = { title: "Roles" };
+export const metadata: Metadata = { title: "Roles and Permissions" };
 
 const POLICY = [
-  "Separation of duties on content: content editors draft and edit, but never review, verify or publish. Verification and publication belong to curators and the principal investigator, and nobody verifies content they authored.",
-  "The platform administrator is an operator: users, roles, settings, audit log and read access. It cannot verify or publish content, run studies, or see identifying participant data. A person who needs both holds two roles.",
-  "The research analyst is read-only and pseudonymised: no participant identification, no identified exports, no write permissions.",
-  "Only the principal investigator activates studies, excludes sessions and creates identified exports.",
-  "Every staff role may preview both learning conditions; such access is always flagged non-experimental.",
-  "Participant and public are never stored: they come from a signed study-session cookie and from the absence of any credential.",
+  "Each person holds one role: Admin, Researcher or Curator. The role decides which pages and actions they see; the detailed permissions below sit underneath and are not assigned one by one.",
+  "Admin lets people in: staff accounts, roles, invite codes and settings, with read access elsewhere. An Admin cannot verify or publish content, run studies or see who a participant is.",
+  "Researcher runs studies: setting them up, watching sessions, scoring and exporting pseudonymised data.",
+  "Principal investigator is a mark on one Researcher, not a separate role. Only that person starts and closes studies, excludes sessions, sees and exports identifying data, removes participant data, and may also verify and publish content. These acts carry the ethics approval's accountability, so they stay with one named person.",
+  "Curator looks after the content: writing, reviewing, verifying and publishing it in releases. Nobody verifies content they wrote or edited; another curator does.",
+  "Every staff role may preview both learning doors; such visits are always marked as not part of the experiment.",
+  "Participants and public visitors are never stored as roles: they come from a signed study-session cookie and from the absence of any sign-in.",
 ];
 
 export const instant = false;
@@ -30,13 +31,13 @@ export default function Page() {
   return (
     <ConsolePage
       path="/admin/roles"
-      title="Roles"
-      description="The role × permission matrix (src/lib/permissions/matrix.ts) and who holds each role. Roles are assigned on the Users page."
+      title="Roles and permissions"
+      description="What each role may do, and how many people hold it. Roles are given on the People page."
     >
       <div className="flex flex-col gap-12">
         <section aria-labelledby="policy" className="flex max-w-[40rem] flex-col gap-3">
           <h2 id="policy" className="t-h4 text-lime">
-            {titleCase("policy")}
+            {titleCase("the rules")}
           </h2>
           <ol className="t-b flex list-decimal flex-col gap-2 pl-6 text-lime marker:text-lime-dim marker:tabular-nums">
             {POLICY.map((p) => (
@@ -57,6 +58,8 @@ export default function Page() {
 const HEAD = "t-label sticky top-0 z-10 h-11 border-b border-b-lime bg-vat px-2 pb-2 align-bottom";
 const ROW_HEAD = "sticky left-0 z-[5] bg-vat py-2 pr-3 pl-0 text-left align-middle font-normal";
 
+const COLUMNS: readonly StaffGrant[] = [...STAFF_ROLES, PRINCIPAL_INVESTIGATOR];
+
 async function Matrix() {
   const actor = await requirePermission("admin.roles");
   const holders = await roleHolderCounts(getPool(), actor);
@@ -71,15 +74,15 @@ function MatrixTable({ holders }: { holders: Awaited<ReturnType<typeof roleHolde
         {titleCase("permission matrix")}
       </h2>
       <p className="t-b max-w-[40rem] text-lime-dim">
-        A check means the role holds the permission; a dash means it does not. Holder counts exclude locked accounts. Participant and public are never stored, so they have no
-        holders.
+        A check means the role may do it; a dash means it may not. The principal investigator column lists what that Researcher gains on top. Counts leave out locked
+        accounts.
       </p>
       <p id={captionId} className="font-sans t-s text-lime">
         <span className="font-semibold tabular-nums">Table 1. </span>
         {titleCase("permissions granted to each role")}
       </p>
       <p id="matrix-scroll-hint" className="t-s text-lime-dim max-w-[40rem] min-[1536px]:hidden">
-        Scroll the table sideways to see all {ROLES.length} roles. The Permission column and the role headings stay in place.
+        Scroll the table sideways to see every column. The first column and the headings stay in place.
       </p>
       <div
         role="region"
@@ -94,10 +97,10 @@ function MatrixTable({ holders }: { holders: Awaited<ReturnType<typeof roleHolde
               <th scope="col" className={`${HEAD} left-0 z-20 min-w-[11rem] pl-0 text-left`}>
                 Permission
               </th>
-              {ROLES.map((r) => (
+              {COLUMNS.map((r) => (
                 <th key={r} scope="col" className={`${HEAD} min-w-[7.5rem] text-center whitespace-normal`}>
                   <span className="block">{ROLE_LABELS[r]}</span>
-                  <span className="mt-1 block font-normal tabular-nums">{isStaffRole(r) ? `${holders[r]} holder(s)` : "not stored"}</span>
+                  <span className="mt-1 block font-normal tabular-nums">{`${holders[r]} ${holders[r] === 1 ? "person" : "people"}`}</span>
                 </th>
               ))}
             </tr>
@@ -110,7 +113,7 @@ function MatrixTable({ holders }: { holders: Awaited<ReturnType<typeof roleHolde
                   <th scope="row" className={`${ROW_HEAD} ${rule}`}>
                     <Mono className="text-lime">{p}</Mono>
                   </th>
-                  {ROLES.map((r) =>
+                  {COLUMNS.map((r) =>
                     roleGrants(r, p) ? (
                       <td key={r} className={`h-11 px-2 text-center align-middle ${rule}`}>
                         <Check aria-hidden="true" className="inline size-5 stroke-2 text-lime" />

@@ -4,28 +4,29 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import * as schema from "@db/schema";
-import type { StaffRole } from "@/lib/permissions/roles";
+import type { StaffGrant, StaffRole } from "@/lib/permissions/roles";
 import { auditEntities, parseAuditFilter, queryAuditLog } from "@/server/admin/audit-log";
 import { getHealthReport } from "@/server/admin/health";
 import { effectiveSettings } from "@/server/admin/settings";
 import {
   clearStaffSignInLock,
   createStaffUser,
-  grantStaffRole,
   listStaffUsers,
   lockStaffUser,
   resetStaffPassword,
   revokeStaffRole,
   roleHolderCounts,
+  setStaffRole,
   unlockStaffUser,
 } from "@/server/admin/users";
 import { consumeSignInAttempt } from "@/server/auth/account-throttle";
+import { grantRoleToExistingAccount, LastAdminError } from "@/server/auth/bootstrap";
 import { createAuth, type Auth } from "@/server/auth/config";
 import { CmsError, type Actor } from "@/server/cms/core";
 
 import { TEST_URL, createTestDatabase, createUser, one, type TestDb } from "./schema-harness";
 
-const NON_ADMIN: StaffRole[] = ["curator", "content_editor", "researcher", "principal_investigator", "research_analyst", "study_facilitator"];
+const NON_ADMIN: StaffGrant[] = ["curator", "researcher", "principal_investigator"];
 
 async function expectCode(p: Promise<unknown> | (() => unknown), code: string) {
   try {
@@ -73,8 +74,8 @@ describe.skipIf(!TEST_URL)("admin services", () => {
       await expectCode(createStaffUser(deps(), actor, { name: "N", email: `n-${role}@example.test`, password: "a-long-password-1", role: "curator" }), "forbidden");
       await expectCode(lockStaffUser(t.pool, actor, { userId: admin.userId, reason: "nope" }), "forbidden");
       await expectCode(unlockStaffUser(t.pool, actor, { userId: admin.userId }), "forbidden");
-      await expectCode(grantStaffRole(t.pool, actor, { userId: admin.userId, role: "curator" }), "forbidden");
-      await expectCode(revokeStaffRole(t.pool, actor, { userId: admin.userId, role: "platform_admin" }), "forbidden");
+      await expectCode(setStaffRole(t.pool, actor, { userId: admin.userId, role: "curator" }), "forbidden");
+      await expectCode(revokeStaffRole(t.pool, actor, { userId: admin.userId }), "forbidden");
       await expectCode(roleHolderCounts(t.pool, actor), "forbidden");
       await expectCode(() => effectiveSettings(actor, {}), "forbidden");
       if (role !== "principal_investigator") {
@@ -97,24 +98,37 @@ describe.skipIf(!TEST_URL)("admin services", () => {
     expect(JSON.stringify(row.after)).toContain("curator@example.test");
     await expectCode(createStaffUser(deps(), admin, { name: "Again", email: "curator@example.test", password: "a-long-password-2", role: "researcher" }), "email_taken");
 
-    await grantStaffRole(t.pool, admin, { userId, role: "researcher" });
-    expect(await auditCount("admin.role_granted", userId)).toBe(1);
-    await expectCode(grantStaffRole(t.pool, admin, { userId, role: "researcher" }), "already_granted");
-    await revokeStaffRole(t.pool, admin, { userId, role: "researcher" });
+    await setStaffRole(t.pool, admin, { userId, role: "researcher" });
+    expect(await auditCount("admin.role_set", userId)).toBe(1);
+    await expectCode(setStaffRole(t.pool, admin, { userId, role: "researcher" }), "already_granted");
+    await setStaffRole(t.pool, admin, { userId, role: "researcher", principalInvestigator: "on" });
+    let listed = (await listStaffUsers(t.pool, admin)).find((u) => u.id === userId);
+    expect([listed?.role, listed?.principalInvestigator]).toEqual(["researcher", true]);
+    await setStaffRole(t.pool, admin, { userId, role: "curator", principalInvestigator: true });
+    listed = (await listStaffUsers(t.pool, admin)).find((u) => u.id === userId);
+    expect([listed?.role, listed?.principalInvestigator]).toEqual(["curator", false]);
+    expect((await t.pool.query("SELECT count(*)::int AS n FROM user_roles WHERE user_id = $1", [userId])).rows[0].n).toBe(1);
+    await expect(t.pool.query("UPDATE user_roles SET principal_investigator = true WHERE user_id = $1", [userId])).rejects.toThrow(/user_roles_principal_investigator_ck/);
+    await expect(t.pool.query("INSERT INTO user_roles (user_id, role) VALUES ($1, 'researcher')", [userId])).rejects.toThrow(/duplicate key/);
+    await revokeStaffRole(t.pool, admin, { userId });
     expect(await auditCount("admin.role_revoked", userId)).toBe(1);
-
-    const list = await listStaffUsers(t.pool, admin);
-    expect(list.find((u) => u.id === userId)?.roles).toEqual(["curator"]);
+    await expectCode(revokeStaffRole(t.pool, admin, { userId }), "not_granted");
+    expect((await listStaffUsers(t.pool, admin)).find((u) => u.id === userId)?.role).toBeNull();
+    await setStaffRole(t.pool, admin, { userId, role: "curator" });
   });
 
   it("keeps the last active platform admin and refuses self-removal", async () => {
-    await expectCode(revokeStaffRole(t.pool, admin, { userId: admin.userId, role: "platform_admin" }), "self_revoke");
+    await expectCode(revokeStaffRole(t.pool, admin, { userId: admin.userId }), "self_revoke");
+    await expectCode(setStaffRole(t.pool, admin, { userId: admin.userId, role: "researcher" }), "self_revoke");
     const second = await createUser(t.pool, "admin_two");
     await grant(second, "platform_admin");
     const secondActor: Actor = { userId: second, roles: ["platform_admin"] };
     await t.pool.query("UPDATE users SET disabled_at = now() WHERE id = $1", [second]);
     const thirdActor: Actor = { userId: "admin_three_virtual", roles: ["platform_admin"] };
-    await expectCode(revokeStaffRole(t.pool, thirdActor, { userId: admin.userId, role: "platform_admin" }), "last_admin");
+    await expectCode(revokeStaffRole(t.pool, thirdActor, { userId: admin.userId }), "last_admin");
+    await expectCode(setStaffRole(t.pool, thirdActor, { userId: admin.userId, role: "curator" }), "last_admin");
+    const adminEmail = (await one<{ email: string }>(t.pool, "SELECT email FROM users WHERE id = $1", [admin.userId])).email;
+    await expect(grantRoleToExistingAccount(drizzle(t.pool, { schema, casing: "snake_case" }), adminEmail, { role: "curator", principalInvestigator: false })).rejects.toBeInstanceOf(LastAdminError);
     await expectCode(lockStaffUser(t.pool, secondActor, { userId: admin.userId, reason: "testing last admin" }), "last_admin");
     const counts = await roleHolderCounts(t.pool, admin);
     expect(counts.platform_admin).toBe(1);
@@ -148,7 +162,7 @@ describe.skipIf(!TEST_URL)("admin services", () => {
   it("refuses self-lock; locking ends sessions and unlocking restores", async () => {
     await expectCode(lockStaffUser(t.pool, admin, { userId: admin.userId, reason: "myself" }), "self_lock");
     const target = await createUser(t.pool, "lock_target");
-    await grant(target, "content_editor");
+    await grant(target, "curator");
     await t.pool.query(
       "INSERT INTO auth_sessions (id, token, user_id, expires_at) VALUES ('s1', 'tok-1', $1, now() + interval '1 hour'), ('s2', 'tok-2', $1, now() + interval '1 hour')",
       [target],

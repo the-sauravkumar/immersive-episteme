@@ -56,7 +56,7 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
     await pool.end();
   });
 
-  it("bootstraps an account with a role, idempotently, and supports several roles per user", async () => {
+  it("bootstraps an account with one role, idempotently, and replaces that role on a later call", async () => {
     const first = await createStaffAccount(auth, db, {
       email: email("Admin").toUpperCase(),
       name: "Demo Admin",
@@ -74,18 +74,20 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
     });
     expect(again).toMatchObject({ userId: first.userId, created: false, roleGranted: false });
 
+    await createStaffAccount(auth, db, { email: email("admin2"), name: "Second Admin", password: PASSWORD, role: "platform_admin" });
     const second = await createStaffAccount(auth, db, {
       email: email("admin"),
       name: "Ignored",
       password: PASSWORD,
-      role: "research_analyst",
+      role: "researcher",
+      principalInvestigator: true,
     });
-    expect(second.roleGranted).toBe(true);
-    expect((await loadUserRoles(db, first.userId)).sort()).toEqual(["platform_admin", "research_analyst"]);
+    expect(second).toMatchObject({ roleGranted: true, roles: ["researcher", "principal_investigator"] });
+    expect(await loadUserRoles(db, first.userId)).toEqual(["researcher", "principal_investigator"]);
 
-    expect(await revokeRole(db, first.userId, "research_analyst")).toBe(true);
-    expect(await revokeRole(db, first.userId, "research_analyst")).toBe(false);
-    expect(await loadUserRoles(db, first.userId)).toEqual(["platform_admin"]);
+    expect(await revokeRole(db, first.userId)).toBe(true);
+    expect(await revokeRole(db, first.userId)).toBe(false);
+    expect(await loadUserRoles(db, first.userId)).toEqual([]);
 
     const res = await auth.handler(post("/sign-in/email", { email: email("admin"), password: PASSWORD }, "198.51.100.1"));
     expect(res.status).toBe(200);
@@ -156,7 +158,7 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
       email: email("locked"),
       name: "L",
       password: PASSWORD,
-      role: "content_editor",
+      role: "curator",
     });
     await db.update(users).set({ disabledAt: new Date() }).where(eq(users.id, userId));
     const res = await auth.handler(post("/sign-in/email", { email: email("locked"), password: PASSWORD }, "198.51.100.5"));
@@ -229,7 +231,7 @@ describe.skipIf(!testUrl)("staff auth (Better Auth + user_roles)", () => {
   });
 
   it("a stranger's lock does not shut out the owner's known browser (security-09)", async () => {
-    await createStaffAccount(auth, db, { email: email("owner"), name: "O", password: PASSWORD, role: "principal_investigator" });
+    await createStaffAccount(auth, db, { email: email("owner"), name: "O", password: PASSWORD, role: "researcher", principalInvestigator: true });
     const first = await auth.handler(post("/sign-in/email", { email: email("owner"), password: PASSWORD }, "198.51.100.170"));
     expect(first.status).toBe(200);
     const deviceRaw = first.headers.getSetCookie().find((c) => c.includes("known_device="));

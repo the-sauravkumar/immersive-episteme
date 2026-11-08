@@ -1,35 +1,40 @@
-import { and, eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
 import { userRoles } from "@db/schema/auth";
-import { isStaffRole, type StaffRole } from "@/lib/permissions/roles";
+import { grantsOf, isStaffRole, type StaffAssignment, type StaffGrant } from "@/lib/permissions/roles";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- any Drizzle pg database works
 type AnyPgDatabase = NodePgDatabase<any>;
 
-export async function loadUserRoles(db: AnyPgDatabase, userId: string): Promise<StaffRole[]> {
-  const rows = await db.select({ role: userRoles.role }).from(userRoles).where(eq(userRoles.userId, userId));
-  return rows.map((r) => r.role).filter(isStaffRole);
+export async function loadStaffAssignment(db: AnyPgDatabase, userId: string): Promise<StaffAssignment | null> {
+  const [row] = await db
+    .select({ role: userRoles.role, principalInvestigator: userRoles.principalInvestigator })
+    .from(userRoles)
+    .where(eq(userRoles.userId, userId))
+    .limit(1);
+  return row && isStaffRole(row.role) ? { role: row.role, principalInvestigator: row.principalInvestigator } : null;
 }
 
-export async function grantRole(
-  db: AnyPgDatabase,
-  userId: string,
-  role: StaffRole,
-  grantedBy: string | null = null,
-): Promise<boolean> {
-  const inserted = await db
+export async function loadUserRoles(db: AnyPgDatabase, userId: string): Promise<StaffGrant[]> {
+  return grantsOf(await loadStaffAssignment(db, userId));
+}
+
+export async function setRole(db: AnyPgDatabase, userId: string, assignment: StaffAssignment, grantedBy: string | null = null): Promise<boolean> {
+  const principalInvestigator = assignment.role === "researcher" && assignment.principalInvestigator;
+  const changed = await db
     .insert(userRoles)
-    .values({ userId, role, grantedBy })
-    .onConflictDoNothing()
+    .values({ userId, role: assignment.role, principalInvestigator, grantedBy })
+    .onConflictDoUpdate({
+      target: userRoles.userId,
+      set: { role: assignment.role, principalInvestigator, grantedBy, grantedAt: new Date() },
+      setWhere: sql`(${userRoles.role}, ${userRoles.principalInvestigator}) IS DISTINCT FROM (excluded.role, excluded.principal_investigator)`,
+    })
     .returning({ role: userRoles.role });
-  return inserted.length > 0;
+  return changed.length > 0;
 }
 
-export async function revokeRole(db: AnyPgDatabase, userId: string, role: StaffRole): Promise<boolean> {
-  const removed = await db
-    .delete(userRoles)
-    .where(and(eq(userRoles.userId, userId), eq(userRoles.role, role)))
-    .returning({ role: userRoles.role });
+export async function revokeRole(db: AnyPgDatabase, userId: string): Promise<boolean> {
+  const removed = await db.delete(userRoles).where(eq(userRoles.userId, userId)).returning({ role: userRoles.role });
   return removed.length > 0;
 }

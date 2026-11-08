@@ -1,6 +1,6 @@
 import { permissionsForRoles, roleGrants } from "./matrix";
 import type { Permission } from "./permissions";
-import type { Role } from "./roles";
+import { PRINCIPAL_INVESTIGATOR, STAFF_ROLES, type Role, type StaffGrant } from "./roles";
 
 export type Subject = { readonly roles: readonly Role[] };
 
@@ -32,4 +32,20 @@ export function participantDataScope(subject: Subject | null | undefined): Parti
     return "pseudonymised";
   }
   return "none";
+}
+
+const HOLDER: Record<StaffGrant, string> = {
+  platform_admin: "an Admin",
+  researcher: "a Researcher",
+  curator: "a Curator",
+  principal_investigator: "the principal investigator",
+};
+
+export function refusalMessage(anyOf: readonly Permission[]): string {
+  const holders = ([...STAFF_ROLES, PRINCIPAL_INVESTIGATOR] as StaffGrant[]).filter((r) => anyOf.some((p) => roleGrants(r, p)));
+  const named = holders.includes("researcher") ? holders.filter((h) => h !== PRINCIPAL_INVESTIGATOR) : holders;
+  if (named.length === 0) return "No staff role can do this.";
+  const list = named.map((h) => HOLDER[h]);
+  const who = list.length === 1 ? list[0] : `${list.slice(0, -1).join(", ")} or ${list.at(-1)}`;
+  return `Only ${who} can do this. Ask them to do it for you, or ask an Admin to change your role.`;
 }

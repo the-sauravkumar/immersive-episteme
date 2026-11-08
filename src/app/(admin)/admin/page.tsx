@@ -3,40 +3,33 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 
-import { BLOCK_LINK, Mono } from "@/components/cms/bits";
+import { Empty, Section, Stamp } from "@/components/cms/bits";
 import { ConsolePage } from "@/components/shell/gates";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { can } from "@/lib/permissions/can";
-import { visibleNav } from "@/lib/permissions/console-routes";
 import { titleCase } from "@/lib/text/title-case";
+import { listInvites } from "@/server/access/invites";
 import { ADMIN_ANY, getHealthReport, type Check } from "@/server/admin/health";
+import { listStaffUsers } from "@/server/admin/users";
 import { requirePermission } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 
-export const metadata: Metadata = { title: "Administration" };
+export const metadata: Metadata = { title: "Admin Home" };
 
 export const instant = false;
 
 export default function Page() {
   return (
-    <ConsolePage path="/admin" title="Administration" description="Platform health, and the users, roles, settings and audit log you can manage.">
+    <ConsolePage path="/admin" title="Admin home" description="People waiting for access, the invite codes in use, and whether the platform is healthy.">
       <Suspense fallback={<Skeleton className="h-96 w-full" />}>
         <Overview />
       </Suspense>
     </ConsolePage>
   );
 }
-
-const SECTION_NOTES: Record<string, string> = {
-  "/admin/users": "Staff accounts: create, lock and unlock them, and add or remove roles.",
-  "/admin/access": "Invite codes for the invite-only site: create them, see their use counts and revoke them.",
-  "/admin/roles": "The role and permission matrix, the policy behind it and who holds each role.",
-  "/admin/settings": "The effective platform configuration, fixed by the deployment.",
-  "/admin/audit": "The append-only record of privileged actions, with filters.",
-};
 
 function bytes(n: number): string {
   if (n < 1024) return `${n} B`;
@@ -134,16 +127,93 @@ function Row({ k, v, numeric = false }: { k: ReactNode; v: ReactNode; numeric?: 
   );
 }
 
+const SHOWN = 8;
+
+async function NeedsYou() {
+  const actor = await requirePermission(ADMIN_ANY);
+  if (!can(actor, "admin.users")) return null;
+  const pool = getPool();
+  const [people, invites] = await Promise.all([listStaffUsers(pool, actor), listInvites(pool, actor)]);
+  const waiting = people.filter((u) => !u.disabledAt && u.role === null);
+  const active = invites.filter((i) => i.status === "active");
+  const ending = active.filter((i) => i.endsWithinWeek);
+  const full = invites.filter((i) => i.status === "used_up");
+  return (
+    <div className="grid items-stretch gap-6 lg:grid-cols-2">
+      <Section
+        id="awaiting"
+        title="People waiting for access"
+        description="They signed in with Google and see nothing until you give them a role. Open Manage on their row in People and choose Give access."
+        actions={
+          <Button asChild variant={waiting.length ? "default" : "outline"}>
+            <Link href={waiting.length ? "/admin/users?status=awaiting" : "/admin/users"}>{waiting.length ? `Give access (${waiting.length})` : "Open people"}</Link>
+          </Button>
+        }
+      >
+        {waiting.length === 0 ? (
+          <Empty>Nobody is waiting.</Empty>
+        ) : (
+          <ul className="flex flex-col">
+            {waiting.slice(0, SHOWN).map((u) => (
+              <li key={u.id} className="flex flex-wrap items-baseline justify-between gap-x-4 border-t border-line py-2 first:border-t-0">
+                <span className="min-w-0">
+                  <span className="text-lime">{u.name}</span> <span className="t-s text-lime-dim [overflow-wrap:anywhere]">{u.email}</span>
+                </span>
+                <span className="t-s text-lime-dim">
+                  since <Stamp at={u.createdAt} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+      <Section
+        id="invites"
+        title="Invite codes"
+        description={`${active.length} code${active.length === 1 ? "" : "s"} let people in now.${ending.length ? ` ${ending.length} end${ending.length === 1 ? "s" : ""} within a week.` : ""}${full.length ? ` ${full.length} ${full.length === 1 ? "is" : "are"} used up: make a new one if recruitment goes on.` : ""}`}
+        actions={
+          <Button asChild variant="outline">
+            <Link href="/admin/access">Open invite codes</Link>
+          </Button>
+        }
+      >
+        {active.length === 0 ? (
+          <Empty>No code is active, so only signed-in staff can open the site.</Empty>
+        ) : (
+          <ul className="flex flex-col">
+            {active.slice(0, SHOWN).map((i) => (
+              <li key={i.id} className="flex flex-wrap items-baseline justify-between gap-x-4 border-t border-line py-2 first:border-t-0">
+                <span className="min-w-0">
+                  <span className="text-lime">{i.label}</span>
+                  {i.studyTitle ? <span className="t-s text-lime-dim"> for {i.studyTitle}</span> : null}
+                </span>
+                <span className="t-s text-lime-dim tabular-nums">
+                  {i.maxUses === null ? `${i.useCount} used` : `${i.useCount} of ${i.maxUses} used`}
+                  {i.expiresAt ? (
+                    <>
+                      , last day <Stamp at={i.expiresAt} withTime={false} />
+                    </>
+                  ) : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+    </div>
+  );
+}
+
 async function Overview() {
   const actor = await requirePermission(ADMIN_ANY);
   const h = await getHealthReport(getPool(), actor);
-  const links = visibleNav(actor, "admin").filter((r) => r.path !== "/admin");
   return (
     <div className="flex flex-col gap-12">
+      <NeedsYou />
       <section aria-labelledby="health" className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <h2 id="health" className="t-h4 text-lime">
-            {titleCase("health")}
+            {titleCase("platform health")}
           </h2>
           <p className="t-b text-lime-dim">
             Checked <time dateTime={h.checkedAt} className="t-table font-semibold wrap-anywhere tabular-nums">{h.checkedAt.slice(0, 19).replace("T", " ")}</time> UTC. Reload the page to check again.
@@ -212,7 +282,7 @@ async function Overview() {
                 <>
                   <Row k="Unresolved events" v={v.unresolved} numeric />
                   {v.byReason.map((r) => (
-                    <Row key={r.reason} k={<Mono>{r.reason}</Mono>} v={r.n} numeric />
+                    <Row key={r.reason} k={r.reason.replace(/_/g, " ")} v={r.n} numeric />
                   ))}
                 </>
               )}
@@ -236,44 +306,6 @@ async function Overview() {
           Ingest lag is the time between the client sending a batch and the server receiving it (client clocks can be wrong, so treat outliers with care).
         </p>
       </section>
-
-      <section aria-labelledby="research-dashboard" className="flex max-w-[40rem] flex-col gap-3">
-        <h2 id="research-dashboard" className="t-h4 text-lime">
-          {titleCase("research dashboard")}
-        </h2>
-        <p className="t-b text-lime">
-          Scores by condition (primary outcomes first), telemetry and time, data quality and metric definitions for one study, updated live. Descriptive reference for the
-          research team.
-        </p>
-        {can(actor, "analytics.view") ? (
-          <Button asChild variant="outline" className="w-fit">
-            <Link href="/research/dashboard">Open the research dashboard</Link>
-          </Button>
-        ) : (
-          <p className="t-b text-lime-dim">
-            Your roles do not include the analytics.view permission, so the dashboard is not available to you. A principal investigator, researcher or research analyst role
-            grants it.
-          </p>
-        )}
-      </section>
-
-      {links.length ? (
-        <section aria-labelledby="sections" className="flex max-w-[48rem] flex-col gap-3">
-          <h2 id="sections" className="t-h4 text-lime">
-            {titleCase("sections")}
-          </h2>
-          <ul className="flex flex-col border-y-[1.5px] border-y-lime">
-            {links.map((l) => (
-              <li key={l.path} className="grid gap-x-6 border-b border-b-line py-1 last:border-b-0 sm:grid-cols-[10rem_minmax(0,1fr)] sm:items-baseline">
-                <Link href={l.path} className={`${BLOCK_LINK} t-label`}>
-                  {l.label}
-                </Link>
-                {SECTION_NOTES[l.path] ? <p className="t-b pb-2 text-lime-dim sm:pb-0">{SECTION_NOTES[l.path]}</p> : null}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
     </div>
   );
 }

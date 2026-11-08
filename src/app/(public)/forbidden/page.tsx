@@ -13,11 +13,11 @@ export default function ForbiddenPage() {
         {titleCase("You do not have access to this page")}
       </h1>
       <p className="t-b text-lime">
-        Your roles do not include the permission this page needs. Ask a platform administrator if you think this is wrong.
+        Your role does not open this page. Go back to your home page; if you need this page for your work, ask an Admin to change your role.
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <Button asChild>
-          <a href="/console">Go to your console</a>
+          <a href="/console">Go to your home page</a>
         </Button>
         <SignOutButton variant="outline" />
       </div>

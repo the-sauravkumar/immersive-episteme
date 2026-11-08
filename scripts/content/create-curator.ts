@@ -7,7 +7,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 
 import * as schema from "../../db/schema";
 import { parseServerEnv } from "../../src/lib/env";
-import { STAFF_ROLES, type StaffRole } from "../../src/lib/permissions/roles";
+import { ROLE_NAME_HELP, parseStaffRole, type StaffAssignment } from "../../src/lib/permissions/roles";
 import { createStaffAccount } from "../../src/server/auth/bootstrap";
 import { createAuth } from "../../src/server/auth/config";
 import { isLocalHost, makePool, redact, resolveDatabaseUrl } from "../db/_shared";
@@ -27,9 +27,10 @@ export function passwordFileProblem(target: string | undefined, repoRoot: string
   return null;
 }
 
-export function parseRole(role: string): StaffRole {
-  if (!(STAFF_ROLES as readonly string[]).includes(role)) throw new Error(`unknown role ${role}; roles: ${STAFF_ROLES.join(", ")}`);
-  return role as StaffRole;
+export function parseRole(role: string): StaffAssignment {
+  const assignment = parseStaffRole(role);
+  if (!assignment) throw new Error(`unknown role ${role}; roles: ${ROLE_NAME_HELP}`);
+  return assignment;
 }
 
 async function main() {
@@ -64,13 +65,13 @@ async function main() {
       email: values.email,
       name: values.name ?? values.email.split("@")[0] ?? "Curator",
       password,
-      role,
+      ...role,
     });
     if (!result.created) rmSync(file, { force: true });
     console.log(
       `[create-curator] ${label} db ${redact(url)}\n` +
         `  user ${result.email} (${result.userId}) ${result.created ? `created; password written to ${file}` : "already existed (password unchanged; no file kept)"}\n` +
-        `  role ${role} ${result.roleGranted ? "granted" : "already held"}; roles now: ${result.roles.join(", ")}`,
+        `  role ${values.role} ${result.roleGranted ? "set" : "already held"}; now: ${result.roles.join(", ")}`,
     );
   } catch (err) {
     console.error(`[create-curator] the password file is kept at ${file} in case the account was created; delete it if not`);

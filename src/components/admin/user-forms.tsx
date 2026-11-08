@@ -5,7 +5,7 @@ import { createContext, useActionState, useContext, useEffect, useId, useRef, us
 
 import { ActionForm, type FormAction } from "@/components/cms/action-form";
 import type { ActionState } from "@/components/cms/action-state";
-import { FormField, NativeSelect } from "@/components/cms/bits";
+import { CHECK_BOX, CHECK_ROW, FormField, NativeSelect } from "@/components/cms/bits";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ROLE_LABELS, STAFF_ROLES, type StaffRole } from "@/lib/permissions/roles";
-import { clearSignInLockAction, createStaffAction, grantRoleAction, lockStaffAction, resetPasswordAction, revokeRoleAction, unlockStaffAction } from "@/server/admin/actions";
+import { ROLE_DUTIES, ROLE_LABELS, STAFF_ROLES, type StaffRole } from "@/lib/permissions/roles";
+import { clearSignInLockAction, createStaffAction, lockStaffAction, resetPasswordAction, revokeRoleAction, setRoleAction, unlockStaffAction } from "@/server/admin/actions";
 
 function TextField({ name, label, type = "text", autoComplete, hint }: { name: string; label: string; type?: string; autoComplete?: string; hint?: string }) {
   const id = useId();
@@ -31,23 +31,34 @@ function TextField({ name, label, type = "text", autoComplete, hint }: { name: s
   );
 }
 
-function RoleSelect({ id, roles, describedBy }: { id: string; roles: readonly StaffRole[]; describedBy?: string }) {
+function RoleFields({ current, principalInvestigator = false }: { current?: StaffRole | null; principalInvestigator?: boolean }) {
+  const id = useId();
+  const [role, setRole] = useState<string>(current ?? "");
   return (
-    <NativeSelect id={id} name="role" required defaultValue="" aria-describedby={describedBy}>
-      <option value="" disabled>
-        Choose a role
-      </option>
-      {roles.map((r) => (
-        <option key={r} value={r}>
-          {ROLE_LABELS[r]}
-        </option>
-      ))}
-    </NativeSelect>
+    <>
+      <FormField id={id} name="role" label="Role" hint={role ? ROLE_DUTIES[role as StaffRole] : "Each person holds one role."}>
+        <NativeSelect id={id} name="role" required value={role} onChange={(e) => setRole(e.target.value)} aria-describedby={`${id}-hint ${id}-error`}>
+          <option value="" disabled>
+            Choose a role
+          </option>
+          {STAFF_ROLES.map((r) => (
+            <option key={r} value={r}>
+              {ROLE_LABELS[r]}
+            </option>
+          ))}
+        </NativeSelect>
+      </FormField>
+      {role === "researcher" ? (
+        <label htmlFor={`${id}-pi`} className={CHECK_ROW}>
+          <input id={`${id}-pi`} type="checkbox" name="principalInvestigator" className={CHECK_BOX} defaultChecked={principalInvestigator} />
+          Principal investigator: may start studies, exclude sessions, export identified data and publish content releases
+        </label>
+      ) : null}
+    </>
   );
 }
 
 export function CreateStaffForm({ minPasswordLength }: { minPasswordLength: number }) {
-  const roleId = useId();
   return (
     <ActionForm action={createStaffAction} submitLabel="Create account" pendingLabel="Creating…" resetOnSuccess>
       <div className="grid gap-4 md:grid-cols-2">
@@ -60,9 +71,9 @@ export function CreateStaffForm({ minPasswordLength }: { minPasswordLength: numb
           autoComplete="new-password"
           hint={`At least ${minPasswordLength} characters. Share it out of band; the person can change it after signing in, from Change password in their account menu.`}
         />
-        <FormField id={roleId} name="role" label="Initial role">
-          <RoleSelect id={roleId} roles={STAFF_ROLES} describedBy={`${roleId}-error`} />
-        </FormField>
+        <div className="flex flex-col gap-3">
+          <RoleFields />
+        </div>
       </div>
     </ActionForm>
   );
@@ -72,13 +83,14 @@ export interface RowUser {
   id: string;
   name: string;
   email: string;
-  roles: readonly StaffRole[];
+  role: StaffRole | null;
+  principalInvestigator: boolean;
   locked: boolean;
   signInLocked: boolean;
   hasPassword: boolean;
 }
 
-type Pending = { kind: "grant" } | { kind: "revoke"; role: StaffRole } | { kind: "lock" } | { kind: "unlock" } | { kind: "liftLock" } | { kind: "resetPassword" } | null;
+type Pending = { kind: "role" } | { kind: "revoke" } | { kind: "lock" } | { kind: "unlock" } | { kind: "liftLock" } | { kind: "resetPassword" } | null;
 
 const AnnounceContext = createContext<((message: string) => void) | null>(null);
 
@@ -104,7 +116,6 @@ export function UserRowActions({ user, self, manageRoles, minPasswordLength }: {
   const [open, setOpen] = useState<Pending>(null);
   const announce = useAnnounce();
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const available = STAFF_ROLES.filter((r) => !user.roles.includes(r));
 
   const done = () => setOpen(null);
   const announced =
@@ -139,20 +150,16 @@ export function UserRowActions({ user, self, manageRoles, minPasswordLength }: {
           <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
           {manageRoles ? (
             <>
-              {available.length ? (
-                <DropdownMenuItem onSelect={() => setOpen({ kind: "grant" })}>
-                  <ShieldPlus aria-hidden="true" />
-                  Add a role…
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem disabled>Holds every staff role</DropdownMenuItem>
-              )}
-              {user.roles.map((r) => (
-                <DropdownMenuItem key={r} variant="destructive" onSelect={() => setOpen({ kind: "revoke", role: r })}>
+              <DropdownMenuItem onSelect={() => setOpen({ kind: "role" })}>
+                <ShieldPlus aria-hidden="true" />
+                {user.role ? "Change role…" : "Give access…"}
+              </DropdownMenuItem>
+              {user.role ? (
+                <DropdownMenuItem variant="destructive" onSelect={() => setOpen({ kind: "revoke" })}>
                   <ShieldMinus aria-hidden="true" />
-                  Remove {ROLE_LABELS[r]}…
+                  Remove role…
                 </DropdownMenuItem>
-              ))}
+              ) : null}
               <DropdownMenuSeparator />
             </>
           ) : null}
@@ -184,34 +191,37 @@ export function UserRowActions({ user, self, manageRoles, minPasswordLength }: {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={open?.kind === "grant"} {...dialogProps}>
+      <Dialog open={open?.kind === "role"} {...dialogProps}>
         <DialogContent {...contentProps}>
           <DialogHeader>
-            <DialogTitle>Add a role</DialogTitle>
+            <DialogTitle>{user.role ? "Change role" : "Give access"}</DialogTitle>
             <DialogDescription>
-              {user.name} ({user.email}) gains every permission the role holds, from their next request.
+              {user.name} ({user.email}) holds one role. The new role replaces the old one from their next page load.
             </DialogDescription>
           </DialogHeader>
-          <GrantRoleForm action={announced(grantRoleAction)} userId={user.id} available={available} onDone={done} />
+          <ActionForm action={announced(setRoleAction)} submitLabel="Save role" pendingLabel="Saving…" onDone={(s) => s.ok && done()}>
+            <input type="hidden" name="userId" value={user.id} />
+            <RoleFields current={user.role} principalInvestigator={user.principalInvestigator} />
+          </ActionForm>
         </DialogContent>
       </Dialog>
 
       <Dialog open={open?.kind === "revoke"} {...dialogProps}>
         <DialogContent {...contentProps}>
-          {open?.kind === "revoke" ? (
+          {open?.kind === "revoke" && user.role ? (
             <>
               <DialogHeader>
-                <DialogTitle>Remove a role</DialogTitle>
+                <DialogTitle>Remove the role</DialogTitle>
                 <DialogDescription>
-                  {user.name} loses the {ROLE_LABELS[open.role]} role and its permissions from their next request. The server refuses to remove the last platform
-                  administrator.
+                  {user.name} stops being {ROLE_LABELS[user.role]} from their next page load and waits for access until someone gives them a role again. The last Admin
+                  cannot be removed.
                 </DialogDescription>
               </DialogHeader>
               <ConfirmForm
                 action={announced(revokeRoleAction)}
-                hidden={{ userId: user.id, role: open.role }}
+                hidden={{ userId: user.id }}
                 confirmText={user.email}
-                submitLabel={`Remove ${ROLE_LABELS[open.role]}`}
+                submitLabel={`Remove ${ROLE_LABELS[user.role]}`}
                 pendingLabel="Removing…"
                 onDone={done}
               />
@@ -331,18 +341,6 @@ function ReasonField({ label }: { label: string }) {
     <FormField id={id} name="reason" label={label}>
       <Input id={id} name="reason" required minLength={3} maxLength={500} aria-describedby={`${id}-error`} />
     </FormField>
-  );
-}
-
-function GrantRoleForm({ action, userId, available, onDone }: { action: FormAction; userId: string; available: readonly StaffRole[]; onDone: () => void }) {
-  const id = useId();
-  return (
-    <ActionForm action={action} submitLabel="Add role" pendingLabel="Adding…" onDone={(s) => s.ok && onDone()}>
-      <input type="hidden" name="userId" value={userId} />
-      <FormField id={id} name="role" label="Role">
-        <RoleSelect id={id} roles={available} describedBy={`${id}-error`} />
-      </FormField>
-    </ActionForm>
   );
 }
 

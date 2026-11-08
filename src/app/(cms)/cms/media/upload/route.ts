@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { ZodError } from "zod";
 
+import { refusalMessage } from "@/lib/permissions/can";
 import { authorizeRequest } from "@/server/auth/staff";
 import { CmsError } from "@/server/cms/core";
 import { fieldErrorsOf } from "@/server/cms/run-action";
@@ -29,7 +30,7 @@ function sameOrigin(request: NextRequest): boolean {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   if (!sameOrigin(request)) return json(403, { error: "cross_origin", message: "Uploads must come from this site." });
   const auth = await authorizeRequest(["media.upload"]);
-  if (!auth.ok) return json(auth.response.status, { error: auth.response.status === 401 ? "unauthenticated" : "forbidden", message: "Not allowed to upload media." });
+  if (!auth.ok) return json(auth.response.status, { error: auth.response.status === 401 ? "unauthenticated" : "forbidden", message: auth.response.status === 401 ? "You are signed out. Sign in again, then upload." : refusalMessage(["media.upload"]) });
 
   const limit = MAX_UPLOAD_BYTES + FORM_OVERHEAD;
   const declaredLength = Number(request.headers.get("content-length") ?? "0");

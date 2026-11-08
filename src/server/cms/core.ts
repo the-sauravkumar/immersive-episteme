@@ -1,14 +1,14 @@
 import type { Pool, PoolClient } from "pg";
 
-import { canAny } from "@/lib/permissions/can";
+import { canAny, refusalMessage } from "@/lib/permissions/can";
 import type { Permission } from "@/lib/permissions/permissions";
-import type { StaffRole } from "@/lib/permissions/roles";
+import type { StaffGrant } from "@/lib/permissions/roles";
 
 export type Q = Pick<PoolClient, "query">;
 
 export interface Actor {
   readonly userId: string;
-  readonly roles: readonly StaffRole[];
+  readonly roles: readonly StaffGrant[];
 }
 
 export class CmsError extends Error {
@@ -26,7 +26,7 @@ export class CmsError extends Error {
 export function ensure(actor: Actor, permission: Permission | readonly Permission[]): void {
   const anyOf: readonly Permission[] = typeof permission === "string" ? [permission] : permission;
   if (!canAny(actor, anyOf)) {
-    throw new CmsError("forbidden", `Your roles do not allow this (${anyOf.join(" or ")} required).`, 403);
+    throw new CmsError("forbidden", refusalMessage(anyOf), 403);
   }
 }
 

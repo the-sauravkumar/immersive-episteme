@@ -5,16 +5,15 @@ import { csvText, parseCsv, toCsv } from "@/server/research/exports/csv";
 import { EXPORT_TABLES } from "@/server/research/exports/dictionary";
 
 describe("export scope", () => {
-  it("gives analysts and researchers pseudonymised data only", () => {
-    for (const role of ["research_analyst", "researcher"] as const) {
-      expect(resolveExportScope({ roles: [role] }, "pseudonymised")).toBe("pseudonymised");
-      expect(() => resolveExportScope({ roles: [role] }, "identified")).toThrow(ExportForbiddenError);
-    }
+  it("gives researchers pseudonymised data only", () => {
+    expect(resolveExportScope({ roles: ["researcher"] }, "pseudonymised")).toBe("pseudonymised");
+    expect(() => resolveExportScope({ roles: ["researcher"] }, "identified")).toThrow(ExportForbiddenError);
   });
 
   it("lets only the principal investigator receive identified exports", () => {
     expect(resolveExportScope({ roles: ["principal_investigator"] }, "identified")).toBe("identified");
-    expect(() => resolveExportScope({ roles: ["study_facilitator"] }, "pseudonymised")).toThrow(ExportForbiddenError);
+    expect(resolveExportScope({ roles: ["researcher", "principal_investigator"] }, "identified")).toBe("identified");
+    expect(() => resolveExportScope({ roles: ["platform_admin"] }, "pseudonymised")).toThrow(ExportForbiddenError);
     expect(() => resolveExportScope({ roles: ["curator"] }, "pseudonymised")).toThrow(ExportForbiddenError);
     expect(() => resolveExportScope(null, "pseudonymised")).toThrow(ExportForbiddenError);
   });

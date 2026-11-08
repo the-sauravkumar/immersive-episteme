@@ -406,10 +406,10 @@ npx tsx scripts/deploy/with-env.ts --env-file ~/.episteme/production.env -- npm 
 
 This builds what `/explore` and the professor's review of the deployed site show, with the same code as the local `npm run dev:bootstrap` (`scripts/content/public-demo.ts`):
 1. imports `content/` (concepts, claims, relationships, sources, media candidates; state `under_review`);
-2. with `--verify-as=<curator email>` (DR-131), accepts every concept and link that its file records as `verified` (`content/shared/*.json`, the six traditions, then `content/comparisons.json`, each with its `content/review/<slug>-verification.md` as evidence) through the same `transition()` the CMS uses, as that curator; it stops if the database refuses any of them;
+2. with `--verify-as=<curator email>` (DR-131, DR-133), accepts each file's tradition, every source the file lists except those it marks `kind: "unverified"`, and every concept and link that it records as `verified` (`content/shared/*.json`, the six traditions, then `content/comparisons.json`, each with its `content/review/<slug>-verification.md` as evidence) through the same `transition()` the CMS uses, as that curator; it stops if the database refuses any of them;
 3. builds the **review** snapshot (draft, never publishable);
 4. compiles the spatial manifests: the three shortlisted traditions together, and each alone;
-5. creates the demo study `demo-review-walkthrough` (`is_demo`, non-experimental, draft) pinned to that snapshot and the combined manifest. `/explore` and the staff preview read the newest review snapshot that a demo study is pinned to, and that demo study (`findPreviewContent` in `src/server/learning/context-data.ts`). A review snapshot rebuilt from **CMS → Dataset versions → Rebuild review snapshot** has no demo study and is used only for comparison (DR-114).
+5. creates the demo study `demo-review-walkthrough` (`is_demo`, non-experimental, draft) pinned to that snapshot and the combined manifest. `/explore` and the staff preview read the newest review snapshot that a demo study is pinned to, and that demo study (`findPreviewContent` in `src/server/learning/context-data.ts`). A review snapshot rebuilt from **CMS → Releases → Advanced → Rebuild review copy** has no demo study and is used only for comparison (DR-114).
 
 Unlike `dev:bootstrap` it **never** migrates (or touches a test database), never loads the demo seed, never creates staff, test or demo users or passwords, and never creates participants.
 
@@ -456,10 +456,10 @@ These live **only in the database** (section 7). They need staff accounts, so do
 1. their own env file, made from `.env.production.example` (any path; pass it to `--env-file`), with `BETTER_AUTH_URL=https://<their-domain>` and their own `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`;
 2. their own Google OAuth client, with the origin `https://<their-domain>` and the redirect URI `https://<their-domain>/api/auth/callback/google`, and the lead's account added as a test user while the consent screen is in Testing;
 3. the lead signs in once at `/sign-in` with **Continue with Google**; the account waits at **Awaiting Access**;
-4. the command below, run after `npm ci` from a machine that reaches their database, grants it the admin role:
+4. the command below, run after `npm ci` from a machine that reaches their database, makes it Admin:
 
 ```bash
-npx tsx scripts/deploy/with-env.ts --env-file <your-env-file> -- npx tsx scripts/create-admin.ts --email cxa.craftecosystem@gmail.com --role platform_admin
+npx tsx scripts/deploy/with-env.ts --env-file <your-env-file> -- npx tsx scripts/create-admin.ts --email cxa.craftecosystem@gmail.com --role admin
 ```
 
 Without `ADMIN_PASSWORD` or `--password` the script only grants the role to an account that already exists and refuses an unknown email. Reload the page: the account opens the console.
@@ -472,15 +472,15 @@ npx tsx scripts/deploy/with-env.ts --env-file ~/.episteme/production.env -- npx 
 unset ADMIN_PASSWORD
 ```
 
-The role defaults to `platform_admin`. The script is idempotent: an existing account keeps its password and gains the role. Further staff (researchers, curators): sign in as the admin → **Admin → Users**.
+The role defaults to Admin. Each person holds one role, **Admin**, **Researcher** or **Curator**; `--role` takes `admin`, `researcher`, `curator` or `principal_investigator` (a Researcher marked as the principal investigator), and the retired names `platform_admin`, `study_facilitator`, `research_analyst` and `content_editor` map onto them (DR-133). The script is idempotent: an existing account keeps its password and its role is set to the one given; it refuses to take Admin from the last active Admin. Further staff: sign in as the admin → **Admin → People** → row menu → **Give access…** or **Change role…**.
 
-**Passwords and sign-in locks (DR-114).** A staff member changes their own password from the account menu → **Change password** (their other sessions end). An administrator who must replace someone's password uses **Admin → Users** → row menu → **Reset password…** (typed confirmation and a reason; every session of that account ends; the audit log records who did it, never the password). After 10 failed sign-ins in 15 minutes an account's sign-in is locked for 15 minutes; Admin → Users shows **Sign-in locked** with the time, and row menu → **Lift sign-in lock…** clears it with a reason in the audit log. `scripts/unlock-account.ts` does the same from the command line.
+**Passwords and sign-in locks (DR-114).** A staff member changes their own password from the account menu → **Change password** (their other sessions end). An Admin who must replace someone's password uses **Admin → People** → row menu → **Reset password…** (typed confirmation and a reason; every session of that account ends; the audit log records who did it, never the password). After 10 failed sign-ins in 15 minutes an account's sign-in is locked for 15 minutes; Admin → People shows **Sign-in locked** with the time, and row menu → **Lift sign-in lock…** clears it with a reason in the audit log. `scripts/unlock-account.ts` does the same from the command line.
 
-### 6.2 Invite Codes in Admin → Access
+### 6.2 Invite Codes in Admin → Invite Codes
 
 The site is **always invite-only**. Until a code exists, only signed-in staff can open it.
 
-1. Sign in as the platform admin → **Admin → Access**.
+1. Sign in as the Admin → **Admin → Invite Codes**.
 2. **Create an invite code**: a label (up to 120 characters, for example "Pilot cohort A", "Reviewers", "Smoke test"), an optional use limit, an optional last day (valid to the end of that day, UTC), and an optional study.
 3. The code is **shown once** with its links; only a hash is stored. Copy it now. If it is lost, revoke it and create another.
 4. Share links privately. Never post a code publicly, in the repository, in a document or in chat.
@@ -526,9 +526,9 @@ Staff can sign in with Google as well as with email and password. Participants n
 | New Google account with an unverified email | No account is made |
 | Locked account (`disabled_at` set) | No session, by either method |
 
-**Granting access:** sign in as a platform admin → **Admin → Users**. Accounts waiting for a role show **Awaiting access** in Status, and the Status filter lists them. Use the row menu → **Add role**. Each account's line names its sign-in methods (password, Google). An account that should not exist is locked from the same menu.
+**Granting access:** sign in as an Admin. The Admin home lists the people waiting for access; **Give access** opens **Admin → People** filtered to them. Use the row menu → **Give access…**, choose **Admin**, **Researcher** or **Curator**, and for the study's principal investigator tick **Principal investigator** under Researcher. Each person holds one role; **Change role…** replaces it and **Remove role…** sends the person back to waiting. Each account's line names its sign-in methods (password, Google). An account that should not exist is locked from the same menu.
 
-**Check by hand on a deployment:** with the variables unset the button is absent; with them set, a new Google account reaches the waiting page, a role granted in Admin → Users opens its console on the next visit, and a locked account is refused.
+**Check by hand on a deployment:** with the variables unset the button is absent; with them set, a new Google account reaches the waiting page, a role given in Admin → People opens that role's home page on the next visit, and a locked account is refused.
 
 ### 6.5 Setting Up a Real Study in the Research Console (DR-111)
 
@@ -549,16 +549,16 @@ Everything below is done in the console as a researcher or the principal investi
 | | Route A: redo it against production (recommended) | Route B: restore a dump of the verified local database |
 |---|---|---|
 | What moves | nothing; production records its own verification and uploads | the whole local database, schema included |
-| Accounts | real production staff accounts (6.1, Admin → Users) | the local accounts come along, with their local passwords |
+| Accounts | real production staff accounts (6.1, Admin → People) | the local accounts come along, with their local passwords |
 | Photos | uploaded straight into the production bucket | **not covered**: the local files are on local disk, not in the bucket; use Route A for photos |
 | When | any time, also after participants exist | only into an **empty** production database, before any staff work or participant data |
 | Tested | the scripts run locally; not yet against a remote database | **not tested** |
 
 ### 7.1 Route A: Run the Verification and the Photo Ingest Against Production (Recommended)
 
-Preconditions: 5.1 to 5.3 done; the first platform admin (6.1) has created the curator accounts in **Admin → Users** (at least two curators: nobody verifies their own upload, and the media verification is a second person). `scripts/content/verify-concepts.ts` is on `main` (merged from `prep-verify`).
+Preconditions: 5.1 to 5.3 done; the first Admin (6.1) has given the Curator role to the curator accounts in **Admin → People** (at least two curators: nobody verifies their own upload, and the media verification is a second person). `scripts/content/verify-concepts.ts` is on `main` (merged from `prep-verify`).
 
-**Concept verification** (`scripts/content/verify-concepts.ts`): it calls the same `transition()` service the CMS review panel uses, so every rule the CMS enforces (permission `content.verify`, separation of duties, complete citations, state) applies, and the audit log records the named curator. It touches only the listed keys and refuses demo content.
+**Concept verification** (`scripts/content/verify-concepts.ts`): it calls the same `transition()` service the CMS review panel uses, so every rule the CMS enforces (permission `content.verify`, separation of duties, complete citations, state) applies, and the audit log records the named curator. It touches only the listed keys and refuses demo content. Given a content file, it also accepts the file's tradition and its sources (DR-133); a source the file marks `kind: "unverified"` is never listed, because the review refuses that kind.
 
 ```bash
 # 1. dry run: reads only; reports "would verify" or every reason for refusal, per key
@@ -663,7 +663,7 @@ unset URL
 - **App:** `npx vercel@60.1.3 rollback`. "On the hobby plan, you can only roll back to the previous production deployment." Undo with `npx vercel@60.1.3 promote <deployment-url>` (https://vercel.com/docs/cli/rollback).
 - **Env variable:** push the old value with `push-env.ps1 -Only NAME -Force -Yes`, then redeploy.
 - **Database:** a rollback does not undo migrations. Restore the pre-migration snapshot (A) or dump (B) only when the lead asks.
-- **Leaked invite code:** Admin → Access → Revoke. It takes effect at once for new visitors and, on their next request, for every browser that already used the code, including participants part-way through a study (DR-114). **Leaked `BETTER_AUTH_SECRET`:** new value, push, redeploy; everyone is signed out and must redeem their invite again.
+- **Leaked invite code:** Admin → Invite Codes → Revoke. It takes effect at once for new visitors and, on their next request, for every browser that already used the code, including participants part-way through a study (DR-114). **Leaked `BETTER_AUTH_SECRET`:** new value, push, redeploy; everyone is signed out and must redeem their invite again.
 - **Leaked bucket key:** delete it (IAM user key, or R2 token), create a new one, push, redeploy.
 - **Remove everything** (lead's request only): Vercel project; Option A: RDS (deletion keeps a final snapshot), bucket, IAM user, budget; Option B: Neon project (deletes the data), R2 token, then bucket.
 

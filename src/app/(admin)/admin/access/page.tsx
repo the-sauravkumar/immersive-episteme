@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { CreateInviteForm, RevokeInviteButton } from "@/components/access/invite-admin-forms";
 import { Empty, Section, Stamp } from "@/components/cms/bits";
 import { ConsolePage } from "@/components/shell/gates";
+import { InviteParticipantsGuide } from "@/components/shell/staff-guides";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,7 +15,7 @@ import { listInvites, listStudyChoices, type InviteRow, type InviteStatus } from
 import { requirePermission } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 
-export const metadata: Metadata = { title: "Access" };
+export const metadata: Metadata = { title: "Invite Codes" };
 
 export const instant = false;
 
@@ -22,8 +23,8 @@ export default function Page() {
   return (
     <ConsolePage
       path="/admin/access"
-      title="Access"
-      description="The site is invite-only: visitors need an invite code or link, and staff pass by signing in. Codes are stored hashed and shown only once, when they are created."
+      title="Invite codes"
+      description="The site is invite-only: visitors need an invite code or link, and staff get in by signing in. A code is shown only once, when it is made."
     >
       <Suspense fallback={<Skeleton className="h-64 w-full" />}>
         <Access />
@@ -50,6 +51,7 @@ async function Access() {
   const active = invites.filter((i) => i.status === "active").length;
   return (
     <div className="flex flex-col gap-12">
+      <InviteParticipantsGuide study={null} mayMakeCodes mayWatch={false} className="max-w-3xl" />
       <Section id="create-invite" title="Create an invite code" description="One code per audience. Share links privately; never post a code publicly or put it in a document." className="max-w-3xl">
         <CreateInviteForm studies={studies} origin={serverEnv().BETTER_AUTH_URL} />
       </Section>
@@ -103,7 +105,7 @@ async function Access() {
                       <span className="t-table font-semibold wrap-anywhere block text-lime-dim">ending {i.hint}</span>
                     </TableCell>
                     <TableCell role="cell" className="align-top sm:py-3">
-                      {i.studySlug ? <span className="t-table font-semibold wrap-anywhere">{i.studySlug}</span> : <span className="text-lime-dim">Site only</span>}
+                      {i.studyTitle ? <span>{i.studyTitle}</span> : <span className="text-lime-dim">Site only</span>}
                     </TableCell>
                     <TableCell role="cell" className="align-top sm:py-3">
                       <span className="flex flex-col items-start gap-1">

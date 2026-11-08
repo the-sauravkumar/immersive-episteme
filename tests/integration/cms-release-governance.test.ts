@@ -65,7 +65,7 @@ describe.skipIf(!TEST_URL)("CMS release governance (final review)", () => {
   beforeAll(async () => {
     t = await createTestDatabase("cmsgov");
     dir = await mkdtemp(join(tmpdir(), "ie-gov-"));
-    editor = { userId: await createUser(t.pool, "g_editor"), roles: ["content_editor"] };
+    editor = { userId: await createUser(t.pool, "g_editor"), roles: ["curator"] };
     curatorA = { userId: await createUser(t.pool, "g_curator_a"), roles: ["curator"] };
     curatorB = { userId: await createUser(t.pool, "g_curator_b"), roles: ["curator"] };
     pi = { userId: await createUser(t.pool, "g_pi"), roles: ["principal_investigator"] };
@@ -183,7 +183,7 @@ describe.skipIf(!TEST_URL)("CMS release governance (final review)", () => {
   });
 
   it("rebuilds the review snapshot from the CMS, attributed and audited, and only when the pipeline changed (DR-114)", async () => {
-    expect(await errorCode(rebuildReviewSnapshot(t.pool, editor))).toBe("forbidden");
+    expect(await errorCode(rebuildReviewSnapshot(t.pool, { userId: editor.userId, roles: ["researcher"] }))).toBe("forbidden");
     const first = await rebuildReviewSnapshot(t.pool, pi);
     const row = await one<{ kind: string; status: string; created_by: string }>(t.pool, "SELECT kind::text AS kind, status::text AS status, created_by FROM content_snapshots WHERE id = $1", [first.id]);
     expect(row).toEqual({ kind: "review", status: "draft", created_by: pi.userId });

@@ -3,8 +3,9 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { ActionForm } from "@/components/cms/action-form";
-import { Empty, FormField, Mono, NativeSelect, one, Section, type SearchParams, ROW_LINK, Disclosure } from "@/components/cms/bits";
+import { Empty, FormField, NativeSelect, one, Section, STATE_LABELS, type SearchParams, ROW_LINK, Disclosure } from "@/components/cms/bits";
 import { ConsolePage } from "@/components/shell/gates";
+import { PublishReleaseGuide } from "@/components/shell/staff-guides";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,11 +16,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { requirePermission } from "@/server/auth/staff";
 import { publishReleaseAction, rebuildReviewSnapshotAction } from "@/server/cms/actions";
 import { diffBundles, type BundleDiff, type KindDiff } from "@/server/cms/diff";
-import { listSnapshots, snapshotBundle, type SnapshotRowView } from "@/server/cms/queries";
+import { listSnapshots, overviewCounts, snapshotBundle, type SnapshotRowView } from "@/server/cms/queries";
 import { releaseReadiness } from "@/server/cms/release";
 import { getPool } from "@/server/db/client";
 
-export const metadata: Metadata = { title: "Dataset Versions" };
+export const metadata: Metadata = { title: "Releases" };
 
 export const instant = false;
 
@@ -27,8 +28,8 @@ export default function Page({ searchParams }: PageProps<"/cms/datasets">) {
   return (
     <ConsolePage
       path="/cms/datasets"
-      title="Dataset versions"
-      description="Publish an immutable release snapshot of verified content, list every version and compare two of them."
+      title="Releases"
+      description="A release is a frozen copy of the verified content that studies show to learners. Publish one when everything is verified, and see every release so far."
     >
       <Suspense fallback={<Skeleton className="h-96 w-full" />}>
         <Datasets searchParams={searchParams} />
@@ -43,7 +44,8 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
   await requirePermission("content.publish");
   const sp = await searchParams;
   const pool = getPool();
-  const [readiness, snapshots] = await Promise.all([releaseReadiness(pool), listSnapshots(pool)]);
+  const [readiness, snapshots, counts] = await Promise.all([releaseReadiness(pool), listSnapshots(pool), overviewCounts(pool)]);
+  const unverified = Object.values(counts).reduce((n, c) => n + (c.under_review ?? 0) + (c.needs_evidence ?? 0), 0);
   const a = one(sp.a);
   const b = one(sp.b);
   const comparable = snapshots.filter((s) => s.status === "published" || s.kind === "review");
@@ -51,25 +53,24 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
 
   return (
     <div className="flex flex-col gap-6">
+      <PublishReleaseGuide unverified={unverified} refusals={readiness.refusals.length} mayPublish />
       <Section
         id="readiness"
-        title="Release readiness"
-        description="A release contains everything in the review pipeline (under review, needs evidence, verified, published). It is refused while any of it is unverified or the integrity report has errors; reject, archive or withdraw what should not ship."
+        title="Is it ready?"
+        description="A release takes everything that is in review or accepted. It is refused while any of it is not verified or a link between concepts is broken. Reject, archive or withdraw what should not ship."
       >
         <p className="t-b">
-          In the pipeline: {readiness.counts.traditions} traditions, {readiness.counts.concepts} concepts ({readiness.counts.claims} claims), {readiness.counts.relationships} relationships,{" "}
-          {readiness.counts.sources} sources. Integrity: {readiness.integrity.error} error(s), {readiness.integrity.warning} warning(s).
+          The next release would hold {readiness.counts.traditions} traditions, {readiness.counts.concepts} concepts ({readiness.counts.claims} claims), {readiness.counts.relationships} relationships and{" "}
+          {readiness.counts.sources} sources. Automatic checks: {readiness.integrity.error} problem(s) that must be fixed, {readiness.integrity.warning} to look at.
         </p>
         {readiness.ok ? (
-          <p className="t-b font-medium">Ready: every item is verified and the graph has no error-level issues.</p>
+          <p className="t-b font-medium">Ready: everything is verified and nothing is broken.</p>
         ) : (
           <div className="flex flex-col gap-3">
-            <p className="t-b font-medium">Not ready. The release would be refused with:</p>
+            <p className="t-b font-medium">Not ready yet. Publishing would be refused because:</p>
             <ul className="list-disc pl-5 t-b">
               {readiness.refusals.map((r, i) => (
-                <li key={i}>
-                  <Mono>{r.code}</Mono> {r.message}
-                </li>
+                <li key={i}>{r.message}</li>
               ))}
             </ul>
             {readiness.pending.length ? (
@@ -77,19 +78,17 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
                 <ul className="mt-2 flex flex-col gap-1">
                   {readiness.pending.map((p) => (
                     <li key={`${p.kind}-${p.id}`}>
-                      {p.kind}: {p.label} <span className="text-lime-dim">({p.state.replace("_", " ")})</span>
+                      {p.kind}: {p.label} <span className="text-lime-dim">({(STATE_LABELS[p.state] ?? p.state).toLowerCase()})</span>
                     </li>
                   ))}
                 </ul>
               </Disclosure>
             ) : null}
             {readiness.errors.length ? (
-              <Disclosure className="t-b" summary={<>Integrity errors ({readiness.integrity.error})</>}>
+              <Disclosure className="t-b" summary={<>Problems that must be fixed ({readiness.integrity.error})</>}>
                 <ul className="mt-2 flex flex-col gap-1">
                   {readiness.errors.map((e, i) => (
-                    <li key={i}>
-                      <Mono>{e.code}</Mono> {e.message}
-                    </li>
+                    <li key={i}>{e.message}</li>
                   ))}
                 </ul>
               </Disclosure>
@@ -98,10 +97,10 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
         )}
       </Section>
 
-      <Section id="publish" title="Publish a release" description="Irreversible. Verified items become published, and the snapshot is frozen with its sha256; studies can then pin it.">
+      <Section id="publish" title="Publish a release" description="Cannot be undone. Verified items become published and the release is frozen; researchers can then choose it for a study.">
         <ActionForm action={publishReleaseAction} submitLabel="Publish release" pendingLabel="Publishing…">
           <div className="grid gap-4 md:grid-cols-2">
-            <FormField id="r-label" name="versionLabel" label="Version label" hint="e.g. release-1 (letters, digits, '.', '_' or '-').">
+            <FormField id="r-label" name="versionLabel" label="Release name" hint="For example release-2: letters, digits, dots, underscores or hyphens.">
               <Input id="r-label" name="versionLabel" required pattern="[A-Za-z0-9][A-Za-z0-9._\-]{0,63}" />
             </FormField>
             <FormField id="r-title" name="title" label="Title">
@@ -110,60 +109,64 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
             <FormField id="r-desc" name="description" label="Release notes (optional)" className="md:col-span-2">
               <Textarea id="r-desc" name="description" rows={2} />
             </FormField>
-            <FormField id="r-confirm" name="confirmVersionLabel" label="Type the version label again to confirm">
+            <FormField id="r-confirm" name="confirmVersionLabel" label="Type the release name again to confirm">
               <Input id="r-confirm" name="confirmVersionLabel" required autoComplete="off" />
             </FormField>
           </div>
         </ActionForm>
       </Section>
 
-      <Section
-        id="review-snapshot"
-        title="Review snapshot"
-        description="A frozen copy of everything in the review pipeline, for comparing with releases. It never changes by itself: rebuild it after editing. It is never publishable. The staff and demo previews stay on the snapshot that the command-line content import pinned the demo study to."
-      >
-        <p className="t-b">{latestReview ? reviewSnapshotLine(latestReview) : "No review snapshot has been built yet."}</p>
-        <ActionForm action={rebuildReviewSnapshotAction} submitLabel="Rebuild review snapshot" pendingLabel="Building…" submitVariant="outline" />
+      <Section id="versions" title="Releases so far">
+        <VersionsTable rows={snapshots.filter((x) => x.kind === "release")} />
       </Section>
 
-      <Section id="versions" title="Versions">
-        <VersionsTable rows={snapshots} />
-      </Section>
+      <Disclosure className="t-b" summary={<span className="t-label">Advanced: review copy and comparing versions</span>} defaultOpen={Boolean(a && b)}>
+        <div className="mt-4 flex flex-col gap-6">
+          <Section
+            id="review-snapshot"
+            title="Review copy"
+            description="A frozen copy of everything in review, for comparing with releases. It never changes by itself: rebuild it after editing. It can never be published. The staff and demo previews keep the copy that the command-line content import gave the demo study."
+          >
+            <p className="t-b">{latestReview ? reviewSnapshotLine(latestReview) : "No review copy has been built yet."}</p>
+            <ActionForm action={rebuildReviewSnapshotAction} submitLabel="Rebuild review copy" pendingLabel="Building…" submitVariant="outline" />
+          </Section>
 
-      <Section id="compare" title="Compare two versions" description="What changed between two snapshots: entities added, removed or changed (with the changed fields).">
-        <form method="get" action="/cms/datasets#compare" className="flex flex-wrap items-end gap-3">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="d-a">From</Label>
-            <NativeSelect id="d-a" name="a" defaultValue={a ?? ""} className="w-64">
-              <option value="">Choose…</option>
-              {comparable.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.versionLabel} ({s.kind})
-                </option>
-              ))}
-            </NativeSelect>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="d-b">To</Label>
-            <NativeSelect id="d-b" name="b" defaultValue={b ?? ""} className="w-64">
-              <option value="">Choose…</option>
-              {comparable.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.versionLabel} ({s.kind})
-                </option>
-              ))}
-            </NativeSelect>
-          </div>
-          <Button type="submit" variant="outline">
-            Compare
-          </Button>
-        </form>
-        {a && b ? (
-          <Suspense fallback={<Skeleton className="h-40 w-full" />}>
-            <Diff a={a} b={b} />
-          </Suspense>
-        ) : null}
-      </Section>
+          <Section id="compare" title="Compare two versions" description="What changed between two versions: items added, removed or changed, with the changed fields.">
+            <form method="get" action="/cms/datasets#compare" className="flex flex-wrap items-end gap-3">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="d-a">From</Label>
+                <NativeSelect id="d-a" name="a" defaultValue={a ?? ""} className="w-64">
+                  <option value="">Choose…</option>
+                  {comparable.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.versionLabel} ({s.kind === "release" ? "release" : "review copy"})
+                    </option>
+                  ))}
+                </NativeSelect>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="d-b">To</Label>
+                <NativeSelect id="d-b" name="b" defaultValue={b ?? ""} className="w-64">
+                  <option value="">Choose…</option>
+                  {comparable.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.versionLabel} ({s.kind === "release" ? "release" : "review copy"})
+                    </option>
+                  ))}
+                </NativeSelect>
+              </div>
+              <Button type="submit" variant="outline">
+                Compare
+              </Button>
+            </form>
+            {a && b ? (
+              <Suspense fallback={<Skeleton className="h-40 w-full" />}>
+                <Diff a={a} b={b} />
+              </Suspense>
+            ) : null}
+          </Section>
+        </div>
+      </Disclosure>
     </div>
   );
 }
@@ -173,18 +176,16 @@ function reviewSnapshotLine(s: SnapshotRowView): string {
 }
 
 function VersionsTable({ rows }: { rows: SnapshotRowView[] }) {
-  if (!rows.length) return <Empty>No snapshots yet.</Empty>;
+  if (!rows.length) return <Empty>No release yet.</Empty>;
   return (
-    <Table density="compact" hoverRows caption={<>Release snapshots are publishable and immutable once published; review snapshots hold unverified content and can never be published.</>}>
+    <Table density="compact" hoverRows caption={<>A published release never changes. Studies count the studies that use it.</>}>
       <TableHeader>
         <TableRow>
-          <TableHead scope="col">Version</TableHead>
-          <TableHead scope="col">Kind</TableHead>
+          <TableHead scope="col">Release</TableHead>
           <TableHead scope="col">Status</TableHead>
           <TableHead scope="col" numeric>Items</TableHead>
-          <TableHead scope="col">Payload sha256</TableHead>
           <TableHead scope="col">Published (UTC)</TableHead>
-          <TableHead scope="col" numeric>Manifests / studies</TableHead>
+          <TableHead scope="col" numeric>Studies</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -194,19 +195,12 @@ function VersionsTable({ rows }: { rows: SnapshotRowView[] }) {
               <span className="font-medium">{s.versionLabel}</span>
               <span className="t-s text-lime-dim block">{s.title}</span>
             </TableCell>
-            <TableCell>{s.kind}</TableCell>
             <TableCell>
-              <Badge variant="neutral">{s.status}</Badge>
-              {s.includesUnverified ? <span className="t-s text-lime-dim block">includes unverified</span> : null}
+              <Badge variant="neutral">{s.status === "published" ? "Published" : "Not published"}</Badge>
             </TableCell>
             <TableCell numeric>{s.itemCount}</TableCell>
-            <TableCell>
-              <Mono title={s.payloadSha256}>{s.payloadSha256.slice(0, 16)}…</Mono>
-            </TableCell>
             <TableCell>{s.publishedAt ? `${fmt.format(new Date(s.publishedAt))}${s.publishedBy ? ` by ${s.publishedBy}` : ""}` : "—"}</TableCell>
-            <TableCell numeric>
-              {s.manifests} / {s.studies}
-            </TableCell>
+            <TableCell numeric>{s.studies}</TableCell>
           </TableRow>
         ))}
       </TableBody>
@@ -242,12 +236,12 @@ async function Diff({ a, b }: { a: string; b: string }) {
           <ul className="mt-2 flex flex-col gap-1">
             {k.added.map((x) => (
               <li key={`a-${x.key}`}>
-                <span className="font-medium">Added</span> {x.label} <Mono>{x.key}</Mono>
+                <span className="font-medium">Added</span> {x.label}
               </li>
             ))}
             {k.removed.map((x) => (
               <li key={`r-${x.key}`}>
-                <span className="font-medium">Removed</span> {x.label} <Mono>{x.key}</Mono>
+                <span className="font-medium">Removed</span> {x.label}
               </li>
             ))}
             {k.changed.map((x) => (

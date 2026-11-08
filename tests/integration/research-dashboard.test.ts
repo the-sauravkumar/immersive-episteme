@@ -374,8 +374,8 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
     };
 
     it("refuses a role without analytics.view (page route table, probe and CSV)", async () => {
-      expect(canAny({ roles: ["study_facilitator"] }, consoleRoute("/research/dashboard").anyOf)).toBe(false);
-      as(["study_facilitator"]);
+      expect(canAny({ roles: ["curator"] }, consoleRoute("/research/dashboard").anyOf)).toBe(false);
+      as(["curator"]);
       expect((await probe()).status).toBe(403);
       expect((await csvGet("dashboard_primary")).status).toBe(403);
       as([]);

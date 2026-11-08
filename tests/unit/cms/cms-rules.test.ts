@@ -57,15 +57,17 @@ describe("review transitions vs the permission matrix", () => {
     return kind !== null && canAny(subject(role), TRANSITION_PERMISSION[kind]);
   };
 
-  it("editors submit but never verify, reject or archive", () => {
-    expect(allowed("content_editor", "draft", "under_review")).toBe(true);
-    expect(allowed("content_editor", "under_review", "verified")).toBe(false);
-    expect(allowed("content_editor", "under_review", "rejected")).toBe(false);
-    expect(allowed("content_editor", "verified", "archived")).toBe(false);
+  it("researchers neither submit, verify nor archive content; curators do all three", () => {
+    expect(allowed("researcher", "draft", "under_review")).toBe(false);
+    expect(allowed("researcher", "under_review", "verified")).toBe(false);
+    expect(allowed("researcher", "verified", "archived")).toBe(false);
+    expect(allowed("curator", "draft", "under_review")).toBe(true);
+    expect(allowed("curator", "under_review", "verified")).toBe(true);
+    expect(allowed("curator", "verified", "archived")).toBe(true);
   });
 
   it("only curators and the PI verify; researchers review without verifying; admins do neither", () => {
-    const verifiers = STAFF_ROLES.filter((r) => allowed(r, "under_review", "verified"));
+    const verifiers = ([...STAFF_ROLES, "principal_investigator"] as Role[]).filter((r) => allowed(r, "under_review", "verified"));
     expect(verifiers.sort()).toEqual(["curator", "principal_investigator"]);
     expect(allowed("researcher", "under_review", "needs_evidence")).toBe(true);
     expect(allowed("platform_admin", "under_review", "needs_evidence")).toBe(false);
@@ -79,7 +81,7 @@ describe("review transitions vs the permission matrix", () => {
     expect(consoleRoute("/cms/datasets").anyOf).toEqual(["content.publish"]);
     expect(consoleRoute("/cms/relations").anyOf).toEqual(["graph.edit"]);
     for (const r of ["participant", "public"] as const) expect(canAny(subject(r), ["graph.edit", "content.read"])).toBe(false);
-    expect(canAny(subject("content_editor"), ["content.publish"])).toBe(false);
+    expect(canAny(subject("researcher"), ["content.publish"])).toBe(false);
   });
 });
 

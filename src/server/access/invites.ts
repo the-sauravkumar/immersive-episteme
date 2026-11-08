@@ -63,6 +63,8 @@ export async function createInvite(pool: Pool, actor: Actor, raw: CreateInviteIn
   });
 }
 
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
 export type InviteStatus = "active" | "revoked" | "expired" | "used_up";
 
 export interface InviteRow {
@@ -80,6 +82,7 @@ export interface InviteRow {
   createdAt: string;
   createdByName: string | null;
   status: InviteStatus;
+  endsWithinWeek: boolean;
 }
 
 export function inviteStatus(row: { revokedAt: string | Date | null; expiresAt: string | Date | null; maxUses: number | null; useCount: number }, now: Date): InviteStatus {
@@ -129,7 +132,8 @@ export async function listInvites(q: Q, actor: Actor, now: Date = new Date()): P
       createdAt: x.created_at.toISOString(),
       createdByName: x.created_by_name,
     };
-    return { ...row, status: inviteStatus(row, now) };
+    const status = inviteStatus(row, now);
+    return { ...row, status, endsWithinWeek: status === "active" && x.expires_at !== null && x.expires_at.getTime() - now.getTime() < WEEK_MS };
   });
 }
 

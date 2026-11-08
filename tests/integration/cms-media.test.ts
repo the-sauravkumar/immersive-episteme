@@ -71,7 +71,7 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     storage = createLocalStorage(dir);
     curator = { userId: await createUser(t.pool), roles: ["curator"] };
     curator2 = { userId: await createUser(t.pool), roles: ["curator"] };
-    editor = { userId: await createUser(t.pool), roles: ["content_editor"] };
+    editor = { userId: await createUser(t.pool), roles: ["curator"] };
   }, 120_000);
 
   afterAll(async () => {
@@ -114,12 +114,12 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     expect(n.n).toBe(2);
   });
 
-  it("enforces the review workflow: submit, no self-verification, editors cannot review", async () => {
+  it("enforces the review workflow: submit, no self-verification, researchers cannot review", async () => {
     const asset = await createAssetFromBytes(t.pool, curator, storage, { bytes: png(800, 600, 10), declaredMime: "image/png", metadata: META });
     await submitAssetForReview(t.pool, curator, { assetId: asset.id });
     const all = MEDIA_EVIDENCE_CHECKS;
 
-    expect(await code(reviewAsset(t.pool, editor, { assetId: asset.id, to: "verified", evidenceChecked: [...all] }))).toBe("forbidden");
+    expect(await code(reviewAsset(t.pool, { userId: editor.userId, roles: ["researcher"] }, { assetId: asset.id, to: "verified", evidenceChecked: [...all] }))).toBe("forbidden");
     expect(await code(reviewAsset(t.pool, curator, { assetId: asset.id, to: "verified", evidenceChecked: [...all] }))).toBe("self_verification");
     expect(await code(reviewAsset(t.pool, curator2, { assetId: asset.id, to: "verified", evidenceChecked: ["licence"] }))).toBe("invalid_input");
 
@@ -313,7 +313,7 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
       "INSERT INTO media_candidates (package_id, url, title, licence, width, height) VALUES ($1, 'https://commons.wikimedia.org/wiki/File:A.jpg', 'A', 'CC BY 4.0', 4000, 3000) RETURNING id",
       [pkg.id],
     );
-    expect(await code(reviewMediaCandidate(t.pool, editor, { candidateId: c.id, status: "approved" }))).toBe("forbidden");
+    expect(await code(reviewMediaCandidate(t.pool, { userId: editor.userId, roles: ["researcher"] }, { candidateId: c.id, status: "approved" }))).toBe("forbidden");
     expect(await code(reviewMediaCandidate(t.pool, curator, { candidateId: c.id, status: "rejected" }))).toBe("invalid_input");
     await reviewMediaCandidate(t.pool, curator, { candidateId: c.id, status: "approved", notes: "Licence checked on the file page" });
     const row = await one<{ status: string; notes: string }>(t.pool, "SELECT status, notes FROM media_candidates WHERE id = $1", [c.id]);

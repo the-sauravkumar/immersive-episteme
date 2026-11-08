@@ -2,20 +2,23 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { Empty, NativeSelect, one, Section, StateBadge, type SearchParams, ROW_LINK, Mono, Stamp } from "@/components/cms/bits";
+import { Empty, NativeSelect, one, PROVENANCE_LABELS, Section, StateBadge, StateLegend, type SearchParams, ROW_LINK, Stamp } from "@/components/cms/bits";
 import { HistoryList } from "@/components/cms/history-list";
 import { RelationshipTable } from "@/components/cms/relationship-table";
 import { TransitionPanel } from "@/components/cms/transition-panel";
 import { ConsolePage } from "@/components/shell/gates";
+import { ReviewContentGuide } from "@/components/shell/staff-guides";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { requirePermission } from "@/server/auth/staff";
 import { edgeIssues } from "@/server/cms/graph";
-import { entityHistory, relationshipsWhere, reviewQueue, userNames, type ReviewItem } from "@/server/cms/queries";
+import { entityHistory, relationshipsWhere, reviewQueue, userNames } from "@/server/cms/queries";
 import { itemsAuthoredBy, reviewOptions } from "@/server/cms/workflow";
 import { getPool } from "@/server/db/client";
+
+import { reviewHref, REVIEW_KIND_LABEL } from "./links";
 
 export const metadata: Metadata = { title: "Review Queue" };
 
@@ -26,28 +29,13 @@ export default function Page({ searchParams }: PageProps<"/cms/review">) {
     <ConsolePage
       path="/cms/review"
       title="Review queue"
-      description="Items waiting for a decision. Editors cannot review, verify or publish; nobody verifies their own work. Content becomes published only through a release."
+      description="Items waiting for a decision. Nobody verifies their own work: items marked yours go to another curator. Verified content reaches learners only through a published release."
     >
       <Suspense fallback={<Skeleton className="h-96 w-full" />}>
         <Queue searchParams={searchParams} />
       </Suspense>
     </ConsolePage>
   );
-}
-
-const KIND_LABEL = { tradition: "Tradition", concept: "Concept", relationship: "Relationship", source: "Source" } as const;
-
-function hrefFor(i: ReviewItem): string {
-  switch (i.kind) {
-    case "concept":
-      return `/cms/concepts/${i.id}#review`;
-    case "tradition":
-      return `/cms/traditions?edit=${i.id}#tradition`;
-    case "source":
-      return `/cms/sources?edit=${i.id}#source`;
-    case "relationship":
-      return `/cms/review?rel=${i.id}#relationship`;
-  }
 }
 
 async function Queue({ searchParams }: { searchParams: Promise<SearchParams> }) {
@@ -59,6 +47,8 @@ async function Queue({ searchParams }: { searchParams: Promise<SearchParams> }) 
   const items = await reviewQueue(pool, { kind, state });
   const [names, authored] = await Promise.all([userNames(pool, items.flatMap((i) => [i.createdBy, i.updatedBy])), itemsAuthoredBy(pool, principal.userId, items)]);
   const rel = one(sp.rel);
+  const waiting = items.filter((i) => i.state === "under_review" && !authored.has(`${i.kind}:${i.id}`)).length;
+  const returned = items.filter((i) => i.state === "needs_evidence" && authored.has(`${i.kind}:${i.id}`)).length;
 
   return (
     <div className="flex flex-col gap-6">
@@ -67,12 +57,13 @@ async function Queue({ searchParams }: { searchParams: Promise<SearchParams> }) 
           <RelationshipReview id={rel} principal={principal} />
         </Suspense>
       ) : null}
+      {rel ? null : <ReviewContentGuide waiting={waiting} returned={returned} />}
       <form method="get" className="flex flex-wrap items-end gap-3" aria-label="Filter the queue">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="q-kind">Kind</Label>
           <NativeSelect id="q-kind" name="kind" defaultValue={kind ?? ""} className="w-44">
             <option value="">All</option>
-            {Object.entries(KIND_LABEL).map(([k, l]) => (
+            {Object.entries(REVIEW_KIND_LABEL).map(([k, l]) => (
               <option key={k} value={k}>
                 {l}
               </option>
@@ -94,11 +85,12 @@ async function Queue({ searchParams }: { searchParams: Promise<SearchParams> }) 
           Apply
         </Button>
       </form>
+      <StateLegend states={["under_review", "needs_evidence", "verified", "rejected"]} />
 
       {items.length === 0 ? (
         <Empty>Nothing is waiting.</Empty>
       ) : (
-        <Table density="compact" hoverRows caption={<>{items.length} item(s), most recently changed first. Items marked “yours” were authored, edited or linked by you at some point, so another curator must verify them.</>}>
+        <Table density="compact" hoverRows caption={<>{items.length} item(s), most recently changed first. Items marked “yours” were written, edited or linked by you at some point, so another curator must verify them.</>}>
           <TableHeader>
             <TableRow>
               <TableHead scope="col">Kind</TableHead>
@@ -113,12 +105,11 @@ async function Queue({ searchParams }: { searchParams: Promise<SearchParams> }) 
               const mine = authored.has(`${i.kind}:${i.id}`);
               return (
                 <TableRow key={`${i.kind}-${i.id}`}>
-                  <TableCell>{KIND_LABEL[i.kind]}</TableCell>
+                  <TableCell>{REVIEW_KIND_LABEL[i.kind]}</TableCell>
                   <TableCell className="min-w-56 whitespace-normal">
-                    <Link href={hrefFor(i)} className={ROW_LINK}>
+                    <Link href={reviewHref(i)} className={ROW_LINK}>
                       {i.label}
                     </Link>
-                    {i.sub ? <Mono className="block">{i.sub}</Mono> : null}
                   </TableCell>
                   <TableCell className="whitespace-normal">
                     {[i.createdBy, i.updatedBy].filter((x, n, a) => x && a.indexOf(x) === n).map((x) => names.get(x!) ?? x).join(" / ") || "import"}
@@ -150,8 +141,8 @@ async function RelationshipReview({ id, principal }: { id: string; principal: Aw
       <Section id="rel-detail" title="Relationship under review" description={<StateBadge state={row.state} />}>
         <RelationshipTable rows={[row]} perspective="both" />
         <dl className="grid gap-1 t-b">
-          <dt className="font-medium">Provenance kind</dt>
-          <dd>{row.provenanceKind.replace(/_/g, " ")}</dd>
+          <dt className="font-medium">Kind of evidence</dt>
+          <dd>{PROVENANCE_LABELS[row.provenanceKind] ?? row.provenanceKind.replace(/_/g, " ")}</dd>
           <dt className="font-medium">Evidence</dt>
           <dd>
             {row.sources.length ? (
@@ -167,13 +158,14 @@ async function RelationshipReview({ id, principal }: { id: string; principal: Aw
               "No source cited."
             )}
           </dd>
-          <dt className="font-medium">Validator</dt>
+          <dt className="font-medium">Automatic checks</dt>
           <dd>
             {issues.length === 0
-              ? "No issues."
+              ? "No problems found."
               : issues.map((i, n) => (
                   <p key={n}>
-                    {i.severity} <code>{i.code}</code> {i.message}
+                    {i.severity === "error" ? "Must fix: " : i.severity === "warning" ? "Check: " : "Note: "}
+                    {i.message}
                   </p>
                 ))}
           </dd>

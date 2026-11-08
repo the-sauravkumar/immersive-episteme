@@ -8,20 +8,23 @@ test.describe.configure({ timeout: 600_000 });
 test.use({ navigationTimeout: 120_000 });
 
 const PASSWORD = `e2e-${randomBytes(12).toString("hex")}`;
-const STAFF = `e2e-alignment-${randomBytes(3).toString("hex")}@example.test`;
+const STAFF_TAG = randomBytes(3).toString("hex");
+const ADMIN = `e2e-alignment-admin-${STAFF_TAG}@example.test`;
+const CURATOR = `e2e-alignment-curator-${STAFF_TAG}@example.test`;
 const DESKTOP = { width: 1280, height: 800 };
 const PHONE = { width: 390, height: 844 };
 
 test.beforeAll(async () => {
-  for (const role of ["platform_admin", "curator"]) createE2eStaff(STAFF, "E2E Alignment", role, PASSWORD);
+  createE2eStaff(ADMIN, "E2E Alignment Admin", "admin", PASSWORD);
+  createE2eStaff(CURATOR, "E2E Alignment Curator", "curator", PASSWORD);
 });
 test.afterAll(async () => {
-  await retireE2eStaff(undefined, [STAFF]);
+  await retireE2eStaff(undefined, [ADMIN, CURATOR]);
   await closeDb();
 });
 
-async function signInStaff(page: Page) {
-  await signInAs(page, STAFF, PASSWORD);
+async function signInStaff(page: Page, email: string) {
+  await signInAs(page, email, PASSWORD);
 }
 
 async function startDemo(page: Page) {
@@ -92,9 +95,9 @@ test("card actions in one row share a baseline at 1280 px", async ({ browser }) 
   await ctx.close();
 
   const staff = await context(browser, DESKTOP);
-  await signInStaff(staff.page);
-  await staff.page.goto("/cms");
-  await expectActionsAligned(staff.page, "section#integrity, section#versions", ":scope > a");
+  await signInStaff(staff.page, ADMIN);
+  await staff.page.goto("/admin");
+  await expectActionsAligned(staff.page, "section#awaiting, section#invites", ":scope > header a");
   await staff.ctx.close();
 });
 
@@ -111,14 +114,16 @@ test("no in-scope page scrolls horizontally at 390 px", async ({ browser }) => {
   await demo.ctx.close();
 
   const staff = await context(browser, PHONE);
-  await signInStaff(staff.page);
+  await signInStaff(staff.page, CURATOR);
   await staff.page.goto("/cms/concepts");
   const conceptDetail = await staff.page.locator('a[href^="/cms/concepts/"]').first().getAttribute("href");
   const consolePaths = ["/cms", "/cms/concepts", "/cms/traditions", "/cms/sources", "/cms/relations", "/cms/datasets", "/cms/review", "/cms/media"];
-  for (const path of [...consolePaths, conceptDetail!, "/admin", "/admin/users", "/admin/roles", "/admin/audit", "/admin/settings"]) {
-    await expectNoHorizontalOverflow(staff.page, path);
-  }
+  for (const path of [...consolePaths, conceptDetail!]) await expectNoHorizontalOverflow(staff.page, path);
   await staff.ctx.close();
+  const admin = await context(browser, PHONE);
+  await signInStaff(admin.page, ADMIN);
+  for (const path of ["/admin", "/admin/users", "/admin/access", "/admin/roles", "/admin/audit", "/admin/settings"]) await expectNoHorizontalOverflow(admin.page, path);
+  await admin.ctx.close();
 });
 
 test("the study consent page does not scroll horizontally at 390 px", async ({ browser }) => {

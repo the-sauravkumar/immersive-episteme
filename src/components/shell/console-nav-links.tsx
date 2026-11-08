@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-export type NavLink = { href: string; label: string };
+export type NavLink = { href: string; label: string; advanced?: boolean };
 
 function isActive(pathname: string, href: string, isRoot: boolean): boolean {
   if (isRoot) return pathname === href;
@@ -20,7 +20,7 @@ const ROW =
   "flex min-h-11 items-center px-4 py-2 t-label text-lime-dim hover:bg-raised-hover hover:text-lime";
 const ACTIVE = "bg-vat-2 text-turmeric";
 
-function LinkList({ links, rootHref, onNavigate }: { links: NavLink[]; rootHref: string; onNavigate?: () => void }) {
+function LinkRows({ links, rootHref, onNavigate }: { links: NavLink[]; rootHref: string; onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
     <ul className="flex flex-col">
@@ -35,6 +35,22 @@ function LinkList({ links, rootHref, onNavigate }: { links: NavLink[]; rootHref:
         );
       })}
     </ul>
+  );
+}
+
+function LinkList({ links, rootHref, onNavigate }: { links: NavLink[]; rootHref: string; onNavigate?: () => void }) {
+  const daily = links.filter((l) => !l.advanced);
+  const advanced = links.filter((l) => l.advanced);
+  return (
+    <>
+      <LinkRows links={daily} rootHref={rootHref} onNavigate={onNavigate} />
+      {advanced.length ? (
+        <div className="mt-4 border-t border-line pt-4">
+          <p className="px-4 pb-1 t-s text-lime-dim">Advanced</p>
+          <LinkRows links={advanced} rootHref={rootHref} onNavigate={onNavigate} />
+        </div>
+      ) : null}
+    </>
   );
 }
 
