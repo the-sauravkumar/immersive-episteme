@@ -216,5 +216,21 @@
       "S5"
     ],
     "removal_reason": "No recorded source ties groundwater pollution to the final washing: the GI dossier says only that effluent is aerated before discharge, and Gaatha attributes the pollution to chemicals in the process water in general (bagru-verification.md, DR-120)."
+  },
+  {
+    "file": "traditions/dabu/tradition.json",
+    "source": "dabu.historical_context.chhipa-and-allied-communities",
+    "target": "dabu.process_stage.resist-printing",
+    "type": "PRACTITIONER_EXPLAINS",
+    "explanation": "Chhipa printers carry out the resist printing.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "practitioner_testimony",
+    "verification_state": "under_review",
+    "source_ids": [
+      "S1",
+      "S2"
+    ],
+    "removal_reason": "No recorded source has a Chippa practitioner explain resist printing: S1 (as told by a master craftsman) and S2 say only that Chippas print, so the link states more than its sources (DR-120)."
   }
 ]

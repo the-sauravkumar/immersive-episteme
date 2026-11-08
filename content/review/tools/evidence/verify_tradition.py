@@ -8,7 +8,8 @@ archived copy of each recorded source (either key may be absent). A quote passes
   - '§ "<heading>"' (with an optional '(occurrence k of n)'): inside the section that follows that
     h1-h4 heading in the archived HTML (the k-th such section when given);
 Normalisation is norm() from verify_quotes.py: ligatures, quote marks, dashes, soft hyphens,
-line-end hyphenation and whitespace only. Each quote that fails is searched for in the whole
+line-end hyphenation and whitespace only. A claim's own `quote` passes when it is found anywhere in
+one of the claim's sources (its locators are reported). Each quote that fails is searched for in the whole
 source, so the report says where it really is. Every claim also gets a width list: the content
 words of the claim that none of its quotes contain, which a reader then judges against the quotes.
 """
@@ -109,6 +110,9 @@ def main():
             covered = set(w for e in cl.get("evidence", []) for w in words(e["quote"]))
             gap = [w for w in dict.fromkeys(words(cl["text"])) if w not in covered]
             uncited = [s for s in cl["source_ids"] if s not in {e["source_id"] for e in cl.get("evidence", [])}]
+            if cl.get("quote"):
+                found = [f for s in cl["source_ids"] for f in where(s, low(cl["quote"]))]
+                evs.append({"source_id": "claim quote", "locator": ", ".join(found) or "-", "quote": cl["quote"], "ok": bool(found), **({} if found else {"why": "claim quote not in any cited source"})})
             rows.append({"kind": "claim", "key": c["key"], "state": c["verification_state"], "index": i, "text": cl["text"], "source_ids": cl["source_ids"], "uncited": uncited, "width_gap": gap, "evidence": evs})
     for i, r in enumerate(data["relationships"]):
         evs = [{"source_id": e["source_id"], "locator": e["locator"], "quote": e["quote"], **check(e["source_id"], e["locator"], e["quote"])} for e in r.get("evidence", [])]
