@@ -7,7 +7,7 @@
  *    read model's resolution and in the content parity engine's figure balance;
  *  - the ingest plan: one photograph per study tradition, each on a context concept, anchored after
  *    the claim that names the object, credited as the V&A requires (the cropped one says so), at
- *    most 768 px on the long edge, a 60-month term from first publication, never a public plate.
+ *    the full size of the V&A file, never a public plate (DR-118).
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -19,7 +19,7 @@ import { STUDY_TRADITION_SLUGS } from "@/features/learning/labels";
 import { studyConfigSchema } from "@/features/study/contracts";
 import { figureBalance, type ParityFigureAsset } from "@/server/research/parity/engine";
 
-import { anchorPosition, creditOf, jpegSize, planStudyPhotos, VA_CREDIT, VA_MAX_PIXELS, VA_TERM_MONTHS } from "../../../scripts/content/ingest-study-photos";
+import { anchorPosition, creditOf, jpegSize, planStudyPhotos, VA_CREDIT } from "../../../scripts/content/ingest-study-photos";
 import { demoBundle } from "../research/fixtures";
 
 const ROOT = join(__dirname, "..", "..", "..");
@@ -37,6 +37,8 @@ const link = (over: Partial<IllustrationLink> = {}): IllustrationLink => ({
   credit: VA_CREDIT,
   licence: "V&A non-commercial terms",
   licenceUrl: null,
+  sha256: "a".repeat(64),
+  sourceUrl: "https://collections.vam.ac.uk/item/O164855/",
   ...over,
 });
 
@@ -91,8 +93,6 @@ describe("protocol switch figures.photos", () => {
       isDemo: true,
       width: 2000,
       height: 1500,
-      maxPixels: 768,
-      licenceExpiresOn: null,
       credit: VA_CREDIT,
       caption: "Block used for the first impression",
       altText: "A carved wooden printing block resting on a folded length of printed cotton cloth",
@@ -132,20 +132,20 @@ describe("ingest plan of the three V&A photographs", () => {
     expect(creditOf({ notes: ["Crop about 13% on the left"] })).toBe(`${VA_CREDIT} (cropped)`);
   });
 
-  it("applies the V&A conditions: 768 px cap, 60-month term from first publication, never a public plate", () => {
+  it("records the V&A record page as provenance and never a public plate", () => {
     for (const p of plans) {
-      expect(p.metadata).toMatchObject({ maxPixels: VA_MAX_PIXELS, licenceTermMonths: VA_TERM_MONTHS, publicPlate: false, provenanceKind: "historical_documentation" });
+      expect(p.metadata).toMatchObject({ publicPlate: false, provenanceKind: "historical_documentation" });
       expect(p.metadata.sourceUrl).toMatch(/^https:\/\/collections\.vam\.ac\.uk\/item\//);
     }
   });
 
-  it("has every derivative in the repository, no larger than the cap", () => {
+  it("has every file in the repository at the full size of the V&A file", () => {
     for (const p of plans) {
       const file = join(ROOT, "scripts", "content", "study-photos", p.file);
       expect(existsSync(file)).toBe(true);
       const size = jpegSize(new Uint8Array(readFileSync(file)));
       expect(size).not.toBeNull();
-      expect(Math.max(size!.width, size!.height)).toBeLessThanOrEqual(VA_MAX_PIXELS);
+      expect(Math.max(size!.width, size!.height)).toBeGreaterThanOrEqual(2175);
     }
   });
 });

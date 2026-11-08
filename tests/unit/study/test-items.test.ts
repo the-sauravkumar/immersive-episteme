@@ -20,7 +20,7 @@ function template(tradition: TraditionKey): StageTemplate {
     items: [{ key: `${tradition}.tool.t${number}`, role: "tool", label: `${tradition} Tool ${number}`, localName: null, modelId: `${tradition}-model-${number}` }],
     clothStateId: `${tradition}-c${number}`,
   }));
-  return { tradition, traditionName: `${tradition} Name`, rawClothStateId: "raw", stages, products: [{ id: "p1", file: `walkthrough/${tradition}-1.jpg`, name: "Sample Text", holder: "Sample Text", widthPx: 100, heightPx: 100 }, { id: "p2", file: `/walkthrough/${tradition}-2.jpg`, name: "Sample Text", holder: "Sample Text", widthPx: 100, heightPx: 100 }] };
+  return { tradition, traditionName: `${tradition} Name`, rawClothStateId: "raw", stages, products: [{ id: "p1", file: `walkthrough/${tradition}-1.jpg`, name: "Sample Text", holder: "Sample Text", widthPx: 100, heightPx: 100, record: "https://example.org/record" }, { id: "p2", file: `/walkthrough/${tradition}-2.jpg`, name: "Sample Text", holder: "Sample Text", widthPx: 100, heightPx: 100, record: "https://example.org/record" }] };
 }
 
 const UNSEEN_TITLES = { a: "Soaking", b: "Pasting", c: "Printing", d: "Dyeing", e: "Washing" } as const;

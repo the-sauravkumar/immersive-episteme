@@ -1,8 +1,8 @@
 /**
  * Integration: media library service against a throwaway database (schema-harness) and a local
- * store in a temp directory. Includes the figure governance of migration 0016 (DESIGN.md 9.9, 16;
- * DR-018, DR-020): the licence display cap, expiry and public-plate flag, the alt-text and caption
- * rules, illustration anchors (one per concept), and what the learner figure route may serve.
+ * store in a temp directory. Includes the figure governance (DESIGN.md 9.9, 16; DR-018, DR-020,
+ * DR-118): the public-plate flag, the alt-text and caption rules, illustration anchors (one per
+ * concept), and what the learner figure route may serve, with no licence cap, expiry or term.
  * Final review fixes (DR-037): link changes are reviewed, every author is barred from verifying,
  * and a released study shows only the figures frozen into its release (withdrawals are deviations).
  */
@@ -19,7 +19,6 @@ import {
   createAssetFromBytes,
   FIGURE_MAX_AGE,
   findAsset,
-  figureMaxAge,
   freezeReleaseFigures,
   linkAssetToConcept,
   listAssets,
@@ -153,32 +152,30 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     expect(await code(reviewAsset(t.pool, curator, { assetId: asset.id, to: "verified", evidenceChecked: [...all] }))).toBe("self_verification");
   });
 
-  it("records the licence display cap, expiry and public-plate flag, and applies the figure text rules", async () => {
+  it("records the public-plate flag, keeps no licence cap, expiry or term, and applies the figure text rules", async () => {
     const asset = await createAssetFromBytes(t.pool, editor, storage, {
       bytes: png(768, 512, 20),
       declaredMime: "image/png",
-      metadata: { ...META, maxPixels: "768", licenceExpiresOn: "2031-10-14", publicPlate: "on" },
+      metadata: { ...META, publicPlate: "on" },
     });
-    const row = await one<{ max_pixels: number; expires: string; public_plate: boolean }>(
-      t.pool,
-      "SELECT max_pixels, licence_expires_on::text AS expires, public_plate FROM assets WHERE id = $1",
-      [asset.id],
+    const row = await one<{ public_plate: boolean }>(t.pool, "SELECT public_plate FROM assets WHERE id = $1", [asset.id]);
+    expect(row).toEqual({ public_plate: true });
+    const dropped = await t.pool.query(
+      "SELECT column_name FROM information_schema.columns WHERE table_name = 'assets' AND column_name IN ('max_pixels', 'licence_expires_on', 'licence_term_months', 'first_published_on')",
     );
-    expect(row).toEqual({ max_pixels: 768, expires: "2031-10-14", public_plate: true });
+    expect(dropped.rows).toEqual([]);
 
     const up = (metadata: Record<string, unknown>, salt: number) =>
       code(createAssetFromBytes(t.pool, editor, storage, { bytes: png(10, 10, salt), declaredMime: "image/png", metadata }));
     expect(await up({ ...META, altText: "Blue cloth" }, 21)).toBe("alt_rule");
     expect(await up({ ...META, caption: META.altText.toUpperCase() }, 22)).toBe("alt_rule");
     expect(await up({ ...META, caption: "x".repeat(181) }, 23)).toBe("caption_too_long");
-    expect(await up({ ...META, maxPixels: "-3" }, 24)).toBe("invalid_input");
-    expect(await up({ ...META, licenceExpiresOn: "soon" }, 25)).toBe("invalid_input");
   });
 
-  it("refuses to verify an image stored larger than its licence allows", async () => {
-    const asset = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(2000, 1000, 30), declaredMime: "image/png", metadata: { ...META, maxPixels: "768" } });
+  it("verifies an image at the full size of its source", async () => {
+    const asset = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(4033, 2778, 30), declaredMime: "image/png", metadata: META });
     await submitAssetForReview(t.pool, editor, { assetId: asset.id });
-    expect(await code(reviewAsset(t.pool, curator2, { assetId: asset.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] }))).toBe("exceeds_licence_cap");
+    expect(await code(reviewAsset(t.pool, curator2, { assetId: asset.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] }))).toBe("ok");
   });
 
   it("refuses to verify an image without a credit or a caption (9.9, 11.10, R-H5)", async () => {
@@ -208,30 +205,21 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     await expect(t.pool.query("UPDATE asset_links SET position = -1 WHERE asset_id = $1", [a.id])).rejects.toThrow(/asset_links_position_ck/);
   });
 
-  it("serves learner figures only when approved, licence-valid, within the cap and published or public", async () => {
+  it("serves learner figures only when approved and an illustration of a real concept or public", async () => {
     const g = await createRealGraph(t.pool, { prefix: "mfig", acceptBy: curator2.userId });
-    const fig = await createAssetFromBytes(t.pool, editor, storage, {
-      bytes: png(768, 512, 50),
-      declaredMime: "image/png",
-      metadata: { ...META, maxPixels: "768", licenceExpiresOn: "2030-12-31" },
-    });
-    const day = "2027-01-01";
-    expect(await loadLearnerFigure(t.pool, fig.id, day)).toBeNull(); // draft
+    const fig = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(2500, 1910, 50), declaredMime: "image/png", metadata: META });
+    expect(await loadLearnerFigure(t.pool, fig.id)).toBeNull(); // draft
     await submitAssetForReview(t.pool, editor, { assetId: fig.id });
     await reviewAsset(t.pool, curator2, { assetId: fig.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
-    expect(await loadLearnerFigure(t.pool, fig.id, day)).toBeNull(); // approved but used nowhere
+    expect(await loadLearnerFigure(t.pool, fig.id)).toBeNull(); // approved but used nowhere
     // A new link on an accepted asset is new learner-facing text: back to review, then verified again.
     expect(await linkAssetToConcept(t.pool, editor, { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0 })).toEqual({ returnedToReview: true });
+    expect(await loadLearnerFigure(t.pool, fig.id)).toBeNull(); // under review again
     await reviewAsset(t.pool, curator2, { assetId: fig.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
-    expect(await loadLearnerFigure(t.pool, fig.id, day)).toBeNull(); // the concept is in no published release
-
-    const snap = await createSnapshot(t.pool, { label: "mfig-release-1", createdBy: curator.userId });
-    await addSnapshotItem(t.pool, snap, "concept", g.conceptIds[0]);
-    expect(await loadLearnerFigure(t.pool, fig.id, day)).toBeNull(); // a draft snapshot is not a study bundle
-    await publishSnapshot(t.pool, snap, curator.userId);
-    expect(await loadLearnerFigure(t.pool, fig.id, day)).toMatchObject({ id: fig.id, mimeType: "image/png", width: 768, height: 512, maxPixels: 768, licenceExpiresOn: "2030-12-31" });
-    expect(await loadLearnerFigure(t.pool, fig.id, "2031-01-01")).toBeNull(); // licence expired
-    expect(await loadLearnerFigure(t.pool, "not-a-uuid", day)).toBeNull();
+    expect(await loadLearnerFigure(t.pool, fig.id)).toMatchObject({ id: fig.id, mimeType: "image/png", width: 2500, height: 1910 });
+    const preview = await createSnapshot(t.pool, { label: "mfig-draft-1", createdBy: curator.userId });
+    expect(await listSnapshotPhotoLinks(t.pool, preview)).toEqual(expect.arrayContaining([expect.objectContaining({ assetId: fig.id, src: `/figures/${fig.id}`, width: 2500, height: 1910 })]));
+    expect(await loadLearnerFigure(t.pool, "not-a-uuid")).toBeNull();
 
     // The parity loader and the Figure Balance read the printed metadata; the link's caption override wins.
     const [link] = (await listIllustrationLinks(t.pool)).filter((l) => l.assetId === fig.id);
@@ -243,25 +231,20 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     // required) is never served, so no learner sees a figure without its credit line.
     for (const column of ["credit", "caption", "alt_text"]) {
       await t.pool.query(`UPDATE assets SET ${column} = '' WHERE id = $1`, [fig.id]);
-      expect(await loadLearnerFigure(t.pool, fig.id, day)).toBeNull();
+      expect(await loadLearnerFigure(t.pool, fig.id)).toBeNull();
       await t.pool.query(`UPDATE assets SET ${column} = $2 WHERE id = $1`, [fig.id, column === "credit" ? META.credit : column === "caption" ? META.caption : META.altText]);
     }
-    expect(await loadLearnerFigure(t.pool, fig.id, day)).toMatchObject({ id: fig.id });
+    expect(await loadLearnerFigure(t.pool, fig.id)).toMatchObject({ id: fig.id });
 
     // A public plate needs no study bundle, but still needs approval.
     const plate = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(1600, 1000, 51), declaredMime: "image/png", metadata: { ...META, publicPlate: "on" } });
-    expect(await loadLearnerFigure(t.pool, plate.id, day)).toBeNull();
+    expect(await loadLearnerFigure(t.pool, plate.id)).toBeNull();
     await submitAssetForReview(t.pool, editor, { assetId: plate.id });
     await reviewAsset(t.pool, curator2, { assetId: plate.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
-    expect(await loadLearnerFigure(t.pool, plate.id, day)).toMatchObject({ id: plate.id });
+    expect(await loadLearnerFigure(t.pool, plate.id)).toMatchObject({ id: plate.id });
 
-    // The cache lifetime is short (a withdrawal reaches every cache within minutes) and never outlives the licence.
+    // The cache lifetime is short, so a withdrawal reaches every cache within minutes.
     expect(FIGURE_MAX_AGE).toBe(300);
-    expect(figureMaxAge(null, new Date("2027-01-01T00:00:00Z"))).toBe(FIGURE_MAX_AGE);
-    expect(figureMaxAge("2030-12-31", new Date("2030-12-30T23:59:59Z"))).toBe(FIGURE_MAX_AGE);
-    expect(figureMaxAge("2030-12-31", new Date("2031-12-31T23:58:00Z"))).toBe(0);
-    expect(figureMaxAge("2030-12-31", new Date("2030-12-31T23:58:00Z"))).toBe(119);
-    expect(figureMaxAge("2030-12-31", new Date("2031-02-01T00:00:00Z"))).toBe(0);
   });
 
   it("treats a link as learner-facing text: caption rules, and a changed link on an accepted asset goes back to review (knowledge-02)", async () => {
@@ -307,7 +290,7 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
 
   it("shows a released study only the figures frozen into its release; withdrawals are study deviations (knowledge-01, database-01, security-02)", async () => {
     const g = await createRealGraph(t.pool, { prefix: "mfrz", acceptBy: curator2.userId });
-    const fig = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(768, 512, 80), declaredMime: "image/png", metadata: { ...META, maxPixels: "768" } });
+    const fig = await createAssetFromBytes(t.pool, editor, storage, { bytes: png(768, 512, 80), declaredMime: "image/png", metadata: META });
     await linkAssetToConcept(t.pool, editor, { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0 });
     await submitAssetForReview(t.pool, editor, { assetId: fig.id });
     await reviewAsset(t.pool, curator2, { assetId: fig.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
@@ -320,9 +303,8 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     for (const id of g.conceptIds) await addSnapshotItem(t.pool, snap, "concept", id);
     expect(await freezeReleaseFigures(t.pool, snap)).toBe(1);
     await publishSnapshot(t.pool, snap, curator.userId);
-    const day = new Date().toISOString().slice(0, 10);
     const frozen = { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0, caption: META.caption, altText: META.altText, credit: META.credit, licence: META.licence, width: 768, height: 512 };
-    expect(await listSnapshotPhotoLinks(t.pool, snap, day)).toEqual([expect.objectContaining(frozen)]);
+    expect(await listSnapshotPhotoLinks(t.pool, snap)).toEqual([expect.objectContaining(frozen)]);
 
     // The frozen rows cannot be added to, changed or removed once the release is published.
     await expect(t.pool.query("UPDATE snapshot_figures SET caption = 'x' WHERE snapshot_id = $1", [snap])).rejects.toThrow(/immutable/);
@@ -334,21 +316,21 @@ describe.skipIf(!TEST_URL)("cms media library", () => {
     await reviewAsset(t.pool, curator2, { assetId: late.id, to: "verified", evidenceChecked: [...MEDIA_EVIDENCE_CHECKS] });
     expect(await linkAssetToConcept(t.pool, editor, { assetId: fig.id, conceptId: g.conceptIds[0], role: "illustration", position: 0, captionOverride: "An unreviewed caption." })).toEqual({ returnedToReview: true });
     await t.pool.query("UPDATE assets SET caption = 'Changed live caption' WHERE id = $1", [fig.id]);
-    expect(await listSnapshotPhotoLinks(t.pool, snap, day)).toEqual([expect.objectContaining(frozen)]);
+    expect(await listSnapshotPhotoLinks(t.pool, snap)).toEqual([expect.objectContaining(frozen)]);
     // ...and the route still serves the frozen figure while the edit awaits review.
-    expect(await loadLearnerFigure(t.pool, fig.id, day)).toMatchObject({ id: fig.id });
+    expect(await loadLearnerFigure(t.pool, fig.id)).toMatchObject({ id: fig.id });
     // The parity input is the frozen figure too (what participants will see).
     expect(await listSnapshotFigureAssets(t.pool, snap)).toEqual([expect.objectContaining({ assetId: fig.id, caption: META.caption, verificationState: "published" })]);
     const linkId = (await one<{ id: string }>(t.pool, "SELECT id FROM asset_links WHERE asset_id = $1", [late.id])).id;
     await unlinkAsset(t.pool, editor, { linkId });
-    expect((await listSnapshotPhotoLinks(t.pool, snap, day)).map((l) => l.assetId)).toEqual([fig.id]);
+    expect((await listSnapshotPhotoLinks(t.pool, snap)).map((l) => l.assetId)).toEqual([fig.id]);
 
     // A study pinned to the release is collecting data; a reviewer withdraws the photograph.
     const study = await createStudy(t.pool, { slug: "mfrz-study", snapshotId: snap, manifestId: await createPublishedManifest(t.pool, snap, { by: curator.userId }) });
     await t.pool.query("UPDATE studies SET status = 'active' WHERE id = $1", [study.studyId]);
     await reviewAsset(t.pool, curator2, { assetId: fig.id, to: "rejected", reason: "The museum asked us to stop using this image." });
-    expect(await listSnapshotPhotoLinks(t.pool, snap, day)).toEqual([]);
-    expect(await loadLearnerFigure(t.pool, fig.id, day)).toBeNull();
+    expect(await listSnapshotPhotoLinks(t.pool, snap)).toEqual([]);
+    expect(await loadLearnerFigure(t.pool, fig.id)).toBeNull();
     const dev = await one<{ category: string; severity: string; description: string; reported_by: string }>(
       t.pool,
       "SELECT category, severity, description, reported_by FROM protocol_deviations WHERE study_id = $1",

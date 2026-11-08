@@ -462,7 +462,8 @@
       "name": "Ajrakh Textile",
       "holder": "Mingei International Museum",
       "widthPx": 2451,
-      "heightPx": 1771
+      "heightPx": 1771,
+      "record": "https://publications.mingei.org/blue-gold/essays/essay-4-fra-sc/"
     },
     {
       "id": "ajrakh-p2",
@@ -470,7 +471,8 @@
       "name": "Ajrakh Textile",
       "holder": "Mingei International Museum",
       "widthPx": 1702,
-      "heightPx": 2217
+      "heightPx": 2217,
+      "record": "https://publications.mingei.org/blue-gold/essays/essay-4-fra-sc/"
     },
     {
       "id": "ajrakh-p3",
@@ -478,7 +480,8 @@
       "name": "Ajrakh Textile",
       "holder": "Ahub1988, Wikimedia Commons",
       "widthPx": 4137,
-      "heightPx": 1821
+      "heightPx": 1821,
+      "record": "https://commons.wikimedia.org/wiki/File:Ajrak.jpg"
     },
     {
       "id": "ajrakh-p4",
@@ -486,7 +489,8 @@
       "name": "Ajrakh Textile",
       "holder": "Victoria and Albert Museum, London",
       "widthPx": 1824,
-      "heightPx": 2343
+      "heightPx": 2343,
+      "record": "https://collections.vam.ac.uk/item/O469296/"
     },
     {
       "id": "ajrakh-p5",
@@ -494,7 +498,8 @@
       "name": "Ajrakh Textile",
       "holder": "Victoria and Albert Museum, London",
       "widthPx": 2265,
-      "heightPx": 1272
+      "heightPx": 1272,
+      "record": "https://collections.vam.ac.uk/item/O470770/"
     },
     {
       "id": "ajrakh-p6",
@@ -502,7 +507,8 @@
       "name": "Ajrakh Textile",
       "holder": "MyKutch",
       "widthPx": 3872,
-      "heightPx": 2592
+      "heightPx": 2592,
+      "record": "https://mykutch.pages.dev/crafts/ajrakh.html"
     }
   ]
 }

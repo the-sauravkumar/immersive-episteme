@@ -311,7 +311,7 @@
     "directUrl": "https://www.asergeev.com/pictures/archives/2016/1813/jpeg/10b.jpg",
     "widthPx": 2048,
     "licence": "not stated",
-    "permission": "needed; texture quilted from the photo (scripts/content/build-pile-skins.mjs)"
+    "permission": "Licensed for public use by CXA's approval (DR-118); texture quilted from the photo (scripts/content/build-pile-skins.mjs)"
   },
   {
     "file": "public/walkthrough/tex/madder_root_bark",
@@ -321,7 +321,7 @@
     "directUrl": "https://d2seqvvyy3b8p2.cloudfront.net/73ee650d8552079d5d98ec384d83cebd.jpg",
     "widthPx": 1600,
     "licence": "CC BY 4.0",
-    "permission": "needed; texture quilted from the photo (scripts/content/build-pile-skins.mjs)"
+    "permission": "Licensed for public use by CXA's approval (DR-118); texture quilted from the photo (scripts/content/build-pile-skins.mjs)"
   },
   {
     "file": "public/walkthrough/tex/dry_leaf_blade",
@@ -330,7 +330,7 @@
     "sourcePage": "GBIF preserved specimen K004414905, Kew herbarium (found through https://api.gbif.org/v1/occurrence/search?scientificName=Memecylon%20edule)",
     "directUrl": "https://d2jcv3kl45hlgi.cloudfront.net/28327ac949bd525f49c86ce51f660dd7.jpg",
     "widthPx": 2048,
-    "licence": "CC BY 4.0 per GBIF media record; the ruler in the photo reads 'copyright reserved', so note this for the lead",
-    "permission": "needed; texture quilted from the photo (scripts/content/build-pile-skins.mjs)"
+    "licence": "CC BY 4.0 per GBIF media record; the ruler in the photo reads 'copyright reserved'",
+    "permission": "Licensed for public use by CXA's approval (DR-118); texture quilted from the photo (scripts/content/build-pile-skins.mjs)"
   }
 ]

@@ -1,6 +1,6 @@
 /**
  * Study photographs from sources other than the V&A (DR-057): each
- * source's credit and licence, the one 768 px cap and five-year term, the refusal of a crop on the
+ * source's credit and licence, the full-size file with no cap or term (DR-118), the refusal of a crop on the
  * no-alteration sources (Sahapedia, PARI) and of a missing photographer, and the held kind-A
  * entries in content/review/process-photo-proposals.json, which the ingest skips.
  */
@@ -15,9 +15,7 @@ import {
   missingPhotographer,
   PARI_CREDIT,
   parsePhotoProposal,
-  PHOTO_MAX_PIXELS,
   PHOTO_SOURCES,
-  PHOTO_TERM_MONTHS,
   planPhoto,
   planStudyPhotos,
   sourceOf,
@@ -99,12 +97,14 @@ const pari = (over: Partial<PhotoProposal> = {}): PhotoProposal =>
 
 const CROP = ["Cropped at the left to remove a tag"];
 
-describe("one cap and one term for every source", () => {
-  it("serves every source at most 768 px for five years from first publication, never as a public plate", () => {
+describe("no cap and no term for any source (DR-118)", () => {
+  it("serves every source at the full size of its file with no expiry, never as a public plate", () => {
     for (const p of [rickBradley(), sahapedia(), ericParker(), pari()]) {
-      expect(planPhoto(p).metadata).toMatchObject({ maxPixels: 768, licenceTermMonths: 60, publicPlate: false, provenanceKind: "historical_documentation" });
+      const plan = planPhoto(p);
+      expect(Object.keys(plan.metadata).sort()).toEqual(["altText", "caption", "credit", "licence", "licenceUrl", "provenanceKind", "publicPlate", "sourceUrl", "title"]);
+      expect(plan.metadata).toMatchObject({ publicPlate: false, provenanceKind: "historical_documentation" });
+      expect(plan.file).toBe(`${p.tradition}-blocks.jpg`);
     }
-    expect([PHOTO_MAX_PIXELS, PHOTO_TERM_MONTHS]).toEqual([768, 60]);
   });
 
   it("links every licence to its deed", () => {
@@ -202,8 +202,8 @@ describe("V&A stays as it was", () => {
     expect(plans).toHaveLength(3);
     for (const p of plans) {
       expect(p.metadata.credit.startsWith(VA_CREDIT)).toBe(true);
-      expect(p.metadata).toMatchObject({ licence: "V&A non-commercial terms", licenceUrl: "https://www.vam.ac.uk/info/va-websites-terms-conditions", maxPixels: 768, licenceTermMonths: 60 });
-      expect(p.file).toMatch(/-textile-768\.jpg$/);
+      expect(p.metadata).toMatchObject({ licence: "V&A non-commercial terms", licenceUrl: "https://www.vam.ac.uk/info/va-websites-terms-conditions" });
+      expect(p.file).toMatch(/^[a-z-]+-textile\.jpg$/);
     }
   });
 });
@@ -226,7 +226,7 @@ describe("the kind-A proposals (proposed, DR-063)", () => {
       expect((i.conditionsMet as string[]).length).toBeGreaterThan(0);
     }
     expect(plans).toHaveLength(3);
-    expect(plans.map((p) => p.file).sort()).toEqual(["ajrakh-blocks-768.jpg", "machilipatnam-kalamkari-blocks-768.jpg", "sanganeri-blocks-768.jpg"]);
+    expect(plans.map((p) => p.file).sort()).toEqual(["ajrakh-blocks.jpg", "machilipatnam-kalamkari-blocks.jpg", "sanganeri-blocks.jpg"]);
   });
 
   it("is planned together with the V&A file, which stays as it was", () => {

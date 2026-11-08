@@ -340,7 +340,7 @@ npx tsx scripts/deploy/smoke.ts --url https://<domain> --env-file ~/.episteme/pr
 - staff sign-in with a test researcher account;
 - **Option B only, must check:** open the research dashboard, record one practice answer in a test study, confirm the dashboard updates within seconds. **Not verified until then:** that `pg_notify` sent through the pooled connection reaches the LISTEN on the direct connection (N§2). Leave the dashboard open past 300 s and confirm it reconnects (Hobby: "300s (5 minutes)" maximum, https://vercel.com/docs/plans/hobby);
 - one practice session per condition, no `seq_conflict`;
-- one CMS upload that finalizes (no `checksum_mismatch`) and renders at 768 px or less with its credit line. On R2, if the browser's PUT is refused, stop and record it: the presign then needs a change for R2;
+- one CMS upload that finalizes (no `checksum_mismatch`) and renders at the full size of its file with its credit line. On R2, if the browser's PUT is refused, stop and record it: the presign then needs a change for R2;
 - runtime logs clean (Hobby keeps "1 hour of logs").
 
 ---
@@ -546,7 +546,7 @@ npx tsx scripts/deploy/with-env.ts --env-file ~/.episteme/production.env -- npx 
 
 Use the **same keys file, evidence and reason** the curators used locally, so production verifies exactly the same set. `<curator email>` is the production account of the curator who did the checking (the record names them); never a shared or test account.
 
-**Study photos** (`scripts/content/ingest-study-photos.ts`): uploads each proposed photo through the media pipeline (768 px derivative, credit, licence, provenance, 60-month term), links it to its concept and submits it for review. It never verifies.
+**Study photos** (`scripts/content/ingest-study-photos.ts`): uploads each proposed photo through the media pipeline (the full-size file, credit, licence, provenance; every image is licensed for public use by CXA's approval, DR-118), links it to its concept, replacing an earlier rendition of the same record, and submits it for review. It never verifies.
 
 ```bash
 npx tsx scripts/deploy/with-env.ts --env-file ~/.episteme/production.env -- npx tsx scripts/content/ingest-study-photos.ts --uploader <curator email> --dry-run
@@ -554,7 +554,7 @@ npx tsx scripts/deploy/with-env.ts --env-file ~/.episteme/production.env -- npx 
 ```
 
 - The line `[photos] storage: ...` must name the production bucket (S3 or R2, from `MEDIA_S3_*` in the env file), **not** `local`. If it says `local`, stop: the env file lacks the bucket values.
-- Then a **second** curator opens each uploaded asset in the CMS and verifies it. A photo shows only when the asset is verified, its anchor claim's concept is verified and in a published release, its licence is valid, and the protocol switch `figures.photos` is on.
+- Then a **second** curator opens each uploaded asset in the CMS and verifies it. A photo shows at the end of its tradition in both doors only when the asset is verified, its anchor claim's concept is verified in the snapshot the learner reads (the study's release, or the review snapshot for previews), and the protocol switch `figures.photos` is on.
 - Reruns: the photo ingest is idempotent (a file already in the library, same SHA-256, is reused and its link updated). `verify-concepts` has no skip: a key that is already `verified` is reported as refused for its state, so after a partial failure rerun it and read the reasons (state refusals for the keys done before are expected; anything else is not).
 
 **Afterwards:** rerun 5.3 (`content:bootstrap:remote`), so the review snapshot behind `/explore` carries the verified states.

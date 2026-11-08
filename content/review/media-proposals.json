@@ -1,5 +1,5 @@
 {
-  "purpose": "Curator proposal: rights-checked photographs for the three study traditions, shown identically in the 2D and 3D conditions as captioned figures (3:2 slot, 768 px long edge). Not craft facts; nothing here is published until curators accept it. Never written into content/traditions/*.json by this pass.",
+  "purpose": "Curator proposal: rights-checked photographs for the three study traditions, shown identically in the 2D and 3D conditions as captioned figures at the full size of the source file. Not craft facts; nothing here is published until curators accept it. Never written into content/traditions/*.json by this pass.",
   "licencePolicy": {
     "tier1": "public domain, CC0, CC BY, CC BY-SA (any version)",
     "tier2": "CC BY-NC, CC BY-NC-SA, and museum terms that explicitly permit free non-commercial, educational or scholarly display online (V&A non-commercial terms). ND licences only if shown uncropped.",
@@ -7,7 +7,7 @@
   },
   "identificationRule": "An image counts for a tradition only if its own record names the tradition or its place (Ajrakh/Ajrak; Sanganer/Sanganeri; Machilipatnam/Masulipatam/Pedana). Recognition by eye does not count. Hedges in the record are kept in the caption. Reading Dhamanka as Dhamadka is the project's inference and is shown in brackets.",
   "balancingRule": "Same kinds for every tradition, one photo per kind per tradition, each attached to a concept in the same section for all three. A kind missing for any tradition is dropped for all three, and a kind whose images are not comparable in medium and salience is held back for all three. Result: textile only (one V&A whole-object studio photograph per tradition, context section). Process and tool are dropped because Machilipatnam Kalamkari has no eligible image of either; place is held in reserve because the three images are not comparable.",
-  "displayCap": "Every study photo is served at most 768 px on the long edge, with no larger srcset step, because the V&A terms allow no more; one cap for all photos so that no tradition's images look sharper.",
+  "displayCap": "None. Every image is licensed for public use by CXA's approval (DR-118), so every study photo is served at the full size of its source file; the display, not the file, sets the size each door shows.",
   "statusMeaning": {
     "proposed": "survived research and verification and fills a balanced kind slot",
     "reserve": "verified and usable, held back by the balance rule (other image chosen for the slot, or kind dropped), or carried over unchecked from the earlier pass",
@@ -56,7 +56,7 @@
       "licenceQuote": "Academic e-publications, online journals, non-commercial websites and blogs: use of Content is permitted up to 5 years from first day of publication. ... Images can be published in print at up to A5 size and digitally at a maximum 768 pixels along the longest side. ... All images must be credited as follows: © Victoria and Albert Museum, London.",
       "namingQuote": "Two halves of an <i>ajrakh</i> shawl or cover, block printed, resist- and mordant-dyed. Blue field with repeating pattern of large and small circles in red, blue, black and white, surrounded by red and white floral motifs. End borders with floral medallions and merlons; plain red border at one side. (Place of origin: Sind; ca. 1855 - ca. 1879)",
       "creator": "Unknown maker; photograph Victoria and Albert Museum",
-      "attribution": "Photo: © Victoria and Albert Museum, London · V&A non-commercial terms (max 768 px)",
+      "attribution": "Photo: © Victoria and Albert Museum, London · V&A non-commercial terms",
       "caption": "Pieces of an ajrakh shawl or cover made in Sind, about 1855–79 (V&A 5473A/(IS)): a blue field of large and small circles with an end border of floral medallions.",
       "altText": "Blue cotton covered in rows of red, black and white circles, with a wide red border of scalloped medallions at the bottom.",
       "qualityScore": 4,
@@ -64,7 +64,7 @@
         "Concept moved from design_principle.border-field-structure (the researcher's choice) to historical_context.sindh-indus-origins: claim #4 names this very object ('19th-century ajrakh cloths made in Sind are held by the V&A (e.g. 5473A/(IS), ca. 1855-79)'), so the figure sits in the context section like the other two textile figures.",
         "Image shows one of the two halves; the caption uses 'pieces of', as the verifier corrected.",
         "Small tear in the border; portrait, letterboxes in the 3:2 slot.",
-        "V&A terms: serve a derivative of at most 768 px on the long edge, no larger srcset step; 5-year online limit; V&A content at most 25% of project content; fixed credit line."
+        "Licensed for public use by CXA's approval (DR-118): served at the full size of the V&A file, with the fixed credit line."
       ],
       "pass": "this"
     },
@@ -141,7 +141,7 @@
       "licenceQuote": "Academic e-publications, online journals, non-commercial websites and blogs: use of Content is permitted up to 5 years from first day of publication. ... Images can be published in print at up to A5 size and digitally at a maximum 768 pixels along the longest side. ... All images must be credited as follows: © Victoria and Albert Museum, London.",
       "namingQuote": "placesOfOrigin: \"Machilipatnam\" (made); materialsAndTechniques: \"Cotton fabric with block printing and kalamkari (pen work).\"; summary: \"Masulipatam (modern Machilipatnam, Andhra Pradesh) became renowned for its kalamkari or 'pen work', textiles.\"",
       "creator": "Unknown maker; photograph Victoria and Albert Museum",
-      "attribution": "Photo: © Victoria and Albert Museum, London · V&A non-commercial terms (max 768 px)",
+      "attribution": "Photo: © Victoria and Albert Museum, London · V&A non-commercial terms",
       "caption": "Dress fabric, Machilipatnam, 1879, block printed with pen work. The museum says it was probably made for export to Iran; it bears a printed Persian inscription.",
       "altText": "Long white cotton printed with rows of small animals, trees, temples and riders in red, black and blue.",
       "qualityScore": 4,
@@ -221,7 +221,7 @@
       "licenceQuote": "Academic e-publications, online journals, non-commercial websites and blogs: use of Content is permitted up to 5 years from first day of publication. ... Images can be published in print at up to A5 size and digitally at a maximum 768 pixels along the longest side. ... All images must be credited as follows: © Victoria and Albert Museum, London.",
       "namingQuote": "Textile, wrapped garment, block printed cotton, probably Sanganer, ca. 1855-1879.; marks: 'The cloth also bears a black octroi or tax collection stamp.'",
       "creator": "Unknown maker; photograph Victoria and Albert Museum",
-      "attribution": "Photo: © Victoria and Albert Museum, London · V&A non-commercial terms (max 768 px)",
+      "attribution": "Photo: © Victoria and Albert Museum, London · V&A non-commercial terms",
       "caption": "Wrapped garment, probably Sanganer, about 1855–79, with a black octroi (tax collection) stamp (V&A 4497(IS)). Dupattas printed at Sanganer carry dated octroi stamps.",
       "altText": "End of a white cloth with rows of red and black sprigs, a band of large red flowers and a square black stamp.",
       "qualityScore": 4,

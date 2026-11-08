@@ -22,7 +22,7 @@ const template: StageTemplate = {
   traditionName: "Ajrakh",
   rawClothStateId: "ajrakh-raw",
   stages: [stage(1), stage(2)],
-  products: [{ id: "p1", file: "/walkthrough/products/p1.jpg", name: "Ajrakh Textile", holder: "A Holder", widthPx: 100, heightPx: 100 }],
+  products: [{ id: "p1", file: "/walkthrough/products/p1.jpg", name: "Ajrakh Textile", holder: "A Holder", widthPx: 100, heightPx: 100, record: "https://example.org/record" }],
 };
 
 beforeAll(() => {

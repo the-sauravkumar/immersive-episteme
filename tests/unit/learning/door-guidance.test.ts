@@ -10,7 +10,7 @@ function data(config: unknown, verifiedStageConcepts: string[]): LearningContext
       return { sessionId, studyConfig: config, snapshotId: "s1", snapshotLabel: "v1", verifiedStageConcepts };
     },
     async findPreviewContent() {
-      return { snapshotLabel: "review-1", studyConfig: config, verifiedStageConcepts };
+      return { snapshotId: "review-snapshot", snapshotLabel: "review-1", studyConfig: config, verifiedStageConcepts };
     },
   };
 }
@@ -38,5 +38,12 @@ describe("door guidance from the study settings", () => {
     const visitor = await resolveLearningContext(demo, { data: data({}, []), appBuild: "test" });
     expect(visitor.guidance).toEqual({ time: { limitMinutes: null }, hint: null, stallSeconds: null });
     expect(visitor.verifiedStageConcepts).toEqual([]);
+  });
+
+  it("names the snapshot both doors read their study photographs from, and the study's photo switch", async () => {
+    const study = await resolveLearningContext(participant, { data: data({ figures: { photos: false } }, []), appBuild: "test" });
+    expect(study).toMatchObject({ snapshotId: "s1", photosShown: false });
+    const visitor = await resolveLearningContext(demo, { data: data({}, []), appBuild: "test" });
+    expect(visitor).toMatchObject({ snapshotId: "review-snapshot", photosShown: true });
   });
 });

@@ -15,7 +15,7 @@ The machine-readable list is `media-proposals.json`, next to this file. It holds
 
 **Balance.** Every tradition gets the same kinds of photo, one per kind. All photos of a kind attach to concepts in the same section. A kind that is missing for one tradition is dropped for all three. A kind whose images differ too much in medium or salience across the traditions is held back for all three.
 
-**Display size.** The V&A allows at most 768 px on the long edge. Every study photo is therefore served at 768 px at most, with no larger srcset step. One cap for all photos means no tradition's images look sharper.
+**Display size.** Every image is licensed for public use by CXA's approval (DR-118), so every study photo is served at the full size of its source file, with no cap.
 
 ## Result
 
@@ -72,7 +72,7 @@ Process and tool are dropped because no Machilipatnam Kalamkari image of either 
 ## Conditions before ingest
 
 1. **Ajrakh place original (only if the place kind reopens).** Flickr refused the original download (HTTP 429). Only the 768 x 1024 rendition is stored, which is below the 1200 px minimum.
-2. **V&A terms.** Serve a 768 px derivative at most. Online use is allowed for 5 years from publication. V&A content must stay under 25% of the project's content. Use the credit "© Victoria and Albert Museum, London". Download through the collections site, not by hotlinking the API.
+2. **V&A files.** Licensed for public use by CXA's approval (DR-118): serve the full V&A file with the credit "© Victoria and Albert Museum, London". Download through the collections site, not by hotlinking the API.
 3. **Crops.** Machilipatnam textile: about 13% off the left edge, to remove the museum's paper tag. The stored originals stay unmodified.
 4. **Concepts.** None of the three anchor concepts is verified yet; all are under review. A figure goes live only when its anchor claim is verified.
 

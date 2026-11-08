@@ -6,15 +6,15 @@
  *
  * For every image with status "proposed" in content/review/media-proposals.json and, when present,
  * content/review/process-photo-proposals.json (both read only; today: one V&A textile photograph
- * per study tradition), it takes the 768 px derivative in
- * scripts/content/study-photos/<tradition>-<kind>-768.jpg (the Machilipatnam textile cropped at the
- * left to remove the museum's paper tag, DR-020) and:
+ * per study tradition), it takes the full-size file in
+ * scripts/content/study-photos/<tradition>-<kind>.jpg, made by scripts/content/build-study-photos.ts
+ * from the source original (the Machilipatnam textile cropped at the left to remove the museum's
+ * paper tag, DR-020; every other file is the source original, byte for byte, DR-118) and:
  *  1. uploads it (sniffed type, SHA-256, pixel size from the file) with the proposal's title,
- *     caption and alt text, the credit and licence its source requires (`PHOTO_SOURCES`), the
- *     record page as provenance, the 768 px display cap and the 60-month term counted from first
- *     publication;
+ *     caption and alt text, the credit and licence its source requires (`PHOTO_SOURCES`) and the
+ *     record page as provenance;
  *  2. links it as the `illustration` of its concept, anchored after the claim the proposal names
- *     first;
+ *     first, replacing an earlier rendition of the same record on that concept;
  *  3. submits it for review.
  *
  * Sources (DR-020 for the V&A; DR-057 for the others):
@@ -26,16 +26,14 @@
  *    the credit names the photographer Sahapedia confirms; uncropped and unaltered only;
  *  - PARI (CC BY-NC-ND 4.0 with written permission, docs/research/pari-image-permission-reply.md):
  *    PARI's exact credit line, Rahul Maganti's photographs only; uncropped and unaltered only.
- * Every source: at most 768 px on the long edge and five years from first publication
- * (`licenceTermMonths`, from which `stampFirstPublication` sets `licenceExpiresOn`). A proposal is
- * refused when it notes a crop or edit on a no-alteration source, or when its source credits a
+ * Every photograph is licensed for public use by CXA's approval (DR-118). A proposal is refused when it notes a crop or edit on a no-alteration source, or when its source credits a
  * photographer and the name is missing or still a placeholder.
  *
  * It never verifies anything: a second curator verifies each asset in the CMS (nobody verifies
- * their own upload). A photograph then shows, identically in both conditions, only when the asset
- * is verified, its anchor claim's concept is verified and in a published release, its licence is
- * valid, and the protocol switch `figures.photos` is on; its first-publication day is recorded the
- * moment that happens (`stampFirstPublication`). Never on the home page: no plate flag is set.
+ * their own upload). A photograph then shows, identically in both doors at the end of its
+ * tradition, only when the asset is verified, its anchor claim's concept is verified in the snapshot
+ * the learner reads, and the protocol switch `figures.photos` is on. Never on the home page: no
+ * plate flag is set.
  *
  * Idempotent: a file already in the library (same SHA-256) is reused, and its link is updated.
  * The uploader must be a staff account with the media.upload permission (content editor, curator).
@@ -49,7 +47,7 @@ import { z } from "zod";
 import { altTextProblem, captionProblem } from "../../src/features/media/contracts";
 import type { StaffRole } from "../../src/lib/permissions/roles";
 import { CmsError, type Actor } from "../../src/server/cms/core";
-import { createAssetFromBytes, finalizeAssetUpload, linkAssetToConcept, presignAssetUpload, submitAssetForReview } from "../../src/server/cms/media/service";
+import { createAssetFromBytes, finalizeAssetUpload, linkAssetToConcept, presignAssetUpload, submitAssetForReview, unlinkAsset } from "../../src/server/cms/media/service";
 import { describeMediaStorage, getMediaStorage } from "../../src/server/cms/media/storage";
 import { makePool, redact, resolveDatabaseUrl } from "../db/_shared";
 
@@ -59,16 +57,6 @@ import { arg, flag, REPO_ROOT } from "./_shared";
 export const VA_CREDIT = "© Victoria and Albert Museum, London";
 export const VA_LICENCE = "V&A non-commercial terms";
 export const VA_LICENCE_URL = "https://www.vam.ac.uk/info/va-websites-terms-conditions";
-/** Longest side the V&A allows on screen, and the one cap for every study photo (DR-020). */
-export const VA_MAX_PIXELS = 768;
-/** "up to 5 years from first day of publication". */
-export const VA_TERM_MONTHS = 60;
-
-/** One cap and one term for every study photo, whatever its source (DR-020; DR-057). */
-export const PHOTO_MAX_PIXELS = VA_MAX_PIXELS;
-/** Sahapedia and PARI: up to five years from first publication; the CC sources are held to the same term. */
-export const PHOTO_TERM_MONTHS = VA_TERM_MONTHS;
-
 export const PHOTO_SOURCE_IDS = ["vam", "rick-bradley", "sahapedia", "eric-parker", "pari"] as const;
 export type PhotoSourceId = (typeof PHOTO_SOURCE_IDS)[number];
 
@@ -196,11 +184,11 @@ export interface PhotoIngestPlan {
     licenceUrl: string;
     sourceUrl: string;
     provenanceKind: "historical_documentation";
-    maxPixels: number;
-    licenceTermMonths: number;
     publicPlate: false;
   };
 }
+
+export const studyPhotoFile = (p: Pick<PhotoProposal, "tradition" | "kind">): string => `${p.tradition}-${p.kind}.jpg`;
 
 /** The anchor claim index from a claim id such as "ajrakh.historical_context.x#4". */
 export function anchorPosition(claimId: string, conceptKey: string): number {
@@ -257,7 +245,7 @@ export function planPhoto(p: PhotoProposal): PhotoIngestPlan {
   if (alt) throw new Error(`${p.id}: ${alt}`);
   return {
     proposalId: p.id,
-    file: `${p.tradition}-${p.kind}-768.jpg`,
+    file: studyPhotoFile(p),
     conceptKey: p.conceptKey,
     position: anchorPosition(p.claimIds[0]!, p.conceptKey),
     metadata: {
@@ -269,8 +257,6 @@ export function planPhoto(p: PhotoProposal): PhotoIngestPlan {
       licenceUrl: src.licenceUrl,
       sourceUrl: p.pageUrl,
       provenanceKind: "historical_documentation",
-      maxPixels: PHOTO_MAX_PIXELS,
-      licenceTermMonths: PHOTO_TERM_MONTHS,
       publicPlate: false,
     },
   };
@@ -324,7 +310,6 @@ async function main() {
     const bytes = new Uint8Array(readFileSync(join(dir, p.file)));
     const size = jpegSize(bytes);
     if (!size) throw new Error(`${p.file}: not a JPEG`);
-    if (Math.max(size.width, size.height) > p.metadata.maxPixels) throw new Error(`${p.file}: ${size.width} x ${size.height} px is over the ${p.metadata.maxPixels} px cap`);
     return { plan: p, bytes, size, sha256: createHash("sha256").update(bytes).digest("hex") };
   });
   for (const f of files) {
@@ -364,6 +349,15 @@ async function main() {
         if (!existing) throw e;
         assetId = existing;
         console.log(`[photos] ${f.plan.proposalId}: already in the library as ${assetId}`);
+      }
+      const earlier = await pool.query<{ id: string; asset_id: string }>(
+        `SELECT l.id, l.asset_id FROM asset_links l JOIN assets a ON a.id = l.asset_id
+          WHERE l.concept_id = $1 AND l.role = 'illustration' AND l.asset_id <> $2 AND a.source_url = $3 AND NOT l.is_demo`,
+        [concept.rows[0].id, assetId, f.plan.metadata.sourceUrl],
+      );
+      for (const link of earlier.rows) {
+        await unlinkAsset(pool, actor, { linkId: link.id });
+        console.log(`[photos] ${f.plan.proposalId}: replaced the earlier rendition ${link.asset_id}`);
       }
       await linkAssetToConcept(pool, actor, { assetId, conceptId: concept.rows[0].id, role: "illustration", position: f.plan.position });
       const state = (await pool.query<{ s: string }>("SELECT verification_state::text AS s FROM assets WHERE id = $1", [assetId])).rows[0]?.s;

@@ -9,8 +9,6 @@
  *    anchor claim;
  *  - image alt text is about ALT_TARGET_WORDS words (ALT_MIN_WORDS to ALT_MAX_WORDS) and never
  *    repeats the caption (R-H6);
- *  - every study figure is shown at most STUDY_FIGURE_CAP px on its long edge, and its source must
- *    reach that cap so no tradition's figures look sharper (R-C20);
  *  - an `illustration` link's `position` is the anchor claim index.
  */
 import { z } from "zod";
@@ -30,8 +28,6 @@ export const FIGURE_CAPTION_MAX = 180;
 export const ALT_TARGET_WORDS = 15;
 export const ALT_MIN_WORDS = 8;
 export const ALT_MAX_WORDS = 30;
-/** The lightbox long-edge cap of every study figure (DESIGN.md 9.9, 12.3 rule 10; equals LIGHTBOX_MAX_EDGE). */
-export const STUDY_FIGURE_CAP = 768;
 
 export const countWords = (s: string): number => s.trim().split(/\s+/u).filter(Boolean).length;
 /** Lower-case, collapse whitespace and drop punctuation, so "Same text." and "same  text" compare equal. */
@@ -50,18 +46,6 @@ export function altTextProblem(alt: string, caption: string | null | undefined):
 export function captionProblem(caption: string | null | undefined): string | null {
   if (caption && caption.trim().length > FIGURE_CAPTION_MAX) return `Captions are at most ${FIGURE_CAPTION_MAX} characters (this one has ${caption.trim().length}).`;
   return null;
-}
-
-/** The long edge a figure can be shown at: its pixel size, limited by the licence cap. */
-export function displayLongEdge(a: { width: number | null; height: number | null; maxPixels: number | null }): number | null {
-  if (!a.width || !a.height) return null;
-  const edge = Math.max(a.width, a.height);
-  return a.maxPixels ? Math.min(edge, a.maxPixels) : edge;
-}
-
-/** Is the licence valid on `day` (YYYY-MM-DD)? NULL expiry = no expiry. */
-export function licenceValidOn(expiresOn: string | null, day: string): boolean {
-  return expiresOn === null || expiresOn >= day;
 }
 
 export const assetInputSchema = z
@@ -83,10 +67,6 @@ export const assetInputSchema = z
     licenceUrl: httpUrlSchema.nullish(),
     sourceUrl: httpUrlSchema.nullish(),
     sourceId: uuidSchema.nullish(),
-    /** Longest side the licence allows on screen (px); null = no cap. */
-    maxPixels: z.number().int().positive().nullish(),
-    /** Last day the licence permits use (YYYY-MM-DD); null = no expiry. */
-    licenceExpiresOn: z.iso.date().nullish(),
     publicPlate: z.boolean().default(false),
     provenanceKind: z.enum(PROVENANCE_KINDS),
     isDemo: z.boolean().default(false),

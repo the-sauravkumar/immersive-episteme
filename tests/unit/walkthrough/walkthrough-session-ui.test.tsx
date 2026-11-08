@@ -30,7 +30,7 @@ const template = (tradition: "ajrakh" | "sanganeri"): StageTemplate => ({
   traditionName: tradition,
   rawClothStateId: `${tradition}-raw`,
   stages: [stage(tradition, 1), stage(tradition, 2)],
-  products: [{ id: "p1", file: "/walkthrough/products/p1.jpg", name: "Textile", holder: "Holder", widthPx: 100, heightPx: 100 }],
+  products: [{ id: "p1", file: "/walkthrough/products/p1.jpg", name: "Textile", holder: "Holder", widthPx: 100, heightPx: 100, record: "https://example.org/record" }],
 });
 
 const templates = [template("ajrakh"), template("sanganeri")];

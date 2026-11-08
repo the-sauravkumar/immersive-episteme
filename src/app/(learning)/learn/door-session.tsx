@@ -3,11 +3,12 @@ import type { ComponentType, ReactNode } from "react";
 import { LearningUnavailable } from "@/components/learning/learning-unavailable";
 import { UnverifiedContentNotice } from "@/components/learning/unverified-content-notice";
 import { LearningSessionFrame } from "@/components/study/learning-session-frame";
-import { anyCaptionUnderReview, withCaptionReview } from "@/features/process/domain/stage-template";
+import { anyCaptionUnderReview, withCaptionReview, withStudyPhotos } from "@/features/process/domain/stage-template";
 import { inAssignedOrder, resumeFrom } from "@/features/study/stage-coverage";
 import { TelemetryProvider } from "@/features/telemetry/client";
 import type { LearningCondition } from "@/lib/permissions/learning";
 import { getPool } from "@/server/db/client";
+import { listStudyPhotos } from "@/server/knowledge/read-model";
 import { getLearningContext, LearningContextUnavailableError, type LearningContext } from "@/server/learning/context";
 import { CAP_WARNING_MINUTES } from "@/server/study/config";
 import { loadSessionState, stageVisitsOf } from "@/server/study/engine";
@@ -24,7 +25,8 @@ async function doorSessionFor(condition: LearningCondition, ctx: LearningContext
   const Door = DOOR_SESSIONS[condition];
   const all = await loadStageTemplates();
   const state = ctx.sessionId ? await loadSessionState(getPool(), ctx.sessionId) : null;
-  const templates = withCaptionReview(state ? inAssignedOrder(all, state.traditionOrder) : all, new Set(ctx.verifiedStageConcepts));
+  const photos = ctx.photosShown ? await listStudyPhotos(ctx.snapshotId) : [];
+  const templates = withStudyPhotos(withCaptionReview(state ? inAssignedOrder(all, state.traditionOrder) : all, new Set(ctx.verifiedStageConcepts)), photos);
   const resume = ctx.sessionId ? resumeFrom(templates, await stageVisitsOf(getPool(), ctx.sessionId)) : null;
   const telemetry = { ...(ctx.sessionId ? { firstSeq: await nextTelemetrySeq(ctx.sessionId) } : {}), sessionId: ctx.telemetrySessionId, contentVersion: ctx.contentVersion, appBuild: ctx.appBuild, mode: ctx.mode };
   return (

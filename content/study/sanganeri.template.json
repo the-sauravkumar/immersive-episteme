@@ -460,7 +460,8 @@
       "name": "Sanganeri Textile",
       "holder": "Victoria and Albert Museum, London",
       "widthPx": 2307,
-      "heightPx": 1821
+      "heightPx": 1821,
+      "record": "https://collections.vam.ac.uk/item/O481213/"
     },
     {
       "id": "sanganeri-p2",
@@ -468,7 +469,8 @@
       "name": "Sanganeri Textile",
       "holder": "Victoria and Albert Museum, London",
       "widthPx": 1536,
-      "heightPx": 2395
+      "heightPx": 2395,
+      "record": "https://collections.vam.ac.uk/item/O472209/"
     },
     {
       "id": "sanganeri-p3",
@@ -476,7 +478,8 @@
       "name": "Sanganeri Textile",
       "holder": "Victoria and Albert Museum, London",
       "widthPx": 1771,
-      "heightPx": 1271
+      "heightPx": 1271,
+      "record": "https://collections.vam.ac.uk/item/O147901/"
     }
   ]
 }

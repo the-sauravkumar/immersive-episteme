@@ -10,7 +10,7 @@ vi.mock("next/server", async (importOriginal) => ({ ...(await importOriginal<obj
 vi.mock("@/server/db/client", () => ({ getPool: () => ({}) }));
 vi.mock("@/server/cms/media/storage", () => ({ getMediaStorage: () => state.storage }));
 vi.mock("@/server/cms/media/service", () => ({
-  figureMaxAge: () => 300,
+  FIGURE_MAX_AGE: 300,
   loadLearnerFigure: async () => {
     if (state.figure instanceof Error) throw state.figure;
     return state.figure;
@@ -21,7 +21,7 @@ const { GET } = await import("@/app/figures/[assetId]/route");
 
 const ID = "0190f3a4-1b2c-7d3e-8f40-123456789abc";
 const get = () => GET(new NextRequest(`http://localhost:3000/figures/${ID}`), { params: Promise.resolve({ assetId: ID }) } as never);
-const FIGURE = { id: ID, storageKey: "sha256/aa/a.png", mimeType: "image/png", sha256: "a".repeat(64), licenceExpiresOn: null };
+const FIGURE = { id: ID, storageKey: "sha256/aa/a.png", mimeType: "image/png", sha256: "a".repeat(64) };
 
 let logged: ReturnType<typeof vi.spyOn>;
 beforeEach(() => {
@@ -60,5 +60,6 @@ describe("GET /figures/<id> (DR-114)", () => {
     const res = await get();
     expect(res.status).toBe(200);
     expect(res.headers.get("content-type")).toBe("image/png");
+    expect(res.headers.get("cache-control")).toBe("private, max-age=300, must-revalidate");
   });
 });

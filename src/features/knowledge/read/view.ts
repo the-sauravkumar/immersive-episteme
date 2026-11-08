@@ -331,6 +331,8 @@ export interface IllustrationLink {
   credit: string;
   licence: string;
   licenceUrl: string | null;
+  sha256: string;
+  sourceUrl: string;
 }
 
 /**
@@ -371,6 +373,49 @@ export function photoFiguresOf(
       licence: l.licence,
       licenceUrl: l.licenceUrl,
     }));
+}
+
+export interface ConceptPhoto {
+  tradition: string;
+  conceptKey: string;
+  conceptType: string;
+  assetId: string;
+  record: string;
+  src: string;
+  width: number;
+  height: number;
+  alt: string;
+  caption: string;
+  credit: string;
+  licence: string;
+  sha256: string;
+}
+
+export function conceptPhotosOf(view: Pick<KnowledgeView, "getConcept">, links: readonly IllustrationLink[]): ConceptPhoto[] {
+  return [...new Set(links.map((link) => link.conceptId))].flatMap((conceptId) => {
+    const concept = view.getConcept(conceptId);
+    if (!concept?.traditionSlug) return [];
+    const [figure] = photoFiguresOf({ id: concept.id, claimCount: concept.claims.length, verificationState: concept.verificationState }, links);
+    const link = figure ? links.find((candidate) => candidate.assetId === figure.id && candidate.conceptId === concept.id) : undefined;
+    if (!figure || !link) return [];
+    return [
+      {
+        tradition: concept.traditionSlug,
+        conceptKey: concept.key,
+        conceptType: concept.type,
+        assetId: figure.id,
+        record: link.sourceUrl,
+        src: figure.src,
+        width: figure.width,
+        height: figure.height,
+        alt: figure.alt,
+        caption: figure.caption,
+        credit: figure.credit,
+        licence: figure.licence,
+        sha256: link.sha256,
+      },
+    ];
+  });
 }
 
 /** Credit line of every graph-derived diagram (DESIGN.md 9.9). */

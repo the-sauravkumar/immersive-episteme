@@ -164,3 +164,7 @@
 .walkthrough-dialog ul {
   margin: 0;
 }
+
+.walkthrough-dialog .credit-line {
+  display: block;
+}

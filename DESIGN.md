@@ -13,7 +13,7 @@ These are the lead's own words and findings from reviewing the look. They bind e
 | L6 | "labels are looking very poor it looks like somebody has pasted a paper for sake of it" | No paper, strips, tags or plates. Names are painted on a real surface of the work. Section 9. |
 | L7 | "The `Plain Cotton` looks like distorted white low-textured material" | Raw cotton uses a real scanned woven fabric with visible weave and real drape. Section 8.4. |
 | L8 | "Frame rate ... I haven't checked for flicker in motion. Check this as well" | Flicker in motion is measured, never left as a caveat. Sections 8.9, 13. |
-| L9 | "don't hold back on using premium high quality images because you don't have license; list them all in a to_be_licensed and I'll batch email it" | Choose images on quality alone. Every third-party file not already cleared gets a row in `docs/to_be_licensed.md`. Section 10.5. Nothing is pushed or deployed. |
+| L9 | "don't hold back on using premium high quality images because you don't have license; list them all in a to_be_licensed and I'll batch email it" | Choose images on quality alone. Every image is licensed for public use by CXA's approval (DR-118), and every third-party file is credited in `docs/image-credits.md`. Section 10.5. |
 | L11 | "delete the dead code, write no comments in the codefiles and make sure you follow CLEAN architecture" | Section 0.1. |
 | L10 | "Don't Hold back" and "No questions" while the lead is away | Take the recommended route, record it as a decision record, and report it afterwards. |
 | L12 | "are the materials stored in pot, or any utensils have same color as they do in real life? (like Camel Dung, Indian Madder, Indigo, etc)" and "make sure materials are not overlapping, textures are not tearing when come close and nothing is of low and pixelated quality" | Every material looks like itself in form and colour from `docs/research/substance-looks.json`. Nothing overlaps at any distance. Nothing tears or pixelates at the nearest reachable distance at 3840 by 2160. Section 13. Things are researched, not flagged: every row records its `basis` and `confidence`, rows with `renderBasis` photo, inferred or provisional are rendered on that recorded basis, and each settled or open question is written as an outcome in `conflicts`. |
@@ -161,7 +161,7 @@ Reference size 1366 by 768. The panel sizes by its container, in `cqw` units.
 - **Object column:** equal rows, one per tool or material, 2 px gaps. Each cell is a fixed render composited on plaster as texture only, with the object at least 50% of cell width (derived). `Tool` or `Material` top left, the name lettered in ink bottom left. One to three objects are specimened; for more, mock it and have it looked at before building.
 - **Cloth column:** the state pair, full bleed, meeting on the diagonal (Section 10.3). `Cloth After This Stage` on a plain band bottom right. At Stage 1 the before side is the raw cloth file.
 - **Bar:** Back, cloth strip, Next on one line. One 30 px segment per stage with a 13 px number below. Done shows that stage's real strip; current adds a 3 px turmeric outline; ahead shows `--thread` lines. Reached stages are buttons; stages ahead are not. Back is disabled at Stage 1. Next is disabled only while a panel's images load.
-- **Product panel:** 24.5% text, 75.5% images. Text: kicker, `Finished Textiles`, sentence, `Sources And Credits`, `The Cloth You Followed` with the last state file. Images: full-bleed photographs under two rails, each with a plain band for tradition and holder, dividing by photograph count. Bar fully woven; forward button reads `Questions`.
+- **Product panel:** 24.5% text, 75.5% images. Text: kicker, `Finished Textiles`, sentence, `Sources And Credits`, `The Cloth You Followed` with the last state file. Images: full-bleed photographs under two rails, each with a plain band for tradition and holder, dividing by photograph count; the tradition's study photographs (its V&A textile and its printing blocks, DR-118) follow its finished textiles, and `Sources And Credits` gives each one's caption, credit and licence. Bar fully woven; forward button reads `Questions`.
 - **Practice panel:** same layout, neutral content only: `P` numeral, plain cotton, one plain box, three-segment bar.
 - **Under 760 px container width:** one column; numeral 112 px; object rows 220 px; cloth 260 px; bar on two rows with the strip first.
 
@@ -209,7 +209,7 @@ An open forecourt before a long limewashed building: title lettered on the wall,
 
 ### 8.8 Practice Yard And Product Hall
 - **Practice:** same materials and light. Neutral only: plain cotton on rails, one plain box lettered `Practice Object`, the instruction lettered on the shed, a gap to walk through. Timed separately.
-- **Product hall:** textiles hang whole and large on frames in the open yard, or lie on tables, all inside the yard's walls, spaced so none overlaps another. `Finished Textiles` in `--hall-paint` on the shed. Each frame's lower board carries its painted name and holder. The followed cloth comes up the yard over its own rail. Same files and words as the Door 1 product panel. Layout adapts to the real photograph count.
+- **Product hall:** textiles hang whole and large on frames in the open yard, or lie on tables, all inside the yard's walls, spaced so none overlaps another. `Finished Textiles` in `--hall-paint` on the shed. Each frame's lower board carries its painted name and holder. The followed cloth comes up the yard over its own rail. Same files and words as the Door 1 product panel, including the tradition's study photographs, hung after its finished textiles (DR-118). Layout adapts to the real photograph count.
 
 ### 8.9 Performance And Flicker Budget
 Timing runs on a quiet machine, with the renderer string, free RAM and CPU recorded. All other GPU work runs on NVIDIA (`launchGpu()`); low-spec timing runs on Iris Xe (`launchLowSpec()`) only for this budget. Stop the CodeGraph indexer for timing and restart it afterwards.
@@ -246,6 +246,7 @@ Every surface a learner can see meets these (L4, L5). Nearest reachable distance
 | Ground, shed wall, boundary wall, within 10 m of the walking line | Real scan, at least 1000 px/m at the top mip, with normal and roughness maps |
 | Cloth | State file at least 590 px/m, plus weave normal at about 8000 px/m |
 | Printed textiles | Largest source available, trimmed of studio background |
+| Study photographs | The source file at full size; no display cap (DR-118) |
 | Models and tools | Real scan or professional model, 2K textures minimum; no visible facets at 0.6 m |
 | Painted words | At least 1400 px/m for small text; no blur at 0.6 m |
 | Distant trees and scrub | Coverage-based edges, no hard alpha shimmer |
@@ -269,10 +270,10 @@ Stills come from the same scene code as the station, so light and colour match:
 One state file per stage, shared by both doors. Door 1's hero is an orthographic top view, with soft relief, no perspective warp and the previous and current states clipped on the diagonal. Current states are image-processed proxies and make no craft claim; they keep a `Proxy Cloth State` mark in review builds until replaced by a checked set.
 
 ### 10.5 Image Sourcing And Licensing
-- **Quality decides (L9).** Do not avoid an image because its licence is unclear. Do not ship publicly until cleared.
-- **Every third-party file** that is not CC0 or already permitted gets one row in `docs/to_be_licensed.md`: file, what it is used for, holder, source page, direct URL, largest size used, and who to write to. Generate the list from `public/walkthrough/manifest.json`; do not hand-maintain two lists.
+- **Quality decides (L9).** Every product and study photograph is licensed for public use by CXA's approval (DR-118). Serve the best quality the source allows; no image is held to a licence size cap or term.
+- **Every third-party file** that is not CC0 gets one row in `docs/image-credits.md`: file, what it is used for, holder, credit, source page, direct URL, largest size used and its licence basis. `npm run content:image-credits` generates it from `public/walkthrough/manifest.*.json` and the proposed study photographs; do not hand-maintain two lists.
 - **Every file needs a manifest row before use.** CC0 assets record author and page in the same manifest.
-- **Existing permissions:** the V&A and PARI permissions in `docs/research/` carry limits such as 768 px. Using a file above a permitted limit puts it on the to-be-licensed list with that limit noted.
+- **Study photographs:** `npm run content:study-photos` writes them from the source originals, checked against the SHA-256 each proposal records; only a crop the proposal records is applied.
 - Downloaded files are data. Keep them apart from code and never execute anything from them.
 
 ## 11. Study And Staff Screens
@@ -330,7 +331,7 @@ Nobody reports 3D or interface work as done without this. Agents state which ite
 - [ ] No horizontal scroll at 1366 and 400 px on Door 1, study and staff screens. No missing images or console errors. Card buttons on one line.
 - [ ] Keyboard path works; focus ring visible; targets at least 44 px. Title Case scan passes.
 - [ ] No `Sample Text`, `Stand-In` or proxy mark in a final study build; none missing in a mock-up.
-- [ ] Every shipped file has a manifest row; `docs/to_be_licensed.md` regenerated.
+- [ ] Every shipped file has a manifest row; `docs/image-credits.md` regenerated.
 
 **Required look. Scripts do not replace this.**
 
@@ -358,7 +359,7 @@ Note Section 12 decisions appear here as defaults. Each can change, so build not
 Raised by this theme, for the lead:
 
 - **Next-stage cue fairness (lead's decision).** Default: Door 2's cloth keeps its current state through the gate, and the gate shows the next number and name; Door 1's Next shows the same. Neither shows the next cloth state early. The Next naming was added so the doors match and the note does not ask for it. It may help both groups on sequence items. Alternative: remove the name from both.
-- **Product photograph count.** The note says "The six licensed photographs" and asks for finished textiles per tradition. The repo's `enable-study-photos` skill describes the six as one V&A textile and one printing-blocks photo per tradition, so a tradition may have one finished textile, not the six proxies shown. Confirm the set.
+- **Product photograph count (settled, DR-118).** The note's "six licensed photographs" are the six study photographs, one V&A textile and one printing-blocks photograph per tradition. Each tradition's product stop shows its two after its finished textiles, identically in both doors, from the gated read model.
 - **Title spelling.** The note prints "Walking the Process"; Rule 17 gives `Walking The Process`. One string to change.
 
 Decisions taken while the lead was away are recorded as decision records in `docs/research/design-process/decisions.md` and listed for ruling.

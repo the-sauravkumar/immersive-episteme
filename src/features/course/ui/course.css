@@ -172,6 +172,9 @@
   font-weight: 600;
   color: var(--lime);
 }
+.sources-list .credit-line {
+  display: block;
+}
 .sources-list q {
   display: block;
   quotes: "\201C" "\201D";

@@ -30,6 +30,7 @@ const fileFor = (url) => {
   if (url === "/") return path.join(__dirname, "index.html");
   if (url === "/panel.html") return path.join(__dirname, "panel.html");
   if (url.startsWith("/agent-state/")) return path.join(agentData, "state", path.basename(url));
+  if (url.startsWith("/study-photos/")) return path.join(root, "scripts", "content", "study-photos", path.basename(url));
   return path.join(root, "public", url);
 };
 

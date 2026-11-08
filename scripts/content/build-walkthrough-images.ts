@@ -2,6 +2,8 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
 
+import { CXA_APPROVAL } from "./build-image-credits";
+
 const OUT_CLOTH = "public/walkthrough/cloth";
 const OUT_PRODUCTS = "public/walkthrough/products";
 const OUT_COURSE = "public/walkthrough/course";
@@ -376,30 +378,7 @@ interface ManifestSource {
   readonly subject: string;
 }
 
-const CONTACT_ROUTES: ReadonlyArray<readonly [RegExp, string]> = [
-  [/collections\.vam\.ac\.uk/, "vaimages@vam.ac.uk (shown on the object page; also the address of the existing reply)"],
-  [/rooftopapp\.com/, "connect@rooftopapp.com (shown on the source page)"],
-  [/mykutch\.pages\.dev/, "info@mykutch.org (shown on the source page)"],
-  [/mapacademy\.io/, "https://imp-art.org/contact-us/ (linked from the source page)"],
-  [/commons\.wikimedia\.org/, "Uploader's Wikimedia Commons talk page; the file page shows no address"],
-];
-
-const PERMITTED_AT_768 = new Set(["O469296", "O481213", "O164855"]);
-const VAM_LIMIT_PX = 768;
-
-function permissionFor(source: ManifestSource, longestPx: number): { readonly status: "to-be-licensed"; readonly note: string } {
-  const vamObject = /collections\.vam\.ac\.uk\/item\/(O\d+)/.exec(source.sourcePageUrl)?.[1];
-  if (vamObject && PERMITTED_AT_768.has(vamObject)) {
-    return { status: "to-be-licensed", note: `Existing V&A reply (docs/research/va-image-licence-reply.md) covers this object up to ${VAM_LIMIT_PX} px on the longest side; this file is ${longestPx} px, so it exceeds that limit` };
-  }
-  if (vamObject) return { status: "to-be-licensed", note: "No V&A permission for this object yet; the existing reply names three other objects" };
-  if (source.sourcePageUrl.includes("commons.wikimedia.org")) return { status: "to-be-licensed", note: "File page states a CC BY-SA licence; attribution and share-alike terms to be confirmed for this use" };
-  return { status: "to-be-licensed", note: "No permission held" };
-}
-
-const contactFor = (page: string): string => CONTACT_ROUTES.find(([pattern]) => pattern.test(page))?.[1] ?? "not found";
-
-async function buildProducts(sources: readonly ManifestSource[]) {
+export async function buildProducts(sources: readonly ManifestSource[]) {
   mkdirSync(OUT_PRODUCTS, { recursive: true });
   const rows = [];
   const counts = new Map<string, number>();
@@ -415,7 +394,6 @@ async function buildProducts(sources: readonly ManifestSource[]) {
     const box = insetBox(inner, choice.extraInset ?? {});
     const fileName = `${id}.jpg`;
     await sharp(path).extract(box).jpeg({ quality: 90, mozjpeg: true }).toFile(join(OUT_PRODUCTS, fileName));
-    const permission = permissionFor(source, Math.max(box.width, box.height));
     rows.push({
       file: `/walkthrough/products/${fileName}`,
       usedFor: `Finished textile in the ${choice.traditionName} product panel and hall`,
@@ -425,9 +403,8 @@ async function buildProducts(sources: readonly ManifestSource[]) {
       directUrl: source.imageUrl,
       widthPx: box.width,
       heightPx: box.height,
-      status: permission.status,
-      permission: permission.note,
-      contactRoute: contactFor(source.sourcePageUrl),
+      status: "cxa-approved",
+      permission: CXA_APPROVAL,
       product: { tradition: choice.tradition, id, name: `${choice.traditionName} Textile`, holder: choice.holder, widthPx: box.width, heightPx: box.height },
     });
     console.log(`product ${id}: ${meta.width}x${meta.height} -> ${box.width}x${box.height}`);
@@ -449,9 +426,8 @@ function clothRows(sources: readonly ManifestSource[]) {
       directUrl: source.imageUrl,
       widthPx: WIDTH,
       heightPx: HEIGHT,
-      status: "to-be-licensed",
-      permission: permissionFor(source, WIDTH).note,
-      contactRoute: contactFor(source.sourcePageUrl),
+      status: "cxa-approved",
+      permission: CXA_APPROVAL,
     };
   });
 }
@@ -468,7 +444,6 @@ const CC0_ROWS = [
     heightPx: HEIGHT,
     status: "cc0",
     permission: "CC0 1.0, no licence needed",
-    contactRoute: "none needed",
   },
   {
     file: "/walkthrough/course/plaster.jpg",
@@ -481,7 +456,6 @@ const CC0_ROWS = [
     heightPx: WIDTH,
     status: "cc0",
     permission: "CC0 1.0, no licence needed",
-    contactRoute: "none needed",
   },
 ];
 

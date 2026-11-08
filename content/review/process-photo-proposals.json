@@ -6,7 +6,7 @@
     "source": "vam | rick-bradley | sahapedia | eric-parker | pari: whose credit, licence and conditions scripts/content/ingest-study-photos.ts applies (PHOTO_SOURCES)",
     "photographer": "the name the credit carries; required by every source except the V&A; a placeholder such as [Photographer's Name] is refused",
     "recordTitle": "optional; the record's own title, quoted in a Flickr credit",
-    "kind": "the balanced kind; the derivative is scripts/content/study-photos/<tradition>-<kind>-768.jpg",
+    "kind": "the balanced kind; the file is scripts/content/study-photos/<tradition>-<kind>.jpg, made by scripts/content/build-study-photos.ts",
     "claimIds": "the anchor claim first (the figure shows after it)",
     "caption": "the record's own wording only while the anchor concept is under review (DR-020); square brackets mark the project's inference; no new craft fact",
     "altText": "what is visible, 8 to 30 words, not the caption",
@@ -48,7 +48,7 @@
       "conditionsMet": [
         "Sahapedia credit: the source's own 2016 courtesy line on 6_IMG_0046 (Wayback 20160709233432, sahapedia.org/kalamkari: \"Image courtesy J. Niranjan, Srikalahasti, Andhra Pradesh\"), used on the lead's instruction until Sahapedia names the photographer (DR-063).",
         "Anchor concepts: verified under the lead's authorisation (DR-059, DR-063); the gate shows the photo only while its concept is verified.",
-        "Derivative ajrakh-blocks-768.jpg (576 x 768) made from the fetched original, SHA-256 a219f8bc1672a9c6cc651cbb09cd06710e78a42b44e5e385c72ee0545ceb460e."
+        "File ajrakh-blocks.jpg is the fetched original itself (2448 x 3264), SHA-256 a90b00fa571021e990075304eae3b75c1087ab662e8ba2425bc519f2dfd43656 (DR-118)."
       ]
     },
     {
@@ -74,7 +74,7 @@
       "caption": "Wooden blocks used for kalamkari printing in Machilipatnam.",
       "altText": "Close view of a carved wooden printing block with a leaf-pattern border, resting among other blocks.",
       "notes": [
-        "Shown uncropped and unaltered, at most 768 px on the long edge (Sahapedia's condition); the ingest refuses a crop or edit note on this source.",
+        "Shown uncropped and unaltered at the full size of the original (DR-118); the ingest refuses a crop or edit note on this source.",
         "The caption says \"wooden\", as the record does, not \"teak\".",
         "Anchor claim #3 (\"The blocks used are made by specialist artisans.\") may be restated only after curation verifies it.",
         "Alt text drafted from the proposal's description (a close-up of a single block); check it against the master file before ingest.",
@@ -83,7 +83,7 @@
       "conditionsMet": [
         "Credit name: the source's own 2016 courtesy line (Wayback 20160709233432: \"Image courtesy J. Niranjan, Srikalahasti, Andhra Pradesh\"), on the lead's instruction until Sahapedia replies; replace it when they do (DR-063).",
         "Anchor concepts: verified under the lead's authorisation (DR-059, DR-063).",
-        "Derivative machilipatnam-kalamkari-blocks-768.jpg (768 x 512) made by resizing only, SHA-256 21f1dbc030b9a04a79b4a039ee2621538b677a59384fbd06d9cd67c31d092e46."
+        "File machilipatnam-kalamkari-blocks.jpg is the original itself (3456 x 2304), SHA-256 c4249cf8f5a887bfdb964db81a7e74b3d2d978d5518903c85b9f8dc93710d9c9 (DR-118)."
       ],
       "photographer": "Courtesy J. Niranjan, Srikalahasti"
     },
@@ -117,7 +117,7 @@
       "conditionsMet": [
         "Authorship: established from the public Flickr records (same camera serial 5023997 in his Toronto stream, unbroken D7K 1456-1586 sequence, the reposts carry his own Photoshop export IDs); the lead accepted this in place of a reply (DR-063).",
         "Sahapedia credit and anchor concepts: as for the other two (DR-063).",
-        "Derivative sanganeri-blocks-768.jpg (768 x 529) made, SHA-256 cc2d233ce58083d98ea0109a6b5b40a2ce69b6cadb3e51e794f90018731d515c."
+        "File sanganeri-blocks.jpg is the original itself (4033 x 2778), SHA-256 48a9fcee3c9f358af02ed19ec910c587bcffd20f7cf343b7a5f8b13e6a305956 (DR-118)."
       ]
     }
   ]
