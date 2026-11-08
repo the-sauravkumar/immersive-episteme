@@ -109,6 +109,13 @@
           "label": "Myrobalan",
           "localName": "Karakkaya",
           "modelId": "powder-bowl"
+        },
+        {
+          "key": "machilipatnam-kalamkari.material.buffalo-milk",
+          "role": "material",
+          "label": "Buffalo Milk",
+          "localName": null,
+          "modelId": "liquid-pot"
         }
       ],
       "clothStateId": "machilipatnam-kalamkari-03"

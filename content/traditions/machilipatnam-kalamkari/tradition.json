@@ -6339,11 +6339,11 @@
       "source": "machilipatnam-kalamkari.process_stage.myrobalan-treatment",
       "target": "machilipatnam-kalamkari.material.buffalo-milk",
       "type": "USES",
-      "explanation": "Some accounts add buffalo milk at this step.",
+      "explanation": "The cloth is treated with myrobalan seeds and buffalo milk at this step, to prevent the dyes smudging.",
       "conditions": "Craftmark places milk in the yellow starch instead.",
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S15"
       ],
@@ -7239,11 +7239,11 @@
       "source": "machilipatnam-kalamkari.scientific_mechanism.myrobalan-tannin-role",
       "target": "shared.scientific_mechanism.tannin-pre-mordanting",
       "type": "SIMILAR_TO",
-      "explanation": "Local instance of tannin pre-mordanting of cellulose.",
+      "explanation": "The myrobalan's tannin helps the cotton absorb the iron and alum salts more evenly.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S4"
       ],
@@ -7251,7 +7251,7 @@
         {
           "source_id": "S4",
           "locator": "PDF p. 7",
-          "quote": "The tannin in the myrobalan plays a special role. On reaction with iron salt a black color is produced."
+          "quote": "It also helps the cotton fiber to absorb the iron and alum salts more evenly."
         }
       ]
     },
@@ -7259,11 +7259,11 @@
       "source": "machilipatnam-kalamkari.process_stage.myrobalan-treatment",
       "target": "shared.scientific_mechanism.tannin-pre-mordanting",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Myrobalan dip is a tannin pre-mordant.",
+      "explanation": "The cloth is dipped in a tannin solution before the mordants are applied; the myrobalan helps the cotton absorb the iron and alum salts more evenly.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S4",
         "S6"
@@ -7285,11 +7285,11 @@
       "source": "machilipatnam-kalamkari.process_stage.mordant-printing-kasim",
       "target": "shared.scientific_mechanism.iron-tannin-black",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Iron salt + tannin gives black.",
+      "explanation": "The tannin in the myrobalan reacts with the iron salt to produce black.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S4"
       ],
@@ -7305,11 +7305,11 @@
       "source": "machilipatnam-kalamkari.process_stage.mordant-printing-karam",
       "target": "shared.scientific_mechanism.alum-mordant-complexation",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Alum fixes dye on cotton.",
+      "explanation": "The areas to be red are given an alum mordant, a substance with affinity for both fibre and dyestuff that fixes the colour.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S4",
         "S10"
@@ -7331,11 +7331,11 @@
       "source": "machilipatnam-kalamkari.process_stage.alizarin-boiling",
       "target": "shared.scientific_mechanism.alizarin-lake-formation",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Alizarin + alum forms the red.",
+      "explanation": "The red develops from the combination of alum and alizarin; madder combines with alum to become red.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S4",
         "S6"
@@ -7357,19 +7357,19 @@
       "source": "machilipatnam-kalamkari.process_stage.alum-fixing-dip",
       "target": "shared.scientific_mechanism.alum-mordant-complexation",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Final alum bath fixes colours.",
+      "explanation": "In the alum solution the excess yellow runs off and all the colours are fixed.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S4"
       ],
       "evidence": [
         {
           "source_id": "S4",
-          "locator": "PDF p. 4",
-          "quote": "A mordant is a substance that has the affinity for both fiber and dyestuff and which fixes the color on the material."
+          "locator": "PDF p. 12",
+          "quote": "The fabric is then submerged in this solution for a while. The excess yellow color runs off and all the colors are fixed."
         }
       ]
     },

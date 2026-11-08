@@ -59,9 +59,9 @@ every passage cited from them was still found verbatim at its locator.
 - 414 passages checked: 406 claim and relationship passages verbatim at their locators, and
   8 claim quotes verbatim in a cited source. None was found only elsewhere; none was missing.
 - 60 of 60 concepts `verified`.
-- 59 of 62 relationships `verified`. Three stay `under_review` because their target is a concept
-  in `content/shared/craft-science.json` that is not verified (`alum-mordant-complexation`,
-  `alizarin-lake-formation`, `sun-bleaching`); their passages are in place and verbatim.
+- 62 of 62 relationships `verified`: 59 in DR-120 and, under DR-122, the three whose target is a
+  concept in `content/shared/craft-science.json` (`alum-mordant-complexation`,
+  `alizarin-lake-formation`, `sun-bleaching`), once those concepts were verified.
 - 2 relationships removed and archived in `content/review/removed-relationships.json`.
 
 ## Changes
@@ -544,3 +544,11 @@ and then `--apply`, which takes the concepts this file marks `verified`.
 | bagh.open_question.origin-dating BELONGS_TO bagh.historical_context.khatri-migration-from-sindh | The question concerns when and from where the Bagh printers came. | S3 | § "Hand Block – Printing of Bagh, Madhya Pradesh" | his father (and uncle) decided to settle down in Bagh | verbatim at locator | verified |
 | bagh.open_question.origin-dating BELONGS_TO bagh.historical_context.khatri-migration-from-sindh | The question concerns when and from where the Bagh printers came. | S4 | § "Thappa Chappai" | From Larkana in Sind (today’s Pakistan) to Pali, to the Marwadi Thar, to Manawar in Madhya Pradesh | verbatim at locator | verified |
 | bagh.open_question.origin-dating BELONGS_TO bagh.historical_context.khatri-migration-from-sindh | The question concerns when and from where the Bagh printers came. | S6 | § "This 400-year-old tradition of block printing, using natural ingredients and labour-intensive techniques, is no mean fea" | migrated to Gujarat and Rajasthan four centuries ago from the Larkana district of Sindh (now Pakistan), famed for ajrakh prints. | verbatim at locator | verified |
+
+## DR-122: Links To Shared Concepts Verified (2026-11-08)
+
+KG206 refuses an accepted link to an unaccepted concept, so these links waited for the shared concepts. With every shared concept verified, each link was read again against its quote (all quotes found again at their locators by `verify_tradition.py`) and set to `verified`, its explanation narrowed to what the quote says:
+
+- bagh.scientific_mechanism.indirect-mordant-dyeing SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.alum-mordant-complexation: The mordants printed with the blocks react with alizarin in the dye bath; alum gives red when boiled with alizarine and dhavdakaphool.
+- bagh.scientific_mechanism.indirect-mordant-dyeing SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.alizarin-lake-formation: The mordants printed with the blocks react with alizarin to give the final colours.
+- bagh.process_stage.tarai SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.sun-bleaching: In tarai the cloth is sun-dried on river stones for natural bleaching and repeatedly moistened while it dries.

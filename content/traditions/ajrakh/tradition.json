@@ -7645,11 +7645,11 @@
       "source": "ajrakh.process_stage.kasano",
       "target": "shared.scientific_mechanism.tannin-pre-mordanting",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Tannin from harde penetrates cotton and aids adhesion of printed mordants.",
+      "explanation": "The tannin in the myroballan penetrates the cotton fibres and aids the adhesion of the printed mordants.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7665,11 +7665,11 @@
       "source": "ajrakh.process_stage.kut",
       "target": "shared.scientific_mechanism.iron-tannin-black",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Iron in kut reacts with tannic acid on harde-treated cloth to give fast black.",
+      "explanation": "On the harde-treated cloth, kut develops a deep fast chocolate-black as the iron particles in the paste oxidise with the tannic acid.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7685,11 +7685,11 @@
       "source": "ajrakh.process_stage.pa",
       "target": "shared.scientific_mechanism.alum-mordant-complexation",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Alum printed in pa/gach is the mordant that binds red dye.",
+      "explanation": "The dye from the long thin roots links to the alum mordant on the cotton fibres and develops the red areas.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7705,11 +7705,11 @@
       "source": "ajrakh.process_stage.red-dyeing",
       "target": "shared.scientific_mechanism.alizarin-lake-formation",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Madder/alizarin links to alum mordant to develop red.",
+      "explanation": "Alizarin requires mordants such as alum to attach its colour to the cloth fibres.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7729,7 +7729,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7745,11 +7745,11 @@
       "source": "ajrakh.process_stage.gach",
       "target": "shared.scientific_mechanism.mud-resist-barrier",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Clay and millet in gach resist indigo.",
+      "explanation": "The clay and millet flour in the paste act as a resist, keeping indigo from the cloth beneath.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7765,11 +7765,11 @@
       "source": "ajrakh.process_stage.dhori-gach",
       "target": "shared.scientific_mechanism.mud-resist-barrier",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Plain clay-millet paste protects areas from indigo.",
+      "explanation": "The clay and millet flour in dhori gach act as a resist, protecting areas where no indigo is required.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7785,11 +7785,11 @@
       "source": "ajrakh.process_stage.tapano",
       "target": "shared.scientific_mechanism.sun-bleaching",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Sun and moisture bleach madder staining on whites.",
+      "explanation": "The sun, moisture and compounds in the dung act as a bleaching agent on the white areas of the design.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7805,11 +7805,11 @@
       "source": "ajrakh.scientific_mechanism.madder-staining-and-clearing",
       "target": "shared.scientific_mechanism.sun-bleaching",
       "type": "SIMILAR_TO",
-      "explanation": "Tapano clearing is a sun-bleaching process.",
+      "explanation": "In tapano the sun, moisture and compounds in the dung act as a bleaching agent on the white areas.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],

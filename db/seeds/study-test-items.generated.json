@@ -66,15 +66,15 @@
             },
             {
               "id": "o2",
-              "label": "Rice Starch"
+              "label": "Iron Acetate Black Mordant"
             },
             {
               "id": "o3",
-              "label": "Turmeric And Pomegranate-Rind Yellow"
+              "label": "Rice Starch"
             },
             {
               "id": "o4",
-              "label": "Madder / Alizarin Dye Bath"
+              "label": "Turmeric And Pomegranate-Rind Yellow"
             },
             {
               "id": "dont-know",
@@ -381,9 +381,9 @@
         "position": 6
       },
       {
-        "itemKey": "pre.place.machilipatnam-kalamkari.4.1",
+        "itemKey": "pre.place.machilipatnam-kalamkari.3.1",
         "kind": "single_choice",
-        "prompt": "At which stage of Machilipatnam Kalamkari is Gum used?",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Buffalo Milk used?",
         "config": {
           "kind": "single_choice",
           "options": [
@@ -430,17 +430,17 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/57a5eebe.jpg",
-            "alt": "Gum"
+            "path": "/walkthrough/stills/objects/e52e09ef.jpg",
+            "alt": "Buffalo Milk"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
-            "objectKey": "machilipatnam-kalamkari.material.gum-binder"
+            "stageKey": "machilipatnam-kalamkari.myrobalan-treatment",
+            "objectKey": "machilipatnam-kalamkari.material.buffalo-milk"
           }
         },
         "answerKey": {
-          "optionId": "s4"
+          "optionId": "s3"
         },
         "position": 7
       },
@@ -1014,11 +1014,11 @@
             },
             {
               "id": "o3",
-              "label": "Dye-Bath Plant Additives"
+              "label": "Cow Or Buffalo Dung"
             },
             {
               "id": "o4",
-              "label": "Gum"
+              "label": "Dye-Bath Plant Additives"
             }
           ],
           "shuffle": true,
@@ -1079,7 +1079,48 @@
         "position": 9
       },
       {
-        "itemKey": "id.machilipatnam-kalamkari.4.2",
+        "itemKey": "id.machilipatnam-kalamkari.3.2",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Buffalo Milk"
+            },
+            {
+              "id": "o2",
+              "label": "Rice Starch"
+            },
+            {
+              "id": "o3",
+              "label": "Turmeric And Pomegranate-Rind Yellow"
+            },
+            {
+              "id": "o4",
+              "label": "Madder / Alizarin Dye Bath"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/objects/e52e09ef.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.myrobalan-treatment",
+            "objectKey": "machilipatnam-kalamkari.material.buffalo-milk"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 10
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.4.3",
         "kind": "single_choice",
         "prompt": "What is this called?",
         "config": {
@@ -1095,11 +1136,11 @@
             },
             {
               "id": "o3",
-              "label": "Underground Indigo Vat"
+              "label": "Washing Tanks / River Washing"
             },
             {
               "id": "o4",
-              "label": "Washing Tanks / River Washing"
+              "label": "Hand-Carved Wooden Printing Blocks"
             }
           ],
           "shuffle": true,
@@ -1116,10 +1157,10 @@
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 10
+        "position": 11
       },
       {
-        "itemKey": "id.machilipatnam-kalamkari.4.3",
+        "itemKey": "id.machilipatnam-kalamkari.4.5",
         "kind": "single_choice",
         "prompt": "What is this called?",
         "config": {
@@ -1127,70 +1168,30 @@
           "options": [
             {
               "id": "o1",
-              "label": "Iron Acetate Black Mordant"
+              "label": "Gum"
             },
             {
               "id": "o2",
-              "label": "Madder / Alizarin Dye Bath"
+              "label": "Indigo"
             },
             {
               "id": "o3",
-              "label": "Neerani"
+              "label": "Alum Mordant Paste"
             },
             {
               "id": "o4",
-              "label": "Rice Starch"
+              "label": "Mud Resist Paste"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/7e291756.jpg",
+            "path": "/walkthrough/stills/objects/57a5eebe.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
-            "objectKey": "machilipatnam-kalamkari.material.kasim-iron-acetate"
-          }
-        },
-        "answerKey": {
-          "optionId": "o1"
-        },
-        "position": 11
-      },
-      {
-        "itemKey": "id.machilipatnam-kalamkari.6.5",
-        "kind": "single_choice",
-        "prompt": "What is this called?",
-        "config": {
-          "kind": "single_choice",
-          "options": [
-            {
-              "id": "o1",
-              "label": "Alizarin, Madder And Chay Root"
-            },
-            {
-              "id": "o2",
-              "label": "Dusting Agents"
-            },
-            {
-              "id": "o3",
-              "label": "Harde"
-            },
-            {
-              "id": "o4",
-              "label": "Indigo"
-            }
-          ],
-          "shuffle": true,
-          "image": {
-            "path": "/walkthrough/stills/objects/cd8ea0d2.jpg",
-            "alt": "The object to name"
-          },
-          "target": {
-            "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
-            "objectKey": "machilipatnam-kalamkari.material.alizarin-and-red-roots"
+            "objectKey": "machilipatnam-kalamkari.material.gum-binder"
           },
           "sampleText": true
         },
@@ -1208,30 +1209,30 @@
           "options": [
             {
               "id": "o1",
-              "label": "Dye-Bath Plant Additives"
+              "label": "Alizarin, Madder And Chay Root"
             },
             {
               "id": "o2",
-              "label": "Camel Dung"
+              "label": "Harde"
             },
             {
               "id": "o3",
-              "label": "Dhawri / Tamarisk Galls"
+              "label": "Indigo"
             },
             {
               "id": "o4",
-              "label": "Indian Madder"
+              "label": "Myrobalan"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/0dc89f60.jpg",
+            "path": "/walkthrough/stills/objects/cd8ea0d2.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
-            "objectKey": "machilipatnam-kalamkari.material.dye-bath-plant-additives"
+            "objectKey": "machilipatnam-kalamkari.material.alizarin-and-red-roots"
           },
           "sampleText": true
         },
@@ -1249,32 +1250,31 @@
           "options": [
             {
               "id": "o1",
-              "label": "Rice Starch"
+              "label": "Date-Palm Brush And Kalam"
             },
             {
               "id": "o2",
-              "label": "Neerani"
+              "label": "Carved Wooden Printing Blocks"
             },
             {
               "id": "o3",
-              "label": "Iron Acetate Black Mordant"
+              "label": "Colour Tray With Jute-And-Cotton Pad"
             },
             {
               "id": "o4",
-              "label": "Turmeric And Pomegranate-Rind Yellow"
+              "label": "Copper Dye Vessel Over A Wood-Fired Furnace"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/8acd8043.jpg",
+            "path": "/walkthrough/stills/objects/1c5b8588.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.second-printing",
-            "objectKey": "machilipatnam-kalamkari.material.rice-starch"
-          },
-          "sampleText": true
+            "objectKey": "machilipatnam-kalamkari.tool.date-palm-brush-and-kalam"
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -1290,30 +1290,30 @@
           "options": [
             {
               "id": "o1",
-              "label": "Indigo"
+              "label": "Rice Starch"
             },
             {
               "id": "o2",
-              "label": "Gach Mud Resist"
+              "label": "Madder / Alizarin Dye Bath"
             },
             {
               "id": "o3",
-              "label": "Fermented Iron-Jaggery Black Paste"
+              "label": "Neerani"
             },
             {
               "id": "o4",
-              "label": "Khariyanu Resist Paste"
+              "label": "Buffalo Milk"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/99282136.jpg",
+            "path": "/walkthrough/stills/objects/8acd8043.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.second-printing",
-            "objectKey": "machilipatnam-kalamkari.material.indigo"
+            "objectKey": "machilipatnam-kalamkari.material.rice-starch"
           },
           "sampleText": true
         },
@@ -1456,15 +1456,15 @@
             },
             {
               "id": "o2",
-              "label": "Rice Starch"
+              "label": "Buffalo Milk"
             },
             {
               "id": "o3",
-              "label": "Turmeric And Pomegranate-Rind Yellow"
+              "label": "Iron Acetate Black Mordant"
             },
             {
               "id": "o4",
-              "label": "Neerani"
+              "label": "Rice Starch"
             }
           ],
           "shuffle": true,
@@ -1620,15 +1620,15 @@
             },
             {
               "id": "o2",
-              "label": "Neerani"
-            },
-            {
-              "id": "o3",
               "label": "Iron Acetate Black Mordant"
             },
             {
-              "id": "o4",
+              "id": "o3",
               "label": "Rice Starch"
+            },
+            {
+              "id": "o4",
+              "label": "Madder / Alizarin Dye Bath"
             }
           ],
           "shuffle": true,
@@ -1841,9 +1841,9 @@
         "position": 2
       },
       {
-        "itemKey": "place.machilipatnam-kalamkari.7.3",
+        "itemKey": "place.machilipatnam-kalamkari.6.3",
         "kind": "single_choice",
-        "prompt": "At which stage of Machilipatnam Kalamkari is Date-Palm Brush And Kalam used?",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Alizarin, Madder And Chay Root used?",
         "config": {
           "kind": "single_choice",
           "options": [
@@ -1886,24 +1886,24 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/1c5b8588.jpg",
-            "alt": "Date-Palm Brush And Kalam"
+            "path": "/walkthrough/stills/objects/cd8ea0d2.jpg",
+            "alt": "Alizarin, Madder And Chay Root"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.second-printing",
-            "objectKey": "machilipatnam-kalamkari.tool.date-palm-brush-and-kalam"
+            "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
+            "objectKey": "machilipatnam-kalamkari.material.alizarin-and-red-roots"
           }
         },
         "answerKey": {
-          "optionId": "s7"
+          "optionId": "s6"
         },
         "position": 3
       },
       {
         "itemKey": "place.machilipatnam-kalamkari.7.5",
         "kind": "single_choice",
-        "prompt": "At which stage of Machilipatnam Kalamkari is Indigo used?",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Rice Starch used?",
         "config": {
           "kind": "single_choice",
           "options": [
@@ -1946,13 +1946,13 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/99282136.jpg",
-            "alt": "Indigo"
+            "path": "/walkthrough/stills/objects/8acd8043.jpg",
+            "alt": "Rice Starch"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.second-printing",
-            "objectKey": "machilipatnam-kalamkari.material.indigo"
+            "objectKey": "machilipatnam-kalamkari.material.rice-starch"
           }
         },
         "answerKey": {
@@ -1961,16 +1961,12 @@
         "position": 4
       },
       {
-        "itemKey": "place.sanganeri.3.3",
+        "itemKey": "place.sanganeri.3.2",
         "kind": "single_choice",
-        "prompt": "At which stage of Sanganeri is Colour Tray With Jute-And-Cotton Pad used?",
+        "prompt": "At which stage of Sanganeri is Block Set: Rekh (Outline), Datta (Filler) And Background Blocks used?",
         "config": {
           "kind": "single_choice",
           "options": [
-            {
-              "id": "s1",
-              "label": "Block Carving"
-            },
             {
               "id": "s2",
               "label": "Scouring And Harda Pre-Treatment"
@@ -2006,13 +2002,13 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/2732bbbd.jpg",
-            "alt": "Colour Tray With Jute-And-Cotton Pad"
+            "path": "/walkthrough/stills/objects/50cf60bc.jpg",
+            "alt": "Block Set: Rekh (Outline), Datta (Filler) And Background Blocks"
           },
           "target": {
             "tradition": "sanganeri",
             "stageKey": "sanganeri.printing-the-mordants-and-ageing",
-            "objectKey": "sanganeri.tool.colour-tray"
+            "objectKey": "sanganeri.tool.rekh-datta-gadh-block-set"
           }
         },
         "answerKey": {
@@ -2021,9 +2017,9 @@
         "position": 5
       },
       {
-        "itemKey": "place.sanganeri.4.5",
+        "itemKey": "place.sanganeri.3.4",
         "kind": "single_choice",
-        "prompt": "At which stage of Sanganeri is Dhawai Flowers used?",
+        "prompt": "At which stage of Sanganeri is Fermented Iron Black used?",
         "config": {
           "kind": "single_choice",
           "options": [
@@ -2066,17 +2062,17 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/deb6e99d.jpg",
-            "alt": "Dhawai Flowers"
+            "path": "/walkthrough/stills/objects/e79efa73.jpg",
+            "alt": "Fermented Iron Black"
           },
           "target": {
             "tradition": "sanganeri",
-            "stageKey": "sanganeri.washing-and-alizarin-dyeing",
-            "objectKey": "sanganeri.material.dhawai-phool"
+            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
+            "objectKey": "sanganeri.material.syahi-iron-black"
           }
         },
         "answerKey": {
-          "optionId": "s4"
+          "optionId": "s3"
         },
         "position": 6
       }
@@ -2893,6 +2889,7 @@
             "machilipatnam-kalamkari.material.cow-dung",
             "machilipatnam-kalamkari.material.kora-cotton-cloth",
             "machilipatnam-kalamkari.material.myrobalan-karakkaya",
+            "machilipatnam-kalamkari.material.buffalo-milk",
             "machilipatnam-kalamkari.tool.printing-pad-tray",
             "machilipatnam-kalamkari.tool.printing-table",
             "machilipatnam-kalamkari.tool.teak-printing-blocks",
@@ -3160,32 +3157,31 @@
           "options": [
             {
               "id": "o1",
-              "label": "Gum"
+              "label": "Iron Acetate Black Mordant"
             },
             {
               "id": "o2",
-              "label": "Alum"
+              "label": "Madder / Alizarin Dye Bath"
             },
             {
               "id": "o3",
-              "label": "Indigo"
+              "label": "Neerani"
             },
             {
               "id": "o4",
-              "label": "Alum Mordant Paste"
+              "label": "Buffalo Milk"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/57a5eebe.jpg",
+            "path": "/walkthrough/stills/objects/7e291756.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
-            "objectKey": "machilipatnam-kalamkari.material.gum-binder"
-          },
-          "sampleText": true
+            "objectKey": "machilipatnam-kalamkari.material.kasim-iron-acetate"
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -3193,7 +3189,7 @@
         "position": 4
       },
       {
-        "itemKey": "id.machilipatnam-kalamkari.7.7",
+        "itemKey": "id.machilipatnam-kalamkari.6.7",
         "kind": "single_choice",
         "prompt": "What is this called?",
         "config": {
@@ -3201,36 +3197,78 @@
           "options": [
             {
               "id": "o1",
-              "label": "Date-Palm Brush And Kalam"
+              "label": "Dye-Bath Plant Additives"
             },
             {
               "id": "o2",
-              "label": "Printing Table With Gunny And Damp Cloth"
+              "label": "Dhawri / Tamarisk Galls"
             },
             {
               "id": "o3",
-              "label": "Carved Wooden Printing Blocks"
+              "label": "Indian Madder"
             },
             {
               "id": "o4",
-              "label": "Colour Tray With Jute-And-Cotton Pad"
+              "label": "Cow Or Buffalo Dung"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/1c5b8588.jpg",
+            "path": "/walkthrough/stills/objects/0dc89f60.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.second-printing",
-            "objectKey": "machilipatnam-kalamkari.tool.date-palm-brush-and-kalam"
-          }
+            "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
+            "objectKey": "machilipatnam-kalamkari.material.dye-bath-plant-additives"
+          },
+          "sampleText": true
         },
         "answerKey": {
           "optionId": "o1"
         },
         "position": 5
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.7.10",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Indigo"
+            },
+            {
+              "id": "o2",
+              "label": "Fermented Iron-Jaggery Black Paste"
+            },
+            {
+              "id": "o3",
+              "label": "Khariyanu Resist Paste"
+            },
+            {
+              "id": "o4",
+              "label": "Tamarind Seed Paste"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/objects/99282136.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.second-printing",
+            "objectKey": "machilipatnam-kalamkari.material.indigo"
+          },
+          "sampleText": true
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 6
       },
       {
         "itemKey": "id.sanganeri.3.4",
@@ -3271,7 +3309,7 @@
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 6
+        "position": 7
       },
       {
         "itemKey": "id.sanganeri.4.7",
@@ -3312,7 +3350,7 @@
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 7
+        "position": 8
       },
       {
         "itemKey": "id.sanganeri.7.10",
@@ -3352,7 +3390,7 @@
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 8
+        "position": 9
       },
       {
         "itemKey": "id.sanganeri.8.13",
@@ -3371,11 +3409,11 @@
             },
             {
               "id": "o3",
-              "label": "Cow Or Buffalo Dung"
+              "label": "Buffalo Milk"
             },
             {
               "id": "o4",
-              "label": "Dye-Bath Plant Additives"
+              "label": "Cow Or Buffalo Dung"
             }
           ],
           "shuffle": true,
@@ -3393,7 +3431,7 @@
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 9
+        "position": 10
       }
     ]
   },
@@ -3528,9 +3566,9 @@
         "position": 1
       },
       {
-        "itemKey": "place.machilipatnam-kalamkari.6.2",
+        "itemKey": "place.machilipatnam-kalamkari.4.2",
         "kind": "single_choice",
-        "prompt": "At which stage of Machilipatnam Kalamkari is Alizarin, Madder And Chay Root used?",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Gum used?",
         "config": {
           "kind": "single_choice",
           "options": [
@@ -3573,24 +3611,24 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/cd8ea0d2.jpg",
-            "alt": "Alizarin, Madder And Chay Root"
+            "path": "/walkthrough/stills/objects/57a5eebe.jpg",
+            "alt": "Gum"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
-            "objectKey": "machilipatnam-kalamkari.material.alizarin-and-red-roots"
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.material.gum-binder"
           }
         },
         "answerKey": {
-          "optionId": "s6"
+          "optionId": "s4"
         },
         "position": 2
       },
       {
         "itemKey": "place.machilipatnam-kalamkari.7.4",
         "kind": "single_choice",
-        "prompt": "At which stage of Machilipatnam Kalamkari is Rice Starch used?",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Date-Palm Brush And Kalam used?",
         "config": {
           "kind": "single_choice",
           "options": [
@@ -3633,13 +3671,13 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/8acd8043.jpg",
-            "alt": "Rice Starch"
+            "path": "/walkthrough/stills/objects/1c5b8588.jpg",
+            "alt": "Date-Palm Brush And Kalam"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.second-printing",
-            "objectKey": "machilipatnam-kalamkari.material.rice-starch"
+            "objectKey": "machilipatnam-kalamkari.tool.date-palm-brush-and-kalam"
           }
         },
         "answerKey": {
@@ -3648,65 +3686,69 @@
         "position": 3
       },
       {
-        "itemKey": "place.sanganeri.3.2",
+        "itemKey": "place.machilipatnam-kalamkari.7.6",
         "kind": "single_choice",
-        "prompt": "At which stage of Sanganeri is Block Set: Rekh (Outline), Datta (Filler) And Background Blocks used?",
+        "prompt": "At which stage of Machilipatnam Kalamkari is Indigo used?",
         "config": {
           "kind": "single_choice",
           "options": [
             {
+              "id": "s1",
+              "label": "Block Carving"
+            },
+            {
               "id": "s2",
-              "label": "Scouring And Harda Pre-Treatment"
+              "label": "Scouring / Dung Bleaching"
             },
             {
               "id": "s3",
-              "label": "Printing The Mordants And Ageing"
+              "label": "Myrobalan Treatment"
             },
             {
               "id": "s4",
-              "label": "Washing And Alizarin / Madder Dyeing"
+              "label": "Printing Iron Mordant And Alum Mordant"
             },
             {
               "id": "s5",
-              "label": "Sun-Bleaching"
+              "label": "Drying / Curing And Degumming Wash"
             },
             {
               "id": "s6",
-              "label": "Dabu Resist Printing"
+              "label": "Dye-Bath Boiling And Sun-Drying"
             },
             {
               "id": "s7",
-              "label": "Indigo Dyeing"
+              "label": "Second Printing"
             },
             {
               "id": "s8",
-              "label": "Yellow Dyeing And Alum Post-Mordanting"
+              "label": "Alum Fixing Dip"
             },
             {
               "id": "s9",
-              "label": "Final Washing"
+              "label": "Soaping And Final Sun-Drying"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/50cf60bc.jpg",
-            "alt": "Block Set: Rekh (Outline), Datta (Filler) And Background Blocks"
+            "path": "/walkthrough/stills/objects/99282136.jpg",
+            "alt": "Indigo"
           },
           "target": {
-            "tradition": "sanganeri",
-            "stageKey": "sanganeri.printing-the-mordants-and-ageing",
-            "objectKey": "sanganeri.tool.rekh-datta-gadh-block-set"
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.second-printing",
+            "objectKey": "machilipatnam-kalamkari.material.indigo"
           }
         },
         "answerKey": {
-          "optionId": "s3"
+          "optionId": "s7"
         },
         "position": 4
       },
       {
-        "itemKey": "place.sanganeri.3.4",
+        "itemKey": "place.sanganeri.3.3",
         "kind": "single_choice",
-        "prompt": "At which stage of Sanganeri is Fermented Iron Black used?",
+        "prompt": "At which stage of Sanganeri is Colour Tray With Jute-And-Cotton Pad used?",
         "config": {
           "kind": "single_choice",
           "options": [
@@ -3749,13 +3791,13 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/e79efa73.jpg",
-            "alt": "Fermented Iron Black"
+            "path": "/walkthrough/stills/objects/2732bbbd.jpg",
+            "alt": "Colour Tray With Jute-And-Cotton Pad"
           },
           "target": {
             "tradition": "sanganeri",
             "stageKey": "sanganeri.printing-the-mordants-and-ageing",
-            "objectKey": "sanganeri.material.syahi-iron-black"
+            "objectKey": "sanganeri.tool.colour-tray"
           }
         },
         "answerKey": {
@@ -3764,9 +3806,9 @@
         "position": 5
       },
       {
-        "itemKey": "place.sanganeri.6.6",
+        "itemKey": "place.sanganeri.4.5",
         "kind": "single_choice",
-        "prompt": "At which stage of Sanganeri is Sawdust used?",
+        "prompt": "At which stage of Sanganeri is Dhawai Flowers used?",
         "config": {
           "kind": "single_choice",
           "options": [
@@ -3809,17 +3851,17 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/e69e6ae1.jpg",
-            "alt": "Sawdust"
+            "path": "/walkthrough/stills/objects/deb6e99d.jpg",
+            "alt": "Dhawai Flowers"
           },
           "target": {
             "tradition": "sanganeri",
-            "stageKey": "sanganeri.dabu-resist-printing",
-            "objectKey": "sanganeri.material.sawdust"
+            "stageKey": "sanganeri.washing-and-alizarin-dyeing",
+            "objectKey": "sanganeri.material.dhawai-phool"
           }
         },
         "answerKey": {
-          "optionId": "s6"
+          "optionId": "s4"
         },
         "position": 6
       }
@@ -4345,11 +4387,11 @@
     ]
   },
   {
-    "code": "demo-test-transfer-delayed",
+    "code": "test-transfer-delayed",
     "kind": "posttest",
     "phase": "follow_up",
     "position": 5,
-    "title": "Demo: A Tradition You Have Not Seen",
+    "title": "A Tradition You Have Not Seen",
     "description": null,
     "testType": "transfer",
     "paged": false,
@@ -4379,8 +4421,7 @@
             }
           ],
           "shuffle": true,
-          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo)\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying\nPreparing the resist paste\nOptional pre-printing of colour (naphthol red)\nRepeating resist-dye cycles (double/triple dabu)\nBlock-printing the resist: Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric.\nSun-drying the resist\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
-          "sampleText": true,
+          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo)\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying\nPreparing the resist paste\nOptional pre-printing of colour (naphthol red)\nRepeating resist-dye cycles (double/triple dabu)\nBlock-printing the resist: Craftsmen dip the blocks into a viscous paste of mud, gum and lime; the method's name comes from dabaana, to press.\nSun-drying the resist\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
           "target": {
             "tradition": "dabu"
           }
@@ -4415,8 +4456,7 @@
             }
           ],
           "shuffle": true,
-          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo)\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying\nPreparing the resist paste\nOptional pre-printing of colour (naphthol red)\nRepeating resist-dye cycles (double/triple dabu)\nBlock-printing the resist: Craftsmen dip blocks in the mud, gum and lime paste and press them onto fabric.\nSun-drying the resist\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
-          "sampleText": true,
+          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo)\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying\nPreparing the resist paste\nOptional pre-printing of colour (naphthol red)\nRepeating resist-dye cycles (double/triple dabu)\nBlock-printing the resist: Craftsmen dip the blocks into a viscous paste of mud, gum and lime; the method's name comes from dabaana, to press.\nSun-drying the resist\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
           "target": {
             "tradition": "dabu"
           }

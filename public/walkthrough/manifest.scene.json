@@ -160,6 +160,16 @@
     "widthPx": 3840
   },
   {
+    "file": "public/walkthrough/tex/horizon/scrub.png",
+    "usedFor": "the distant scrub band on the horizon in Door 2",
+    "holder": "Drawn by this project with a seeded generator, no input image",
+    "sourcePage": "tools/walkthrough-lab/bake-horizon.cjs",
+    "directUrl": "tools/walkthrough-lab/bake-horizon.cjs",
+    "licence": "CC0 1.0",
+    "permission": "none needed; made by this project from code alone",
+    "widthPx": 4096
+  },
+  {
     "file": "public/walkthrough/fonts/Eczar-400-800.woff2",
     "usedFor": "display type in both doors",
     "holder": "The Eczar Project Authors",

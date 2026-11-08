@@ -5447,7 +5447,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S3",
@@ -5475,11 +5475,11 @@
       "source": "dabu.process_stage.dip-dyeing",
       "target": "shared.scientific_mechanism.indigo-vat-reduction",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Indigo dyeing in a vat with colour developing green-to-blue on air oxidation.",
+      "explanation": "The dipped cloth turns green and becomes deep indigo once exposed to air, as the dye oxygenates.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S2",
         "S12"
@@ -5501,11 +5501,11 @@
       "source": "dabu.process_stage.oxidation-drying",
       "target": "shared.scientific_mechanism.indigo-vat-reduction",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Green-to-blue change on airing is the reoxidation step.",
+      "explanation": "On exposure to air the cloth turns from green to indigo blue as the dye oxygenates.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S2",
         "S12"
@@ -5527,11 +5527,11 @@
       "source": "dabu.material.alizarin-and-naphthol-reds",
       "target": "shared.scientific_mechanism.alizarin-lake-formation",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Traditional alizarin reds rely on metal-alizarin lakes.",
+      "explanation": "Alizarin, traditionally used before naphthol replaced it, can form six-member chelate rings with aluminium ions.",
       "conditions": "Applies to the historical alizarin red, not modern naphthol.",
       "ordinal": null,
       "provenance_kind": "scientific_evidence",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S2",
         "S14"
@@ -5557,7 +5557,7 @@
       "conditions": "Bagru account only.",
       "ordinal": null,
       "provenance_kind": "unverified",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S23",
         "S14"
@@ -5579,11 +5579,11 @@
       "source": "dabu.material.myrobalan-and-mordants",
       "target": "shared.scientific_mechanism.iron-tannin-black",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Harda tannin acts as mordant for the iron of the black printing colour (Bagru).",
+      "explanation": "Harda's natural tannic acid acts as a mordant for the iron of the printing colour (Bagru).",
       "conditions": "Bagru account only.",
       "ordinal": null,
       "provenance_kind": "unverified",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S23"
       ],

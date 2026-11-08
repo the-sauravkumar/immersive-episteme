@@ -56,21 +56,19 @@ BOLD = r"<p[^>]*>\s*<(?:strong|b|em|i)>([^<]{2,120})</(?:strong|b|em|i)>\s*</p>|
 def html_sections(path):
     raw = open(path, encoding="utf-8", errors="ignore").read()
     raw = re.sub(r"(?is)<(script|style|noscript|svg)\b.*?</\1>", " ", raw)
+    clean = lambda s: re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", s))).strip()
     segs = []
     for marks in (HEAD, HEAD + "|" + BOLD):
-        head, bold = "page text", False
-        for p in re.split(f"(?is)((?:{marks}))", raw):
-            if p is None:
-                continue
-            m = re.fullmatch(f"(?is){marks}", p)
-            if m:
-                h = next(g for g in m.groups() if g is not None)
-                bold = m.group(1) is None
-                head = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", h))).strip()[:120] or head
-                continue
-            t = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", p))).strip()
+        head, bold, pos = "page text", False, 0
+        for m in [*re.finditer(f"(?is){marks}", raw), None]:
+            t = clean(raw[pos:m.start() if m else len(raw)])
             if t and (marks == HEAD or bold):
                 segs.append((head, t))
+            if m is None:
+                break
+            bold = m.group(1) is None
+            head = clean(next(g for g in m.groups() if g is not None))[:120] or head
+            pos = m.end()
     return segs
 
 

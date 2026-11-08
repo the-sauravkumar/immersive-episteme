@@ -5597,11 +5597,11 @@
       "source": "sanganeri.material.harda-myrobalan",
       "target": "shared.scientific_mechanism.tannin-pre-mordanting",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "GI application says harda's tannic acid attracts the printed mordants.",
+      "explanation": "The GI application says harda's tannic acid attracts the mordants applied with the blocks.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5617,11 +5617,11 @@
       "source": "sanganeri.explanation.one-dye-two-mordants",
       "target": "shared.scientific_mechanism.alum-mordant-complexation",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Red on alum-printed areas is attributed to the alum mordant.",
+      "explanation": "Begar, the alum mordant, develops a rich red in combination with alizarine.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5637,11 +5637,11 @@
       "source": "sanganeri.explanation.one-dye-two-mordants",
       "target": "shared.scientific_mechanism.alizarin-lake-formation",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Alizarin forms different colours with alum (red) and iron (black).",
+      "explanation": "The colours obtained with the two mordants are red with alum and black with ferrous.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5657,11 +5657,11 @@
       "source": "sanganeri.explanation.one-dye-two-mordants",
       "target": "shared.scientific_mechanism.iron-tannin-black",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Syahi forms black with harda tannin.",
+      "explanation": "The tannic acid of harda forms black with ferrous syahi.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5737,11 +5737,11 @@
       "source": "sanganeri.explanation.dabu-mechanical-resist",
       "target": "shared.scientific_mechanism.mud-resist-barrier",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Shared mud-resist mechanism.",
+      "explanation": "Dabu acts as a mechanical resist and keeps the dye from the areas it covers.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5777,11 +5777,11 @@
       "source": "sanganeri.explanation.indigo-oxidation-and-dips",
       "target": "shared.scientific_mechanism.indigo-vat-reduction",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Shared indigo vat reduction and oxidation mechanism.",
+      "explanation": "Opened out in the air, the reduced indigo reacts with atmospheric oxygen and turns into oxidised indigo.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5797,11 +5797,11 @@
       "source": "sanganeri.process_stage.alum-post-mordant",
       "target": "shared.scientific_mechanism.alum-mordant-complexation",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Alum makes the fugitive yellow fast.",
+      "explanation": "The turmeric and pomegranate-peel yellow is fugitive, and post-mordanting with alum makes it fast.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],

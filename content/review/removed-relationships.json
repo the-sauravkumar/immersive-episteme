@@ -354,5 +354,20 @@
       "S5"
     ],
     "removal_reason": "DR-120 source check: S4 and S5 list sun drying and bleaching as separate steps; no recorded source says the sun bleaches the cloth."
+  },
+  {
+    "file": "shared/craft-science.json",
+    "source": "shared.scientific_mechanism.mud-resist-barrier",
+    "target": "shared.scientific_mechanism.indigo-vat-reduction",
+    "type": "CONTRASTS_WITH",
+    "explanation": "Resist blocks dye physically, whereas indigo colours by redox; resist is applied before the vat so covered areas stay undyed except along cracks.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S10"
+    ],
+    "removal_reason": "DR-122 source check: S10 gives the mud resist and the indigo vat as successive steps of one process (the resist is printed on the areas to remain undyed, then the cloth goes into the vat); the only contrast it draws is mordant-dyed against resist-dyed. No recorded source contrasts the resist barrier with vat reduction."
   }
 ]
