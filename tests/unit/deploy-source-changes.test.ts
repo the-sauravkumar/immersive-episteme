@@ -101,8 +101,8 @@ describe("S6/S7: image caching", () => {
 
   it("serves figures with a private cache (the site is invite-only)", () => {
     const src = readFileSync("src/app/figures/[assetId]/route.ts", "utf8");
-    expect(src).toContain('"Cache-Control": `private, max-age=${maxAge}, must-revalidate`');
-    expect(src).not.toContain("`public, max-age=${maxAge}");
+    expect(src).toContain('"Cache-Control": `private, max-age=${FIGURE_MAX_AGE}, must-revalidate`');
+    expect(src).not.toContain("`public, max-age=${FIGURE_MAX_AGE}");
   });
 });
 

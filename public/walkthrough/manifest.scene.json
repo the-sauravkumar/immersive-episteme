@@ -332,5 +332,15 @@
     "widthPx": 2048,
     "licence": "CC BY 4.0 per GBIF media record; the ruler in the photo reads 'copyright reserved'",
     "permission": "Licensed for public use by CXA's approval (DR-118); texture quilted from the photo (scripts/content/build-pile-skins.mjs)"
+  },
+  {
+    "file": "public/walkthrough/tex/horizon/scrub.png",
+    "usedFor": "the scrub band on the horizon hills, drawn procedurally (no source image) and baked once so it is not drawn on the main thread (DR-117)",
+    "holder": "Drawn by this project",
+    "sourcePage": "tools/walkthrough-lab/bake-horizon.cjs",
+    "directUrl": "tools/walkthrough-lab/bake-horizon.cjs",
+    "licence": "CC0 1.0",
+    "permission": "none needed; drawn by this project from no outside input",
+    "widthPx": 4096
   }
 ]
