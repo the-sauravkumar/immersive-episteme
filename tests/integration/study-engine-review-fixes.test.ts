@@ -283,8 +283,10 @@ describe.skipIf(!TEST_URL)("study engine: final review fixes", { timeout: 60_000
       [s.participantId, instrumentId],
     );
     expect(attempts.rows).toEqual([{ session_id: s.sessionId, attempt: 1 }, { session_id: out.sessionId, attempt: 2 }]);
-    const order = (await state(out.sessionId)).traditionOrder;
-    expect(order).toEqual((await state(s.sessionId)).traditionOrder);
+    const tradition = (await state(out.sessionId)).tradition;
+    expect(tradition).toBe("fx-tradition");
+    expect(tradition).toBe((await state(s.sessionId)).tradition);
+    expect((await t.pool.query<{ task_code: string }>("SELECT task_code FROM allocations WHERE participant_id = $1 ORDER BY period", [s.participantId])).rows.map((r) => r.task_code)).toEqual(["fx-tradition", "fx-tradition"]);
   });
 
   it("a reassigned participant is analysed once, in the arm of the session that replaced the abandoned one, and withdrawing withdraws both", async () => {

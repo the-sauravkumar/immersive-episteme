@@ -13,6 +13,7 @@ const row = (events: number): SessionTelemetryRow => ({
   sessionId: "0190f0a0-0000-7000-8000-00000000e001",
   participantCode: "P-LIVE01",
   conditionId: "c2d",
+  tradition: "ajrakh",
   status: "in_progress",
   events,
   stageMs: 90_000,

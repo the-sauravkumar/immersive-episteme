@@ -40,7 +40,7 @@ const issuesOf = (raw: Record<string, unknown>) => {
 describe("study protocol config (Concept Note rev2, section 7)", () => {
   it("defaults to the note's order, with no concept map before learning", () => {
     expect(DEFAULT_STEPS).toEqual([
-      "questionnaire_pre", "pre_test", "entrance", "familiarisation", "onboarding", "learning",
+      "questionnaire_pre", "pre_test", "familiarisation", "onboarding", "learning",
       "questionnaire_post_learning", "post_test", "transfer", "reconstruction", "layout_sketch", "questionnaire_end", "delayed_test",
     ]);
     const p = parseStudyProtocol({});
@@ -88,8 +88,8 @@ describe("study protocol config (Concept Note rev2, section 7)", () => {
     expect(issuesOf({ steps: [...tail, "delayed_test"] })).toEqual([]);
     expect(issuesOf({ steps: [...tail] })).toEqual([]);
     expect(issuesOf({ steps: ["onboarding", "learning", "questionnaire_post_learning", "delayed_test", "questionnaire_end"] })).toContain("steps: delayed_test must be the last step");
-    expect(issuesOf({ steps: ["entrance", "familiarisation", "onboarding", "learning"] })).toEqual([]);
-    expect(issuesOf({ steps: ["familiarisation", "entrance", "onboarding", "learning"] })).toContain("steps: entrance must come before familiarisation");
+    expect(issuesOf({ steps: ["familiarisation", "onboarding", "learning"] })).toEqual([]);
+    expect(() => studyConfigSchema.parse({ steps: ["entrance", "familiarisation", "onboarding", "learning"] })).toThrow();
     expect(() => studyConfigSchema.parse({ delayedTest: { opensAfterDays: 8, dueAfterDays: 7, closesAfterDays: 14 } })).toThrow();
   });
 
@@ -120,12 +120,11 @@ describe("study protocol config (Concept Note rev2, section 7)", () => {
 describe("journey rules", () => {
   const steps = DEFAULT_STEPS;
   const blind = ["questionnaire_pre", "pre_test"] as const;
-  it("runs the blind steps, then the device check, then allocation, then the entrance and the rest", () => {
+  it("runs the blind steps, then the device check, then allocation, then straight into the practice and the rest", () => {
     expect(positionOf({ steps, blind, done: new Set(), allocated: false, devicePassed: false })).toMatchObject({ kind: "step", step: "questionnaire_pre" });
     expect(positionOf({ steps, blind, done: new Set(blind), allocated: false, devicePassed: false })).toEqual({ kind: "device_check" });
     expect(positionOf({ steps, blind, done: new Set(blind), allocated: false, devicePassed: true })).toEqual({ kind: "allocation" });
-    expect(positionOf({ steps, blind, done: new Set(blind), allocated: true, devicePassed: true })).toMatchObject({ step: "entrance" });
-    expect(positionOf({ steps, blind, done: new Set([...blind, "entrance"]), allocated: true, devicePassed: true })).toMatchObject({ step: "familiarisation" });
+    expect(positionOf({ steps, blind, done: new Set(blind), allocated: true, devicePassed: true })).toMatchObject({ step: "familiarisation" });
     expect(positionOf({ steps, blind, done: new Set(steps), allocated: true, devicePassed: true })).toEqual({ kind: "finish" });
   });
 

@@ -54,11 +54,35 @@ describe("seeded permuted-block allocation", () => {
       seed: "s",
       sequenceIndex: i,
       stratum: null,
+      taskCode: null,
       period: 1,
     }));
     expect(auditAllocations(rows, C)).toEqual({ checked: 8, skipped: 0, mismatches: [] });
     const tampered = rows.map((r, i) => (i === 3 ? { ...r, conditionId: r.conditionId === "id-2d" ? "id-3d" : "id-2d" } : r));
     expect(auditAllocations(tampered, C).mismatches).toHaveLength(1);
     expect(auditAllocations([...rows, { ...rows[0]!, algorithm: "manual", period: 2 }], C).skipped).toBe(1);
+  });
+
+  it("audits the condition draws blocked within each tradition and stratum", () => {
+    const traditions = ["ajrakh", "sanganeri", "ajrakh", "ajrakh", "sanganeri", "ajrakh"];
+    const seen = new Map<string, number>();
+    const rows = traditions.map((taskCode, i) => {
+      const stratum = i % 2 === 0 ? "low" : "high";
+      const key = `${taskCode}:${stratum}`;
+      const index = seen.get(key) ?? 0;
+      seen.set(key, index + 1);
+      return {
+        participantId: `p${i}`,
+        conditionId: drawCondition({ algorithm: "stratified_block", seed: "s", conditions: C, index, stratum: key }).conditionId,
+        algorithm: "stratified_block",
+        seed: "s",
+        sequenceIndex: i,
+        stratum,
+        taskCode,
+        period: 1,
+      };
+    });
+    expect(auditAllocations(rows, C)).toEqual({ checked: 6, skipped: 0, mismatches: [] });
+    expect(auditAllocations(rows.map((r) => ({ ...r, taskCode: null })), C).mismatches.length).toBeGreaterThan(0);
   });
 });

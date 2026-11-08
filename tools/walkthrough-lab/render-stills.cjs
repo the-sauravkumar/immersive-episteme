@@ -57,13 +57,6 @@ async function shoot(browser, url, file, width, height, scale = 1) {
     }
     if (process.env.STILL_INDEX) fs.writeFileSync(process.env.STILL_INDEX, JSON.stringify(jobs, null, 1));
   }
-  if (wanted("first-panel")) await shoot(browser, origin + "/panel.html?practice=1", `${STILLS}/door1-first-panel.jpg`, 1707, 960, 2);
-  if (wanted("practice-view")) await shoot(browser, base + "s=practice", `${STILLS}/practice-view.jpg`, 3840, 2160);
-  if (wanted("entrance")) {
-    await shoot(browser, base + "s=entrance", `${STILLS}/entrance-closed.jpg`, 3840, 2160);
-    await shoot(browser, base + "s=entrance&open=door-1&t=1", `${STILLS}/entrance-open1.jpg`, 3840, 2160);
-    await shoot(browser, base + "s=entrance&open=door-2&t=1", `${STILLS}/entrance-open2.jpg`, 3840, 2160);
-  }
   await browser.close();
 })().catch((error) => {
   console.log("FAIL", error.message.slice(0, 400));

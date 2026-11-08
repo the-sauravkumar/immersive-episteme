@@ -11,8 +11,9 @@ test.use({ actionTimeout: 60_000 });
 const expect = baseExpect.configure({ timeout: 90_000 });
 
 const STOPS_PER_TRADITION = 10;
-const TRADITIONS = 3;
+const TRADITIONS = 1;
 const REQUIRED_STOPS = STOPS_PER_TRADITION * TRADITIONS;
+const STUDY_TRADITIONS = ["ajrakh", "machilipatnam-kalamkari", "sanganeri"];
 
 async function assertOtherDoorShut(page: Page, door: Journey["door"]): Promise<void> {
   const other = door === "2d" ? "/learn/immersive" : "/learn/2d";
@@ -81,7 +82,8 @@ async function walkYards(page: Page, journey: Journey): Promise<void> {
       }
       await page.getByRole("button", { name: "Walk On" }).click();
     }
-    await expect(page.getByRole("button", { name: /Next Tradition|Questions/ })).toBeVisible({ timeout: 180_000 });
+    await expect(page.getByRole("button", { name: /Questions/ })).toBeVisible({ timeout: 180_000 });
+    await expect(page.getByRole("button", { name: /Next Tradition/ })).toHaveCount(0);
     await shot(page, journey, `door2-hall-${tradition}`, [1366]);
     await page.getByRole("button", { name: /Next Tradition|Questions/ }).click();
   }
@@ -96,8 +98,6 @@ async function runJourney(browser: Browser, door: Journey["door"]): Promise<{ co
   }
   const journey: Journey = { ...partial, door, label: door === "2d" ? "door1" : "door2" };
   watch(page, journey);
-  await shot(page, journey, "entrance-open", [1366, 400]);
-  await page.getByRole("button", { name: "Continue" }).click();
   const practice = door === "2d" ? /\/learn\/2d\/practice/ : /\/learn\/immersive\/practice/;
   await expect(page).toHaveURL(practice);
   const session = await sessionByCode(code, JOURNEY_STUDY);
@@ -172,6 +172,16 @@ async function provePersisted(sessionId: string, door: Journey["door"]): Promise
   );
   expect(visits.rows.length).toBe(REQUIRED_STOPS);
   expect(visits.rows.filter((row) => row.stage_key === "products").length).toBe(TRADITIONS);
+  const assigned = await db().query<{ tradition: string; task_code: string }>("SELECT ss.tradition, a.task_code FROM study_sessions ss JOIN allocations a ON a.id = ss.allocation_id WHERE ss.id = $1", [sessionId]);
+  expect(STUDY_TRADITIONS).toContain(assigned.rows[0]!.tradition);
+  expect(assigned.rows[0]!.task_code).toBe(assigned.rows[0]!.tradition);
+  expect(new Set(visits.rows.map((row) => row.tradition_key))).toEqual(new Set([assigned.rows[0]!.tradition]));
+  const offered = await db().query<{ tradition: string | null }>(
+    `SELECT DISTINCT i.config->'target'->>'tradition' AS tradition FROM responses r JOIN assessment_items i ON i.id = r.item_id
+      WHERE r.session_id = $1 AND i.config->'target'->>'tradition' = ANY($2::text[])`,
+    [sessionId, STUDY_TRADITIONS],
+  );
+  expect(offered.rows.map((row) => row.tradition)).toEqual([assigned.rows[0]!.tradition]);
   expect(visits.rows.some((row) => row.visits > 1)).toBe(true);
   expect(visits.rows.filter((row) => row.active === null)).toEqual([]);
   const budget = await db().query<{ learning_budget_seconds: number; ended: boolean }>("SELECT learning_budget_seconds, learning_ended_at IS NOT NULL AS ended FROM study_sessions WHERE id = $1", [sessionId]);

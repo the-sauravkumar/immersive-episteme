@@ -47,6 +47,7 @@ interface AncovaRow {
   conditionCode: string;
   conditionInterface: string;
   stratum: string | null;
+  tradition: string | null;
   preTest: number | null;
   sequence: number | null;
   sequenceDelayed: number | null;
@@ -59,6 +60,7 @@ export interface SessionTelemetryRow {
   sessionId: string;
   participantCode: string;
   conditionId: string;
+  tradition: string | null;
   status: string;
   events: number;
   stageMs: number;
@@ -71,6 +73,7 @@ export interface SessionTelemetryRow {
 
 interface QualityData {
   sessionsByStatus: { conditionId: string | null; status: string; n: number }[];
+  allocationCells: { conditionId: string; tradition: string; n: number }[];
   sequence: { kind: string; open: number; resolved: number; missingSeq: number }[];
   quarantine: { reason: string; n: number; unresolved: number }[];
   duplicates: number;
@@ -154,6 +157,7 @@ interface SessionRow {
   id: string;
   participantCode: string;
   conditionId: string | null;
+  tradition: string | null;
   period: number;
   status: string;
   excluded: boolean;
@@ -179,7 +183,7 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
   const [conditions, sessionRows, strata, testScores, mapScores, edges, keyed, rubric, answers, gaps, quarantine, webglFailures] = await queryAll(q, [
     () => studyConditions(q, studyId),
     () => q.query<SessionRow>(
-      `SELECT ss.id, p.code AS "participantCode", ss.condition_id AS "conditionId", ss.period, ss.status::text AS status, ss.excluded,
+      `SELECT ss.id, p.code AS "participantCode", ss.condition_id AS "conditionId", ss.tradition, ss.period, ss.status::text AS status, ss.excluded,
               ss.exclusion_reason AS "exclusionReason", ss.withdrawn, ss.interrupted, ss.interruption_count AS "interruptionCount",
               ss.device->'check'->>'verdict' AS verdict,
               ((SELECT count(*) FROM sequence_gaps g WHERE g.session_id = ss.id AND g.kind = 'duplicate')
@@ -318,6 +322,7 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
       conditionCode: cond.code,
       conditionInterface: cond.interface,
       stratum: strataByCode.get(code) ?? null,
+      tradition: sessionInfo.get(sessionId)?.tradition ?? null,
       preTest: score(PRE_TEST_COVARIATE.metric, "pre"),
       sequence: score("test.sequence", "post"),
       sequenceDelayed: score("test.sequence", "follow_up"),
@@ -425,6 +430,7 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
       sessionId: s.id,
       participantCode: s.participantCode,
       conditionId: s.conditionId,
+      tradition: s.tradition,
       status: s.status,
       events: t.eventCount,
       stageMs: t.stageMs,
@@ -464,10 +470,18 @@ export async function loadDashboard(q: Q, studyId: string, opts: LoadOptions = {
     const e = byStatus.get(k) ?? byStatus.set(k, { conditionId: s.conditionId, status: s.status, n: 0 }).get(k)!;
     e.n++;
   }
+  const cells = new Map<string, { conditionId: string; tradition: string; n: number }>();
+  for (const s of all) {
+    if (!s.conditionId || !s.tradition || analysedSessionOf(s.id) !== s.id) continue;
+    const k = `${s.conditionId}|${s.tradition}`;
+    const e = cells.get(k) ?? cells.set(k, { conditionId: s.conditionId, tradition: s.tradition, n: 0 }).get(k)!;
+    e.n++;
+  }
   const excludedBy = new Map<string, number>();
   for (const s of all.filter((x) => x.excluded)) excludedBy.set(category(s.exclusionReason), (excludedBy.get(category(s.exclusionReason)) ?? 0) + 1);
   const quality: QualityData = {
     sessionsByStatus: [...byStatus.values()],
+    allocationCells: [...cells.values()].sort((a, b) => (a.tradition < b.tradition ? -1 : a.tradition > b.tradition ? 1 : a.conditionId < b.conditionId ? -1 : 1)),
     sequence: gaps.rows.map((g) => ({ kind: g.kind, open: g.open, resolved: g.resolved, missingSeq: g.missing })),
     quarantine: quarantine.rows,
     duplicates: all.reduce((n, s) => n + s.duplicates, 0),
@@ -538,6 +552,7 @@ function dashboardTableRows(data: DashboardData, table: DashboardTableName): { r
           condition_code: r.conditionCode,
           condition_interface: r.conditionInterface,
           stratum: r.stratum,
+          tradition: r.tradition,
           pre_test: r.preTest,
           sequence_immediate: r.sequence,
           sequence_delayed: r.sequenceDelayed,
@@ -560,6 +575,7 @@ function dashboardTableRows(data: DashboardData, table: DashboardTableName): { r
           participant_code: r.participantCode,
           session_id: r.sessionId,
           condition_code: cond(r.conditionId)?.code ?? null,
+          tradition: r.tradition,
           status: r.status,
           events: r.events,
           stage_ms: r.stageMs,
@@ -575,6 +591,7 @@ function dashboardTableRows(data: DashboardData, table: DashboardTableName): { r
       const q = data.quality;
       const rows: { check: string; detail: string; condition_code: string | null; n: number }[] = [
         ...q.sessionsByStatus.map((s) => ({ check: "sessions_by_status", detail: s.status, condition_code: cond(s.conditionId)?.code ?? "unallocated", n: s.n })),
+        ...q.allocationCells.map((x) => ({ check: "analysed_sessions_by_tradition", detail: x.tradition, condition_code: cond(x.conditionId)?.code ?? null, n: x.n })),
         ...q.sequence.flatMap((g) => [
           { check: "sequence_anomalies_open", detail: g.kind, condition_code: null, n: g.open },
           { check: "sequence_anomalies_resolved", detail: g.kind, condition_code: null, n: g.resolved },

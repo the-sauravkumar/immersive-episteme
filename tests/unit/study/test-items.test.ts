@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 
 import { itemConfigSchema } from "@/features/research/contracts";
 import type { StageTemplate, TemplateStage, TraditionKey } from "@/features/process/domain/stage-template";
-import { buildTestBattery, carriesSampleText, DONT_KNOW_OPTION, LAYOUT_SKETCH_PROMPT, linearOrder, transferItems, type GeneratedAssessment, type GeneratedItem, type UnseenTradition } from "@/features/study/test-items";
+import { buildTestBattery, carriesSampleText, DONT_KNOW_OPTION, FORM_LENGTHS, LAYOUT_SKETCH_PROMPT, linearOrder, servesTradition, transferItems, type GeneratedAssessment, type GeneratedItem, type UnseenTradition } from "@/features/study/test-items";
 
 function template(tradition: TraditionKey): StageTemplate {
   const stages: TemplateStage[] = [1, 2, 3, 4, 5, 6].map((number) => ({
@@ -41,7 +41,9 @@ const byCode = (code: string): GeneratedAssessment => {
   if (!found) throw new Error(`no ${code}`);
   return found;
 };
-const objectsOf = (assessment: GeneratedAssessment) => assessment.items.map((item) => (item.config.target as { objectKey?: string }).objectKey);
+const traditionOf = (item: GeneratedItem) => (item.config.target as { tradition?: string } | undefined)?.tradition ?? null;
+const of = (assessment: GeneratedAssessment, tradition: string) => assessment.items.filter((item) => traditionOf(item) === tradition);
+const objectsOf = (items: readonly GeneratedItem[]) => items.map((item) => (item.config.target as { objectKey?: string }).objectKey);
 
 describe("test item generation", () => {
   it("builds each form with valid configs and keys", () => {
@@ -61,20 +63,45 @@ describe("test item generation", () => {
     expect(pre.items.every((i) => i.kind === "single_choice")).toBe(true);
     for (const item of pre.items) expect((item.config.options as { id: string }[]).at(-1)).toEqual(DONT_KNOW_OPTION);
     expect(battery.filter((a) => a.kind === "reconstruction").map((a) => a.phase)).toEqual(["post"]);
-    expect(byCode("test-concept-map").items).toHaveLength(3);
+    expect(byCode("test-concept-map").items.map(traditionOf)).toEqual(["ajrakh", "sanganeri", "machilipatnam-kalamkari"]);
     expect(byCode("test-concept-map").items[0]!.config.conceptKeys).toEqual([...templates[0]!.stages.map((s) => s.sourceStageKeys[0]), ...templates[0]!.stages.map((s) => s.items[0]!.key)]);
   });
 
-  it("keeps the pre-test, immediate and delayed forms apart object by object", () => {
-    const pre = new Set(byCode("test-pre").items.map((i) => `${i.itemKey.split(".")[1]}:${(i.config.target as { objectKey: string }).objectKey}`));
-    const immediate = objectsOf(byCode("test-identification"));
-    const delayed = objectsOf(byCode("test-identification-delayed"));
-    expect(delayed.length).toBeGreaterThan(0);
-    expect(delayed.length).toBeLessThan(immediate.length);
-    expect(immediate.filter((key) => delayed.includes(key))).toEqual([]);
-    expect(immediate.filter((key) => pre.has(`id:${key}`))).toEqual([]);
-    const placeNow = objectsOf(byCode("test-stage-placement"));
-    expect(placeNow.filter((key) => objectsOf(byCode("test-stage-placement-delayed")).includes(key))).toEqual([]);
+  it("tags every learned-tradition item with its tradition and gives every tradition a form of the same length", () => {
+    for (const assessment of battery) {
+      const tagged = assessment.items.filter((item) => templates.some((t) => t.tradition === traditionOf(item)));
+      if (tagged.length === 0) continue;
+      const lengths = templates.map((t) => of(assessment, t.tradition).length);
+      expect(new Set(lengths).size, assessment.code).toBe(1);
+      expect(lengths[0], assessment.code).toBeGreaterThan(0);
+      expect(tagged.length, assessment.code).toBe(assessment.items.length);
+    }
+    expect(of(byCode("test-pre"), "ajrakh")).toHaveLength(FORM_LENGTHS.preIdentification + FORM_LENGTHS.prePlacement);
+    expect(of(byCode("test-identification"), "ajrakh")).toHaveLength(6);
+    expect(of(byCode("test-attribution"), "ajrakh")).toHaveLength(2);
+  });
+
+  it("asks the same objects of one tradition before learning, straight after and at the delayed test", () => {
+    for (const t of templates) {
+      const pre = byCode("test-pre").items.filter((i) => traditionOf(i) === t.tradition);
+      const preNamed = objectsOf(pre.filter((i) => i.itemKey.startsWith("pre.id.")));
+      const prePlaced = objectsOf(pre.filter((i) => i.itemKey.startsWith("pre.place.")));
+      const immediate = objectsOf(of(byCode("test-identification"), t.tradition));
+      const delayed = objectsOf(of(byCode("test-identification-delayed"), t.tradition));
+      expect(preNamed.every((key) => immediate.includes(key))).toBe(true);
+      expect(delayed).toEqual(immediate.slice(0, delayed.length));
+      expect(prePlaced.every((key) => objectsOf(of(byCode("test-stage-placement"), t.tradition)).includes(key))).toBe(true);
+      expect(of(byCode("test-stage-placement-delayed"), t.tradition)).toEqual(of(byCode("test-stage-placement"), t.tradition));
+    }
+  });
+
+  it("serves a participant only the items of the tradition they learned, and every untagged or unseen-tradition item", () => {
+    const learnable = templates.map((t) => t.tradition);
+    expect(servesTradition({ target: { tradition: "ajrakh" } }, "ajrakh", learnable)).toBe(true);
+    expect(servesTradition({ target: { tradition: "sanganeri" } }, "ajrakh", learnable)).toBe(false);
+    expect(servesTradition({ target: { tradition: "bagru" } }, "ajrakh", learnable)).toBe(true);
+    expect(servesTradition({ kind: "sketch" }, "ajrakh", learnable)).toBe(true);
+    expect(servesTradition({ target: { tradition: "ajrakh" } }, null, learnable)).toBe(false);
   });
 
   it("asks every placement, identification and pre-test option list to be shuffled, so no order or answer position shows", () => {
@@ -117,28 +144,28 @@ describe("test item generation", () => {
     expect(placed).not.toContain(stages[4]!.items[0]!.key);
   });
 
-  it("makes sequence items with all stages at once and a shorter parallel set later", () => {
-    const now = byCode("test-sequence").items[0]!;
-    expect(now.kind).toBe("ranking");
-    expect(now.answerKey).toEqual({ order: ["s1", "s2", "s3", "s4", "s5", "s6"] });
-    expect(byCode("test-sequence-delayed").items[0]!.answerKey).toEqual({ order: ["s2", "s4", "s6"] });
+  it("makes three sequence items per tradition, all stages and the two alternating halves, the same later", () => {
+    const now = of(byCode("test-sequence"), "ajrakh");
+    expect(now.map((i) => i.kind)).toEqual(["ranking", "ranking", "ranking"]);
+    expect(now.map((i) => i.answerKey)).toEqual([{ order: ["s1", "s2", "s3", "s4", "s5", "s6"] }, { order: ["s1", "s3", "s5"] }, { order: ["s2", "s4", "s6"] }]);
+    expect(of(byCode("test-sequence-delayed"), "ajrakh")).toEqual(now);
   });
 
-  it("matches shared cloth state files to stages with parallel sets", () => {
-    const now = byCode("test-cloth-state").items[0]!;
-    const config = now.config as { pairs: { id: string; image: { path: string } }[]; options: unknown[] };
-    expect(config.pairs.map((p) => p.image.path)).toEqual(["/walkthrough/cloth/ajrakh-c1.jpg", "/walkthrough/cloth/ajrakh-c3.jpg", "/walkthrough/cloth/ajrakh-c5.jpg"]);
+  it("matches shared cloth state files to stages in three interleaved sets that together cover every stage", () => {
+    const now = of(byCode("test-cloth-state"), "ajrakh");
+    const config = now[0]!.config as { pairs: { id: string; image: { path: string } }[]; options: unknown[] };
+    expect(config.pairs.map((p) => p.image.path)).toEqual(["/walkthrough/cloth/ajrakh-c1.jpg", "/walkthrough/cloth/ajrakh-c4.jpg"]);
     expect(config.options).toHaveLength(6);
-    expect(now.answerKey).toEqual({ matches: { p1: "s1", p3: "s3", p5: "s5" } });
-    expect(byCode("test-cloth-state-delayed").items[0]!.answerKey).toEqual({ matches: { p2: "s2", p4: "s4", p6: "s6" } });
+    expect(now.map((i) => i.answerKey)).toEqual([{ matches: { p1: "s1", p4: "s4" } }, { matches: { p2: "s2", p5: "s5" } }, { matches: { p3: "s3", p6: "s6" } }]);
+    expect(of(byCode("test-cloth-state-delayed"), "ajrakh")).toEqual(now);
   });
 
-  it("attributes a product image to a tradition, using another image for the delayed form when one exists", () => {
-    const now = byCode("test-attribution").items[0]!;
-    expect((now.config as { image: { path: string } }).image.path).toBe("/walkthrough/ajrakh-1.jpg");
-    expect((byCode("test-attribution-delayed").items[0]!.config as { image: { path: string } }).image.path).toBe("/walkthrough/ajrakh-2.jpg");
-    expect(now.answerKey).toEqual({ optionId: "ajrakh" });
-    expect((now.config.options as unknown[]).length).toBe(3);
+  it("attributes each of the tradition's product images to a tradition, the same images later", () => {
+    const now = of(byCode("test-attribution"), "ajrakh");
+    expect(now.map((i) => (i.config as { image: { path: string } }).image.path)).toEqual(["/walkthrough/ajrakh-1.jpg", "/walkthrough/ajrakh-2.jpg"]);
+    expect(of(byCode("test-attribution-delayed"), "ajrakh")).toEqual(now);
+    expect(now[0]!.answerKey).toEqual({ optionId: "ajrakh" });
+    expect((now[0]!.config.options as unknown[]).length).toBe(3);
   });
 
   it("marks the transfer account as Sample Text, draws only from the relations, and uses another tradition later", () => {
@@ -204,9 +231,19 @@ describe("no option can be found from the question's wording", () => {
     }
   });
 
-  it("gives the delayed stage placement form as many items as the immediate one", () => {
-    expect(byCode("test-stage-placement").items.length).toBeGreaterThan(0);
-    expect(byCode("test-stage-placement-delayed").items.length).toBe(byCode("test-stage-placement").items.length);
+  it("gives each study tradition the designed form lengths, from the verified templates alone", () => {
+    const lengthOf = (code: string) => {
+      const counts = new Set(["ajrakh", "machilipatnam-kalamkari", "sanganeri"].map((t) => generated.find((a) => a.code === code)!.items.filter((i) => traditionOf(i) === t).length));
+      expect(counts.size, code).toBe(1);
+      return [...counts][0];
+    };
+    expect(lengthOf("test-pre")).toBe(12);
+    expect(lengthOf("test-identification")).toBe(13);
+    expect(lengthOf("test-identification-delayed")).toBe(11);
+    expect(lengthOf("test-stage-placement")).toBe(7);
+    expect(lengthOf("test-stage-placement-delayed")).toBe(7);
+    for (const code of ["test-sequence", "test-cloth-state", "test-attribution", "test-sequence-delayed", "test-cloth-state-delayed", "test-attribution-delayed"]) expect(lengthOf(code)).toBe(3);
+    expect(lengthOf("test-concept-map")).toBe(1);
   });
 
   it("skips a tool, a next stage or a distractor that repeats the stage named in the question", () => {

@@ -99,12 +99,12 @@ export async function buildExportBundle(q: Q, studyId: string, opts: { scope: Ex
   const tables: Record<string, Row[]> = {
     conditions: await rows(`SELECT id AS condition_id, code, interface::text AS interface, allocation_weight FROM study_conditions WHERE study_id = $1 ORDER BY position, code`),
     participants: await rows(
-      `SELECT code AS participant_code, status::text AS status, stratum, ${ts("enrolled_at")} AS enrolled_at, ${ts("withdrawn_at")} AS withdrawn_at,
+      `SELECT code AS participant_code, status::text AS status, stratum, returning_from IS NOT NULL AS returning, ${ts("enrolled_at")} AS enrolled_at, ${ts("withdrawn_at")} AS withdrawn_at,
               ${category("exclusion_reason")} AS exclusion_category
          FROM participants WHERE study_id = $1 ORDER BY code`,
     ),
     allocations: await rows(
-      `SELECT p.code AS participant_code, a.condition_id, a.period, a.algorithm::text AS algorithm,
+      `SELECT p.code AS participant_code, a.condition_id, a.period, a.task_code AS tradition, a.algorithm::text AS algorithm,
               CASE WHEN (SELECT status FROM studies WHERE id = $1) = 'closed' THEN a.seed END AS seed, a.sequence_index,
               a.block_index, a.stratum, a.study_protocol_version, ${ts("a.allocated_at")} AS allocated_at
          FROM allocations a JOIN participants p ON p.id = a.participant_id WHERE a.study_id = $1 ORDER BY a.sequence_index, a.period`,
@@ -112,7 +112,7 @@ export async function buildExportBundle(q: Q, studyId: string, opts: { scope: Ex
     sessions: await rows(
       `SELECT ss.id AS session_id, p.code AS participant_code, ss.condition_id, ss.period, ss.status::text AS status, ss.snapshot_id, ss.manifest_id,
               ss.app_build, ss.compiler_version, ${ts("ss.started_at")} AS started_at, ${ts("ss.completed_at")} AS completed_at,
-              ${ts("ss.learning_started_at")} AS learning_started_at, ss.learning_budget_seconds, ${ts("ss.learning_ended_at")} AS learning_ended_at, ss.template_sha256, ss.tradition_order,
+              ${ts("ss.learning_started_at")} AS learning_started_at, ss.learning_budget_seconds, ${ts("ss.learning_ended_at")} AS learning_ended_at, ss.template_sha256, ss.tradition,
               ss.interrupted, ss.interruption_count, ss.device, ss.withdrawn, ss.excluded, ${category("ss.exclusion_reason")} AS exclusion_category,
               CASE WHEN $2 THEN ss.exclusion_reason END AS exclusion_reason,
               (st.is_demo OR coalesce((st.config->>'nonExperimental')::boolean, false)) AS non_experimental,

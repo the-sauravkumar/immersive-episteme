@@ -1,7 +1,9 @@
 import type { Pool, PoolClient } from "pg";
 
 import { MAP_FORMAT, extendsLog, type MapPayload } from "@/components/assessment/map-state";
+import { servesTradition } from "@/features/study/test-items";
 import { inTransaction } from "@/server/db/transaction";
+import { loadStageTemplates } from "@/server/study/stage-templates";
 
 import { AssessmentError, assertUuid, mapDbError, type Q } from "./common";
 import { conceptSetFromSnapshot, conceptSetFromTables, type ConceptSet } from "./concept-set";
@@ -38,6 +40,7 @@ interface SessionRow {
   study_id: string;
   snapshot_id: string | null;
   learning_started_at: Date | null;
+  tradition: string | null;
   is_demo: boolean;
 }
 
@@ -45,7 +48,7 @@ async function ownSession(q: Q, who: ParticipantIdentity): Promise<SessionRow> {
   assertUuid(who.sessionId, "Session");
   assertUuid(who.participantId, "Participant");
   const r = await q.query<SessionRow>(
-    "SELECT ss.id, ss.study_id, ss.snapshot_id, ss.learning_started_at, st.is_demo FROM study_sessions ss JOIN studies st ON st.id = ss.study_id WHERE ss.id = $1 AND ss.participant_id = $2",
+    "SELECT ss.id, ss.study_id, ss.snapshot_id, ss.learning_started_at, ss.tradition, st.is_demo FROM study_sessions ss JOIN studies st ON st.id = ss.study_id WHERE ss.id = $1 AND ss.participant_id = $2",
     [who.sessionId, who.participantId],
   );
   const row = r.rows[0];
@@ -67,11 +70,11 @@ export async function loadReconstructionTask(q: Q, who: ParticipantIdentity): Pr
        JOIN assessments a ON a.id = sa.assessment_id AND a.kind = 'reconstruction'
        JOIN assessment_items i ON i.assessment_id = a.id AND i.kind = 'concept_map'
       WHERE sa.study_id = $1 AND sa.phase::text = $2
-      ORDER BY EXISTS (SELECT 1 FROM concept_maps cm WHERE cm.session_id = $3 AND cm.item_id = i.id AND cm.phase::text = $2 AND cm.is_final), sa.position, i.position
-      LIMIT 1`,
+      ORDER BY EXISTS (SELECT 1 FROM concept_maps cm WHERE cm.session_id = $3 AND cm.item_id = i.id AND cm.phase::text = $2 AND cm.is_final), sa.position, i.position`,
     [session.study_id, phase, session.id],
   );
-  const row = item.rows[0];
+  const learnable = (await loadStageTemplates()).map((template) => template.tradition);
+  const row = item.rows.find((candidate) => servesTradition(candidate.config, session.tradition, learnable));
   if (!row) return { kind: "none", phase };
   const set = session.snapshot_id && !session.is_demo ? await conceptSetFromSnapshot(q, session.snapshot_id, row.config) : await conceptSetFromTables(q, row.config);
   const m = await q.query<{ id: string; revision: number; is_final: boolean; nodes: unknown; raw: unknown }>(

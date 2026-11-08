@@ -259,7 +259,7 @@ study.
   (Sample, pacing and analysis): "Pacing: self-paced with a 30-minute cap and every stage
   visited, with time recorded as an outcome. Fixed time would leave course learners rereading
   while walkthrough learners are still walking." Section 7 (Procedure), step 5, Learning: "Three
-  traditions, order counterbalanced. Every stage must be visited". This replaces the earlier
+  traditions, order counterbalanced. Every stage must be visited" (superseded by DR-132, the lead's decision of 2026-11-08: one tradition per participant, balanced across the doors, every stage of it visited). This replaces the earlier
   rule of 30 minutes with no early finish (`allowEarlyFinish = false`), which held time on task
   constant as DR-015 required; DR-075 moved the engine to the note's pacing, and the note wins
   where it differs (`DESIGN.md` Section 1).

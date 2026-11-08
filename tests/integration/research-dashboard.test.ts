@@ -59,6 +59,7 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
     s.P03 = await createSession(t.pool, studyId, c3d, "P03", 2);
     s.P04 = await createSession(t.pool, studyId, c3d, "P04", 3);
     await t.pool.query("UPDATE participants SET stratum = 'low' WHERE code IN ('P01', 'P03') AND study_id = $1", [studyId]);
+    await t.pool.query("UPDATE study_sessions SET tradition = CASE id WHEN $2::uuid THEN 'sanganeri' ELSE 'ajrakh' END WHERE study_id = $1", [studyId, s.P02.sessionId]);
 
     const map = await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ('dash-map', 1, 'reconstruction', 'Map') RETURNING id");
     const item = await one<{ id: string }>(
@@ -289,10 +290,18 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
     expect(cell(data.primary.summary, "test.stage_placement", "post", c2d).mean).toBeCloseTo(0.7, 10);
     expect(cell(data.primary.summary, "test.pre_test", "pre", c2d).mean).toBeCloseTo(0.375, 10);
     expect(cell(data.primary.summary, "test.stage_placement", "follow_up", c3d).n).toBe(0);
-    expect(data.primary.ancova.map((r) => [r.participantCode, r.conditionCode, r.stratum, r.preTest, r.sequence, r.sequenceDelayed, r.stagePlacement, r.stagePlacementDelayed])).toEqual([
-      ["P01", "conventional", "low", 0.25, 0.5, 0.4, 0.6, null],
-      ["P02", "conventional", null, 0.5, 0.7, null, 0.8, null],
-      ["P03", "immersive", "low", 0.25, 0.9, 0.85, 0.7, null],
+    expect(data.primary.ancova.map((r) => [r.participantCode, r.conditionCode, r.stratum, r.tradition, r.preTest, r.sequence, r.sequenceDelayed, r.stagePlacement, r.stagePlacementDelayed])).toEqual([
+      ["P01", "conventional", "low", "ajrakh", 0.25, 0.5, 0.4, 0.6, null],
+      ["P02", "conventional", null, "sanganeri", 0.5, 0.7, null, 0.8, null],
+      ["P03", "immersive", "low", "ajrakh", 0.25, 0.9, 0.85, 0.7, null],
+    ]);
+  });
+
+  it("counts the analysed sessions in each condition by tradition cell, the tradition being a factor", () => {
+    expect(data.quality.allocationCells.map((x) => [x.tradition, x.conditionId === c2d ? "2d" : "3d", x.n])).toEqual([
+      ["ajrakh", "2d", 1],
+      ["ajrakh", "3d", 1],
+      ["sanganeri", "2d", 1],
     ]);
   });
 
@@ -392,7 +401,7 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
       expect(first).toMatch(/^# immersive-episteme dashboard table dashboard_primary_ancova; study=dash-study; non_experimental=false;/);
       expect(first).toContain("test.pre_test@1.0.0; test.sequence@1.0.0; test.stage_placement@1.0.0");
       const parsed = parseCsv(rest.join("\r\n"));
-      expect(parsed.columns).toEqual(["participant_code", "condition_code", "condition_interface", "stratum", "pre_test", "sequence_immediate", "sequence_delayed", "stage_placement_immediate", "stage_placement_delayed"]);
+      expect(parsed.columns).toEqual(["participant_code", "condition_code", "condition_interface", "stratum", "tradition", "pre_test", "sequence_immediate", "sequence_delayed", "stage_placement_immediate", "stage_placement_delayed"]);
       expect(parsed.rows.map((x) => [x.participant_code, x.pre_test, x.sequence_immediate, x.sequence_delayed, x.stage_placement_immediate])).toEqual([
         ["P01", "0.25", "0.5", "0.4", "0.6"],
         ["P02", "0.5", "0.7", "", "0.8"],

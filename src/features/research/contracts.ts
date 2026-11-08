@@ -54,6 +54,7 @@ export const itemConfigSchema = z.discriminatedUnion("kind", [
     allowFreeNodes: z.boolean().default(false),
     relationshipTypes: z.array(relationshipTypeCodeSchema).default([]),
     directed: z.boolean().default(true),
+    target: itemTargetSchema.optional(),
   }),
 ]);
 export type ItemConfig = z.infer<typeof itemConfigSchema>;

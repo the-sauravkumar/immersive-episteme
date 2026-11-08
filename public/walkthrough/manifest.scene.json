@@ -110,56 +110,6 @@
     "widthPx": 1800
   },
   {
-    "file": "public/walkthrough/stills/door1-first-panel.jpg",
-    "usedFor": "seen through Door 1 in the entrance stills; screenshot of the Door 1 practice panel, plain cotton only",
-    "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-    "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-    "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-    "licence": "CC0 1.0",
-    "permission": "none needed; every input is a CC0 row of this manifest",
-    "widthPx": 3415
-  },
-  {
-    "file": "public/walkthrough/stills/entrance-closed.jpg",
-    "usedFor": "entrance with both doors shut",
-    "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-    "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-    "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-    "licence": "CC0 1.0",
-    "permission": "none needed; every input is a CC0 row of this manifest",
-    "widthPx": 3840
-  },
-  {
-    "file": "public/walkthrough/stills/entrance-open1.jpg",
-    "usedFor": "entrance with Door 1 open",
-    "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-    "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-    "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-    "licence": "CC0 1.0",
-    "permission": "none needed; every input is a CC0 row of this manifest",
-    "widthPx": 3840
-  },
-  {
-    "file": "public/walkthrough/stills/entrance-open2.jpg",
-    "usedFor": "entrance with Door 2 open",
-    "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-    "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-    "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-    "licence": "CC0 1.0",
-    "permission": "none needed; every input is a CC0 row of this manifest",
-    "widthPx": 3840
-  },
-  {
-    "file": "public/walkthrough/stills/practice-view.jpg",
-    "usedFor": "seen through Door 2 in the entrance stills; the practice yard",
-    "holder": "Rendered by this project from the CC0 scans listed in this manifest",
-    "sourcePage": "tools/walkthrough-lab/render-stills.cjs",
-    "directUrl": "tools/walkthrough-lab/render-stills.cjs",
-    "licence": "CC0 1.0",
-    "permission": "none needed; every input is a CC0 row of this manifest",
-    "widthPx": 3840
-  },
-  {
     "file": "public/walkthrough/tex/horizon/scrub.png",
     "usedFor": "the distant scrub band on the horizon in Door 2",
     "holder": "Drawn by this project with a seeded generator, no input image",

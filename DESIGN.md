@@ -26,7 +26,7 @@ These are the lead's own words and findings from reviewing the look. They bind e
 ## 1. Status And Scope
 - **Status:** binding for every coding agent. Agent briefs must cite this file and Section 0 by name. Where this file and Concept Note rev2 differ, the note wins, except for the look, where Section 0 wins.
 - **Requirements:** Concept Note rev2 (1 Nov 2026), `D:\Work\IIT-KGP\Immersive_Episteme_Paper1_Concept_Note_rev2.docx`.
-- **Covers:** entrance, Door 1, Door 2, practice, product hall, study and staff screens. "The artisan and science layers, the Comparison Hall and the seven-room topic structure move to Paper 2."
+- **Covers:** Door 1, Door 2, practice, product hall, study and staff screens. "The artisan and science layers, the Comparison Hall and the seven-room topic structure move to Paper 2."
 - **One system (DR-119):** every public, study, CMS, research and admin screen and both doors use this file. The tokens live in `src/styles/walking-tokens.css`, mapped into Tailwind by `src/app/globals.css`; the earlier Atlas system and its light, dark and high-contrast themes are retired, and the `no-restricted-syntax` rule in `eslint.config.mjs` rejects its token names.
 - **Content:** state no craft fact. Stage, tool and material names come from `content/traditions/*/tradition.json`; captions and labels from the checked knowledge base. Anything not yet checked keeps a visible `Sample Text` or proxy mark.
 - **Terms:** a **standpoint** is the camera position on arrival at a station. A **state file** is the one image of the cloth after a stage. A **painted name** is lettering on a real surface (Section 9).
@@ -204,8 +204,8 @@ Reference geometry, metres: eye height 1.6; field of view 55°; yard about 36 wi
 ### 8.6 Map
 The Door 1 strip bent to the route's plan, from the layout generator. Reached stations show their real strip; current has a 3 px turmeric frame; ahead are empty frames on a dashed `--thread` path; the hall sits at the end. The learner's position is always shown.
 
-### 8.7 Entrance
-An open forecourt before a long limewashed building: title lettered on the wall, `Door 1` and `Door 2` over two people-sized indigo plank doors, seen from an oblique, asymmetric viewpoint. Raw cloth runs from a rail on the wall between the doors across the earth, pinned with bricks; raw lengths dry on a frame to one side. The forecourt is built as a 3D scene (`src/features/walkthrough/infrastructure/build-entrance.ts`), but the participant sees it as three fixed renders of that scene at 3840 by 2160, not live: both doors shut, Door 1 open, Door 2 open (`public/walkthrough/stills/entrance-*.jpg`, made by `tools/walkthrough-lab/render-stills.cjs`). The entrance step (`src/components/study/entrance-scene.tsx`) shows the shut still for 3 seconds after the pre-test and allocation, then the still with the assigned door open, then `Continue`. Door names do not describe the other group's experience. Whatever follows the door is seen only by those assigned to it. Stills are what was built on 2026-11-04; no decision record chose them over a live forecourt (DR-095).
+### 8.7 Allocation, No Door Reveal (DR-132)
+There is no entrance and no door reveal. A participant never learns that there are two conditions, how many there are, or what the other is called. After the pre-test and the device check the server allocates the condition; the participant sees one neutral waiting line (`Preparing the next part of the study…`, `src/app/(study)/study/(session)/session/page.tsx`) and is sent straight into the practice of the condition the server chose. No page a participant can reach names a door or the other condition; the e2e journey checks the practice page text for it. The two-door forecourt scene, its three stills and their render jobs were deleted with the entrance step (DR-132; the forecourt had been DR-095's stills).
 
 ### 8.8 Practice Yard And Product Hall
 - **Practice:** same materials and light. Neutral only: plain cotton on rails, one plain box lettered `Practice Object`, the instruction lettered on the shed, a gap to walk through. Timed separately.
@@ -283,15 +283,15 @@ Shared by both doors, built from Section 6 components on a `--vat` page, with a 
 |---|---|---|
 | 1 Consent | Text box, one confirmation checkbox, `I do not want to take part`, `I agree to take part` | Ethics reference CXA/ETH/01 shown. Agreeing needs the tick; declining does not |
 | 2 Background, pre-test | One radio question per screen | Includes `I do not know`; no back; no concept map |
-| 3 Entrance | Section 8.7 | Assignment balanced by pre-test score |
+| 3 Allocation | Section 8.7: one neutral waiting line, then the practice | One tradition per participant, drawn in balanced blocks before the pre-test; condition balanced within tradition and pre-test score (DR-132) |
 | 4 Practice | Panel or room | Timed separately |
-| 5 Learning | Door 1 or Door 2 | Order counterbalanced; every stage visited; 30-minute cap with warning |
+| 5 Learning | Door 1 or Door 2 | The participant's one tradition: its 10 stops, every stop visited; 30-minute cap with warning |
 | 6 Common Questions | 7-point Likert | Mental effort, navigation effort, comfort, engagement; presence and motion sickness for Door 2 only |
 | 7 Test | One item type per screen | See below |
 | 8 Usability | SUS, 5-point | Standard wording |
-| 9 Delayed Test | Return screen with code | About 7 days later, online, parallel form |
+| 9 Delayed Test | Return screen with code | About 7 days later, online, the participant's tradition, repeated items (DR-132) |
 
-**Test items:** Identification (render, radio names). Stage Placement (labelled render, stage select). Sequence (cards with drag and arrows, keyboard usable). Cloth State (state images, stage selects). Attribution (product image, tradition radios). Concept Map (nodes on the raised surface, click two to link, post only). Layout Sketch (plaster canvas with undo and clear, same prompt for both doors). Transfer has no specimen: compose it from a text account plus select or sequence parts. Test images come from the shared files, never an in-scene Door 2 view or a Door 1 panel.
+**Test items:** Identification (render, radio names). Stage Placement (labelled render, stage select). Sequence (cards with drag and arrows, keyboard usable). Cloth State (state images, stage selects). Attribution (product image, tradition radios). Concept Map (nodes on the raised surface, click two to link, post only). Layout Sketch (plaster canvas with undo and clear, same prompt for both doors). Transfer has no specimen: compose it from a text account plus select or sequence parts. Test images come from the shared files, never an in-scene Door 2 view or a Door 1 panel. Every item about a study tradition carries that tradition, and a participant is given only the items of the one tradition they learned (DR-132).
 
 **Staff screens** use the same type, colour and controls, packed tighter: Sign In (wall image beside form), Study Overview (four figures, funnel on cloth steps, export and parity actions), Staff Console (side nav, filter, participant table, status chips), Content Editor (one record with both doors' previews, plus same-words, same-assets and proxy chips), Admin Users (role selects, invite dialog). All demo records carry `Demo:`.
 
@@ -327,7 +327,7 @@ Nobody reports 3D or interface work as done without this. Agents state which ite
 - [ ] Scene audit: no text-bearing mesh without another job. Every painted name fully on its surface, not covered by cloth or an object.
 - [ ] Parity report: same words, model ids and file hashes, per stage and tradition.
 - [ ] Section 8.9 budget met, on a quiet machine, conditions recorded. Flicker numbers reported.
-- [ ] Automated run through both doors: order enforced, back works, every stage visited, ends at product panel or hall. Only the assigned door opens, tested for both.
+- [ ] Automated run through both doors: order enforced, back works, every stage of the assigned tradition visited, ends at product panel or hall. Only the assigned door opens, tested for both; no participant page names a door.
 - [ ] No horizontal scroll at 1366 and 400 px on Door 1, study and staff screens. No missing images or console errors. Card buttons on one line.
 - [ ] Keyboard path works; focus ring visible; targets at least 44 px. Title Case scan passes.
 - [ ] No `Sample Text`, `Stand-In` or proxy mark in a final study build; none missing in a mock-up.
@@ -335,7 +335,7 @@ Nobody reports 3D or interface work as done without this. Agents state which ite
 
 **Required look. Scripts do not replace this.**
 
-- [ ] 3840 by 2160 screenshots on NVIDIA, renderer string confirmed: entrance shut and each door open, practice, each station kind per tradition, onward view, hall default and side, and close-ups at 0.6 m of the cloth at each contact, the ground, boundary wall, shed wall, a model and painted names. Door 1 with 1, 2 and 3 objects, product, practice, and every study or staff screen touched.
+- [ ] 3840 by 2160 screenshots on NVIDIA, renderer string confirmed: practice, each station kind per tradition, onward view, hall default and side, and close-ups at 0.6 m of the cloth at each contact, the ground, boundary wall, shed wall, a model and painted names. Door 1 with 1, 2 and 3 objects, product, practice, and every study or staff screen touched.
 - [ ] Open each image and look at the whole frame and at the edges of the yard. Record what was seen. Would the lead find an obvious fault in ten seconds?
 - [ ] Same stage from both doors side by side: is one plainer? Do they read as one world?
 - [ ] Door 2: would someone want to walk here? Any text hanging in a frame? Any grey emptiness? Is the cloth the event?
