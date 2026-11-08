@@ -9,12 +9,12 @@
   "balancingRule": "Same kinds for every tradition, one photo per kind per tradition, each attached to a concept in the same section for all three. A kind missing for any tradition is dropped for all three, and a kind whose images are not comparable in medium and salience is held back for all three. Result: textile only (one V&A whole-object studio photograph per tradition, context section). Process and tool are dropped because Machilipatnam Kalamkari has no eligible image of either; place is held in reserve because the three images are not comparable.",
   "displayCap": "None. Every image is licensed for public use by CXA's approval (DR-118), so every study photo is served at the full size of its source file; the display, not the file, sets the size each door shows.",
   "statusMeaning": {
-    "proposed": "survived research and verification and fills a balanced kind slot",
+    "approved": "survived research and verification and fills a balanced kind slot; approved for use by CXA (the lead's ruling, DR-131)",
     "reserve": "verified and usable, held back by the balance rule (other image chosen for the slot, or kind dropped), or carried over unchecked from the earlier pass",
     "rejected": "did not survive verification, or superseded; reasons given"
   },
   "counts": {
-    "proposed": {
+    "approved": {
       "ajrakh": 1,
       "machilipatnam-kalamkari": 1,
       "sanganeri": 1
@@ -33,7 +33,7 @@
   "images": [
     {
       "id": "vam-O469296",
-      "status": "proposed",
+      "status": "approved",
       "kind": "textile",
       "tradition": "ajrakh",
       "title": "Two halves of an ajrakh shawl or cover, Sind, ca. 1855-1879 (V&A 5473A/(IS))",
@@ -119,7 +119,7 @@
     },
     {
       "id": "mk-textile-vam-o164855",
-      "status": "proposed",
+      "status": "approved",
       "kind": "textile",
       "tradition": "machilipatnam-kalamkari",
       "title": "Dress fabric, Machilipatnam, 1879 (V&A IS.1765-1883)",
@@ -199,7 +199,7 @@
     },
     {
       "id": "sang-tex-vam-o481213",
-      "status": "proposed",
+      "status": "approved",
       "kind": "textile",
       "tradition": "sanganeri",
       "title": "Wrapped garment, block printed cotton, probably Sanganer, ca. 1855-1879 (V&A 4497(IS)), with octroi stamp",

@@ -5210,8 +5210,8 @@
       "explanation": "At Bagru the scoured cloth is washed in harda before printing.",
       "conditions": "Documented for Bagru by a low-reliability source; not confirmed for Akola.",
       "ordinal": null,
-      "provenance_kind": "unverified",
-      "verification_state": "under_review",
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "verified",
       "source_ids": [
         "S23"
       ],
@@ -5556,8 +5556,8 @@
       "explanation": "An alum-water rinse is reported to fix colour on dabu-printed cloth at Bagru.",
       "conditions": "Bagru account only.",
       "ordinal": null,
-      "provenance_kind": "unverified",
-      "verification_state": "under_review",
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "verified",
       "source_ids": [
         "S23",
         "S14"
@@ -5582,8 +5582,8 @@
       "explanation": "Harda's natural tannic acid acts as a mordant for the iron of the printing colour (Bagru).",
       "conditions": "Bagru account only.",
       "ordinal": null,
-      "provenance_kind": "unverified",
-      "verification_state": "under_review",
+      "provenance_kind": "researcher_interpretation",
+      "verification_state": "verified",
       "source_ids": [
         "S23"
       ],

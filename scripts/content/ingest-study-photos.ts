@@ -200,7 +200,7 @@ export function planStudyPhotos(...proposalsJson: unknown[]): PhotoIngestPlan[] 
   const images = proposalsJson.flatMap((j) => z.object({ images: z.array(z.unknown()) }).parse(j).images);
   const proposed = images
     .map((raw) => proposalSchema.safeParse(raw))
-    .filter((r) => r.success && r.data.status === "proposed")
+    .filter((r) => r.success && r.data.status === "approved")
     .map((r) => r.data!);
   return proposed.map(planPhoto);
 }

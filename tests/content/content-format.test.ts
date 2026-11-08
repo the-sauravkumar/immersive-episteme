@@ -169,3 +169,27 @@ describe.skipIf(files.length === 0)("content/ interchange files", () => {
   });
 });
 
+
+describe("shipped content holds only approved states", () => {
+  const PENDING = new Set(["under_review", "needs_evidence", "pending", "proposed", "held", "draft"]);
+  const NOT_SHIPPED = new Set([join(CONTENT, "review", "removed-relationships.json")]);
+  const HISTORY = new Set(["earlierPass", "earlierStatus"]);
+  const jsonFiles = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((entry) => (entry.isDirectory() ? jsonFiles(join(dir, entry.name)) : entry.name.endsWith(".json") ? [join(dir, entry.name)] : []));
+  const pending = (value: unknown, at: string): string[] => {
+    if (Array.isArray(value)) return value.flatMap((item, index) => pending(item, `${at}[${index}]`));
+    if (!value || typeof value !== "object") return [];
+    return Object.entries(value).flatMap(([key, inner]) => {
+      if (HISTORY.has(key)) return [];
+      if ((key === "verification_state" || key === "status") && typeof inner === "string" && PENDING.has(inner)) return [`${at}.${key} = ${inner}`];
+      return pending(inner, `${at}.${key}`);
+    });
+  };
+
+  it("has no item under review, awaiting evidence, pending or proposed in any shipped content file", () => {
+    const hits = jsonFiles(CONTENT)
+      .filter((file) => !NOT_SHIPPED.has(file))
+      .flatMap((file) => pending(JSON.parse(readFileSync(file, "utf8")), file.slice(CONTENT.length + 1)));
+    expect(hits).toEqual([]);
+  });
+});

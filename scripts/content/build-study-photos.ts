@@ -26,7 +26,7 @@ interface ProposedOriginal {
 function proposedOriginals(...proposalsJson: unknown[]): ProposedOriginal[] {
   return proposalsJson
     .flatMap((json) => (json as { images: Record<string, unknown>[] }).images)
-    .filter((raw) => raw.status === "proposed")
+    .filter((raw) => raw.status === "approved")
     .map((raw) => {
       const proposal = parsePhotoProposal(raw);
       if (typeof raw.sha256 !== "string") throw new Error(`${proposal.id}: no sha256 of the source original recorded`);

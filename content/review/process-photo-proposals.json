@@ -2,7 +2,7 @@
   "purpose": "Curator proposal: kind A (carved wooden printing blocks) for the three study traditions, one tool photograph per tradition, each attached to a tool concept in the materials-tools section. Not craft facts; nothing here is published until curators accept it, and ingest skips every entry whose status is not \"proposed\". Evidence: the process-photo proposal (DR-057), docs/research/sahapedia-image-permission-reply.md and the Flickr records. Never written into content/traditions/*.json.",
   "entryFormat": {
     "id": "unique id; the Flickr ids match the reserve entries of the same photograph in media-proposals.json",
-    "status": "held | proposed | rejected; held = rights and evidence in place for the slot but a named condition is still open (heldUntil); proposed = every condition met (conditionsMet says how); only proposed is ingested",
+    "status": "held | approved | rejected; held = rights and evidence in place for the slot but a named condition is still open (heldUntil); approved = every condition met (conditionsMet says how) and approved for use by CXA (the lead's ruling, DR-131); only approved is ingested",
     "source": "vam | rick-bradley | sahapedia | eric-parker | pari: whose credit, licence and conditions scripts/content/ingest-study-photos.ts applies (PHOTO_SOURCES)",
     "photographer": "the name the credit carries; required by every source except the V&A; a placeholder such as [Photographer's Name] is refused",
     "recordTitle": "optional; the record's own title, quoted in a Flickr credit",
@@ -11,14 +11,14 @@
     "caption": "the record's own wording only while the anchor concept is under review (DR-020); square brackets mark the project's inference; no new craft fact",
     "altText": "what is visible, 8 to 30 words, not the caption",
     "notes": "a note starting with crop, edit or alter is credited (cropped) on the Flickr and V&A sources and refused on Sahapedia and PARI",
-    "heldUntil": "the open conditions; when every one is met, a curator sets status to proposed",
-    "conditionsMet": "how each heldUntil condition was met when the status changed to proposed"
+    "heldUntil": "the open conditions; when every one is met, a curator sets status to approved",
+    "conditionsMet": "how each heldUntil condition was met when the status changed to approved"
   },
   "balanceNote": "The three are proposed together or not at all (DR-020 balance rule: a kind missing for any tradition is dropped for all three). All three are colour still-life photographs of blocks with no people.",
   "images": [
     {
       "id": "flickr-rb-4239431528",
-      "status": "proposed",
+      "status": "approved",
       "source": "rick-bradley",
       "photographer": "Rick Bradley",
       "recordTitle": "printing blocks, ajrakpur, kaach",
@@ -53,7 +53,7 @@
     },
     {
       "id": "sahapedia-mk-blocks-closeup",
-      "status": "proposed",
+      "status": "approved",
       "source": "sahapedia",
       "kind": "blocks",
       "tradition": "machilipatnam-kalamkari",
@@ -89,7 +89,7 @@
     },
     {
       "id": "sang-tool-flickr-6789652042",
-      "status": "proposed",
+      "status": "approved",
       "source": "eric-parker",
       "photographer": "Eric Parker",
       "kind": "blocks",

@@ -21,7 +21,7 @@ const ROOT = join(__dirname, "..", "..", "..");
 const read = (f: string) => JSON.parse(readFileSync(join(ROOT, "content", "review", f), "utf8")) as { images: Record<string, unknown>[] };
 
 const base = {
-  status: "proposed",
+  status: "approved",
   kind: "blocks",
   title: "A test photograph",
   caption: "Printing blocks, [Ajrakhpur], [Kutch].",
@@ -215,7 +215,7 @@ describe("the kind-A proposals (proposed, DR-063)", () => {
       "sanganeri.tool.bunta-wooden-block",
     ]);
     for (const i of file.images) {
-      expect(i).toMatchObject({ status: "proposed", kind: "blocks", section: "materials-tools" });
+      expect(i).toMatchObject({ status: "approved", kind: "blocks", section: "materials-tools" });
       expect(i.heldUntil).toBeUndefined();
       expect((i.conditionsMet as string[]).length).toBeGreaterThan(0);
     }

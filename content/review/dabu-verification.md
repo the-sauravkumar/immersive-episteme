@@ -535,6 +535,14 @@ Each name in `alt_names` is printed by a recorded source; the quote was re-found
 | Aakola Dabu Prints | S5 | § "Application Details" | Geographical Indications Aakola Dabu Prints |
 | mud-resist printing | S2 | § "Usage:" | The dabu or mud-resist printing of Akola |
 
-## DR-131: Three Links Back To Review
+## DR-131: Three Links Verified On Their Recorded Passages, One Comparison Left Unverified
 
-The database refuses to accept a link whose provenance is `unverified`, and three links the file had marked `verified` carry that provenance: `dabu.process_stage.fabric-washing USES dabu.material.myrobalan-and-mordants`, `dabu.material.myrobalan-and-mordants SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.alum-mordant-complexation` and `dabu.material.myrobalan-and-mordants SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.iron-tannin-black`. They are `under_review` in the file and the database, and `tests/content/content-format.test.ts` now refuses a `verified` link with `unverified` provenance.
+Three links the file had marked `verified` carried provenance `unverified`, which the database refuses. Each cites S23 (Raj, Sambaditya, "'Bagru' - A Traditional Printing Technique of Rajasthan", fibre2fashion.com, kind `researcher_interpretation`), and each quote was found again verbatim at its locator in `D:/Work/IIT-KGP/Paper_1-artifacts/sources/dabu-2026-11-07/S23.pdf` by `verify_tradition.py` (and the S14 passage at its section). Their provenance now follows the source that carries them, `researcher_interpretation`, and they are `verified`; wording unchanged:
+
+| Link | Source | Locator | Quote |
+|---|---|---|---|
+| dabu.process_stage.fabric-washing USES dabu.material.myrobalan-and-mordants | S23 | PDF p. 3 | "This seed is powdered and mixed with water. Scoured fabrics are given thorough wash in this mixture giving a yellow tint to the cloth." |
+| dabu.material.myrobalan-and-mordants SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.alum-mordant-complexation | S23; S14 | PDF p. 5; § "2 THE MORDANT-DYE COMPLEX" | "It is washed again and then rinsed in a solution of alum and water to fix the colour and also for removing dabu paste."; "Colored lakes formed by the metal ions and dye molecules resist extraction by water and organic solvents" |
+| dabu.material.myrobalan-and-mordants SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.iron-tannin-black | S23 | PDF p. 3 | "Harda has natural Tanic acid in it that acts as a mordant for the iron of the printing colour" |
+
+`dabu.comparison.mud-resist-vs-wax-and-direct-print` and its CONTRASTS_WITH link stay `under_review`: their only source, S19 (Utsavpedia, unattributed), is kind `unverified`. A search of the 24 archived Dabu sources and the web (2026-11-08) found no attributed source saying that Daboo is distinct from both Bagru and Sanganeri prints; the nearest, a Paramparik Karigar 2017 page, says only that Bagru and Dabu printing at Bagru differ slightly in process and does not mention Sanganeri. `tests/content/content-format.test.ts` refuses a `verified` link with `unverified` provenance.
