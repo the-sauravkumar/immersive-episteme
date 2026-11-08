@@ -151,6 +151,18 @@ test("a participant builds and submits a concept map; a researcher adjudicates, 
   await page.goto("/study/reconstruction");
   await expect(page.getByRole("heading", { level: 1, name: "Connect the concepts" })).toBeVisible();
   await expect(page.getByText("After the learning task")).toBeVisible();
+  const practice = page.getByRole("region", { name: "Try the map first" });
+  await expect(practice).toBeVisible();
+  await expect(practice.locator(".react-flow__node")).toHaveCount(3);
+  const rain = (await practice.locator(".react-flow__node", { hasText: "Rain" }).boundingBox())!;
+  await page.mouse.move(rain.x + rain.width / 2, rain.y + rain.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(rain.x + rain.width / 2 + 60, rain.y + rain.height / 2 + 30, { steps: 8 });
+  await page.mouse.up();
+  await expect(practice.getByRole("listitem").filter({ hasText: "Place a concept" })).toContainText("(done)");
+  await practice.getByRole("button", { name: "Skip the practice" }).click();
+  await expect(practice).toBeHidden();
+  expect((await pool.query<{ n: number }>("SELECT count(*)::int AS n FROM concept_maps WHERE session_id = $1", [ids.session])).rows[0]!.n).toBe(0);
   await expect(page.locator(".react-flow__node")).toHaveCount(3);
   await expect(page.getByRole("link", { name: "Withdraw from the study" })).toBeVisible();
 

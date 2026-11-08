@@ -32,6 +32,10 @@ function testItemFields(fd: FormData): { ok: true; fields: Record<string, unknow
   if (path && !alt) return { ok: false, error: "Describe the image in its alt text." };
   if (alt && !path) return { ok: false, error: "Give the image path, or clear the alt text." };
   const account = text(fd, "account").replace(/\r\n?/g, "\n");
+  const accountPoints = lines(text(fd, "accountPoints")).map((line) => {
+    const at = line.indexOf(": ");
+    return at > 0 ? { term: line.slice(0, at).trim(), detail: line.slice(at + 2).trim() } : { term: line };
+  });
   const tradition = text(fd, "targetTradition");
   const stageKey = text(fd, "targetStage");
   const objectKey = text(fd, "targetObject");
@@ -41,6 +45,7 @@ function testItemFields(fd: FormData): { ok: true; fields: Record<string, unknow
     fields: {
       ...(path ? { image: { path, alt } } : {}),
       ...(account ? { account } : {}),
+      ...(accountPoints.length > 0 ? { accountPoints } : {}),
       sampleText: fd.get("sampleText") === "on",
       ...(tradition ? { target: { tradition, ...(stageKey ? { stageKey } : {}), ...(objectKey ? { objectKey } : {}) } } : {}),
     },

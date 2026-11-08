@@ -14,6 +14,9 @@ import { AssessmentForm, type RenderItem } from "./assessment-form";
 import { StudyStateMessage } from "./state-message";
 import { StepFooter } from "./step-footer";
 import { StepProgress, stepCountOf } from "./step-progress";
+import type { ItemAccountText } from "./test-item-fields";
+
+const accountOf = (cfg: { account?: string; accountPoints?: ItemAccountText["points"] }): ItemAccountText | undefined => (cfg.account ? { lead: cfg.account, points: cfg.accountPoints ?? [] } : undefined);
 
 export async function AssessmentStep({ step, route }: { step: StudyStep; route: string }) {
   const { state, position } = await requireStep(step);
@@ -41,12 +44,12 @@ export async function AssessmentStep({ step, route }: { step: StudyStep; route: 
         const byId = new Map(cfg.options.map((o) => [o.id, o]));
         const options = optionOrder(state.sessionId, item).map((id) => byId.get(id)!);
         return cfg.kind === "single_choice"
-          ? { id: item.id, kind: "single_choice", prompt: item.prompt, options, image: cfg.image, account: cfg.account, sampleText: cfg.sampleText }
+          ? { id: item.id, kind: "single_choice", prompt: item.prompt, options, image: cfg.image, account: accountOf(cfg), sampleText: cfg.sampleText }
           : { id: item.id, kind: "multiple_choice", prompt: item.prompt, options, maxSelections: cfg.maxSelections };
       }
       case "ranking": {
         const byId = new Map(cfg.options.map((o) => [o.id, o]));
-        return { id: item.id, kind: "ranking", prompt: item.prompt, options: optionOrder(state.sessionId, item).map((id) => byId.get(id)!), account: cfg.account, sampleText: cfg.sampleText };
+        return { id: item.id, kind: "ranking", prompt: item.prompt, options: optionOrder(state.sessionId, item).map((id) => byId.get(id)!), account: accountOf(cfg), sampleText: cfg.sampleText };
       }
       case "matching": {
         const pairById = new Map(cfg.pairs.map((p) => [p.id, p]));

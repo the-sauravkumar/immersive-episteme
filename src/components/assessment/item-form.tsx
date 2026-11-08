@@ -33,7 +33,7 @@ const KIND_LABEL: Record<string, string> = {
 
 const TEST_ITEM_KINDS = ["single_choice", "ranking", "matching"];
 
-type TestFields = { image?: { path: string; alt: string }; account?: string; sampleText?: boolean; target?: { tradition: string; stageKey?: string; objectKey?: string } };
+type TestFields = { image?: { path: string; alt: string }; account?: string; accountPoints?: { term: string; detail?: string }[]; sampleText?: boolean; target?: { tradition: string; stageKey?: string; objectKey?: string } };
 
 const asOptions = (c: Record<string, unknown>) =>
   Array.isArray(c.options) ? (c.options as Array<{ id: string; label: string }>).map((o) => `${o.id}: ${o.label}`).join("\n") : "";
@@ -150,8 +150,16 @@ export function ItemForm({
               <input name="imageAlt" maxLength={300} defaultValue={t.image?.alt ?? ""} className={fieldClass} />
             </Field>
           </div>
-          <Field label="Account" hint="Text shown above the question, for example the account of a tradition the participant has not seen (transfer items).">
-            <textarea name="account" rows={5} maxLength={4000} defaultValue={t.account ?? ""} className={fieldClass} />
+          <Field label="Account" hint="The opening shown above the question, for example the sentence that introduces a tradition the participant has not seen (transfer items).">
+            <textarea name="account" rows={3} maxLength={4000} defaultValue={t.account ?? ""} className={fieldClass} />
+          </Field>
+          <Field label="Account points" hint="One point per line, listed under the opening. Write a term, or a term, a colon and a space, then its detail.">
+            <textarea
+              name="accountPoints"
+              rows={6}
+              defaultValue={(t.accountPoints ?? []).map((point) => (point.detail ? `${point.term}: ${point.detail}` : point.term)).join("\n")}
+              className={fieldClass}
+            />
           </Field>
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Target tradition" hint="Recorded in the export for analysis.">

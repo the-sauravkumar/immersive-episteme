@@ -91,15 +91,15 @@ export async function answerAssessment(page: Page, journey: Journey | Omit<Journ
   await shot(page, journey as Journey, `${step}-${title}`);
   const submit = page.getByRole("button", { name: "Submit answers" });
   const next = page.getByRole("button", { name: "Next", exact: true });
-  const legend = () => page.locator("form fieldset:visible legend").first().textContent();
+  const counter = () => page.locator("form li:visible [data-slot=item-count]").first().textContent();
   for (;;) {
     await expect(submit.or(next).first()).toBeVisible();
     await answerVisibleQuestions(page);
     if (await submit.isVisible()) break;
-    const shown = await legend();
+    const shown = await counter();
     await next.click();
     await expect
-      .poll(legend, { timeout: 4000 })
+      .poll(counter, { timeout: 4000 })
       .not.toBe(shown)
       .catch(() => next.click());
   }
@@ -117,6 +117,19 @@ export async function answerAssessment(page: Page, journey: Journey | Omit<Journ
 }
 
 export async function linkConceptMap(page: Page, journey: Journey): Promise<void> {
+  const practice = page.getByRole("region", { name: "Try the map first" });
+  await expect(page.getByRole("form", { name: "Add a relationship" }).first()).toBeVisible();
+  if (await practice.isVisible()) {
+    await shot(page, journey, `map-practice-${journey.seen.size}`);
+    const trial = practice.getByRole("form", { name: "Add a relationship" });
+    await trial.getByLabel("From concept").selectOption({ label: "Rain" });
+    await trial.getByLabel("To concept").selectOption({ label: "Puddle" });
+    await trial.getByRole("button", { name: "Add relationship" }).click();
+    await practice.getByRole("button", { name: "Reverse: Rain is linked to Puddle" }).click();
+    await practice.getByRole("button", { name: "Delete: Puddle is linked to Rain" }).click();
+    await practice.getByRole("button", { name: "Start the real task" }).click();
+    await expect(practice).toBeHidden();
+  }
   const form = page.getByRole("form", { name: "Add a relationship" });
   await expect(form).toBeVisible();
   await shot(page, journey, `reconstruction-${journey.seen.size}`);

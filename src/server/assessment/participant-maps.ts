@@ -33,6 +33,7 @@ export type ReconstructionTask =
       prompt: string;
       set: ConceptSet;
       map: StoredMap | null;
+      firstMap: boolean;
     };
 
 interface SessionRow {
@@ -82,6 +83,7 @@ export async function loadReconstructionTask(q: Q, who: ParticipantIdentity): Pr
     [session.id, row.item_id, phase],
   );
   const map = m.rows[0];
+  const earlier = await q.query("SELECT 1 FROM concept_maps WHERE session_id = $1 LIMIT 1", [session.id]);
   return {
     kind: "task",
     phase,
@@ -90,6 +92,7 @@ export async function loadReconstructionTask(q: Q, who: ParticipantIdentity): Pr
     prompt: row.prompt,
     set,
     map: map ? { id: map.id, revision: map.revision, isFinal: map.is_final, payload: rawToPayload(map.nodes, map.raw) } : null,
+    firstMap: earlier.rowCount === 0,
   };
 }
 

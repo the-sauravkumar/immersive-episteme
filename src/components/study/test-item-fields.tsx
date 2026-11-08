@@ -12,11 +12,29 @@ export function ItemFigure({ image }: { image: ItemFigureImage }) {
   return <Image className="walking-figure" src={image.path} alt={image.alt} width={840} height={560} sizes="(max-width: 480px) 100vw, 420px" unoptimized draggable={false} />;
 }
 
-export function ItemAccount({ account, sampleText }: { account: string; sampleText: boolean }) {
+export interface ItemAccountText {
+  lead: string;
+  points: readonly { term: string; detail?: string }[];
+}
+
+export function ItemAccount({ account, sampleText }: { account: ItemAccountText; sampleText: boolean }) {
   return (
-    <div className="flex max-w-[65ch] flex-col gap-2">
+    <div data-slot="item-account" className="flex max-w-[65ch] flex-col gap-4 bg-vat-2 px-4 py-4 sm:px-6 sm:py-5">
       {sampleText ? <span className="walking-sample self-start">Sample Text</span> : null}
-      <p className="whitespace-pre-line text-[18px] leading-[1.5]">{account}</p>
+      <p className="t-b whitespace-pre-line text-lime">{account.lead}</p>
+      {account.points.length > 0 ? (
+        <ul className="flex flex-col gap-3">
+          {account.points.map((point, index) => (
+            <li key={`${index}:${point.term}`} className="t-b flex gap-3 text-lime">
+              <span aria-hidden="true" className="mt-[0.65em] size-1.5 shrink-0 bg-turmeric" />
+              <span className="min-w-0">
+                <span className="font-semibold">{point.term}</span>
+                {point.detail ? `: ${point.detail}` : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }

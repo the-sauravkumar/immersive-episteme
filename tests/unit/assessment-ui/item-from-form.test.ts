@@ -58,11 +58,12 @@ describe("research console item form: every item kind the study uses", () => {
       options: "s1: First\ns2: Second\ns3: Third",
       answerKey: "s1, s2, s3",
       account: "A tradition you have not seen.\r\nIts stages are listed.",
+      accountPoints: "First: a detail\r\nSecond\n",
       sampleText: "on",
       targetTradition: "x",
     });
     expect(answerKey).toEqual({ order: ["s1", "s2", "s3"] });
-    expect(item.config).toMatchObject({ account: "A tradition you have not seen.\nIts stages are listed.", sampleText: true, target: { tradition: "x" } });
+    expect(item.config).toMatchObject({ account: "A tradition you have not seen.\nIts stages are listed.", accountPoints: [{ term: "First", detail: "a detail" }, { term: "Second" }], sampleText: true, target: { tradition: "x" } });
   });
 
   it("saves an image and a target on a single-choice item (identification, attribution)", () => {

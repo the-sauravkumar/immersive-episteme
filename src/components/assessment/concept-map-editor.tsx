@@ -1,7 +1,6 @@
 "use client";
 
 import { CircleAlert, CircleCheck } from "lucide-react";
-import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -19,12 +18,8 @@ import {
   type MapRelationshipType,
   type MapState,
 } from "./map-state";
+import { LazyMapCanvas, PARTICIPANT_MAP_WIDTH } from "./lazy-map-canvas";
 import { RelationshipPanel, type PendingConnection } from "./relationship-panel";
-
-const MapCanvas = dynamic(() => import("./map-canvas").then((m) => m.MapCanvas), {
-  ssr: false,
-  loading: () => <div className="h-[32rem] w-full border border-lime-dim bg-vat-2" aria-hidden />,
-});
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
 
@@ -124,13 +119,9 @@ export function ConceptMapEditor({
     <div className="flex flex-col gap-6">
       <div
         data-slot="map-canvas-region"
-        className={
-          participant
-            ? "[--bw:min(72rem,calc(100vw-2rem))] xs:[--bw:min(72rem,calc(100vw-3rem))] w-[max(100%,var(--bw))]"
-            : undefined
-        }
+        className={participant ? PARTICIPANT_MAP_WIDTH : undefined}
       >
-        <MapCanvas
+        <LazyMapCanvas
           state={state}
           rules={rules}
           dispatch={locked ? () => undefined : dispatch}

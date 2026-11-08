@@ -50,11 +50,31 @@ describe("AssessmentForm (DESIGN.md 11.7)", () => {
     const row = radio.closest("label")!;
     expect(row.className).toMatch(/min-h-14/);
     expect(row.className).toMatch(/has-\[:checked\]:outline-turmeric/);
-    expect(row.className).not.toMatch(/border-l/);
+    expect(row.className.split(/\s+/).filter((c) => c.startsWith("border-l") && c !== "border-line")).toEqual([]);
     expect(radio.className).toContain("ie-check");
     expect(row.querySelector("svg[aria-hidden=true]")).not.toBeNull();
     await userEvent.setup().click(screen.getByText("Option B"));
     expect(screen.getByLabelText("Option B")).toBeChecked();
+  });
+
+  it("sets a long item as its account, then the question, then the choices, each at a readable measure (DR-136)", () => {
+    const account = { lead: "A tradition you have not seen. These are its stages.", points: [{ term: "Soaking", detail: "The cloth is soaked." }, { term: "Washing" }] };
+    const transfer: RenderItem = { id: "t1", kind: "single_choice", prompt: "Which stage comes straight after Soaking?", options: [{ id: "a", label: "Washing" }, { id: "b", label: "Dyeing" }], account, sampleText: true };
+    render(<AssessmentForm step="post_test" assessment={assessment} items={[transfer]} returnTo="/study/post-test" />);
+    const group = screen.getByRole("group", { name: "Question 1 of 1 Which stage comes straight after Soaking?" });
+    const stem = group.querySelector("[data-slot=item-stem]")!;
+    const parts = [...stem.children].map((child) => child.getAttribute("data-slot"));
+    expect(parts).toEqual(["item-count", "item-account", "item-question"]);
+    const block = stem.querySelector("[data-slot=item-account]")!;
+    expect(block.className).toMatch(/max-w-\[65ch\]/);
+    expect(within(block as HTMLElement).getByText("Sample Text")).toBeInTheDocument();
+    expect(within(block as HTMLElement).getAllByRole("listitem").map((li) => li.textContent)).toEqual(["Soaking: The cloth is soaked.", "Washing"]);
+    const question = stem.querySelector("[data-slot=item-question]")!;
+    expect(question.className).toMatch(/max-w-\[65ch\]/);
+    expect(question.className).toMatch(/font-semibold/);
+    const list = group.querySelector("[data-slot=choice-list]")!;
+    expect(stem.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    for (const row of list.querySelectorAll("label")) expect(row.className.split(/\s+/)).toContain("border");
   });
 
   it("renders a Likert scale as one radio per point, named by its number, with the end labels", () => {

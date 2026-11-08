@@ -6038,7 +6038,47 @@
               "label": "Final washing (dhulai) and finishing"
             }
           ],
-          "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.\nMordant printing (chhapai) with syahi and begar: The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar.\nResist printing with dabu (dabu chhapai)\nWashing off excess mordant (khulai)\nFinal washing (dhulai) and finishing\nAlum after-mordanting (fitkari rangai)\nYellow over-dyeing by sponging (haldi-naspal putai / potai)\nScouring (hari sarana / teluni): Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water.\nIndigo dyeing (neel rangai): The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly.\nHarda treatment (peela karna)\nDyeing in alizarin/madder (rangai, bhatti): The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous).\nAgeing / drying (sukhai): Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
+          "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.",
+          "accountPoints": [
+            {
+              "term": "Mordant printing (chhapai) with syahi and begar",
+              "detail": "The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar."
+            },
+            {
+              "term": "Resist printing with dabu (dabu chhapai)"
+            },
+            {
+              "term": "Washing off excess mordant (khulai)"
+            },
+            {
+              "term": "Final washing (dhulai) and finishing"
+            },
+            {
+              "term": "Alum after-mordanting (fitkari rangai)"
+            },
+            {
+              "term": "Yellow over-dyeing by sponging (haldi-naspal putai / potai)"
+            },
+            {
+              "term": "Scouring (hari sarana / teluni)",
+              "detail": "Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water."
+            },
+            {
+              "term": "Indigo dyeing (neel rangai)",
+              "detail": "The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly."
+            },
+            {
+              "term": "Harda treatment (peela karna)"
+            },
+            {
+              "term": "Dyeing in alizarin/madder (rangai, bhatti)",
+              "detail": "The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous)."
+            },
+            {
+              "term": "Ageing / drying (sukhai)",
+              "detail": "Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result."
+            }
+          ],
           "target": {
             "tradition": "bagru"
           }
@@ -6085,7 +6125,47 @@
             }
           ],
           "shuffle": true,
-          "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.\nMordant printing (chhapai) with syahi and begar: The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar.\nResist printing with dabu (dabu chhapai)\nWashing off excess mordant (khulai)\nFinal washing (dhulai) and finishing\nAlum after-mordanting (fitkari rangai)\nYellow over-dyeing by sponging (haldi-naspal putai / potai)\nScouring (hari sarana / teluni): Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water.\nIndigo dyeing (neel rangai): The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly.\nHarda treatment (peela karna)\nDyeing in alizarin/madder (rangai, bhatti): The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous).\nAgeing / drying (sukhai): Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result.",
+          "account": "Bagru hand block printing is a tradition you have not seen. These are its stages, in no particular order.",
+          "accountPoints": [
+            {
+              "term": "Mordant printing (chhapai) with syahi and begar",
+              "detail": "The fabric is printed with two mordants: ferrous syahi from rusted horseshoe nails, and aluminium sulphate begar."
+            },
+            {
+              "term": "Resist printing with dabu (dabu chhapai)"
+            },
+            {
+              "term": "Washing off excess mordant (khulai)"
+            },
+            {
+              "term": "Final washing (dhulai) and finishing"
+            },
+            {
+              "term": "Alum after-mordanting (fitkari rangai)"
+            },
+            {
+              "term": "Yellow over-dyeing by sponging (haldi-naspal putai / potai)"
+            },
+            {
+              "term": "Scouring (hari sarana / teluni)",
+              "detail": "Scouring, locally 'hari sarana', removes starch, oil and dust; cloth was left overnight in cow dung and water."
+            },
+            {
+              "term": "Indigo dyeing (neel rangai)",
+              "detail": "The cloth is folded like sari pleats, lowered into the tank, and each pleat opened under the liquid so dye reaches evenly."
+            },
+            {
+              "term": "Harda treatment (peela karna)"
+            },
+            {
+              "term": "Dyeing in alizarin/madder (rangai, bhatti)",
+              "detail": "The dye reacts with two mordants at two locations on the same print, giving red (with alum) and black (with ferrous)."
+            },
+            {
+              "term": "Ageing / drying (sukhai)",
+              "detail": "Printed fabric is left at least three to four days so the mordant paste penetrates the fibre; the longer the ageing, the better the result."
+            }
+          ],
           "target": {
             "tradition": "bagru"
           }
@@ -10086,7 +10166,46 @@
             }
           ],
           "shuffle": true,
-          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo)\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying\nPreparing the resist paste\nOptional pre-printing of colour (naphthol red)\nRepeating resist-dye cycles (double/triple dabu)\nBlock-printing the resist: Craftsmen dip the blocks into a viscous paste of mud, gum and lime; the method's name comes from dabaana, to press.\nSun-drying the resist\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
+          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.",
+          "accountPoints": [
+            {
+              "term": "Dip-dyeing (usually indigo)"
+            },
+            {
+              "term": "Dusting the wet resist",
+              "detail": "Paste areas are immediately covered with sawdust to prevent smudging."
+            },
+            {
+              "term": "Washing / scouring the cloth"
+            },
+            {
+              "term": "Collecting and soaking the mud",
+              "detail": "Mud is dug from a dry pond and soaked overnight in a separate tank."
+            },
+            {
+              "term": "Airing and drying"
+            },
+            {
+              "term": "Preparing the resist paste"
+            },
+            {
+              "term": "Optional pre-printing of colour (naphthol red)"
+            },
+            {
+              "term": "Repeating resist-dye cycles (double/triple dabu)"
+            },
+            {
+              "term": "Block-printing the resist",
+              "detail": "Craftsmen dip the blocks into a viscous paste of mud, gum and lime; the method's name comes from dabaana, to press."
+            },
+            {
+              "term": "Sun-drying the resist"
+            },
+            {
+              "term": "Washing off the resist",
+              "detail": "The fabric is washed to remove paste and excess dye."
+            }
+          ],
           "target": {
             "tradition": "dabu"
           }
@@ -10121,7 +10240,46 @@
             }
           ],
           "shuffle": true,
-          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.\nDip-dyeing (usually indigo)\nDusting the wet resist: Paste areas are immediately covered with sawdust to prevent smudging.\nWashing / scouring the cloth\nCollecting and soaking the mud: Mud is dug from a dry pond and soaked overnight in a separate tank.\nAiring and drying\nPreparing the resist paste\nOptional pre-printing of colour (naphthol red)\nRepeating resist-dye cycles (double/triple dabu)\nBlock-printing the resist: Craftsmen dip the blocks into a viscous paste of mud, gum and lime; the method's name comes from dabaana, to press.\nSun-drying the resist\nWashing off the resist: The fabric is washed to remove paste and excess dye.",
+          "account": "Dabu mud-resist block printing is a tradition you have not seen. These are its stages, in no particular order.",
+          "accountPoints": [
+            {
+              "term": "Dip-dyeing (usually indigo)"
+            },
+            {
+              "term": "Dusting the wet resist",
+              "detail": "Paste areas are immediately covered with sawdust to prevent smudging."
+            },
+            {
+              "term": "Washing / scouring the cloth"
+            },
+            {
+              "term": "Collecting and soaking the mud",
+              "detail": "Mud is dug from a dry pond and soaked overnight in a separate tank."
+            },
+            {
+              "term": "Airing and drying"
+            },
+            {
+              "term": "Preparing the resist paste"
+            },
+            {
+              "term": "Optional pre-printing of colour (naphthol red)"
+            },
+            {
+              "term": "Repeating resist-dye cycles (double/triple dabu)"
+            },
+            {
+              "term": "Block-printing the resist",
+              "detail": "Craftsmen dip the blocks into a viscous paste of mud, gum and lime; the method's name comes from dabaana, to press."
+            },
+            {
+              "term": "Sun-drying the resist"
+            },
+            {
+              "term": "Washing off the resist",
+              "detail": "The fabric is washed to remove paste and excess dye."
+            }
+          ],
           "target": {
             "tradition": "dabu"
           }

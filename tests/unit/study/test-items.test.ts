@@ -173,7 +173,8 @@ describe("test item generation", () => {
     expect(now.items.map((i) => i.itemKey)).toEqual(["transfer.bagru.order", "transfer.bagru.next", "transfer.bagru.tool"]);
     for (const item of now.items) {
       expect(item.config.sampleText).toBe(true);
-      expect(item.config.account).toContain("Summary a.");
+      expect(item.config.account).toBe("bagru Name is a tradition you have not seen. These are its stages, in no particular order.");
+      expect(item.config.accountPoints).toContainEqual(expect.objectContaining({ detail: "Summary a." }));
     }
     expect(now.items[0]!.answerKey).toEqual({ order: ["s1", "s2", "s3", "s4", "s5"] });
     expect(byCode("demo-test-transfer-delayed").items[0]!.itemKey).toBe("transfer.dabu.order");
@@ -199,6 +200,8 @@ const overlap = (a: string, b: string) => {
   const related = (x: string, y: string): boolean => (x.length <= y.length ? y.startsWith(x) && (x.length >= 4 || y.length - x.length <= 1) : related(y, x));
   return stems(b).filter((x) => left.some((y) => related(x, y)));
 };
+const pointLines = (item: Pick<GeneratedItem, "config">) => ((item.config.accountPoints as { term: string; detail?: string }[] | undefined) ?? []).map((point) => (point.detail ? `${point.term}: ${point.detail}` : point.term));
+const accountText = (item: Pick<GeneratedItem, "config">) => [item.config.account as string, ...pointLines(item)].join("\n");
 const optionsOf = (item: Pick<GeneratedItem, "config">) => (item.config.options as { id: string; label: string }[] | undefined) ?? [];
 const promptCues = (items: readonly Pick<GeneratedItem, "itemKey" | "kind" | "prompt" | "config">[]) =>
   items.filter((item) => item.kind === "single_choice").flatMap((item) => optionsOf(item).flatMap((option) => overlap(item.prompt, option.label).map((word) => `${item.itemKey} ${option.id} "${option.label}" shares "${word}" with "${item.prompt}"`)));
@@ -216,15 +219,14 @@ describe("no option can be found from the question's wording", () => {
     const tools = transfer.filter((item) => item.itemKey.endsWith(".tool"));
     expect(tools.map((item) => item.itemKey)).toEqual(["transfer.dabu.tool"]);
     for (const item of tools) {
-      for (const option of optionsOf(item)) expect(overlap(item.config.account as string, option.label), `${item.itemKey} ${option.label}`).toEqual([]);
+      for (const option of optionsOf(item)) expect(overlap(accountText(item), option.label), `${item.itemKey} ${option.label}`).toEqual([]);
     }
     for (const item of transfer) {
-      const lines = (item.config.account as string).split("\n").slice(1);
-      for (const line of lines) expect(line, item.itemKey).not.toMatch(/: .*\b(after|again|before|final|finally|first|later|next|once|then|until|when)\b/i);
+      for (const line of pointLines(item)) expect(line, item.itemKey).not.toMatch(/: .*\b(after|again|before|final|finally|first|later|next|once|then|until|when)\b/i);
     }
     for (const item of transfer.filter((x) => x.itemKey.endsWith(".next"))) {
       const asked = item.prompt.replace(/^Which stage comes straight after /, "").replace(/\?$/, "");
-      const line = (item.config.account as string).split("\n").find((entry) => entry === asked || entry.startsWith(`${asked}: `))!;
+      const line = pointLines(item).find((entry) => entry === asked || entry.startsWith(`${asked}: `))!;
       const key = optionsOf(item).find((option) => option.id === (item.answerKey as { optionId: string }).optionId)!;
       expect(overlap(line, key.label), item.itemKey).toEqual([]);
     }

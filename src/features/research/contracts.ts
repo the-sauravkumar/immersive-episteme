@@ -23,6 +23,7 @@ const itemTargetSchema = z.object({ tradition: z.string().min(1).max(64), stageK
 const testItemFields = {
   image: itemImageSchema.optional(),
   account: z.string().min(1).max(4000).optional(),
+  accountPoints: z.array(z.object({ term: nonBlank(300), detail: nonBlank(1000).optional() })).max(40).optional(),
   sampleText: z.boolean().default(false),
   target: itemTargetSchema.optional(),
 };

@@ -194,13 +194,29 @@ export function linearOrder(tradition: UnseenTradition): UnseenStage[] | null {
 
 const ORDER_WORDS = /\b(after|afterwards|again|before|beforehand|earlier|final|finally|first|following|later|next|once|previous|previously|repeat|repeated|subsequently|then|until|when)\b/i;
 
-function accountLine(stage: UnseenStage): string {
-  return ORDER_WORDS.test(stage.summary) ? stage.title : `${stage.title}: ${stage.summary}`;
+interface AccountPoint {
+  readonly term: string;
+  readonly detail?: string;
 }
 
-function accountOf(tradition: UnseenTradition): string {
+interface Account {
+  readonly lead: string;
+  readonly points: readonly AccountPoint[];
+}
+
+function accountPoint(stage: UnseenStage): AccountPoint {
+  return ORDER_WORDS.test(stage.summary) ? { term: stage.title } : { term: stage.title, detail: stage.summary };
+}
+
+const pointText = (point: AccountPoint): string => (point.detail ? `${point.term}: ${point.detail}` : point.term);
+
+const accountLine = (stage: UnseenStage): string => pointText(accountPoint(stage));
+
+const accountText = (account: Account): string => [account.lead, ...account.points.map(pointText)].join(" ");
+
+function accountOf(tradition: UnseenTradition): Account {
   const stages = [...tradition.stages].sort((a, b) => a.key.localeCompare(b.key));
-  return [`${tradition.name} is a tradition you have not seen. These are its stages, in no particular order.`, ...stages.map(accountLine)].join("\n");
+  return { lead: `${tradition.name} is a tradition you have not seen. These are its stages, in no particular order.`, points: stages.map(accountPoint) };
 }
 
 const fromIndex = <T>(list: readonly T[], start: number): T[] => list.map((_, offset) => list[(start + offset) % list.length]!);
@@ -222,11 +238,11 @@ function nextStageItem(tradition: UnseenTradition, shared: Record<string, unknow
   return null;
 }
 
-function toolItem(tradition: UnseenTradition, shared: Record<string, unknown>, first: UnseenStage, account: string): DraftItem | null {
+function toolItem(tradition: UnseenTradition, shared: Record<string, unknown>, first: UnseenStage, account: Account): DraftItem | null {
   const allTools = [...new Set(tradition.stages.flatMap((stage) => stage.tools))];
   for (const stage of fromIndex(tradition.stages, tradition.stages.indexOf(first))) {
     const prompt = `Which of these is used at ${stage.title}?`;
-    const cue = `${prompt} ${account}`;
+    const cue = `${prompt} ${accountText(account)}`;
     const tool = stage.tools.find((candidate) => !sharesCue(cue, candidate));
     const wrongTools = allTools.filter((candidate) => !stage.tools.includes(candidate) && !sharesCue(cue, candidate)).slice(0, OPTION_COUNT - 1);
     if (!tool || wrongTools.length < OPTION_COUNT - 1) continue;
@@ -243,7 +259,7 @@ function toolItem(tradition: UnseenTradition, shared: Record<string, unknown>, f
 
 export function transferItems(tradition: UnseenTradition): DraftItem[] {
   const account = accountOf(tradition);
-  const shared = { account, ...(tradition.checked ? {} : { sampleText: true }), target: { tradition: tradition.key } };
+  const shared = { account: account.lead, accountPoints: account.points, ...(tradition.checked ? {} : { sampleText: true }), target: { tradition: tradition.key } };
   const items: (DraftItem | null)[] = [];
   const order = linearOrder(tradition);
   if (order) {

@@ -16,11 +16,11 @@ import { cn } from "@/lib/utils";
 import { markAssessmentStarted, submitAssessmentForm, type FormState } from "@/server/study/actions";
 
 import { keepEnteredValues, StudyActions } from "./action-form";
-import { ItemAccount, ItemFigure, MatchingField, SequenceField, SketchField, type ItemFigureImage } from "./test-item-fields";
+import { ItemAccount, ItemFigure, MatchingField, SequenceField, SketchField, type ItemAccountText, type ItemFigureImage } from "./test-item-fields";
 
 interface ItemContext {
   image?: ItemFigureImage;
-  account?: string;
+  account?: ItemAccountText;
   sampleText?: boolean;
 }
 
@@ -160,14 +160,22 @@ export function AssessmentForm({ step, assessment, items, returnTo }: { step: st
   );
 }
 
-function Prompt({ id, number, total, children }: { id: string; number: number; total: number; children: ReactNode }) {
+function Stem({ id, number, total, context, children }: { id: string; number: number; total: number; context?: ReactNode; children: ReactNode }) {
+  const Wrap = context ? "div" : "span";
   return (
-    <span id={id} className="flex flex-col gap-1">
-      <span className="t-label tabular-nums text-lime-dim">{countOf("Question", number, total)}</span>{" "}
-      <span className="text-[1.25rem] leading-7 font-semibold whitespace-pre-line text-lime">{children}</span>
-    </span>
+    <Wrap id={id} data-slot="item-stem" className={cn("flex flex-col", context ? "gap-5" : "gap-1")}>
+      <span id={`${id}-count`} data-slot="item-count" className="t-label tabular-nums text-lime-dim">
+        {countOf("Question", number, total)}
+      </span>{" "}
+      {context}
+      <span id={`${id}-question`} data-slot="item-question" className="max-w-[65ch] text-[1.25rem] leading-7 font-semibold text-pretty whitespace-pre-line text-lime">
+        {children}
+      </span>
+    </Wrap>
   );
 }
+
+const CHOICE_FIELDSET = "flex min-w-0 flex-col gap-6";
 
 const OPTION_ROW = "group/opt flex min-h-14 cursor-pointer items-center gap-3 px-3 py-3 hover:bg-raised-hover has-[:checked]:bg-vat-2 has-[:checked]:outline-2 has-[:checked]:-outline-offset-2 has-[:checked]:outline-turmeric";
 const NATIVE_CONTROL = "ie-check";
@@ -219,35 +227,49 @@ function ItemField({
   const errorId = `error-${item.id}`;
   const describedBy = error ? errorId : undefined;
   const invalid = error ? true : undefined;
+  const labelledBy = `${promptId}-count ${promptId}-question`;
+  const account =
+    "account" in item && item.account ? (
+      <ItemAccount account={item.account} sampleText={item.sampleText === true} />
+    ) : "sampleText" in item && item.sampleText ? (
+      <span className="walking-sample self-start">Sample Text</span>
+    ) : null;
+  const figure = "image" in item && item.image ? <ItemFigure image={item.image} /> : null;
+  const context =
+    account || figure ? (
+      <>
+        {account}
+        {figure}
+      </>
+    ) : null;
   const prompt = (
-    <Prompt id={promptId} number={number} total={total}>
+    <Stem id={promptId} number={number} total={total} context={context}>
       {item.prompt}
-    </Prompt>
+    </Stem>
   );
   const err = error ? <FieldError id={errorId}>{error}</FieldError> : null;
 
   switch (item.kind) {
     case "ranking":
       return (
-        <fieldset className="flex min-w-0 flex-col gap-4" aria-describedby={describedBy}>
-          <legend className="mb-4">{prompt}</legend>
-          {item.account ? <ItemAccount account={item.account} sampleText={item.sampleText === true} /> : null}
+        <fieldset className={CHOICE_FIELDSET} aria-labelledby={labelledBy} aria-describedby={describedBy}>
+          {prompt}
           <SequenceField name={name} options={item.options} />
           {err}
         </fieldset>
       );
     case "matching":
       return (
-        <fieldset className="flex min-w-0 flex-col gap-4" aria-describedby={describedBy}>
-          <legend className="mb-4">{prompt}</legend>
+        <fieldset className={CHOICE_FIELDSET} aria-labelledby={labelledBy} aria-describedby={describedBy}>
+          {prompt}
           <MatchingField name={name} pairs={item.pairs} options={item.options} />
           {err}
         </fieldset>
       );
     case "sketch":
       return (
-        <fieldset className="flex min-w-0 flex-col gap-4" aria-describedby={describedBy}>
-          <legend className="mb-4">{prompt}</legend>
+        <fieldset className={CHOICE_FIELDSET} aria-labelledby={labelledBy} aria-describedby={describedBy}>
+          {prompt}
           <SketchField name={name} maxBytes={item.maxBytes} />
           {err}
         </fieldset>
@@ -255,18 +277,16 @@ function ItemField({
     case "single_choice":
     case "multiple_choice":
       return (
-        <fieldset className="flex min-w-0 flex-col gap-4" aria-describedby={describedBy}>
-          <legend className="mb-4">{prompt}</legend>
-          {item.account ? <ItemAccount account={item.account} sampleText={item.sampleText === true} /> : item.sampleText ? <span className="walking-sample self-start">Sample Text</span> : null}
-          {item.image ? <ItemFigure image={item.image} /> : null}
+        <fieldset className={CHOICE_FIELDSET} aria-labelledby={labelledBy} aria-describedby={describedBy}>
+          {prompt}
           {item.kind === "multiple_choice" ? (
             <p className="t-s text-lime-dim -mt-2">Choose all that apply{item.maxSelections ? ` (at most ${item.maxSelections})` : ""}.</p>
           ) : null}
-          <div className="flex flex-col divide-y divide-line border-y border-line">
+          <div data-slot="choice-list" className="flex max-w-[44rem] flex-col gap-2">
             {item.options.map((o) => {
               const id = `${item.id}-${o.id}`;
               return (
-                <label key={o.id} htmlFor={id} className={OPTION_ROW}>
+                <label key={o.id} htmlFor={id} className={cn(OPTION_ROW, "border border-line")}>
                   <input
                     id={id}
                     type={item.kind === "single_choice" ? "radio" : "checkbox"}
@@ -324,8 +344,8 @@ function ItemField({
       const middleAnchors = points.some((p) => p !== first && p !== last && item.anchors[String(p)]);
       const L = item.points > 7 ? LIKERT.sm : LIKERT.xs;
       return (
-        <fieldset className="flex min-w-0 flex-col gap-4" aria-describedby={describedBy}>
-          <legend className="mb-4">{prompt}</legend>
+        <fieldset className={CHOICE_FIELDSET} aria-labelledby={labelledBy} aria-describedby={describedBy}>
+          {prompt}
           <div>
             <div
               data-slot="likert-scale"

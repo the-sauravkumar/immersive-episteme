@@ -10,12 +10,14 @@ import { StudyStateMessage } from "@/components/study/state-message";
 import { StepFooter } from "@/components/study/step-footer";
 import { StepProgress, stepCountOf } from "@/components/study/step-progress";
 import { buttonVariants } from "@/components/ui/button";
+import { TelemetryProvider } from "@/features/telemetry/client";
+import { serverEnv } from "@/lib/env";
 import { titleCase } from "@/lib/text/title-case";
 import { AssessmentError } from "@/server/assessment/common";
 import { loadReconstructionTask } from "@/server/assessment/participant-maps";
 import { requireParticipantSession } from "@/server/auth/learning-access";
 import { getPool } from "@/server/db/client";
-import { requireReconstructionStep } from "@/server/study/session";
+import { nextTelemetrySeq, requireReconstructionStep } from "@/server/study/session";
 
 export const metadata: Metadata = { title: titleCase("Connect the concepts") };
 
@@ -79,6 +81,17 @@ async function Reconstruction() {
       </>
     );
   }
+  const mapTask = (
+    <ReconstructionTask
+      key={task.itemId}
+      itemId={task.itemId}
+      concepts={task.set.concepts}
+      relationshipTypes={task.set.relationshipTypes}
+      directedLinks={task.set.directedLinks}
+      initial={task.map?.payload ?? null}
+      practiceFirst={task.firstMap}
+    />
+  );
   return (
     <>
       <PageHeader
@@ -87,10 +100,6 @@ async function Reconstruction() {
           <div className="flex flex-col gap-3">
             <p>After the learning task.</p>
             <p className="t-b whitespace-pre-line text-lime">{task.prompt}</p>
-            <p>
-              Move the concepts anywhere you like. Add a relationship with the form below the map, or by dragging from the dot under one
-              concept to another. You can change, reverse or delete any relationship until you submit.
-            </p>
           </div>
         }
       />
@@ -101,14 +110,21 @@ async function Reconstruction() {
         </BackToSession>
       ) : (
         <>
-          <ReconstructionTask
-            key={task.itemId}
-            itemId={task.itemId}
-            concepts={task.set.concepts}
-            relationshipTypes={task.set.relationshipTypes}
-            directedLinks={task.set.directedLinks}
-            initial={task.map?.payload ?? null}
-          />
+          {step.state.condition === null ? (
+            mapTask
+          ) : (
+            <TelemetryProvider
+              config={{
+                firstSeq: await nextTelemetrySeq(step.state.sessionId),
+                sessionId: step.state.sessionId,
+                contentVersion: step.state.snapshotLabel ?? "none",
+                appBuild: serverEnv().APP_BUILD_VERSION,
+                mode: "study",
+              }}
+            >
+              {mapTask}
+            </TelemetryProvider>
+          )}
           <StepFooter />
         </>
       )}

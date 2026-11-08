@@ -133,6 +133,7 @@ run("assessment services", () => {
     expect(task.kind).toBe("task");
     if (task.kind !== "task") return;
     expect(task.phase).toBe("pre");
+    expect(task.firstMap).toBe(true);
     expect(task.set.concepts.map((c) => c.nodeKey)).toEqual(["c1", "c2", "c3", "c4"]);
 
     let s = build(emptyState(task.set.concepts), [
@@ -155,6 +156,7 @@ run("assessment services", () => {
     const reloaded = await loadReconstructionTask(t.pool, p1);
     if (reloaded.kind !== "task" || !reloaded.map) throw new Error("map not reloaded");
     expect(reloaded.map.payload).toEqual(toPayload(s));
+    expect(reloaded.firstMap).toBe(false);
     expect(reloaded.map.payload.editLog.map((l) => l.op)).toEqual(["add_edge", "move_node", "add_edge", "retype_edge", "reverse_edge", "add_edge", "delete_edge"]);
     expect(reloaded.map.payload.nodes.find((n) => n.key === "c3")).toMatchObject({ x: 10, y: 21 });
 
