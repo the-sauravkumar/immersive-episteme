@@ -2,15 +2,18 @@
 
 usage: python -I verify_tradition.py <tradition.json> <archive dir> <out.json>
 
-The archive dir holds archive.json: {"<source id>": {"html": "<file>", "pdf": "<file>", "openalex": "<file>"}},
-naming the archived copy of each recorded source (any key may be absent). A quote passes only at its locator:
+The archive dir holds archive.json: {"<source id>": {"html": "<file>", "pdf": "<file>", "openalex": "<file>", "pages": "<dir>"}},
+naming the archived copy of each recorded source (any key may be absent). "pages" is a directory of p1.txt..pN.txt,
+the per-page text extracted from a PDF whose copy is no longer served, checked like a PDF's pages. A quote passes only at its locator:
   - 'PDF p. N': on page N of the archived PDF alone (pdftotext pages split at form feeds, read with
     both UTF-8 and Latin1 output encodings: the Latin1 text drops the glyphs a scanned text layer maps
     outside Latin-1 and keeps ',,' for low double quotes, as the 2026-10-14 extraction did);
   - 'PDF pp. N-M': on pages N to M read as one run of text;
   - 'Abstract ...': in the abstract of an archived OpenAlex record (key "openalex");
   - '§ "<heading>"' (with an optional '(occurrence k of n)'): inside the section that follows that
-    h1-h4 heading in the archived HTML (the k-th such section when given);
+    h1-h4 heading in the archived HTML, or that bold subheading (a paragraph or line break holding only
+    bold or italic text, as article pages mark their sections), up to the next such heading (the k-th such
+    section when given);
 Normalisation is norm() from verify_quotes.py: ligatures, quote marks, dashes, soft hyphens,
 line-end hyphenation and whitespace only. Each quote that fails is searched for in the whole
 source, so the report says where it really is. Every claim also gets a width list: the content
@@ -46,19 +49,28 @@ def openalex_abstract(path):
     return " ".join(w for _, w in sorted((i, w) for w, ix in inv.items() for i in ix))
 
 
+HEAD = r"<h[1-4][^>]*>(.*?)</h[1-4]>"
+BOLD = r"<p[^>]*>\s*<(?:strong|b|em|i)>([^<]{2,120})</(?:strong|b|em|i)>\s*</p>|<br\s*/?>\s*<b>([^<]{2,120})</b>\s*<br\s*/?>"
+
+
 def html_sections(path):
     raw = open(path, encoding="utf-8", errors="ignore").read()
     raw = re.sub(r"(?is)<(script|style|noscript|svg)\b.*?</\1>", " ", raw)
-    parts = re.split(r"(?is)(<h[1-4][^>]*>.*?</h[1-4]>)", raw)
-    segs, head = [], "page text"
-    for p in parts:
-        m = re.match(r"(?is)<h[1-4][^>]*>(.*?)</h[1-4]>", p)
-        if m:
-            head = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", m.group(1)))).strip()[:120] or head
-            continue
-        t = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", p))).strip()
-        if t:
-            segs.append((head, t))
+    segs = []
+    for marks in (HEAD, HEAD + "|" + BOLD):
+        head, bold = "page text", False
+        for p in re.split(f"(?is)((?:{marks}))", raw):
+            if p is None:
+                continue
+            m = re.fullmatch(f"(?is){marks}", p)
+            if m:
+                h = next(g for g in m.groups() if g is not None)
+                bold = m.group(1) is None
+                head = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", h))).strip()[:120] or head
+                continue
+            t = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", p))).strip()
+            if t and (marks == HEAD or bold):
+                segs.append((head, t))
     return segs
 
 
@@ -73,6 +85,12 @@ def main():
             p = os.path.join(archive, files["pdf"])
             entry["pdf"] = pdf_renderings(p)
             entry["pdf_sha256"] = hashlib.sha256(open(p, "rb").read()).hexdigest()
+        if files.get("pages"):
+            d = os.path.join(archive, files["pages"])
+            n = len([f for f in os.listdir(d) if re.fullmatch(r"p\d+\.txt", f)])
+            raw = [open(os.path.join(d, f"p{i}.txt"), "rb").read() for i in range(1, n + 1)]
+            entry["pdf"] = [(low(b.decode("utf-8", "ignore")),) * 2 for b in raw]
+            entry["pages_sha256"] = hashlib.sha256(b"".join(raw)).hexdigest()
         if files.get("html"):
             p = os.path.join(archive, files["html"])
             entry["html"] = [(low(h), low(t)) for h, t in html_sections(p)]
