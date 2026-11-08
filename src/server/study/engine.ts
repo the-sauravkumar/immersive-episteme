@@ -956,6 +956,25 @@ export interface DelayedReturn {
   availability: DelayedAvailability;
 }
 
+async function scheduleOpenDelayedSession(c: PoolClient, input: { studyCode: string; participantCode: string }): Promise<string | null> {
+  const r = await c.query<{ id: string }>(
+    `SELECT ss.id FROM study_sessions ss
+       JOIN studies st ON st.id = ss.study_id JOIN participants p ON p.id = ss.participant_id
+      WHERE st.slug = $1 AND upper(p.code) = upper($2)
+      ORDER BY ss.period DESC
+      LIMIT 1
+      FOR UPDATE OF ss`,
+    [normaliseStudyCode(input.studyCode), input.participantCode.trim()],
+  );
+  const sessionId = r.rows[0]?.id;
+  if (!sessionId) return null;
+  const s = (await loadSessionState(c, sessionId))!;
+  if (!isSessionOpen(s)) return null;
+  const pos = await syncPosition(c, s);
+  if (pos.kind !== "step" || pos.step !== "delayed_test") return null;
+  return sessionId;
+}
+
 export async function returnForDelayedTest(pool: Pool | PoolClient, input: { studyCode: string; participantCode: string }): Promise<DelayedReturn> {
   return withTx(pool, async (c) => {
     const r = await c.query<{ session_id: string }>(
@@ -964,7 +983,7 @@ export async function returnForDelayedTest(pool: Pool | PoolClient, input: { stu
         WHERE st.slug = $1 AND upper(p.code) = upper($2)`,
       [normaliseStudyCode(input.studyCode), input.participantCode.trim()],
     );
-    const sessionId = r.rows[0]?.session_id;
+    const sessionId = r.rows[0]?.session_id ?? (await scheduleOpenDelayedSession(c, input));
     if (!sessionId) throw new StudyEngineError("participant_not_found", "No delayed test is scheduled for this code.");
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
     const s = (await loadSessionState(c, sessionId))!;

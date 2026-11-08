@@ -206,12 +206,13 @@ x the number including it as expected.
 
 ## 8. Parameters the researchers must decide (open questions)
 
-These extend Q-R4 and Q-R18. Until they are decided, the defaults are placeholders and every
-stored score records the values that were actually used.
+These extend Q-R4 and Q-R18. Questions 1 to 3 are settled or deferred in
+`docs/research/study-decisions.md` D2 (marked below, DR-124); the rest are preregistration items whose
+current defaults stand, and every stored score records the values that were actually used.
 
-1. **Primary metric and match level.** Which of these is the primary outcome: F1/recall at dl, the valid count, edit distance, or something else? This belongs in the statistical analysis plan, not in code.
-2. **Validity level.** Must an edge be correct in type (dl) to count as valid, or is pair-and-direction enough (du)? This depends on whether the editor offers typed links (Q-R4).
-3. **Synonym rules.** Which type equivalences are pedagogically acceptable, for example ENABLES ≈ PRODUCES, or DEPENDS_ON ≈ reversed ENABLES or REQUIRES? None is enabled by default.
+1. **Primary metric and match level.** Decided (study-decisions D2): the study's primary outcomes are `test.sequence` and `test.stage_placement` (DR-075 item 8); the concept map is secondary, scored as expert-map coverage, `cmap.recall.dl`, with `cmap.recall.du`, `cmap.precision.dl`, `cmap.f1.dl` and the cross-category measure after it.
+2. **Validity level.** Decided (study-decisions D2): direction and relation type must match (dl); pair-and-direction (du) is the sensitivity analysis.
+3. **Synonym rules.** Deferred to the preregistration (study-decisions D2: "Synonym rules and the optional-edge list are frozen in the preregistration before data collection"). None is enabled by default.
 4. **Optional edges.** Decided (DR-040): a match to an optional or uncertain edge is neutral by default, as study decision D2 and the published definitions state. A study may still set `optionalMatch = valid`; every score stores the value it used.
 5. **Meaning of `required = false`.** It currently means optional, following the schema comment. If most expert edges should be expected, either set `required` explicitly or change `nonRequiredReferenceEdgeStatus`.
 6. **Out-of-scope edges.** Should edges to free nodes or concepts outside the reference set be excluded or counted as incorrect? This depends on whether the editor allows free nodes (`allowFreeNodes`).
@@ -223,6 +224,6 @@ stored score records the values that were actually used.
 
 ## 9. Known gaps against current contracts
 
-- **Uncertain and disputed status.** `referenceMapEdgeInputSchema` has only `required`. The scorer accepts an extra optional `status` (`expected | optional | uncertain | disputed`), but it cannot yet be persisted. Proposal: add a `status` column/field, or store the status in `notes`/rater `submission` until then.
+- **Uncertain and disputed status (out of scope, DR-124).** `referenceMapEdgeInputSchema` has only `required`, and the scorer's optional `status` (`expected | optional | uncertain | disputed`) is not persisted. This is kept out of scope: a stored reference map is the adjudicated one (section 7), so it holds no disputed edge, and an edge the raters judge uncertain is entered with `required = false`, which the scorer treats as optional (questions 4 and 5). Rater submissions keep their own notes.
 - **Uncategorised concepts.** Cross-category measures need concept → category data, which the caller must load. The pure scorer does not read the database.
 - **Free-node edges.** Edges to free nodes, which have no concept id, are never matched. Matching labels to concepts is out of scope by design.

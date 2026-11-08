@@ -19,7 +19,7 @@ This runbook takes Immersive Episteme from "code on `main`" (the deploy kit, the
 > | | Option A: AWS | Option B: Neon + Cloudflare R2 |
 > |---|---|---|
 > | Database | Amazon RDS, `ap-south-1` **Mumbai, India** | Neon, **AWS Asia Pacific (Singapore), `aws-ap-southeast-1`** |
-> | Media | Amazon S3, `ap-south-1` Mumbai | Cloudflare R2, location "auto" |
+> | Media | Amazon S3, `ap-south-1` Mumbai | Neon Object Storage, same region as the database (tested, DR-108, step B4-N); Cloudflare R2, location "auto", is the untested alternative (B4) |
 > | App functions (Vercel) | `bom1` (Mumbai) | `sin1` (Singapore) |
 >
 > - **Neon has no region in India.** https://neon.com/docs/introduction/regions lists AWS regions only; the nearest to India is "AWS Asia Pacific (Singapore) — `aws-ap-southeast-1`". (N§3)
@@ -201,7 +201,15 @@ In both: put the generated password in, end with `?sslmode=verify-full`, and del
    [{ "AllowedOrigins": ["https://<production-domain>"], "AllowedMethods": ["PUT"], "AllowedHeaders": ["content-type", "x-amz-checksum-sha256"], "MaxAgeSeconds": 3600 }]
    ```
 
-**Not verified (R2):** whether R2 accepts the signed `x-amz-checksum-sha256` header on a presigned single PUT. R2's S3 table lists SHA-256 only as a composite checksum ("| SHA-256 (`SHA256`) | ❌ | ✅ |" under `FULL_OBJECT` | `COMPOSITE`). The app therefore hashes the stored object on the server when R2 returns no SHA-256. Step 4.5 tests one real upload.
+**Not verified (R2):** whether R2 accepts the signed `x-amz-checksum-sha256` header on a presigned single PUT. R2's S3 table lists SHA-256 only as a composite checksum ("| SHA-256 (`SHA256`) | ❌ | ✅ |" under `FULL_OBJECT` | `COMPOSITE`). The app therefore hashes the stored object on the server when R2 returns no SHA-256. Step 4.5 tests one real upload. **R2 has not been tested with this app.**
+
+**B4-N. Media on Neon Object Storage (the tested route, DR-108).** The route actually configured and checked on 2026-11-06 keeps the media next to the database in Neon, with no Cloudflare account. Use it instead of B4.
+1. Neon console → the project → **Object Storage** → create the private bucket `episteme-media` in the project's region (`ap-southeast-1`).
+2. Create a storage credential with `storage:read` and `storage:write`. Its `token_id` is `MEDIA_S3_ACCESS_KEY_ID`, its `s3_secret_access_key` is `MEDIA_S3_SECRET_ACCESS_KEY` (shown once; straight into the env file).
+3. The endpoint is the branch's `s3_endpoint`, `https://br-….storage.<region>.aws.neon.tech`. Neon Object Storage is **path-style only**: `MEDIA_S3_FORCE_PATH_STYLE=true`.
+4. CORS on the bucket: allow only `https://<production-domain>`, methods `PUT`, `GET`, `HEAD`, headers `content-type` and `x-amz-checksum-sha256` (DR-108). A preflight from that origin must answer 200 and one from any other origin 403.
+5. Run the CMS storage check of DR-108 again on the new bucket; DR-108 records it as "The ten-step CMS storage check passes after the change: signed SHA-256 PUT, refusal of mismatched bytes, HEAD with SHA-256, range read, presigned GET, private bucket, delete."
+6. Preflight gives one **expected WARN** for this route, from `scripts/deploy/lib/topology.ts`: "S3-compatible store: endpoint is neither AWS S3 nor Cloudflare R2: untested". Everything else must PASS apart from `migrations current` before the first migration.
 
 ---
 
@@ -229,7 +237,7 @@ There is **no separate invite-gate secret**: the invite cookie is an HMAC token 
 | `BETTER_AUTH_SECRET` | new: `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`; never the local one. **Also signs the invite cookie** | **Secret** |
 | `BETTER_AUTH_URL` | `https://<production domain>`, origin only | Config |
 | `AUTH_CLIENT_IP_HEADER` | `x-forwarded-for` | Config |
-| `APP_BUILD_VERSION` | git short SHA; filled by `push-env.ps1 -BuildVersionFromGit` | Config |
+| `APP_BUILD_VERSION` | leave empty on Vercel Git deploys (the build stamps `VERCEL_GIT_COMMIT_SHA`, DR-108); for a CLI deploy, the short SHA from `push-env.ps1 -BuildVersionFromGit` | Config |
 | `PUBLIC_DEMO` | `auto` ("/explore is off while any real study is active") | Config |
 | `GOOGLE_CLIENT_ID` | optional: the Google OAuth client ID (section 6.4); set together with the secret, or leave both empty to offer email sign-in only | Config |
 | `GOOGLE_CLIENT_SECRET` | optional: the same client's secret (section 6.4) | **Secret** |
@@ -251,16 +259,16 @@ There is **no separate invite-gate secret**: the invite cookie is an HMAC token 
 | `BETTER_AUTH_SECRET` | as in Option A. **Also signs the invite cookie** | **Secret** |
 | `BETTER_AUTH_URL` | `https://<production domain>` | Config |
 | `AUTH_CLIENT_IP_HEADER` | `x-forwarded-for` | Config |
-| `APP_BUILD_VERSION` | git short SHA; `push-env.ps1 -BuildVersionFromGit` | Config |
+| `APP_BUILD_VERSION` | leave empty on Vercel Git deploys (DR-108); for a CLI deploy, `push-env.ps1 -BuildVersionFromGit` | Config |
 | `PUBLIC_DEMO` | `auto` | Config |
 | `GOOGLE_CLIENT_ID` | optional: the Google OAuth client ID (section 6.4); set together with the secret, or leave both empty to offer email sign-in only | Config |
 | `GOOGLE_CLIENT_SECRET` | optional: the same client's secret (section 6.4) | **Secret** |
-| `MEDIA_S3_BUCKET` | `immersive-episteme-media` (B4) | Config |
-| `MEDIA_S3_REGION` | `auto` ("the region for an R2 bucket is `auto`", https://developers.cloudflare.com/r2/api/s3/api/) | Config |
-| `MEDIA_S3_ENDPOINT` | `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` (B4) | Config |
-| `MEDIA_S3_FORCE_PATH_STYLE` | `true` | Config |
-| `MEDIA_S3_ACCESS_KEY_ID` | R2 API token Access Key ID (B4) | **Secret** |
-| `MEDIA_S3_SECRET_ACCESS_KEY` | R2 API token Secret Access Key (B4) | **Secret** |
+| `MEDIA_S3_BUCKET` | Neon Object Storage (tested, B4-N): `episteme-media`. R2 (untested, B4): `immersive-episteme-media` | Config |
+| `MEDIA_S3_REGION` | Neon: the project's region, `ap-southeast-1`. R2: `auto` ("the region for an R2 bucket is `auto`", https://developers.cloudflare.com/r2/api/s3/api/) | Config |
+| `MEDIA_S3_ENDPOINT` | Neon: the branch `s3_endpoint`, `https://br-….storage.<region>.aws.neon.tech`. R2: `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` | Config |
+| `MEDIA_S3_FORCE_PATH_STYLE` | `true` (both) | Config |
+| `MEDIA_S3_ACCESS_KEY_ID` | Neon: storage credential `token_id`. R2: API token Access Key ID | **Secret** |
+| `MEDIA_S3_SECRET_ACCESS_KEY` | Neon: the credential's `s3_secret_access_key`. R2: API token Secret Access Key | **Secret** |
 
 ### 3.4 Never Set These on Vercel
 
@@ -544,7 +552,7 @@ npx tsx scripts/deploy/with-env.ts --env-file ~/.episteme/production.env -- npx 
   --as <curator email> --keys <keys.json> --evidence <same> --reason "<same>" --apply
 ```
 
-Use the **same keys file, evidence and reason** the curators used locally, so production verifies exactly the same set. `<curator email>` is the production account of the curator who did the checking (the record names them); never a shared or test account.
+Use the **same keys file, evidence and reason** the curators used locally, so production verifies exactly the same set: for each tradition `<t>` of `ajrakh`, `bagh`, `bagru`, `dabu`, `machilipatnam-kalamkari` and `sanganeri`, `--keys content/traditions/<t>/tradition.json --evidence content/review/<t>-verification.md` (the script takes the file's `verified` concepts), with the reason "Authorised by the project lead (DR-059); mechanical verbatim source check of DR-120" (DR-124). Concepts that are `needs_evidence` in the database are first resubmitted with `scripts/content/submit-concepts.ts`, which takes the same `--keys`. `<curator email>` is the production account of the curator who did the checking (the record names them); never a shared or test account.
 
 **Study photos** (`scripts/content/ingest-study-photos.ts`): uploads each proposed photo through the media pipeline (the full-size file, credit, licence, provenance; every image is licensed for public use by CXA's approval, DR-118), links it to its concept, replacing an earlier rendition of the same record, and submits it for review. It never verifies.
 
@@ -675,6 +683,7 @@ unset URL
 1. **To check on the first Option B deploy:** NOTIFY through the pooler reaching the direct LISTEN; R2 accepting the signed checksum header; Neon extension creation as `neondb_owner`; LISTEN keeping the compute awake.
 2. **First run against a remote database:** `db:seed:reference` and `content:bootstrap:remote` were tested on throwaway local databases only (each run twice; counts in 5.2 and 5.3). On the first deploy, check that `/explore` shows the museum.
 3. **Route B (7.2) is not tested.** `prep-verify` is merged, so section 7.1 runs from `main`.
-4. **Still to retire:** the local `vercel-deploy` skill (`.claude/skills/`, not in the repository) still describes `bom1`, RDS only and `vercel@latest`; follow this runbook instead. The older RDS-only runbook (`bom1`, `/study?invite=<CODE>` link shape) is replaced by this file. The participant link shape in the code is `/study?code=<slug>&invite=<code>`.
+4. **This file is the whole procedure.** `.claude/skills/vercel-deploy` is a local, git-ignored checklist of the deleted deployment and does not reach a recipient of the repository. What a recipient needs from it is here: Vercel Hobby deployed from GitHub with `vercel.json` `"regions": ["sin1"]` next to a Neon `aws-ap-southeast-1` project; media in Neon Object Storage (B4-N); `APP_BUILD_VERSION` left unset on Git deploys; the pinned CLI `npx vercel@60.1.3`; Hobby deploys only commits authored by the Hobby team owner (https://vercel.com/docs/git); migrations, reference data and the public demo from a workstation through `with-env` (5.1 to 5.3), never in the Vercel build; and a Google OAuth redirect URI of `https://<production domain>/api/auth/callback/google` (6.4). The older RDS-only runbook (`bom1`, `/study?invite=<CODE>` link shape) is replaced by this file. The participant link shape in the code is `/study?code=<slug>&invite=<code>`.
+5. **State at handover (2026-11-08, DR-124):** nothing is deployed (`https://immersive-episteme.vercel.app/` answers `X-Vercel-Error: DEPLOYMENT_NOT_FOUND`). The Neon project of the earlier deployment still answers and its bucket `episteme-media` still exists; the Google OAuth client still lists that domain's redirect URI. The next deployer redoes them under their own accounts, or the lead deletes them (8.4 "Remove everything").
 
 Resolved by the production data path (commit `748675e`, merged from `prep-all`): reference data now loads alone through `with-env` (`db:seed:reference`, 5.2), and the public demo museum has a production path (`content:bootstrap:remote`, 5.3). The region for either option comes from preflight (step 1.1; `scripts/deploy/lib/topology.ts` handles Neon and RDS), so the former "Option A needs two edits" item is gone.

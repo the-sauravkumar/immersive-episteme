@@ -545,3 +545,14 @@ KG206 refuses an accepted link to an unaccepted concept, so these links waited f
 - sanganeri.explanation.dabu-mechanical-resist SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.mud-resist-barrier: Dabu acts as a mechanical resist and keeps the dye from the areas it covers.
 - sanganeri.explanation.indigo-oxidation-and-dips SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.indigo-vat-reduction: Opened out in the air, the reduced indigo reacts with atmospheric oxygen and turns into oxidised indigo.
 - sanganeri.process_stage.alum-post-mordant SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.alum-mordant-complexation: The turmeric and pomegranate-peel yellow is fugitive, and post-mordanting with alum makes it fast.
+
+## Alternative Names (DR-124)
+
+Each name in `alt_names` is printed by a recorded source; the quote was re-found verbatim at its locator in `D:/Work/IIT-KGP/Paper_1-artifacts/sources/sanganeri-2026-11-07/`. Names no source prints were removed.
+
+| Name | Source | Locator | Quote |
+|---|---|---|---|
+| Sanganeri print | S1 | PDF p. 15 | Marufacturing and Trading of Sanganeri Print |
+| Sanganer print | S8 | § "page text" | Syahi Begar &#124; Sanganer Print |
+| Sanganeri Hand Block Printing | S1 | PDF p. 2 | SANGANERI HAND BLOCK PRINTING |
+| Syahi Begar | S8 | § "page text" | Syahi Begar &#124; Sanganer Print |

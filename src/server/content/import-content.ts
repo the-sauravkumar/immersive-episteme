@@ -30,6 +30,7 @@
  *    one a curator authored in the CMS (`created_by` set), one held by a snapshot, and one a
  *    spatial manifest encodes are reported (`stale.relationships`) and kept, so a re-import
  *    never deletes curator work and never aborts on the manifests' foreign key (knowledge-04).
+ *    A held one the importer created is set `archived`, so no later snapshot carries it.
  *    Concepts, sources and traditions that disappeared from the files are reported (`stale`),
  *    never deleted, because studies, telemetry and assessments may reference them.
  *  - One transaction, plus one append-only `audit_log` row (actor_kind 'system').
@@ -74,6 +75,7 @@ export interface ImportSummary {
   traditionSources: { inserted: number; pruned: number };
   mediaCandidates: TableCounts & { pruned: number };
   pruned: { claims: number; relationships: number };
+  archived: { relationships: number };
   stale: { concepts: string[]; sources: string[]; traditions: string[]; relationships: string[] };
   files: { path: string; slug: string; sha256: string | null }[];
   auditLogId: string;
@@ -539,6 +541,11 @@ async function importInTransaction(
     relParams,
   );
   const prunedRels = await q.query(`DELETE FROM relationships r WHERE ${relGone} AND NOT ${relHeld}`, relParams);
+  const archivedRels = await q.query(
+    `UPDATE relationships r SET verification_state = 'archived', updated_at = now()
+      WHERE ${relGone} AND r.created_by IS NULL AND r.verification_state <> 'archived' AND ${relHeld}`,
+    relParams,
+  );
   const relRes = await upsert(q, {
     table: "relationships",
     columns: [
@@ -684,6 +691,7 @@ async function importInTransaction(
     traditionSources: { inserted: insTradSources.rowCount ?? 0, pruned: prunedTradSources.rowCount ?? 0 },
     mediaCandidates,
     pruned: { claims: prunedClaims.rowCount ?? 0, relationships: prunedRels.rowCount ?? 0 },
+    archived: { relationships: archivedRels.rowCount ?? 0 },
     stale: { concepts: staleConcepts.sort(), sources: staleSources.sort(), traditions: staleTraditions.sort(), relationships: staleRels.rows.map((r) => r.label) },
     files,
   };

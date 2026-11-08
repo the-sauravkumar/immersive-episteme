@@ -369,5 +369,22 @@
       "S10"
     ],
     "removal_reason": "DR-122 source check: S10 gives the mud resist and the indigo vat as successive steps of one process (the resist is printed on the areas to remain undyed, then the cloth goes into the vat); the only contrast it draws is mordant-dyed against resist-dyed. No recorded source contrasts the resist barrier with vat reduction."
+  },
+  {
+    "file": "comparisons.json",
+    "source": "machilipatnam-kalamkari.open_question.gi-year",
+    "target": "sanganeri.open_question.gi-registration-year",
+    "type": "SIMILAR_TO",
+    "explanation": "Secondary sources give several GI years that differ from the registry record.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "machilipatnam-kalamkari:S1",
+      "machilipatnam-kalamkari:S15",
+      "sanganeri:S2"
+    ],
+    "removal_reason": "DR-124: no recorded source states the link; the juxtaposition was the curators' own and the Sanganeri side rested on sanganeri:S14 (unverified kind), as the round 2 source check of 2026-10-16 found."
   }
 ]

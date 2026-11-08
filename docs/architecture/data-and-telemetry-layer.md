@@ -118,27 +118,8 @@ stale. Results are plain serialisable objects; types are exported from
 
 ## 3. Spatial manifests
 
-- `getManifest(manifestId): Promise<ManifestRecord | null>` — `src/server/spatial/manifests.ts`
-  (server-only, `'use cache'`, tags `spatial` + `manifest:<id>`). `ManifestRecord` =
-  `{ id, snapshotId, ruleSetId, compilerVersion, seed, traditions, status, isDemo, manifestHash,
-  manifest: CompiledManifest, validation, createdAt }`. Element ids in the manifest are what
-  telemetry `target` / `roomOrPageId` carry; `conceptId`s are snapshot concept ids (use
-  `getConceptRefs(ctx.snapshotId, ids)`).
-- `compileAndStoreManifest(client, { snapshotId, traditions, seed? })` and `loadManifest(q, id)` —
-  `src/server/spatial/manifest-store.ts` (scripts/tests). Compiles from the stored snapshot
-  payload with the frozen default rule set (`mapping_rule_sets` row `knowledge-to-space-default`
-  v1), stores `manifest`, `manifest_hash` (sha256 of the jsonb, generated), `compiler_version`,
-  `seed`, `traditions`, `validation` (compiler report + `compilerManifestHash`), status `valid` /
-  `invalid`, and the traceability index (`spatial_elements`, `spatial_element_encodings`).
-  Inputs `(snapshot, rule set, compiler version, seed, traditions)` are unique: recompiling
-  returns the existing row.
-- CLI: `npm run spatial:compile -- [--snapshot <id> | --label <label>] [--traditions a,b,c] [--seed s]`.
-- A study pins one manifest (`studies.manifest_id`); sessions inherit it. A manifest from a review
-  snapshot can never be published, and no non-demo study may reference it.
-- Exhibit images come from `media_candidates` (licence **not yet reviewed**) and are frozen into
-  the manifest with `width`/`height` so planes keep their aspect ratio. The knowledge snapshot
-  carries no media yet (`assetIds` stay empty until licence-reviewed `assets` exist); the 2D
-  condition must show the same images as the manifest if it shows any (parity).
+- The compiler and its CLI were removed with the old museum (DR-076; see the superseded `spatial-compiler.md`). Earlier studies keep their pinned manifest; new studies carry `manifest_id = NULL`.
+- Both doors are built from the stage templates (`content/study/*.template.json`, `src/features/process/domain/stage-template.ts`). Exhibit images reach them through one list, `exhibitImages`, that both doors and both parity door views read. The study photographs join it through `withStudyPhotos`, from `listStudyPhotos(snapshotId)` in `src/server/knowledge/read-model.ts`, which applies the photo gate in the snapshot the learner reads: an asset is shown when it is approved, carries its credit, caption and alt text, and illustrates a real concept (or is a public plate); every image is licensed for public use by CXA's approval (DR-118). `media_candidates` are not shown to learners.
 
 ## 4. Telemetry
 

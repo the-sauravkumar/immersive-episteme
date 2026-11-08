@@ -1,5 +1,7 @@
 # Spatial compiler
 
+> **Superseded, 2026-11-08 (DR-124).** The spatial compiler and its museum were removed (DR-076); no code under `src/` compiles a manifest any more and `npm run spatial:compile` no longer exists. The `spatial_manifests` tables remain for studies recorded earlier, and new studies carry `manifest_id = NULL`. Door 2 is built from the stage templates (`content/study/*.template.json`). Kept as history.
+
 The spatial compiler is the main research artefact. It turns a validated knowledge graph
 into a navigable 3D museum layout, the *spatial manifest*. The transformation is
 deterministic and inspectable, so a researcher can always explain why an element is

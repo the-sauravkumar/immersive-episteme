@@ -2,6 +2,8 @@
 
 Sahapedia (contact@sahapedia.org) sent two replies to `sahapedia-image-permission-request.md`, both reproduced verbatim below and forwarded by the project lead.
 
+**Status, 2026-11-08: superseded by DR-118.** Licensed for public use by CXA's approval; the files are full size; the credit and alteration rules still apply. The 768 px limit, `licenceExpiresOn` and the ingest gates described below were removed by DR-118 (migration `0027_drop_licence_governance`); the reply itself is kept verbatim.
+
 **Status: permission granted** (second reply) for 6_IMG_0046, "Wooden blocks used for kalamkari printing in Machilipatnam". The permission expressly overrides the "personal uses only" limit in section 9 of Sahapedia's Terms of Use. Ingest must follow these conditions:
 
 - **Where:** both study conditions, research participants and the public demonstration.

@@ -11,7 +11,7 @@ import type { KnowledgeFigureData } from "@/features/knowledge/read/view";
 import { FIGURE_TEXT } from "@/features/learning/strings";
 import { cn } from "@/lib/utils";
 
-import { FigureLightbox, LIGHTBOX_MAX_EDGE } from "./figure-lightbox";
+import { FigureLightbox } from "./figure-lightbox";
 import { StructureDiagramSvg } from "./structure-diagram";
 
 export const FIGURE_SIZES = "(min-width: 1024px) 544px, calc(100vw - 32px)";
@@ -82,10 +82,7 @@ export function KnowledgeFigure({ figure, number, first = false, className }: Kn
       </div>
     );
   } else {
-    const scale = Math.min(1, LIGHTBOX_MAX_EDGE / Math.max(figure.width, figure.height));
-    const w = Math.round(figure.width * scale);
-    const h = Math.round(figure.height * scale);
-    enlarged = <Image src={figure.src} alt={figure.alt} width={w} height={h} sizes={`${w}px`} unoptimized loading="eager" decoding="async" className="mx-auto h-auto max-w-full" />;
+    enlarged = <Image src={figure.src} alt={figure.alt} width={figure.width} height={figure.height} sizes="90vw" unoptimized loading="eager" decoding="async" className="mx-auto h-auto max-h-[85dvh] w-auto max-w-full" />;
   }
 
   return (

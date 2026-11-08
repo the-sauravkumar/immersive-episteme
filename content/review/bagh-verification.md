@@ -552,3 +552,13 @@ KG206 refuses an accepted link to an unaccepted concept, so these links waited f
 - bagh.scientific_mechanism.indirect-mordant-dyeing SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.alum-mordant-complexation: The mordants printed with the blocks react with alizarin in the dye bath; alum gives red when boiled with alizarine and dhavdakaphool.
 - bagh.scientific_mechanism.indirect-mordant-dyeing SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.alizarin-lake-formation: The mordants printed with the blocks react with alizarin to give the final colours.
 - bagh.process_stage.tarai SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.sun-bleaching: In tarai the cloth is sun-dried on river stones for natural bleaching and repeatedly moistened while it dries.
+
+## Alternative Names (DR-124)
+
+Each name in `alt_names` is printed by a recorded source; the quote was re-found verbatim at its locator in `D:/Work/IIT-KGP/Paper_1-artifacts/sources/bagh-2026-11-07/`. Names no source prints were removed.
+
+| Name | Source | Locator | Quote |
+|---|---|---|---|
+| Bagh Prints of Madhya Pradesh | S1 | PDF p. 3 | GI Applications Bagh Prints of Madhya Pradesh (Logo )- GI Application No.505 |
+| Thappa Chappai | S4 | § "Thappa Chappai" | Also called 'Thappa Chappai' (Thappa means Blocks, Chappai means printing) |
+| alizarin printing | S6 | § "This 400-year-old tradition of block printing, using natural ingredients and labour-intensive techniques, is no mean fea" | Bagh printing, previously known as alizarin printing |

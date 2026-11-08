@@ -1164,7 +1164,7 @@
       "category": "cross_tradition_comparisons",
       "title": "Red dye sources and red-bath additives",
       "summary": "Ajrakh uses Indian madder (Rubia cordifolia) or synthetic alizarin, which superseded madder and also requires alum.",
-      "body_md": "Ajrakh uses Indian madder (Rubia cordifolia) or synthetic alizarin, which superseded madder and also requires alum. [ajrakh:S1]\n\nAt Bagh the aal root was earlier used; alizarine has taken its place. [bagh:S1]\n\nBagru and Sanganeri red baths use madder, now synthetic alizarin due to shortage. [bagru:S1, sanganeri:S1]\n\nMadder and chay were fine southern red sources; Machilipatnam now uses alizarin brought from Mumbai. [machilipatnam-kalamkari:S4]\n\nIn Akola Dabu, alizarin red was later replaced by naphthol developed in red salt. [dabu:S1, dabu:S2]\n\nDhawai flowers are boiled with alizarin at Bagru and Sanganer to avoid patches and staining. [bagru:S1, sanganeri:S1]\n\nDhavda flowers are used for shine and fixing in the Bagh boiling solution. [bagh:S1]\n\nAjrakh dyers add dried tamarisk flowers if colour spreads into white areas. [ajrakh:S1]\n\nMachilipatnam dyers add jajaku leaves to the alizarin bath as a carrier that hastens dyeing. [machilipatnam-kalamkari:S4]",
+      "body_md": "Ajrakh uses Indian madder (Rubia cordifolia) or synthetic alizarin, which superseded madder and also requires alum. [ajrakh:S1]\n\nAt Bagh the aal root was earlier used; alizarine has taken its place. [bagh:S1]\n\nBagru and Sanganeri red baths use madder, now synthetic alizarin due to shortage. [bagru:S1, sanganeri:S1]\n\nMadder and chay were fine southern red sources; Machilipatnam now uses alizarin brought from Mumbai. [machilipatnam-kalamkari:S4]\n\nIn Akola Dabu, alizarin red was later replaced by naphthol developed in red salt. [dabu:S1, dabu:S2]\n\nDhawai flowers are boiled with alizarin at Bagru and Sanganer to avoid patches and staining. [bagru:S1, sanganeri:S1]\n\nDhavda flowers are used for shine and fixing in the Bagh boiling solution. [bagh:S1]\n\nThe Ajrakh GI application says a handful of dried \"tamansk\" (tamarisk) flowers is added if colour spreads into the white areas. [ajrakh:S1]\n\nMachilipatnam dyers add jajaku leaves to the alizarin bath as a carrier that hastens dyeing. [machilipatnam-kalamkari:S4]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
       "verification_state": "under_review",
@@ -1314,7 +1314,7 @@
           ]
         },
         {
-          "text": "Ajrakh dyers add dried tamarisk flowers if colour spreads into white areas.",
+          "text": "The Ajrakh GI application says a handful of dried \"tamansk\" (tamarisk) flowers is added if colour spreads into the white areas.",
           "source_ids": [
             "ajrakh:S1"
           ],
@@ -2977,7 +2977,7 @@
       "target": "bagru.material.dhawai-flowers",
       "type": "SIMILAR_TO",
       "explanation": "Both add dried flowers to the red bath to keep colour from staining where it is not wanted.",
-      "conditions": "Different plants are named (tamarisk in Ajrakh; Woodfordia at Bagru); the similarity is of function only.",
+      "conditions": "The Ajrakh GI application names dried tamarisk flowers and the Bagru GI application \"dhawai ka phool\" (Wood Fordia Floribunda); the similarity is of function only.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
       "verification_state": "under_review",
@@ -3609,21 +3609,6 @@
         "dabu:S20",
         "bagru:S2",
         "bagru:S8"
-      ]
-    },
-    {
-      "source": "machilipatnam-kalamkari.open_question.gi-year",
-      "target": "sanganeri.open_question.gi-registration-year",
-      "type": "SIMILAR_TO",
-      "explanation": "Secondary sources give several GI years that differ from the registry record.",
-      "conditions": null,
-      "ordinal": null,
-      "provenance_kind": "historical_documentation",
-      "verification_state": "needs_evidence",
-      "source_ids": [
-        "machilipatnam-kalamkari:S1",
-        "machilipatnam-kalamkari:S15",
-        "sanganeri:S2"
       ]
     },
     {

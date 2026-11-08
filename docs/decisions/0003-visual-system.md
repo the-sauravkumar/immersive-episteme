@@ -23,7 +23,7 @@ materials, and so must be fixed before data collection, are:
 | One knowledge component set | The 2D page column and the 3D panel render the same `KnowledgeSheet`, `ClaimList`, citation, figure, layer, related-concept, pager, StudyBar, guidance and state components, from the same module files. | DESIGN.md 12.1; checked by P19 (`tests/unit/design/import-graph.test.ts`) |
 | Claim face | Inter, kept from the earlier build so the study baseline changes least; Source Serif 4 for titles, headings and the verbatim quote. | DESIGN.md 2.6, 5.1 |
 | Claim measure and panel width | A 34rem (544 px) measure plus a 2.25rem hang and 1.5rem padding: the sheet is 39.25rem in both conditions; the 3D panel docks at that width from 1024 px and covers the scene below 1024 px. | DESIGN.md 6, 11.6; P2, P3 |
-| Lightbox cap | Every study figure opens in a lightbox capped at 768 px on its long edge, in both conditions (the V&A cap, one cap for all figures). | DESIGN.md 9.9, 12.3 rule 10; DR-020 |
+| Lightbox size | Every study figure opens in a lightbox that fits the viewport (its natural size, at most 90vw wide and 85dvh high), in both conditions. The 768 px licence cap of DR-020 was removed by DR-118 and DR-124. | DESIGN.md 9.9, 12.3 rule 10; DR-020, DR-118, DR-124 |
 | Canonical tradition order | Alphabetical by display name (Ajrakh, Machilipatnam Kalamkari, Sanganeri for the study), fixed and identical in both conditions, not counterbalanced. | DESIGN.md 12.3 rule 12; DR-019 |
 | Study theme | Light only in study mode; High contrast offered once, before any measured step, and recorded on the session. | DESIGN.md 4.5; DR-019 |
 | Search | Off in study builds of both conditions. | DR-019; DESIGN.md 17 risk 9 |

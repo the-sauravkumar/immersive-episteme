@@ -6,8 +6,6 @@ import { useEffect, useRef, type ReactNode, type RefObject } from "react";
 import { Button } from "@/components/ui/button";
 import { FIGURE_TEXT } from "@/features/learning/strings";
 
-export const LIGHTBOX_MAX_EDGE = 768;
-
 export interface FigureLightboxProps {
   open: boolean;
   onClose(): void;
@@ -58,7 +56,7 @@ export function FigureLightbox({ open, onClose, label, media, caption, returnFoc
             </Button>
           </div>
           <div className="flex flex-1 flex-col items-center justify-center px-4 pb-8">
-            <div className="w-full" style={{ maxWidth: LIGHTBOX_MAX_EDGE }}>
+            <div className="w-full max-w-[90vw]">
               {media}
               <div className="mt-3">{caption}</div>
             </div>

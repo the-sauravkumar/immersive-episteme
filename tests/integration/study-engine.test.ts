@@ -666,6 +666,18 @@ describe.skipIf(!TEST_URL)("study engine", { timeout: 60_000 }, () => {
       expect(score.value).toBe(1);
     });
 
+    it("lets a participant at the delayed step back by code when no schedule row was written, and schedules it from the last immediate step", async () => {
+      const { study, s } = await atDelayedTest();
+      await t.pool.query("DELETE FROM delayed_test_schedule WHERE session_id = $1", [s.sessionId]);
+      const code = (await state(s.sessionId)).participantCode;
+      expect(await returnForDelayedTest(t.pool, { studyCode: study.slug, participantCode: code })).toMatchObject({ sessionId: s.sessionId, availability: "early" });
+      const row = await one<{ days: number }>(t.pool, "SELECT round(extract(epoch FROM d.due_at - e.at) / 86400)::int AS days FROM delayed_test_schedule d, (SELECT max(occurred_at) AS at FROM audit_log WHERE entity_id = $1::text AND action = 'study.step_completed' AND after->>'step' <> 'delayed_test') e WHERE d.session_id = $1::uuid", [s.sessionId]);
+      expect(row.days).toBe(7);
+      const early = await allocated(study);
+      await expect(returnForDelayedTest(t.pool, { studyCode: study.slug, participantCode: (await state(early.sessionId)).participantCode })).rejects.toMatchObject({ code: "participant_not_found" });
+      expect((await one<{ n: number }>(t.pool, "SELECT count(*)::int AS n FROM delayed_test_schedule WHERE session_id = $1", [early.sessionId])).n).toBe(0);
+    });
+
     it("marks a window that has closed as missed and lets the session finish", async () => {
       const { s } = await atDelayedTest();
       await position(s.sessionId);

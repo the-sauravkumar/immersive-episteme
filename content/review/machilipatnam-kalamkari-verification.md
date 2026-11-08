@@ -53,7 +53,7 @@ Relationships:
 
 Study template: `npm run content:stage-template` rebuilds `content/study/machilipatnam-kalamkari.template.json` unchanged (stage names, items and captions), so both doors are unchanged.
 
-Not checked here: the tradition-level `alt_names` (not a review item) include 'Masulipatnam kalamkari' and 'Masulipatam chintz', which no recorded source spells that way.
+The tradition-level `alt_names` were checked under DR-124: 'Masulipatnam kalamkari' and 'Masulipatam chintz', which no recorded source spells that way, were replaced by S4's 'Kalamkari Cloth printing of Masulipatnam' and removed (see Alternative Names below).
 
 ## Sources
 
@@ -631,3 +631,14 @@ KG206 refuses an accepted link to an unaccepted concept, so these links waited f
 - machilipatnam-kalamkari.process_stage.myrobalan-treatment USES machilipatnam-kalamkari.material.buffalo-milk: verified on S15 (see Result).
 
 Two of these links now quote the passage that states them: myrobalan-tannin-role SIMILAR_TO tannin-pre-mordanting quoted S4 p. 7 on the iron-black reaction and now quotes 'It also helps the cotton fiber to absorb the iron and alum salts more evenly.'; alum-fixing-dip SCIENTIFICALLY_EXPLAINED_BY alum-mordant-complexation quoted the general S4 p. 4 mordant definition and now quotes S4 p. 12, 'The fabric is then submerged in this solution for a while. The excess yellow color runs off and all the colors are fixed.'
+
+## Alternative Names (DR-124)
+
+Each name in `alt_names` is printed by a recorded source; the quote was re-found verbatim at its locator in `D:/Work/IIT-KGP/Paper_1-artifacts/sources/machilipatnam-kalamkari-2026-11-08/`. Names no source prints were removed.
+
+| Name | Source | Locator | Quote |
+|---|---|---|---|
+| Pedana Kalamkari | S2 | § "page text" | GI for Pedana Kalamkari Art Form |
+| Machilipatnam Kalamkari | S1 | § "Application Details" | Geographical Indications Machilipatnam Kalamkari |
+| Kalamkari Cloth printing of Masulipatnam | S4 | PDF p. 14 | Kalamkari Cloth printing of Masulipatnam, Census of India Vol II AP Part VIIA Selected Crafts of AP. |
+| qalamkar | S8 | § "Object details" | It also calls the textile Qalamkar |

@@ -622,3 +622,14 @@ KG206 refuses an accepted link to an unaccepted concept, so these links waited f
 - ajrakh.process_stage.dhori-gach SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.mud-resist-barrier: The clay and millet flour in dhori gach act as a resist, protecting areas where no indigo is required.
 - ajrakh.process_stage.tapano SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.sun-bleaching: The sun, moisture and compounds in the dung act as a bleaching agent on the white areas of the design.
 - ajrakh.scientific_mechanism.madder-staining-and-clearing SIMILAR_TO shared.scientific_mechanism.sun-bleaching: In tapano the sun, moisture and compounds in the dung act as a bleaching agent on the white areas.
+
+## Alternative Names (DR-124)
+
+Each name in `alt_names` is printed by a recorded source; the quote was re-found verbatim at its locator in `D:/Work/IIT-KGP/Paper_1-artifacts/sources/ajrakh-2026-11-07/`. Names no source prints were removed.
+
+| Name | Source | Locator | Quote |
+|---|---|---|---|
+| Ajrak | S15 | § "page text" | Ajrak - Wikipedia |
+| Kutch Ajrakh | S1 | § "Application Details" | Geographical Indications Kutch Ajrakh Print of Gujarat |
+| Kutch Ajrakh Print of Gujarat | S1 | § "Application Details" | Geographical Indications Kutch Ajrakh Print of Gujarat |
+| Sindhi Ajrak | S15 | § "Ajrak" | Sindhi ajrak |
