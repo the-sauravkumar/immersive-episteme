@@ -29,8 +29,6 @@ const LEVEL_LABEL: Record<string, string> = {
   directed_labelled: "Pair + direction + type",
 };
 const CHANGE_LABEL: Record<string, string> = { added: "Added", removed: "Removed", changed: "Changed" };
-/** Counts as integers, rates with 3 decimals; "–" when absent, "n/a" when undefined for the map. */
-/** Concept-map metrics that are counts (printed as integers); every other score is a proportion or ratio (2 decimals). */
 const COUNT_METRICS = new Set([
   "cmap.causal_chain_depth",
   "cmap.cross_category.total",
@@ -41,12 +39,10 @@ const COUNT_METRICS = new Set([
   "cmap.missing_expected_relationships",
   "cmap.valid_relationships",
 ]);
-/** Fixed decimals per metric (DESIGN.md 10 precision): counts as integers, proportions to 2 decimals, "–" when undefined or not stored. */
 const fmt = (metric: string, v: number | null | undefined) =>
   v === null || v === undefined || !Number.isFinite(v) ? "–" : COUNT_METRICS.has(metric) ? v.toFixed(0) : fixed(v, 2);
 const sentenceCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ");
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ params, searchParams }: PageProps<"/research/scoring/maps/[conceptMapId]">) {
@@ -72,7 +68,6 @@ async function Breakdown({ params, searchParams }: { params: Promise<{ conceptMa
   const nodeLabel = new Map(b.payload.nodes.map((n) => [n.key, n.label]));
   const typeLabel = (code: string | null) => (code === null ? "is linked to" : (b.set.relationshipTypes.find((t) => t.code === code)?.label ?? code));
   const edgeByKey = new Map(b.payload.edges.map((e) => [e.key, e]));
-  /** Canonical key "A>B#TYPE" / "A~B#TYPE" as a sentence. */
   const keySentence = (key: string | null) => {
     if (!key) return "–";
     const m = /^(.+?)([>~])(.+?)#(.*)$/.exec(key);
@@ -91,7 +86,7 @@ async function Breakdown({ params, searchParams }: { params: Promise<{ conceptMa
       <SummaryList
         className="mb-10 max-w-[52rem]"
         items={[
-          { label: "Participant", value: <span className="text-id">{b.map.participantCode}</span> },
+          { label: "Participant", value: <span className="t-table font-semibold wrap-anywhere">{b.map.participantCode}</span> },
           { label: "Condition", value: b.map.condition === "immersive_3d" ? "3D" : "2D" },
           {
             label: "Phase",
@@ -110,7 +105,7 @@ async function Breakdown({ params, searchParams }: { params: Promise<{ conceptMa
             label: "Reference",
             value: (
               <>
-                <span className="tabular-nums">v{b.reference.version}</span> ({b.reference.title}), fingerprint <span className="text-id">{b.reference.fingerprint.slice(0, 12)}</span>
+                <span className="tabular-nums">v{b.reference.version}</span> ({b.reference.title}), fingerprint <span className="t-table font-semibold wrap-anywhere">{b.reference.fingerprint.slice(0, 12)}</span>
               </>
             ),
           },
@@ -191,8 +186,8 @@ async function Breakdown({ params, searchParams }: { params: Promise<{ conceptMa
           <TableBody>
             {b.result.scores.map((s) => (
               <TableRow key={s.metricName}>
-                <TableCell className="text-id">{s.metricName}</TableCell>
-                <TableCell className="text-id">{s.metricVersion}</TableCell>
+                <TableCell className="t-table font-semibold wrap-anywhere">{s.metricName}</TableCell>
+                <TableCell className="t-table font-semibold wrap-anywhere">{s.metricVersion}</TableCell>
                 <TableCell numeric>{fmt(s.metricName, s.value)}</TableCell>
                 <TableCell numeric>{fmt(s.metricName, b.stored.find((x) => x.metricName === s.metricName)?.value)}</TableCell>
               </TableRow>
@@ -204,10 +199,10 @@ async function Breakdown({ params, searchParams }: { params: Promise<{ conceptMa
       {b.change ? (
         <Section demo={b.reference.isDemo} id="change" title="Change from before to after learning">
           {b.change.changes.length ? (
-            <ul className="mb-6 flex max-w-[52rem] flex-col border-y border-rule">
+            <ul className="mb-6 flex max-w-[52rem] flex-col border-y border-line">
               {b.change.changes.map((c, i) => (
-                <li key={i} className="text-body grid gap-x-4 border-t border-rule py-2 text-ink first:border-t-0 xs:grid-cols-[6rem_minmax(0,1fr)]">
-                  <span className="text-label self-center">{CHANGE_LABEL[c.kind] ?? c.kind}</span>
+                <li key={i} className="t-b grid gap-x-4 border-t border-line py-2 text-lime first:border-t-0 xs:grid-cols-[6rem_minmax(0,1fr)]">
+                  <span className="t-label self-center">{CHANGE_LABEL[c.kind] ?? c.kind}</span>
                   <span>{c.kind === "added" ? keySentence(c.after) : c.kind === "removed" ? keySentence(c.before) : `${keySentence(c.before)}, now ${keySentence(c.after)}`}</span>
                 </li>
               ))}
@@ -232,7 +227,7 @@ async function Breakdown({ params, searchParams }: { params: Promise<{ conceptMa
               <TableBody>
                 {b.change.scoreDeltas.map((d) => (
                   <TableRow key={d.metricName}>
-                    <TableCell className="text-id">{d.metricName}</TableCell>
+                    <TableCell className="t-table font-semibold wrap-anywhere">{d.metricName}</TableCell>
                     <TableCell numeric>{fmt(d.metricName, d.pre)}</TableCell>
                     <TableCell numeric>{fmt(d.metricName, d.post)}</TableCell>
                     <TableCell numeric>{fmt(d.metricName, d.delta)}</TableCell>

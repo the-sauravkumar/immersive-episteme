@@ -11,7 +11,6 @@ import { useGuidance, type GuidanceReport } from "@/features/process/ui/use-guid
 import { useTabHidden } from "@/lib/use-tab-hidden";
 import type { WalkEngine, WalkEngineFactory } from "../application/walk-engine";
 import { buildRoute, type RouteStation } from "../domain/route-plan";
-import "@/styles/walking-tokens.css";
 import "./walkthrough.css";
 
 export interface WalkStop {
@@ -253,7 +252,7 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
   }, [atHall, events, lastTradition, moveTo, stationIndex, traditionIndex]);
 
   return (
-    <div className="walkthrough walking" data-slot="walkthrough-session">
+    <div className="walkthrough" data-slot="walkthrough-session">
       <div
         ref={host}
         className="walkthrough-view"

@@ -23,7 +23,6 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Sources" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/cms/sources">) {
@@ -96,7 +95,7 @@ async function Sources({ searchParams }: { searchParams: Promise<SearchParams> }
                   <Link href={`/cms/sources?edit=${s.id}#source`} className={ROW_LINK}>
                     {s.title}
                   </Link>
-                  <span className="text-credit block">{[s.author, s.publisher, s.year].filter(Boolean).join(", ")}</span>
+                  <span className="t-s text-lime-dim block">{[s.author, s.publisher, s.year].filter(Boolean).join(", ")}</span>
                 </TableCell>
                 <TableCell>{label(s.kind)}</TableCell>
                 <TableCell>{s.reliability ?? "—"}</TableCell>

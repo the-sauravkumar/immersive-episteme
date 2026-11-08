@@ -1,91 +1,9 @@
-/*
- * Immersive Episteme design tokens: the "Atlas" system (DESIGN.md sections 4-9; DR-022).
- *
- * Rules for this file (DESIGN.md 4.1):
- *  - Colour values stay as hex literals inside the flat `:root`, `.dark`, `.a11y-contrast` and
- *    `.dark.a11y-contrast` blocks. tests/unit/contrast.test.ts parses those four blocks with
- *    regexes and asserts the DESIGN.md 4.3/4.4 ratios (truncated, never rounded).
- *  - Raw tokens are mapped onto the shadcn semantic names in EVERY block, so a theme class on a
- *    subtree remaps the semantics too and every primitive keeps working.
- *  - `--ground` light is #FFFFFF: tests/e2e/smoke.spec.ts pins rgb(255, 255, 255).
- *  - Two planes: white paper (`--ground`) carries knowledge; the neutral field (`--field`)
- *    carries navigation and is never behind claims. Black ink. Indigo is the one colour that
- *    means "you can act on this". No cream, madder, ochre, band, ticks, marker or shadow.
- *  - Yellow is reserved for the guidance cue and never appears in this file. No `--faint` token.
- *
- * Earlier provenance: the first token set was adapted from virtual-walkthrough src/styles.css,
- * src/admin/admin.css, src/museum/ui/entry.css and src/museum/a11y/a11y.css (focus double ring).
- * Apparatus replaced those values and Atlas replaces Apparatus; the black and white ring is kept
- * and now applies in every theme.
- */
 @import "tailwindcss";
 @import "tw-animate-css";
-/* data-open:/data-checked:/... custom variants used by the radix-nova shadcn components. */
 @import "shadcn/tailwind.css";
+@import "../styles/walking-tokens.css";
 
-@custom-variant dark (&:where(.dark, .dark *));
-@custom-variant hc (&:where(.a11y-contrast, .a11y-contrast *));
-
-/* ---- Light theme (DESIGN.md 4.2) ---- */
 :root {
-  --ground: #ffffff;
-  --field: #e9ecec;
-  --sunk: #f1f3f3;
-  --wash: #e4eaf4;
-  --ink: #000000;
-  --ink-2: #363636;
-  --ink-3: #595959;
-  --rule: #d2d7da;
-  --rule-strong: #767c82;
-  --indigo: #24406e; /* design interpretation; not a measured or historical dye colour */
-  --indigo-hover: #1a3157;
-  --on-indigo: #ffffff;
-  --danger: #a3242c;
-  --ok: #2e6a3e;
-  --warn: #77540f;
-  --series-2d: #3a5da0;
-  --series-3d: #8e4d16;
-  --grid: #dce0e3;
-  --viz-seq-1: #e4e3e6;
-  --viz-seq-2: #b9c3d6;
-  --viz-seq-3: #8a9dc0;
-  --viz-seq-4: #4f6a99;
-  --viz-seq-5: #36548a;
-  --viz-seq-6: #1b3360;
-  --focus-outer: #000000;
-  --focus-inner: #ffffff;
-  --google-fill: #ffffff;
-  --google-stroke: #747775;
-  --google-text: #1f1f1f;
-  --google-blue: #4285f4;
-  --google-green: #34a853;
-  --google-yellow: #fbbc05;
-  --google-red: #ea4335;
-  /* Retired name (DR-022): the paper. An alias so no older call site can show a second paper. */
-  --surface: var(--ground);
-
-  /* shadcn semantic layer */
-  --background: var(--ground);
-  --foreground: var(--ink);
-  --card: var(--ground);
-  --card-foreground: var(--ink);
-  --popover: var(--ground);
-  --popover-foreground: var(--ink);
-  --primary: var(--indigo);
-  --primary-foreground: var(--on-indigo);
-  --secondary: var(--sunk);
-  --secondary-foreground: var(--ink);
-  --muted: var(--sunk);
-  --muted-foreground: var(--ink-3);
-  --accent: var(--sunk);
-  --accent-foreground: var(--ink);
-  --destructive: var(--danger);
-  --border: var(--rule);
-  --input: var(--rule-strong);
-  --ring: var(--focus-outer);
-
-  /* Non-colour tokens (DESIGN.md 4.6) */
-  --radius: 4px;
   --dur-1: 120ms;
   --dur-2: 150ms;
   --measure: 34rem;
@@ -93,231 +11,27 @@
   --rail-w: 18rem;
   --studybar-h: 3.5rem;
   --notice-h: 2.5rem;
-  /* Tallest sticky chrome (notice + StudyBar + 1 px rule), so a focused element scrolled into
-     view is never hidden under it (WCAG 2.4.11, R-A6). */
   --sticky-chrome: calc(var(--notice-h) + var(--studybar-h) + 1px);
-  --sans-stack:
-    var(--font-atkinson), "Atkinson Hyperlegible Next", system-ui, -apple-system, "Segoe UI", Roboto,
-    sans-serif;
-  --code-stack: ui-monospace, "Cascadia Code", Consolas, monospace;
-  --arabic-stack: "Segoe UI", "Noto Naskh Arabic", "Geeza Pro", sans-serif;
-}
-
-/* ---- Dark theme (DESIGN.md 4.2). Public and console only; never applied in study (DR-019). ---- */
-.dark {
-  --ground: #1a1d21;
-  --field: #111316;
-  --sunk: #23272c;
-  --wash: #22304a;
-  --ink: #eceef0;
-  --ink-2: #c8cdd3;
-  --ink-3: #9aa2ac;
-  --rule: #343a41;
-  --rule-strong: #7b838d;
-  --indigo: #a9bee6;
-  --indigo-hover: #c6d5f1;
-  --on-indigo: #111316;
-  --danger: #f2918c;
-  --ok: #8cc7a0;
-  --warn: #d9b26a;
-  --series-2d: #8faee8;
-  --series-3d: #e0a06a;
-  --grid: #2b3036;
-  --viz-seq-1: #2c2b33;
-  --viz-seq-2: #33405a;
-  --viz-seq-3: #465c86;
-  --viz-seq-4: #6582b4;
-  --viz-seq-5: #90aadb;
-  --viz-seq-6: #c3d3f1;
-  --focus-outer: #ffffff;
-  --focus-inner: #000000;
-  --google-fill: #131314;
-  --google-stroke: #8e918f;
-  --google-text: #e3e3e3;
-  --surface: var(--ground);
-
-  --background: var(--ground);
-  --foreground: var(--ink);
-  --card: var(--ground);
-  --card-foreground: var(--ink);
-  --popover: var(--ground);
-  --popover-foreground: var(--ink);
-  --primary: var(--indigo);
-  --primary-foreground: var(--on-indigo);
-  --secondary: var(--sunk);
-  --secondary-foreground: var(--ink);
-  --muted: var(--sunk);
-  --muted-foreground: var(--ink-3);
-  --accent: var(--sunk);
-  --accent-foreground: var(--ink);
-  --destructive: var(--danger);
-  --border: var(--rule);
-  --input: var(--rule-strong);
-  --ring: var(--focus-outer);
-}
-
-/* ---- High contrast, light (DESIGN.md 4.4): opaque, flat, every rule solid ink. ---- */
-.a11y-contrast {
-  --ground: #ffffff;
-  --field: #ffffff;
-  --sunk: #f0f0f0;
-  --wash: #e6eaf2;
-  --ink: #000000;
-  --ink-2: #1a1a1a;
-  --ink-3: #262626;
-  --indigo: #1b2f55;
-  --indigo-hover: #111e38;
-  --on-indigo: #ffffff;
-  --danger: #8a1a20;
-  --ok: #000000;
-  --warn: #000000;
-  --rule: #000000;
-  --rule-strong: #000000;
-  --focus-outer: #000000;
-  --focus-inner: #ffffff;
-  --surface: var(--ground);
-
-  --background: var(--ground);
-  --foreground: var(--ink);
-  --card: var(--ground);
-  --card-foreground: var(--ink);
-  --popover: var(--ground);
-  --popover-foreground: var(--ink);
-  --primary: var(--indigo);
-  --primary-foreground: var(--on-indigo);
-  --secondary: var(--sunk);
-  --secondary-foreground: var(--ink);
-  --muted: var(--sunk);
-  --muted-foreground: var(--ink-3);
-  --accent: var(--sunk);
-  --accent-foreground: var(--ink);
-  --destructive: var(--danger);
-  --border: var(--rule);
-  --input: var(--rule-strong);
-  --ring: var(--focus-outer);
-}
-
-/* ---- High contrast, dark (DESIGN.md 4.4). Sets every key the light HC block sets, so no light
-   HC value leaks into dark HC (asserted by tests/unit/contrast.test.ts). ---- */
-.dark.a11y-contrast {
-  --ground: #000000;
-  --field: #000000;
-  --sunk: #141414;
-  --wash: #1f2a40;
-  --ink: #ffffff;
-  --ink-2: #f0f0f0;
-  --ink-3: #e0e0e0;
-  --indigo: #c9d7f2;
-  --indigo-hover: #e1e9f8;
-  --on-indigo: #000000;
-  --danger: #ffb0ab;
-  --ok: #ffffff;
-  --warn: #ffffff;
-  --rule: #ffffff;
-  --rule-strong: #ffffff;
-  --focus-outer: #ffffff;
-  --focus-inner: #000000;
-  --surface: var(--ground);
-
-  --background: var(--ground);
-  --foreground: var(--ink);
-  --card: var(--ground);
-  --card-foreground: var(--ink);
-  --popover: var(--ground);
-  --popover-foreground: var(--ink);
-  --primary: var(--indigo);
-  --primary-foreground: var(--on-indigo);
-  --secondary: var(--sunk);
-  --secondary-foreground: var(--ink);
-  --muted: var(--sunk);
-  --muted-foreground: var(--ink-3);
-  --accent: var(--sunk);
-  --accent-foreground: var(--ink);
-  --destructive: var(--danger);
-  --border: var(--rule);
-  --input: var(--rule-strong);
-  --ring: var(--focus-outer);
-}
-
-@theme inline {
-  /* shadcn semantic colours */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-
-  /* Atlas raw colours (bg-ground, bg-field, text-ink-3, border-rule-strong, ...). ok and warn are
-     console-only; series and viz are charts. */
-  --color-ground: var(--ground);
-  --color-field: var(--field);
-  --color-sunk: var(--sunk);
-  --color-wash: var(--wash);
-  --color-ink: var(--ink);
-  --color-ink-2: var(--ink-2);
-  --color-ink-3: var(--ink-3);
-  --color-rule: var(--rule);
-  --color-rule-strong: var(--rule-strong);
-  --color-indigo: var(--indigo);
-  --color-indigo-hover: var(--indigo-hover);
-  --color-on-indigo: var(--on-indigo);
-  --color-danger: var(--danger);
-  --color-ok: var(--ok);
-  --color-warn: var(--warn);
-  --color-series-2d: var(--series-2d);
-  --color-series-3d: var(--series-3d);
-  --color-grid: var(--grid);
-  --color-viz-seq-1: var(--viz-seq-1);
-  --color-viz-seq-2: var(--viz-seq-2);
-  --color-viz-seq-3: var(--viz-seq-3);
-  --color-viz-seq-4: var(--viz-seq-4);
-  --color-viz-seq-5: var(--viz-seq-5);
-  --color-viz-seq-6: var(--viz-seq-6);
-
-  /* Fonts (DESIGN.md 5.1). Atkinson Hyperlegible Next everywhere; Anek Latin is loaded only by the
-     public layout, so `font-display` falls back to Atkinson anywhere else. Code only is mono. */
-  --font-sans: var(--sans-stack);
-  --font-display: var(--font-anek, var(--font-atkinson)), "Anek Latin", var(--sans-stack);
-  --font-mono: var(--code-stack);
-
-  /* Radius by role (DESIGN.md 4.6): 4 px hand-held controls, 2 px badges, 0 for every docked
-     surface (sheet, rails, bars, tables, figures, dialogs, cards, plates). */
-  --radius-control: 4px;
-  --radius-badge: 2px;
-  --radius-card: 0px;
-  --radius-xs: 2px;
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --radius-lg: 4px;
-  --radius-xl: 4px;
-  --radius-2xl: 4px;
-  --radius-3xl: 4px;
-  --radius-4xl: 4px;
 }
 
 @theme {
-  --breakpoint-xs: 32.5rem; /* 520 px */
-  --breakpoint-2xl: 90rem; /* 1440 px */
+  --color-*: initial;
+  --font-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --blur-*: initial;
+
+  --breakpoint-xs: 32.5rem;
+  --breakpoint-2xl: 90rem;
 
   --spacing-measure: 34rem;
   --spacing-hang: 2.25rem;
   --spacing-sheet: 39.25rem;
   --spacing-rail: 18rem;
 
-  /* Named z-index scale (unchanged). Use as z-(--z-modal). */
   --z-canvas: 0;
   --z-hud: 10;
   --z-panel: 20;
@@ -328,59 +42,91 @@
   --z-skip-link: 100;
 }
 
+@theme inline {
+  --color-vat: var(--vat);
+  --color-vat-2: var(--vat-2);
+  --color-line: var(--line);
+  --color-lime: var(--lime);
+  --color-lime-dim: var(--lime-dim);
+  --color-cotton: var(--cotton);
+  --color-stamp: var(--stamp);
+  --color-turmeric: var(--turmeric);
+  --color-turmeric-hi: var(--turmeric-hi);
+  --color-turmeric-lo: var(--turmeric-lo);
+  --color-madder: var(--madder);
+  --color-madder-lo: var(--madder-lo);
+  --color-madder-text: var(--madder-text);
+  --color-ok: var(--ok);
+  --color-thread: var(--thread);
+  --color-off-bg: var(--off-bg);
+  --color-off-fg: var(--off-fg);
+  --color-plaster: var(--plaster);
+  --color-still-ground: var(--still-ground);
+  --color-raised-hover: var(--raised-hover);
+  --color-row-hover: var(--row-hover);
+  --color-backdrop: var(--backdrop);
+
+  --font-sans: var(--body);
+  --font-display: var(--disp);
+}
+
 @layer base {
-  * {
-    @apply border-border;
+  *,
+  ::before,
+  ::after,
+  ::backdrop {
+    border-color: var(--line);
   }
   html {
-    color-scheme: light;
+    color-scheme: dark;
+    background: var(--vat);
     scroll-padding-top: var(--sticky-chrome);
   }
-  html.dark {
-    color-scheme: dark;
-  }
   body {
-    background-color: var(--ground);
-    color: var(--ink);
-    font-family: var(--sans-stack);
-    font-size: 1rem;
-    line-height: 1.5rem;
+    background: var(--vat);
+    color: var(--lime);
+    font-family: var(--body);
+    font-size: 18px;
+    line-height: 1.5;
+    font-synthesis: none;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  code,
-  kbd,
-  samp,
-  pre {
-    font-family: var(--code-stack);
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--disp);
+    font-weight: 700;
+  }
+  button,
+  input:not([type="radio"]),
+  select,
+  textarea {
+    border-radius: 0;
+  }
+  button {
+    font-family: var(--disp);
+    font-weight: 700;
+  }
+  ::selection {
+    background: var(--turmeric);
+    color: var(--vat);
   }
 
-  /* Focus (DESIGN.md 9.1, R-A5): the two-tone ring on every focusable, in every theme and both
-     conditions. A 2 px --focus-outer outline at 2 px offset, the offset filled by a 2 px
-     --focus-inner shadow: black outside and white inside in light, the reverse in dark. The better
-     of the two tones keeps at least 4.58:1 against any colour (DR-022). In forced colours the
-     browser drops the shadow and the outline remains. Primitives do not draw their own rings. */
   :focus-visible {
-    outline: 2px solid var(--focus-outer);
+    outline: 3px solid var(--turmeric);
     outline-offset: 2px;
-    box-shadow: 0 0 0 2px var(--focus-inner);
   }
-  /* Chromium's date and time inputs have a fourth Tab stop, the picker button inside the
-     input's own shadow tree, where the input matches :focus-within but not :focus-visible. */
   :is(input[type="date"], input[type="datetime-local"], input[type="time"], input[type="month"], input[type="week"]):focus-within {
-    outline: 2px solid var(--focus-outer);
+    outline: 3px solid var(--turmeric);
     outline-offset: 2px;
-    box-shadow: 0 0 0 2px var(--focus-inner);
   }
-  /* One skip link per view (P22): on learning routes the StudyBar carries it, so the root one hides. */
   :root:has([data-slot="study-skip-link"]) .root-skip-link {
     display: none;
   }
-  /* Programmatic focus targets (the page h1 after navigation, <main>, error summaries) are not
-     controls: focus moves there so screen readers announce them, but no ring is drawn. */
   [tabindex="-1"]:focus-visible {
     outline: none;
-    box-shadow: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -393,23 +139,7 @@
       scroll-behavior: auto !important;
     }
   }
-  .a11y-reduce-motion,
-  .a11y-reduce-motion *,
-  .a11y-reduce-motion *::before,
-  .a11y-reduce-motion *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
 
-  /* Study roots (DESIGN.md 5.1, 8, 12.2): no faux bold or italic, and zero motion in both
-     conditions. The `:has()` form also reaches dialogs, sheets and tooltips portalled to <body>
-     while a study shell is mounted, so tw-animate-css never runs on a study route. */
-  .study-root,
-  [data-condition] {
-    font-synthesis: none;
-  }
   :root:has(.study-root, [data-condition]) *,
   :root:has(.study-root, [data-condition]) *::before,
   :root:has(.study-root, [data-condition]) *::after {
@@ -417,204 +147,73 @@
     animation: none !important;
     scroll-behavior: auto !important;
   }
-
-  /* Scripts other than Latin (DESIGN.md 5.1, 5.2): no tracking on Indic or Arabic script, and
-     Arabic script renders through the system stack. */
-  :lang(hi),
-  :lang(hi) *,
-  :lang(bn),
-  :lang(bn) *,
-  :lang(te),
-  :lang(te) *,
-  :lang(gu),
-  :lang(gu) *,
-  :lang(sd),
-  :lang(sd) * {
-    letter-spacing: normal !important;
-    text-transform: none !important;
-  }
-  :lang(sd),
-  :lang(ar),
-  :lang(fa),
-  :lang(ur) {
-    font-family: var(--arabic-stack);
-  }
 }
 
-/* ---- Type tokens (DESIGN.md 5.2). Knowledge tokens are identical in both conditions and set in
-   one face, Atkinson Hyperlegible Next, upright only. The reading size 20/30 keeps about 62
-   characters per line in the 34rem measure (DR-022). No uppercase and no tracked labels. ---- */
-@utility text-title {
-  font-family: var(--sans-stack);
-  font-size: 2.25rem;
-  line-height: 2.75rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+@utility t-h1 {
+  font-family: var(--disp);
+  font-size: clamp(52px, 10.5vw, 148px);
+  line-height: 0.92;
+  font-weight: 800;
   text-wrap: balance;
-  @media (width < 32.5rem) {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
-  }
 }
-@utility text-reading {
-  font-family: var(--sans-stack);
-  font-size: 1.25rem;
-  line-height: 1.875rem;
-  font-weight: 400;
-  letter-spacing: 0;
-  font-variant-numeric: proportional-nums lining-nums;
-}
-@utility text-claim-number {
-  font-family: var(--sans-stack);
-  font-size: 1.25rem;
-  line-height: 1.875rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums lining-nums;
-  color: var(--ink-3);
-  text-align: right;
-}
-@utility text-quote {
-  font-family: var(--sans-stack);
-  font-size: 1.25rem;
-  line-height: 1.875rem;
-  font-weight: 400;
-  font-style: normal;
-}
-@utility text-lead {
-  font-family: var(--sans-stack);
-  font-size: 1.25rem;
-  line-height: 1.875rem;
-  font-weight: 400;
-  color: var(--ink-2);
-}
-@utility text-h2 {
-  font-family: var(--sans-stack);
-  font-size: 1.5rem;
-  line-height: 2rem;
-  font-weight: 700;
-}
-@utility text-h3 {
-  font-family: var(--sans-stack);
-  font-size: 1.25rem;
-  line-height: 1.75rem;
-  font-weight: 700;
-}
-/* A label (replaces the tracked uppercase eyebrow and dl label): sentence case, no tracking. */
-@utility text-label {
-  font-family: var(--sans-stack);
-  font-size: 0.9375rem;
-  line-height: 1.25rem;
-  font-weight: 700;
-  letter-spacing: 0;
-  color: var(--ink-2);
-}
-@utility text-value {
-  font-family: var(--sans-stack);
-  font-size: 1.0625rem;
-  line-height: 1.625rem;
-  font-weight: 400;
-  color: var(--ink);
-}
-@utility text-source {
-  font-family: var(--sans-stack);
-  font-size: 1rem;
-  line-height: 1.5rem;
-  font-weight: 400;
-  color: var(--ink-3);
-  overflow-wrap: break-word;
-}
-@utility text-caption {
-  font-family: var(--sans-stack);
-  font-size: 1.0625rem;
-  line-height: 1.625rem;
-  font-weight: 400;
-  color: var(--ink-2);
-}
-@utility text-credit {
-  font-family: var(--sans-stack);
-  font-size: 0.9375rem;
-  line-height: 1.25rem;
-  font-weight: 400;
-  color: var(--ink-3);
-}
-@utility text-ui {
-  font-family: var(--sans-stack);
-  font-size: 1rem;
-  line-height: 1.5rem;
-  font-weight: 600;
-}
-@utility text-timer {
-  font-family: var(--sans-stack);
-  font-size: 1rem;
-  line-height: 1.5rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums lining-nums;
-}
-/* IDs, keys, codes and timestamps. Atkinson's zero and capital O differ, so no monospace. */
-@utility text-id {
-  font-family: var(--sans-stack);
-  font-size: 0.9375rem;
-  line-height: 1.25rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums lining-nums;
-  overflow-wrap: anywhere;
-}
-/* Public, console, CMS and admin extras. Display faces are public only (Anek Latin). */
-@utility text-display-1 {
-  font-family: var(--font-anek, var(--font-atkinson)), "Anek Latin", var(--sans-stack);
-  font-size: clamp(3rem, 1.5rem + 4.5vw, 5.5rem);
+@utility t-h2 {
+  font-family: var(--disp);
+  font-size: clamp(38px, 6vw, 64px);
   line-height: 1;
-  font-weight: 600;
-  font-stretch: 112%;
-  letter-spacing: -0.01em;
+  font-weight: 800;
   text-wrap: balance;
 }
-@utility text-display-2 {
-  font-family: var(--font-anek, var(--font-atkinson)), "Anek Latin", var(--sans-stack);
-  font-size: 2.5rem;
-  line-height: 3rem;
-  font-weight: 600;
-  font-stretch: 100%;
-  text-wrap: balance;
-}
-/* Public section heads on editorial pages, under a `text-title` h1 (so never above it in size). */
-@utility text-display-3 {
-  font-family: var(--font-anek, var(--font-atkinson)), "Anek Latin", var(--sans-stack);
-  font-size: 1.75rem;
-  line-height: 2.25rem;
-  font-weight: 600;
-  font-stretch: 100%;
-  text-wrap: balance;
-}
-@utility text-deck {
-  font-family: var(--sans-stack);
-  font-size: 1.5rem;
-  line-height: 2.25rem;
-  font-weight: 400;
-  color: var(--ink-2);
-}
-@utility text-body {
-  font-family: var(--sans-stack);
-  font-size: 1.0625rem;
-  line-height: 1.625rem;
-  font-weight: 400;
-}
-@utility text-table {
-  font-family: var(--sans-stack);
-  font-size: 0.9375rem;
-  line-height: 1.25rem;
-  font-weight: 400;
-  font-variant-numeric: tabular-nums lining-nums;
-}
-@utility text-stat {
-  font-family: var(--sans-stack);
-  font-size: 1.75rem;
-  line-height: 2.25rem;
+@utility t-h3 {
+  font-family: var(--disp);
+  font-size: 32px;
+  line-height: 1.1;
   font-weight: 700;
+  text-wrap: balance;
+}
+@utility t-h4 {
+  font-family: var(--disp);
+  font-size: 24px;
+  line-height: 1.15;
+  font-weight: 700;
+}
+@utility t-label {
+  font-family: var(--disp);
+  font-size: 18px;
+  line-height: 1.08;
+  font-weight: 700;
+}
+@utility t-l {
+  font-family: var(--body);
+  font-size: 22px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+@utility t-b {
+  font-family: var(--body);
+  font-size: 18px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+@utility t-s {
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+@utility t-table {
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.3;
+  font-weight: 400;
   font-variant-numeric: tabular-nums lining-nums;
+}
+@utility t-min {
+  font-family: var(--body);
+  font-size: 13px;
+  line-height: 1.2;
+  font-weight: 600;
 }
 
-/* Hit area: a 36 px visual control keeps a 44 x 44 target (DESIGN.md 9.1 `compact`). */
 @utility hit-44 {
   position: relative;
   &::after {
@@ -626,13 +225,7 @@
   }
 }
 
-/* ---- The custom control set (DESIGN.md 9.2 to 9.6). Native elements, restyled; never rebuilt
-   in ARIA for looks. Every skinned control has a forced-colours fallback (`appearance: auto`),
-   because forced colours drop author colours and box shadows. No transitions in study. ---- */
 @layer components {
-  /* Reserved bold width (9.3, 9.4): a label that turns bold when selected or active keeps the
-     width of its bold form, so nothing beside it moves. The bold copy is generated content from
-     `data-label`, hidden (so it is in neither the text content nor the accessible name). */
   .ie-reserve-bold {
     display: inline-grid;
   }
@@ -644,7 +237,6 @@
     font-weight: 700;
   }
 
-  /* Select (9.2): the native <select> with the project chevron. */
   .ie-select {
     position: relative;
     display: inline-grid;
@@ -653,77 +245,69 @@
   }
   .ie-select > select {
     appearance: none;
-    min-block-size: 44px;
+    min-block-size: 46px;
     inline-size: 100%;
-    padding: 10px 44px 10px 12px;
-    font: 400 1rem/1.5rem var(--sans-stack);
-    color: var(--ink);
-    background: var(--ground);
-    border: 1px solid var(--rule-strong);
-    border-radius: var(--radius-control);
+    padding: 8px 44px 8px 12px;
+    font: 400 17px/1.4 var(--body);
+    color: var(--lime);
+    background: var(--vat-2);
+    border: 1px solid var(--lime-dim);
     text-overflow: ellipsis;
   }
   .ie-select > select:hover:not(:disabled) {
-    border-color: var(--ink-2);
+    border-color: var(--lime);
   }
   .ie-select > select:disabled {
-    color: var(--ink-3);
-    background: var(--sunk);
-    border-color: var(--rule);
+    color: var(--off-fg);
+    background: var(--off-bg);
+    border-color: var(--off-bg);
     cursor: not-allowed;
   }
   .ie-select > select[aria-invalid="true"] {
-    border-color: var(--danger);
-    box-shadow: inset 0 0 0 1px var(--danger);
-  }
-  .ie-select > select:focus-visible {
-    box-shadow: 0 0 0 2px var(--focus-inner);
+    border-color: var(--madder-text);
   }
   .ie-select > svg {
     position: absolute;
     inset-inline-end: 12px;
     inset-block-start: 50%;
     translate: 0 -50%;
-    inline-size: 20px;
-    block-size: 20px;
+    inline-size: 16px;
+    block-size: 16px;
     pointer-events: none;
-    color: var(--ink-2);
+    color: var(--turmeric);
   }
 
-  /* Checkbox and radio (9.6): one class on a native input of either type. 20 px, a 1.5 px
-     --rule-strong border; checked = an indigo fill with a drawn tick, or an indigo radio ring
-     with a dot. Each sits in a full-row label of at least 44 px (the label carries the target). */
   .ie-check {
     appearance: none;
     display: inline-grid;
     place-content: center;
     flex: none;
-    inline-size: 20px;
-    block-size: 20px;
+    inline-size: 24px;
+    block-size: 24px;
     margin: 0;
-    border: 1.5px solid var(--rule-strong);
-    border-radius: 2px;
-    background: var(--ground);
+    border: 2px solid var(--lime-dim);
+    background: var(--vat-2);
     cursor: pointer;
   }
   .ie-check::before {
     content: "";
-    inline-size: 12px;
-    block-size: 12px;
-    background: var(--on-indigo);
+    inline-size: 14px;
+    block-size: 14px;
+    background: var(--vat);
     clip-path: polygon(14% 44%, 0 59%, 39% 98%, 100% 21%, 86% 7%, 38% 69%);
     transform: scale(0);
   }
+  .ie-check:hover:not(:disabled) {
+    border-color: var(--lime);
+  }
   .ie-check:checked,
   .ie-check[type="checkbox"]:indeterminate {
-    border-color: var(--indigo);
-    background: var(--indigo);
+    border-color: var(--turmeric);
+    background: var(--turmeric);
   }
   .ie-check:checked::before {
     transform: scale(1);
   }
-  /* Indeterminate is checkbox-only: a radio group with nothing chosen also matches
-     :indeterminate, and must read as unanswered (empty ring), never as selected. */
   .ie-check[type="checkbox"]:indeterminate::before {
     clip-path: inset(42% 8%);
     transform: scale(1);
@@ -732,68 +316,59 @@
     border-radius: 50%;
   }
   .ie-check[type="radio"]::before {
-    inline-size: 10px;
-    block-size: 10px;
+    inline-size: 12px;
+    block-size: 12px;
     border-radius: 50%;
-    background: var(--indigo);
+    background: var(--turmeric);
     clip-path: none;
   }
   .ie-check[type="radio"]:checked {
-    background: var(--ground);
+    background: var(--vat-2);
   }
   .ie-check:disabled {
-    border-color: var(--rule);
-    background: var(--sunk);
+    border-color: var(--off-bg);
+    background: var(--off-bg);
     cursor: not-allowed;
   }
   .ie-check[aria-invalid="true"] {
-    border-color: var(--danger);
+    border-color: var(--madder-text);
   }
 
-  /* Option rows (9.6): a full-row label around a checkbox or radio; selected = --wash, weight
-     and the word "Selected" (rendered by the component). No left bar. */
   .ie-option {
     display: flex;
     align-items: center;
     gap: 12px;
-    min-block-size: 44px;
+    min-block-size: 46px;
     padding: 8px 12px;
-    border: 1px solid var(--rule-strong);
-    border-radius: var(--radius-control);
-    background: var(--ground);
-    color: var(--ink);
+    border: 2px solid var(--line);
+    background: var(--vat-2);
+    color: var(--lime);
     cursor: pointer;
   }
   .ie-option:hover:not(:has(:disabled)) {
-    background: var(--sunk);
+    background: var(--raised-hover);
   }
   .ie-option:has(:checked) {
-    background: var(--wash);
-    border-color: var(--indigo);
+    border-color: var(--turmeric);
   }
   .ie-option:has(:disabled) {
-    color: var(--ink-3);
+    color: var(--off-fg);
     cursor: not-allowed;
   }
   .ie-option__selected {
     margin-inline-start: auto;
-    font-weight: 700;
+    color: var(--turmeric);
     visibility: hidden;
   }
   .ie-option:has(:checked) .ie-option__selected {
     visibility: visible;
   }
 
-  /* Segmented control (9.3): native radios, visually hidden but focusable; the ring and the
-     checked state are drawn on the label. Checked = indigo fill, on-indigo label at 700, with
-     the bold width reserved so nothing shifts. */
   .ie-segmented {
     display: inline-flex;
     flex-wrap: wrap;
-    border: 1px solid var(--rule-strong);
-    border-radius: var(--radius-control);
-    background: var(--ground);
     max-inline-size: 100%;
+    background: var(--vat-2);
   }
   .ie-segmented__option {
     position: relative;
@@ -801,7 +376,7 @@
     flex: 1 1 auto;
   }
   .ie-segmented__option + .ie-segmented__option {
-    border-inline-start: 1px solid var(--rule);
+    margin-inline-start: -1px;
   }
   .ie-segmented__input {
     position: absolute;
@@ -815,53 +390,39 @@
     flex: 1 1 auto;
     align-items: center;
     justify-items: center;
-    min-block-size: 42px;
+    min-block-size: 44px;
     padding: 0 16px;
-    font: 600 1rem/1.5rem var(--sans-stack);
-    color: var(--ink);
+    border: 1px solid var(--lime-dim);
+    font: 700 18px/1.08 var(--disp);
+    color: var(--lime);
     white-space: nowrap;
     pointer-events: none;
   }
-  .ie-segmented__label::after {
-    content: attr(data-label);
-    block-size: 0;
-    overflow: hidden;
-    visibility: hidden;
-    font-weight: 700;
-  }
-  .ie-segmented__option:first-child .ie-segmented__label {
-    border-start-start-radius: 3px;
-    border-end-start-radius: 3px;
-  }
-  .ie-segmented__option:last-child .ie-segmented__label {
-    border-start-end-radius: 3px;
-    border-end-end-radius: 3px;
-  }
   .ie-segmented__option:hover .ie-segmented__input:not(:checked):not(:disabled) + .ie-segmented__label {
-    background: var(--sunk);
+    background: var(--raised-hover);
   }
   .ie-segmented__input:checked + .ie-segmented__label {
-    background: var(--indigo);
-    color: var(--on-indigo);
-    font-weight: 700;
+    position: relative;
+    z-index: 1;
+    border-color: var(--turmeric);
+    background: var(--turmeric);
+    color: var(--vat);
   }
   .ie-segmented__input:disabled + .ie-segmented__label {
-    color: var(--ink-3);
+    border-color: var(--off-bg);
+    background: var(--off-bg);
+    color: var(--off-fg);
   }
   .ie-segmented__input:focus-visible {
     outline: none;
-    box-shadow: none;
   }
   .ie-segmented__input:focus-visible + .ie-segmented__label {
-    outline: 2px solid var(--focus-outer);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 2px var(--focus-inner);
     position: relative;
-    z-index: 1;
+    z-index: 2;
+    outline: 3px solid var(--turmeric);
+    outline-offset: 2px;
   }
 
-  /* Disclosure (9.5): <details>/<summary> with the marker removed (summary as a block) and a
-     designed chevron in a 44 px box, plus the state word "Show" or "Hide". */
   .ie-disclosure > summary {
     display: block;
     list-style: none;
@@ -887,16 +448,12 @@
     display: inline;
   }
 
-  /* File input (9.6): the native input, visually hidden but focusable, behind a 44 px label
-     button; the ring is drawn on the button. */
   .ie-file__input:focus-visible {
     outline: none;
-    box-shadow: none;
   }
   .ie-file__input:focus-visible + .ie-file__button {
-    outline: 2px solid var(--focus-outer);
+    outline: 3px solid var(--turmeric);
     outline-offset: 2px;
-    box-shadow: 0 0 0 2px var(--focus-inner);
   }
 }
 
@@ -935,14 +492,12 @@
   display: none;
 }
 
-/* React Flow's attribution link (rater and research views only; participants never see it): a
-   44 px target (DESIGN.md 9.1, R-A9) instead of the library's 12 px line. */
 .react-flow__attribution a {
   display: inline-flex;
   min-height: 44px;
   min-width: 44px;
   align-items: center;
   padding-inline: 8px;
-  color: var(--indigo);
+  color: var(--turmeric);
   text-decoration: underline;
 }

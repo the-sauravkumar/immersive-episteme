@@ -7,7 +7,7 @@ import { titleCase } from "@/lib/text/title-case";
 export function StatePage({ title, children, actions }: { title: string; children: ReactNode; actions?: ReactNode }) {
   return (
     <section aria-labelledby="state-title" className="flex w-full max-w-[40rem] flex-col items-start gap-4 py-4">
-      <h1 id="state-title" className="text-title text-ink">
+      <h1 id="state-title" className="t-h3 text-lime">
         {titleCase(title)}
       </h1>
       {children}
@@ -26,7 +26,7 @@ export function NotFoundState({ homeHref, homeLabel }: { homeHref: string; homeL
         </Button>
       }
     >
-      <p className="text-reading text-ink">There is no page at this address. The link may be mistyped, or what it pointed to may have been removed.</p>
+      <p className="t-b text-lime">There is no page at this address. The link may be mistyped, or what it pointed to may have been removed.</p>
     </StatePage>
   );
 }

@@ -1,21 +1,3 @@
-/**
- * The shared knowledge components (DESIGN.md 9.6-9.14, 9.17, 9.20; 12.1 rule 1): both conditions
- * render the SAME components, so given the same props they must produce the same DOM.
- *
- *  - KnowledgeSheet: identical DOM in `placement="page"` and `placement="panel"`, apart from the
- *    reserved action slot (WP0 acceptance), with the header, progress bar, metadata, field,
- *    related and pager in the specified order; focus moves to the h1 on open (P27).
- *  - ClaimList: numbered claims with a hidden hang number, one numbered citation marker per
- *    citation inside the claim, the figure right after its anchor claim, one reference list.
- *  - CitedClaim / CitationRecord: one activation to the record in place, Escape returns focus.
- *  - KnowledgeFigure: the 3:2 slot, "Fig. n", one Enlarge control, an opaque lightbox and focus
- *    return; diagrams render only graph text.
- *  - LayerTabs: canonical names and order, arrow keys, Home and End.
- *  - RelatedConcepts: grouped by verb with one "About these links" disclosure per group.
- *  - Onboarding: the same screen apart from the movement step, whose two versions differ by at
- *    most 10% in words (P23).
- * Fixtures are the placeholder knowledge-graph fixtures (no craft facts).
- */
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
@@ -45,7 +27,6 @@ const diagrams = view.structureDiagrams("alpha");
 const figureFor = (c: ConceptDetail): DiagramFigure[] =>
   diagrams.filter((d) => d.anchor.conceptId === c.id).map((d) => diagramFigureOf(d, diagramCredit(view.info().versionLabel)));
 
-/** Normalises React's generated ids (useId) so two renders can be compared. */
 function normalise(html: string): string {
   const ids = new Map<string, string>();
   return html.replace(/(«r[0-9a-z]+»|_r_[0-9a-z]+_|:r[0-9a-z]+:|r[0-9a-z]+(?=-arrow))/g, (m) => {
@@ -90,14 +71,11 @@ describe("KnowledgeSheet: one container, two placements", () => {
     expect(h1).toHaveAttribute("tabindex", "-1");
     const order = ["sheet-action", "sheet-meta", "reading-progress", "sheet-field", "related-concepts", "pager"].map((s) => sheet.querySelector(`[data-slot=${s}]`)!);
     for (let i = 1; i < order.length; i++) expect(order[i - 1]!.compareDocumentPosition(order[i]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    // Step is a metadata row, not an eyebrow (DR-022).
     const meta = sheet.querySelector("[data-slot=sheet-meta]")!;
     expect(within(meta as HTMLElement).getByText("Step")).toBeInTheDocument();
     expect(within(meta as HTMLElement).getByText("2 of 3")).toBeInTheDocument();
-    // Lean metadata (cognitive-load rule): no Status row; the notice strip states the status.
     expect(Array.from(meta.querySelectorAll("dt")).map((d) => d.textContent)).not.toContain("Status");
     expect(within(sheet).getByRole("progressbar", { name: "Reading progress" })).toHaveAttribute("aria-valuenow");
-    // No tradition marker on any key (P17, DR-022): the tradition is named in words only.
     expect(sheet.querySelector("[data-slot=tradition-marker]")).toBeNull();
     expect(sheet.querySelector("[data-slot=tradition-name]")).not.toBeNull();
     expect(within(sheet).getByRole("heading", { level: 2, name: "From the Sources" })).toBeInTheDocument();
@@ -113,16 +91,13 @@ describe("ClaimList and the numbered citation markers", () => {
     expect(items[0]!.querySelector("[aria-hidden=true]")!.textContent).toBe("1");
     const markers = within(list).getAllByRole("button", { name: /^Source \d+: / });
     expect(markers).toHaveLength(concept.claims.flatMap((c) => c.evidence).length);
-    // Every marker sits inside its claim paragraph, collapsed by default.
     for (const m of markers) {
       expect(m.closest("[data-slot=claim]")).not.toBeNull();
       expect(m).toHaveAttribute("aria-expanded", "false");
     }
-    // Numbers follow the deduplicated reference list of these claims.
     const numbers = referenceNumbers(concept.claims);
     const expected = concept.claims.flatMap((c) => c.evidence.map((e) => String(numbers.get(e.id))));
     expect(markers.map((m) => m.getAttribute("data-citation-number"))).toEqual(expected);
-    // One activation reaches the record, in place; Escape returns to the marker.
     await userEvent.click(markers[0]!);
     expect(markers[0]).toHaveAttribute("aria-expanded", "true");
     const record = screen.getByRole("region", { name: /^Source 1: / });
@@ -131,7 +106,6 @@ describe("ClaimList and the numbered citation markers", () => {
     expect(markers[0]).toHaveAttribute("aria-expanded", "false");
     expect(markers[0]).toHaveFocus();
     expect((await h.events()).map((e) => e.type)).toEqual(expect.arrayContaining(["citation_opened", "citation_closed"]));
-    // Standalone, the list is followed by ONE deduplicated reference list.
     const refs = screen.getByRole("region", { name: "References" });
     expect(within(refs).getAllByRole("listitem")).toHaveLength(numbers.size);
   });
@@ -144,7 +118,6 @@ describe("ClaimList and the numbered citation markers", () => {
     );
     const lists = screen.getAllByRole("region", { name: "References" });
     expect(lists).toHaveLength(1);
-    // At the end of the field, before Related Concepts and the pager.
     const field = document.querySelector("[data-slot=sheet-field]")!;
     expect(field.contains(lists[0]!)).toBe(false);
     expect(field.compareDocumentPosition(lists[0]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -166,7 +139,6 @@ describe("KnowledgeFigure", () => {
     expect(within(figure).getByText(figures[0]!.credit)).toBeInTheDocument();
     const svg = within(figure).getByRole("img");
     expect(svg).toHaveAttribute("aria-label", figures[0]!.alt);
-    // The SVG text is exactly the node labels and the edge and band labels from the graph.
     const d = figures[0]!.diagram;
     const allowed = new Set([...d.nodes.flatMap((n) => n.lines), ...d.edges.map((e) => e.label), ...d.bands.map((b) => b.label)]);
     for (const t of svg.querySelectorAll("tspan, text")) {
@@ -179,8 +151,8 @@ describe("KnowledgeFigure", () => {
     await userEvent.click(enlarge);
     const dialog = figure.querySelector("dialog")!;
     expect(dialog).toHaveAttribute("open");
-    expect(dialog.className).toContain("bg-ground");
-    expect(dialog.className).toContain("backdrop:bg-ground");
+    expect(dialog.className).toContain("bg-vat");
+    expect(dialog.className).toContain("backdrop:bg-vat");
     const close = within(dialog).getByRole("button", { name: "Close" });
     expect(close).toHaveFocus();
     await userEvent.click(close);

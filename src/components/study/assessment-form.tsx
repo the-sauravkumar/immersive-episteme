@@ -1,24 +1,5 @@
 "use client";
 
-/**
- * Generic assessment renderer for pre/post tests, transfer tasks and questionnaires. Native
- * form controls inside fieldsets (keyboard and screen-reader support without custom widgets);
- * no timers, scores or feedback are shown to the participant.
- *
- * Presentation (DESIGN.md 11.7, 9.5): each question opens with "Question n of N" in tabular
- * figures, then the question in Atkinson 20/28 600. Choice options are full-row 56 px labels with
- * a 20 px native control, separated by 1 px `--rule`; the chosen option takes `--wash` and a check
- * icon (never colour alone; no left bar, DR-022). Likert scales are a 4- to 11-column row
- * with tabular numbers and the end labels in `text-label`, stacked vertically on narrow
- * screens. Free text is at least 132 px tall. Field errors carry an icon and words and are linked
- * through `aria-describedby`; an error summary at the top takes focus after a refused submit.
- * Nothing moves (study zero-motion rule).
- *
- * Telemetry (study vocabulary): ASSESSMENT_STARTED = `task_started`, ASSESSMENT_SUBMITTED =
- * `task_completed`, both with `taskCode = assessment.<code>.v<version>` and
- * `roomOrPageId = study:<step>`. The authoritative record of the submission is the server
- * (responses + journal); the event marks the submission attempt on the client timeline.
- */
 import { Check, CircleAlert } from "lucide-react";
 import { useActionState, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
@@ -67,7 +48,6 @@ export function assessmentTaskCode(a: Pick<RenderAssessment, "code" | "version">
   return `assessment.${a.code}.v${a.version}`;
 }
 
-/** The control a question's error links to (its first focusable input). */
 function firstControlId(item: RenderItem): string {
   switch (item.kind) {
     case "single_choice":
@@ -85,8 +65,6 @@ function firstControlId(item: RenderItem): string {
 }
 
 export function AssessmentForm({ step, assessment, items, returnTo }: { step: string; assessment: RenderAssessment; items: RenderItem[]; returnTo: string }) {
-  // No provider before allocation: an unallocated session cannot store telemetry (events carry a
-  // condition), so the blind steps emit none; the server journal records them.
   const t = useOptionalTelemetry();
   const startedAt = useRef<number | null>(null);
   const taskCode = assessmentTaskCode(assessment);
@@ -115,8 +93,6 @@ export function AssessmentForm({ step, assessment, items, returnTo }: { step: st
   const paged = assessment.paged === true && items.length > 1;
   const onLastScreen = !paged || screen >= items.length - 1;
 
-  // After a refused submit the summary takes focus, so keyboard and screen-reader users start
-  // from the list of questions to fix (DESIGN.md 9.5).
   const summaryRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (state.error || (state.fieldErrors && Object.keys(state.fieldErrors).length > 0)) summaryRef.current?.focus();
@@ -125,13 +101,9 @@ export function AssessmentForm({ step, assessment, items, returnTo }: { step: st
   return (
     <form
       action={action}
-      // The submit button stays focusable while pending (aria-disabled, not disabled; DESIGN.md
-      // 9.1), so a second submit is ignored here: React skips a default-prevented form action.
       onSubmit={(e) => {
         if (pending) e.preventDefault();
       }}
-      // React 19 resets a form after every completed form action, refusals included: without
-      // this, a refused submit (a required question left out) wiped every answer given.
       onReset={keepEnteredValues}
       className="flex flex-col gap-10"
       noValidate
@@ -141,11 +113,11 @@ export function AssessmentForm({ step, assessment, items, returnTo }: { step: st
       <input type="hidden" name="assessmentId" value={assessment.id} />
       <input type="hidden" name="returnTo" value={returnTo} />
       <div className="flex flex-col gap-2">
-        <h2 id="assessment-title" className="text-h2 text-ink">
+        <h2 id="assessment-title" className="t-h4 text-lime">
           {titleCase(assessment.title)}
         </h2>
-        {assessment.description ? <p className="text-reading max-w-[34rem] whitespace-pre-line text-ink-2">{assessment.description}</p> : null}
-        {assessment.required ? <p className="text-credit">{REQUIRED_ANSWERS_SUMMARY}</p> : null}
+        {assessment.description ? <p className="t-b max-w-[34rem] whitespace-pre-line text-lime-dim">{assessment.description}</p> : null}
+        {assessment.required ? <p className="t-s text-lime-dim">{REQUIRED_ANSWERS_SUMMARY}</p> : null}
       </div>
       {state.error || flagged.length > 0 ? (
         <Alert ref={summaryRef} tabIndex={-1} variant="destructive" data-slot="error-summary" className="outline-none focus-visible:outline-2">
@@ -189,41 +161,28 @@ export function AssessmentForm({ step, assessment, items, returnTo }: { step: st
   );
 }
 
-/** "Question n of N" over the question text, in the form the legend or label needs. */
 function Prompt({ id, number, total, children }: { id: string; number: number; total: number; children: ReactNode }) {
   return (
     <span id={id} className="flex flex-col gap-1">
-      <span className="text-ui tabular-nums text-ink-3">{countOf("Question", number, total)}</span>{" "}
-      <span className="text-[1.25rem] leading-7 font-semibold whitespace-pre-line text-ink">{children}</span>
+      <span className="t-label tabular-nums text-lime-dim">{countOf("Question", number, total)}</span>{" "}
+      <span className="text-[1.25rem] leading-7 font-semibold whitespace-pre-line text-lime">{children}</span>
     </span>
   );
 }
 
-/** A full-row choice: 56 px, native 20 px control, `--wash` and a check icon when chosen (no bar). */
-const OPTION_ROW = "group/opt flex min-h-14 cursor-pointer items-center gap-3 px-3 py-3 hover:bg-sunk has-[:checked]:bg-wash";
+const OPTION_ROW = "group/opt flex min-h-14 cursor-pointer items-center gap-3 px-3 py-3 hover:bg-raised-hover has-[:checked]:bg-vat-2 has-[:checked]:outline-2 has-[:checked]:-outline-offset-2 has-[:checked]:outline-turmeric";
 const NATIVE_CONTROL = "ie-check";
 
-/** The check icon of a chosen option; its space is always reserved, so choosing shifts nothing. */
 function OptionCheck({ className }: { className?: string }) {
   return (
     <Check
       aria-hidden="true"
       data-slot="option-check"
-      className={cn("invisible size-5 shrink-0 stroke-[1.75] text-indigo group-has-[:checked]/opt:visible", className)}
+      className={cn("invisible size-5 shrink-0 stroke-[1.75] text-turmeric group-has-[:checked]/opt:visible", className)}
     />
   );
 }
 
-/*
- * Likert layouts. Scales of up to 7 points become a row of columns from 520 px; longer scales
- * (the 0-10 load rating) from 640 px, so no column is narrower than 44 px. Below that the points
- * stack as 56 px rows. Class strings are literal so Tailwind can see them.
- *
- * Each point carries the same check icon as the choice rows (DESIGN.md 4.2, 11.7): at the row end
- * when stacked, and under the control in column mode (before any per-point label, so the icons
- * of all columns sit on one line). Only the bottom rule is set on a cell (`border-b-rule`); the
- * chosen point is the `--wash` cell with its check, with no bar (DR-022).
- */
 const LIKERT = {
   xs: {
     grid: "xs:grid-cols-[repeat(var(--points),minmax(0,1fr))]",
@@ -231,7 +190,7 @@ const LIKERT = {
     number: "xs:order-first",
     check: "max-xs:ml-auto xs:order-1",
     anchorWide: "xs:sr-only",
-    anchorEach: "xs:order-2 xs:text-center xs:text-credit",
+    anchorEach: "xs:order-2 xs:text-center xs:t-s",
     ends: "hidden xs:flex",
   },
   sm: {
@@ -240,7 +199,7 @@ const LIKERT = {
     number: "sm:order-first",
     check: "max-sm:ml-auto sm:order-1",
     anchorWide: "sm:sr-only",
-    anchorEach: "sm:order-2 sm:text-center sm:text-credit",
+    anchorEach: "sm:order-2 sm:text-center sm:t-s",
     ends: "hidden sm:flex",
   },
 } as const;
@@ -302,9 +261,9 @@ function ItemField({
           {item.account ? <ItemAccount account={item.account} sampleText={item.sampleText === true} /> : item.sampleText ? <span className="walking-sample self-start">Sample Text</span> : null}
           {item.image ? <ItemFigure image={item.image} /> : null}
           {item.kind === "multiple_choice" ? (
-            <p className="text-source -mt-2">Choose all that apply{item.maxSelections ? ` (at most ${item.maxSelections})` : ""}.</p>
+            <p className="t-s text-lime-dim -mt-2">Choose all that apply{item.maxSelections ? ` (at most ${item.maxSelections})` : ""}.</p>
           ) : null}
-          <div className="flex flex-col divide-y divide-rule border-y border-rule">
+          <div className="flex flex-col divide-y divide-line border-y border-line">
             {item.options.map((o) => {
               const id = `${item.id}-${o.id}`;
               return (
@@ -314,11 +273,10 @@ function ItemField({
                     type={item.kind === "single_choice" ? "radio" : "checkbox"}
                     name={name}
                     value={o.id}
-                    // A radio group's error is described on its fieldset (aria-invalid is not a radio property).
                     aria-invalid={item.kind === "multiple_choice" ? invalid : undefined}
                     className={NATIVE_CONTROL}
                   />
-                  <span className="text-reading min-w-0 flex-1 text-ink">{o.label}</span>
+                  <span className="t-b min-w-0 flex-1 text-lime">{o.label}</span>
                   <OptionCheck />
                 </label>
               );
@@ -347,8 +305,6 @@ function ItemField({
           <Input
             id={item.id}
             name={name}
-            // A number as text with a numeric keyboard (DESIGN.md 9.6): no spinner arrows, and the
-            // server checks the range (min, max, step) as before.
             type="text"
             inputMode="decimal"
             pattern="-?[0-9]*([.,][0-9]+)?"
@@ -366,10 +322,7 @@ function ItemField({
       const points = Array.from({ length: item.points }, (_, k) => k + first);
       const left = item.anchors[String(first)];
       const right = item.anchors[String(last)];
-      // Labels for points between the ends cannot be folded into an end row: then every column
-      // shows its own label under its number.
       const middleAnchors = points.some((p) => p !== first && p !== last && item.anchors[String(p)]);
-      // `semantic_differential` (bipolar adjective pairs) uses the same layout: its poles are the end labels.
       const L = item.points > 7 ? LIKERT.sm : LIKERT.xs;
       return (
         <fieldset className="flex min-w-0 flex-col gap-4" aria-describedby={describedBy}>
@@ -378,19 +331,18 @@ function ItemField({
             <div
               data-slot="likert-scale"
               style={{ "--points": item.points } as CSSProperties}
-              className={cn("grid border-y border-rule", L.grid)}
+              className={cn("grid border-y border-line bg-vat-2", L.grid)}
             >
               {points.map((p) => {
                 const id = `${item.id}-${p}`;
                 const anchor = item.anchors[String(p)];
                 return (
-                  <label key={p} htmlFor={id} className={cn(OPTION_ROW, "border-b border-b-rule", L.cell)}>
+                  <label key={p} htmlFor={id} className={cn(OPTION_ROW, "border-b border-b-line has-[:checked]:bg-turmeric has-[:checked]:**:text-vat", L.cell)}>
                     <input id={id} type="radio" name={name} value={String(p)} className={NATIVE_CONTROL} />
-                    <span className={cn("text-ui tabular-nums text-ink", L.number)}>{p}</span>
-                    {/* A space keeps the accessible name "1 Not at all", not "1Not at all" (flex ignores it visually). */}
+                    <span className={cn("t-label tabular-nums text-lime", L.number)}>{p}</span>
                     {anchor ? " " : null}
                     {anchor ? (
-                      <span className={cn("text-reading min-w-0 text-ink", middleAnchors ? L.anchorEach : L.anchorWide)}>{anchor}</span>
+                      <span className={cn("t-b min-w-0 text-lime", middleAnchors ? L.anchorEach : L.anchorWide)}>{anchor}</span>
                     ) : null}
                     <OptionCheck className={L.check} />
                   </label>
@@ -399,8 +351,8 @@ function ItemField({
             </div>
             {!middleAnchors && (left || right) ? (
               <div aria-hidden="true" className={cn("justify-between gap-4 pt-2", L.ends)}>
-                <span className="text-label max-w-[45%]">{left}</span>
-                <span className="text-label max-w-[45%] text-right">{right}</span>
+                <span className="t-label max-w-[45%]">{left}</span>
+                <span className="t-label max-w-[45%] text-right">{right}</span>
               </div>
             ) : null}
           </div>

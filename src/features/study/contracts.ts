@@ -1,12 +1,3 @@
-/**
- * Study-engine contracts: protocol-as-data study configuration, conditions, pseudonymous
- * participants, consent, allocation records, sessions and deviations.
- *
- * Privacy: nothing here accepts names, emails or other direct identifiers. Participant codes
- * are pattern-checked (as in the database) and an email-looking code is rejected explicitly.
- * Design choices that are still open (Q-R3 design/randomisation, Q-R5 guidance, Q-R9
- * exposure, Q-R10 WebGL failure policy) are explicit config fields, not code constants.
- */
 import { z } from "zod";
 
 import {
@@ -28,7 +19,6 @@ export const conditionInterfaceSchema = z.enum(CONDITION_INTERFACES);
 export const allocationAlgorithmSchema = z.enum(ALLOCATION_ALGORITHMS);
 export const studyPhaseSchema = z.enum(STUDY_PHASES);
 
-/** Pseudonymous participant code (db: participants_code_ck). */
 export const participantCodeSchema = z
   .string()
   .regex(/^[A-Za-z0-9][A-Za-z0-9_-]{2,31}$/, "3–32 letters, digits, '-' or '_'")
@@ -36,7 +26,6 @@ export const participantCodeSchema = z
 
 export const conditionCodeSchema = z.string().regex(/^[a-z][a-z0-9_]{0,47}$/);
 
-/** Content set / task code recorded per allocation period (db: allocations_content_set_ck). */
 export const periodCodeSchema = z.string().regex(/^[a-z0-9][a-z0-9_.-]{0,63}$/, "lowercase letters, digits, '.', '_' or '-'");
 
 export const STRATUM_SOURCES = ["pre_test_score"] as const;
@@ -58,7 +47,6 @@ export const STUDY_STEPS = [
 ] as const;
 export type StudyStep = (typeof STUDY_STEPS)[number];
 
-/** An instrument of a questionnaire step: an assessment code, optionally pinned and limited to conditions. */
 export const instrumentRefSchema = z.union([
   z.string().regex(/^[a-z][a-z0-9_-]{1,63}$/),
   z.object({
@@ -69,15 +57,12 @@ export const instrumentRefSchema = z.union([
 ]);
 export type InstrumentRef = z.infer<typeof instrumentRefSchema>;
 
-/** Protocol configuration stored in studies.config (frozen once the study is active). */
 export const studyConfigSchema = z.object({
-  /** Tradition slugs included in the study (default three; not a constant, see digest §2). */
   traditionSlugs: z.array(slugSchema).min(1).default([]),
   allocation: z
     .object({
       algorithm: allocationAlgorithmSchema.default("block"),
       blockSize: z.number().int().positive().optional(),
-      /** Randomisation seed, recorded on every allocation (study engine). Keep it secret for concealment. */
       seed: z.string().min(1).max(128).optional(),
       stratifyBy: z.object({ source: z.enum(STRATUM_SOURCES), cutoff: z.number().finite() }).optional(),
     })
@@ -98,42 +83,19 @@ export const studyConfigSchema = z.object({
       hintText: z.string().trim().min(1).max(2000).optional(),
     })
     .default({ cueEnabled: false, stallSeconds: 120 }),
-  /** What happens when WebGL fails for an immersive participant (Q-R10). */
   webglFailurePolicy: z.enum(["exclude", "retry", "reassign"]).default("retry"),
-  /**
-   * Knowledge figures (DR-018). `structureDiagrams` (default on) shows the graph-derived structure
-   * diagrams (process sequence, materials and tools, colour mechanism); off removes them from BOTH
-   * conditions together, so researchers can rule out the 2D condition gaining structural
-   * visualisation. `photos` (default on) shows the rights-cleared study photographs (DR-020: one
-   * museum textile photograph per study tradition); off removes them from BOTH conditions together,
-   * so researchers can rule out the photographs as a source of a difference. Read through the
-   * learning context (`settings.figures`), never per page.
-   */
   figures: z
     .object({ structureDiagrams: z.boolean().default(true), photos: z.boolean().default(true) })
     .default({ structureDiagrams: true, photos: true }),
-  /**
-   * Learning-task prompts written by the researchers, shown verbatim and identically in both
-   * conditions (shared LearningTaskPrompts). Read through the learning context.
-   */
   learningPrompts: z
     .array(z.object({ id: z.string().regex(/^[a-z0-9][a-z0-9_-]{0,63}$/), text: z.string().trim().min(1).max(1000) }))
     .max(20)
     .refine((ps) => new Set(ps.map((p) => p.id)).size === ps.length, "Prompt ids must be unique")
     .default([]),
-  /**
-   * Marks a study whose sessions are never experimental data (demo / pilot walkthroughs).
-   * Demo studies (is_demo) are always non-experimental regardless of this flag.
-   */
   nonExperimental: z.boolean().default(false),
-  // ---- participant journey (study engine, src/server/study/config.ts validates the order) ----
-  /** Versioned consent text, shown verbatim; its sha256 is stored with the decision. */
   consent: z.object({ version: z.string().min(1).max(64), text: z.string().min(1).max(20_000) }).optional(),
-  /** Participant information sheet shown before consent. */
   participantInformation: z.string().max(20_000).optional(),
-  /** Ordered journey steps (default: study decision D8 order). */
   steps: z.array(z.enum(STUDY_STEPS)).min(1).optional(),
-  /** Instruments of each questionnaire step, by assessment code (must be in the study battery). */
   questionnaires: z
     .object({ pre: z.array(instrumentRefSchema).default([]), postLearning: z.array(instrumentRefSchema).default([]), end: z.array(instrumentRefSchema).default([]) })
     .optional(),
@@ -145,12 +107,6 @@ export const studyConfigSchema = z.object({
     })
     .default({ allowed: true }),
   device: z.object({ minViewport: z.object({ width: z.number().int().positive(), height: z.number().int().positive() }).optional() }).default({}),
-  /**
-   * Enrolment. Repeat enrolment from one browser: refused (true) or flagged in the journal (false;
-   * shared lab machines). Limits against scripted enrolment (final review security-04; defaults in
-   * src/server/study/enrolment-throttle.ts): new enrolments per client address per 10 minutes and
-   * per study per hour, and an optional cap on participants. Demo studies are not throttled.
-   */
   enrolment: z
     .object({
       blockRepeatBrowser: z.boolean().default(false),
@@ -218,7 +174,6 @@ export const consentRecordInputSchema = z.object({
   method: z.enum(["on_screen", "paper", "verbal_witnessed"]).default("on_screen"),
 });
 
-/** A reproducible allocation decision (allocations; append-only). */
 export const allocationRecordSchema = z
   .object({
     studyId: uuidSchema,
@@ -232,7 +187,6 @@ export const allocationRecordSchema = z
     stratum: z.string().max(64).nullish(),
     studyProtocolVersion: z.string().min(1).max(64),
     overrideReason: z.string().max(2000).nullish(),
-    /** Learning task received in this period, if the protocol defines tasks. */
     taskCode: periodCodeSchema.nullish(),
   })
   .refine((a) => a.algorithm !== "manual" || !!a.overrideReason, {
@@ -240,7 +194,6 @@ export const allocationRecordSchema = z
     message: "Manual allocation needs a reason",
   });
 
-/** Device covariates (study_sessions.device). No fingerprinting: coarse classes only. */
 export const sessionDeviceSchema = z.object({
   viewport: z.object({ width: z.number().int().positive(), height: z.number().int().positive() }).optional(),
   devicePixelRatio: z.number().positive().max(8).optional(),
@@ -250,8 +203,6 @@ export const sessionDeviceSchema = z.object({
   webglVersion: z.union([z.literal(1), z.literal(2)]).nullish(),
   reducedMotion: z.boolean().optional(),
   highContrast: z.boolean().optional(),
-  /** High contrast accommodation chosen in the study's Display Settings before learning (DR-019). */
-  contrastAccommodation: z.boolean().optional(),
   browserFamily: z.string().max(40).optional(),
 });
 export type SessionDevice = z.infer<typeof sessionDeviceSchema>;

@@ -1,14 +1,3 @@
-/**
- * About (DESIGN.md 11.2), in the editorial frame. Sections in order: Purpose; Method with Figure 2
- * (the study flow); Equivalence; Dataset and Citation Standard; Images and Licences; Data
- * Protection; Team and Affiliations; Ethics; How to Cite; Contact. A section with no verified
- * content is omitted entirely (13): the last four render only what `src/config/institution.ts`
- * supplies, through the same components as the study's information and consent page.
- *
- * Facts about the platform come from the code that implements them (the study engine's default
- * order, the stored parity report, the live dataset); statements about the craft appear only as
- * real dataset claims with their sources (the pull-quote).
- */
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -29,27 +18,19 @@ import { getDatasetStats, getImageCredits, getPullQuoteClaim } from "@/server/pu
 
 export const metadata: Metadata = { title: "About" };
 
-/** The protocol default of the structure-diagram switch (DR-018), read from the study contract itself. */
 const STRUCTURE_DIAGRAMS_BY_DEFAULT = studyConfigSchema.shape.figures.parse(undefined).structureDiagrams;
 
-/** A link on its own line: a 44 px target (DESIGN.md 9.1). */
 const STANDALONE =
-  "inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[0.2em] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-indigo-hover hover:decoration-2";
+  "inline-flex min-h-11 items-center text-turmeric underline decoration-1 underline-offset-[0.2em] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-turmeric-hi hover:decoration-2";
 const LINK =
-  "text-indigo underline decoration-1 underline-offset-[0.2em] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-indigo-hover hover:decoration-2";
+  "text-turmeric underline decoration-1 underline-offset-[0.2em] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-turmeric-hi hover:decoration-2";
 
-// ---- Figure 2: the default study flow, derived from the study engine's default order ----------
 
 const LEARNING_INDEX = DEFAULT_STEPS.indexOf("learning");
 const BEFORE = DEFAULT_STEPS.filter((s) => (BLIND_STEPS as readonly StudyStep[]).includes(s));
 const PREPARE = DEFAULT_STEPS.slice(0, LEARNING_INDEX).filter((s) => !BEFORE.includes(s));
 const AFTER = DEFAULT_STEPS.slice(LEARNING_INDEX + 1);
 
-/*
- * Both geometries are authored at the size they render, so the 13 px labels (7.4) are never scaled
- * below 13 px: the wide flow (762 units) shows from 1024 px, where the figure box is 798 px wide;
- * the tall flow (320 units) fits the 324 px box at 390 px.
- */
 function flowDiagram(vertical: boolean): {
   width: number;
   height: number;
@@ -65,20 +46,20 @@ function flowDiagram(vertical: boolean): {
   if (!vertical) {
     const w = 104;
     const gap = 24;
-    const lw = 120; // the two learning nodes
+    const lw = 120;
     const nodes: DiagramNode[] = stages.map((s, i) => ({
       id: s.id,
       x: i * (w + gap),
       y: 78,
       width: w,
       height: 64,
-      fill: s.id === "allocation" ? "wash" : "sunk",
+      fill: s.id === "allocation" ? "hover" : "raised",
       label: s.label,
     }));
     const lx = 4 * (w + gap);
-    nodes.push({ id: "learn-2d", x: lx, y: 16, width: lw, height: 64, fill: "indigo", label: ["Learning:", "visual course"] });
-    nodes.push({ id: "learn-3d", x: lx, y: 140, width: lw, height: 64, fill: "indigo", label: ["Learning:", "walkthrough"] });
-    nodes.push({ id: "after", x: lx + lw + gap, y: 78, width: w, height: 64, fill: "sunk", label: ["After", "learning"] });
+    nodes.push({ id: "learn-2d", x: lx, y: 16, width: lw, height: 64, fill: "accent", label: ["Learning:", "visual course"] });
+    nodes.push({ id: "learn-3d", x: lx, y: 140, width: lw, height: 64, fill: "accent", label: ["Learning:", "walkthrough"] });
+    nodes.push({ id: "after", x: lx + lw + gap, y: 78, width: w, height: 64, fill: "raised", label: ["After", "learning"] });
     const edges: DiagramEdge[] = [0, 1, 2].map((i) => ({
       id: `e${i}`,
       d: `M${i * (w + gap) + w} 110 H${(i + 1) * (w + gap) - 2}`,
@@ -99,12 +80,12 @@ function flowDiagram(vertical: boolean): {
     y: 8 + i * 96,
     width: 160,
     height: 64,
-    fill: s.id === "allocation" ? "wash" : "sunk",
+    fill: s.id === "allocation" ? "hover" : "raised",
     label: s.label,
   }));
-  nodes.push({ id: "learn-2d", x: 8, y: 392, width: 144, height: 64, fill: "indigo", label: ["Learning:", "visual course"] });
-  nodes.push({ id: "learn-3d", x: 168, y: 392, width: 144, height: 64, fill: "indigo", label: ["Learning:", "walkthrough"] });
-  nodes.push({ id: "after", x: 80, y: 512, width: 160, height: 64, fill: "sunk", label: ["After", "learning"] });
+  nodes.push({ id: "learn-2d", x: 8, y: 392, width: 144, height: 64, fill: "accent", label: ["Learning:", "visual course"] });
+  nodes.push({ id: "learn-3d", x: 168, y: 392, width: 144, height: 64, fill: "accent", label: ["Learning:", "walkthrough"] });
+  nodes.push({ id: "after", x: 80, y: 512, width: 160, height: 64, fill: "raised", label: ["After", "learning"] });
   const edges: DiagramEdge[] = [0, 1, 2].map((i) => ({
     id: `e${i}`,
     d: `M160 ${72 + i * 96} V${102 + i * 96}`,
@@ -122,12 +103,12 @@ function FigureTwo() {
   const tall = flowDiagram(true);
   return (
     <figure className="flex flex-col gap-3">
-      <div className="bg-sunk p-4">
+      <div className="bg-vat-2 p-4">
         <OutlineDiagram {...wide} className="mx-auto hidden lg:block" />
         <OutlineDiagram {...tall} className="mx-auto max-w-[20rem] lg:hidden" />
       </div>
-      <figcaption className="text-caption">
-        <span className="font-bold text-ink">{chartFigureLabel(2)}.</span> The default order of a new study in the study engine. Every
+      <figcaption className="t-s text-lime-dim">
+        <span className="font-bold text-lime">{chartFigureLabel(2)}.</span> The default order of a new study in the study engine. Every
         participant takes the same steps; only the learning step differs by condition.
       </figcaption>
     </figure>
@@ -144,12 +125,12 @@ function StepList() {
     ["After learning", AFTER],
   ];
   return (
-    <ol className="text-body flex list-decimal flex-col gap-2 pl-6 text-ink" aria-label="Study steps, in order">
+    <ol className="t-b flex list-decimal flex-col gap-2 pl-6 text-lime" aria-label="Study steps, in order">
       {groups.map(([label, steps]) => (
         <li key={label}>
           <span className="font-semibold">{label}</span>
           {steps && steps.length > 0 && !(steps.length === 1 && steps[0] === "learning") ? (
-            <span className="text-ink-2">: {steps.map((s) => STEP_LABEL[s]).join("; ")}</span>
+            <span className="text-lime-dim">: {steps.map((s) => STEP_LABEL[s]).join("; ")}</span>
           ) : null}
         </li>
       ))}
@@ -157,11 +138,10 @@ function StepList() {
   );
 }
 
-// ---- Live sections -----------------------------------------------------------------------------
 
 async function DatasetLive() {
   const stats = await getDatasetStats();
-  if (!stats) return <Prose className="text-ink-2">The dataset counts could not be read just now.</Prose>;
+  if (!stats) return <Prose className="text-lime-dim">The dataset counts could not be read just now.</Prose>;
   const { totals } = stats;
   return (
     <>
@@ -206,7 +186,7 @@ async function PullQuoteLive() {
 
 async function ImageCreditsLive() {
   const credits = await getImageCredits();
-  if (credits === null) return <Prose className="text-ink-2">The image records could not be read just now.</Prose>;
+  if (credits === null) return <Prose className="text-lime-dim">The image records could not be read just now.</Prose>;
   if (credits.length === 0) {
     return <Prose>No photograph has been verified for the platform yet, so no figure is currently a photograph.</Prose>;
   }
@@ -216,11 +196,11 @@ async function ImageCreditsLive() {
         {credits.length === 1 ? "One verified photograph is" : `${formatCount(credits.length)} verified photographs are`} recorded, with these credits
         and licences:
       </Prose>
-      <ul className="flex flex-col divide-y divide-rule border-y border-rule">
+      <ul className="flex flex-col divide-y divide-line border-y border-line">
         {credits.map((c) => (
-          <li key={c.id} className="text-body flex flex-col gap-1 py-3">
-            <span className="font-semibold text-ink">{c.title}</span>
-            <span className="text-credit">
+          <li key={c.id} className="t-b flex flex-col gap-1 py-3">
+            <span className="font-semibold text-lime">{c.title}</span>
+            <span className="t-s text-lime-dim">
               {c.credit}. Licence:{" "}
               {c.licenceUrl ? (
                 <a href={c.licenceUrl} className={`${LINK} inline-flex min-h-11 items-center`} rel="noopener noreferrer" target="_blank">
@@ -300,7 +280,7 @@ export default function AboutPage() {
         </EditorialSection>
 
         <EditorialSection id="dataset" title="Dataset and citation standard">
-          <Suspense fallback={<Prose className="text-ink-2">Reading the dataset counts…</Prose>}>
+          <Suspense fallback={<Prose className="text-lime-dim">Reading the dataset counts…</Prose>}>
             <DatasetLive />
           </Suspense>
           <Suspense fallback={null}>
@@ -323,7 +303,7 @@ export default function AboutPage() {
               Each such diagram is credited &ldquo;Diagram generated from the project&rsquo;s knowledge graph&rdquo; and shows nothing the claims do
               not state. Photographs are shown only when their licence has been checked, always with their credit and licence.
             </Prose>
-            <Suspense fallback={<Prose className="text-ink-2">Reading the image records…</Prose>}>
+            <Suspense fallback={<Prose className="text-lime-dim">Reading the image records…</Prose>}>
               <ImageCreditsLive />
             </Suspense>
           </EditorialRow>
@@ -335,7 +315,7 @@ export default function AboutPage() {
               Participants take part under a pseudonymous study identifier and never create an account. Nothing done in the public demo is stored as
               study data. The privacy page describes what the platform records and where.
             </Prose>
-            <Link href="/privacy" className={`text-ui self-start ${STANDALONE}`}>
+            <Link href="/privacy" className={`t-label self-start ${STANDALONE}`}>
               Read the privacy page
             </Link>
           </EditorialRow>

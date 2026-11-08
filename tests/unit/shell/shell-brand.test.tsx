@@ -1,145 +1,18 @@
-/**
- * WP0b: shells, Display Settings (DESIGN.md 9.15, 9.16, 9.19; DR-019) and the brand components
- * (DESIGN.md 7). jsdom has no layout, so sizes are checked through classes here and measured in
- * the browser by the Playwright suites.
- */
-import { act, render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { chartFigureLabel, claimNumber, countOf, figureLabel, plateLabel, tableLabel } from "@/components/brand/numbering";
 import { OutlineDiagram } from "@/components/brand/outline-diagram";
 import { Rule } from "@/components/brand/rule";
 import { TraditionName } from "@/components/knowledge/tradition-marker";
-import { DISPLAY_BOOT_SCRIPT, DISPLAY_STORAGE_KEY, isStudyPath, parseDisplayPreferences } from "@/components/shell/display-preferences";
-import { DisplayPreferencesSync, DisplaySettings } from "@/components/shell/display-settings";
 import { PageHeader } from "@/components/shell/page-header";
 import { StudyShell } from "@/components/shell/study-shell";
 
 vi.mock("@/server/auth/actions", () => ({ endPublicDemo: vi.fn() }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/about", useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }) }));
 
-const html = document.documentElement;
-
-beforeEach(() => {
-  localStorage.clear();
-  html.className = "";
-  html.style.colorScheme = "";
-});
-afterEach(() => {
-  window.history.replaceState(null, "", "/");
-});
-
-describe("display preferences", () => {
-  it("parses stored JSON defensively", () => {
-    expect(parseDisplayPreferences(null)).toEqual({ contrast: false, reduceMotion: false });
-    expect(parseDisplayPreferences("not json")).toEqual({ contrast: false, reduceMotion: false });
-    expect(parseDisplayPreferences('{"contrast":true,"reduceMotion":"yes"}')).toEqual({ contrast: true, reduceMotion: false });
-  });
-
-  it("treats /learn/* and /study/* as study mode only", () => {
-    for (const p of ["/learn", "/learn/2d", "/learn/immersive/practice", "/study", "/study/consent"]) expect(isStudyPath(p)).toBe(true);
-    for (const p of ["/", "/learning", "/studyx", "/research/studies", "/explore"]) expect(isStudyPath(p)).toBe(false);
-  });
-});
-
-describe("DisplaySettings (DESIGN.md 9.19)", () => {
-  it("shows three labelled switches outside study and writes the classes on <html>", async () => {
-    render(<DisplaySettings zone="public" />);
-    await userEvent.click(screen.getByRole("button", { name: "Display settings" }));
-    const dialog = screen.getByRole("dialog", { name: "Display Settings" });
-    expect(within(dialog).getAllByRole("switch")).toHaveLength(3);
-    expect(within(dialog).getByRole("switch", { name: "Dark theme" })).toHaveAttribute("aria-checked", "false");
-
-    await userEvent.click(within(dialog).getByRole("switch", { name: "High contrast" }));
-    expect(within(dialog).getByRole("switch", { name: "High contrast" })).toHaveAttribute("aria-checked", "true");
-    expect(html).toHaveClass("a11y-contrast");
-    expect(JSON.parse(localStorage.getItem(DISPLAY_STORAGE_KEY)!)).toEqual({ contrast: true, reduceMotion: false });
-
-    await userEvent.click(within(dialog).getByRole("switch", { name: "Reduce motion" }));
-    expect(html).toHaveClass("a11y-reduce-motion");
-  });
-
-  it("offers ONLY High contrast in study mode and reports the choice to the study engine", async () => {
-    const onChange = vi.fn();
-    render(<DisplaySettings zone="study" onChange={onChange} />);
-    await userEvent.click(screen.getByRole("button", { name: "Display settings" }));
-    const dialog = screen.getByRole("dialog");
-    expect(within(dialog).getAllByRole("switch")).toHaveLength(1);
-    expect(within(dialog).queryByRole("switch", { name: "Dark theme" })).toBeNull();
-    expect(within(dialog).queryByRole("switch", { name: "Reduce motion" })).toBeNull();
-
-    await userEvent.click(within(dialog).getByRole("switch", { name: "High contrast" }));
-    expect(onChange).toHaveBeenLastCalledWith({ dark: false, contrast: true, reduceMotion: false });
-    expect(html).toHaveClass("a11y-contrast");
-    expect(html).not.toHaveClass("dark");
-    expect(html).not.toHaveClass("a11y-reduce-motion");
-  });
-
-  it("every switch row is a 44 px target", async () => {
-    render(<DisplaySettings zone="public" />);
-    await userEvent.click(screen.getByRole("button", { name: "Display settings" }));
-    for (const s of screen.getAllByRole("switch")) expect(s.className).toContain("min-h-11");
-  });
-});
-
-describe("DisplayPreferencesSync", () => {
-  it("forces light in the study zone, keeps it light, and gives the stored theme back on leaving", async () => {
-    localStorage.setItem("theme", "dark");
-    localStorage.setItem(DISPLAY_STORAGE_KEY, JSON.stringify({ contrast: true, reduceMotion: true }));
-    html.classList.add("dark");
-    const { unmount } = render(<DisplayPreferencesSync zone="study" />);
-    expect(html).not.toHaveClass("dark");
-    expect(html).toHaveClass("light", "a11y-contrast");
-    expect(html).not.toHaveClass("a11y-reduce-motion");
-    expect(html.style.colorScheme).toBe("light");
-
-    // Something (next-themes) re-adds dark: the guard strips it again.
-    await act(async () => {
-      html.classList.add("dark");
-      await Promise.resolve();
-    });
-    expect(html).not.toHaveClass("dark");
-
-    unmount();
-    expect(html).toHaveClass("dark", "a11y-reduce-motion");
-  });
-
-  it("applies every stored choice in the public zone", () => {
-    localStorage.setItem("theme", "dark");
-    localStorage.setItem(DISPLAY_STORAGE_KEY, JSON.stringify({ contrast: false, reduceMotion: true }));
-    render(<DisplayPreferencesSync zone="public" />);
-    expect(html).toHaveClass("dark", "a11y-reduce-motion");
-    expect(html).not.toHaveClass("a11y-contrast");
-  });
-});
-
-describe("DISPLAY_BOOT_SCRIPT (pre-paint)", () => {
-  function runBoot() {
-    new Function(DISPLAY_BOOT_SCRIPT)();
-  }
-
-  it("applies high contrast and reduce motion on public routes", () => {
-    localStorage.setItem(DISPLAY_STORAGE_KEY, JSON.stringify({ contrast: true, reduceMotion: true }));
-    runBoot();
-    expect(html).toHaveClass("a11y-contrast", "a11y-reduce-motion");
-  });
-
-  it("forces light on study routes even when the theme script adds dark afterwards", async () => {
-    window.history.replaceState(null, "", "/learn/2d");
-    localStorage.setItem(DISPLAY_STORAGE_KEY, JSON.stringify({ contrast: true, reduceMotion: true }));
-    runBoot();
-    expect(html).toHaveClass("a11y-contrast");
-    expect(html).not.toHaveClass("a11y-reduce-motion");
-    html.classList.add("dark");
-    await Promise.resolve();
-    expect(html).not.toHaveClass("dark");
-    (window as unknown as Record<string, MutationObserver>).__ieStudyThemeGuard?.disconnect();
-  });
-});
-
-describe("StudyShell (DESIGN.md 9.16)", () => {
+describe("StudyShell", () => {
   it("is a study root with no outbound link, a Study label and an optional tabular step count", () => {
     const { container } = render(
       <StudyShell step={{ current: 2, total: 7 }}>
@@ -147,10 +20,10 @@ describe("StudyShell (DESIGN.md 9.16)", () => {
       </StudyShell>,
     );
     const root = container.firstElementChild!;
-    expect(root).toHaveClass("study-root", "a11y-reduce-motion");
+    expect(root).toHaveClass("study-root");
     expect(container.querySelector("a")).toBeNull();
-    expect(screen.getByText("Study")).toHaveClass("text-label");
-    expect(screen.getByText("Step 2 of 7")).toHaveClass("text-timer");
+    expect(screen.getByText("Study")).toHaveClass("t-label");
+    expect(screen.getByText("Step 2 of 7")).toHaveClass("t-label", "tabular-nums");
     expect(screen.getByText(/ask the study facilitator/)).toBeInTheDocument();
   });
 });
@@ -169,7 +42,7 @@ describe("PageHeader", () => {
 
 });
 
-describe("brand components (DESIGN.md 7)", () => {
+describe("brand components", () => {
   it("names a tradition in words only, with no marker on any key (P17)", () => {
     const keys = ["ajrakh", "bagh", "bagru", "dabu", "machilipatnam-kalamkari", "sanganeri"];
     const markup = keys.map((k) => renderToStaticMarkup(<TraditionName traditionKey={k}>Name</TraditionName>).replace(/ data-tradition-key="[^"]*"/, ""));
@@ -185,9 +58,9 @@ describe("brand components (DESIGN.md 7)", () => {
         <Rule kind="booktabs" />
       </>,
     );
-    expect(markup).toContain("border-t border-rule-strong");
-    expect(markup).toContain("border-t border-rule");
-    expect(markup).toContain("border-t-[1.5px] border-ink");
+    expect(markup).toContain("border-t border-lime-dim");
+    expect(markup).toContain("border-t border-line");
+    expect(markup).toContain("border-t-[1.5px] border-lime");
     expect(markup).not.toMatch(/bg-/);
   });
 
@@ -207,8 +80,8 @@ describe("brand components (DESIGN.md 7)", () => {
         width={200}
         height={100}
         nodes={[
-          { id: "a", x: 10, y: 10, width: 60, height: 40, fill: "wash", label: "Page" },
-          { id: "b", x: 130, y: 10, width: 60, height: 40, fill: "indigo", label: ["Floor", "plan"] },
+          { id: "a", x: 10, y: 10, width: 60, height: 40, fill: "hover", label: "Page" },
+          { id: "b", x: 130, y: 10, width: 60, height: 40, fill: "accent", label: ["Floor", "plan"] },
         ]}
         edges={[{ id: "e", d: "M70 30 H130", arrow: true, draw: true }]}
       />,

@@ -1,18 +1,3 @@
-/**
- * Public home (DESIGN.md 10.1, DR-022). In order:
- *  1. the title block, left-aligned on columns 1 to 7: the h1 in Anek Latin `text-display-1`, the
- *     deck, ONE primary action ("Explore the demo") and a text link ("Read the method");
- *  2. Figure 1, "One Knowledge Model, Two Conditions", full grid width on one indigo plate with live
- *     counts: the single place where the public pages spend their boldness. Static. Its text
- *     equivalents follow: the count list, the two conditions as text and the booktabs table;
- *  3. the six traditions as an index of equal rows, without images (DR-020);
- *  4. Table 1, the dataset counts;
- *  5. the institution strip (hidden while its fields are null).
- *
- * Every number on this page is read from the database at request time inside <Suspense>
- * (cacheComponents); each fallback is the same layout without numbers, never an invented value.
- * The static parts (h1, Figure 1's frame, the comparison table) prerender into the shell.
- */
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -28,25 +13,23 @@ import { countWord, getDatasetStats, homeDeck } from "@/server/public/dataset-st
 import { titleCase } from "@/lib/text/title-case";
 
 const LINK =
-  "text-ui inline-flex min-h-11 items-center text-indigo underline decoration-1 underline-offset-[0.2em] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-indigo-hover hover:decoration-2";
+  "t-label inline-flex min-h-11 items-center text-turmeric underline decoration-1 underline-offset-[0.2em] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-turmeric-hi hover:decoration-2";
 
 async function Deck() {
   const stats = await getDatasetStats();
   if (!stats || stats.traditions.length === 0) return <DeckFallback />;
   return (
-    <p className="text-deck max-w-[36rem]" data-live="true">
+    <p className="t-l text-lime-dim max-w-[36rem]" data-live="true">
       {homeDeck(stats.traditions)}
     </p>
   );
 }
 
 function DeckFallback() {
-  return <p className="text-deck max-w-[36rem]">Traditions of Indian hand-block printing as one cited body of knowledge, with two learning conditions built from it.</p>;
+  return <p className="t-l text-lime-dim max-w-[36rem]">Traditions of Indian hand-block printing as one cited body of knowledge, with two learning conditions built from it.</p>;
 }
 
 async function FigureOneLive() {
-  // Sources = the distinct sources the claims cite, the same definition as Table 1's column, so the
-  // page never shows two different source totals.
   const stats = await getDatasetStats();
   const counts = stats ? { traditions: stats.totals.traditions, concepts: stats.totals.concepts, relationships: stats.totals.relationships, sources: stats.totals.sourcesCited } : null;
   return (
@@ -72,27 +55,22 @@ function TraditionsFallback() {
   return (
     <section aria-labelledby="traditions-heading" className="flex flex-col gap-8">
       <SectionHead id="traditions-heading" title="The Traditions" />
-      <p className="text-body text-ink-2">The traditions are read from the database when the page loads.</p>
+      <p className="t-b text-lime-dim">The traditions are read from the database when the page loads.</p>
     </section>
   );
 }
 
 async function DatasetLive() {
   const stats = await getDatasetStats();
-  if (!stats) return <p className="text-body text-ink-2">The dataset counts could not be read just now.</p>;
+  if (!stats) return <p className="t-b text-lime-dim">The dataset counts could not be read just now.</p>;
   return <DatasetTable stats={stats} number={1} />;
 }
 
-/**
- * Public section head: Anek Latin `text-display-2` h2 in Title Case, set off by space, not a rule
- * (DR-022). No eyebrow: figure and table numbers live in their captions, so Figure 1 is numbered
- * once.
- */
 function SectionHead({ id, title, label }: { id: string; title: string; label?: string }) {
   return (
     <div className="flex max-w-[56rem] flex-wrap items-baseline gap-x-4 gap-y-1">
-      {label ? <span className="text-label tabular-nums">{label}</span> : null}
-      <h2 id={id} className="text-h2 text-ink md:text-display-2">
+      {label ? <span className="t-label tabular-nums">{label}</span> : null}
+      <h2 id={id} className="t-h4 text-lime md:t-h2">
         {titleCase(title)}
       </h2>
     </div>
@@ -117,7 +95,7 @@ export default function HomePage() {
     <div className="flex flex-col gap-24 max-xs:gap-16">
       <section aria-labelledby="home-title" className="grid lg:grid-cols-12 lg:gap-x-6">
         <div className="flex flex-col gap-6 pt-4 lg:col-span-7 lg:col-start-1 lg:row-start-1">
-          <h1 id="home-title" className="text-display-1 text-ink">
+          <h1 id="home-title" className="t-h1 text-lime">
             Immersive Episteme
           </h1>
           <Suspense fallback={<DeckFallback />}>
@@ -134,25 +112,23 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 2. Figure 1 on the indigo plate, then its text equivalents. */}
       <section aria-labelledby="conditions-heading" className="flex flex-col gap-8">
         <SectionHead id="conditions-heading" label={chartFigureLabel(1)} title="One Knowledge Model, Two Conditions" />
         <figure className="flex flex-col gap-4">
           <Suspense fallback={<FigureOneDiagram counts={null} />}>
             <FigureOneLive />
           </Suspense>
-          <figcaption className="text-caption max-w-[48rem]">
-            <span className="font-bold text-ink">{chartFigureLabel(1)}.</span> One knowledge model, with its live counts for every tradition in the
+          <figcaption className="t-s text-lime-dim max-w-[48rem]">
+            <span className="font-bold text-lime">{chartFigureLabel(1)}.</span> One knowledge model, with its live counts for every tradition in the
             dataset. The two learning conditions of equal weight, a visual course and a walkthrough, are compiled from it and teach only the study traditions
             named above.
           </figcaption>
         </figure>
         <ul className="grid gap-x-6 gap-y-8 md:grid-cols-2" aria-label="The two conditions">
           {CONDITIONS.map((c) => (
-            <li key={c.key} className="flex flex-col gap-2 border-t-[1.5px] border-ink pt-4">
-              <h3 className="text-h3 text-ink">{titleCase(c.title)}</h3>
-              {/* Reserved three lines, so the two links share one baseline (parallel items). */}
-              <p className="text-body min-h-[4.875rem] max-w-[34rem] text-ink-2">{c.description}</p>
+            <li key={c.key} className="flex flex-col gap-2 border-t-[1.5px] border-lime pt-4">
+              <h3 className="t-label text-lime">{titleCase(c.title)}</h3>
+              <p className="t-b min-h-[4.875rem] max-w-[34rem] text-lime-dim">{c.description}</p>
               <p className="mt-auto">
                 <Link href="/explore" className={LINK}>
                   Try it in the demo
@@ -166,22 +142,19 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. The traditions as an index of equal rows, canonical order. */}
       <Suspense fallback={<TraditionsFallback />}>
         <TraditionsLive />
       </Suspense>
 
-      {/* 4. Dataset at a glance. */}
       <section aria-labelledby="dataset-heading" className="flex flex-col gap-8">
         <SectionHead id="dataset-heading" title="Dataset at a Glance" />
         <div className="max-w-[48rem]">
-          <Suspense fallback={<p className="text-body text-ink-2">Reading the dataset counts…</p>}>
+          <Suspense fallback={<p className="t-b text-lime-dim">Reading the dataset counts…</p>}>
             <DatasetLive />
           </Suspense>
         </div>
       </section>
 
-      {/* 5. Institution strip: renders nothing while every field is null (DESIGN.md 13). */}
       <InstitutionStrip institution={INSTITUTION} />
     </div>
   );

@@ -35,10 +35,10 @@ async function Entry({ searchParams }: { searchParams: PageProps<"/study">["sear
   if (live?.allowed) {
     return (
       <section aria-labelledby="resume-heading" className="flex flex-col gap-4">
-        <h2 id="resume-heading" className="text-h2 text-ink">
+        <h2 id="resume-heading" className="t-h4 text-lime">
           {titleCase("You have a study session in progress")}
         </h2>
-        <p className="text-reading max-w-[34rem] text-ink">Continue where you stopped. The break is recorded with your session.</p>
+        <p className="t-b max-w-[34rem] text-lime">Continue where you stopped. The break is recorded with your session.</p>
         <ActionForm
           action={resumeStudy}
           submitLabel="Continue your session"
@@ -55,10 +55,10 @@ async function Entry({ searchParams }: { searchParams: PageProps<"/study">["sear
   if (cookie && (await resolveWithdrawalSession(cookie, deps)).allowed) {
     return (
       <section aria-labelledby="ended-heading" className="flex flex-col gap-4">
-        <h2 id="ended-heading" className="text-h2 text-ink">
+        <h2 id="ended-heading" className="t-h4 text-lime">
           {titleCase("Your study session has ended")}
         </h2>
-        <p className="text-reading max-w-[34rem] text-ink">Thank you for taking part. You can still withdraw from the study.</p>
+        <p className="t-b max-w-[34rem] text-lime">Thank you for taking part. You can still withdraw from the study.</p>
         <p>
           <Link href="/study/withdraw" className={STUDY_LINK_CLASS}>
             Withdraw from the study
@@ -69,8 +69,6 @@ async function Entry({ searchParams }: { searchParams: PageProps<"/study">["sear
   }
 
   const defaultCode = typeof code === "string" ? code.slice(0, 120) : undefined;
-  // The full 40rem study column, so the note, the field and the action row end at the header's
-  // right edge, as on consent and every in-session step; running text keeps the 34rem measure.
   return (
     <div className="flex flex-col gap-8">
       {message ? (
@@ -85,11 +83,6 @@ async function Entry({ searchParams }: { searchParams: PageProps<"/study">["sear
   );
 }
 
-/**
- * Study entry: participants join with the study code from the facilitator. Deliberately no link
- * to the public demo (/explore): the demo shows both conditions, and this page is where
- * prospective participants land. A browser with a live session is offered "continue" instead.
- */
 export default function StudyEntryPage({ searchParams }: PageProps<"/study">) {
   return (
     <>

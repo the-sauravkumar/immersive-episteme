@@ -1,12 +1,3 @@
-/**
- * Colophon (DESIGN.md 10.1, DR-022): how the platform is set. Typefaces with specimens and the
- * font budget; the palette as plain swatches with their roles (only the indigo carries "Design
- * interpretation; not a measured or historical dye colour", R-C6, since no other token derives
- * from a craft colour); the fixed condition order; and how the conditions are kept equivalent.
- *
- * The swatch values are read from `src/app/globals.css` itself (the token file), so the page can
- * never disagree with the colours actually in use.
- */
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -18,58 +9,46 @@ import { PageHeader } from "@/components/shell/page-header";
 
 export const metadata: Metadata = { title: "Colophon" };
 
-// ---- Palette, read from the token file -------------------------------------------------------
 
-type Swatch = { token: string; name: string; role: string; interpretation?: boolean };
+type Swatch = { token: string; name: string; role: string };
 
 const SWATCHES: readonly Swatch[] = [
-  { token: "ground", name: "Paper", role: "Knowledge only: the sheet in both conditions, dialogs, console work areas" },
-  { token: "field", name: "Field", role: "Navigation: rails, the 2D index, the public header and footer; never behind claims" },
-  { token: "ink", name: "Ink", role: "Text, headings and diagram outlines" },
-  { token: "indigo", name: "Indigo", role: "The one interactive colour: links, buttons, selected states", interpretation: true },
-  { token: "sunk", name: "Sunk", role: "Figure mats, the verbatim-quote mat, hover on paper" },
-  { token: "wash", name: "Wash", role: "A current or selected item, always with a word" },
-  { token: "ink-2", name: "Ink, secondary", role: "Labels, captions, inactive tabs" },
-  { token: "ink-3", name: "Ink, tertiary", role: "Source lines, credits, units" },
-  { token: "rule-strong", name: "Strong rule", role: "Every control boundary and docked pane edge" },
-  { token: "danger", name: "Danger", role: "Errors, always with an icon and a word" },
-  { token: "series-2d", name: "Series 2D", role: "Dashboard charts: the 2D condition, circles" },
-  { token: "series-3d", name: "Series 3D", role: "Dashboard charts: the 3D condition, squares" },
+  { token: "vat", name: "Vat", role: "The page and every bar" },
+  { token: "vat-2", name: "Vat, raised", role: "Cards, fields, dialogs and other raised surfaces" },
+  { token: "lime", name: "Lime", role: "Text, headings and button borders" },
+  { token: "lime-dim", name: "Lime, dim", role: "Secondary text, field borders and table rules" },
+  { token: "turmeric", name: "Turmeric", role: "The one interface colour: the current place, the forward button and the focus ring" },
+  { token: "line", name: "Line", role: "Hairlines between rows and panes; never text" },
+  { token: "cotton", name: "Cotton", role: "Toast surface, with stamp text" },
+  { token: "madder", name: "Madder", role: "The danger button and the Sample Text mark" },
+  { token: "madder-text", name: "Madder, text", role: "Errors, always with an icon and a word" },
+  { token: "ok", name: "Ok", role: "Success, always with a word" },
+  { token: "thread", name: "Thread", role: "Loose threads for steps not yet reached; never text" },
+  { token: "off-bg", name: "Off", role: "Disabled controls, with off text" },
 ];
 
-function tokenBlock(css: string, selector: string): Record<string, string> {
-  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const match = new RegExp(`(?:^|\\n)${escaped}\\s*\\{([^}]*)\\}`).exec(css);
-  const out: Record<string, string> = {};
-  if (!match?.[1]) return out;
-  for (const decl of match[1].matchAll(/--([\w-]+)\s*:\s*(#[0-9a-fA-F]{3,8})\s*;/g)) out[decl[1]!] = decl[2]!.toUpperCase();
-  return out;
-}
-
-function readPalette(): { light: Record<string, string>; dark: Record<string, string> } {
+function readPalette(): Record<string, string> {
   try {
-    const css = readFileSync(path.join(process.cwd(), "src", "app", "globals.css"), "utf8");
-    return { light: tokenBlock(css, ":root"), dark: tokenBlock(css, ".dark") };
+    const css = readFileSync(path.join(/*turbopackIgnore: true*/ process.cwd(), "src", "styles", "walking-tokens.css"), "utf8");
+    const block = /(?:^|\n):root\s*\{([^}]*)\}/.exec(css)?.[1] ?? "";
+    const out: Record<string, string> = {};
+    for (const decl of block.matchAll(/--([\w-]+)\s*:\s*(#[0-9a-fA-F]{6})\s*;/g)) out[decl[1]!] = decl[2]!.toUpperCase();
+    return out;
   } catch {
-    return { light: {}, dark: {} };
+    return {};
   }
 }
 
 function Palette() {
-  const { light, dark } = readPalette();
+  const palette = readPalette();
   return (
     <ul className="grid gap-x-6 gap-y-8 xs:grid-cols-2 lg:grid-cols-3" aria-label="Palette">
       {SWATCHES.map((s) => (
         <li key={s.token} className="flex flex-col gap-2" data-token={s.token}>
-          <div aria-hidden="true" className="mb-2 h-16 border border-rule-strong" style={{ background: `var(--${s.token})` }} />
-          <p className="text-ui text-ink">{s.name}</p>
-          <p className="text-id text-ink-2">
-            {light[s.token] ? <>Light {light[s.token]}</> : null}
-            {light[s.token] && dark[s.token] ? ", " : null}
-            {dark[s.token] ? <>dark {dark[s.token]}</> : null}
-          </p>
-          <p className="text-credit">{s.role}</p>
-          {s.interpretation ? <p className="text-credit font-bold">Design interpretation; not a measured or historical dye colour.</p> : null}
+          <div aria-hidden="true" className="mb-2 h-16 border border-line" style={{ background: `var(--${s.token})` }} />
+          <p className="t-label text-lime">{s.name}</p>
+          <p className="t-table font-semibold text-lime-dim">{palette[s.token] ?? null}</p>
+          <p className="t-s text-lime-dim">{s.role}</p>
         </li>
       ))}
     </ul>
@@ -89,28 +68,25 @@ export default function ColophonPage() {
           <EditorialRow
             note={
               <Sidenote label="Budget">
-                At most two font files preloaded and 176,000 bytes, self-hosted with no request to a third party. Study and console pages preload one
-                file. The Latin files measured when the faces were adopted: Atkinson Hyperlegible Next 33,996 bytes, Anek Latin 103,760 bytes.
+                Two font files preloaded, Eczar 26,456 bytes and Mukta Regular 20,480 bytes, self-hosted with no request to a third party. Mukta
+                Medium and Semibold load when a page uses them.
               </Sidenote>
             }
           >
-            <div className="flex flex-col gap-2 border-t border-rule pt-4">
-              <p className="text-label">Atkinson Hyperlegible Next, the public, study and staff pages</p>
-              <p className="text-reading text-ink">Reading text is set at 20 pixels on a 30 pixel line, about sixty-two characters to the line.</p>
-              <p className="text-quote bg-sunk px-4 py-3 text-ink">&ldquo;The evidence is set as large as the claim it supports, upright, on its own mat.&rdquo;</p>
-              <p className="text-table text-ink-2">Tabular figures for every number a reader compares: 0123456789. Codes need no monospace: 0O 1Il.</p>
+            <Prose>
+              Every page, both doors and every study and staff screen share two typefaces under the SIL Open Font License, and no others.
+            </Prose>
+            <div className="flex flex-col gap-2 border-t border-line pt-4">
+              <p className="t-label">Eczar, for names, headings, labels and buttons</p>
+              <p className="t-h3 text-lime">Immersive Episteme</p>
+              <p className="t-s text-lime-dim">By the Eczar Project Authors, published by Rosetta Type.</p>
             </div>
-            <div className="flex flex-col gap-2 border-t border-rule pt-4">
-              <p className="text-label">Anek Latin, public display only</p>
-              <p className="text-display-2 text-ink">Immersive Episteme</p>
-              <p className="text-credit">By Ek Type, a type collective in Mumbai. Never used on study pages or in either door.</p>
+            <div className="flex flex-col gap-2 border-t border-line pt-4">
+              <p className="t-label">Mukta, for captions, body and small text</p>
+              <p className="t-b text-lime">Body text is set at 18 pixels on a 27 pixel line, at most sixty-five characters to the line.</p>
+              <p className="t-table text-lime-dim">Tabular figures for every number a reader compares: 0123456789.</p>
+              <p className="t-s text-lime-dim">By Girish Dalvi, Ek Type.</p>
             </div>
-          </EditorialRow>
-        </EditorialSection>
-
-        <EditorialSection id="door-typefaces" title="Typefaces of the doors">
-          <EditorialRow>
-            <Prose>The visual course and the walkthrough share two typefaces, self-hosted under the SIL Open Font License: Eczar for names and Mukta for text.</Prose>
           </EditorialRow>
         </EditorialSection>
 
@@ -118,8 +94,8 @@ export default function ColophonPage() {
           <EditorialRow>
             <Prose>
               No colour on this platform is a measured or historical dye or cloth colour; today&rsquo;s dyes are mostly synthetic, so there is no
-              single authentic value to measure. Every swatch is therefore labelled as a design interpretation. Light is the default theme; dark and
-              high contrast are offered in Display Settings, and study pages are always light.
+              single authentic value to measure. Every swatch is a design interpretation. There is one theme, the same on public, study and staff
+              pages and in both doors.
             </Prose>
           </EditorialRow>
           <Palette />

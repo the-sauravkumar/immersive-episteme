@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * Concept-map editor (participant reconstruction task and expert-rater reference maps).
- *
- * It takes no learning-condition input at all: the participant editor renders and behaves the
- * same whichever condition the session belongs to, because it is part of the assessment, not of
- * the learning condition. Every edit goes through the pure reducer in ./map-state, which appends
- * to a timestamped edit log; the raw graph (nodes, positions, typed/directed edges, edit log) is
- * autosaved and finally submitted through `onSave`.
- */
 import { CircleAlert, CircleCheck } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
@@ -32,8 +23,7 @@ import { RelationshipPanel, type PendingConnection } from "./relationship-panel"
 
 const MapCanvas = dynamic(() => import("./map-canvas").then((m) => m.MapCanvas), {
   ssr: false,
-  // A static block of the canvas's own size while the canvas code loads: no pulse, no layout shift.
-  loading: () => <div className="h-[32rem] w-full rounded-card border border-rule-strong bg-sunk" aria-hidden />,
+  loading: () => <div className="h-[32rem] w-full border border-lime-dim bg-vat-2" aria-hidden />,
 });
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
@@ -64,9 +54,7 @@ export function ConceptMapEditor({
   onSubmitted?: () => void;
   submitLabel?: string;
   canvasLabel?: string;
-  /** Save every change automatically (participants). Raters save only when they submit. */
   autosave?: boolean;
-  /** Shown in the submit confirmation. */
   finalNote?: string;
 }) {
   const rules: EditorRules = useMemo(() => ({ relationshipTypes, directedLinks }), [relationshipTypes, directedLinks]);
@@ -134,10 +122,6 @@ export function ConceptMapEditor({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Participants: only the canvas breaks out of the 40rem study column, centred, up to 72rem
-          (gutters kept: 16 px under 520 px, 24 px above), so the header, the prompt, the form and
-          the action row stay on the column every other step uses. Where the column is already
-          as wide (phones, or a shell that widens the page for the map), the margins are 0. */}
       <div
         data-slot="map-canvas-region"
         className={
@@ -168,15 +152,12 @@ export function ConceptMapEditor({
       />
       {locked ? (
         submitted ? (
-          <p role="status" className="text-reading flex items-center gap-3 border-b border-rule pb-4 text-ink">
+          <p role="status" className="t-b flex items-center gap-3 border-b border-line pb-4 text-lime">
             <CircleCheck aria-hidden="true" strokeWidth={1.5} className="size-6 shrink-0" />
             Submitted. Thank you.
           </p>
         ) : null
       ) : (
-        // No top rule: the relationship list above already closes with one (a second, parallel
-        // hairline would enclose an empty band). Participants get the study action row: under
-        // 520 px the primary action is full width, as on every other study step (StudyActions).
         <div
           data-slot="study-actions"
           className={
@@ -188,7 +169,7 @@ export function ConceptMapEditor({
           <p
             role="status"
             aria-live="polite"
-            className={status === "error" ? "inline-flex items-start gap-2 font-sans text-[0.9375rem] leading-5 font-semibold text-danger" : "text-source"}
+            className={status === "error" ? "inline-flex items-start gap-2 t-s font-semibold text-madder-text" : "t-s text-lime-dim"}
           >
             {status === "error" ? <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 stroke-2" /> : null}
             {statusText}
@@ -215,7 +196,6 @@ export function ConceptMapEditor({
                 Keep editing
               </Button>
             </DialogClose>
-            {/* aria-disabled, not disabled: the focused button keeps focus while saving (DESIGN.md 9.1). */}
             <Button type="button" onClick={() => void submit()} aria-disabled={status === "saving"}>
               {submitLabel}
             </Button>

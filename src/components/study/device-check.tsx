@@ -1,29 +1,9 @@
 "use client";
 
-/**
- * Display and device check: the page before allocation, the same for everyone. It takes no
- * condition input and no condition exists yet, so it can imply no door.
- *
- *  1. Display (DR-019, DESIGN.md 4.5, 9.19; WP4 task 2 "once"): the High contrast accommodation
- *     is offered ONCE, on the consent page (`StudyDisplayChoice`, the shared Display Settings
- *     dialog in its study form: High contrast only, study mode stays light), before any measured
- *     step. This page shows the value read-only (`StudyDisplayRecord`) and records it on the
- *     session with the check (`study_sessions.device.contrastAccommodation`). Because nothing in
- *     the study can change it after consent, that one stored value is the display of the
- *     pre-test, the learning task and the post-test alike: a participant cannot take the
- *     pre-test in one display and the post-test in another without it being recorded.
- *  2. Browser check: coarse covariates only (no fingerprinting): viewport, pixel ratio, WebGL
- *     availability and version, input types, the reduced-motion and contrast media preferences,
- *     and a browser family. The server applies the study's WebGL-failure policy and minimum
- *     viewport. The check runs when the participant continues, so the display choice is recorded
- *     with it.
- */
 import { CircleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useRef, useState } from "react";
 
-import { readDisplayPreferences } from "@/components/shell/display-preferences";
-import { DisplaySettings } from "@/components/shell/display-settings";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { detectSoftwareRenderer, detectWebgl } from "@/features/study/gpu-acceptance";
@@ -36,13 +16,10 @@ export interface ClientDeviceReport {
   viewport: { width: number; height: number };
   devicePixelRatio: number;
   webglVersion: 1 | 2 | null;
-  /** True when WebGL runs on a software rasteriser (only this flag is sent, never the renderer string). */
   softwareRenderer: boolean;
   inputDevices: ("mouse" | "keyboard" | "touch")[];
   reducedMotion: boolean;
   highContrast: boolean;
-  /** The High contrast accommodation chosen in Display Settings (DR-019). */
-  contrastAccommodation: boolean;
   browserFamily: "chrome" | "edge" | "firefox" | "safari" | "other";
 }
 
@@ -67,16 +44,9 @@ export function collectDeviceReport(): ClientDeviceReport {
     inputDevices: inputs,
     reducedMotion: mq("(prefers-reduced-motion: reduce)"),
     highContrast: mq("(prefers-contrast: more)") || mq("(forced-colors: active)"),
-    contrastAccommodation: readDisplayPreferences().contrast,
     browserFamily: browserFamily(navigator.userAgent),
   };
 }
-
-// The stored choice is read from localStorage on the client only; the server renders "Off" and
-// the client corrects it on hydration without a mismatch warning.
-const noSubscribe = () => () => undefined;
-const storedContrast = () => readDisplayPreferences().contrast;
-const serverContrast = () => false;
 
 type View = { kind: "ready" } | { kind: "checking" } | { kind: "result"; result: DeviceCheckResult };
 
@@ -88,64 +58,6 @@ async function sendDeviceCheck(): Promise<DeviceCheckResult> {
   } catch {
     return { ok: false, error: CHECK_UNSENT };
   }
-}
-
-/** The High contrast state in words (one ruled `<dl>` row), shared by the choice and the record. */
-function ContrastState({ on }: { on: boolean }) {
-  return (
-    <dl className="grid grid-cols-[minmax(0,9rem)_1fr] items-center gap-x-4 border-y border-rule py-3">
-      <dt className="text-label">High contrast</dt>
-      <dd className="text-value" data-slot="study-contrast-state">
-        {on ? "On" : "Off"}
-      </dd>
-    </dl>
-  );
-}
-
-/**
- * The study's one display choice (consent page, before any measurement): one sentence, the
- * current High contrast state in words and the study form of Display Settings. It takes no
- * condition input and is shown before allocation, so it is the same for every participant.
- */
-export function StudyDisplayChoice() {
-  const stored = useSyncExternalStore(noSubscribe, storedContrast, serverContrast);
-  const [chosen, setChosen] = useState<boolean | null>(null);
-  const contrast = chosen ?? stored;
-  return (
-    <section aria-labelledby="display-title" data-slot="study-display-step" className="flex flex-col gap-4">
-      <h2 id="display-title" className="text-h2 text-ink">
-        {titleCase("Display")}
-      </h2>
-      <p className="text-reading max-w-[34rem] text-ink">
-        If text or borders are hard to see, turn on high contrast in Display settings. Choose now: it then stays the same on every page
-        of the study.
-      </p>
-      <ContrastState on={contrast} />
-      <div>
-        <DisplaySettings zone="study" onChange={(prefs) => setChosen(prefs.contrast)} />
-      </div>
-    </section>
-  );
-}
-
-/**
- * The display as chosen on the consent page, read-only (the display and browser check). The
- * value shown is the value recorded with the check.
- */
-export function StudyDisplayRecord() {
-  const contrast = useSyncExternalStore(noSubscribe, storedContrast, serverContrast);
-  return (
-    <section aria-labelledby="display-title" data-slot="study-display-record" className="flex flex-col gap-4">
-      <h2 id="display-title" className="text-h2 text-ink">
-        {titleCase("Display")}
-      </h2>
-      <p className="text-reading max-w-[34rem] text-ink">
-        You chose the display before the study began. It stays the same for the rest of the study. If you cannot read the pages, tell
-        the facilitator.
-      </p>
-      <ContrastState on={contrast} />
-    </section>
-  );
 }
 
 export function DeviceCheck() {
@@ -181,16 +93,15 @@ export function DeviceCheck() {
 
   return (
     <div className="flex flex-col gap-10">
-      <StudyDisplayRecord />
       <section aria-labelledby="browser-title" className="flex flex-col gap-4">
-        <h2 id="browser-title" className="text-h2 text-ink">
+        <h2 id="browser-title" className="t-h4 text-lime">
           {titleCase("Browser check")}
         </h2>
-        <p className="text-reading max-w-[34rem] text-ink">
+        <p className="t-b max-w-[34rem] text-lime">
           When you continue, a quick check makes sure this browser and window can show the study. Nothing about you is collected.
         </p>
         {view.kind === "checking" ? (
-          <p role="status" aria-live="polite" className="text-reading text-ink-2">
+          <p role="status" aria-live="polite" className="t-b text-lime-dim">
             Checking this browser…
           </p>
         ) : null}
@@ -203,8 +114,6 @@ export function DeviceCheck() {
         ) : null}
       </section>
       <StudyActions>
-        {/* aria-disabled, not disabled: the focused button keeps focus while the check runs
-            (WCAG 2.4.3; DESIGN.md 9.1), and run() ignores a second press. */}
         <Button type="button" aria-disabled={view.kind === "checking"} onClick={() => void run()}>
           {view.kind === "result" ? "Check again" : "Check and continue"}
         </Button>

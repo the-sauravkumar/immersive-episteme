@@ -13,7 +13,6 @@ import { Empty, FlagLine, LINK_44, pickStudy, Section, StudyPicker, Timestamp } 
 
 export const metadata: Metadata = { title: "Sessions" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/research/sessions">) {
@@ -31,7 +30,6 @@ async function Sessions({ searchParams }: { searchParams: Promise<Record<string,
   const study = pickStudy(studies, sp.study);
   if (!study) return <StudyPicker studies={studies} current={null} />;
   const principal = await getStaffPrincipal();
-  // Exclusion detail reaches identified-scope roles only; others see the category (security-05).
   const rows = await listSessions(pool, study.id, { identified: participantDataScope(principal) === "identified", userId: principal?.userId ?? null });
   return (
     <>
@@ -70,10 +68,10 @@ async function Sessions({ searchParams }: { searchParams: Promise<Record<string,
                 return (
                   <TableRow key={s.id}>
                     <TableCell className="whitespace-nowrap">
-                      <Link className={`${LINK_44} text-id`} href={`/research/sessions/${s.id}`}>
+                      <Link className={`${LINK_44} t-table font-semibold wrap-anywhere`} href={`/research/sessions/${s.id}`}>
                         {s.participantCode}
                       </Link>
-                      {s.period > 1 ? <span className="text-credit">, period {s.period}</span> : null}
+                      {s.period > 1 ? <span className="t-s text-lime-dim">, period {s.period}</span> : null}
                     </TableCell>
                     <TableCell>{s.conditionCode}</TableCell>
                     <TableCell>{s.status.replace(/_/g, " ")}</TableCell>
@@ -85,7 +83,7 @@ async function Sessions({ searchParams }: { searchParams: Promise<Record<string,
                     <TableCell numeric>{s.quarantined}</TableCell>
                     <TableCell className="min-w-64 py-2 whitespace-normal">
                       {flags.length === 0 ? (
-                        <span className="text-ink-3">None</span>
+                        <span className="text-lime-dim">None</span>
                       ) : (
                         <ul className="flex flex-col gap-1 font-sans text-[0.875rem] leading-5">
                           {flags.map((f, i) => (

@@ -5,7 +5,6 @@ import type { RelationshipRow } from "@/server/cms/queries";
 
 import { Empty, Mono, ROW_LINK, StateBadge } from "./bits";
 
-/** Typed relationships of a concept as a dense booktabs table (DESIGN.md 9.3, 11.10). */
 export function RelationshipTable({ rows, perspective, labelledBy }: { rows: RelationshipRow[]; perspective: "outgoing" | "incoming" | "both"; labelledBy?: string }) {
   if (!rows.length) return <Empty>None.</Empty>;
   return (
@@ -32,7 +31,7 @@ export function RelationshipTable({ rows, perspective, labelledBy }: { rows: Rel
             ) : null}
             <TableCell className="whitespace-nowrap">
               <Mono>{r.typeCode}</Mono>
-              {r.ordinal !== null ? <span className="tabular-nums text-ink-2"> #{r.ordinal}</span> : null}
+              {r.ordinal !== null ? <span className="tabular-nums text-lime-dim"> #{r.ordinal}</span> : null}
             </TableCell>
             {perspective !== "incoming" ? (
               <TableCell className="min-w-40 whitespace-normal">
@@ -42,10 +41,10 @@ export function RelationshipTable({ rows, perspective, labelledBy }: { rows: Rel
               </TableCell>
             ) : null}
             <TableCell className="min-w-56 whitespace-normal">
-              {r.explanation ?? <span className="text-ink-3">None</span>}
-              {r.conditions ? <span className="text-credit block">Conditions: {r.conditions}</span> : null}
+              {r.explanation ?? <span className="text-lime-dim">None</span>}
+              {r.conditions ? <span className="t-s text-lime-dim block">Conditions: {r.conditions}</span> : null}
             </TableCell>
-            <TableCell className="text-credit min-w-40 whitespace-normal">
+            <TableCell className="t-s text-lime-dim min-w-40 whitespace-normal">
               {r.sources.length ? r.sources.map((s) => `${s.label.split(": ")[0]}, ${s.locator ?? "no locator"}`).join("; ") : "None"}
             </TableCell>
             <TableCell>

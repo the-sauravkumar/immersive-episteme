@@ -33,23 +33,23 @@ async function Delayed() {
     <>
       <PageHeader title="Come back in about a week" description="You are done for today." />
       <section aria-labelledby="return-heading" className="flex flex-col gap-4">
-        <h2 id="return-heading" className="text-h2 text-ink">
+        <h2 id="return-heading" className="t-h4 text-lime">
           {titleCase("When and how to come back")}
         </h2>
-        <p className="text-reading max-w-[34rem] text-ink">
+        <p className="t-b max-w-[34rem] text-lime">
           One short set of questions is left, online, on or after {dateText(schedule.dueAt)}. It closes on {dateText(schedule.closesAt)}.
         </p>
-        <p className="text-reading max-w-[34rem] text-ink">
-          Your code is <span className="text-id whitespace-nowrap text-ink">{state.participantCode}</span>. Keep it with the study code{" "}
-          <span className="text-id whitespace-nowrap text-ink">{state.study.slug}</span>. Together they are the only way back to your answers.
+        <p className="t-b max-w-[34rem] text-lime">
+          Your code is <span className="t-table font-semibold wrap-anywhere whitespace-nowrap text-lime">{state.participantCode}</span>. Keep it with the study code{" "}
+          <span className="t-table font-semibold wrap-anywhere whitespace-nowrap text-lime">{state.study.slug}</span>. Together they are the only way back to your answers.
         </p>
-        <p className="text-reading max-w-[34rem] break-all text-ink">
+        <p className="t-b max-w-[34rem] break-all text-lime">
           Return link:{" "}
           <a className={STUDY_LINK_CLASS} href={link}>
             {link}
           </a>
         </p>
-        <p className="text-reading max-w-[34rem] text-ink">
+        <p className="t-b max-w-[34rem] text-lime">
           On another device or browser, the site first asks for its invite code. The facilitator can give it to you again.
         </p>
       </section>

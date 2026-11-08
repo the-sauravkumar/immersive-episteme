@@ -3198,3 +3198,7 @@ by default, P33 measured in both default states and with the rail shown. Natural
 each condition keeps its own navigation, and the rail is one button away in both. Tradition
 salience: unchanged in 2D; in 3D the wing-distance confound stays open (DR-023 Addendum B).
 Telemetry and covariates: unchanged (rail use is still logged with `source: "rail"` in both).
+
+## One UI: DESIGN.md On Every Screen (DR-119, 2026-11-07)
+
+The Atlas sections above are history. Since DR-119 every public, study, CMS, research and admin screen uses the DESIGN.md system the doors use: the Section 4 tokens in `src/styles/walking-tokens.css`, mapped one to one into Tailwind by `src/app/globals.css` with the default palette, fonts, radii and shadows reset; Eczar and Mukta only; the Section 5 roles as `t-*` utilities; and the Section 6 components in `src/components/ui`. Method: one codemod mapped every Atlas colour and type utility to its DESIGN equivalent, then the shared components were rebuilt by hand, then each screen was captured from a production build at 1366 and 400 px on the NVIDIA GPU and compared with the Door 1 practice panel. `tests/unit/design/design-lint.test.ts` and the `no-restricted-syntax` rule in `eslint.config.mjs` keep the Atlas names out.

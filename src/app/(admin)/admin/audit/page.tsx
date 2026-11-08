@@ -16,7 +16,6 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Audit Log" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/admin/audit">) {
@@ -44,15 +43,11 @@ function hrefFor(f: AuditFilter, page: number): string {
   return s ? `/admin/audit?${s}` : "/admin/audit";
 }
 
-/*
- * DESIGN.md 9.3: under 640 px the log switches to stacked label/value cards (one DOM; the labels
- * show only there). Explicit ARIA table roles keep the table semantics when the display changes.
- */
 const STACK = {
   table: "max-sm:block max-sm:[&>caption]:block max-sm:[&>thead]:sr-only max-sm:[&>tbody]:block",
   row: "max-sm:flex max-sm:flex-col max-sm:gap-2 max-sm:py-4",
   cell: "max-sm:grid max-sm:h-auto max-sm:grid-cols-[5.5rem_minmax(0,1fr)] max-sm:items-baseline max-sm:gap-x-3 max-sm:p-0",
-  label: "text-label sm:hidden",
+  label: "t-label sm:hidden",
 };
 
 function CellLabel({ children }: { children: string }) {
@@ -63,16 +58,14 @@ function CellLabel({ children }: { children: string }) {
   );
 }
 
-/** "2026-10-14 09:30:12": seconds kept, because the log orders events that can fall in one minute. */
 function When({ iso }: { iso: string }) {
   return (
-    <time dateTime={iso} className="text-id whitespace-nowrap text-ink tabular-nums">
+    <time dateTime={iso} className="t-table font-semibold wrap-anywhere whitespace-nowrap text-lime tabular-nums">
       {iso.slice(0, 19).replace("T", " ")}
     </time>
   );
 }
 
-/** The before and after states as a --sunk mono block behind one 44 px disclosure (11.11). The 1 px --rule border keeps the block distinct when the hovered row is --sunk too. */
 function DataChange({ row }: { row: AuditRow }) {
   const parts = [
     { label: "Before", value: row.before },
@@ -85,8 +78,8 @@ function DataChange({ row }: { row: AuditRow }) {
       <div className="mt-2 flex flex-col gap-3">
         {parts.map((p) => (
           <div key={p.label} className="flex min-w-0 flex-col gap-1">
-            <p className="text-label">{p.label}</p>
-            <pre className="text-id max-h-64 overflow-auto rounded-control border border-rule bg-sunk p-3 whitespace-pre-wrap text-ink [overflow-wrap:anywhere]">
+            <p className="t-label">{p.label}</p>
+            <pre className="t-table font-semibold wrap-anywhere max-h-64 overflow-auto border border-line bg-vat-2 p-3 whitespace-pre-wrap text-lime [overflow-wrap:anywhere]">
               {JSON.stringify(p.value, null, 2)}
             </pre>
           </div>
@@ -107,8 +100,8 @@ async function AuditLog({ searchParams }: { searchParams: Promise<Record<string,
   const last = first + page.rows.length - 1;
   return (
     <div className="flex flex-col gap-8">
-      <form method="get" action="/admin/audit" aria-label="Filter the audit log" className="flex flex-col gap-4 border-b border-rule pb-6">
-        <p className="text-label">Filters</p>
+      <form method="get" action="/admin/audit" aria-label="Filter the audit log" className="flex flex-col gap-4 border-b border-line pb-6">
+        <p className="t-label">Filters</p>
         <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
           <div className={field}>
             <Label htmlFor="f-action">Action starts with</Label>
@@ -136,14 +129,14 @@ async function AuditLog({ searchParams }: { searchParams: Promise<Record<string,
           <div className={field}>
             <Label htmlFor="f-from">From (UTC date)</Label>
             <Input id="f-from" name="from" type="date" aria-describedby="f-from-hint" defaultValue={filter.from ?? ""} className="tabular-nums" />
-            <p id="f-from-hint" className="text-credit">
+            <p id="f-from-hint" className="t-s text-lime-dim">
               Format: YYYY-MM-DD
             </p>
           </div>
           <div className={field}>
             <Label htmlFor="f-to">To (UTC date, inclusive)</Label>
             <Input id="f-to" name="to" type="date" aria-describedby="f-to-hint" defaultValue={filter.to ?? ""} className="tabular-nums" />
-            <p id="f-to-hint" className="text-credit">
+            <p id="f-to-hint" className="t-s text-lime-dim">
               Format: YYYY-MM-DD
             </p>
           </div>
@@ -198,13 +191,13 @@ async function AuditLog({ searchParams }: { searchParams: Promise<Record<string,
                 <TableCell role="cell" className={`${STACK.cell} align-top sm:py-3`}>
                   <CellLabel>actor</CellLabel>
                   <span className="min-w-0">
-                    <span className="block text-ink">{r.actorName ?? r.actorId ?? "—"}</span>
-                    <span className="text-credit block">
+                    <span className="block text-lime">{r.actorName ?? r.actorId ?? "—"}</span>
+                    <span className="t-s text-lime-dim block">
                       {r.actorKind}
                       {r.actorName && r.actorId ? (
                         <>
                           {", "}
-                          <Mono className="text-ink-3">{r.actorId}</Mono>
+                          <Mono className="text-lime-dim">{r.actorId}</Mono>
                         </>
                       ) : null}
                     </span>
@@ -212,19 +205,19 @@ async function AuditLog({ searchParams }: { searchParams: Promise<Record<string,
                 </TableCell>
                 <TableCell role="cell" className={`${STACK.cell} align-top sm:min-w-[14rem] sm:py-3`}>
                   <CellLabel>action</CellLabel>
-                  <Mono className="text-ink">{r.action}</Mono>
+                  <Mono className="text-lime">{r.action}</Mono>
                 </TableCell>
                 <TableCell role="cell" className={`${STACK.cell} align-top sm:min-w-[12rem] sm:py-3`}>
                   <CellLabel>entity</CellLabel>
                   <span className="min-w-0">
-                    <span className="block text-ink">{r.entity}</span>
-                    {r.entityId ? <Mono className="block text-ink-3">{r.entityId}</Mono> : null}
+                    <span className="block text-lime">{r.entity}</span>
+                    {r.entityId ? <Mono className="block text-lime-dim">{r.entityId}</Mono> : null}
                   </span>
                 </TableCell>
                 <TableCell role="cell" className={`${STACK.cell} align-top sm:min-w-[16rem] sm:py-3`}>
                   <CellLabel>reason</CellLabel>
                   <span className="min-w-0">
-                    {r.reason ? <span className="block text-ink">{r.reason}</span> : <span className="block text-ink-3">No reason recorded</span>}
+                    {r.reason ? <span className="block text-lime">{r.reason}</span> : <span className="block text-lime-dim">No reason recorded</span>}
                     <DataChange row={r} />
                   </span>
                 </TableCell>
@@ -235,13 +228,13 @@ async function AuditLog({ searchParams }: { searchParams: Promise<Record<string,
       )}
 
       {page.page > 1 || page.hasNext ? (
-        <nav aria-label="Audit log pages" className="flex flex-wrap items-center gap-x-6 gap-y-1 text-ui">
+        <nav aria-label="Audit log pages" className="flex flex-wrap items-center gap-x-6 gap-y-1 t-label">
           {page.page > 1 ? (
             <Link className={BLOCK_LINK} href={hrefFor(filter, page.page - 1)}>
               Newer entries
             </Link>
           ) : null}
-          <span className="text-ink-2 tabular-nums">Page {page.page}</span>
+          <span className="text-lime-dim tabular-nums">Page {page.page}</span>
           {page.hasNext ? (
             <Link className={BLOCK_LINK} href={hrefFor(filter, page.page + 1)}>
               Older entries

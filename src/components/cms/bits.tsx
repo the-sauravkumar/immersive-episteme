@@ -1,14 +1,3 @@
-/**
- * Small presentational pieces shared by the CMS pages (server-safe), in the Atlas console skin
- * (DESIGN.md 9, 10.2, 10.3; DR-022):
- *  - status badges always carry a word and an icon (R-A4), coloured ok / warn / danger only in the
- *    console;
- *  - every control is 44 px (inputs, the shared NativeSelect, buttons); links inside dense tables
- *    keep a 44 x 44 hit area (`hit-44`) on a 36 px row;
- *  - sections are paper panes with a 1 px --rule-strong edge, radius 0, no shadow, with Title Case
- *    headings;
- *  - empty states are a plain sentence, never a dashed box (9.16: PlaceholderNotice removed).
- */
 import { Archive, CircleCheck, CircleDashed, CircleX, Clock, FileSearch, PencilLine } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -41,7 +30,6 @@ const STATE_STYLE: Record<string, { variant: "neutral" | "ok" | "warn" | "danger
   archived: { variant: "neutral", Icon: Archive },
 };
 
-/** Review state as a word plus an icon (never colour alone). */
 export function StateBadge({ state, className }: { state: string; className?: string }) {
   const s = STATE_STYLE[state] ?? { variant: "neutral" as const, Icon: CircleDashed };
   return (
@@ -52,18 +40,13 @@ export function StateBadge({ state, className }: { state: string; className?: st
   );
 }
 
-/** Indigo underlined text link (links are never colour alone, R-A4). */
-export const LINK = "text-indigo underline decoration-1 underline-offset-[0.2em] hover:text-indigo-hover hover:decoration-2";
-/** A link inside a dense table cell: same look, a 44 x 44 hit area on a 36 px row. */
+export const LINK = "text-turmeric underline decoration-1 underline-offset-[0.2em] hover:text-turmeric-hi hover:decoration-2";
 export const ROW_LINK = cn(LINK, "hit-44 inline-block");
-/** A free-standing link: a 44 px target on its own line. */
 export const BLOCK_LINK = cn(LINK, "inline-flex min-h-11 items-center");
 
-/** A native checkbox or radio inside a full-row 44 px label (9.6); the indigo fill marks the checked state. */
-export const CHECK_ROW = "flex min-h-11 cursor-pointer items-center gap-3 text-body text-ink";
+export const CHECK_ROW = "flex min-h-11 cursor-pointer items-center gap-3 t-b text-lime";
 export const CHECK_BOX = CHECK_CLASS;
 
-/** Provenance kinds as words (server-safe, so server components can read it). */
 export const PROVENANCE_LABELS: Record<string, string> = {
   practitioner_testimony: "Practitioner testimony",
   historical_documentation: "Historical documentation",
@@ -73,15 +56,9 @@ export const PROVENANCE_LABELS: Record<string, string> = {
   unverified: "Unverified",
 };
 
-/** The shared select and disclosure (DESIGN.md 9.2, 9.5), re-exported for the CMS pages. */
 export { NativeSelect } from "@/components/ui/native-select";
 export { Disclosure } from "@/components/ui/disclosure";
 
-/**
- * Line-break opportunities for a mono identifier: after ".", "-", "_", "/" and ":" only, so a key
- * such as `ajrakh.process.double-sided-registration` never splits mid-word; a separator-free run
- * longer than 16 characters (a hex hash) may break every 16 characters.
- */
 export function breakableKey(text: string): ReactNode[] {
   const out: ReactNode[] = [];
   text.split(/(?<=[._\-/:])/).forEach((part, i) => {
@@ -94,27 +71,21 @@ export function breakableKey(text: string): ReactNode[] {
   return out;
 }
 
-/**
- * Identifier (keys, ids, hashes) in `text-id` (Atkinson tabular, no monospace): breaks only at separators (`breakableKey`), never mid-word.
- * `overflow-wrap: break-word` is a last resort that does not shrink the column's min-content width,
- * so table columns keep room for whole key segments (unlike `break-all`).
- */
 export function Mono({ children, className, title }: { children: ReactNode; className?: string; title?: string }) {
   return (
-    <code title={title} className={cn("text-id [overflow-wrap:break-word] text-ink-2", className)}>
+    <code title={title} className={cn("t-table font-semibold wrap-anywhere [overflow-wrap:break-word] text-lime-dim", className)}>
       {typeof children === "string" ? breakableKey(children) : children}
     </code>
   );
 }
 
-/** Label + control + hint + validation message, wired with ids for assistive tech. */
 export function FormField({ id, name, label, hint, children, className }: { id: string; name: string; label: ReactNode; hint?: ReactNode; children: ReactNode; className?: string }) {
   return (
     <div className={cn("flex min-w-0 flex-col gap-1.5", className)}>
       <Label htmlFor={id}>{label}</Label>
       {children}
       {hint ? (
-        <p id={`${id}-hint`} className="text-credit">
+        <p id={`${id}-hint`} className="t-s text-lime-dim">
           {hint}
         </p>
       ) : null}
@@ -123,7 +94,6 @@ export function FormField({ id, name, label, hint, children, className }: { id: 
   );
 }
 
-/** A console section: a paper pane with a Title Case h2, an optional lead and actions. */
 export function Section({
   title,
   description,
@@ -143,14 +113,14 @@ export function Section({
     <section
       aria-labelledby={id ? `${id}-title` : undefined}
       id={id}
-      className={cn("flex min-w-0 scroll-mt-(--sticky-chrome) flex-col gap-4 border border-rule-strong bg-ground p-4 xs:p-6", className)}
+      className={cn("flex min-w-0 scroll-mt-(--sticky-chrome) flex-col gap-4 border border-lime-dim bg-vat p-4 xs:p-6", className)}
     >
       <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
         <div className="flex max-w-[40rem] min-w-0 flex-col gap-1">
-          <h2 id={id ? `${id}-title` : undefined} className="text-h3 text-ink">
+          <h2 id={id ? `${id}-title` : undefined} className="t-label text-lime">
             {titleCase(title)}
           </h2>
-          {description ? <div className="text-body text-ink-2">{description}</div> : null}
+          {description ? <div className="t-b text-lime-dim">{description}</div> : null}
         </div>
         {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
       </header>
@@ -159,21 +129,18 @@ export function Section({
   );
 }
 
-/** A running head inside a section (`text-label`), for grouped content. */
 export function RunningHead({ children, id, as: Tag = "h3" }: { children: ReactNode; id?: string; as?: "h3" | "h4" | "p" }) {
   return (
-    <Tag id={id} className="text-label border-b border-rule pb-1">
+    <Tag id={id} className="t-label border-b border-line pb-1">
       {typeof children === "string" ? titleCase(children) : children}
     </Tag>
   );
 }
 
-/** Empty state: one plain sentence (no dashed box). */
 export function Empty({ children }: { children: ReactNode }) {
-  return <p className="text-body text-ink-3">{children}</p>;
+  return <p className="t-b text-lime-dim">{children}</p>;
 }
 
-/** A GET filter bar: labelled 44 px controls on one wrapping row, the button on their baseline. */
 export function FilterBar({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
   return (
     <form method="get" aria-label={label} className={cn("flex flex-wrap items-end gap-x-4 gap-y-3", className)}>
@@ -182,7 +149,6 @@ export function FilterBar({ label, children, className }: { label: string; child
   );
 }
 
-/** Previous / next links that keep the other query parameters. */
 export function Pager({ base, params, page, total, pageSize }: { base: string; params: Record<string, string | undefined>; page: number; total: number; pageSize: number }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
   if (pages <= 1) return null;
@@ -193,13 +159,13 @@ export function Pager({ base, params, page, total, pageSize }: { base: string; p
     return `${base}?${sp.toString()}`;
   };
   return (
-    <nav aria-label="Pagination" className="flex flex-wrap items-center gap-x-6 gap-y-1 text-ui text-ink">
+    <nav aria-label="Pagination" className="flex flex-wrap items-center gap-x-6 gap-y-1 t-label text-lime">
       {page > 1 ? (
         <Link className={BLOCK_LINK} href={href(page - 1)}>
           Previous page
         </Link>
       ) : null}
-      <span className="tabular-nums text-ink-2">
+      <span className="tabular-nums text-lime-dim">
         Page {page} of {pages} ({total} items)
       </span>
       {page < pages ? (
@@ -211,11 +177,9 @@ export function Pager({ base, params, page, total, pageSize }: { base: string; p
   );
 }
 
-/** UTC timestamp in tabular figures (`text-id`; no monospace). */
 const fmtStamp = new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "UTC" });
 const fmtDay = new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" });
 
-/** "2026-10-14 09:30" (UTC) as ISO-like text, so columns of times line up. */
 export function stamp(at: string | Date, withTime = true): string {
   const d = typeof at === "string" ? new Date(at) : at;
   const parts = Object.fromEntries((withTime ? fmtStamp : fmtDay).formatToParts(d).map((p) => [p.type, p.value]));
@@ -225,7 +189,7 @@ export function stamp(at: string | Date, withTime = true): string {
 export function Stamp({ at, withTime = true }: { at: string | Date; withTime?: boolean }) {
   const d = typeof at === "string" ? new Date(at) : at;
   return (
-    <time dateTime={d.toISOString()} className="text-id tabular-nums whitespace-nowrap text-ink-2">
+    <time dateTime={d.toISOString()} className="t-table font-semibold wrap-anywhere tabular-nums whitespace-nowrap text-lime-dim">
       {stamp(d, withTime)}
     </time>
   );

@@ -1,18 +1,14 @@
-/** The knowledge sheet (DESIGN.md 9.10-9.12). */
 export const SHEET_TEXT = {
-  /** Running head over the claims (9.11 item 4). */
   fieldHeading: "From the Sources",
   claimsLabel: "Statements",
   noClaims: "No statements are recorded for this concept.",
   relatedHeading: "Related Concepts",
-  /** One disclosure per relation-verb group (9.12). */
   aboutLinks: "About these links",
   conditions: "Conditions:",
   statedBy: "Stated by:",
   readingProgress: "Reading progress",
   layersLabel: "Information layers",
   metaLabel: "About this concept",
-  /** Metadata labels: sentence case (DESIGN.md 6.3 `text-label`). */
   meta: { localTerms: "Local terms", tradition: "Tradition", category: "Category", step: "Step" },
   pagerLabel: "Previous and next",
   previous: "Previous",
@@ -20,22 +16,17 @@ export const SHEET_TEXT = {
   close: "Close",
 } as const;
 
-/** "3 of 9": the value of the sheet's Step metadata row (DR-022: a row, not an eyebrow). */
 export function stepValue(index: number, total: number): string {
   return `${index} of ${total}`;
 }
 
-/** The citation markers, records and reference list (DESIGN.md 9.9; DR-022 Addendum A). */
 export const CITATION_TEXT = {
-  /** Start of a marker's accessible name ("Source 1: ...") and of the record's head ("Source 1"). */
   source: "Source",
-  /** The visible label over the verbatim evidence (DR-022: names what the block is). */
   verbatim: "Verbatim from the source",
   passagesLabel: "Supporting passages",
   note: "Note:",
   open: "Open the source",
   newTab: "(opens in a new tab)",
-  /** The deduplicated reference list at the end of the sheet. */
   reference: {
     heading: "References",
     kind: "Kind of source:",
@@ -44,27 +35,21 @@ export const CITATION_TEXT = {
   },
 } as const;
 
-/** Knowledge figures and the lightbox (DESIGN.md 9.9). */
 export const FIGURE_TEXT = {
   enlarge: (n: number) => `Enlarge figure ${n}`,
-  /** The Enlarge button's visible word (the start of its accessible name). */
   enlargeWord: "Enlarge",
   lightboxLabel: (n: number) => `Figure ${n}, enlarged`,
   close: "Close",
-  /** Credit line of a graph-derived diagram (DR-018). */
   diagramCredit: (snapshotLabel: string) => `Diagram generated from the project's knowledge graph (snapshot ${snapshotLabel})`,
-  /** "Photo: © Victoria and Albert Museum, London.": the credit as a sentence; the licence follows. */
   photoCredit: (credit: string) => `Photo: ${credit.trim().replace(/\.$/, "")}.`,
   licenceLabel: "Licence:",
 } as const;
 
-/** The learning-task prompts panel (shared by both conditions). */
 export const TASK_TEXT = {
   label: "Learning task",
   heading: "Your Learning Task",
 } as const;
 
-/** The AccessNotice strip (DESIGN.md 9.15) at three widths, plain and merged with "under review". */
 export const ACCESS_NOTICE_TEXT = {
   label: "Session type",
   endDemo: "End demo",
@@ -101,15 +86,9 @@ export const UNVERIFIED_NOTICE_TEXT = {
   caption: "This caption is under review: a curator has not yet verified it.",
 } as const;
 
-/** 2D content that cannot be shown (StateMessage). */
 export const UNAVAILABLE_TEXT = {
   title: "Learning Content Is Not Available",
   session_not_found: "Your study session could not be found. Please ask the study facilitator for help.",
   no_content: "There is no learning content to show yet. Please ask the study facilitator for help.",
 } as const;
 
-/*
- * 3D-only interface wording (the condition navigation and the museum's own screens, 12.1 rule 3).
- * Kept here with the shared wording so every learner-visible string of both conditions is in one
- * module (P20).
- */

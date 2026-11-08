@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * Researcher item editor: the fields shown depend on the item kind. Everything typed here is
- * researcher-authored content; the platform supplies none. Answer keys are the scoring rule of
- * keyed items (choice, ranking, matching and numeric); free-text items are scored with rubrics.
- */
 import { useState } from "react";
 
 import { ASSESSMENT_ITEM_KINDS } from "@/lib/validation/enums";
@@ -146,7 +141,7 @@ export function ItemForm({
 
       {TEST_ITEM_KINDS.includes(kind) ? (
         <fieldset className="flex min-w-0 flex-col gap-4">
-          <legend className="mb-1 font-sans text-[0.9375rem] leading-5 font-bold text-ink">Stimulus and target (optional)</legend>
+          <legend className="mb-1 t-label text-lime">Stimulus and target (optional)</legend>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Image path" hint="A file the site serves, for example /walkthrough/course/plaster.jpg.">
               <input name="imagePath" defaultValue={t.image?.path ?? ""} className={fieldClass} />
@@ -238,7 +233,7 @@ export function ItemForm({
             />
           </Field>
           <fieldset className="flex min-w-0 flex-col gap-1">
-            <legend className="mb-1 font-sans text-[0.9375rem] leading-5 font-bold text-ink">Relationship types offered (none = untyped links)</legend>
+            <legend className="mb-1 t-label text-lime">Relationship types offered (none = untyped links)</legend>
             <div className="grid gap-x-6 sm:grid-cols-2">
               {relationshipTypes.map((t) => (
                 <label key={t.code} className={checkRowClass}>
@@ -250,7 +245,7 @@ export function ItemForm({
                     className={checkBoxClass}
                   />
                   <span className="min-w-0">
-                    {t.label} <span className="text-id break-all text-ink-3">{t.code}</span>
+                    {t.label} <span className="t-table font-semibold wrap-anywhere break-all text-lime-dim">{t.code}</span>
                   </span>
                 </label>
               ))}

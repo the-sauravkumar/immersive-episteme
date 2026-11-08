@@ -22,7 +22,6 @@ const KIND_LABEL: Record<string, string> = {
   questionnaire: "Questionnaire",
 };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page() {
@@ -68,7 +67,7 @@ async function AssessmentList() {
                       {a.title}
                     </Link>
                   </TableCell>
-                  <TableCell className="text-id">{a.code}</TableCell>
+                  <TableCell className="t-table font-semibold wrap-anywhere">{a.code}</TableCell>
                   <TableCell numeric>v{a.version}</TableCell>
                   <TableCell>{KIND_LABEL[a.kind] ?? a.kind}</TableCell>
                   <TableCell numeric>{a.itemCount}</TableCell>

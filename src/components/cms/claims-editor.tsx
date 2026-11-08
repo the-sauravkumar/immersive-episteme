@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * Structured claim editor. Each claim = one statement + the verbatim evidence quotation + one or
- * more citations, each with a page or locator (docs/research/citation-policy.md). A claim that
- * cites more than one source asks for a verbatim quotation from EACH source, because every
- * citation must carry its own quote (final review knowledge-06); passages imported from content/
- * are kept while the claim text, source and locator are unchanged, so the field may stay empty
- * for those. There is no
- * free-prose field: the learner-facing summary and body are generated from these claims on save
- * (content/FORMAT.md claims-only policy); the preview below shows exactly what learners will get.
- */
 import { useId, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -27,7 +17,6 @@ import { Disclosure } from "@/components/ui/disclosure";
 export interface ClaimDraft {
   text: string;
   quote: string;
-  /** `quote`: the verbatim passage from this source (asked for when a claim has several sources). */
   sources: { sourceId: string; locator: string; quote?: string; keptPassages?: number }[];
 }
 
@@ -80,11 +69,11 @@ export function ClaimsEditor({ conceptId, initial, sources, readOnly }: { concep
           Add claim
         </Button>
       </div>
-      <Disclosure className="text-body rounded-card border border-rule-strong" summary={<>Learner text generated from these claims</>}>
-        <div className="border-t border-rule px-3 py-3">
-        <p className="text-label">Summary (first claim)</p>
+      <Disclosure className="t-b border border-lime-dim" summary={<>Learner text generated from these claims</>}>
+        <div className="border-t border-line px-3 py-3">
+        <p className="t-label">Summary (first claim)</p>
         <p>{preview[0]?.text.trim() || "None yet"}</p>
-        <p className="text-label mt-3">Body</p>
+        <p className="t-label mt-3">Body</p>
         <div className="flex flex-col gap-2 whitespace-pre-wrap">
           {preview.map((c, i) => (
             <p key={i}>
@@ -103,7 +92,7 @@ function ClaimErrors() {
   const msgs = Object.entries(state?.fieldErrors ?? {}).filter(([k]) => k.startsWith("claims"));
   if (!msgs.length) return null;
   return (
-    <ul className="list-disc pl-5 font-sans text-[0.9375rem] leading-5 font-semibold text-danger">
+    <ul className="list-disc pl-5 t-s font-semibold text-madder-text">
       {msgs.map(([k, m]) => (
         <li key={k}>
           {describePath(k)}: {m.join(" ")}
@@ -142,14 +131,13 @@ function ClaimRow({
   const words = wordCount(claim.quote);
   const setSource = (j: number, next: Partial<ClaimDraft["sources"][number]>) => onChange({ sources: claim.sources.map((s, k) => (k === j ? { ...s, ...next } : s)) });
   return (
-    <li className="flex flex-col gap-4 rounded-card border border-rule bg-ground p-4">
+    <li className="flex flex-col gap-4 border border-line bg-vat p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-baseline">
-          {/* The note sits beside the heading, not in it, so the heading stays a Title Case phrase. */}
-          <h3 className="text-h3 text-ink">
+          <h3 className="t-label text-lime">
             <span className="tabular-nums">{titleCase(`Claim ${index + 1}`)}</span>
           </h3>
-          {index === 0 ? <span className="text-credit ml-2 font-sans">also the summary</span> : null}
+          {index === 0 ? <span className="t-s text-lime-dim ml-2 font-sans">also the summary</span> : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="ghost" onClick={() => onMove(-1)} disabled={index === 0} aria-label={`Move claim ${index + 1} up`}>
@@ -170,7 +158,7 @@ function ClaimRow({
       <div className="flex flex-col gap-1.5">
         <Label htmlFor={`${id}-quote`}>Verbatim evidence quotation</Label>
         <Textarea id={`${id}-quote`} value={claim.quote} onChange={(e) => onChange({ quote: e.target.value })} rows={2} required aria-describedby={`${id}-quote-hint`} />
-        <p id={`${id}-quote-hint`} className={words > MAX_QUOTE_WORDS ? "font-sans text-[0.9375rem] leading-5 font-semibold text-danger" : "text-credit"}>
+        <p id={`${id}-quote-hint`} className={words > MAX_QUOTE_WORDS ? "t-s font-semibold text-madder-text" : "t-s text-lime-dim"}>
           Copy the words exactly as in the source; mark omissions with … and insertions with [ ].{" "}
           <span className="tabular-nums">
             {words} of {MAX_QUOTE_WORDS} words
@@ -179,7 +167,7 @@ function ClaimRow({
         </p>
       </div>
       <fieldset className="flex min-w-0 flex-col gap-3">
-        <legend className="mb-1 font-sans text-[0.9375rem] leading-5 font-bold text-ink">Citations</legend>
+        <legend className="mb-1 t-label text-lime">Citations</legend>
         {claim.sources.map((s, j) => (
           <div key={j} className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto] md:items-end">
             <div className="flex flex-col gap-1.5">
@@ -213,8 +201,8 @@ function ClaimRow({
           </Button>
         </div>
         {claim.sources.length > 1 ? (
-          <div className="flex flex-col gap-3 border-t border-rule pt-3">
-            <p id={`${id}-percite-hint`} className="text-credit">
+          <div className="flex flex-col gap-3 border-t border-line pt-3">
+            <p id={`${id}-percite-hint`} className="t-s text-lime-dim">
               This claim cites {claim.sources.length} sources, so each citation needs its own verbatim quotation. Leave a field empty only if the citation already
               has passages imported from content/ (they are kept while the statement, source and locator stay the same).
             </p>
@@ -230,7 +218,7 @@ function ClaimRow({
                     rows={2}
                     aria-describedby={`${id}-percite-hint ${id}-cq-${j}-count`}
                   />
-                  <p id={`${id}-cq-${j}-count`} className={n > MAX_QUOTE_WORDS ? "font-sans text-[0.9375rem] leading-5 font-semibold text-danger" : "text-credit"}>
+                  <p id={`${id}-cq-${j}-count`} className={n > MAX_QUOTE_WORDS ? "t-s font-semibold text-madder-text" : "t-s text-lime-dim"}>
                     <span className="tabular-nums">
                       {n} of {MAX_QUOTE_WORDS} words
                     </span>
@@ -251,20 +239,20 @@ function ClaimsReadOnly({ claims, keyOf }: { claims: ClaimDraft[]; keyOf: Map<st
   return (
     <ol className="flex flex-col" aria-label="Claims">
       {claims.map((c, i) => (
-        <li key={i} className="grid grid-cols-[var(--hang)_minmax(0,1fr)] border-t border-rule py-4 first:border-t-0 first:pt-0">
-          <span aria-hidden="true" className="text-claim-number pr-3">
+        <li key={i} className="grid grid-cols-[var(--hang)_minmax(0,1fr)] border-t border-line py-4 first:border-t-0 first:pt-0">
+          <span aria-hidden="true" className="t-b font-semibold tabular-nums text-lime-dim text-right pr-3">
             {i + 1}
           </span>
           <div className="min-w-0">
-            <p className="text-body text-ink">{c.text}</p>
-            <blockquote className="text-body mt-2 bg-sunk px-3 py-2 text-ink">“{c.quote || "no quotation"}”</blockquote>
-            <p className="text-credit mt-1">{c.sources.map((s) => `${keyOf.get(s.sourceId) ?? "?"}, ${s.locator || "no locator"}`).join("; ")}</p>
+            <p className="t-b text-lime">{c.text}</p>
+            <blockquote className="t-b mt-2 bg-vat-2 px-3 py-2 text-lime">“{c.quote || "no quotation"}”</blockquote>
+            <p className="t-s text-lime-dim mt-1">{c.sources.map((s) => `${keyOf.get(s.sourceId) ?? "?"}, ${s.locator || "no locator"}`).join("; ")}</p>
             {c.sources.length > 1 ? (
               <ul className="mt-2 flex flex-col gap-2" aria-label={`Quotations per citation, claim ${i + 1}`}>
                 {c.sources.map((s, j) => (
-                  <li key={j} className="text-body">
-                    <span className="text-label">{`Citation ${j + 1} (${keyOf.get(s.sourceId) ?? "?"})`}</span>
-                    <blockquote className="mt-1 bg-sunk px-3 py-2 text-ink">
+                  <li key={j} className="t-b">
+                    <span className="t-label">{`Citation ${j + 1} (${keyOf.get(s.sourceId) ?? "?"})`}</span>
+                    <blockquote className="mt-1 bg-vat-2 px-3 py-2 text-lime">
                       {s.quote ? `“${s.quote}”` : s.keptPassages ? `${s.keptPassages} imported passages` : "no quotation"}
                     </blockquote>
                   </li>

@@ -20,9 +20,9 @@ async function Onboarding() {
     <>
       <StepProgress count={stepCountOf(state.study.protocol.steps, position)} />
       <div className="flex flex-col gap-6">
-        <p className="text-reading max-w-[34rem] text-ink">{LEARNING_TASK_OPENING}</p>
+        <p className="t-b max-w-[34rem] text-lime">{LEARNING_TASK_OPENING}</p>
         {rules.map((rule) => (
-          <p key={rule} className="text-reading max-w-[34rem] text-ink">
+          <p key={rule} className="t-b max-w-[34rem] text-lime">
             {rule}
           </p>
         ))}

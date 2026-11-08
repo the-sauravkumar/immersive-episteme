@@ -99,7 +99,7 @@ function FormLabel({
     <Label
       data-slot="form-label"
       data-error={!!error}
-      className={cn("data-[error=true]:text-danger", className)}
+      className={cn("data-[error=true]:text-madder-text", className)}
       htmlFor={formItemId}
       {...props}
     />
@@ -131,7 +131,7 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="form-description"
       id={formDescriptionId}
-      className={cn("text-credit", className)}
+      className={cn("t-s text-lime-dim", className)}
       {...props}
     />
   )
@@ -150,7 +150,7 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
       data-slot="form-message"
       id={formMessageId}
       className={cn(
-        "flex items-start gap-2 font-sans text-[0.9375rem] leading-5 font-semibold text-danger",
+        "t-s flex items-start gap-2 font-semibold text-madder-text",
         className
       )}
       {...props}

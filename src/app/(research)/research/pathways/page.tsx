@@ -31,7 +31,6 @@ const LABELS: Record<string, string> = {
   incorrectWithBothEndpointsInspected: "Non-matching links with both concepts inspected",
 };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/research/pathways">) {
@@ -49,10 +48,8 @@ async function Pathways({ searchParams }: { searchParams: Promise<Record<string,
   const study = pickStudy(studies, sp.study);
   if (!study) return <StudyPicker studies={studies} current={null} />;
   const [rawConditions, matrices, corr, sessions] = await Promise.all([studyConditions(pool, study.id), transitionMatrices(pool, study.id), correspondenceSummary(pool, study.id), listSessions(pool, study.id)]);
-  // DESIGN.md 10: 2D is always first or left.
   const rank = conditionOrder(rawConditions);
   const conditions = [...rawConditions].sort((a, b) => rank(a.id) - rank(b.id));
-  // Sessions not yet allocated carry no condition id (the read model types it as a string).
   const name = (id: string | null) => (id ? (conditions.find((c) => c.id === id)?.label ?? id) : "Unallocated");
   const usable = analysable(sessions);
   const orderedMatrices = [...matrices].sort((a, b) => rank(a.conditionId) - rank(b.conditionId));
@@ -143,7 +140,7 @@ async function Pathways({ searchParams }: { searchParams: Promise<Record<string,
                 .sort((a, b) => KIND_RANK[conditionKind(a.conditionInterface)] - KIND_RANK[conditionKind(b.conditionInterface)] || a.participantCode.localeCompare(b.participantCode))
                 .map((s) => (
                   <TableRow key={s.id}>
-                    <TableCell className="text-id">{s.participantCode}</TableCell>
+                    <TableCell className="t-table font-semibold wrap-anywhere">{s.participantCode}</TableCell>
                     <TableCell>{s.conditionCode}</TableCell>
                     <TableCell numeric>{s.events}</TableCell>
                     <TableCell>

@@ -1,21 +1,5 @@
 "use client";
 
-/**
- * LayerTabs (DESIGN.md 9.6): the ONE layer navigation of a concept in both conditions. Names and
- * order come only from `KNOWLEDGE_LAYERS` (src/features/learning/labels.ts): Overview, Artisan,
- * Process, Science, Compare. Underline tabs, each at least 44 px tall, inactive --ink-2 (12.08:1),
- * active --ink at 700 with a 3 px indigo underline and its bold width reserved (DESIGN.md 9.4); the
- * row wraps and never
- * scrolls sideways, so every layer name stays visible at 390 px. ARIA tabs pattern with a roving
- * tabindex: Arrow keys, Home and End move between tabs and select them (automatic activation).
- * Changes are instant (no transition).
- *
- * `LayeredField` is the stateful wrapper both placements use: the tabs plus one tabpanel that shows
- * the selected layer's content (pre-rendered nodes, so a server page can pass them). With
- * `telemetry`, it logs the same events the museum logged for its panel tabs:
- * `information_layer_opened {layerId}` on every selection and `knowledge_layer_selected {layer}`
- * for the artisan, process and science layers.
- */
 import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import { KNOWLEDGE_LAYER_LABELS, orderLayers, type KnowledgeLayerId } from "@/features/learning/labels";
@@ -24,13 +8,10 @@ import { useOptionalTelemetry } from "@/features/telemetry/client/provider";
 import { cn } from "@/lib/utils";
 
 export interface LayerTabsProps {
-  /** Available layers (any order; rendered in the canonical order). */
   layers: readonly KnowledgeLayerId[];
   value: KnowledgeLayerId;
   onValueChange(layer: KnowledgeLayerId): void;
-  /** Id of the tabpanel the tabs control. */
   panelId: string;
-  /** Prefix of the tab element ids (`<idBase>-<layer>`). */
   idBase: string;
   className?: string;
 }
@@ -57,7 +38,7 @@ export function LayerTabs({ layers, value, onValueChange, panelId, idBase, class
   };
 
   return (
-    <div ref={listRef} role="tablist" aria-label={SHEET_TEXT.layersLabel} data-slot="layer-tabs" className={cn("flex flex-wrap border-b border-rule", className)}>
+    <div ref={listRef} role="tablist" aria-label={SHEET_TEXT.layersLabel} data-slot="layer-tabs" className={cn("flex flex-wrap border-b border-line", className)}>
       {ordered.map((layer) => {
         const selected = layer === value;
         return (
@@ -72,8 +53,8 @@ export function LayerTabs({ layers, value, onValueChange, panelId, idBase, class
             onClick={() => onValueChange(layer)}
             onKeyDown={onKeyDown}
             className={cn(
-              "text-ui -mb-px inline-flex min-h-11 items-center border-b-[3px] px-4",
-              selected ? "border-indigo font-bold text-ink" : "border-transparent text-ink-2 hover:text-ink",
+              "t-label -mb-px inline-flex min-h-11 items-center border-b-[3px] px-4",
+              selected ? "border-turmeric font-bold text-lime" : "border-transparent text-lime-dim hover:text-lime",
             )}
           >
             <span className="ie-reserve-bold" data-label={KNOWLEDGE_LAYER_LABELS[layer]}>
@@ -93,12 +74,9 @@ export interface FieldLayer {
 
 export interface LayeredFieldProps {
   layers: readonly FieldLayer[];
-  /** Controlled selection (3D panel state); omit for the uncontrolled default (first layer). */
   value?: KnowledgeLayerId;
   onValueChange?(layer: KnowledgeLayerId): void;
-  /** Rendered above the selected layer's content, inside the tabpanel (the "From the Sources" head). */
   head?: ReactNode;
-  /** Logs layer selections (see the file comment); omit when the placement logs them itself. */
   telemetry?: { conceptId: string; roomOrPageId?: string; target?: string };
   className?: string;
 }

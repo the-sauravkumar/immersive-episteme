@@ -1,12 +1,3 @@
-/**
- * The dataset at a glance (DESIGN.md 11.1 "Dataset at a Glance", 11.2 "Dataset and Citation
- * Standard"): a booktabs table of live counts by tradition, in the canonical order, numbers
- * right-aligned in tabular lining figures (R-T5, R-T11). Public pages.
- *
- * Seven rows or fewer, so no row rules (9.3: omitted for 6 rows or fewer on public pages; the
- * shared-concept row and the total sit in the footer). Every value comes from `DatasetStats`,
- * read from the database at request time.
- */
 import { TraditionName } from "@/components/knowledge/tradition-marker";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { DatasetStats } from "@/server/public/dataset-stats";
@@ -14,10 +5,6 @@ import { titleCase } from "@/lib/text/title-case";
 
 import { formatCount } from "./figure-one";
 
-/**
- * Fits 358 px (390 px viewport) without scrolling its region: headers may wrap, and under 520 px
- * the cells keep 8 px instead of 12 px of horizontal padding (asserted in public-pages.spec.ts).
- */
 const HEAD = "whitespace-normal max-xs:px-2 max-xs:first:pl-0 max-xs:last:pr-0";
 const CELL = "max-xs:px-2 max-xs:first:pl-0 max-xs:last:pr-0";
 
@@ -72,7 +59,7 @@ export function DatasetTable({ stats, number, title = "Knowledge Dataset by Trad
             <TableCell numeric className={CELL}>{formatCount(shared.sourcesCited)}</TableCell>
           </TableRow>
         ) : null}
-        <TableRow className="border-t border-t-ink">
+        <TableRow className="border-t border-t-lime">
           <TableCell className={`font-semibold ${CELL}`}>Total</TableCell>
           <TableCell numeric className={`font-semibold ${CELL}`}>
             {formatCount(totals.concepts)}

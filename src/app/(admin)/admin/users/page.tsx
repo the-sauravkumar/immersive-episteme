@@ -23,7 +23,6 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Users" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/admin/users">) {
@@ -40,17 +39,11 @@ export default function Page({ searchParams }: PageProps<"/admin/users">) {
   );
 }
 
-/*
- * DESIGN.md 9.3: under 640 px a console list table may switch to stacked label/value cards. The
- * table keeps one DOM; below `sm` the rows become two-column grids (the name and the row menu on
- * top, then one label/value line per column, the labels shown only there). Explicit ARIA table
- * roles keep the table semantics when the display type changes (some browsers drop them).
- */
 const STACK = {
   table: "max-sm:block max-sm:[&>caption]:block max-sm:[&>thead]:sr-only max-sm:[&>tbody]:block",
   row: "max-sm:grid max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:gap-x-4 max-sm:gap-y-2 max-sm:py-4",
   cell: "max-sm:col-span-2 max-sm:grid max-sm:h-auto max-sm:grid-cols-[7.5rem_minmax(0,1fr)] max-sm:items-baseline max-sm:gap-x-3 max-sm:p-0 max-sm:text-left",
-  label: "text-label sm:hidden",
+  label: "t-label sm:hidden",
 };
 
 function CellLabel({ children }: { children: string }) {
@@ -61,7 +54,6 @@ function CellLabel({ children }: { children: string }) {
   );
 }
 
-/** Accounts per page; the filter and paging run over the full, alphabetical list. */
 const PAGE_SIZE = 25;
 
 type UserStatus = "active" | "locked" | "awaiting";
@@ -122,11 +114,11 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
   return (
     <div className="flex flex-col gap-12">
       <section aria-labelledby="staff-list" className="flex min-w-0 flex-col gap-4">
-        <h2 id="staff-list" className="text-h2 text-ink">
+        <h2 id="staff-list" className="t-h4 text-lime">
           {titleCase("staff accounts")}
         </h2>
-        <form method="get" action="/admin/users" aria-label="Filter the staff accounts" className="flex flex-col gap-4 border-b border-rule pb-6">
-          <p className="text-label">Filters</p>
+        <form method="get" action="/admin/users" aria-label="Filter the staff accounts" className="flex flex-col gap-4 border-b border-line pb-6">
+          <p className="t-label">Filters</p>
           <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className={field}>
               <Label htmlFor="u-q">Name or email contains</Label>
@@ -165,7 +157,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
         <UserActionStatus key={`${filter.q ?? ""}|${filter.role ?? ""}|${filter.status ?? ""}|${page}`}>
           {awaiting > 0 && filter.status !== "awaiting" ? (
             <div className="flex flex-col items-start gap-3">
-              <p className="text-body text-ink">
+              <p className="t-b text-lime">
                 {awaiting === 1 ? "1 account is" : `${awaiting} accounts are`} waiting for a role. Accounts made through Google sign-in start with no role and open nothing until a role is added.
               </p>
               <Button asChild variant="outline">
@@ -210,12 +202,12 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                 {users.map((u) => (
                   <TableRow role="row" key={u.id} className={STACK.row}>
                     <TableCell role="cell" className="max-sm:col-span-1 max-sm:h-auto max-sm:p-0 align-top sm:py-3">
-                      <span className="block font-medium text-ink">
-                        {u.name} {u.id === actor.userId ? <span className="font-normal text-ink-3">(you)</span> : null}
+                      <span className="block font-medium text-lime">
+                        {u.name} {u.id === actor.userId ? <span className="font-normal text-lime-dim">(you)</span> : null}
                       </span>
-                      <span className="text-id block text-ink-2 [overflow-wrap:anywhere] sm:whitespace-nowrap">{u.email}</span>
-                      <span className="text-credit block">{signInMethods(u)}</span>
-                      <Mono className="block text-ink-3" title="Account id">
+                      <span className="t-table font-semibold wrap-anywhere block text-lime-dim [overflow-wrap:anywhere] sm:whitespace-nowrap">{u.email}</span>
+                      <span className="t-s text-lime-dim block">{signInMethods(u)}</span>
+                      <Mono className="block text-lime-dim" title="Account id">
                         {u.id}
                       </Mono>
                     </TableCell>
@@ -228,7 +220,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                           ))}
                         </span>
                       ) : (
-                        <span className="text-ink-3">No roles</span>
+                        <span className="text-lime-dim">No roles</span>
                       )}
                     </TableCell>
                     <TableCell role="cell" className={`${STACK.cell} align-top sm:py-3`}>
@@ -240,7 +232,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                               <Lock aria-hidden="true" />
                               Locked
                             </Badge>
-                            <span className="text-credit">
+                            <span className="t-s text-lime-dim">
                               since <Stamp at={u.disabledAt} />
                             </span>
                           </span>
@@ -261,7 +253,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                               <TimerReset aria-hidden="true" />
                               Sign-in locked
                             </Badge>
-                            <span className="text-credit">
+                            <span className="t-s text-lime-dim">
                               until <Stamp at={u.signInLockedUntil} />
                             </span>
                           </span>
@@ -306,7 +298,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
           <CreateStaffForm minPasswordLength={MIN_PASSWORD_LENGTH} />
         </Section>
       ) : (
-        <p className="text-body text-ink-2">Creating accounts also assigns a role, which needs the role-administration permission.</p>
+        <p className="t-b text-lime-dim">Creating accounts also assigns a role, which needs the role-administration permission.</p>
       )}
     </div>
   );

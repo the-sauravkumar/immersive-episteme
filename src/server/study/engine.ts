@@ -1,20 +1,3 @@
-/**
- * Study engine: the participant journey over the study tables (enrolment, consent, the
- * condition-blind pre-allocation steps, allocation, device check, step sequencing, assessment
- * delivery, interruption/resume, withdrawal, completion). Plain SQL over a pg Pool/PoolClient;
- * not `server-only`, so the integration tests run it against a throwaway database. Request
- * handling (cookies, redirects) lives in ./session.ts, ./actions.ts and /study/allocate.
- *
- * Journal. Every transition is written to the append-only `audit_log` (actor = the
- * pseudonymous participant code, or `study-engine` for protocol rules), entity `study_session`
- * or `participant`. The journal is also the source of "which steps are done" (study_sessions has
- * no step column); the database rows it summarises (consent_records, allocations, responses,
- * concept_maps, derived_scores, the learning clock) stay the authoritative research records.
- *
- * Order of a session: consent, the condition-blind steps, the device check (no condition is known,
- * so it can imply no door), allocation balanced by pre-test score with the tradition order drawn at
- * the same moment, then the remaining steps from the entrance to the delayed test.
- */
 import { createHash, randomInt } from "node:crypto";
 
 import type { Pool, PoolClient } from "pg";
@@ -82,14 +65,12 @@ export class StudyEngineError extends Error {
   }
 }
 
-/** Per-assessment total of the keyed items (the pre-test score of D3 stratification). */
 export const KEY_MATCH_TOTAL_METRIC = { name: "assessment.key_match_total", version: "1.0.0", pipeline: KEY_MATCH_METRIC.pipeline } as const;
 export const TEST_SCORE_METRIC = { version: "1.0.0", pipeline: KEY_MATCH_METRIC.pipeline } as const;
 
 const sha256 = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
 
 async function withTx<T>(pool: Pool | PoolClient, fn: (c: PoolClient) => Promise<T>): Promise<T> {
-  // A PoolClient (no `totalCount`) is used as is: the caller owns its transaction.
   if (typeof (pool as Pool).totalCount !== "number") return fn(pool as PoolClient);
   const client = await (pool as Pool).connect();
   try {
@@ -122,9 +103,6 @@ async function journal(
   );
 }
 
-// ---------------------------------------------------------------------------------------------
-// Studies and enrolment
-// ---------------------------------------------------------------------------------------------
 
 export interface EnrollableStudy {
   id: string;
@@ -171,7 +149,6 @@ function toStudy(row: StudyRow): EnrollableStudy {
   };
 }
 
-/** Normalises what a participant types as the study code (the study slug). */
 export function normaliseStudyCode(input: string): string {
   return input.trim().toLowerCase();
 }
@@ -193,7 +170,6 @@ export async function findReturnableStudy(q: Q, code: string): Promise<Enrollabl
   return toStudy(row);
 }
 
-/** An active study that a participant can join with `code`, or an error saying why not. */
 export async function findEnrollableStudy(q: Q, code: string): Promise<EnrollableStudy> {
   const row = await studyRowByCode(q, code);
   if (row.status !== "active") throw new StudyEngineError("study_not_open", "This study is not open for participation.");
@@ -210,7 +186,6 @@ export async function loadStudy(q: Q, studyId: string): Promise<EnrollableStudy>
   return toStudy(r.rows[0]);
 }
 
-/** Pseudonymous participant code: "P-" + 10 Crockford base32 characters (≈ 50 bits). */
 export function generateParticipantCode(): string {
   const alphabet = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
   let out = "P-";
@@ -242,8 +217,6 @@ export async function enrolParticipant(
       throw new StudyEngineError("repeat_browser", "This browser has already been used to take part in this study.");
     }
   }
-  // The participant row and its journal entries commit together (database-08); the cap on
-  // participants is checked under a per-study lock so parallel enrolments cannot overshoot it.
   return withTx(pool, async (c) => {
     const cap = study.protocol.config.enrolment.maxParticipants;
     if (cap !== undefined) {
@@ -304,18 +277,10 @@ export async function loadParticipant(q: Q, participantId: string): Promise<Part
   };
 }
 
-/** sha256 of the consent text exactly as configured (and shown). */
 export function consentTextSha256(text: string): string {
   return sha256(text);
 }
 
-/**
- * Records the consent decision for the consent version currently configured. One decision per
- * enrolment: a second decision is refused (a later withdrawal goes through `withdraw`). The check
- * and the insert run in one transaction on the locked participant row, so a double submit from
- * two tabs cannot record both "granted" and "declined"; the database refuses a second initial
- * decision as well (migration 0018, final review database-08).
- */
 export async function recordConsent(
   pool: Pool | PoolClient,
   input: { participantId: string; study: EnrollableStudy; decision: "granted" | "declined"; shownVersion: string },
@@ -343,30 +308,19 @@ export async function recordConsent(
   }
 }
 
-// ---------------------------------------------------------------------------------------------
-// Sessions and allocation
-// ---------------------------------------------------------------------------------------------
 
 export interface OpenedSession {
   sessionId: string;
   participantId: string;
-  /** null while not yet allocated (allocation after the pre-test). */
   condition: LearningCondition | null;
   conditionId: string | null;
   created: boolean;
 }
 
-/**
- * Seed recorded on every allocation: the configured one, else a documented derivation. Studies
- * activated through the console always have a configured, secret seed (activateStudy generates
- * one, final review study-07); the derivation only serves studies activated outside it (demo
- * fixtures, legacy rows), and is predictable from the study id, so it gives no concealment.
- */
 export function allocationSeed(study: Pick<EnrollableStudy, "id" | "protocolVersion" | "protocol">): string {
   return study.protocol.config.allocation.seed ?? `study:${study.id}:protocol:${study.protocolVersion}`;
 }
 
-/** Leading condition-blind steps of the journey (taken before allocation). */
 export function blindPrefix(protocol: StudyProtocol): StudyStep[] {
   const out: StudyStep[] = [];
   for (const s of protocol.steps) {
@@ -407,11 +361,9 @@ interface DrawContext {
   study: EnrollableStudy;
   participantId: string;
   stratum: string | null;
-  /** How the stratum was obtained (recorded with the allocation). */
   stratumSource: Record<string, unknown> | null;
 }
 
-/** Draws and inserts the period-1 allocation (caller holds the per-study lock). */
 async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise<{ allocationId: string; conditionId: string; conditionCode: string; iface: ConditionInterface; traditionOrder: string[]; record: Record<string, unknown> }> {
   const { study } = ctx;
   const conds = await c.query<{ id: string; code: string; allocation_weight: number; interface: ConditionInterface }>(
@@ -452,7 +404,6 @@ async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise
     record: {
       allocationId: a.rows[0]!.id,
       algorithm,
-      // The journal is readable by more roles than the allocations table: only a fingerprint.
       seedSha256Prefix: sha256(seed).slice(0, 12),
       seedSource: study.protocol.config.allocation.seed ? "configured" : "derived",
       sequenceIndex,
@@ -471,14 +422,6 @@ async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise
   };
 }
 
-/**
- * Sum of the keyed pre-test items of this session (item.key_match). The keyed items are the ones
- * the study DELIVERED with an answer key, so a skipped keyed item counts 0, exactly as it already
- * does when only some are skipped (final review study-04: a participant who left every keyed item
- * blank used to get no score and could never be allocated, which loses exactly the low-prior-
- * knowledge participants the stratum is about). Null only when the pre-test has no keyed item at
- * all: that is a configuration fault, refused at allocation.
- */
 async function preTestScore(
   q: Q,
   s: SessionState,
@@ -502,12 +445,6 @@ async function preTestScore(
   };
 }
 
-/**
- * Allocates an unallocated session once its blind steps are done (allocation after the pre-test,
- * D3), with the stratum from the scored pre-test when `allocation.stratifyBy` is set. Refuses
- * (protocol error, `allocation_refused`) when that score cannot be computed: there is no silent
- * fallback. Idempotent.
- */
 export async function allocateSession(pool: Pool | PoolClient, sessionId: string): Promise<{ condition: LearningCondition; conditionId: string; created: boolean }> {
   const result = await withTx(pool, async (c) => {
     const pre = await loadSessionState(c, sessionId);
@@ -517,7 +454,6 @@ export async function allocateSession(pool: Pool | PoolClient, sessionId: string
     const s = (await loadSessionState(c, sessionId))!;
     if (s.condition !== null && s.conditionId !== null) return { condition: s.condition, conditionId: s.conditionId, created: false };
     if (!isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
-    // Facts recorded elsewhere (a final pre map) complete their blind step first.
     const pos = await syncPosition(c, s);
     if (pos.kind !== "allocation") {
       const missing = blindPrefix(s.study.protocol).filter((x) => !completedSteps(s).has(x));
@@ -542,7 +478,6 @@ export async function allocateSession(pool: Pool | PoolClient, sessionId: string
     return { condition: conditionFromInterface(d.iface), conditionId: d.conditionId, created: true };
   });
   if ("refused" in result && result.refused) {
-    // Recorded outside the (rolled-back) allocation transaction, then refused: never a silent fallback.
     await journal(pool, { kind: "system" }, "study.allocation_refused", "study_session", sessionId, result.refused);
     throw new StudyEngineError("allocation_refused", `Protocol error: ${result.refused.reason}.`, result.refused);
   }
@@ -550,9 +485,6 @@ export async function allocateSession(pool: Pool | PoolClient, sessionId: string
   return { condition: result.condition, conditionId: result.conditionId, created: result.created };
 }
 
-// ---------------------------------------------------------------------------------------------
-// Session state and step sequencing
-// ---------------------------------------------------------------------------------------------
 
 export interface JournalEntry {
   action: string;
@@ -566,7 +498,6 @@ export interface SessionState {
   participantCode: string;
   participantStatus: string;
   study: EnrollableStudy;
-  /** Null before allocation. */
   conditionId: string | null;
   conditionCode: string | null;
   conditionInterface: ConditionInterface | null;
@@ -648,11 +579,6 @@ export function completedSteps(s: Pick<SessionState, "journal">): Set<StudyStep>
   return done;
 }
 
-/**
- * The LATEST device check passed. (A check is not repeated after it passes; only a WebGL failure
- * reported by the walkthrough afterwards, under the retry policy, records a later failed check that
- * sends the participant back to the device check.)
- */
 export function deviceCheckPassed(s: Pick<SessionState, "journal">): boolean {
   const checks = s.journal.filter((e) => e.action === "study.device_checked");
   return checks.length > 0 && checks[checks.length - 1]!.after.outcome === "passed";
@@ -664,7 +590,6 @@ export type Position =
   | { kind: "device_check" }
   | { kind: "finish" };
 
-/** Where the participant is. Pure. Order: blind steps, device check, allocation, the remaining steps, finish. */
 export function positionOf(input: {
   steps: readonly StudyStep[];
   blind: readonly StudyStep[];
@@ -703,7 +628,6 @@ export async function touch(q: Q, sessionId: string): Promise<void> {
   await q.query("UPDATE study_sessions SET last_activity_at = now() WHERE id = $1", [sessionId]);
 }
 
-/** Which study_assessments rows each non-questionnaire assessment step delivers (./config.ts). */
 export { STEP_ASSESSMENTS };
 
 export function isAssessmentStep(step: StudyStep): boolean {
@@ -739,14 +663,6 @@ async function withItems(q: Q, rows: AssessmentRow[]): Promise<StepAssessment[]>
   }));
 }
 
-/**
- * The assessments a step delivers to THIS session. Tests and maps come from the study battery
- * by phase and kind. Questionnaire steps take their instruments from `config.questionnaires`,
- * in config order, resolved against the study battery (an instrument must be in the battery,
- * so the activation lock covers it), filtered by condition (the config's `conditions` and the
- * instrument definition's own limit). Before allocation, condition-limited instruments are left
- * out (only blind steps run then).
- */
 export async function listStepAssessments(q: Q, s: Pick<SessionState, "study" | "condition">, step: StudyStep): Promise<StepAssessment[]> {
   const studyId = s.study.id;
   if (isQuestionnaireStep(step)) {
@@ -783,7 +699,6 @@ export async function listStepAssessments(q: Q, s: Pick<SessionState, "study" | 
   return withItems(q, a.rows);
 }
 
-/** Can the engine render this assessment? Researcher-facing reason when not. */
 export function assessmentReadiness(a: StepAssessment): { ready: true } | { ready: false; reason: string } {
   const blocker = instrumentBlocker(a);
   if (blocker) return { ready: false, reason: `${a.code} v${a.version}: ${blocker}` };
@@ -793,17 +708,11 @@ export function assessmentReadiness(a: StepAssessment): { ready: true } | { read
   return { ready: true };
 }
 
-/** A step starts only when ALL its assessments are showable (instruments with verified wording). */
 export function stepReadiness(assessments: StepAssessment[]): { ready: true } | { ready: false; reasons: string[] } {
   const reasons = assessments.map(assessmentReadiness).flatMap((r) => (r.ready ? [] : [r.reason]));
   return reasons.length === 0 ? { ready: true } : { ready: false, reasons };
 }
 
-/**
- * Assessment ids already submitted in this session, in one step. Per step, because an
- * instrument may be administered twice (D8: SSQ before and after learning); the second
- * administration is stored as attempt 2.
- */
 export function submittedAssessments(s: Pick<SessionState, "journal">, step: StudyStep): Set<string> {
   const out = new Set<string>();
   for (const e of s.journal) {
@@ -901,15 +810,6 @@ export async function recordStageLeft(pool: Pool | PoolClient, sessionId: string
   });
 }
 
-/**
- * Brings the journal up to date with facts recorded elsewhere, then returns the position:
- *  - learning: a fixed budget that ran out on the server clock is ended now (same rule in both
- *    conditions); any other end is the participant's finish (`finishLearning`), never a visit to
- *    the hub;
- *  - reconstruction: the step completes when every concept-map item of the phase has a FINAL map
- *    (written by the assessment module's page);
- *  - an assessment step with nothing to deliver for this session is completed as `empty`.
- */
 export async function syncPosition(q: Q, s: SessionState): Promise<Position> {
   for (;;) {
     const pos = positionOfState(s);
@@ -1097,13 +997,6 @@ export async function currentReconstructionPhase(q: Q, sessionId: string): Promi
   return pos.step === "reconstruction" ? "post" : null;
 }
 
-/**
- * Server gate of the learning pages (/learn/<condition>): is the learning step the participant's
- * current step? The learning context checks it before it renders any content or starts the
- * learning clock, so content is never served before the practice and introduction, before the
- * pre-test (allocation at enrolment), or after learning ended (final review study-02,
- * security-06). A budget that ran out is ended here, by syncPosition, as on the hub.
- */
 export async function learningStepIsCurrent(pool: Pool | PoolClient, sessionId: string): Promise<boolean> {
   return withTx(pool, async (c) => {
     const s = await loadSessionState(c, sessionId);
@@ -1113,21 +1006,15 @@ export async function learningStepIsCurrent(pool: Pool | PoolClient, sessionId: 
   });
 }
 
-// ---------------------------------------------------------------------------------------------
-// Device check and the WebGL-failure policy
-// ---------------------------------------------------------------------------------------------
 
 export interface DeviceReport {
   viewport: { width: number; height: number };
   devicePixelRatio?: number;
   webglVersion: 1 | 2 | null;
-  /** WebGL runs on a software rasteriser (a boolean only: no renderer string is stored). */
   softwareRenderer?: boolean;
   inputDevices: ("mouse" | "keyboard" | "touch" | "gamepad" | "xr")[];
   reducedMotion?: boolean;
   highContrast?: boolean;
-  /** The High contrast accommodation the participant chose in Display Settings before learning (DR-019). */
-  contrastAccommodation?: boolean;
   browserFamily?: string;
 }
 
@@ -1164,7 +1051,6 @@ export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: stri
       softwareRenderer: report.softwareRenderer,
       reducedMotion: report.reducedMotion,
       highContrast: report.highContrast,
-      contrastAccommodation: report.contrastAccommodation,
       browserFamily: report.browserFamily,
       check: { attempt, verdict, checkedAt: s.now.toISOString(), minViewport: minViewport ?? null, webglFailurePolicy: policy },
     };
@@ -1239,12 +1125,6 @@ export async function recordWalkthroughWebglFailure(
   });
 }
 
-/**
- * Reassignment under `webglFailurePolicy = reassign`: allocations and session identities are
- * immutable, so the immersive session is closed (abandoned) and a NEW allocation (period 2,
- * algorithm `manual`, recorded reason) and session for the 2D condition are created. The blind
- * steps already done (their data stay on the first session) are carried over in the journal.
- */
 async function reassignToConventional(
   c: PoolClient,
   s: SessionState,
@@ -1285,11 +1165,7 @@ async function reassignToConventional(
   return { kind: "reassigned", sessionId: newId, condition: "2d" };
 }
 
-// ---------------------------------------------------------------------------------------------
-// Assessments
-// ---------------------------------------------------------------------------------------------
 
-/** Records that an assessment was presented (server time) and the version shown. Idempotent. */
 export async function startAssessment(q: Q, s: SessionState, assessment: StepAssessment, step: StudyStep): Promise<{ presentedAt: Date }> {
   const prior = s.journal.find((e) => e.action === "study.assessment_started" && e.after.assessmentId === assessment.id && e.after.step === step);
   if (prior) return { presentedAt: prior.occurredAt };
@@ -1307,12 +1183,6 @@ export async function startAssessment(q: Q, s: SessionState, assessment: StepAss
   return { presentedAt };
 }
 
-/**
- * The presentation stamp of the participant's CURRENT step (the assessment form calls it once it
- * is on screen). Refused (`not_current_step`) for any other step and on a closed session, under
- * the same session lock as a submission: `startAssessment` keeps the first stamp, so a stamp
- * forged for a later step would otherwise become its presented_at (final review study-09).
- */
 export async function markAssessmentPresented(pool: Pool | PoolClient, input: { sessionId: string; step: StudyStep; assessmentId: string }): Promise<{ presentedAt: Date }> {
   return withTx(pool, async (c) => {
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [input.sessionId]);
@@ -1334,13 +1204,6 @@ export interface SubmitResult {
   stepCompleted: boolean;
 }
 
-/**
- * Stores the raw answers (one `responses` row per item: answered, in the shared format of
- * src/features/assessment/responses.ts, or skipped; server presentation and answer times and the
- * client timestamp), scores keyed items with the shared rule into `derived_scores`
- * (`item.key_match`, plus the per-assessment total; never free text or ratings) and, when every
- * assessment of the step is submitted, completes the step. One submission per assessment.
- */
 export async function submitAssessment(
   pool: Pool | PoolClient,
   input: { sessionId: string; step: StudyStep; assessmentId: string; values: Record<string, string[]>; clientTs?: string | null },
@@ -1359,10 +1222,6 @@ export async function submitAssessment(
     const a = assessments.find((x) => x.id === input.assessmentId);
     if (!a) throw new StudyEngineError("not_current_step", "This assessment is not part of the current step.");
     if (submittedAssessments(s, input.step).has(a.id)) throw new StudyEngineError("already_submitted", "These answers were already submitted.");
-    // A repeated administration (another step) is a new attempt; raw rows are never overwritten.
-    // Numbered per PARTICIPANT, not per session: after a reassignment (webglFailurePolicy =
-    // reassign) the second session's post-learning SSQ is attempt 2, not a second "attempt 1"
-    // (final review study-03). The journal entry also records the step.
     const attempt = (
       await c.query<{ next: number }>("SELECT coalesce(max(attempt), 0)::int + 1 AS next FROM responses WHERE participant_id = $1 AND assessment_id = $2", [s.participantId, a.id])
     ).rows[0]!.next;
@@ -1443,9 +1302,6 @@ export async function submitAssessment(
   });
 }
 
-// ---------------------------------------------------------------------------------------------
-// Familiarisation, onboarding and learning
-// ---------------------------------------------------------------------------------------------
 
 export async function startFamiliarisation(pool: Pool | PoolClient, sessionId: string): Promise<{ startedAt: Date }> {
   return withTx(pool, async (c) => {
@@ -1481,9 +1337,6 @@ export async function completeOnboarding(pool: Pool | PoolClient, sessionId: str
     const pos = await syncPosition(c, s);
     if (pos.kind === "step" && pos.step === "onboarding") {
       await markStepCompleted(c, s, "onboarding");
-      // The learning clock starts when the participant starts the task, the same moment in both
-      // conditions (the learning context would otherwise stamp it on the first page render).
-      // Set-once: a later stamp by the learning context is a no-op.
       await c.query("UPDATE study_sessions SET learning_started_at = now(), template_sha256 = $2 WHERE id = $1 AND learning_started_at IS NULL", [sessionId, await stageTemplateSha256()]);
       await touch(c, sessionId);
     } else if (!completedSteps(s).has("onboarding")) {
@@ -1512,13 +1365,9 @@ export async function finishLearning(pool: Pool | PoolClient, sessionId: string)
   if (refused) throw new StudyEngineError("learning_incomplete", "Every stage must be visited before learning can finish.", { unvisited: refused.unvisited });
 }
 
-// ---------------------------------------------------------------------------------------------
-// Interruption and resume
-// ---------------------------------------------------------------------------------------------
 
 export type ResumeResult = { kind: "resumed"; gapSeconds: number; interruptionCount: number } | { kind: "refused"; reason: "resume_not_allowed" | "too_many_interruptions" | "gap_too_long" };
 
-/** Pure: does the protocol allow resuming after this interruption? */
 export function resumeDecision(
   rules: { allowed: boolean; maxInterruptions?: number; maxGapMinutes?: number },
   input: { interruptionCount: number; gapSeconds: number },
@@ -1529,10 +1378,6 @@ export function resumeDecision(
   return { ok: true };
 }
 
-/**
- * The participant came back through the entry page with a live session. Records the interruption
- * and applies `config.resume`; a refused resume ends the session as `abandoned` (data kept).
- */
 export async function resumeSession(pool: Pool | PoolClient, sessionId: string): Promise<ResumeResult> {
   return withTx(pool, async (c) => {
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
@@ -1636,9 +1481,6 @@ export async function closeStaleSessions(pool: Pool | PoolClient, studyId: strin
   return ended;
 }
 
-// ---------------------------------------------------------------------------------------------
-// Withdrawal and completion
-// ---------------------------------------------------------------------------------------------
 
 export const WITHDRAWAL_REASONS = ["not_stated", "no_longer_wish_to_take_part", "no_time", "technical_problem", "felt_unwell"] as const;
 export type WithdrawalReason = (typeof WITHDRAWAL_REASONS)[number];
@@ -1675,11 +1517,6 @@ export async function withdraw(pool: Pool | PoolClient, input: { participantId: 
   });
 }
 
-/** Ends the session as completed once every step is done. */
-/**
- * `telemetryPending`: client-reported count of telemetry events not delivered when the
- * participant finished (null when unknown); kept in the `study.session_completed` journal entry.
- */
 export async function completeSession(pool: Pool | PoolClient, sessionId: string, opts: { telemetryPending?: number | null } = {}): Promise<void> {
   await withTx(pool, async (c) => {
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);

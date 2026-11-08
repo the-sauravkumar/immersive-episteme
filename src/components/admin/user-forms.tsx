@@ -1,18 +1,5 @@
 "use client";
 
-/**
- * Client forms for /admin/users (DESIGN.md 9.1, 9.5, 9.18, 11.11). Every action is re-authorised on
- * the server; nothing here grants anything by itself.
- *
- *  - `CreateStaffForm`: 44 px fields (no height overrides), labels above, hints in `text-credit`.
- *  - `UserRowActions`: the trailing 44 px row-action menu of the staff table. Each item opens a
- *    dialog. Removing a role, locking an account and resetting a password are destructive, so their dialogs ask for typed
- *    confirmation (the account's email address) before the filled danger button will submit; the
- *    filled danger variant appears only there (9.1). Granting a role and unlocking an account are
- *    not destructive and need no typed confirmation.
- *  - Focus: closing a dialog returns focus to the row's menu button (the menu item that opened it no
- *    longer exists), and a polite live region announces the result.
- */
 import { ChevronDown, CircleAlert, KeyRound, Lock, LockOpen, ShieldMinus, ShieldPlus, TimerReset } from "lucide-react";
 import { createContext, useActionState, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 
@@ -81,9 +68,6 @@ export function CreateStaffForm({ minPasswordLength }: { minPasswordLength: numb
   );
 }
 
-/* ------------------------------------------------------------------------------------------------
- * Row actions
- * ---------------------------------------------------------------------------------------------- */
 
 export interface RowUser {
   id: string;
@@ -103,7 +87,7 @@ export function UserActionStatus({ children }: { children: ReactNode }) {
   const [message, setMessage] = useState("");
   return (
     <AnnounceContext value={setMessage}>
-      <p role="status" aria-live="polite" className="text-body text-ink-2 empty:sr-only">
+      <p role="status" aria-live="polite" className="t-b text-lime-dim empty:sr-only">
         {message}
       </p>
       {children}
@@ -137,7 +121,6 @@ export function UserRowActions({ user, self, manageRoles, minPasswordLength }: {
     },
   };
   const contentProps = {
-    // The menu item that opened the dialog is gone; return focus to the row's menu button.
     onCloseAutoFocus: (e: Event) => {
       e.preventDefault();
       triggerRef.current?.focus();
@@ -367,19 +350,13 @@ function GrantRoleForm({ action, userId, available, onDone }: { action: FormActi
 function FieldErrors({ id, messages }: { id: string; messages?: string[] }) {
   if (!messages?.length) return null;
   return (
-    <p id={id} className="flex items-start gap-2 font-sans text-[0.9375rem] leading-5 font-semibold text-danger">
+    <p id={id} className="flex items-start gap-2 t-s font-semibold text-madder-text">
       <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 stroke-2" />
       <span className="min-w-0">{messages.join(" ")}</span>
     </p>
   );
 }
 
-/**
- * A destructive action form: the refusal in an alert that takes focus, optional fields, then a
- * typed confirmation. Until the typed text matches `confirmText` (case and surrounding spaces
- * ignored), the filled danger button stays focusable but `aria-disabled`, says why, and a click or
- * Enter does nothing.
- */
 function ConfirmForm({
   action,
   hidden,
@@ -429,7 +406,7 @@ function ConfirmForm({
       <div className="flex flex-col gap-1.5">
         <Label htmlFor={ids.confirm}>
           <span>
-            Type <span className="text-id break-all text-ink">{confirmText}</span> to confirm
+            Type <span className="t-table font-semibold wrap-anywhere break-all text-lime">{confirmText}</span> to confirm
           </span>
         </Label>
         <Input
@@ -442,7 +419,7 @@ function ConfirmForm({
           spellCheck={false}
           aria-describedby={ids.why}
         />
-        <p id={ids.why} className="text-credit">
+        <p id={ids.why} className="t-s text-lime-dim">
           {matches ? "The address matches." : "The button stays inactive until the address matches."}
         </p>
       </div>

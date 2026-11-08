@@ -7,21 +7,18 @@ import { cn } from "@/lib/utils";
 import { endPublicDemo } from "@/server/auth/actions";
 import type { LearningAccess } from "@/server/auth/learning-access";
 
-import { DisplayPreferencesSync } from "./display-settings";
-
 export function LearningShell({ condition, children }: { condition: LearningCondition; children: ReactNode }) {
   return (
     <div
       data-condition={condition}
       data-zone="study"
       className={cn(
-        "a11y-reduce-motion bg-ground",
+        "bg-vat",
         condition === "immersive"
           ? "immersive-root fixed inset-0 overflow-hidden overscroll-none"
           : "flex min-h-dvh flex-col",
       )}
     >
-      <DisplayPreferencesSync zone="study" />
       <main id="main" tabIndex={-1} className={cn("outline-none", condition === "immersive" ? "flex h-full w-full flex-col" : "flex-1")}>
         {children}
       </main>
@@ -46,7 +43,7 @@ export function AccessNotice({ access }: { access: LearningAccess }) {
     <aside
       aria-label={ACCESS_NOTICE_TEXT.label}
       data-access-notice=""
-      className="sticky top-0 z-(--z-hud) h-(--notice-h) shrink-0 border-b border-rule bg-sunk text-ui text-ink"
+      className="sticky top-0 z-(--z-hud) h-(--notice-h) shrink-0 border-b border-line bg-vat-2 t-label text-lime"
     >
       <div className="flex h-full items-center justify-between gap-3 px-4 xs:px-6 lg:px-8">
         <NoticeWords text={text.plain} variant="plain" />

@@ -10,7 +10,6 @@ import { Empty, pickStudy, Section, StatRow, StudyPicker, Timestamp } from "../_
 
 export const metadata: Metadata = { title: "Participants" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/research/participants">) {
@@ -72,9 +71,9 @@ async function Participants({ searchParams }: { searchParams: Promise<Record<str
             <TableBody>
               {rows.map((r) => (
                 <TableRow key={r.id}>
-                  <TableCell className="text-id">{r.code}</TableCell>
+                  <TableCell className="t-table font-semibold wrap-anywhere">{r.code}</TableCell>
                   <TableCell>{r.status.replace(/_/g, " ")}</TableCell>
-                  <TableCell>{r.condition ?? <span className="text-ink-3">Not allocated</span>}</TableCell>
+                  <TableCell>{r.condition ?? <span className="text-lime-dim">Not allocated</span>}</TableCell>
                   <TableCell>{r.stratum ?? "–"}</TableCell>
                   <TableCell numeric className="whitespace-nowrap">
                     {r.sessions} ({r.completedSessions})

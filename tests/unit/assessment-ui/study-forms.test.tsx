@@ -1,10 +1,3 @@
-/**
- * Study pages (DESIGN.md 11.7, WP4): the assessment form's question typography, option rows,
- * Likert scale and error summary; the action-row order; focus after a submit (the button stays
- * focusable while pending; a field refusal focuses the invalid control); the display choice that
- * offers the High contrast accommodation once, before the pre-test (consent page), shown read-only
- * and recorded with the device check (DR-019); and the session step count.
- */
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -22,7 +15,7 @@ vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 import { AssessmentForm, type RenderItem } from "@/components/study/assessment-form";
 import { ConsentForm } from "@/components/study/consent-form";
-import { DeviceCheck, StudyDisplayChoice } from "@/components/study/device-check";
+import { DeviceCheck } from "@/components/study/device-check";
 import { WithdrawForm } from "@/components/study/withdraw-form";
 import { stepCountOf } from "@/components/study/step-progress";
 
@@ -48,19 +41,17 @@ describe("AssessmentForm (DESIGN.md 11.7)", () => {
     expect(q.className).toMatch(/text-\[1\.25rem\]/);
     expect(q.className).toMatch(/leading-7/);
     expect(q.className).toMatch(/font-semibold/);
-    // The legend names the group: the count and the question.
     expect(screen.getByRole("group", { name: "Question 1 of 3 Which one?" })).toBeInTheDocument();
   });
 
-  it("renders choices as full-row 56 px labels with a native control, wash and a check when chosen, no bar (DR-022)", async () => {
+  it("renders choices as full-row 56 px labels with a native control, a turmeric edge and a check when chosen, no bar (DR-119)", async () => {
     render(<AssessmentForm step="post_test" assessment={assessment} items={items} returnTo="/study/post-test" />);
     const radio = screen.getByLabelText("Option A");
     const row = radio.closest("label")!;
     expect(row.className).toMatch(/min-h-14/);
-    expect(row.className).toMatch(/has-\[:checked\]:bg-wash/);
+    expect(row.className).toMatch(/has-\[:checked\]:outline-turmeric/);
     expect(row.className).not.toMatch(/border-l/);
     expect(radio.className).toContain("ie-check");
-    // A check icon is reserved in every row (no layout shift) and shown only for the chosen one.
     expect(row.querySelector("svg[aria-hidden=true]")).not.toBeNull();
     await userEvent.setup().click(screen.getByText("Option B"));
     expect(screen.getByLabelText("Option B")).toBeChecked();
@@ -78,16 +69,15 @@ describe("AssessmentForm (DESIGN.md 11.7)", () => {
     expect(scale.style.getPropertyValue("--points")).toBe("5");
   });
 
-  it("gives every Likert point the check icon and no bar (DR-022)", () => {
+  it("gives every Likert point the check icon, turmeric when chosen, and no bar (DR-119)", () => {
     render(<AssessmentForm step="post_test" assessment={assessment} items={items} returnTo="/study/post-test" />);
     const group = screen.getByRole("group", { name: /How much\?/ });
     for (const radio of within(group).getAllByRole("radio")) {
       const cell = radio.closest("label")!;
-      // DESIGN.md 9.6: --wash always comes with a check icon; its space is reserved. No bar.
       expect(cell.querySelector("[data-slot=option-check]")).not.toBeNull();
       const classes = cell.className.split(/\s+/);
-      expect(classes).toContain("border-b-rule");
-      expect(classes).toContain("has-[:checked]:bg-wash");
+      expect(classes).toContain("border-b-line");
+      expect(classes).toContain("has-[:checked]:bg-turmeric");
       expect(classes.some((c) => c.includes("border-l"))).toBe(false);
     }
   });
@@ -98,7 +88,6 @@ describe("AssessmentForm (DESIGN.md 11.7)", () => {
     const row = document.querySelector("[data-slot=study-actions]") as HTMLElement;
     const buttons = within(row).getAllByRole("button");
     expect(buttons.map((b) => b.textContent)).toEqual(["Submit answers"]);
-    // The primary group sits on the right from 520 px (and stacks full width below).
     expect(buttons[0]!.parentElement!.className).toMatch(/xs:ml-auto/);
     expect(buttons[0]!.parentElement!.className).toMatch(/xs:justify-end/);
   });
@@ -120,7 +109,7 @@ describe("AssessmentForm (DESIGN.md 11.7)", () => {
     expect(link).toHaveAttribute("href", "#q1-a");
     const fieldError = document.getElementById("error-q1")!;
     expect(fieldError).toHaveTextContent("Choose an answer.");
-    expect(fieldError.querySelector("svg")).not.toBeNull(); // an icon, never colour alone
+    expect(fieldError.querySelector("svg")).not.toBeNull();
     expect(screen.getByRole("group", { name: /Which one\?/ })).toHaveAttribute("aria-describedby", "error-q1");
   });
 
@@ -198,7 +187,6 @@ describe("Study form focus after a submit (WCAG 2.4.3; DESIGN.md 9.1)", () => {
     expect(actions.decideConsent).toHaveBeenCalledTimes(1);
     await act(async () => release({ error: "Something went wrong." }));
     expect(await screen.findByRole("alert")).toHaveTextContent("Something went wrong.");
-    // A form-level refusal leaves focus where the participant was.
     expect(agree).toHaveFocus();
     expect(agree).toHaveAttribute("aria-disabled", "false");
   });
@@ -239,37 +227,13 @@ describe("Display and browser check (DR-019)", () => {
     expect(b.container.innerHTML).toBe(first);
   });
 
-  it("offers the High contrast choice once, on the consent page: only that switch, applied at once", async () => {
+  it("submits the check only when the participant continues", async () => {
     const user = userEvent.setup();
-    expect(StudyDisplayChoice.length).toBe(0);
-    render(<StudyDisplayChoice />);
-    expect(screen.getByRole("heading", { level: 2, name: "Display" })).toBeInTheDocument();
-    expect(document.querySelector("[data-slot=study-contrast-state]")).toHaveTextContent("Off");
-    await user.click(screen.getByRole("button", { name: "Display settings" }));
-    const dialog = await screen.findByRole("dialog");
-    expect(within(dialog).getAllByRole("switch")).toHaveLength(1);
-    await user.click(within(dialog).getByRole("switch", { name: "High contrast" }));
-    expect(document.documentElement).toHaveClass("a11y-contrast");
-    expect(document.documentElement).not.toHaveClass("dark");
-    await user.click(within(dialog).getAllByRole("button", { name: "Close" })[0]!);
-    expect(document.querySelector("[data-slot=study-contrast-state]")).toHaveTextContent("On");
-  });
-
-  it("shows the choice read-only at the check (no second switch) and records it with the check", async () => {
-    const user = userEvent.setup();
-    window.localStorage.setItem("ie-display", JSON.stringify({ contrast: true, reduceMotion: false }));
     render(<DeviceCheck />);
-    expect(screen.getByRole("heading", { level: 2, name: "Display" })).toBeInTheDocument();
-    expect(document.querySelector("[data-slot=study-display-record] [data-slot=study-contrast-state]")).toHaveTextContent("On");
-    expect(screen.queryByRole("button", { name: "Display settings" })).toBeNull();
-    expect(screen.queryByRole("switch")).toBeNull();
-    // Nothing is submitted until the participant continues.
     expect(actions.submitDeviceCheck).not.toHaveBeenCalled();
     await user.click(screen.getByRole("button", { name: "Check and continue" }));
     await waitFor(() => expect(actions.submitDeviceCheck).toHaveBeenCalledTimes(1));
-    expect(actions.submitDeviceCheck).toHaveBeenCalledWith(expect.objectContaining({ contrastAccommodation: true }));
-    // A failed check explains itself in words and offers to check again, from the same button,
-    // which kept focus throughout (aria-disabled while checking, never natively disabled).
+    expect(actions.submitDeviceCheck).toHaveBeenCalledWith(expect.not.objectContaining({ contrastAccommodation: expect.anything() }));
     expect(await screen.findByText(/too small for this study/)).toBeInTheDocument();
     const again = screen.getByRole("button", { name: "Check again" });
     expect(again).not.toBeDisabled();
@@ -289,12 +253,6 @@ describe("Display and browser check (DR-019)", () => {
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/study/session"));
   });
 
-  it("records Off when no choice was made", async () => {
-    render(<DeviceCheck />);
-    expect(document.querySelector("[data-slot=study-contrast-state]")).toHaveTextContent("Off");
-    await userEvent.setup().click(screen.getByRole("button", { name: "Check and continue" }));
-    await waitFor(() => expect(actions.submitDeviceCheck).toHaveBeenCalledWith(expect.objectContaining({ contrastAccommodation: false })));
-  });
 });
 
 describe("stepCountOf", () => {

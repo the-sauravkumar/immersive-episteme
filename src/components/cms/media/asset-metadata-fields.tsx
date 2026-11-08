@@ -1,17 +1,5 @@
 "use client";
 
-/**
- * The descriptive metadata every asset needs (upload and edit), in the console form skin (DESIGN.md
- * 9.5: 44 px controls, rule-strong borders, surface fill, labels above, help in `text-credit`):
- *  - title, credit, licence, licence URL and provenance (kind plus a source URL or a cited source);
- *  - images: alt text (or an explicit "decorative" choice) and caption, with live counts against the
- *    figure rules of 9.9 (alt text about 15 words and different from the caption; caption at most 180
- *    characters). The server applies the same rules (src/features/media/contracts.ts), so the counts
- *    only help; they never replace the check;
- *  - licence governance (11.10, DR-020): the longest side the licence allows on screen, the last
- *    day of the licence, and the public-plate flag.
- * Plain named inputs, so the values travel as FormData.
- */
 import { useId, useState, type ReactNode } from "react";
 
 import { FieldMessage } from "@/components/cms/action-form";
@@ -54,7 +42,6 @@ function Row({
   children: (id: string, describedBy: string | undefined) => ReactNode;
   required?: boolean;
   className?: string;
-  /** A live count under the field (polite). */
   live?: ReactNode;
 }) {
   const id = useId();
@@ -67,7 +54,7 @@ function Row({
       </Label>
       {children(id, hintId)}
       {hint || live ? (
-        <div id={hintId} className="text-credit flex flex-col gap-0.5">
+        <div id={hintId} className="t-s text-lime-dim flex flex-col gap-0.5">
           {hint ? <span>{hint}</span> : null}
           {live ? <span aria-live="polite">{live}</span> : null}
         </div>
@@ -83,7 +70,6 @@ export function AssetMetadataFields({
   sources,
 }: {
   defaults?: AssetMetadataDefaults;
-  /** Show the alt-text / decorative controls and the figure rules (images and textures). */
   isImage?: boolean;
   sources: { id: string; label: string }[];
 }) {
@@ -118,7 +104,7 @@ export function AssetMetadataFields({
             name="altText"
             required={!decorative}
             hint={`What is visible, in about ${ALT_TARGET_WORDS} words. Never repeat the caption and never add knowledge the claims do not state.`}
-            live={decorative ? null : altIssue ? <span className="text-danger">{altIssue}</span> : `${words} word${words === 1 ? "" : "s"}.`}
+            live={decorative ? null : altIssue ? <span className="text-madder-text">{altIssue}</span> : `${words} word${words === 1 ? "" : "s"}.`}
           >
             {(id, d) => (
               <Textarea
@@ -147,15 +133,15 @@ export function AssetMetadataFields({
         required={isImage && !decorative}
         className={isImage ? "md:col-span-2" : undefined}
         hint={isImage ? "A study figure's caption restates or points to its anchor claim; it never adds knowledge." : undefined}
-        live={isImage ? captionIssue ? <span className="text-danger">{captionIssue}</span> : `${chars} of ${FIGURE_CAPTION_MAX} characters.` : null}
+        live={isImage ? captionIssue ? <span className="text-madder-text">{captionIssue}</span> : `${chars} of ${FIGURE_CAPTION_MAX} characters.` : null}
       >
         {(id, d) => (
           <Textarea id={id} name="caption" rows={2} maxLength={2000} required={isImage && !decorative} aria-describedby={d} value={caption} onChange={(e) => setCaption(e.target.value)} />
         )}
       </Row>
 
-      <fieldset className="flex min-w-0 flex-col gap-4 border-t border-rule-strong pt-3 md:col-span-2">
-        <legend className="text-label float-left mb-1 w-full">Licence</legend>
+      <fieldset className="flex min-w-0 flex-col gap-4 border-t border-lime-dim pt-3 md:col-span-2">
+        <legend className="t-label float-left mb-1 w-full">Licence</legend>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-4 md:grid-cols-2">
           <Row label="Licence" name="licence" required hint="e.g. CC BY-SA 4.0, or the permission under which it is used.">
             {(id, d) => <Input id={id} name="licence" required maxLength={200} aria-describedby={d} defaultValue={defaults.licence ?? ""} />}
@@ -178,8 +164,8 @@ export function AssetMetadataFields({
         ) : null}
       </fieldset>
 
-      <fieldset className="flex min-w-0 flex-col gap-4 border-t border-rule-strong pt-3 md:col-span-2">
-        <legend className="text-label float-left mb-1 w-full">Provenance (required)</legend>
+      <fieldset className="flex min-w-0 flex-col gap-4 border-t border-lime-dim pt-3 md:col-span-2">
+        <legend className="t-label float-left mb-1 w-full">Provenance (required)</legend>
         <div className="grid grid-cols-[minmax(0,1fr)] gap-x-6 gap-y-4 md:grid-cols-2">
           <Row label="Provenance kind" name="provenanceKind" required className="md:col-span-2">
             {(id) => (

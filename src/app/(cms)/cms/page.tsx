@@ -16,7 +16,6 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Content Overview" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page() {
@@ -77,7 +76,7 @@ async function Overview() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Section id="integrity" title="Knowledge-graph integrity" description="Validator results over everything in the review pipeline (what the next release would contain).">
-          <p className="text-body">
+          <p className="t-b">
             <strong>{integrity.counts.error}</strong> error(s), <strong>{integrity.counts.warning}</strong> warning(s), {integrity.counts.info} note(s). A release is refused while any error remains.
           </p>
           {can(principal, "graph.edit") ? (
@@ -87,7 +86,7 @@ async function Overview() {
           ) : null}
         </Section>
         <Section id="versions" title="Dataset versions" description="Studies pin an immutable, published release snapshot.">
-          <p className="text-body">
+          <p className="t-b">
             {releases.length ? (
               <>
                 Latest release: <strong>{releases[0]!.versionLabel}</strong>, published {releases[0]!.publishedAt ? fmt.format(new Date(releases[0]!.publishedAt)) : "?"} UTC ({releases.length} in total).
@@ -97,7 +96,7 @@ async function Overview() {
             )}
           </p>
           {latestReview ? (
-            <p className="text-body text-ink-3">
+            <p className="t-b text-lime-dim">
               Latest review snapshot (not publishable): {latestReview.versionLabel}, frozen {fmt.format(new Date(latestReview.createdAt))} UTC; later edits are not in it
               until it is rebuilt on Dataset versions.
             </p>

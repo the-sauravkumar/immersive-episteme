@@ -1,10 +1,5 @@
 "use client"
 
-/*
- * Tooltip (DESIGN.md 9.18): paper, 1 px --rule-strong border, 4 px radius, no shadow,
- * Atkinson 15 --ink, no arrow. It names icon-only controls below 1024 px (9.14) and never
- * carries information that is not also available another way.
- */
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
@@ -47,7 +42,7 @@ function TooltipContent({
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(
-          "z-50 inline-flex w-fit max-w-xs origin-(--radix-tooltip-content-transform-origin) items-center gap-2 rounded-control border border-rule-strong bg-ground px-3 py-1.5 font-sans text-[0.9375rem] leading-5 text-ink duration-(--dur-1) has-data-[slot=kbd]:pr-1.5 **:data-[slot=kbd]:relative **:data-[slot=kbd]:isolate **:data-[slot=kbd]:z-50 **:data-[slot=kbd]:rounded-[2px] data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+          "z-50 inline-flex w-fit max-w-xs origin-(--radix-tooltip-content-transform-origin) items-center gap-2 border border-lime-dim bg-vat-2 px-3 py-1.5 t-s text-lime duration-(--dur-1) has-data-[slot=kbd]:pr-1.5 **:data-[slot=kbd]:relative **:data-[slot=kbd]:isolate **:data-[slot=kbd]:z-50 data-[state=delayed-open]:animate-in data-[state=delayed-open]:fade-in-0 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
           className
         )}
         {...props}

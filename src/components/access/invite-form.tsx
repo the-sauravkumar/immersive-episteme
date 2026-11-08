@@ -9,10 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { redeemInviteAction } from "@/server/access/actions";
 
-/**
- * The /invite form (S11): one 44 px field and one primary button. A refusal moves focus to the
- * alert (or back to the field for a malformed code), so keyboard and screen-reader users hear it.
- */
 export function InviteForm({ next, refused }: { next: string; refused: boolean }) {
   const [state, action, pending] = useActionState(redeemInviteAction, null);
   const id = useId();
@@ -47,13 +43,13 @@ export function InviteForm({ next, refused }: { next: string; refused: boolean }
           required
           aria-invalid={state?.fieldError ? true : undefined}
           aria-describedby={state?.fieldError ? `${id}-hint ${id}-error` : `${id}-hint`}
-          className="text-id"
+          className="t-table font-semibold wrap-anywhere"
         />
-        <p id={`${id}-hint`} className="text-credit">
+        <p id={`${id}-hint`} className="t-s text-lime-dim">
           Twenty letters and digits, for example ABCD-EFGH-JKMN-PQRS-TVWX. Case and dashes do not matter.
         </p>
         {state?.fieldError ? (
-          <p id={`${id}-error`} className="flex items-start gap-2 font-sans text-[0.9375rem] leading-5 font-semibold text-danger">
+          <p id={`${id}-error`} className="flex items-start gap-2 t-s font-semibold text-madder-text">
             <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 stroke-2" />
             <span className="min-w-0">{state.fieldError}</span>
           </p>

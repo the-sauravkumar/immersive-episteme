@@ -17,10 +17,8 @@ import { Empty, FIELD_LABEL, LINK_44, Notice, PublishedBadge, Section, StatRow, 
 
 export const metadata: Metadata = { title: "Rubric rating" };
 
-/** Three decimals; undefined statistics print as an en dash. */
 const fmt = (x: number | null) => (x === null || !Number.isFinite(x) ? "–" : x.toFixed(3));
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ params }: PageProps<"/research/scoring/rubrics/[rubricId]">) {
@@ -86,7 +84,7 @@ async function Rating({ params }: { params: Promise<{ rubricId: string }> }) {
           { label: "Your progress", value: <span className="tabular-nums">Rated {mine} of {items.length}</span> },
         ]}
       />
-      <p className="text-body mb-8 max-w-[52rem] text-ink-2">
+      <p className="t-b mb-8 max-w-[52rem] text-lime-dim">
         Answers are shown without participant or condition, in a fixed order. You see only your own ratings; a rating cannot be changed once saved.
       </p>
       {rubric.status !== "locked" ? (
@@ -125,7 +123,7 @@ async function Rating({ params }: { params: Promise<{ rubricId: string }> }) {
             <TableBody>
               {agreement.pairwise.map((p) => (
                 <TableRow key={`${p.raterA}-${p.raterB}`}>
-                  <TableCell className="text-id">
+                  <TableCell className="t-table font-semibold wrap-anywhere">
                     {p.raterA.slice(-6)} / {p.raterB.slice(-6)}
                   </TableCell>
                   <TableCell numeric>{p.n}</TableCell>
@@ -145,16 +143,16 @@ async function Rating({ params }: { params: Promise<{ rubricId: string }> }) {
             <li key={it.responseId}>
               <Card>
                 <CardHeader>
-                  <h3 className="text-h3 text-ink">{titleCase(it.label)}</h3>
+                  <h3 className="t-label text-lime">{titleCase(it.label)}</h3>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
-                  <p className="text-body whitespace-pre-line text-ink">{it.text}</p>
+                  <p className="t-b whitespace-pre-line text-lime">{it.text}</p>
                   {it.myRating !== null ? (
-                    <p className="text-body text-ink-2">
-                      Your rating: <span className="font-semibold text-ink tabular-nums">{it.myRating}</span> ({rubric.levels.find((l) => l.value === it.myRating)?.label})
+                    <p className="t-b text-lime-dim">
+                      Your rating: <span className="font-semibold text-lime tabular-nums">{it.myRating}</span> ({rubric.levels.find((l) => l.value === it.myRating)?.label})
                     </p>
                   ) : rubric.status === "locked" ? (
-                    <ActionForm action={rateResponseAction.bind(null, rubric.id, it.responseId)} submitLabel="Save rating" className="flex flex-col gap-4 border-t border-rule pt-4">
+                    <ActionForm action={rateResponseAction.bind(null, rubric.id, it.responseId)} submitLabel="Save rating" className="flex flex-col gap-4 border-t border-line pt-4">
                       <fieldset className="flex min-w-0 flex-col">
                         <legend className={FIELD_LABEL}>Level</legend>
                         <div className="flex flex-col">

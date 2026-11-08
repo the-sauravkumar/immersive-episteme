@@ -1,24 +1,3 @@
-/**
- * Public pages (DESIGN.md 11.1-11.4, WP1 acceptance). Runs against the dev server and the
- * development database (read-only: nothing is written).
- *
- *  - Every public page answers 200 with exactly one h1, does not scroll horizontally at 390 or
- *    1280 px, and every visible interactive element is at least 44 x 44 px.
- *  - No placeholder text ("to be confirmed", "TBC", "coming soon") and no dashed placeholder box.
- *  - The home page's numbers are live: they equal the counts read from the database by the test
- *    itself (tests/integration/public-dataset-stats.test.ts seeds a different dataset and shows
- *    the reads change with it).
- *  - Figure 1 is one static indigo plate (DR-022): no draw-on, nothing animates.
- *  - Explore: the two cards' buttons share one baseline; the Colophon explains how the doors are kept equivalent
- *    and shows no interface parity table, since nothing measures one.
- *  - No band, ticks or marker exist anywhere; in high contrast every pane edge is ink; every
- *    control reached by Tab shows the focus ring, in normal and high contrast.
- *  - Layout fit: the home title block is left-aligned with only Plate 1 beside it from 1024 px
- *    (DR-058: top on the h1's, never taller than the block); the tradition index
- *    rows share one title edge and face; the dataset table fits 390 px without scrolling; the two
- *    Explore control tables end on one rule.
- */
-
 import { expect, newContext, test, type Page } from "./fixtures";
 import { config as loadEnv } from "dotenv";
 import { Pool } from "pg";
@@ -32,9 +11,6 @@ test.use({ navigationTimeout: 120_000 });
 const PAGES = ["/", "/about", "/about/colophon", "/explore", "/accessibility", "/privacy", "/sign-in", "/sign-out", "/forbidden", "/awaiting-access"];
 
 async function audit(page: Page, url: string) {
-  // Warm the route first: on the dev server the first request compiles it, and a late chunk or a
-  // font swap during that request can shift the layout under the measurement. The audit reads the
-  // second, settled load.
   await page.goto(url, { waitUntil: "networkidle" });
   const res = await page.goto(url, { waitUntil: "networkidle" });
   expect(res?.status(), url).toBe(200);
@@ -45,7 +21,6 @@ async function audit(page: Page, url: string) {
     for (const el of document.querySelectorAll<HTMLElement>("a[href], button, input, select, textarea, summary, [role=switch]")) {
       const b = el.getBoundingClientRect();
       if (b.width === 0 || b.height === 0 || getComputedStyle(el).visibility === "hidden") continue;
-      // The skip link is a 1 px visually hidden link until it takes focus.
       if (el.textContent?.trim() === "Skip to content") continue;
       if (b.width < 43.5 || b.height < 43.5) small.push(`${el.tagName} "${(el.textContent ?? "").trim().slice(0, 40)}" ${Math.round(b.width)}x${Math.round(b.height)}`);
     }
@@ -102,13 +77,10 @@ test("home page numbers are the live database counts", async ({ page }) => {
     ] as const) {
       await expect(counts.getByText(`${fmt(n)} ${label}`, { exact: false })).toBeVisible();
     }
-    // Table 1's total row carries the live concept and claim totals.
     const total = page.getByRole("row", { name: /^Total/ });
     await expect(total).toContainText(fmt(live.concepts));
     await expect(total).toContainText(fmt(live.claims));
-    // Figure 1 and Table 1 use one definition of sources (distinct sources cited by claims).
     await expect(total).toContainText(fmt(live.sources));
-    // One equal row per tradition in the index, with no image (DR-020, DR-022).
     await expect(page.locator("[data-slot=tradition-index] > li")).toHaveCount(live.traditions);
     await expect(page.locator("[data-slot=tradition-index] img")).toHaveCount(0);
   } finally {
@@ -116,7 +88,7 @@ test("home page numbers are the live database counts", async ({ page }) => {
   }
 });
 
-test("Figure 1 is a static indigo plate: no draw-on and nothing animates (DR-022)", async ({ browser }) => {
+test("Figure 1 is a static plate on vat-2: no draw-on and nothing animates (DR-119)", async ({ browser }) => {
   const ctx = await newContext(browser, { viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
   const page = await ctx.newPage();
   await page.goto("/");
@@ -126,7 +98,7 @@ test("Figure 1 is a static indigo plate: no draw-on and nothing animates (DR-022
   await page.waitForTimeout(800);
   expect(await plate.locator("path[data-draw]").count()).toBe(0);
   const bg = await plate.evaluate((el) => getComputedStyle(el).backgroundColor);
-  expect(bg).toBe("rgb(36, 64, 110)"); // --indigo #24406E
+  expect(bg).toBe("rgb(22, 38, 78)");
   expect(await page.evaluate(() => document.getAnimations().filter((a) => a.playState === "running").length)).toBe(0);
   await ctx.close();
 });
@@ -148,65 +120,45 @@ test("Explore cards align their actions and the Colophon promises no interface p
   await expect(page.getByRole("heading", { name: "Equivalence of the Two Conditions" })).toHaveCount(0);
 });
 
-test("no decorative graphics exist, and high contrast sets every rule in ink (DR-022)", async ({ browser }) => {
+test("no decorative graphics exist, and the header edge is a hairline in --line (DR-119)", async ({ browser }) => {
   const ctx = await newContext(browser, { viewport: { width: 1280, height: 800 } });
-  await ctx.addInitScript(() => {
-    try {
-      localStorage.setItem("ie-display", JSON.stringify({ contrast: true, reduceMotion: false }));
-    } catch {}
-  });
   const page = await ctx.newPage();
   for (const url of ["/", "/about", "/about/colophon"]) {
     await page.goto(url);
-    await expect(page.locator("html")).toHaveClass(/a11y-contrast/);
     await expect(page.locator(".ie-band, .ie-ticks, .ie-marker, [data-slot=tradition-marker]")).toHaveCount(0);
-    // The header's one line is a pane edge; in high contrast it is solid ink (#000000).
     const edge = await page.locator("header").first().evaluate((el) => getComputedStyle(el).borderBottomColor);
-    expect(edge, url).toBe("rgb(0, 0, 0)");
+    expect(edge, url).toBe("rgb(44, 56, 80)");
   }
   await ctx.close();
 });
 
-// Every control reached by Tab shows a focus indicator (DESIGN.md 9.1, 15; WCAG 2.4.7): the 2 px
-// indigo outline, or the HC double ring (an outline of at least 2 px as well).
-for (const contrast of [false, true]) {
-  test(`every focusable control on Home and Explore shows a focus ring${contrast ? " in high contrast" : ""}`, async ({ browser }) => {
-    const ctx = await newContext(browser, { viewport: { width: 1280, height: 800 } });
-    if (contrast) {
-      await ctx.addInitScript(() => {
-        try {
-          localStorage.setItem("ie-display", JSON.stringify({ contrast: true, reduceMotion: false }));
-        } catch {}
+test("every focusable control on Home and Explore shows a focus ring", async ({ browser }) => {
+  const ctx = await newContext(browser, { viewport: { width: 1280, height: 800 } });
+  const page = await ctx.newPage();
+  for (const url of ["/", "/explore"]) {
+    await page.goto(url);
+    await page.waitForLoadState("networkidle");
+    const missing: string[] = [];
+    let seen = 0;
+    for (let i = 0; i < 60; i++) {
+      await page.keyboard.press("Tab");
+      const f = await page.evaluate(() => {
+        const el = document.activeElement as HTMLElement | null;
+        if (!el || el === document.body) return null;
+        if (el.tagName.startsWith("NEXTJS")) return { name: "", style: "skip", width: 0 };
+        const s = getComputedStyle(el);
+        return { name: `${el.tagName} "${(el.textContent ?? "").trim().slice(0, 30)}"`, style: s.outlineStyle, width: parseFloat(s.outlineWidth) };
       });
+      if (!f) break;
+      if (f.style === "skip") continue;
+      seen++;
+      if (f.style === "none" || f.width < 3) missing.push(f.name);
     }
-    const page = await ctx.newPage();
-    for (const url of ["/", "/explore"]) {
-      await page.goto(url);
-      await page.waitForLoadState("networkidle");
-      if (contrast) await expect(page.locator("html")).toHaveClass(/a11y-contrast/);
-      const missing: string[] = [];
-      let seen = 0;
-      for (let i = 0; i < 60; i++) {
-        await page.keyboard.press("Tab");
-        const f = await page.evaluate(() => {
-          const el = document.activeElement as HTMLElement | null;
-          if (!el || el === document.body) return null;
-          // The Next.js dev-tools badge (development only) is not part of the page.
-          if (el.tagName.startsWith("NEXTJS")) return { name: "", style: "skip", width: 0 };
-          const s = getComputedStyle(el);
-          return { name: `${el.tagName} "${(el.textContent ?? "").trim().slice(0, 30)}"`, style: s.outlineStyle, width: parseFloat(s.outlineWidth) };
-        });
-        if (!f) break;
-        if (f.style === "skip") continue;
-        seen++;
-        if (f.style === "none" || f.width < 2) missing.push(f.name);
-      }
-      expect(seen, url).toBeGreaterThan(3);
-      expect(missing, `${url} controls without a visible focus ring`).toEqual([]);
-    }
-    await ctx.close();
-  });
-}
+    expect(seen, url).toBeGreaterThan(3);
+    expect(missing, `${url} controls without a visible focus ring`).toEqual([]);
+  }
+  await ctx.close();
+});
 
 const WIDTHS = [390, 768, 1024, 1280] as const;
 

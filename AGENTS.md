@@ -10,7 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Project notes (Immersive Episteme)
 
-- **`DESIGN.md` binds every agent; read Sections 0, 0.1 and 13 before any change.** Nothing passes through anything, every material is high quality, no comments in code files, dead code is deleted, Clean Architecture. Look at your output before reporting it. Requirements come from Concept Note rev2. The old Atlas system is archived at `docs/design/atlas-v1.md`.
+- **`DESIGN.md` binds every agent; read Sections 0, 0.1 and 13 before any change.** Nothing passes through anything, every material is high quality, no comments in code files, dead code is deleted, Clean Architecture. Look at your output before reporting it. Requirements come from Concept Note rev2. The earlier Atlas system is retired (DR-119): every public, study and staff screen uses DESIGN.md.
 
 - Read `docs/decisions/0001-stack-and-foundation.md` first. Versions are pinned exactly; do not run `npm install` unless your task says so.
 - `cacheComponents` is on: anything reading cookies, headers or the session must be inside `<Suspense>` (see `node_modules/next/dist/docs/01-app/02-guides/authentication-with-cache-components.md`). Middleware is called proxy (`src/proxy.ts`) in Next 16.

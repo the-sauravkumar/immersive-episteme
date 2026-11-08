@@ -10,7 +10,6 @@ import { ProgressBar } from "./progress-bar";
 import { StagePanel, panelImageSources } from "./stage-panel";
 import { usePanelImages } from "./use-panel-images";
 
-import "@/styles/walking-tokens.css";
 import "./course.css";
 
 export interface CoursePracticeProps {
@@ -33,7 +32,7 @@ export function CoursePractice({ reviewMarks = false, onFinished }: CoursePracti
   };
 
   return (
-    <div className="course walking" data-course-root="" data-panel="practice">
+    <div className="course" data-course-root="" data-panel="practice">
       <div className="course-frame">
       <StagePanel model={model} reviewMarks={reviewMarks} imageStatus={images.status} controls={controls()} onSourcesOpened={() => undefined} />
       <ProgressBar

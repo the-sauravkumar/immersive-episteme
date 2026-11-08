@@ -17,7 +17,6 @@ import { ProgressBar } from "./progress-bar";
 import { StagePanel, panelImageSources } from "./stage-panel";
 import { preloadImages, usePanelImages } from "./use-panel-images";
 
-import "@/styles/walking-tokens.css";
 import "./course.css";
 
 export interface CourseStageEvent {
@@ -172,7 +171,7 @@ export function CourseSession({ templates, reviewMarks = false, studyMode = fals
   const forwardDetail = onProduct ? (nextTemplate ? nextTemplate.traditionName : null) : nextStage ? `${nextStage.number} ${nextStage.name}` : PRODUCT_TITLE;
 
   return (
-    <div className="course walking" data-course-root="" data-tradition={template.tradition} data-panel={onProduct ? "product" : state.panel + 1}>
+    <div className="course" data-course-root="" data-tradition={template.tradition} data-panel={onProduct ? "product" : state.panel + 1}>
       <div className="course-frame">
       {onProduct ? (
         <ProductPanel template={template} imageStatus={images.status} controls={controls} onSourcesOpened={sourceOpened} onSourcesClosed={sourceClosed} />

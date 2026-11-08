@@ -6,16 +6,10 @@ import { METRIC_BY_KEY, metricRole } from "@/features/research/metric-definition
 import type { ConditionRef } from "@/server/research/analytics";
 import type { MeasureRow } from "@/server/research/dashboard";
 
-/** A number with fixed decimals, or an en dash when undefined (never "-0.00"). */
 export function num(v: number | null | undefined, digits = 3): string {
   return fixed(v, digits);
 }
 
-/**
- * A metric key or code that may wrap only after its separators ('.', '_', '/', '-'), never inside
- * a word: a <wbr> follows each separator, and the cell uses overflow-wrap:break-word (not
- * break-all), so "time.exposure_total_ms" breaks as "time.exposure_" / "total_ms".
- */
 export function breakableKey(key: string): ReactNode {
   const parts = key.split(/(?<=[._/-])/);
   return parts.map((part, i) => (
@@ -28,7 +22,6 @@ export function breakableKey(key: string): ReactNode {
 
 const PHASE: Record<string, string> = { pre: "Pre", post: "Post", follow_up: "Delayed", session: "Per session" };
 
-/** Conditions with 2D first (DESIGN.md 10: 2D is always first or left). */
 export function conditionOrder(conditions: ConditionRef[]): (id: string) => number {
   const rank = new Map(
     conditions
@@ -39,10 +32,6 @@ export function conditionOrder(conditions: ConditionRef[]): (id: string) => numb
   return (id) => rank.get(id) ?? 99;
 }
 
-/**
- * Descriptive booktabs table: one row per measure, phase and condition (n, missing, mean, SD,
- * median, 95% CI), numbers right-aligned with tabular figures and fixed decimals per column.
- */
 export function StatsTable({ rows, conditions, digits = 3, caption, number }: { rows: MeasureRow[]; conditions: ConditionRef[]; digits?: number; caption: string; number?: number }) {
   const label = (id: string) => conditions.find((c) => c.id === id)?.label ?? id;
   const rank = conditionOrder(conditions);
@@ -83,7 +72,7 @@ export function StatsTable({ rows, conditions, digits = 3, caption, number }: { 
                   {i === 0 ? (
                     <span className="flex flex-col gap-0.5">
                       <span className="font-medium">{METRIC_BY_KEY.get(m.key)?.label ?? m.key}</span>
-                      <span className="text-id text-ink-3 [overflow-wrap:break-word]">
+                      <span className="t-table font-semibold wrap-anywhere text-lime-dim [overflow-wrap:break-word]">
                         {breakableKey(m.key)} v{m.version}, {metricRole(m.key)}
                         {m.label ? `, ${m.label}` : ""}
                       </span>

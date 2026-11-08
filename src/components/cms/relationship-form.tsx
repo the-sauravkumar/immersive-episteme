@@ -1,11 +1,5 @@
 "use client";
 
-/**
- * Create / edit a typed, directed relationship. The type comes from the relationship-type
- * registry (semantics shown so causal, sequential and associative links are never conflated);
- * ordinals only for ordered (sequential) types; every citation needs a page/locator and a
- * verbatim quotation. Server-side: saveRelationshipAction -> saveRelationship (graph.edit).
- */
 import { useId, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -60,7 +54,6 @@ export function RelationshipForm({
   types: TypeChoice[];
   sources: { id: string; label: string }[];
   initial?: RelationshipInitial;
-  /** Controlled endpoints (graph workspace); uncontrolled when omitted. */
   source?: string;
   target?: string;
   onSourceChange?: (id: string) => void;
@@ -114,7 +107,7 @@ export function RelationshipForm({
               </option>
             ))}
           </NativeSelect>
-          <p id={`${id}-type-hint`} className="text-credit">
+          <p id={`${id}-type-hint`} className="t-s text-lime-dim">
             {def ? `“${def.label}”: ${def.description}${def.requiresEvidence ? " Requires a cited source." : ""}` : null}
           </p>
         </div>
@@ -147,10 +140,10 @@ export function RelationshipForm({
         </div>
       </div>
       <fieldset className="flex min-w-0 flex-col gap-3">
-        <legend className="mb-1 font-sans text-[0.9375rem] leading-5 font-bold text-ink">Evidence</legend>
-        {cites.length === 0 ? <p className="text-body text-ink-3">No citation yet.</p> : null}
+        <legend className="mb-1 t-label text-lime">Evidence</legend>
+        {cites.length === 0 ? <p className="t-b text-lime-dim">No citation yet.</p> : null}
         {cites.map((c, i) => (
-          <div key={i} className="grid gap-3 rounded-card border border-rule bg-ground p-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+          <div key={i} className="grid gap-3 border border-line bg-vat p-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={`${id}-cs-${i}`}>Source</Label>
               <NativeSelect id={`${id}-cs-${i}`} value={c.sourceId} onChange={(e) => setCite(i, { sourceId: e.target.value })} required>

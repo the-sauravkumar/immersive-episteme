@@ -21,10 +21,8 @@ import { Disclosure } from "@/components/ui/disclosure";
 
 export const metadata: Metadata = { title: "Reference map" };
 
-/** Fixed decimals; "undefined" is printed as an en dash (no more precision than the measure supports). */
 const fmt = (x: number | null | undefined, d = 3) => (x === null || x === undefined || !Number.isFinite(x) ? "–" : x.toFixed(d));
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ params }: PageProps<"/research/assessments/[assessmentId]/reference/[referenceMapId]">) {
@@ -163,29 +161,29 @@ async function Workspace({ params }: { params: Promise<{ assessmentId: string; r
 
           {ws.consensus ? (
             <Section demo={ws.map.isDemo} id="consensus" title="Consensus" description="Strict majority of the rater maps; ties need an adjudication decision.">
-              <p className="text-body mb-4 inline-flex items-center gap-2 text-ink" role="status">
+              <p className="t-b mb-4 inline-flex items-center gap-2 text-lime" role="status">
                 {ws.consensus.isComplete ? (
                   "No ties remain."
                 ) : (
                   <>
-                    <CircleAlert aria-hidden="true" className="size-4 shrink-0 stroke-[1.75] text-warn" />
+                    <CircleAlert aria-hidden="true" className="size-4 shrink-0 stroke-[1.75] text-turmeric" />
                     <span>
-                      <span className="font-semibold text-warn">Warning:</span> {plural(ws.consensus.unresolved.length, "tied edge")} {ws.consensus.unresolved.length === 1 ? "needs" : "need"} an adjudication decision.
+                      <span className="font-semibold text-turmeric">Warning:</span> {plural(ws.consensus.unresolved.length, "tied edge")} {ws.consensus.unresolved.length === 1 ? "needs" : "need"} an adjudication decision.
                     </span>
                   </>
                 )}
               </p>
-              <ul className="mb-8 flex max-w-[60rem] flex-col border-y border-rule">
+              <ul className="mb-8 flex max-w-[60rem] flex-col border-y border-line">
                 {ws.consensus.edges.map((e) => (
-                  <li key={e.key} className="flex flex-col gap-1 border-t border-rule py-3 first:border-t-0">
+                  <li key={e.key} className="flex flex-col gap-1 border-t border-line py-3 first:border-t-0">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <span className="text-body font-medium text-ink">{sentence(e)}</span>
+                      <span className="t-b font-medium text-lime">{sentence(e)}</span>
                       <Badge variant={e.decision === "disputed" ? "warn" : "neutral"}>
                         {e.decision === "disputed" ? <CircleAlert aria-hidden="true" /> : null}
                         {DECISION_LABEL[e.decision] ?? e.decision}
                       </Badge>
                     </div>
-                    <span className="text-credit tabular-nums">
+                    <span className="t-s text-lime-dim tabular-nums">
                       Proposed by {e.support} of {ws.consensus!.raterCount}, expected by {e.expectedSupport}; majority: {e.majorityDecision}
                       {e.decidedBy === "adjudication" ? `; adjudicated${e.adjudication?.note ? `: ${e.adjudication.note}` : ""}` : ""}
                     </span>
@@ -232,7 +230,7 @@ async function Workspace({ params }: { params: Promise<{ assessmentId: string; r
 
       {ws.map.adjudicatedAt ? (
         <Section demo={ws.map.isDemo} id="final" title="Adjudicated reference" description={`${ws.finalEdges.length} edge${ws.finalEdges.length === 1 ? "" : "s"}; participant maps are scored against these.`}>
-          {ws.map.adjudicationNotes ? <p className="text-body mb-4 max-w-[52rem] whitespace-pre-line text-ink-2">{ws.map.adjudicationNotes}</p> : null}
+          {ws.map.adjudicationNotes ? <p className="t-b mb-4 max-w-[52rem] whitespace-pre-line text-lime-dim">{ws.map.adjudicationNotes}</p> : null}
           <Table caption="Reference Edges" number={ws.agreement ? 3 : 1} className="mb-6">
             <TableHeader>
               <TableRow>

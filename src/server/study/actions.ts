@@ -1,10 +1,4 @@
 "use server";
-/**
- * Server actions of the participant journey. Every action re-verifies the participant from the
- * signed cookie and the database (never from form fields), and each state change is done by the
- * engine (./engine.ts), which re-checks that the step is current. Redirects are issued outside
- * try/catch (redirect() throws).
- */
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -94,7 +88,6 @@ function messageFor(err: unknown): string {
   return "Something went wrong. Please tell the facilitator.";
 }
 
-/** A live participant session in this browser, if any. */
 async function liveParticipant() {
   const cookie = (await cookies()).get(PARTICIPANT_COOKIE)?.value;
   if (cookie === undefined) return null;
@@ -109,30 +102,22 @@ async function withdrawableParticipant() {
   return d.allowed ? d.participant : null;
 }
 
-// ---- entry -----------------------------------------------------------------------------------
 
 export async function enterStudy(_prev: EntryFormState, formData: FormData): Promise<EntryFormState> {
   const code = String(formData.get("studyCode") ?? "");
   if (!code.trim()) return { fieldErrors: { studyCode: "Enter the study code." } };
-  // Invite gate, server side (S11): enrolment is the first step that writes study data.
   await requireSiteAccess("/study");
   const pool = getPool();
   let target = "/study/consent";
   try {
-    // Already in a live session in this browser: never a second enrolment (the entry page
-    // offers "continue" instead).
     if (await liveParticipant()) {
       target = "/study";
     } else {
       const study = await findEnrollableStudy(pool, code);
       const pending = await readEnrolment();
       const pendingParticipant = pending && pending.studyId === study.id ? await loadParticipant(pool, pending.participantId) : null;
-      // An enrolment still waiting for its consent decision (or for its allocation after a
-      // granted consent) is reused, not duplicated.
       const reusable = !!pendingParticipant && (!pendingParticipant.latestConsent || (pendingParticipant.latestConsent.decision === "granted" && !pendingParticipant.sessionId));
       if (!reusable) {
-        // Scripted enrolment is bounded per client address and per study (security-04); demo
-        // studies (staff test runs) are not throttled.
         if (!study.isDemo) {
           const policy = clientIpPolicy();
           const address = clientAddress(await headers(), { header: policy.header, trustedProxies: policy.trustedProxies });
@@ -152,7 +137,6 @@ export async function enterStudy(_prev: EntryFormState, formData: FormData): Pro
   redirect(target);
 }
 
-/** Continue an interrupted session from the entry page (records the interruption). */
 export async function resumeStudy(_prev: FormState): Promise<FormState> {
   const live = await liveParticipant();
   if (!live) redirect("/study");
@@ -169,7 +153,6 @@ export async function resumeStudy(_prev: FormState): Promise<FormState> {
   redirect(target);
 }
 
-// ---- consent ---------------------------------------------------------------------------------
 
 export async function decideConsent(_prev: FormState, formData: FormData): Promise<FormState> {
   const decision = formData.get("decision");
@@ -185,15 +168,12 @@ export async function decideConsent(_prev: FormState, formData: FormData): Promi
   try {
     const study = await loadStudy(pool, enrolment.studyId);
     const prior = (await loadParticipant(pool, enrolment.participantId))?.latestConsent;
-    // A granted consent whose allocation failed (e.g. a transient error) is not recorded twice:
-    // the retry goes straight to allocation.
     if (!(prior?.decision === "granted" && decision === "granted")) {
       await recordConsent(pool, { participantId: enrolment.participantId, study, decision, shownVersion: version });
     }
     if (decision === "declined") {
       target = "/study/complete?status=declined";
     } else {
-      // Allocation at consent or, by default, after the condition-blind pre-test (D3).
       const s = await openSessionAfterConsent(pool, { participantId: enrolment.participantId, studyId: study.id, appBuild: appBuild() });
       await issueParticipantSessionCookie({ participantId: s.participantId, sessionId: s.sessionId, condition: s.condition });
       target = "/study/session";
@@ -205,7 +185,6 @@ export async function decideConsent(_prev: FormState, formData: FormData): Promi
   redirect(target);
 }
 
-// ---- device check ----------------------------------------------------------------------------
 
 const deviceReportSchema = z.object({
   viewport: z.object({ width: z.number().int().positive().max(20000), height: z.number().int().positive().max(20000) }),
@@ -215,8 +194,6 @@ const deviceReportSchema = z.object({
   inputDevices: z.array(z.enum(["mouse", "keyboard", "touch", "gamepad", "xr"])).max(5),
   reducedMotion: z.boolean().optional(),
   highContrast: z.boolean().optional(),
-  /** The High contrast accommodation chosen in Display Settings before learning (DR-019). */
-  contrastAccommodation: z.boolean().optional(),
   browserFamily: z.enum(["chrome", "edge", "firefox", "safari", "other"]).optional(),
 });
 
@@ -234,11 +211,6 @@ export async function submitDeviceCheck(report: unknown): Promise<DeviceCheckRes
   }
 }
 
-/**
- * The walkthrough (study mode) reports that this browser cannot render it after the device check
- * passed. The engine applies the study's
- * WebGL-failure policy; the client then goes to /study/session, which shows where to continue.
- */
 export async function reportWalkthroughUnavailable(report: unknown): Promise<DeviceCheckResult> {
   const participant = await requireParticipantSession();
   const parsed = z.object({ webglVersion: z.union([z.literal(1), z.literal(2), z.null()]), softwareRenderer: z.boolean() }).safeParse(report);
@@ -255,16 +227,9 @@ export async function reportWalkthroughUnavailable(report: unknown): Promise<Dev
   }
 }
 
-// ---- assessments -----------------------------------------------------------------------------
 
 const stepSchema = z.enum(STUDY_STEPS);
 
-/**
- * Records that the assessment was presented (server time); called once the form is on screen.
- * Only for the participant's CURRENT step (the engine checks it under the session lock, as for a
- * submission): a start stamped for a later step would become that step's presented_at and inflate
- * its durations (final review study-09, security-03).
- */
 export async function markAssessmentStarted(step: string, assessmentId: string): Promise<{ ok: boolean }> {
   const participant = await requireParticipantSession();
   const st = stepSchema.safeParse(step);
@@ -310,7 +275,6 @@ export async function submitAssessmentForm(_prev: FormState, formData: FormData)
   redirect(target);
 }
 
-// ---- entrance, onboarding and learning -------------------------------------------------------
 
 export async function continueFromEntrance(_prev: FormState): Promise<FormState> {
   const participant = await requireParticipantSession();
@@ -333,7 +297,6 @@ export async function startLearning(_prev: FormState): Promise<FormState> {
   redirect(participant.condition ? LEARNING_ROUTE[participant.condition] : "/study/session");
 }
 
-// ---- familiarisation (for the /learn/<condition>/practice pages, D5) -------------------------
 
 export async function endFamiliarisation(_prev: FormState): Promise<FormState> {
   const participant = await requireParticipantSession();
@@ -345,7 +308,6 @@ export async function endFamiliarisation(_prev: FormState): Promise<FormState> {
   redirect("/study/session");
 }
 
-// ---- delayed test ------------------------------------------------------------------------------
 
 export async function returnWithCode(_prev: FormState, formData: FormData): Promise<FormState> {
   const studyCode = String(formData.get("studyCode") ?? "");
@@ -369,7 +331,6 @@ export async function returnWithCode(_prev: FormState, formData: FormData): Prom
   redirect("/study/session");
 }
 
-// ---- withdrawal and completion ---------------------------------------------------------------
 
 export async function withdrawFromStudy(_prev: FormState, formData: FormData): Promise<FormState> {
   const reasonParsed = z.enum(WITHDRAWAL_REASONS).safeParse(formData.get("reason") ?? "not_stated");
@@ -386,10 +347,6 @@ export async function withdrawFromStudy(_prev: FormState, formData: FormData): P
   redirect("/study/complete?status=withdrawn");
 }
 
-/**
- * `telemetryPending`: events the hub page could not deliver before finishing (FinishForm's
- * flushNow); recorded with the completion so the data shows the loss instead of hiding it.
- */
 export async function finishSession(_prev: FormState, telemetryPending?: unknown): Promise<FormState> {
   const participant = await requireParticipantSession();
   const undelivered = z.number().int().min(0).max(1_000_000).safeParse(telemetryPending);

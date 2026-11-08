@@ -45,7 +45,7 @@ export function SignOutButton({ variant = "ghost" }: { variant?: "ghost" | "outl
         <LogOut aria-hidden="true" />
         {pending ? "Signing out…" : "Sign out"}
       </Button>
-      <p role="alert" className="text-body font-semibold text-danger empty:hidden">
+      <p role="alert" className="t-b font-semibold text-madder-text empty:hidden">
         {failed ? SIGN_OUT_FAILED : ""}
       </p>
     </div>

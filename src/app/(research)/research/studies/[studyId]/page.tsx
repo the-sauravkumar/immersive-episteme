@@ -25,7 +25,6 @@ export const metadata: Metadata = { title: "Study" };
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ params }: PageProps<"/research/studies/[studyId]">) {
@@ -70,7 +69,7 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
               </span>
             ),
           },
-          { label: "Slug", value: <span className="text-id">{study.slug}</span> },
+          { label: "Slug", value: <span className="t-table font-semibold wrap-anywhere">{study.slug}</span> },
           { label: "Status", value: <StatusBadge status={study.status} /> },
           { label: "Protocol version", value: <span className="tabular-nums">{study.protocolVersion}</span> },
           { label: "Design", value: DESIGN_LABEL[study.design] ?? study.design },
@@ -107,9 +106,9 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
           <TableBody>
             {study.conditions.map((c) => (
               <TableRow key={c.id}>
-                <TableCell className="text-id">{c.code}</TableCell>
+                <TableCell className="t-table font-semibold wrap-anywhere">{c.code}</TableCell>
                 <TableCell>{c.label}</TableCell>
-                <TableCell className="text-id">{c.interface}</TableCell>
+                <TableCell className="t-table font-semibold wrap-anywhere">{c.interface}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -119,7 +118,7 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
       <Section demo={study.isDemo} id="battery" title="Assessment battery and order" description="The same battery, in the same order, for both conditions. Only locked assessments can be used by an active study. Required: every question must be answered before the participant goes on; otherwise questions may be left blank and are stored as skipped.">
         {mayConfigure ? (
           <ActionForm action={attachDesignedBatteryAction.bind(null, study.id)} submitLabel="Attach the designed test battery" variant="outline" className="mb-8 flex max-w-[52rem] flex-col gap-3">
-            <p className="text-body text-ink-2">
+            <p className="t-b text-lime-dim">
               Adds the designed pre-test, post-tests, transfer task, concept map, layout sketch and delayed tests, and the questionnaires of the saved configuration, at their designed phases and positions. Missing ones are loaded first as drafts. Other assessments in the battery are kept after them.
             </p>
           </ActionForm>
@@ -156,17 +155,17 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
         {history.length === 0 ? (
           <Empty>No entries.</Empty>
         ) : (
-          <ol className="flex max-w-[52rem] flex-col border-y border-rule">
+          <ol className="flex max-w-[52rem] flex-col border-y border-line">
             {history.map((h, i) => (
-              <li key={i} className="flex flex-col gap-1 border-t border-rule py-3 first:border-t-0">
+              <li key={i} className="flex flex-col gap-1 border-t border-line py-3 first:border-t-0">
                 <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <span className="text-body font-medium text-ink">{h.action.replace(/_/g, " ")}</span>
+                  <span className="t-b font-medium text-lime">{h.action.replace(/_/g, " ")}</span>
                   <Timestamp iso={h.occurredAt} />
                 </span>
-                {h.reason ? <span className="text-body text-ink-2">{h.reason}</span> : null}
+                {h.reason ? <span className="t-b text-lime-dim">{h.reason}</span> : null}
                 {h.before !== null || h.after !== null ? (
                   <Disclosure className="min-w-0" summary={<>Change</>}>
-                    <pre className="text-id mt-1 max-h-64 overflow-auto bg-sunk p-3 whitespace-pre-wrap [overflow-wrap:anywhere]">{JSON.stringify({ before: h.before, after: h.after }, null, 2)}</pre>
+                    <pre className="t-table font-semibold wrap-anywhere mt-1 max-h-64 overflow-auto bg-vat-2 p-3 whitespace-pre-wrap [overflow-wrap:anywhere]">{JSON.stringify({ before: h.before, after: h.after }, null, 2)}</pre>
                   </Disclosure>
                 ) : null}
               </li>
@@ -178,10 +177,6 @@ async function StudyView({ params }: { params: Promise<{ studyId: string }> }) {
   );
 }
 
-/**
- * Removal of participant data (DR-030): on a participant's request, and after the retention
- * period. Principal investigator only (participants.purge); every removal is journalled.
- */
 async function ParticipantData({ study }: { study: StudyDetail }) {
   const { retentionDays, due } = await listRetentionDue(getPool(), study.id);
   return (
@@ -203,7 +198,7 @@ async function ParticipantData({ study }: { study: StudyDetail }) {
       />
       <div className="grid max-w-[60rem] gap-x-10 gap-y-8 md:grid-cols-2">
         <ActionForm action={purgeRetentionAction.bind(null, study.id)} submitLabel="Remove data past the retention period" variant="destructive" className="flex flex-col gap-4">
-          <p className="text-body text-ink-2">Removes the data of every participant listed above, one by one, with the retention period as the recorded reason.</p>
+          <p className="t-b text-lime-dim">Removes the data of every participant listed above, one by one, with the retention period as the recorded reason.</p>
           <label className={CHECK_ROW}>
             <input type="checkbox" name="confirm" value="yes" className={CHECK_BOX} />
             I confirm the removal
@@ -251,7 +246,7 @@ function ParityAndActivation({
             value: latest ? (
               <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <span className="font-medium">{latest.report.passed ? "Passed" : `Failed: ${latest.report.criticalFailures} critical check(s)`}</span>
-                {latest.report.warnings ? <span className="text-ink-2">{latest.report.warnings} warning(s)</span> : null}
+                {latest.report.warnings ? <span className="text-lime-dim">{latest.report.warnings} warning(s)</span> : null}
                 <Timestamp iso={latest.createdAt} />
                 <Link className={LINK_44} href={`/research/parity?study=${study.id}`}>
                   Open the report
@@ -311,7 +306,7 @@ function ConfigForm({
       <input type="hidden" name="manifestId" value={study.manifestId ?? ""} />
       <fieldset className="flex min-w-0 flex-col gap-1 md:col-span-2">
         <legend className={FIELD_LABEL}>Traditions</legend>
-        {traditions.length === 0 ? <span className="text-credit">Pin a snapshot first.</span> : null}
+        {traditions.length === 0 ? <span className="t-s text-lime-dim">Pin a snapshot first.</span> : null}
         <div className="flex flex-wrap gap-x-6">
           {traditions.map((t) => (
             <label key={t.slug} className={CHECK_ROW}>
@@ -397,7 +392,7 @@ function QuestionnaireFields({ instruments }: { instruments: QuestionnaireInstru
     <div className="flex min-w-0 flex-col gap-2 md:col-span-2">
       <input type="hidden" name="questionnaireCodes" value={instruments.map((q) => q.code).join(",")} />
       {instruments.length === 0 ? (
-        <span className="text-credit">No questionnaire instruments exist yet. Attaching the designed test battery below loads the seeded instruments.</span>
+        <span className="t-s text-lime-dim">No questionnaire instruments exist yet. Attaching the designed test battery below loads the seeded instruments.</span>
       ) : (
         <Table caption="Questionnaires" number={1}>
           <TableHeader>
@@ -416,7 +411,7 @@ function QuestionnaireFields({ instruments }: { instruments: QuestionnaireInstru
               <TableRow key={q.code}>
                 <TableCell className="min-w-56 whitespace-normal">
                   <span className="font-medium">{q.title}</span>
-                  <span className="text-id block text-ink-3">{q.code}</span>
+                  <span className="t-table font-semibold wrap-anywhere block text-lime-dim">{q.code}</span>
                 </TableCell>
                 <TableCell>
                   <NativeSelect name={`questionnaireStep:${q.code}`} defaultValue={q.slot ?? ""} className="w-56" aria-label={`When ${q.title} is given`}>
@@ -453,7 +448,7 @@ function QuestionnaireFields({ instruments }: { instruments: QuestionnaireInstru
           </TableBody>
         </Table>
       )}
-      <span className="text-credit">
+      <span className="t-s text-lime-dim">
         Each instrument used here must also be in the assessment battery below; the parity check refuses the study otherwise. Before the pre-test no condition is known yet, so an instrument given then is for both conditions.
       </span>
     </div>
@@ -491,7 +486,7 @@ function BatteryForm({ study, assessments, disabled }: { study: StudyDetail; ass
               </TableCell>
               <TableCell className="min-w-56 whitespace-normal">
                 <span className="font-medium">{a.title}</span>
-                <span className="text-id block text-ink-3">
+                <span className="t-table font-semibold wrap-anywhere block text-lime-dim">
                   {a.code} v{a.version}, {a.kind}
                 </span>
               </TableCell>

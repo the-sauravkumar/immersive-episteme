@@ -1,8 +1,3 @@
-/**
- * "Identical in Both Conditions" and "Differs by Design" (DESIGN.md 11.1, under Figure 1; 12.1
- * rule 3). A two-column booktabs table grouped under those two heads. The wording restates the
- * condition-parity rules of DESIGN.md 12; it describes the interface, not the craft.
- */
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const IDENTICAL: readonly [string, string][] = [
@@ -23,27 +18,23 @@ const DIFFERS: readonly [string, string][] = [
 function Group({ head, rows }: { head: string; rows: readonly [string, string][] }) {
   return (
     <TableBody>
-      <TableRow className="border-b border-b-rule">
-        <TableHead scope="colgroup" colSpan={2} className="h-11 pt-4 text-ink">
+      <TableRow className="border-b border-b-line">
+        <TableHead scope="colgroup" colSpan={2} className="h-11 pt-4 text-lime">
           {head}
         </TableHead>
       </TableRow>
       {rows.map(([aspect, how]) => (
         <TableRow key={aspect}>
-          <TableHead scope="row" className="h-11 py-2 align-top text-table font-bold text-ink whitespace-normal">
+          <TableHead scope="row" className="h-11 py-2 align-top t-table font-bold text-lime whitespace-normal">
             {aspect}
           </TableHead>
-          <TableCell className="align-top whitespace-normal text-ink-2">{how}</TableCell>
+          <TableCell className="align-top whitespace-normal text-lime-dim">{how}</TableCell>
         </TableRow>
       ))}
     </TableBody>
   );
 }
 
-/**
- * Un-numbered by default: it is the tabular companion of Figure 1, so the home page's numbered
- * table is the dataset table ("Table 1", 11.1). The caption is in Title Case already.
- */
 export function IdenticalDiffersTable({ number }: { number?: number }) {
   return (
     <Table caption="What Is Identical and What Differs" number={number} className="table-fixed">

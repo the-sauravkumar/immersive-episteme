@@ -100,9 +100,9 @@ async function Overview() {
                     <Link className={LINK_44} href={`/research/studies/${s.id}`}>
                       {s.title}
                     </Link>
-                    <span className="mt-1 flex flex-wrap items-center gap-2 text-ink-3">
-                      <span className="text-id">{s.slug}</span>
-                      <span className="text-credit">protocol {s.protocolVersion}</span>
+                    <span className="mt-1 flex flex-wrap items-center gap-2 text-lime-dim">
+                      <span className="t-table font-semibold wrap-anywhere">{s.slug}</span>
+                      <span className="t-s text-lime-dim">protocol {s.protocolVersion}</span>
                       {s.isDemo ? <DemoBadge label="Demo" /> : null}
                     </span>
                   </TableCell>
@@ -119,7 +119,7 @@ async function Overview() {
                         {parity.report.passed ? "Passed" : `Failed (${parity.report.criticalFailures} critical)`}
                       </Link>
                     ) : (
-                      <span className="text-ink-3">Not run</span>
+                      <span className="text-lime-dim">Not run</span>
                     )}
                   </TableCell>
                   <TableCell numeric>

@@ -1,15 +1,3 @@
-/**
- * /cms/media content (server component, rendered inside <Suspense>), DESIGN.md 11.10:
- *  1. Figure Balance, the review gate (./figure-balance.tsx);
- *  2. the selected asset (preview in the fixed 3:2 slot, metadata, review, concept links with
- *     their anchor claims);
- *  3. the library: a dense booktabs table with Thumbnail (3:2), Credit, Licence, Max Pixels,
- *     Licence Expiry (tabular date; expiring rows flagged with --warn and the word), Linked
- *     Concept, Anchor Claim, Tradition and Layer;
- *  4. upload;
- *  5. imported media candidates with their licence decisions, and the asset each was imported as.
- * Which forms show is cosmetic; every action re-checks permissions on the server. No madder.
- */
 import { Check, CircleAlert, CircleCheck, Clock } from "lucide-react";
 import Link from "next/link";
 
@@ -55,12 +43,10 @@ import { AssetMetadataFields } from "./asset-metadata-fields";
 import { FigureBalanceSection } from "./figure-balance";
 import { UploadForm } from "./upload-form";
 
-/** A licence that ends within this many days is flagged as expiring (11.10). */
 export const LICENCE_WARN_DAYS = 90;
 
 export type LicenceStatus = { kind: "none" } | { kind: "valid"; day: string } | { kind: "expiring"; day: string; daysLeft: number } | { kind: "expired"; day: string };
 
-/** The licence expiry state of an asset on `today` (YYYY-MM-DD). */
 export function licenceStatus(expiresOn: string | null, today: string): LicenceStatus {
   if (!expiresOn) return { kind: "none" };
   if (!licenceValidOn(expiresOn, today)) return { kind: "expired", day: expiresOn };
@@ -69,8 +55,8 @@ export function licenceStatus(expiresOn: string | null, today: string): LicenceS
 }
 
 function LicenceExpiry({ status }: { status: LicenceStatus }) {
-  if (status.kind === "none") return <span className="text-ink-3">No expiry</span>;
-  const date = <time dateTime={status.day} className="text-id tabular-nums whitespace-nowrap text-ink">{status.day}</time>;
+  if (status.kind === "none") return <span className="text-lime-dim">No expiry</span>;
+  const date = <time dateTime={status.day} className="t-table font-semibold wrap-anywhere tabular-nums whitespace-nowrap text-lime">{status.day}</time>;
   if (status.kind === "valid") return date;
   return (
     <span className="flex flex-col items-end gap-1">
@@ -102,17 +88,15 @@ const layerOf = (type: string) => LAYER_LABEL[exposureLayerOf(type as ConceptTyp
 const ROLE_LABEL: Record<string, string> = { illustration: "Illustration" };
 const roleLabel = (r: string) => ROLE_LABEL[r] ?? r.charAt(0).toUpperCase() + r.slice(1).replace(/_/g, " ");
 
-/** The fixed 3:2 thumbnail slot (--sunk mat, 1 px rule, contain), like the study figure slot. */
 function Thumb({ asset: a, width }: { asset: AssetListItem; width: number }) {
   const isImage = a.kind === "image" || a.kind === "texture";
   return (
-    <span className="flex aspect-[3/2] shrink-0 items-center justify-center border border-rule bg-sunk" style={{ width }}>
+    <span className="flex aspect-[3/2] shrink-0 items-center justify-center border border-line bg-vat-2" style={{ width }}>
       {isImage ? (
-        // Staff-only authenticated original; next/image would fetch it without the session cookie.
         // eslint-disable-next-line @next/next/no-img-element
         <img src={`/cms/media/file/${a.id}`} alt="" width={width} height={Math.round((width * 2) / 3)} className="size-full object-contain" loading="lazy" decoding="async" />
       ) : (
-        <span className="text-label">{a.kind}</span>
+        <span className="t-label">{a.kind}</span>
       )}
     </span>
   );
@@ -194,7 +178,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
               key={s ?? "all"}
               href={query({ state: s, asset: null, page: null })}
               aria-current={state === s ? "page" : undefined}
-              className={cn(BLOCK_LINK, "min-w-11 justify-center aria-[current=page]:font-semibold aria-[current=page]:text-ink aria-[current=page]:no-underline")}
+              className={cn(BLOCK_LINK, "min-w-11 justify-center aria-[current=page]:font-semibold aria-[current=page]:text-lime aria-[current=page]:no-underline")}
             >
               {s ? STATE_LABELS[s] : "All"}
             </Link>
@@ -251,12 +235,12 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                             {a.title}
                           </Link>
                           {isSel ? (
-                            <span className="text-credit flex items-center gap-1 text-ink">
-                              <Check aria-hidden="true" className="size-3.5 text-indigo" />
+                            <span className="t-s text-lime-dim flex items-center gap-1 text-lime">
+                              <Check aria-hidden="true" className="size-3.5 text-turmeric" />
                               Selected
                             </span>
                           ) : null}
-                          <span className="text-credit block tabular-nums">
+                          <span className="t-s text-lime-dim block tabular-nums">
                             {a.width && a.height ? `${a.width} × ${a.height} px, ` : ""}
                             {bytes(a.byteSize)}
                           </span>
@@ -265,19 +249,19 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                           {a.credit?.trim() ? (
                             a.credit
                           ) : a.kind === "image" || a.kind === "texture" ? (
-                            <span className="inline-flex items-start gap-1 text-danger">
+                            <span className="inline-flex items-start gap-1 text-madder-text">
                               <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
                               Missing: blocks verification
                             </span>
                           ) : (
-                            <span className="text-ink-3">None</span>
+                            <span className="text-lime-dim">None</span>
                           )}
                         </TableCell>
                         <TableCell rowSpan={span} className="max-w-40 py-2 align-top whitespace-normal">
-                          {a.licence ?? <span className="text-ink-3">None</span>}
+                          {a.licence ?? <span className="text-lime-dim">None</span>}
                         </TableCell>
                         <TableCell rowSpan={span} numeric className="py-2 align-top">
-                          {a.maxPixels ?? <span className="text-ink-3">No cap</span>}
+                          {a.maxPixels ?? <span className="text-lime-dim">No cap</span>}
                         </TableCell>
                         <TableCell rowSpan={span} numeric className="py-2 align-top">
                           <LicenceExpiry status={licenceStatus(a.licenceExpiresOn, today)} />
@@ -290,20 +274,20 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                           <Link href={`/cms/concepts/${l.conceptId}`} className={ROW_LINK}>
                             {l.conceptTitle}
                           </Link>
-                          {l.role !== "illustration" ? <span className="text-credit block">{roleLabel(l.role)}</span> : null}
+                          {l.role !== "illustration" ? <span className="t-s text-lime-dim block">{roleLabel(l.role)}</span> : null}
                         </TableCell>
                         <TableCell numeric className="py-2 align-top">
                           {l.role === "illustration" ? (
                             l.anchorClaim ? (
                               <span title={l.anchorClaim}>Claim {l.position + 1}</span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-danger">
+                              <span className="inline-flex items-center gap-1 text-madder-text">
                                 <CircleAlert aria-hidden="true" className="size-4" />
                                 No claim {l.position + 1}
                               </span>
                             )
                           ) : (
-                            <span className="text-ink-3">Not a figure</span>
+                            <span className="text-lime-dim">Not a figure</span>
                           )}
                         </TableCell>
                         <TableCell className="py-2 align-top whitespace-nowrap">
@@ -312,13 +296,13 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                               {l.traditionName}
                             </>
                           ) : (
-                            <span className="text-ink-3">Shared</span>
+                            <span className="text-lime-dim">Shared</span>
                           )}
                         </TableCell>
                         <TableCell className="py-2 align-top">{layerOf(l.conceptType)}</TableCell>
                       </>
                     ) : (
-                      <TableCell colSpan={4} className="py-2 align-top text-ink-3">
+                      <TableCell colSpan={4} className="py-2 align-top text-lime-dim">
                         Not linked to a concept
                       </TableCell>
                     )}
@@ -382,23 +366,23 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                         {c.title}
                         <span className="sr-only"> (opens the source page in a new tab)</span>
                       </a>
-                      {c.packageSlug ? <span className="text-credit block">{packageLabel(c.packageSlug)}</span> : null}
+                      {c.packageSlug ? <span className="t-s text-lime-dim block">{packageLabel(c.packageSlug)}</span> : null}
                     </TableCell>
-                    <TableCell className="min-w-52 py-2 align-top whitespace-normal">{c.depictsKey ? <Mono>{c.depictsKey}</Mono> : <span className="text-ink-3">None</span>}</TableCell>
+                    <TableCell className="min-w-52 py-2 align-top whitespace-normal">{c.depictsKey ? <Mono>{c.depictsKey}</Mono> : <span className="text-lime-dim">None</span>}</TableCell>
                     <TableCell className="max-w-56 py-2 align-top whitespace-normal">
-                      {c.licence ?? <span className="text-ink-3">No licence stated</span>}
-                      {c.author ? <span className="text-credit block">{c.author}</span> : null}
+                      {c.licence ?? <span className="text-lime-dim">No licence stated</span>}
+                      {c.author ? <span className="t-s text-lime-dim block">{c.author}</span> : null}
                     </TableCell>
                     <TableCell numeric className="py-2 align-top whitespace-nowrap">
-                      {c.width && c.height ? `${c.width} × ${c.height}` : <span className="text-ink-3">Unknown</span>}
-                      {c.mimeType ? <span className="text-credit block">{c.mimeType}</span> : null}
+                      {c.width && c.height ? `${c.width} × ${c.height}` : <span className="text-lime-dim">Unknown</span>}
+                      {c.mimeType ? <span className="t-s text-lime-dim block">{c.mimeType}</span> : null}
                     </TableCell>
                     <TableCell className="py-2 align-top">
                       <Badge variant={st.variant}>
                         {st.Icon ? <st.Icon aria-hidden="true" /> : null}
                         {st.label}
                       </Badge>
-                      {c.notes ? <span className="text-credit mt-1 block max-w-48 whitespace-normal">{c.notes}</span> : null}
+                      {c.notes ? <span className="t-s text-lime-dim mt-1 block max-w-48 whitespace-normal">{c.notes}</span> : null}
                     </TableCell>
                     {canReview ? (
                       <TableCell className="min-w-52 py-1 align-top whitespace-normal">
@@ -426,7 +410,7 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
                             Imported as {c.assetTitle ?? "an asset"}
                           </Link>
                         ) : (
-                          <span className="text-ink-3">Imported</span>
+                          <span className="text-lime-dim">Imported</span>
                         )}
                       </TableCell>
                     ) : null}
@@ -441,7 +425,6 @@ export async function MediaLibrary({ searchParams }: { searchParams: Promise<Sea
   );
 }
 
-/** "machilipatnam-kalamkari" -> "Machilipatnam Kalamkari": a content package by name, not slug. */
 function packageLabel(slug: string): string {
   return slug
     .split("-")
@@ -493,11 +476,11 @@ function SelectedAsset({
         <div className="flex min-w-0 flex-col gap-2">
           {isImage ? (
             <figure className="flex flex-col gap-2">
-              <span className="flex aspect-[3/2] w-full items-center justify-center border border-rule bg-sunk">
+              <span className="flex aspect-[3/2] w-full items-center justify-center border border-line bg-vat-2">
                 {/* eslint-disable-next-line @next/next/no-img-element -- staff-only authenticated original */}
                 <img src={`/cms/media/file/${a.id}`} alt={a.altText ?? ""} width={a.width ?? undefined} height={a.height ?? undefined} className="size-full object-contain" />
               </span>
-              <figcaption className="text-credit">
+              <figcaption className="t-s text-lime-dim">
                 {a.caption ?? "No caption."}
                 {a.credit ? ` ${a.credit}` : ""}
                 {a.licence ? `, ${a.licence}` : ""}
@@ -505,15 +488,15 @@ function SelectedAsset({
             </figure>
           ) : null}
           <dl className="grid grid-cols-[8rem_minmax(0,1fr)] gap-x-3 gap-y-1">
-            <dt className="text-label pt-0.5">Shown at</dt>
-            <dd className="text-value tabular-nums">
+            <dt className="t-label pt-0.5">Shown at</dt>
+            <dd className="t-b tabular-nums">
               {edge === null ? "Unknown" : `${Math.min(edge, STUDY_FIGURE_CAP)} px long edge`}
-              {edge !== null && edge < STUDY_FIGURE_CAP ? <span className="block text-danger">Below the {STUDY_FIGURE_CAP} px study cap</span> : null}
+              {edge !== null && edge < STUDY_FIGURE_CAP ? <span className="block text-madder-text">Below the {STUDY_FIGURE_CAP} px study cap</span> : null}
             </dd>
-            <dt className="text-label pt-0.5">Public plate</dt>
-            <dd className="text-value">{a.publicPlate ? "Cleared" : "No"}</dd>
-            <dt className="text-label pt-0.5">Checksum</dt>
-            <dd className="text-value min-w-0">
+            <dt className="t-label pt-0.5">Public plate</dt>
+            <dd className="t-b">{a.publicPlate ? "Cleared" : "No"}</dd>
+            <dt className="t-label pt-0.5">Checksum</dt>
+            <dd className="t-b min-w-0">
               <Mono>{a.sha256}</Mono>
             </dd>
           </dl>
@@ -525,15 +508,15 @@ function SelectedAsset({
               Source record<span className="sr-only"> (opens in a new tab)</span>
             </a>
           ) : null}
-          {a.sourceTitle ? <p className="text-body">Cited source: {a.sourceTitle}</p> : null}
-          <p className="text-credit">Provenance: {PROVENANCE_LABELS[a.provenanceKind] ?? a.provenanceKind}</p>
+          {a.sourceTitle ? <p className="t-b">Cited source: {a.sourceTitle}</p> : null}
+          <p className="t-s text-lime-dim">Provenance: {PROVENANCE_LABELS[a.provenanceKind] ?? a.provenanceKind}</p>
         </div>
 
         <div className="flex min-w-0 flex-col gap-8">
           {canUpload ? (
             <div className="flex flex-col gap-3">
-              <h3 className="text-label border-b border-rule pb-1">Metadata</h3>
-              {a.verificationState === "verified" || a.verificationState === "published" ? <p className="text-body text-ink-2">Saving changes to a verified asset sends it back to review.</p> : null}
+              <h3 className="t-label border-b border-line pb-1">Metadata</h3>
+              {a.verificationState === "verified" || a.verificationState === "published" ? <p className="t-b text-lime-dim">Saving changes to a verified asset sends it back to review.</p> : null}
               <ActionForm action={updateAssetAction} submitLabel="Save metadata">
                 <input type="hidden" name="assetId" value={a.id} />
                 <AssetMetadataFields isImage={isImage} sources={options.sources} defaults={{ ...a }} />
@@ -548,8 +531,8 @@ function SelectedAsset({
 
           {canUpload && approvedCandidates.length > 0 ? (
             <div className="flex flex-col gap-3">
-              <h3 className="text-label border-b border-rule pb-1">{titleCase("Made from a media candidate")}</h3>
-              <p className="text-body text-ink-2">
+              <h3 className="t-label border-b border-line pb-1">{titleCase("Made from a media candidate")}</h3>
+              <p className="t-b text-lime-dim">
                 If you uploaded this file from a candidate whose licence a reviewer approved, record it here. The candidate is then marked imported and links to this asset.
               </p>
               <ActionForm action={recordCandidateImportAction} submitLabel="Record import" submitVariant="outline">
@@ -575,12 +558,12 @@ function SelectedAsset({
 
           {canReview && a.verificationState === "under_review" ? (
             <div className="flex flex-col gap-3">
-              <h3 className="text-label border-b border-rule pb-1">Review</h3>
-              {ownWork ? <p className="text-body text-ink-2">You uploaded or last edited this asset, so another reviewer must verify it.</p> : null}
+              <h3 className="t-label border-b border-line pb-1">Review</h3>
+              {ownWork ? <p className="t-b text-lime-dim">You uploaded or last edited this asset, so another reviewer must verify it.</p> : null}
               <ActionForm action={reviewAssetAction} submitLabel="Record decision">
                 <input type="hidden" name="assetId" value={a.id} />
                 <fieldset className="flex min-w-0 flex-col">
-                  <legend className="text-label mb-1">Decision</legend>
+                  <legend className="t-label mb-1">Decision</legend>
                   {(
                     [
                       ["verified", "Verify", ownWork],
@@ -588,15 +571,14 @@ function SelectedAsset({
                       ["rejected", "Reject", false],
                     ] as const
                   ).map(([value, label, disabled]) => (
-                    <label key={value} className={cn(CHECK_ROW, disabled && "cursor-not-allowed text-ink-3")}>
-                      {/* Nothing pre-selected (a slip must not record a decision); the browser asks for one. */}
+                    <label key={value} className={cn(CHECK_ROW, disabled && "cursor-not-allowed text-lime-dim")}>
                       <input type="radio" name="to" value={value} required disabled={disabled} className={CHECK_BOX} />
                       {label}
                     </label>
                   ))}
                 </fieldset>
                 <fieldset className="flex min-w-0 flex-col">
-                  <legend className="text-label mb-1">Evidence checked (all required to verify)</legend>
+                  <legend className="t-label mb-1">Evidence checked (all required to verify)</legend>
                   {MEDIA_EVIDENCE_CHECKS.map((c) => (
                     <label key={c} className={CHECK_ROW}>
                       <input type="checkbox" name="evidenceChecked" value={c} className={CHECK_BOX} />
@@ -615,24 +597,24 @@ function SelectedAsset({
           ) : null}
 
           <div className="flex flex-col gap-3">
-            <h3 className="text-label border-b border-rule pb-1">{titleCase("Linked concepts")}</h3>
+            <h3 className="t-label border-b border-line pb-1">{titleCase("Linked concepts")}</h3>
             {a.links.length === 0 ? (
               <Empty>Not linked to any concept.</Empty>
             ) : (
               <ul className="flex flex-col">
                 {a.links.map((l) => (
-                  <li key={l.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-rule py-2">
+                  <li key={l.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b border-line py-2">
                     <div className="flex min-w-0 flex-col">
                       <Link href={`/cms/concepts/${l.conceptId}`} className={cn(LINK, "inline-flex min-h-11 items-center")}>
                         {l.conceptTitle}
                       </Link>
-                      <span className="text-credit">
+                      <span className="t-s text-lime-dim">
                         {roleLabel(l.role)}
                         {l.role === "illustration" ? `, after claim ${l.position + 1}` : ""}
                         {l.traditionName ? `, ${l.traditionName}` : ""}, {layerOf(l.conceptType)} layer
                       </span>
-                      {l.role === "illustration" && l.anchorClaim ? <span className="text-body mt-1 max-w-[34rem] bg-sunk px-3 py-1 text-ink-2">{l.anchorClaim}</span> : null}
-                      <span className="text-credit mt-1">
+                      {l.role === "illustration" && l.anchorClaim ? <span className="t-b mt-1 max-w-[34rem] bg-vat-2 px-3 py-1 text-lime-dim">{l.anchorClaim}</span> : null}
+                      <span className="t-s text-lime-dim mt-1">
                         {l.captionOverride ? `Caption for this concept: ${l.captionOverride}` : "Caption: the asset's own caption"}
                       </span>
                     </div>
@@ -697,7 +679,7 @@ function SelectedAsset({
                   </div>
                 </div>
                 <CaptionOverrideField id={`link-caption-new-${a.id}`} defaultValue="" />
-                <p id={`link-anchor-${a.id}-hint`} className="text-credit">
+                <p id={`link-anchor-${a.id}-hint`} className="t-s text-lime-dim">
                   Anchor claim: the number of the claim the figure follows, as the proof numbers it (1 for the first claim). A concept shows at most one
                   illustration. For other roles the number is the display order.
                 </p>
@@ -715,7 +697,7 @@ function CaptionOverrideField({ id, defaultValue }: { id: string; defaultValue: 
     <div className="flex min-w-0 flex-col gap-1.5">
       <Label htmlFor={id}>Caption for this concept (optional)</Label>
       <Textarea id={id} name="captionOverride" rows={2} maxLength={FIGURE_CAPTION_MAX} defaultValue={defaultValue} aria-describedby={`${id}-hint`} />
-      <p id={`${id}-hint`} className="text-credit">
+      <p id={`${id}-hint`} className="t-s text-lime-dim">
         Shown to learners under the figure in place of the asset&apos;s caption, at most {FIGURE_CAPTION_MAX} characters and never the alt text. Leave it empty to use the asset&apos;s
         caption. Changing it on a verified asset sends the asset back to review.
       </p>

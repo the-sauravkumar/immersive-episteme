@@ -13,7 +13,7 @@ import { useRenderFailureReport } from "./door-progress";
 
 const WalkthroughPractice = dynamic(() => import("./composed-walkthrough").then((module) => module.ComposedWalkthroughPractice), {
   ssr: false,
-  loading: () => <div className="walkthrough walkthrough-loading walking" role="status">Opening The Yard</div>,
+  loading: () => <div className="walkthrough walkthrough-loading" role="status">Opening The Yard</div>,
 });
 
 interface PracticeDoorProps {

@@ -1,9 +1,3 @@
-/**
- * Privacy (DESIGN.md 11.4): long-form text in the editorial frame. It describes only what the
- * platform's code does (pseudonymous participants, the cookies it sets and their lifetimes, what a
- * demo stores, what the browser keeps). The contacts list (a `<dl>`) and the retention period
- * appear only once the team supplies them; nothing is shown as "to be confirmed" (DESIGN.md 13).
- */
 import type { Metadata } from "next";
 
 import { EditorialFrame, EditorialRow, EditorialSection, Prose } from "@/components/public/editorial-frame";
@@ -13,7 +7,7 @@ import { duration, STAFF_COOKIES, VISITOR_COOKIES } from "@/server/public/cookie
 
 export const metadata: Metadata = { title: "Privacy" };
 
-const LIST = "text-reading flex list-disc flex-col gap-2 pl-6 text-ink marker:text-ink-3";
+const LIST = "t-b flex list-disc flex-col gap-2 pl-6 text-lime marker:text-lime-dim";
 
 export default function PrivacyPage() {
   return (

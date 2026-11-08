@@ -21,7 +21,6 @@ import { getPool } from "@/server/db/client";
 
 export const metadata: Metadata = { title: "Traditions" };
 
-/** May block: access is verified against the staff session on the server for every navigation (Next 16 `instant`, "Disabling instant"). */
 export const instant = false;
 
 export default function Page({ searchParams }: PageProps<"/cms/traditions">) {
@@ -38,7 +37,6 @@ async function Traditions({ searchParams }: { searchParams: Promise<SearchParams
   const principal = await requirePermission("content.read");
   const sp = await searchParams;
   const pool = getPool();
-  // Canonical alphabetical order (DR-019, DESIGN.md 12.3 rule 12), the same as every learner list.
   const rows = inCanonicalOrder(await listTraditions(pool));
   const selected = rows.find((t) => t.id === one(sp.edit)) ?? null;
   const canCreate = canAny(principal, ["content.draft", "content.edit"]);
@@ -67,7 +65,7 @@ async function Traditions({ searchParams }: { searchParams: Promise<SearchParams
                   <Link href={`/cms/traditions?edit=${t.id}#tradition`} className={ROW_LINK}>
                     {t.name}
                   </Link>
-                  {selected?.id === t.id ? <span className="text-credit"> (selected)</span> : null}
+                  {selected?.id === t.id ? <span className="t-s text-lime-dim"> (selected)</span> : null}
                   <Mono className="block">{t.slug}</Mono>
                 </TableCell>
                 <TableCell className="whitespace-normal">{[t.regionPlace, t.regionDistrict, t.regionState].filter(Boolean).join(", ") || "—"}</TableCell>
@@ -121,7 +119,7 @@ async function SelectedTradition({ t, canEdit, principal }: { t: TraditionRow; c
         </Section>
         <Section id="t-sources" title="Sources for tradition facts" description="The GI record, region and identity facts must be backed by sources before the tradition can be verified.">
           {t.sources.length ? (
-            <ul className="flex flex-col gap-2 text-body">
+            <ul className="flex flex-col gap-2 t-b">
               {t.sources.map((s) => (
                 <li key={`${s.sourceId}-${s.purpose}`} className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{s.purpose}</span>

@@ -11,7 +11,7 @@ import { useDoorProgress, useRenderFailureReport } from "./door-progress";
 
 const WalkthroughSession = dynamic(() => import("./composed-walkthrough").then((module) => module.ComposedWalkthroughSession), {
   ssr: false,
-  loading: () => <div className="walkthrough walkthrough-loading walking" role="status">Opening The Yard</div>,
+  loading: () => <div className="walkthrough walkthrough-loading" role="status">Opening The Yard</div>,
 });
 
 export function WalkthroughDoor({ templates, resume, studyMode, guidance }: DoorSessionProps) {
