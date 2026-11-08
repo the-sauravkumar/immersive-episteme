@@ -197,8 +197,8 @@ Reference geometry, metres: eye height 1.6; field of view 55°; yard about 36 wi
 ### 8.5 Route
 - One-way, in process order, back allowed. `W A S D` walk, drag look, `B` back along the route, with overlay buttons as a guided alternative that auto-walks at normal speed, interruptible and logged apart.
 - **Cues at every station:** the cloth, the next number and name by the gap, and the working objects. No breadcrumb props.
-- **Overlay:** one compact cluster on `--vat` plates: route map with tradition and `Station N Of T`, Map, Sources, Help, Pause. Keys are taught in practice and recalled through Help, not shown permanently.
-- **Between stations:** no spinner mid-walk; the next yard is loaded before the learner reaches the gap.
+- **Overlay:** one compact cluster on `--vat` plates: route map with tradition and `Stage N Of T` (the same words as the Door 1 kicker, from `stageOfTotal`; the hall shows `Finished Textiles`, unnumbered, as the Door 1 product panel does), Map, Sources, Help, Pause. Keys are taught in practice and recalled through Help, not shown permanently.
+- **Between stations:** no spinner mid-walk; the next yard is loaded before the learner reaches the gap, and the walk cannot pass the gap into a yard that is not built (`furthestReachable`).
 - **Logging hooks:** path, dwell at each object, approach distance, viewpoint changes, wrong turns, walking time (note, Section 8).
 
 ### 8.6 Map

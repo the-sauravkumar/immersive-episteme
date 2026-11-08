@@ -86,6 +86,8 @@ export const FOLLOWED_CLOTH_LABEL = "The Cloth You Followed";
 export const PRODUCT_TITLE = "Finished Textiles";
 export const PRODUCT_SENTENCE = "The cloth you followed from Stage 1, and others from the same tradition.";
 
+export const stageOfTotal = (stageNumber: number, template: StageTemplate): string => `Stage ${stageNumber} Of ${template.stages.length}`;
+
 export function unverifiedStages(templates: readonly StageTemplate[], verifiedStageConcepts: ReadonlySet<string>): string[] {
   return templates.flatMap((template) =>
     template.stages.filter((stage) => stage.sourceStageKeys.length === 0 || stage.sourceStageKeys.some((key) => !verifiedStageConcepts.has(key))).map((stage) => stage.key),

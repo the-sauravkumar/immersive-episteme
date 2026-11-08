@@ -32,6 +32,12 @@ export function walkerAt(from: Vec3, to: Vec3, index: number): Walker {
   return { x: from[0], z: worldZ(from[2], index), yaw: Math.atan2(-dx, -dz), pitch: Math.atan2(to[1] - from[1], Math.hypot(dx, dz)), walked: 0 };
 }
 
+export function furthestReachable(current: number, isBuilt: (index: number) => boolean, lastStation: number): number {
+  let furthest = Math.max(0, current);
+  while (furthest < lastStation && isBuilt(furthest + 1)) furthest++;
+  return furthest;
+}
+
 export function eyeOf(walker: Walker): Vec3 {
   return [walker.x, EYE_HEIGHT, walker.z];
 }

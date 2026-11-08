@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
 import { finishLabel, HELP_TITLE, HINT_TITLE, NO_GUIDANCE, PAUSE_TEXT, PAUSE_TITLE, RESUME_LABEL, sessionHelpLines, SOURCES_AND_CREDITS_LABEL, SOURCES_LABEL, type DoorGuidance } from "@/features/process/domain/guidance";
-import { exhibitCreditLines, exhibitImages, type StageTemplate } from "@/features/process/domain/stage-template";
+import { exhibitCreditLines, exhibitImages, stageOfTotal, type StageTemplate } from "@/features/process/domain/stage-template";
 import { DoorDialog } from "@/features/process/ui/door-dialog";
 import { HelpIcon, HintIcon, PauseIcon } from "@/features/process/ui/door-icons";
 import { StallCue } from "@/features/process/ui/stall-cue";
@@ -290,7 +290,7 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
         </ol>
         <p>
           <b>{template.traditionName}</b>
-          <span>{atHall ? station?.name : `Station ${station?.stageNumber ?? ""} Of ${template.stages.length}`}</span>
+          <span>{station?.stageNumber ? stageOfTotal(station.stageNumber, template) : station?.name}</span>
         </p>
       </div>
       <div className="walkthrough-tools">

@@ -3,7 +3,7 @@ import type { Box } from "../domain/geometry";
 import { NEXT_YARD_OFFSET } from "../domain/yard-plan";
 import type { RouteStation } from "../domain/route-plan";
 import { RenderScaleGovernor, startingRenderScale, topRenderScale, type FrameSample } from "../domain/render-scale";
-import { easeYaw, eyeOf, localZ, moveTowards, nearestWaypoint, stationIndexAt, steerAlong, stepWalker, turnBetween, walkerAt, worldZ, type WalkInput, type WalkTarget, type Walker } from "../domain/walk-state";
+import { easeYaw, eyeOf, furthestReachable, localZ, moveTowards, nearestWaypoint, stationIndexAt, steerAlong, stepWalker, turnBetween, walkerAt, worldZ, type WalkInput, type WalkTarget, type Walker } from "../domain/walk-state";
 import { buildYard, releaseYard, YardKit, type BuiltYard } from "./build-yard";
 import { GpuFrameTimer } from "./gpu-frame-timer";
 import { addHorizon } from "./horizon";
@@ -372,7 +372,7 @@ export class WalkRuntime {
       const moving = this.autoInput();
       const input: WalkInput = { forward: moving.forward, strafe: moving.strafe, lookX: this.input.lookX, lookY: this.input.lookY };
       const from = this.walker;
-      this.walker = stepWalker(this.walker, input, seconds, this.collidersHere(), this.stations.length - 1);
+      this.walker = stepWalker(this.walker, input, seconds, this.collidersHere(), furthestReachable(this.current, (index) => this.built.has(index), this.stations.length - 1));
       if (this.autoHeading !== null) {
         const yaw = easeYaw(this.walker.yaw, this.autoHeading, seconds);
         const pitch = this.walker.pitch + (this.autoPitch - this.walker.pitch) * Math.min(1, seconds * 2);

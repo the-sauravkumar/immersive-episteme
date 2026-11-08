@@ -112,6 +112,7 @@ function buildHallPlan(followedClothRailZ: number): YardPlan {
   for (let z = followedClothRailZ + 3; z < YARD_FRONT_Z - 0.6; z += 2.2) {
     pins.push([CLOTH_LINE_X - CLOTH_WIDTH / 2 + 0.02, z], [CLOTH_LINE_X + CLOTH_WIDTH / 2 - 0.02, z + 0.3]);
   }
+  const standpoint = { from: [CLOTH_LINE_X - 5.4, EYE_HEIGHT, 10.5] as Vec3, to: [CLOTH_LINE_X + 3.4, 1.85, -1.5] as Vec3 };
   return {
     ...base,
     rails,
@@ -119,8 +120,9 @@ function buildHallPlan(followedClothRailZ: number): YardPlan {
     cloth: [{ name: "cloth-followed", state: "after", spec }],
     pins,
     tie: { x: CLOTH_LINE_X - TIE_BOARD_OFFSET, z0: followedClothRailZ - 0.15, z1: followedClothRailZ + 2, y: 1.3 },
-    standpoint: { from: [CLOTH_LINE_X - 5.4, EYE_HEIGHT, 10.5], to: [CLOTH_LINE_X + 3.4, 1.85, -1.5] },
+    standpoint,
     heightField: field,
+    walkLine: [[standpoint.from[0], standpoint.from[2]], ...base.walkLine.slice(1)],
   };
 }
 

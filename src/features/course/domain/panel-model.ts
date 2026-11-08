@@ -1,4 +1,4 @@
-import { CLOTH_AFTER_LABEL, type ItemRole, type SourceRef, type StageTemplate, type TemplateStage } from "@/features/process/domain/stage-template";
+import { CLOTH_AFTER_LABEL, stageOfTotal, type ItemRole, type SourceRef, type StageTemplate, type TemplateStage } from "@/features/process/domain/stage-template";
 import { clothStatePath, clothStripPath, stillPath } from "@/features/process/domain/asset-catalogue";
 import { PRACTICE_OBJECT_LABEL } from "@/features/process/domain/guidance";
 import { itemColourIsUnsettled, stageItemStillPath } from "@/features/process/domain/substance-look";
@@ -50,7 +50,7 @@ export function stagePanelModel(template: StageTemplate, stageIndex: number): St
   const previous = template.stages[stageIndex - 1];
   return {
     key: stage.key,
-    kicker: `${template.traditionName}, Stage ${stage.number} Of ${template.stages.length}`,
+    kicker: `${template.traditionName}, ${stageOfTotal(stage.number, template)}`,
     numeral: String(stage.number),
     name: stage.name,
     localName: stage.localName,

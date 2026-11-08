@@ -69,15 +69,15 @@ async function walkYards(page: Page, journey: Journey): Promise<void> {
     await expect(session.locator("canvas")).toHaveCount(1, { timeout: 180_000 });
     await expect(page.locator(".walkthrough-cover")).toHaveCount(0, { timeout: 180_000 });
     for (let station = 1; station <= STOPS_PER_TRADITION - 1; station++) {
-      await expect(label).toHaveText(`Station ${station} Of ${STOPS_PER_TRADITION - 1}`, { timeout: 180_000 });
+      await expect(label).toHaveText(`Stage ${station} Of ${STOPS_PER_TRADITION - 1}`, { timeout: 180_000 });
       if (tradition === 0 && (station === 1 || station === 2)) await shot(page, journey, `door2-station-${station}`, [1366]);
       if (tradition === 0 && station === 2) {
         await page.waitForTimeout(15_000);
         await page.getByRole("button", { name: "Back", exact: true }).click();
-        await expect(label).toHaveText("Station 1 Of 9", { timeout: 180_000 });
+        await expect(label).toHaveText("Stage 1 Of 9", { timeout: 180_000 });
         await page.waitForTimeout(25_000);
         await page.getByRole("button", { name: "Walk On" }).click();
-        await expect(label).toHaveText("Station 2 Of 9", { timeout: 180_000 });
+        await expect(label).toHaveText("Stage 2 Of 9", { timeout: 180_000 });
         await page.waitForTimeout(15_000);
       }
       await page.getByRole("button", { name: "Walk On" }).click();
