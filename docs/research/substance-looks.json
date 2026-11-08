@@ -4874,6 +4874,99 @@
     "measurements": []
   },
   {
+    "key": "machilipatnam-kalamkari-buffalo-milk",
+    "traditions": [
+      "machilipatnam-kalamkari"
+    ],
+    "stages": [
+      "machilipatnam-kalamkari.myrobalan-treatment"
+    ],
+    "label": "Buffalo Milk",
+    "localName": null,
+    "form": "liquid",
+    "formWords": "Fresh buffalo milk, a liquid, used with the myrobalan to treat the cloth.",
+    "status": "inferred",
+    "colourWords": "Opaque white with a faint cool cast, whiter than cow's milk: buffalo milk carries no carotene, the pigment that gives cow's milk a golden or creamy hue. No source states the colour of the milk used at Pedana.",
+    "colourHex": null,
+    "renderHex": "#EDEBDE",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred: #EDEBDE is CIE L* 93.0, a* -1.7, b* 6.5 (D65), the mean colour measured for buffalo's kefir in the review of milk colour data (Milovanovic et al. 2020, Table 9), converted to sRGB. Kefir is fermented milk, not fresh milk, so the hex is a same-species analogue, not a measurement of the milk itself; no colorimetry of raw buffalo milk was found. It agrees with the milky off-white #EFEBDF already used for the buffalo-milk rice starch.",
+    "basis": "Same-species dairy measurement taken as an analogue, with the absence of carotene from a review of buffalo milk composition.",
+    "confidence": "low-medium",
+    "variation": "The sources disagree on where the milk goes: S15 treats the cloth with myrobalan seeds and buffalo milk, S6 soaks the fabric in buffalo milk and cow dung before the myrobalan, and S4 adds fresh buffalo milk to the yellow starch. Sengupta records a myrobalan and buffalo milk solution at Polavaram. Milk diluted in the bath would look thinner and less opaque.",
+    "transparency": "opaque",
+    "transparencyBasis": "evidence",
+    "surface": "wet, smooth",
+    "surfaceWords": "A smooth, opaque white liquid with a faint sheen; the sheen is an inference from the milk fat.",
+    "surfaceBasis": "inferred",
+    "vesselSuggestion": null,
+    "conflicts": [],
+    "evidence": [
+      {
+        "kind": "project-source",
+        "source": "As fake Kalamkari takes over the market, the original struggles in Andhra's Pedana (machilipatnam-kalamkari S15, The News Minute)",
+        "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+        "quote": "The next step involves treating the cloth with Myrobalan seeds and buffalo milk to prevent smudging of dyes when painted.",
+        "supports": "form"
+      },
+      {
+        "kind": "project-source",
+        "source": "Kalamkari — The Block Prints of Machalipatnam (craft documentation) (machilipatnam-kalamkari S4, Craftmark / AIACA)",
+        "locator": "PDF p. 12",
+        "quote": "Fresh buffalo milk is also added to the starch solution to prevent the colors from running.",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "Abd El-Salam and El-Shibiny 2011, A comprehensive review on the composition and properties of buffalo milk, Dairy Science & Technology 91, 663-699 (FAO AGRIS record, abstract)",
+        "url": "https://agris.fao.org/search/en/records/65de787b6eef00c2cea09064",
+        "locator": "Abstract",
+        "quote": "an absence of carotene; and the presence of the blue-green pigment (biliverdin)",
+        "supports": "colour",
+        "reliability": "Peer-reviewed review, same substance. Sets the missing yellow pigment.",
+        "archive": "looks-check/buffalo-milk-2026-11-08/agris-abd-el-salam-2011.html"
+      },
+      {
+        "kind": "web",
+        "source": "Wikipedia, 'Milk', section 'Appearance'",
+        "url": "https://en.wikipedia.org/wiki/Milk",
+        "locator": "Section 'Appearance'; fetched 2026-11-08",
+        "quote": "The fat globules contain some yellow-orange carotene, enough in some breeds (such as Guernsey and Jersey cattle) to impart a golden or \"creamy\" hue to a glass of milk.",
+        "supports": "colour",
+        "reliability": "Tertiary, settled dairy optics. With the review above, milk without carotene lacks that hue.",
+        "archive": "looks-check/buffalo-milk-2026-11-08/wp-milk.html"
+      },
+      {
+        "kind": "web",
+        "source": "Wikipedia, 'Milk', section 'Appearance'",
+        "url": "https://en.wikipedia.org/wiki/Milk",
+        "locator": "Section 'Appearance'; fetched 2026-11-08",
+        "quote": "contribute to the opaque white color of milk.",
+        "supports": "transparency",
+        "reliability": "Tertiary, same substance class.",
+        "archive": "looks-check/buffalo-milk-2026-11-08/wp-milk.html"
+      },
+      {
+        "kind": "web",
+        "source": "Milovanovic, Djekic, Miocinovic et al. 2020, What Is the Color of Milk and Dairy Products and How Is It Measured? Foods 9(11):1629",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7695135/",
+        "locator": "Section 3.10 'Milk Color Data'",
+        "quote": "L* values were in the range 66.9 ± 2.2 (goat’s kefir) to 93.0 ± 0.0 (buffalo’s kefir)",
+        "supports": "colour",
+        "reliability": "Peer-reviewed review of 600 studies; the buffalo value is one product class (kefir), n = 1.",
+        "archive": "looks-check/buffalo-milk-2026-11-08/pmc7695135.html"
+      }
+    ],
+    "measurements": [
+      {
+        "source": "Milovanovic et al. 2020, Table 9, Kefir row, Buffalo's column",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC7695135/",
+        "locator": "Table 9: L* 93.0 ± 0.0, a* −1.7 ± 0.0, b* 6.5 ± 0.0",
+        "reliability": "Colorimeter values compiled from the literature; fermented buffalo milk, a same-species analogue."
+      }
+    ]
+  },
+  {
     "key": "machilipatnam-kalamkari-degumming-wash-water",
     "traditions": [
       "machilipatnam-kalamkari"

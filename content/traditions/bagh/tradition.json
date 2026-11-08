@@ -4824,11 +4824,11 @@
       "source": "bagh.scientific_mechanism.indirect-mordant-dyeing",
       "target": "shared.scientific_mechanism.alum-mordant-complexation",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "In Bagh dyeing the mordant printed with the blocks, alum for red, reacts with alizarin in the bath, the general mordant mechanism of the shared concept.",
+      "explanation": "The mordants printed with the blocks react with alizarin in the dye bath; alum gives red when boiled with alizarine and dhavdakaphool.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S7"
@@ -4850,11 +4850,11 @@
       "source": "bagh.scientific_mechanism.indirect-mordant-dyeing",
       "target": "shared.scientific_mechanism.alizarin-lake-formation",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Jain says the mordants printed with the blocks react with alizarin to give the final colours; the shared concept describes the colour complex alizarin forms with metals.",
+      "explanation": "The mordants printed with the blocks react with alizarin to give the final colours.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S7"
       ],
@@ -4870,11 +4870,11 @@
       "source": "bagh.process_stage.tarai",
       "target": "shared.scientific_mechanism.sun-bleaching",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Cloth is sun-bleached on river stones while being repeatedly moistened.",
+      "explanation": "In tarai the cloth is sun-dried on river stones for natural bleaching and repeatedly moistened while it dries.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S6",
         "S1"

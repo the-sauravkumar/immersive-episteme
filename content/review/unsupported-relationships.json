@@ -1,20 +1,5 @@
 [
   {
-    "file": "shared/craft-science.json",
-    "source": "shared.scientific_mechanism.mud-resist-barrier",
-    "target": "shared.scientific_mechanism.indigo-vat-reduction",
-    "type": "CONTRASTS_WITH",
-    "explanation": "Resist blocks dye physically, whereas indigo colours by redox; resist is applied before the vat so covered areas stay undyed except along cracks.",
-    "conditions": null,
-    "ordinal": null,
-    "provenance_kind": "historical_documentation",
-    "verification_state": "needs_evidence",
-    "source_ids": [
-      "S10"
-    ],
-    "unsupported_reason": "Round 2 source check (2026-10-16): unsupported. S10 puts the two in sequence; the only contrast it draws is mordant-dyed vs resist-dyed."
-  },
-  {
     "file": "comparisons.json",
     "source": "machilipatnam-kalamkari.open_question.gi-year",
     "target": "sanganeri.open_question.gi-registration-year",

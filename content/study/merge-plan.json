@@ -86,8 +86,8 @@
           "rationale": "Stands alone: spread on the ground in the sun."
         },
         {
-          "key": "final-wash-and-washing",
-          "kind": "finish",
+          "key": "final-wash-and-finishing",
+          "kind": "wash",
           "sources": [
             { "stage": "ajrakh.process_stage.vichharnu", "shortForm": "final wash" },
             { "stage": "ajrakh.process_stage.finishing", "shortForm": "finishing" }

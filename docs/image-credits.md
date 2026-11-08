@@ -105,6 +105,7 @@ Shown at the end of their tradition's route in both doors, at the full size of t
 | public/walkthrough/stills/entrance-open1.jpg | entrance with Door 1 open | Rendered by this project from the CC0 scans listed in this manifest | tools/walkthrough-lab/render-stills.cjs |
 | public/walkthrough/stills/entrance-open2.jpg | entrance with Door 2 open | Rendered by this project from the CC0 scans listed in this manifest | tools/walkthrough-lab/render-stills.cjs |
 | public/walkthrough/stills/practice-view.jpg | seen through Door 2 in the entrance stills; the practice yard | Rendered by this project from the CC0 scans listed in this manifest | tools/walkthrough-lab/render-stills.cjs |
+| public/walkthrough/tex/horizon/scrub.png | the distant scrub band on the horizon in Door 2 | Drawn by this project with a seeded generator, no input image | tools/walkthrough-lab/bake-horizon.cjs |
 | public/walkthrough/tex/bamboo_veneer | bamboo poles, kalam and brush handle | Jenelle van Heerden | https://polyhaven.com/a/bamboo_veneer |
 | public/walkthrough/tex/bark_willow | madder and chay roots, recoloured from its luminance | Dario Barresi, Dimitrios Savva | https://polyhaven.com/a/bark_willow |
 | public/walkthrough/tex/brown_mud | wet pastes and the moist cow dung lumps, recoloured from its luminance | Rob Tuytel | https://polyhaven.com/a/brown_mud |

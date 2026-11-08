@@ -944,6 +944,23 @@ export const SUBSTANCE_LOOK_ROWS: readonly SubstanceLookRow[] = [
     "spread": []
   },
   {
+    "key": "machilipatnam-kalamkari-buffalo-milk",
+    "stages": [
+      "machilipatnam-kalamkari.myrobalan-treatment"
+    ],
+    "label": "Buffalo Milk",
+    "partOfTemplateLabel": null,
+    "form": "liquid",
+    "renderHex": "#EDEBDE",
+    "renderBasis": "inferred",
+    "status": "inferred",
+    "transparency": "opaque",
+    "surface": "wet, smooth",
+    "vesselSuggestion": null,
+    "frothHex": null,
+    "spread": []
+  },
+  {
     "key": "machilipatnam-kalamkari-degumming-wash-water",
     "stages": [
       "machilipatnam-kalamkari.curing-and-degumming-wash"
