@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { gunzipSync } from "node:zlib";
 import * as THREE from "three";
 import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 import { describe, expect, it } from "vitest";
@@ -8,7 +9,7 @@ import { decodedSkyOf } from "@/features/walkthrough/infrastructure/rgbe-sky";
 const KNEE = 3.5;
 
 describe("sky decoding off the main thread", () => {
-  const file = readFileSync(join(process.cwd(), "public/walkthrough/sky/env.hdr"));
+  const file = gunzipSync(readFileSync(join(process.cwd(), "public/walkthrough/sky/env.hdr.gz")));
   const buffer = file.buffer.slice(file.byteOffset, file.byteOffset + file.byteLength) as ArrayBuffer;
   const sky = decodedSkyOf(buffer, KNEE);
 

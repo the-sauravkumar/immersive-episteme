@@ -379,16 +379,19 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
             [r.source, r.target, r.type],
           )
         ).rows;
+      const keyOf = (r: Rel) => `${r.source}|${r.type}|${r.target}`;
+      const base = { ...loaded.model, relationships: loaded.model.relationships.map((r) => ([a!, b!].some((x) => keyOf(x) === keyOf(r)) ? { ...r, evidence: [] } : r)) };
       const withEvidence = (targets: Rel[], locator: string, quote: string) => ({
-        ...loaded.model,
-        relationships: loaded.model.relationships.map((r) => (targets.includes(r) ? { ...r, evidence: [{ ref: r.sourceRefs[0]!, locator, quote }] } : r)),
+        ...base,
+        relationships: base.relationships.map((r) => (targets.some((x) => keyOf(x) === keyOf(r)) ? { ...r, evidence: [{ ref: r.sourceRefs[0]!, locator, quote }] } : r)),
       });
 
+      const aBefore = await citations(a!);
       const s1 = await run(withEvidence([a!], "PDF p. 1", "a placeholder passage"));
       expect(s1.relationshipSources).toEqual({ inserted: 0, updated: 1, pruned: 0 });
       const aRows = await citations(a!);
       expect(aRows.find((x) => x.ref === a!.sourceRefs[0])).toMatchObject({ locator: "PDF p. 1", quote: "a placeholder passage" });
-      expect(aRows.filter((x) => x.ref !== a!.sourceRefs[0]).every((x) => x.locator === null && x.quote === null)).toBe(true);
+      expect(aRows.filter((x) => x.ref !== a!.sourceRefs[0])).toEqual(aBefore.filter((x) => x.ref !== a!.sourceRefs[0]));
 
       await t.pool.query(
         `UPDATE relationship_sources rs SET locator = 'p. 2', quote = 'a curator placeholder'
@@ -398,7 +401,7 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
         [b!.source, b!.target, b!.type],
       );
       expect((await run(withEvidence([a!], "PDF p. 1", "a placeholder passage"))).relationshipSources).toEqual({ inserted: 0, updated: 0, pruned: 0 });
-      expect((await run()).relationshipSources).toEqual({ inserted: 0, updated: 0, pruned: 0 });
+      expect((await run(base)).relationshipSources).toEqual({ inserted: 0, updated: 0, pruned: 0 });
       expect((await citations(a!)).find((x) => x.ref === a!.sourceRefs[0])).toMatchObject({ locator: "PDF p. 1", quote: "a placeholder passage" });
       expect((await citations(b!)).every((x) => x.locator === "p. 2" && x.quote === "a curator placeholder")).toBe(true);
 

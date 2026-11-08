@@ -5,7 +5,7 @@ import { ContentParity } from "@/components/parity/content-parity";
 import { ConsolePage } from "@/components/shell/gates";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getPool } from "@/server/db/client";
-import { listParityReports } from "@/server/research/parity/store";
+import { latestParityReports } from "@/server/research/parity/store";
 import { contentParityRows } from "@/server/research/parity/summary";
 import { listSessions, integrityFlags } from "@/server/research/sessions";
 import { listStudies } from "@/server/research/studies";
@@ -28,16 +28,13 @@ async function Overview() {
   const pool = getPool();
   const studies = await listStudies(pool);
   const active = studies.filter((s) => s.status === "active");
-  const [rows, content] = await Promise.all([
-    Promise.all(
-      studies.map(async (s) => {
-        const [parity, sessions] = await Promise.all([listParityReports(pool, s.id, 1), listSessions(pool, s.id)]);
-        const alerts = sessions.reduce((n, x) => n + integrityFlags(x).filter((f) => f.level !== "info").length, 0);
-        return { s, parity: parity[0] ?? null, alerts, completed: sessions.filter((x) => x.status === "completed").length };
-      }),
-    ),
-    contentParityRows(pool, active),
-  ]);
+  const ids = studies.map((s) => s.id);
+  const [sessions, parity, content] = await Promise.all([listSessions(pool, ids), latestParityReports(pool, ids), contentParityRows(pool, active)]);
+  const rows = studies.map((s) => {
+    const own = sessions.filter((x) => x.studyId === s.id);
+    const alerts = own.reduce((n, x) => n + integrityFlags(x).filter((f) => f.level !== "info").length, 0);
+    return { s, parity: parity.get(s.id) ?? null, alerts, completed: own.filter((x) => x.status === "completed").length };
+  });
   const anyDemo = studies.some((s) => s.isDemo);
 
   return (

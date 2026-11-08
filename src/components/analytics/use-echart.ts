@@ -61,26 +61,9 @@ export function useEChart(build: (t: VizTheme) => EChartsCoreOption, deps: unkno
     let chart: ChartInstance | null = null;
     let observer: ResizeObserver | null = null;
     void (async () => {
-      const [core, charts, components, renderers] = await Promise.all([
-        import("echarts/core"),
-        import("echarts/charts"),
-        import("echarts/components"),
-        import("echarts/renderers"),
-      ]);
-      core.use([
-        charts.BarChart,
-        charts.LineChart,
-        charts.ScatterChart,
-        charts.HeatmapChart,
-        charts.CustomChart,
-        components.GridComponent,
-        components.TooltipComponent,
-        components.DatasetComponent,
-        components.MarkLineComponent,
-        renderers.SVGRenderer,
-      ]);
+      const { init } = await import("./echarts-runtime");
       if (disposed || !ref.current) return;
-      chart = core.init(ref.current, undefined, { renderer: "svg" });
+      chart = init(ref.current, undefined, { renderer: "svg" });
       chart.setOption(
         {
           textStyle: { color: theme.textDim, fontFamily: theme.fontFamily, fontSize: 13 },

@@ -54,6 +54,25 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  ...[
+    ["domain", ["three", "three/*", "react", "react-*", "next", "next/*", "pg", "drizzle-orm", "drizzle-orm/*", "@/server/*", "@/components/*", "../application/*", "../infrastructure/*", "../ui/*"]],
+    ["application", ["three", "three/*", "react", "react-*", "next", "next/*", "pg", "drizzle-orm", "drizzle-orm/*", "@/server/*", "@/components/*", "../infrastructure/*", "../ui/*"]],
+    ["infrastructure", ["../ui/*"]],
+    ["ui", ["../infrastructure/*"]],
+  ].map(([layer, group]) => ({
+    files: ["process", "walkthrough", "course"].map((feature) => `src/features/${feature}/${layer}/**/*.{ts,tsx}`),
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            { group, message: `Clean Architecture (DESIGN.md): ${layer} depends only inward.` },
+            { regex: `^@/features/(process|walkthrough|course)/(${{ domain: "application|infrastructure|ui", application: "infrastructure|ui", infrastructure: "ui", ui: "infrastructure" }[layer]})/`, message: `Clean Architecture (DESIGN.md): ${layer} depends only inward.` },
+          ],
+        },
+      ],
+    },
+  })),
   globalIgnores([
     ".next/**",
     "out/**",

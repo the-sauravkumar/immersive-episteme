@@ -119,6 +119,15 @@ export async function listParityReports(q: Q, studyId: string, limit = 20): Prom
   return r.rows;
 }
 
+export async function latestParityReports(q: Q, studyIds: readonly string[]): Promise<Map<string, StoredParityReport>> {
+  const r = await q.query<StoredParityReport & { studyId: string }>(
+    `SELECT DISTINCT ON (report->>'studyId') report->>'studyId' AS "studyId", id, to_json(created_at)#>>'{}' AS "createdAt", report_sha256 AS "reportSha256", report
+       FROM parity_reports WHERE report->>'studyId' = ANY($1::text[]) ORDER BY report->>'studyId', created_at DESC, id DESC`,
+    [[...studyIds]],
+  );
+  return new Map(r.rows.map(({ studyId, ...row }) => [studyId, row]));
+}
+
 export async function getParityReport(q: Q, id: string): Promise<StoredParityReport | null> {
   const r = await q.query<StoredParityReport>(
     `SELECT id, to_json(created_at)#>>'{}' AS "createdAt", report_sha256 AS "reportSha256", report FROM parity_reports WHERE id = $1`,

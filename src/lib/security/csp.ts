@@ -31,7 +31,7 @@ export function contentSecurityPolicy({ frameAncestors, dev = false, connectSrc 
   const extraConnect = connectSrc ?? [mediaUploadOrigin()].filter((o): o is string => o !== null);
   const directives: [string, ...string[]][] = [
     ["default-src", "'self'"],
-    ["script-src", "'self'", "'unsafe-inline'", ...(dev ? ["'unsafe-eval'"] : [])],
+    ["script-src", "'self'", "'unsafe-inline'", "'wasm-unsafe-eval'", ...(dev ? ["'unsafe-eval'"] : [])],
     ["style-src", "'self'", "'unsafe-inline'"],
     ["img-src", "'self'", "blob:", "data:"],
     ["font-src", "'self'", "data:"],

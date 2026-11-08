@@ -588,7 +588,7 @@ export class MaterialLibrary {
   }
 
   async sky(scene: THREE.Scene, renderer: THREE.WebGLRenderer): Promise<THREE.Mesh> {
-    const [dome, decoded] = await Promise.all([this.decoded(`${ROOT}/sky/dome.jpg`), this.decoder.decodeSky(`${ROOT}/sky/env.hdr`, SUN_SOFT_KNEE)]);
+    const [dome, decoded] = await Promise.all([this.decoded(`${ROOT}/sky/dome.jpg`), this.decoder.decodeSky(`${ROOT}/sky/env.hdr.gz`, SUN_SOFT_KNEE)]);
     dome.colorSpace = THREE.SRGBColorSpace;
     dome.mapping = THREE.EquirectangularReflectionMapping;
     const generator = new THREE.PMREMGenerator(renderer);

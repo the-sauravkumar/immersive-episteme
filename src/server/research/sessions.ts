@@ -99,8 +99,9 @@ const SESSION_SELECT = `
     JOIN participants p ON p.id = ss.participant_id
     JOIN study_conditions sc ON sc.id = ss.condition_id`;
 
-export async function listSessions(q: Q, studyId: string, viewer: FreeTextViewer = REDACTED): Promise<SessionIntegrity[]> {
-  const r = await q.query<SessionIntegrity>(`${SESSION_SELECT} WHERE ss.study_id = $1 ORDER BY p.code, ss.period`, [studyId, viewer.identified]);
+export async function listSessions(q: Q, studyIds: string | readonly string[], viewer: FreeTextViewer = REDACTED): Promise<SessionIntegrity[]> {
+  const ids = typeof studyIds === "string" ? [studyIds] : [...studyIds];
+  const r = await q.query<SessionIntegrity>(`${SESSION_SELECT} WHERE ss.study_id = ANY($1::uuid[]) ORDER BY p.code, ss.period`, [ids, viewer.identified]);
   return r.rows;
 }
 
