@@ -215,7 +215,7 @@ describe("learning condition guard (in-memory study sessions)", () => {
 
   it("staff preview is admitted and flagged non-experimental", async () => {
     const d = await resolveLearningAccess(
-      input({ condition: "immersive", staff: async () => ({ userId: "u1", roles: ["content_editor"] }) }),
+      input({ condition: "immersive", staff: async () => ({ userId: "u1", roles: ["curator"] }) }),
       deps,
     );
     expect(d).toEqual({

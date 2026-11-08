@@ -137,7 +137,7 @@ async function Dashboard({ searchParams }: { searchParams: Promise<Record<string
           </Link>
         </div>
       ) : (
-        <p className="t-b mb-10 max-w-[52rem] text-lime-dim">CSV downloads and the full export need the exports.create permission, which your roles do not include.</p>
+        <p className="t-b mb-10 max-w-[52rem] text-lime-dim">CSV downloads and the full export are for Researchers. Ask a Researcher for the file, or ask an Admin to change your role.</p>
       )}
 
       <StatRow

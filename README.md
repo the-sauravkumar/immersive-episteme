@@ -44,13 +44,18 @@ data, imports `content/` (`npm run content:import`), builds the REVIEW snapshot 
 real study), and creates the draft demo study
 `demo-review-walkthrough` (non-experimental) pinned to it, so /explore and staff preview of
 /learn/* render real content. With `--verify-as` it accepts, as that existing local curator, every
-concept and link the content files record as `verified` before building the snapshot; without it the
-doors show "Learning Content Is Not Available" (DR-131). Idempotent; it prints the row counts.
+concept and link the content files record as `verified`, each file's tradition and every source the
+file lists (except sources the file itself marks `kind: "unverified"`) before building the snapshot;
+without it the doors show "Learning Content Is Not Available" (DR-131, DR-132). Idempotent; it prints the row counts.
 Refuses non-local databases.
 API reference for pages: `docs/architecture/data-and-telemetry-layer.md`.
 
-`create-admin` is idempotent: re-running keeps the existing password and only adds the role.
-Other roles: `--role curator`, `--role researcher`, … (see `src/lib/permissions/roles.ts`).
+`create-admin` is idempotent: re-running keeps the existing password and sets the account's one
+role. Staff roles are `--role admin` (the default), `--role researcher`, `--role curator`, and
+`--role principal_investigator` (a researcher marked as the study's principal investigator). The
+retired names `platform_admin`, `study_facilitator`, `research_analyst` and `content_editor` still
+work and map onto the three roles; the script refuses to take Admin from the last active Admin
+(DR-132, `src/lib/permissions/roles.ts`).
 Add `--test` to target `TEST_DATABASE_URL`.
 
 Sign-in must come from the origin in `BETTER_AUTH_URL` (default `http://localhost:3000`);
@@ -88,7 +93,7 @@ Integration tests that need their own schema state create and drop throwaway dat
 | `db:seed` | Reference data + demo data (`is_demo = true`, titles prefixed `Demo:`) |
 | `db:reset` | Drops and re-migrates a **local** database (`-- --test` for the test DB). Destructive |
 | `db:studio` | Drizzle Studio |
-| `create-admin` | Create a staff account / grant a role (`scripts/create-admin.ts`) |
+| `create-admin` | Create a staff account / set its one role (`scripts/create-admin.ts`) |
 | `dev:bootstrap` | DB up + migrate (main and test) + seed + content import + review snapshot + manifests + demo study |
 | `content:import` | Import `content/` and build the review snapshot (`-- --test`, `-- --no-snapshot`) |
 | `study:seed-demo` | Create an active demo study with the generated test battery (`-- --slug demo-x --cap-minutes 30`) |
@@ -129,7 +134,8 @@ Never fabricate craft facts. Curated, source-cited content lives in `content/` (
 recorded in `content/review/<tradition>-verification.md`: every quote re-found verbatim at its
 locator in an archived copy of a recorded source. It is still imported as `under_review`;
 acceptance in the database is a named curator's transition in the CMS or through
-`scripts/content/verify-concepts.ts` (DR-059, DR-120, DR-124). Fixtures and demo data are flagged `is_demo = true`,
+`scripts/content/verify-concepts.ts`, which accepts a file's tradition, sources, concepts and links
+under the same evidence rule (DR-059, DR-120, DR-124, DR-132). Fixtures and demo data are flagged `is_demo = true`,
 titled `Demo: …`, and can never be published into a study (enforced by database triggers).
 
 ## Deployment

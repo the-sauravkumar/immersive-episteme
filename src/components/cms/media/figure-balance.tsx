@@ -276,7 +276,7 @@ export async function FigureBalanceSection({ q, source, hrefFor }: { q: Q; sourc
         <Empty>
           {source === "release"
             ? "No release has been published yet, so no study bundle exists. Choose the review build to see what the next release would carry."
-            : "The review build does not validate right now (see Dataset Versions), so its figures cannot be counted."}
+            : "The review build does not validate right now (see Releases), so its figures cannot be counted."}
         </Empty>
       ) : (
         <>

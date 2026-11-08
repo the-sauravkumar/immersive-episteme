@@ -2,16 +2,18 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Pool, PoolClient } from "pg";
 import { z } from "zod";
 
-import { STAFF_ROLES, type StaffRole } from "@/lib/permissions/roles";
+import { PRINCIPAL_INVESTIGATOR, ROLE_LABELS, STAFF_ROLES, type StaffGrant, type StaffRole } from "@/lib/permissions/roles";
 import { clearSignInLock, knownDeviceThrottleKey, signInThrottleKey } from "@/server/auth/account-throttle";
 import { createStaffAccount } from "@/server/auth/bootstrap";
 import type { Auth } from "@/server/auth/config";
 import { MIN_PASSWORD_LENGTH } from "@/server/auth/config";
-import { grantRole, revokeRole } from "@/server/auth/roles-repository";
+import { revokeRole, setRole } from "@/server/auth/roles-repository";
 import { CmsError, audit, ensure, inActorTx, type Actor, type Q } from "@/server/cms/core";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- any Drizzle pg database works
 type AnyPgDatabase = NodePgDatabase<any>;
+
+const piFlag = z.preprocess((v) => v === true || v === "on" || v === "true", z.boolean());
 
 export interface StaffUserRow {
   id: string;
@@ -19,7 +21,8 @@ export interface StaffUserRow {
   email: string;
   createdAt: string;
   disabledAt: string | null;
-  roles: StaffRole[];
+  role: StaffRole | null;
+  principalInvestigator: boolean;
   activeSessions: number;
   signInMethods: string[];
   signInLockedUntil: string | null;
@@ -39,13 +42,13 @@ function signInLockedUntil(locks: Map<string, Date>, email: string): string | nu
 
 export async function listStaffUsers(pool: Pool, actor: Actor): Promise<StaffUserRow[]> {
   ensure(actor, ["admin.users", "admin.roles"]);
-  const r = await pool.query<{ id: string; name: string; email: string; created_at: Date; disabled_at: Date | null; roles: StaffRole[] | null; sessions: number; sign_in_methods: string[] | null }>(
+  const r = await pool.query<{ id: string; name: string; email: string; created_at: Date; disabled_at: Date | null; role: StaffRole | null; principal_investigator: boolean | null; sessions: number; sign_in_methods: string[] | null }>(
     `SELECT u.id, u.name, u.email, u.created_at, u.disabled_at,
-            array_agg(ur.role::text ORDER BY ur.role) FILTER (WHERE ur.role IS NOT NULL) AS roles,
+            ur.role::text AS role, ur.principal_investigator,
             (SELECT count(*)::int FROM auth_sessions s WHERE s.user_id = u.id AND s.expires_at > now()) AS sessions,
             (SELECT array_agg(DISTINCT a.provider_id ORDER BY a.provider_id) FROM auth_accounts a WHERE a.user_id = u.id) AS sign_in_methods
        FROM users u LEFT JOIN user_roles ur ON ur.user_id = u.id
-      GROUP BY u.id ORDER BY lower(u.name), u.email`,
+      ORDER BY lower(u.name), u.email`,
   );
   const locks = await activeSignInLocks(pool);
   return r.rows.map((u) => ({
@@ -54,7 +57,8 @@ export async function listStaffUsers(pool: Pool, actor: Actor): Promise<StaffUse
     email: u.email,
     createdAt: u.created_at.toISOString(),
     disabledAt: u.disabled_at ? u.disabled_at.toISOString() : null,
-    roles: u.roles ?? [],
+    role: u.role,
+    principalInvestigator: u.principal_investigator ?? false,
     activeSessions: u.sessions,
     signInMethods: u.sign_in_methods ?? [],
     signInLockedUntil: signInLockedUntil(locks, u.email),
@@ -69,6 +73,7 @@ export const createStaffInput = z.object({
     .min(MIN_PASSWORD_LENGTH, `Use at least ${MIN_PASSWORD_LENGTH} characters`)
     .max(256),
   role: z.enum(STAFF_ROLES, "Choose a role"),
+  principalInvestigator: piFlag.default(false),
 });
 export type CreateStaffInput = z.input<typeof createStaffInput>;
 
@@ -81,7 +86,7 @@ export async function createStaffUser(
   ensure(actor, "admin.roles");
   const input = createStaffInput.parse(raw);
   const exists = await deps.pool.query("SELECT 1 FROM users WHERE email = $1", [input.email]);
-  if (exists.rowCount) throw new CmsError("email_taken", "A staff account with this email already exists. Assign roles to it instead.", 409);
+  if (exists.rowCount) throw new CmsError("email_taken", "A staff account with this email already exists. Find it in the list below and change its role from Manage.", 409);
   try {
     const res = await createStaffAccount(deps.auth, deps.db, input, actor.userId);
     await inActorTx(deps.pool, actor, null, (c) =>
@@ -133,7 +138,7 @@ export async function lockStaffUser(pool: Pool, actor: Actor, raw: z.input<typeo
     if (u.disabled_at) throw new CmsError("already_locked", "This account is already locked.", 409);
     const isAdmin = await c.query("SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'platform_admin'", [u.id]);
     if (isAdmin.rowCount && (await activeAdminCount(c, u.id)) === 0) {
-      throw new CmsError("last_admin", "This is the last active platform administrator; it cannot be locked.", 409);
+      throw new CmsError("last_admin", "This is the last active Admin, so the account cannot be locked. Make another person Admin first.", 409);
     }
     await c.query("UPDATE users SET disabled_at = now() WHERE id = $1", [u.id]);
     const ended = await c.query("DELETE FROM auth_sessions WHERE user_id = $1", [u.id]);
@@ -217,54 +222,68 @@ export async function resetStaffPassword(
   });
 }
 
-export const roleInput = userIdInput.extend({ role: z.enum(STAFF_ROLES, "Choose a role") });
+export const roleInput = userIdInput.extend({ role: z.enum(STAFF_ROLES, "Choose a role"), principalInvestigator: piFlag.default(false) });
 
-export async function grantStaffRole(pool: Pool, actor: Actor, raw: z.input<typeof roleInput>): Promise<{ granted: boolean }> {
+export async function setStaffRole(pool: Pool, actor: Actor, raw: z.input<typeof roleInput>): Promise<{ changed: boolean }> {
   ensure(actor, "admin.roles");
   const input = roleInput.parse(raw);
+  const principalInvestigator = input.role === "researcher" && input.principalInvestigator;
   return inActorTx(pool, actor, null, async (c) => {
+    await lockAdminHolders(c);
     await loadUser(c, input.userId);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- grantRole only needs `insert`
-    const granted = await grantRole(drizzleOn(c) as any, input.userId, input.role, actor.userId);
-    if (!granted) throw new CmsError("already_granted", "The account already holds this role.", 409);
-    await audit(c, actor, { action: "admin.role_granted", entity: "user_roles", entityId: input.userId, after: { role: input.role } });
-    return { granted };
+    const before = await currentRole(c, input.userId);
+    if (before?.role === "platform_admin" && input.role !== "platform_admin") await assertAdminRemains(c, actor, input.userId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- setRole only needs `insert`
+    const changed = await setRole(drizzleOn(c) as any, input.userId, { role: input.role, principalInvestigator }, actor.userId);
+    if (!changed) throw new CmsError("already_granted", `This person is already ${ROLE_LABELS[input.role]}${principalInvestigator ? " and principal investigator" : ""}. Choose a different role to change it.`, 409);
+    await audit(c, actor, { action: "admin.role_set", entity: "user_roles", entityId: input.userId, before, after: { role: input.role, principalInvestigator } });
+    return { changed };
   });
 }
 
-export async function revokeStaffRole(pool: Pool, actor: Actor, raw: z.input<typeof roleInput>): Promise<{ revoked: boolean }> {
+export async function revokeStaffRole(pool: Pool, actor: Actor, raw: z.input<typeof userIdInput>): Promise<{ revoked: boolean }> {
   ensure(actor, "admin.roles");
-  const input = roleInput.parse(raw);
-  if (input.role === "platform_admin" && input.userId === actor.userId) {
-    throw new CmsError("self_revoke", "You cannot remove your own administrator role.", 409);
-  }
+  const input = userIdInput.parse(raw);
   return inActorTx(pool, actor, null, async (c) => {
-    if (input.role === "platform_admin") await lockAdminHolders(c);
+    await lockAdminHolders(c);
     await loadUser(c, input.userId);
-    if (input.role === "platform_admin") {
-      if ((await activeAdminCount(c, input.userId)) === 0) {
-        throw new CmsError("last_admin", "This is the last active platform administrator; the role cannot be removed.", 409);
-      }
-    }
+    const before = await currentRole(c, input.userId);
+    if (!before) throw new CmsError("not_granted", "This person has no role yet, so there is nothing to remove. Give them a role from the same menu.", 409);
+    if (before.role === "platform_admin") await assertAdminRemains(c, actor, input.userId);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- revokeRole only needs `delete`
-    const revoked = await revokeRole(drizzleOn(c) as any, input.userId, input.role);
-    if (!revoked) throw new CmsError("not_granted", "The account does not hold this role.", 409);
-    await audit(c, actor, { action: "admin.role_revoked", entity: "user_roles", entityId: input.userId, before: { role: input.role } });
+    const revoked = await revokeRole(drizzleOn(c) as any, input.userId);
+    await audit(c, actor, { action: "admin.role_revoked", entity: "user_roles", entityId: input.userId, before });
     return { revoked };
   });
+}
+
+async function currentRole(q: Q, userId: string): Promise<{ role: StaffRole; principalInvestigator: boolean } | null> {
+  const r = await q.query<{ role: StaffRole; principal_investigator: boolean }>("SELECT role::text AS role, principal_investigator FROM user_roles WHERE user_id = $1", [userId]);
+  const row = r.rows[0];
+  return row ? { role: row.role, principalInvestigator: row.principal_investigator } : null;
+}
+
+async function assertAdminRemains(q: Q, actor: Actor, userId: string): Promise<void> {
+  if (userId === actor.userId) throw new CmsError("self_revoke", "You cannot take away your own Admin role. Ask another Admin to do it.", 409);
+  if ((await activeAdminCount(q, userId)) === 0) {
+    throw new CmsError("last_admin", "This is the last active Admin. Make another person Admin first, then change this account.", 409);
+  }
 }
 
 function drizzleOn(c: PoolClient) {
   return drizzle(c, { casing: "snake_case" });
 }
 
-export async function roleHolderCounts(pool: Pool, actor: Actor): Promise<Record<StaffRole, number>> {
+export async function roleHolderCounts(pool: Pool, actor: Actor): Promise<Record<StaffGrant, number>> {
   ensure(actor, ["admin.roles", "admin.users"]);
-  const r = await pool.query<{ role: StaffRole; n: number }>(
-    `SELECT ur.role::text AS role, count(*)::int AS n FROM user_roles ur JOIN users u ON u.id = ur.user_id
-      WHERE u.disabled_at IS NULL GROUP BY ur.role`,
+  const r = await pool.query<{ role: StaffRole; n: number; pi: number }>(
+    `SELECT ur.role::text AS role, count(*)::int AS n, count(*) FILTER (WHERE ur.principal_investigator)::int AS pi
+       FROM user_roles ur JOIN users u ON u.id = ur.user_id WHERE u.disabled_at IS NULL GROUP BY ur.role`,
   );
-  const out = Object.fromEntries(STAFF_ROLES.map((x) => [x, 0])) as Record<StaffRole, number>;
-  for (const row of r.rows) out[row.role] = row.n;
+  const out = Object.fromEntries([...STAFF_ROLES, PRINCIPAL_INVESTIGATOR].map((x) => [x, 0])) as Record<StaffGrant, number>;
+  for (const row of r.rows) {
+    out[row.role] = row.n;
+    out[PRINCIPAL_INVESTIGATOR] += row.pi;
+  }
   return out;
 }

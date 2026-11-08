@@ -1,83 +1,86 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { ContentParity } from "@/components/parity/content-parity";
 import { ConsolePage } from "@/components/shell/gates";
+import { InviteParticipantsGuide, StudySetupGuide, type GuideStudy } from "@/components/shell/staff-guides";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { can } from "@/lib/permissions/can";
 import { requireStaff } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 import { latestParityReports } from "@/server/research/parity/store";
-import { contentParityRows } from "@/server/research/parity/summary";
 import { listSessions, integrityFlags } from "@/server/research/sessions";
-import { listStudies } from "@/server/research/studies";
+import { getStudy, listStudies, type StudySummary } from "@/server/research/studies";
 
 import { DemoBadge, Empty, LINK_44, Section, StatusBadge } from "./_components/common";
 
-export const metadata: Metadata = { title: "Research overview" };
+export const metadata: Metadata = { title: "Research Home" };
 
 export const instant = false;
 
 export default function Page() {
   return (
-    <ConsolePage path="/research" title="Research overview" description="Studies, recruitment progress and data-quality alerts, led by the content parity of the two conditions.">
-      <Overview />
+    <ConsolePage path="/research" title="Research home" description="Your team's studies and what needs you now, with the steps for setting up a study and inviting participants.">
+      <Home />
     </ConsolePage>
   );
 }
 
-async function Overview() {
+function followed(studies: readonly StudySummary[], status: string): StudySummary | null {
+  return studies.find((s) => !s.isDemo && s.status === status) ?? null;
+}
+
+async function Home() {
   const pool = getPool();
-  const mayOpenParity = can(await requireStaff(), "parity.run");
+  const principal = await requireStaff();
+  const mayOpenParity = can(principal, "parity.run");
   const studies = await listStudies(pool);
-  const active = studies.filter((s) => s.status === "active");
   const ids = studies.map((s) => s.id);
-  const [sessions, parity, content] = await Promise.all([listSessions(pool, ids), latestParityReports(pool, ids), contentParityRows(pool, active)]);
-  const rows = studies.map((s) => {
-    const own = sessions.filter((x) => x.studyId === s.id);
-    const alerts = own.reduce((n, x) => n + integrityFlags(x).filter((f) => f.level !== "info").length, 0);
-    return { s, parity: parity.get(s.id) ?? null, alerts, completed: own.filter((x) => x.status === "completed").length };
-  });
-  const anyDemo = studies.some((s) => s.isDemo);
+  const [sessions, parity] = await Promise.all([listSessions(pool, ids), latestParityReports(pool, ids)]);
+  const rows = studies
+    .filter((s) => s.status !== "closed")
+    .map((s) => {
+      const own = sessions.filter((x) => x.studyId === s.id);
+      const attention = own.filter((x) => integrityFlags(x).some((f) => f.level !== "info")).length;
+      return { s, parity: parity.get(s.id) ?? null, attention, completed: own.filter((x) => x.status === "completed").length };
+    })
+    .sort((a, b) => b.attention - a.attention);
+  const draft = followed(studies, "draft");
+  const detail = draft ? await getStudy(pool, draft.id) : null;
+  const setup: GuideStudy | null = detail
+    ? {
+        id: detail.id,
+        title: detail.title,
+        status: detail.status,
+        hasRelease: detail.snapshotId !== null,
+        hasAssessments: detail.battery.length > 0,
+        parityPassed: parity.get(detail.id)?.report.passed ?? false,
+      }
+    : null;
+  const running = followed(studies, "active");
+  const needing = rows.reduce((n, r) => n + r.attention, 0);
 
   return (
     <>
       <Section
-        id="equivalence"
-        title="Equivalence Monitor"
-        demo={active.some((s) => s.isDemo)}
-        description="The latest stored content parity report of each active study: both doors checked against one stage template for the same stages, words, sources, model ids and file hashes. Nothing here is estimated or sampled."
-        actions={
-          mayOpenParity ? (
-            <Link href="/research/parity" className={LINK_44}>
-              Open parity checks
-            </Link>
-          ) : null
-        }
-      >
-        {active.length ? (
-          <ContentParity rows={content} number={1} studyHref={mayOpenParity ? (id) => `/research/parity?study=${id}` : undefined} />
-        ) : (
-          <Empty>No study is active, so no content parity is shown here. Each study&apos;s content parity is on its page and on Parity checks.</Empty>
-        )}
-      </Section>
-
-      <Section
         id="studies"
-        title="Studies"
-        demo={anyDemo}
-        description="Latest parity verdict and data-quality alerts (interruptions, gaps, quarantined events, deviations, exclusions) per study."
+        title="Your studies"
+        demo={rows.some((r) => r.s.isDemo)}
+        description={
+          needing === 0
+            ? "No session needs attention."
+            : `${needing} session${needing === 1 ? " needs" : "s need"} attention: a participant withdrew, a session broke off, activity records went missing or the protocol was not followed. Open the number to see them.`
+        }
       >
         {rows.length === 0 ? (
           <Empty>
-            No studies yet.{" "}
-            <Link className={LINK_44} href="/research/studies">
+            No open studies.{" "}
+            <Link className={LINK_44} href="/research/studies#new">
               Create a study
             </Link>
             .
           </Empty>
         ) : (
-          <Table caption="Studies, Recruitment and Alerts" number={active.length ? 2 : 1}>
+          <Table caption="Open Studies and Sessions Needing Attention" number={1}>
             <TableHeader>
               <TableRow>
                 <TableHead scope="col">Study</TableHead>
@@ -88,58 +91,64 @@ async function Overview() {
                 <TableHead scope="col" numeric>
                   Sessions (Completed)
                 </TableHead>
-                <TableHead scope="col">Parity</TableHead>
+                <TableHead scope="col">Doors Match</TableHead>
                 <TableHead scope="col" numeric>
-                  Alerts
+                  Need Attention
                 </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {rows.map(({ s, parity, alerts, completed }) => (
-                <TableRow key={s.id}>
-                  <TableCell className="min-w-56 whitespace-normal">
-                    <Link className={LINK_44} href={`/research/studies/${s.id}`}>
-                      {s.title}
-                    </Link>
-                    <span className="mt-1 flex flex-wrap items-center gap-2 text-lime-dim">
-                      <span className="t-table font-semibold wrap-anywhere">{s.slug}</span>
-                      <span className="t-s text-lime-dim">protocol {s.protocolVersion}</span>
-                      {s.isDemo ? <DemoBadge label="Demo" /> : null}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={s.status} />
-                  </TableCell>
-                  <TableCell numeric>{s.participants}</TableCell>
-                  <TableCell numeric className="whitespace-nowrap">
-                    {s.sessions} ({completed})
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap">
-                    {parity && mayOpenParity ? (
-                      <Link className={LINK_44} href={`/research/parity?study=${s.id}`}>
-                        {parity.report.passed ? "Passed" : `Failed (${parity.report.criticalFailures} critical)`}
+              {rows.map(({ s, parity, attention, completed }) => {
+                const verdict = parity ? (parity.report.passed ? "Yes" : "No") : "Not checked";
+                return (
+                  <TableRow key={s.id}>
+                    <TableCell className="min-w-56 whitespace-normal">
+                      <Link className={LINK_44} href={`/research/studies/${s.id}`}>
+                        {s.title}
                       </Link>
-                    ) : parity ? (
-                      <span>{parity.report.passed ? "Passed" : `Failed (${parity.report.criticalFailures} critical)`}</span>
-                    ) : (
-                      <span className="text-lime-dim">Not run</span>
-                    )}
-                  </TableCell>
-                  <TableCell numeric>
-                    {alerts > 0 ? (
-                      <Link className={`${LINK_44} justify-end`} href={`/research/sessions?study=${s.id}`} aria-label={`${alerts} alerts in ${s.title}`}>
-                        {alerts}
-                      </Link>
-                    ) : (
-                      0
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+                      {s.isDemo ? (
+                        <span className="mt-1 flex">
+                          <DemoBadge label="Demo" />
+                        </span>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={s.status} />
+                    </TableCell>
+                    <TableCell numeric>{s.participants}</TableCell>
+                    <TableCell numeric className="whitespace-nowrap">
+                      {s.sessions} ({completed})
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      {parity && mayOpenParity ? (
+                        <Link className={LINK_44} href={`/research/parity?study=${s.id}`}>
+                          {verdict}
+                        </Link>
+                      ) : (
+                        <span className={parity ? undefined : "text-lime-dim"}>{verdict}</span>
+                      )}
+                    </TableCell>
+                    <TableCell numeric>
+                      {attention > 0 ? (
+                        <Link className={`${LINK_44} justify-end`} href={`/research/sessions?study=${s.id}`} aria-label={`${attention} sessions need attention in ${s.title}`}>
+                          {attention}
+                        </Link>
+                      ) : (
+                        0
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}
       </Section>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <StudySetupGuide study={setup} />
+        <InviteParticipantsGuide study={running} mayMakeCodes={can(principal, "admin.users")} mayWatch={can(principal, "participants.manage")} />
+      </div>
     </>
   );
 }

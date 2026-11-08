@@ -1,12 +1,12 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
+  check,
   index,
   integer,
   pgEnum,
   pgTable,
-  primaryKey,
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
@@ -110,13 +110,17 @@ export const userRoles = pgTable(
   "user_roles",
   {
     userId: text()
-      .notNull()
+      .primaryKey()
       .references(() => users.id, { onDelete: "cascade" }),
     role: staffRoleEnum().notNull(),
+    principalInvestigator: boolean().notNull().default(false),
     grantedBy: text().references(() => users.id, { onDelete: "set null" }),
     grantedAt: tsz().notNull().defaultNow(),
   },
-  (t) => [primaryKey({ columns: [t.userId, t.role] }), index("user_roles_role_idx").on(t.role)],
+  (t) => [
+    index("user_roles_role_idx").on(t.role),
+    check("user_roles_principal_investigator_ck", sql`NOT ${t.principalInvestigator} OR ${t.role} = 'researcher'`),
+  ],
 );
 
 export const usersRelations = relations(users, ({ many }) => ({

@@ -20,13 +20,13 @@ import { SIGN_OUT_FAILED, useSignOut } from "./sign-out-button";
 export function ConsoleUserMenu({
   name,
   email,
-  roles,
+  role,
   hasPassword,
   minPasswordLength,
 }: {
   name: string;
   email: string;
-  roles: readonly string[];
+  role: string | null;
   hasPassword: boolean;
   minPasswordLength: number;
 }) {
@@ -48,15 +48,12 @@ export function ConsoleUserMenu({
             <span className="t-label text-lime">{name}</span>
             <span className="t-table font-semibold wrap-anywhere text-lime-dim">{email}</span>
           </div>
-          <div className="px-2 pb-2">
-            <ul aria-label="Your roles" className="flex flex-wrap gap-1">
-              {roles.map((r) => (
-                <li key={r}>
-                  <Badge variant="neutral">{r}</Badge>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {role ? (
+            <p className="px-2 pb-2">
+              <span className="sr-only">Your role: </span>
+              <Badge variant="neutral">{role}</Badge>
+            </p>
+          ) : null}
           <DropdownMenuSeparator />
           {hasPassword ? (
             <DropdownMenuItem onSelect={() => setPasswordOpen(true)}>

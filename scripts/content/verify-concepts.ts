@@ -19,6 +19,8 @@ const ACCEPTED = ["verified", "published"];
 export interface Listed {
   keys: string[];
   links: string[];
+  sources: string[];
+  traditions: string[];
 }
 
 export interface VerifyRequest extends Listed {
@@ -26,7 +28,7 @@ export interface VerifyRequest extends Listed {
   reason: string;
 }
 
-type EntityKind = "concept" | "relationship";
+type EntityKind = "tradition" | "source" | "concept" | "relationship";
 
 export interface ConceptRow {
   id: string;
@@ -56,9 +58,9 @@ export function parseKeysFile(text: string): Listed {
   } catch {
     throw new Error("keys file is not valid JSON");
   }
-  const listed = Array.isArray(raw) ? { keys: raw, links: [] } : raw && typeof raw === "object" ? listedItems(raw as InterchangeFile) : null;
+  const listed = Array.isArray(raw) ? { keys: raw, links: [], sources: [], traditions: [] } : raw && typeof raw === "object" ? listedItems(raw as InterchangeFile) : null;
   if (!listed) throw new Error('keys file must be a JSON array of concept keys, { "keys": [...] } or a content/ interchange file');
-  if (listed.keys.length + listed.links.length === 0) throw new Error("keys file lists no concepts");
+  if (listed.keys.length + listed.links.length + listed.sources.length + listed.traditions.length === 0) throw new Error("keys file lists nothing to accept");
   const bad = listed.keys.filter((k) => typeof k !== "string" || !KEY_RE.test(k));
   if (bad.length) throw new Error(`not concept keys: ${bad.map((b) => JSON.stringify(b)).join(", ")}`);
   return listed as Listed;
@@ -66,6 +68,8 @@ export function parseKeysFile(text: string): Listed {
 
 interface InterchangeFile {
   keys?: unknown;
+  slug?: unknown;
+  sources?: unknown;
   concepts?: unknown;
   relationships?: unknown;
 }
@@ -75,12 +79,24 @@ const verifiedRecords = (list: unknown): Record<string, unknown>[] =>
 
 export const linkKey = (source: string, type: string, target: string): string => `${source} ${type} ${target}`;
 
-function listedItems(raw: InterchangeFile): { keys: unknown[]; links: string[] } | null {
-  if (Array.isArray(raw.keys)) return { keys: raw.keys, links: [] };
+export function fileSourceKey(slug: string, id: string): string {
+  const colon = id.indexOf(":");
+  return colon > 0 ? `${id.slice(0, colon)}#${id.slice(colon + 1)}` : `${slug}#${id}`;
+}
+
+function listedItems(raw: InterchangeFile): { keys: unknown[]; links: string[]; sources: string[]; traditions: string[] } | null {
+  if (Array.isArray(raw.keys)) return { keys: raw.keys, links: [], sources: [], traditions: [] };
   if (!Array.isArray(raw.concepts)) return null;
+  const concepts = verifiedRecords(raw.concepts);
+  const slug = typeof raw.slug === "string" ? raw.slug : null;
+  const fileSources = Array.isArray(raw.sources)
+    ? raw.sources.filter((x): x is { id: string; kind: string } => typeof x === "object" && x !== null && typeof x.id === "string" && x.kind !== "unverified")
+    : [];
   return {
-    keys: verifiedRecords(raw.concepts).map((c) => c.key),
+    keys: concepts.map((c) => c.key),
     links: verifiedRecords(raw.relationships).map((r) => linkKey(String(r.source), String(r.type), String(r.target))),
+    sources: slug && concepts.length > 0 ? fileSources.map((x) => fileSourceKey(slug, x.id)) : [],
+    traditions: slug && concepts.some((c) => c.type === "tradition") ? [slug] : [],
   };
 }
 
@@ -114,6 +130,29 @@ async function loadLinks(q: Q, links: readonly string[]): Promise<Map<string, Co
   return new Map(r.rows.map((row) => [row.key, row]));
 }
 
+async function loadSources(q: Q, refs: readonly string[]): Promise<Map<string, ConceptRow>> {
+  if (refs.length === 0) return new Map();
+  const r = await q.query<ConceptRow>(
+    `SELECT s.id, p.slug || '#' || s.local_key AS key, s.verification_state::text AS verification_state, s.is_demo,
+            NULL AS tradition_slug, NULL::boolean AS tradition_is_demo
+       FROM sources s JOIN content_packages p ON p.id = s.package_id
+      WHERE p.slug || '#' || s.local_key = ANY($1::text[])`,
+    [refs],
+  );
+  return new Map(r.rows.map((row) => [row.key, row]));
+}
+
+async function loadTraditions(q: Q, slugs: readonly string[]): Promise<Map<string, ConceptRow>> {
+  if (slugs.length === 0) return new Map();
+  const r = await q.query<ConceptRow>(
+    `SELECT t.id, t.slug AS key, t.verification_state::text AS verification_state, t.is_demo,
+            NULL AS tradition_slug, NULL::boolean AS tradition_is_demo
+       FROM traditions t WHERE t.slug = ANY($1::text[])`,
+    [slugs],
+  );
+  return new Map(r.rows.map((row) => [row.key, row]));
+}
+
 export async function loadConcepts(q: Q, keys: readonly string[]): Promise<Map<string, ConceptRow>> {
   const r = await q.query<ConceptRow>(
     `SELECT c.id, c.key, c.verification_state::text AS verification_state, c.is_demo,
@@ -140,9 +179,12 @@ function preRefusals(kind: EntityKind, key: string, row: ConceptRow | undefined,
 export async function runVerification(pool: Pool, actor: Actor, req: VerifyRequest, opts: { apply: boolean; deps?: Deps }): Promise<Outcome[]> {
   const deps = opts.deps ?? DEFAULT_DEPS;
   const reason = recordedReason(req.reason, req.evidence);
-  const concepts = await verifyEach(pool, actor, "concept", req.keys, await loadConcepts(pool, req.keys), { reason, apply: opts.apply, deps });
-  const links = await verifyEach(pool, actor, "relationship", req.links, await loadLinks(pool, req.links), { reason, apply: opts.apply, deps });
-  return [...concepts, ...links];
+  const settings = { reason, apply: opts.apply, deps };
+  const traditions = await verifyEach(pool, actor, "tradition", req.traditions, await loadTraditions(pool, req.traditions), settings);
+  const sources = await verifyEach(pool, actor, "source", req.sources, await loadSources(pool, req.sources), settings);
+  const concepts = req.keys.length ? await verifyEach(pool, actor, "concept", req.keys, await loadConcepts(pool, req.keys), settings) : [];
+  const links = await verifyEach(pool, actor, "relationship", req.links, await loadLinks(pool, req.links), settings);
+  return [...traditions, ...sources, ...concepts, ...links];
 }
 
 async function verifyEach(
@@ -189,7 +231,7 @@ async function verifyEach(
 }
 
 export const CONTENT_ACCEPTANCE_REASON =
-  "Authorised by the project lead (DR-059, DR-131): the content file records this item as verified, every quote found verbatim at its locator by the mechanical source check";
+  "Authorised by the project lead (DR-059, DR-131, DR-132): the content file records this item as verified, every quote found verbatim at its locator by the mechanical source check";
 
 export function contentFiles(root: string = REPO_ROOT): { keys: string; evidence: string }[] {
   const shared = readdirSync(join(root, "content", "shared")).filter((name) => name.endsWith(".json")).sort();
@@ -208,7 +250,7 @@ export async function acceptContentFiles(pool: Pool, email: string, log: (msg: s
     const listed = parseKeysFile(readFileSync(join(root, file.keys), "utf8"));
     const outcomes = await runVerification(pool, actor, { ...listed, evidence: file.evidence, reason: CONTENT_ACCEPTANCE_REASON }, { apply: true });
     const count = (status: Outcome["status"]) => outcomes.filter((o) => o.status === status).length;
-    log(`accepted ${file.keys} as ${email}: ${count("verified")} verified, ${count("kept")} already accepted, ${count("refused")} refused`);
+    log(`accepted ${file.keys} as ${email}: ${count("verified")} verified, ${count("kept")} already accepted, ${count("refused")} refused (traditions, sources, concepts and relationships)`);
     for (const o of outcomes) if (o.status === "refused") refused.push(`${o.key}: ${o.reasons.join("; ")}`);
   }
   if (refused.length > 0) throw new Error(`${refused.length} verified file record(s) refused by the database:\n${refused.join("\n")}`);
@@ -233,14 +275,16 @@ async function main() {
   const apply = flag("apply");
   if (dryRun === apply) throw new Error("give exactly one of --dry-run or --apply");
   if (!as) throw new Error("give --as <staff email> (the verifying curator)");
-  if (!keysPath) throw new Error("give --keys <file.json> (a JSON array of concept keys)");
+  if (!keysPath) throw new Error("give --keys <file.json> (a JSON array of concept keys, or a content/ interchange file)");
   const ev = evidenceProblem(evidence);
   if (ev) throw new Error(ev);
   const listed = parseKeysFile(readFileSync(keysPath, "utf8"));
   recordedReason(reason, evidence!);
 
   const { url, label } = resolveDatabaseUrl();
-  console.log(`[verify] ${label} database ${redact(url)}; ${listed.keys.length} listed concept(s), ${listed.links.length} relationship(s); mode ${apply ? "APPLY" : "dry run"}`);
+  console.log(
+    `[verify] ${label} database ${redact(url)}; ${listed.traditions.length} tradition(s), ${listed.sources.length} source(s), ${listed.keys.length} concept(s), ${listed.links.length} relationship(s); mode ${apply ? "APPLY" : "dry run"}`,
+  );
   const pool = makePool(url);
   let refused = 0;
   try {

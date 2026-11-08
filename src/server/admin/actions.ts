@@ -11,13 +11,13 @@ import {
   clearStaffSignInLock,
   createStaffInput,
   createStaffUser,
-  grantStaffRole,
   lockInput,
   lockStaffUser,
   resetPasswordInput,
   resetStaffPassword,
   revokeStaffRole,
   roleInput,
+  setStaffRole,
   unlockStaffUser,
   userIdInput,
 } from "./users";
@@ -83,20 +83,20 @@ export async function resetPasswordAction(_prev: ActionState, fd: FormData): Pro
   );
 }
 
-export async function grantRoleAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
+export async function setRoleAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
   return runAction("admin.roles", roleInput, formObject(fd), async ({ actor, pool }, input) => {
-    await grantStaffRole(pool, actor, input);
-    return `${ROLE_LABELS[input.role]} role granted.`;
+    await setStaffRole(pool, actor, input);
+    return input.role === "researcher" && input.principalInvestigator ? "Role set to Researcher, as principal investigator." : `Role set to ${ROLE_LABELS[input.role]}.`;
   });
 }
 
 export async function revokeRoleAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const raw = formObject(fd);
   return withConfirmField(
-    await runAction("admin.roles", roleInput, raw, async ({ actor, pool }, input) => {
+    await runAction("admin.roles", userIdInput, raw, async ({ actor, pool }, input) => {
       await assertConfirmed(pool, input.userId, raw.confirm);
       await revokeStaffRole(pool, actor, input);
-      return `${ROLE_LABELS[input.role]} role removed.`;
+      return "Role removed. The person now waits for access until someone gives them a role.";
     }),
   );
 }

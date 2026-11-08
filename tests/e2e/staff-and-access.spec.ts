@@ -46,7 +46,7 @@ test.beforeAll(async () => {
   ensureDemoStudy(JOURNEY_STUDY, 30);
   createE2eStaff(ADMIN, "E2E Admin", "platform_admin", PASSWORD);
   createE2eStaff(WAITING, "E2E Waiting", "researcher", PASSWORD);
-  createE2eStaff(EDITOR, "E2E Editor", "content_editor", PASSWORD);
+  createE2eStaff(EDITOR, "E2E Editor", "curator", PASSWORD);
   createE2eStaff(CURATOR, "E2E Curator", "curator", PASSWORD);
   await db().query("DELETE FROM user_roles WHERE user_id = (SELECT id FROM users WHERE email = $1)", [WAITING]);
 });
@@ -134,17 +134,17 @@ test("a signed-in account without a role waits at /awaiting-access until an admi
   await admin.goto(`/admin/users?status=awaiting&q=${encodeURIComponent(WAITING)}`);
   const row = admin.getByRole("row").filter({ hasText: WAITING });
   await expect(row.getByText("Awaiting access")).toBeVisible();
-  await expect(row.getByText("No roles")).toBeVisible();
+  await expect(row.getByText("No role yet")).toBeVisible();
   await row.getByRole("button", { name: `Manage E2E Waiting (${WAITING})` }).click();
-  await admin.getByRole("menuitem", { name: "Add a role…" }).click();
-  const dialog = admin.getByRole("dialog", { name: "Add a role" });
+  await admin.getByRole("menuitem", { name: "Give access…" }).click();
+  const dialog = admin.getByRole("dialog", { name: "Give access" });
   await dialog.getByLabel("Role").selectOption({ label: "Researcher" });
   const status = admin.getByRole("status").filter({ hasText: WAITING });
-  await expect(admin.getByRole("status").filter({ hasText: "role granted" })).toHaveCount(0);
-  await dialog.getByRole("button", { name: "Add role" }).click();
+  await expect(admin.getByRole("status").filter({ hasText: "Role set" })).toHaveCount(0);
+  await dialog.getByRole("button", { name: "Save role" }).click();
   await expect(admin.getByRole("row").filter({ hasText: WAITING })).toHaveCount(0);
   await expect(admin.getByText("No accounts match these filters.")).toBeVisible();
-  await expect(status).toHaveText(`E2E Waiting (${WAITING}): Researcher role granted.`);
+  await expect(status).toHaveText(`E2E Waiting (${WAITING}): Role set to Researcher.`);
   await expect(status).toBeVisible();
   await expect(status).toHaveAttribute("aria-live", "polite");
   await admin.goto(`/admin/users?q=${encodeURIComponent(WAITING)}`);
@@ -165,7 +165,7 @@ test("a signed-in account without a role waits at /awaiting-access until an admi
   await waiting.close();
 });
 
-test("an editor uploads an image, a curator verifies it, and an unready release publishes nothing", async ({ browser }, info) => {
+test("one curator uploads an image, another verifies it, and an unready release publishes nothing", async ({ browser }, info) => {
   const file = await uniquePng(info.outputPath("upload"));
   const editorContext = await newContext(browser);
   const editor = await editorContext.newPage();
@@ -232,11 +232,11 @@ test("an editor uploads an image, a curator verifies it, and an unready release 
 
   const label = `e2e-refused-${tag}`;
   await curator.goto("/cms/datasets");
-  await expect(curator.getByText("Not ready. The release would be refused with:")).toBeVisible();
+  await expect(curator.getByText("Not ready yet. Publishing would be refused because:")).toBeVisible();
   const publish = curator.locator("#publish form");
-  await publish.getByRole("textbox", { name: "Version label", exact: true }).fill(label);
+  await publish.getByRole("textbox", { name: "Release name", exact: true }).fill(label);
   await publish.getByRole("textbox", { name: "Title", exact: true }).fill("E2E refused release");
-  await publish.getByRole("textbox", { name: "Type the version label again to confirm" }).fill(label);
+  await publish.getByRole("textbox", { name: "Type the release name again to confirm" }).fill(label);
   const before = (await db().query<{ n: number }>("SELECT count(*)::int AS n FROM content_snapshots")).rows[0]!.n;
   await publish.getByRole("button", { name: "Publish release" }).click();
   await expect(curator.getByText("The release was refused; nothing was published.")).toBeVisible();

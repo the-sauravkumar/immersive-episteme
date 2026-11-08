@@ -15,13 +15,17 @@ import {
   canEnterArea,
   consoleRoute,
   enterableAreas,
+  grantsOf,
   isPermission,
   isRole,
   isStaffRole,
+  parseStaffRole,
   participantDataScope,
   permissionsOf,
+  refusalMessage,
   safeNextPath,
   staffLanding,
+  staffTitle,
   visibleNav,
   type ConsoleRoute,
   type Permission,
@@ -95,42 +99,9 @@ const EXPECTED: Record<Role, Permission[]> = {
     "parity.run",
     ...LEARN,
   ],
-  content_editor: [
-    "content.read",
-    "content.draft",
-    "content.edit",
-    "graph.edit",
-    "media.upload",
-    ...LEARN,
-  ],
-  study_facilitator: [
-    "study.view",
-    "participants.manage",
-    "participants.identify",
-    "sessions.view",
-    "sessions.annotate",
-    ...LEARN,
-  ],
-  research_analyst: ["study.view", "sessions.view", "analytics.view", "exports.create", "parity.run", "metrics.recompute", ...LEARN],
   participant: ["study.participate", ...LEARN],
   public: [...LEARN],
 };
-
-const WRITE_PERMISSIONS: Permission[] = PERMISSIONS.filter(
-  (p) =>
-    ![
-      "content.read",
-      "study.view",
-      "sessions.view",
-      "analytics.view",
-      "admin.audit",
-      "learn.2d",
-      "learn.immersive",
-      "exports.create",
-      "parity.run",
-      "metrics.recompute",
-    ].includes(p),
-);
 
 const cells = ROLES.flatMap((role) =>
   PERMISSIONS.map((permission) => ({ role, permission, granted: EXPECTED[role].includes(permission) })),
@@ -162,15 +133,11 @@ describe("permission matrix: every cell", () => {
 });
 
 describe("policy invariants", () => {
-  it("content editors cannot review, verify or publish content, or publish/override spatial layouts", () => {
-    for (const p of [
-      "content.review",
-      "content.verify",
-      "content.publish",
-      "media.review",
-    ] as const) {
-      expect(can({ roles: ["content_editor"] }, p), p).toBe(false);
+  it("a researcher may send content back but never verify or publish it", () => {
+    for (const p of ["content.verify", "content.publish", "media.review"] as const) {
+      expect(can({ roles: ["researcher"] }, p), p).toBe(false);
     }
+    expect(can({ roles: ["researcher"] }, "content.review")).toBe(true);
   });
 
   it("only curators and the PI can verify or publish content", () => {
@@ -180,12 +147,11 @@ describe("policy invariants", () => {
     }
   });
 
-  it("research analysts are read-only and pseudonymised", () => {
-    const analyst = { roles: ["research_analyst"] as Role[] };
-    for (const p of WRITE_PERMISSIONS) expect(can(analyst, p), p).toBe(false);
-    expect(can(analyst, "participants.identify")).toBe(false);
-    expect(can(analyst, "exports.identified")).toBe(false);
-    expect(participantDataScope(analyst)).toBe("pseudonymised");
+  it("a researcher without the PI mark sees pseudonymised data only", () => {
+    const researcher = { roles: ["researcher"] as Role[] };
+    expect(can(researcher, "participants.identify")).toBe(false);
+    expect(can(researcher, "exports.identified")).toBe(false);
+    expect(participantDataScope(researcher)).toBe("pseudonymised");
   });
 
   it("platform admins operate the platform but hold no domain authority", () => {
@@ -230,13 +196,9 @@ describe("policy invariants", () => {
     for (const r of STAFF_ROLES) expect(canAll({ roles: [r] }, LEARN), r).toBe(true);
   });
 
-  it("identified participant data is limited to the PI and facilitators", () => {
-    expect(ROLES.filter((r) => participantDataScope({ roles: [r] }) === "identified").sort()).toEqual([
-      "principal_investigator",
-      "study_facilitator",
-    ]);
+  it("identified participant data is limited to the PI", () => {
+    expect(ROLES.filter((r) => participantDataScope({ roles: [r] }) === "identified")).toEqual(["principal_investigator"]);
     expect(participantDataScope({ roles: ["curator"] })).toBe("none");
-    expect(participantDataScope({ roles: ["content_editor"] })).toBe("none");
     expect(participantDataScope(null)).toBe("none");
   });
 });
@@ -250,31 +212,56 @@ describe("can / canAny / canAll / permissionsOf", () => {
     }
   });
 
-  it("unions permissions across multiple roles", () => {
-    const both = { roles: ["content_editor", "research_analyst"] as Role[] };
-    expect(can(both, "content.edit")).toBe(true);
-    expect(can(both, "analytics.view")).toBe(true);
-    expect(can(both, "content.publish")).toBe(false);
-    expect(new Set(permissionsOf(both))).toEqual(
-      new Set([...EXPECTED.content_editor, ...EXPECTED.research_analyst]),
-    );
+  it("a researcher with the PI mark holds the researcher's and the PI's permissions together", () => {
+    const pi = { roles: grantsOf({ role: "researcher", principalInvestigator: true }) };
+    expect(pi.roles).toEqual(["researcher", "principal_investigator"]);
+    expect(can(pi, "study.activate")).toBe(true);
+    expect(can(pi, "admin.users")).toBe(false);
+    expect(new Set(permissionsOf(pi))).toEqual(new Set([...EXPECTED.researcher, ...EXPECTED.principal_investigator]));
   });
 
   it("canAny / canAll", () => {
-    const editor = { roles: ["content_editor"] as Role[] };
-    expect(canAny(editor, ["content.publish", "content.edit"])).toBe(true);
-    expect(canAny(editor, ["content.publish", "content.verify"])).toBe(false);
-    expect(canAll(editor, ["content.draft", "content.edit"])).toBe(true);
-    expect(canAll(editor, ["content.edit", "content.publish"])).toBe(false);
-    expect(canAny(editor, [])).toBe(false);
+    const researcher = { roles: ["researcher"] as Role[] };
+    expect(canAny(researcher, ["content.publish", "content.review"])).toBe(true);
+    expect(canAny(researcher, ["content.publish", "content.verify"])).toBe(false);
+    expect(canAll(researcher, ["content.read", "content.review"])).toBe(true);
+    expect(canAll(researcher, ["content.review", "content.publish"])).toBe(false);
+    expect(canAny(researcher, [])).toBe(false);
   });
 
   it("role guards", () => {
+    expect(STAFF_ROLES).toEqual(["platform_admin", "researcher", "curator"]);
     for (const r of STAFF_ROLES) expect(isStaffRole(r)).toBe(true);
     for (const r of NON_STAFF_ROLES) expect(isStaffRole(r)).toBe(false);
+    expect(isStaffRole("principal_investigator")).toBe(false);
     expect(isRole("participant")).toBe(true);
     expect(isRole("root")).toBe(false);
     expect(isPermission("content.delete")).toBe(false);
+  });
+
+  it("parses the three role names, the PI and every retired name onto one role", () => {
+    expect(parseStaffRole("admin")).toEqual({ role: "platform_admin", principalInvestigator: false });
+    expect(parseStaffRole("platform_admin")).toEqual({ role: "platform_admin", principalInvestigator: false });
+    expect(parseStaffRole("principal_investigator")).toEqual({ role: "researcher", principalInvestigator: true });
+    for (const old of ["researcher", "study_facilitator", "research_analyst"]) expect(parseStaffRole(old), old).toEqual({ role: "researcher", principalInvestigator: false });
+    for (const old of ["curator", "content_editor"]) expect(parseStaffRole(old), old).toEqual({ role: "curator", principalInvestigator: false });
+    expect(parseStaffRole("root")).toBeNull();
+    expect(parseStaffRole("constructor")).toBeNull();
+  });
+
+  it("the PI mark only counts on a researcher, and the title names it", () => {
+    expect(grantsOf({ role: "curator", principalInvestigator: true })).toEqual(["curator"]);
+    expect(grantsOf(null)).toEqual([]);
+    expect(staffTitle(["researcher", "principal_investigator"])).toBe("Researcher (principal investigator)");
+    expect(staffTitle(["platform_admin"])).toBe("Admin");
+    expect(staffTitle([])).toBeNull();
+  });
+
+  it("refusals name who can do it and what to do next", () => {
+    expect(refusalMessage(["content.verify"])).toBe("Only a Curator or the principal investigator can do this. Ask them to do it for you, or ask an Admin to change your role.");
+    expect(refusalMessage(["admin.users"])).toBe("Only an Admin can do this. Ask them to do it for you, or ask an Admin to change your role.");
+    expect(refusalMessage(["study.configure"])).toBe("Only a Researcher can do this. Ask them to do it for you, or ask an Admin to change your role.");
+    expect(refusalMessage(["study.participate"])).toBe("No staff role can do this.");
   });
 });
 
@@ -304,9 +291,6 @@ describe("console route table", () => {
     ["principal_investigator", ["cms", "research", "admin"]],
     ["researcher", ["cms", "research"]],
     ["curator", ["cms", "research"]],
-    ["content_editor", ["cms"]],
-    ["study_facilitator", ["research"]],
-    ["research_analyst", ["research"]],
   ] as const)("%s enters %j", (role, areas) => {
     expect(enterableAreas({ roles: [role] })).toEqual(areas);
   });
@@ -320,20 +304,23 @@ describe("console route table", () => {
         }
       }
     }
-    const editorCms = visibleNav({ roles: ["content_editor"] }, "cms").map((r) => r.path);
-    expect(editorCms).not.toContain("/cms/review");
-    expect(editorCms).not.toContain("/cms/datasets");
-    expect(editorCms).toContain("/cms/concepts");
+    const researcherCms = visibleNav({ roles: ["researcher"] }, "cms").map((r) => r.path);
+    expect(researcherCms).not.toContain("/cms/datasets");
+    expect(researcherCms).toContain("/cms/review");
+    expect(researcherCms).toContain("/cms/concepts");
   });
 
-  it("analysts see analytics/exports but not participants, assessments authoring or scoring", () => {
-    const nav = visibleNav({ roles: ["research_analyst"] }, "research").map((r) => r.path);
-    expect(nav).toEqual(
-      expect.arrayContaining(["/research", "/research/sessions", "/research/analytics", "/research/exports"]),
-    );
-    for (const p of ["/research/participants", "/research/assessments", "/research/scoring"]) {
-      expect(nav).not.toContain(p);
+  it("puts day-to-day pages first, each area's home on top, and the internals under Advanced", () => {
+    for (const a of CONSOLE_AREAS) {
+      const nav = CONSOLE_ROUTES[a].filter((r) => r.nav) as ConsoleRoute[];
+      expect(nav[0]!.path, a).toBe(`/${a}`);
+      const firstAdvanced = nav.findIndex((r) => r.advanced);
+      expect(nav.slice(firstAdvanced).every((r) => r.advanced), a).toBe(true);
     }
+    expect(allRoutes.filter((r) => r.advanced).map((r) => r.path).sort()).toEqual(
+      ["/admin/audit", "/admin/roles", "/admin/settings", "/cms/relations", "/research/analytics", "/research/parity", "/research/pathways"].sort(),
+    );
+    expect(visibleNav({ roles: ["curator"] }, "research").map((r) => r.path)).toEqual(["/research/parity"]);
   });
 
   it("lands every staff role on a page it can open (sign-in default and area switcher)", () => {
@@ -351,15 +338,16 @@ describe("console route table", () => {
     expect(canAny({ roles: ["curator"] }, consoleRoute("/research").anyOf)).toBe(false);
     expect(areaLanding({ roles: ["curator"] }, "research")).toBe("/research/parity");
     expect(staffLanding({ roles: ["curator"] })).toBe("/cms");
-    expect(staffLanding({ roles: ["content_editor"] })).toBe("/cms");
-    expect(staffLanding({ roles: ["study_facilitator"] })).toBe("/research");
+    expect(staffLanding({ roles: ["researcher"] })).toBe("/research");
+    expect(staffLanding({ roles: ["researcher", "principal_investigator"] })).toBe("/research");
+    expect(staffLanding({ roles: ["platform_admin"] })).toBe("/admin");
     expect(staffLanding({ roles: [] })).toBeNull();
     expect(staffLanding(null)).toBeNull();
   });
 
   it("areaLanding and consoleRoute", () => {
-    expect(areaLanding({ roles: ["content_editor"] }, "cms")).toBe("/cms");
-    expect(areaLanding({ roles: ["content_editor"] }, "admin")).toBeNull();
+    expect(areaLanding({ roles: ["curator"] }, "cms")).toBe("/cms");
+    expect(areaLanding({ roles: ["curator"] }, "admin")).toBeNull();
     expect(consoleRoute("/admin/users").anyOf).toEqual(["admin.users"]);
     expect(() => consoleRoute("/nope" as never)).toThrow();
   });

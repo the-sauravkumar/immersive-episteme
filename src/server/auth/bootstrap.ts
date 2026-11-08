@@ -1,12 +1,12 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull, ne } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { z } from "zod";
 
-import { users } from "@db/schema/auth";
-import { STAFF_ROLES, type StaffRole } from "@/lib/permissions/roles";
+import { userRoles, users } from "@db/schema/auth";
+import { STAFF_ROLES, type StaffAssignment, type StaffGrant } from "@/lib/permissions/roles";
 
 import { MIN_PASSWORD_LENGTH, type Auth } from "./config";
-import { grantRole, loadUserRoles } from "./roles-repository";
+import { loadStaffAssignment, loadUserRoles, setRole } from "./roles-repository";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- any Drizzle pg database works
 type AnyPgDatabase = NodePgDatabase<any>;
@@ -16,6 +16,7 @@ const staffAccountInput = z.object({
   password: z.string().min(MIN_PASSWORD_LENGTH, `must be at least ${MIN_PASSWORD_LENGTH} characters`).max(256),
   name: z.string().trim().min(1).max(120),
   role: z.enum(STAFF_ROLES),
+  principalInvestigator: z.boolean().default(false),
 });
 
 export type StaffAccountInput = z.input<typeof staffAccountInput>;
@@ -25,8 +26,28 @@ export type StaffAccountResult = {
   email: string;
   created: boolean;
   roleGranted: boolean;
-  roles: StaffRole[];
+  roles: StaffGrant[];
 };
+
+export class LastAdminError extends Error {
+  constructor() {
+    super("This is the last active Admin. Make another person Admin first, then change this account's role.");
+  }
+}
+
+async function assignRole(db: AnyPgDatabase, userId: string, assignment: StaffAssignment, grantedBy: string | null): Promise<boolean> {
+  const current = await loadStaffAssignment(db, userId);
+  if (current?.role === "platform_admin" && assignment.role !== "platform_admin") {
+    const others = await db
+      .select({ id: users.id })
+      .from(userRoles)
+      .innerJoin(users, eq(users.id, userRoles.userId))
+      .where(and(eq(userRoles.role, "platform_admin"), ne(users.id, userId), isNull(users.disabledAt)))
+      .limit(1);
+    if (others.length === 0) throw new LastAdminError();
+  }
+  return setRole(db, userId, assignment, grantedBy);
+}
 
 export async function createStaffAccount(
   auth: Auth,
@@ -59,14 +80,14 @@ export async function createStaffAccount(
     created = true;
   }
 
-  const roleGranted = await grantRole(db, userId, data.role, grantedBy);
+  const roleGranted = await assignRole(db, userId, { role: data.role, principalInvestigator: data.principalInvestigator }, grantedBy);
   return { userId, email: data.email, created, roleGranted, roles: await loadUserRoles(db, userId) };
 }
 
-export async function grantRoleToExistingAccount(db: AnyPgDatabase, email: string, role: StaffRole): Promise<StaffAccountResult | null> {
+export async function grantRoleToExistingAccount(db: AnyPgDatabase, email: string, assignment: StaffAssignment): Promise<StaffAccountResult | null> {
   const normalised = z.email().parse(email).toLowerCase();
   const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, normalised)).limit(1);
   if (!existing) return null;
-  const roleGranted = await grantRole(db, existing.id, role, null);
+  const roleGranted = await assignRole(db, existing.id, assignment, null);
   return { userId: existing.id, email: normalised, created: false, roleGranted, roles: await loadUserRoles(db, existing.id) };
 }

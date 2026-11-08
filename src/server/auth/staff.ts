@@ -4,10 +4,10 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
-import { canAny, type Subject } from "@/lib/permissions/can";
+import { canAny, refusalMessage, type Subject } from "@/lib/permissions/can";
 import { refusalPath } from "@/lib/permissions/console-routes";
 import type { Permission } from "@/lib/permissions/permissions";
-import type { StaffRole } from "@/lib/permissions/roles";
+import type { StaffGrant } from "@/lib/permissions/roles";
 import { safeNextPath } from "@/lib/permissions/safe-redirect";
 import { getDb } from "@/server/db/client";
 
@@ -19,7 +19,7 @@ export type StaffPrincipal = Subject & {
   readonly userId: string;
   readonly email: string;
   readonly name: string;
-  readonly roles: readonly StaffRole[];
+  readonly roles: readonly StaffGrant[];
   readonly sessionId: string;
 };
 
@@ -78,7 +78,7 @@ export async function authorizeRequest(permission: Permission | readonly Permiss
 export class PermissionError extends Error {
   constructor(
     readonly status: 401 | 403,
-    message = status === 401 ? "Not signed in" : "Not allowed",
+    message = status === 401 ? "You are signed out. Sign in again, then repeat the action." : "Your role does not allow this. Ask an Admin to change your role.",
   ) {
     super(message);
     this.name = "PermissionError";
@@ -89,6 +89,6 @@ export async function assertPermission(permission: Permission | readonly Permiss
   const principal = await getStaffPrincipal();
   if (!principal) throw new PermissionError(401);
   const anyOf: readonly Permission[] = typeof permission === "string" ? [permission] : permission;
-  if (!canAny(principal, anyOf)) throw new PermissionError(403);
+  if (!canAny(principal, anyOf)) throw new PermissionError(403, refusalMessage(anyOf));
   return principal;
 }

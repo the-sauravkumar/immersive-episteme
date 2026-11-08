@@ -4,7 +4,7 @@ import { Suspense, type ReactNode } from "react";
 import { Wordmark } from "@/components/brand/wordmark";
 import { Skeleton } from "@/components/ui/skeleton";
 import { areaLanding, enterableAreas, visibleNav, type ConsoleArea } from "@/lib/permissions/console-routes";
-import { ROLE_LABELS } from "@/lib/permissions/roles";
+import { staffTitle } from "@/lib/permissions/roles";
 import { cn } from "@/lib/utils";
 import { MIN_PASSWORD_LENGTH } from "@/server/auth/config";
 import { hasPasswordSignIn } from "@/server/auth/password-sign-in";
@@ -82,7 +82,7 @@ function NavSkeleton() {
 async function navLinks(area: ConsoleArea) {
   const principal = await getStaffPrincipal();
   if (!principal) return null;
-  return visibleNav(principal, area).map((r) => ({ href: r.path, label: r.label }));
+  return visibleNav(principal, area).map((r) => ({ href: r.path, label: r.label, advanced: r.advanced ?? false }));
 }
 
 async function AreaNav({ area }: { area: ConsoleArea }) {
@@ -129,7 +129,7 @@ async function UserMenu() {
     <ConsoleUserMenu
       name={principal.name}
       email={principal.email}
-      roles={principal.roles.map((r) => ROLE_LABELS[r])}
+      role={staffTitle(principal.roles)}
       hasPassword={await hasPasswordSignIn(principal.userId)}
       minPasswordLength={MIN_PASSWORD_LENGTH}
     />

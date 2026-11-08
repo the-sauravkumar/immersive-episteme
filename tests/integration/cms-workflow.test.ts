@@ -47,7 +47,7 @@ describe.skipIf(!TEST_URL)("CMS workflow and release", () => {
 
   beforeAll(async () => {
     t = await createTestDatabase("cmswf");
-    editor = { userId: await createUser(t.pool, "u_editor"), roles: ["content_editor"] };
+    editor = { userId: await createUser(t.pool, "u_editor"), roles: ["curator"] };
     curatorA = { userId: await createUser(t.pool, "u_curator_a"), roles: ["curator"] };
     curatorB = { userId: await createUser(t.pool, "u_curator_b"), roles: ["curator"] };
     pi = { userId: await createUser(t.pool, "u_pi"), roles: ["principal_investigator"] };
@@ -113,13 +113,16 @@ describe.skipIf(!TEST_URL)("CMS workflow and release", () => {
     await transition(t.pool, curatorB, { entityKind: "concept", entityId: other, to: "rejected", reason: "test fixture", evidenceChecked: [] });
   });
 
-  it("an editor drafts and submits but cannot verify or publish", async () => {
+  it("the author submits but cannot verify their own work; a researcher cannot verify; an admin cannot reject or publish", async () => {
+    const researcher: Actor = { userId: "u_researcher_virtual", roles: ["researcher"] };
+    const admin: Actor = { userId: "u_admin_virtual", roles: ["platform_admin"] };
     const id = (await createConcept(t.pool, editor, { packageSlug: "tst", type: "tool", name: "brush", categoryCode: "tools", title: "Brush", provenanceKind: "historical_documentation", localTerms: [] })).id;
     await saveClaims(t.pool, editor, id, [claim("A brush is used.")]);
     await submit(editor, "concept", id);
-    await expectCmsError(verify(editor, "concept", id), "forbidden");
-    await expectCmsError(transition(t.pool, editor, { entityKind: "concept", entityId: id, to: "rejected", reason: "no", evidenceChecked: [] }), "forbidden");
-    await expectCmsError(publishRelease(t.pool, editor, { versionLabel: "release-x", title: "x", description: null }), "forbidden");
+    await expectCmsError(verify(editor, "concept", id), "self_verification");
+    await expectCmsError(verify(researcher, "concept", id), "forbidden");
+    await expectCmsError(transition(t.pool, admin, { entityKind: "concept", entityId: id, to: "rejected", reason: "no", evidenceChecked: [] }), "forbidden");
+    await expectCmsError(publishRelease(t.pool, admin, { versionLabel: "release-x", title: "x", description: null }), "forbidden");
     await transition(t.pool, curatorB, { entityKind: "concept", entityId: id, to: "rejected", reason: "test fixture", evidenceChecked: [] });
   });
 

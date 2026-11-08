@@ -20,6 +20,31 @@ export const STATE_LABELS: Record<string, string> = {
   archived: "Archived",
 };
 
+export const STATE_HINTS: Record<string, string> = {
+  draft: "Being written. Submit it for review when it is ready.",
+  under_review: "Waiting for a second curator to check every quotation against its source.",
+  needs_evidence: "Sent back by a reviewer: a claim lacks a source, a page number or an exact quotation. The author adds it and submits again.",
+  verified: "Checked by a second curator. It goes into the next published release.",
+  published: "In a published release that studies can use.",
+  rejected: "Turned down by a reviewer. The author can restore it to a draft and rework it.",
+  archived: "Withdrawn from use. It stays in the history.",
+};
+
+export function StateLegend({ states }: { states: readonly string[] }) {
+  return (
+    <dl className="grid gap-x-4 gap-y-2 t-s sm:grid-cols-[10rem_minmax(0,1fr)]">
+      {states.map((s) => (
+        <div key={s} className="contents">
+          <dt>
+            <StateBadge state={s} />
+          </dt>
+          <dd className="text-lime-dim">{STATE_HINTS[s]}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 const STATE_STYLE: Record<string, { variant: "neutral" | "ok" | "warn" | "danger"; Icon: typeof CircleCheck }> = {
   draft: { variant: "neutral", Icon: PencilLine },
   under_review: { variant: "warn", Icon: Clock },

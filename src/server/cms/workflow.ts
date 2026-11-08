@@ -80,6 +80,16 @@ export async function itemsAuthoredBy(q: Q, userId: string, items: readonly { ki
   return out;
 }
 
+const STATE_WORDS: Record<VerificationState, string> = {
+  draft: "a draft",
+  under_review: "under review",
+  needs_evidence: "waiting for more evidence",
+  verified: "verified",
+  published: "published",
+  rejected: "rejected",
+  archived: "archived",
+};
+
 const PIPELINE_SQL = "('under_review','needs_evidence','verified','published')";
 const PIPELINE_STATES: readonly VerificationState[] = ["under_review", "needs_evidence", "verified", "published"];
 
@@ -162,18 +172,18 @@ export interface TransitionResult {
 
 export async function transition(pool: Pool, actor: Actor, input: TransitionInput): Promise<TransitionResult> {
   if (input.to === "published") {
-    throw new CmsError("publish_via_release", "Content becomes published only by publishing a release snapshot (Dataset versions).", 409);
+    throw new CmsError("publish_via_release", "Content becomes published only through a release. Verify it, then publish a release on the Releases page.", 409);
   }
   const table = TABLE[input.entityKind];
   ensure(actor, ["content.draft", "content.edit", "content.review", "content.verify"]);
   return inActorTx(pool, actor, input.reason, async (c) => {
     const r = await c.query<{ verification_state: VerificationState; is_demo: boolean }>(`SELECT verification_state, is_demo FROM ${table} WHERE id = $1 FOR UPDATE`, [input.entityId]);
     const row = r.rows[0];
-    if (!row) throw new CmsError("not_found", `${input.entityKind} not found`, 404);
-    if (row.is_demo) throw new CmsError("demo_readonly", "Demo fixtures never enter the review workflow", 409);
+    if (!row) throw new CmsError("not_found", `This ${input.entityKind} no longer exists. Reload the list.`, 404);
+    if (row.is_demo) throw new CmsError("demo_readonly", "Demo items never go through review. Work on the real item instead.", 409);
     const from = row.verification_state;
     const kind = classifyTransition(from, input.to);
-    if (!kind || !canTransition(from, input.to)) throw new CmsError("invalid_transition", `Cannot move from ${from} to ${input.to}`, 409);
+    if (!kind || !canTransition(from, input.to)) throw new CmsError("invalid_transition", `An item that is ${STATE_WORDS[from]} cannot become ${STATE_WORDS[input.to]}. Reload the page to see its current state and the choices it has.`, 409);
     ensure(actor, TRANSITION_PERMISSION[kind]);
     if (REASON_REQUIRED.includes(kind) && (!input.reason || input.reason.length < 3)) {
       throw new CmsError("reason_required", "Give a reason for this decision (it is kept in the review history)");
@@ -197,7 +207,7 @@ export async function transition(pool: Pool, actor: Actor, input: TransitionInpu
       const issues = await edgeIssues(c, input.entityId);
       const blocking = issues.filter((i) => i.severity === "error" || i.code === "CMS201");
       if (blocking.length) {
-        throw new CmsError("graph_invalid", "The knowledge-graph validator refuses this relationship.", 422, blocking.map((i) => ({ code: i.code, message: i.message })));
+        throw new CmsError("graph_invalid", "This link breaks a rule for links between concepts. Fix the problems listed, then submit again.", 422, blocking.map((i) => ({ code: i.code, message: i.message })));
       }
     }
     if (kind === "submit" && input.entityKind === "concept") {

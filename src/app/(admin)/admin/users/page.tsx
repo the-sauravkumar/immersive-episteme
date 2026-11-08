@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { CreateStaffForm, UserActionStatus, UserRowActions } from "@/components/admin/user-forms";
-import { Empty, Mono, NativeSelect, one, Pager, Section, Stamp, type SearchParams } from "@/components/cms/bits";
+import { Empty, NativeSelect, one, Pager, Section, Stamp, type SearchParams } from "@/components/cms/bits";
 import { ConsolePage } from "@/components/shell/gates";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -13,15 +13,14 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { can } from "@/lib/permissions/can";
-import { isAwaitingAccess } from "@/lib/permissions/console-routes";
-import { isStaffRole, ROLE_LABELS, STAFF_ROLES } from "@/lib/permissions/roles";
+import { grantsOf, isStaffRole, ROLE_LABELS, STAFF_ROLES, staffTitle } from "@/lib/permissions/roles";
 import { titleCase } from "@/lib/text/title-case";
 import { listStaffUsers, type StaffUserRow } from "@/server/admin/users";
 import { MIN_PASSWORD_LENGTH } from "@/server/auth/config";
 import { requirePermission } from "@/server/auth/staff";
 import { getPool } from "@/server/db/client";
 
-export const metadata: Metadata = { title: "Users" };
+export const metadata: Metadata = { title: "People" };
 
 export const instant = false;
 
@@ -29,8 +28,8 @@ export default function Page({ searchParams }: PageProps<"/admin/users">) {
   return (
     <ConsolePage
       path="/admin/users"
-      title="Users"
-      description="Staff accounts. Participants never have accounts. Accounts are locked, never deleted, so their history stays attributable."
+      title="People"
+      description="Everyone who works on the platform, with their one role: Admin, Researcher or Curator. Participants never have accounts. Accounts are locked, never deleted, so their history stays attributable."
     >
       <Suspense fallback={<Skeleton className="h-64 w-full" />}>
         <Users searchParams={searchParams} />
@@ -64,7 +63,7 @@ const USER_STATUSES: readonly UserStatus[] = ["active", "awaiting", "locked"];
 const SIGN_IN_METHOD_LABELS: Readonly<Record<string, string>> = { credential: "password", google: "Google" };
 
 function awaitingAccess(u: StaffUserRow): boolean {
-  return !u.disabledAt && isAwaitingAccess(u);
+  return !u.disabledAt && u.role === null;
 }
 
 function signInMethods(u: StaffUserRow): string {
@@ -90,7 +89,7 @@ function matches(u: StaffUserRow, f: UserFilter): boolean {
     const q = f.q.toLowerCase();
     if (!u.name.toLowerCase().includes(q) && !u.email.toLowerCase().includes(q)) return false;
   }
-  if (f.role && !(u.roles as string[]).includes(f.role)) return false;
+  if (f.role && u.role !== f.role) return false;
   if (f.status === "locked" && !u.disabledAt) return false;
   if (f.status === "active" && (u.disabledAt || awaitingAccess(u))) return false;
   if (f.status === "awaiting" && !awaitingAccess(u)) return false;
@@ -158,7 +157,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
           {awaiting > 0 && filter.status !== "awaiting" ? (
             <div className="flex flex-col items-start gap-3">
               <p className="t-b text-lime">
-                {awaiting === 1 ? "1 account is" : `${awaiting} accounts are`} waiting for a role. Accounts made through Google sign-in start with no role and open nothing until a role is added.
+                {awaiting === 1 ? "1 person is" : `${awaiting} people are`} waiting for access. People who sign in with Google start with no role and see nothing until you give them one: open Manage on their row and choose Give access.
               </p>
               <Button asChild variant="outline">
                 <Link href="/admin/users?status=awaiting">Show accounts awaiting access</Link>
@@ -170,7 +169,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
           ) : (
             <Table
               role="table"
-              caption="Accounts, Roles and Status"
+              caption="People, Roles and Status"
               number={1}
               hoverRows
               className={STACK.table}
@@ -182,7 +181,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                     Name and email
                   </TableHead>
                   <TableHead role="columnheader" scope="col">
-                    Roles
+                    Role
                   </TableHead>
                   <TableHead role="columnheader" scope="col">
                     Status
@@ -207,21 +206,10 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                       </span>
                       <span className="t-table font-semibold wrap-anywhere block text-lime-dim [overflow-wrap:anywhere] sm:whitespace-nowrap">{u.email}</span>
                       <span className="t-s text-lime-dim block">{signInMethods(u)}</span>
-                      <Mono className="block text-lime-dim" title="Account id">
-                        {u.id}
-                      </Mono>
                     </TableCell>
                     <TableCell role="cell" className={`${STACK.cell} align-top sm:py-3`}>
-                      <CellLabel>roles</CellLabel>
-                      {u.roles.length ? (
-                        <span className="flex flex-wrap gap-1.5">
-                          {u.roles.map((r) => (
-                            <Badge key={r}>{ROLE_LABELS[r]}</Badge>
-                          ))}
-                        </span>
-                      ) : (
-                        <span className="text-lime-dim">No roles</span>
-                      )}
+                      <CellLabel>role</CellLabel>
+                      {u.role ? <Badge>{staffTitle(grantsOf({ role: u.role, principalInvestigator: u.principalInvestigator }))}</Badge> : <span className="text-lime-dim">No role yet</span>}
                     </TableCell>
                     <TableCell role="cell" className={`${STACK.cell} align-top sm:py-3`}>
                       <CellLabel>status</CellLabel>
@@ -274,7 +262,8 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                           id: u.id,
                           name: u.name,
                           email: u.email,
-                          roles: u.roles,
+                          role: u.role,
+                          principalInvestigator: u.principalInvestigator,
                           locked: Boolean(u.disabledAt),
                           signInLocked: u.signInLockedUntil !== null,
                           hasPassword: u.signInMethods.includes("credential"),
@@ -294,11 +283,16 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
       </section>
 
       {manageRoles ? (
-        <Section id="create-staff" title="Create a staff account" description="The account starts with one role; add more from its row menu." className="max-w-3xl">
+        <Section
+          id="create-staff"
+          title="Add a person with a password"
+          description="For someone who cannot sign in with Google. People who use Google just sign in once and appear above as awaiting access."
+          className="max-w-3xl"
+        >
           <CreateStaffForm minPasswordLength={MIN_PASSWORD_LENGTH} />
         </Section>
       ) : (
-        <p className="t-b text-lime-dim">Creating accounts also assigns a role, which needs the role-administration permission.</p>
+        <p className="t-b text-lime-dim">Adding people also gives them a role, which only an Admin can do. Ask an Admin to add the person.</p>
       )}
     </div>
   );

@@ -5,7 +5,7 @@ const MESSAGES: Readonly<Record<string, string>> = {
   unable_to_link_account:
     "A staff account already uses this email, but Google has not verified the address, so the two were not joined. Sign in with your email and password.",
   unable_to_create_user: "Google has not verified this email address, so no account was made. Use a Google account with a verified email.",
-  unable_to_create_session: "This account cannot sign in. If it has been locked, ask a platform administrator.",
+  unable_to_create_session: "This account cannot sign in. If it has been locked, ask an Admin.",
   account_already_linked_to_different_user: "This Google account is already joined to another staff account.",
 };
 

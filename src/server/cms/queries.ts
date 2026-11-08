@@ -337,14 +337,15 @@ export interface ReviewItem {
   updatedBy: string | null;
 }
 
-export async function reviewQueue(q: Q, f: { kind?: string; state?: string } = {}): Promise<ReviewItem[]> {
-  const states = f.state ? [f.state] : ["under_review", "needs_evidence"];
+export async function reviewQueue(q: Q, f: { kind?: string; state?: string; states?: readonly string[] } = {}): Promise<ReviewItem[]> {
+  const states = f.state ? [f.state] : (f.states ?? ["under_review", "needs_evidence"]);
   const parts: string[] = [];
   const want = (k: CmsEntityKind) => !f.kind || f.kind === k;
   if (want("tradition")) parts.push(`SELECT 'tradition' AS kind, id, name AS label, slug AS sub, verification_state, updated_at, created_by, updated_by FROM traditions WHERE NOT is_demo AND verification_state::text = ANY($1)`);
   if (want("concept")) parts.push(`SELECT 'concept', id, title, key, verification_state, updated_at, created_by, updated_by FROM concepts WHERE NOT is_demo AND verification_state::text = ANY($1)`);
-  if (want("relationship")) parts.push(`SELECT 'relationship', r.id, s.title || ' ' || r.type_code || ' ' || t.title, s.key || '|' || r.type_code || '|' || t.key, r.verification_state, r.updated_at, r.created_by, r.updated_by
-       FROM relationships r JOIN concepts s ON s.id = r.source_concept_id JOIN concepts t ON t.id = r.target_concept_id WHERE NOT r.is_demo AND r.verification_state::text = ANY($1)`);
+  if (want("relationship")) parts.push(`SELECT 'relationship', r.id, s.title || ' ' || lower(rt.label) || ' ' || t.title, s.key || '|' || r.type_code || '|' || t.key, r.verification_state, r.updated_at, r.created_by, r.updated_by
+       FROM relationships r JOIN concepts s ON s.id = r.source_concept_id JOIN concepts t ON t.id = r.target_concept_id JOIN relationship_types rt ON rt.code = r.type_code
+      WHERE NOT r.is_demo AND r.verification_state::text = ANY($1)`);
   if (want("source")) parts.push(`SELECT 'source', id, title, local_key, verification_state, updated_at, created_by, updated_by FROM sources WHERE NOT is_demo AND verification_state::text = ANY($1)`);
   if (!parts.length) return [];
   const r = await q.query(`${parts.join(" UNION ALL ")} ORDER BY 6 DESC LIMIT 500`, [states]);

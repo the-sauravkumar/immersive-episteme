@@ -68,23 +68,6 @@ export const ROLE_PERMISSIONS = {
     "parity.run",
     ...LEARN,
   ],
-  content_editor: [
-    "content.read",
-    "content.draft",
-    "content.edit",
-    "graph.edit",
-    "media.upload",
-    ...LEARN,
-  ],
-  study_facilitator: [
-    "study.view",
-    "participants.manage",
-    "participants.identify",
-    "sessions.view",
-    "sessions.annotate",
-    ...LEARN,
-  ],
-  research_analyst: ["study.view", "sessions.view", "analytics.view", "exports.create", "parity.run", "metrics.recompute", ...LEARN],
   participant: ["study.participate", ...LEARN],
   public: [...LEARN],
 } as const satisfies Record<Role, readonly Permission[]>;
