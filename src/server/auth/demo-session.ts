@@ -3,7 +3,6 @@ import { signToken, verifyToken } from "./signed-token";
 
 const DEMO_SESSION_PURPOSE = "public-demo/v1";
 export const DEMO_SESSION_TTL_SECONDS = 60 * 60 * 4;
-;
 
 const demoClaims = z
   .object({

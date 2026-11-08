@@ -186,14 +186,4 @@ function TableNote({ className, ...props }: React.ComponentProps<"p">) {
   )
 }
 
-export {
-  Table,
-  TableHeader,
-  TableBody,
-  TableFooter,
-  TableHead,
-  TableRow,
-  TableCell,
-  
-  
-}
+export { Table, TableHeader, TableBody, TableFooter, TableHead, TableRow, TableCell }

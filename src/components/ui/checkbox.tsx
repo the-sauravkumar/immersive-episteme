@@ -7,4 +7,4 @@ function Checkbox({ className, ...props }: Omit<React.ComponentProps<"input">, "
   return <input type="checkbox" data-slot="checkbox" className={cn(CHECK_CLASS, className)} {...props} />
 }
 
-export { Checkbox,   CHECK_CLASS }
+export { Checkbox, CHECK_CLASS }

@@ -16,4 +16,4 @@ function TooltipProvider({
   )
 }
 
-export {   TooltipProvider,  }
+export { TooltipProvider }

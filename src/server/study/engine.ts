@@ -610,8 +610,6 @@ async function touch(q: Q, sessionId: string): Promise<void> {
   await q.query("UPDATE study_sessions SET last_activity_at = now() WHERE id = $1", [sessionId]);
 }
 
-;
-
 function isAssessmentStep(step: StudyStep): boolean {
   return !!STEP_ASSESSMENTS[step] || isQuestionnaireStep(step);
 }
@@ -1530,5 +1528,3 @@ export async function completeSession(pool: Pool | PoolClient, sessionId: string
     });
   });
 }
-
-;

@@ -14,7 +14,6 @@ import { getPool } from "@/server/db/client";
 import { loadSnapshotPayload } from "./snapshot-store";
 
 export type * from "@/features/knowledge/read/view";
-;
 
 const KNOWLEDGE_CACHE_TAG = "knowledge";
 export const MEDIA_FIGURES_CACHE_TAG = "media-figures";

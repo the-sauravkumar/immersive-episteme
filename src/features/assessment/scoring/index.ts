@@ -1,11 +1,8 @@
 export * from "./config";
 export * from "./types";
-export {   ScoringInputError } from "./canonical";
-;
-export { METRIC_VERSIONS,  } from "./metrics/registry";
-export {   longestSimplePath } from "./metrics/causal-depth";
-;
-;
+export { ScoringInputError } from "./canonical";
+export { METRIC_VERSIONS } from "./metrics/registry";
+export { longestSimplePath } from "./metrics/causal-depth";
 export { scoreConceptMap, getScore } from "./score";
 export { compareConceptMaps } from "./change";
 export { cohensKappa, fleissKappa, raterAgreement, type RaterMapInput } from "./agreement";

@@ -295,8 +295,6 @@ export async function mapBreakdown(q: Q, conceptMapId: string, referenceMapId: s
   };
 }
 
-;
-
 export async function scoreKeyedItems(pool: Pool, actorId: string, assessmentId: string): Promise<{ responses: number; inserted: number }> {
   assertUuid(assessmentId, "Assessment");
   return inTransaction(pool, async (c) => {

@@ -79,13 +79,4 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-export {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardEyebrow,
-  
-  
-  
-  CardContent,
-}
+export { Card, CardHeader, CardFooter, CardEyebrow, CardContent }
