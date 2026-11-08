@@ -1,7 +1,6 @@
 # Request to PARI: use of two article photographs in a non-commercial research study
 
-**To:** zahra@ruralindiaonline.org
-**Cc:** namita@ruralindiaonline.org
+**To:** PARI editorial team (named recipients' addresses withheld)
 **From:** cxa.craftecosystem@gmail.com
 **Subject:** Non-commercial academic use of two photographs from "A muted maggam, a bleeding block print" in a learning study (IIT Kharagpur)
 
