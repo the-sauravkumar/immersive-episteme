@@ -36,7 +36,7 @@ The October archive is kept outside the repository (V5) and was not on this mach
 - `content/review/tools/find-in-source.py <file> <archive folder> <source id> <regex>`: searches one archived source by located segment (rewritten for the current manifest; it pointed at a folder layout that no longer exists).
 - `content/review/tools/evidence/apply_bagru_verification.py`: applies the changes below. Every passage it adds is cut from the archived text between two literal anchors, so it cannot be typed by hand; it refuses a relationship whose passages do not cover its sources, or one over 25 words.
 
-Results before the changes: 253 of 253 claim passages verbatim at their locators; 0 of 116 relationship citations had a passage. After: 268 of 268 claim passages and 110 of 110 relationship passages verbatim at their locators, every cited source covered (`verify_tradition.py` exit 0).
+Results before the changes: 253 of 253 claim passages verbatim at their locators; 0 of 116 relationship citations had a passage. After: 268 of 268 claim passages and 110 of 110 relationship passages verbatim at their locators, every cited source covered (`verify_from_manifest.py` exit 0).
 
 ## What Changed
 

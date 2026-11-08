@@ -10,7 +10,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { nodeSha256 } from "../../src/features/knowledge/graph/hash-node";
 import { buildSnapshot } from "../../src/features/knowledge/graph/snapshot";
 import { createKnowledgeView } from "../../src/features/knowledge/read/view";
-import { asImported, importContent, ContentImportRefused, type ImportSummary } from "../../src/server/content/import-content";
+import { importContent, ContentImportRefused, type ImportSummary } from "../../src/server/content/import-content";
 import { storeReviewSnapshot, type StoredReviewSnapshot } from "../../src/server/content/review-snapshot";
 import { loadSnapshotPayload, SnapshotNotReadableError } from "../../src/server/knowledge/snapshot-store";
 import { pgLearningContextData, resolveLearningContext } from "../../src/server/learning/context-data";
@@ -65,9 +65,9 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
       expect(c.n).toBe(m.concepts.length);
     });
 
-    it("stores each file review state, a file's verified as under_review, never accepted, never demo", async () => {
+    it("keeps every review state exactly as in the files, never accepted, never demo", async () => {
       const r = await t.pool.query<{ key: string; verification_state: string; is_demo: boolean }>("SELECT key, verification_state, is_demo FROM concepts");
-      const byKey = new Map(asImported(loaded.model).concepts.map((c) => [c.key, c.verificationState]));
+      const byKey = new Map(loaded.model.concepts.map((c) => [c.key, c.verificationState]));
       for (const row of r.rows) {
         expect(row.verification_state).toBe(byKey.get(row.key));
         expect(row.is_demo).toBe(false);
@@ -132,7 +132,7 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
     });
 
     it("is the same bundle as the file-built review snapshot (lossless import)", () => {
-      const fromFiles = buildSnapshot(asImported(loaded.model), { kind: "review", hasher: nodeSha256, generatedAt: "2026-10-14T00:00:00.000Z", issues: loaded.report.issues });
+      const fromFiles = buildSnapshot(loaded.model, { kind: "review", hasher: nodeSha256, generatedAt: "2026-10-14T00:00:00.000Z", issues: loaded.report.issues });
       expect(fromFiles.ok).toBe(true);
       if (fromFiles.ok) expect(snap.contentSha256).toBe(fromFiles.snapshot.contentSha256);
     });

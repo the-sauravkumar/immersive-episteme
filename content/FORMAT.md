@@ -18,7 +18,8 @@ The platform importer (built later) maps these into the knowledge schema.
 - `verification_state` is `"under_review"` (or `"needs_evidence"` when sources
   are weak/conflicting). `"verified"` records that a concept or relationship passed the
   mechanical source check: every evidence quote was re-found verbatim at its locator in the
-  archived source by `content/review/tools/evidence/verify_tradition.py`, every claim and
+  archived source by the check script its `content/review/<slug>-verification.md` names
+  (in `content/review/tools/evidence/`), every claim and
   explanation says no more than its quotes, and every cited source has a passage. It is not
   an acceptance: the loader and the importer read it as `"under_review"`, and only the CMS
   review (`scripts/content/verify-concepts.ts`, DR-059) accepts content into a release. The

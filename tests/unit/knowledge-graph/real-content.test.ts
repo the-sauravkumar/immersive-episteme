@@ -29,9 +29,9 @@ describe.skipIf(!present)("curated content/", () => {
     expect(report.counts.concepts).toBeGreaterThan(0);
   });
 
-  it("is real content in file review states: never demo, never published", () => {
+  it("loads as unaccepted real content: never demo, never verified or published", () => {
     const states = new Set([...model.concepts, ...model.relationships].map((x) => x.verificationState));
-    expect([...states].every((s) => s === "under_review" || s === "needs_evidence" || s === "verified")).toBe(true);
+    expect([...states].every((s) => s === "under_review" || s === "needs_evidence")).toBe(true);
     expect(model.concepts.some((c) => c.isDemo)).toBe(false);
   });
 
