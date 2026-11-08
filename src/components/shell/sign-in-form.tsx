@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useId, useRef, useState, type FormEvent } from "react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -22,7 +22,6 @@ function errorPathFor(next: string): string {
 }
 
 export function SignInForm({ google }: { google: boolean }) {
-  const router = useRouter();
   const search = useSearchParams();
   const next = safeNextPath(search.get("next"), STAFF_HOME);
   const [error, setError] = useState<string | null>(() => (google ? googleSignInErrorMessage(search.get("error")) : null));
@@ -50,8 +49,7 @@ export function SignInForm({ google }: { google: boolean }) {
       showError(signInErrorMessage(err));
       return;
     }
-    router.replace(next);
-    router.refresh();
+    window.location.replace(next);
   }
 
   async function onGoogle() {

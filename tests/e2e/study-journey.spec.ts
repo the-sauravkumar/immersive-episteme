@@ -127,14 +127,14 @@ async function runJourney(browser: Browser, door: Journey["door"]): Promise<{ co
 
   const title = page.locator("#assessment-title");
   const map = page.getByRole("form", { name: "Add a relationship" });
-  const away = page.getByRole("heading", { name: "Come Back In About A Week" });
+  const away = page.getByRole("heading", { name: /^Come Back In \d+ Days?$/ });
   for (;;) {
     await expect(title.or(map).or(away).first()).toBeVisible();
     if (await away.isVisible()) break;
     if (await map.isVisible()) await linkConceptMap(page, journey);
     else await answerAssessment(page, journey, new URL(page.url()).pathname.split("/").pop() ?? "step");
   }
-  await expect(page.getByRole("heading", { name: "Come Back In About A Week" })).toBeVisible();
+  await expect(away).toBeVisible();
   await shot(page, journey, "delayed-return-screen");
 
   const opened = await db().query("UPDATE delayed_test_schedule SET opens_at = now() - interval '1 hour', due_at = now() WHERE session_id = $1", [session.sessionId]);

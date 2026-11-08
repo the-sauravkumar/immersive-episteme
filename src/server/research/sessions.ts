@@ -193,11 +193,12 @@ export const exclusionSchema = z.object({
 export async function excludeSession(pool: Pool | PoolClient, actor: Actor, input: z.input<typeof exclusionSchema>): Promise<void> {
   const e = exclusionSchema.parse(input);
   await inTransaction(pool, async (c) => {
-    const r = await c.query<{ excluded: boolean }>("SELECT excluded FROM study_sessions WHERE id = $1 FOR UPDATE", [e.sessionId]);
+    const r = await c.query<{ excluded: boolean; status: string; participant_id: string }>("SELECT excluded, status, participant_id FROM study_sessions WHERE id = $1 FOR UPDATE", [e.sessionId]);
     if (!r.rows[0]) throw new ResearchActionError("Session not found");
     if (r.rows[0].excluded) throw new ResearchActionError("The session is already excluded.");
     const reason = `${e.category}: ${e.detail}`;
     await c.query("UPDATE study_sessions SET excluded = true, exclusion_reason = $2, excluded_by = $3, excluded_at = now(), status = CASE WHEN status = 'in_progress' THEN 'abandoned' ELSE status END WHERE id = $1", [e.sessionId, reason, actor.userId]);
+    if (r.rows[0].status === "in_progress") await c.query("UPDATE participants SET status = 'excluded', exclusion_reason = $2 WHERE id = $1", [r.rows[0].participant_id, reason]);
     await audit(c, actor, "session.exclude", "study_session", e.sessionId, { after: { excluded: true, category: e.category }, reason: e.category });
   });
 }

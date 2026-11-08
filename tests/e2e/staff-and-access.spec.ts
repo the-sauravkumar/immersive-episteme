@@ -79,7 +79,9 @@ test("the invite gate admits a valid code once, refuses a used-up one, and a rev
   const second = await newContext(browser, UNINVITED);
   const other = await second.newPage();
   await other.goto(`/explore?invite=${encodeURIComponent(code)}`);
-  await expect(other).toHaveURL(/\/invite\?.*error=invalid/);
+  await expect(other).toHaveURL(/\/invite\?next=%2Fexplore&code=/);
+  await expect(other.getByRole("textbox", { name: "Invite code" })).toHaveValue(code);
+  await other.getByRole("button", { name: "Continue" }).click();
   await expect(other.getByText("Code not accepted")).toBeVisible();
   await second.close();
 
@@ -95,8 +97,11 @@ test("the invite gate admits a valid code once, refuses a used-up one, and a rev
   const linked = await newContext(browser, UNINVITED);
   const fresh = await inviteCode(null);
   const viaLink = await linked.newPage();
-  await viaLink.goto(`/about?invite=${encodeURIComponent(fresh.code)}`);
-  await expect(viaLink).toHaveURL(/\/about$/);
+  await viaLink.goto(`/explore?invite=${encodeURIComponent(fresh.code)}`);
+  await expect(viaLink).toHaveURL(/\/invite\?next=%2Fexplore&code=/);
+  expect((await db().query<{ uses: number }>("SELECT use_count AS uses FROM invite_codes WHERE id = $1", [fresh.id])).rows[0]?.uses).toBe(0);
+  await viaLink.getByRole("button", { name: "Continue" }).click();
+  await expect(viaLink).toHaveURL(/\/explore$/);
   await expect(viaLink.getByRole("heading", { level: 1 })).toBeVisible();
   await linked.close();
 });

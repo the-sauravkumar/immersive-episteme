@@ -280,6 +280,7 @@ describe.skipIf(!TEST_URL)("research console", () => {
     expect(s).toMatchObject({ excluded: true, deviations: 1, annotations: 1, events: 7, openGaps: 0, participantCode: "P-RC02" });
     expect(integrityFlags(s).map((f) => f.level)).toContain("error");
     expect(s.exclusionReason).toBe("technical_failure");
+    expect(await one<{ session: string; participant: string }>(t.pool, "SELECT ss.status AS session, p.status AS participant FROM study_sessions ss JOIN participants p ON p.id = ss.participant_id WHERE ss.id = $1", [s3d.sessionId])).toEqual({ session: "abandoned", participant: "excluded" });
     expect(JSON.stringify(integrityFlags(s))).not.toContain("Renderer crashed twice");
     const identified = { identified: true, userId: null };
     expect((await getSession(t.pool, s3d.sessionId, identified))!.exclusionReason).toBe("technical_failure: Renderer crashed twice");

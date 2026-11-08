@@ -11,7 +11,6 @@ const client = vi.hoisted(() => ({
 }));
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: vi.fn(), refresh: vi.fn() }),
   useSearchParams: () => navigation.search,
 }));
 vi.mock("@/components/shell/auth-client", () => ({
