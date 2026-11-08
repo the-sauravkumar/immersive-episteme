@@ -1,10 +1,11 @@
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 import { nodeSha256 } from "../../src/features/knowledge/graph/hash-node";
 import { importContent } from "../../src/server/content/import-content";
 import { storeReviewSnapshot } from "../../src/server/content/review-snapshot";
 
 import { REPO_ROOT, loadAndValidate } from "./_shared";
+import { acceptContentFiles } from "./verify-concepts";
 
 export const SHORTLIST = ["ajrakh", "sanganeri", "machilipatnam-kalamkari"] as const;
 export const DEMO_REVIEW_STUDY_SLUG = "demo-review-walkthrough";
@@ -63,7 +64,10 @@ export interface PublicDemoResult {
   study: "created" | "updated" | "unchanged";
 }
 
-export async function buildPublicDemo(client: PoolClient, opts: { invokedBy: string; log: (msg: string) => void }): Promise<PublicDemoResult> {
+export async function buildPublicDemo(
+  client: PoolClient,
+  opts: { invokedBy: string; log: (msg: string) => void; verify?: { pool: Pool; as: string } },
+): Promise<PublicDemoResult> {
   const { log } = opts;
   const { model, report } = loadAndValidate(`${REPO_ROOT}/content`);
   const s = await importContent(client, { model, issues: report.issues, hasher: nodeSha256, invokedBy: opts.invokedBy });
@@ -71,6 +75,8 @@ export async function buildPublicDemo(client: PoolClient, opts: { invokedBy: str
     `content import: concepts +${s.concepts.inserted} ~${s.concepts.updated} =${s.concepts.unchanged}; relationships +${s.relationships.inserted} ~${s.relationships.updated} =${s.relationships.unchanged}; ` +
       `sources +${s.sources.inserted} =${s.sources.unchanged}; media +${s.mediaCandidates.inserted} =${s.mediaCandidates.unchanged}`,
   );
+
+  if (opts.verify) await acceptContentFiles(opts.verify.pool, opts.verify.as, log);
 
   const snap = await storeReviewSnapshot(client, { hasher: nodeSha256 });
   log(`review snapshot ${snap.created ? "created" : "unchanged"}: id ${snap.id} label ${snap.versionLabel} payload_sha256 ${snap.payloadSha256} items ${snap.itemCount}`);

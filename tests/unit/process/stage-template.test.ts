@@ -5,7 +5,7 @@ import { loadTemplate } from "@/features/process/application/load-template";
 import { ASSET_CATALOGUE } from "@/features/process/domain/asset-catalogue";
 import { processStages, UNBACKED_LINK_STATE, type TraditionRecord } from "@/features/process/domain/knowledge-record";
 import type { MergePlan } from "@/features/process/domain/merge-plan";
-import { anyCaptionUnderReview, withCaptionReview, type StageTemplate, type TraditionKey } from "@/features/process/domain/stage-template";
+import { unverifiedStages, type StageTemplate, type TraditionKey } from "@/features/process/domain/stage-template";
 import { isShortFormOf, joinShortForms, restoreTitle, splitTitle } from "@/features/process/domain/title-parts";
 import { adjacencyErrors, captionErrors, orderErrors, structuralErrors } from "@/features/process/domain/validate-template";
 import { fileTemplateSource } from "@/features/process/infrastructure/file-template-source";
@@ -146,21 +146,16 @@ describe("template source", () => {
   });
 });
 
-describe("caption review state from the pinned snapshot", () => {
+describe("stages a learner may be shown", () => {
   const template = templateOf("ajrakh");
 
-  it("marks a caption under review when any stage it draws on is not verified in the snapshot", () => {
+  it("names every stage that draws on a concept the snapshot has not verified", () => {
     const first = template.stages[0]!;
     const verifiedAllButFirst = new Set(template.stages.slice(1).flatMap((stage) => stage.sourceStageKeys).filter((key) => !first.sourceStageKeys.includes(key)));
-    const [marked] = withCaptionReview([template], verifiedAllButFirst);
-    expect(marked!.stages[0]!.caption.underReview).toBe(true);
-    expect(marked!.stages.slice(1).some((stage) => stage.caption.underReview)).toBe(false);
-    expect(anyCaptionUnderReview([marked!])).toBe(true);
-    expect(template.stages[0]!.caption.underReview).toBeUndefined();
+    expect(unverifiedStages([template], verifiedAllButFirst)).toEqual([first.key]);
   });
 
-  it("marks nothing when every stage is verified", () => {
-    const all = new Set(template.stages.flatMap((stage) => stage.sourceStageKeys));
-    expect(anyCaptionUnderReview(withCaptionReview([template], all))).toBe(false);
+  it("names none when every stage is verified", () => {
+    expect(unverifiedStages([template], new Set(template.stages.flatMap((stage) => stage.sourceStageKeys)))).toEqual([]);
   });
 });

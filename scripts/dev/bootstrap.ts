@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 
 import { seeds } from "../../db/seeds";
+import { arg } from "../content/_shared";
 import { buildPublicDemo, counts } from "../content/public-demo";
 import { isLocalHost, makePool, redact, runMigrations } from "../db/_shared";
 
@@ -35,7 +36,8 @@ async function main(): Promise<void> {
       log(`seed ${seed.name} ok`);
     }
 
-    await buildPublicDemo(client, { invokedBy: "npm run dev:bootstrap", log });
+    const verifyAs = arg("verify-as");
+    await buildPublicDemo(client, { invokedBy: "npm run dev:bootstrap", log, ...(verifyAs ? { verify: { pool, as: verifyAs } } : {}) });
 
     log("row counts:");
     for (const [t, n] of Object.entries(await counts(client))) log(`  ${t.padEnd(26)} ${n}`);

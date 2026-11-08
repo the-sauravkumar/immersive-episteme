@@ -35,7 +35,7 @@ npm run dev                       # http://localhost:3000  (sign in at /sign-in)
 ### Development data (one command)
 
 ```bash
-npm run dev:bootstrap
+npm run dev:bootstrap -- --verify-as <local curator email>
 ```
 
 Starts the database container, migrates the main and test databases, seeds reference and demo
@@ -43,7 +43,10 @@ data, imports `content/` (`npm run content:import`), builds the REVIEW snapshot 
 `under_review` / `needs_evidence`: draft, `kind = review`, never publishable, never usable by a
 real study), and creates the draft demo study
 `demo-review-walkthrough` (non-experimental) pinned to it, so /explore and staff preview of
-/learn/* render real content. Idempotent; it prints the row counts. Refuses non-local databases.
+/learn/* render real content. With `--verify-as` it accepts, as that existing local curator, every
+concept and link the content files record as `verified` before building the snapshot; without it the
+doors show "Learning Content Is Not Available" (DR-131). Idempotent; it prints the row counts.
+Refuses non-local databases.
 API reference for pages: `docs/architecture/data-and-telemetry-layer.md`.
 
 `create-admin` is idempotent: re-running keeps the existing password and only adds the role.

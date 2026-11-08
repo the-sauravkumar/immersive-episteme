@@ -110,6 +110,7 @@ describe.skipIf(files.length === 0)("content/ interchange files", () => {
       for (const r of rels) {
         const id = `${r.source} ${r.type} ${r.target}`;
         if (table && !table.includes(id)) problems.push(`${id}: not in the verification record`);
+        if (r.provenance_kind === "unverified") problems.push(`${id}: provenance unverified, which the database refuses to accept`);
         const located = new Set(r.evidence.map((e) => e.source_id));
         const missing = r.source_ids.filter((s) => !located.has(s));
         if (missing.length) problems.push(`${id}: no passage for ${missing.join(", ")}`);

@@ -53,36 +53,15 @@ export const ACCESS_NOTICE_TEXT = {
   label: "Session type",
   endDemo: "End demo",
   demo: {
-    plain: {
-      long: "Demo: you are exploring outside a study. Nothing here is recorded as study data.",
-      medium: "Demo: nothing here is recorded as study data.",
-      short: "Demo: not study data.",
-    },
-    review: {
-      long: "Demo: not recorded as study data. Some content is under review and not yet verified.",
-      medium: "Demo: not study data. Content under review.",
-      short: "Demo, under review",
-    },
+    long: "Demo: you are exploring outside a study. Nothing here is recorded as study data.",
+    medium: "Demo: nothing here is recorded as study data.",
+    short: "Demo: not study data.",
   },
   preview: {
-    plain: {
-      long: "Staff preview: not part of a study session and not recorded as study data.",
-      medium: "Staff preview: not recorded as study data.",
-      short: "Staff preview: not study data.",
-    },
-    review: {
-      long: "Staff preview: not recorded as study data. Some content is under review and not yet verified.",
-      medium: "Staff preview: not study data. Content under review.",
-      short: "Preview, under review",
-    },
+    long: "Staff preview: not part of a study session and not recorded as study data.",
+    medium: "Staff preview: not recorded as study data.",
+    short: "Staff preview: not study data.",
   },
-} as const;
-
-export const UNVERIFIED_NOTICE_TEXT = {
-  label: "Content state",
-  long: "Some of this content is under review and has not yet been verified by a curator.",
-  short: "Under review: not yet verified.",
-  caption: "This caption is under review: a curator has not yet verified it.",
 } as const;
 
 export const UNAVAILABLE_TEXT = {

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { UNVERIFIED_NOTICE_TEXT } from "@/features/learning/strings";
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
 import { finishLabel, HELP_TITLE, HINT_TITLE, NO_GUIDANCE, PAUSE_TEXT, PAUSE_TITLE, RESUME_LABEL, sessionHelpLines, SOURCES_AND_CREDITS_LABEL, SOURCES_LABEL, type DoorGuidance } from "@/features/process/domain/guidance";
 import { exhibitCreditLines, exhibitImages, type StageTemplate } from "@/features/process/domain/stage-template";
@@ -293,11 +292,6 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
           <b>{template.traditionName}</b>
           <span>{atHall ? station?.name : `Station ${station?.stageNumber ?? ""} Of ${template.stages.length}`}</span>
         </p>
-        {stage?.caption.underReview ? (
-          <p className="walkthrough-review" data-slot="caption-review">
-            {UNVERIFIED_NOTICE_TEXT.caption}
-          </p>
-        ) : null}
       </div>
       <div className="walkthrough-tools">
         {guide.hint !== null ? (
@@ -329,7 +323,6 @@ export function WalkthroughSession({ templates, events, createEngine, resume = n
       {sourcesOpen && stage ? (
         <DoorDialog className="walkthrough-dialog" title={SOURCES_LABEL} action="Close" onClose={() => setSourcesOpen(false)}>
           <p>{stage.caption.text}</p>
-          {stage.caption.underReview ? <p data-slot="caption-review">{UNVERIFIED_NOTICE_TEXT.caption}</p> : null}
           <ul>
             {stage.caption.sources.map((source) => (
               <li key={`${source.sourceId}${source.locator}`}>

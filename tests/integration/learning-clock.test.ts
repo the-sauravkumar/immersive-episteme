@@ -47,7 +47,7 @@ describe.skipIf(!TEST_URL)("learning clock and outcome separation", () => {
     return { a, b };
   }
   const ctxFor = (sess: { participantId: string; sessionId: string }, condition: "2d" | "immersive") =>
-    resolveLearningContext({ kind: "participant", experimental: true, condition, participantId: sess.participantId, sessionId: sess.sessionId }, { data: pgLearningContextData(t.pool), appBuild: "test" });
+    resolveLearningContext({ kind: "participant", experimental: true, condition, participantId: sess.participantId, sessionId: sess.sessionId }, { data: pgLearningContextData(t.pool), appBuild: "test", templates: [] });
   const clockOf = async (sessionId: string) => {
     const row = await one<{ started_at: Date | null; budget_seconds: number | null; ends_at: Date | null; ended_at: Date | null }>(
       t.pool,

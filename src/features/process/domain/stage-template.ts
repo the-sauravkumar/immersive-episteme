@@ -22,7 +22,6 @@ export interface StageItem {
 export interface StageCaption {
   readonly text: string;
   readonly sources: readonly SourceRef[];
-  readonly underReview?: boolean;
 }
 
 export interface TemplateStage {
@@ -87,18 +86,10 @@ export const FOLLOWED_CLOTH_LABEL = "The Cloth You Followed";
 export const PRODUCT_TITLE = "Finished Textiles";
 export const PRODUCT_SENTENCE = "The cloth you followed from Stage 1, and others from the same tradition.";
 
-export function withCaptionReview(templates: readonly StageTemplate[], verifiedStageConcepts: ReadonlySet<string>): StageTemplate[] {
-  return templates.map((template) => ({
-    ...template,
-    stages: template.stages.map((stage) => ({
-      ...stage,
-      caption: { ...stage.caption, underReview: stage.sourceStageKeys.length === 0 || stage.sourceStageKeys.some((key) => !verifiedStageConcepts.has(key)) },
-    })),
-  }));
-}
-
-export function anyCaptionUnderReview(templates: readonly StageTemplate[]): boolean {
-  return templates.some((template) => template.stages.some((stage) => stage.caption.underReview === true));
+export function unverifiedStages(templates: readonly StageTemplate[], verifiedStageConcepts: ReadonlySet<string>): string[] {
+  return templates.flatMap((template) =>
+    template.stages.filter((stage) => stage.sourceStageKeys.length === 0 || stage.sourceStageKeys.some((key) => !verifiedStageConcepts.has(key))).map((stage) => stage.key),
+  );
 }
 
 const PHOTO_SUBJECT_BY_CONCEPT_TYPE: Readonly<Record<string, string>> = { historical_context: "Textile", tool: "Printing Blocks" };

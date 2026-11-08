@@ -27,9 +27,9 @@ export function LearningShell({ condition, children }: { condition: LearningCond
   );
 }
 
-function NoticeWords({ text, variant }: { text: { long: string; medium: string; short: string }; variant: "plain" | "review" }) {
+function NoticeWords({ text }: { text: { long: string; medium: string; short: string } }) {
   return (
-    <p className="min-w-0 truncate" data-notice-variant={variant}>
+    <p className="min-w-0 truncate">
       <span className="xs:hidden">{text.short}</span>
       <span className="hidden xs:inline lg:hidden">{text.medium}</span>
       <span className="hidden lg:inline">{text.long}</span>
@@ -47,8 +47,7 @@ export function AccessNotice({ access }: { access: LearningAccess }) {
       className="sticky top-0 z-(--z-hud) h-(--notice-h) shrink-0 border-b border-line bg-vat-2 t-label text-lime"
     >
       <div className="flex h-full items-center justify-between gap-3 px-4 xs:px-6 lg:px-8">
-        <NoticeWords text={text.plain} variant="plain" />
-        <NoticeWords text={text.review} variant="review" />
+        <NoticeWords text={text} />
         {access.kind === "demo" ? (
           <form action={endPublicDemo} className="shrink-0">
             <Button type="submit" variant="ghost" className="-my-0.5 -mr-3 px-3">

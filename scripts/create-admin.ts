@@ -5,7 +5,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "../db/schema";
 import { parseServerEnv } from "../src/lib/env";
 import { STAFF_ROLES } from "../src/lib/permissions/roles";
-import { createStaffAccount } from "../src/server/auth/bootstrap";
+import { createStaffAccount, grantRoleToExistingAccount } from "../src/server/auth/bootstrap";
 import { createAuth } from "../src/server/auth/config";
 
 import { makePool, redact, resolveDatabaseUrl } from "./db/_shared";
@@ -33,20 +33,22 @@ async function main() {
   if (values.help || !values.email) usage();
 
   const password = process.env.ADMIN_PASSWORD ?? values.password;
-  if (!password) usage();
 
   const { url, label } = resolveDatabaseUrl(values.test ? ["--test"] : []);
   const env = parseServerEnv({ ...process.env, DATABASE_URL: url });
   const pool = makePool(url);
   try {
     const db = drizzle(pool, { schema, casing: "snake_case" });
-    const auth = createAuth({ db, secret: env.BETTER_AUTH_SECRET, baseURL: env.BETTER_AUTH_URL, rateLimit: false });
-    const result = await createStaffAccount(auth, db, {
-      email: values.email,
-      name: values.name ?? values.email.split("@")[0] ?? "Administrator",
-      password,
-      role: values.role as (typeof STAFF_ROLES)[number],
-    });
+    const role = values.role as (typeof STAFF_ROLES)[number];
+    const result = password
+      ? await createStaffAccount(createAuth({ db, secret: env.BETTER_AUTH_SECRET, baseURL: env.BETTER_AUTH_URL, rateLimit: false }), db, {
+          email: values.email,
+          name: values.name ?? values.email.split("@")[0] ?? "Administrator",
+          password,
+          role,
+        })
+      : await grantRoleToExistingAccount(db, values.email, role);
+    if (!result) throw new Error(`no account for ${values.email}: sign in once with Google (it waits at Awaiting Access), or pass a password to create an email account`);
     console.log(
       `[create-admin] ${label} db ${redact(url)}\n` +
         `  user ${result.email} (${result.userId}) ${result.created ? "created" : "already existed (password unchanged)"}\n` +

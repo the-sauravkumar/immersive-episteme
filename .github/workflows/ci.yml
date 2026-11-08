@@ -138,8 +138,11 @@ jobs:
       - name: Create test database
         run: psql "postgres://episteme:episteme_ci_password@localhost:5432/episteme" -c "CREATE DATABASE episteme_test"
 
-      - name: Bootstrap the database (migrations, seeds, content, review snapshot, demo study)
-        run: npx tsx scripts/dev/bootstrap.ts
+      - name: Bootstrap the database (migrations, seeds, content with its verified records accepted, review snapshot, demo study)
+        run: |
+          npx tsx scripts/db/migrate.ts
+          ADMIN_PASSWORD="$(node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))")" npx tsx scripts/create-admin.ts --email ci-curator@episteme.local --name "CI Curator" --role curator
+          npx tsx scripts/dev/bootstrap.ts --verify-as ci-curator@episteme.local
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
@@ -201,8 +204,11 @@ jobs:
       - name: Create test database
         run: psql "postgres://episteme:episteme_ci_password@localhost:5432/episteme" -c "CREATE DATABASE episteme_test"
 
-      - name: Bootstrap the database (migrations, seeds, content, review snapshot, demo study)
-        run: npx tsx scripts/dev/bootstrap.ts
+      - name: Bootstrap the database (migrations, seeds, content with its verified records accepted, review snapshot, demo study)
+        run: |
+          npx tsx scripts/db/migrate.ts
+          ADMIN_PASSWORD="$(node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))")" npx tsx scripts/create-admin.ts --email ci-curator@episteme.local --name "CI Curator" --role curator
+          npx tsx scripts/dev/bootstrap.ts --verify-as ci-curator@episteme.local
 
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium

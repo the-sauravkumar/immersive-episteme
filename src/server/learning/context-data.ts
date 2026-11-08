@@ -1,6 +1,7 @@
 import type { Pool, PoolClient } from "pg";
 
 import type { DoorGuidance } from "@/features/process/domain/guidance";
+import { unverifiedStages, type StageTemplate } from "@/features/process/domain/stage-template";
 import { studyConfigSchema, type StudyConfig } from "@/features/study/contracts";
 import type { LearningCondition } from "@/lib/permissions/learning";
 import type { LearningAccess } from "@/server/auth/learning-decision";
@@ -20,19 +21,20 @@ export interface LearningContext {
   telemetrySessionId: string;
   appBuild: string;
   guidance: DoorGuidance;
-  verifiedStageConcepts: readonly string[];
   snapshotId: string;
   photosShown: boolean;
 }
 
 export class LearningContextUnavailableError extends Error {
-  constructor(readonly reason: "no_review_snapshot" | "session_not_found" | "study_has_no_snapshot") {
+  constructor(readonly reason: "no_review_snapshot" | "session_not_found" | "study_has_no_snapshot" | "content_unverified") {
     super(
       reason === "no_review_snapshot"
         ? "No review snapshot exists yet. Run `npm run dev:bootstrap` (or `npm run content:import`)."
         : reason === "session_not_found"
           ? "The study session no longer exists."
-          : "The study has no content snapshot.",
+          : reason === "content_unverified"
+            ? "A stage the doors teach is not verified in the snapshot. Accept it with `scripts/content/verify-concepts.ts` and rebuild the snapshot."
+            : "The study has no content snapshot.",
     );
     this.name = "LearningContextUnavailableError";
   }
@@ -67,13 +69,15 @@ export interface LearningContextData {
   findPreviewContent(): Promise<PreviewContentRow | null>;
 }
 
+const VERIFIED_STAGES = `(SELECT coalesce(array_agg(key ORDER BY key), '{}') FROM concepts
+                  WHERE type = 'process_stage' AND verification_state IN ('verified', 'published') AND NOT is_demo) AS verified_stages`;
+
 export function pgLearningContextData(q: Q): LearningContextData {
   return {
     async findStudySession(sessionId) {
       const r = await q.query<{ session_id: string; config: unknown; snapshot_id: string | null; version_label: string | null; verified_stages: string[] }>(
         `SELECT ss.id AS session_id, st.config, ss.snapshot_id, cs.version_label,
-                (SELECT coalesce(array_agg(c->>'key' ORDER BY c->>'key'), '{}') FROM jsonb_array_elements(cs.payload->'concepts') c
-                     WHERE c->>'type' = 'process_stage' AND c->>'verificationState' IN ('verified', 'published')) AS verified_stages
+                ${VERIFIED_STAGES}
            FROM study_sessions ss
            JOIN studies st ON st.id = ss.study_id
            LEFT JOIN content_snapshots cs ON cs.id = ss.snapshot_id
@@ -89,8 +93,7 @@ export function pgLearningContextData(q: Q): LearningContextData {
     async findPreviewContent() {
       const r = await q.query<{ id: string; version_label: string; config: unknown; verified_stages: string[] }>(
         `SELECT s.id, s.version_label, st.config,
-                (SELECT coalesce(array_agg(c->>'key' ORDER BY c->>'key'), '{}') FROM jsonb_array_elements(s.payload->'concepts') c
-                     WHERE c->>'type' = 'process_stage' AND c->>'verificationState' IN ('verified', 'published')) AS verified_stages
+                ${VERIFIED_STAGES}
            FROM content_snapshots s
            LEFT JOIN LATERAL (SELECT config FROM studies WHERE is_demo AND snapshot_id = s.id ORDER BY created_at DESC, id DESC LIMIT 1) st ON true
           WHERE s.kind = 'review' AND NOT s.is_demo
@@ -149,14 +152,19 @@ export function doorGuidanceOf(config: StudyConfig): DoorGuidance {
   };
 }
 
+function requireVerifiedStages(templates: readonly StageTemplate[], verifiedStageConcepts: readonly string[]): void {
+  if (unverifiedStages(templates, new Set(verifiedStageConcepts)).length > 0) throw new LearningContextUnavailableError("content_unverified");
+}
+
 export async function resolveLearningContext(
   access: LearningAccess,
-  deps: { data: LearningContextData; appBuild: string },
+  deps: { data: LearningContextData; appBuild: string; templates: readonly StageTemplate[] },
 ): Promise<LearningContext> {
   if (access.kind === "participant") {
     const s = await deps.data.findStudySession(access.sessionId);
     if (!s) throw new LearningContextUnavailableError("session_not_found");
     if (!s.snapshotId || !s.snapshotLabel) throw new LearningContextUnavailableError("study_has_no_snapshot");
+    requireVerifiedStages(deps.templates, s.verifiedStageConcepts);
     const cfg = configOf(s.studyConfig);
     await deps.data.startLearningClock(s.sessionId);
     return {
@@ -166,7 +174,6 @@ export async function resolveLearningContext(
       sessionId: s.sessionId,
       telemetrySessionId: s.sessionId,
       guidance: doorGuidanceOf(cfg),
-      verifiedStageConcepts: s.verifiedStageConcepts,
       snapshotId: s.snapshotId,
       photosShown: cfg.figures.photos,
       appBuild: deps.appBuild,
@@ -175,6 +182,7 @@ export async function resolveLearningContext(
 
   const preview = await deps.data.findPreviewContent();
   if (!preview) throw new LearningContextUnavailableError("no_review_snapshot");
+  requireVerifiedStages(deps.templates, preview.verifiedStageConcepts);
   const cfg = configOf(preview.studyConfig);
   return {
     mode: access.kind === "demo" ? "demo" : "preview",
@@ -183,7 +191,6 @@ export async function resolveLearningContext(
     sessionId: null,
     telemetrySessionId: nonStudyTelemetrySessionId(access.kind === "demo" ? "demo" : "preview", access.kind === "demo" ? access.demoId : access.userId),
     guidance: doorGuidanceOf(cfg),
-    verifiedStageConcepts: preview.verifiedStageConcepts,
     snapshotId: preview.snapshotId,
     photosShown: cfg.figures.photos,
     appBuild: deps.appBuild,

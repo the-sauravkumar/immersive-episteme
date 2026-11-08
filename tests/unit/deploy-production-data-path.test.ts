@@ -71,6 +71,11 @@ describe("content:bootstrap:remote target guard", () => {
     expect(d.message).toContain("ep-cool-name-a1b2c3d4.ap-southeast-1.aws.neon.tech");
   });
 
+  it("takes the accepting curator only as --verify-as=<email>", () => {
+    expect(decideBootstrapTarget(NEON, [REMOTE_CONFIRM_FLAG, "--verify-as=curator@example.org"]).ok).toBe(true);
+    expect(decideBootstrapTarget(NEON, [REMOTE_CONFIRM_FLAG, "--verify-as", "curator@example.org"]).ok).toBe(false);
+  });
+
   it("runs on a local database without the confirmation", () => {
     expect(decideBootstrapTarget(LOCAL, [])).toMatchObject({ ok: true, remote: false, host: "localhost" });
     expect(decideBootstrapTarget("postgres://u:p@127.0.0.1:5433/x", [])).toMatchObject({ ok: true, remote: false });

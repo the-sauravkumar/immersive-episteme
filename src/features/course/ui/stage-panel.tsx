@@ -1,7 +1,6 @@
 "use client";
 
 import { captionSize, nameSize, objectColumns, type PanelObject, type StagePanelModel } from "@/features/course/domain/panel-model";
-import { UNVERIFIED_NOTICE_TEXT } from "@/features/learning/strings";
 import { PROXY_CLOTH_MARK, ROLE_LABELS, SOURCES_LABEL, STAND_IN_MARK, UNSETTLED_COLOUR_MARK } from "@/features/process/domain/guidance";
 import type { SourceRef } from "@/features/process/domain/stage-template";
 
@@ -78,11 +77,6 @@ export function StagePanel({ model, reviewMarks, imageStatus, controls, onSource
         <p className="panel-caption" data-size={captionSize(model.caption)}>
           {model.caption}
         </p>
-        {model.captionUnderReview ? (
-          <p className="panel-review" data-slot="caption-review">
-            {UNVERIFIED_NOTICE_TEXT.caption}
-          </p>
-        ) : null}
         <SourcesDisclosure key={model.kicker} sources={model.sources} onOpened={onSourcesOpened} onClosed={onSourcesClosed} />
       </div>
       {count > 0 ? (

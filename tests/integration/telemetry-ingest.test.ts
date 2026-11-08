@@ -185,7 +185,7 @@ describe.skipIf(!TEST_URL)("telemetry ingestion", () => {
   it("resolves the study-mode learning context from the session's pinned snapshot", async () => {
     const ctx = await resolveLearningContext(
       { kind: "participant", experimental: true, condition: "2d", participantId: s2d.participantId, sessionId: s2d.sessionId },
-      { data: pgLearningContextData(t.pool), appBuild: "test" },
+      { data: pgLearningContextData(t.pool), appBuild: "test", templates: [] },
     );
     expect(ctx).toMatchObject({ mode: "study", contentVersion: label, sessionId: s2d.sessionId, telemetrySessionId: s2d.sessionId });
   });

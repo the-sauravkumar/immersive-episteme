@@ -49,7 +49,7 @@ function fakeDeps(over: Partial<Deps> = {}): Deps & { transition: ReturnType<typ
   } as Deps & { transition: ReturnType<typeof vi.fn> };
 }
 
-const req = (keys: string[]) => ({ keys, evidence: "https://example.org/verification-sheet", reason: "Checked against the source sheet" });
+const req = (keys: string[]) => ({ keys, links: [], evidence: "https://example.org/verification-sheet", reason: "Checked against the source sheet" });
 
 describe("verify-concepts", () => {
   it("applies transition() to every listed concept with all four checks and a reason carrying the evidence link", async () => {
@@ -117,12 +117,12 @@ describe("verify-concepts", () => {
   });
 
   it("dry run changes nothing and reports every refusal: state, permission, separation of duties, citations", async () => {
-    const { pool } = fakePool([row("ajrakh.tool.wooden-blocks"), row("ajrakh.tool.copper-dye-pot", { verification_state: "draft" })]);
+    const { pool } = fakePool([row("ajrakh.tool.wooden-blocks"), row("ajrakh.tool.copper-dye-pot", { verification_state: "draft" }), row("ajrakh.tool.mud-pot", { verification_state: "verified" })]);
     const deps = fakeDeps({
       authorsOf: vi.fn(async () => new Set([EDITOR.userId])) as unknown as Deps["authorsOf"],
       citationProblems: vi.fn(async () => [{ code: "claim_no_quote", message: "Claim 2: 1 citation(s) without a verbatim evidence passage of their own." }]) as unknown as Deps["citationProblems"],
     });
-    const out = await runVerification(pool, EDITOR, req(["ajrakh.tool.wooden-blocks", "ajrakh.tool.copper-dye-pot"]), { apply: false, deps });
+    const out = await runVerification(pool, EDITOR, req(["ajrakh.tool.wooden-blocks", "ajrakh.tool.copper-dye-pot", "ajrakh.tool.mud-pot"]), { apply: false, deps });
     expect(deps.transition).not.toHaveBeenCalled();
     expect(out[0]!.status).toBe("refused");
     const r0 = out[0]!.status === "refused" ? out[0]!.reasons.join("\n") : "";
@@ -131,6 +131,22 @@ describe("verify-concepts", () => {
     expect(r0).toMatch(/claim_no_quote/);
     const r1 = out[1]!.status === "refused" ? out[1]!.reasons.join("\n") : "";
     expect(r1).toMatch(/state is draft/);
+    expect(out[2]).toEqual({ key: "ajrakh.tool.mud-pot", status: "kept", id: "id-ajrakh.tool.mud-pot" });
+  });
+
+  it("accepts the file's verified links after its concepts, through the same service", async () => {
+    const link = "ajrakh.tool.wooden-blocks USED_IN ajrakh.process_stage.printing";
+    const pool = {
+      query: vi.fn(async (sql: string, params: unknown[] = []) => {
+        const keys = params[0] as string[];
+        if (/FROM relationships r/.test(sql)) return { rows: keys.includes(link) ? [row(link, { id: "id-link" })] : [], rowCount: 0 };
+        return { rows: keys.map((key) => row(key)), rowCount: 0 };
+      }),
+    } as unknown as Pool;
+    const deps = fakeDeps();
+    const out = await runVerification(pool, CURATOR, { ...req(["ajrakh.tool.wooden-blocks"]), links: [link] }, { apply: true, deps });
+    expect(out.map((o) => o.status)).toEqual(["verified", "verified"]);
+    expect(deps.transition.mock.calls.map((call) => (call as unknown[])[2])).toMatchObject([{ entityKind: "concept" }, { entityKind: "relationship", entityId: "id-link" }]);
   });
 
   it("dry run reports would_verify when nothing blocks", async () => {
@@ -141,11 +157,17 @@ describe("verify-concepts", () => {
   });
 
   it("parses the keys file strictly", () => {
-    expect(parseKeysFile('["ajrakh.tool.wooden-blocks"]')).toEqual(["ajrakh.tool.wooden-blocks"]);
-    expect(parseKeysFile('{"keys":["machilipatnam-kalamkari.process_stage.dye-boiling"]}')).toEqual(["machilipatnam-kalamkari.process_stage.dye-boiling"]);
-    const file = { concepts: [{ key: "bagh.material.alum", verification_state: "verified" }, { key: "bagh.material.alizarin", verification_state: "under_review" }] };
-    expect(parseKeysFile(JSON.stringify(file))).toEqual(["bagh.material.alum"]);
-    expect(() => parseKeysFile(JSON.stringify({ concepts: [file.concepts[1]] }))).toThrow(/no concepts/);
+    expect(parseKeysFile('["ajrakh.tool.wooden-blocks"]')).toEqual({ keys: ["ajrakh.tool.wooden-blocks"], links: [] });
+    expect(parseKeysFile('{"keys":["machilipatnam-kalamkari.process_stage.dye-boiling"]}')).toEqual({ keys: ["machilipatnam-kalamkari.process_stage.dye-boiling"], links: [] });
+    const file = {
+      concepts: [{ key: "bagh.material.alum", verification_state: "verified" }, { key: "bagh.material.alizarin", verification_state: "under_review" }],
+      relationships: [
+        { source: "bagh.material.alum", type: "USED_IN", target: "bagh.process_stage.printing", verification_state: "verified" },
+        { source: "bagh.material.alizarin", type: "USED_IN", target: "bagh.process_stage.dyeing", verification_state: "under_review" },
+      ],
+    };
+    expect(parseKeysFile(JSON.stringify(file))).toEqual({ keys: ["bagh.material.alum"], links: ["bagh.material.alum USED_IN bagh.process_stage.printing"] });
+    expect(() => parseKeysFile(JSON.stringify({ concepts: [file.concepts[1]], relationships: [file.relationships[1]] }))).toThrow(/no concepts/);
     expect(() => parseKeysFile("[]")).toThrow(/no concepts/);
     expect(() => parseKeysFile('["not a key"]')).toThrow(/not concept keys/);
     expect(() => parseKeysFile('{"other":1}')).toThrow(/JSON array/);

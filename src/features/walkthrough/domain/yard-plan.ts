@@ -213,12 +213,13 @@ function festoonPoints(rails: readonly number[]): Vec3[] {
 
 function awayPoints(lastRail: number): Vec3[] {
   return [
-    [CLOTH_LINE_X, RAIL_HEIGHT - 0.25, lastRail - 0.8],
-    [CLOTH_LINE_X, 3.65, lastRail - 3.4],
-    [CLOTH_LINE_X, 3.2, FAR_WALL_Z + 3],
-    [CLOTH_LINE_X, 3.05, FAR_WALL_Z],
-    [CLOTH_LINE_X, 1.9, FAR_WALL_Z - 2.6],
-    [CLOTH_LINE_X, 0.3, FAR_WALL_Z - 4.2],
+    [CLOTH_LINE_X, RAIL_HEIGHT - 0.3, lastRail - 0.18],
+    [CLOTH_LINE_X, 2.6, lastRail - 0.42],
+    [CLOTH_LINE_X, 0.9, lastRail - 0.58],
+    [CLOTH_LINE_X, 0.22, lastRail - 0.85],
+    [CLOTH_LINE_X, 0.012, lastRail - 1.4],
+    [CLOTH_LINE_X, 0.012, FAR_WALL_Z + 2],
+    [CLOTH_LINE_X, 0.012, FAR_WALL_Z - 2],
     [CLOTH_LINE_X, 0.012, YARD_FRONT_Z - NEXT_YARD_OFFSET],
   ];
 }

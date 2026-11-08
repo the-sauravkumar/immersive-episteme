@@ -5211,7 +5211,7 @@
       "conditions": "Documented for Bagru by a low-reliability source; not confirmed for Akola.",
       "ordinal": null,
       "provenance_kind": "unverified",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "source_ids": [
         "S23"
       ],
@@ -5557,7 +5557,7 @@
       "conditions": "Bagru account only.",
       "ordinal": null,
       "provenance_kind": "unverified",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "source_ids": [
         "S23",
         "S14"
@@ -5583,7 +5583,7 @@
       "conditions": "Bagru account only.",
       "ordinal": null,
       "provenance_kind": "unverified",
-      "verification_state": "verified",
+      "verification_state": "under_review",
       "source_ids": [
         "S23"
       ],

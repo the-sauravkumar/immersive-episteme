@@ -12,7 +12,7 @@ export interface TargetDecision {
 }
 
 export function decideBootstrapTarget(url: string, argv: readonly string[]): TargetDecision {
-  const unknown = argv.filter((a) => !KNOWN_ARGS.has(a));
+  const unknown = argv.filter((a) => !KNOWN_ARGS.has(a) && !/^--verify-as=\S+@\S+$/.test(a));
   let host = "";
   let database = "";
   try {
@@ -28,7 +28,7 @@ export function decideBootstrapTarget(url: string, argv: readonly string[]): Tar
   const remote = !isLocalHost(url);
   const target = `target host ${host}, database ${database || "(default)"} (${remote ? "REMOTE" : "local"})`;
   if (unknown.length > 0) {
-    return { ok: false, host, database, remote, message: `Refused: unknown argument(s) ${unknown.join(" ")}; the only option is ${REMOTE_CONFIRM_FLAG}. ${target}` };
+    return { ok: false, host, database, remote, message: `Refused: unknown argument(s) ${unknown.join(" ")}; the options are ${REMOTE_CONFIRM_FLAG} and --verify-as=<curator email>. ${target}` };
   }
   if (remote && !argv.includes(REMOTE_CONFIRM_FLAG)) {
     return {

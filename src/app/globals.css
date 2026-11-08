@@ -483,19 +483,6 @@
   }
 }
 
-[data-access-notice] [data-notice-variant="review"] {
-  display: none;
-}
-[data-condition]:has([data-slot="unverified-notice"]) [data-access-notice] [data-notice-variant="plain"] {
-  display: none;
-}
-[data-condition]:has([data-slot="unverified-notice"]) [data-access-notice] [data-notice-variant="review"] {
-  display: block;
-}
-[data-condition]:has([data-access-notice]) [data-slot="unverified-notice"] {
-  display: none;
-}
-
 .react-flow__attribution a {
   display: inline-flex;
   min-height: 44px;

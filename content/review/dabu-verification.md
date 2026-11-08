@@ -534,3 +534,7 @@ Each name in `alt_names` is printed by a recorded source; the quote was re-found
 | Akola print | S2 | § "Quick questions" | What is Akola print? |
 | Aakola Dabu Prints | S5 | § "Application Details" | Geographical Indications Aakola Dabu Prints |
 | mud-resist printing | S2 | § "Usage:" | The dabu or mud-resist printing of Akola |
+
+## DR-131: Three Links Back To Review
+
+The database refuses to accept a link whose provenance is `unverified`, and three links the file had marked `verified` carry that provenance: `dabu.process_stage.fabric-washing USES dabu.material.myrobalan-and-mordants`, `dabu.material.myrobalan-and-mordants SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.alum-mordant-complexation` and `dabu.material.myrobalan-and-mordants SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.iron-tannin-black`. They are `under_review` in the file and the database, and `tests/content/content-format.test.ts` now refuses a `verified` link with `unverified` provenance.

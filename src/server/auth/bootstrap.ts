@@ -62,3 +62,11 @@ export async function createStaffAccount(
   const roleGranted = await grantRole(db, userId, data.role, grantedBy);
   return { userId, email: data.email, created, roleGranted, roles: await loadUserRoles(db, userId) };
 }
+
+export async function grantRoleToExistingAccount(db: AnyPgDatabase, email: string, role: StaffRole): Promise<StaffAccountResult | null> {
+  const normalised = z.email().parse(email).toLowerCase();
+  const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, normalised)).limit(1);
+  if (!existing) return null;
+  const roleGranted = await grantRole(db, existing.id, role, null);
+  return { userId: existing.id, email: normalised, created: false, roleGranted, roles: await loadUserRoles(db, existing.id) };
+}

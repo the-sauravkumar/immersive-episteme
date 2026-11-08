@@ -406,16 +406,18 @@ npx tsx scripts/deploy/with-env.ts --env-file ~/.episteme/production.env -- npm 
 
 This builds what `/explore` and the professor's review of the deployed site show, with the same code as the local `npm run dev:bootstrap` (`scripts/content/public-demo.ts`):
 1. imports `content/` (concepts, claims, relationships, sources, media candidates; state `under_review`);
-2. builds the **review** snapshot (draft, never publishable);
-3. compiles the spatial manifests: the three shortlisted traditions together, and each alone;
-4. creates the demo study `demo-review-walkthrough` (`is_demo`, non-experimental, draft) pinned to that snapshot and the combined manifest. `/explore` and the staff preview read the newest review snapshot that a demo study is pinned to, and that demo study (`findPreviewContent` in `src/server/learning/context-data.ts`). A review snapshot rebuilt from **CMS → Dataset versions → Rebuild review snapshot** has no demo study and is used only for comparison (DR-114).
+2. with `--verify-as=<curator email>` (DR-131), accepts every concept and link that its file records as `verified` (`content/shared/*.json`, the six traditions, then `content/comparisons.json`, each with its `content/review/<slug>-verification.md` as evidence) through the same `transition()` the CMS uses, as that curator; it stops if the database refuses any of them;
+3. builds the **review** snapshot (draft, never publishable);
+4. compiles the spatial manifests: the three shortlisted traditions together, and each alone;
+5. creates the demo study `demo-review-walkthrough` (`is_demo`, non-experimental, draft) pinned to that snapshot and the combined manifest. `/explore` and the staff preview read the newest review snapshot that a demo study is pinned to, and that demo study (`findPreviewContent` in `src/server/learning/context-data.ts`). A review snapshot rebuilt from **CMS → Dataset versions → Rebuild review snapshot** has no demo study and is used only for comparison (DR-114).
 
 Unlike `dev:bootstrap` it **never** migrates (or touches a test database), never loads the demo seed, never creates staff, test or demo users or passwords, and never creates participants.
 
 Guards (`scripts/content/remote-guard.ts`):
 - It first prints the target: `target host <host>, database <db> (REMOTE)`. The host is the one node-postgres connects to (a `host=` query parameter in the URL overrides the host name, and the guard follows it). Without `--i-understand-this-is-remote` it stops there (exit 2). **Read the host before adding the flag.**
 - It refuses to start when migrations are pending (do 5.1) or reference data is missing (do 5.2).
-- Any other argument is refused, including `--test`.
+- Any other argument than `--verify-as=<curator email>` is refused, including `--test`.
+- Without `--verify-as` the content stays `under_review`, and every door shows "Learning Content Is Not Available" (reason `content_unverified`): no learner is ever served a stage the snapshot has not verified (DR-131). Run it once without the flag, create the curator account (6.1), then run it again with `--verify-as=<that curator's email>`.
 
 Expected output (counts from the throwaway-database test on 2026-10-16 with today's `content/`; yours change with the content):
 
@@ -448,6 +450,21 @@ These live **only in the database** (section 7). They need staff accounts, so do
 ## 6. First Staff Account and Invite Codes
 
 ### 6.1 First Staff Account (Platform Admin)
+
+**With Google (no password).** A new deployer, with their own cloud setup, needs:
+
+1. their own env file, made from `.env.production.example` (any path; pass it to `--env-file`), with `BETTER_AUTH_URL=https://<their-domain>` and their own `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`;
+2. their own Google OAuth client, with the origin `https://<their-domain>` and the redirect URI `https://<their-domain>/api/auth/callback/google`, and the lead's account added as a test user while the consent screen is in Testing;
+3. the lead signs in once at `/sign-in` with **Continue with Google**; the account waits at **Awaiting Access**;
+4. the command below, run after `npm ci` from a machine that reaches their database, grants it the admin role:
+
+```bash
+npx tsx scripts/deploy/with-env.ts --env-file <your-env-file> -- npx tsx scripts/create-admin.ts --email cxa.craftecosystem@gmail.com --role platform_admin
+```
+
+Without `ADMIN_PASSWORD` or `--password` the script only grants the role to an account that already exists and refuses an unknown email. Reload the page: the account opens the console.
+
+**With an email account.**
 
 ```bash
 read -s ADMIN_PASSWORD && export ADMIN_PASSWORD      # at least 12 characters; never in the env file
@@ -552,7 +569,7 @@ npx tsx scripts/deploy/with-env.ts --env-file ~/.episteme/production.env -- npx 
   --as <curator email> --keys <keys.json> --evidence <same> --reason "<same>" --apply
 ```
 
-Use the **same keys file, evidence and reason** the curators used locally, so production verifies exactly the same set: for each tradition `<t>` of `ajrakh`, `bagh`, `bagru`, `dabu`, `machilipatnam-kalamkari` and `sanganeri`, `--keys content/traditions/<t>/tradition.json --evidence content/review/<t>-verification.md` (the script takes the file's `verified` concepts), with the reason "Authorised by the project lead (DR-059); mechanical verbatim source check of DR-120" (DR-124). Concepts that are `needs_evidence` in the database are first resubmitted with `scripts/content/submit-concepts.ts`, which takes the same `--keys`. `<curator email>` is the production account of the curator who did the checking (the record names them); never a shared or test account.
+The whole set is accepted in one step by 5.3 with `--verify-as=<curator email>` (DR-131), which runs this script's acceptance over every content file; the per-file commands below remain for a partial rerun. Use the **same keys file, evidence and reason** the curators used locally, so production verifies exactly the same set: for each tradition `<t>` of `ajrakh`, `bagh`, `bagru`, `dabu`, `machilipatnam-kalamkari` and `sanganeri`, `--keys content/traditions/<t>/tradition.json --evidence content/review/<t>-verification.md` (the script takes the file's `verified` concepts), with the reason "Authorised by the project lead (DR-059); mechanical verbatim source check of DR-120" (DR-124). Concepts that are `needs_evidence` in the database are first resubmitted with `scripts/content/submit-concepts.ts`, which takes the same `--keys`. `<curator email>` is the production account of the curator who did the checking (the record names them); never a shared or test account.
 
 **Study photos** (`scripts/content/ingest-study-photos.ts`): uploads each proposed photo through the media pipeline (the full-size file, credit, licence, provenance; every image is licensed for public use by CXA's approval, DR-118), links it to its concept, replacing an earlier rendition of the same record, and submits it for review. It never verifies.
 
@@ -563,7 +580,7 @@ npx tsx scripts/deploy/with-env.ts --env-file ~/.episteme/production.env -- npx 
 
 - The line `[photos] storage: ...` must name the production bucket (S3 or R2, from `MEDIA_S3_*` in the env file), **not** `local`. If it says `local`, stop: the env file lacks the bucket values.
 - Then a **second** curator opens each uploaded asset in the CMS and verifies it. A photo shows at the end of its tradition in both doors only when the asset is verified, its anchor claim's concept is verified in the snapshot the learner reads (the study's release, or the review snapshot for previews), and the protocol switch `figures.photos` is on.
-- Reruns: the photo ingest is idempotent (a file already in the library, same SHA-256, is reused and its link updated). `verify-concepts` has no skip: a key that is already `verified` is reported as refused for its state, so after a partial failure rerun it and read the reasons (state refusals for the keys done before are expected; anything else is not).
+- Reruns: the photo ingest is idempotent (a file already in the library, same SHA-256, is reused and its link updated). `verify-concepts` reports a concept or link that is already accepted as "already accepted" and leaves it alone, so a rerun after a partial failure accepts only what is left. An interchange file passed to `--keys` lists its `verified` relationships too, which are accepted after its concepts.
 
 **Afterwards:** rerun 5.3 (`content:bootstrap:remote`), so the review snapshot behind `/explore` carries the verified states.
 

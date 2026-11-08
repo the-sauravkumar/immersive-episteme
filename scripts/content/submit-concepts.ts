@@ -56,7 +56,7 @@ async function main() {
   if (!as) throw new Error("give --as <staff email>");
   if (!keysPath) throw new Error("give --keys <file.json>");
   if (reason.length < 3) throw new Error("give --reason (at least 3 characters)");
-  const keys = parseKeysFile(readFileSync(keysPath, "utf8"));
+  const { keys } = parseKeysFile(readFileSync(keysPath, "utf8"));
   const { url, label } = resolveDatabaseUrl();
   console.log(`[submit] ${label} database ${redact(url)}; ${keys.length} listed concept(s); mode ${apply ? "APPLY" : "dry run"}`);
   const pool = makePool(url);

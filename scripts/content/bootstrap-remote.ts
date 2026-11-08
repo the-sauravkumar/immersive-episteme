@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { EVENT_TYPE_REGISTRY, KNOWLEDGE_CATEGORIES, RELATIONSHIP_TYPES } from "../../db/seeds/reference-data";
 import { MIGRATIONS_FOLDER, makePool, redact, resolveDatabaseUrl } from "../db/_shared";
 
+import { arg } from "./_shared";
 import { buildPublicDemo, counts } from "./public-demo";
 import { decideBootstrapTarget, missingReferenceCodes, pendingMigrations } from "./remote-guard";
 
@@ -42,7 +43,8 @@ async function main(): Promise<void> {
     }
     log(`schema current (${applied} migrations), reference data present`);
 
-    await buildPublicDemo(client, { invokedBy: "npm run content:bootstrap:remote", log });
+    const verifyAs = arg("verify-as", argv);
+    await buildPublicDemo(client, { invokedBy: "npm run content:bootstrap:remote", log, ...(verifyAs ? { verify: { pool, as: verifyAs } } : {}) });
 
     log("row counts:");
     for (const [t, n] of Object.entries(await counts(client))) log(`  ${t.padEnd(26)} ${n}`);

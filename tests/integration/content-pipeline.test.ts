@@ -12,6 +12,7 @@ import { importContent, ContentImportRefused, type ImportSummary } from "../../s
 import { storeReviewSnapshot, type StoredReviewSnapshot } from "../../src/server/content/review-snapshot";
 import { loadSnapshotPayload, SnapshotNotReadableError } from "../../src/server/knowledge/snapshot-store";
 import { pgLearningContextData, resolveLearningContext } from "../../src/server/learning/context-data";
+import { loadStageTemplates } from "../../src/server/study/stage-templates";
 import { REPO_ROOT, loadAndValidate } from "../../scripts/content/_shared";
 import { TEST_URL, createSnapshot, createStudy, createTestDatabase, createUser, one, withSettings, type TestDb } from "./schema-harness";
 
@@ -180,11 +181,12 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
   describe("learning context", () => {
     it("gives demo and preview the newest review snapshot", async () => {
       const data = pgLearningContextData(t.pool);
-      const demo = await resolveLearningContext({ kind: "demo", experimental: false, condition: "immersive", demoId: "demo1234567890abcdef" }, { data, appBuild: "test" });
+      const demo = await resolveLearningContext({ kind: "demo", experimental: false, condition: "immersive", demoId: "demo1234567890abcdef" }, { data, appBuild: "test", templates: [] });
       expect(demo).toMatchObject({ mode: "demo", contentVersion: snap.versionLabel, sessionId: null });
-      const preview = await resolveLearningContext({ kind: "staff_preview", experimental: false, condition: "2d", userId: "u1" }, { data, appBuild: "test" });
+      const preview = await resolveLearningContext({ kind: "staff_preview", experimental: false, condition: "2d", userId: "u1" }, { data, appBuild: "test", templates: [] });
       expect(preview).toMatchObject({ mode: "preview", contentVersion: snap.versionLabel });
       expect(preview.telemetrySessionId).toMatch(/^[0-9a-f-]{36}$/);
+      await expect(resolveLearningContext({ kind: "demo", experimental: false, condition: "2d", demoId: "demo1234567890abcdef" }, { data, appBuild: "test", templates: await loadStageTemplates() })).rejects.toMatchObject({ reason: "content_unverified" });
     });
 
     it("keeps the previews on the review snapshot the demo study is pinned to when a newer one is rebuilt from the CMS (DR-114)", async () => {
@@ -195,7 +197,7 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
          RETURNING id`,
         [snap.id],
       );
-      const preview = await resolveLearningContext({ kind: "staff_preview", experimental: false, condition: "2d", userId: "u1" }, { data: pgLearningContextData(t.pool), appBuild: "test" });
+      const preview = await resolveLearningContext({ kind: "staff_preview", experimental: false, condition: "2d", userId: "u1" }, { data: pgLearningContextData(t.pool), appBuild: "test", templates: [] });
       expect(preview).toMatchObject({ mode: "preview", contentVersion: snap.versionLabel });
       await t.pool.query("DELETE FROM content_snapshots WHERE id = $1", [newer.id]);
     });

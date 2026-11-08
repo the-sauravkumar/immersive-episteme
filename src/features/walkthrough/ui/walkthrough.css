@@ -6,7 +6,7 @@
   font-family: Mukta, "Segoe UI", system-ui, sans-serif;
 }
 
-:has(> [data-access-notice], > [data-slot="unverified-notice"]) .walkthrough {
+:has(> [data-access-notice]) .walkthrough {
   top: 40px;
 }
 
@@ -59,12 +59,6 @@
 
 .walkthrough-route b {
   font: 700 20px/1 Eczar, Georgia, serif;
-}
-
-.walkthrough-route .walkthrough-review {
-  max-width: 24ch;
-  font-size: 13px;
-  line-height: 1.3;
 }
 
 .walkthrough-map {
