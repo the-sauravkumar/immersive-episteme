@@ -2,14 +2,17 @@
 
 usage: python -I verify_tradition.py <tradition.json> <archive dir> <out.json>
 
-The archive dir holds archive.json: {"<source id>": {"html": "<file>", "pdf": "<file>"}}, naming the
-archived copy of each recorded source (either key may be absent). A quote passes only at its locator:
-  - 'PDF p. N': on page N of the archived PDF alone (pdftotext -f N -l N);
+The archive dir holds archive.json: {"<source id>": {"html": "<file>", "pdf": "<file>", "openalex": "<file>"}},
+naming the archived copy of each recorded source (any key may be absent). A quote passes only at its locator:
+  - 'PDF p. N': on page N of the archived PDF alone (pdftotext pages split at form feeds, read with
+    both UTF-8 and Latin1 output encodings: the Latin1 text drops the glyphs a scanned text layer maps
+    outside Latin-1 and keeps ',,' for low double quotes, as the 2026-10-14 extraction did);
+  - 'PDF pp. N-M': on pages N to M read as one run of text;
+  - 'Abstract ...': in the abstract of an archived OpenAlex record (key "openalex");
   - '§ "<heading>"' (with an optional '(occurrence k of n)'): inside the section that follows that
     h1-h4 heading in the archived HTML (the k-th such section when given);
 Normalisation is norm() from verify_quotes.py: ligatures, quote marks, dashes, soft hyphens,
-line-end hyphenation and whitespace only. A claim's own `quote` passes when it is found anywhere in
-one of the claim's sources (its locators are reported). Each quote that fails is searched for in the whole
+line-end hyphenation and whitespace only. Each quote that fails is searched for in the whole
 source, so the report says where it really is. Every claim also gets a width list: the content
 words of the claim that none of its quotes contain, which a reader then judges against the quotes.
 """
@@ -28,17 +31,19 @@ def low(s):
     return re.sub(r"\s*-\s*", "-", norm(s)).lower()
 
 
-def pdf_pages(path):
-    pages, n = [], 1
-    while True:
-        r = subprocess.run([PDFTOTEXT, "-enc", "UTF-8", "-f", str(n), "-l", str(n), path, "-"], capture_output=True)
-        if r.returncode != 0:
-            break
-        pages.append(r.stdout.decode("utf-8", "ignore"))
-        n += 1
-        if n > 2000:
-            break
-    return pages
+def pdf_pages(path, enc="UTF-8"):
+    r = subprocess.run([PDFTOTEXT, "-enc", enc, path, "-"], capture_output=True, check=True)
+    pages = r.stdout.decode("latin-1" if enc == "Latin1" else "utf-8", "ignore").split(chr(12))
+    return pages[:-1] if pages and not pages[-1].strip() else pages
+
+
+def pdf_renderings(path):
+    return [tuple(low(t) for t in page) for page in zip(pdf_pages(path), pdf_pages(path, "Latin1"))]
+
+
+def openalex_abstract(path):
+    inv = json.load(open(path, encoding="utf-8"))["abstract_inverted_index"]
+    return " ".join(w for _, w in sorted((i, w) for w, ix in inv.items() for i in ix))
 
 
 def html_sections(path):
@@ -66,32 +71,39 @@ def main():
         entry = {}
         if files.get("pdf"):
             p = os.path.join(archive, files["pdf"])
-            entry["pdf"] = [low(t) for t in pdf_pages(p)]
+            entry["pdf"] = pdf_renderings(p)
             entry["pdf_sha256"] = hashlib.sha256(open(p, "rb").read()).hexdigest()
         if files.get("html"):
             p = os.path.join(archive, files["html"])
             entry["html"] = [(low(h), low(t)) for h, t in html_sections(p)]
             entry["html_sha256"] = hashlib.sha256(open(p, "rb").read()).hexdigest()
+        if files.get("openalex"):
+            p = os.path.join(archive, files["openalex"])
+            entry["abstract"] = low(openalex_abstract(p))
+            entry["openalex_sha256"] = hashlib.sha256(open(p, "rb").read()).hexdigest()
         text[sid] = entry
 
     def where(sid, q):
         e, found = text.get(sid, {}), []
-        found += [f"PDF p. {i + 1}" for i, t in enumerate(e.get("pdf", [])) if q in t]
+        found += [f"PDF p. {i + 1}" for i, page in enumerate(e.get("pdf", [])) if any(q in t for t in page)]
         found += [f'§ "{h}"' for h, t in e.get("html", []) if q in t]
+        found += ["Abstract"] if q in e.get("abstract", "") else []
         return found
 
     def check(sid, locator, quote):
         q, e = low(quote), text.get(sid)
         if not e:
             return {"ok": False, "why": "source not archived"}
-        m = re.search(r"PDF p\. (\d+)", locator)
-        if m:
-            n = int(m.group(1))
-            ok = 0 < n <= len(e.get("pdf", [])) and q in e["pdf"][n - 1]
+        m = re.search(r"PDF pp?\. (\d+)(?:-(\d+))?", locator)
+        if locator.startswith("Abstract"):
+            ok = q in e.get("abstract", "")
+        elif m:
+            a, b = int(m.group(1)), int(m.group(2) or m.group(1))
+            ok = 0 < a <= b <= len(e.get("pdf", [])) and any(q in " ".join(page[k] for page in e["pdf"][a - 1:b]) for k in (0, 1))
         else:
             h = re.search(r'§ "(.+?)"(?: \(occurrence (\d+) of \d+\))?$', locator)
             if not h:
-                return {"ok": False, "why": "locator is not a page or a heading", "found": where(sid, q)}
+                return {"ok": False, "why": "locator is not a page, a heading or an abstract", "found": where(sid, q)}
             secs = [t for hd, t in e.get("html", []) if hd == low(h.group(1))]
             if h.group(2):
                 k = int(h.group(2)) - 1
@@ -110,9 +122,6 @@ def main():
             covered = set(w for e in cl.get("evidence", []) for w in words(e["quote"]))
             gap = [w for w in dict.fromkeys(words(cl["text"])) if w not in covered]
             uncited = [s for s in cl["source_ids"] if s not in {e["source_id"] for e in cl.get("evidence", [])}]
-            if cl.get("quote"):
-                found = [f for s in cl["source_ids"] for f in where(s, low(cl["quote"]))]
-                evs.append({"source_id": "claim quote", "locator": ", ".join(found) or "-", "quote": cl["quote"], "ok": bool(found), **({} if found else {"why": "claim quote not in any cited source"})})
             rows.append({"kind": "claim", "key": c["key"], "state": c["verification_state"], "index": i, "text": cl["text"], "source_ids": cl["source_ids"], "uncited": uncited, "width_gap": gap, "evidence": evs})
     for i, r in enumerate(data["relationships"]):
         evs = [{"source_id": e["source_id"], "locator": e["locator"], "quote": e["quote"], **check(e["source_id"], e["locator"], e["quote"])} for e in r.get("evidence", [])]

@@ -92,51 +92,6 @@
     "unsupported_reason": "Round 2 source check (2026-10-16): unsupported. S4 and S5 list sun drying and bleaching as separate steps; neither says the sun bleaches."
   },
   {
-    "file": "traditions/sanganeri/tradition.json",
-    "source": "sanganeri.process_stage.harda-treatment",
-    "target": "sanganeri.tool.mogri-mallet",
-    "type": "USES",
-    "explanation": "Dried harda cloth is beaten with a wooden mallet.",
-    "conditions": null,
-    "ordinal": null,
-    "provenance_kind": "historical_documentation",
-    "verification_state": "needs_evidence",
-    "source_ids": [
-      "S1"
-    ],
-    "unsupported_reason": "Round 2 source check (2026-10-16): unsupported. S1 p. 10 says 'a wooden mallet'; p. 13 defines the mogri for beating the folds of finished cloth, a different use."
-  },
-  {
-    "file": "traditions/sanganeri/tradition.json",
-    "source": "sanganeri.explanation.tapai-alkali-and-heat",
-    "target": "shared.scientific_mechanism.sun-bleaching",
-    "type": "SCIENTIFICALLY_EXPLAINED_BY",
-    "explanation": "Links the source's alkali-plus-heat account to the shared sun-bleaching mechanism.",
-    "conditions": null,
-    "ordinal": null,
-    "provenance_kind": "historical_documentation",
-    "verification_state": "needs_evidence",
-    "source_ids": [
-      "S1"
-    ],
-    "unsupported_reason": "Round 2 source check (2026-10-16): unsupported. S1 explains the bleaching by alkali and heat, not by the shared oxidation/light mechanism."
-  },
-  {
-    "file": "traditions/sanganeri/tradition.json",
-    "source": "sanganeri.process_stage.scouring",
-    "target": "sanganeri.environmental_condition.sun-and-semi-arid-climate",
-    "type": "DEPENDS_ON",
-    "explanation": "Traditional scouring repeats wetting and drying on open ground over days.",
-    "conditions": null,
-    "ordinal": null,
-    "provenance_kind": "historical_documentation",
-    "verification_state": "needs_evidence",
-    "source_ids": [
-      "S1"
-    ],
-    "unsupported_reason": "Round 2 source check (2026-10-16): unsupported. S1 has no semi-arid or climate statement, only 3 to 6 days of wetting and drying."
-  },
-  {
     "file": "shared/craft-science.json",
     "source": "shared.scientific_mechanism.mud-resist-barrier",
     "target": "shared.scientific_mechanism.indigo-vat-reduction",
