@@ -15,11 +15,16 @@ The platform importer (built later) maps these into the knowledge schema.
   IDC IIT Bombay, NID), museum collections (V&A, Met, Anokhi Museum, Calico Museum),
   established craft organisations (Craft Revival Trust, Gaatha, Dastkar).
   Blogs/e-commerce only as a last resort, marked `reliability: "low"`.
-- `verification_state` is `"under_review"`, `"needs_evidence"` when sources are
-  weak/conflicting, or `"verified"` once a recorded source check has found every quote
-  verbatim at its locator and every claim or link no wider than its quotes (DR-120). The
-  importer stores `"verified"` as `"under_review"`: only a curator's recorded transition in
-  the CMS accepts a row.
+- `verification_state` is `"under_review"` (or `"needs_evidence"` when sources are
+  weak/conflicting) until a source check is recorded. `"verified"` means a recorded
+  mechanical source check passed: every claim passage, and for a relationship one passage
+  per cited source, was found verbatim at its locator in an archived copy of that source
+  by `content/review/tools/evidence/verify_tradition.py`, and the claim or explanation says
+  no more than its passages. The check is written up in `content/review/<slug>-verification.md`,
+  which names every verified item. A relationship is verified only when both of its concepts
+  are. The loader reads `"verified"` as `"under_review"`, so the importer and every snapshot
+  still treat the item as unaccepted until a named curator accepts it in the CMS (or through
+  `scripts/content/verify-concepts.ts`). Never `"published"`.
 - Do not record personal data about private individuals. Communities (e.g. Chhipa,
   Khatri) and publicly honoured master artisans named in published sources are fine.
 - Paraphrase; quotes ≤ 25 words.

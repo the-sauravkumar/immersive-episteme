@@ -169,5 +169,36 @@
       "S10"
     ],
     "removal_reason": "DR-120 source check: S10 reports black spots from iron in water but names no tannin; S1 states the iron-tannic reaction only for kut. No recorded source states the link."
+  },
+  {
+    "file": "traditions/bagh/tradition.json",
+    "source": "bagh.scientific_mechanism.harara-tannin-ground",
+    "target": "shared.scientific_mechanism.tannin-pre-mordanting",
+    "type": "SCIENTIFICALLY_EXPLAINED_BY",
+    "explanation": "Harara treatment before printing is a myrobalan (tannin) pre-treatment reported to brighten red and black.",
+    "conditions": "Bagh sources report the brightening effect of harara but do not name tannin or mordanting chemistry.",
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1",
+      "S7"
+    ],
+    "removal_reason": "Bagh content verification 2026-11-07 (DR-120): neither cited source (GI Journal 75, Jain 2019) names tannin or a mordanting effect of harara; they report only the brighter red and black."
+  },
+  {
+    "file": "traditions/bagh/tradition.json",
+    "source": "bagh.design_principle.double-dye",
+    "target": "bagh.process_stage.over-dyeing",
+    "type": "DEPENDS_ON",
+    "explanation": "Double-dye effects involve sequential or combined processing of colours.",
+    "conditions": "The GI text describes double dye and optional over-dyeing separately; it does not say double dye is done through the over-dyeing stage.",
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S1"
+    ],
+    "removal_reason": "Bagh content verification 2026-11-07 (DR-120): GI Journal 75 describes the double dye and the optional over-dyeing separately and never says the double dye is done through the over-dyeing stage."
   }
 ]

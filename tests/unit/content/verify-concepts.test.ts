@@ -150,6 +150,9 @@ describe("verify-concepts", () => {
   it("parses the keys file strictly", () => {
     expect(parseKeysFile('["ajrakh.tool.wooden-blocks"]')).toEqual(["ajrakh.tool.wooden-blocks"]);
     expect(parseKeysFile('{"keys":["machilipatnam-kalamkari.process_stage.dye-boiling"]}')).toEqual(["machilipatnam-kalamkari.process_stage.dye-boiling"]);
+    const file = { concepts: [{ key: "bagh.material.alum", verification_state: "verified" }, { key: "bagh.material.alizarin", verification_state: "under_review" }] };
+    expect(parseKeysFile(JSON.stringify(file))).toEqual(["bagh.material.alum"]);
+    expect(() => parseKeysFile(JSON.stringify({ concepts: [file.concepts[1]] }))).toThrow(/no concepts/);
     expect(() => parseKeysFile("[]")).toThrow(/no concepts/);
     expect(() => parseKeysFile('["not a key"]')).toThrow(/not concept keys/);
     expect(() => parseKeysFile('{"other":1}')).toThrow(/JSON array/);
