@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { INVITE_PATH, inviteNextPath, invitePath, isInviteExemptPath, withoutInviteParam } from "@/lib/access/invite-paths";
+import { gatedLinkPrefetch, INVITE_PATH, inviteNextPath, invitePath, isInviteExemptPath, withoutInviteParam } from "@/lib/access/invite-paths";
 import { generateInviteCode, hashInviteCode, inviteCodeHint, normaliseInviteCode } from "@/server/access/invite-code";
 import { INVITE_ACCESS_TTL_SECONDS, signInviteAccess, verifyInviteAccess } from "@/server/access/invite-cookie";
 import { createInviteInput, endOfUtcDay, inviteNotRevoked, inviteStatus, redeemInvite } from "@/server/access/invites";
@@ -60,12 +60,17 @@ describe("invite cookie", () => {
 
 describe("invite gate paths", () => {
   it("exempts sign-in, the invite page, staff home, the notices a visitor reads before an invite, APIs and static assets only", () => {
-    for (const p of ["/invite", "/invite/redeem", "/sign-in", "/sign-out", "/forbidden", "/console", "/api/auth/ok", "/api/telemetry/batch", "/_next/static/x.js", "/favicon.ico", "/about", "/about/colophon", "/accessibility", "/privacy", "/walkthrough/fonts/Mukta-400.woff2"]) {
+    for (const p of ["/invite", "/invite/redeem", "/sign-in", "/sign-out", "/forbidden", "/console", "/api/auth/ok", "/api/telemetry/batch", "/_next/static/x.js", "/favicon.ico", "/about", "/about/colophon", "/accessibility", "/privacy", "/walkthrough/fonts/Mukta-400.woff2", "/walkthrough/course/plaster.jpg"]) {
       expect(isInviteExemptPath(p), p).toBe(true);
     }
-    for (const p of ["/", "/explore", "/study", "/study/consent", "/learn/2d", "/learn/immersive", "/aboutx", "/walkthrough/stills/entrance-closed.jpg", "/figures/x", "/invitex", "/museumx", "/apix"]) {
+    for (const p of ["/", "/explore", "/study", "/study/consent", "/learn/2d", "/learn/immersive", "/aboutx", "/walkthrough/stills/entrance-closed.jpg", "/walkthrough/course/other.jpg", "/figures/x", "/invitex", "/museumx", "/apix"]) {
       expect(isInviteExemptPath(p), p).toBe(false);
     }
+  });
+
+  it("turns off prefetch only for links to gated pages, whose prefetch the gate would redirect", () => {
+    for (const href of ["/", "/explore", "/study?code=x"]) expect(gatedLinkPrefetch(href), href).toBe(false);
+    for (const href of ["/about", "/about#images-and-licences", "/console", "/privacy"]) expect(gatedLinkPrefetch(href), href).toBeUndefined();
   });
 
   it("builds the invite page URL with a safe next path and never loops back to /invite", () => {

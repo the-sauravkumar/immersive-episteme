@@ -102,7 +102,7 @@ async function Datasets({ searchParams }: { searchParams: Promise<SearchParams> 
         <ActionForm action={publishReleaseAction} submitLabel="Publish release" pendingLabel="Publishing…">
           <div className="grid gap-4 md:grid-cols-2">
             <FormField id="r-label" name="versionLabel" label="Version label" hint="e.g. release-1 (letters, digits, '.', '_' or '-').">
-              <Input id="r-label" name="versionLabel" required pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,63}" />
+              <Input id="r-label" name="versionLabel" required pattern="[A-Za-z0-9][A-Za-z0-9._\-]{0,63}" />
             </FormField>
             <FormField id="r-title" name="title" label="Title">
               <Input id="r-title" name="title" required maxLength={300} />

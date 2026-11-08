@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { gatedLinkPrefetch } from "@/lib/access/invite-paths";
 import { cn } from "@/lib/utils";
 
 export type PublicNavLink = { readonly href: string; readonly label: string };
@@ -31,7 +32,7 @@ export function PublicNav({ links }: { links: readonly PublicNavLink[] }) {
             const current = isCurrent(pathname, link.href);
             return (
               <li key={link.href}>
-                <Link href={link.href} aria-current={current ? "page" : undefined} className={cn(LINK, current && CURRENT)}>
+                <Link href={link.href} prefetch={gatedLinkPrefetch(link.href)} aria-current={current ? "page" : undefined} className={cn(LINK, current && CURRENT)}>
                   {link.label}
                 </Link>
               </li>
@@ -60,6 +61,7 @@ export function PublicNav({ links }: { links: readonly PublicNavLink[] }) {
                   <li key={link.href} className="border-b border-line">
                     <Link
                       href={link.href}
+                      prefetch={gatedLinkPrefetch(link.href)}
                       aria-current={current ? "page" : undefined}
                       onClick={() => setOpen(false)}
                       className={cn(LINK, "flex w-full", current && CURRENT)}

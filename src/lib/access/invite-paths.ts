@@ -4,7 +4,7 @@ export const INVITE_PATH = "/invite";
 export const INVITE_PARAM = "invite";
 
 const EXEMPT_PREFIXES = ["/invite", "/sign-in", "/sign-out", "/forbidden", "/awaiting-access", "/console", "/api", "/_next", "/about", "/accessibility", "/privacy", "/walkthrough/fonts"] as const;
-const EXEMPT_FILES = new Set(["/favicon.ico", "/robots.txt"]);
+const EXEMPT_FILES = new Set(["/favicon.ico", "/robots.txt", "/walkthrough/course/plaster.jpg"]);
 
 function underPrefix(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
@@ -12,6 +12,10 @@ function underPrefix(pathname: string, prefix: string): boolean {
 
 export function isInviteExemptPath(pathname: string): boolean {
   return EXEMPT_FILES.has(pathname) || EXEMPT_PREFIXES.some((p) => underPrefix(pathname, p));
+}
+
+export function gatedLinkPrefetch(href: string): false | undefined {
+  return isInviteExemptPath(href.split(/[?#]/, 1)[0] ?? "/") ? undefined : false;
 }
 
 export function inviteNextPath(value: unknown): string {
