@@ -331,7 +331,10 @@ excluded and counted, never estimated.
   Validates first (any error-level integrity issue aborts), upserts on natural keys with
   name-based ids for new rows (`contentIds()`, the snapshot builder's ids), copies review states
   exactly (`under_review`/`needs_evidence`; sources `under_review`), never sets
-  verified/published, never touches curator-accepted rows (reported as `keptAccepted`), keeps
+  verified/published, keeps a curator-accepted row while the files leave it and its evidence
+  unchanged (`keptAccepted`), and when the files change one, writes the files' content and returns
+  it to `under_review` on the record for a curator to accept again on the new evidence
+  (`returnedToReview` in the summary and the audit entry; DR-126), keeps
   `is_demo = false`, prunes claims/evidence/relationships/media that left the files, reports stale
   concepts/sources/traditions without deleting them, and writes `audit_log` (`content.import`).
 - `storeReviewSnapshot(client, { hasher })` (`src/server/content/review-snapshot.ts`) adapts the

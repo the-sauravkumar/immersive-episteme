@@ -46,6 +46,8 @@ async function main(): Promise<void> {
     console.log(`[content:import] media          ${fmt(s.mediaCandidates)} (pruned ${s.mediaCandidates.pruned})`);
     const stale = s.stale.concepts.length + s.stale.sources.length + s.stale.traditions.length + s.stale.relationships.length;
     if (stale > 0) console.log(`[content:import] stale rows kept (no longer in content/): ${JSON.stringify(s.stale)}`);
+    const returned = Object.values(s.returnedToReview).flat().length;
+    if (returned > 0) console.log(`[content:import] accepted rows the files changed, returned to review for re-acceptance: ${JSON.stringify(s.returnedToReview)}`);
     console.log(`[content:import] audit_log ${s.auditLogId}`);
 
     if (!flag("no-snapshot")) {

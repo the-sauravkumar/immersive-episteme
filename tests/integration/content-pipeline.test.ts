@@ -10,6 +10,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { nodeSha256 } from "../../src/features/knowledge/graph/hash-node";
 import { buildSnapshot } from "../../src/features/knowledge/graph/snapshot";
 import { createKnowledgeView } from "../../src/features/knowledge/read/view";
+import type { Actor } from "../../src/server/cms/core";
+import { EVIDENCE_CHECK_KEYS } from "../../src/server/cms/schemas";
+import { transition } from "../../src/server/cms/workflow";
 import { importContent, ContentImportRefused, type ImportSummary } from "../../src/server/content/import-content";
 import { storeReviewSnapshot, type StoredReviewSnapshot } from "../../src/server/content/review-snapshot";
 import { loadSnapshotPayload, SnapshotNotReadableError } from "../../src/server/knowledge/snapshot-store";
@@ -204,16 +207,72 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
       await t.pool.query("DELETE FROM content_snapshots WHERE id = $1", [newer.id]);
     });
 
-    it("keeps curator-accepted rows untouched on re-import", async () => {
-      const curator = await createUser(t.pool);
-      const key = loaded.model.concepts.find((c) => c.type === "material")!.key;
-      await withSettings(t.pool, { "app.actor_id": curator }, (c) => c.query("UPDATE concepts SET verification_state = 'verified' WHERE key = $1", [key]));
-      const changed = { ...loaded.model, concepts: loaded.model.concepts.map((c) => (c.key === key ? { ...c, title: `${c.title} (edited)` } : c)) };
+    it("updates accepted content the files changed and returns it to review on the record, until a curator accepts the new evidence (DR-126)", async () => {
+      const curator: Actor = { userId: await createUser(t.pool), roles: ["curator"] };
+      const target = loaded.model.concepts.filter((c) => c.packageSlug === "ajrakh" && c.type === "process_stage" && c.provenanceKind !== "unverified").at(-1)!;
+      const conceptId = (await one<{ id: string }>(t.pool, "SELECT id FROM concepts WHERE key = $1", [target.key])).id;
+      const accept = () =>
+        transition(t.pool, curator, { entityKind: "concept", entityId: conceptId, to: "verified", reason: "test: checked against the recorded passages", evidenceChecked: [...EVIDENCE_CHECK_KEYS] });
+      const row = async () =>
+        one<{ s: string; text: string; evidence: { quote: string }[] }>(
+          t.pool,
+          `SELECT c.verification_state::text AS s, cc.text, ccs.evidence FROM concepts c
+             JOIN concept_claims cc ON cc.concept_id = c.id AND cc.position = 0
+             JOIN concept_claim_sources ccs ON ccs.claim_id = cc.id
+            WHERE c.id = $1 ORDER BY ccs.source_id LIMIT 1`,
+          [conceptId],
+        );
+      const item = async (snapshotId: string) =>
+        (await one<{ sha: string }>(t.pool, "SELECT item_sha256 AS sha FROM snapshot_items WHERE snapshot_id = $1 AND item_kind = 'concept' AND entity_key = $2", [snapshotId, target.key])).sha;
+
+      await accept();
+      const unchanged = await run();
+      expect(unchanged.concepts.keptAccepted).toBe(1);
+      expect(unchanged.returnedToReview.concepts).toEqual([]);
+      expect((await row()).s).toBe("verified");
+
+      const [claim0, ...rest] = target.claims;
+      const reworded = `${claim0!.text} (reworded in a test)`;
+      const changed = {
+        ...loaded.model,
+        concepts: loaded.model.concepts.map((c) =>
+          c.key === target.key ? { ...c, claims: [{ ...claim0!, text: reworded, evidence: claim0!.evidence.map((e) => ({ ...e, quote: "a reworded placeholder passage" })) }, ...rest] } : c,
+        ),
+      };
       const s = await run(changed);
-      expect(s.concepts.keptAccepted).toBe(1);
-      const row = await one<{ title: string; verification_state: string }>(t.pool, "SELECT title, verification_state FROM concepts WHERE key = $1", [key]);
-      expect(row.verification_state).toBe("verified");
-      expect(row.title.endsWith("(edited)")).toBe(false);
+      expect(s.returnedToReview.concepts).toEqual([target.key]);
+      expect(s.concepts.keptAccepted).toBe(0);
+      const after = await row();
+      expect(after).toMatchObject({ s: "under_review", text: reworded });
+      expect(after.evidence.every((e) => e.quote === "a reworded placeholder passage")).toBe(true);
+      const record = await one<{ from_state: string; to_state: string; actor_id: string | null; reason: string }>(
+        t.pool,
+        "SELECT from_state::text, to_state::text, actor_id, reason FROM verification_records WHERE entity_kind = 'concept' AND entity_id = $1 ORDER BY created_at DESC, id DESC LIMIT 1",
+        [conceptId],
+      );
+      expect(record).toMatchObject({ from_state: "verified", to_state: "under_review", actor_id: null });
+      expect(record.reason).toMatch(/content import.*returns to review/);
+      const audit = await one<{ after: { returnedToReview: { concepts: string[] } } }>(t.pool, "SELECT after FROM audit_log WHERE id = $1", [s.auditLogId]);
+      expect(audit.after.returnedToReview.concepts).toEqual([target.key]);
+
+      const reopened = await snapshot();
+      expect(reopened.created).toBe(true);
+      expect(await item(reopened.id)).not.toBe(await item(snap.id));
+      const inBundle = (await loadSnapshotPayload(t.pool, reopened.id)).concepts.find((c) => c.key === target.key)!;
+      expect(inBundle.verificationState).toBe("under_review");
+      expect(inBundle.claims[0]!.text).toBe(reworded);
+
+      await accept();
+      const again = await run(changed);
+      expect(again.returnedToReview.concepts).toEqual([]);
+      expect(again.concepts.keptAccepted).toBe(1);
+      expect((await row()).s).toBe("verified");
+      const reaccepted = await snapshot();
+      expect(await item(reaccepted.id)).not.toBe(await item(reopened.id));
+
+      const restored = await run();
+      expect(restored.returnedToReview.concepts).toEqual([target.key]);
+      expect(await row()).toMatchObject({ s: "under_review", text: claim0!.text });
     });
 
     it("keeps a curator's review decision, and follows the files only for states the importer set (knowledge-04)", async () => {
@@ -266,7 +325,7 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
       expect(await state()).not.toBe("archived");
     });
 
-    it("leaves an accepted tradition's GI evidence alone, and any change to it reopens review (knowledge-09)", async () => {
+    it("keeps an accepted tradition's GI evidence while the files keep it, and a change to it reopens review (knowledge-09, DR-126)", async () => {
       const curator = await createUser(t.pool);
       const pkg = loaded.model.packages.find((p) => p.kind === "tradition" && (p.gi?.sourceRefs.length ?? 0) > 0)!;
       await withSettings(t.pool, { "app.actor_id": curator, "app.change_reason": "test: accepted" }, (c) =>
@@ -276,15 +335,16 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
         (await t.pool.query<{ source_id: string }>("SELECT ts.source_id::text FROM tradition_sources ts JOIN traditions tr ON tr.id = ts.tradition_id WHERE tr.slug = $1 AND ts.purpose = 'gi' ORDER BY 1", [pkg.slug])).rows.map((r) => r.source_id);
       const before = await gi();
       expect(before.length).toBeGreaterThan(0);
-      const changed = { ...loaded.model, packages: loaded.model.packages.map((p) => (p.slug === pkg.slug ? { ...p, gi: p.gi ? { ...p.gi, sourceRefs: [] } : null } : p)) };
-      await run(changed);
-      expect(await gi()).toEqual(before);
       const state = async () => (await one<{ s: string }>(t.pool, "SELECT verification_state::text AS s FROM traditions WHERE slug = $1", [pkg.slug])).s;
+      expect((await run()).traditions.keptAccepted).toBe(1);
+      expect(await gi()).toEqual(before);
       expect(await state()).toBe("verified");
-      // Any writer that changes the evidence of an accepted tradition sends it back to review (0019 trigger).
-      await t.pool.query("DELETE FROM tradition_sources ts USING traditions tr WHERE tr.id = ts.tradition_id AND tr.slug = $1 AND ts.purpose = 'gi'", [pkg.slug]);
+      const changed = { ...loaded.model, packages: loaded.model.packages.map((p) => (p.slug === pkg.slug ? { ...p, gi: p.gi ? { ...p.gi, sourceRefs: [] } : null } : p)) };
+      const s = await run(changed);
+      expect(await gi()).toEqual([]);
       expect(await state()).toBe("under_review");
-      await run(); // the files put the GI evidence back
+      expect(s.returnedToReview.traditions).toEqual([pkg.slug]);
+      await run();
       expect(await gi()).toEqual(before);
     });
 
@@ -372,11 +432,16 @@ describe.skipIf(!TEST_URL)("content pipeline", () => {
           [accepted!.source, accepted!.target, accepted!.type],
         );
       });
+      const label = `${accepted!.source} ${accepted!.type} ${accepted!.target}`;
       const before = await citations(accepted!);
-      const s4 = await run(withEvidence([accepted!], "PDF p. 4", "a placeholder passage"));
-      expect(s4.relationshipSources.updated).toBe(0);
-      expect(s4.relationships.keptAccepted).toBeGreaterThanOrEqual(1);
+      const kept = await run();
+      expect(kept.relationships.keptAccepted).toBeGreaterThanOrEqual(1);
+      expect(kept.returnedToReview.relationships).not.toContain(label);
       expect(await citations(accepted!)).toEqual(before);
+      const s4 = await run(withEvidence([accepted!], "PDF p. 4", "a placeholder passage"));
+      expect(s4.relationshipSources.updated).toBe(1);
+      expect(s4.returnedToReview.relationships).toContain(label);
+      expect((await citations(accepted!)).find((x) => x.ref === accepted!.sourceRefs[0])).toMatchObject({ locator: "PDF p. 4", quote: "a placeholder passage" });
     });
   });
 });
