@@ -219,7 +219,7 @@
         "Kutch Ajrakh"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Kutch Ajrakh is an elaborate resist block-printing technique involving a series of direct and resist printing and dyeing steps.",
@@ -348,7 +348,7 @@
       "body_md": "Ajrakh printing originally came from Sindh. [S1]\n\nThe GI text argues block printing on cotton in India is thought to be over 4500 years old, citing Indus Valley geometric patterning and dye technology. [S1]\n\nKhamir reports 3000-year-old madder-dyed cotton strands found at an ancient dyer's workshop in Mohenjo-Daro. [S7]\n\nThe likely origins of Ajrakh lie in Sind. [S12]\n\nA 19th-century ajrakh cloth made in Sind is held by the V&A (5473A/(IS), ca. 1855-79). [S4]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Ajrakh printing originally came from Sindh.",
@@ -439,7 +439,7 @@
         "Khatri"
       ],
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "The technique came to Kutch from Sindh some 400 years ago at the behest of the King of Kutch, who invited Khatri craftsmen to the banks of the Dhamadka river.",
@@ -537,7 +537,7 @@
         "Saran"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Ajrakh activities prevailed at Dhamadka for the past 450 years because of a water source from a stream of the Indus river; this stream dried up in 1989.",
@@ -615,13 +615,13 @@
       "category": "geography_history",
       "title": "2001 earthquake and founding of Ajrakhpur",
       "summary": "After a massive earthquake in 2001 the block printers were forced to relocate and settled in Ajrakhpur; over 100 families live there with 30 official workshops.",
-      "body_md": "After a massive earthquake in 2001 the block printers were forced to relocate and settled in Ajrakhpur; over 100 families live there with 30 official workshops. [S1]\n\nDhamadka was completely destroyed in the 2001 earthquake; printers bought land about 40 km away and founded Ajrakhpur, chosen for its good water source; it has about 80 Khatri families. [S9]\n\nAfter the 2001 quake groundwater quality worsened in Dhamadka and about 100 families moved about 40 km to Ajrakhpur. [S10]\n\nArtisans established Ajrakhpur with government and social support after the earthquake damaged Dhamadka. [S6]",
+      "body_md": "After a massive earthquake in 2001 the block printers were forced to relocate and settled in Ajrakhpur; over 100 families live there with 30 official workshops. [S1]\n\nDhamadka was completely destroyed in the 2001 earthquake; printers bought land about 40 km away and founded Ajrakhpur, chosen for its good water source; it has about 80 Khatri families. [S9]\n\nAfter the 2001 earthquake about a hundred families moved from Dhamadka to their present location 40 km away, in search of good quality groundwater. [S10]\n\nArtisans established Ajrakhpur with government and social support after the earthquake damaged Dhamadka. [S6]",
       "local_terms": [
         "Ajrakhpur",
         "Ajarakhpur"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "After a massive earthquake in 2001 the block printers were forced to relocate and settled in Ajrakhpur; over 100 families live there with 30 official workshops.",
@@ -675,7 +675,7 @@
           ]
         },
         {
-          "text": "After the 2001 quake groundwater quality worsened in Dhamadka and about 100 families moved about 40 km to Ajrakhpur.",
+          "text": "After the 2001 earthquake about a hundred families moved from Dhamadka to their present location 40 km away, in search of good quality groundwater.",
           "source_ids": [
             "S10"
           ],
@@ -684,11 +684,6 @@
               "source_id": "S10",
               "locator": "§ \"History repeats itself\"",
               "quote": "Last time something like this had happened, the entire village of a hundred families moved from their earlier settlement in Dhamadka to their present location, 40 km away, in search of good quality groundwater. This transition was after the devastating earthquake in 2001 ."
-            },
-            {
-              "source_id": "S10",
-              "locator": "§ \"The economic consequences\"",
-              "quote": "\"But now this (water problem) has started again in Ajrakhpur. It's not as bad as it was in Dhamadka, but who knows about the future?"
             }
           ]
         },
@@ -714,13 +709,13 @@
       "category": "geography_history",
       "title": "Maldhari pastoralist clientele and traditional use",
       "summary": "The fabric was traditionally worn by members of the royal court and the pastoral Maldhari community; men used it as cummerbunds, lungis, turbans and shoulder cloths.",
-      "body_md": "The fabric was traditionally worn by members of the royal court and the pastoral Maldhari community; men used it as cummerbunds, lungis, turbans and shoulder cloths. [S1]\n\nMaldharis also used the cloth as bundles to carry belongings while travelling. [S1]\n\nKhatris made cloth for Maldharis and farming communities, often trading cloth for produce, milk or ghee; designs were not interchangeable between communities. [S7]\n\nTraditional buyers include Maldharis in Kutch, Muslim Patels in Marwar and Muslim potters in Barmer. [S6]",
+      "body_md": "The fabric was traditionally worn by members of the royal court and the pastoral Maldhari community; men used it as cummerbunds, lungis, turbans and shoulder cloths. [S1]\n\nMaldharis also used the cloth as bundles to carry belongings while travelling. [S1]\n\nKhatris made cloth for Maldharis and farming communities, often trading cloth for produce, milk or ghee; designs were not interchangeable between communities. [S7]\n\nThe traditional purchasers of Ajrakh were Muslim nomadic animal-keepers, called Maldharis in Kutch and Muslim Patels in Marwar; in Barmer the Muslim potter community uses Ajrakh as well. [S6]",
       "local_terms": [
         "Maldhari",
         "pheriya"
       ],
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "The fabric was traditionally worn by members of the royal court and the pastoral Maldhari community; men used it as cummerbunds, lungis, turbans and shoulder cloths.",
@@ -750,11 +745,6 @@
               "source_id": "S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
               "quote": "The semi-nomadic Maldharis also use the fabric as „bindles', in which they bundle up a few belongings while traveling."
-            },
-            {
-              "source_id": "S1",
-              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
-              "quote": "Clean water is used to work this soap through the cloth, cleaning out the impurities."
             }
           ]
         },
@@ -777,7 +767,7 @@
           ]
         },
         {
-          "text": "Traditional buyers include Maldharis in Kutch, Muslim Patels in Marwar and Muslim potters in Barmer.",
+          "text": "The traditional purchasers of Ajrakh were Muslim nomadic animal-keepers, called Maldharis in Kutch and Muslim Patels in Marwar; in Barmer the Muslim potter community uses Ajrakh as well.",
           "source_ids": [
             "S6"
           ],
@@ -786,11 +776,6 @@
               "source_id": "S6",
               "locator": "§ \"Mushtak Khan\"",
               "quote": "In Kutch (Gujarat) this community is referred to as Maldharis. In Marwar (Rajasthan) the community is known as Muslim Patels and their hereditary occupation is that of cattle-herders."
-            },
-            {
-              "source_id": "S6",
-              "locator": "§ \"Mushtak Khan\"",
-              "quote": "Ajrakh production using screen-printing is taking place in Barmer, Rajasthan as well, but here the traditional production method still partly survives."
             },
             {
               "source_id": "S6",
@@ -812,14 +797,14 @@
       "type": "historical_context",
       "category": "geography_history",
       "title": "Shift to synthetic dyes and natural-dye revival",
-      "summary": "Alizarin, synthesised in 1868, rapidly superseded madder; madder use almost disappeared and is now being revived.",
-      "body_md": "Alizarin, synthesised in 1868, rapidly superseded madder; madder use almost disappeared and is now being revived. [S1]\n\nSynthetic dyes replaced most natural colour in the Indian market in the early 1950s; interest in traditional craft revived in the 1970s. [S8]\n\nIn the mid-2010s most block printers worked with chemical dyes; some printers serve both natural and chemical dye markets according to demand. [S9]\n\nGlobalisation is changing Ajrakh techniques, designs, materials and markets. [S12]",
+      "summary": "Alizarin, invented in 1868, rapidly superseded madder; madder use almost disappeared and is now seeing a revival.",
+      "body_md": "Alizarin, invented in 1868, rapidly superseded madder; madder use almost disappeared and is now seeing a revival. [S1]\n\nBy the early 1950s synthetic dyes had replaced most of the natural colour in the Indian textile market; in the 1970s many states in India initiated programmes to support traditional craft artisans in finding new markets. [S8]\n\nIn the mid-2010s most block printers worked with chemical dyes; some printers serve both natural and chemical dye markets according to demand. [S9]\n\nGlobalisation is changing Ajrakh techniques, designs, materials and markets. [S12]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
-          "text": "Alizarin, synthesised in 1868, rapidly superseded madder; madder use almost disappeared and is now being revived.",
+          "text": "Alizarin, invented in 1868, rapidly superseded madder; madder use almost disappeared and is now seeing a revival.",
           "source_ids": [
             "S1"
           ],
@@ -837,7 +822,7 @@
           ]
         },
         {
-          "text": "Synthetic dyes replaced most natural colour in the Indian market in the early 1950s; interest in traditional craft revived in the 1970s.",
+          "text": "By the early 1950s synthetic dyes had replaced most of the natural colour in the Indian textile market; in the 1970s many states in India initiated programmes to support traditional craft artisans in finding new markets.",
           "source_ids": [
             "S8"
           ],
@@ -907,7 +892,7 @@
       "body_md": "Before Partition ajrakh was worn by Sindhi Muslim animal-keepers in Sindh, Kutch and Marwar. [S6]\n\nAfter Partition in 1947 border crossing became impossible and trade between East Kachchh and Sindh collapsed. [S7]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Before Partition ajrakh was worn by Sindhi Muslim animal-keepers in Sindh, Kutch and Marwar.",
@@ -919,11 +904,6 @@
               "source_id": "S6",
               "locator": "§ \"Mushtak Khan\"",
               "quote": "It was in vogue along both sides of the Indus River in pre-Partition India-being mainly used by Sindhi Muslim animal-keepers from Sindh (Pakistan), Kutch (Gujarat) and Marwar (Rajasthan)."
-            },
-            {
-              "source_id": "S6",
-              "locator": "§ \"Mushtak Khan\"",
-              "quote": "In Barmer, Ajrakh is used by the Muslim potter community as well. The traditional attire, worn casually earlier but now used mostly for weddings and other special occasions, consists of two pieces of cloth-a sarong and a turban."
             }
           ]
         },
@@ -952,7 +932,7 @@
       "body_md": "15th-century resist-printed fragments from Gujarat were found at Fustat in Egypt. [S12]\n\nBlock-printed fabric from Al Fustat (11th-14th century) resembles designs still printed in Dhamadka and Ajrakhpur. [S7]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "15th-century resist-printed fragments from Gujarat were found at Fustat in Egypt.",
@@ -999,7 +979,7 @@
         "Barmer"
       ],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Ajrakh printing is practised at Kachchh and Barmer.",
@@ -1026,7 +1006,7 @@
       "body_md": "Application 1050 for Kutch Ajrakh was made by Ajarakhpur Hastkala Vikas Sangathan, facilitated by the Textiles Committee, Ministry of Textiles. [S1]\n\nRegistered; certificate of registration dated 22-04-2024; journal 188 dated 19-12-2023. [S2]\n\nThe inspection body includes O/o Development Commissioner (Handicrafts) Bhuj, Textiles Committee, GSHHDC and two master artisans. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Application 1050 for Kutch Ajrakh was made by Ajarakhpur Hastkala Vikas Sangathan, facilitated by the Textiles Committee, Ministry of Textiles.",
@@ -1091,10 +1071,10 @@
       "category": "environmental_conditions",
       "title": "Iron content of process water",
       "summary": "Presence of iron in the water supply dulls and darkens the final result; alum, tin or chrome deposits help brighten colours.",
-      "body_md": "Presence of iron in the water supply dulls and darkens the final result; alum, tin or chrome deposits help brighten colours. [S1]\n\nIron content in the water increased drastically after the earthquake, making prints black so that off-white backgrounds were not possible. [S9]\n\nAn artisan reports that even small amounts of iron cause black spots on the pale yellow (harde-treated) cloth, and that a family test of Dhamadka groundwater found high iron. [S10]\n\nExcess iron in groundwater threatened Ajrakh in Dhamadka and is again threatening it in Ajrakhpur. [S10]",
+      "body_md": "Presence of iron in the water supply dulls and darkens the final result; alum, tin or chrome deposits help brighten colours. [S1]\n\nIron content in the water increased drastically after the earthquake, making prints black so that off-white backgrounds were not possible. [S9]\n\nAn artisan reports that even one percent iron in water gives the pale yellow cloth black spots, and that testing found seven percent iron in the groundwater in Dhamadka. [S10]\n\nExcess iron in groundwater threatened Ajrakh in Dhamadka and is again threatening it in Ajrakhpur. [S10]",
       "local_terms": [],
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Presence of iron in the water supply dulls and darkens the final result; alum, tin or chrome deposits help brighten colours.",
@@ -1129,7 +1109,7 @@
           ]
         },
         {
-          "text": "An artisan reports that even small amounts of iron cause black spots on the pale yellow (harde-treated) cloth, and that a family test of Dhamadka groundwater found high iron.",
+          "text": "An artisan reports that even one percent iron in water gives the pale yellow cloth black spots, and that testing found seven percent iron in the groundwater in Dhamadka.",
           "source_ids": [
             "S10"
           ],
@@ -1166,7 +1146,7 @@
       "body_md": "Ajrakh is described as a 16-stage, water-intensive technique; an artisan states that the craftsmen's requirement is to recycle about 1 lakh litres of water every day. [S10]\n\nIn 2019 a CETP was being set up through NITRA, with an iron filter and dual media filter so process water could be reused. [S10]\n\nA government-funded effluent treatment system was built in Ajrakhpur in 2022, with recycled water reusable for washing fabric. [S11]\n\nWater levels have been going down by 10-15 feet every year; no comprehensive water management plan has emerged. [S9]\n\nWater is an important ingredient in getting the right colour; quality matters as much as quantity. [S1]",
       "local_terms": [],
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Ajrakh is described as a 16-stage, water-intensive technique; an artisan states that the craftsmen's requirement is to recycle about 1 lakh litres of water every day.",
@@ -1209,7 +1189,7 @@
             },
             {
               "source_id": "S10",
-              "locator": "byline (top of article)",
+              "locator": "§ \"Water woes: Kutch’s age-old Ajrakh craft faces its nemesis, once again\"",
               "quote": "Azera Parveen Rahman 16 Oct 2019"
             }
           ]
@@ -1280,7 +1260,7 @@
       "body_md": "Ajrakh printing got concentrated where extra soft water was available. [S1]\n\nA Khavda printer says Khavda's dyeing techniques were the same as other villages, but the weather and water differed, so the shades differed. [S7]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Ajrakh printing got concentrated where extra soft water was available.",
@@ -1321,7 +1301,7 @@
       "body_md": "Khariyanu outline printing is usually preferred in the morning; kut printing in the afternoon; gach printing later in the day so the cloth is dry and resist does not spread. [S1]\n\nThe final wash is usually done early in the morning when water is cool, as warm afternoon water may dissolve some of the alum. [S1]\n\nArtisans work in combination with sun, river, animals, trees and mud. [S1, S8]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Khariyanu outline printing is usually preferred in the morning; kut printing in the afternoon; gach printing later in the day so the cloth is dry and resist does not spread.",
@@ -1380,11 +1360,6 @@
               "source_id": "S8",
               "locator": "§ \"Resist printing in Kachchh\"",
               "quote": "the raw materials used in the printing process Gum extracted from the Acacia plant is ground and forms one of the raw materials used in the printing process The print artisan works in total harmony with his environment: the sun, animals, river, trees, and mud"
-            },
-            {
-              "source_id": "S8",
-              "locator": "§ \"The Batik boom\"",
-              "quote": "Natural dyes are extremely difficult to work with in combination with wax, and in the past a single piece could take anywhere between 4 and 12 days."
             }
           ]
         }
@@ -1400,7 +1375,7 @@
       "body_md": "Monsoon humidity slows production. [S9]\n\nHumidity in the region stops natural dyes from reaching full effect (batik artisan's account). [S8]\n\nBlocks are soaked in mustard oil when not in use so they do not expand in the rainy season. [S1]",
       "local_terms": [],
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Monsoon humidity slows production.",
@@ -1463,7 +1438,7 @@
         "paniya"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Artisans procure cotton fabric from 60s to 120s count depending on end use; silk Ajrakh is made for customised needs.",
@@ -1510,7 +1485,7 @@
         "neerani"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Neerani is a thoroughly emulsified mixture of castor oil, soda ash and camel dung; soda ash was historically obtained from the ash of a local desert plant.",
@@ -1558,7 +1533,7 @@
         "harda"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Harde is a yellow astringent paste from dried powdered Terminalia chebula fruits containing high levels of tannic acid.",
@@ -1602,7 +1577,7 @@
         "babool ka gondh"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Kiriyana resist paste consists of babool gum and lime diluted in water.",
@@ -1669,7 +1644,7 @@
         "gud"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Kut is made from jaggery or molasses in which scrap iron such as horseshoes and gram flour have been fermented for ten to fifteen days; the iron-water is mixed with tree gum.",
@@ -1684,8 +1659,8 @@
             },
             {
               "source_id": "S1",
-              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
-              "quote": "(this is dyed; with long wood) Gach Guch Resist:- For the next two stages of the process a smooth fine paste is mixed from tree gum (Guar ka godh), clay (lal mitti), water and millet flour."
+              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+              "quote": "The resulting liquid or “ironwater” is drained off and mixed with smooth tree gum paste."
             }
           ]
         },
@@ -1729,7 +1704,7 @@
         "fatakdi"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Alum is used as a mordant to fasten the colours.",
@@ -1772,7 +1747,7 @@
         "kachuka no lot"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Alum is suspended in a sticky paste of boiled powder from roasted and ground tamarind seeds (kachika).",
@@ -1818,7 +1793,7 @@
         "mati"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Gach is a smooth paste of tree gum, clay (lal mitti), water and millet flour; alum is added to half of it.",
@@ -1876,7 +1851,7 @@
       "body_md": "Sawdust or finely powdered cow dung is sprinkled immediately after printing the gach pastes to prevent the wet clay from smudging. [S1]\n\nAreas to be dyed red are dusted while wet with ground cow dung or rice husk to protect against indigo. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Sawdust or finely powdered cow dung is sprinkled immediately after printing the gach pastes to prevent the wet clay from smudging.",
@@ -1924,7 +1899,7 @@
         "Hydros"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Indigo can be natural (Indigofera tinctoria) or synthetic 'German' indigo; natural indigo is fermented with lime, dates and soda; synthetic indigo often has 'Hydros' added.",
@@ -1991,7 +1966,7 @@
         "al (alternative root dye)"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Indian madder roots (Rubia cordifolia), locally majeeta, link to the alum mordant on cotton to develop red where pa and gach were printed.",
@@ -2036,7 +2011,7 @@
       "body_md": "Alizarin, first synthesised in 1868 by Graebe and Liebermann, superseded madder and also requires alum to attach colour. [S1]\n\nA solution of ICI alizarine powder, padvas nut powder and cowdung turns the printed portion red. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Alizarin, first synthesised in 1868 by Graebe and Liebermann, superseded madder and also requires alum to attach colour.",
@@ -2084,7 +2059,7 @@
         "dhawri"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Cloth is boiled in a solution of tamarix (dhawri) with madder, al or alizarin.",
@@ -2133,7 +2108,7 @@
         "hajaari phul"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Yellow from pomegranate (dadam), turmeric (haldi), flame of the forest and marigold; green from indigo with pomegranate or turmeric.",
@@ -2165,7 +2140,7 @@
       "body_md": "Dyed cloth is soaked in a camel-dung solution and spread on river sand in the sun for tapano. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Dyed cloth is soaked in a camel-dung solution and spread on river sand in the sun for tapano.",
@@ -2200,7 +2175,7 @@
         "shisham"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Blocks in the first printing stage are of shisham and those in the third and fourth stages of teak; blocks are soaked in mustard oil when not in use.",
@@ -2243,11 +2218,6 @@
               "source_id": "S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
               "quote": "This is helped by small registration marks on the corners of the symmetrically patterned blocks."
-            },
-            {
-              "source_id": "S1",
-              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
-              "quote": "Double sided Ajrakh was the most expensive and only the rich could afford it."
             },
             {
               "source_id": "S1",
@@ -2303,7 +2273,7 @@
         "kantan"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "The tari is made of wood with two handles and layered with chhapri, kantan (jute cloth), foam and fine cotton; foam and fine cloth are removed for less fine printing.",
@@ -2342,7 +2312,7 @@
         "dhoki"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "A paddle called dhoki, made from babool wood, is used to help dislodge emulsified oils during washing.",
@@ -2384,7 +2354,7 @@
         "kun"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Natural indigo is fermented in an underground vat; a vat need only be made once and can be kept active, sometimes for decades.",
@@ -2416,7 +2386,7 @@
       "body_md": "Alizarin or madder is heated in a large copper pot over a low fire, and cloth is continuously stirred using two sticks. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Alizarin or madder is heated in a large copper pot over a low fire, and cloth is continuously stirred using two sticks.",
@@ -2448,7 +2418,7 @@
       "body_md": "Washing and beating at the washing tanks removes resist paste, loose indigo and tamarind paste. [S1]\n\nAn artisan recalls his father washing fabric at the river in Dhamadka. [S8]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Washing and beating at the washing tanks removes resist paste, loose indigo and tamarind paste.",
@@ -2491,7 +2461,7 @@
         "neerani"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Pre-treatment involves a minimum of three soakings in neerani; the procedure is repeated eight to ten times until suitable saponification is achieved.",
@@ -2538,7 +2508,7 @@
         "dhoki"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Clean water is used to work the soap through the cloth; washing is a rigorous cycle of soaking and beating until all foam is wrung out.",
@@ -2573,7 +2543,7 @@
         "harde"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "The cloth is soaked in harde and dried in the sun without rinsing; tannin is an essential pre-mordant aiding adhesion of printed mordants.",
@@ -2603,11 +2573,6 @@
               "source_id": "S10",
               "locator": "§ \"History repeats itself\"",
               "quote": "\"One of the initial stages is when the cloth is dyed with myrobalan and then washed."
-            },
-            {
-              "source_id": "S10",
-              "locator": "§ \"Share this article\"",
-              "quote": "A Common Effluent Treatment Plant (CETP) that will remove excess iron and recycle the water used in this natural-dyeing and block printing process will abate the threat to the craft."
             }
           ]
         }
@@ -2626,7 +2591,7 @@
         "kiriyana"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Outlines where white is required are printed with a carved block and a lime and tree-gum resist paste.",
@@ -2693,7 +2658,7 @@
         "datla"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Areas where black is required are printed with kut paste, usually an infill (datla) between khariyanu outlines.",
@@ -2737,7 +2702,7 @@
         "mavi"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Pa, a smooth paste of alum in tamarind-seed paste, is printed with blocks patterned for the mavi areas where red is required.",
@@ -2785,7 +2750,7 @@
         "guch"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Gach with alum is printed where larger red areas are required (red ground gudh or mavi infill); the clay and millet resist indigo while the alum acts as mordant.",
@@ -2819,7 +2784,7 @@
         "dhori gach"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Dhori gach, without alum, is printed over previously printed white, black and pa-red areas that did not receive gach; sawdust or powdered cow dung is sprinkled immediately after.",
@@ -2854,7 +2819,7 @@
         "fara"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "The first stage of dyeing is called 'kun me burana'; the fabric is folded (fara) and dipped in the indigo vat.",
@@ -2925,7 +2890,7 @@
       "body_md": "Washing begins gently to loosen clay without smudging, then becomes vigorous soaking and beating; remaining on the fibres are indigo, kut black, alum mordants and resisted whites. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Washing begins gently to loosen clay without smudging, then becomes vigorous soaking and beating; remaining on the fibres are indigo, kut black, alum mordants and resisted whites.",
@@ -2954,13 +2919,13 @@
       "category": "process_stages",
       "title": "Red dyeing (rang) with madder or alizarin",
       "summary": "Alizarin crystals or steeped madder roots are heated in a copper pot; dyeing the purest reds continues for up to four hours.",
-      "body_md": "Alizarin crystals or steeped madder roots are heated in a copper pot; dyeing the purest reds continues for up to four hours. [S1]\n\nThe GI text's paragraph on madder/al/alizarin dyeing (placed after pa) says that at this stage (rang) the red and black areas develop, resist areas show white, and the cloth is washed and dried flat in the sun. [S1]",
+      "body_md": "Alizarin crystals or steeped madder roots are heated in a copper pot; dyeing the purest reds continues for up to four hours. [S1]\n\nTraditionally this stage is either madder or al dyeing; at this stage (rang) the red and black areas of the design develop and the resist areas are revealed as white, and the cloth is washed in plain water and dried flat in the sun. [S1]",
       "local_terms": [
         "rang",
         "majeeta"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Alizarin crystals or steeped madder roots are heated in a copper pot; dyeing the purest reds continues for up to four hours.",
@@ -2981,7 +2946,7 @@
           ]
         },
         {
-          "text": "The GI text's paragraph on madder/al/alizarin dyeing (placed after pa) says that at this stage (rang) the red and black areas develop, resist areas show white, and the cloth is washed and dried flat in the sun.",
+          "text": "Traditionally this stage is either madder or al dyeing; at this stage (rang) the red and black areas of the design develop and the resist areas are revealed as white, and the cloth is washed in plain water and dried flat in the sun.",
           "source_ids": [
             "S1"
           ],
@@ -3012,7 +2977,7 @@
         "tapano"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Madder often leaves a pinkish tinge on whites; the cloth is soaked in camel dung, spread on sandy river banks in the sun and sprinkled with water over at least three days.",
@@ -3051,7 +3016,7 @@
         "vichharana"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "The final washing and beating removes loose colour; it is usually done early in the morning when water is cool.",
@@ -3083,7 +3048,7 @@
       "body_md": "Once washed completely, artisans do ancillary activities like pressing and packaging. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Once washed completely, artisans do ancillary activities like pressing and packaging.",
@@ -3110,7 +3075,7 @@
       "body_md": "Saaj can take many days depending on the level of impurities; by the third or fourth steeping a rich lather leaves the cloth bright white and soft. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Saaj can take many days depending on the level of impurities; by the third or fourth steeping a rich lather leaves the cloth bright white and soft.",
@@ -3137,7 +3102,7 @@
       "body_md": "Gum is soaked and sieved many times to make the paste smooth; for finer outlines the paste must be thicker. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Gum is soaked and sieved many times to make the paste smooth; for finer outlines the paste must be thicker.",
@@ -3164,7 +3129,7 @@
       "body_md": "Khariyanu paste must not spread onto areas where red is required, or the lime will discharge subsequent alum. [S1]\n\nCare must be taken not to mix pa with lime-printed areas, otherwise colour is prevented from developing in red dyeing. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Khariyanu paste must not spread onto areas where red is required, or the lime will discharge subsequent alum.",
@@ -3204,7 +3169,7 @@
       "body_md": "Morning is preferred for khariyanu; kut in the afternoon; guch later in the day so the cloth is dry; final wash early morning in cool water. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Morning is preferred for khariyanu; kut in the afternoon; guch later in the day so the cloth is dry; final wash early morning in cool water.",
@@ -3251,7 +3216,7 @@
       "body_md": "If two shades of blue are required the cloth is reprinted between immersions; the darkest blues may need three or four immersions. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "If two shades of blue are required the cloth is reprinted between immersions; the darkest blues may need three or four immersions.",
@@ -3283,7 +3248,7 @@
       "body_md": "The fire is kept low and the cloth watched; if colour spreads into white areas, a handful of dried tamarisk flowers is added. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "The fire is kept low and the cloth watched; if colour spreads into white areas, a handful of dried tamarisk flowers is added.",
@@ -3315,7 +3280,7 @@
       "body_md": "Most Khatri printers could dip a finger in the vat, taste it and judge the shade and quality. [S8]\n\nA late master could tell by tasting a dye bath whether it needed lime, soda ash or dates. [S11]",
       "local_terms": [],
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Most Khatri printers could dip a finger in the vat, taste it and judge the shade and quality.",
@@ -3355,7 +3320,7 @@
       "body_md": "A printer must be very accurate so designs match on both sides; the fabric should be partly wet; corner registration marks help. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "A printer must be very accurate so designs match on both sides; the fabric should be partly wet; corner registration marks help.",
@@ -3382,7 +3347,7 @@
       "body_md": "Some printers serve both natural and chemical dye markets according to market demand. [S9]\n\nArtisans also use synthetic dye to complete the natural dye amid scarcity. [S1]\n\nKhavda printers work only with chemical dyes because of local water quality. [S9]",
       "local_terms": [],
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Some printers serve both natural and chemical dye markets according to market demand.",
@@ -3412,11 +3377,6 @@
               "source_id": "S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
               "quote": "However, now a days the artisans are also using the synthetic dye to complete the natural dye and completed the scarcity being experienced in the process of preparation of natural dye."
-            },
-            {
-              "source_id": "S1",
-              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
-              "quote": "This is possible for the dyeing of the fabric in Indigo and use of natural dyes."
             }
           ]
         },
@@ -3445,7 +3405,7 @@
       "body_md": "Red stands for Earth, black for darkness, white for clouds and blue for the universe itself. [S1]\n\nAn artisan quoted by Khamir says Ajrakh is inspired by Brahma, the universe, and the blues and reds of the evening sky and the stars. [S7]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Red stands for Earth, black for darkness, white for clouds and blue for the universe itself.",
@@ -3485,7 +3445,7 @@
       "body_md": "An artisan quoted by Khamir describes Ajrakh as an Islamic design art with no figures, crafted with geometrical forms. [S7]\n\nAjrakh is recognised by star-shaped patterns in geometric borders and deep indigo hues. [S9]\n\nIranian/Islamic influences are noted in the geometry and symmetry of the designs (Cousin, cited). [S6]\n\nThe GI journal's historical section says the designs in vogue developed under Muslim influence. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "An artisan quoted by Khamir describes Ajrakh as an Islamic design art with no figures, crafted with geometrical forms.",
@@ -3548,12 +3508,12 @@
       "category": "design_principles",
       "title": "Both-sided (double-sided) printing",
       "summary": "Historically Ajrakh has been printed on both sides so herders leaving before sunrise could wear it either way.",
-      "body_md": "Historically Ajrakh has been printed on both sides so herders leaving before sunrise could wear it either way. [S1]\n\nPrinting on both sides is the craft's highest achievement. [S6]\n\nV&A process samples explain making a double-sided ('minakari') ajrakh shawl. [S3]",
+      "body_md": "Historically Ajrakh has been printed on both sides so herders leaving before sunrise could wear it either way. [S1]\n\nAjrakh cloths evenly printed on both sides display the pinnacle of achievement in printing. [S6]\n\nV&A process samples explain making a double-sided ('minakari') ajrakh shawl. [S3]",
       "local_terms": [
         "minakari"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Historically Ajrakh has been printed on both sides so herders leaving before sunrise could wear it either way.",
@@ -3569,7 +3529,7 @@
           ]
         },
         {
-          "text": "Printing on both sides is the craft's highest achievement.",
+          "text": "Ajrakh cloths evenly printed on both sides display the pinnacle of achievement in printing.",
           "source_ids": [
             "S6"
           ],
@@ -3578,11 +3538,6 @@
               "source_id": "S6",
               "locator": "§ \"Mushtak Khan\"",
               "quote": "However, the Ajrakh cloths, evenly printed on both sides, display the pinnacle of achievement in printing."
-            },
-            {
-              "source_id": "S6",
-              "locator": "§ \"Mushtak Khan\"",
-              "quote": "Lotika Varadarajan has elaborated on the imprint of the Sufi philosophy on the craft."
             }
           ]
         },
@@ -3627,7 +3582,7 @@
         "pachlo"
       ],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Both ends are decorated and three sides carry fixed border designs; only the central motif changes.",
@@ -3673,7 +3628,7 @@
             },
             {
               "source_id": "S4",
-              "locator": "§ \"Brief description\"",
+              "locator": "§ \"Object details\"",
               "quote": "Pieces of an ajrakh textile, block printed cotton, Sind, ca. 1855-1879."
             }
           ]
@@ -3690,7 +3645,7 @@
       "body_md": "Maldhari groups (Nodai, Haleputra, Sama, Sumra, Jat) each had distinct styles and palettes that Khatris did not change. [S7]\n\nPatterns, colour and quality of cloth are used as markers for importance and hierarchy. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Maldhari groups (Nodai, Haleputra, Sama, Sumra, Jat) each had distinct styles and palettes that Khatris did not change.",
@@ -3735,7 +3690,7 @@
       "body_md": "Each design is a set of four to six blocks. [S1]\n\nBlocks for the pa stage are carved so only the mavi (red) areas print. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Each design is a set of four to six blocks.",
@@ -3760,11 +3715,6 @@
               "source_id": "S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
               "quote": "This smooth paste called Pa, is printed with blocks which have been carved so that the printing portion of the raised face is patterned only, with the areas of the design called mavi, where red is required."
-            },
-            {
-              "source_id": "S1",
-              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
-              "quote": "The first stage of dyeing is referred to as \"kun me burana\"."
             }
           ]
         }
@@ -3780,7 +3730,7 @@
       "body_md": "Remaining on the fibres after washing are indigo blue, kut black, alum mordant and resisted white; red develops in red dyeing. [S1]\n\nThe natural-dyed fabric is said not to fade even when old. [S1]\n\n19th-c. ajrakh pieces in the V&A show red, blue, black and white circle patterns. [S4, S5]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Remaining on the fibres after washing are indigo blue, kut black, alum mordant and resisted white; red develops in red dyeing.",
@@ -3792,11 +3742,6 @@
               "source_id": "S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
               "quote": "Remaining on the fibres are the Indigo blue, kut black, alum from Pa and gach mordants and the resisted plain white areas. Red Dyeing:- Alizarin crystals or the crushed and steeped roots of majeeta or Indian Madder are gently heated in a large copper pot."
-            },
-            {
-              "source_id": "S1",
-              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
-              "quote": "After dyeing the still - streaming cloth is piled by the washing tanks."
             },
             {
               "source_id": "S1",
@@ -3854,7 +3799,7 @@
       "body_md": "Traditionally used as shoulder wrap, lungi, kammarband, chaddar and rajai by men; odhani and ghaghara by women. [S1]\n\nA typical cloth is about 1 m wide and 2.5 m long; sarongs join two turban cloths. [S6]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Traditionally used as shoulder wrap, lungi, kammarband, chaddar and rajai by men; odhani and ghaghara by women.",
@@ -3899,7 +3844,7 @@
       "body_md": "Double-sided Ajrakh was the most expensive and only the rich could afford it. [S1]\n\nThe fabric is used as honorary gifts. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Double-sided Ajrakh was the most expensive and only the rich could afford it.",
@@ -3939,7 +3884,7 @@
       "body_md": "Today ajrakh is made into bed sheets, saris, salwar-kameez material and stoles. [S1]\n\nMany Khatris work with international fashion designers and retailers. [S9]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Today ajrakh is made into bed sheets, saris, salwar-kameez material and stoles.",
@@ -3979,7 +3924,7 @@
       "body_md": "Grey cotton carries oils, pectin and wax that reduce absorbency and must be removed; neerani cycles are repeated until suitable saponification is achieved. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Grey cotton carries oils, pectin and wax that reduce absorbency and must be removed; neerani cycles are repeated until suitable saponification is achieved.",
@@ -4016,7 +3961,7 @@
       "body_md": "The lime will discharge subsequent applications of alum. [S1]\n\nWhere kut is printed over khariyanu, the lime resists the iron, giving further detail to outlines. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "The lime will discharge subsequent applications of alum.",
@@ -4056,7 +4001,7 @@
       "body_md": "Colour compounds in madder are more complex than synthetic alizarin, so madder often leaves a pinkish tinge on whites. [S1]\n\nSun, moisture and compounds in camel dung act as a bleaching agent on the whites over at least three days. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Colour compounds in madder are more complex than synthetic alizarin, so madder often leaves a pinkish tinge on whites.",
@@ -4096,7 +4041,7 @@
       "body_md": "Warm afternoon water may dissolve some of the alum. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Warm afternoon water may dissolve some of the alum.",
@@ -4123,7 +4068,7 @@
       "body_md": "The process and designs are common to Sindh, Kutch and Barmer. [S1]\n\nKachchh Ajrakh are fine fabrics with a wider range of designs than Barmer. [S1]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "The process and designs are common to Sindh, Kutch and Barmer.",
@@ -4164,14 +4109,14 @@
       "type": "open_question",
       "category": "open_questions",
       "title": "When did Khatri printers settle in Kutch?",
-      "summary": "About 400 years ago (GI uniqueness section); Dhamadka activity 450 years.",
-      "body_md": "About 400 years ago (GI uniqueness section); Dhamadka activity 450 years. [S1]\n\nRao Bharmalji I (1586-1631). [S6]\n\n7th-century flight; Jinda Jeeva c. 1650. [S7]\n\n16th-century migration legend. [S12]",
+      "summary": "The GI journal gives about 400 years ago for the craft's arrival in Kutch from Sindh and for the Khatri settlement in Dhamadka, and 450 years of Ajrakh activity at Dhamadka.",
+      "body_md": "The GI journal gives about 400 years ago for the craft's arrival in Kutch from Sindh and for the Khatri settlement in Dhamadka, and 450 years of Ajrakh activity at Dhamadka. [S1]\n\nRao Bharmalji I (1586-1631). [S6]\n\n7th-century flight; Jinda Jeeva c. 1650. [S7]\n\n16th-century migration legend. [S12]",
       "local_terms": [],
       "provenance_kind": "hypothesis",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "claims": [
         {
-          "text": "About 400 years ago (GI uniqueness section); Dhamadka activity 450 years.",
+          "text": "The GI journal gives about 400 years ago for the craft's arrival in Kutch from Sindh and for the Khatri settlement in Dhamadka, and 450 years of Ajrakh activity at Dhamadka.",
           "source_ids": [
             "S1"
           ],
@@ -4180,11 +4125,6 @@
               "source_id": "S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
               "quote": "It is believed that 400 years ago, a group of Khatris settled in Dhamadka and started practicing their craft."
-            },
-            {
-              "source_id": "S1",
-              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
-              "quote": "The Uniqueness about the Ajrakh printed fabric is that during the day time, when the temperature are high it gives coolness to the wearer, by opening of the pores of the fabric."
             },
             {
               "source_id": "S1",
@@ -4244,11 +4184,6 @@
               "source_id": "S12",
               "locator": "§ \"Abstract\"",
               "quote": "According to popular legend, this textile tradition was started in the family of late Mohammad Siddiki when in the year 1586, Raja Bharmal I, invited his forefathers, to migrate from Sind and settle in Dhamadka, Kachchh."
-            },
-            {
-              "source_id": "S12",
-              "locator": "§ \"Abstract\"",
-              "quote": "These have been dated back to the fifteenth century and have been printed by the resist printing technique."
             }
           ]
         }
@@ -4264,7 +4199,7 @@
       "body_md": "Ajrakh means 'keep it to-day' and also 'beautifying'. [S1]\n\nAjrakh from Arabic azraq, 'blue'. [S4]\n\nOrigin may be Arabic, Sindhi or Sanskrit; first recorded mention 'Ujruk' in 1669. [S6]",
       "local_terms": [],
       "provenance_kind": "hypothesis",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Ajrakh means 'keep it to-day' and also 'beautifying'.",
@@ -4322,7 +4257,7 @@
       "body_md": "Sequence in the GI journal's Proof of Origin section: harda, alum print, red dye bath, mud resist, indigo. [S1]\n\nGI method: pa and gach, indigo, wash, then red dyeing; an earlier paragraph also places a madder or al dyeing after pa. [S1]\n\n15-16 stages over 15-21 days (GI); 'sixteen step' process (GI); about 14 stages (V&A label); 16 stages (Mongabay). [S1, S3, S10]",
       "local_terms": [],
       "provenance_kind": "hypothesis",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Sequence in the GI journal's Proof of Origin section: harda, alum print, red dye bath, mud resist, indigo.",
@@ -4402,7 +4337,7 @@
       "body_md": "The GI text claims the fabric cools by day and warms by night due to indigo and natural dyes opening and closing its pores. [S1]",
       "local_terms": [],
       "provenance_kind": "hypothesis",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "The GI text claims the fabric cools by day and warms by night due to indigo and natural dyes opening and closing its pores.",
@@ -4434,7 +4369,7 @@
       "body_md": "Iron rose drastically after the earthquake. [S9]\n\nThe stream dried in 1989 and well/tank levels kept falling before the quake. [S1]\n\nAn artisan reports that testing found seven percent iron in Dhamadka groundwater. [S10]",
       "local_terms": [],
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Iron rose drastically after the earthquake.",
@@ -4455,11 +4390,6 @@
             "S1"
           ],
           "evidence": [
-            {
-              "source_id": "S1",
-              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
-              "quote": "This water stream dried up in 1989 and water levels from wells and tanks continued to fall."
-            },
             {
               "source_id": "S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
@@ -4493,7 +4423,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S12",
@@ -4525,7 +4455,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S12",
@@ -4563,7 +4493,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S9"
@@ -4589,7 +4519,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S10",
@@ -4627,7 +4557,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S6",
@@ -4659,7 +4589,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S8",
@@ -4691,7 +4621,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S6",
         "S7"
@@ -4717,7 +4647,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S12",
         "S7"
@@ -4726,7 +4656,7 @@
         {
           "source_id": "S7",
           "locator": "§ \"Remnants in Egypt\"",
-          "quote": "In 1930, hundreds of Indian cotton fragments from the 11th-14th century AD were discovered in Al Fustat, the harbor of Old Cairo."
+          "quote": "Similar designs are still being printed in modern-day Dhamadka and Ajrakhpur."
         },
         {
           "source_id": "S12",
@@ -4739,14 +4669,26 @@
       "source": "ajrakh.historical_context.barmer-practice",
       "target": "ajrakh.tradition.kutch-ajrakh",
       "type": "BELONGS_TO",
-      "explanation": "Ajrakh in Barmer, Rajasthan is part of the Kutch Ajrakh tradition.",
+      "explanation": "Barmer in Rajasthan is a recognised centre of the Ajrakh craft alongside Dhamadka and Khavda in Kutch, where Ajrakh printing is also practised.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S6"
+      ],
+      "evidence": [
+        {
+          "source_id": "S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+          "quote": "Ajrakh printing is practiced at Kachchh & Barmer."
+        },
+        {
+          "source_id": "S6",
+          "locator": "§ \"Mushtak Khan\"",
+          "quote": "Over time, the villages of Dhamadka and Khavda in Kutch became the primary centres of the craft, followed by Barmer in Rajasthan"
+        }
       ]
     },
     {
@@ -4757,7 +4699,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S2"
@@ -4783,7 +4725,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S10",
@@ -4815,7 +4757,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S10",
@@ -4853,7 +4795,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S7"
@@ -4879,7 +4821,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -4899,7 +4841,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S9"
@@ -4925,7 +4867,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -4945,7 +4887,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -4965,7 +4907,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -4985,7 +4927,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S11",
@@ -5017,7 +4959,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5037,7 +4979,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5057,7 +4999,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5077,7 +5019,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5097,7 +5039,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5117,7 +5059,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S8"
@@ -5143,7 +5085,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S8"
@@ -5169,7 +5111,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5189,7 +5131,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5209,7 +5151,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5229,7 +5171,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5249,7 +5191,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5269,7 +5211,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5289,7 +5231,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5309,7 +5251,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5329,7 +5271,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5349,7 +5291,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5369,7 +5311,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5389,7 +5331,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5409,7 +5351,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S10"
@@ -5435,7 +5377,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S3",
@@ -5467,7 +5409,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5487,7 +5429,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S3"
@@ -5513,7 +5455,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5533,7 +5475,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5553,7 +5495,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S3"
@@ -5579,7 +5521,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5599,7 +5541,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5619,7 +5561,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5639,7 +5581,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5659,7 +5601,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5679,7 +5621,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5699,7 +5641,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5719,7 +5661,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5739,7 +5681,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5759,7 +5701,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5779,7 +5721,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5799,7 +5741,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S11",
         "S8"
@@ -5825,7 +5767,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -5845,7 +5787,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S9"
@@ -5871,7 +5813,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S7"
@@ -5897,7 +5839,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S6",
@@ -5935,7 +5877,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S3",
@@ -5967,7 +5909,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S6"
@@ -5993,7 +5935,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S7"
       ],
@@ -6013,7 +5955,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6033,7 +5975,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6053,7 +5995,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6073,7 +6015,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6093,7 +6035,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S9"
@@ -6119,7 +6061,7 @@
       "conditions": null,
       "ordinal": 1,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6139,7 +6081,7 @@
       "conditions": null,
       "ordinal": 2,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6159,9 +6101,16 @@
       "conditions": null,
       "ordinal": 3,
       "provenance_kind": "historical_documentation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+          "quote": "Preparation of Outline of design (Khariyanu/ Kiriyana):- Outlines of the design, where white is required, are printed with a carved wooden block"
+        }
       ]
     },
     {
@@ -6172,7 +6121,7 @@
       "conditions": null,
       "ordinal": 4,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6192,9 +6141,16 @@
       "conditions": null,
       "ordinal": 5,
       "provenance_kind": "historical_documentation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+          "quote": "Application of Red Colour (Pa/ Pah mordant):The mordant, alum required for producing red is now applied to the cloth."
+        }
       ]
     },
     {
@@ -6205,7 +6161,7 @@
       "conditions": null,
       "ordinal": 6,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6225,7 +6181,7 @@
       "conditions": null,
       "ordinal": 7,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6245,7 +6201,7 @@
       "conditions": null,
       "ordinal": 8,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6265,7 +6221,7 @@
       "conditions": "Order follows GI Journal 188 method section; see open_question.stage-order-red-indigo.",
       "ordinal": 9,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6285,7 +6241,7 @@
       "conditions": "Order follows GI Journal 188 method section; see open_question.stage-order-red-indigo.",
       "ordinal": 10,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6305,7 +6261,7 @@
       "conditions": null,
       "ordinal": 11,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6325,7 +6281,7 @@
       "conditions": null,
       "ordinal": 12,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6345,7 +6301,7 @@
       "conditions": null,
       "ordinal": 13,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6365,7 +6321,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6385,7 +6341,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6393,7 +6349,7 @@
         {
           "source_id": "S1",
           "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
-          "quote": "meaning the Saaj process can take many days to complete, depending upon the level of impurities in the cloth"
+          "quote": "usually by the third or fourth steeping the dung and oil mixture emulsifies to produce a rich lather"
         }
       ]
     },
@@ -6405,7 +6361,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6425,7 +6381,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6445,7 +6401,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6465,7 +6421,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6485,7 +6441,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6505,7 +6461,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6525,7 +6481,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6545,7 +6501,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6565,7 +6521,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6585,7 +6541,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6605,7 +6561,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6625,7 +6581,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6645,7 +6601,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6665,7 +6621,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6685,7 +6641,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6705,7 +6661,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6725,7 +6681,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6745,7 +6701,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6765,7 +6721,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6785,7 +6741,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6798,32 +6754,6 @@
       ]
     },
     {
-      "source": "ajrakh.process_stage.khariyanu",
-      "target": "ajrakh.tool.tari-printing-tray",
-      "type": "USES",
-      "explanation": "The khariyanu stage uses this tool.",
-      "conditions": null,
-      "ordinal": null,
-      "provenance_kind": "historical_documentation",
-      "verification_state": "needs_evidence",
-      "source_ids": [
-        "S1"
-      ]
-    },
-    {
-      "source": "ajrakh.process_stage.pa",
-      "target": "ajrakh.tool.tari-printing-tray",
-      "type": "USES",
-      "explanation": "The pa stage uses this tool.",
-      "conditions": null,
-      "ordinal": null,
-      "provenance_kind": "historical_documentation",
-      "verification_state": "needs_evidence",
-      "source_ids": [
-        "S1"
-      ]
-    },
-    {
       "source": "ajrakh.process_stage.indigo-dyeing",
       "target": "ajrakh.tool.underground-indigo-vat",
       "type": "USES",
@@ -6831,7 +6761,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6851,7 +6781,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6871,7 +6801,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6891,7 +6821,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6911,7 +6841,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6931,7 +6861,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6951,7 +6881,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6967,11 +6897,11 @@
       "source": "ajrakh.process_stage.tapano",
       "target": "ajrakh.material.madder",
       "type": "DEPENDS_ON",
-      "explanation": "Tapano is needed specifically to counteract madder staining.",
+      "explanation": "Tapano was developed to counteract the pinkish tinge that dyeing with madder leaves on the white areas.",
       "conditions": "Applies to natural madder; not described as needed for synthetic alizarin.",
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -6979,7 +6909,7 @@
         {
           "source_id": "S1",
           "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
-          "quote": "The color compounds contained within natural madder roots are much more complex than those of synthetic alizarin."
+          "quote": "dyeing with majeeta often leaves a pinkish tinge to the white areas of a design. Over time a procedure was developed to counteract this staining."
         }
       ]
     },
@@ -6991,7 +6921,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7011,7 +6941,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7031,7 +6961,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7047,11 +6977,11 @@
       "source": "ajrakh.process_stage.vichharnu",
       "target": "ajrakh.outcome.four-colour-ajrakh-cloth",
       "type": "PRODUCES",
-      "explanation": "Final wash clears loose dye and brightens whites, yielding the finished cloth.",
+      "explanation": "The final wash clears the excess dyes and makes the whites of the finished cloth shine.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7059,7 +6989,7 @@
         {
           "source_id": "S1",
           "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
-          "quote": "The final washing and beating to remove any loose colour is vital."
+          "quote": "It clears the excess dyes and makes the whiteness of the Ajrakh stars shine bright."
         }
       ]
     },
@@ -7067,11 +6997,11 @@
       "source": "ajrakh.design_principle.multi-block-set",
       "target": "ajrakh.tool.wooden-blocks",
       "type": "REQUIRES",
-      "explanation": "Each layer is printed with its own block in a set.",
+      "explanation": "Each design is a set of four to six blocks.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7087,13 +7017,20 @@
       "source": "ajrakh.artisan_decision.saaj-lather-judgement",
       "target": "ajrakh.process_stage.saaj",
       "type": "PRACTITIONER_EXPLAINS",
-      "explanation": "Lather and softness signal completion of saaj.",
+      "explanation": "Saaj is repeated eight to ten times until a suitable level of saponification is achieved.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+          "quote": "The entire procedure is repeated eight to ten times until a suitable level of saponification is achieved"
+        }
       ]
     },
     {
@@ -7104,7 +7041,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7124,7 +7061,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7144,7 +7081,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7164,7 +7101,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7184,7 +7121,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7204,7 +7141,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S11"
       ],
@@ -7224,7 +7161,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S9"
       ],
@@ -7244,7 +7181,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S10",
@@ -7276,7 +7213,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S10"
       ],
@@ -7296,7 +7233,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S9",
         "S10"
@@ -7322,7 +7259,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S9"
@@ -7348,7 +7285,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7368,7 +7305,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7388,7 +7325,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7404,11 +7341,11 @@
       "source": "ajrakh.historical_context.khatri-migration-to-kutch",
       "target": "ajrakh.environmental_condition.soft-water-siting",
       "type": "AFFECTED_BY",
-      "explanation": "Printers concentrated where very soft water was available.",
+      "explanation": "Ajrakh printing came from Sindh and got concentrated where extra soft water was available.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7428,7 +7365,7 @@
       "conditions": "Historical sequence (two-step chronology), separate from the production sequence.",
       "ordinal": 1,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S6"
@@ -7454,7 +7391,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S6"
@@ -7480,7 +7417,7 @@
       "conditions": "Historical sequence (two-step chronology), separate from the production sequence.",
       "ordinal": 1,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S9"
@@ -7506,7 +7443,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7522,11 +7459,11 @@
       "source": "ajrakh.material.synthetic-alizarin",
       "target": "ajrakh.material.madder",
       "type": "CONTRASTS_WITH",
-      "explanation": "Alizarin is simpler and does not stain whites like madder; both need alum.",
+      "explanation": "The colour compounds in madder are more complex than those of synthetic alizarin, so dyeing with madder often leaves a pinkish tinge on the whites.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7546,7 +7483,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S7"
       ],
@@ -7562,11 +7499,11 @@
       "source": "ajrakh.historical_context.maldhari-clientele",
       "target": "ajrakh.design_principle.both-sided-printing",
       "type": "ENABLES",
-      "explanation": "Explained as for herders dressing in the dark (practitioner story).",
+      "explanation": "Ajrakh was printed on both sides because the cattle herders who wore it left home before sunrise and could not tell the right side from the wrong side in the dark.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7586,7 +7523,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S6"
@@ -7612,7 +7549,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7628,11 +7565,11 @@
       "source": "ajrakh.process_stage.khariyanu",
       "target": "ajrakh.scientific_mechanism.lime-discharges-alum",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Lime blocks alum and iron.",
+      "explanation": "The lime in the khariyanu paste would discharge subsequent applications of alum.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7652,7 +7589,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7672,7 +7609,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7692,7 +7629,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "needs_evidence",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],
@@ -7788,7 +7725,7 @@
       "source": "ajrakh.process_stage.indigo-dyeing",
       "target": "shared.scientific_mechanism.indigo-vat-reduction",
       "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Alkaline fermentation/hydros releases indigo; cloth turns green then blue in air.",
+      "explanation": "The vat process acts on the indigo to release the dye, which the dipped cloth absorbs.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
@@ -7865,20 +7802,6 @@
       ]
     },
     {
-      "source": "ajrakh.environmental_condition.water-iron-content",
-      "target": "shared.scientific_mechanism.iron-tannin-black",
-      "type": "SCIENTIFICALLY_EXPLAINED_BY",
-      "explanation": "Iron in water darkens tannin-treated cloth (black spots), the same reaction exploited in kut.",
-      "conditions": null,
-      "ordinal": null,
-      "provenance_kind": "researcher_interpretation",
-      "verification_state": "needs_evidence",
-      "source_ids": [
-        "S1",
-        "S10"
-      ]
-    },
-    {
       "source": "ajrakh.scientific_mechanism.madder-staining-and-clearing",
       "target": "shared.scientific_mechanism.sun-bleaching",
       "type": "SIMILAR_TO",
@@ -7906,7 +7829,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S4",
@@ -7938,7 +7861,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S10",
         "S9"
@@ -7964,7 +7887,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1",
         "S12",
@@ -8002,7 +7925,7 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "S1"
       ],

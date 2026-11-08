@@ -88,8 +88,8 @@ export type VerificationTransition = z.infer<typeof verificationTransitionSchema
 // 1. Interchange format v1 (content/FORMAT.md)
 // =========================================================================================
 
-/** States an imported file may carry (FORMAT.md: never "verified"). */
-export const IMPORTABLE_STATES = ["under_review", "needs_evidence"] as const;
+/** States a content file may carry (FORMAT.md); the importer stores "verified" as "under_review". */
+export const IMPORTABLE_STATES = ["under_review", "needs_evidence", "verified"] as const;
 const importableStateSchema = z.enum(IMPORTABLE_STATES);
 
 /**
