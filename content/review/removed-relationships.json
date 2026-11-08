@@ -277,5 +277,82 @@
       "S1"
     ],
     "removal_reason": "DR-120 source check: S1 p. 10 beats the dried harda cloth with 'a wooden mallet'; S1 p. 13 defines the mogri as a mallet for the folds of moist finished cloth, and no recorded source names the harda mallet as the mogri. The mogri stays linked to the tradition through the GI tool list."
+  },
+  {
+    "file": "traditions/machilipatnam-kalamkari/tradition.json",
+    "source": "machilipatnam-kalamkari.environmental_condition.coromandel-soil-water-plants",
+    "target": "machilipatnam-kalamkari.tradition.machilipatnam-kalamkari",
+    "type": "BELONGS_TO",
+    "explanation": "Coromandel soil, water and dye plants is documented as part of Machilipatnam block-printed kalamkari.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S11"
+    ],
+    "removal_reason": "DR-120 source check: S11 ties the favourable soil, water and dye plants to the Coromandel Coast and never names Machilipatnam, Masulipatnam or Pedana; no recorded source ties them to this tradition."
+  },
+  {
+    "file": "traditions/machilipatnam-kalamkari/tradition.json",
+    "source": "machilipatnam-kalamkari.process_stage.block-carving",
+    "target": "machilipatnam-kalamkari.process_stage.scouring-dung-bleaching",
+    "type": "PRECEDES",
+    "explanation": "Sequential order of production stages as documented.",
+    "conditions": null,
+    "ordinal": 1,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S4"
+    ],
+    "removal_reason": "DR-120 source check: S4 p. 4 lists block making first among the stages, but the list is not in time order (bleaching and washing is item 7), and no recorded source orders block making before the cloth is scoured."
+  },
+  {
+    "file": "traditions/machilipatnam-kalamkari/tradition.json",
+    "source": "machilipatnam-kalamkari.process_stage.soaping-finishing",
+    "target": "machilipatnam-kalamkari.outcome.colourfast-printed-textiles",
+    "type": "PRODUCES",
+    "explanation": "Final finished cloth.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "historical_documentation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S4",
+      "S3"
+    ],
+    "removal_reason": "DR-120 source check: S4 p. 12 credits the fixing of all colours to the alum dip and p. 13 calls soaping the last stage; S3 has no fastness statement; no recorded source says the soap wash produces colourfast cloth."
+  },
+  {
+    "file": "traditions/machilipatnam-kalamkari/tradition.json",
+    "source": "machilipatnam-kalamkari.scientific_mechanism.indigo-no-mordant",
+    "target": "shared.scientific_mechanism.indigo-vat-reduction",
+    "type": "SIMILAR_TO",
+    "explanation": "Indigo fixes by its own (vat) chemistry, not a mordant; vat process at Pedana not documented.",
+    "conditions": "Pedana prints indigo paste directly; reduction details not sourced.",
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S10"
+    ],
+    "removal_reason": "DR-120 source check: S10 says indigo needs no mordant and the cloth is immersed in the dye vat; no recorded source states vat reduction."
+  },
+  {
+    "file": "traditions/machilipatnam-kalamkari/tradition.json",
+    "source": "machilipatnam-kalamkari.process_stage.scouring-dung-bleaching",
+    "target": "shared.scientific_mechanism.sun-bleaching",
+    "type": "SCIENTIFICALLY_EXPLAINED_BY",
+    "explanation": "Cloth spread wet in sun as part of bleaching.",
+    "conditions": null,
+    "ordinal": null,
+    "provenance_kind": "researcher_interpretation",
+    "verification_state": "needs_evidence",
+    "source_ids": [
+      "S4",
+      "S5"
+    ],
+    "removal_reason": "DR-120 source check: S4 and S5 list sun drying and bleaching as separate steps; no recorded source says the sun bleaches the cloth."
   }
 ]
