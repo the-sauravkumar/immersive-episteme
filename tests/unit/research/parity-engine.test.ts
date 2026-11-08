@@ -133,6 +133,22 @@ describe("content parity from one template", () => {
     expect(failingCodes(map, "d.journey")).toContain("pre_concept_map");
   });
 
+  it("refuses a form that has items for some study traditions but none for another, and warns when the traditions' forms differ in length", () => {
+    const traditions = (passingInput().study.config as { traditionSlugs: string[] }).traditionSlugs;
+    const even = passingInput();
+    even.study.battery[0]!.itemsByTradition = Object.fromEntries(traditions.map((t) => [t, 12]));
+    even.study.battery[1]!.itemsByTradition = { ...Object.fromEntries(traditions.map((t) => [t, 7])), bagru: 2 };
+    expect(runParityChecks(even).passed).toBe(true);
+    expect(failingCodes(even, "d.review")).toEqual([]);
+    const gap = passingInput();
+    gap.study.battery[1]!.itemsByTradition = { [traditions[0]!]: 7 };
+    expect(failingCodes(gap, "d.journey")).toEqual(["tradition_without_items"]);
+    const uneven = passingInput();
+    uneven.study.battery[0]!.itemsByTradition = Object.fromEntries(traditions.map((t, i) => [t, 12 - i]));
+    expect(failingCodes(uneven, "d.review")).toEqual(["tradition_lengths_differ"]);
+    expect(failingCodes(uneven, "d.journey")).toEqual([]);
+  });
+
   it("refuses an allocation algorithm the study engine cannot draw", () => {
     for (const algorithm of ["counterbalanced", "manual"]) {
       const input = passingInput();

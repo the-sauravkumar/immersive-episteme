@@ -34,9 +34,11 @@ export async function loadParityInput(q: Q, studyId: string): Promise<ParityInpu
       "SELECT id, code, label, interface::text, config FROM study_conditions WHERE study_id = $1 ORDER BY position, code",
       [studyId],
     ),
-    () => q.query<{ assessmentId: string; code: string; version: number; kind: string; phase: string; position: number; status: string; required: boolean; anchorsUnconfirmed: boolean }>(
+    () => q.query<{ assessmentId: string; code: string; version: number; kind: string; phase: string; position: number; status: string; required: boolean; anchorsUnconfirmed: boolean; itemsByTradition: Record<string, number> }>(
       `SELECT sa.assessment_id AS "assessmentId", a.code, a.version, a.kind::text AS kind, sa.phase::text AS phase, sa.position, a.status::text AS status, sa.required,
-              coalesce((a.config->'instrument'->'responseScale'->>'anchorsVerified')::boolean, true) = false AS "anchorsUnconfirmed"
+              coalesce((a.config->'instrument'->'responseScale'->>'anchorsVerified')::boolean, true) = false AS "anchorsUnconfirmed",
+              coalesce((SELECT jsonb_object_agg(x.tradition, x.n) FROM (SELECT i.config->'target'->>'tradition' AS tradition, count(*)::int AS n FROM assessment_items i
+                         WHERE i.assessment_id = a.id AND i.config->'target'->>'tradition' IS NOT NULL GROUP BY 1) x), '{}'::jsonb) AS "itemsByTradition"
          FROM study_assessments sa JOIN assessments a ON a.id = sa.assessment_id
         WHERE sa.study_id = $1 ORDER BY sa.phase, sa.position`,
       [studyId],

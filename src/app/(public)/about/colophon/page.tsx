@@ -104,8 +104,8 @@ export default function ColophonPage() {
           <EditorialRow>
             <Prose>
               The visual course is always shown first and on the left, and the walkthrough second, on Explore and in Figure 1. Public pages
-              and the demo list traditions in one alphabetical order. In a study, each participant meets the traditions in a counterbalanced order
-              drawn at allocation, and the same order applies whichever condition they are in.
+              and the demo list traditions in one alphabetical order. In a study, each participant learns one tradition, drawn at random so that
+              every tradition is equally represented in each condition, and is tested only on that tradition.
             </Prose>
           </EditorialRow>
         </EditorialSection>

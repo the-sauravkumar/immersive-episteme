@@ -194,13 +194,6 @@ select.walking-field {
   cursor: crosshair;
 }
 
-.walking-entrance {
-  display: block;
-  width: 100%;
-  height: auto;
-  background: var(--vat);
-}
-
 .walking-error {
   color: var(--madder-text);
 }

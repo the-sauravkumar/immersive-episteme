@@ -9,14 +9,13 @@ import studyPhotos from "./study-photos.json";
 import { checkScene } from "@/features/walkthrough/domain/scene-check";
 import { topRenderScale } from "@/features/walkthrough/domain/render-scale";
 import { buildRoute, practiceStation } from "@/features/walkthrough/domain/route-plan";
-import { buildYardPlan, CLOTH_LINE_X, NEXT_YARD_OFFSET, YARD_FRONT_Z, YARD_HALF_WIDTH, type YardPlan } from "@/features/walkthrough/domain/yard-plan";
+import { CLOTH_LINE_X, NEXT_YARD_OFFSET, YARD_FRONT_Z, YARD_HALF_WIDTH, type YardPlan } from "@/features/walkthrough/domain/yard-plan";
 import type { Box } from "@/features/walkthrough/domain/geometry";
 import { reachField, type ReachField } from "@/features/walkthrough/domain/reach";
 import { rankWorstFirst, tearingFailures } from "@/features/walkthrough/domain/surface-density";
 import { measureTearing, objectParts, reachOfParts, surfaceRows } from "./surface-audit";
 import { looksOfItem, stageItemLooks, stageItemStillPath, trayPadLookOf, workLiquidOf, type SubstanceLook } from "@/features/process/domain/substance-look";
 import { easeYaw, moveTowards, steerAlong, stepWalker, walkerAt, type WalkTarget, type Walker } from "@/features/walkthrough/domain/walk-state";
-import { buildEntrance } from "@/features/walkthrough/infrastructure/build-entrance";
 import { buildYard, YardKit, type BuiltYard, type YardTextile } from "@/features/walkthrough/infrastructure/build-yard";
 import { buildStillSubject } from "@/features/walkthrough/infrastructure/build-still";
 import { addHorizon } from "@/features/walkthrough/infrastructure/horizon";
@@ -46,7 +45,7 @@ let view: { from: readonly number[]; to: readonly number[] };
 let auditRoot: THREE.Object3D | null = null;
 let auditColliders: readonly Box[] = [];
 let auditSeed: readonly [number, number] = [0, 0];
-let auditArea = { minX: CLOTH_LINE_X - YARD_HALF_WIDTH - 1, maxX: CLOTH_LINE_X + YARD_HALF_WIDTH + 1, minZ: YARD_FRONT_Z - NEXT_YARD_OFFSET, maxZ: YARD_FRONT_Z + 2 };
+const auditArea = { minX: CLOTH_LINE_X - YARD_HALF_WIDTH - 1, maxX: CLOTH_LINE_X + YARD_HALF_WIDTH + 1, minZ: YARD_FRONT_Z - NEXT_YARD_OFFSET, maxZ: YARD_FRONT_Z + 2 };
 
 const PLANTED_POKE_METRES = 0.06;
 const STILL_FOV_DEGREES = 24;
@@ -132,65 +131,52 @@ if (sceneName === "still") {
   const sky = await library.sky(scene, renderer);
   addHorizon(scene, (await library.scan("earth")).colour, await library.horizonScrub());
   addSun(scene, new THREE.Vector3(1, 0, -2));
-  if (sceneName === "entrance") {
-    const open = (query.get("open") ?? "none") as "none" | "door-1" | "door-2";
-    const entrance = await buildEntrance(kit, { open, openness: Number(query.get("t") ?? 1), door1View: "/walkthrough/stills/door1-first-panel.jpg", door2View: "/walkthrough/stills/practice-view.jpg" });
-    scene.add(entrance.group);
-    view = query.get("v") === "near" ? { from: [0.9, 1.6, 3.8], to: [3.3, 1.55, -4.5] } : { from: [-6.4, 1.6, 8.6], to: [1.6, 2.3, -4.5] };
-    audit = () => ({ solids: entrance.solids(), cloths: entrance.cloths, fields: [...entrance.fields], fills: [], groundIsOpenAt: () => false, unchecked: entrance.unchecked() });
-    auditRoot = entrance.group;
-    auditColliders = entrance.colliders;
-    auditSeed = [view.from[0]!, view.from[2]!];
-    auditArea = { minX: -30, maxX: 30, minZ: -4, maxZ: 30 };
-    planForCheck = buildYardPlan({ number: 0, name: "", localName: null, caption: "", kind: "dry", items: [], next: null, index: 0 });
+  let plan: YardPlan;
+  let textiles: YardTextile[] = [];
+  let before = "raw-cotton";
+  let after = "raw-cotton";
+  let wet = false;
+  const routed = query.get("t");
+  if (routed) {
+    const route = buildRoute(TEMPLATES[routed]!, clothStatePath);
+    const station = route[Number(query.get("n") ?? 0)]!;
+    plan = station.plan;
+    before = station.clothBefore;
+    after = station.clothAfter;
+    wet = station.wetAfter;
+    textiles = station.textiles.map((placed) => ({ file: placed.product.file, name: placed.product.id, x: placed.x, z: placed.z, width: placed.width, height: placed.height, label: placed.label }));
   } else {
-    let plan: YardPlan;
-    let textiles: YardTextile[] = [];
-    let before = "raw-cotton";
-    let after = "raw-cotton";
-    let wet = false;
-    const routed = query.get("t");
-    if (routed) {
-      const route = buildRoute(TEMPLATES[routed]!, clothStatePath);
-      const station = route[Number(query.get("n") ?? 0)]!;
-      plan = station.plan;
-      before = station.clothBefore;
-      after = station.clothAfter;
-      wet = station.wetAfter;
-      textiles = station.textiles.map((placed) => ({ file: placed.product.file, name: placed.product.id, x: placed.x, z: placed.z, width: placed.width, height: placed.height, label: placed.label }));
-    } else {
-      plan = practiceStation().plan;
-    }
-    planForCheck = plan;
-    const built = await buildYard(kit, plan, { clothBefore: before, clothAfter: after, wetAfter: wet, textiles }, sceneName);
-    scene.add(built.group);
-    audit = built.audit;
-    walkPlan = plan;
-    walkColliders = built.colliders;
-    auditRoot = built.group;
-    auditColliders = built.colliders;
-    auditSeed = plan.walkLine[0]!;
-    const s = plan.side;
-    const X = (x: number) => CLOTH_LINE_X + s * (x - CLOTH_LINE_X);
-    const custom: Record<string, { from: readonly number[]; to: readonly number[] }> = {
-      default: plan.standpoint,
-      read: plan.readingSpot,
-      rim: { from: [X(2.2), 0.95, 7.3], to: [3, 0.2, 5.6] },
-      far: { from: [X(3.7), 1.05, 1.7], to: [3, 0.3, 3.4] },
-      ground: { from: [X(1.2), 0.8, 11.6], to: [3, 0, 9.4] },
-      wall: { from: [X(-2), 1.4, -20.1], to: [X(-3), 1.2, -21] },
-      wall2: { from: [26, 1.4, 6], to: [27, 1.2, 6] },
-      shed: { from: [plan.readingSpot.from[0], 1.5, -3.9], to: [plan.readingSpot.from[0], 1.5, -4.5] },
-      bench: { from: [X(-0.6), 0.9, (plan.items[0]?.z ?? 6) + 1.1], to: [plan.items[0]?.x ?? 0, 0.4, plan.items[0]?.z ?? 6] },
-      onward: { from: [X(-1), 1.6, -9.5], to: [X(3.2), 2.3, -22] },
-      cloth: { from: [X(1.2), 1.5, 3.4], to: [3, 1.8, 2.2] },
-      hem: { from: [X(1.4), 1.4, -1.2], to: [3, 1.2, -2.9] },
-      top: { from: [X(-14), 26, 30], to: [3, 0, -2] },
-      side: { from: [7, 1.55, 7.2], to: [13, 1.9, 0.2] },
-    };
-    view = custom[query.get("v") ?? "default"]!;
-    sky.position.set(view.from[0]!, view.from[1]!, view.from[2]!);
+    plan = practiceStation().plan;
   }
+  planForCheck = plan;
+  const built = await buildYard(kit, plan, { clothBefore: before, clothAfter: after, wetAfter: wet, textiles }, sceneName);
+  scene.add(built.group);
+  audit = built.audit;
+  walkPlan = plan;
+  walkColliders = built.colliders;
+  auditRoot = built.group;
+  auditColliders = built.colliders;
+  auditSeed = plan.walkLine[0]!;
+  const s = plan.side;
+  const X = (x: number) => CLOTH_LINE_X + s * (x - CLOTH_LINE_X);
+  const custom: Record<string, { from: readonly number[]; to: readonly number[] }> = {
+    default: plan.standpoint,
+    read: plan.readingSpot,
+    rim: { from: [X(2.2), 0.95, 7.3], to: [3, 0.2, 5.6] },
+    far: { from: [X(3.7), 1.05, 1.7], to: [3, 0.3, 3.4] },
+    ground: { from: [X(1.2), 0.8, 11.6], to: [3, 0, 9.4] },
+    wall: { from: [X(-2), 1.4, -20.1], to: [X(-3), 1.2, -21] },
+    wall2: { from: [26, 1.4, 6], to: [27, 1.2, 6] },
+    shed: { from: [plan.readingSpot.from[0], 1.5, -3.9], to: [plan.readingSpot.from[0], 1.5, -4.5] },
+    bench: { from: [X(-0.6), 0.9, (plan.items[0]?.z ?? 6) + 1.1], to: [plan.items[0]?.x ?? 0, 0.4, plan.items[0]?.z ?? 6] },
+    onward: { from: [X(-1), 1.6, -9.5], to: [X(3.2), 2.3, -22] },
+    cloth: { from: [X(1.2), 1.5, 3.4], to: [3, 1.8, 2.2] },
+    hem: { from: [X(1.4), 1.4, -1.2], to: [3, 1.2, -2.9] },
+    top: { from: [X(-14), 26, 30], to: [3, 0, -2] },
+    side: { from: [7, 1.55, 7.2], to: [13, 1.9, 0.2] },
+  };
+  view = custom[query.get("v") ?? "default"]!;
+  sky.position.set(view.from[0]!, view.from[1]!, view.from[2]!);
 }
 scene.updateMatrixWorld();
 renderer.shadowMap.needsUpdate = true;

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { admitStop, coverageOf, inAssignedOrder, PRODUCT_STOP_KEY, requiredStops } from "@/features/study/stage-coverage";
-import { drawTraditionOrder } from "@/server/study/allocation";
+import { allocationBlockKey, drawCondition, drawTradition } from "@/server/study/allocation";
 
 import { fixtureTemplate } from "../research/fixtures";
 
@@ -35,23 +35,40 @@ describe("stage coverage", () => {
   });
 });
 
-describe("counterbalanced tradition order", () => {
+describe("one tradition per participant, balanced across the doors", () => {
   const traditions = ["ajrakh", "sanganeri", "machilipatnam-kalamkari"];
-  const orders = (conditionCode: string, stratum: string | null, from = 0) => Array.from({ length: 6 }, (_, i) => drawTraditionOrder({ seed: "s", traditions, conditionCode, stratum, index: from + i }).join(">"));
+  const conditions = [
+    { id: "c2d", code: "conventional", weight: 1 },
+    { id: "c3d", code: "immersive", weight: 1 },
+  ];
 
-  it("uses all six orders in every block of six, per condition and stratum", () => {
-    for (const from of [0, 6, 12]) expect(new Set(orders("immersive", "low", from)).size).toBe(6);
-    expect(new Set(orders("conventional", null)).size).toBe(6);
+  it("draws every tradition once in every block of three", () => {
+    for (const block of [0, 1, 2, 7]) {
+      const drawn = [0, 1, 2].map((p) => drawTradition({ seed: "s", traditions, index: block * 3 + p }).tradition);
+      expect(new Set(drawn)).toEqual(new Set(traditions));
+    }
   });
 
   it("is reproducible from its inputs, whatever the input order of the traditions", () => {
-    const one = drawTraditionOrder({ seed: "s", traditions, conditionCode: "a", index: 3 });
-    expect(drawTraditionOrder({ seed: "s", traditions: [...traditions].reverse(), conditionCode: "a", index: 3 })).toEqual(one);
-    expect(orders("immersive", "low")).not.toEqual(orders("immersive", "high"));
+    const one = drawTradition({ seed: "s", traditions, index: 4 });
+    expect(drawTradition({ seed: "s", traditions: [...traditions].reverse(), index: 4 })).toEqual(one);
+    expect(one).toMatchObject({ blockIndex: 1, positionInBlock: 1 });
+    expect(() => drawTradition({ seed: "s", traditions, index: -1 })).toThrow();
+    expect(() => drawTradition({ seed: "s", traditions: [], index: 0 })).toThrow();
   });
 
-  it("returns a single tradition as it is", () => {
-    expect(drawTraditionOrder({ seed: "s", traditions: ["ajrakh"], conditionCode: "a", index: 0 })).toEqual(["ajrakh"]);
-    expect(() => drawTraditionOrder({ seed: "s", traditions, conditionCode: "a", index: -1 })).toThrow();
+  it("blocks the condition draw within each tradition and stratum, so each tradition is split evenly between the doors", () => {
+    expect(allocationBlockKey("ajrakh", "low")).toBe("ajrakh:low");
+    expect(allocationBlockKey("ajrakh", null)).toBe("ajrakh");
+    for (const tradition of traditions) {
+      for (const stratum of ["low", "high"]) {
+        const doors = Array.from({ length: 8 }, (_, index) => drawCondition({ algorithm: "stratified_block", seed: "s", conditions, index, stratum: allocationBlockKey(tradition, stratum), blockSize: 4 }).conditionCode);
+        expect(doors.filter((d) => d === "immersive")).toHaveLength(4);
+        expect(doors.slice(0, 4).filter((d) => d === "immersive")).toHaveLength(2);
+      }
+    }
+    const ajrakh = Array.from({ length: 4 }, (_, index) => drawCondition({ algorithm: "block", seed: "s", conditions, index, stratum: "ajrakh" }).conditionCode).join();
+    const sanganeri = Array.from({ length: 4 }, (_, index) => drawCondition({ algorithm: "block", seed: "s", conditions, index, stratum: "sanganeri" }).conditionCode).join();
+    expect([ajrakh, sanganeri].every((order) => order.split(",").filter((d) => d === "immersive").length === 2)).toBe(true);
   });
 });

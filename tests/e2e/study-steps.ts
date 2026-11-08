@@ -137,9 +137,9 @@ export async function throughConsentToAllocation(page: Page, journey: Omit<Journ
   await expect(page).toHaveURL(/questionnaire\/before/);
   const title = page.locator("#assessment-title");
   const check = page.getByRole("button", { name: "Check and continue" });
-  const entrance = page.locator("img.walking-entrance");
+  const practice = /\/learn\/(2d|immersive)\/practice/;
   for (;;) {
-    await expect(title.or(check).or(entrance).first()).toBeVisible();
+    await expect.poll(async () => practice.test(new URL(page.url()).pathname) || (await title.isVisible()) || (await check.isVisible()), { timeout: 90_000 }).toBe(true);
     if (!(await title.isVisible())) break;
     await answerAssessment(page, journey, new URL(page.url()).pathname.includes("pre-test") ? "pre-test" : "background");
   }
@@ -147,18 +147,13 @@ export async function throughConsentToAllocation(page: Page, journey: Omit<Journ
     await shot(page, journey as Journey, "device-check");
     await check.click();
   }
-  await expect(page).toHaveURL(/\/study\/entrance/);
-  const image = page.locator("img.walking-entrance");
-  await expect(image).toHaveAttribute("src", /entrance-closed/);
-  await expect(page.getByRole("status").getByText("Both doors are shut.")).toBeVisible();
-  await shot(page, journey as Journey, "entrance-shut", [1366]);
-  await expect(image).toHaveAttribute("src", /entrance-open[12]/);
-  const src = await image.getAttribute("src");
-  return src?.includes("open1") ? "2d" : "immersive";
+  await expect(page).toHaveURL(practice);
+  await page.waitForLoadState("domcontentloaded");
+  expect(await page.locator("body").innerText(), "the practice page names no door").not.toMatch(/\bdoors?\b/i);
+  return new URL(page.url()).pathname.startsWith("/learn/2d") ? "2d" : "immersive";
 }
 
 export async function throughPracticeToLearning(page: Page, door: Journey["door"]): Promise<void> {
-  await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(/practice/);
   if (door === "2d") {
     for (let i = 0; i < 3; i++) await page.locator(".step-next:visible").click();

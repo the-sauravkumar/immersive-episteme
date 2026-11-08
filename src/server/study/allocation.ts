@@ -82,7 +82,7 @@ export function drawCondition(input: {
     const last = sorted[sorted.length - 1]!;
     return { conditionId: last.id, conditionCode: last.code, blockIndex: null, positionInBlock: null };
   }
-  const stratum = algorithm === "stratified_block" ? (input.stratum ?? "") : "";
+  const stratum = input.stratum ?? "";
   if (algorithm === "stratified_block" && !stratum) throw new AllocationConfigError("stratified_block allocation needs a stratum");
   const size = input.blockSize ?? defaultBlockSize(conditions);
   const blockIndex = Math.floor(index / size);
@@ -91,24 +91,23 @@ export function drawCondition(input: {
   return { conditionId: chosen.id, conditionCode: chosen.code, blockIndex, positionInBlock: position };
 }
 
-function permutationsOf<T>(items: readonly T[]): T[][] {
-  if (items.length <= 1) return [[...items]];
-  return items.flatMap((item, index) => permutationsOf([...items.slice(0, index), ...items.slice(index + 1)]).map((rest) => [item, ...rest]));
+export function allocationBlockKey(tradition: string | null, stratum: string | null): string {
+  return [tradition, stratum].filter((part): part is string => !!part).join(":");
 }
 
-export function drawTraditionOrder(input: { seed: string; traditions: readonly string[]; conditionCode: string; stratum?: string | null; index: number }): string[] {
-  const { seed, traditions, conditionCode, index } = input;
-  if (!Number.isInteger(index) || index < 0) throw new AllocationConfigError("order index must be a non-negative integer");
-  if (traditions.length < 2) return [...traditions];
-  const orders = permutationsOf([...traditions].sort());
-  const stratum = `order:${conditionCode}:${input.stratum ?? ""}`;
-  const blockIndex = Math.floor(index / orders.length);
-  const block = [...orders];
+export function drawTradition(input: { seed: string; traditions: readonly string[]; index: number }): { tradition: string; blockIndex: number; positionInBlock: number } {
+  const { seed, index } = input;
+  if (!Number.isInteger(index) || index < 0) throw new AllocationConfigError("tradition index must be a non-negative integer");
+  const traditions = [...new Set(input.traditions)].sort();
+  if (traditions.length === 0) throw new AllocationConfigError("the study selects no traditions");
+  const blockIndex = Math.floor(index / traditions.length);
+  const block = [...traditions];
   for (let i = block.length - 1; i > 0; i--) {
-    const j = Math.floor(uniform(seed, stratum, blockIndex, block.length - 1 - i) * (i + 1));
+    const j = Math.floor(uniform(seed, "tradition", blockIndex, block.length - 1 - i) * (i + 1));
     [block[i], block[j]] = [block[j]!, block[i]!];
   }
-  return block[index % orders.length]!;
+  const positionInBlock = index % traditions.length;
+  return { tradition: block[positionInBlock]!, blockIndex, positionInBlock };
 }
 
 export interface RecordedAllocation {
@@ -118,6 +117,7 @@ export interface RecordedAllocation {
   seed: string;
   sequenceIndex: number;
   stratum: string | null;
+  taskCode: string | null;
   period: number;
 }
 
@@ -133,21 +133,21 @@ export function auditAllocations(
   opts: { blockSize?: number } = {},
 ): AllocationAuditResult {
   const drawn = rows.filter((r) => r.period === 1 && (r.algorithm === "block" || r.algorithm === "simple" || r.algorithm === "stratified_block"));
-  const byStratum = new Map<string, number>();
+  const byBlock = new Map<string, number>();
   const result: AllocationAuditResult = { checked: 0, skipped: rows.length - drawn.length, mismatches: [] };
   for (const r of [...drawn].sort((a, b) => a.sequenceIndex - b.sequenceIndex)) {
     let index = r.sequenceIndex;
-    if (r.algorithm === "stratified_block") {
-      const key = r.stratum ?? "";
-      index = byStratum.get(key) ?? 0;
-      byStratum.set(key, index + 1);
+    const key = allocationBlockKey(r.taskCode, r.algorithm === "stratified_block" ? r.stratum : null);
+    if (r.algorithm !== "simple") {
+      index = byBlock.get(key) ?? 0;
+      byBlock.set(key, index + 1);
     }
     const expected = drawCondition({
       algorithm: r.algorithm as DrawAlgorithm,
       seed: r.seed,
       conditions,
       index,
-      stratum: r.stratum,
+      stratum: key,
       blockSize: opts.blockSize,
     });
     result.checked++;

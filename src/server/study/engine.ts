@@ -13,8 +13,9 @@ import { recordLearningEnded } from "@/server/learning/context-data";
 import { REQUIRED_ANSWER_MESSAGE } from "@/features/study/answer-presence";
 
 import { coverageOf, admitStop, inAssignedOrder, requiredStops, type StageCoverage, type StageStop, type StageVisit, type StopAdmission } from "@/features/study/stage-coverage";
+import { servesTradition } from "@/features/study/test-items";
 
-import { drawCondition, drawTraditionOrder, type AllocatableCondition, type DrawAlgorithm } from "./allocation";
+import { allocationBlockKey, drawCondition, drawTradition, type AllocatableCondition, type DrawAlgorithm } from "./allocation";
 import { isKeyedItem, itemConfig, parseAnswer, scoreItem, toResponseRaw, type DeliveredItem, type ParsedAnswer } from "./answers";
 import {
   BLIND_STEPS,
@@ -53,7 +54,9 @@ export type StudyEngineErrorCode =
   | "session_closed"
   | "repeat_browser"
   | "study_full"
-  | "enrolment_throttled";
+  | "enrolment_throttled"
+  | "earlier_code_unknown"
+  | "nothing_new";
 
 export class StudyEngineError extends Error {
   constructor(
@@ -181,14 +184,45 @@ export interface EnrolResult {
   participantId: string;
   code: string;
   repeatOf: string | null;
+  returningFrom: string | null;
+}
+
+export async function completedTraditions(q: Q, participantId: string): Promise<string[]> {
+  const r = await q.query<{ tradition: string }>(
+    `WITH RECURSIVE lineage(id) AS (
+       SELECT $1::uuid
+       UNION
+       SELECT CASE WHEN p.id = l.id THEN p.returning_from ELSE p.id END
+         FROM participants p JOIN lineage l ON (p.id = l.id AND p.returning_from IS NOT NULL) OR p.returning_from = l.id
+     )
+     SELECT DISTINCT ss.tradition FROM study_sessions ss JOIN lineage l ON ss.participant_id = l.id
+      WHERE ss.tradition IS NOT NULL AND ss.learning_ended_at IS NOT NULL ORDER BY 1`,
+    [participantId],
+  );
+  return r.rows.map((row) => row.tradition);
+}
+
+async function earlierParticipant(q: Q, study: EnrollableStudy, earlierCode: string): Promise<{ id: string; completed: string[] }> {
+  const r = await q.query<{ id: string }>(
+    "SELECT id FROM participants WHERE upper(code) = upper($1) AND study_id <> $2 ORDER BY enrolled_at DESC LIMIT 1",
+    [earlierCode.trim(), study.id],
+  );
+  const id = r.rows[0]?.id;
+  if (!id) throw new StudyEngineError("earlier_code_unknown", "No earlier study has this participant code.");
+  const completed = await completedTraditions(q, id);
+  if (study.protocol.config.traditionSlugs.every((t) => completed.includes(t))) {
+    throw new StudyEngineError("nothing_new", "Every tradition of this study is already completed under this code.", { completed });
+  }
+  return { id, completed };
 }
 
 export async function enrolParticipant(
   pool: Pool | PoolClient,
   study: EnrollableStudy,
-  opts: { previousParticipantIds?: string[] } = {},
+  opts: { previousParticipantIds?: string[]; earlierParticipantCode?: string | null } = {},
 ): Promise<EnrolResult> {
   const previous = opts.previousParticipantIds ?? [];
+  const earlier = opts.earlierParticipantCode?.trim() ? await earlierParticipant(pool, study, opts.earlierParticipantCode) : null;
   let repeatOf: string | null = null;
   if (previous.length > 0) {
     const r = await pool.query<{ id: string }>(
@@ -206,16 +240,16 @@ export async function enrolParticipant(
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = generateParticipantCode();
       const r = await c.query<{ id: string }>(
-        "INSERT INTO participants (study_id, code) VALUES ($1, $2) ON CONFLICT (study_id, code) DO NOTHING RETURNING id",
-        [study.id, code],
+        "INSERT INTO participants (study_id, code, returning_from) VALUES ($1, $2, $3) ON CONFLICT (study_id, code) DO NOTHING RETURNING id",
+        [study.id, code, earlier?.id ?? null],
       );
       const id = r.rows[0]?.id;
       if (!id) continue;
-      await journal(c, { kind: "participant", code }, "study.participant_enrolled", "participant", id, { studyId: study.id });
+      await journal(c, { kind: "participant", code }, "study.participant_enrolled", "participant", id, { studyId: study.id, ...(earlier ? { returningFrom: earlier.id, completedTraditions: earlier.completed } : {}) });
       if (repeatOf) {
         await journal(c, { kind: "system" }, "study.repeat_enrolment_detected", "participant", id, { studyId: study.id, previousParticipantId: repeatOf });
       }
-      return { participantId: id, code, repeatOf };
+      return { participantId: id, code, repeatOf, returningFrom: earlier?.id ?? null };
     }
     throw new Error("could not generate a unique participant code");
   });
@@ -337,26 +371,65 @@ export async function openSessionAfterConsent(pool: Pool | PoolClient, input: { 
       const e = existing.rows[0];
       return { sessionId: e.id, participantId: p.id, condition: conditionFromInterface(e.interface), conditionId: e.condition_id, created: false };
     }
+    const assigned = await assignTradition(c, study, p.id);
     const s = await c.query<{ id: string }>(
-      `INSERT INTO study_sessions (study_id, participant_id, period, app_build, status, started_at, last_activity_at)
-       VALUES ($1, $2, 1, $3, 'in_progress', now(), now()) RETURNING id`,
-      [study.id, p.id, input.appBuild],
+      `INSERT INTO study_sessions (study_id, participant_id, period, app_build, status, started_at, last_activity_at, tradition)
+       VALUES ($1, $2, 1, $3, 'in_progress', now(), now(), $4) RETURNING id`,
+      [study.id, p.id, input.appBuild, assigned.tradition],
     );
     await c.query("UPDATE participants SET status = 'active' WHERE id = $1 AND status = 'enrolled'", [p.id]);
     await journal(c, { kind: "participant", code: p.code }, "study.session_opened", "study_session", s.rows[0]!.id, { allocationPoint: "after_pre_test", blindSteps: blindPrefix(study.protocol) });
+    await journal(c, { kind: "system" }, "study.tradition_assigned", "study_session", s.rows[0]!.id, { ...assigned });
     return { sessionId: s.rows[0]!.id, participantId: p.id, condition: null, conditionId: null, created: true };
   });
   return opened;
 }
 
+interface TraditionAssignment {
+  tradition: string;
+  method: "block" | "restricted";
+  index: number | null;
+  blockIndex: number;
+  positionInBlock: number;
+  seedSha256Prefix: string;
+  completedBefore: string[];
+}
+
+async function assignTradition(c: PoolClient, study: EnrollableStudy, participantId: string): Promise<TraditionAssignment> {
+  await c.query("SELECT pg_advisory_xact_lock(hashtextextended('ie-tradition:' || $1, 0))", [study.id]);
+  const traditions = [...new Set(study.protocol.config.traditionSlugs)].sort();
+  const completedBefore = await completedTraditions(c, participantId);
+  const open = traditions.filter((t) => !completedBefore.includes(t));
+  if (open.length === 0) throw new StudyEngineError("nothing_new", "Every tradition of this study is already completed under this code.", { completed: completedBefore });
+  const seed = allocationSeed(study);
+  const seedSha256Prefix = sha256(seed).slice(0, 12);
+  const drawn = await c.query<{ n: number }>(
+    `SELECT count(*)::int AS n FROM audit_log al JOIN study_sessions ss ON ss.id::text = al.entity_id
+      WHERE al.entity = 'study_session' AND al.action = 'study.tradition_assigned' AND al.after->>'method' = 'block' AND ss.study_id = $1`,
+    [study.id],
+  );
+  const index = drawn.rows[0]!.n;
+  const draw = drawTradition({ seed, traditions, index });
+  if (open.length === traditions.length) return { tradition: draw.tradition, method: "block", index, blockIndex: draw.blockIndex, positionInBlock: draw.positionInBlock, seedSha256Prefix, completedBefore };
+  const counts = await c.query<{ tradition: string; n: number }>(
+    "SELECT tradition, count(DISTINCT participant_id)::int AS n FROM study_sessions WHERE study_id = $1 AND tradition IS NOT NULL GROUP BY tradition",
+    [study.id],
+  );
+  const filled = (t: string) => counts.rows.find((row) => row.tradition === t)?.n ?? 0;
+  const blockOrder = traditions.map((_, position) => drawTradition({ seed, traditions, index: draw.blockIndex * traditions.length + position }).tradition);
+  const tradition = [...open].sort((a, b) => filled(a) - filled(b) || blockOrder.indexOf(a) - blockOrder.indexOf(b))[0]!;
+  return { tradition, method: "restricted", index: null, blockIndex: draw.blockIndex, positionInBlock: blockOrder.indexOf(tradition), seedSha256Prefix, completedBefore };
+}
+
 interface DrawContext {
   study: EnrollableStudy;
   participantId: string;
+  tradition: string;
   stratum: string | null;
   stratumSource: Record<string, unknown> | null;
 }
 
-async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise<{ allocationId: string; conditionId: string; conditionCode: string; iface: ConditionInterface; traditionOrder: string[]; record: Record<string, unknown> }> {
+async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise<{ allocationId: string; conditionId: string; conditionCode: string; iface: ConditionInterface; record: Record<string, unknown> }> {
   const { study } = ctx;
   const conds = await c.query<{ id: string; code: string; allocation_weight: number; interface: ConditionInterface }>(
     "SELECT id, code, allocation_weight, interface FROM study_conditions WHERE study_id = $1",
@@ -368,31 +441,27 @@ async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise
   const seq = await c.query<{ next: number }>("SELECT coalesce(max(sequence_index) + 1, 0)::int AS next FROM allocations WHERE study_id = $1 AND period = 1", [study.id]);
   const sequenceIndex = seq.rows[0]!.next;
   let index = sequenceIndex;
-  if (algorithm === "stratified_block") {
+  const stratified = algorithm === "stratified_block" ? ctx.stratum : null;
+  const blockKey = allocationBlockKey(ctx.tradition, stratified);
+  if (algorithm !== "simple") {
     const s = await c.query<{ n: number }>(
-      "SELECT count(*)::int AS n FROM allocations WHERE study_id = $1 AND period = 1 AND stratum = $2 AND algorithm = 'stratified_block'",
-      [study.id, ctx.stratum],
+      "SELECT count(*)::int AS n FROM allocations WHERE study_id = $1 AND period = 1 AND algorithm = $2 AND task_code = $3 AND ($4::text IS NULL OR stratum = $4)",
+      [study.id, algorithm, ctx.tradition, stratified],
     );
     index = s.rows[0]!.n;
   }
   const seed = allocationSeed(study);
-  const draw = drawCondition({ algorithm, seed, conditions, index, stratum: ctx.stratum, blockSize: alloc.blockSize });
-  const orderIndex = await c.query<{ n: number }>(
-    "SELECT count(*)::int AS n FROM allocations WHERE study_id = $1 AND period = 1 AND condition_id = $2 AND stratum IS NOT DISTINCT FROM $3",
-    [study.id, draw.conditionId, ctx.stratum],
-  );
-  const traditionOrder = drawTraditionOrder({ seed, traditions: study.protocol.config.traditionSlugs, conditionCode: draw.conditionCode, stratum: ctx.stratum, index: orderIndex.rows[0]!.n });
+  const draw = drawCondition({ algorithm, seed, conditions, index, stratum: blockKey, blockSize: alloc.blockSize });
   const a = await c.query<{ id: string; allocated_at: Date }>(
-    `INSERT INTO allocations (study_id, participant_id, condition_id, period, algorithm, seed, sequence_index, block_index, stratum, study_protocol_version)
-     VALUES ($1, $2, $3, 1, $4, $5, $6, $7, $8, $9) RETURNING id, allocated_at`,
-    [study.id, ctx.participantId, draw.conditionId, algorithm, seed, sequenceIndex, draw.blockIndex, ctx.stratum, study.protocolVersion],
+    `INSERT INTO allocations (study_id, participant_id, condition_id, period, task_code, algorithm, seed, sequence_index, block_index, stratum, study_protocol_version)
+     VALUES ($1, $2, $3, 1, $4, $5, $6, $7, $8, $9, $10) RETURNING id, allocated_at`,
+    [study.id, ctx.participantId, draw.conditionId, ctx.tradition, algorithm, seed, sequenceIndex, draw.blockIndex, ctx.stratum, study.protocolVersion],
   );
   return {
     allocationId: a.rows[0]!.id,
     conditionId: draw.conditionId,
     conditionCode: draw.conditionCode,
     iface: conds.rows.find((r) => r.id === draw.conditionId)!.interface,
-    traditionOrder,
     record: {
       allocationId: a.rows[0]!.id,
       algorithm,
@@ -400,13 +469,14 @@ async function drawAndInsertAllocation(c: PoolClient, ctx: DrawContext): Promise
       seedSource: study.protocol.config.allocation.seed ? "configured" : "derived",
       sequenceIndex,
       stratum: ctx.stratum,
-      stratumIndex: algorithm === "stratified_block" ? index : null,
+      blockKey,
+      blockKeyIndex: algorithm === "simple" ? null : index,
       stratumSource: ctx.stratumSource,
       blockIndex: draw.blockIndex,
       positionInBlock: draw.positionInBlock,
       blockSize: draw.blockIndex === null ? null : (alloc.blockSize ?? null),
       conditionCode: draw.conditionCode,
-      traditionOrder,
+      tradition: ctx.tradition,
       allocationPoint: "after_pre_test",
       studyProtocolVersion: study.protocolVersion,
       allocatedAt: a.rows[0]!.allocated_at.toISOString(),
@@ -463,8 +533,9 @@ export async function allocateSession(pool: Pool | PoolClient, sessionId: string
       stratum = score <= by.cutoff ? "low" : "high";
       stratumSource = { source: by.source, score, cutoff: by.cutoff, rule: "low = score ≤ cutoff, else high", ...evidence };
     }
-    const d = await drawAndInsertAllocation(c, { study: s.study, participantId: s.participantId, stratum, stratumSource });
-    await c.query("UPDATE study_sessions SET condition_id = $2, allocation_id = $3, tradition_order = $4::jsonb, last_activity_at = now() WHERE id = $1", [sessionId, d.conditionId, d.allocationId, JSON.stringify(d.traditionOrder)]);
+    if (!s.tradition) throw new StudyEngineError("study_misconfigured", "The session has no tradition to learn.");
+    const d = await drawAndInsertAllocation(c, { study: s.study, participantId: s.participantId, tradition: s.tradition, stratum, stratumSource });
+    await c.query("UPDATE study_sessions SET condition_id = $2, allocation_id = $3, last_activity_at = now() WHERE id = $1", [sessionId, d.conditionId, d.allocationId]);
     if (stratum) await c.query("UPDATE participants SET stratum = $2 WHERE id = $1 AND stratum IS NULL", [s.participantId, stratum]);
     await journal(c, { kind: "system" }, "study.allocated", "study_session", sessionId, d.record);
     return { condition: conditionFromInterface(d.iface), conditionId: d.conditionId, created: true };
@@ -503,7 +574,7 @@ export interface SessionState {
   device: Record<string, unknown>;
   snapshotLabel: string | null;
   learning: { startedAt: Date | null; endsAt: Date | null; endedAt: Date | null };
-  traditionOrder: string[];
+  tradition: string | null;
   assessmentVersions: Record<string, number>;
   journal: JournalEntry[];
   now: Date;
@@ -514,11 +585,11 @@ export async function loadSessionState(q: Q, sessionId: string): Promise<Session
     id: string; participant_id: string; code: string; p_status: string; study_id: string; condition_id: string | null; c_code: string | null; interface: ConditionInterface | null;
     period: number; status: string; withdrawn: boolean; excluded: boolean; started_at: Date | null; last_activity_at: Date | null;
     interruption_count: number; device: Record<string, unknown>; version_label: string | null; learning_started_at: Date | null; learning_ends_at: Date | null;
-    learning_ended_at: Date | null; tradition_order: string[] | null; assessment_versions: Record<string, number>; now: Date;
+    learning_ended_at: Date | null; tradition: string | null; assessment_versions: Record<string, number>; now: Date;
   }>(
     `SELECT ss.id, ss.participant_id, p.code, p.status AS p_status, ss.study_id, ss.condition_id, sc.code AS c_code, sc.interface,
             ss.period, ss.status, ss.withdrawn, ss.excluded, ss.started_at, ss.last_activity_at, ss.interruption_count, ss.device,
-            cs.version_label, ss.learning_started_at, ss.learning_ends_at, ss.learning_ended_at, ss.tradition_order, ss.assessment_versions, now() AS now
+            cs.version_label, ss.learning_started_at, ss.learning_ends_at, ss.learning_ended_at, ss.tradition, ss.assessment_versions, now() AS now
        FROM study_sessions ss
        JOIN participants p ON p.id = ss.participant_id
        LEFT JOIN study_conditions sc ON sc.id = ss.condition_id
@@ -553,7 +624,7 @@ export async function loadSessionState(q: Q, sessionId: string): Promise<Session
     device: row.device ?? {},
     snapshotLabel: row.version_label,
     learning: { startedAt: row.learning_started_at, endsAt: row.learning_ends_at, endedAt: row.learning_ended_at },
-    traditionOrder: row.tradition_order ?? [],
+    tradition: row.tradition,
     assessmentVersions: row.assessment_versions ?? {},
     journal: j.rows.map((x) => ({ action: x.action, after: x.after ?? {}, occurredAt: x.occurred_at })),
     now: row.now,
@@ -637,8 +708,9 @@ export interface StepAssessment {
 
 type AssessmentRow = { id: string; code: string; version: number; kind: string; title: string; description: string | null; config: Record<string, unknown>; required: boolean };
 
-async function withItems(q: Q, rows: AssessmentRow[]): Promise<StepAssessment[]> {
+async function withItems(q: Q, rows: AssessmentRow[], s: Pick<SessionState, "tradition">): Promise<StepAssessment[]> {
   if (rows.length === 0) return [];
+  const learnable = (await loadStageTemplates()).map((template) => template.tradition);
   const items = await q.query<{ id: string; assessment_id: string; item_key: string; position: number; kind: string; prompt: string; config: unknown; answer_key: unknown }>(
     "SELECT id, assessment_id, item_key, position, kind, prompt, config, answer_key FROM assessment_items WHERE assessment_id = ANY($1::uuid[]) ORDER BY position",
     [rows.map((x) => x.id)],
@@ -647,12 +719,12 @@ async function withItems(q: Q, rows: AssessmentRow[]): Promise<StepAssessment[]>
     ...x,
     config: x.config ?? {},
     items: items.rows
-      .filter((i) => i.assessment_id === x.id)
+      .filter((i) => i.assessment_id === x.id && servesTradition(i.config, s.tradition, learnable))
       .map((i) => ({ id: i.id, itemKey: i.item_key, position: i.position, kind: i.kind, prompt: i.prompt, config: i.config, answerKey: i.answer_key })),
   }));
 }
 
-export async function listStepAssessments(q: Q, s: Pick<SessionState, "study" | "condition">, step: StudyStep): Promise<StepAssessment[]> {
+export async function listStepAssessments(q: Q, s: Pick<SessionState, "study" | "condition" | "tradition">, step: StudyStep): Promise<StepAssessment[]> {
   const studyId = s.study.id;
   if (isQuestionnaireStep(step)) {
     const refs = instrumentsFor(s.study.protocol, step, s.condition);
@@ -674,7 +746,7 @@ export async function listStepAssessments(q: Q, s: Pick<SessionState, "study" | 
       if (only && (s.condition === null || !only.includes(s.condition))) continue;
       if (!out.some((x) => x.id === a.id)) out.push(a);
     }
-    return withItems(q, out);
+    return withItems(q, out, s);
   }
   const spec = STEP_ASSESSMENTS[step];
   if (!spec) return [];
@@ -685,7 +757,7 @@ export async function listStepAssessments(q: Q, s: Pick<SessionState, "study" | 
       ORDER BY sa.position`,
     [studyId, spec.phase, spec.kind],
   );
-  return withItems(q, a.rows);
+  return withItems(q, a.rows, s);
 }
 
 function assessmentReadiness(a: StepAssessment): { ready: true } | { ready: false; reason: string } {
@@ -716,8 +788,8 @@ export function learningMayEnd(s: Pick<SessionState, "learning" | "now">, everyS
   return everyStageVisited;
 }
 
-export async function assignedStops(s: Pick<SessionState, "traditionOrder">): Promise<StageStop[]> {
-  return requiredStops(inAssignedOrder(await loadStageTemplates(), s.traditionOrder));
+export async function assignedStops(s: Pick<SessionState, "tradition">): Promise<StageStop[]> {
+  return requiredStops(inAssignedOrder(await loadStageTemplates(), s.tradition ? [s.tradition] : []));
 }
 
 export async function stageVisitsOf(q: Q, sessionId: string): Promise<StageVisit[]> {
@@ -991,18 +1063,6 @@ export async function returnForDelayedTest(pool: Pool | PoolClient, input: { stu
   });
 }
 
-export async function completeEntrance(pool: Pool | PoolClient, sessionId: string): Promise<void> {
-  await inTransaction(pool, async (c) => {
-    await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
-    const s = await loadSessionState(c, sessionId);
-    if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
-    const pos = await syncPosition(c, s);
-    if (pos.kind !== "step" || pos.step !== "entrance") return;
-    await markStepCompleted(c, s, "entrance", { door: s.condition });
-    await touch(c, sessionId);
-  });
-}
-
 export async function currentReconstructionPhase(q: Q, sessionId: string): Promise<"pre" | "post" | null> {
   const s = await loadSessionState(q, sessionId);
   if (!s || !isSessionOpen(s)) return null;
@@ -1163,14 +1223,14 @@ async function reassignToConventional(
   const reason = `webgl_unavailable: reassigned from ${s.conditionCode} under webglFailurePolicy=reassign`;
   await c.query("UPDATE study_sessions SET status = 'abandoned', last_activity_at = now() WHERE id = $1", [s.sessionId]);
   const a = await c.query<{ id: string }>(
-    `INSERT INTO allocations (study_id, participant_id, condition_id, period, algorithm, seed, sequence_index, stratum, study_protocol_version, override_reason)
-     VALUES ($1, $2, $3, $4, 'manual', $5, $6, $7, $8, $9) RETURNING id`,
-    [s.study.id, s.participantId, target.rows[0].id, s.period + 1, orig.rows[0]!.seed, orig.rows[0]!.sequence_index, orig.rows[0]!.stratum, s.study.protocolVersion, reason],
+    `INSERT INTO allocations (study_id, participant_id, condition_id, period, task_code, algorithm, seed, sequence_index, stratum, study_protocol_version, override_reason)
+     VALUES ($1, $2, $3, $4, $10, 'manual', $5, $6, $7, $8, $9) RETURNING id`,
+    [s.study.id, s.participantId, target.rows[0].id, s.period + 1, orig.rows[0]!.seed, orig.rows[0]!.sequence_index, orig.rows[0]!.stratum, s.study.protocolVersion, reason, s.tradition],
   );
   const n = await c.query<{ id: string }>(
-    `INSERT INTO study_sessions (study_id, participant_id, condition_id, allocation_id, period, app_build, status, started_at, last_activity_at, device, tradition_order)
-     VALUES ($1, $2, $3, $4, $5, $6, 'in_progress', now(), now(), $7::jsonb, $8::jsonb) RETURNING id`,
-    [s.study.id, s.participantId, target.rows[0].id, a.rows[0]!.id, s.period + 1, appBuild, JSON.stringify(device), JSON.stringify(s.traditionOrder)],
+    `INSERT INTO study_sessions (study_id, participant_id, condition_id, allocation_id, period, app_build, status, started_at, last_activity_at, device, tradition)
+     VALUES ($1, $2, $3, $4, $5, $6, 'in_progress', now(), now(), $7::jsonb, $8) RETURNING id`,
+    [s.study.id, s.participantId, target.rows[0].id, a.rows[0]!.id, s.period + 1, appBuild, JSON.stringify(device), s.tradition],
   );
   const newId = n.rows[0]!.id;
   await journal(c, { kind: "system" }, "study.session_reassigned", "study_session", s.sessionId, { toSessionId: newId, toCondition: target.rows[0].code }, reason);

@@ -28,7 +28,7 @@ async function doorSessionFor(condition: LearningCondition, ctx: LearningContext
   const all = await loadStageTemplates();
   const state = ctx.sessionId ? await loadSessionState(getPool(), ctx.sessionId) : null;
   const photos = ctx.photosShown ? await listStudyPhotos(ctx.snapshotId) : [];
-  const templates = withStudyPhotos(state ? inAssignedOrder(all, state.traditionOrder) : all, photos);
+  const templates = withStudyPhotos(state ? inAssignedOrder(all, state.tradition ? [state.tradition] : []) : all, photos);
   const resume = ctx.sessionId ? resumeFrom(templates, await stageVisitsOf(getPool(), ctx.sessionId)) : null;
   const telemetry = { ...(ctx.sessionId ? { firstSeq: await nextTelemetrySeq(ctx.sessionId) } : {}), sessionId: ctx.telemetrySessionId, contentVersion: ctx.contentVersion, appBuild: ctx.appBuild, mode: ctx.mode };
   return (

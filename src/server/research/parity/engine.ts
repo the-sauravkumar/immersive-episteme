@@ -60,7 +60,7 @@ export interface ParityStudyInput {
   manifestId: string | null;
   allowUnverifiedContent?: boolean;
   conditions: { id: string; code: string; label: string; interface: string; config: Record<string, unknown> }[];
-  battery: { assessmentId: string; code: string; version: number; kind: string; phase: string; position: number; status: string; required: boolean; anchorsUnconfirmed?: boolean }[];
+  battery: { assessmentId: string; code: string; version: number; kind: string; phase: string; position: number; status: string; required: boolean; anchorsUnconfirmed?: boolean; itemsByTradition?: Readonly<Record<string, number>> }[];
 }
 
 interface ParitySnapshotInput {
@@ -426,12 +426,23 @@ export function runParityChecks(input: ParityInput): ParityReport {
       }
     }
     if (study.battery.some((a) => a.kind === "reconstruction" && a.phase === "pre")) jIssues.push({ code: "pre_concept_map", message: "The battery has a concept map before learning; the map is post only." });
+    for (const a of study.battery) {
+      const counts = a.itemsByTradition ?? {};
+      if (!traditionSlugs.some((t) => counts[t])) continue;
+      const missing = traditionSlugs.filter((t) => !counts[t]);
+      if (missing.length > 0) jIssues.push({ code: "tradition_without_items", message: `${a.code} v${a.version} has items for some study traditions but none for ${missing.join(", ")}, so a participant learning ${missing.length > 1 ? "them" : "it"} would get an empty form.`, ref: a.assessmentId });
+    }
   }
   checks.push(check("d.journey", "d", "Every step of the journey can run: the order rules hold and each step has its battery assessment", "critical", jIssues));
 
   const dWarn: ParityIssue[] = [];
   const phases = new Set(study.battery.map((a) => a.phase));
   if (!phases.has("pre") || !phases.has("post")) dWarn.push({ code: "battery_incomplete", message: "The assessment battery has no pre- and/or post-learning assessment." });
+  for (const a of study.battery) {
+    const counts = a.itemsByTradition ?? {};
+    const lengths = new Set(traditionSlugs.filter((t) => counts[t]).map((t) => counts[t]));
+    if (lengths.size > 1) dWarn.push({ code: "tradition_lengths_differ", message: `${a.code} v${a.version} gives the study traditions forms of different lengths (${traditionSlugs.map((t) => `${t} ${counts[t] ?? 0}`).join(", ")}).`, ref: a.assessmentId });
+  }
   for (const a of study.battery.filter((entry) => entry.anchorsUnconfirmed)) {
     dWarn.push({ code: "anchors_unconfirmed", message: `${a.code} v${a.version} shows scale end labels that are a platform choice, not taken from its source. Confirm them before the study runs.`, ref: a.assessmentId });
   }

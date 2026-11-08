@@ -63,7 +63,7 @@ describe("invite gate paths", () => {
     for (const p of ["/invite", "/invite/redeem", "/sign-in", "/sign-out", "/forbidden", "/console", "/api/auth/ok", "/api/telemetry/batch", "/_next/static/x.js", "/favicon.ico", "/about", "/about/colophon", "/accessibility", "/privacy", "/walkthrough/fonts/Mukta-400.woff2", "/walkthrough/course/plaster.jpg"]) {
       expect(isInviteExemptPath(p), p).toBe(true);
     }
-    for (const p of ["/", "/explore", "/study", "/study/consent", "/learn/2d", "/learn/immersive", "/aboutx", "/walkthrough/stills/entrance-closed.jpg", "/walkthrough/course/other.jpg", "/figures/x", "/invitex", "/museumx", "/apix"]) {
+    for (const p of ["/", "/explore", "/study", "/study/consent", "/learn/2d", "/learn/immersive", "/aboutx", "/walkthrough/stills/objects/x.jpg", "/walkthrough/course/other.jpg", "/figures/x", "/invitex", "/museumx", "/apix"]) {
       expect(isInviteExemptPath(p), p).toBe(false);
     }
   });

@@ -32,7 +32,6 @@ export function isQuestionnaireStep(step: StudyStep): step is QuestionnaireStep 
 export const DEFAULT_STEPS: readonly StudyStep[] = [
   "questionnaire_pre",
   "pre_test",
-  "entrance",
   "familiarisation",
   "onboarding",
   "learning",
@@ -82,7 +81,7 @@ export function protocolIssues(config: StudyConfig, steps: readonly StudyStep[])
   if (new Set(steps).size !== steps.length) issues.push("steps: a step may appear only once");
   const learning = at("learning");
   if (learning < 0) issues.push("steps: the journey must include the learning step");
-  for (const s of ["questionnaire_pre", "pre_test", "entrance", "familiarisation", "onboarding"] as const) {
+  for (const s of ["questionnaire_pre", "pre_test", "familiarisation", "onboarding"] as const) {
     if (has(s) && learning >= 0 && at(s) > learning) issues.push(`steps: ${s} must come before learning`);
   }
   for (const s of ["questionnaire_post_learning", "post_test", "transfer", "reconstruction", "layout_sketch", "questionnaire_end", "delayed_test"] as const) {
@@ -96,7 +95,6 @@ export function protocolIssues(config: StudyConfig, steps: readonly StudyStep[])
   const lastImmediate = has("delayed_test") ? steps.length - 2 : steps.length - 1;
   if (has("questionnaire_end") && at("questionnaire_end") !== lastImmediate) issues.push("steps: questionnaire_end must be the last step before any delayed test");
   if (has("post_test") && has("questionnaire_post_learning") && at("post_test") < at("questionnaire_post_learning")) issues.push("steps: the common questions come before the immediate test");
-  if (has("entrance") && has("familiarisation") && at("entrance") > at("familiarisation")) issues.push("steps: entrance must come before familiarisation");
 
   if (!DRAWN_ALGORITHMS.includes(config.allocation.algorithm)) issues.push(`allocation.algorithm ${config.allocation.algorithm} cannot be drawn by the study engine (use ${DRAWN_ALGORITHMS.join(", ")})`);
   const firstNonBlind = steps.findIndex((s) => !BLIND_STEPS.includes(s));
@@ -150,7 +148,6 @@ export function instrumentsFor(protocol: StudyProtocol, step: QuestionnaireStep,
 export const STEP_ROUTE: Record<Exclude<StudyStep, "learning" | "familiarisation">, string> = {
   questionnaire_pre: "/study/questionnaire/before",
   pre_test: "/study/pre-test",
-  entrance: "/study/entrance",
   onboarding: "/study/task",
   questionnaire_post_learning: "/study/questionnaire/after-learning",
   post_test: "/study/post-test",
@@ -170,7 +167,6 @@ export const STEP_LABEL: Record<StudyStep, string> = Object.fromEntries(
     [
       ["questionnaire_pre", "Questions before you start"],
       ["pre_test", "Questions before learning"],
-      ["entrance", "Entrance"],
       ["familiarisation", "Practice with the controls"],
       ["onboarding", "Introduction to the learning task"],
       ["learning", TASK_TEXT.label],

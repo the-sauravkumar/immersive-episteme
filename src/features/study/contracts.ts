@@ -24,7 +24,6 @@ const STRATUM_SOURCES = ["pre_test_score"] as const;
 export const STUDY_STEPS = [
   "questionnaire_pre",
   "pre_test",
-  "entrance",
   "familiarisation",
   "onboarding",
   "learning",

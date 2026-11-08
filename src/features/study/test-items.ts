@@ -7,7 +7,6 @@ export const DONT_KNOW_OPTION = { id: "dont-know", label: "I do not know" } as c
 export const LAYOUT_SKETCH_PROMPT = "From memory, sketch the layout of what you went through. Show its parts and how they connect.";
 
 const OPTION_COUNT = 4;
-const PRE_ITEMS_PER_TRADITION = 2;
 
 export interface UnseenStage {
   readonly key: string;
@@ -178,11 +177,9 @@ function clothItem(template: StageTemplate, stages: readonly TemplateStage[], su
 
 const publicPath = (file: string) => (file.startsWith("/") ? file : `/${file}`);
 
-function attributionItem(template: StageTemplate, templates: readonly StageTemplate[], form: "immediate" | "delayed"): DraftItem | null {
-  const product = form === "immediate" ? template.products[0] : template.products[template.products.length - 1];
-  if (!product) return null;
+function attributionItem(template: StageTemplate, templates: readonly StageTemplate[], product: StageTemplate["products"][number], index: number): DraftItem {
   return {
-    itemKey: `attr.${template.tradition}.${form}`.slice(0, 64),
+    itemKey: `attr.${template.tradition}.${index + 1}`.slice(0, 64),
     kind: "single_choice",
     prompt: "Which tradition does this finished textile come from?",
     config: {
@@ -296,7 +293,7 @@ function conceptMapItem(template: StageTemplate, knownConceptKeys: ReadonlySet<s
     itemKey: `map.${template.tradition}`.slice(0, 64),
     kind: "concept_map",
     prompt: `Link the stages, tools and materials of ${template.traditionName}.`,
-    config: { kind: "concept_map", conceptKeys, allowFreeNodes: false, relationshipTypes: [], directed: true },
+    config: { kind: "concept_map", conceptKeys, allowFreeNodes: false, relationshipTypes: [], directed: true, target: { tradition: template.tradition } },
     answerKey: null,
   };
 }
@@ -307,29 +304,74 @@ export interface BatteryInput {
   readonly knownConceptKeys: ReadonlySet<string>;
 }
 
+export function servesTradition(config: unknown, tradition: string | null, learnableTraditions: readonly string[]): boolean {
+  const target = (config as { target?: { tradition?: unknown } } | null)?.target?.tradition;
+  return typeof target !== "string" || !learnableTraditions.includes(target) || target === tradition;
+}
+
+interface TraditionForms {
+  readonly preIdentification: DraftItem[];
+  readonly prePlacement: DraftItem[];
+  readonly identification: DraftItem[];
+  readonly placement: DraftItem[];
+  readonly sequence: DraftItem[];
+  readonly clothState: DraftItem[];
+  readonly attribution: DraftItem[];
+  readonly conceptMap: DraftItem[];
+}
+
+const interleaved = <T>(list: readonly T[], groups: number, group: number): T[] => list.filter((_, index) => index % groups === group);
+
+function formsOf(template: StageTemplate, templates: readonly StageTemplate[], pool: readonly PooledObject[], knownConceptKeys: ReadonlySet<string>): TraditionForms {
+  const objects = uniqueObjects(template);
+  const named = objects
+    .filter((object) => identifiable(object, pool))
+    .map((object, turn) => ({ object, turn, item: identificationItem(object, pool, turn, "id"), pre: identificationItem(object, pool, turn, "pre.id") }))
+    .filter((entry): entry is typeof entry & { item: DraftItem; pre: DraftItem } => entry.item !== null && entry.pre !== null);
+  const placed = objects.filter(placeable).map((object, turn) => ({ item: placementItem(object, turn, "place"), pre: withDontKnow(placementItem(object, turn, "pre.place")) }));
+  const map = conceptMapItem(template, knownConceptKeys);
+  return {
+    preIdentification: named.map((entry) => withDontKnow(entry.pre)),
+    prePlacement: placed.map((entry) => entry.pre),
+    identification: named.map((entry) => entry.item),
+    placement: placed.map((entry) => entry.item),
+    sequence: [sequenceItem(template, template.stages, "all"), sequenceItem(template, interleaved(template.stages, 2, 0), "a"), sequenceItem(template, interleaved(template.stages, 2, 1), "b")],
+    clothState: [0, 1, 2].map((group) => clothItem(template, interleaved(template.stages, 3, group), "abc"[group]!)),
+    attribution: template.products.map((product, index) => attributionItem(template, templates, product, index)),
+    conceptMap: map ? [map] : [],
+  };
+}
+
+export const FORM_LENGTHS = {
+  preIdentification: 6,
+  prePlacement: 6,
+  identification: 26,
+  delayedIdentification: 11,
+  placement: 7,
+  sequence: 3,
+  clothState: 3,
+  attribution: 3,
+  conceptMap: 1,
+} as const;
+
 export function buildTestBattery({ templates, unseen, knownConceptKeys }: BatteryInput): GeneratedAssessment[] {
   const pool = allObjects(templates);
-  const pre: (DraftItem | null)[] = [];
-  const ident = { immediate: [] as (DraftItem | null)[], delayed: [] as (DraftItem | null)[] };
-  const placement = { immediate: [] as DraftItem[], delayed: [] as DraftItem[] };
-  templates.forEach((template) => {
-    const objects = uniqueObjects(template);
-    const named = objects.filter((object) => identifiable(object, pool));
-    named.forEach((object, turn) => {
-      const target = turn < PRE_ITEMS_PER_TRADITION ? null : (turn - PRE_ITEMS_PER_TRADITION) % 3 === 2 ? ident.delayed : ident.immediate;
-      if (target) target.push(identificationItem(object, pool, turn, "id"));
-      else {
-        const item = identificationItem(object, pool, turn, "pre.id");
-        pre.push(item ? withDontKnow(item) : null);
-      }
-    });
-    objects.filter(placeable).forEach((object, turn) => {
-      if (turn < PRE_ITEMS_PER_TRADITION) pre.push(withDontKnow(placementItem(object, turn, "pre.place")));
-      else (placement.immediate.length > placement.delayed.length ? placement.delayed : placement.immediate).push(placementItem(object, turn, "place"));
-    });
-  });
-  placement.immediate.length = Math.min(placement.immediate.length, placement.delayed.length);
-  const alternate = (stages: readonly TemplateStage[], remainder: number) => stages.filter((_, index) => index % 2 === remainder);
+  const forms = templates.map((template) => formsOf(template, templates, pool, knownConceptKeys));
+  const common = (pick: (form: TraditionForms) => readonly DraftItem[], target: number) => Math.min(target, ...forms.map((form) => pick(form).length));
+  const perTradition = (pick: (form: TraditionForms) => readonly DraftItem[], target: number) => {
+    const length = common(pick, target);
+    return forms.flatMap((form) => pick(form).slice(0, length));
+  };
+  const pre = forms.flatMap((form) => [
+    ...form.preIdentification.slice(0, common((f) => f.preIdentification, FORM_LENGTHS.preIdentification)),
+    ...form.prePlacement.slice(0, common((f) => f.prePlacement, FORM_LENGTHS.prePlacement)),
+  ]);
+  const identification = perTradition((form) => form.identification, FORM_LENGTHS.identification);
+  const delayedIdentification = perTradition((form) => form.identification, FORM_LENGTHS.delayedIdentification);
+  const placement = perTradition((form) => form.placement, FORM_LENGTHS.placement);
+  const sequence = perTradition((form) => form.sequence, FORM_LENGTHS.sequence);
+  const clothState = perTradition((form) => form.clothState, FORM_LENGTHS.clothState);
+  const attribution = perTradition((form) => form.attribution, FORM_LENGTHS.attribution);
   const assessment = (code: string, phase: GeneratedAssessment["phase"], position: number, title: string, testType: TestItemType, items: readonly (DraftItem | null)[], kind: GeneratedAssessment["kind"] = phase === "pre" ? "pretest" : "posttest", description: string | null = null): GeneratedAssessment => ({
     code,
     kind,
@@ -344,11 +386,11 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
   const [immediateUnseen, delayedUnseen] = [unseen[0], unseen[1] ?? unseen[0]];
   const battery: GeneratedAssessment[] = [
     assessment("test-pre", "pre", 0, "Questions Before Learning", "pre_test", pre, "pretest", "Choose I do not know if you do not know. It is fine not to know."),
-    assessment("test-identification", "post", 0, "Name The Object", "identification", ident.immediate),
-    assessment("test-stage-placement", "post", 1, "Find The Stage", "stage_placement", placement.immediate),
-    assessment("test-sequence", "post", 2, "Put The Stages In Order", "sequence", templates.map((template) => sequenceItem(template, template.stages, "all"))),
-    assessment("test-cloth-state", "post", 3, "Match The Cloth", "cloth_state", templates.map((template) => clothItem(template, alternate(template.stages, 0), "a"))),
-    assessment("test-attribution", "post", 4, "Name The Tradition", "attribution", templates.map((template) => attributionItem(template, templates, "immediate"))),
+    assessment("test-identification", "post", 0, "Name The Object", "identification", identification),
+    assessment("test-stage-placement", "post", 1, "Find The Stage", "stage_placement", placement),
+    assessment("test-sequence", "post", 2, "Put The Stages In Order", "sequence", sequence),
+    assessment("test-cloth-state", "post", 3, "Match The Cloth", "cloth_state", clothState),
+    assessment("test-attribution", "post", 4, "Name The Tradition", "attribution", attribution),
     assessment("test-transfer", "post", 5, "A Tradition You Have Not Seen", "transfer", immediateUnseen ? transferItems(immediateUnseen) : [], "transfer"),
     {
       code: "test-concept-map",
@@ -359,7 +401,7 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
       description: null,
       testType: null,
       paged: false,
-      items: positioned(templates.map((template) => conceptMapItem(template, knownConceptKeys))),
+      items: positioned(perTradition((form) => form.conceptMap, FORM_LENGTHS.conceptMap)),
     },
     {
       code: "test-layout-sketch",
@@ -372,11 +414,11 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
       paged: false,
       items: [{ itemKey: "layout.sketch", position: 0, kind: "sketch", prompt: LAYOUT_SKETCH_PROMPT, config: { kind: "sketch" }, answerKey: null }],
     },
-    assessment("test-identification-delayed", "follow_up", 0, "Name The Object", "identification", ident.delayed),
-    assessment("test-stage-placement-delayed", "follow_up", 1, "Find The Stage", "stage_placement", placement.delayed),
-    assessment("test-sequence-delayed", "follow_up", 2, "Put The Stages In Order", "sequence", templates.map((template) => sequenceItem(template, alternate(template.stages, 1), "short"))),
-    assessment("test-cloth-state-delayed", "follow_up", 3, "Match The Cloth", "cloth_state", templates.map((template) => clothItem(template, alternate(template.stages, 1), "b"))),
-    assessment("test-attribution-delayed", "follow_up", 4, "Name The Tradition", "attribution", templates.map((template) => attributionItem(template, templates, "delayed"))),
+    assessment("test-identification-delayed", "follow_up", 0, "Name The Object", "identification", delayedIdentification),
+    assessment("test-stage-placement-delayed", "follow_up", 1, "Find The Stage", "stage_placement", placement),
+    assessment("test-sequence-delayed", "follow_up", 2, "Put The Stages In Order", "sequence", sequence),
+    assessment("test-cloth-state-delayed", "follow_up", 3, "Match The Cloth", "cloth_state", clothState),
+    assessment("test-attribution-delayed", "follow_up", 4, "Name The Tradition", "attribution", attribution),
     assessment("test-transfer-delayed", "follow_up", 5, "A Tradition You Have Not Seen", "transfer", delayedUnseen ? transferItems(delayedUnseen) : []),
   ];
   return battery.filter((entry) => entry.items.length > 0).map(asDemoWhereSampled);

@@ -3,6 +3,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { participantCodeSchema } from "@/features/study/contracts";
 import { clientIpPolicy } from "@/lib/client-ip";
 import { serverEnv } from "@/lib/env";
 import { LEARNING_ROUTE } from "@/lib/permissions/learning";
@@ -18,7 +19,6 @@ import { STUDY_STEPS } from "./config";
 import {
   StudyEngineError,
   WITHDRAWAL_REASONS,
-  completeEntrance,
   completeOnboarding,
   completeSession,
   enrolParticipant,
@@ -78,6 +78,10 @@ function messageFor(err: unknown): string {
         return "This study cannot continue right now. Please tell the facilitator.";
       case "study_full":
         return "This study has all the participants it needs. Thank you for your interest.";
+      case "earlier_code_unknown":
+        return "No earlier study has this participant code. Check the code, or leave it empty to take part as a new participant.";
+      case "nothing_new":
+        return "You have already learned every craft this study offers, so there is nothing new left for you here. Thank you for taking part again.";
       case "enrolment_throttled":
         return "Many people are joining this study right now. Please wait a few minutes and try again, or ask the facilitator.";
       default:
@@ -104,7 +108,9 @@ async function withdrawableParticipant() {
 
 export async function enterStudy(_prev: EntryFormState, formData: FormData): Promise<EntryFormState> {
   const code = String(formData.get("studyCode") ?? "");
+  const earlierCode = String(formData.get("earlierCode") ?? "").trim();
   if (!code.trim()) return { fieldErrors: { studyCode: "Enter the study code." } };
+  if (earlierCode && !participantCodeSchema.safeParse(earlierCode).success) return { fieldErrors: { earlierCode: "This is not a participant code. Check it, or leave the box empty." } };
   await requireSiteAccess("/study");
   const pool = getPool();
   let target = "/study/consent";
@@ -115,7 +121,7 @@ export async function enterStudy(_prev: EntryFormState, formData: FormData): Pro
       const study = await findEnrollableStudy(pool, code);
       const pending = await readEnrolment();
       const pendingParticipant = pending && pending.studyId === study.id ? await loadParticipant(pool, pending.participantId) : null;
-      const reusable = !!pendingParticipant && (!pendingParticipant.latestConsent || (pendingParticipant.latestConsent.decision === "granted" && !pendingParticipant.sessionId));
+      const reusable = !earlierCode && !!pendingParticipant && (!pendingParticipant.latestConsent || (pendingParticipant.latestConsent.decision === "granted" && !pendingParticipant.sessionId));
       if (!reusable) {
         if (!study.isDemo) {
           const policy = clientIpPolicy();
@@ -125,7 +131,7 @@ export async function enterStudy(_prev: EntryFormState, formData: FormData): Pro
         }
         const history = await readHistory();
         const previous = history.filter(([s]) => s === study.id).map(([, p]) => p);
-        const r = await enrolParticipant(pool, study, { previousParticipantIds: previous });
+        const r = await enrolParticipant(pool, study, { previousParticipantIds: previous, earlierParticipantCode: earlierCode || null });
         await setEnrolment({ participantId: r.participantId, studyId: study.id });
         await writeHistory(addHistory(history, study.id, r.participantId));
       }
@@ -269,16 +275,6 @@ export async function submitAssessmentForm(_prev: FormState, formData: FormData)
     return { error: messageFor(err) };
   }
   redirect(target);
-}
-
-export async function continueFromEntrance(_prev: FormState): Promise<FormState> {
-  const participant = await requireParticipantSession();
-  try {
-    await completeEntrance(getPool(), participant.sessionId);
-  } catch (err) {
-    return { error: messageFor(err) };
-  }
-  redirect("/study/session");
 }
 
 export async function startLearning(_prev: FormState): Promise<FormState> {
