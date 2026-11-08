@@ -419,7 +419,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
     const s = (await getStudy(t.pool, id))!;
     const demoForms = DESIGNED_TEST_BATTERY.filter(carriesSampleText);
     expect(first.demoOnly).toEqual(demoForms.map((a) => a.code));
-    expect(demoForms.length).toBeGreaterThan(0);
     for (const a of demoForms) expect(s.battery.some((b) => b.code === a.code), a.code).toBe(false);
     for (const step of DEFAULT_STEPS) {
       const spec = STEP_ASSESSMENTS[step];

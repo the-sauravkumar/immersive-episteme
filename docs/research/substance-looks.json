@@ -260,8 +260,8 @@
     "renderBasis": "evidence",
     "renderNote": null,
     "basis": "Evidence: the colour words are quoted from sources checked in DR-078; renderHex is a reading of those words, not a measurement.",
-    "confidence": "unassessed",
-    "confidenceNote": "Not re-assessed in the 2026-11-05 row verification.",
+    "confidence": "medium",
+    "confidenceNote": "Re-weighed 2026-11-08 (DR-125): the colour words are the GI's own description of this cloth before scouring; renderHex is a reading of them. DR-083 found no photo of the cloth to measure, so nothing contradicts it and nothing measures it.",
     "transparency": "opaque",
     "transparencyBasis": "inferred",
     "surface": "matte woven cotton",
@@ -310,8 +310,8 @@
     "renderBasis": "evidence",
     "renderNote": null,
     "basis": "Evidence: the colour words are quoted from sources checked in DR-078; renderHex is a reading of those words. DR-083 recorded a supplier photo reading #8A6C53 against it.",
-    "confidence": "unassessed",
-    "confidenceNote": "Not re-assessed in the 2026-11-05 row verification.",
+    "confidence": "medium",
+    "confidenceNote": "Re-weighed 2026-11-08 (DR-125) against the DR-083 readings of ground myrobalan: two supplier photos bracket the value, Kraftkolour #8A6C53 (ΔE 25.1) and Maiwa #E5B670 (ΔE 14.1). The Crafts Museum harda photo shows the wet paste in shade (#575040), not the powder. The words 'light brown' and 'yellow' paste fit the value; the suppliers' spread is the lot-to-lot variation.",
     "transparency": "opaque",
     "transparencyBasis": "inferred",
     "surface": "fine powder",
@@ -509,7 +509,7 @@
     "stages": [
       "ajrakh.outline-and-black-printing"
     ],
-    "label": "Fermented Iron-Jaggery Black Paste",
+    "label": "Iron-Water Black Paste",
     "localName": "Kut",
     "form": "paste",
     "formWords": "Thick smooth paste in a shallow tray. The earlier ferment is a different look: rusted drums with a crusted grey-black skin, not what is printed.",
@@ -708,9 +708,9 @@
     "colourWords": "colourless transparent crystals, or white when powdered; before it is suspended in the pa paste",
     "colourHex": "#EEF0EC",
     "renderHex": "#EEF0EC",
-    "renderBasis": "provisional",
-    "renderNote": "Provisional: #EEF0EC is a stand-in for colourless crystals; no source gives it. The alum's chemical type in current workshops is untested (see the conflicts entry on the Ajrakh alum row).",
-    "basis": "Provisional: no source or measured photo supports #EEF0EC, because colourless has no sourced hex (alum-type conflict check, upheld). The crystal form and transparency rest on other crafts and a chemical monograph, which is analogy. DR-083 recorded a photo of alum crystals reading #B5B4B4.",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred: #EEF0EC reads the sourced words for alum, colourless transparent crystals or white when powdered (FAO/JECFA; 'Alum is colourless', Bagh GI). The DR-083 photo of potash alum octahedra reads #DBDBDC lit (ΔE 7.6) and #B5B4B4 mid over dark cloth, which is the cloth seen through clear crystal. The alum's chemical type in current workshops is untested (see the conflicts entry on the Ajrakh alum row).",
+    "basis": "Inferred: the colour words are sourced for alum in general and in a neighbouring block-printing craft; the crystal form and the clear look rest on that analogy, not on a photograph from these workshops.",
     "confidence": "low",
     "confidenceNote": "The colour words are sourced for alum generally; the hex and the clear crystal look are not.",
     "transparency": "clear",
@@ -772,7 +772,7 @@
       "ajrakh.alum-and-mud-resist-printing"
     ],
     "label": "Tamarind Seed Paste",
-    "localName": "Kachika",
+    "localName": "Pa",
     "form": "paste",
     "formWords": "Thick printing paste in a tray. Kachika or kachuka is the seed flour; the paste is pa or pah, and its printing is kan or phulli.",
     "status": "inferred",
@@ -1123,8 +1123,8 @@
     "renderBasis": "evidence",
     "renderNote": null,
     "basis": "Evidence: the colour words are quoted from sources checked in DR-078; renderHex is a reading of those words. DR-083 recorded photo readings that differ from it.",
-    "confidence": "unassessed",
-    "confidenceNote": "Not re-assessed in the 2026-11-05 row verification.",
+    "confidence": "low-medium",
+    "confidenceNote": "Re-weighed 2026-11-08 (DR-125): the words are Ure's general description of indigo, not an Ajrakh source. The only Ajrakh photograph, dye blocks in the ingredient bowls, reads #303C5D mid (ΔE 11.1); the museum cake's shaded inner face reads #283455 (ΔE 8.6) and its burnished face #505F89 (ΔE 23). Every measured indigo body is lighter and less saturated than the value, and the photos show blocks, not powder.",
     "transparency": "opaque",
     "transparencyBasis": "inferred",
     "surface": "dull matte, coppery where rubbed",
@@ -1173,8 +1173,8 @@
     "renderBasis": "evidence",
     "renderNote": null,
     "basis": "Evidence: the colour words are quoted from sources checked in DR-078; renderHex is a reading of those words. DR-083 recorded lots from #724429 to #995136.",
-    "confidence": "unassessed",
-    "confidenceNote": "Not re-assessed in the 2026-11-05 row verification.",
+    "confidence": "medium",
+    "confidenceNote": "Re-weighed 2026-11-08 (DR-125): the value lies inside the DR-083 range of measured Rubia lots, ΔE 5.8 from the darkest mid value (#724429) and 10.9 from the Kutch-note sticks (#995136); 'reddish-brown or dark brown' fits it.",
     "transparency": "opaque",
     "transparencyBasis": "inferred",
     "surface": "dry wrinkled root",
@@ -1223,8 +1223,8 @@
     "renderBasis": "evidence",
     "renderNote": null,
     "basis": "Evidence: the colour words are quoted from sources checked in DR-078; renderHex is a reading of those words, not a measurement.",
-    "confidence": "unassessed",
-    "confidenceNote": "Not re-assessed in the 2026-11-05 row verification.",
+    "confidence": "medium",
+    "confidenceNote": "Re-weighed 2026-11-08 (DR-125): the GI names a crystalline red dye and the general description says orange-red crystals; renderHex reads those words. DR-083 found no alizarin photograph to measure.",
     "transparency": "opaque",
     "transparencyBasis": "inferred",
     "surface": "crystalline",
@@ -1270,7 +1270,7 @@
     "stages": [
       "ajrakh.red-dyeing"
     ],
-    "label": "Dhawri / Tamarisk Galls",
+    "label": "Dhawri Flowers",
     "localName": "Dhaori Na Phool",
     "form": "flowers",
     "formWords": "Whole dried flowers, slender calyces about 1.0 to 1.6 cm long, thrown by the handful into the alizarin bath. Khatri sample labels also mention powder.",
@@ -1694,7 +1694,7 @@
     "form": "liquid",
     "formWords": "Liquid in connected, stepped cement tanks.",
     "status": "partial",
-    "colourWords": "Blue-grey water, paler where it runs thin and white-grey in the foam, around dark cloth. That the tint is loose indigo is inferred from the GI, which says the washing removes the loose indigo; the photo shows near-black cloth with no visible pattern.",
+    "colourWords": "Blue-grey water, paler where it runs thin and white-grey in the foam, around dark cloth. That the tint is loose indigo is inferred from the GI, which says the washing removes the loose indigo; the photo shows near-black cloth with no visible pattern. A second, independent source calls Ajrakhpur's collected dye wastewater from the tanks murky blue (NPR 2017).",
     "colourHex": null,
     "renderHex": "#5D7685",
     "renderBasis": "photo",
@@ -1729,6 +1729,26 @@
         "supports": "colour",
         "reliability": "Named photographer and a stage caption in the page's own slide markup. Corporate feature, not scholarship. Licence not stated, so used for measurement only.",
         "archive": "looks-check/rows-1105/conflicts__camel-dung__amazon.html"
+      },
+      {
+        "kind": "web",
+        "source": "Shaina Shealy, 'Worms Land A Great Job Working With Gorgeous Indian Textiles', NPR via KCUR, 20 May 2017",
+        "url": "https://www.kcur.org/2017-05-20/worms-land-a-great-job-working-with-gorgeous-indian-textiles",
+        "archive": "looks-check/rows-1108/kcur-ajrakhpur.html",
+        "reliability": "News feature on Dr Ismail Khatri's unit at Ajrakhpur; the murky blue water is the collected wastewater sprayed into the vermifilter, not the washing tank itself, so it supports the hue, not the value.",
+        "locator": "Paragraph beginning 'The filter is a few feet from Khatri's studio'",
+        "quote": "Sprinklers spray murky blue water from attached tanks into the crates.",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "Shaina Shealy, 'Worms Land A Great Job Working With Gorgeous Indian Textiles', NPR via KCUR, 20 May 2017",
+        "url": "https://www.kcur.org/2017-05-20/worms-land-a-great-job-working-with-gorgeous-indian-textiles",
+        "archive": "looks-check/rows-1108/kcur-ajrakhpur.html",
+        "reliability": "News feature on Dr Ismail Khatri's unit at Ajrakhpur; the murky blue water is the collected wastewater sprayed into the vermifilter, not the washing tank itself, so it supports the hue, not the value.",
+        "locator": "Paragraph after the filter description",
+        "quote": "Each piece is washed at least three times in community water tanks.",
+        "supports": "form"
       }
     ],
     "measurements": [
@@ -1859,7 +1879,7 @@
     "form": "liquid",
     "formWords": "Suspension of dung solids in water, called a solution by the source.",
     "status": "partial",
-    "colourWords": "Murky dark brown dung water, turbid with suspended matter. Derived: no source states a colour, and olive has no camel-specific support.",
+    "colourWords": "Murky dark brown dung water, turbid with suspended matter. Derived: no source states a colour, and olive has no camel-specific support. A cow-dung bath analogue (Crookes 1874) stays turbid with black greenish suspended matter and filters to a dirty yellow; it is not camel dung, so the row keeps its value.",
     "colourHex": null,
     "renderHex": "#4A3A28",
     "renderBasis": "provisional",
@@ -1891,6 +1911,16 @@
         "supports": "form",
         "reliability": "GI registry journal. Form only; no look.",
         "archive": "scratchpad-archive/corpus-check/ajrakh-work/pages/p08.txt"
+      },
+      {
+        "kind": "web",
+        "source": "William Crookes, A Practical Handbook of Dyeing and Calico-Printing (London, 1874), quoting C. Koechlin on a used dung bath",
+        "url": "https://archive.org/download/gri_c00033125000912127/gri_c00033125000912127_djvu.txt",
+        "archive": "looks-check/rows-1108/crookes-1874.txt",
+        "reliability": "A European calico dung bath at 70 degrees, already used on mordanted cloth, cow dung from dry-fodder cattle: an analogue for hue direction, not an observation of an Indian bath.",
+        "locator": "Printed p. 296, ch. Mordants (archive.org OCR; the text runs on 'greenish-coloured matter' across a line break)",
+        "quote": "on being left quietly standing the liquid did not become clear; there remained in suspension a black greenish",
+        "supports": "colour"
       }
     ],
     "measurements": [
@@ -1923,7 +1953,7 @@
     "renderNote": "Provisional: #EEF1EC is only the faint surface tint of a transparent body. No source or usable photo gives this water's look during the wash. The Crafts Museum final-wash photo is selectively desaturated with the water barely visible, so no colour was taken from it.",
     "basis": "Source for the incoming plain water; the appearance in use is an inference.",
     "confidence": "low",
-    "variation": "The tint depends on the batch and on how much colour is still loose. The GI says water mineral content changes the result on cloth; it does not say this changes the water's look.",
+    "variation": "The tint depends on the batch and on how much colour is still loose. The GI says water mineral content changes the result on cloth; it does not say this changes the water's look. NPR (2017) adds that iron-rich wash water leaves dark spots on the prints.",
     "transparency": "clear",
     "transparencyBasis": "inferred",
     "surface": "cool wet",
@@ -1964,6 +1994,16 @@
         "supports": "colour",
         "reliability": "Registry document. Shows loose colour enters the water, with no shade given.",
         "archive": "scratchpad-archive/corpus-check/ajrakh-work/pages/p08.txt"
+      },
+      {
+        "kind": "web",
+        "source": "Shaina Shealy, 'Worms Land A Great Job Working With Gorgeous Indian Textiles', NPR via KCUR, 20 May 2017",
+        "url": "https://www.kcur.org/2017-05-20/worms-land-a-great-job-working-with-gorgeous-indian-textiles",
+        "archive": "looks-check/rows-1108/kcur-ajrakhpur.html",
+        "reliability": "Says what iron-rich wash water does to the print, not how the water looks.",
+        "locator": "Photo caption",
+        "quote": "If the water used for the washing has a high iron content, dark spots appear on the textiles.",
+        "supports": "context"
       }
     ],
     "measurements": [
@@ -2186,8 +2226,8 @@
     "renderBasis": "evidence",
     "renderNote": null,
     "basis": "Evidence: the colour words are quoted from sources checked in DR-078; renderHex is a reading of those words. DR-083 recorded a supplier photo reading #8A6C53 against it.",
-    "confidence": "unassessed",
-    "confidenceNote": "Not re-assessed in the 2026-11-05 row verification.",
+    "confidence": "medium",
+    "confidenceNote": "Re-weighed 2026-11-08 (DR-125) against the DR-083 readings of ground myrobalan: two supplier photos bracket the value, Kraftkolour #8A6C53 (ΔE 25.1) and Maiwa #E5B670 (ΔE 14.1); 'light brown' fits it.",
     "transparency": "opaque",
     "transparencyBasis": "inferred",
     "surface": "fine powder",
@@ -2831,6 +2871,16 @@
         "supports": "colour",
         "reliability": "Historic technical dictionary. Describes commercial natural indigo: the same colourant, a different preparation.",
         "archive": "looks-check/ure.html"
+      },
+      {
+        "kind": "web",
+        "source": "Chemzip, Indigo Synthetic, product page",
+        "url": "https://chemzip.com/products/indigo-synthetic",
+        "archive": "looks-check/rows-1108/chemzip-indigo.html",
+        "locator": "Product specification, Appearance",
+        "quote": "Dark blue granules or powder",
+        "supports": "colour",
+        "reliability": "A second chemical supplier agreeing with Molekula; not a Sanganer source and no photograph."
       }
     ],
     "measurements": [
@@ -2974,9 +3024,9 @@
     "colourWords": "colourless transparent crystals, or white when powdered; dry, before dilution",
     "colourHex": "#EEF0EC",
     "renderHex": "#EEF0EC",
-    "renderBasis": "provisional",
-    "renderNote": "Provisional: #EEF0EC is a stand-in for colourless crystals; no source gives it. The alum's chemical type in current workshops is untested (see the conflicts entry on the Ajrakh alum row).",
-    "basis": "Provisional: no source or measured photo supports #EEF0EC, because colourless has no sourced hex (alum-type conflict check, upheld). The crystal form and transparency rest on other crafts and a chemical monograph, which is analogy. DR-083 recorded a photo of alum crystals reading #B5B4B4.",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred: #EEF0EC reads the sourced words for alum, colourless transparent crystals or white when powdered (FAO/JECFA; 'Alum is colourless', Bagh GI). The DR-083 photo of potash alum octahedra reads #DBDBDC lit (ΔE 7.6) and #B5B4B4 mid over dark cloth, which is the cloth seen through clear crystal. The alum's chemical type in current workshops is untested (see the conflicts entry on the Ajrakh alum row).",
+    "basis": "Inferred: the colour words are sourced for alum in general and in a neighbouring block-printing craft; the crystal form and the clear look rest on that analogy, not on a photograph from these workshops.",
     "confidence": "low",
     "confidenceNote": "The colour words are sourced for alum generally; the hex and the clear crystal look are not.",
     "transparency": "clear",
@@ -3123,12 +3173,12 @@
     "form": "liquid",
     "formWords": "Mild, thin suspension sprinkled over cloth laid flat, repeated as the cloth dries.",
     "status": "partial",
-    "colourWords": "Thin, weak, muddy brown water, cloudy with fine particles. Derived: no source states a colour.",
+    "colourWords": "Thin, weak, cloudy olive dung water. A European dung bath analogue is very dilute (about 30 litres of dung to 1600 to 2000 litres of water), does not clear on standing, and filters to a dirty yellow with black greenish suspended matter (Crookes 1874); no Sanganer source states the colour.",
     "colourHex": null,
-    "renderHex": "#4A3A28",
-    "renderBasis": "provisional",
-    "renderNote": "Provisional: the tint is the assumed wet-dung value #4A3A28 at low opacity. 'Mild' means low solids and the drops are thin, so the substrate shows through; translucent is a modelling choice no source fixes.",
-    "basis": "Derived; the tint is inherited from the assumed wet-dung value; the photo is a weak analogy only.",
+    "renderHex": "#4B4E3A",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred by Kubelka-Munk mixing in linear light of the two parts Crookes (1874) names in a used cow-dung bath: the dirty yellow filtrate, anchored on the olive dung liquid measured in the Tanzania biogas photo (#AD9B69), and the black greenish suspended matter, an assumed near-black with a green cast (#2B2E22), at an assumed 30 per cent share of the suspended matter. The range for 20 to 50 per cent is #575942 to #3C3F2F. The old #4A3A28 was the wet-dung value carried over, which the analogue does not support: its hue is brown, the analogue's is olive.",
+    "basis": "Derived from the colour words of a European cow-dung bath analogue (Crookes 1874), with an assumed suspended-matter colour and an assumed share; no Indian source states the colour.",
     "confidence": "low",
     "variation": "Different from the scouring mixture in the same source, which is called a paste. Dilution is unstated. Hue direction only: channel liquid on a cattle biogas farm, olive pixels about #AD9B69 by hue filter over a small blurred patch, contents inferred from the caption; digestate, not this liquid.",
     "transparency": "translucent",
@@ -3145,6 +3195,36 @@
         "locator": "PDF p. 11",
         "quote": "A mild solution ofcow dung and water is sprhkled over the fubric.",
         "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "William Crookes, A Practical Handbook of Dyeing and Calico-Printing (London, 1874), quoting C. Koechlin on a used dung bath",
+        "url": "https://archive.org/download/gri_c00033125000912127/gri_c00033125000912127_djvu.txt",
+        "archive": "looks-check/rows-1108/crookes-1874.txt",
+        "reliability": "A European calico dung bath at 70 degrees, already used on mordanted cloth, cow dung from dry-fodder cattle: an analogue for hue direction, not an observation of an Indian bath.",
+        "locator": "Printed p. 297, same chapter",
+        "quote": "The dung-bath is commonly made up of 30 litres of cow-dung to from 1600 to 2000 litres of water",
+        "supports": "form"
+      },
+      {
+        "kind": "web",
+        "source": "William Crookes, A Practical Handbook of Dyeing and Calico-Printing (London, 1874), quoting C. Koechlin on a used dung bath",
+        "url": "https://archive.org/download/gri_c00033125000912127/gri_c00033125000912127_djvu.txt",
+        "archive": "looks-check/rows-1108/crookes-1874.txt",
+        "reliability": "A European calico dung bath at 70 degrees, already used on mordanted cloth, cow dung from dry-fodder cattle: an analogue for hue direction, not an observation of an Indian bath.",
+        "locator": "Printed p. 296, ch. Mordants (archive.org OCR; the text runs on 'greenish-coloured matter' across a line break)",
+        "quote": "on being left quietly standing the liquid did not become clear; there remained in suspension a black greenish",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "William Crookes, A Practical Handbook of Dyeing and Calico-Printing (London, 1874), quoting C. Koechlin on a used dung bath",
+        "url": "https://archive.org/download/gri_c00033125000912127/gri_c00033125000912127_djvu.txt",
+        "archive": "looks-check/rows-1108/crookes-1874.txt",
+        "reliability": "A European calico dung bath at 70 degrees, already used on mordanted cloth, cow dung from dry-fodder cattle: an analogue for hue direction, not an observation of an Indian bath.",
+        "locator": "Printed p. 296, same paragraph",
+        "quote": "The filtrate had a dirty yellow colour, was astringent, and so acid as to colour blue litmus-paper red.",
+        "supports": "colour"
       }
     ],
     "measurements": [
@@ -3404,6 +3484,16 @@
         "supports": "colour",
         "reliability": "Design-brand account of a workshop visit, from its screen-print passage.",
         "archive": "looks-check/rows-1105/rows__water9__cocoa.html"
+      },
+      {
+        "kind": "web",
+        "source": "Amita Bhaduri, 'Colourful fabrics lead to murky waters', India Water Portal, 17 Aug 2015",
+        "url": "https://www.indiawaterportal.org/amp/story/agriculture/livelihoods/colourful-fabrics-lead-murky-waters",
+        "archive": "looks-check/rows-1108/iwp-sanganer.html",
+        "locator": "Opening paragraph",
+        "quote": "getting murkier by the day",
+        "supports": "context",
+        "reliability": "About the Amanishah nallah, the drain that takes Sanganer's printing effluent, not the wash tank; it names no colour."
       }
     ],
     "measurements": [
@@ -3862,8 +3952,8 @@
     "renderBasis": "evidence",
     "renderNote": null,
     "basis": "Evidence: the colour words are quoted from sources checked in DR-078; renderHex is a reading of those words, not a measurement. The vessel was researched in the kasim-vessel conflict check.",
-    "confidence": "unassessed",
-    "confidenceNote": "Not re-assessed in the 2026-11-05 row verification.",
+    "confidence": "medium",
+    "confidenceNote": "Re-weighed 2026-11-08 (DR-125): Sengupta saw the solution turn dark black at Polavaram; the DR-083 iron-black proxy (a tray of wet iron paste, #231715) sits ΔE 5.7 away.",
     "transparency": "opaque",
     "transparencyBasis": "inferred",
     "surface": "wet, thin",
@@ -3927,7 +4017,7 @@
     "form": "paste",
     "formWords": "Aqueous gum solution (mucilage) rather than a paste; the row keeps the paste form because the template's vessel follows it.",
     "status": "inferred",
-    "colourWords": "Colourless to faintly yellow, transparent, viscid gum solution that flows. A thin layer should read nearly colourless and slightly yellow.",
+    "colourWords": "Colourless to faintly yellow, transparent to semi-transparent, viscid gum solution that flows; almost colourless only if made from good gum. A thin layer should read nearly colourless and slightly yellow.",
     "colourHex": "#D7B57A",
     "renderHex": "#F3DCC8",
     "renderBasis": "inferred",
@@ -3996,6 +4086,16 @@
         "supports": "form",
         "reliability": "High: fieldwork at the Mukkantieswarudu Rao workshop, Polavaram",
         "archive": "looks-check/ubc-full.txt"
+      },
+      {
+        "kind": "web",
+        "source": "The Dispensatory of the United States of America, 1918 (Remington, Wood et al.), Mucilago Acaciae, via Henriette's Herbal",
+        "url": "https://henriettes-herb.com/eclectic/usdisp/acacia_muci.html",
+        "archive": "looks-check/rows-1108/usdisp-acacia.html",
+        "locator": "Mucilago Acaciae, description paragraph",
+        "quote": "This mucilage is semi-transparent, almost colorless, if prepared from good gum, viscid, tenacious, of a feeble, peculiar odor, and nearly tasteless",
+        "supports": "colour",
+        "reliability": "Pharmacopoeial commentary on gum acacia mucilage in general, not a Kalamkari source."
       }
     ],
     "measurements": [
@@ -4143,15 +4243,15 @@
       "machilipatnam-kalamkari.alum-fixing-dip"
     ],
     "label": "Alum",
-    "localName": "Karam",
+    "localName": null,
     "form": "crystals",
     "status": "inferred",
     "colourWords": "colourless transparent crystals, or white when pounded; dry, before the dip",
     "colourHex": "#EEF0EC",
     "renderHex": "#EEF0EC",
-    "renderBasis": "provisional",
-    "renderNote": "Provisional: #EEF0EC is a stand-in for colourless crystals; no source gives it. The alum's chemical type in current workshops is untested (see the conflicts entry on the Ajrakh alum row).",
-    "basis": "Provisional: no source or measured photo supports #EEF0EC, because colourless has no sourced hex (alum-type conflict check, upheld). The crystal form and transparency rest on other crafts and a chemical monograph, which is analogy. DR-083 recorded a photo of alum crystals reading #B5B4B4.",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred: #EEF0EC reads the sourced words for alum, colourless transparent crystals or white when powdered (FAO/JECFA; 'Alum is colourless', Bagh GI). The DR-083 photo of potash alum octahedra reads #DBDBDC lit (ΔE 7.6) and #B5B4B4 mid over dark cloth, which is the cloth seen through clear crystal. The alum's chemical type in current workshops is untested (see the conflicts entry on the Ajrakh alum row).",
+    "basis": "Inferred: the colour words are sourced for alum in general and in a neighbouring block-printing craft; the crystal form and the clear look rest on that analogy, not on a photograph from these workshops.",
     "confidence": "low",
     "confidenceNote": "The colour words are sourced for alum generally; the hex and the clear crystal look are not.",
     "transparency": "clear",
@@ -4217,8 +4317,8 @@
     "renderBasis": "evidence",
     "renderNote": null,
     "basis": "Evidence: the colour words are a general description of alizarin checked in DR-078; renderHex is a reading of those words, not a measurement.",
-    "confidence": "unassessed",
-    "confidenceNote": "Not re-assessed in the 2026-11-05 row verification.",
+    "confidence": "low-medium",
+    "confidenceNote": "Re-weighed 2026-11-08 (DR-125): the words are a general description of alizarin, not a Kalamkari source, and DR-083 found no photograph to measure; Sengupta confirms only that it is used as a powder.",
     "transparency": "opaque",
     "transparencyBasis": "inferred",
     "surface": "crystals or powder",
@@ -4390,8 +4490,8 @@
     "renderBasis": "evidence",
     "renderNote": null,
     "basis": "Evidence: the colour words are quoted from Sengupta, checked in DR-078; renderHex is a reading of those words. DR-083 recorded a photo median of #765B3F, which includes shadow between strands.",
-    "confidence": "unassessed",
-    "confidenceNote": "Not re-assessed in the 2026-11-05 row verification.",
+    "confidence": "medium",
+    "confidenceNote": "Re-weighed 2026-11-08 (DR-125): Sengupta's 'yellowish gray' after drying agrees with the 1878 Madura bundle, whose surface DR-083 read as pale yellowish grey-brown. Its median #765B3F (ΔE 25.2) includes the deep shadow between strands; its lit value #C1A380 is ΔE 10.5 away. Historic material only.",
     "transparency": "opaque",
     "transparencyBasis": "inferred",
     "surface": "dry root",
@@ -4719,12 +4819,12 @@
     "form": "liquid",
     "formWords": "Suspension of buffalo or cow dung in water, deep enough to soak cloth for 5 to 10 minutes; the cloth is then wrung a little and kept wet overnight.",
     "status": "partial",
-    "colourWords": "Murky dark brown dung water, turbid with suspended matter. Derived: no source states a colour.",
+    "colourWords": "Turbid olive-brown dung water that does not clear on standing: black greenish matter stays in suspension over a dirty yellow liquid. From a used European calico dung bath (Crookes 1874, quoting Koechlin), an analogue, not a Kalamkari observation; no Indian source states the colour.",
     "colourHex": null,
-    "renderHex": "#4A3A28",
-    "renderBasis": "provisional",
-    "renderNote": "Provisional: the wet-dung value #4A3A28 carried through a suspension argument; not independently confirmed. Opaque at soaking depth is a modelling choice, translucent in thin films.",
-    "basis": "Derived from an assumed wet-dung colour; the derivation does not independently confirm the hex.",
+    "renderHex": "#4B4E3A",
+    "renderBasis": "inferred",
+    "renderNote": "Inferred by Kubelka-Munk mixing in linear light of the two parts Crookes (1874) names in a used cow-dung bath: the dirty yellow filtrate, anchored on the olive dung liquid measured in the Tanzania biogas photo (#AD9B69), and the black greenish suspended matter, an assumed near-black with a green cast (#2B2E22), at an assumed 30 per cent share of the suspended matter. The range for 20 to 50 per cent is #575942 to #3C3F2F. The old #4A3A28 was the wet-dung value carried over, which the analogue does not support: its hue is brown, the analogue's is olive.",
+    "basis": "Derived from the colour words of a European cow-dung bath analogue (Crookes 1874), with an assumed suspended-matter colour and an assumed share; no Indian source states the colour.",
     "confidence": "low",
     "variation": "Dilution is unstated. The News Minute (Pedana) names only cow dung and says the water is loosely squeezed out and the cloth laid on the floor overnight, so the buffalo option rests on AIACA alone. A modern alkaline boil and a single cleansing dip also occur.",
     "transparency": "opaque",
@@ -4761,6 +4861,36 @@
         "supports": "form",
         "reliability": "Journalism with artisan testimony. Form and handling.",
         "archive": "looks-check/rows-1105/conflicts__kasim-vessel__dl__tnm.html"
+      },
+      {
+        "kind": "web",
+        "source": "William Crookes, A Practical Handbook of Dyeing and Calico-Printing (London, 1874), quoting C. Koechlin on a used dung bath",
+        "url": "https://archive.org/download/gri_c00033125000912127/gri_c00033125000912127_djvu.txt",
+        "archive": "looks-check/rows-1108/crookes-1874.txt",
+        "reliability": "A European calico dung bath at 70 degrees, already used on mordanted cloth, cow dung from dry-fodder cattle: an analogue for hue direction, not an observation of an Indian bath.",
+        "locator": "Printed p. 296, ch. Mordants (archive.org OCR; the text runs on 'greenish-coloured matter' across a line break)",
+        "quote": "on being left quietly standing the liquid did not become clear; there remained in suspension a black greenish",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "William Crookes, A Practical Handbook of Dyeing and Calico-Printing (London, 1874), quoting C. Koechlin on a used dung bath",
+        "url": "https://archive.org/download/gri_c00033125000912127/gri_c00033125000912127_djvu.txt",
+        "archive": "looks-check/rows-1108/crookes-1874.txt",
+        "reliability": "A European calico dung bath at 70 degrees, already used on mordanted cloth, cow dung from dry-fodder cattle: an analogue for hue direction, not an observation of an Indian bath.",
+        "locator": "Printed p. 296, same paragraph",
+        "quote": "The filtrate had a dirty yellow colour, was astringent, and so acid as to colour blue litmus-paper red.",
+        "supports": "colour"
+      },
+      {
+        "kind": "web",
+        "source": "William Crookes, A Practical Handbook of Dyeing and Calico-Printing (London, 1874), quoting C. Koechlin on a used dung bath",
+        "url": "https://archive.org/download/gri_c00033125000912127/gri_c00033125000912127_djvu.txt",
+        "archive": "looks-check/rows-1108/crookes-1874.txt",
+        "reliability": "A European calico dung bath at 70 degrees, already used on mordanted cloth, cow dung from dry-fodder cattle: an analogue for hue direction, not an observation of an Indian bath.",
+        "locator": "Printed p. 297, same chapter",
+        "quote": "It should be noted that the mordants acquire in the dung-bath a peculiar olive-green colour.",
+        "supports": "colour"
       }
     ],
     "measurements": []
@@ -5150,7 +5280,7 @@
       "machilipatnam-kalamkari.alum-fixing-dip"
     ],
     "label": "Alum Fixing Dip",
-    "localName": "Karam",
+    "localName": null,
     "form": "liquid",
     "formWords": "Liquid bath deep enough to submerge the cloth.",
     "status": "inferred",

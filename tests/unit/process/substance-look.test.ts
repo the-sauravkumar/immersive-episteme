@@ -4,7 +4,7 @@ import { PRACTICE_MODEL, stagePanelModel } from "@/features/course/domain/panel-
 import { catalogueModel, clothStatePath, stillPath } from "@/features/process/domain/asset-catalogue";
 import { buildRoute } from "@/features/walkthrough/domain/route-plan";
 import type { StageTemplate } from "@/features/process/domain/stage-template";
-import { itemColourIsUnsettled, itemVesselModel, liquidMarks, looksOfItem, stageItemStillPath, trayPadLookOf, workLiquidOf } from "@/features/process/domain/substance-look";
+import { itemColourIsUnsettled, itemLookIsUnsupported, itemVesselModel, liquidMarks, looksOfItem, stageItemStillPath, trayPadLookOf, workLiquidOf } from "@/features/process/domain/substance-look";
 import { SUBSTANCE_LOOK_ROWS } from "@/features/process/domain/substance-look-rows";
 import { structureFor } from "@/features/walkthrough/domain/yard-plan";
 import { lookRowsSource } from "../../../scripts/content/build-substance-look-rows";
@@ -148,6 +148,16 @@ describe("the look sheet reaches the scene", () => {
       expect(row.renderNote, row.key).toContain("not albedo");
       expect(itemColourIsUnsettled(row.stages[0]!, { label: row.label, role: "material" }), row.key).toBe(true);
     }
+  });
+
+  it("holds an item out of real forms only when one of its looks has no basis at all", () => {
+    const rows = sheet as { stages: string[]; label: string; partOfTemplateLabel?: string | null; renderBasis: string }[];
+    for (const row of rows) {
+      const stage = row.stages[0]!;
+      const unsupported = rows.some((other) => other.stages.includes(stage) && (other.label === row.label || other.partOfTemplateLabel === row.label) && other.renderBasis === "provisional");
+      expect(itemLookIsUnsupported(stage, { label: row.label, role: "material" }), row.label).toBe(unsupported);
+    }
+    expect(itemLookIsUnsupported("sanganeri.indigo-dyeing", { label: "Indigo", role: "material" })).toBe(false);
   });
 
   it("marks the indigo vat with its scum and bubbles from the sheet", () => {

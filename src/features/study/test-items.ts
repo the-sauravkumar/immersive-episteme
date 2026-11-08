@@ -1,5 +1,5 @@
 import { clothStatePath } from "@/features/process/domain/asset-catalogue";
-import { itemColourIsUnsettled, stageItemStillPath } from "@/features/process/domain/substance-look";
+import { itemLookIsUnsupported, stageItemStillPath } from "@/features/process/domain/substance-look";
 import type { StageItem, StageTemplate, TemplateStage } from "@/features/process/domain/stage-template";
 import type { TestItemType } from "@/features/research/contracts";
 
@@ -127,7 +127,7 @@ function identificationItem(object: PlacedObject, pool: readonly PooledObject[],
     config: { kind: "single_choice", options: choice.options, shuffle: true, image: { path: stillOf(object.stage, object.item), alt: "The object to name" }, target: placedTarget(object) },
     answerKey: { optionId: choice.correct },
   };
-  return itemColourIsUnsettled(object.stage.key, object.item) ? asSample(item) : item;
+  return itemLookIsUnsupported(object.stage.key, object.item) ? asSample(item) : item;
 }
 
 const placementPrompt = (object: PlacedObject) => `At which stage of ${object.template.traditionName} is ${object.item.label} used?`;

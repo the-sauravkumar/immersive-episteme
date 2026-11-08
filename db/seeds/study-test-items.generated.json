@@ -1,10 +1,10 @@
 [
   {
-    "code": "demo-test-pre",
+    "code": "test-pre",
     "kind": "pretest",
     "phase": "pre",
     "position": 0,
-    "title": "Demo: Questions Before Learning",
+    "title": "Questions Before Learning",
     "description": "Choose I do not know if you do not know. It is fine not to know.",
     "testType": "pre_test",
     "paged": true,
@@ -90,8 +90,7 @@
             "tradition": "ajrakh",
             "stageKey": "ajrakh.scouring-and-washing",
             "objectKey": "ajrakh.material.neerani-scouring-mix"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -243,7 +242,7 @@
             },
             {
               "id": "o3",
-              "label": "Dhawri / Tamarisk Galls"
+              "label": "Dhawri Flowers"
             },
             {
               "id": "o4",
@@ -263,8 +262,7 @@
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.scouring-and-dung-bleaching",
             "objectKey": "machilipatnam-kalamkari.material.cow-dung"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -308,8 +306,7 @@
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.scouring-and-dung-bleaching",
             "objectKey": "machilipatnam-kalamkari.material.kora-cotton-cloth"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -525,8 +522,7 @@
             "tradition": "sanganeri",
             "stageKey": "sanganeri.scouring-and-harda-pre-treatment",
             "objectKey": "sanganeri.material.cotton-mulmul"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -664,11 +660,11 @@
     ]
   },
   {
-    "code": "demo-test-identification",
+    "code": "test-identification",
     "kind": "posttest",
     "phase": "post",
     "position": 0,
-    "title": "Demo: Name The Object",
+    "title": "Name The Object",
     "description": null,
     "testType": "identification",
     "paged": false,
@@ -694,7 +690,7 @@
             },
             {
               "id": "o4",
-              "label": "Dhawri / Tamarisk Galls"
+              "label": "Dhawri Flowers"
             }
           ],
           "shuffle": true,
@@ -762,7 +758,7 @@
           "options": [
             {
               "id": "o1",
-              "label": "Fermented Iron-Jaggery Black Paste"
+              "label": "Iron-Water Black Paste"
             },
             {
               "id": "o2",
@@ -786,8 +782,7 @@
             "tradition": "ajrakh",
             "stageKey": "ajrakh.outline-and-black-printing",
             "objectKey": "ajrakh.material.kut-iron-paste"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -815,7 +810,7 @@
             },
             {
               "id": "o4",
-              "label": "Fermented Iron-Jaggery Black Paste"
+              "label": "Iron-Water Black Paste"
             }
           ],
           "shuffle": true,
@@ -827,8 +822,7 @@
             "tradition": "ajrakh",
             "stageKey": "ajrakh.alum-and-mud-resist-printing",
             "objectKey": "ajrakh.material.alum"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -852,7 +846,7 @@
             },
             {
               "id": "o3",
-              "label": "Fermented Iron-Jaggery Black Paste"
+              "label": "Iron-Water Black Paste"
             },
             {
               "id": "o4",
@@ -868,8 +862,7 @@
             "tradition": "ajrakh",
             "stageKey": "ajrakh.alum-and-mud-resist-printing",
             "objectKey": "ajrakh.material.gach-mud-resist"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -909,8 +902,7 @@
             "tradition": "ajrakh",
             "stageKey": "ajrakh.alum-and-mud-resist-printing",
             "objectKey": "ajrakh.material.dusting-agents"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -1046,7 +1038,7 @@
           "options": [
             {
               "id": "o1",
-              "label": "Dhawri / Tamarisk Galls"
+              "label": "Dhawri Flowers"
             },
             {
               "id": "o2",
@@ -1070,8 +1062,7 @@
             "tradition": "ajrakh",
             "stageKey": "ajrakh.red-dyeing",
             "objectKey": "ajrakh.material.dhawri-tamarisk"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -1111,8 +1102,7 @@
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.myrobalan-treatment",
             "objectKey": "machilipatnam-kalamkari.material.buffalo-milk"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -1192,8 +1182,7 @@
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
             "objectKey": "machilipatnam-kalamkari.material.gum-binder"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -1201,7 +1190,7 @@
         "position": 12
       },
       {
-        "itemKey": "id.machilipatnam-kalamkari.6.6",
+        "itemKey": "id.machilipatnam-kalamkari.4.6",
         "kind": "single_choice",
         "prompt": "What is this called?",
         "config": {
@@ -1209,32 +1198,31 @@
           "options": [
             {
               "id": "o1",
-              "label": "Alizarin, Madder And Chay Root"
+              "label": "Alum"
             },
             {
               "id": "o2",
-              "label": "Harde"
+              "label": "Alum Mordant Paste"
             },
             {
               "id": "o3",
-              "label": "Indigo"
+              "label": "Mud Resist Paste"
             },
             {
               "id": "o4",
-              "label": "Myrobalan"
+              "label": "Fermented Iron Black"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/cd8ea0d2.jpg",
+            "path": "/walkthrough/stills/objects/c1d5d51a.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
-            "objectKey": "machilipatnam-kalamkari.material.alizarin-and-red-roots"
-          },
-          "sampleText": true
+            "stageKey": "machilipatnam-kalamkari.printing-iron-and-alum-mordants",
+            "objectKey": "machilipatnam-kalamkari.material.alum-karam"
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -1242,7 +1230,7 @@
         "position": 13
       },
       {
-        "itemKey": "id.machilipatnam-kalamkari.7.8",
+        "itemKey": "id.machilipatnam-kalamkari.6.8",
         "kind": "single_choice",
         "prompt": "What is this called?",
         "config": {
@@ -1250,30 +1238,30 @@
           "options": [
             {
               "id": "o1",
-              "label": "Date-Palm Brush And Kalam"
+              "label": "Dye-Bath Plant Additives"
             },
             {
               "id": "o2",
-              "label": "Carved Wooden Printing Blocks"
+              "label": "Indian Madder"
             },
             {
               "id": "o3",
-              "label": "Colour Tray With Jute-And-Cotton Pad"
+              "label": "Cow Or Buffalo Dung"
             },
             {
               "id": "o4",
-              "label": "Copper Dye Vessel Over A Wood-Fired Furnace"
+              "label": "Cow Dung"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/1c5b8588.jpg",
+            "path": "/walkthrough/stills/objects/0dc89f60.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.second-printing",
-            "objectKey": "machilipatnam-kalamkari.tool.date-palm-brush-and-kalam"
+            "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
+            "objectKey": "machilipatnam-kalamkari.material.dye-bath-plant-additives"
           }
         },
         "answerKey": {
@@ -1290,15 +1278,95 @@
           "options": [
             {
               "id": "o1",
-              "label": "Rice Starch"
+              "label": "Date-Palm Brush And Kalam"
             },
             {
               "id": "o2",
-              "label": "Madder / Alizarin Dye Bath"
+              "label": "Colour Tray With Jute-And-Cotton Pad"
             },
             {
               "id": "o3",
-              "label": "Neerani"
+              "label": "Copper Dye Vessel Over A Wood-Fired Furnace"
+            },
+            {
+              "id": "o4",
+              "label": "Indigo Vat"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/objects/1c5b8588.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.second-printing",
+            "objectKey": "machilipatnam-kalamkari.tool.date-palm-brush-and-kalam"
+          }
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 15
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.7.11",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Indigo"
+            },
+            {
+              "id": "o2",
+              "label": "Khariyanu Resist Paste"
+            },
+            {
+              "id": "o3",
+              "label": "Tamarind Seed Paste"
+            },
+            {
+              "id": "o4",
+              "label": "Alum"
+            }
+          ],
+          "shuffle": true,
+          "image": {
+            "path": "/walkthrough/stills/objects/99282136.jpg",
+            "alt": "The object to name"
+          },
+          "target": {
+            "tradition": "machilipatnam-kalamkari",
+            "stageKey": "machilipatnam-kalamkari.second-printing",
+            "objectKey": "machilipatnam-kalamkari.material.indigo"
+          }
+        },
+        "answerKey": {
+          "optionId": "o1"
+        },
+        "position": 16
+      },
+      {
+        "itemKey": "id.machilipatnam-kalamkari.8.12",
+        "kind": "single_choice",
+        "prompt": "What is this called?",
+        "config": {
+          "kind": "single_choice",
+          "options": [
+            {
+              "id": "o1",
+              "label": "Alum"
+            },
+            {
+              "id": "o2",
+              "label": "Synthetic Alizarin"
+            },
+            {
+              "id": "o3",
+              "label": "Alizarin, Madder And Chay Root"
             },
             {
               "id": "o4",
@@ -1307,20 +1375,19 @@
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/8acd8043.jpg",
+            "path": "/walkthrough/stills/objects/d607e9aa.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
-            "stageKey": "machilipatnam-kalamkari.second-printing",
-            "objectKey": "machilipatnam-kalamkari.material.rice-starch"
-          },
-          "sampleText": true
+            "stageKey": "machilipatnam-kalamkari.alum-fixing-dip",
+            "objectKey": "machilipatnam-kalamkari.material.alum"
+          }
         },
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 15
+        "position": 17
       },
       {
         "itemKey": "id.sanganeri.2.2",
@@ -1360,7 +1427,7 @@
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 16
+        "position": 18
       },
       {
         "itemKey": "id.sanganeri.3.3",
@@ -1400,7 +1467,7 @@
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 17
+        "position": 19
       },
       {
         "itemKey": "id.sanganeri.3.5",
@@ -1435,13 +1502,12 @@
             "tradition": "sanganeri",
             "stageKey": "sanganeri.printing-the-mordants-and-ageing",
             "objectKey": "sanganeri.material.begar-alum-mordant"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 18
+        "position": 20
       },
       {
         "itemKey": "id.sanganeri.4.6",
@@ -1476,13 +1542,12 @@
             "tradition": "sanganeri",
             "stageKey": "sanganeri.washing-and-alizarin-dyeing",
             "objectKey": "sanganeri.material.madder-alizarin"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 19
+        "position": 21
       },
       {
         "itemKey": "id.sanganeri.6.8",
@@ -1505,7 +1570,7 @@
             },
             {
               "id": "o4",
-              "label": "Fermented Iron-Jaggery Black Paste"
+              "label": "Iron-Water Black Paste"
             }
           ],
           "shuffle": true,
@@ -1517,13 +1582,12 @@
             "tradition": "sanganeri",
             "stageKey": "sanganeri.dabu-resist-printing",
             "objectKey": "sanganeri.material.dabu-resist-paste"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 20
+        "position": 22
       },
       {
         "itemKey": "id.sanganeri.6.9",
@@ -1558,13 +1622,12 @@
             "tradition": "sanganeri",
             "stageKey": "sanganeri.dabu-resist-printing",
             "objectKey": "sanganeri.material.sawdust"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 21
+        "position": 23
       },
       {
         "itemKey": "id.sanganeri.7.11",
@@ -1599,13 +1662,12 @@
             "tradition": "sanganeri",
             "stageKey": "sanganeri.indigo-dyeing",
             "objectKey": "sanganeri.material.indigo"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 22
+        "position": 24
       },
       {
         "itemKey": "id.sanganeri.8.12",
@@ -1640,13 +1702,12 @@
             "tradition": "sanganeri",
             "stageKey": "sanganeri.yellow-dyeing-and-alum-post-mordanting",
             "objectKey": "sanganeri.material.haldi-naspal-yellow"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
         },
-        "position": 23
+        "position": 25
       }
     ]
   },
@@ -1783,7 +1844,7 @@
       {
         "itemKey": "place.ajrakh.7.6",
         "kind": "single_choice",
-        "prompt": "At which stage of Ajrakh is Dhawri / Tamarisk Galls used?",
+        "prompt": "At which stage of Ajrakh is Dhawri Flowers used?",
         "config": {
           "kind": "single_choice",
           "options": [
@@ -1827,7 +1888,7 @@
           "shuffle": true,
           "image": {
             "path": "/walkthrough/stills/objects/1993bf27.jpg",
-            "alt": "Dhawri / Tamarisk Galls"
+            "alt": "Dhawri Flowers"
           },
           "target": {
             "tradition": "ajrakh",
@@ -2901,7 +2962,8 @@
             "machilipatnam-kalamkari.material.dye-bath-plant-additives",
             "machilipatnam-kalamkari.tool.date-palm-brush-and-kalam",
             "machilipatnam-kalamkari.material.rice-starch",
-            "machilipatnam-kalamkari.material.indigo"
+            "machilipatnam-kalamkari.material.indigo",
+            "machilipatnam-kalamkari.material.alum"
           ],
           "allowFreeNodes": false,
           "relationshipTypes": [],
@@ -2977,11 +3039,11 @@
     ]
   },
   {
-    "code": "demo-test-identification-delayed",
+    "code": "test-identification-delayed",
     "kind": "posttest",
     "phase": "follow_up",
     "position": 0,
-    "title": "Demo: Name The Object",
+    "title": "Name The Object",
     "description": null,
     "testType": "identification",
     "paged": false,
@@ -3019,8 +3081,7 @@
             "tradition": "ajrakh",
             "stageKey": "ajrakh.outline-and-black-printing",
             "objectKey": "ajrakh.material.lime-gum-resist"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -3060,8 +3121,7 @@
             "tradition": "ajrakh",
             "stageKey": "ajrakh.alum-and-mud-resist-printing",
             "objectKey": "ajrakh.material.tamarind-seed-paste"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -3121,7 +3181,7 @@
             },
             {
               "id": "o2",
-              "label": "Dhawri / Tamarisk Galls"
+              "label": "Dhawri Flowers"
             },
             {
               "id": "o3",
@@ -3197,32 +3257,31 @@
           "options": [
             {
               "id": "o1",
-              "label": "Dye-Bath Plant Additives"
+              "label": "Alizarin, Madder And Chay Root"
             },
             {
               "id": "o2",
-              "label": "Dhawri / Tamarisk Galls"
+              "label": "Indigo"
             },
             {
               "id": "o3",
-              "label": "Indian Madder"
+              "label": "Myrobalan"
             },
             {
               "id": "o4",
-              "label": "Cow Or Buffalo Dung"
+              "label": "Sawdust"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/0dc89f60.jpg",
+            "path": "/walkthrough/stills/objects/cd8ea0d2.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.dye-bath-boiling-and-sun-drying",
-            "objectKey": "machilipatnam-kalamkari.material.dye-bath-plant-additives"
-          },
-          "sampleText": true
+            "objectKey": "machilipatnam-kalamkari.material.alizarin-and-red-roots"
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -3238,32 +3297,31 @@
           "options": [
             {
               "id": "o1",
-              "label": "Indigo"
+              "label": "Rice Starch"
             },
             {
               "id": "o2",
-              "label": "Fermented Iron-Jaggery Black Paste"
+              "label": "Neerani"
             },
             {
               "id": "o3",
-              "label": "Khariyanu Resist Paste"
+              "label": "Buffalo Milk"
             },
             {
               "id": "o4",
-              "label": "Tamarind Seed Paste"
+              "label": "Iron Acetate Black Mordant"
             }
           ],
           "shuffle": true,
           "image": {
-            "path": "/walkthrough/stills/objects/99282136.jpg",
+            "path": "/walkthrough/stills/objects/8acd8043.jpg",
             "alt": "The object to name"
           },
           "target": {
             "tradition": "machilipatnam-kalamkari",
             "stageKey": "machilipatnam-kalamkari.second-printing",
-            "objectKey": "machilipatnam-kalamkari.material.indigo"
-          },
-          "sampleText": true
+            "objectKey": "machilipatnam-kalamkari.material.rice-starch"
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -3303,8 +3361,7 @@
             "tradition": "sanganeri",
             "stageKey": "sanganeri.printing-the-mordants-and-ageing",
             "objectKey": "sanganeri.material.syahi-iron-black"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -3324,7 +3381,7 @@
             },
             {
               "id": "o2",
-              "label": "Dhawri / Tamarisk Galls"
+              "label": "Dhawri Flowers"
             },
             {
               "id": "o3",
@@ -3344,8 +3401,7 @@
             "tradition": "sanganeri",
             "stageKey": "sanganeri.washing-and-alizarin-dyeing",
             "objectKey": "sanganeri.material.dhawai-phool"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"
@@ -3425,8 +3481,7 @@
             "tradition": "sanganeri",
             "stageKey": "sanganeri.yellow-dyeing-and-alum-post-mordanting",
             "objectKey": "sanganeri.material.alum-fitkari"
-          },
-          "sampleText": true
+          }
         },
         "answerKey": {
           "optionId": "o1"

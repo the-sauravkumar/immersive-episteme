@@ -150,7 +150,7 @@
         {
           "key": "ajrakh.material.kut-iron-paste",
           "role": "material",
-          "label": "Fermented Iron-Jaggery Black Paste",
+          "label": "Iron-Water Black Paste",
           "localName": "Kut",
           "modelId": "paste-bowl"
         }
@@ -216,7 +216,7 @@
           "key": "ajrakh.material.tamarind-seed-paste",
           "role": "material",
           "label": "Tamarind Seed Paste",
-          "localName": "Kachika",
+          "localName": "Pa",
           "modelId": "paste-bowl"
         },
         {
@@ -368,7 +368,7 @@
         {
           "key": "ajrakh.material.dhawri-tamarisk",
           "role": "material",
-          "label": "Dhawri / Tamarisk Galls",
+          "label": "Dhawri Flowers",
           "localName": "Dhaori Na Phool",
           "modelId": "lump-basket"
         }
