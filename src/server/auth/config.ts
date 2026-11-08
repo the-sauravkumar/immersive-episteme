@@ -18,6 +18,7 @@ import {
 } from "./account-throttle";
 import { AUTH_COOKIE_PREFIX } from "./cookie-names";
 import { GOOGLE_PROVIDER_ID, googleProviderOptions, mayCreateUser, socialRequestRefusal, STAFF_ACCOUNT_LINKING } from "./google-sign-in";
+import { grantListedSuperAdmin } from "./super-admin";
 
 const AUTH_SCHEMA = {
   user: users,
@@ -44,6 +45,7 @@ export type CreateAuthOptions = {
   clientIpHeader?: string;
   accountThrottle?: AccountThrottleOptions | false;
   google?: GoogleOAuthCredentials | null;
+  superAdminEmails?: readonly string[];
 };
 
 const SIGN_IN_PATH = "/sign-in/email";
@@ -145,11 +147,12 @@ export function createAuth(opts: CreateAuthOptions) {
         create: {
           before: async (session) => {
             const [row] = await db
-              .select({ disabledAt: users.disabledAt })
+              .select({ id: users.id, email: users.email, emailVerified: users.emailVerified, disabledAt: users.disabledAt })
               .from(users)
               .where(eq(users.id, session.userId))
               .limit(1);
             if (!row || row.disabledAt) return false;
+            await grantListedSuperAdmin(db, row, opts.superAdminEmails ?? []);
           },
         },
       },

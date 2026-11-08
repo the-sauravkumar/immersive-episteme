@@ -1,5 +1,8 @@
 import { test as base, type Browser, type BrowserContext, type Page, type TestInfo } from "@playwright/test";
 
+import type { LearningCondition } from "../../src/lib/permissions/learning";
+import { signDemoSession } from "../../src/server/auth/demo-session";
+
 import { rendererMismatch, type ExpectedGpu } from "./gpu-mode";
 import { INVITE_STORAGE_STATE } from "./invite-state";
 
@@ -65,3 +68,15 @@ export const test = base.extend<object, { gpuRenderer: string | null }>({
     await provide(page);
   },
 });
+
+export async function openDemo(page: Page, condition: LearningCondition): Promise<void> {
+  await page.goto("/explore");
+  const url = new URL(page.url());
+  const token = await signDemoSession(process.env.BETTER_AUTH_SECRET!, condition);
+  await page.context().addCookies([
+    { name: "ie_demo", value: token, url: url.origin },
+    { name: "__Host-ie_demo", value: token, domain: url.hostname, path: "/", secure: true, httpOnly: true, sameSite: "Lax" },
+  ]);
+  await page.getByRole("button", { name: "Open the demo" }).click();
+  await page.waitForURL(condition === "2d" ? /\/learn\/2d$/ : /\/learn\/immersive$/, { timeout: 120_000 });
+}

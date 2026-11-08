@@ -28,10 +28,10 @@ export default function PrivacyPage() {
           >
             <Prose>
               You join a study with the study link or code the researchers give you. The platform then knows you only by a pseudonymous study
-              identifier and the learning condition you were allocated to. It records your answers to the questions and tasks. The display and browser check records your window size, screen density, input
+              identifier and the learning task you were given. It records your answers to the questions and tasks. The display and browser check records your window size, screen density, input
               devices, browser family, graphics support and whether you have asked for reduced motion or high contrast. During the learning task it
-              records the stops you enter and leave and for how long, the sources you open, the hints and help you use, and in the walkthrough your
-              walking path, where you look and how long you stay near each object, so that the two conditions can be compared.
+              records the stops you enter and leave and for how long, the sources you open, the hints and help you use, and, where the task is a scene you
+              move through, your path, where you look and how long you stay near each object, so that the researchers can study how people learn.
             </Prose>
           </EditorialRow>
         </EditorialSection>

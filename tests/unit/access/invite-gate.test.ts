@@ -54,7 +54,7 @@ describe("invite cookie", () => {
     expect((await verifyInviteAccess(`${v}.${body}.${sig.slice(0, -2)}AA`, SECRET)).ok).toBe(false);
     expect((await verifyInviteAccess(token, `${SECRET}x`)).ok).toBe(false);
     expect(await verifyInviteAccess(token, "")).toMatchObject({ ok: false, reason: "no_secret" });
-    expect((await verifyInviteAccess(await signDemoSession(SECRET), SECRET)).ok).toBe(false);
+    expect((await verifyInviteAccess(await signDemoSession(SECRET, "2d"), SECRET)).ok).toBe(false);
   });
 });
 

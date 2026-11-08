@@ -23,8 +23,7 @@
       "S1",
       "S2",
       "S8",
-      "S12",
-      "S13"
+      "S12"
     ]
   },
   "summary": "Bagh print is a hand block printing tradition of Bagh town in Dhar district, Madhya Pradesh, practised mainly by the Khatri (chhipa) community, and registered as a Geographical Indication. Its signature is geometric and floral repeat patterns printed in red and black on a white ground with mordants (alum for red, iron for black) that develop colour when the cloth is boiled with alizarin and dhavda flowers in a copper vat (bhatti). The process depends heavily on flowing river water for repeated washing.",
@@ -127,7 +126,7 @@
     },
     {
       "id": "S9",
-      "kind": "unverified",
+      "kind": "historical_documentation",
       "title": "Bagh Prints of Madhya Pradesh",
       "author": "Ministry of Tourism",
       "publisher": "Incredible India (Government of India)",
@@ -135,7 +134,7 @@
       "url": "https://incredibleindia.gov.in/en/madhya-pradesh/bagh-prints-of-madhya-pradesh",
       "accessed": "2026-10-14",
       "reliability": "low",
-      "notes": "Government tourism promotion page; GI 2008, iron/alum/alizarin, motifs (genda, nariyal jaal), 'minerals in the river water' as a belief. Contains an evident error ('Sindh in Punjab')."
+      "notes": "Government tourism promotion page; GI 2008, iron/alum/alizarin, motifs (genda, nariyal jaal), 'minerals in the river water' as a belief. Contains an evident error ('Sindh in Punjab'). Judged 2026-11-08 (DR-134) on its archived copy: kept: the Ministry of Tourism's page describes Bagh printing as the other Bagh sources do (Khatri printers, river washing, natural colours, Genda and Nariyal Jaal motifs, GI 2008); its 'Sindh in Punjab' slip is not cited. Archived copy: D:/Work/IIT-KGP/Paper_1-artifacts/sources/bagh-2026-11-07/9321825f5b0f.wb.raw (Wayback 20260724121650)."
     },
     {
       "id": "S10",
@@ -172,18 +171,6 @@
       "accessed": "2026-10-14",
       "reliability": "medium",
       "notes": "GI index entry: applicant Development Commissioner (Handicrafts); certificate date 10/7/2008."
-    },
-    {
-      "id": "S13",
-      "kind": "unverified",
-      "title": "Bagh print",
-      "author": "Wikipedia contributors",
-      "publisher": "Wikipedia",
-      "year": 2026,
-      "url": "https://en.wikipedia.org/wiki/Bagh_print",
-      "accessed": "2026-10-14",
-      "reliability": "low",
-      "notes": "Used only to corroborate GI product application no. 98 (2008); itself cites the GI Journal and registry lists."
     }
   ],
   "concepts": [
@@ -724,7 +711,7 @@
       "category": "geography_history",
       "title": "Geographical Indication registration",
       "summary": "The GI 'Bagh Prints of Madhya Pradesh' was recorded under application number 98 in 2008.",
-      "body_md": "The GI 'Bagh Prints of Madhya Pradesh' was recorded under application number 98 in 2008. [S8, S13]\n\nA GI index lists the certificate date as 10/7/2008 with the Development Commissioner (Handicrafts) as applicant. [S12]\n\nLogo application No. 505 was filed 08-01-2015 in Class 24, published in Journal 75, and registered under Certificate No. 239 dated 31-03-2016, valid up to 07-01-2025. [S2, S1]\n\nMaster artisans inspect predetermined parameters at each stage, but their quality specifications vary from one master artisan to another. [S1]",
+      "body_md": "The GI 'Bagh Prints of Madhya Pradesh' was recorded under application number 98 in 2008. [S8]\n\nA GI index lists the certificate date as 10/7/2008 with the Development Commissioner (Handicrafts) as applicant. [S12]\n\nLogo application No. 505 was filed 08-01-2015 in Class 24, published in Journal 75, and registered under Certificate No. 239 dated 31-03-2016, valid up to 07-01-2025. [S2, S1]\n\nMaster artisans inspect predetermined parameters at each stage, but their quality specifications vary from one master artisan to another. [S1]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
       "verification_state": "verified",
@@ -732,19 +719,13 @@
         {
           "text": "The GI 'Bagh Prints of Madhya Pradesh' was recorded under application number 98 in 2008.",
           "source_ids": [
-            "S8",
-            "S13"
+            "S8"
           ],
           "evidence": [
             {
               "source_id": "S8",
               "locator": "§ \"Paramparik Karigar 2017 - page 38\"",
               "quote": "It was registered by the Controller General of Patents, Designs and Trademarks under the title \"Bagh Prints of Madhya Pradesh\" and recorded with (GI) tag under Application number 98 in 2008."
-            },
-            {
-              "source_id": "S13",
-              "locator": "§ \"Location\"",
-              "quote": "They were registered by the Controller General of Patents Designs and Trademarks under the title \"Bagh Prints of Madhya Pradesh\" and recorded with (GI) tag under Application number 98 in 2008."
             }
           ]
         },

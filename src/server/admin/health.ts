@@ -57,7 +57,7 @@ export async function getHealthReport(
   actor: Actor,
   opts: { journalPath?: string; cwd?: string; env?: Record<string, string | undefined> } = {},
 ): Promise<HealthReport> {
-  ensure(actor, ADMIN_ANY);
+  ensure(actor, "admin.settings");
   const cwd = opts.cwd ?? process.cwd();
   const journalPath = opts.journalPath ?? join(cwd, "db", "migrations", "meta", "_journal.json");
 

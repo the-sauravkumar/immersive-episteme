@@ -16,7 +16,6 @@ export const PRIMARY_OUTCOME = { metric: PRIMARY_OUTCOMES[0], metrics: PRIMARY_O
 export const SECONDARY_OUTCOMES = [
   "test.identification",
   "test.cloth_state",
-  "test.attribution",
   "test.transfer",
   "cmap.recall.dl",
   "common.mental_effort",
@@ -396,7 +395,6 @@ const DEFINITIONS: readonly Omit<MetricDefinition, "role">[] = [
   testScore("test.stage_placement", "Stage Placement", "Association: the stage at which a tool or material is used (H1).", "primary"),
   testScore("test.sequence", "Sequence", "Order of shuffled stage cards per tradition (H1).", "primary"),
   testScore("test.cloth_state", "Cloth State", "Matching a cloth state to the stage that produces it."),
-  testScore("test.attribution", "Attribution", "Assigning a finished product image to its tradition."),
   testScore("test.transfer", "Transfer", "Predicting order or next stage for an unseen tradition."),
   commonRating("common.mental_effort", "Mental Effort", "Perceived mental effort of learning (H3)."),
   commonRating("common.navigation_effort", "Navigation Effort", "Perceived effort of moving through the material, apart from content difficulty (H3)."),

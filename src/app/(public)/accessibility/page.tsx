@@ -45,8 +45,8 @@ export default function AccessibilityPage() {
         <EditorialSection id="study-pages" title="In a study">
           <EditorialRow>
             <Prose>
-              Study pages have no interface transitions or animations, in both learning conditions, so that the display is the same for everyone. In the walkthrough
-              the view moves only while the learner walks, looks around or uses Walk On or Back.
+              Study pages have no interface transitions or animations, so that the display is the same for everyone. Where the learning task
+              shows a scene, the view moves only while the learner moves through it or goes on or back.
             </Prose>
           </EditorialRow>
         </EditorialSection>
@@ -57,14 +57,8 @@ export default function AccessibilityPage() {
               <li>Skip to content is the first stop on every page.</li>
               <li>Every control shows a visible focus ring.</li>
               <li>
-                In the visual course, Next and Back move one panel at a time, and the woven parts of the strip return to a panel already reached. Focus
-                moves to the name of the stage on each step. Sources opens under the caption, and Help and Pause are the buttons at the top of the
-                panel; Escape closes either dialog.
-              </li>
-              <li>
-                In the walkthrough, W, A, S and D or the arrow keys walk, Walk On goes to the next station, and Back or the B key goes back along the
-                route. Sources, Help and Pause are the buttons at the top right. Turning the view by hand needs a pointer; Walk On and Back turn the
-                view by themselves on the way to each station.
+                Before the learning task, a short practice with neutral content shows its controls. Every stage of the task can be reached with
+                the keyboard alone, through its buttons for going on and going back; Sources, Help and Pause are buttons too.
               </li>
               <li>
                 In the staff console&rsquo;s concept preview, a number in brackets such as [1] opens where a statement comes from, Enlarge opens a figure
@@ -77,9 +71,9 @@ export default function AccessibilityPage() {
         <EditorialSection id="screen-readers" title="Screen readers">
           <EditorialRow>
             <Prose>
-              Pages use landmarks and one main heading each. In the visual course the stage name is a heading and each caption is page text. In the
-              walkthrough the stage names and captions are painted in the scene, where a screen reader cannot read them; the caption is also in
-              Sources, as text. Every diagram on the public pages has a text version beside it.
+              Pages use landmarks and one main heading each. Where the learning task paints a stage name or caption on a surface, a screen
+              reader cannot read it there; the caption is also given as text in Sources. Every diagram on the public pages has a text version
+              beside it.
             </Prose>
           </EditorialRow>
         </EditorialSection>

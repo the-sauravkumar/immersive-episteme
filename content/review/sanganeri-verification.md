@@ -72,9 +72,7 @@ Study template: `content/study/sanganeri.template.json` was rebuilt with `npm ru
 | S10 | researcher_interpretation | S10.pdf | `f6f4b8c67b681c7cea739acd46b4b45ed0d651b66833f29406734d8c41e5ba0d` | yes |
 | S11 | scientific_evidence | s11-openalex.json | `9ff3f428294d454c3aa92ca09c45ac00d37c181b013f7b6091cb5159a9f13ec7` | not comparable: the manifest hashes the DOI's 404 page; this is the OpenAlex record whose abstract the 2026-10-14 archive holds |
 | S12 | researcher_interpretation | S12.html | `47c621f8aa9572b42309c738df3bfb19afa582065fe2f7ca6dc56c3d4bb8e45f` | no: copy fetched 2026-10-16 (the 2026-10-14 copy is no longer on disk) |
-| S13 | unverified | S13.html | `60651312e2417c0ac8898f370729a61373383c858888da7c5c2b5832fe664b69` | no: copy fetched 2026-10-16 (the 2026-10-14 copy is no longer on disk) |
-| S14 | unverified | S14.html | `072556f18f4b05ca59e6da4ecfd03042de4e87e0d003d7176cc997ee1a455f72` | no: copy fetched 2026-10-16 (the 2026-10-14 copy is no longer on disk) |
-| S15 | unverified | S15.html | `0feaf98a1674d2a7646de656d6840db29d124660e143221af59c4775fee0e8e8` | no: copy fetched 2026-10-16 (the 2026-10-14 copy is no longer on disk) |
+| S14 | researcher_interpretation | S14.html | `072556f18f4b05ca59e6da4ecfd03042de4e87e0d003d7176cc997ee1a455f72` | no: copy fetched 2026-10-16 (the 2026-10-14 copy is no longer on disk) |
 
 ## Claim Evidence
 
@@ -556,3 +554,10 @@ Each name in `alt_names` is printed by a recorded source; the quote was re-found
 | Sanganer print | S8 | § "page text" | Syahi Begar &#124; Sanganer Print |
 | Sanganeri Hand Block Printing | S1 | PDF p. 2 | SANGANERI HAND BLOCK PRINTING |
 | Syahi Begar | S8 | § "page text" | Syahi Begar &#124; Sanganer Print |
+
+## DR-134: Sources Of Kind Unverified Judged On Their Archived Copies
+
+The lead's rule (2026-11-08): a source that is of good quality, helps the project and describes what this tradition is and looks like is kept and accepted whether or not an author or publisher is named; otherwise it is dropped and its citations removed. Each kept source's kind, reason and archived copy are in its `notes` in the content file.
+
+- **S14 (AIACA Craftkatha): kept** as `researcher_interpretation`; it describes Sanganeri's fine blocks, pastel colours and sun-bleaching; cited in `comparisons.json` only as an instance of a GI date the registry contradicts.
+- **S13 (Incredible India) and S15 (Wikipedia, Sanganer): dropped**; promotional tourism text and a town article, cited by nothing.

@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ROLE_DUTIES, ROLE_LABELS, STAFF_ROLES, type StaffRole } from "@/lib/permissions/roles";
+import { ADMIN_GRANTABLE_ROLES, adminMayChange, adminMayLock, ROLE_DUTIES, ROLE_LABELS, STAFF_ROLES, type StaffRole } from "@/lib/permissions/roles";
 import { clearSignInLockAction, createStaffAction, lockStaffAction, resetPasswordAction, revokeRoleAction, setRoleAction, unlockStaffAction } from "@/server/admin/actions";
 
 function TextField({ name, label, type = "text", autoComplete, hint }: { name: string; label: string; type?: string; autoComplete?: string; hint?: string }) {
@@ -31,7 +31,7 @@ function TextField({ name, label, type = "text", autoComplete, hint }: { name: s
   );
 }
 
-function RoleFields({ current, principalInvestigator = false }: { current?: StaffRole | null; principalInvestigator?: boolean }) {
+function RoleFields({ roles, markPrincipalInvestigator, current, principalInvestigator = false }: { roles: readonly StaffRole[]; markPrincipalInvestigator: boolean; current?: StaffRole | null; principalInvestigator?: boolean }) {
   const id = useId();
   const [role, setRole] = useState<string>(current ?? "");
   return (
@@ -41,14 +41,14 @@ function RoleFields({ current, principalInvestigator = false }: { current?: Staf
           <option value="" disabled>
             Choose a role
           </option>
-          {STAFF_ROLES.map((r) => (
+          {roles.map((r) => (
             <option key={r} value={r}>
               {ROLE_LABELS[r]}
             </option>
           ))}
         </NativeSelect>
       </FormField>
-      {role === "researcher" ? (
+      {role === "researcher" && markPrincipalInvestigator ? (
         <label htmlFor={`${id}-pi`} className={CHECK_ROW}>
           <input id={`${id}-pi`} type="checkbox" name="principalInvestigator" className={CHECK_BOX} defaultChecked={principalInvestigator} />
           Principal investigator: may start studies, exclude sessions, export identified data and publish content releases
@@ -72,7 +72,7 @@ export function CreateStaffForm({ minPasswordLength }: { minPasswordLength: numb
           hint={`At least ${minPasswordLength} characters. Share it out of band; the person can change it after signing in, from Change password in their account menu.`}
         />
         <div className="flex flex-col gap-3">
-          <RoleFields />
+          <RoleFields roles={STAFF_ROLES} markPrincipalInvestigator />
         </div>
       </div>
     </ActionForm>
@@ -112,8 +112,10 @@ function useAnnounce(): (message: string) => void {
   return announce;
 }
 
-export function UserRowActions({ user, self, manageRoles, minPasswordLength }: { user: RowUser; self: boolean; manageRoles: boolean; minPasswordLength: number }) {
+export function UserRowActions({ user, self, superAdmin, minPasswordLength }: { user: RowUser; self: boolean; superAdmin: boolean; minPasswordLength: number }) {
   const [open, setOpen] = useState<Pending>(null);
+  const changeRole = superAdmin || adminMayChange(user.role ? { role: user.role, principalInvestigator: user.principalInvestigator } : null);
+  const lockAccount = superAdmin || adminMayLock(user.role);
   const announce = useAnnounce();
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -148,7 +150,7 @@ export function UserRowActions({ user, self, manageRoles, minPasswordLength }: {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-72">
           <DropdownMenuLabel>{user.name}</DropdownMenuLabel>
-          {manageRoles ? (
+          {changeRole ? (
             <>
               <DropdownMenuItem onSelect={() => setOpen({ kind: "role" })}>
                 <ShieldPlus aria-hidden="true" />
@@ -163,7 +165,9 @@ export function UserRowActions({ user, self, manageRoles, minPasswordLength }: {
               <DropdownMenuSeparator />
             </>
           ) : null}
-          {self ? (
+          {!lockAccount ? (
+            <DropdownMenuItem disabled>Only a Super Admin can manage this account</DropdownMenuItem>
+          ) : self ? (
             <DropdownMenuItem disabled>You cannot lock your own account</DropdownMenuItem>
           ) : user.locked ? (
             <DropdownMenuItem onSelect={() => setOpen({ kind: "unlock" })}>
@@ -176,13 +180,13 @@ export function UserRowActions({ user, self, manageRoles, minPasswordLength }: {
               Lock account…
             </DropdownMenuItem>
           )}
-          {user.signInLocked ? (
+          {lockAccount && user.signInLocked ? (
             <DropdownMenuItem onSelect={() => setOpen({ kind: "liftLock" })}>
               <TimerReset aria-hidden="true" />
               Lift sign-in lock…
             </DropdownMenuItem>
           ) : null}
-          {!self && user.hasPassword ? (
+          {lockAccount && !self && user.hasPassword ? (
             <DropdownMenuItem variant="destructive" onSelect={() => setOpen({ kind: "resetPassword" })}>
               <KeyRound aria-hidden="true" />
               Reset password…
@@ -201,7 +205,7 @@ export function UserRowActions({ user, self, manageRoles, minPasswordLength }: {
           </DialogHeader>
           <ActionForm action={announced(setRoleAction)} submitLabel="Save role" pendingLabel="Saving…" onDone={(s) => s.ok && done()}>
             <input type="hidden" name="userId" value={user.id} />
-            <RoleFields current={user.role} principalInvestigator={user.principalInvestigator} />
+            <RoleFields roles={superAdmin ? STAFF_ROLES : ADMIN_GRANTABLE_ROLES} markPrincipalInvestigator={superAdmin} current={user.role} principalInvestigator={user.principalInvestigator} />
           </ActionForm>
         </DialogContent>
       </Dialog>
@@ -213,8 +217,8 @@ export function UserRowActions({ user, self, manageRoles, minPasswordLength }: {
               <DialogHeader>
                 <DialogTitle>Remove the role</DialogTitle>
                 <DialogDescription>
-                  {user.name} stops being {ROLE_LABELS[user.role]} from their next page load and waits for access until someone gives them a role again. The last Admin
-                  cannot be removed.
+                  {user.name} stops being {ROLE_LABELS[user.role]} from their next page load and waits for access until someone gives them a role again. The last Super
+                  Admin cannot be removed.
                 </DialogDescription>
               </DialogHeader>
               <ConfirmForm

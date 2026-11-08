@@ -9,7 +9,7 @@ from .data import build_table
 from .mixed import Observation, correlation, fit_time_by_condition
 from .roles import PRE_TEST_COVARIATE, PRIMARY_OUTCOMES
 
-TEST_SCORES = ("test.sequence", "test.stage_placement", "test.identification", "test.cloth_state", "test.attribution", "test.transfer")
+TEST_SCORES = ("test.sequence", "test.stage_placement", "test.identification", "test.cloth_state", "test.transfer")
 RATINGS = ("common.mental_effort", "common.navigation_effort")
 
 

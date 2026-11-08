@@ -48,8 +48,8 @@ const objectsOf = (items: readonly GeneratedItem[]) => items.map((item) => (item
 describe("test item generation", () => {
   it("builds each form with valid configs and keys", () => {
     expect(battery.map((a) => a.code)).toEqual([
-      "test-pre", "test-identification", "test-stage-placement", "test-sequence", "test-cloth-state", "test-attribution", "demo-test-transfer", "test-concept-map", "test-layout-sketch",
-      "test-identification-delayed", "test-stage-placement-delayed", "test-sequence-delayed", "test-cloth-state-delayed", "test-attribution-delayed", "demo-test-transfer-delayed",
+      "test-pre", "test-identification", "test-stage-placement", "test-sequence", "test-cloth-state", "demo-test-transfer", "test-concept-map", "test-layout-sketch",
+      "test-identification-delayed", "test-stage-placement-delayed", "test-sequence-delayed", "test-cloth-state-delayed", "demo-test-transfer-delayed",
     ]);
     for (const assessment of battery) {
       expect(new Set(assessment.items.map((i) => i.itemKey)).size, assessment.code).toBe(assessment.items.length);
@@ -78,7 +78,6 @@ describe("test item generation", () => {
     }
     expect(of(byCode("test-pre"), "ajrakh")).toHaveLength(FORM_LENGTHS.preIdentification + FORM_LENGTHS.prePlacement);
     expect(of(byCode("test-identification"), "ajrakh")).toHaveLength(6);
-    expect(of(byCode("test-attribution"), "ajrakh")).toHaveLength(2);
   });
 
   it("asks the same objects of one tradition before learning, straight after and at the delayed test", () => {
@@ -160,12 +159,12 @@ describe("test item generation", () => {
     expect(of(byCode("test-cloth-state-delayed"), "ajrakh")).toEqual(now);
   });
 
-  it("attributes each of the tradition's product images to a tradition, the same images later", () => {
-    const now = of(byCode("test-attribution"), "ajrakh");
-    expect(now.map((i) => (i.config as { image: { path: string } }).image.path)).toEqual(["/walkthrough/ajrakh-1.jpg", "/walkthrough/ajrakh-2.jpg"]);
-    expect(of(byCode("test-attribution-delayed"), "ajrakh")).toEqual(now);
-    expect(now[0]!.answerKey).toEqual({ optionId: "ajrakh" });
-    expect((now[0]!.config.options as unknown[]).length).toBe(3);
+  it("never asks which tradition a textile comes from, since each participant learns one tradition (DR-134)", () => {
+    expect(battery.some((a) => a.code.includes("attribution") || (a.testType as string | null) === "attribution")).toBe(false);
+    for (const item of battery.flatMap((a) => a.items)) {
+      expect(item.prompt, item.itemKey).not.toMatch(/which tradition/i);
+      expect(item.itemKey.startsWith("attr."), item.itemKey).toBe(false);
+    }
   });
 
   it("marks the transfer account as Sample Text, draws only from the relations, and uses another tradition later", () => {
@@ -242,7 +241,8 @@ describe("no option can be found from the question's wording", () => {
     expect(lengthOf("test-identification-delayed")).toBe(11);
     expect(lengthOf("test-stage-placement")).toBe(7);
     expect(lengthOf("test-stage-placement-delayed")).toBe(7);
-    for (const code of ["test-sequence", "test-cloth-state", "test-attribution", "test-sequence-delayed", "test-cloth-state-delayed", "test-attribution-delayed"]) expect(lengthOf(code)).toBe(3);
+    for (const code of ["test-sequence", "test-cloth-state", "test-sequence-delayed", "test-cloth-state-delayed"]) expect(lengthOf(code)).toBe(3);
+    expect(generated.some((a) => a.code.includes("attribution"))).toBe(false);
     expect(lengthOf("test-concept-map")).toBe(1);
   });
 

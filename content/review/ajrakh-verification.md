@@ -36,8 +36,7 @@ Evidence table for `content/traditions/ajrakh/tradition.json`, verified under th
 | S11 | researcher_interpretation | S11.bin | `691324d8f471caf0dc42b7662846c3c741fa43bcd8dd1e0b51c276bc6bf029dc` | yes |
 | S12 | researcher_interpretation | S12.bin | `cb2b6ca41ff9c8dd87964fdfb4ca15a99244e81237ab070b1a64ae2965dd7be1` | no (fetched again; differs from the 2026-10-14 copy) |
 | S13 | researcher_interpretation | S13.bin | `fcb7670b3858e11392aa803eb4fd916720438646d9f235bffb2456791ad54c3f` | no (fetched again; differs from the 2026-10-14 copy) |
-| S14 | unverified | S14.bin | `70bcc89c17a513dc49a4ffae633338ce9dcef591a44daae0bf1c1a3d3349ba83` | no (fetched again; differs from the 2026-10-14 copy) |
-| S15 | unverified | S15.bin | `316f839d5a55a007383ecb66693d6bbe867a178467eec45639385b42059be0ee` | no (fetched again; differs from the 2026-10-14 copy) |
+| S15 | researcher_interpretation | S15.bin | `316f839d5a55a007383ecb66693d6bbe867a178467eec45639385b42059be0ee` | no (fetched again; differs from the 2026-10-14 copy) |
 
 ## Stage Order (PRECEDES)
 
@@ -633,3 +632,10 @@ Each name in `alt_names` is printed by a recorded source; the quote was re-found
 | Kutch Ajrakh | S1 | § "Application Details" | Geographical Indications Kutch Ajrakh Print of Gujarat |
 | Kutch Ajrakh Print of Gujarat | S1 | § "Application Details" | Geographical Indications Kutch Ajrakh Print of Gujarat |
 | Sindhi Ajrak | S15 | § "Ajrak" | Sindhi ajrak |
+
+## DR-134: Sources Of Kind Unverified Judged On Their Archived Copies
+
+The lead's rule (2026-11-08): a source that is of good quality, helps the project and describes what this tradition is and looks like is kept and accepted whether or not an author or publisher is named; otherwise it is dropped and its citations removed. Each kept source's kind, reason and archived copy are in its `notes` in the content file.
+
+- **S15 (Wikipedia, Ajrak): kept** as `researcher_interpretation`; it prints the alternative names Ajrak and Sindhi Ajrak and describes the same cloth.
+- **S14 (Gaatha shop page): dropped**; a product page whose craft text is credited to an unidentified seller, cited by nothing.

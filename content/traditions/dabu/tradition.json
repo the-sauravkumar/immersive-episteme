@@ -124,18 +124,6 @@
       "notes": "Dabu in Deesa, Ahmedabad, Jamnagar; paste of mud and local baval gum; washing at each new colour."
     },
     {
-      "id": "S10",
-      "kind": "unverified",
-      "title": "Akola, Chittorgarh",
-      "author": "Wikipedia contributors",
-      "publisher": "Wikipedia",
-      "year": 2026,
-      "url": "https://en.wikipedia.org/wiki/Akola,_Chittorgarh",
-      "accessed": "2026-10-14",
-      "reliability": "low",
-      "notes": "Village in Bhupalsagar tehsil, Chittorgarh district; coordinates 24.9N 74.33E; alt name Chhipo ka Akola. Fact-check: the alt name \"Chhipo ka Akola\" carries a [citation needed] tag on Wikipedia."
-    },
-    {
       "id": "S11",
       "kind": "historical_documentation",
       "title": "Textile, object 88-16-37 (Bagru, mid-late 19th c.)",
@@ -197,7 +185,7 @@
     },
     {
       "id": "S16",
-      "kind": "unverified",
+      "kind": "researcher_interpretation",
       "title": "Kaisori discovers: The Dabu block prints of Akola",
       "author": "Kaisori (unattributed)",
       "publisher": "Kaisori (retailer blog)",
@@ -205,11 +193,11 @@
       "url": "https://kaisori.com/blogs/kaisori-discovers/the-dabu-of-akola",
       "accessed": "2026-10-14",
       "reliability": "low",
-      "notes": "Retailer field visit: arid region supplies mud, river water for washing, paste called \"Hada\", repeated resist and dye; largely mirrors S1."
+      "notes": "Retailer field visit: arid region supplies mud, river water for washing, paste called \"Hada\", repeated resist and dye; largely mirrors S1. Judged 2026-11-08 (DR-134) on its archived copy: kept: a first-hand field visit to Akola by a retailer working with an Akola family, describing the mud, gum and lime paste (Hada), repeated resist and indigo dyeing and named motifs as the Gaatha documentation (S1) does. Archived copy: D:/Work/IIT-KGP/Paper_1-artifacts/sources/dabu-2026-11-07/S16.html."
     },
     {
       "id": "S17",
-      "kind": "unverified",
+      "kind": "researcher_interpretation",
       "title": "Mud In Textiles: The Art Of Block Printing in Rajasthan",
       "author": "Jain, Anoushka",
       "publisher": "Enroute Indian History (blog)",
@@ -217,7 +205,7 @@
       "url": "https://enrouteindianhistory.com/mud-in-textiles-the-art-of-block-printing-in-rajasthan/",
       "accessed": "2026-10-14",
       "reliability": "low",
-      "notes": "Secondary blog citing Kaur \"DABU - A Unique Style of Mud Printing\" (not accessible): kalidar, dolidar and gawarvali dabu recipes, kali mitti from dry pond soaked overnight, muslin straining, mardia pot, block woods, dye seeping through cracks."
+      "notes": "Secondary blog citing Kaur \"DABU - A Unique Style of Mud Printing\" (not accessible): kalidar, dolidar and gawarvali dabu recipes, kali mitti from dry pond soaked overnight, muslin straining, mardia pot, block woods, dye seeping through cracks. Judged 2026-11-08 (DR-134) on its archived copy: kept: a signed article (Anoushka Jain) with a reference list describing Akola dabu, its paste recipes, black clay from a dry pond, muslin straining, mardia pot, block woods and crackle, matching the tradition. Archived copy: D:/Work/IIT-KGP/Paper_1-artifacts/sources/dabu-2026-11-07/S17.html."
     },
     {
       "id": "S18",
@@ -233,7 +221,7 @@
     },
     {
       "id": "S19",
-      "kind": "unverified",
+      "kind": "researcher_interpretation",
       "title": "Daboo Print: An Ancient Printing Technique from Rajasthan",
       "author": "Utsavpedia (unattributed)",
       "publisher": "Utsavpedia (Utsav Fashion)",
@@ -241,7 +229,7 @@
       "url": "https://www.utsavpedia.com/motifs-embroideries/daboo-print/",
       "accessed": "2026-10-14",
       "reliability": "low",
-      "notes": "Akola as acknowledged origin; 675 AD claim; process incl. pre-printing with fast dyes; double/triple dabu; traditional dyes kashish, indigo, pomegranate."
+      "notes": "Akola as acknowledged origin; 675 AD claim; process incl. pre-printing with fast dyes; double/triple dabu; traditional dyes kashish, indigo, pomegranate. Judged 2026-11-08 (DR-134) on its archived copy: kept: a textile encyclopedia entry describing Akola as the origin of Daboo mud-resist printing, its washing, pre-printing, sun-drying, dyeing and double or triple dabu, consistent with S1, S2 and S18. Archived copy: D:/Work/IIT-KGP/Paper_1-artifacts/sources/dabu-2026-11-07/S19.html."
     },
     {
       "id": "S20",
@@ -257,7 +245,7 @@
     },
     {
       "id": "S21",
-      "kind": "unverified",
+      "kind": "practitioner_testimony",
       "title": "Dabu Block Printing",
       "author": "Maiwa (unattributed)",
       "publisher": "Maiwa Handprints (supplier)",
@@ -265,19 +253,7 @@
       "url": "https://www.maiwa.com/pages/dabu-block-printing",
       "accessed": "2026-10-14",
       "reliability": "low",
-      "notes": "Dabu described as \"a cold-water resist\" and a \"mud-resist\" using fine desert sand of Rajasthan, used during an indigo bath; reports certain patterns printed only on certain weaves of set width and length depending on the communities."
-    },
-    {
-      "id": "S22",
-      "kind": "unverified",
-      "title": "The Story of Dabu Prints: Tradition, Craft, and Contemporary Style",
-      "author": "Team PeepulTree",
-      "publisher": "Live History India / PeepulTree",
-      "year": 2024,
-      "url": "https://livehistoryindia.com/story/living-culture/the-story-of-dabu-prints-tradition-craft-and-contemporary-style",
-      "accessed": "2026-10-14",
-      "reliability": "low",
-      "notes": "Paste of chuna, gond and local clay; sawdust; sun-dry; dye; dry; wash; double/triple dabu; 8th-century claim."
+      "notes": "Dabu described as \"a cold-water resist\" and a \"mud-resist\" using fine desert sand of Rajasthan, used during an indigo bath; reports certain patterns printed only on certain weaves of set width and length depending on the communities. Judged 2026-11-08 (DR-134) on its archived copy: kept: Maiwa, a natural-dye house working with Rajasthani block printers for 40 years, describes dabu as a cold-water mud resist used in the indigo bath and its community-specific patterns, matching the tradition. Archived copy: D:/Work/IIT-KGP/Paper_1-artifacts/sources/dabu-2026-11-07/S21.html."
     },
     {
       "id": "S23",
@@ -435,7 +411,7 @@
       "category": "geography_history",
       "title": "Akola village, a Dabu cluster",
       "summary": "Akola is a village in Bhopalsagar tehsil, Chittorgarh district, about 52 km west of Chittorgarh.",
-      "body_md": "Akola is a village in Bhopalsagar tehsil, Chittorgarh district, about 52 km west of Chittorgarh. [S2, S10]\n\nAbout 200 people practise the craft in Akola. [S1, S2]\n\nAs a master craftsman told Gaatha, hundreds of years ago Rani Rathorji of Mewar established a village for the Chippa community on the banks of the Beduch river. [S1, S2]\n\nFabric is sourced from Kishangarh and pigments from Udaipur. [S1, S2]\n\nWikipedia gives Chhipo ka Akola as another name for Akola and marks it as needing a citation. [S10]",
+      "body_md": "Akola is a village in Bhopalsagar tehsil, Chittorgarh district, about 52 km west of Chittorgarh. [S2]\n\nAbout 200 people practise the craft in Akola. [S1, S2]\n\nAs a master craftsman told Gaatha, hundreds of years ago Rani Rathorji of Mewar established a village for the Chippa community on the banks of the Beduch river. [S1, S2]\n\nFabric is sourced from Kishangarh and pigments from Udaipur. [S1, S2]",
       "local_terms": [
         "Chhipo ka Akola",
         "Beduch"
@@ -446,8 +422,7 @@
         {
           "text": "Akola is a village in Bhopalsagar tehsil, Chittorgarh district, about 52 km west of Chittorgarh.",
           "source_ids": [
-            "S2",
-            "S10"
+            "S2"
           ],
           "evidence": [
             {
@@ -456,19 +431,9 @@
               "quote": "Located about 52 kms towards west from District headquarters Chittorgarh , 13 kms from Bhopalsagar and 339 kms from Jaipur. Akola is surrounded by Kapasan Tehsil towards North, Mavli Tehsil towards west, Bhinder Tehsil towards South, Railmagra Tehsil towards North."
             },
             {
-              "source_id": "S10",
-              "locator": "§ \"Location\"",
-              "quote": "It is located 52km towards west form district headquarters chittorgarh, 13km from Bhopalsagar , 339km from state capital Jaipur . Akola is surrounded by kapasan tehsil towards North, Mavli tehsil towards west, Bhinder tehsil towards south, Railmagra tehsil towards North. [ 1 ]"
-            },
-            {
               "source_id": "S2",
               "locator": "§ \"Geography:\"",
               "quote": "Akola is a village in Bhopalsagar Tehsil in Chittorgarh District of Rajasthan state in India."
-            },
-            {
-              "source_id": "S10",
-              "locator": "§ \"Akola, Chittorgarh\"",
-              "quote": "is a village in Bhupalsagar tehsil of Chittorgarh district in the Indian state of Rajasthan"
             }
           ]
         },
@@ -531,19 +496,6 @@
               "source_id": "S2",
               "locator": "§ \"Raw Materials:\"",
               "quote": "Fabric: Cotton fabric mostly of the count 20X20 is sourced from Kishangarh. Pigments: The pigments and dye stuff are procured from Udaipur."
-            }
-          ]
-        },
-        {
-          "text": "Wikipedia gives Chhipo ka Akola as another name for Akola and marks it as needing a citation.",
-          "source_ids": [
-            "S10"
-          ],
-          "evidence": [
-            {
-              "source_id": "S10",
-              "locator": "§ \"Akola, Chittorgarh\"",
-              "quote": "Akola , also known as Chhipo ka Akola , [ citation needed ] is a village in Bhupalsagar tehsil of Chittorgarh district"
             }
           ]
         }
@@ -1163,7 +1115,7 @@
       "category": "materials",
       "title": "Lime (chuna, calcium hydroxide)",
       "summary": "The resist paste is mud, gum and lime.",
-      "body_md": "The resist paste is mud, gum and lime. [S1, S3, S22]\n\nThe paste contains calcium hydroxide (chuna). [S15, S18]\n\nChuna/lime (kirana) is the weakest resist, used for fine outlines. [S6]",
+      "body_md": "The resist paste is mud, gum and lime. [S1, S3]\n\nThe paste contains calcium hydroxide (chuna). [S15, S18]\n\nChuna/lime (kirana) is the weakest resist, used for fine outlines. [S6]",
       "local_terms": [
         "chuna",
         "kirana"
@@ -1175,8 +1127,7 @@
           "text": "The resist paste is mud, gum and lime.",
           "source_ids": [
             "S1",
-            "S3",
-            "S22"
+            "S3"
           ],
           "evidence": [
             {
@@ -1188,11 +1139,6 @@
               "source_id": "S3",
               "locator": "§ \"Craft Revival Trust New Delhi, India\"",
               "quote": "The resist Dabu clay paste is made of a complex mixture of silt, from the dried river-bed, a local natural gum, lime, sugar-cane molasses, and water to form the paste."
-            },
-            {
-              "source_id": "S22",
-              "locator": "§ \"The Story of Dabu Prints: Tradition, Craft, and Contemporary Style\"",
-              "quote": "These blocks are then dipped into a mud-resist paste crafted from chuna, gond (gum), and local clay."
             }
           ]
         },
@@ -1521,7 +1467,7 @@
       "category": "materials",
       "title": "Sawdust",
       "summary": "White areas stamped with paste are immediately covered with sawdust to prevent the wet clay smudging.",
-      "body_md": "White areas stamped with paste are immediately covered with sawdust to prevent the wet clay smudging. [S3]\n\nSawdust is sprinkled over the paste to dry it and hold it in place. [S18, S22]",
+      "body_md": "White areas stamped with paste are immediately covered with sawdust to prevent the wet clay smudging. [S3]\n\nSawdust is sprinkled over the paste to dry it and hold it in place. [S18]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
       "verification_state": "verified",
@@ -1542,19 +1488,13 @@
         {
           "text": "Sawdust is sprinkled over the paste to dry it and hold it in place.",
           "source_ids": [
-            "S18",
-            "S22"
+            "S18"
           ],
           "evidence": [
             {
               "source_id": "S18",
               "locator": "§ \"Dabu Printing\"",
               "quote": "This paste is applied onto parts of the design after which sawdust is sprinkled all over to dry and hold the paste."
-            },
-            {
-              "source_id": "S22",
-              "locator": "§ \"The Story of Dabu Prints: Tradition, Craft, and Contemporary Style\"",
-              "quote": "Once the designs are printed onto the fabric, sawdust is sprinkled to keep the resist in place, and the fabric is sun-dried."
             }
           ]
         }
@@ -2511,7 +2451,7 @@
       "category": "process_stages",
       "title": "Airing and drying",
       "summary": "The cloth turns green, then deepens to indigo as it oxidises in air.",
-      "body_md": "The cloth turns green, then deepens to indigo as it oxidises in air. [S2]\n\nAfter dyeing the fabric is dried again. [S18, S22]",
+      "body_md": "The cloth turns green, then deepens to indigo as it oxidises in air. [S2]\n\nAfter dyeing the fabric is dried again. [S18]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
       "verification_state": "verified",
@@ -2532,19 +2472,13 @@
         {
           "text": "After dyeing the fabric is dried again.",
           "source_ids": [
-            "S18",
-            "S22"
+            "S18"
           ],
           "evidence": [
             {
               "source_id": "S18",
               "locator": "§ \"Dabu Printing\"",
               "quote": "The fabric is now spread under hot sun to get the mud paste to dry out completely. Once its dries it is dipped in a vat of dye, dried again and then washed thoroughly to remove all traces of the paste and excess dye."
-            },
-            {
-              "source_id": "S22",
-              "locator": "§ \"The Story of Dabu Prints: Tradition, Craft, and Contemporary Style\"",
-              "quote": "Once the designs are printed onto the fabric, sawdust is sprinkled to keep the resist in place, and the fabric is sun-dried. It's then dipped into vats of natural dye-deep indigos, rich browns, or vibrant reds-before being dried again."
             }
           ]
         }
@@ -2610,7 +2544,7 @@
       "category": "process_stages",
       "title": "Repeating resist-dye cycles (double/triple dabu)",
       "summary": "The resist-and-dye sequence is repeated through a dye bath for each colour needed.",
-      "body_md": "The resist-and-dye sequence is repeated through a dye bath for each colour needed. [S3]\n\nResist and dye are applied several times to build shades. [S1]\n\nDouble and triple dabu give richer effects. [S19, S22]",
+      "body_md": "The resist-and-dye sequence is repeated through a dye bath for each colour needed. [S3]\n\nResist and dye are applied several times to build shades. [S1]\n\nDouble and triple dabu give richer effects. [S19]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
       "verification_state": "verified",
@@ -2644,8 +2578,7 @@
         {
           "text": "Double and triple dabu give richer effects.",
           "source_ids": [
-            "S19",
-            "S22"
+            "S19"
           ],
           "evidence": [
             {
@@ -2657,11 +2590,6 @@
               "source_id": "S19",
               "locator": "§ \"The Making\"",
               "quote": "The fabric may be dyed more than once in different colors to give each part of the design a different hue."
-            },
-            {
-              "source_id": "S22",
-              "locator": "§ \"The Story of Dabu Prints: Tradition, Craft, and Contemporary Style\"",
-              "quote": "For a more intricate finish, this process is repeated multiple times, resulting in double or triple Dabu prints that exude depth and craftsmanship."
             }
           ]
         }
@@ -3860,7 +3788,7 @@
       "category": "open_questions",
       "title": "Age, district and community attribution",
       "summary": "Global InCH places Akola in Udaipur district.",
-      "body_md": "Global InCH places Akola in Udaipur district. [S6]\n\nGaatha's craft archive and Wikipedia place Akola in Chittorgarh district. [S2, S10]\n\nAIACA says Dabu evolved within traditional communities known as Khatris. [S20]\n\nThe Akola printers are the Chippa community. [S1, S2]",
+      "body_md": "Global InCH places Akola in Udaipur district. [S6]\n\nGaatha's craft archive places Akola in Chittorgarh district. [S2]\n\nAIACA says Dabu evolved within traditional communities known as Khatris. [S20]\n\nThe Akola printers are the Chippa community. [S1, S2]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
       "verification_state": "verified",
@@ -3879,26 +3807,15 @@
           ]
         },
         {
-          "text": "Gaatha's craft archive and Wikipedia place Akola in Chittorgarh district.",
+          "text": "Gaatha's craft archive places Akola in Chittorgarh district.",
           "source_ids": [
-            "S2",
-            "S10"
+            "S2"
           ],
           "evidence": [
             {
               "source_id": "S2",
               "locator": "§ \"Geography:\"",
               "quote": "Akola is a village in Bhopalsagar Tehsil in Chittorgarh District of Rajasthan state in India."
-            },
-            {
-              "source_id": "S10",
-              "locator": "§ \"Location\"",
-              "quote": "It is located 52km towards west form district headquarters chittorgarh, 13km from Bhopalsagar , 339km from state capital Jaipur . Akola is surrounded by kapasan tehsil towards North, Mavli tehsil towards west, Bhinder tehsil towards south, Railmagra tehsil towards North. [ 1 ]"
-            },
-            {
-              "source_id": "S10",
-              "locator": "§ \"Akola, Chittorgarh\"",
-              "quote": "is a village in Bhupalsagar tehsil of Chittorgarh district in the Indian state of Rajasthan"
             }
           ]
         },
@@ -5964,7 +5881,6 @@
       "verification_state": "verified",
       "source_ids": [
         "S1",
-        "S10",
         "S2",
         "S20",
         "S6"
@@ -5974,11 +5890,6 @@
           "source_id": "S1",
           "locator": "§ \"Dabu printing\"",
           "quote": "As told by Master craftsman Gopal Bhai, the native craftsmen known as Chippas , specialize in block printing."
-        },
-        {
-          "source_id": "S10",
-          "locator": "§ \"Akola, Chittorgarh\"",
-          "quote": "is a village in Bhupalsagar tehsil of Chittorgarh district in the Indian state of Rajasthan"
         },
         {
           "source_id": "S2",

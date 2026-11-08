@@ -449,14 +449,18 @@ These live **only in the database** (section 7). They need staff accounts, so do
 
 ## 6. First Staff Account and Invite Codes
 
-### 6.1 First Staff Account (Platform Admin)
+### 6.1 First Staff Account (Super Admin)
+
+The first account of a deployment is a **Super Admin**, who may do everything; an **Admin** only lets people in (DR-134). Set `SUPER_ADMIN_EMAILS` in the production env to the lead's sign-in address (comma-separated for more than one). The address stays out of the repository: it lives only in the deployer's env file and the host's environment. An account whose verified email is listed holds Super Admin from its next sign-in, by Google or password; the grant is written to the audit log. Nobody else becomes Super Admin except through an existing Super Admin.
 
 **With Google (no password).** A new deployer, with their own cloud setup, needs:
 
 1. their own env file, made from `.env.production.example` (any path; pass it to `--env-file`), with `BETTER_AUTH_URL=https://<their-domain>` and their own `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`;
 2. their own Google OAuth client, with the origin `https://<their-domain>` and the redirect URI `https://<their-domain>/api/auth/callback/google`, and the lead's account added as a test user while the consent screen is in Testing;
-3. the lead signs in once at `/sign-in` with **Continue with Google**; the account waits at **Awaiting Access**;
-4. the command below, run after `npm ci` from a machine that reaches their database, makes it Admin:
+3. `SUPER_ADMIN_EMAILS` set to the lead's address in that env file and in the host's environment;
+4. the lead signs in once at `/sign-in` with **Continue with Google**; the account opens the console as Super Admin.
+
+The project account is then made Admin, after it has signed in once with Google and waits at **Awaiting Access**: by the Super Admin in **Admin → People** → row menu → **Give access…**, or with the command below, run after `npm ci` from a machine that reaches the database:
 
 ```bash
 npx tsx scripts/deploy/with-env.ts --env-file <your-env-file> -- npx tsx scripts/create-admin.ts --email cxa.craftecosystem@gmail.com --role admin
@@ -472,7 +476,9 @@ npx tsx scripts/deploy/with-env.ts --env-file ~/.episteme/production.env -- npx 
 unset ADMIN_PASSWORD
 ```
 
-The role defaults to Admin. Each person holds one role, **Admin**, **Researcher** or **Curator**; `--role` takes `admin`, `researcher`, `curator` or `principal_investigator` (a Researcher marked as the principal investigator), and the retired names `platform_admin`, `study_facilitator`, `research_analyst` and `content_editor` map onto them (DR-133). The script is idempotent: an existing account keeps its password and its role is set to the one given; it refuses to take Admin from the last active Admin. Further staff: sign in as the admin → **Admin → People** → row menu → **Give access…** or **Change role…**.
+The role defaults to Super Admin. Each person holds one role, **Super Admin**, **Admin**, **Researcher** or **Curator**; `--role` takes `super_admin`, `admin`, `researcher`, `curator` or `principal_investigator` (a Researcher marked as the principal investigator), and the retired names `platform_admin`, `study_facilitator`, `research_analyst` and `content_editor` map onto them (DR-133, DR-134). The script is idempotent: an existing account keeps its password and its role is set to the one given; it refuses to take Super Admin from the last active Super Admin. Further staff: sign in as the Super Admin → **Admin → People** → row menu → **Give access…** or **Change role…**.
+
+**What each role may do (DR-134).** Super Admin: every permission, including settings, the audit log, **Roles and Permissions**, removing participant data, the principal-investigator mark, and making people Admin or Super Admin; the last active Super Admin cannot be demoted, locked or removed. Admin: sees the people, gives waiting accounts **Researcher** or **Curator** and removes those roles, locks and unlocks Researchers and Curators, resets their passwords and lifts their sign-in locks, and makes and revokes invite codes; nothing else.
 
 **Passwords and sign-in locks (DR-114).** A staff member changes their own password from the account menu → **Change password** (their other sessions end). An Admin who must replace someone's password uses **Admin → People** → row menu → **Reset password…** (typed confirmation and a reason; every session of that account ends; the audit log records who did it, never the password). After 10 failed sign-ins in 15 minutes an account's sign-in is locked for 15 minutes; Admin → People shows **Sign-in locked** with the time, and row menu → **Lift sign-in lock…** clears it with a reason in the audit log. `scripts/unlock-account.ts` does the same from the command line.
 
@@ -526,7 +532,7 @@ Staff can sign in with Google as well as with email and password. Participants n
 | New Google account with an unverified email | No account is made |
 | Locked account (`disabled_at` set) | No session, by either method |
 
-**Granting access:** sign in as an Admin. The Admin home lists the people waiting for access; **Give access** opens **Admin → People** filtered to them. Use the row menu → **Give access…**, choose **Admin**, **Researcher** or **Curator**, and for the study's principal investigator tick **Principal investigator** under Researcher. Each person holds one role; **Change role…** replaces it and **Remove role…** sends the person back to waiting. Each account's line names its sign-in methods (password, Google). An account that should not exist is locked from the same menu.
+**Granting access:** sign in as an Admin or Super Admin. The home page lists the people waiting for access; **Give access** opens **Admin → People** filtered to them. Use the row menu → **Give access…** and choose **Researcher** or **Curator**; a Super Admin may also choose **Admin** or **Super Admin** and, for the study's principal investigator, tick **Principal investigator** under Researcher. Each person holds one role; **Change role…** replaces it and **Remove role…** sends the person back to waiting. Each account's line names its sign-in methods (password, Google). An account that should not exist is locked from the same menu.
 
 **Check by hand on a deployment:** with the variables unset the button is absent; with them set, a new Google account reaches the waiting page, a role given in Admin → People opens that role's home page on the next visit, and a locked account is refused.
 

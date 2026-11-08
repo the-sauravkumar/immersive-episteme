@@ -21,9 +21,19 @@ export const metadata: Metadata = { title: "Admin Home" };
 
 export const instant = false;
 
-export default function Page() {
+export default async function Page() {
+  const actor = await requirePermission(ADMIN_ANY);
+  const superAdmin = can(actor, "admin.roles");
   return (
-    <ConsolePage path="/admin" title="Admin home" description="People waiting for access, the invite codes in use, and whether the platform is healthy.">
+    <ConsolePage
+      path="/admin"
+      title={superAdmin ? "Super Admin home" : "Admin home"}
+      description={
+        superAdmin
+          ? "People waiting for access, the invite codes in use, whether the platform is healthy, and the settings, audit log and roles that only a Super Admin can open."
+          : "People waiting for access and the invite codes in use."
+      }
+    >
       <Suspense fallback={<Skeleton className="h-96 w-full" />}>
         <Overview />
       </Suspense>
@@ -204,12 +214,40 @@ async function NeedsYou() {
   );
 }
 
+const PLATFORM = [
+  { id: "settings", title: "Settings", description: "The platform configuration as deployed, to read and check.", href: "/admin/settings", label: "Open settings" },
+  { id: "audit", title: "Audit log", description: "Every change made on the platform, who made it and why.", href: "/admin/audit", label: "Open audit log" },
+  { id: "roles", title: "Roles and permissions", description: "What each role may do and how many people hold it.", href: "/admin/roles", label: "Open roles" },
+] as const;
+
+function Platform() {
+  return (
+    <Section id="platform" title="Only for a Super Admin" description="Pages an Admin does not see.">
+      <ul className="flex flex-col">
+        {PLATFORM.map((p) => (
+          <li key={p.id} className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-line py-3 first:border-t-0">
+            <span className="flex max-w-[40rem] min-w-0 flex-col gap-1">
+              <span className="font-semibold text-lime">{titleCase(p.title)}</span>
+              <span className="t-s text-lime-dim">{p.description}</span>
+            </span>
+            <Button asChild variant="outline">
+              <Link href={p.href}>{p.label}</Link>
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </Section>
+  );
+}
+
 async function Overview() {
   const actor = await requirePermission(ADMIN_ANY);
+  if (!can(actor, "admin.settings")) return <NeedsYou />;
   const h = await getHealthReport(getPool(), actor);
   return (
     <div className="flex flex-col gap-12">
       <NeedsYou />
+      <Platform />
       <section aria-labelledby="health" className="flex flex-col gap-4">
         <div className="flex flex-col gap-1">
           <h2 id="health" className="t-h4 text-lime">

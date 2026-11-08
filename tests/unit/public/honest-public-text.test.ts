@@ -16,7 +16,7 @@ const SIX = [
 describe("home deck (DR-114)", () => {
   it("counts from the data it is given", () => {
     expect(homeDeck(SIX.filter((t) => t.slug !== "bagh"))).toContain("the other two stay");
-    expect(homeDeck(SIX.filter((t) => (STUDY_TRADITION_SLUGS as readonly string[]).includes(t.slug)))).toContain("teach all three.");
+    expect(homeDeck(SIX.filter((t) => (STUDY_TRADITION_SLUGS as readonly string[]).includes(t.slug)))).toContain("The study teaches all three.");
     expect(homeDeck([SIX[0]!, SIX[1]!], [])).toContain("None of it is taught");
   });
 });

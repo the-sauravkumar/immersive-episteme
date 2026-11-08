@@ -60,6 +60,12 @@ describe("auth client-IP and demo settings", () => {
     expect(parseServerEnv({ ...valid, AUTH_CLIENT_IP_HEADER: "CF-Connecting-IP" }).AUTH_CLIENT_IP_HEADER).toBe("cf-connecting-ip");
   });
 
+  it("parses the Super Admin sign-in addresses, lower-cased, and rejects junk", () => {
+    expect(parseServerEnv(valid).SUPER_ADMIN_EMAILS).toEqual([]);
+    expect(parseServerEnv({ ...valid, SUPER_ADMIN_EMAILS: " Lead@Example.test, second@example.test ," }).SUPER_ADMIN_EMAILS).toEqual(["lead@example.test", "second@example.test"]);
+    expect(() => parseServerEnv({ ...valid, SUPER_ADMIN_EMAILS: "not-an-address" })).toThrow(/SUPER_ADMIN_EMAILS/);
+  });
+
   it("defaults the public demo to auto", () => {
     expect(parseServerEnv(valid).PUBLIC_DEMO).toBe("auto");
     expect(() => parseServerEnv({ ...valid, PUBLIC_DEMO: "yes" })).toThrow(/PUBLIC_DEMO/);

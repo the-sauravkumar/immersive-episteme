@@ -14,19 +14,19 @@ const none = async () => null;
 describe("telemetry principal", () => {
   it("a valid participant cookie decides, even with demo and staff credentials present", async () => {
     const participantCookie = await signParticipantSession({ participantId: pid, sessionId: sid, condition: "2d" }, SECRET);
-    const demoCookie = await signDemoSession(SECRET);
+    const demoCookie = await signDemoSession(SECRET, "2d");
     const r = await resolveTelemetryPrincipal({ participantCookie, demoCookie, staff: staff(["curator"]) }, { secret: SECRET });
     expect(r).toEqual({ ok: true, principal: { kind: "participant", participantId: pid, sessionId: sid } });
   });
 
   it("an invalid participant cookie is refused, never downgraded to demo or preview", async () => {
-    const demoCookie = await signDemoSession(SECRET);
+    const demoCookie = await signDemoSession(SECRET, "2d");
     const r = await resolveTelemetryPrincipal({ participantCookie: "forged.token", demoCookie, staff: staff(["curator"]) }, { secret: SECRET });
     expect(r).toEqual({ ok: false, reason: "invalid_participant_session" });
   });
 
   it("staff preview, then public demo, else no credential", async () => {
-    const demoCookie = await signDemoSession(SECRET, { demoId: "a".repeat(32) });
+    const demoCookie = await signDemoSession(SECRET, "2d", { demoId: "a".repeat(32) });
     expect(await resolveTelemetryPrincipal({ participantCookie: undefined, demoCookie, staff: staff(["researcher"]) }, { secret: SECRET })).toEqual({
       ok: true,
       principal: { kind: "preview", userId: "u1" },

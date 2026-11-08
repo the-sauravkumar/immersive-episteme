@@ -3,7 +3,7 @@ import { join } from "node:path";
 
 import type { StageTemplate } from "../../src/features/process/domain/stage-template";
 
-import { expect, test, type Page } from "./fixtures";
+import { expect, openDemo, test, type Page } from "./fixtures";
 
 const dir = join(process.cwd(), "content", "study");
 const templates = readdirSync(dir)
@@ -17,16 +17,10 @@ const photoRecords = new Set(
 
 const textOf = async (page: Page, selector: string): Promise<string> => ((await page.locator(selector).first().textContent()) ?? "").trim();
 
-async function startDemo(page: Page): Promise<void> {
-  await page.goto("/explore");
-  await page.getByRole("button", { name: "Open visual course" }).click();
-  await expect(page).toHaveURL(/\/learn\/2d$/);
-}
-
 test.describe.configure({ timeout: 600_000 });
 
 test("Door 1 shows the template's own words, in template order, for every stage of every tradition", async ({ page }) => {
-  await startDemo(page);
+  await openDemo(page, "2d");
   for (const template of templates) {
     for (const stage of template.stages) {
       await expect(page.locator("#course-stage-name:visible")).toContainText(stage.name);

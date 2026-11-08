@@ -192,4 +192,14 @@ describe("shipped content holds only approved states", () => {
       .flatMap((file) => pending(JSON.parse(readFileSync(file, "utf8")), file.slice(CONTENT.length + 1)));
     expect(hits).toEqual([]);
   });
+
+  it("lists no source of kind unverified in any shipped content file, because the review refuses to accept one", () => {
+    const hits = jsonFiles(CONTENT)
+      .filter((file) => !NOT_SHIPPED.has(file))
+      .flatMap((file) => {
+        const sources: unknown = (JSON.parse(readFileSync(file, "utf8")) as { sources?: unknown }).sources;
+        return Array.isArray(sources) ? sources.filter((s: { kind?: unknown }) => s?.kind === "unverified").map((s: { id?: unknown }) => `${file.slice(CONTENT.length + 1)} ${String(s.id)}`) : [];
+      });
+    expect(hits).toEqual([]);
+  });
 });

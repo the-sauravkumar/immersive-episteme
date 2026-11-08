@@ -5,7 +5,7 @@ from typing import Any
 PRIMARY_OUTCOMES = ("test.sequence", "test.stage_placement")
 PRE_TEST_COVARIATE = {"metric": "test.pre_test", "phase": "pre"}
 PRIMARY_OUTCOME = {"metric": PRIMARY_OUTCOMES[0], "metrics": list(PRIMARY_OUTCOMES), "phase": "post", "delayedPhase": "follow_up", "covariate": PRE_TEST_COVARIATE, "model": "ANCOVA", "delayedModel": "Mixed model, time by condition", "decision": "Concept Note rev2, H1"}
-SECONDARY_OUTCOMES = ("test.identification", "test.cloth_state", "test.attribution", "test.transfer", "cmap.recall.dl", "common.mental_effort", "common.navigation_effort", "common.comfort", "common.engagement", "stage.total_ms")
+SECONDARY_OUTCOMES = ("test.identification", "test.cloth_state", "test.transfer", "cmap.recall.dl", "common.mental_effort", "common.navigation_effort", "common.comfort", "common.engagement", "stage.total_ms")
 
 
 def primary_outcome(bundle: dict[str, Any]) -> dict[str, Any]:

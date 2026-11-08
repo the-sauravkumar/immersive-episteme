@@ -62,7 +62,7 @@ export function howToCite(config: InstitutionConfig = INSTITUTION): string | nul
   const names = config.authors.map((a) => citationName(a.name));
   const authors = names.length === 1 ? names[0]! : `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]!}`;
   const publisher = config.affiliations[0]?.name.split(",").slice(0, 2).join(",").trim();
-  return `${authors} (n.d.). ${PLATFORM_NAME}: a research platform comparing a visual course and a walkthrough of a craft process [Research software].${publisher ? ` ${publisher}.` : ""}`;
+  return `${authors} (n.d.). ${PLATFORM_NAME}: a research platform for learning a craft process from cited knowledge [Research software].${publisher ? ` ${publisher}.` : ""}`;
 }
 
 export function orcidUrl(orcid: string): string {

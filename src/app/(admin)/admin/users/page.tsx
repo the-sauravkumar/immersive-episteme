@@ -29,7 +29,7 @@ export default function Page({ searchParams }: PageProps<"/admin/users">) {
     <ConsolePage
       path="/admin/users"
       title="People"
-      description="Everyone who works on the platform, with their one role: Admin, Researcher or Curator. Participants never have accounts. Accounts are locked, never deleted, so their history stays attributable."
+      description="Everyone who works on the platform, with their one role: Super Admin, Admin, Researcher or Curator. Participants never have accounts. Accounts are locked, never deleted, so their history stays attributable."
     >
       <Suspense fallback={<Skeleton className="h-64 w-full" />}>
         <Users searchParams={searchParams} />
@@ -106,7 +106,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
   const page = Math.min(filter.page, pages);
   const users = matching.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const first = (page - 1) * PAGE_SIZE + 1;
-  const manageRoles = can(actor, "admin.roles");
+  const superAdmin = can(actor, "admin.roles");
   const locked = matching.filter((u) => u.disabledAt).length;
   const awaiting = all.filter(awaitingAccess).length;
   const field = "flex min-w-0 flex-col gap-1.5";
@@ -269,7 +269,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
                           hasPassword: u.signInMethods.includes("credential"),
                         }}
                         self={u.id === actor.userId}
-                        manageRoles={manageRoles}
+                        superAdmin={superAdmin}
                         minPasswordLength={MIN_PASSWORD_LENGTH}
                       />
                     </TableCell>
@@ -282,7 +282,7 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
         </UserActionStatus>
       </section>
 
-      {manageRoles ? (
+      {superAdmin ? (
         <Section
           id="create-staff"
           title="Add a person with a password"
@@ -292,7 +292,9 @@ async function Users({ searchParams }: { searchParams: Promise<SearchParams> }) 
           <CreateStaffForm minPasswordLength={MIN_PASSWORD_LENGTH} />
         </Section>
       ) : (
-        <p className="t-b text-lime-dim">Adding people also gives them a role, which only an Admin can do. Ask an Admin to add the person.</p>
+        <p className="t-b text-lime-dim">
+          Adding a person with a password is for a Super Admin. People who use Google sign in once and appear above as awaiting access; give them access from Manage.
+        </p>
       )}
     </div>
   );

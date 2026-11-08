@@ -1,4 +1,6 @@
-export const STAFF_ROLES = ["platform_admin", "researcher", "curator"] as const;
+export const STAFF_ROLES = ["super_admin", "platform_admin", "researcher", "curator"] as const;
+
+export const ADMIN_GRANTABLE_ROLES = ["researcher", "curator"] as const;
 
 export const PRINCIPAL_INVESTIGATOR = "principal_investigator";
 
@@ -11,6 +13,7 @@ export type StaffGrant = StaffRole | typeof PRINCIPAL_INVESTIGATOR;
 export type Role = (typeof ROLES)[number];
 
 export const ROLE_LABELS: Record<Role, string> = {
+  super_admin: "Super Admin",
   platform_admin: "Admin",
   researcher: "Researcher",
   curator: "Curator",
@@ -20,7 +23,8 @@ export const ROLE_LABELS: Record<Role, string> = {
 };
 
 export const ROLE_DUTIES: Record<StaffRole, string> = {
-  platform_admin: "Lets people in: staff accounts, roles, invite codes and settings.",
+  super_admin: "Runs the whole platform: every page and action, including settings, the audit log, roles, and making people Admin or Super Admin.",
+  platform_admin: "Lets people in: gives waiting accounts the Researcher or Curator role, locks accounts, resets passwords and makes invite codes.",
   researcher: "Runs studies: sets them up, invites participants, watches sessions, scores and exports.",
   curator: "Looks after the content: writes, reviews and publishes it in releases.",
 };
@@ -31,6 +35,7 @@ export interface StaffAssignment {
 }
 
 const ROLE_NAMES: Readonly<Record<string, StaffAssignment>> = {
+  super_admin: { role: "super_admin", principalInvestigator: false },
   admin: { role: "platform_admin", principalInvestigator: false },
   platform_admin: { role: "platform_admin", principalInvestigator: false },
   researcher: { role: "researcher", principalInvestigator: false },
@@ -41,7 +46,7 @@ const ROLE_NAMES: Readonly<Record<string, StaffAssignment>> = {
   content_editor: { role: "curator", principalInvestigator: false },
 };
 
-export const ROLE_NAME_HELP = "admin, researcher, curator, principal_investigator (a researcher who is the principal investigator); the retired names platform_admin, study_facilitator, research_analyst and content_editor still work";
+export const ROLE_NAME_HELP = "super_admin, admin, researcher, curator, principal_investigator (a researcher who is the principal investigator); the retired names platform_admin, study_facilitator, research_analyst and content_editor still work";
 
 export function parseStaffRole(name: string): StaffAssignment | null {
   return Object.hasOwn(ROLE_NAMES, name) ? ROLE_NAMES[name]! : null;
@@ -64,6 +69,14 @@ export function staffTitle(roles: readonly Role[]): string | null {
 
 export function isStaffRole(value: unknown): value is StaffRole {
   return typeof value === "string" && (STAFF_ROLES as readonly string[]).includes(value);
+}
+
+export function adminMayChange(assignment: StaffAssignment | null): boolean {
+  return !assignment || ((ADMIN_GRANTABLE_ROLES as readonly StaffRole[]).includes(assignment.role) && !assignment.principalInvestigator);
+}
+
+export function adminMayLock(role: StaffRole | null): boolean {
+  return !role || (ADMIN_GRANTABLE_ROLES as readonly StaffRole[]).includes(role);
 }
 
 export function isRole(value: unknown): value is Role {

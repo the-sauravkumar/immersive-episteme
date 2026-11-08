@@ -27,71 +27,35 @@ const BEFORE = DEFAULT_STEPS.filter((s) => (BLIND_STEPS as readonly StudyStep[])
 const PREPARE = DEFAULT_STEPS.slice(0, LEARNING_INDEX).filter((s) => !BEFORE.includes(s));
 const AFTER = DEFAULT_STEPS.slice(LEARNING_INDEX + 1);
 
-function flowDiagram(vertical: boolean): {
-  width: number;
-  height: number;
-  nodes: DiagramNode[];
-  edges: DiagramEdge[];
-} {
-  const stages = [
-    { id: "consent", label: ["Consent"] },
-    { id: "before", label: ["Before", "learning"] },
-    { id: "allocation", label: ["Allocation"] },
-    { id: "prepare", label: ["Practice and", "introduction"] },
-  ];
-  if (!vertical) {
-    const w = 104;
-    const gap = 24;
-    const lw = 120;
-    const nodes: DiagramNode[] = stages.map((s, i) => ({
-      id: s.id,
-      x: i * (w + gap),
-      y: 78,
-      width: w,
-      height: 64,
-      fill: s.id === "allocation" ? "hover" : "raised",
-      label: s.label,
-    }));
-    const lx = 4 * (w + gap);
-    nodes.push({ id: "learn-2d", x: lx, y: 16, width: lw, height: 64, fill: "accent", label: ["Learning:", "visual course"] });
-    nodes.push({ id: "learn-3d", x: lx, y: 140, width: lw, height: 64, fill: "accent", label: ["Learning:", "walkthrough"] });
-    nodes.push({ id: "after", x: lx + lw + gap, y: 78, width: w, height: 64, fill: "raised", label: ["After", "learning"] });
-    const edges: DiagramEdge[] = [0, 1, 2].map((i) => ({
-      id: `e${i}`,
-      d: `M${i * (w + gap) + w} 110 H${(i + 1) * (w + gap) - 2}`,
-      arrow: true,
-    }));
-    const px = 3 * (w + gap) + w;
-    const mid = gap / 2;
-    edges.push({ id: "e-2d", d: `M${px} 110 H${px + mid} V48 H${lx - 2}`, arrow: true });
-    edges.push({ id: "e-3d", d: `M${px} 110 H${px + mid} V172 H${lx - 2}`, arrow: true });
-    const ax = lx + lw;
-    edges.push({ id: "e-a2d", d: `M${ax} 48 H${ax + mid} V110 H${ax + gap - 2}`, arrow: true });
-    edges.push({ id: "e-a3d", d: `M${ax} 172 H${ax + mid} V110 H${ax + gap - 2}`, arrow: false });
-    return { width: ax + gap + w + 2, height: 220, nodes, edges };
-  }
-  const nodes: DiagramNode[] = stages.map((s, i) => ({
+const FLOW = [
+  { id: "consent", label: ["Consent"], fill: "raised" },
+  { id: "before", label: ["Before", "learning"], fill: "raised" },
+  { id: "prepare", label: ["Practice and", "introduction"], fill: "raised" },
+  { id: "learning", label: ["Learning", "task"], fill: "accent" },
+  { id: "after", label: ["After", "learning"], fill: "raised" },
+] as const satisfies readonly { id: string; label: readonly string[]; fill: DiagramNode["fill"] }[];
+
+const FLOW_BOX = { width: 112, height: 64, gap: 24 } as const;
+
+function flowDiagram(vertical: boolean): { width: number; height: number; nodes: DiagramNode[]; edges: DiagramEdge[] } {
+  const { width: w, height: h, gap } = FLOW_BOX;
+  const step = (vertical ? h : w) + gap;
+  const nodes: DiagramNode[] = FLOW.map((s, i) => ({
     id: s.id,
-    x: 80,
-    y: 8 + i * 96,
-    width: 160,
-    height: 64,
-    fill: s.id === "allocation" ? "hover" : "raised",
-    label: s.label,
+    x: vertical ? 8 : i * step,
+    y: vertical ? 8 + i * step : 8,
+    width: w,
+    height: h,
+    fill: s.fill,
+    label: [...s.label],
   }));
-  nodes.push({ id: "learn-2d", x: 8, y: 392, width: 144, height: 64, fill: "accent", label: ["Learning:", "visual course"] });
-  nodes.push({ id: "learn-3d", x: 168, y: 392, width: 144, height: 64, fill: "accent", label: ["Learning:", "walkthrough"] });
-  nodes.push({ id: "after", x: 80, y: 512, width: 160, height: 64, fill: "raised", label: ["After", "learning"] });
-  const edges: DiagramEdge[] = [0, 1, 2].map((i) => ({
+  const edges: DiagramEdge[] = FLOW.slice(1).map((_, i) => ({
     id: `e${i}`,
-    d: `M160 ${72 + i * 96} V${102 + i * 96}`,
+    d: vertical ? `M${8 + w / 2} ${8 + i * step + h} V${8 + (i + 1) * step - 2}` : `M${i * step + w} ${8 + h / 2} H${(i + 1) * step - 2}`,
     arrow: true,
   }));
-  edges.push({ id: "e-2d", d: "M160 360 V374 H80 V390", arrow: true });
-  edges.push({ id: "e-3d", d: "M160 360 V374 H240 V390", arrow: true });
-  edges.push({ id: "e-a2d", d: "M80 456 V484 H160 V510", arrow: true });
-  edges.push({ id: "e-a3d", d: "M240 456 V484 H160", arrow: false });
-  return { width: 320, height: 584, nodes, edges };
+  const span = FLOW.length * step - gap;
+  return vertical ? { width: w + 16, height: span + 16, nodes, edges } : { width: span + 2, height: h + 16, nodes, edges };
 }
 
 function FigureTwo() {
@@ -101,11 +65,11 @@ function FigureTwo() {
     <figure className="flex flex-col gap-3">
       <div className="bg-vat-2 p-4">
         <OutlineDiagram {...wide} className="mx-auto hidden lg:block" />
-        <OutlineDiagram {...tall} className="mx-auto max-w-[20rem] lg:hidden" />
+        <OutlineDiagram {...tall} className="mx-auto max-w-[8rem] lg:hidden" />
       </div>
       <figcaption className="t-s text-lime-dim">
         <span className="font-bold text-lime">{chartFigureLabel(2)}.</span> The default order of a new study in the study engine. Every
-        participant takes the same steps; only the learning step differs by condition.
+        participant takes the same steps.
       </figcaption>
     </figure>
   );
@@ -114,10 +78,9 @@ function FigureTwo() {
 function StepList() {
   const groups: [string, readonly StudyStep[] | null][] = [
     ["Consent", null],
-    ["Before learning, blind to condition", BEFORE],
-    ["Allocation to one condition", null],
-    ["Practice and introduction, in the allocated condition", PREPARE],
-    ["Learning, in the visual course or the walkthrough", ["learning"]],
+    ["Before learning", BEFORE],
+    ["Practice and introduction", PREPARE],
+    ["Learning task", null],
     ["After learning", AFTER],
   ];
   return (
@@ -125,9 +88,7 @@ function StepList() {
       {groups.map(([label, steps]) => (
         <li key={label}>
           <span className="font-semibold">{label}</span>
-          {steps && steps.length > 0 && !(steps.length === 1 && steps[0] === "learning") ? (
-            <span className="text-lime-dim">: {steps.map((s) => STEP_LABEL[s]).join("; ")}</span>
-          ) : null}
+          {steps && steps.length > 0 ? <span className="text-lime-dim">: {steps.map((s) => STEP_LABEL[s]).join("; ")}</span> : null}
         </li>
       ))}
     </ol>
@@ -153,7 +114,7 @@ async function DatasetLive() {
       >
         <Prose>
           Every claim in the dataset names the source it comes from, with a precise location in that source, and carries the verbatim passage that
-          supports it. Learners open the sources behind each stage caption, with the same locator and passage, in both conditions: under the caption in the visual course and from the Sources button in the walkthrough. A passage supports curator review; it does
+          supports it. Learners can open the sources behind each stage caption, with the same locator and passage. A passage supports curator review; it does
           not by itself verify the claim, so records still under review are labelled as such.
         </Prose>
       </EditorialRow>
@@ -219,14 +180,15 @@ export default function AboutPage() {
       <PageHeader
         className="mb-0"
         title="About the project"
-        description="A research platform comparing how people learn a craft process through a visual course and through a walk along a route of working yards."
+        description="A research platform about how people learn a craft process from one cited body of knowledge."
       />
       <EditorialFrame>
         <EditorialSection id="purpose" title="Purpose">
           <EditorialRow>
             <Prose>
-              Immersive Episteme asks whether learning the same cited process as a route of working yards differs from learning it as a sequence of panels. Both conditions are built from one knowledge model, one study engine and one set of assessments, so that a difference in results
-              can be traced to the way the knowledge is organised in space, not to its content or to the quality of the interface.
+              Immersive Episteme studies how people learn a craft process, the stages of Indian hand-block printing, from one cited body of
+              knowledge. The learning task, the study engine and the assessments are all built from one knowledge model, so that everything a
+              participant reads can be traced to a cited source.
             </Prose>
           </EditorialRow>
         </EditorialSection>
@@ -243,35 +205,15 @@ export default function AboutPage() {
             }
           >
             <Prose>
-              Participants consent, answer the questions before learning, and are then allocated to one condition. After a short practice with the
-              controls, they visit every stop of the route under the same time limit in both conditions ({minutes} minutes in a new study),
-              and may finish once every stop has been visited, so each participant&rsquo;s learning time is recorded rather than fixed. They then
-              answer the same questions and tasks after learning.
+              Participants consent and answer the questions before learning. After a short practice with the controls, they learn one
+              tradition, visiting every stop of its process within a time limit ({minutes} minutes in a new study), and may finish once every
+              stop has been visited, so each participant&rsquo;s learning time is recorded rather than fixed. They then answer questions and
+              tasks about that tradition after learning.
             </Prose>
           </EditorialRow>
           <FigureTwo />
           <EditorialRow>
             <StepList />
-          </EditorialRow>
-        </EditorialSection>
-
-        <EditorialSection id="equivalence" title="Equivalence">
-          <EditorialRow
-            note={
-              <Sidenote>
-                <p>What is compared is set out on the Colophon.</p>
-                <Link href="/about/colophon#parity" className={STANDALONE}>
-                  Parity checks on the Colophon
-                </Link>
-              </Sidenote>
-            }
-          >
-            <Prose>
-              The two conditions present one stage template: the same stages, words, sources, tool and material models and image files, with the same
-              typefaces and time limit. Only the spatial organisation and the navigation differ. A content parity check compares these for a study
-              configuration and stores its report with the study. The suite that compared the earlier interfaces was removed with them, so no
-              interface parity results are published.
-            </Prose>
           </EditorialRow>
         </EditorialSection>
 
@@ -293,9 +235,9 @@ export default function AboutPage() {
             }
           >
             <Prose>
-              Each tradition&rsquo;s product stop shows the same two study photographs in both conditions, a textile and a set of printing blocks. A
-              study protocol can switch photographs off, in both conditions together. Neither condition shows diagrams generated from the knowledge
-              graph. Photographs are shown only when their licence has been checked, always with their credit and licence.
+              Each tradition&rsquo;s product stop shows two study photographs, a textile and a set of printing blocks. A study protocol can switch
+              photographs off. The learning task shows no diagrams generated from the knowledge graph. Photographs are shown only when their licence
+              has been checked, always with their credit and licence.
             </Prose>
             <Suspense fallback={<Prose className="text-lime-dim">Reading the image records…</Prose>}>
               <ImageCreditsLive />

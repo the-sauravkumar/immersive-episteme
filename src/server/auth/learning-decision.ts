@@ -1,5 +1,5 @@
 import { can, type Subject } from "@/lib/permissions/can";
-import { LEARNING_PERMISSION, type LearningCondition } from "@/lib/permissions/learning";
+import { LEARNING_PERMISSION, LEARNING_ROUTE, type LearningCondition } from "@/lib/permissions/learning";
 import { isStaffRole } from "@/lib/permissions/roles";
 
 import { verifyDemoSession } from "./demo-session";
@@ -105,6 +105,7 @@ export async function resolveLearningAccess(
     const verified = await verifyDemoSession(input.demoCookie, deps.secret, { now: deps.now });
     if (verified.ok) {
       if (deps.demoEnabled && !(await deps.demoEnabled())) return deny("demo_unavailable");
+      if (verified.claims.condition !== condition) return { allowed: false, reason: "condition_mismatch", redirectTo: LEARNING_ROUTE[verified.claims.condition] };
       return {
         allowed: true,
         access: { kind: "demo", experimental: false, condition, demoId: verified.claims.demoId },

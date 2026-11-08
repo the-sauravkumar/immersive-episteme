@@ -29,22 +29,22 @@ export type StaffAccountResult = {
   roles: StaffGrant[];
 };
 
-export class LastAdminError extends Error {
+export class LastSuperAdminError extends Error {
   constructor() {
-    super("This is the last active Admin. Make another person Admin first, then change this account's role.");
+    super("This is the last active Super Admin. Make another person Super Admin first, then change this account's role.");
   }
 }
 
 async function assignRole(db: AnyPgDatabase, userId: string, assignment: StaffAssignment, grantedBy: string | null): Promise<boolean> {
   const current = await loadStaffAssignment(db, userId);
-  if (current?.role === "platform_admin" && assignment.role !== "platform_admin") {
+  if (current?.role === "super_admin" && assignment.role !== "super_admin") {
     const others = await db
       .select({ id: users.id })
       .from(userRoles)
       .innerJoin(users, eq(users.id, userRoles.userId))
-      .where(and(eq(userRoles.role, "platform_admin"), ne(users.id, userId), isNull(users.disabledAt)))
+      .where(and(eq(userRoles.role, "super_admin"), ne(users.id, userId), isNull(users.disabledAt)))
       .limit(1);
-    if (others.length === 0) throw new LastAdminError();
+    if (others.length === 0) throw new LastSuperAdminError();
   }
   return setRole(db, userId, assignment, grantedBy);
 }

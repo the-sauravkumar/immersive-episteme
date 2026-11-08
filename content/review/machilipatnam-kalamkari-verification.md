@@ -74,7 +74,6 @@ The tradition-level `alt_names` were checked under DR-124: 'Masulipatnam kalamka
 | S13 | researcher_interpretation | S13.html | `5f777f5c38ec825c0d6720a35e098e6ff068ee0a839cd186459fba21a0f1aa7b` | no: fetched again 2026-11-08 (the 2026-10-14 copy is no longer on disk) |
 | S14 | practitioner_testimony | S14.html | `ec60b7ed254ac1fd0aa5ec6d4ec09612fe605b6553a08c711dfa48bb919bbd1e` | no: fetched again 2026-11-08 (the 2026-10-14 copy is no longer on disk) |
 | S15 | practitioner_testimony | S15.html | `5d3e71e62ca0822b18332fa97fb5d20b6c18c67b7031913fb827fd10c08714d0` | no: fetched again 2026-11-08 (the 2026-10-14 copy is no longer on disk) |
-| S16 | unverified | S16.html | `e8daf6974963cee11cad11e94952f1d40f3509ab545dca041720dfc98c88c287` | no: fetched again 2026-11-08 (the 2026-10-14 copy is no longer on disk) |
 
 ## Claim Evidence
 
@@ -654,3 +653,9 @@ Each name in `alt_names` is printed by a recorded source; the quote was re-found
 | # | Relationship | State | Explanation | Source | Locator | Verbatim quote | At locator |
 |---|---|---|---|---|---|---|---|
 | 128 | `machilipatnam-kalamkari.material.alum` BELONGS_TO `machilipatnam-kalamkari.tradition.machilipatnam-kalamkari` | verified | Alum is documented as part of Machilipatnam block-printed kalamkari. | S4 | PDF p. 12 | The alum solution is made by adding cool water to pounded alum crystals. The fabric is then submerged in this solution for a while. | yes |
+
+## DR-134: Sources Of Kind Unverified Judged On Their Archived Copies
+
+The lead's rule (2026-11-08): a source that is of good quality, helps the project and describes what this tradition is and looks like is kept and accepted whether or not an author or publisher is named; otherwise it is dropped and its citations removed. Each kept source's kind, reason and archived copy are in its `notes` in the content file.
+
+- **S16 (Wikipedia, Pedana kalamkari): dropped**; a tertiary summary cited by nothing; the alternative name Pedana Kalamkari is recorded from S2.

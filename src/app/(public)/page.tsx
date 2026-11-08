@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import { chartFigureLabel } from "@/components/brand/numbering";
 import { DatasetTable } from "@/components/public/dataset-table";
 import { FigureOneCountList, FigureOneDiagram } from "@/components/public/figure-one";
-import { IdenticalDiffersTable } from "@/components/public/identical-differs-table";
 import { InstitutionStrip } from "@/components/public/institution-strip";
 import { TraditionIndex } from "@/components/public/tradition-plates";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,7 @@ async function Deck() {
 }
 
 function DeckFallback() {
-  return <p className="t-l text-lime-dim max-w-[36rem]">Traditions of Indian hand-block printing as one cited body of knowledge, with two learning conditions built from it.</p>;
+  return <p className="t-l text-lime-dim max-w-[36rem]">Traditions of Indian hand-block printing as one cited body of knowledge, and a study of how people learn a craft process from it.</p>;
 }
 
 async function FigureOneLive() {
@@ -77,19 +76,6 @@ function SectionHead({ id, title, label }: { id: string; title: string; label?: 
   );
 }
 
-const CONDITIONS = [
-  {
-    key: "2d",
-    title: "Visual Course",
-    description: "The process as a sequence of panels: one per stage, with labelled tools and materials and the cloth after that stage.",
-  },
-  {
-    key: "immersive",
-    title: "Walkthrough",
-    description: "The same stages as a route of working yards: the same words and images, with tools and materials standing where they are used.",
-  },
-] as const;
-
 export default function HomePage() {
   return (
     <div className="flex flex-col gap-24 max-xs:gap-16">
@@ -112,34 +98,17 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section aria-labelledby="conditions-heading" className="flex flex-col gap-8">
-        <SectionHead id="conditions-heading" label={chartFigureLabel(1)} title="One Knowledge Model, Two Conditions" />
+      <section aria-labelledby="model-heading" className="flex flex-col gap-8">
+        <SectionHead id="model-heading" label={chartFigureLabel(1)} title="One Cited Body of Knowledge" />
         <figure className="flex flex-col gap-4">
           <Suspense fallback={<FigureOneDiagram counts={null} />}>
             <FigureOneLive />
           </Suspense>
           <figcaption className="t-s text-lime-dim max-w-[48rem]">
             <span className="font-bold text-lime">{chartFigureLabel(1)}.</span> One knowledge model, with its live counts for every tradition in the
-            dataset. The two learning conditions of equal weight, a visual course and a walkthrough, are compiled from it and teach only the study traditions
-            named above.
+            dataset. The study&rsquo;s learning task, its questions and its tasks are compiled from it, and teach only the study traditions named above.
           </figcaption>
         </figure>
-        <ul className="grid gap-x-6 gap-y-8 md:grid-cols-2" aria-label="The two conditions">
-          {CONDITIONS.map((c) => (
-            <li key={c.key} className="flex flex-col gap-2 border-t-[1.5px] border-lime pt-4">
-              <h3 className="t-label text-lime">{titleCase(c.title)}</h3>
-              <p className="t-b min-h-[4.875rem] max-w-[34rem] text-lime-dim">{c.description}</p>
-              <p className="mt-auto">
-                <Link href="/explore" className={LINK}>
-                  Try it in the demo
-                </Link>
-              </p>
-            </li>
-          ))}
-        </ul>
-        <div className="max-w-[48rem]">
-          <IdenticalDiffersTable />
-        </div>
       </section>
 
       <Suspense fallback={<TraditionsFallback />}>

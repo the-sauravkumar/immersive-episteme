@@ -18,6 +18,7 @@ export function getAuth(): Auth {
       trustedProxies: env.AUTH_TRUSTED_PROXIES,
       clientIpHeader: env.AUTH_CLIENT_IP_HEADER,
       google: googleOAuthCredentials(env),
+      superAdminEmails: env.SUPER_ADMIN_EMAILS,
       nextjs: true,
     });
   }

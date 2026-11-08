@@ -26,7 +26,7 @@ npm run db:migrate                # main database
 npm run db:migrate -- --test      # test database (episteme_test), needed by npm test
 npm run db:seed                   # reference data + clearly flagged demo data (idempotent)
 
-# First staff account. The password comes from ADMIN_PASSWORD (min 12 chars), never argv.
+# First staff account, a Super Admin. The password comes from ADMIN_PASSWORD (min 12 chars), never argv.
 ADMIN_PASSWORD='choose-a-long-password' npm run create-admin -- --email admin@example.org --name "Local Admin"
 
 npm run dev                       # http://localhost:3000  (sign in at /sign-in)
@@ -51,11 +51,14 @@ Refuses non-local databases.
 API reference for pages: `docs/architecture/data-and-telemetry-layer.md`.
 
 `create-admin` is idempotent: re-running keeps the existing password and sets the account's one
-role. Staff roles are `--role admin` (the default), `--role researcher`, `--role curator`, and
-`--role principal_investigator` (a researcher marked as the study's principal investigator). The
-retired names `platform_admin`, `study_facilitator`, `research_analyst` and `content_editor` still
-work and map onto the three roles; the script refuses to take Admin from the last active Admin
-(DR-133, `src/lib/permissions/roles.ts`).
+role. Staff roles are `--role super_admin` (the default), `--role admin`, `--role researcher`,
+`--role curator`, and `--role principal_investigator` (a researcher marked as the study's principal
+investigator). The retired names `platform_admin`, `study_facilitator`, `research_analyst` and
+`content_editor` still work and map onto the roles; the script refuses to take Super Admin from the
+last active Super Admin (DR-133, DR-134, `src/lib/permissions/roles.ts`). Super Admin may do
+everything; Admin only lets people in (gives Researcher or Curator, locks, resets passwords, makes
+invite codes). An account whose verified email is listed in `SUPER_ADMIN_EMAILS` (local `.env`)
+becomes Super Admin when it signs in, by Google or password.
 Add `--test` to target `TEST_DATABASE_URL`.
 
 Sign-in must come from the origin in `BETTER_AUTH_URL` (default `http://localhost:3000`);

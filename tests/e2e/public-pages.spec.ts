@@ -1,3 +1,5 @@
+import { REVEALING_PHRASES } from "../fixtures/blinding";
+
 import { expect, newContext, test, type Page } from "./fixtures";
 import { config as loadEnv } from "dotenv";
 import { Pool } from "pg";
@@ -48,6 +50,7 @@ for (const viewport of [
       expect(r.small, `${url} has targets under 44 px`).toEqual([]);
       expect(r.dashed, `${url} has a dashed placeholder box`).toBe(0);
       expect(r.text, url).not.toMatch(/to be confirmed|\bTBC\b|coming soon|will (appear|be published) here/i);
+      expect(r.text.match(REVEALING_PHRASES)?.[0] ?? null, `${url} reveals the study design`).toBeNull();
     }
     await ctx.close();
   });
@@ -102,20 +105,15 @@ test("Figure 1 is a static plate on vat-2: no draw-on and nothing animates (DR-1
   await ctx.close();
 });
 
-test("Explore cards align their actions and the Colophon promises no interface parity measurement", async ({ page }) => {
+test("Explore offers one demo entry and the Colophon describes no comparison", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto("/explore");
-  const tops = await Promise.all(
-    ["Open visual course", "Open walkthrough"].map(async (name) => (await page.getByRole("button", { name }).boundingBox())!),
-  );
-  expect(Math.abs(tops[0]!.y - tops[1]!.y)).toBeLessThanOrEqual(1);
-  expect(Math.abs(tops[0]!.y + tops[0]!.height - (tops[1]!.y + tops[1]!.height))).toBeLessThanOrEqual(1);
-
+  await expect(page.locator("main form button[type=submit]")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "Open the demo" })).toBeVisible();
   await page.goto("/about/colophon");
-  await expect(page.locator("#parity table")).toHaveCount(0);
-  await expect(page.locator("#parity")).toContainText("one stage template");
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Equivalence of the Two Conditions" })).toHaveCount(0);
+  await expect(page.locator("#parity")).toHaveCount(0);
+  await page.goto("/about");
+  await expect(page.locator("#equivalence")).toHaveCount(0);
 });
 
 test("no decorative graphics exist, and the header edge is a hairline in --line (DR-119)", async ({ browser }) => {
@@ -179,7 +177,7 @@ test("the home title block is left-aligned with only Plate 1 beside it, and Figu
   }
   await expect(page.locator("[data-slot=public-plate], [data-slot=claim-specimen]")).toHaveCount(0);
   await page.setViewportSize({ width: 1280, height: 800 });
-  const figTop = await page.locator("#conditions-heading").evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
+  const figTop = await page.locator("#model-heading").evaluate((el) => el.getBoundingClientRect().top + window.scrollY);
   expect(figTop).toBeLessThan(1600);
   await ctx.close();
 });
@@ -216,21 +214,6 @@ test("the dataset table fits 390 px without scrolling its region", async ({ brow
       return { scroll: c.scrollWidth, client: c.clientWidth };
     });
     expect(r.scroll, `${url} table scrolls sideways`).toBeLessThanOrEqual(r.client);
-  }
-  await ctx.close();
-});
-
-test("the two Explore control tables end on one rule", async ({ browser }) => {
-  const ctx = await newContext(browser, { viewport: { width: 1280, height: 800 } });
-  const page = await ctx.newPage();
-  await page.goto("/explore");
-  const tables = page.locator("section[aria-labelledby=before-heading] table");
-  await expect(tables).toHaveCount(2);
-  for (const width of [768, 1024, 1280, 1440]) {
-    await page.setViewportSize({ width, height: 800 });
-    const rows = await tables.evaluateAll((ts) => ts.map((t) => [...t.querySelectorAll("tbody tr")].map((tr) => Math.round(tr.getBoundingClientRect().bottom))));
-    expect(rows[0]!.length).toBe(rows[1]!.length);
-    rows[0]!.forEach((bottom, i) => expect(Math.abs(bottom - rows[1]![i]!), `${width} px row ${i + 1}: ${rows[0]} vs ${rows[1]}`).toBeLessThanOrEqual(1));
   }
   await ctx.close();
 });

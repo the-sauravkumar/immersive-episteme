@@ -16,8 +16,9 @@ import { getPool } from "@/server/db/client";
 export const metadata: Metadata = { title: "Roles and Permissions" };
 
 const POLICY = [
-  "Each person holds one role: Admin, Researcher or Curator. The role decides which pages and actions they see; the detailed permissions below sit underneath and are not assigned one by one.",
-  "Admin lets people in: staff accounts, roles, invite codes and settings, with read access elsewhere. An Admin cannot verify or publish content, run studies or see who a participant is.",
+  "Each person holds one role: Super Admin, Admin, Researcher or Curator. The role decides which pages and actions they see; the detailed permissions below sit underneath and are not assigned one by one.",
+  "Super Admin may do everything on the platform: settings, the audit log, this page, removing data, and making people Admin or Super Admin. Only a Super Admin makes someone Admin or Super Admin, and the last active Super Admin cannot be demoted, locked or removed. A person whose sign-in address the deployment lists becomes Super Admin when they sign in.",
+  "Admin lets people in and nothing more: sees the people, gives waiting accounts the Researcher or Curator role and takes those roles away, locks and unlocks Researchers and Curators and resets their passwords, and makes and ends invite codes.",
   "Researcher runs studies: setting them up, watching sessions, scoring and exporting pseudonymised data.",
   "Principal investigator is a mark on one Researcher, not a separate role. Only that person starts and closes studies, excludes sessions, sees and exports identifying data, removes participant data, and may also verify and publish content. These acts carry the ethics approval's accountability, so they stay with one named person.",
   "Curator looks after the content: writing, reviewing, verifying and publishing it in releases. Nobody verifies content they wrote or edited; another curator does.",

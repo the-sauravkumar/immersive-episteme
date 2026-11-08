@@ -1,7 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { ConditionSchematic, pageMiniature, routeMiniature, SCHEMATIC_BOX } from "@/components/public/condition-schematic";
 import { FIGURE_ONE_TALL, FIGURE_ONE_WIDE, FigureOneCountList, FigureOneDiagram } from "@/components/public/figure-one";
 import { InstitutionStrip, NO_INSTITUTION } from "@/components/public/institution-strip";
 import { TraditionIndex, type TraditionIndexData } from "@/components/public/tradition-plates";
@@ -37,32 +36,6 @@ describe("InstitutionStrip", () => {
   });
 });
 
-describe("Condition schematics", () => {
-  it("draw one turmeric accent each, in boxes of the same size", () => {
-    for (const condition of ["2d", "immersive"] as const) {
-      const { container, unmount } = render(<ConditionSchematic condition={condition} />);
-      const fills = [...container.querySelectorAll("[data-layer=fill] rect")].map((r) => r.getAttribute("fill"));
-      expect(fills.filter((f) => f === "var(--turmeric)")).toHaveLength(1);
-      expect(container.querySelector("svg")).toHaveAttribute("viewBox", "0 0 288 192");
-      unmount();
-    }
-  });
-
-  it("give both miniatures the same accent area in the same box: neither condition looks richer", () => {
-    const accentArea = (nodes: ReturnType<typeof pageMiniature>) =>
-      nodes.filter((n) => n.fill === "accent").reduce((sum, n) => sum + n.width * n.height, 0);
-    for (const [w, h] of [
-      [216, 144],
-      [232, 140],
-      [144, 112],
-    ] as const) {
-      const page = accentArea(pageMiniature("p", 0, 0, w, h));
-      const route = accentArea(routeMiniature("q", 0, 0, w, h));
-      expect(Math.abs(page - route) / page, `${w} x ${h}`).toBeLessThan(0.05);
-    }
-  });
-});
-
 describe("TraditionIndex titles", () => {
   it("use the short display name, then the dataset's full name and the region", () => {
     const { container } = render(
@@ -89,22 +62,21 @@ describe("Diagram label size (7.4: Inter 13/600 never rendered below 13 px)", ()
   it("authors each viewBox no wider than its narrowest rendered box", () => {
     expect(FIGURE_ONE_TALL.width).toBeLessThanOrEqual(324);
     expect(FIGURE_ONE_WIDE.width).toBeLessThanOrEqual(910);
-    expect(SCHEMATIC_BOX.width).toBeLessThanOrEqual(296);
   });
 
-  it("starts both branches of Figure 1 at the bracket that spans the whole cluster", () => {
+  it("draws one knowledge model and its four counts inside each viewBox, with no branches", () => {
     const { container } = render(<FigureOneDiagram counts={null} />);
     const svgs = [...container.querySelectorAll("svg")];
     expect(svgs).toHaveLength(2);
-    svgs.forEach((svg, i) => {
-      const paths = [...svg.querySelectorAll("[data-layer=outline] path")].map((p) => p.getAttribute("d") ?? "");
-      const nums = (paths[0] ?? "").match(/-?\d+/g)?.map(Number) ?? [];
-      const starts = paths.slice(1).map((d) => d.split(" ").slice(0, 2).join(" "));
-      expect(new Set(starts).size, "one trunk").toBe(1);
-      const [x, y] = (starts[0] ?? "").slice(1).split(" ").map(Number);
-      const [a = 0, b = 0, c = 0, d = 0] = nums;
-      if (i === 0) expect([x, y]).toEqual([c, (b + d) / 2]);
-      else expect([x, y]).toEqual([(a + d) / 2, c]);
-    });
+    for (const svg of svgs) {
+      const [, , width, height] = (svg.getAttribute("viewBox") ?? "").split(" ").map(Number);
+      const rects = [...svg.querySelectorAll("[data-layer=fill] rect")];
+      expect(rects).toHaveLength(5);
+      for (const r of rects) {
+        expect(Number(r.getAttribute("x")) + Number(r.getAttribute("width"))).toBeLessThanOrEqual(width!);
+        expect(Number(r.getAttribute("y")) + Number(r.getAttribute("height"))).toBeLessThanOrEqual(height!);
+      }
+      expect(svg.querySelectorAll("[data-layer=outline] path")).toHaveLength(0);
+    }
   });
 });

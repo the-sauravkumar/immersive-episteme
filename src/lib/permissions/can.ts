@@ -1,6 +1,6 @@
 import { permissionsForRoles, roleGrants } from "./matrix";
 import type { Permission } from "./permissions";
-import { PRINCIPAL_INVESTIGATOR, STAFF_ROLES, type Role, type StaffGrant } from "./roles";
+import { adminMayChange, adminMayLock, PRINCIPAL_INVESTIGATOR, STAFF_ROLES, type Role, type StaffAssignment, type StaffGrant, type StaffRole } from "./roles";
 
 export type Subject = { readonly roles: readonly Role[] };
 
@@ -34,7 +34,16 @@ export function participantDataScope(subject: Subject | null | undefined): Parti
   return "none";
 }
 
+export function mayLockAccount(subject: Subject | null | undefined, targetRole: StaffRole | null): boolean {
+  return can(subject, "admin.roles") || (can(subject, "admin.users") && adminMayLock(targetRole));
+}
+
+export function mayChangeRole(subject: Subject | null | undefined, before: StaffAssignment | null, after: StaffAssignment | null): boolean {
+  return can(subject, "admin.roles") || (can(subject, "admin.users") && adminMayChange(before) && adminMayChange(after));
+}
+
 const HOLDER: Record<StaffGrant, string> = {
+  super_admin: "a Super Admin",
   platform_admin: "an Admin",
   researcher: "a Researcher",
   curator: "a Curator",
@@ -43,8 +52,10 @@ const HOLDER: Record<StaffGrant, string> = {
 
 export function refusalMessage(anyOf: readonly Permission[]): string {
   const holders = ([...STAFF_ROLES, PRINCIPAL_INVESTIGATOR] as StaffGrant[]).filter((r) => anyOf.some((p) => roleGrants(r, p)));
-  const named = holders.includes("researcher") ? holders.filter((h) => h !== PRINCIPAL_INVESTIGATOR) : holders;
-  if (named.length === 0) return "No staff role can do this.";
+  if (holders.length === 0) return "No staff role can do this.";
+  const others = holders.filter((h) => h !== "super_admin");
+  if (others.length === 0) return "Only a Super Admin can do this. Ask a Super Admin to do it for you.";
+  const named = others.includes("researcher") ? others.filter((h) => h !== PRINCIPAL_INVESTIGATOR) : others;
   const list = named.map((h) => HOLDER[h]);
   const who = list.length === 1 ? list[0] : `${list.slice(0, -1).join(", ")} or ${list.at(-1)}`;
   return `Only ${who} can do this. Ask them to do it for you, or ask an Admin to change your role.`;

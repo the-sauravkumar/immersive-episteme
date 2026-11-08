@@ -1,20 +1,11 @@
-import type { Permission } from "./permissions";
+import { PERMISSIONS, type Permission } from "./permissions";
 import type { Role } from "./roles";
 
 const LEARN = ["learn.2d", "learn.immersive"] as const satisfies readonly Permission[];
 
 export const ROLE_PERMISSIONS = {
-  platform_admin: [
-    "admin.users",
-    "admin.roles",
-    "admin.settings",
-    "admin.audit",
-    "content.read",
-    "study.view",
-    "sessions.view",
-    "analytics.view",
-    ...LEARN,
-  ],
+  super_admin: PERMISSIONS.filter((p) => p !== "study.participate"),
+  platform_admin: ["admin.users", ...LEARN],
   principal_investigator: [
     "content.read",
     "content.review",

@@ -14,7 +14,7 @@ export const assessmentCodeSchema = z.string().regex(/^[a-z][a-z0-9_-]{1,63}$/);
 const itemKeySchema = z.string().regex(/^[a-z0-9][a-z0-9_.-]{0,63}$/);
 
 const optionSchema = z.object({ id: z.string().min(1).max(64), label: nonBlank(500) });
-export type TestItemType = "pre_test" | "identification" | "stage_placement" | "sequence" | "cloth_state" | "attribution" | "transfer";
+export type TestItemType = "pre_test" | "identification" | "stage_placement" | "sequence" | "cloth_state" | "transfer";
 
 const itemImageSchema = z.object({ path: z.string().regex(/^\/[A-Za-z0-9/_.-]+\.(jpg|jpeg|png|webp)$/), alt: nonBlank(300) });
 

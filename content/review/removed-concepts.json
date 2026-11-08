@@ -34,5 +34,23 @@
       ]
     },
     "removal_reason": "Lead ruling 2026-11-08 (DR-131 follow-up): the only source, S19, is an unattributed Utsavpedia page; no attributed source among the 24 archived Dabu sources or a web search states that Dabu printing is distinct from both Bagru and Sanganeri prints, so the comparison and its link are removed rather than approved."
+  },
+  {
+    "file": "traditions/dabu/tradition.json",
+    "concept_key": "dabu.historical_context.akola-cluster",
+    "claim": {
+      "text": "Wikipedia gives Chhipo ka Akola as another name for Akola and marks it as needing a citation.",
+      "source_ids": [
+        "S10"
+      ],
+      "evidence": [
+        {
+          "source_id": "S10",
+          "locator": "§ \"Akola, Chittorgarh\"",
+          "quote": "Akola , also known as Chhipo ka Akola , [ citation needed ] is a village in Bhupalsagar tehsil of Chittorgarh district"
+        }
+      ]
+    },
+    "removal_reason": "DR-134 (the lead's rule for unverified sources, 2026-11-08): the claim's only source, Dabu S10 (the Wikipedia stub 'Akola, Chittorgarh'), was dropped: a two-paragraph encyclopedia stub flagged as needing citations; its alternative village name is itself marked citation needed, and the Gaatha archive (S2) carries its location. No other archived Dabu source prints the name Chhipo ka Akola."
   }
 ]

@@ -2,7 +2,8 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import type { Pool, PoolClient } from "pg";
 import { z } from "zod";
 
-import { PRINCIPAL_INVESTIGATOR, ROLE_LABELS, STAFF_ROLES, type StaffGrant, type StaffRole } from "@/lib/permissions/roles";
+import { mayChangeRole, mayLockAccount } from "@/lib/permissions/can";
+import { PRINCIPAL_INVESTIGATOR, ROLE_LABELS, STAFF_ROLES, type StaffAssignment, type StaffGrant, type StaffRole } from "@/lib/permissions/roles";
 import { clearSignInLock, knownDeviceThrottleKey, signInThrottleKey } from "@/server/auth/account-throttle";
 import { createStaffAccount } from "@/server/auth/bootstrap";
 import type { Auth } from "@/server/auth/config";
@@ -82,7 +83,6 @@ export async function createStaffUser(
   actor: Actor,
   raw: CreateStaffInput,
 ): Promise<{ userId: string }> {
-  ensure(actor, "admin.users");
   ensure(actor, "admin.roles");
   const input = createStaffInput.parse(raw);
   const exists = await deps.pool.query("SELECT 1 FROM users WHERE email = $1", [input.email]);
@@ -115,14 +115,24 @@ async function loadUser(q: Q, userId: string): Promise<{ id: string; email: stri
   return u;
 }
 
-async function lockAdminHolders(c: PoolClient): Promise<void> {
-  await c.query("SELECT pg_advisory_xact_lock(hashtext('admin.platform_admin_holders'))");
+const SUPER_ADMIN_ONLY = "Only a Super Admin can change an Admin's or Super Admin's account, give or take the principal-investigator mark, or make someone Admin or Super Admin. Ask a Super Admin to do it.";
+
+function assertMayLock(actor: Actor, role: StaffRole | null): void {
+  if (!mayLockAccount(actor, role)) throw new CmsError("super_admin_only", SUPER_ADMIN_ONLY, 403);
 }
 
-async function activeAdminCount(q: Q, excludingUserId?: string): Promise<number> {
+function assertMayChangeRole(actor: Actor, before: StaffAssignment | null, after: StaffAssignment | null): void {
+  if (!mayChangeRole(actor, before, after)) throw new CmsError("super_admin_only", SUPER_ADMIN_ONLY, 403);
+}
+
+async function lockSuperAdminHolders(c: PoolClient): Promise<void> {
+  await c.query("SELECT pg_advisory_xact_lock(hashtext('admin.super_admin_holders'))");
+}
+
+async function activeSuperAdminCount(q: Q, excludingUserId?: string): Promise<number> {
   const r = await q.query<{ n: number }>(
     `SELECT count(*)::int AS n FROM user_roles ur JOIN users u ON u.id = ur.user_id
-      WHERE ur.role = 'platform_admin' AND u.disabled_at IS NULL AND ($1::text IS NULL OR u.id <> $1)`,
+      WHERE ur.role = 'super_admin' AND u.disabled_at IS NULL AND ($1::text IS NULL OR u.id <> $1)`,
     [excludingUserId ?? null],
   );
   return r.rows[0]!.n;
@@ -133,12 +143,13 @@ export async function lockStaffUser(pool: Pool, actor: Actor, raw: z.input<typeo
   const input = lockInput.parse(raw);
   if (input.userId === actor.userId) throw new CmsError("self_lock", "You cannot lock your own account.", 409);
   return inActorTx(pool, actor, input.reason, async (c) => {
-    await lockAdminHolders(c);
+    await lockSuperAdminHolders(c);
     const u = await loadUser(c, input.userId);
+    const role = (await currentRole(c, u.id))?.role ?? null;
+    assertMayLock(actor, role);
     if (u.disabled_at) throw new CmsError("already_locked", "This account is already locked.", 409);
-    const isAdmin = await c.query("SELECT 1 FROM user_roles WHERE user_id = $1 AND role = 'platform_admin'", [u.id]);
-    if (isAdmin.rowCount && (await activeAdminCount(c, u.id)) === 0) {
-      throw new CmsError("last_admin", "This is the last active Admin, so the account cannot be locked. Make another person Admin first.", 409);
+    if (role === "super_admin" && (await activeSuperAdminCount(c, u.id)) === 0) {
+      throw new CmsError("last_super_admin", "This is the last active Super Admin, so the account cannot be locked. Make another person Super Admin first.", 409);
     }
     await c.query("UPDATE users SET disabled_at = now() WHERE id = $1", [u.id]);
     const ended = await c.query("DELETE FROM auth_sessions WHERE user_id = $1", [u.id]);
@@ -159,6 +170,7 @@ export async function unlockStaffUser(pool: Pool, actor: Actor, raw: z.input<typ
   const input = userIdInput.parse(raw);
   await inActorTx(pool, actor, null, async (c) => {
     const u = await loadUser(c, input.userId);
+    assertMayLock(actor, (await currentRole(c, u.id))?.role ?? null);
     if (!u.disabled_at) throw new CmsError("not_locked", "This account is not locked.", 409);
     await c.query("UPDATE users SET disabled_at = NULL WHERE id = $1", [u.id]);
     await audit(c, actor, {
@@ -176,6 +188,7 @@ export async function clearStaffSignInLock(pool: Pool, actor: Actor, raw: z.inpu
   const input = lockInput.parse(raw);
   return inActorTx(pool, actor, input.reason, async (c) => {
     const u = await loadUser(c, input.userId);
+    assertMayLock(actor, (await currentRole(c, u.id))?.role ?? null);
     const { wasLocked } = await clearSignInLock(drizzleOn(c), u.email);
     if (!wasLocked) throw new CmsError("not_sign_in_locked", "This account has no sign-in lock to lift.", 409);
     await audit(c, actor, {
@@ -208,6 +221,7 @@ export async function resetStaffPassword(
   const hash = await (await deps.auth.$context).password.hash(input.password);
   return inActorTx(deps.pool, actor, input.reason, async (c) => {
     const u = await loadUser(c, input.userId);
+    assertMayLock(actor, (await currentRole(c, u.id))?.role ?? null);
     const updated = await c.query("UPDATE auth_accounts SET password = $2, updated_at = now() WHERE user_id = $1 AND provider_id = 'credential'", [u.id, hash]);
     if (!updated.rowCount) throw new CmsError("no_password", "This account signs in with Google only and has no password to reset.", 409);
     const ended = await c.query("DELETE FROM auth_sessions WHERE user_id = $1", [u.id]);
@@ -225,14 +239,15 @@ export async function resetStaffPassword(
 export const roleInput = userIdInput.extend({ role: z.enum(STAFF_ROLES, "Choose a role"), principalInvestigator: piFlag.default(false) });
 
 export async function setStaffRole(pool: Pool, actor: Actor, raw: z.input<typeof roleInput>): Promise<{ changed: boolean }> {
-  ensure(actor, "admin.roles");
+  ensure(actor, ["admin.users", "admin.roles"]);
   const input = roleInput.parse(raw);
   const principalInvestigator = input.role === "researcher" && input.principalInvestigator;
   return inActorTx(pool, actor, null, async (c) => {
-    await lockAdminHolders(c);
+    await lockSuperAdminHolders(c);
     await loadUser(c, input.userId);
     const before = await currentRole(c, input.userId);
-    if (before?.role === "platform_admin" && input.role !== "platform_admin") await assertAdminRemains(c, actor, input.userId);
+    assertMayChangeRole(actor, before, { role: input.role, principalInvestigator });
+    if (before?.role === "super_admin" && input.role !== "super_admin") await assertSuperAdminRemains(c, actor, input.userId);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- setRole only needs `insert`
     const changed = await setRole(drizzleOn(c) as any, input.userId, { role: input.role, principalInvestigator }, actor.userId);
     if (!changed) throw new CmsError("already_granted", `This person is already ${ROLE_LABELS[input.role]}${principalInvestigator ? " and principal investigator" : ""}. Choose a different role to change it.`, 409);
@@ -242,14 +257,15 @@ export async function setStaffRole(pool: Pool, actor: Actor, raw: z.input<typeof
 }
 
 export async function revokeStaffRole(pool: Pool, actor: Actor, raw: z.input<typeof userIdInput>): Promise<{ revoked: boolean }> {
-  ensure(actor, "admin.roles");
+  ensure(actor, ["admin.users", "admin.roles"]);
   const input = userIdInput.parse(raw);
   return inActorTx(pool, actor, null, async (c) => {
-    await lockAdminHolders(c);
+    await lockSuperAdminHolders(c);
     await loadUser(c, input.userId);
     const before = await currentRole(c, input.userId);
     if (!before) throw new CmsError("not_granted", "This person has no role yet, so there is nothing to remove. Give them a role from the same menu.", 409);
-    if (before.role === "platform_admin") await assertAdminRemains(c, actor, input.userId);
+    assertMayChangeRole(actor, before, null);
+    if (before.role === "super_admin") await assertSuperAdminRemains(c, actor, input.userId);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- revokeRole only needs `delete`
     const revoked = await revokeRole(drizzleOn(c) as any, input.userId);
     await audit(c, actor, { action: "admin.role_revoked", entity: "user_roles", entityId: input.userId, before });
@@ -257,16 +273,16 @@ export async function revokeStaffRole(pool: Pool, actor: Actor, raw: z.input<typ
   });
 }
 
-async function currentRole(q: Q, userId: string): Promise<{ role: StaffRole; principalInvestigator: boolean } | null> {
+async function currentRole(q: Q, userId: string): Promise<StaffAssignment | null> {
   const r = await q.query<{ role: StaffRole; principal_investigator: boolean }>("SELECT role::text AS role, principal_investigator FROM user_roles WHERE user_id = $1", [userId]);
   const row = r.rows[0];
   return row ? { role: row.role, principalInvestigator: row.principal_investigator } : null;
 }
 
-async function assertAdminRemains(q: Q, actor: Actor, userId: string): Promise<void> {
-  if (userId === actor.userId) throw new CmsError("self_revoke", "You cannot take away your own Admin role. Ask another Admin to do it.", 409);
-  if ((await activeAdminCount(q, userId)) === 0) {
-    throw new CmsError("last_admin", "This is the last active Admin. Make another person Admin first, then change this account.", 409);
+async function assertSuperAdminRemains(q: Q, actor: Actor, userId: string): Promise<void> {
+  if (userId === actor.userId) throw new CmsError("self_revoke", "You cannot take away your own Super Admin role. Ask another Super Admin to do it.", 409);
+  if ((await activeSuperAdminCount(q, userId)) === 0) {
+    throw new CmsError("last_super_admin", "This is the last active Super Admin. Make another person Super Admin first, then change this account.", 409);
   }
 }
 
@@ -275,7 +291,7 @@ function drizzleOn(c: PoolClient) {
 }
 
 export async function roleHolderCounts(pool: Pool, actor: Actor): Promise<Record<StaffGrant, number>> {
-  ensure(actor, ["admin.roles", "admin.users"]);
+  ensure(actor, "admin.roles");
   const r = await pool.query<{ role: StaffRole; n: number; pi: number }>(
     `SELECT ur.role::text AS role, count(*)::int AS n, count(*) FILTER (WHERE ur.principal_investigator)::int AS pi
        FROM user_roles ur JOIN users u ON u.id = ur.user_id WHERE u.disabled_at IS NULL GROUP BY ur.role`,

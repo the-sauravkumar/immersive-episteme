@@ -138,6 +138,8 @@ test("a signed-in account without a role waits at /awaiting-access until an admi
   await row.getByRole("button", { name: `Manage E2E Waiting (${WAITING})` }).click();
   await admin.getByRole("menuitem", { name: "Give access…" }).click();
   const dialog = admin.getByRole("dialog", { name: "Give access" });
+  await expect(dialog.getByLabel("Role").locator("option")).toHaveText(["Choose a role", "Researcher", "Curator"]);
+  await expect(dialog.getByLabel("Principal investigator", { exact: false })).toHaveCount(0);
   await dialog.getByLabel("Role").selectOption({ label: "Researcher" });
   const status = admin.getByRole("status").filter({ hasText: WAITING });
   await expect(admin.getByRole("status").filter({ hasText: "Role set" })).toHaveCount(0);
@@ -156,6 +158,13 @@ test("a signed-in account without a role waits at /awaiting-access until an admi
     [WAITING, ADMIN],
   );
   expect(audited.rows[0]!.n).toBeGreaterThan(0);
+  await admin.goto("/admin");
+  await expect(admin.getByRole("heading", { level: 1, name: "Admin Home" })).toBeVisible();
+  await expect(admin.locator("#health")).toHaveCount(0);
+  for (const path of ["/admin/settings", "/admin/roles", "/admin/audit"]) {
+    await admin.goto(path);
+    await expect(admin).toHaveURL(/\/forbidden/);
+  }
   await adminContext.close();
 
   await page.goto("/console");
@@ -231,17 +240,23 @@ test("one curator uploads an image, another verifies it, and an unready release 
   await expect.poll(stateOf).toBe("verified");
 
   const label = `e2e-refused-${tag}`;
-  await curator.goto("/cms/datasets");
-  await expect(curator.getByText("Not ready yet. Publishing would be refused because:")).toBeVisible();
-  const publish = curator.locator("#publish form");
-  await publish.getByRole("textbox", { name: "Release name", exact: true }).fill(label);
-  await publish.getByRole("textbox", { name: "Title", exact: true }).fill("E2E refused release");
-  await publish.getByRole("textbox", { name: "Type the release name again to confirm" }).fill(label);
-  const before = (await db().query<{ n: number }>("SELECT count(*)::int AS n FROM content_snapshots")).rows[0]!.n;
-  await publish.getByRole("button", { name: "Publish release" }).click();
-  await expect(curator.getByText("The release was refused; nothing was published.")).toBeVisible();
-  const after = await db().query<{ n: number; labelled: number }>("SELECT count(*)::int AS n, count(*) FILTER (WHERE version_label = $1)::int AS labelled FROM content_snapshots", [label]);
-  expect(after.rows[0]).toEqual({ n: before, labelled: 0 });
+  const unready = `e2e-unready-${tag}`;
+  await db().query("INSERT INTO traditions (slug, name, verification_state) VALUES ($1, 'E2E unready tradition', 'under_review')", [unready]);
+  try {
+    await curator.goto("/cms/datasets");
+    await expect(curator.getByText("Not ready yet. Publishing would be refused because:")).toBeVisible();
+    const publish = curator.locator("#publish form");
+    await publish.getByRole("textbox", { name: "Release name", exact: true }).fill(label);
+    await publish.getByRole("textbox", { name: "Title", exact: true }).fill("E2E refused release");
+    await publish.getByRole("textbox", { name: "Type the release name again to confirm" }).fill(label);
+    const before = (await db().query<{ n: number }>("SELECT count(*)::int AS n FROM content_snapshots")).rows[0]!.n;
+    await publish.getByRole("button", { name: "Publish release" }).click();
+    await expect(curator.getByText("The release was refused; nothing was published.")).toBeVisible();
+    const after = await db().query<{ n: number; labelled: number }>("SELECT count(*)::int AS n, count(*) FILTER (WHERE version_label = $1)::int AS labelled FROM content_snapshots", [label]);
+    expect(after.rows[0]).toEqual({ n: before, labelled: 0 });
+  } finally {
+    await db().query("DELETE FROM traditions WHERE slug = $1", [unready]);
+  }
 
   await curator.goto("/cms/traditions");
   await curator.getByRole("link", { name: "Open the Door 1 preview" }).click();

@@ -506,3 +506,9 @@ KG206 refuses an accepted link to an unaccepted concept, so these links waited f
 - bagru.scientific_mechanism.alum-fixes-fugitive-yellow SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.alum-mordant-complexation: S1 PDF p. 12, the fugitive turmeric and pomegranate yellow is made fast by post-mordanting with alum.
 
 Removed: `bagru.process_stage.hari-sarana-scouring SCIENTIFICALLY_EXPLAINED_BY shared.scientific_mechanism.sun-bleaching`. S1 PDF p. 9 describes sprinkling and drying on large open grounds until the cloth is white and names neither the sun nor bleaching; the same reading removed Sanganeri's scouring link in DR-120. It is archived with its reason in `content/review/removed-relationships.json`.
+
+## DR-134: Sources Of Kind Unverified Judged On Their Archived Copies
+
+The lead's rule (2026-11-08): a source that is of good quality, helps the project and describes what this tradition is and looks like is kept and accepted whether or not an author or publisher is named; otherwise it is dropped and its citations removed. Each kept source's kind, reason and archived copy are in its `notes` in the content file.
+
+- **S7 (Kaisori, The art of Syahi Begar) and S8 (Wikipedia, Bagru print): kept** as `researcher_interpretation`; S7 describes the Syahi-Begar sequence with the local terms S4 and S5 use; S8 prints the name Bagru print and is the recorded instance of the 2024 GI date the registry contradicts (also in `comparisons.json`).

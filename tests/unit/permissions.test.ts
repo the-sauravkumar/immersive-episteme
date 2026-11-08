@@ -8,6 +8,9 @@ import {
   ROLES,
   ROLE_PERMISSIONS,
   STAFF_ROLES,
+  ADMIN_GRANTABLE_ROLES,
+  adminMayChange,
+  adminMayLock,
   areaLanding,
   can,
   canAll,
@@ -19,6 +22,8 @@ import {
   isPermission,
   isRole,
   isStaffRole,
+  mayChangeRole,
+  mayLockAccount,
   parseStaffRole,
   participantDataScope,
   permissionsOf,
@@ -35,17 +40,8 @@ import {
 const LEARN: Permission[] = ["learn.2d", "learn.immersive"];
 
 const EXPECTED: Record<Role, Permission[]> = {
-  platform_admin: [
-    "admin.users",
-    "admin.roles",
-    "admin.settings",
-    "admin.audit",
-    "content.read",
-    "study.view",
-    "sessions.view",
-    "analytics.view",
-    ...LEARN,
-  ],
+  super_admin: PERMISSIONS.filter((p) => p !== "study.participate"),
+  platform_admin: ["admin.users", ...LEARN],
   principal_investigator: [
     "content.read",
     "content.review",
@@ -140,11 +136,16 @@ describe("policy invariants", () => {
     expect(can({ roles: ["researcher"] }, "content.review")).toBe(true);
   });
 
-  it("only curators and the PI can verify or publish content", () => {
+  it("only curators, the PI and the Super Admin can verify or publish content", () => {
     for (const p of ["content.verify", "content.publish"] as const) {
       const holders = ROLES.filter((r) => can({ roles: [r] }, p)).sort();
-      expect(holders, p).toEqual(["curator", "principal_investigator"]);
+      expect(holders, p).toEqual(["curator", "principal_investigator", "super_admin"]);
     }
+  });
+
+  it("the Super Admin holds every permission a staff member can hold", () => {
+    expect(permissionsOf({ roles: ["super_admin"] }).sort()).toEqual(PERMISSIONS.filter((p) => p !== "study.participate").sort());
+    for (const r of STAFF_ROLES) for (const p of permissionsOf({ roles: [r] })) expect(can({ roles: ["super_admin"] }, p), `${r} ${p}`).toBe(true);
   });
 
   it("a researcher without the PI mark sees pseudonymised data only", () => {
@@ -154,9 +155,17 @@ describe("policy invariants", () => {
     expect(participantDataScope(researcher)).toBe("pseudonymised");
   });
 
-  it("platform admins operate the platform but hold no domain authority", () => {
+  it("an Admin only lets people in: people and invite codes, nothing else", () => {
     const admin = { roles: ["platform_admin"] as Role[] };
+    expect(permissionsOf(admin).sort()).toEqual(["admin.users", ...LEARN].sort());
     for (const p of [
+      "admin.roles",
+      "admin.settings",
+      "admin.audit",
+      "content.read",
+      "study.view",
+      "sessions.view",
+      "analytics.view",
       "content.draft",
       "content.edit",
       "content.verify",
@@ -171,19 +180,44 @@ describe("policy invariants", () => {
     ] as const) {
       expect(can(admin, p), p).toBe(false);
     }
-    expect(participantDataScope(admin)).toBe("pseudonymised");
+    expect(participantDataScope(admin)).toBe("none");
   });
 
-  it("only the PI activates studies, excludes sessions, creates identified exports and removes participant data", () => {
+  it("only the PI and the Super Admin activate studies, exclude sessions, create identified exports and remove participant data", () => {
     for (const p of ["study.activate", "sessions.exclude", "exports.identified", "participants.purge"] as const) {
-      expect(ROLES.filter((r) => can({ roles: [r] }, p)), p).toEqual(["principal_investigator"]);
+      expect(ROLES.filter((r) => can({ roles: [r] }, p)), p).toEqual(["super_admin", "principal_investigator"]);
     }
   });
 
-  it("only admins manage users, roles and settings", () => {
-    for (const p of ["admin.users", "admin.roles", "admin.settings"] as const) {
-      expect(ROLES.filter((r) => can({ roles: [r] }, p)), p).toEqual(["platform_admin"]);
+  it("only the Super Admin changes roles and settings or reads the audit log apart from the PI; Admin and Super Admin manage people", () => {
+    for (const p of ["admin.roles", "admin.settings"] as const) {
+      expect(ROLES.filter((r) => can({ roles: [r] }, p)), p).toEqual(["super_admin"]);
     }
+    expect(ROLES.filter((r) => can({ roles: [r] }, "admin.audit"))).toEqual(["super_admin", "principal_investigator"]);
+    expect(ROLES.filter((r) => can({ roles: [r] }, "admin.users"))).toEqual(["super_admin", "platform_admin"]);
+  });
+
+  it("an Admin gives and takes only Researcher or Curator and locks only Researchers, Curators and waiting accounts", () => {
+    const admin = { roles: ["platform_admin"] as Role[] };
+    const superAdmin = { roles: ["super_admin"] as Role[] };
+    expect(ADMIN_GRANTABLE_ROLES).toEqual(["researcher", "curator"]);
+    const plain = (role: (typeof STAFF_ROLES)[number], principalInvestigator = false) => ({ role, principalInvestigator });
+    expect(mayChangeRole(admin, null, plain("researcher"))).toBe(true);
+    expect(mayChangeRole(admin, plain("researcher"), plain("curator"))).toBe(true);
+    expect(mayChangeRole(admin, plain("curator"), null)).toBe(true);
+    expect(mayChangeRole(admin, null, plain("platform_admin"))).toBe(false);
+    expect(mayChangeRole(admin, null, plain("super_admin"))).toBe(false);
+    expect(mayChangeRole(admin, plain("platform_admin"), plain("curator"))).toBe(false);
+    expect(mayChangeRole(admin, plain("super_admin"), null)).toBe(false);
+    expect(mayChangeRole(admin, null, plain("researcher", true))).toBe(false);
+    expect(mayChangeRole(admin, plain("researcher", true), plain("curator"))).toBe(false);
+    expect(mayChangeRole({ roles: ["researcher"] }, null, plain("curator"))).toBe(false);
+    for (const before of [null, ...STAFF_ROLES.map((r) => plain(r))]) for (const after of [null, ...STAFF_ROLES.map((r) => plain(r))]) expect(mayChangeRole(superAdmin, before, after)).toBe(true);
+    for (const role of [null, "researcher", "curator"] as const) expect(mayLockAccount(admin, role), String(role)).toBe(true);
+    for (const role of ["platform_admin", "super_admin"] as const) expect(mayLockAccount(admin, role), role).toBe(false);
+    for (const role of [null, ...STAFF_ROLES]) expect(mayLockAccount(superAdmin, role)).toBe(true);
+    expect(adminMayChange(plain("researcher", true))).toBe(false);
+    expect(adminMayLock("researcher")).toBe(true);
   });
 
   it("participants and the public hold nothing beyond learning (and participation)", () => {
@@ -196,8 +230,8 @@ describe("policy invariants", () => {
     for (const r of STAFF_ROLES) expect(canAll({ roles: [r] }, LEARN), r).toBe(true);
   });
 
-  it("identified participant data is limited to the PI", () => {
-    expect(ROLES.filter((r) => participantDataScope({ roles: [r] }) === "identified")).toEqual(["principal_investigator"]);
+  it("identified participant data is limited to the PI and the Super Admin", () => {
+    expect(ROLES.filter((r) => participantDataScope({ roles: [r] }) === "identified")).toEqual(["super_admin", "principal_investigator"]);
     expect(participantDataScope({ roles: ["curator"] })).toBe("none");
     expect(participantDataScope(null)).toBe("none");
   });
@@ -230,7 +264,7 @@ describe("can / canAny / canAll / permissionsOf", () => {
   });
 
   it("role guards", () => {
-    expect(STAFF_ROLES).toEqual(["platform_admin", "researcher", "curator"]);
+    expect(STAFF_ROLES).toEqual(["super_admin", "platform_admin", "researcher", "curator"]);
     for (const r of STAFF_ROLES) expect(isStaffRole(r)).toBe(true);
     for (const r of NON_STAFF_ROLES) expect(isStaffRole(r)).toBe(false);
     expect(isStaffRole("principal_investigator")).toBe(false);
@@ -239,7 +273,8 @@ describe("can / canAny / canAll / permissionsOf", () => {
     expect(isPermission("content.delete")).toBe(false);
   });
 
-  it("parses the three role names, the PI and every retired name onto one role", () => {
+  it("parses the four role names, the PI and every retired name onto one role", () => {
+    expect(parseStaffRole("super_admin")).toEqual({ role: "super_admin", principalInvestigator: false });
     expect(parseStaffRole("admin")).toEqual({ role: "platform_admin", principalInvestigator: false });
     expect(parseStaffRole("platform_admin")).toEqual({ role: "platform_admin", principalInvestigator: false });
     expect(parseStaffRole("principal_investigator")).toEqual({ role: "researcher", principalInvestigator: true });
@@ -254,12 +289,14 @@ describe("can / canAny / canAll / permissionsOf", () => {
     expect(grantsOf(null)).toEqual([]);
     expect(staffTitle(["researcher", "principal_investigator"])).toBe("Researcher (principal investigator)");
     expect(staffTitle(["platform_admin"])).toBe("Admin");
+    expect(staffTitle(["super_admin"])).toBe("Super Admin");
     expect(staffTitle([])).toBeNull();
   });
 
   it("refusals name who can do it and what to do next", () => {
     expect(refusalMessage(["content.verify"])).toBe("Only a Curator or the principal investigator can do this. Ask them to do it for you, or ask an Admin to change your role.");
     expect(refusalMessage(["admin.users"])).toBe("Only an Admin can do this. Ask them to do it for you, or ask an Admin to change your role.");
+    expect(refusalMessage(["admin.settings"])).toBe("Only a Super Admin can do this. Ask a Super Admin to do it for you.");
     expect(refusalMessage(["study.configure"])).toBe("Only a Researcher can do this. Ask them to do it for you, or ask an Admin to change your role.");
     expect(refusalMessage(["study.participate"])).toBe("No staff role can do this.");
   });
@@ -287,7 +324,8 @@ describe("console route table", () => {
   });
 
   it.each([
-    ["platform_admin", ["cms", "research", "admin"]],
+    ["super_admin", ["cms", "research", "admin"]],
+    ["platform_admin", ["admin"]],
     ["principal_investigator", ["cms", "research", "admin"]],
     ["researcher", ["cms", "research"]],
     ["curator", ["cms", "research"]],
@@ -341,6 +379,9 @@ describe("console route table", () => {
     expect(staffLanding({ roles: ["researcher"] })).toBe("/research");
     expect(staffLanding({ roles: ["researcher", "principal_investigator"] })).toBe("/research");
     expect(staffLanding({ roles: ["platform_admin"] })).toBe("/admin");
+    expect(staffLanding({ roles: ["super_admin"] })).toBe("/admin");
+    expect(visibleNav({ roles: ["platform_admin"] }, "admin").map((r) => r.path)).toEqual(["/admin", "/admin/users", "/admin/access"]);
+    expect(visibleNav({ roles: ["super_admin"] }, "admin").map((r) => r.path)).toEqual(["/admin", "/admin/users", "/admin/access", "/admin/settings", "/admin/roles", "/admin/audit"]);
     expect(staffLanding({ roles: [] })).toBeNull();
     expect(staffLanding(null)).toBeNull();
   });

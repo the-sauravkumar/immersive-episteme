@@ -1,11 +1,11 @@
 import { eq, sql } from "drizzle-orm";
-import type { NodePgDatabase } from "drizzle-orm/node-postgres";
+import type { PgDatabase } from "drizzle-orm/pg-core";
 
 import { userRoles } from "@db/schema/auth";
 import { grantsOf, isStaffRole, type StaffAssignment, type StaffGrant } from "@/lib/permissions/roles";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- any Drizzle pg database works
-type AnyPgDatabase = NodePgDatabase<any>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- any Drizzle pg database or transaction works
+type AnyPgDatabase = PgDatabase<any, any, any>;
 
 export async function loadStaffAssignment(db: AnyPgDatabase, userId: string): Promise<StaffAssignment | null> {
   const [row] = await db

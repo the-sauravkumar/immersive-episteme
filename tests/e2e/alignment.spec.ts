@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 
-import { expect, newContext, test, type Browser, type Page } from "./fixtures";
+import { expect, newContext, openDemo, test, type Browser, type Page } from "./fixtures";
 
 import { JOURNEY_STUDY as E2E_STUDY_CODE, closeDb, createE2eStaff, ensureDemoStudy, retireE2eStaff, signInStaff as signInAs } from "./study-fixtures";
 
@@ -15,7 +15,7 @@ const DESKTOP = { width: 1280, height: 800 };
 const PHONE = { width: 390, height: 844 };
 
 test.beforeAll(async () => {
-  createE2eStaff(ADMIN, "E2E Alignment Admin", "admin", PASSWORD);
+  createE2eStaff(ADMIN, "E2E Alignment Admin", "super_admin", PASSWORD);
   createE2eStaff(CURATOR, "E2E Alignment Curator", "curator", PASSWORD);
 });
 test.afterAll(async () => {
@@ -25,12 +25,6 @@ test.afterAll(async () => {
 
 async function signInStaff(page: Page, email: string) {
   await signInAs(page, email, PASSWORD);
-}
-
-async function startDemo(page: Page) {
-  await page.goto("/explore");
-  await page.getByRole("button", { name: "Open visual course" }).click();
-  await page.waitForURL(/\/learn\/2d$/, { timeout: 120_000 });
 }
 
 async function expectActionsAligned(page: Page, cards: string, action: string) {
@@ -79,12 +73,6 @@ async function context(browser: Browser, viewport: { width: number; height: numb
 test("card actions in one row share a baseline at 1280 px", async ({ browser }) => {
   const { ctx, page } = await context(browser, DESKTOP);
 
-  await page.goto("/");
-  await expectActionsAligned(page, 'section[aria-labelledby="conditions-heading"] ul[aria-label="The two conditions"] > li', 'a[href="/explore"]');
-
-  await page.goto("/explore");
-  await expectActionsAligned(page, '[data-slot="card"]', 'button[type="submit"]');
-
   await page.goto("/study");
   await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
   const label = (await page.getByText("Study code", { exact: true }).boundingBox())!;
@@ -97,7 +85,7 @@ test("card actions in one row share a baseline at 1280 px", async ({ browser }) 
   const staff = await context(browser, DESKTOP);
   await signInStaff(staff.page, ADMIN);
   await staff.page.goto("/admin");
-  await expectActionsAligned(staff.page, "section#awaiting, section#invites", ":scope > header a");
+  await expectActionsAligned(staff.page, "section#awaiting, section#invites", ":scope > header a");
   await staff.ctx.close();
 });
 
@@ -109,7 +97,7 @@ test("no in-scope page scrolls horizontally at 390 px", async ({ browser }) => {
   await anon.ctx.close();
 
   const demo = await context(browser, PHONE);
-  await startDemo(demo.page);
+  await openDemo(demo.page, "2d");
   await expectNoHorizontalOverflow(demo.page, "/learn/2d");
   await demo.ctx.close();
 

@@ -41,7 +41,7 @@ function withConfirmField(state: ActionState): ActionState {
 }
 
 export async function createStaffAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  return runAction(["admin.users"], createStaffInput, formObject(fd), async ({ actor, pool }, input) => {
+  return runAction("admin.roles", createStaffInput, formObject(fd), async ({ actor, pool }, input) => {
     const res = await createStaffUser({ pool, auth: getAuth(), db: getDb() }, actor, input);
     return { message: `Account created for ${input.email}.`, data: { userId: res.userId } };
   });
@@ -84,7 +84,7 @@ export async function resetPasswordAction(_prev: ActionState, fd: FormData): Pro
 }
 
 export async function setRoleAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  return runAction("admin.roles", roleInput, formObject(fd), async ({ actor, pool }, input) => {
+  return runAction(["admin.users", "admin.roles"], roleInput, formObject(fd), async ({ actor, pool }, input) => {
     await setStaffRole(pool, actor, input);
     return input.role === "researcher" && input.principalInvestigator ? "Role set to Researcher, as principal investigator." : `Role set to ${ROLE_LABELS[input.role]}.`;
   });
@@ -93,7 +93,7 @@ export async function setRoleAction(_prev: ActionState, fd: FormData): Promise<A
 export async function revokeRoleAction(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const raw = formObject(fd);
   return withConfirmField(
-    await runAction("admin.roles", userIdInput, raw, async ({ actor, pool }, input) => {
+    await runAction(["admin.users", "admin.roles"], userIdInput, raw, async ({ actor, pool }, input) => {
       await assertConfirmed(pool, input.userId, raw.confirm);
       await revokeStaffRole(pool, actor, input);
       return "Role removed. The person now waits for access until someone gives them a role.";

@@ -382,16 +382,20 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
       expect((await probe()).status).toBe(401);
     });
 
-    it("lets platform_admin see the dashboard but not download CSV (no exports.create)", async () => {
-      as(["platform_admin"]);
+    it("lets super_admin see the dashboard and download CSV; refuses platform_admin both (DR-134)", async () => {
+      as(["super_admin"]);
       const r = await probe();
       expect(r.status).toBe(200);
       expect(r.headers.get("cache-control")).toBe("no-store");
       expect(await r.json()).toMatchObject({ fingerprint: expect.stringMatching(/^[0-9a-f]{16}$/) });
+      expect((await csvGet("dashboard_primary")).status).toBe(200);
+      as(["platform_admin"]);
+      expect((await probe()).status).toBe(403);
       expect((await csvGet("dashboard_primary")).status).toBe(403);
     });
 
     it("serves pseudonymised CSV with the metric versions in its first line", async () => {
+      const exportsBefore = (await t.pool.query("SELECT count(*)::int AS n FROM audit_log WHERE action = 'export.dashboard_csv'")).rows[0].n;
       as(["researcher"]);
       const r = await csvGet("dashboard_primary_ancova");
       expect(r.status).toBe(200);
@@ -414,7 +418,7 @@ describe.skipIf(!TEST_URL)("research dashboard", () => {
       expect(summary.rows.find((x) => x.metric === "test.pre_test" && x.condition_code === "conventional")).toMatchObject({ phase: "pre", qualifier: "covariate" });
       expect((await csvGet("nope")).status).toBe(400);
       const audit = await t.pool.query("SELECT count(*)::int AS n FROM audit_log WHERE action = 'export.dashboard_csv'");
-      expect(audit.rows[0].n).toBe(2);
+      expect(audit.rows[0].n - exportsBefore).toBe(2);
     });
   });
 });

@@ -23,7 +23,7 @@ async function main() {
     options: {
       email: { type: "string" },
       name: { type: "string" },
-      role: { type: "string", default: "admin" },
+      role: { type: "string", default: "super_admin" },
       password: { type: "string" },
       test: { type: "boolean", default: false },
       help: { type: "boolean", short: "h", default: false },

@@ -14,7 +14,7 @@ One Next.js 16 App Router application (modular monolith) over one PostgreSQL 18 
 | Study flow | `src/app/(study)/study/` | `/study`, `/study/consent`, `/study/complete` are open; `(session)/*` steps (pre-test, task, post-test, questionnaire, reconstruction, session) need a participant session |
 | CMS | `src/app/(cms)/cms/` | Content, graph, sources, media, review queue, dataset versions, spatial compiler |
 | Research console | `src/app/(research)/research/` | Studies, participants, sessions, assessments, scoring, analytics, exports, parity |
-| Admin | `src/app/(admin)/admin/` | Users, roles, settings, audit |
+| Admin | `src/app/(admin)/admin/` | People, invite codes, settings, roles, audit |
 | Auth API | `src/app/api/auth/[...all]/route.ts` | Better Auth handler (`/api/auth/ok` is its health check) |
 | Proxy | `src/proxy.ts` | Next 16 name for middleware. Cheap cookie-presence redirects only |
 | Shells and gates | `src/components/shell/` | Layout shells, `gates.tsx` (server-side access gates) |
@@ -48,22 +48,25 @@ cell is asserted in `tests/unit/permissions.test.ts` against an independently wr
 
 Roles (`src/lib/permissions/roles.ts`):
 
-- Staff (stored in `user_roles`, a user may hold several): `platform_admin`,
-  `principal_investigator`, `researcher`, `curator`, `content_editor`, `study_facilitator`,
-  `research_analyst`.
+- Staff (stored in `user_roles`, one row per person, DR-133, DR-134): `super_admin`,
+  `platform_admin` (shown as Admin), `researcher` (with an optional principal-investigator
+  mark, granted as `principal_investigator`) and `curator`.
 - Synthesised, never stored: `participant` (from a valid participant-session cookie) and
   `public` (no credential).
 
 Policy rules encoded in the matrix:
 
-- Separation of duties on content: content editors draft and edit, but never review, verify
-  or publish. Verification and publication belong to curators and the principal investigator.
-- `platform_admin` is an operator: users, roles, settings, audit log, and read access. It
-  cannot verify or publish content, run studies, or see identifying participant data.
-- `research_analyst` is read-only and pseudonymised: no `participants.identify`, no
-  `exports.identified`, no write permissions.
-- Only the principal investigator activates studies, excludes sessions and creates identified
-  exports.
+- `super_admin` holds every staff permission: settings, roles, the audit log and making people
+  Admin or Super Admin are its alone. The last active Super Admin cannot be demoted, locked or
+  removed; an account whose verified email is in `SUPER_ADMIN_EMAILS` becomes Super Admin when
+  it signs in.
+- `platform_admin` only lets people in: it sees the people, gives and removes the Researcher or
+  Curator role, locks, unlocks and resets the passwords of Researchers and Curators, and makes
+  and revokes invite codes.
+- Verification and publication belong to curators, the principal investigator and the Super
+  Admin; nobody verifies an item they wrote or edited.
+- Only the principal investigator and the Super Admin activate studies, exclude sessions,
+  remove participant data and create identified exports.
 - Every staff role may preview both learning conditions; such access is always flagged
   non-experimental.
 

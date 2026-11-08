@@ -60,7 +60,7 @@ export default function ColophonPage() {
       <PageHeader
         className="mb-0"
         title="Colophon"
-        description="How the platform is set: its typefaces, its colours, its fixed order, and how the two learning conditions are kept equivalent."
+        description="How the platform is set: its typefaces, its colours and its fixed order."
       />
       <EditorialFrame>
         <EditorialSection id="typefaces" title="Typefaces">
@@ -73,7 +73,7 @@ export default function ColophonPage() {
             }
           >
             <Prose>
-              Every page, both doors and every study and staff screen share two typefaces under the SIL Open Font License, and no others.
+              Every public, study and staff page and the learning task share two typefaces under the SIL Open Font License, and no others.
             </Prose>
             <div className="flex flex-col gap-2 border-t border-line pt-4">
               <p className="t-label">Eczar, for names, headings, labels and buttons</p>
@@ -94,7 +94,7 @@ export default function ColophonPage() {
             <Prose>
               No colour on this platform is a measured or historical dye or cloth colour; today&rsquo;s dyes are mostly synthetic, so there is no
               single authentic value to measure. Every swatch is a design interpretation. There is one theme, the same on public, study and staff
-              pages and in both doors.
+              pages and in the learning task.
             </Prose>
           </EditorialRow>
           <Palette />
@@ -103,22 +103,12 @@ export default function ColophonPage() {
         <EditorialSection id="order" title="Fixed order">
           <EditorialRow>
             <Prose>
-              The visual course is always shown first and on the left, and the walkthrough second, on Explore and in Figure 1. Public pages
-              and the demo list traditions in one alphabetical order. In a study, each participant learns one tradition, drawn at random so that
-              every tradition is equally represented in each condition, and is tested only on that tradition.
+              Public pages and the demo list traditions in one alphabetical order. In a study, each participant learns one tradition, drawn at
+              random so that every tradition is equally represented, and is tested only on that tradition.
             </Prose>
           </EditorialRow>
         </EditorialSection>
 
-        <EditorialSection id="parity" title="Equivalence of the conditions">
-          <EditorialRow>
-            <Prose>
-              The doors are compared from one stage template: the same stages, words, sources, model ids and file hashes. A content parity report is
-              stored with each study. The suite that measured the earlier interfaces was removed with them, so no interface measures are
-              published.
-            </Prose>
-          </EditorialRow>
-        </EditorialSection>
       </EditorialFrame>
     </div>
   );

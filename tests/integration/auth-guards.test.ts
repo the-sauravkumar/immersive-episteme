@@ -84,7 +84,7 @@ describe("learning condition guard (in-memory study sessions)", () => {
       {
         condition: "immersive",
         participantCookie: await participantCookie("2d"),
-        demoCookie: await signDemoSession(SECRET),
+        demoCookie: await signDemoSession(SECRET, "2d"),
         staff,
       },
       deps,
@@ -113,14 +113,14 @@ describe("learning condition guard (in-memory study sessions)", () => {
           return `${t.slice(0, -2)}${last}${t.at(-1)}`;
         },
       ],
-      ["a demo token presented as a participant cookie", () => signDemoSession(SECRET)],
+      ["a demo token presented as a participant cookie", () => signDemoSession(SECRET, "2d")],
       [
         "same secret, different purpose",
         () =>
           signToken(
             { t: "participant", pid: PID, sid: SID, cond: "immersive", iat: 1, exp: 9_999_999_999 },
             SECRET,
-            "public-demo/v1",
+            "public-demo/v2",
           ),
       ],
       ["garbage", async () => "not-a-token"],
@@ -163,26 +163,27 @@ describe("learning condition guard (in-memory study sessions)", () => {
     expect(lookup.calls).toEqual([SID]);
   });
 
-  it("public demo is admitted to either condition and flagged non-experimental", async () => {
-    const demo = await signDemoSession(SECRET);
+  it("public demo is admitted only to its assigned condition, flagged non-experimental, and sent back to it from the other", async () => {
     for (const condition of ["2d", "immersive"] as const) {
+      const other = condition === "2d" ? "immersive" : "2d";
+      const demo = await signDemoSession(SECRET, condition);
       const d = await resolveLearningAccess(input({ condition, demoCookie: demo }), deps);
-      expect(d.allowed).toBe(true);
-      if (d.allowed) {
-        expect(d.access.kind).toBe("demo");
-        expect(d.access.experimental).toBe(false);
-        expect(d.access.condition).toBe(condition);
-      }
+      expect(d).toMatchObject({ allowed: true, access: { kind: "demo", experimental: false, condition } });
+      expect(await resolveLearningAccess(input({ condition: other, demoCookie: demo }), deps)).toEqual({
+        allowed: false,
+        reason: "condition_mismatch",
+        redirectTo: condition === "2d" ? "/learn/2d" : "/learn/immersive",
+      });
     }
   });
 
   it.each([
-    ["tampered demo cookie", async () => swapPayload(await signDemoSession(SECRET), { t: "demo", x: true })],
-    ["demo cookie from another secret", () => signDemoSession(OTHER_SECRET)],
+    ["tampered demo cookie", async () => swapPayload(await signDemoSession(SECRET, "2d"), { t: "demo", x: true })],
+    ["demo cookie from another secret", () => signDemoSession(OTHER_SECRET, "2d")],
     ["participant token presented as a demo cookie", () => participantCookie("2d")],
     [
       "expired demo cookie",
-      () => signDemoSession(SECRET, { now: Math.floor(Date.now() / 1000) - 10_000, ttlSeconds: 60 }),
+      () => signDemoSession(SECRET, "2d", { now: Math.floor(Date.now() / 1000) - 10_000, ttlSeconds: 60 }),
     ],
   ])("refuses a %s", async (_label, make) => {
     const d = await resolveLearningAccess(input({ condition: "2d", demoCookie: await make() }), deps);
@@ -190,7 +191,7 @@ describe("learning condition guard (in-memory study sessions)", () => {
   });
 
   it("public demo stops working when the server-side demo policy is off, in any browser", async () => {
-    const demo = await signDemoSession(SECRET);
+    const demo = await signDemoSession(SECRET, "2d");
     const off = { ...deps, demoEnabled: async () => false };
     for (const condition of ["2d", "immersive"] as const) {
       expect(await resolveLearningAccess(input({ condition, demoCookie: demo }), off)).toEqual({

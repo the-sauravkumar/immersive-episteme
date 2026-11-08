@@ -22,6 +22,7 @@ export const CATALOG: readonly CatalogEntry[] = [
   { name: "AUTH_CLIENT_IP_HEADER", kind: "config", need: "required", source: "x-forwarded-for (Vercel overwrites it; RESEARCH.md section 11)" },
   { name: "PUBLIC_DEMO", kind: "config", need: "optional", source: "auto (default)" },
   { name: "GOOGLE_CLIENT_ID", kind: "config", need: "optional", source: "Google Cloud OAuth client (Web application) ID; staff Google sign-in only, set together with GOOGLE_CLIENT_SECRET (RUNBOOK \"Google sign-in for staff\")" },
+  { name: "SUPER_ADMIN_EMAILS", kind: "config", need: "required", source: "the lead's sign-in address (comma-separated if more than one); that account becomes Super Admin when it signs in with a verified email (RUNBOOK 6.1)" },
   { name: "GOOGLE_CLIENT_SECRET", kind: "secret", need: "optional", source: "the same OAuth client's secret; unset both to turn Google sign-in off" },
   { name: "MEDIA_S3_BUCKET", kind: "config", need: "required", source: "Neon Object Storage bucket, private (episteme-media)" },
   { name: "MEDIA_S3_REGION", kind: "config", need: "required", source: "the bucket's region, equal to the Neon database region (ap-southeast-1)" },

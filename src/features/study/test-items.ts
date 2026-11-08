@@ -175,24 +175,6 @@ function clothItem(template: StageTemplate, stages: readonly TemplateStage[], su
   };
 }
 
-const publicPath = (file: string) => (file.startsWith("/") ? file : `/${file}`);
-
-function attributionItem(template: StageTemplate, templates: readonly StageTemplate[], product: StageTemplate["products"][number], index: number): DraftItem {
-  return {
-    itemKey: `attr.${template.tradition}.${index + 1}`.slice(0, 64),
-    kind: "single_choice",
-    prompt: "Which tradition does this finished textile come from?",
-    config: {
-      kind: "single_choice",
-      options: templates.map((candidate) => ({ id: candidate.tradition, label: candidate.traditionName })),
-      shuffle: false,
-      image: { path: publicPath(product.file), alt: "A finished textile" },
-      target: { tradition: template.tradition },
-    },
-    answerKey: { optionId: template.tradition },
-  };
-}
-
 export function linearOrder(tradition: UnseenTradition): UnseenStage[] | null {
   const byKey = new Map(tradition.stages.map((stage) => [stage.key, stage]));
   const edges = tradition.precedes.filter(([from, to]) => byKey.has(from) && byKey.has(to));
@@ -316,13 +298,12 @@ interface TraditionForms {
   readonly placement: DraftItem[];
   readonly sequence: DraftItem[];
   readonly clothState: DraftItem[];
-  readonly attribution: DraftItem[];
   readonly conceptMap: DraftItem[];
 }
 
 const interleaved = <T>(list: readonly T[], groups: number, group: number): T[] => list.filter((_, index) => index % groups === group);
 
-function formsOf(template: StageTemplate, templates: readonly StageTemplate[], pool: readonly PooledObject[], knownConceptKeys: ReadonlySet<string>): TraditionForms {
+function formsOf(template: StageTemplate, pool: readonly PooledObject[], knownConceptKeys: ReadonlySet<string>): TraditionForms {
   const objects = uniqueObjects(template);
   const named = objects
     .filter((object) => identifiable(object, pool))
@@ -337,7 +318,6 @@ function formsOf(template: StageTemplate, templates: readonly StageTemplate[], p
     placement: placed.map((entry) => entry.item),
     sequence: [sequenceItem(template, template.stages, "all"), sequenceItem(template, interleaved(template.stages, 2, 0), "a"), sequenceItem(template, interleaved(template.stages, 2, 1), "b")],
     clothState: [0, 1, 2].map((group) => clothItem(template, interleaved(template.stages, 3, group), "abc"[group]!)),
-    attribution: template.products.map((product, index) => attributionItem(template, templates, product, index)),
     conceptMap: map ? [map] : [],
   };
 }
@@ -350,13 +330,12 @@ export const FORM_LENGTHS = {
   placement: 7,
   sequence: 3,
   clothState: 3,
-  attribution: 3,
   conceptMap: 1,
 } as const;
 
 export function buildTestBattery({ templates, unseen, knownConceptKeys }: BatteryInput): GeneratedAssessment[] {
   const pool = allObjects(templates);
-  const forms = templates.map((template) => formsOf(template, templates, pool, knownConceptKeys));
+  const forms = templates.map((template) => formsOf(template, pool, knownConceptKeys));
   const common = (pick: (form: TraditionForms) => readonly DraftItem[], target: number) => Math.min(target, ...forms.map((form) => pick(form).length));
   const perTradition = (pick: (form: TraditionForms) => readonly DraftItem[], target: number) => {
     const length = common(pick, target);
@@ -371,7 +350,6 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
   const placement = perTradition((form) => form.placement, FORM_LENGTHS.placement);
   const sequence = perTradition((form) => form.sequence, FORM_LENGTHS.sequence);
   const clothState = perTradition((form) => form.clothState, FORM_LENGTHS.clothState);
-  const attribution = perTradition((form) => form.attribution, FORM_LENGTHS.attribution);
   const assessment = (code: string, phase: GeneratedAssessment["phase"], position: number, title: string, testType: TestItemType, items: readonly (DraftItem | null)[], kind: GeneratedAssessment["kind"] = phase === "pre" ? "pretest" : "posttest", description: string | null = null): GeneratedAssessment => ({
     code,
     kind,
@@ -390,13 +368,12 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
     assessment("test-stage-placement", "post", 1, "Find The Stage", "stage_placement", placement),
     assessment("test-sequence", "post", 2, "Put The Stages In Order", "sequence", sequence),
     assessment("test-cloth-state", "post", 3, "Match The Cloth", "cloth_state", clothState),
-    assessment("test-attribution", "post", 4, "Name The Tradition", "attribution", attribution),
-    assessment("test-transfer", "post", 5, "A Tradition You Have Not Seen", "transfer", immediateUnseen ? transferItems(immediateUnseen) : [], "transfer"),
+    assessment("test-transfer", "post", 4, "A Tradition You Have Not Seen", "transfer", immediateUnseen ? transferItems(immediateUnseen) : [], "transfer"),
     {
       code: "test-concept-map",
       kind: "reconstruction",
       phase: "post",
-      position: 6,
+      position: 5,
       title: "Link The Process",
       description: null,
       testType: null,
@@ -407,7 +384,7 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
       code: "test-layout-sketch",
       kind: "sketch",
       phase: "post",
-      position: 7,
+      position: 6,
       title: "Sketch The Layout",
       description: null,
       testType: null,
@@ -418,8 +395,7 @@ export function buildTestBattery({ templates, unseen, knownConceptKeys }: Batter
     assessment("test-stage-placement-delayed", "follow_up", 1, "Find The Stage", "stage_placement", placement),
     assessment("test-sequence-delayed", "follow_up", 2, "Put The Stages In Order", "sequence", sequence),
     assessment("test-cloth-state-delayed", "follow_up", 3, "Match The Cloth", "cloth_state", clothState),
-    assessment("test-attribution-delayed", "follow_up", 4, "Name The Tradition", "attribution", attribution),
-    assessment("test-transfer-delayed", "follow_up", 5, "A Tradition You Have Not Seen", "transfer", delayedUnseen ? transferItems(delayedUnseen) : []),
+    assessment("test-transfer-delayed", "follow_up", 4, "A Tradition You Have Not Seen", "transfer", delayedUnseen ? transferItems(delayedUnseen) : []),
   ];
   return battery.filter((entry) => entry.items.length > 0).map(asDemoWhereSampled);
 }

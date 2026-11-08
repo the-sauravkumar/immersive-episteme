@@ -334,7 +334,7 @@ export async function seedDemo(db: NodePgDatabase): Promise<void> {
       .insert(studies)
       .values({
         slug: DEMO_STUDY_SLUG,
-        title: "Demo: Study skeleton (2D vs 3D)",
+        title: "Demo: Study skeleton",
         description: "Demo study for development. Never used for data collection.",
         protocolVersion: "demo-0.1",
         snapshotId: snap!.id,

@@ -66,9 +66,9 @@ describe("review transitions vs the permission matrix", () => {
     expect(allowed("curator", "verified", "archived")).toBe(true);
   });
 
-  it("only curators and the PI verify; researchers review without verifying; admins do neither", () => {
+  it("only curators, the PI and the Super Admin verify; researchers review without verifying; admins do neither", () => {
     const verifiers = ([...STAFF_ROLES, "principal_investigator"] as Role[]).filter((r) => allowed(r, "under_review", "verified"));
-    expect(verifiers.sort()).toEqual(["curator", "principal_investigator"]);
+    expect(verifiers.sort()).toEqual(["curator", "principal_investigator", "super_admin"]);
     expect(allowed("researcher", "under_review", "needs_evidence")).toBe(true);
     expect(allowed("platform_admin", "under_review", "needs_evidence")).toBe(false);
   });

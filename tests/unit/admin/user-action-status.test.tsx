@@ -27,7 +27,7 @@ function AwaitingAccessList() {
   });
   return (
     <UserActionStatus>
-      {rows.length ? rows.map((u) => <UserRowActions key={u.id} user={u} self={false} manageRoles minPasswordLength={12} />) : <p>No accounts match these filters.</p>}
+      {rows.length ? rows.map((u) => <UserRowActions key={u.id} user={u} self={false} superAdmin minPasswordLength={12} />) : <p>No accounts match these filters.</p>}
     </UserActionStatus>
   );
 }
@@ -36,8 +36,8 @@ describe("UserActionStatus", () => {
   it("is one polite live region, present and empty before any action", () => {
     render(
       <UserActionStatus>
-        <UserRowActions user={WAITING} self={false} manageRoles minPasswordLength={12} />
-        <UserRowActions user={{ ...WAITING, id: "u-2", email: "other@example.test" }} self={false} manageRoles minPasswordLength={12} />
+        <UserRowActions user={WAITING} self={false} superAdmin minPasswordLength={12} />
+        <UserRowActions user={{ ...WAITING, id: "u-2", email: "other@example.test" }} self={false} superAdmin minPasswordLength={12} />
       </UserActionStatus>,
     );
     const regions = screen.getAllByRole("status");
@@ -65,7 +65,7 @@ describe("UserActionStatus", () => {
     const user = userEvent.setup();
     render(
       <UserActionStatus>
-        <UserRowActions user={{ ...WAITING, role: "researcher", principalInvestigator: true }} self={false} manageRoles minPasswordLength={12} />
+        <UserRowActions user={{ ...WAITING, role: "researcher", principalInvestigator: true }} self={false} superAdmin minPasswordLength={12} />
       </UserActionStatus>,
     );
     await user.click(screen.getByRole("button", { name: "Manage Waiting Person (waiting@example.test)" }));
@@ -82,7 +82,7 @@ describe("UserActionStatus", () => {
     const user = userEvent.setup();
     render(
       <UserActionStatus>
-        <UserRowActions user={{ ...WAITING, signInLocked: true, hasPassword: true }} self={false} manageRoles minPasswordLength={12} />
+        <UserRowActions user={{ ...WAITING, signInLocked: true, hasPassword: true }} self={false} superAdmin minPasswordLength={12} />
       </UserActionStatus>,
     );
     await user.click(screen.getByRole("button", { name: "Manage Waiting Person (waiting@example.test)" }));
@@ -95,7 +95,7 @@ describe("UserActionStatus", () => {
     const user = userEvent.setup();
     render(
       <UserActionStatus>
-        <UserRowActions user={WAITING} self={false} manageRoles minPasswordLength={12} />
+        <UserRowActions user={WAITING} self={false} superAdmin minPasswordLength={12} />
       </UserActionStatus>,
     );
     await user.click(screen.getByRole("button", { name: "Manage Waiting Person (waiting@example.test)" }));
@@ -107,6 +107,6 @@ describe("UserActionStatus", () => {
 
   it("refuses a row rendered outside the list's live region", () => {
     vi.spyOn(console, "error").mockImplementation(() => undefined);
-    expect(() => render(<UserRowActions user={WAITING} self={false} manageRoles minPasswordLength={12} />)).toThrow("UserRowActions must sit inside UserActionStatus.");
+    expect(() => render(<UserRowActions user={WAITING} self={false} superAdmin minPasswordLength={12} />)).toThrow("UserRowActions must sit inside UserActionStatus.");
   });
 });

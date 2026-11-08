@@ -140,14 +140,14 @@ export function Section({
       id={id}
       className={cn("flex min-w-0 scroll-mt-(--sticky-chrome) flex-col gap-4 border border-lime-dim bg-vat p-4 xs:p-6", className)}
     >
-      <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-        <div className="flex max-w-[40rem] min-w-0 flex-col gap-1">
+      <header className="flex flex-col items-start gap-x-4 gap-y-3 lg:flex-row lg:justify-between">
+        <div className="flex max-w-[40rem] min-w-0 flex-1 flex-col gap-1">
           <h2 id={id ? `${id}-title` : undefined} className="t-label text-lime">
             {titleCase(title)}
           </h2>
           {description ? <div className="t-b text-lime-dim">{description}</div> : null}
         </div>
-        {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+        {actions ? <div className="flex flex-wrap items-center gap-2 lg:shrink-0 lg:justify-end">{actions}</div> : null}
       </header>
       {children}
     </section>

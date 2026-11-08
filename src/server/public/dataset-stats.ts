@@ -257,7 +257,7 @@ export function homeDeck(traditions: readonly { slug: string; shortName: string 
   const taught = traditions.filter((t) => studySlugs.includes(t.slug)).map((t) => t.shortName);
   const opening = `${sentenceCase(countWord(all.length))} ${all.length === 1 ? "tradition" : "traditions"} of Indian hand-block printing, ${listOf(all)}, ${all.length === 1 ? "forms" : "form"} one cited body of knowledge.`;
   if (taught.length === 0) return `${opening} None of it is taught in the study yet.`;
-  if (taught.length === all.length) return `${opening} The two learning conditions teach ${all.length === 1 ? "it" : `all ${countWord(all.length)}`}.`;
+  if (taught.length === all.length) return `${opening} The study teaches ${all.length === 1 ? "it" : `all ${countWord(all.length)}`}.`;
   const rest = all.length - taught.length;
-  return `${opening} The two learning conditions teach ${countWord(taught.length)} of them, ${listOf(taught)}; the other ${countWord(rest)} ${rest === 1 ? "stays" : "stay"} in the knowledge base and ${rest === 1 ? "is" : "are"} not taught in the study.`;
+  return `${opening} The study teaches ${countWord(taught.length)} of them, ${listOf(taught)}; the other ${countWord(rest)} ${rest === 1 ? "stays" : "stay"} in the knowledge base and ${rest === 1 ? "is" : "are"} not taught in the study.`;
 }

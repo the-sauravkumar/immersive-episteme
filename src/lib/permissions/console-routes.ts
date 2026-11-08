@@ -89,7 +89,7 @@ export function areaLanding(subject: Subject | null | undefined, area: ConsoleAr
   return visibleNav(subject, area)[0]?.path ?? null;
 }
 
-const ROLE_HOME: Record<StaffRole, ConsoleArea> = { platform_admin: "admin", researcher: "research", curator: "cms" };
+const ROLE_HOME: Record<StaffRole, ConsoleArea> = { super_admin: "admin", platform_admin: "admin", researcher: "research", curator: "cms" };
 
 export function staffLanding(subject: Subject | null | undefined): string | null {
   const role = staffRoleOf(subject?.roles ?? []);

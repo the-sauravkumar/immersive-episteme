@@ -10,10 +10,11 @@ describe("export scope", () => {
     expect(() => resolveExportScope({ roles: ["researcher"] }, "identified")).toThrow(ExportForbiddenError);
   });
 
-  it("lets only the principal investigator receive identified exports", () => {
+  it("lets only the principal investigator and the Super Admin receive identified exports", () => {
     expect(resolveExportScope({ roles: ["principal_investigator"] }, "identified")).toBe("identified");
     expect(resolveExportScope({ roles: ["researcher", "principal_investigator"] }, "identified")).toBe("identified");
     expect(() => resolveExportScope({ roles: ["platform_admin"] }, "pseudonymised")).toThrow(ExportForbiddenError);
+    expect(resolveExportScope({ roles: ["super_admin"] }, "identified")).toBe("identified");
     expect(() => resolveExportScope({ roles: ["curator"] }, "pseudonymised")).toThrow(ExportForbiddenError);
     expect(() => resolveExportScope(null, "pseudonymised")).toThrow(ExportForbiddenError);
   });

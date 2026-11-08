@@ -63,6 +63,11 @@ export const serverEnvSchema = z
     PUBLIC_DEMO: z.enum(["auto", "on", "off"]).default("auto"),
     GOOGLE_CLIENT_ID: optionalText.pipe(z.string().regex(/^[A-Za-z0-9._-]{8,200}$/, "must be a Google OAuth client ID").optional()),
     GOOGLE_CLIENT_SECRET: optionalText.pipe(z.string().min(8, "must be the Google OAuth client secret").max(200).optional()),
+    SUPER_ADMIN_EMAILS: z
+      .string()
+      .optional()
+      .transform((v) => (v ?? "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean))
+      .refine((list) => list.every((e) => z.email().safeParse(e).success), "must be comma-separated email addresses"),
   })
   .superRefine((env, ctx) => {
     if (Boolean(env.GOOGLE_CLIENT_ID) !== Boolean(env.GOOGLE_CLIENT_SECRET)) {
