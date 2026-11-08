@@ -3,32 +3,23 @@ import { z } from "zod";
 import {
   ALLOCATION_ALGORITHMS,
   CONDITION_INTERFACES,
-  CONSENT_DECISIONS,
   DEVIATION_SEVERITIES,
-  PARTICIPANT_STATUSES,
-  SESSION_STATUSES,
-  STUDY_PHASES,
-  STUDY_STATUSES,
 } from "@/lib/validation/enums";
 import { LEARNING_CONDITIONS } from "@/lib/permissions/learning";
-import { demoConsistencyIssue, nonBlank, sha256Schema, slugSchema, uuidSchema } from "@/lib/validation/primitives";
+import { demoConsistencyIssue, nonBlank, slugSchema, uuidSchema } from "@/lib/validation/primitives";
 
-export const studyDesignSchema = z.literal("between");
-export const studyStatusSchema = z.enum(STUDY_STATUSES);
-export const conditionInterfaceSchema = z.enum(CONDITION_INTERFACES);
-export const allocationAlgorithmSchema = z.enum(ALLOCATION_ALGORITHMS);
-export const studyPhaseSchema = z.enum(STUDY_PHASES);
+const studyDesignSchema = z.literal("between");
+const conditionInterfaceSchema = z.enum(CONDITION_INTERFACES);
+const allocationAlgorithmSchema = z.enum(ALLOCATION_ALGORITHMS);
 
 export const participantCodeSchema = z
   .string()
   .regex(/^[A-Za-z0-9][A-Za-z0-9_-]{2,31}$/, "3–32 letters, digits, '-' or '_'")
   .refine((c) => !c.includes("@"), "Never use an email address as a participant code");
 
-export const conditionCodeSchema = z.string().regex(/^[a-z][a-z0-9_]{0,47}$/);
+const conditionCodeSchema = z.string().regex(/^[a-z][a-z0-9_]{0,47}$/);
 
-export const periodCodeSchema = z.string().regex(/^[a-z0-9][a-z0-9_.-]{0,63}$/, "lowercase letters, digits, '.', '_' or '-'");
-
-export const STRATUM_SOURCES = ["pre_test_score"] as const;
+const STRATUM_SOURCES = ["pre_test_score"] as const;
 
 export const STUDY_STEPS = [
   "questionnaire_pre",
@@ -47,7 +38,7 @@ export const STUDY_STEPS = [
 ] as const;
 export type StudyStep = (typeof STUDY_STEPS)[number];
 
-export const instrumentRefSchema = z.union([
+const instrumentRefSchema = z.union([
   z.string().regex(/^[a-z][a-z0-9_-]{1,63}$/),
   z.object({
     code: z.string().regex(/^[a-z][a-z0-9_-]{1,63}$/),
@@ -120,7 +111,7 @@ export const studyConfigSchema = z.object({
 });
 export type StudyConfig = z.infer<typeof studyConfigSchema>;
 
-export const studyConditionInputSchema = z.object({
+const studyConditionInputSchema = z.object({
   code: conditionCodeSchema,
   label: nonBlank(120),
   interface: conditionInterfaceSchema,
@@ -156,63 +147,6 @@ export const studyInputSchema = z
       ctx.addIssue({ code: "custom", path: ["conditions"], message: "Include both the 2D and the 3D condition" });
     }
   });
-export type StudyInput = z.infer<typeof studyInputSchema>;
-
-export const participantEnrolSchema = z.object({
-  studyId: uuidSchema,
-  code: participantCodeSchema,
-  stratum: z.string().max(64).nullish(),
-});
-
-export const participantStatusSchema = z.enum(PARTICIPANT_STATUSES);
-
-export const consentRecordInputSchema = z.object({
-  participantId: uuidSchema,
-  consentVersion: z.string().min(1).max(64),
-  consentTextSha256: sha256Schema,
-  decision: z.enum(CONSENT_DECISIONS),
-  method: z.enum(["on_screen", "paper", "verbal_witnessed"]).default("on_screen"),
-});
-
-export const allocationRecordSchema = z
-  .object({
-    studyId: uuidSchema,
-    participantId: uuidSchema,
-    conditionId: uuidSchema,
-    period: z.number().int().positive().default(1),
-    algorithm: allocationAlgorithmSchema,
-    seed: z.string().min(1).max(128),
-    sequenceIndex: z.number().int().min(0),
-    blockIndex: z.number().int().min(0).nullish(),
-    stratum: z.string().max(64).nullish(),
-    studyProtocolVersion: z.string().min(1).max(64),
-    overrideReason: z.string().max(2000).nullish(),
-    taskCode: periodCodeSchema.nullish(),
-  })
-  .refine((a) => a.algorithm !== "manual" || !!a.overrideReason, {
-    path: ["overrideReason"],
-    message: "Manual allocation needs a reason",
-  });
-
-export const sessionDeviceSchema = z.object({
-  viewport: z.object({ width: z.number().int().positive(), height: z.number().int().positive() }).optional(),
-  devicePixelRatio: z.number().positive().max(8).optional(),
-  inputDevices: z.array(z.enum(["mouse", "keyboard", "touch", "gamepad", "xr"])).default([]),
-  gpuTier: z.enum(["low", "mid", "high", "unknown"]).default("unknown"),
-  qualityTier: z.enum(["low", "medium", "high"]).optional(),
-  webglVersion: z.union([z.literal(1), z.literal(2)]).nullish(),
-  reducedMotion: z.boolean().optional(),
-  highContrast: z.boolean().optional(),
-  browserFamily: z.string().max(40).optional(),
-});
-export type SessionDevice = z.infer<typeof sessionDeviceSchema>;
-
-export const sessionStatusSchema = z.enum(SESSION_STATUSES);
-
-export const sessionExclusionSchema = z.object({
-  sessionId: uuidSchema,
-  reason: nonBlank(2000),
-});
 
 export const protocolDeviationInputSchema = z.object({
   studyId: uuidSchema,

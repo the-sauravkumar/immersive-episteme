@@ -6,22 +6,18 @@ export const SCORING_PIPELINE_VERSION = "cmap-scoring@1.1.0";
 
 export const MATCH_LEVELS = ["undirected_unlabelled", "directed_unlabelled", "directed_labelled"] as const;
 export type MatchLevel = (typeof MATCH_LEVELS)[number];
-export const matchLevelSchema = z.enum(MATCH_LEVELS);
+const matchLevelSchema = z.enum(MATCH_LEVELS);
 
-export const typeEquivalenceSchema = z
+const typeEquivalenceSchema = z
   .object({
     from: relationshipTypeCodeSchema,
     to: relationshipTypeCodeSchema,
     reverse: z.boolean().default(false),
   })
   .refine((e) => e.from !== e.to || e.reverse, { message: "A non-reversing equivalence must change the type" });
-export type TypeEquivalence = z.infer<typeof typeEquivalenceSchema>;
 
-export const causalOrientationSchema = z.enum(["forward", "reverse"]);
-
-export const REFERENCE_EDGE_STATUSES = ["expected", "optional", "uncertain", "disputed"] as const;
-export type ReferenceEdgeStatus = (typeof REFERENCE_EDGE_STATUSES)[number];
-export const referenceEdgeStatusSchema = z.enum(REFERENCE_EDGE_STATUSES);
+const causalOrientationSchema = z.enum(["forward", "reverse"]);
+export type ReferenceEdgeStatus = "expected" | "optional" | "uncertain" | "disputed";
 
 export const scoringConfigSchema = z
   .object({
@@ -76,7 +72,7 @@ export function cmp(a: string, b: string): number {
   return a < b ? -1 : a > b ? 1 : 0;
 }
 
-export function sortKeysDeep(value: unknown): unknown {
+function sortKeysDeep(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortKeysDeep);
   if (value !== null && typeof value === "object") {
     const out: Record<string, unknown> = {};

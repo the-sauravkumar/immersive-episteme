@@ -8,7 +8,7 @@ export interface TemplateBuildPorts {
   readonly modelIdFor: (concept: ConceptRecord, stageKey: string, role: "tool" | "material", label: string) => string;
 }
 
-export interface ExcludedItem {
+interface ExcludedItem {
   readonly stage: string;
   readonly concept: string;
   readonly reason: string;
@@ -100,8 +100,8 @@ function buildItems(
   return [...items.values()].sort((left, right) => Number(left.role === "material") - Number(right.role === "material"));
 }
 
-export const clothStateId = (tradition: string, number: number): string => `${tradition}-${String(number).padStart(2, "0")}`;
-export const rawClothStateId = (tradition: string): string => `${tradition}-raw`;
+const clothStateId = (tradition: string, number: number): string => `${tradition}-${String(number).padStart(2, "0")}`;
+const rawClothStateId = (tradition: string): string => `${tradition}-raw`;
 
 export function buildStageTemplate(
   record: TraditionRecord,

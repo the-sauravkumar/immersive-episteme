@@ -297,7 +297,7 @@ npx vercel@60.1.3 link     # create or link "immersive-episteme"; decline connec
 ```
 
 In the Vercel dashboard → Project → Settings, check:
-- Framework Next.js; Build and Install come from `vercel.json` (`npm ci`; build runs the invite-gate check first).
+- Framework Next.js; Install comes from `vercel.json` (`npm ci`); Build is the default `npm run build`. The invite gate in `src/proxy.ts` is proven by the proxy tests (DR-127).
 - Node.js 24.x.
 - **Function region:** the value preflight printed and you committed in step 1.1 (`sin1` for Option B, `bom1` for Option A; Vercel reads it from `vercel.json`). Default otherwise is Washington: "By default, Vercel Functions execute in *Washington, D.C., USA* (`iad1`) **for all new projects**"; Hobby gets "| Hobby | Single region |" (https://vercel.com/docs/functions/configuring-functions/region). Region codes: "| sin1 | ap-southeast-1 | Singapore |" and "| bom1 | ap-south-1 | Mumbai, India |" (https://vercel.com/docs/regions).
 - Fluid compute on; memory default; Deployment Protection **Standard Protection** ("Protects all deployments **except** production domains", https://vercel.com/docs/deployment-protection; production relies on the app's invite gate); System Environment Variables on.
@@ -322,13 +322,13 @@ powershell -File scripts\deploy\push-env.ps1 -EnvFile $HOME\.episteme\production
 **First deploy: run steps 5.1 to 5.3 (migrations, reference data, public demo museum) now, before this step.** The preflight below must PASS, and its `migrations current` row FAILs until 5.1 has run; the live site must also never serve an empty schema, telemetry needs its event types, and `/explore` needs a museum.
 
 ```bash
-npx tsx scripts/deploy/preflight.ts --env-file ~/.episteme/production.env   # must PASS, incl. "S11 invite-only gate"
+npx tsx scripts/deploy/preflight.ts --env-file ~/.episteme/production.env   # must PASS
 git status --porcelain                                                      # must be empty: the CLI uploads the working tree
 npx vercel@60.1.3 deploy          # preview first
 npx vercel@60.1.3 deploy --prod   # production, after the lead's go-ahead
 ```
 
-- The build log must show `[invite-gate] in place`, `npm ci` and Node 24. Without the gate the production build stops with `Production build REFUSED`.
+- The build log must show `npm ci` and Node 24.
 - `.vercelignore` keeps `.env` and bulky output out of the CLI upload ("When using the CLI to deploy, the maximum size of the source files that can be uploaded is limited to 100 MB for Hobby", https://vercel.com/docs/limits).
 - `APP_BUILD_VERSION` must be the SHA of exactly the commit you deploy; with a CLI deploy there is no Git SHA, so `-BuildVersionFromGit` sets it. After any new commit: `push-env.ps1 -Only APP_BUILD_VERSION -BuildVersionFromGit -Force -Yes`, then deploy.
 

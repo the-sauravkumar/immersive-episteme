@@ -31,7 +31,3 @@ export async function issueParticipantSessionCookie(
 export async function clearParticipantSessionCookie(): Promise<void> {
   (await cookies()).set(expiredCookie(PARTICIPANT_COOKIE));
 }
-
-export async function readParticipantCookie(): Promise<string | undefined> {
-  return (await cookies()).get(PARTICIPANT_COOKIE)?.value;
-}

@@ -9,7 +9,7 @@ import { StatePage } from "./state-page";
 
 export type ErrorBoundaryProps = { error: unknown; retry: () => void };
 
-export function errorReference(error: unknown): string | null {
+function errorReference(error: unknown): string | null {
   if (error instanceof Error && "digest" in error && typeof error.digest === "string" && error.digest) return error.digest;
   return null;
 }

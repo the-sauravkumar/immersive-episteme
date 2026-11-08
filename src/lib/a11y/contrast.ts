@@ -3,7 +3,7 @@ export type Rgba = { r: number; g: number; b: number; a: number };
 const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const RGB = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)\s*(?:[/,]\s*([\d.]+%?))?\s*\)$/i;
 
-export function parseColor(input: string): Rgba {
+function parseColor(input: string): Rgba {
   const value = input.trim();
   const hex = HEX.exec(value);
   if (hex?.[1]) {
@@ -26,7 +26,7 @@ export function parseColor(input: string): Rgba {
   throw new Error(`Unsupported colour: ${input}`);
 }
 
-export function composite(fg: Rgba, bg: Rgba): Rgba {
+function composite(fg: Rgba, bg: Rgba): Rgba {
   const a = fg.a;
   return {
     r: fg.r * a + bg.r * (1 - a),
@@ -41,7 +41,7 @@ function channel(c: number): number {
   return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
 }
 
-export function relativeLuminance({ r, g, b }: Rgba): number {
+function relativeLuminance({ r, g, b }: Rgba): number {
   return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
 }
 

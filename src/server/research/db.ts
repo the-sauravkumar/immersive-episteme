@@ -2,22 +2,6 @@ import type { Pool, PoolClient } from "pg";
 
 export type Q = Pick<Pool | PoolClient, "query">;
 
-export async function inTransaction<T>(pool: Pool | PoolClient, fn: (c: PoolClient) => Promise<T>): Promise<T> {
-  if (!("connect" in pool) || typeof (pool as Pool).totalCount !== "number") return fn(pool as PoolClient);
-  const client = await (pool as Pool).connect();
-  try {
-    await client.query("BEGIN");
-    const out = await fn(client);
-    await client.query("COMMIT");
-    return out;
-  } catch (err) {
-    await client.query("ROLLBACK");
-    throw err;
-  } finally {
-    client.release();
-  }
-}
-
 function isPool(q: Q): boolean {
   return "connect" in q && typeof (q as Pool).totalCount === "number";
 }

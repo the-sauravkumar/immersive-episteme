@@ -59,7 +59,7 @@ export const PROVENANCE_LABELS: Record<string, string> = {
 export { NativeSelect } from "@/components/ui/native-select";
 export { Disclosure } from "@/components/ui/disclosure";
 
-export function breakableKey(text: string): ReactNode[] {
+function breakableKey(text: string): ReactNode[] {
   const out: ReactNode[] = [];
   text.split(/(?<=[._\-/:])/).forEach((part, i) => {
     if (i > 0) out.push(<wbr key={`s${i}`} />);
@@ -141,14 +141,6 @@ export function Empty({ children }: { children: ReactNode }) {
   return <p className="t-b text-lime-dim">{children}</p>;
 }
 
-export function FilterBar({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
-  return (
-    <form method="get" aria-label={label} className={cn("flex flex-wrap items-end gap-x-4 gap-y-3", className)}>
-      {children}
-    </form>
-  );
-}
-
 export function Pager({ base, params, page, total, pageSize }: { base: string; params: Record<string, string | undefined>; page: number; total: number; pageSize: number }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
   if (pages <= 1) return null;
@@ -180,7 +172,7 @@ export function Pager({ base, params, page, total, pageSize }: { base: string; p
 const fmtStamp = new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "UTC" });
 const fmtDay = new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "UTC" });
 
-export function stamp(at: string | Date, withTime = true): string {
+function stamp(at: string | Date, withTime = true): string {
   const d = typeof at === "string" ? new Date(at) : at;
   const parts = Object.fromEntries((withTime ? fmtStamp : fmtDay).formatToParts(d).map((p) => [p.type, p.value]));
   return withTime ? `${parts.year}-${parts.month}-${parts.day} ${parts.hour}:${parts.minute}` : `${parts.year}-${parts.month}-${parts.day}`;

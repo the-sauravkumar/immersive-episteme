@@ -204,7 +204,7 @@ export interface ClaimDetail {
   sources: { sourceId: string; locator: string | null; label: string; key: string; state: VerificationState; evidence: StoredPassage[] }[];
 }
 
-export interface StoredPassage {
+interface StoredPassage {
   locator?: string | null;
   quote: string;
   note?: string | null;

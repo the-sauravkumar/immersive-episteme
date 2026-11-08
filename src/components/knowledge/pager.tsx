@@ -8,7 +8,7 @@ export interface PagerItem {
   title: string;
 }
 
-export const PAGER_LINK_CLASS = "flex min-h-16 h-full flex-col justify-start gap-1 bg-vat-2 px-4 py-3 text-left text-lime no-underline hover:bg-raised-hover hover:underline hover:decoration-1 hover:underline-offset-[0.2em]";
+const PAGER_LINK_CLASS = "flex min-h-16 h-full flex-col justify-start gap-1 bg-vat-2 px-4 py-3 text-left text-lime no-underline hover:bg-raised-hover hover:underline hover:decoration-1 hover:underline-offset-[0.2em]";
 
 export interface PagerProps {
   prev: PagerItem | null;

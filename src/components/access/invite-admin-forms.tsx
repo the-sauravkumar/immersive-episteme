@@ -22,7 +22,7 @@ export interface StudyOption {
 
 type Created = { code: string; hint: string; studySlug: string | null };
 
-export function inviteLinks(origin: string, code: string, studySlug: string | null): { site: string; study: string | null } {
+function inviteLinks(origin: string, code: string, studySlug: string | null): { site: string; study: string | null } {
   const base = origin.replace(/\/+$/, "");
   const invite = encodeURIComponent(code);
   return {

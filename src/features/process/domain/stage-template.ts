@@ -47,7 +47,7 @@ export interface ProductImage {
   readonly record: string;
 }
 
-export interface StudyPhoto extends ProductImage {
+interface StudyPhoto extends ProductImage {
   readonly alt: string;
   readonly caption: string;
   readonly credit: string;
@@ -101,17 +101,9 @@ export function anyCaptionUnderReview(templates: readonly StageTemplate[]): bool
   return templates.some((template) => template.stages.some((stage) => stage.caption.underReview === true));
 }
 
-export function itemsByRole(stage: TemplateStage, role: ItemRole): readonly StageItem[] {
-  return stage.items.filter((item) => item.role === role);
-}
-
-export function nextStage(template: StageTemplate, number: number): TemplateStage | null {
-  return template.stages.find((stage) => stage.number === number + 1) ?? null;
-}
-
 const PHOTO_SUBJECT_BY_CONCEPT_TYPE: Readonly<Record<string, string>> = { historical_context: "Textile", tool: "Printing Blocks" };
 
-export function studyPhotoName(traditionName: string, conceptType: string): string {
+function studyPhotoName(traditionName: string, conceptType: string): string {
   return `${traditionName} ${PHOTO_SUBJECT_BY_CONCEPT_TYPE[conceptType] ?? "Photograph"}`;
 }
 
@@ -165,7 +157,7 @@ export function exhibitImages(template: StageTemplate): readonly ExhibitImage[] 
   return [...shown, ...photos.filter((photo) => !shown.includes(photo))];
 }
 
-export function isStudyPhoto(image: ExhibitImage): image is StudyPhoto {
+function isStudyPhoto(image: ExhibitImage): image is StudyPhoto {
   return "caption" in image;
 }
 

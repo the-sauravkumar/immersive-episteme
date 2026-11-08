@@ -39,21 +39,6 @@ export function useTelemetry(): UseTelemetry {
   return useMemo(() => ({ ...tracker, stats }), [tracker, stats]);
 }
 
-export function usePauseWhile(active: boolean): void {
-  const { timing } = useTrackerOrThrow();
-  useEffect(() => {
-    if (!active) return;
-    timing.pause("modal");
-    return () => timing.resume("modal");
-  }, [timing, active]);
-}
-
 export function useOptionalTelemetry(): TelemetryTracker | null {
   return useContext(TelemetryContext);
-}
-
-function useTrackerOrThrow(): TelemetryTracker {
-  const tracker = useContext(TelemetryContext);
-  if (!tracker) throw new Error("Telemetry hooks must be used inside <TelemetryProvider> (src/features/telemetry/client).");
-  return tracker;
 }

@@ -5,10 +5,10 @@ import { useActionState, useEffect, useState } from "react";
 
 import { continueFromEntrance, type FormState } from "@/server/study/actions";
 
-export const ENTRANCE_CLOSED = "/walkthrough/stills/entrance-closed.jpg";
-export const ENTRANCE_HOLD_MS = 3000;
+const ENTRANCE_CLOSED = "/walkthrough/stills/entrance-closed.jpg";
+const ENTRANCE_HOLD_MS = 3000;
 
-export const entranceOpenImage = (door: 1 | 2): string => `/walkthrough/stills/entrance-open${door}.jpg`;
+const entranceOpenImage = (door: 1 | 2): string => `/walkthrough/stills/entrance-open${door}.jpg`;
 
 export function EntranceScene({ door }: { door: 1 | 2 }) {
   const [open, setOpen] = useState(false);

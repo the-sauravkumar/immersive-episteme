@@ -18,7 +18,7 @@ const optDate = z
   .optional()
   .transform((v) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : undefined));
 
-export const auditFilterSchema = z.object({
+const auditFilterSchema = z.object({
   action: optText(64),
   entity: optText(64),
   actor: optText(128),

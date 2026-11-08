@@ -16,7 +16,7 @@ type BundleRelationship = KnowledgeBundle["relationships"][number];
 type BundleSource = KnowledgeBundle["sources"][number];
 type BundleType = KnowledgeBundle["relationshipTypes"][number];
 
-export interface SnapshotInfo {
+interface SnapshotInfo {
   versionLabel: string;
   isDemo: boolean;
   includesUnverified: boolean;
@@ -24,7 +24,7 @@ export interface SnapshotInfo {
   counts: { traditions: number; concepts: number; relationships: number; sources: number };
 }
 
-export interface SourceView {
+interface SourceView {
   id: string;
   label: string;
   kind: ProvenanceKind;
@@ -38,7 +38,7 @@ export interface SourceView {
   verificationState: VerificationState;
 }
 
-export interface EvidencePassage {
+interface EvidencePassage {
   locator: string;
   quote: string;
   note: string | null;
@@ -50,7 +50,7 @@ export interface Citation extends SourceView {
   passages: EvidencePassage[];
 }
 
-export interface ConceptRef {
+interface ConceptRef {
   id: string;
   key: string;
   slug: string;
@@ -63,7 +63,7 @@ export interface ConceptRef {
   verificationState: VerificationState;
 }
 
-export interface TraditionSummary {
+interface TraditionSummary {
   id: string;
   slug: string;
   name: string;
@@ -74,7 +74,7 @@ export interface TraditionSummary {
   conceptCount: number;
 }
 
-export interface TraditionDetail extends TraditionSummary {
+interface TraditionDetail extends TraditionSummary {
   gi: { registered: boolean | null; applicationNo: string | null; year: number | null; sources: SourceView[] } | null;
   overviewConcept: ConceptRef | null;
   conceptsByType: Partial<Record<ConceptType, ConceptRef[]>>;
@@ -108,7 +108,7 @@ export interface ConceptDetail extends ConceptRef {
 
 export type RelationDirection = "outgoing" | "incoming" | "undirected";
 
-export interface RelatedConcept {
+interface RelatedConcept {
   relationshipId: string;
   type: string;
   semantics: RelationshipSemantics;
@@ -126,7 +126,7 @@ export interface RelatedConcept {
 
 export type RelatedConceptGroups = { semantics: RelationshipSemantics; relations: RelatedConcept[] }[];
 
-export interface ProcessLink {
+interface ProcessLink {
   relationshipId: string;
   from: ConceptRef;
   to: ConceptRef;
@@ -136,19 +136,19 @@ export interface ProcessLink {
   evidence: Citation[];
 }
 
-export interface ProcessSequence {
+interface ProcessSequence {
   steps: ConceptRef[];
   links: ProcessLink[];
   continuous: boolean;
 }
 
-export interface ProcessChain extends ProcessSequence {
+interface ProcessChain extends ProcessSequence {
   traditionSlug: string;
   otherSequences: ProcessSequence[];
   unorderedLinks: ProcessLink[];
 }
 
-export interface ComparisonView {
+interface ComparisonView {
   concept: ConceptRef;
   compares: ConceptRef[];
   claims: ClaimView[];

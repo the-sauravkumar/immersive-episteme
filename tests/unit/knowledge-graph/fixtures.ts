@@ -40,7 +40,7 @@ export function rel(source: string, type: string, target: string, extra: Json = 
   };
 }
 
-export function source(id: string, extra: Json = {}): Json {
+function source(id: string, extra: Json = {}): Json {
   return {
     id,
     kind: "historical_documentation",

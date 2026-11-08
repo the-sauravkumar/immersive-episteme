@@ -2,11 +2,11 @@ import { z } from "zod";
 
 import { signToken, verifyToken } from "@/server/auth/signed-token";
 
-export const ENROLMENT_PURPOSE = "study-enrolment/v1";
-export const HISTORY_PURPOSE = "study-history/v1";
+const ENROLMENT_PURPOSE = "study-enrolment/v1";
+const HISTORY_PURPOSE = "study-history/v1";
 export const ENROLMENT_TTL_SECONDS = 60 * 60 * 2;
 export const HISTORY_TTL_SECONDS = 60 * 60 * 24 * 180;
-export const HISTORY_MAX_ENTRIES = 20;
+const HISTORY_MAX_ENTRIES = 20;
 
 const uuid = z.uuid();
 const nowSeconds = () => Math.floor(Date.now() / 1000);

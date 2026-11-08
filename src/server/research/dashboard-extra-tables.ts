@@ -10,7 +10,7 @@ import { DASHBOARD_EXTRA_TABLE_BY_NAME, type DashboardExtraTableName } from "./e
 
 const round = (v: number | null, digits = 6) => (v === null ? null : Number(v.toFixed(digits)));
 
-export async function dashboardExtraTableRows(q: Q, data: DashboardData, table: DashboardExtraTableName): Promise<{ rows: Record<string, unknown>[]; metrics: string }> {
+async function dashboardExtraTableRows(q: Q, data: DashboardData, table: DashboardExtraTableName): Promise<{ rows: Record<string, unknown>[]; metrics: string }> {
   const ids = data.conditions.map((c) => c.id);
   const cond = (i: number) => data.conditions[i]!;
   switch (table) {

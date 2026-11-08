@@ -16,7 +16,7 @@ export interface ClaimListProps {
   className?: string;
 }
 
-export const referencesHeadingId = (conceptId: string) => `references-${conceptId}`;
+const referencesHeadingId = (conceptId: string) => `references-${conceptId}`;
 
 export function ClaimList({ conceptId, claims, figures = [], figureOffset = 0, references = "after", className }: ClaimListProps) {
   if (claims.length === 0) return <p className="t-b text-lime-dim">{SHEET_TEXT.noClaims}</p>;

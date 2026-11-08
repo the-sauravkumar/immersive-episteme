@@ -13,7 +13,7 @@ export interface Adjudication {
   note?: string;
 }
 
-export interface ConsensusEdge {
+interface ConsensusEdge {
   key: string;
   source: string;
   target: string;

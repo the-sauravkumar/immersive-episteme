@@ -21,7 +21,7 @@ export interface WalkEngine {
   dispose(): void;
 }
 
-export interface WalkTextile {
+interface WalkTextile {
   readonly file: string;
   readonly name: string;
   readonly x: number;

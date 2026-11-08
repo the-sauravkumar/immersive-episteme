@@ -40,7 +40,7 @@ export async function loadSnapshotFacts(q: Q, snapshotId: string): Promise<Snaps
   return facts;
 }
 
-export type StoredEvent = NavEvent & {
+type StoredEvent = NavEvent & {
   eventId: string;
   clientTs: string;
   serverTs: string;
@@ -51,7 +51,7 @@ export type StoredEvent = NavEvent & {
   categoryCode: string | null;
 };
 
-export async function loadSessionEvents(q: Q, sessionId: string): Promise<StoredEvent[]> {
+async function loadSessionEvents(q: Q, sessionId: string): Promise<StoredEvent[]> {
   const r = await q.query<StoredEvent>(
     `SELECT event_id AS "eventId", seq, event_type_code AS type, concept_id AS "conceptId", metadata,
             to_json(client_ts)#>>'{}' AS "clientTs", to_json(server_ts)#>>'{}' AS "serverTs", client_mono_ms AS "clientMonoMs",
@@ -62,7 +62,7 @@ export async function loadSessionEvents(q: Q, sessionId: string): Promise<Stored
   return r.rows;
 }
 
-export async function loadFinalPostMap(q: Q, sessionId: string): Promise<{ id: string; revision: number; edges: MapEdgeInput[] } | null> {
+async function loadFinalPostMap(q: Q, sessionId: string): Promise<{ id: string; revision: number; edges: MapEdgeInput[] } | null> {
   const m = await q.query<{ id: string; revision: number }>(
     `SELECT id, revision FROM concept_maps
       WHERE session_id = $1 AND phase = 'post' AND is_final
@@ -88,7 +88,7 @@ interface SessionRow {
   snapshot_id: string | null;
 }
 
-export async function computeStoredSession(q: Q, s: SessionRow): Promise<ComputedMetrics | null> {
+async function computeStoredSession(q: Q, s: SessionRow): Promise<ComputedMetrics | null> {
   if (!s.snapshot_id || !s.condition_id) return null;
   const snapshotId = s.snapshot_id;
   const [events, facts, map] = await queryAll(q, [() => loadSessionEvents(q, s.id), () => loadSnapshotFacts(q, snapshotId), () => loadFinalPostMap(q, s.id)]);

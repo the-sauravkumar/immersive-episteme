@@ -14,7 +14,7 @@ export const NAVIGATION_METRIC_DEFINITIONS = [
   { name: "nav.relationships_followed", unit: "count", definition: "relationship_followed events; details: distinct relationships." },
 ] as const;
 
-export type NavigationMetricName = (typeof NAVIGATION_METRIC_DEFINITIONS)[number]["name"];
+type NavigationMetricName = (typeof NAVIGATION_METRIC_DEFINITIONS)[number]["name"];
 
 export interface NavEvent {
   eventId?: string;

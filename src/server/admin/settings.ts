@@ -5,7 +5,7 @@ import { ensure, type Actor } from "@/server/cms/core";
 
 import { mediaStorageConfig } from "./health";
 
-export interface SettingItem {
+interface SettingItem {
   label: string;
   value: string;
   source: string;

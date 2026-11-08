@@ -59,12 +59,6 @@ export const CONSOLE_ROUTES = {
   ],
 } as const satisfies Record<ConsoleArea, readonly ConsoleRoute[]>;
 
-export const CONSOLE_AREA_LABELS: Record<ConsoleArea, string> = {
-  cms: "Content",
-  research: "Research",
-  admin: "Administration",
-};
-
 export type ConsolePath = (typeof CONSOLE_ROUTES)[ConsoleArea][number]["path"];
 
 const BY_PATH: ReadonlyMap<string, ConsoleRoute> = new Map(
@@ -75,10 +69,6 @@ export function consoleRoute(path: ConsolePath): ConsoleRoute {
   const route = BY_PATH.get(path);
   if (!route) throw new Error(`Unknown console route ${path}`);
   return route;
-}
-
-export function areaPermissions(area: ConsoleArea): Permission[] {
-  return [...new Set(CONSOLE_ROUTES[area].flatMap((r) => r.anyOf))];
 }
 
 export function canEnterArea(subject: Subject | null | undefined, area: ConsoleArea): boolean {

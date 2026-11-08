@@ -11,7 +11,7 @@ export const TIMING_METRIC_DEFINITIONS = [
   { name: "citation.openings", version: TIMING_METRICS_VERSION, unit: "count", definition: "Number of citation_opened events; details: distinct sources and openings per concept." },
 ] as const;
 
-export type TimingMetricName = (typeof TIMING_METRIC_DEFINITIONS)[number]["name"];
+type TimingMetricName = (typeof TIMING_METRIC_DEFINITIONS)[number]["name"];
 
 export interface TimingMetricValue {
   metricName: TimingMetricName;

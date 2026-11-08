@@ -12,7 +12,6 @@ import {
   type PackageKind,
 } from "./types";
 
-
 export interface ContentFileInput {
   path: string;
   text?: string;

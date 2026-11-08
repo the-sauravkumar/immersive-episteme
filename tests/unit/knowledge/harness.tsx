@@ -6,7 +6,7 @@ import type { TelemetryEvent } from "@/features/telemetry/contracts";
 
 export { fixtureView } from "./fixtures";
 
-export const SESSION = "0190f0a0-0000-7000-8000-000000000001";
+const SESSION = "0190f0a0-0000-7000-8000-000000000001";
 
 export interface Harness extends RenderResult {
   outbox: MemoryOutbox;

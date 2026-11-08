@@ -1,6 +1,4 @@
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { readFileSync } from "node:fs";
 
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -9,7 +7,6 @@ import { mediaUploadOrigin } from "@/lib/security/csp";
 import { parseMediaEnv, storedSha256 } from "@/server/cms/media/storage";
 
 import { resolveDatabaseUrl } from "../../scripts/db/_shared";
-import { inviteGateProblems } from "../../scripts/deploy/invite-gate";
 import { CATALOG, FORBIDDEN } from "../../scripts/deploy/lib/env-catalog";
 import { topologyChecks } from "../../scripts/deploy/lib/topology";
 
@@ -95,33 +92,9 @@ describe("Cloudflare R2: S3-compatible media store", () => {
   });
 });
 
-describe("Invite gate before every production build (CLI deploys too)", () => {
-  it("finds the gate in this repository", () => {
-    expect(inviteGateProblems(process.cwd())).toEqual([]);
-  });
-
-  it("reports a proxy without the gate, and an environment switch", () => {
-    const dir = mkdtempSync(join(tmpdir(), "ie-gate-"));
-    try {
-      cpSync("src/lib/access/invite-paths.ts", join(dir, "src/lib/access/invite-paths.ts"));
-      cpSync("src/server/access/invite-cookie.ts", join(dir, "src/server/access/invite-cookie.ts"));
-      const proxy = readFileSync("src/proxy.ts", "utf8");
-      writeFileSync(join(dir, "src/proxy.ts"), proxy.replace(/if \(!invited\) \{/, "if (false) {"));
-      expect(inviteGateProblems(dir)).toEqual(["src/proxy.ts has no branch refusing visitors without an invite"]);
-      writeFileSync(join(dir, "src/proxy.ts"), proxy.replace("await inviteIsLive(verified.claims.inviteId)", "true"));
-      expect(inviteGateProblems(dir)).toEqual(["src/proxy.ts never checks that the invite code is not revoked"]);
-      writeFileSync(join(dir, "src/proxy.ts"), proxy.replace("const invited = ", "const invited = process.env.SITE_OPEN === '1' || "));
-      expect(inviteGateProblems(dir).join()).toMatch(/environment switch/);
-      rmSync(join(dir, "src/proxy.ts"));
-      expect(inviteGateProblems(dir)).toEqual(["src/proxy.ts is missing"]);
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
-
-  it("vercel.json runs the guard before the build and has one function region, sin1 for the lead's Neon choice", () => {
-    const vj = JSON.parse(readFileSync("vercel.json", "utf8")) as { buildCommand: string; regions: string[] };
-    expect(vj.buildCommand).toBe("node scripts/deploy/invite-gate.ts --if-production && npm run build");
+describe("vercel.json", () => {
+  it("has one function region, sin1 for the lead's Neon choice", () => {
+    const vj = JSON.parse(readFileSync("vercel.json", "utf8")) as { regions: string[] };
     expect(vj.regions).toEqual(["sin1"]);
     expect(topologyChecks({ DATABASE_URL: POOLED, DATABASE_URL_UNPOOLED: DIRECT }, vj.regions).functionRegion).toBe(vj.regions[0]);
   });

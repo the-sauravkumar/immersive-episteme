@@ -78,7 +78,7 @@ const commonRating = (key: string, label: string, measures: string): Omit<Metric
 
 export type MetricGroup = "primary" | "secondary" | "knowledge" | "questionnaire" | "telemetry" | "quality";
 
-export interface Citation {
+interface Citation {
   source: string;
   locator: string;
   quote: string;

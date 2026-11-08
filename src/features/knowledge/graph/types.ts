@@ -30,7 +30,7 @@ export interface GraphSource {
   verificationState: VerificationState;
 }
 
-export interface GraphClaim {
+interface GraphClaim {
   text: string;
   quote: string | null;
   sourceRefs: SourceRef[];
@@ -72,7 +72,7 @@ export interface GraphRelationship {
   evidence?: { ref: SourceRef; locator: string; quote: string }[];
 }
 
-export interface GraphMediaCandidate {
+interface GraphMediaCandidate {
   url: string;
   title: string;
   licence: string | null;

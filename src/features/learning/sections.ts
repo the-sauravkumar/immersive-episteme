@@ -29,8 +29,6 @@ export const KNOWLEDGE_SECTIONS = [
   { id: "comparisons", number: 8, title: "Cross-tradition comparison", types: ["comparison"], zoneGroup: "cross_tradition_comparison", scope: "hall", categories: ["cross_tradition_comparisons"] },
 ] as const satisfies readonly KnowledgeSection[];
 
-export type KnowledgeSectionId = (typeof KNOWLEDGE_SECTIONS)[number]["id"];
-
 export function sectionOfType(type: ConceptType): KnowledgeSection {
   if (type === "tradition") return KNOWLEDGE_SECTIONS[0];
   return KNOWLEDGE_SECTIONS.find((s) => (s.types as readonly ConceptType[]).includes(type)) ?? KNOWLEDGE_SECTIONS[0];

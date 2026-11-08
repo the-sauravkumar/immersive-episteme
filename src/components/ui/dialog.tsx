@@ -1,6 +1,5 @@
 "use client"
 
-
 import * as React from "react"
 import { titleCaseNode } from "@/lib/text/title-case"
 import { cn } from "@/lib/utils"
@@ -13,12 +12,6 @@ function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
-}
-
-function DialogTrigger({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
 }
 
 function DialogPortal({
@@ -165,8 +158,8 @@ export {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogOverlay,
-  DialogPortal,
+  
+  
   DialogTitle,
-  DialogTrigger,
+  
 }

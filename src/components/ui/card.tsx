@@ -1,5 +1,4 @@
 import * as React from "react"
-import { titleCaseNode } from "@/lib/text/title-case"
 import { cn } from "@/lib/utils"
 
 function Card({
@@ -57,44 +56,6 @@ function CardEyebrow({ className, ...props }: React.ComponentProps<"p">) {
   )
 }
 
-function CardTitle({ className, children, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-title"
-      className={cn(
-        "t-h4 text-lime group-data-parallel/card:min-h-[2lh] group-data-[size=sm]/card:t-label",
-        className
-      )}
-      {...props}
-    >
-      {titleCaseNode(children)}
-    </div>
-  )
-}
-
-function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-description"
-      className={cn("t-b text-lime-dim", className)}
-      {...props}
-    />
-  )
-}
-
-function CardAction({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-action"
-      className={cn(
-        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
-        className
-      )}
-      {...props}
-    />
-  )
-}
-
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -123,8 +84,8 @@ export {
   CardHeader,
   CardFooter,
   CardEyebrow,
-  CardTitle,
-  CardAction,
-  CardDescription,
+  
+  
+  
   CardContent,
 }

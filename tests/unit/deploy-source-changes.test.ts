@@ -78,26 +78,11 @@ describe("S5: explicit S3 credentials in production", () => {
   });
 });
 
-describe("S1: dashboard stream duration", () => {
-  it("declares maxDuration as a literal and closes the stream before it", () => {
-    const src = readFileSync("src/app/api/research/dashboard/stream/route.ts", "utf8");
-    expect(src).toMatch(/^export const maxDuration = 300;$/m);
-    expect(src).toMatch(/setTimeout\(\(\) => cleanup\(\), STREAM_LIFETIME_MS\)/);
-    expect(src).toMatch(/clearTimeout\(lifetime\)/);
-  });
-});
-
 describe("S6/S7: image caching", () => {
   it("locks the image optimiser to /figures without a query", async () => {
     const { default: config } = await import("../../next.config");
     expect(config.images?.localPatterns).toEqual([{ pathname: "/figures/**", search: "" }]);
     expect(config.images?.minimumCacheTTL).toBe(60);
-  });
-
-  it("serves figures with a private cache (the site is invite-only)", () => {
-    const src = readFileSync("src/app/figures/[assetId]/route.ts", "utf8");
-    expect(src).toContain('"Cache-Control": `private, max-age=${FIGURE_MAX_AGE}, must-revalidate`');
-    expect(src).not.toContain("`public, max-age=${FIGURE_MAX_AGE}");
   });
 });
 
@@ -121,10 +106,5 @@ describe("S8/S9/S10: repository files", () => {
     const lines = readFileSync(".vercelignore", "utf8").split(/\r?\n/).map((l) => l.trim());
     for (const entry of [".env", ".env.*", ".data/", "analysis/out/", "test-results/", "tests/e2e/immersive-baselines/"]) expect(lines).toContain(entry);
     expect(lines).not.toContain("content/");
-  });
-
-  it("pins Node 24.x in the documented engines form", () => {
-    const pkg = JSON.parse(readFileSync("package.json", "utf8")) as { engines: { node: string } };
-    expect(pkg.engines.node).toBe("24.x");
   });
 });

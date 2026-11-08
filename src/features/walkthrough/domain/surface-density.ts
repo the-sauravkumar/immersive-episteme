@@ -1,10 +1,10 @@
-export const REVIEW_HEIGHT_PIXELS = 3840 / (16 / 9);
-export const CAMERA_FIELD_OF_VIEW_DEGREES = 55;
+const REVIEW_HEIGHT_PIXELS = 3840 / (16 / 9);
+const CAMERA_FIELD_OF_VIEW_DEGREES = 55;
 export const NEAREST_REACH_METRES = 0.6;
-export const CLOSE_SURFACE_METRES = 10;
-export const FACET_LIMIT_PIXELS = 1;
-export const SMALLEST_TEXELS_PER_PIXEL = 1;
-export const SMALLEST_SCAN_TEXTURE = 2048;
+const CLOSE_SURFACE_METRES = 10;
+const FACET_LIMIT_PIXELS = 1;
+const SMALLEST_TEXELS_PER_PIXEL = 1;
+const SMALLEST_SCAN_TEXTURE = 2048;
 const WALL_FLOOR_PER_METRE = 1000;
 const CLOTH_FLOOR_PER_METRE = 590;
 const WEAVE_FLOOR_PER_METRE = 7000;
@@ -108,10 +108,10 @@ export interface TearingFigures {
   readonly openWork: boolean;
 }
 
-export const FIGHTING_LIMIT_PERCENT = 0.25;
-export const COLOUR_FLICKER_LIMIT_PERCENT = 1;
-export const CRACK_LIMIT_PIXELS = 8;
-export const BACK_FACE_LIMIT_PERCENT = 0.5;
+const FIGHTING_LIMIT_PERCENT = 0.25;
+const COLOUR_FLICKER_LIMIT_PERCENT = 1;
+const CRACK_LIMIT_PIXELS = 8;
+const BACK_FACE_LIMIT_PERCENT = 0.5;
 const SMALLEST_JUDGED_PIXELS = 400;
 
 export function tearingFailures(figures: TearingFigures): string[] {

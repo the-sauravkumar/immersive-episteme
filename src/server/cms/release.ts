@@ -8,7 +8,7 @@ import { buildSnapshot, contentHash, snapshotItems, type SnapshotRefusal } from 
 import type { IntegrityIssue } from "@/features/knowledge/graph/types";
 import { validateGraph } from "@/features/knowledge/graph/validate";
 import type { RelationshipTypeDefinition } from "@/features/knowledge/contracts";
-import { loadModelFromDb, storeReviewSnapshot, type StoredReviewSnapshot } from "@/server/content/review-snapshot";
+import { bindToDbIds, loadModelFromDb, storeReviewSnapshot, type StoredReviewSnapshot } from "@/server/content/review-snapshot";
 
 import { audit, CmsError, ensure, inActorTx, setChangeReason, type Actor, type Q } from "./core";
 import { freezeReleaseFigures } from "./media/service";
@@ -131,25 +131,6 @@ export async function releaseReadiness(q: Q): Promise<ReleaseReadiness> {
       claims: model.concepts.reduce((n, c) => n + c.claims.length, 0),
     },
     pending: refusals.length ? await pendingRows(q) : [],
-  };
-}
-
-function bindToDbIds(bundle: KnowledgeBundle, map: ReadonlyMap<string, string>): KnowledgeBundle {
-  const swap = (id: string) => map.get(id) ?? id;
-  const byId = <T extends { id: string }>(a: T, b: T) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
-  return {
-    ...bundle,
-    traditions: bundle.traditions.map((t) => ({ ...t, id: swap(t.id), gi: t.gi ? { ...t.gi, sourceIds: t.gi.sourceIds.map(swap) } : null })),
-    sources: bundle.sources.map((s) => ({ ...s, id: swap(s.id) })).sort(byId),
-    concepts: bundle.concepts.map((c) => ({
-      ...c,
-      id: swap(c.id),
-      traditionId: c.traditionId ? swap(c.traditionId) : null,
-      claims: c.claims.map((cl) => ({ ...cl, id: swap(cl.id), sources: cl.sources.map((s) => ({ ...s, sourceId: swap(s.sourceId) })) })),
-    })),
-    relationships: bundle.relationships
-      .map((r) => ({ ...r, id: swap(r.id), sources: r.sources.map((s) => ({ ...s, sourceId: swap(s.sourceId) })).sort((a, b) => (a.sourceId < b.sourceId ? -1 : 1)) }))
-      .sort(byId),
   };
 }
 

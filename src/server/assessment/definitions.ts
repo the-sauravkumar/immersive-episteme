@@ -6,8 +6,9 @@ import { answerKeySchema } from "@/features/assessment/responses";
 import { scoringConfigSchema, configParameters } from "@/features/assessment/scoring";
 import { assessmentCodeSchema, assessmentItemInputSchema, assessmentKindSchema } from "@/features/research/contracts";
 import { DEMO_TITLE_PREFIX } from "@/lib/validation/primitives";
+import { inTransaction } from "@/server/db/transaction";
 
-import { AssessmentError, assertUuid, audit, inTransaction, mapDbError, type Q } from "./common";
+import { AssessmentError, assertUuid, audit, mapDbError, type Q } from "./common";
 import { parseConceptMapConfig } from "./concept-set";
 
 export interface AssessmentSummary {
@@ -22,7 +23,7 @@ export interface AssessmentSummary {
   lockedAt: Date | null;
 }
 
-export interface ItemRow {
+interface ItemRow {
   id: string;
   itemKey: string;
   position: number;
@@ -38,7 +39,7 @@ export interface RubricLevel {
   descriptor: string;
 }
 
-export interface RubricRow {
+interface RubricRow {
   id: string;
   itemId: string | null;
   version: number;
@@ -91,7 +92,7 @@ export async function listAssessments(q: Q): Promise<AssessmentSummary[]> {
   return r.rows.map(summary);
 }
 
-export const rubricLevelsSchema = z
+const rubricLevelsSchema = z
   .array(z.object({ value: z.number().finite(), label: z.string().trim().min(1).max(120), descriptor: z.string().trim().min(1).max(2000) }))
   .min(2, "A rubric needs at least two levels")
   .max(11)

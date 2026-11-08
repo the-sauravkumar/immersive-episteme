@@ -18,4 +18,4 @@ function SelectChevron() {
   )
 }
 
-export { NativeSelect, SelectChevron }
+export { NativeSelect,  }

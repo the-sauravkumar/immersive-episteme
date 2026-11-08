@@ -42,7 +42,7 @@ export interface ImportSummary {
   auditLogId: string;
 }
 
-export interface AcceptedRows {
+interface AcceptedRows {
   traditions: string[];
   sources: string[];
   concepts: string[];

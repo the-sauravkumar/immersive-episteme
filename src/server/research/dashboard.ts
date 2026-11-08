@@ -28,7 +28,7 @@ export interface DashboardStudy {
   snapshotId: string | null;
 }
 
-export interface ConditionStats {
+interface ConditionStats {
   conditionId: string;
   stats: Descriptives;
   values: number[];
@@ -42,7 +42,7 @@ export interface MeasureRow {
   byCondition: ConditionStats[];
 }
 
-export interface AncovaRow {
+interface AncovaRow {
   participantCode: string;
   conditionCode: string;
   conditionInterface: string;
@@ -69,7 +69,7 @@ export interface SessionTelemetryRow {
   pauseMs: number;
 }
 
-export interface QualityData {
+interface QualityData {
   sessionsByStatus: { conditionId: string | null; status: string; n: number }[];
   sequence: { kind: string; open: number; resolved: number; missingSeq: number }[];
   quarantine: { reason: string; n: number; unresolved: number }[];
@@ -526,7 +526,7 @@ function summaryRows(section: string, rows: MeasureRow[], conditions: ConditionR
 
 const TELEMETRY_SESSION_METRICS = ["telemetry.events", "stage.total_ms", "stage.stops_visited", "stage.revisits", "stage.back_steps", "stage.sources_opened", "time.pause_ms"];
 
-export function dashboardTableRows(data: DashboardData, table: DashboardTableName): { rows: Record<string, unknown>[]; metrics: string[] } {
+function dashboardTableRows(data: DashboardData, table: DashboardTableName): { rows: Record<string, unknown>[]; metrics: string[] } {
   const cond = (id: string | null) => data.conditions.find((c) => c.id === id);
   switch (table) {
     case "dashboard_primary":

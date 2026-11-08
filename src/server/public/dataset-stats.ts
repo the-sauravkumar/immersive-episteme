@@ -12,7 +12,7 @@ export interface Queryable {
   query<R extends Record<string, unknown>>(text: string, values?: unknown[]): Promise<{ rows: R[] }>;
 }
 
-export interface TraditionStats {
+interface TraditionStats {
   slug: string;
   name: string;
   shortName: string;
@@ -253,7 +253,6 @@ async function atRequestTime<T>(read: (q: Queryable) => Promise<T>): Promise<T |
 }
 
 export const getDatasetStats = cache(() => atRequestTime(loadDatasetStats));
-export const getFeaturedClaim = cache(() => atRequestTime((q) => loadFeaturedClaim(q)));
 export const getPullQuoteClaim = cache(() =>
   atRequestTime(async (q) => {
     const specimen = await loadFeaturedClaim(q);

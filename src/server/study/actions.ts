@@ -102,7 +102,6 @@ async function withdrawableParticipant() {
   return d.allowed ? d.participant : null;
 }
 
-
 export async function enterStudy(_prev: EntryFormState, formData: FormData): Promise<EntryFormState> {
   const code = String(formData.get("studyCode") ?? "");
   if (!code.trim()) return { fieldErrors: { studyCode: "Enter the study code." } };
@@ -153,7 +152,6 @@ export async function resumeStudy(_prev: FormState): Promise<FormState> {
   redirect(target);
 }
 
-
 export async function decideConsent(_prev: FormState, formData: FormData): Promise<FormState> {
   const decision = formData.get("decision");
   const version = String(formData.get("consentVersion") ?? "");
@@ -184,7 +182,6 @@ export async function decideConsent(_prev: FormState, formData: FormData): Promi
   }
   redirect(target);
 }
-
 
 const deviceReportSchema = z.object({
   viewport: z.object({ width: z.number().int().positive().max(20000), height: z.number().int().positive().max(20000) }),
@@ -226,7 +223,6 @@ export async function reportWalkthroughUnavailable(report: unknown): Promise<Dev
     return { ok: false, error: messageFor(err) };
   }
 }
-
 
 const stepSchema = z.enum(STUDY_STEPS);
 
@@ -275,7 +271,6 @@ export async function submitAssessmentForm(_prev: FormState, formData: FormData)
   redirect(target);
 }
 
-
 export async function continueFromEntrance(_prev: FormState): Promise<FormState> {
   const participant = await requireParticipantSession();
   try {
@@ -297,7 +292,6 @@ export async function startLearning(_prev: FormState): Promise<FormState> {
   redirect(participant.condition ? LEARNING_ROUTE[participant.condition] : "/study/session");
 }
 
-
 export async function endFamiliarisation(_prev: FormState): Promise<FormState> {
   const participant = await requireParticipantSession();
   try {
@@ -307,7 +301,6 @@ export async function endFamiliarisation(_prev: FormState): Promise<FormState> {
   }
   redirect("/study/session");
 }
-
 
 export async function returnWithCode(_prev: FormState, formData: FormData): Promise<FormState> {
   const studyCode = String(formData.get("studyCode") ?? "");
@@ -330,7 +323,6 @@ export async function returnWithCode(_prev: FormState, formData: FormData): Prom
   }
   redirect("/study/session");
 }
-
 
 export async function withdrawFromStudy(_prev: FormState, formData: FormData): Promise<FormState> {
   const reasonParsed = z.enum(WITHDRAWAL_REASONS).safeParse(formData.get("reason") ?? "not_stated");

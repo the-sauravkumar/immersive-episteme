@@ -3,16 +3,16 @@ import type { KnowledgeCategoryCode } from "@/lib/validation/enums";
 
 import type { RawTrackFn } from "./events";
 
-export type IntervalEndReason = "switched" | "closed" | "exit" | "budget_ended";
+type IntervalEndReason = "switched" | "closed" | "exit" | "budget_ended";
 
-export interface IntervalContext {
+interface IntervalContext {
   traditionId?: string;
   category?: KnowledgeCategoryCode;
   roomOrPageId?: string;
   target?: string;
 }
 
-export interface OpenInterval {
+interface OpenInterval {
   kind: "exposure" | "navigation";
   intervalId: string;
   conceptId: string | null;
@@ -22,7 +22,7 @@ export interface OpenInterval {
   context: IntervalContext;
 }
 
-export interface TimingTotals {
+interface TimingTotals {
   elapsedMs: number;
   exposureMs: number;
   navigationMs: number;

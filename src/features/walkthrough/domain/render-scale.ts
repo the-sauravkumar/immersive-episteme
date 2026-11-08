@@ -1,18 +1,18 @@
-export const RENDER_SCALE_CAP = 2;
+const RENDER_SCALE_CAP = 2;
 export const FRAME_BUDGET_MS = 17.5;
-export const RENDER_SCALE_STEP = 0.25;
+const RENDER_SCALE_STEP = 0.25;
 export const LOWER_WINDOW_FRAMES = 15;
 export const RAISE_WINDOW_FRAMES = 60;
 export const SCALE_SETTLE_MS = 2000;
 export const SCALE_RETRY_MS = 8000;
 export const STALLED_FRAME_MS = 250;
 export const SLOW_DEVICE_RUN = 3;
-export const PIXEL_RELIEF = 0.85;
-export const PACE_MARGIN = 1.1;
+const PIXEL_RELIEF = 0.85;
+const PACE_MARGIN = 1.1;
 export const RAISE_HEADROOM = 0.75;
-export const GPU_BOUND_SHARE = 0.9;
-export const MEAN_OVERRUN = 1.5;
-export const FEWEST_GPU_SAMPLES = 3;
+const GPU_BOUND_SHARE = 0.9;
+const MEAN_OVERRUN = 1.5;
+const FEWEST_GPU_SAMPLES = 3;
 
 export interface FrameSample {
   readonly frameMs: number;

@@ -85,7 +85,6 @@ export const CORE_RELATIONSHIP_TYPE_CODES = [
   "PRACTITIONER_EXPLAINS",
   "SCIENTIFICALLY_EXPLAINED_BY",
 ] as const;
-export type CoreRelationshipTypeCode = (typeof CORE_RELATIONSHIP_TYPE_CODES)[number];
 
 export const VERIFIABLE_ENTITY_KINDS = [
   "tradition",
@@ -94,10 +93,8 @@ export const VERIFIABLE_ENTITY_KINDS = [
   "source",
   "asset",
 ] as const;
-export type VerifiableEntityKind = (typeof VERIFIABLE_ENTITY_KINDS)[number];
 
 export const SNAPSHOT_STATUSES = ["draft", "published"] as const;
-export type SnapshotStatus = (typeof SNAPSHOT_STATUSES)[number];
 
 export const SNAPSHOT_ITEM_KINDS = [
   "tradition",
@@ -109,10 +106,8 @@ export const SNAPSHOT_ITEM_KINDS = [
   "claim",
   "asset",
 ] as const;
-export type SnapshotItemKind = (typeof SNAPSHOT_ITEM_KINDS)[number];
 
 export const RELEASE_STATUSES = ["candidate", "released", "withdrawn"] as const;
-export type ReleaseStatus = (typeof RELEASE_STATUSES)[number];
 
 export const ASSET_KINDS = ["image", "video", "audio", "model_3d", "texture", "document"] as const;
 export type AssetKind = (typeof ASSET_KINDS)[number];
@@ -124,16 +119,12 @@ export const ASSET_LINK_ROLES = [
   "exhibit_model",
   "thumbnail",
 ] as const;
-export type AssetLinkRole = (typeof ASSET_LINK_ROLES)[number];
 
 export const MEDIA_CANDIDATE_STATUSES = ["candidate", "approved", "rejected", "imported"] as const;
-export type MediaCandidateStatus = (typeof MEDIA_CANDIDATE_STATUSES)[number];
 
 export const RULE_SET_STATUSES = ["draft", "frozen"] as const;
-export type RuleSetStatus = (typeof RULE_SET_STATUSES)[number];
 
 export const MANIFEST_STATUSES = ["draft", "valid", "invalid", "published", "superseded"] as const;
-export type ManifestStatus = (typeof MANIFEST_STATUSES)[number];
 
 export const SPATIAL_ELEMENT_KINDS = [
   "zone",
@@ -146,13 +137,10 @@ export const SPATIAL_ELEMENT_KINDS = [
   "label",
   "cue",
 ] as const;
-export type SpatialElementKind = (typeof SPATIAL_ELEMENT_KINDS)[number];
 
 export const STUDY_DESIGNS = ["between"] as const;
-export type StudyDesign = (typeof STUDY_DESIGNS)[number];
 
 export const STUDY_STATUSES = ["draft", "active", "closed"] as const;
-export type StudyStatus = (typeof STUDY_STATUSES)[number];
 
 export const CONDITION_INTERFACES = ["conventional_2d", "immersive_3d"] as const;
 export type ConditionInterface = (typeof CONDITION_INTERFACES)[number];
@@ -161,7 +149,6 @@ export const PARTICIPANT_STATUSES = ["enrolled", "active", "completed", "withdra
 export type ParticipantStatus = (typeof PARTICIPANT_STATUSES)[number];
 
 export const CONSENT_DECISIONS = ["granted", "declined", "withdrawn"] as const;
-export type ConsentDecision = (typeof CONSENT_DECISIONS)[number];
 
 export const ALLOCATION_ALGORITHMS = [
   "simple",
@@ -170,16 +157,13 @@ export const ALLOCATION_ALGORITHMS = [
   "counterbalanced",
   "manual",
 ] as const;
-export type AllocationAlgorithm = (typeof ALLOCATION_ALGORITHMS)[number];
 
 export const SESSION_STATUSES = ["scheduled", "in_progress", "completed", "abandoned"] as const;
 export type SessionStatus = (typeof SESSION_STATUSES)[number];
 
 export const DEVIATION_SEVERITIES = ["minor", "major"] as const;
-export type DeviationSeverity = (typeof DEVIATION_SEVERITIES)[number];
 
 export const STUDY_PHASES = ["pre", "learning", "post", "follow_up"] as const;
-export type StudyPhase = (typeof STUDY_PHASES)[number];
 
 export const ASSESSMENT_KINDS = [
   "pretest",
@@ -189,7 +173,6 @@ export const ASSESSMENT_KINDS = [
   "questionnaire",
   "sketch",
 ] as const;
-export type AssessmentKind = (typeof ASSESSMENT_KINDS)[number];
 
 export const ASSESSMENT_ITEM_KINDS = [
   "single_choice",
@@ -203,28 +186,20 @@ export const ASSESSMENT_ITEM_KINDS = [
   "matching",
   "sketch",
 ] as const;
-export type AssessmentItemKind = (typeof ASSESSMENT_ITEM_KINDS)[number];
 
 export const RESPONSE_STATUSES = ["answered", "skipped", "timed_out"] as const;
-export type ResponseStatus = (typeof RESPONSE_STATUSES)[number];
 
 export const LOCKABLE_STATUSES = ["draft", "locked"] as const;
-export type LockableStatus = (typeof LOCKABLE_STATUSES)[number];
 
 export const REFERENCE_MAP_STATUSES = ["draft", "adjudicated", "locked"] as const;
-export type ReferenceMapStatus = (typeof REFERENCE_MAP_STATUSES)[number];
 
 export const RATER_ROLES = ["rater", "adjudicator"] as const;
-export type RaterRole = (typeof RATER_ROLES)[number];
 
 export const CONCEPT_MAP_PHASES = ["pre", "post"] as const;
-export type ConceptMapPhase = (typeof CONCEPT_MAP_PHASES)[number];
 
 export const EVENT_SCOPES = ["both", "conventional_2d", "immersive_3d"] as const;
 export type EventScope = (typeof EVENT_SCOPES)[number];
 
 export const BATCH_STATUSES = ["accepted", "partial", "rejected"] as const;
-export type BatchStatus = (typeof BATCH_STATUSES)[number];
 
 export const SEQUENCE_ANOMALY_KINDS = ["gap", "duplicate", "out_of_order"] as const;
-export type SequenceAnomalyKind = (typeof SEQUENCE_ANOMALY_KINDS)[number];

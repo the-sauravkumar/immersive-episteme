@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 
 const ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-export const INVITE_CODE_SYMBOLS = 20;
+const INVITE_CODE_SYMBOLS = 20;
 const VALID = new RegExp(`^[${ALPHABET}]{${INVITE_CODE_SYMBOLS}}$`);
 
 export function generateInviteCode(): string {

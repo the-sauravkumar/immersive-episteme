@@ -1,4 +1,4 @@
-export type ModelForm = "scan" | "turned" | "integral";
+type ModelForm = "scan" | "turned" | "integral";
 
 export type ThrownShape = "clay-bowl" | "clay-pot";
 

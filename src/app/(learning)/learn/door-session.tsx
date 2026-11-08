@@ -19,7 +19,7 @@ import { CourseDoor } from "./course-door";
 import type { DoorSessionProps } from "./door-props";
 import { WalkthroughDoor } from "./walkthrough-door";
 
-export const DOOR_SESSIONS: Record<LearningCondition, ComponentType<DoorSessionProps>> = { "2d": CourseDoor, immersive: WalkthroughDoor };
+const DOOR_SESSIONS: Record<LearningCondition, ComponentType<DoorSessionProps>> = { "2d": CourseDoor, immersive: WalkthroughDoor };
 
 async function doorSessionFor(condition: LearningCondition, ctx: LearningContext): Promise<ReactNode> {
   const Door = DOOR_SESSIONS[condition];

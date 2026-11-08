@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { EVENT_SCOPES, KNOWLEDGE_CATEGORY_CODES, type EventScope } from "@/lib/validation/enums";
+import { KNOWLEDGE_CATEGORY_CODES, type EventScope } from "@/lib/validation/enums";
 import { jsonObjectSchema, relationshipTypeCodeSchema, sha256Schema, uuidSchema } from "@/lib/validation/primitives";
 
 export const TELEMETRY_SCHEMA_VERSION = 1 as const;
@@ -63,16 +63,13 @@ export const EVENT_TYPE_REGISTRY = [
 
 export type EventTypeCode = (typeof EVENT_TYPE_REGISTRY)[number]["code"];
 export const EVENT_TYPE_CODES = EVENT_TYPE_REGISTRY.map((e) => e.code) as [EventTypeCode, ...EventTypeCode[]];
-export const eventTypeCodeSchema = z.enum(EVENT_TYPE_CODES);
-export const eventScopeSchema = z.enum(EVENT_SCOPES);
+const eventTypeCodeSchema = z.enum(EVENT_TYPE_CODES);
 
 const shortCode = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,79}$/, "Expected a short identifier");
 const durationMs = z.number().int().nonnegative().max(24 * 60 * 60 * 1000);
 const count = z.number().int().nonnegative().max(100_000);
-export const INPUT_METHODS = ["keys", "drag", "rmb", "freelook", "click", "list"] as const;
-export type InputMethod = (typeof INPUT_METHODS)[number];
-export const NAVIGATION_SOURCES = ["rail", "index", "pager", "link", "close", "scene", "plan", "keyboard"] as const;
-export type NavigationSource = (typeof NAVIGATION_SOURCES)[number];
+const INPUT_METHODS = ["keys", "drag", "rmb", "freelook", "click", "list"] as const;
+const NAVIGATION_SOURCES = ["rail", "index", "pager", "link", "close", "scene", "plan", "keyboard"] as const;
 const navigationSource = z.enum(NAVIGATION_SOURCES);
 const domainEntry = {
   fromId: shortCode.optional(),
@@ -80,14 +77,14 @@ const domainEntry = {
   source: navigationSource.optional(),
 };
 
-export const EXPOSURE_LAYERS = ["overview", "artisan", "process", "science", "comparison", "citation"] as const;
+const EXPOSURE_LAYERS = ["overview", "artisan", "process", "science", "comparison", "citation"] as const;
 const exposureLayer = z.enum(EXPOSURE_LAYERS);
 export type ExposureLayer = (typeof EXPOSURE_LAYERS)[number];
-export const NAVIGATION_SURFACES = ["walk", "menu", "catalogue", "map", "search"] as const;
+const NAVIGATION_SURFACES = ["walk", "menu", "catalogue", "map", "search"] as const;
 const navigationSurface = z.enum(NAVIGATION_SURFACES);
 export type NavigationSurface = (typeof NAVIGATION_SURFACES)[number];
 const monoMs = z.number().nonnegative();
-export const PAUSE_CAUSES = ["hidden", "blur", "modal"] as const;
+const PAUSE_CAUSES = ["hidden", "blur", "modal"] as const;
 export type PauseCause = (typeof PAUSE_CAUSES)[number];
 const pauseCause = z.enum(PAUSE_CAUSES);
 const intervalEnd = {
@@ -101,7 +98,7 @@ const intervalEnd = {
 export const TIMING_EVENT_TYPES = ["exposure_started", "exposure_ended", "navigation_started", "navigation_ended", "timing_paused", "timing_resumed"] as const;
 export type TimingEventTypeCode = (typeof TIMING_EVENT_TYPES)[number];
 
-export const CONCEPT_REQUIRED_EVENT_TYPES = ["exposure_started", "exposure_ended", "citation_opened", "citation_closed"] as const;
+const CONCEPT_REQUIRED_EVENT_TYPES = ["exposure_started", "exposure_ended", "citation_opened", "citation_closed"] as const;
 
 const stageRef = { traditionKey: shortCode, stageKey: shortCode, stageNumber: z.number().int().positive().max(1000) };
 
@@ -161,7 +158,7 @@ export const EVENT_METADATA_SCHEMAS = {
   client_error: z.strictObject({ messageSha256: sha256Schema, source: z.enum(["window", "promise", "react", "worker"]).optional() }),
 } as const satisfies Record<EventTypeCode, z.ZodType>;
 
-export const MAX_METADATA_BYTES = 4096;
+const MAX_METADATA_BYTES = 4096;
 
 export const telemetryEventSchema = z
   .object({
@@ -226,17 +223,6 @@ export const telemetryBatchSchema = z
       seqs.add(e.seq);
     });
   });
-export type TelemetryBatch = z.infer<typeof telemetryBatchSchema>;
-
-export const telemetryBatchResultSchema = z.object({
-  batchId: uuidSchema,
-  status: z.enum(["accepted", "partial", "rejected"]),
-  replayed: z.boolean(),
-  accepted: z.number().int().nonnegative(),
-  duplicates: z.number().int().nonnegative(),
-  quarantined: z.number().int().nonnegative(),
-});
-export type TelemetryBatchResult = z.infer<typeof telemetryBatchResultSchema>;
 
 export const TELEMETRY_BATCH_ENDPOINT = "/api/telemetry/batch";
 export const MAX_BATCH_BYTES = 512 * 1024;
@@ -250,9 +236,8 @@ export const telemetryBatchEnvelopeSchema = z.object({
   clientSentAt: z.iso.datetime({ offset: true }),
   events: z.array(z.unknown()).min(1).max(MAX_EVENTS_PER_BATCH),
 });
-export type TelemetryBatchEnvelope = z.infer<typeof telemetryBatchEnvelopeSchema>;
 
-export const sequenceGapSchema = z.object({ fromSeq: z.number().int().min(0), toSeq: z.number().int().min(0) });
+const sequenceGapSchema = z.object({ fromSeq: z.number().int().min(0), toSeq: z.number().int().min(0) });
 
 export const telemetryIngestResponseSchema = z.object({
   batchId: uuidSchema.nullable(),
@@ -267,27 +252,4 @@ export const telemetryIngestResponseSchema = z.object({
   serverReceivedAt: z.iso.datetime({ offset: true }),
 });
 export type TelemetryIngestResponse = z.infer<typeof telemetryIngestResponseSchema>;
-
-export const TELEMETRY_INGEST_ERRORS = [
-  "invalid_json",
-  "invalid_batch",
-  "payload_too_large",
-  "unauthenticated",
-  "session_mismatch",
-  "session_closed",
-  "rate_limited",
-  "server_error",
-] as const;
-export type TelemetryIngestError = (typeof TELEMETRY_INGEST_ERRORS)[number];
-
-export const derivedMetricSchema = z.object({
-  sessionId: uuidSchema,
-  metricName: z.string().regex(/^[a-z][a-z0-9_.]{0,63}$/),
-  metricVersion: z.string().min(1).max(32),
-  value: z.number().nullable(),
-  details: jsonObjectSchema.default({}),
-  inputEventCount: z.number().int().nonnegative(),
-  inputSha256: z.string().regex(/^[0-9a-f]{64}$/),
-  pipelineVersion: z.string().min(1).max(64),
-});
-export type DerivedMetric = z.infer<typeof derivedMetricSchema>;
+export type TelemetryIngestError = "invalid_json" | "invalid_batch" | "payload_too_large" | "unauthenticated" | "session_mismatch" | "session_closed" | "rate_limited" | "server_error";

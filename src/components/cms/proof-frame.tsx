@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 export type ProofPlacement = "page" | "panel";
 
-export const PROOF_PLACEMENTS: readonly { value: ProofPlacement; label: string }[] = [
+const PROOF_PLACEMENTS: readonly { value: ProofPlacement; label: string }[] = [
   { value: "page", label: "2D column" },
   { value: "panel", label: "3D panel" },
 ];

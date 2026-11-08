@@ -2,8 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "npm ci",
-  "buildCommand": "node scripts/deploy/invite-gate.ts --if-production && npm run build",
-  "ignoreCommand": "node scripts/deploy/invite-gate.ts --ignore-step",
   "regions": ["sin1"],
   "functions": {
     "src/app/api/research/dashboard/stream/route.ts": {

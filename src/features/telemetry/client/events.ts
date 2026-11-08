@@ -9,16 +9,16 @@ import {
   type TimingEventTypeCode,
 } from "@/features/telemetry/contracts";
 
-export type PublicEventTypeCode = Exclude<EventTypeCode, TimingEventTypeCode>;
+type PublicEventTypeCode = Exclude<EventTypeCode, TimingEventTypeCode>;
 
 export function isTimingEventType(code: string): code is TimingEventTypeCode {
   return (TIMING_EVENT_TYPES as readonly string[]).includes(code);
 }
 import type { KnowledgeCategoryCode } from "@/lib/validation/enums";
 
-export type EventMetadata<T extends EventTypeCode> = z.input<(typeof EVENT_METADATA_SCHEMAS)[T]>;
+type EventMetadata<T extends EventTypeCode> = z.input<(typeof EVENT_METADATA_SCHEMAS)[T]>;
 
-export interface EventContext {
+interface EventContext {
   conceptId?: string;
   category?: KnowledgeCategoryCode;
   traditionId?: string;
@@ -32,7 +32,7 @@ type HasRequiredMetadata<T extends EventTypeCode> = {} extends EventMetadata<T> 
 export type TrackFields<T extends EventTypeCode> = EventContext &
   (HasRequiredMetadata<T> extends true ? { metadata: EventMetadata<T> } : { metadata?: EventMetadata<T> });
 
-export type TrackArgs<T extends EventTypeCode> = HasRequiredMetadata<T> extends true
+type TrackArgs<T extends EventTypeCode> = HasRequiredMetadata<T> extends true
   ? [fields: TrackFields<T>]
   : [fields?: TrackFields<T>];
 
@@ -42,13 +42,11 @@ export type RawTrackFn = <T extends EventTypeCode>(type: T, ...args: TrackArgs<T
 
 type CamelCase<S extends string> = S extends `${infer H}_${infer R}` ? `${H}${Capitalize<CamelCase<R>>}` : S;
 
-export type EventHelperName<T extends EventTypeCode> = CamelCase<T>;
-
 export type EventHelpers = {
   [T in PublicEventTypeCode as CamelCase<T>]: (...args: TrackArgs<T>) => Promise<TelemetryEvent | null>;
 };
 
-export function helperName(code: string): string {
+function helperName(code: string): string {
   return code.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
 }
 

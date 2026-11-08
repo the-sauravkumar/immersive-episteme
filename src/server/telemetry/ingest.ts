@@ -64,7 +64,7 @@ function acknowledgeWithoutStoring(batch: { sessionId: string; events: unknown[]
   };
 }
 
-export function contentDerivedKey(key: string, eventIds: readonly string[]): string {
+function contentDerivedKey(key: string, eventIds: readonly string[]): string {
   const h = sha256([...eventIds].sort().join(",")).slice(0, 16);
   return `${key.slice(0, 128 - 18)}:x${h}`;
 }
@@ -300,7 +300,7 @@ async function ingestOnClient(
   };
 }
 
-export async function currentGaps(q: Pick<PoolClient, "query">, sessionId: string): Promise<{ fromSeq: number; toSeq: number }[]> {
+async function currentGaps(q: Pick<PoolClient, "query">, sessionId: string): Promise<{ fromSeq: number; toSeq: number }[]> {
   const r = await q.query<{ from_seq: number; to_seq: number }>(
     `WITH seen AS (
        SELECT seq FROM telemetry_events WHERE session_id = $1

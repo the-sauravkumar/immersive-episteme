@@ -3,7 +3,7 @@ import type { PreparedReference } from "../match";
 import type { CanonicalEdge, ScoreItem } from "../types";
 import { LEVEL_SUFFIX, ratio, scoreItem } from "./registry";
 
-export interface OverlapCounts {
+interface OverlapCounts {
   level: MatchLevel;
   participant: string[];
   expected: string[];
@@ -11,7 +11,7 @@ export interface OverlapCounts {
   outOfScopeIncorrect: number;
 }
 
-export function overlapSets(
+function overlapSets(
   kept: ReadonlyArray<CanonicalEdge>,
   ref: PreparedReference,
   level: MatchLevel,
@@ -23,7 +23,7 @@ export function overlapSets(
   return { level, participant, expected: [...expectedSet].sort(cmp), optional, outOfScopeIncorrect };
 }
 
-export function overlapMetrics(sets: OverlapCounts, config: ScoringConfig, parameters: Record<string, unknown>): ScoreItem[] {
+function overlapMetrics(sets: OverlapCounts, config: ScoringConfig, parameters: Record<string, unknown>): ScoreItem[] {
   const E = new Set(sets.expected);
   const O = new Set(sets.optional);
   const X = sets.outOfScopeIncorrect;

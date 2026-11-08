@@ -4,7 +4,7 @@ export const REQUIRED_ANSWERS_SUMMARY = "Every question in this part needs an an
 
 const EMPTY_SKETCH = "[]";
 
-export function answerIsBlank(kind: string, values: readonly string[]): boolean {
+function answerIsBlank(kind: string, values: readonly string[]): boolean {
   const given = values.map((value) => value.trim()).filter((value) => value.length > 0);
   if (given.length === 0) return true;
   return kind === "sketch" && given.length === 1 && given[0] === EMPTY_SKETCH;

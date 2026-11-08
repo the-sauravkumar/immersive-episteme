@@ -107,8 +107,8 @@ export class LocalStorageOutbox implements Outbox {
   }
 }
 
-export const IDB_NAME = "ie-telemetry";
-export const IDB_VERSION = 1;
+const IDB_NAME = "ie-telemetry";
+const IDB_VERSION = 1;
 
 function request<T>(r: IDBRequest<T>): Promise<T> {
   return new Promise((resolve, reject) => {

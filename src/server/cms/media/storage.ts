@@ -41,10 +41,10 @@ export function storageKeyFor(sha256: string, mime: AllowedMime): string {
   return `sha256/${sha256.slice(0, 2)}/${sha256}.${ALLOWED_MEDIA[mime].extension}`;
 }
 
-export const hexToBase64 = (hex: string) => Buffer.from(hex, "hex").toString("base64");
-export const base64ToHex = (b64: string) => Buffer.from(b64, "base64").toString("hex");
+const hexToBase64 = (hex: string) => Buffer.from(hex, "hex").toString("base64");
+const base64ToHex = (b64: string) => Buffer.from(b64, "base64").toString("hex");
 
-export interface PresignedUpload {
+interface PresignedUpload {
   url: string;
   method: "PUT";
   headers: Record<string, string>;
@@ -108,7 +108,7 @@ export function createLocalStorage(root: string): LocalMediaStorage {
   };
 }
 
-export function createS3Storage(env: MediaEnv): S3MediaStorage {
+function createS3Storage(env: MediaEnv): S3MediaStorage {
   const bucket = env.MEDIA_S3_BUCKET!;
   const client = new S3Client({
     region: env.MEDIA_S3_REGION,

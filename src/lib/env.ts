@@ -4,7 +4,7 @@ const postgresUrl = z
   .url({ protocol: /^postgres(ql)?$/, error: "must be a postgres:// or postgresql:// URL" })
   .describe("PostgreSQL connection string");
 
-export const PLACEHOLDER_SECRET_MARKERS = [
+const PLACEHOLDER_SECRET_MARKERS = [
   "replace-with",
   "not-a-secret",
   "ci-only",
@@ -15,8 +15,8 @@ export const PLACEHOLDER_SECRET_MARKERS = [
   "example",
 ] as const;
 
-export const MIN_PRODUCTION_SECRET_LENGTH = 43;
-export const MIN_PRODUCTION_SECRET_DISTINCT_CHARS = 16;
+const MIN_PRODUCTION_SECRET_LENGTH = 43;
+const MIN_PRODUCTION_SECRET_DISTINCT_CHARS = 16;
 
 const SECRET_HINT = "generate one with the command in .env.example";
 

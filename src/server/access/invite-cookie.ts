@@ -3,7 +3,7 @@ import { z } from "zod";
 import { INVITE_COOKIE } from "@/server/auth/cookie-names";
 import { signToken, verifyToken } from "@/server/auth/signed-token";
 
-export const INVITE_ACCESS_PURPOSE = "site-invite/v1";
+const INVITE_ACCESS_PURPOSE = "site-invite/v1";
 export const INVITE_ACCESS_TTL_SECONDS = 60 * 60 * 24 * 30;
 export { INVITE_COOKIE };
 

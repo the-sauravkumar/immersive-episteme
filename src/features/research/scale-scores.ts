@@ -1,11 +1,11 @@
 export const SCALE_SCORE_VERSION = "1.2.0";
 
-export const SSQ_COLUMNS = {
+const SSQ_COLUMNS = {
   nausea: [1, 6, 7, 8, 9, 15, 16],
   oculomotor: [1, 2, 3, 4, 5, 9, 11],
   disorientation: [5, 8, 10, 11, 12, 13, 14],
 } as const;
-export const SSQ_TOTAL_FACTOR = 3.74;
+const SSQ_TOTAL_FACTOR = 3.74;
 
 export interface ScaleSpec {
   name: string;

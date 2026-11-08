@@ -1,8 +1,8 @@
 import { HYPOTHESES, metricRoleTable, PRIMARY_OUTCOME, type MetricRole } from "@/features/research/metric-definitions";
 
-export type ColumnType = "uuid" | "text" | "integer" | "number" | "boolean" | "timestamp" | "json";
+type ColumnType = "uuid" | "text" | "integer" | "number" | "boolean" | "timestamp" | "json";
 
-export interface ColumnSpec {
+interface ColumnSpec {
   name: string;
   type: ColumnType;
   description: string;
@@ -391,7 +391,7 @@ export const DASHBOARD_EXTRA_TABLE_NAMES = ["dashboard_tradition_gain", "dashboa
 
 export type DashboardExtraTableName = (typeof DASHBOARD_EXTRA_TABLE_NAMES)[number];
 
-export const DASHBOARD_EXTRA_TABLES: readonly (TableSpec & { name: DashboardExtraTableName })[] = [
+const DASHBOARD_EXTRA_TABLES: readonly (TableSpec & { name: DashboardExtraTableName })[] = [
   {
     name: "dashboard_tradition_gain",
     description:

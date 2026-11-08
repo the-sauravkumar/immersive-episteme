@@ -68,7 +68,6 @@ export function CreateStaffForm({ minPasswordLength }: { minPasswordLength: numb
   );
 }
 
-
 export interface RowUser {
   id: string;
   name: string;

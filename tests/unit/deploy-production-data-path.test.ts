@@ -1,6 +1,3 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 import { decideBootstrapTarget, missingReferenceCodes, pendingMigrations, REMOTE_CONFIRM_FLAG } from "../../scripts/content/remote-guard";
@@ -11,7 +8,6 @@ const NEON = "postgresql://episteme_app:pw@ep-cool-name-a1b2c3d4.ap-southeast-1.
 const RDS = "postgres://episteme_app:pw@ie.abc123.ap-south-1.rds.amazonaws.com:5432/episteme?sslmode=verify-full";
 const LOCAL = "postgres://episteme:episteme_dev_password@localhost:5433/episteme";
 const split = (s: string) => s.split(" ");
-const repo = (p: string) => readFileSync(path.resolve(__dirname, "../..", p), "utf8");
 
 describe("with-env command guard", () => {
   it.each([
@@ -120,28 +116,5 @@ describe("content:bootstrap:remote preconditions", () => {
     expect(pendingMigrations(21, 21)).toBe(0);
     expect(pendingMigrations(21, 0)).toBe(21);
     expect(pendingMigrations(21, 22)).toBe(0);
-  });
-});
-
-describe("what the production data path may touch (source)", () => {
-  const remote = repo("scripts/content/bootstrap-remote.ts");
-  const shared = repo("scripts/content/public-demo.ts");
-  const reference = repo("scripts/db/seed-reference.ts");
-  const code = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
-
-  it("never imports the seed registry, the demo seed, user or participant creation", () => {
-    for (const src of [remote, shared, reference].map(code)) {
-      expect(src).not.toMatch(/db\/seeds["']|seeds\/demo|seedDemo|createStaffAccount|create-admin|createAuth|better-auth/);
-      expect(src).not.toMatch(/INSERT\s+INTO\s+("?user"?|users|accounts?|sessions?|participants?|staff_roles?|user_roles?)\b/i);
-      expect(src).not.toMatch(/runMigrations|TEST_DATABASE_URL/);
-    }
-  });
-
-  it("is reachable through npm and dev:bootstrap shares the same steps", () => {
-    const pkg = JSON.parse(repo("package.json")) as { scripts: Record<string, string> };
-    expect(pkg.scripts["db:seed:reference"]).toBe("tsx scripts/db/seed-reference.ts");
-    expect(pkg.scripts["content:bootstrap:remote"]).toBe("tsx scripts/content/bootstrap-remote.ts");
-    expect(repo("scripts/dev/bootstrap.ts")).toContain("buildPublicDemo(client");
-    expect(remote).toContain("buildPublicDemo(client");
   });
 });

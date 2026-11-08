@@ -20,7 +20,7 @@ export function panelImageSources(model: StagePanelModel): readonly string[] {
   return [model.clothBeforeSrc, model.clothAfterSrc, ...model.objects.map((object) => object.stillSrc)];
 }
 
-export function SourcesDisclosure({ sources, onOpened, onClosed }: { readonly sources: readonly SourceRef[]; readonly onOpened: () => void; readonly onClosed?: () => void }) {
+function SourcesDisclosure({ sources, onOpened, onClosed }: { readonly sources: readonly SourceRef[]; readonly onOpened: () => void; readonly onClosed?: () => void }) {
   if (sources.length === 0) return null;
   return (
     <details

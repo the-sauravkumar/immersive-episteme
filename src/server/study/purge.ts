@@ -1,5 +1,7 @@
 import type { Pool, PoolClient } from "pg";
 
+import { inTransaction } from "@/server/db/transaction";
+
 import { closeStaleSessions } from "./engine";
 
 export class PurgeError extends Error {
@@ -37,22 +39,6 @@ const PURGE_STEPS: { table: string; where: string }[] = [
   { table: "study_sessions", where: "id = ANY($1::uuid[])" },
 ];
 
-async function withTx<T>(pool: Pool | PoolClient, fn: (c: PoolClient) => Promise<T>): Promise<T> {
-  if (typeof (pool as Pool).totalCount !== "number") return fn(pool as PoolClient);
-  const client = await (pool as Pool).connect();
-  try {
-    await client.query("BEGIN");
-    const out = await fn(client);
-    await client.query("COMMIT");
-    return out;
-  } catch (err) {
-    await client.query("ROLLBACK");
-    throw err;
-  } finally {
-    client.release();
-  }
-}
-
 export async function purgeParticipantData(
   pool: Pool | PoolClient,
   input: { studyId: string; participant: string; reason: string; actorId: string; trigger: PurgeTrigger },
@@ -67,7 +53,7 @@ async function purgeOne(
   input: { studyId: string; participant: string; reason: string; actorId: string; trigger: PurgeTrigger },
 ): Promise<PurgeResult> {
   const reason = input.reason.trim();
-  return withTx(pool, async (c) => {
+  return inTransaction(pool, async (c) => {
     const p = await c.query<{ id: string; code: string; status: string }>(
       "SELECT id, code, status::text AS status FROM participants WHERE study_id = $1 AND (upper(code) = upper($2) OR id::text = lower($2)) FOR UPDATE",
       [input.studyId, input.participant.trim()],

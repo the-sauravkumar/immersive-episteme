@@ -11,15 +11,14 @@ import { titleCase } from "@/lib/text/title-case";
 import { cn } from "@/lib/utils";
 import type { StudySummary } from "@/server/research/studies";
 
-
 export const FIELD_LABEL = "t-label text-lime";
-export const FIELD_HINT = "t-s text-lime-dim";
-export const CONTROL =
+const FIELD_HINT = "t-s text-lime-dim";
+const CONTROL =
   "w-full min-w-0 border border-lime-dim bg-vat px-3 t-b text-lime placeholder:text-lime-dim hover:not-disabled:border-lime-dim disabled:cursor-not-allowed disabled:border-line disabled:bg-vat-2 disabled:text-lime-dim aria-invalid:border-madder-text";
 export const TEXTAREA = cn(CONTROL, "min-h-24 py-2.5");
 export const CHECK_ROW = "flex min-h-11 cursor-pointer items-center gap-3 t-b text-lime";
 export const CHECK_BOX = "ie-check";
-export const LINK = "text-turmeric underline decoration-1 underline-offset-[0.2em] hover:text-turmeric-hi hover:decoration-2";
+const LINK = "text-turmeric underline decoration-1 underline-offset-[0.2em] hover:text-turmeric-hi hover:decoration-2";
 export const LINK_44 = cn(LINK, "inline-flex min-h-11 min-w-11 items-center");
 export const LINK_BUTTON =
   "inline-flex h-11 shrink-0 items-center gap-2 border-[1.5px] border-lime bg-vat px-5 t-b font-semibold text-lime hover:bg-vat-2 [&_svg]:size-5 [&_svg]:shrink-0 [&_svg]:stroke-[1.75]";
@@ -60,7 +59,6 @@ export function FieldLabel({ label, hint, className, children, htmlFor }: { labe
     </label>
   );
 }
-
 
 export function StudyPicker({ studies, current, extra }: { studies: StudySummary[]; current: string | null; extra?: Record<string, string> }) {
   const chosen = studies.find((s) => s.id === current) ?? null;
@@ -121,7 +119,6 @@ export function pickStudy(studies: StudySummary[], requested: string | string[] 
   return studies.find((s) => s.id === id) ?? studies.find((s) => !s.isDemo) ?? studies.find((s) => !isTestFixtureStudy(s)) ?? studies[0] ?? null;
 }
 
-
 const STUDY_STATUS: Record<string, { label: string; variant: "ok" | "neutral" | "warn"; icon: typeof CircleCheck }> = {
   active: { label: "Active", variant: "ok", icon: CircleCheck },
   draft: { label: "Draft", variant: "neutral", icon: CircleDashed },
@@ -156,7 +153,6 @@ export function PublishedBadge({ published, label }: { published: boolean; label
     </Badge>
   );
 }
-
 
 export function Section({
   title,
@@ -304,7 +300,7 @@ export function FlagLine({ level, text }: { level: string; text: string }) {
   );
 }
 
-export const fmtTime = (iso: string | null) => (iso ? iso.replace("T", " ").slice(0, 16) : "–");
+const fmtTime = (iso: string | null) => (iso ? iso.replace("T", " ").slice(0, 16) : "–");
 
 export function Timestamp({ iso }: { iso: string | null }) {
   if (!iso) return <span className="t-table font-semibold wrap-anywhere">–</span>;

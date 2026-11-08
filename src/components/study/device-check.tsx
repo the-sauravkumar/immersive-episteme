@@ -12,7 +12,7 @@ import { submitDeviceCheck, type DeviceCheckResult } from "@/server/study/action
 
 import { StudyActions } from "./action-form";
 
-export interface ClientDeviceReport {
+interface ClientDeviceReport {
   viewport: { width: number; height: number };
   devicePixelRatio: number;
   webglVersion: 1 | 2 | null;
@@ -31,7 +31,7 @@ function browserFamily(ua: string): ClientDeviceReport["browserFamily"] {
   return "other";
 }
 
-export function collectDeviceReport(): ClientDeviceReport {
+function collectDeviceReport(): ClientDeviceReport {
   const mq = (q: string) => typeof window.matchMedia === "function" && window.matchMedia(q).matches;
   const inputs: ClientDeviceReport["inputDevices"] = ["keyboard"];
   if (mq("(any-pointer: fine)")) inputs.push("mouse");

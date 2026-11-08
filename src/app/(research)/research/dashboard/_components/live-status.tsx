@@ -9,12 +9,12 @@ import type { SessionTelemetryRow } from "@/server/research/dashboard";
 
 import { publishLiveSessions } from "./live-sessions";
 
-export const REFRESH_DELAY_MS = 250;
-export const STALE_MS = 30_000;
-export const FALLBACK_POLL_MS = 30_000;
-export const FALLBACK_AFTER_ERRORS = 3;
+const REFRESH_DELAY_MS = 250;
+const STALE_MS = 30_000;
+const FALLBACK_POLL_MS = 30_000;
+const FALLBACK_AFTER_ERRORS = 3;
 
-export function clockUtc(iso: string): string {
+function clockUtc(iso: string): string {
   return new Date(iso).toISOString().slice(11, 19);
 }
 

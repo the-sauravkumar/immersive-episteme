@@ -13,23 +13,23 @@ import { createEventHelpers, isTimingEventType, type EventHelpers, type RawTrack
 import { createTimeAccountant, type TimeAccountant } from "./timing";
 import { openDefaultOutbox, type DeadLetter, type Outbox, type OutboxKind } from "./outbox";
 
-export type TelemetryMode = "study" | "demo" | "preview";
+type TelemetryMode = "study" | "demo" | "preview";
 
-export const BEACON_MAX_BYTES = 60 * 1024;
-export const DEFAULT_BATCH_SIZE = 50;
-export const DEFAULT_FLUSH_INTERVAL_MS = 5_000;
-export const DEFAULT_BASE_RETRY_DELAY_MS = 1_000;
-export const DEFAULT_MAX_RETRY_DELAY_MS = 60_000;
-export const MAX_RETRY_AFTER_MS = 10 * 60_000;
+const BEACON_MAX_BYTES = 60 * 1024;
+const DEFAULT_BATCH_SIZE = 50;
+const DEFAULT_FLUSH_INTERVAL_MS = 5_000;
+const DEFAULT_BASE_RETRY_DELAY_MS = 1_000;
+const DEFAULT_MAX_RETRY_DELAY_MS = 60_000;
+const MAX_RETRY_AFTER_MS = 10 * 60_000;
 
-export interface TelemetryDrop {
+interface TelemetryDrop {
   reason: string;
   status: number | null;
   count: number;
   issues?: string[];
 }
 
-export interface TelemetryErrorInfo {
+interface TelemetryErrorInfo {
   code: string;
   status: number | null;
   at: string;
@@ -136,7 +136,7 @@ export interface SeqMark {
   set(sessionId: string, nextSeq: number): void;
 }
 
-export function localStorageSeqMark(): SeqMark | null {
+function localStorageSeqMark(): SeqMark | null {
   let ls: Storage;
   try {
     ls = globalThis.localStorage;

@@ -8,8 +8,6 @@ import {
   VERIFICATION_STATES,
 } from "@/lib/validation/enums";
 import { MAX_QUOTE_WORDS, SLUG_REGEX, RELATIONSHIP_TYPE_CODE_REGEX, wordCount } from "@/lib/validation/primitives";
-
-const trimmed = (max: number) => z.string().trim().max(max);
 const required = (max: number, msg = "Required") => z.string().trim().min(1, msg).max(max);
 const optionalText = (max: number) =>
   z
@@ -36,19 +34,19 @@ const list = z
 const uuid = z.uuid("Choose an item from the list");
 const checkbox = z.union([z.literal("on"), z.literal("true"), z.boolean(), z.null()]).optional().transform((v) => v === true || v === "on" || v === "true");
 
-export const evidenceQuoteSchema = z
+const evidenceQuoteSchema = z
   .string()
   .trim()
   .min(1, "Paste the verbatim quotation from the source that supports this claim")
   .refine((q) => wordCount(q) <= MAX_QUOTE_WORDS, `Quotations are limited to ${MAX_QUOTE_WORDS} words; quote only what supports the claim`);
 
-export const locatorSchema = z
+const locatorSchema = z
   .string()
   .trim()
   .min(1, 'Give the page (e.g. "p. 12 (PDF p. 4)") or, for unpaginated sources, a locator (e.g. "§ Process, para 3")')
   .max(200);
 
-export const claimCitationSchema = z.object({
+const claimCitationSchema = z.object({
   sourceId: uuid,
   locator: locatorSchema,
   quote: z
@@ -68,7 +66,6 @@ export const cmsClaimSchema = z.object({
     .min(1, "Every claim cites at least one source")
     .refine((s) => new Set(s.map((x) => x.sourceId)).size === s.length, "Cite each source once per claim"),
 });
-export type CmsClaim = z.infer<typeof cmsClaimSchema>;
 
 export const saveClaimsSchema = z.object({
   conceptId: uuid,
@@ -85,7 +82,7 @@ export const saveClaimsSchema = z.object({
     .pipe(z.array(cmsClaimSchema).min(1, "A concept needs at least one claim").max(60)),
 });
 
-export const KEY_NAME_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const KEY_NAME_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 export const conceptCreateSchema = z.object({
   packageSlug: z.string().regex(SLUG_REGEX, "Choose a tradition or package"),
@@ -160,7 +157,7 @@ export const traditionSourceSchema = z.object({
   remove: checkbox,
 });
 
-export const relationshipCitationSchema = z.object({
+const relationshipCitationSchema = z.object({
   sourceId: uuid,
   locator: locatorSchema,
   quote: evidenceQuoteSchema,
@@ -195,7 +192,7 @@ export const relationshipSchema = z
 
 export const deleteRelationshipSchema = z.object({ relationshipId: uuid });
 
-export const ENTITY_KINDS = ["tradition", "concept", "relationship", "source"] as const;
+const ENTITY_KINDS = ["tradition", "concept", "relationship", "source"] as const;
 export type CmsEntityKind = (typeof ENTITY_KINDS)[number];
 
 export const EVIDENCE_CHECKS = {
@@ -219,7 +216,7 @@ export const transitionSchema = z.object({
 });
 export type TransitionInput = z.infer<typeof transitionSchema>;
 
-export const RELEASE_LABEL_REGEX = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
+const RELEASE_LABEL_REGEX = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 
 export const releaseSchema = z
   .object({
@@ -236,5 +233,3 @@ export const releaseSchema = z
     path: ["confirmVersionLabel"],
     message: "Type the version label again to confirm: publishing is irreversible",
   });
-
-export const trimmedText = trimmed;

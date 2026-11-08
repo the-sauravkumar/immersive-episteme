@@ -2,7 +2,6 @@ import { expect, newContext, test, type Page } from "./fixtures";
 import { config as loadEnv } from "dotenv";
 import { Pool } from "pg";
 
-
 loadEnv({ quiet: true });
 
 test.describe.configure({ timeout: 300_000 });
@@ -102,7 +101,6 @@ test("Figure 1 is a static plate on vat-2: no draw-on and nothing animates (DR-1
   expect(await page.evaluate(() => document.getAnimations().filter((a) => a.playState === "running").length)).toBe(0);
   await ctx.close();
 });
-
 
 test("Explore cards align their actions and the Colophon promises no interface parity measurement", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 800 });

@@ -4,13 +4,13 @@ import { scoreItem } from "./metrics/registry";
 import { scoreConceptMap } from "./score";
 import type { CanonicalEdge, ParticipantMapInput, ReferenceMapInput, ScoreItem, ScoringContext } from "./types";
 
-export interface EdgeChange {
+interface EdgeChange {
   kind: "unchanged" | "retyped" | "reoriented" | "added" | "removed";
   before: string | null;
   after: string | null;
 }
 
-export interface ScoreDelta {
+interface ScoreDelta {
   metricName: string;
   metricVersion: string;
   pre: number | null;

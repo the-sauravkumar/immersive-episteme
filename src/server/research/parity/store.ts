@@ -76,7 +76,7 @@ export async function loadParityInput(q: Q, studyId: string): Promise<ParityInpu
   };
 }
 
-export async function generateParityReport(q: Q, studyId: string): Promise<ParityReport> {
+async function generateParityReport(q: Q, studyId: string): Promise<ParityReport> {
   return runParityChecks(await loadParityInput(q, studyId));
 }
 

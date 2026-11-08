@@ -45,7 +45,7 @@ export function readVizTheme(get: (name: string) => string, fontFamily = "inheri
   };
 }
 
-export function documentVizTheme(): VizTheme {
+function documentVizTheme(): VizTheme {
   const style = getComputedStyle(document.documentElement);
   const font = getComputedStyle(document.body).fontFamily || "inherit";
   return readVizTheme((name) => style.getPropertyValue(name), font);

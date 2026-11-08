@@ -14,9 +14,9 @@ import { cn } from "@/lib/utils";
 import { FigureLightbox } from "./figure-lightbox";
 import { StructureDiagramSvg } from "./structure-diagram";
 
-export const FIGURE_SIZES = "(min-width: 1024px) 544px, calc(100vw - 32px)";
+const FIGURE_SIZES = "(min-width: 1024px) 544px, calc(100vw - 32px)";
 
-export const DIAGRAM_READABLE_MIN_PX = Math.ceil((DIAGRAM_WIDTH * 12) / 10);
+const DIAGRAM_READABLE_MIN_PX = Math.ceil((DIAGRAM_WIDTH * 12) / 10);
 
 export interface KnowledgeFigureProps {
   figure: KnowledgeFigureData;

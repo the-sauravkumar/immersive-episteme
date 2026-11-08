@@ -4,7 +4,7 @@ import { LEARNING_CONDITIONS, type LearningCondition } from "@/lib/permissions/l
 
 import { signToken, verifyToken } from "./signed-token";
 
-export const PARTICIPANT_SESSION_PURPOSE = "participant-session/v1";
+const PARTICIPANT_SESSION_PURPOSE = "participant-session/v1";
 export const PARTICIPANT_SESSION_TTL_SECONDS = 60 * 60 * 6;
 
 const opaqueId = z
@@ -24,7 +24,7 @@ const claimsSchema = z
   })
   .strict();
 
-export type ParticipantSessionClaims = {
+type ParticipantSessionClaims = {
   participantId: string;
   sessionId: string;
   condition: LearningCondition | null;

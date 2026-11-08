@@ -1,4 +1,4 @@
-export interface EvidenceRecord {
+interface EvidenceRecord {
   readonly source_id: string;
   readonly locator: string;
   readonly quote: string;
@@ -17,7 +17,7 @@ export interface ConceptRecord {
   readonly claims?: readonly ClaimRecord[];
 }
 
-export interface RelationshipRecord {
+interface RelationshipRecord {
   readonly source: string;
   readonly target: string;
   readonly type: string;
@@ -25,7 +25,7 @@ export interface RelationshipRecord {
   readonly verification_state?: string;
 }
 
-export interface SourceRecord {
+interface SourceRecord {
   readonly id: string;
   readonly title: string;
 }

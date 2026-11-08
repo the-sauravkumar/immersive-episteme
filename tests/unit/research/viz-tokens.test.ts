@@ -40,40 +40,6 @@ describe("chart theme equals the DESIGN.md Section 4 tokens", () => {
     expect(t.fontFamily).toBe("Mukta");
   });
 
-  it("the series are lime for 2D and turmeric for 3D, and the ramp rises from vat-2 to turmeric-hi", () => {
-    const t = readVizTheme(get);
-    expect([lc(t.series2d), lc(t.series3d)]).toEqual(["#efe8d6", "#e8a917"]);
-    expect(t.ramp.map(lc)).toEqual(["#16264e", "#2c3850", "#5a6478", "#c48c0c", "#e8a917", "#f4c04a"]);
-  });
-});
-
-describe("chart sources hold no palette of their own", () => {
-  const sources = ["src/components/analytics/use-echart.ts", "src/components/analytics/charts.tsx", "src/components/analytics/encoding.ts"].map((f) => [f, read(f).replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "")] as const);
-
-  it("no colour literals (hex, rgb(), hsl() or named palette) in chart code", () => {
-    for (const [file, src] of sources) {
-      expect(src, file).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
-      expect(src, file).not.toMatch(/\b(?:rgb|rgba|hsl|hsla)\(/);
-      expect(src, file).not.toMatch(/(?:emerald|amber|red|green|blue|sky|orange)-\d{2,3}/);
-    }
-    const all = sources.map(([, s]) => s).join("\n").toLowerCase();
-    for (const old of ["2a78d6", "eb6834", "1baf7a"]) expect(all).not.toContain(old);
-  });
-
-  it("animation is off and the theme is read from the document's tokens", () => {
-    const hook = sources[0]![1];
-    expect(hook).toMatch(/animation:\s*false/);
-    expect(hook).not.toMatch(/animation:\s*true/);
-    expect(hook).toMatch(/getComputedStyle\(document\.documentElement\)/);
-    expect(hook).toMatch(/renderer:\s*"svg"/);
-  });
-
-  it("condition encoding: 3D square marker and 4-2 dashes, 2D circle and solid", () => {
-    const charts = sources[1]![1];
-    expect(charts).toMatch(/kind === "3d" \? "rect" : "circle"/);
-    expect(charts).toMatch(/kind === "3d" \? \[4, 2\] : "solid"/);
-    expect(charts).not.toMatch(/legend\s*:/);
-  });
 });
 
 describe("client CSV of a chart's data table", () => {

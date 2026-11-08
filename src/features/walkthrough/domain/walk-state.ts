@@ -16,7 +16,7 @@ export interface Walker {
   readonly walked: number;
 }
 
-export const WALK_SPEED = 1.9;
+const WALK_SPEED = 1.9;
 export const BODY_RADIUS = 0.6;
 const LOWEST_BLOCKING_METRES = 0.12;
 const HEAD_CLEARANCE_METRES = 2.1;

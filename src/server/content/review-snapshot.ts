@@ -10,7 +10,7 @@ import type { ConceptType, KnowledgeCategoryCode, ProvenanceKind, SourceReliabil
 
 type Q = Pick<PoolClient, "query">;
 
-export const REVIEW_SNAPSHOT_STATES: readonly VerificationState[] = ["under_review", "needs_evidence", "verified", "published"];
+const REVIEW_SNAPSHOT_STATES: readonly VerificationState[] = ["under_review", "needs_evidence", "verified", "published"];
 
 interface DbModel {
   model: KnowledgeGraphModel;
@@ -202,7 +202,7 @@ export async function loadModelFromDb(q: Q, hasher: Sha256Hasher): Promise<DbMod
   return { model: { packages, sources, concepts, relationships }, dbIdByNameId };
 }
 
-function bindToDbIds(bundle: KnowledgeBundle, map: ReadonlyMap<string, string>): KnowledgeBundle {
+export function bindToDbIds(bundle: KnowledgeBundle, map: ReadonlyMap<string, string>): KnowledgeBundle {
   const swap = (id: string) => map.get(id) ?? id;
   const byId = <T extends { id: string }>(a: T, b: T) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
   return {

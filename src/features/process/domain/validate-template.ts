@@ -2,8 +2,8 @@ import { ASSET_CATALOGUE } from "./asset-catalogue";
 import { conceptByKey, processStages, PROCESS_STAGE_TYPE, type TraditionRecord } from "./knowledge-record";
 import type { StageTemplate } from "./stage-template";
 
-export const MIN_TEMPLATE_STAGES = 7;
-export const MAX_TEMPLATE_STAGES = 9;
+const MIN_TEMPLATE_STAGES = 7;
+const MAX_TEMPLATE_STAGES = 9;
 
 const STATION_KINDS = new Set(["table", "vat", "boil", "wash", "soak", "dry", "carve", "finish"]);
 const EVERY_WORD_CAPITAL = /^(?:[^\p{Ll}\s]\S*)(?:\s+[^\p{Ll}\s]\S*)*$/u;

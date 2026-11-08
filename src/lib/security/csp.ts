@@ -1,4 +1,4 @@
-export type FrameAncestors = "self" | "none";
+type FrameAncestors = "self" | "none";
 
 export type CspOptions = {
   frameAncestors: FrameAncestors;

@@ -1,7 +1,7 @@
 import type { KnowledgeBundle } from "@/features/knowledge/contracts";
 import { canonicalJson } from "@/features/knowledge/graph/canonical-json";
 
-export interface EntityChange {
+interface EntityChange {
   key: string;
   label: string;
   fields: string[];

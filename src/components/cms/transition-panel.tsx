@@ -27,8 +27,8 @@ const KIND_HINT: Record<string, string> = {
   archive: "Retire it (kept for provenance, never published again).",
 };
 
-export const OPTION_ROW = "flex min-h-11 cursor-pointer items-start gap-3 border-t border-line py-2.5 first:border-t-0 has-[:disabled]:cursor-not-allowed has-[:disabled]:text-lime-dim";
-export const NATIVE_RADIO = "ie-check mt-0.5";
+const OPTION_ROW = "flex min-h-11 cursor-pointer items-start gap-3 border-t border-line py-2.5 first:border-t-0 has-[:disabled]:cursor-not-allowed has-[:disabled]:text-lime-dim";
+const NATIVE_RADIO = "ie-check mt-0.5";
 
 export function TransitionPanel({
   entityKind,

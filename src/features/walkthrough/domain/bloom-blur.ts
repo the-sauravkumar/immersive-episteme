@@ -16,7 +16,7 @@ const sideVariance = ({ offset, weight }: BlurTap): number => {
   return weight * (low ** 2 * (1 - share) + (low + 1) ** 2 * share);
 };
 
-export const BLOOM_PASS_VARIANCE = BLOOM_SIDE_TAPS.reduce((sum, tap) => sum + 2 * sideVariance(tap), 0);
+const BLOOM_PASS_VARIANCE = BLOOM_SIDE_TAPS.reduce((sum, tap) => sum + 2 * sideVariance(tap), 0);
 
 export function bloomBlurPasses(pixelRatio: number): number {
   const spread = BLOOM_SPREAD_TEXELS * pixelRatio;

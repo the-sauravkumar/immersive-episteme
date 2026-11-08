@@ -14,11 +14,11 @@ export const STEP_ASSESSMENTS: Partial<Record<StudyStep, { phase: "pre" | "post"
   delayed_test: { phase: "follow_up", kind: "posttest" },
 };
 
-export const DRAWN_ALGORITHMS: readonly string[] = ["simple", "block", "stratified_block"];
+const DRAWN_ALGORITHMS: readonly string[] = ["simple", "block", "stratified_block"];
 
 export const BLIND_STEPS: readonly StudyStep[] = ["questionnaire_pre", "pre_test"];
 
-export const QUESTIONNAIRE_STEPS = ["questionnaire_pre", "questionnaire_post_learning", "questionnaire_end"] as const;
+const QUESTIONNAIRE_STEPS = ["questionnaire_pre", "questionnaire_post_learning", "questionnaire_end"] as const;
 export type QuestionnaireStep = (typeof QUESTIONNAIRE_STEPS)[number];
 export const QUESTIONNAIRE_CONFIG_KEY: Record<QuestionnaireStep, "pre" | "postLearning" | "end"> = {
   questionnaire_pre: "pre",

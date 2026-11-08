@@ -12,13 +12,11 @@ import { fixed, niceScale, orderByCondition, type ConditionKind, type NiceScale 
 import { useEChart, type VizTheme } from "./use-echart";
 import { Disclosure } from "@/components/ui/disclosure";
 
-
-export function seriesColour(t: VizTheme, kind: ConditionKind): string {
+function seriesColour(t: VizTheme, kind: ConditionKind): string {
   return kind === "3d" ? t.series3d : kind === "2d" ? t.series2d : t.textDim;
 }
 const marker = (kind: ConditionKind) => (kind === "3d" ? "rect" : "circle");
 const dash = (kind: ConditionKind): "solid" | number[] => (kind === "3d" ? [4, 2] : "solid");
-
 
 function valueAxis(t: VizTheme, name?: string, extra: Record<string, unknown> = {}) {
   return {
@@ -80,13 +78,11 @@ function miniTable(title: string, rows: [string, string][]): string {
   return `<div style="font-weight:600;margin-bottom:4px">${esc(title)}</div><table style="border-collapse:collapse;border-top:1.5px solid currentColor;border-bottom:1.5px solid currentColor">${cells}</table>`;
 }
 
-
 function jitter(j: number, spread = 0.16): number {
   return ((((j * 37) % 21) - 10) / 10) * spread;
 }
 
-
-export type Cell = string | number | null;
+type Cell = string | number | null;
 
 export interface DataTableSpec {
   head: string[];
@@ -97,7 +93,7 @@ export interface DataTableSpec {
 const NUMERIC = /^[-−]?\d+(\.\d+)?$/;
 const isNumericCell = (c: Cell) => c === null || typeof c === "number" || c === "–" || (typeof c === "string" && NUMERIC.test(c));
 
-export function ChartDataTable({ spec, label }: { spec: DataTableSpec; label: string }) {
+function ChartDataTable({ spec, label }: { spec: DataTableSpec; label: string }) {
   const numeric = spec.numeric ?? spec.head.map((_, j) => (spec.rows.length > 0 && spec.rows.every((r) => isNumericCell(r[j] ?? null)) ? j : -1)).filter((j) => j >= 0);
   return (
     <Table label={label} density="compact">
@@ -150,7 +146,7 @@ export function tableCsv(spec: Pick<DataTableSpec, "head" | "rows">): string {
   return [spec.head, ...spec.rows].map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
 
-export function CsvDataButton({ filename, spec, label = "Download CSV" }: { filename: string; spec: Pick<DataTableSpec, "head" | "rows">; label?: string }) {
+function CsvDataButton({ filename, spec, label = "Download CSV" }: { filename: string; spec: Pick<DataTableSpec, "head" | "rows">; label?: string }) {
   return (
     <button
       type="button"
@@ -178,7 +174,7 @@ export function DataDisclosure({ children, label = "Data table" }: { children: R
   );
 }
 
-export function ChartFigure({
+function ChartFigure({
   number,
   title,
   howToRead,
@@ -233,7 +229,6 @@ export function ChartFigure({
   );
 }
 
-
 export interface IntervalGroup {
   name: string;
   kind: ConditionKind;
@@ -248,7 +243,7 @@ export interface IntervalPanel {
   groups: IntervalGroup[];
 }
 
-export function intervalScale(panels: IntervalPanel[], zero: boolean): NiceScale | null {
+function intervalScale(panels: IntervalPanel[], zero: boolean): NiceScale | null {
   return niceScale(
     panels.flatMap((p) => p.groups.flatMap((g) => [...g.values, g.low, g.high])),
     zero,
@@ -435,7 +430,6 @@ export function DotIntervalChart({
   );
 }
 
-
 export interface CountSeries {
   name: string;
   kind: ConditionKind;
@@ -506,8 +500,7 @@ export function CountBars({
   );
 }
 
-
-export function rampStep(v: number, max: number): number {
+function rampStep(v: number, max: number): number {
   if (v <= 0 || max <= 0) return 0;
   return Math.min(5, Math.max(1, Math.ceil((v / max) * 5)));
 }

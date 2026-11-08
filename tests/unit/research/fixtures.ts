@@ -6,8 +6,8 @@ import type { DoorTraditionView, DoorView, ParityInput } from "@/server/research
 
 import { syntheticGraph } from "./synthetic-graph";
 
-export const SOURCE_A = deterministicUuid("source", "demo-source-a");
-export const SOURCE_B = deterministicUuid("source", "demo-source-b");
+const SOURCE_A = deterministicUuid("source", "demo-source-a");
+const SOURCE_B = deterministicUuid("source", "demo-source-b");
 
 export function demoBundle(): KnowledgeBundle {
   const g = syntheticGraph();
@@ -76,7 +76,7 @@ export function demoBundle(): KnowledgeBundle {
   };
 }
 
-export const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x)) as T;
+const clone = <T>(x: T): T => JSON.parse(JSON.stringify(x)) as T;
 
 const TRADITIONS: TraditionKey[] = ["ajrakh", "sanganeri"];
 
@@ -100,7 +100,7 @@ export function fixtureTemplate(tradition: TraditionKey): StageTemplate {
   };
 }
 
-export function doorTradition(template: StageTemplate): DoorTraditionView {
+function doorTradition(template: StageTemplate): DoorTraditionView {
   return {
     tradition: template.tradition,
     stages: template.stages.map((stage) => ({ number: stage.number, key: stage.key, name: stage.name, caption: stage.caption.text, sources: stage.caption.sources, items: stage.items, clothStateId: stage.clothStateId, clothFile: clothStatePath(stage.clothStateId) })),

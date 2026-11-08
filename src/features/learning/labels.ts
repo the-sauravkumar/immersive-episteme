@@ -34,15 +34,6 @@ export const CATEGORY_LABELS: Record<KnowledgeCategoryCode, string> = {
   open_questions: "Open questions",
 };
 
-export const SEMANTICS_LABELS = {
-  causal: "Causes and effects",
-  sequential: "Sequence",
-  associative: "Associated with",
-  compositional: "Parts and uses",
-  explanatory: "Explanations",
-  comparative: "Comparisons",
-} as const;
-
 export function exposureLayerOf(type: ConceptType): ExposureLayer {
   switch (type) {
     case "artisan_decision":
@@ -92,7 +83,7 @@ export function inCanonicalOrder<T extends { name: string; slug?: string }>(item
   return [...items].sort(compareTraditions);
 }
 
-export function canonicalSlugIndex(slug: string): number {
+function canonicalSlugIndex(slug: string): number {
   const i = (CANONICAL_TRADITION_SLUGS as readonly string[]).indexOf(slug);
   return i === -1 ? CANONICAL_TRADITION_SLUGS.length : i;
 }

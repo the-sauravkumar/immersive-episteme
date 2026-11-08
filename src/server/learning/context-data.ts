@@ -10,7 +10,7 @@ import { stageTemplateSha256 } from "@/server/study/stage-templates";
 
 type Q = Pick<Pool | PoolClient, "query">;
 
-export type LearningMode = "study" | "demo" | "preview";
+type LearningMode = "study" | "demo" | "preview";
 
 export interface LearningContext {
   mode: LearningMode;
@@ -38,7 +38,7 @@ export class LearningContextUnavailableError extends Error {
   }
 }
 
-export interface StudySessionContextRow {
+interface StudySessionContextRow {
   sessionId: string;
   studyConfig: unknown;
   snapshotId: string | null;
@@ -46,7 +46,7 @@ export interface StudySessionContextRow {
   verifiedStageConcepts: string[];
 }
 
-export interface PreviewContentRow {
+interface PreviewContentRow {
   snapshotId: string;
   snapshotLabel: string;
   studyConfig: unknown;
@@ -131,7 +131,7 @@ export async function recordLearningEnded(q: Q, sessionId: string): Promise<Lear
   return readClock(q, sessionId);
 }
 
-export function nonStudyTelemetrySessionId(kind: "demo" | "preview", id: string): string {
+function nonStudyTelemetrySessionId(kind: "demo" | "preview", id: string): string {
   return nameBasedUuid(nodeSha256, "telemetry-session", kind, id);
 }
 

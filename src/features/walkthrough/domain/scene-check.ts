@@ -37,7 +37,7 @@ export interface FillAudit {
   readonly pieces: () => readonly (readonly CheckedSphere[])[];
 }
 
-export interface SceneProblem {
+interface SceneProblem {
   readonly rule: "solid-overlap" | "outside-yard" | "below-ground" | "through-wall" | "cloth-penetration" | "fill-outside-vessel" | "fill-overlap" | "through-bench" | "off-bench" | "fill-missing" | "unchecked-mesh";
   readonly subject: string;
   readonly against: string;

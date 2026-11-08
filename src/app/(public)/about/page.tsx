@@ -25,7 +25,6 @@ const STANDALONE =
 const LINK =
   "text-turmeric underline decoration-1 underline-offset-[0.2em] transition-[text-decoration-thickness] duration-(--dur-1) hover:text-turmeric-hi hover:decoration-2";
 
-
 const LEARNING_INDEX = DEFAULT_STEPS.indexOf("learning");
 const BEFORE = DEFAULT_STEPS.filter((s) => (BLIND_STEPS as readonly StudyStep[]).includes(s));
 const PREPARE = DEFAULT_STEPS.slice(0, LEARNING_INDEX).filter((s) => !BEFORE.includes(s));
@@ -137,7 +136,6 @@ function StepList() {
     </ol>
   );
 }
-
 
 async function DatasetLive() {
   const stats = await getDatasetStats();

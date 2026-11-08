@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 
@@ -6,6 +8,7 @@ import {
   slugFromConceptKey,
   type KnowledgeBundle,
 } from "../../src/features/knowledge/contracts";
+import { canonicalJson } from "../../src/features/knowledge/graph/canonical-json";
 import { itemConfigSchema } from "../../src/features/research/contracts";
 import { studyConfigSchema } from "../../src/features/study/contracts";
 import type { ConceptType, KnowledgeCategoryCode, VerificationState } from "../../src/lib/validation/enums";
@@ -31,7 +34,6 @@ import {
   traditionSources,
   traditions,
 } from "../schema";
-import { itemSha256 } from "./_util";
 
 export const DEMO_SNAPSHOT_LABEL = "demo-snapshot-v1";
 export const DEMO_STUDY_SLUG = "demo-study";
@@ -359,7 +361,7 @@ export async function seedDemo(db: NodePgDatabase): Promise<void> {
 
 type Tx = Parameters<Parameters<NodePgDatabase["transaction"]>[0]>[0];
 
-export async function buildBundleFromDb(tx: Tx, versionLabel: string): Promise<KnowledgeBundle> {
+async function buildBundleFromDb(tx: Tx, versionLabel: string): Promise<KnowledgeBundle> {
   const cats = await tx.select().from(knowledgeCategories);
   const types = await tx.select().from(relationshipTypes);
   const trads = await tx.select().from(traditions).where(eq(traditions.isDemo, true));
@@ -449,13 +451,13 @@ export async function buildBundleFromDb(tx: Tx, versionLabel: string): Promise<K
   return knowledgeBundleSchema.parse(bundle);
 }
 
-export function snapshotItemsFor(snapshotId: string, b: KnowledgeBundle, isDemo: boolean) {
+function snapshotItemsFor(snapshotId: string, b: KnowledgeBundle, isDemo: boolean) {
   const row = (itemKind: (typeof snapshotItems.$inferInsert)["itemKind"], entityRef: string, entityKey: string | null, value: unknown) => ({
     snapshotId,
     itemKind,
     entityRef,
     entityKey,
-    itemSha256: itemSha256(value),
+    itemSha256: createHash("sha256").update(canonicalJson(value), "utf8").digest("hex"),
     isDemo,
   });
   return [

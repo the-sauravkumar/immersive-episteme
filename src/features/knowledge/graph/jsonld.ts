@@ -1,6 +1,6 @@
 import type { KnowledgeBundle } from "@/features/knowledge/contracts";
 
-export const IE_VOCAB = "urn:immersive-episteme:vocab#";
+const IE_VOCAB = "urn:immersive-episteme:vocab#";
 
 export function bundleToJsonLd(bundle: KnowledgeBundle): Record<string, unknown> {
   const conceptIri = (key: string) => `urn:immersive-episteme:concept:${key}`;

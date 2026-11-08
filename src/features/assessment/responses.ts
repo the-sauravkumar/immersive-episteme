@@ -14,11 +14,10 @@ export const answerKeySchema = z.union([
   z.object({ order: z.array(z.string().min(1).max(64)).min(2) }),
   z.object({ matches: z.record(z.string().min(1).max(64), z.string().min(1).max(64)) }),
 ]);
-export type AnswerKey = z.infer<typeof answerKeySchema>;
 
 export const KEY_MATCH_METRIC = { name: "item.key_match", version: "1.0.0", pipeline: "item-key@1.0.0" } as const;
 
-export function extractAnswer(raw: unknown): { optionIds: string[] | null; value: number | null } {
+function extractAnswer(raw: unknown): { optionIds: string[] | null; value: number | null } {
   if (typeof raw === "string") return { optionIds: [raw], value: Number.isFinite(Number(raw)) ? Number(raw) : null };
   if (typeof raw === "number") return { optionIds: null, value: raw };
   if (Array.isArray(raw) && raw.every((x) => typeof x === "string")) return { optionIds: raw as string[], value: null };
@@ -50,9 +49,9 @@ export function orderScore(expected: readonly string[], given: readonly string[]
   return pairs === 0 ? 0 : agreeing / pairs;
 }
 
-export const matchValue = (pairId: string, optionId: string): string => `${pairId}=${optionId}`;
+const matchValue = (pairId: string, optionId: string): string => `${pairId}=${optionId}`;
 
-export function matchScore(matches: Readonly<Record<string, string>>, given: readonly string[]): number {
+function matchScore(matches: Readonly<Record<string, string>>, given: readonly string[]): number {
   const keys = Object.keys(matches);
   if (keys.length === 0) return 0;
   const chosen = new Set(given);

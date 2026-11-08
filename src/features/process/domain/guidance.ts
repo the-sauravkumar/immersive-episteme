@@ -49,8 +49,8 @@ export const RESUME_LABEL = "Resume";
 
 export const SOURCES_LABEL = "Sources Behind This Caption";
 export const SOURCES_AND_CREDITS_LABEL = "Sources And Credits";
-export const QUESTIONS_LABEL = "Questions";
-export const FINISH_LABEL = "Finish";
+const QUESTIONS_LABEL = "Questions";
+const FINISH_LABEL = "Finish";
 export const PRACTICE_OBJECT_LABEL = "Practice Object";
 export const ROLE_LABELS: Readonly<Record<"tool" | "material", string>> = { tool: "Tool", material: "Material" };
 export const STAND_IN_MARK = "Stand-In Model";

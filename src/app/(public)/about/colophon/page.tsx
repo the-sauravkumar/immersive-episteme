@@ -9,7 +9,6 @@ import { PageHeader } from "@/components/shell/page-header";
 
 export const metadata: Metadata = { title: "Colophon" };
 
-
 type Swatch = { token: string; name: string; role: string };
 
 const SWATCHES: readonly Swatch[] = [

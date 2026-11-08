@@ -30,9 +30,9 @@ export interface ValidationOptions {
   isDemo?: boolean;
 }
 
-export const DEFAULT_NEAR_DUPLICATE_THRESHOLD = 0.8;
+const DEFAULT_NEAR_DUPLICATE_THRESHOLD = 0.8;
 
-export const FORMAT_COVERAGE_TARGETS: Partial<Record<ConceptType, number>> = {
+const FORMAT_COVERAGE_TARGETS: Partial<Record<ConceptType, number>> = {
   process_stage: 8,
   material: 6,
   tool: 4,
@@ -443,7 +443,7 @@ export const validateDuplicates: Validator = ({ model, options }) => {
   return out;
 };
 
-export function deriveProseFromClaims(c: Pick<GraphConcept, "claims">): { summary: string; bodyMd: string } {
+function deriveProseFromClaims(c: Pick<GraphConcept, "claims">): { summary: string; bodyMd: string } {
   const texts = c.claims.map((cl) => cl.text.trim());
   return {
     summary: texts[0] ?? "",
@@ -553,7 +553,7 @@ export const validateOrphans: Validator = ({ model, options }) => {
   return out;
 };
 
-export const VALIDATORS: readonly Validator[] = [
+const VALIDATORS: readonly Validator[] = [
   validateEntities,
   validateRelationships,
   validateCycles,

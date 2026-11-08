@@ -44,7 +44,7 @@ export interface RelatedLinkGroup {
   links: RelatedLink[];
 }
 
-export function groupRelatedLinks(links: readonly RelatedLink[]): RelatedLinkGroup[] {
+function groupRelatedLinks(links: readonly RelatedLink[]): RelatedLinkGroup[] {
   const groups = new Map<string, RelatedLinkGroup & { semantics: RelationshipSemantics; first: number }>();
   links.forEach((l, i) => {
     const key = `${l.type}:${l.direction}`;
@@ -57,7 +57,7 @@ export function groupRelatedLinks(links: readonly RelatedLink[]): RelatedLinkGro
     .map(({ semantics: _s, first: _f, ...g }) => g);
 }
 
-export const RELATED_LINK_CLASS = "t-label inline-flex min-h-11 min-w-11 items-center text-left text-turmeric underline decoration-1 underline-offset-[0.2em] hover:text-turmeric-hi hover:decoration-2";
+const RELATED_LINK_CLASS = "t-label inline-flex min-h-11 min-w-11 items-center text-left text-turmeric underline decoration-1 underline-offset-[0.2em] hover:text-turmeric-hi hover:decoration-2";
 
 export interface RelatedConceptsProps {
   conceptId: string;

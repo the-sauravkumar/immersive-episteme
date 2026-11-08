@@ -24,7 +24,6 @@ export interface AssetMetadataDefaults {
   publicPlate?: boolean | null;
 }
 
-
 function Row({
   label,
   name,

@@ -1,11 +1,9 @@
 import { z } from "zod";
-
-import { DEMO_COOKIE } from "./cookie-names";
 import { signToken, verifyToken } from "./signed-token";
 
-export const DEMO_SESSION_PURPOSE = "public-demo/v1";
+const DEMO_SESSION_PURPOSE = "public-demo/v1";
 export const DEMO_SESSION_TTL_SECONDS = 60 * 60 * 4;
-export { DEMO_COOKIE };
+;
 
 const demoClaims = z
   .object({

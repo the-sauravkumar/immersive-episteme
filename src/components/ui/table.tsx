@@ -194,6 +194,6 @@ export {
   TableHead,
   TableRow,
   TableCell,
-  TableCaption,
-  TableNote,
+  
+  
 }

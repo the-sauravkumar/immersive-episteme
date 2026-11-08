@@ -18,7 +18,7 @@ import { liquidBodyColour } from "./substance-materials";
 import type { WorkPacer } from "./work-pacer";
 import { addTankLining, addWorkLiquid, BATH_BODY_DEPTH_METRES, copperMaterial, groundWithOpening, plasterMaterial, turnedRing } from "./work-structures";
 
-export interface YardAudit {
+interface YardAudit {
   readonly solids: CheckedSolid[];
   readonly cloths: ClothMesh[];
   readonly fields: SolidField[];
@@ -205,7 +205,6 @@ function solidBox(object: THREE.Object3D): THREE.Box3 {
   });
   return box.isEmpty() ? new THREE.Box3().setFromObject(object) : box;
 }
-
 
 export async function buildYard(kit: YardKit, plan: YardPlan, files: YardFiles, stationId: string): Promise<BuiltYard> {
   const { pacer } = kit.library;

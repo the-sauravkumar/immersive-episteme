@@ -42,17 +42,7 @@ export interface CanonicalEdge {
   reversedByEquivalence: boolean;
   keys: Record<MatchLevel, string>;
 }
-
-export const PARTICIPANT_EDGE_CLASSES = [
-  "correct",
-  "optional_match",
-  "wrong_type",
-  "wrong_direction",
-  "unsupported",
-  "out_of_scope",
-  "duplicate",
-] as const;
-export type ParticipantEdgeClass = (typeof PARTICIPANT_EDGE_CLASSES)[number];
+type ParticipantEdgeClass = "correct" | "optional_match" | "wrong_type" | "wrong_direction" | "unsupported" | "out_of_scope" | "duplicate";
 
 export interface ParticipantEdgeBreakdown {
   edgeKey: string;

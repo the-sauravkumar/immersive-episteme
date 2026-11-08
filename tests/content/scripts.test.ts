@@ -25,7 +25,6 @@ const INDIC: Record<string, RegExp> = {
   Kannada: /[ಀ-೿]/gu,
   Malayalam: /[ഀ-ൿ]/gu,
 };
-const ARABIC = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/gu;
 
 describe("scripts in content/ (DESIGN.md 5.1)", () => {
   const files = jsonFiles(CONTENT);
@@ -41,10 +40,5 @@ describe("scripts in content/ (DESIGN.md 5.1)", () => {
       .filter(([, n]) => n > 0)
       .map(([script, n]) => `${script}: ${n}`);
     expect(found, "add the matching Noto Serif face for every script found, for all traditions").toEqual([]);
-  });
-
-  it("counts the Arabic-script characters (rendered through the system stack with lang and dir)", () => {
-    const n = (text.match(ARABIC) ?? []).length;
-    expect(n).toBeGreaterThanOrEqual(0);
   });
 });

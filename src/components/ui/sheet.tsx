@@ -1,6 +1,5 @@
 "use client"
 
-
 import * as React from "react"
 import { titleCaseNode } from "@/lib/text/title-case"
 import { cn } from "@/lib/utils"
@@ -17,12 +16,6 @@ function SheetTrigger({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Trigger>) {
   return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
-}
-
-function SheetClose({
-  ...props
-}: React.ComponentProps<typeof SheetPrimitive.Close>) {
-  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
 }
 
 function SheetPortal({
@@ -97,16 +90,6 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="sheet-footer"
-      className={cn("mt-auto flex flex-col gap-3 p-6 max-xs:p-4", className)}
-      {...props}
-    />
-  )
-}
-
 function SheetTitle({
   className,
   children,
@@ -142,10 +125,10 @@ function SheetDescription({
 export {
   Sheet,
   SheetTrigger,
-  SheetClose,
+  
   SheetContent,
   SheetHeader,
-  SheetFooter,
+  
   SheetTitle,
   SheetDescription,
 }

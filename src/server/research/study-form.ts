@@ -53,7 +53,7 @@ export function consentFromForm(d: FormData): ConsentFromForm {
   return { ok: true, consent: version ? { version, text } : undefined, participantInformation };
 }
 
-export const QUESTIONNAIRE_SLOTS = ["pre", "postLearning", "end"] as const;
+const QUESTIONNAIRE_SLOTS = ["pre", "postLearning", "end"] as const;
 export type QuestionnaireSlot = (typeof QUESTIONNAIRE_SLOTS)[number];
 
 export function questionnairesFromForm(d: FormData): NonNullable<StudyConfig["questionnaires"]> | null {

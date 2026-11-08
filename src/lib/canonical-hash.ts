@@ -1,10 +1,4 @@
-export function round(n: number, dp = 3): number {
-  const f = 10 ** dp;
-  const r = Math.round(n * f) / f;
-  return Object.is(r, -0) ? 0 : r;
-}
-
-export function canonicalJson(value: unknown): string {
+function canonicalJson(value: unknown): string {
   return serialise(value);
 }
 
@@ -31,7 +25,6 @@ function serialise(value: unknown): string {
   }
 }
 
-
 const K = new Uint32Array([
   0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98,
   0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786,
@@ -43,7 +36,7 @@ const K = new Uint32Array([
   0xc67178f2,
 ]);
 
-export function sha256Hex(input: string | Uint8Array): string {
+function sha256Hex(input: string | Uint8Array): string {
   const msg = typeof input === "string" ? new TextEncoder().encode(input) : input;
   const bitLen = msg.length * 8;
   const padded = new Uint8Array(((msg.length + 9 + 63) >> 6) << 6);

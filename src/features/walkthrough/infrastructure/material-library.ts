@@ -18,12 +18,12 @@ export interface PaintedTexture {
   readonly height: number;
 }
 
-export interface ScanSpec {
+interface ScanSpec {
   readonly id: string;
   readonly tileMetres: number;
 }
 
-export const SCANS = {
+const SCANS = {
   earth: { id: "red_laterite_soil_stones", tileMetres: 2 },
   brick: { id: "large_red_bricks", tileMetres: 2 },
   lime: { id: "painted_plaster_wall", tileMetres: 2 },
@@ -89,7 +89,7 @@ const DETAIL_NORMAL = [
   "#endif",
 ].join("\n");
 
-export interface FineDetail {
+interface FineDetail {
   readonly colour: THREE.Texture;
   readonly normal: THREE.Texture;
   readonly scale: readonly [number, number];
@@ -97,7 +97,7 @@ export interface FineDetail {
   readonly relief: number;
 }
 
-export function softenWhenFar<T extends THREE.Material>(material: T, antiTile = false, detail: FineDetail | null = null, printBias = SCAN_PRINT_BIAS, nearPrintBias = printBias, biasRamp: BiasRamp = SCAN_BIAS_RAMP): T {
+function softenWhenFar<T extends THREE.Material>(material: T, antiTile = false, detail: FineDetail | null = null, printBias = SCAN_PRINT_BIAS, nearPrintBias = printBias, biasRamp: BiasRamp = SCAN_BIAS_RAMP): T {
   material.onBeforeCompile = (shader) => {
     let fragment = shader.fragmentShader;
     if (detail) {

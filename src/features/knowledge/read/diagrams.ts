@@ -20,16 +20,10 @@ export const DIAGRAM_SECTION: Record<StructureDiagramType, "process" | "science"
   "colour-mechanism": "science",
 };
 
-export const DIAGRAM_TYPE_LABELS: Record<StructureDiagramType, string> = {
-  "process-sequence": "Process sequence",
-  "materials-tools": "Materials and tools",
-  "colour-mechanism": "Colour mechanism",
-};
-
 export const DIAGRAM_WIDTH = 576;
 export const DIAGRAM_HEIGHT = 384;
 
-export interface DiagramNode {
+interface DiagramNode {
   id: string;
   key: string;
   title: string;
@@ -42,7 +36,7 @@ export interface DiagramNode {
   lines: string[];
 }
 
-export interface DiagramEdge {
+interface DiagramEdge {
   relationshipId: string;
   type: string;
   label: string;
@@ -52,7 +46,7 @@ export interface DiagramEdge {
   labelAt: { x: number; y: number; anchor: "start" | "middle" | "end" } | null;
 }
 
-export interface DiagramBand {
+interface DiagramBand {
   label: string;
   x: number;
   y: number;
@@ -77,7 +71,7 @@ export interface StructureDiagram {
   caption: string;
 }
 
-export interface DiagramGraph {
+interface DiagramGraph {
   type: StructureDiagramType;
   anchorKey: string;
   nodeKeys: string[];
@@ -256,7 +250,7 @@ function colourGraph(ix: Index, traditionId: string): DiagramGraph | null {
   return { type: "colour-mechanism", anchorKey, nodeKeys: [...onPath].sort(byString), edgeIds: rels.map((r) => r.id) };
 }
 
-export function extractDiagramGraphs(bundle: KnowledgeBundle, traditionSlug: string): DiagramGraph[] {
+function extractDiagramGraphs(bundle: KnowledgeBundle, traditionSlug: string): DiagramGraph[] {
   const t = bundle.traditions.find((x) => x.slug === traditionSlug);
   if (!t) return [];
   const ix = indexBundle(bundle);

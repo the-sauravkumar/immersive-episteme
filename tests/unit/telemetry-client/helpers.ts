@@ -16,7 +16,7 @@ export interface SentBatch {
 
 export type Reply = number | "network" | { status: number; body?: unknown; headers?: Record<string, string> };
 
-export function ackFor(batch: SentBatch, extra: Record<string, unknown> = {}) {
+function ackFor(batch: SentBatch, extra: Record<string, unknown> = {}) {
   return {
     batchId: randomUUID(),
     status: "accepted",

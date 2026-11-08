@@ -9,7 +9,7 @@ import { useOptionalTelemetry } from "@/features/telemetry/client/provider";
 import { scriptRuns } from "@/lib/text/script-runs";
 import { cn } from "@/lib/utils";
 
-export interface NumberedCitation {
+interface NumberedCitation {
   citation: Citation;
   number: number;
 }
@@ -22,7 +22,7 @@ export interface CitedClaimProps {
   className?: string;
 }
 
-export const CITATION_MARKER_CLASS =
+const CITATION_MARKER_CLASS =
   "t-label relative -my-[0.4375rem] inline-flex h-11 min-w-11 items-center justify-center px-1 align-baseline text-lime-dim tabular-nums hover:text-lime hover:underline hover:decoration-1 hover:underline-offset-[0.2em] aria-expanded:bg-vat-2 aria-expanded:text-lime";
 
 export function CitedClaim({ text, citations, conceptId, claimIndex, className }: CitedClaimProps) {
@@ -114,7 +114,7 @@ export function CitedClaim({ text, citations, conceptId, claimIndex, className }
   );
 }
 
-export function CitationRecord({ citation, number }: { citation: Citation; number: number }) {
+function CitationRecord({ citation, number }: { citation: Citation; number: number }) {
   const hasQuote = citation.passages.length > 0 || !!citation.quote;
   return (
     <div className="mt-3 pb-1">

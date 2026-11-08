@@ -24,10 +24,10 @@ export interface RouteStation {
   readonly textiles: readonly PlacedTextile[];
 }
 
-export const RAW_COTTON = "raw-cotton";
-export const PRODUCTS_STOP = "products";
+const RAW_COTTON = "raw-cotton";
+const PRODUCTS_STOP = "products";
 
-export function stagesFromTemplate(template: StageTemplate): YardStage[] {
+function stagesFromTemplate(template: StageTemplate): YardStage[] {
   return template.stages.map((stage, index) => {
     const following = template.stages[index + 1];
     return {
@@ -88,7 +88,7 @@ export function layoutTextiles(products: readonly ExhibitImage[]): PlacedTextile
   return placed;
 }
 
-export function buildHallPlan(followedClothRailZ: number): YardPlan {
+function buildHallPlan(followedClothRailZ: number): YardPlan {
   const base = buildYardPlan({ number: "", name: PRODUCT_TITLE, localName: null, caption: PRODUCT_SENTENCE, kind: "dry", items: [], next: null, index: 0 });
   const rails = [followedClothRailZ];
   const field = heightFieldFor({ type: "open" }, rails);

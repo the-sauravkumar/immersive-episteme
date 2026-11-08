@@ -5,7 +5,7 @@ const WHITEST_DISPLAY = 0.97;
 const STRONGEST_ALBEDO = 1.9;
 const SPECULAR_FLOOR = 0.012;
 
-export const SUNLIT_FACING_UP: LinearRgb = [1, 1, 1];
+const SUNLIT_FACING_UP: LinearRgb = [1, 1, 1];
 
 export function filmicToScene(display: number): number {
   const y = Math.min(WHITEST_DISPLAY, Math.max(0, display));

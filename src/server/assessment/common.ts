@@ -14,26 +14,10 @@ export class AssessmentError extends Error {
   }
 }
 
-export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function assertUuid(value: string, what: string): void {
   if (!UUID_RE.test(value)) throw new AssessmentError("not_found", `${what} not found`);
-}
-
-export async function inTransaction<T>(pool: Pool | PoolClient, fn: (client: PoolClient) => Promise<T>): Promise<T> {
-  if (typeof (pool as Pool).totalCount !== "number") return fn(pool as PoolClient);
-  const client = await (pool as Pool).connect();
-  try {
-    await client.query("BEGIN");
-    const result = await fn(client);
-    await client.query("COMMIT");
-    return result;
-  } catch (err) {
-    await client.query("ROLLBACK");
-    throw err;
-  } finally {
-    client.release();
-  }
 }
 
 export function mapDbError(err: unknown): never {

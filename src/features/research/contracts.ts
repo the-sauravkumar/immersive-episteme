@@ -4,24 +4,19 @@ import {
   ASSESSMENT_ITEM_KINDS,
   ASSESSMENT_KINDS,
   CONCEPT_MAP_PHASES,
-  RATER_ROLES,
-  RESPONSE_STATUSES,
 } from "@/lib/validation/enums";
 import { demoConsistencyIssue, jsonObjectSchema, nonBlank, relationshipTypeCodeSchema, uuidSchema } from "@/lib/validation/primitives";
 
 export const assessmentKindSchema = z.enum(ASSESSMENT_KINDS);
-export const assessmentItemKindSchema = z.enum(ASSESSMENT_ITEM_KINDS);
+const assessmentItemKindSchema = z.enum(ASSESSMENT_ITEM_KINDS);
 
 export const assessmentCodeSchema = z.string().regex(/^[a-z][a-z0-9_-]{1,63}$/);
-export const itemKeySchema = z.string().regex(/^[a-z0-9][a-z0-9_.-]{0,63}$/);
+const itemKeySchema = z.string().regex(/^[a-z0-9][a-z0-9_.-]{0,63}$/);
 
 const optionSchema = z.object({ id: z.string().min(1).max(64), label: nonBlank(500) });
-
-export const TEST_ITEM_TYPES = ["pre_test", "identification", "stage_placement", "sequence", "cloth_state", "attribution", "transfer"] as const;
-export type TestItemType = (typeof TEST_ITEM_TYPES)[number];
+export type TestItemType = "pre_test" | "identification" | "stage_placement" | "sequence" | "cloth_state" | "attribution" | "transfer";
 
 const itemImageSchema = z.object({ path: z.string().regex(/^\/[A-Za-z0-9/_.-]+\.(jpg|jpeg|png|webp)$/), alt: nonBlank(300) });
-export type ItemImage = z.infer<typeof itemImageSchema>;
 
 const itemTargetSchema = z.object({ tradition: z.string().min(1).max(64), stageKey: z.string().min(1).max(120).optional(), objectKey: z.string().min(1).max(120).optional() });
 
@@ -74,7 +69,6 @@ export const assessmentItemInputSchema = z
     conceptId: uuidSchema.nullish(),
   })
   .refine((i) => i.config.kind === i.kind, { path: ["config", "kind"], message: "config.kind must equal kind" });
-export type AssessmentItemInput = z.infer<typeof assessmentItemInputSchema>;
 
 export const assessmentInputSchema = z
   .object({
@@ -105,26 +99,8 @@ export const assessmentInputSchema = z
       positions.add(it.position);
     });
   });
-export type AssessmentInput = z.infer<typeof assessmentInputSchema>;
 
-export const responseInputSchema = z
-  .object({
-    sessionId: uuidSchema,
-    itemId: uuidSchema,
-    attempt: z.number().int().positive().default(1),
-    status: z.enum(RESPONSE_STATUSES),
-    raw: z.unknown().optional(),
-    presentedAt: z.iso.datetime({ offset: true }).optional(),
-    answeredAt: z.iso.datetime({ offset: true }).optional(),
-    clientTs: z.iso.datetime({ offset: true }).optional(),
-    durationMs: z.number().int().nonnegative().optional(),
-  })
-  .refine((r) => r.status !== "answered" || (r.raw !== undefined && r.answeredAt !== undefined), {
-    path: ["raw"],
-    message: "An answered response needs raw data and answeredAt",
-  });
-
-export const conceptMapNodeSchema = z.object({
+const conceptMapNodeSchema = z.object({
   key: z.string().min(1).max(64),
   conceptId: uuidSchema.nullable(),
   label: nonBlank(200),
@@ -132,7 +108,7 @@ export const conceptMapNodeSchema = z.object({
   y: z.number().finite(),
 });
 
-export const conceptMapEdgeSchema = z
+const conceptMapEdgeSchema = z
   .object({
     key: z.string().min(1).max(64),
     source: z.string().min(1).max(64),
@@ -169,26 +145,6 @@ export const conceptMapSubmissionSchema = z
       }
     });
   });
-export type ConceptMapSubmission = z.infer<typeof conceptMapSubmissionSchema>;
-
-export const referenceMapEdgeInputSchema = z
-  .object({
-    sourceConceptId: uuidSchema,
-    targetConceptId: uuidSchema,
-    relationshipTypeCode: relationshipTypeCodeSchema.nullish(),
-    directed: z.boolean().default(true),
-    weight: z.number().positive().default(1),
-    required: z.boolean().default(false),
-    notes: z.string().max(2000).nullish(),
-  })
-  .refine((e) => e.sourceConceptId !== e.targetConceptId, { message: "Self-links are not allowed" });
-
-export const referenceMapRaterSubmissionSchema = z.object({
-  referenceMapId: uuidSchema,
-  role: z.enum(RATER_ROLES).default("rater"),
-  submission: z.object({ edges: z.array(referenceMapEdgeInputSchema) }),
-  notes: z.string().max(4000).nullish(),
-});
 
 export const derivedScoreSchema = z.object({
   sessionId: uuidSchema,

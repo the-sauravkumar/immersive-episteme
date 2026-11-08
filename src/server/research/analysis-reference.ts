@@ -1,6 +1,6 @@
 import type { Q } from "./db";
 
-export type AnalysisReferenceBasis = "locked" | "provisional";
+type AnalysisReferenceBasis = "locked" | "provisional";
 
 export interface AnalysisReference {
   assessmentId: string;

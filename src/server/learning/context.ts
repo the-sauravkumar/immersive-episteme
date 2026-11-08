@@ -19,4 +19,3 @@ export const getLearningContext = cache(async (condition: LearningCondition): Pr
   return resolveLearningContext(access, { data: pgLearningContextData(getPool()), appBuild: serverEnv().APP_BUILD_VERSION });
 });
 
-

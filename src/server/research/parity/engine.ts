@@ -13,10 +13,10 @@ import { DEFAULT_QUESTIONNAIRES, DEFAULT_STEPS, isQuestionnaireStep, protocolIss
 
 export const PARITY_GENERATOR_VERSION = "parity/2.0.0";
 
-export type ParitySeverity = "critical" | "warning";
+type ParitySeverity = "critical" | "warning";
 export type ParityGroup = "base" | "t" | "d" | "e";
 
-export interface ParityIssue {
+interface ParityIssue {
   code: string;
   message: string;
   ref?: string;
@@ -62,7 +62,7 @@ export interface ParityStudyInput {
   battery: { assessmentId: string; code: string; version: number; kind: string; phase: string; position: number; status: string; required: boolean }[];
 }
 
-export interface ParitySnapshotInput {
+interface ParitySnapshotInput {
   id: string;
   versionLabel: string;
   status: string;
@@ -118,7 +118,7 @@ export interface ParityInput {
 
 const CONDITION_OVERRIDE_KEYS = /^(exposure|guidance|assessments?|battery|prompts?|tasks?|instructions?|cue(Enabled)?|traditions?|traditionSlugs)$/i;
 
-export interface FigureSectionRow {
+interface FigureSectionRow {
   sectionId: string;
   title: string;
   layer: KnowledgeLayerId;
@@ -126,7 +126,7 @@ export interface FigureSectionRow {
   balanced: boolean;
 }
 
-export interface FigureLayerRow {
+interface FigureLayerRow {
   layer: KnowledgeLayerId;
   counts: Record<string, number>;
   balanced: boolean;

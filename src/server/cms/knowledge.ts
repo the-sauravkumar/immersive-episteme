@@ -15,7 +15,7 @@ import type {
   traditionSourceSchema,
 } from "./schemas";
 
-export const CMS_PACKAGE_SLUG = "cms";
+const CMS_PACKAGE_SLUG = "cms";
 
 const ACCEPTED = new Set(["verified", "published"]);
 

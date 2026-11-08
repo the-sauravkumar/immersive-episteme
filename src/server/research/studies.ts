@@ -3,6 +3,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 
 import { studyConfigSchema, type StudyConfig } from "@/features/study/contracts";
+import { inTransaction } from "@/server/db/transaction";
 import { consentChangeIssue, DEFAULT_QUESTIONNAIRES, NEW_STUDY_CONFIG } from "@/server/study/config";
 import { seedInstrumentDefinitions } from "@/server/study/instruments";
 import { carriesSampleText } from "@/features/study/test-items";
@@ -11,12 +12,12 @@ import { slugSchema } from "@/lib/validation/primitives";
 
 import { parityInputHash } from "./parity/engine";
 import { loadParityInput, runAndStoreParityReport } from "./parity/store";
-import { audit, inTransaction, queryAll, ResearchActionError, type Actor, type Q } from "./db";
+import { audit, queryAll, ResearchActionError, type Actor, type Q } from "./db";
 import type { Pool, PoolClient } from "pg";
 
 export const researchStudyConfigSchema = studyConfigSchema;
 export const draftStudyConfigSchema = researchStudyConfigSchema.extend({ traditionSlugs: z.array(slugSchema).default([]) });
-export type ResearchStudyConfig = z.infer<typeof draftStudyConfigSchema>;
+type ResearchStudyConfig = z.infer<typeof draftStudyConfigSchema>;
 
 export const createStudySchema = z.object({
   slug: slugSchema,
@@ -25,7 +26,7 @@ export const createStudySchema = z.object({
   protocolVersion: z.string().trim().min(1).max(64),
 });
 
-export const updateStudySchema = z.object({
+const updateStudySchema = z.object({
   title: z.string().trim().min(1).max(300),
   description: z.string().trim().max(4000).nullable(),
   protocolVersion: z.string().trim().min(1).max(64),

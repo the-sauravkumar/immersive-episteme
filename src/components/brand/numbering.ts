@@ -1,5 +1,3 @@
-export const NUMERAL_CLASS = "tabular-nums lining-nums";
-
 function assertOrdinal(n: number): number {
   if (!Number.isInteger(n) || n < 1) throw new RangeError(`A label number must be a positive integer, got ${n}`);
   return n;

@@ -18,15 +18,16 @@ import {
 import type { MapPayload } from "@/components/assessment/map-state";
 import { KEY_MATCH_METRIC, keyMatch } from "@/features/assessment/responses";
 import type { DerivedScore } from "@/features/research/contracts";
+import { inTransaction } from "@/server/db/transaction";
 import { neutraliseFormula } from "@/server/research/exports/csv";
 
-import { AssessmentError, assertUuid, audit, inTransaction, type Q } from "./common";
+import { AssessmentError, assertUuid, audit, type Q } from "./common";
 import type { ConceptSet } from "./concept-set";
 import { rawToPayload } from "./participant-maps";
 import { reconstructionItem } from "./reference-maps";
 import type { RubricLevel } from "./definitions";
 
-export interface LoadedReference {
+interface LoadedReference {
   id: string;
   assessmentId: string;
   version: number;
@@ -41,7 +42,7 @@ function sha256(text: string): string {
   return createHash("sha256").update(text).digest("hex");
 }
 
-export async function loadReference(q: Q, referenceMapId: string): Promise<LoadedReference> {
+async function loadReference(q: Q, referenceMapId: string): Promise<LoadedReference> {
   assertUuid(referenceMapId, "Reference map");
   const r = await q.query<{ id: string; assessment_id: string; version: number; title: string; is_demo: boolean; status: string; nodes: Array<{ conceptId: string }>; adjudicated_at: Date | null }>(
     "SELECT id, assessment_id, version, title, is_demo, status, nodes, adjudicated_at FROM reference_maps WHERE id = $1",
@@ -162,25 +163,6 @@ export async function scoreConceptMaps(pool: Pool, actorId: string, referenceMap
   });
 }
 
-export async function scoreFinalMap(q: Q, conceptMapId: string, referenceMapId: string): Promise<{ scores: ConceptMapScoreResult["scores"]; reference: { id: string; version: number; fingerprint: string } }> {
-  assertUuid(conceptMapId, "Concept map");
-  const ref = await loadReference(q, referenceMapId);
-  const item = await reconstructionItem(q, ref.assessmentId);
-  const m = (
-    await q.query<FinalMapRow>("SELECT id, session_id, participant_id, phase, nodes FROM concept_maps WHERE id = $1 AND is_final AND assessment_id = $2", [conceptMapId, ref.assessmentId])
-  ).rows[0];
-  if (!m) throw new AssessmentError("not_found", "No final concept map of this assessment");
-  const input = await participantInput(q, m);
-  const result = scoreConceptMap(input, ref.input, item.scoring, { conceptCategories: item.set.categories });
-  const referenceTag = { id: ref.id, version: ref.version, fingerprint: ref.fingerprint };
-  const rows = toDerivedScores(result.scores, { sessionId: m.session_id, assessmentId: ref.assessmentId, conceptMapId: m.id, referenceMapId: ref.id }).map((r) => ({
-    ...r,
-    details: { ...r.details, reference: referenceTag },
-  }));
-  await insertScores(q, rows, m.participant_id);
-  return { scores: result.scores, reference: referenceTag };
-}
-
 export const SUMMARY_METRICS = [
   "cmap.valid_relationships",
   "cmap.incorrect_relationships",
@@ -236,7 +218,7 @@ export async function listMapScores(q: Q, referenceMapId: string): Promise<MapSc
   }));
 }
 
-export interface StoredScore {
+interface StoredScore {
   metricName: string;
   metricVersion: string;
   value: number | null;
@@ -313,7 +295,7 @@ export async function mapBreakdown(q: Q, conceptMapId: string, referenceMapId: s
   };
 }
 
-export { KEY_MATCH_METRIC, extractAnswer, keyMatch } from "@/features/assessment/responses";
+;
 
 export async function scoreKeyedItems(pool: Pool, actorId: string, assessmentId: string): Promise<{ responses: number; inserted: number }> {
   assertUuid(assessmentId, "Assessment");
@@ -352,7 +334,7 @@ export async function scoreKeyedItems(pool: Pool, actorId: string, assessmentId:
 
 export const RUBRIC_METRIC = { prefix: "rubric.rating.r", version: "1.0.0", pipeline: "rubric-rating@1.0.0" } as const;
 
-export function raterMetricName(raterId: string): string {
+function raterMetricName(raterId: string): string {
   return `${RUBRIC_METRIC.prefix}${sha256(raterId).slice(0, 16)}`;
 }
 
@@ -367,7 +349,7 @@ export interface RubricInfo {
   assessmentTitle: string;
 }
 
-export async function loadRubric(q: Q, rubricId: string): Promise<RubricInfo> {
+async function loadRubric(q: Q, rubricId: string): Promise<RubricInfo> {
   assertUuid(rubricId, "Rubric");
   const r = await q.query<{ id: string; assessment_id: string; item_id: string | null; version: number; status: string; rubric: { levels?: RubricLevel[] }; prompt: string | null; title: string }>(
     `SELECT s.id, s.assessment_id, s.item_id, s.version, s.status, s.rubric, i.prompt, a.title
@@ -379,7 +361,7 @@ export async function loadRubric(q: Q, rubricId: string): Promise<RubricInfo> {
   return { id: row.id, assessmentId: row.assessment_id, itemId: row.item_id, itemPrompt: row.prompt ?? "", version: row.version, status: row.status, levels: row.rubric.levels ?? [], assessmentTitle: row.title };
 }
 
-export function responseText(raw: unknown): string {
+function responseText(raw: unknown): string {
   if (typeof raw === "string") return raw;
   if (raw && typeof raw === "object") {
     const o = raw as Record<string, unknown>;

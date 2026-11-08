@@ -1,9 +1,9 @@
-export interface InstitutionAffiliation {
+interface InstitutionAffiliation {
   number: number;
   name: string;
 }
 
-export interface InstitutionAuthor {
+interface InstitutionAuthor {
   name: string;
   affiliations: readonly number[];
   orcid: string | null;
@@ -18,7 +18,7 @@ export interface InstitutionConfig {
   affiliations: readonly InstitutionAffiliation[];
 }
 
-export const PLATFORM_NAME = "Immersive Episteme";
+const PLATFORM_NAME = "Immersive Episteme";
 
 export const INSTITUTION: InstitutionConfig = {
   affiliation:

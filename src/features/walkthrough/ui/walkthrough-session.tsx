@@ -19,12 +19,12 @@ export interface WalkStop {
   readonly stageNumber: number;
 }
 
-export interface WalkPosition {
+interface WalkPosition {
   readonly tradition: number;
   readonly stop: number;
 }
 
-export interface WalkResume extends WalkPosition {
+interface WalkResume extends WalkPosition {
   readonly reached: readonly number[];
 }
 

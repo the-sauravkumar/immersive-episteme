@@ -2,7 +2,7 @@ import { filteredMips, type MipFilter } from "../domain/filtered-mips";
 import { paintedLayerOf, type PaintFont, type PaintSpec } from "./painted-layer";
 import { decodedSkyOf, type DecodedSky } from "./rgbe-sky";
 
-export async function levelBitmapsOf(bitmap: ImageBitmap, filter: MipFilter, build: typeof filteredMips): Promise<ImageBitmap[]> {
+async function levelBitmapsOf(bitmap: ImageBitmap, filter: MipFilter, build: typeof filteredMips): Promise<ImageBitmap[]> {
   const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
   const context = canvas.getContext("2d", { willReadFrequently: true });
   if (!context) throw new Error("no 2d context for mip filtering");
@@ -11,7 +11,7 @@ export async function levelBitmapsOf(bitmap: ImageBitmap, filter: MipFilter, bui
   return Promise.all(build(pixels, bitmap.width, bitmap.height, filter).map((level) => createImageBitmap(new ImageData(level.pixels, level.width, level.height))));
 }
 
-export async function filteredDrawingOf(image: ImageData, filter: MipFilter, options: ImageBitmapOptions, build: typeof filteredMips): Promise<{ bitmap: ImageBitmap; levels: ImageBitmap[] }> {
+async function filteredDrawingOf(image: ImageData, filter: MipFilter, options: ImageBitmapOptions, build: typeof filteredMips): Promise<{ bitmap: ImageBitmap; levels: ImageBitmap[] }> {
   const levels = build(image.data, image.width, image.height, filter);
   const [bitmap, ...rest] = await Promise.all([image, ...levels.map((level) => new ImageData(level.pixels, level.width, level.height))].map((data) => createImageBitmap(data, options)));
   return { bitmap: bitmap!, levels: rest };

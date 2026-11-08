@@ -11,7 +11,7 @@ import { grantRole, loadUserRoles } from "./roles-repository";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- any Drizzle pg database works
 type AnyPgDatabase = NodePgDatabase<any>;
 
-export const staffAccountInput = z.object({
+const staffAccountInput = z.object({
   email: z.email().transform((e) => e.toLowerCase()),
   password: z.string().min(MIN_PASSWORD_LENGTH, `must be at least ${MIN_PASSWORD_LENGTH} characters`).max(256),
   name: z.string().trim().min(1).max(120),

@@ -3,10 +3,10 @@ import type { Vec3 } from "./geometry";
 export const SCREEN_ERROR_PIXELS = 0.5;
 export const SHADOW_ERROR_TEXELS = 0.125;
 export const LEVEL_ERRORS_METRES: readonly number[] = [0.00025, 0.0005, 0.001, 0.002, 0.004, 0.008, 0.016, 0.032, 0.064];
-export const LEVEL_KEPT_BELOW_SHARE = 0.75;
+const LEVEL_KEPT_BELOW_SHARE = 0.75;
 export const SMALLEST_SIMPLIFIED_TRIANGLES = 1024;
 export const ATTRIBUTE_WEIGHT = 4;
-export const SPAN_ROWS = 96;
+const SPAN_ROWS = 96;
 
 export type LevelView = { readonly kind: "perspective"; readonly verticalFov: number; readonly viewportHeight: number } | { readonly kind: "orthographic"; readonly frustumHeight: number; readonly viewportHeight: number };
 

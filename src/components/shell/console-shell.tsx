@@ -15,7 +15,7 @@ import { ConsoleUserMenu } from "./console-user-menu";
 
 const AREA_ROOT: Record<ConsoleArea, string> = { cms: "/cms", research: "/research", admin: "/admin" };
 
-export const CONSOLE_EYEBROW: Record<ConsoleArea, string> = {
+const CONSOLE_EYEBROW: Record<ConsoleArea, string> = {
   cms: "Content Console",
   research: "Research Console",
   admin: "Admin Console",
@@ -23,7 +23,7 @@ export const CONSOLE_EYEBROW: Record<ConsoleArea, string> = {
 
 const AREA_TAB: Record<ConsoleArea, string> = { cms: "Content", research: "Research", admin: "Admin" };
 
-export const CONSOLE_GUTTER = "px-4 xs:px-6 lg:px-8";
+const CONSOLE_GUTTER = "px-4 xs:px-6 lg:px-8";
 
 export function ConsoleShell({ area, children }: { area: ConsoleArea; children: ReactNode }) {
   const navLabel = `${CONSOLE_EYEBROW[area]} sections`;

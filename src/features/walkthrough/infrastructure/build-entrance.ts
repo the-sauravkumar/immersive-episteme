@@ -9,7 +9,7 @@ import { noteSurface } from "./material-library";
 import { paintWordsInTurn, pole, softBox } from "./solid-builders";
 import { displayAlbedo, projectScan } from "./substance-materials";
 
-export type AssignedDoor = "none" | "door-1" | "door-2";
+type AssignedDoor = "none" | "door-1" | "door-2";
 
 export interface EntranceOptions {
   readonly open: AssignedDoor;

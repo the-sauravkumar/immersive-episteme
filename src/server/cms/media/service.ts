@@ -60,7 +60,7 @@ export const assetMetadataSchema = z
       ctx.addIssue({ code: "custom", path: ["title"], message: "Demo media is seeded, not uploaded" });
     }
   });
-export type AssetMetadata = z.infer<typeof assetMetadataSchema>;
+type AssetMetadata = z.infer<typeof assetMetadataSchema>;
 
 function checkAlt(kind: string, m: Pick<AssetMetadata, "altText" | "decorative" | "caption">): string | null {
   if (kind !== "image" && kind !== "texture") return m.altText || null;
@@ -671,7 +671,7 @@ export async function listMediaFormOptions(q: Q): Promise<{ sources: { id: strin
   };
 }
 
-export const FIGURE_CAPTION_SQL = "COALESCE(NULLIF(btrim(l.caption_override), ''), a.caption)";
+const FIGURE_CAPTION_SQL = "COALESCE(NULLIF(btrim(l.caption_override), ''), a.caption)";
 
 export async function listIllustrationLinks(q: Q): Promise<
   {

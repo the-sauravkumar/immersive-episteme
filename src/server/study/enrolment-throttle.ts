@@ -4,7 +4,7 @@ import type { Pool, PoolClient } from "pg";
 
 type Q = Pick<Pool | PoolClient, "query">;
 
-export const ENROLMENT_LIMIT_DEFAULTS = { maxPerAddressPer10Minutes: 30, maxPerHour: 120 } as const;
+const ENROLMENT_LIMIT_DEFAULTS = { maxPerAddressPer10Minutes: 30, maxPerHour: 120 } as const;
 
 const ADDRESS_WINDOW_SECONDS = 10 * 60;
 const STUDY_WINDOW_SECONDS = 60 * 60;

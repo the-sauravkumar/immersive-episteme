@@ -19,7 +19,7 @@ import {
 import { AUTH_COOKIE_PREFIX } from "./cookie-names";
 import { GOOGLE_PROVIDER_ID, googleProviderOptions, mayCreateUser, socialRequestRefusal, STAFF_ACCOUNT_LINKING } from "./google-sign-in";
 
-export const AUTH_SCHEMA = {
+const AUTH_SCHEMA = {
   user: users,
   session: authSessions,
   account: authAccounts,
@@ -49,7 +49,7 @@ export type CreateAuthOptions = {
 const SIGN_IN_PATH = "/sign-in/email";
 const SIGN_IN_ERROR_PATH = "/sign-in";
 
-export const KNOWN_DEVICE_COOKIE = "known_device";
+const KNOWN_DEVICE_COOKIE = "known_device";
 export const KNOWN_DEVICE_MAX_AGE = 60 * 60 * 24 * 90;
 export const STAFF_SESSION_SECONDS = 60 * 60 * 12;
 

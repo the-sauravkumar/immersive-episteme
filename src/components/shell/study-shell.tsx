@@ -4,7 +4,6 @@ import { Wordmark } from "@/components/brand/wordmark";
 import { countOf } from "@/components/brand/numbering";
 import { cn } from "@/lib/utils";
 
-
 const FRAME = "mx-auto w-full max-w-[80rem] px-4 xs:px-6 lg:px-8";
 const COLUMN = "w-full max-w-[42rem]";
 
@@ -13,7 +12,7 @@ export interface StudyStep {
   total: number;
 }
 
-export function StudyStepCount({ step, className }: { step: StudyStep; className?: string }) {
+function StudyStepCount({ step, className }: { step: StudyStep; className?: string }) {
   return (
     <p data-slot="study-step" className={cn("t-label tabular-nums text-lime-dim", className)}>
       {countOf("Step", step.current, step.total)}

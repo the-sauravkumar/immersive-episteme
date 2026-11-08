@@ -1,4 +1,4 @@
-export const CLIENT_IP_HEADERS = [
+const CLIENT_IP_HEADERS = [
   "x-forwarded-for",
   "x-real-ip",
   "forwarded",
@@ -15,7 +15,7 @@ export type ClientIpPolicy = {
   trustForwardedHeaders: boolean;
 };
 
-export function parseTrustedProxies(value: string | undefined): string[] {
+function parseTrustedProxies(value: string | undefined): string[] {
   return (value ?? "")
     .split(",")
     .map((s) => s.trim())

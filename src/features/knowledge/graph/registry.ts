@@ -23,7 +23,7 @@ export const SEQUENCE_TYPE = "PRECEDES";
 
 export const DIRECT_CAUSAL_TYPE = "CAUSES";
 
-export const LOOP_MARKER = /\b(loop|loops|repeat|repeats|repeated|cycle|cycles)\b/i;
+const LOOP_MARKER = /\b(loop|loops|repeat|repeats|repeated|cycle|cycles)\b/i;
 
 export function isMarkedLoop(rel: { type: string; ordinal: number | null; conditions: string | null }): boolean {
   return rel.type === SEQUENCE_TYPE && rel.ordinal == null && rel.conditions != null && LOOP_MARKER.test(rel.conditions);

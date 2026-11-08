@@ -2,7 +2,7 @@ import { Client } from "pg";
 
 import type { PgConnectionConfig } from "@/server/db/connection-config";
 
-export const DASHBOARD_CHANNEL = "ie_dashboard";
+const DASHBOARD_CHANNEL = "ie_dashboard";
 
 type Listener = (studyId: string) => void;
 

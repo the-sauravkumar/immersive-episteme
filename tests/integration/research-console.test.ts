@@ -139,7 +139,6 @@ describe.skipIf(!TEST_URL)("research console", () => {
     }
     await t.pool.query("UPDATE content_snapshots SET status = 'published', published_by = $2 WHERE id = $1", [snapshotId, curator]);
 
-
     const a = await one<{ id: string }>(t.pool, "INSERT INTO assessments (code, version, kind, title) VALUES ('rc-map', 1, 'reconstruction', 'Reconstruction') RETURNING id");
     assessmentId = a.id;
     const item = await one<{ id: string }>(

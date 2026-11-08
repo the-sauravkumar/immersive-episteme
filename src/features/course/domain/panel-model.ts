@@ -74,7 +74,7 @@ export function stagePanelModel(template: StageTemplate, stageIndex: number): St
   };
 }
 
-export const PRACTICE_CLOTH_STATE = "ajrakh-raw";
+const PRACTICE_CLOTH_STATE = "ajrakh-raw";
 export const PRACTICE_MODEL = "crate";
 const PRACTICE_NAMES = ["First Practice Step", "Second Practice Step", "Third Practice Step"] as const;
 const PRACTICE_CAPTIONS = [

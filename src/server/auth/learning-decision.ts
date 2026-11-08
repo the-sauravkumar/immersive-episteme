@@ -21,7 +21,7 @@ export type LearningAccess =
   | { kind: "demo"; experimental: false; condition: LearningCondition; demoId: string }
   | { kind: "staff_preview"; experimental: false; condition: LearningCondition; userId: string };
 
-export type LearningDenyReason =
+type LearningDenyReason =
   | "condition_mismatch"
   | "invalid_participant_session"
   | "session_not_active"
@@ -33,7 +33,7 @@ export type LearningDecision =
   | { allowed: true; access: LearningAccess }
   | { allowed: false; reason: LearningDenyReason; redirectTo: string };
 
-export const LEARNING_DENY_REDIRECT: Record<LearningDenyReason, string> = {
+const LEARNING_DENY_REDIRECT: Record<LearningDenyReason, string> = {
   condition_mismatch: "/study/session",
   invalid_participant_session: "/study/exit?reason=invalid-session",
   session_not_active: "/study/exit?reason=session-ended",
@@ -121,7 +121,7 @@ export type ParticipantContext = {
   condition: LearningCondition | null;
 };
 
-export const REISSUE_AFTER_ALLOCATION_PATH = "/study/allocate";
+const REISSUE_AFTER_ALLOCATION_PATH = "/study/allocate";
 
 export type ParticipantDecision =
   | { allowed: true; participant: ParticipantContext }

@@ -12,8 +12,9 @@ import {
 } from "@/features/assessment/scoring";
 import type { MapPayload } from "@/components/assessment/map-state";
 import { DEMO_TITLE_PREFIX } from "@/lib/validation/primitives";
+import { inTransaction } from "@/server/db/transaction";
 
-import { AssessmentError, assertUuid, audit, inTransaction, mapDbError, type Q } from "./common";
+import { AssessmentError, assertUuid, audit, mapDbError, type Q } from "./common";
 import { conceptSetFromTables, type ConceptSet } from "./concept-set";
 import { validateMapPayload } from "./validate-map";
 

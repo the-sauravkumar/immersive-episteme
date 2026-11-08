@@ -3,7 +3,7 @@ export interface RateLimitPolicy {
   refillPerSecond: number;
 }
 
-export const TELEMETRY_RATE_LIMIT: RateLimitPolicy = { capacity: 30, refillPerSecond: 0.5 };
+const TELEMETRY_RATE_LIMIT: RateLimitPolicy = { capacity: 30, refillPerSecond: 0.5 };
 
 export type RateLimitDecision = { allowed: true; remaining: number } | { allowed: false; retryAfterSeconds: number };
 

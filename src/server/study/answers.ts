@@ -4,8 +4,8 @@ import { keyMatch, type ResponseRaw } from "@/features/assessment/responses";
 import { itemConfigSchema, type ItemConfig } from "@/features/research/contracts";
 import { DONT_KNOW_OPTION } from "@/features/study/test-items";
 
-export const DELIVERABLE_ITEM_KINDS = ["single_choice", "multiple_choice", "short_text", "long_text", "likert", "numeric", "ranking", "matching", "sketch"] as const;
-export type DeliverableItemKind = (typeof DELIVERABLE_ITEM_KINDS)[number];
+const DELIVERABLE_ITEM_KINDS = ["single_choice", "multiple_choice", "short_text", "long_text", "likert", "numeric", "ranking", "matching", "sketch"] as const;
+type DeliverableItemKind = (typeof DELIVERABLE_ITEM_KINDS)[number];
 
 export interface DeliveredItem {
   id: string;
@@ -24,7 +24,7 @@ export type ParsedAnswer =
   | { status: "skipped" }
   | { status: "invalid"; message: string };
 
-export function isDeliverable(kind: string): kind is DeliverableItemKind {
+function isDeliverable(kind: string): kind is DeliverableItemKind {
   return (DELIVERABLE_ITEM_KINDS as readonly string[]).includes(kind);
 }
 

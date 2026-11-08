@@ -47,7 +47,7 @@ export function degreeProfileSimilarity(kept: ReadonlyArray<CanonicalEdge>, ref:
   return { similarity: sumTotal === 0 ? null : 1 - sumAbsDiff / sumTotal, participant, reference, sumAbsDiff, sumTotal };
 }
 
-export interface EditOperation {
+interface EditOperation {
   op: "match" | "substitute" | "delete" | "insert";
   participant?: string;
   reference?: string;

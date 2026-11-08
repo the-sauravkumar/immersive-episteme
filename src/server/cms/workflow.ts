@@ -220,7 +220,7 @@ async function reopenCitingContent(c: Q, sourceId: string): Promise<{ concepts: 
   return { concepts: concepts.rowCount ?? 0, relationships: relationships.rowCount ?? 0 };
 }
 
-export function availableTransitions(actor: Actor, from: VerificationState, isAuthor: boolean): { to: VerificationState; kind: TransitionKind }[] {
+function availableTransitions(actor: Actor, from: VerificationState, isAuthor: boolean): { to: VerificationState; kind: TransitionKind }[] {
   const targets: VerificationState[] = ["under_review", "draft", "verified", "needs_evidence", "rejected", "archived"];
   return targets
     .map((to) => ({ to, kind: classifyTransition(from, to) }))

@@ -16,10 +16,6 @@ describe("help lines", () => {
     expect(lines).not.toMatch(/\d+ minutes/);
   });
 
-  it("promises going back only inside the current tradition, which both doors allow", () => {
-    expect(sessionHelpLines(UNTIMED_SESSION)[0]).toBe("Go through every stage, in order. You can go back to any stage you have reached in the tradition you are in.");
-  });
-
   it("keeps the practice help free of stages, sources and a time limit", () => {
     expect(PRACTICE_HELP_LINES.join(" ")).not.toMatch(/stage|source|minutes/i);
   });

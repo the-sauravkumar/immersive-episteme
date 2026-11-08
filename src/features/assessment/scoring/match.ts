@@ -8,7 +8,7 @@ import type {
   ReferenceMapInput,
 } from "./types";
 
-export const LEVEL_RANK: Record<MatchLevel, number> = {
+const LEVEL_RANK: Record<MatchLevel, number> = {
   undirected_unlabelled: 1,
   directed_unlabelled: 2,
   directed_labelled: 3,
@@ -18,7 +18,7 @@ export function atLeast(level: MatchLevel | null, min: MatchLevel): boolean {
   return level !== null && LEVEL_RANK[level] >= LEVEL_RANK[min];
 }
 
-export interface PreparedReferenceEdge extends CanonicalEdge {
+interface PreparedReferenceEdge extends CanonicalEdge {
   status: ReferenceEdgeBreakdown["status"];
   expected: boolean;
   weight: number;

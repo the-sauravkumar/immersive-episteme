@@ -44,7 +44,7 @@ export interface RenderAssessment {
   required: boolean;
 }
 
-export function assessmentTaskCode(a: Pick<RenderAssessment, "code" | "version">): string {
+function assessmentTaskCode(a: Pick<RenderAssessment, "code" | "version">): string {
   return `assessment.${a.code}.v${a.version}`;
 }
 

@@ -1,8 +1,9 @@
 import { z } from "zod";
 
 import { protocolDeviationInputSchema, sessionAnnotationInputSchema } from "@/features/study/contracts";
+import { inTransaction } from "@/server/db/transaction";
 
-import { audit, inTransaction, ResearchActionError, type Actor, type Q } from "./db";
+import { audit, ResearchActionError, type Actor, type Q } from "./db";
 import type { Pool, PoolClient } from "pg";
 
 export interface FreeTextViewer {

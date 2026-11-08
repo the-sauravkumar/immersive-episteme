@@ -157,7 +157,6 @@ export async function throughConsentToAllocation(page: Page, journey: Omit<Journ
   return src?.includes("open1") ? "2d" : "immersive";
 }
 
-
 export async function throughPracticeToLearning(page: Page, door: Journey["door"]): Promise<void> {
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page).toHaveURL(/practice/);

@@ -1,11 +1,11 @@
 import type { StationKind, TraditionKey } from "./stage-template";
 
-export interface PlannedClaim {
+interface PlannedClaim {
   readonly stage: string;
   readonly claim: number;
 }
 
-export interface PlannedSource {
+interface PlannedSource {
   readonly stage: string;
   readonly shortForm: string;
 }

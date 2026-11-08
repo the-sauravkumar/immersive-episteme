@@ -1,4 +1,4 @@
-export const SOFTWARE_RENDERER = /swiftshader|llvmpipe|softpipe|microsoft basic render|software/i;
+const SOFTWARE_RENDERER = /swiftshader|llvmpipe|softpipe|microsoft basic render|software/i;
 
 export function isSoftwareRenderer(renderer: string | null | undefined): boolean {
   return !!renderer && SOFTWARE_RENDERER.test(renderer);

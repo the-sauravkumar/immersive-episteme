@@ -1,7 +1,4 @@
-import { X } from "lucide-react";
 import type { ReactNode } from "react";
-
-import { buttonVariants } from "@/components/ui/button";
 import { TraditionName } from "@/components/knowledge/tradition-marker";
 import { CATEGORY_LABELS, type KnowledgeLayerId } from "@/features/learning/labels";
 import { SHEET_TEXT, stepValue } from "@/features/learning/strings";
@@ -39,7 +36,7 @@ export interface KnowledgeSheetProps {
   placement?: "page" | "panel";
 }
 
-export const sheetTitleId = (conceptId: string) => `sheet-title-${conceptId}`;
+const sheetTitleId = (conceptId: string) => `sheet-title-${conceptId}`;
 
 export function KnowledgeSheet({
   concept,
@@ -113,17 +110,6 @@ export function KnowledgeSheet({
       {related ? <div className="mt-12">{related}</div> : null}
       {pager ? <div className="mt-12">{pager}</div> : null}
     </section>
-  );
-}
-
-export const SHEET_CLOSE_CLASS = buttonVariants({ variant: "outline", className: "px-4 no-underline" });
-
-export function SheetCloseContent() {
-  return (
-    <>
-      <X aria-hidden="true" />
-      {SHEET_TEXT.close}
-    </>
   );
 }
 

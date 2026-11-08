@@ -13,7 +13,6 @@ export const NON_STAFF_ROLES = ["participant", "public"] as const;
 export const ROLES = [...STAFF_ROLES, ...NON_STAFF_ROLES] as const;
 
 export type StaffRole = (typeof STAFF_ROLES)[number];
-export type NonStaffRole = (typeof NON_STAFF_ROLES)[number];
 export type Role = (typeof ROLES)[number];
 
 export const ROLE_LABELS: Record<Role, string> = {

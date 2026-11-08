@@ -63,8 +63,6 @@ export const RULES = {
   COVERAGE_BELOW_TARGET: r("KG802", "info", "Tradition below a FORMAT.md depth target"),
 } as const satisfies Record<string, RuleDefinition>;
 
-export type RuleName = keyof typeof RULES;
-
 export const SNAPSHOT_REFUSALS = {
   ERRORS_PRESENT: "SNAP001",
   UNACCEPTED_CONTENT: "SNAP002",

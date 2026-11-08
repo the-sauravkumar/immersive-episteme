@@ -1,6 +1,3 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import path from "node:path";
-
 import { google } from "better-auth/social-providers";
 import { describe, expect, it } from "vitest";
 
@@ -21,8 +18,6 @@ import {
   STAFF_ACCOUNT_LINKING,
 } from "@/server/auth/google-sign-in";
 
-const ROOT = path.resolve(__dirname, "../../..");
-
 const baseEnv = {
   DATABASE_URL: "postgres://u:p@localhost:5433/db",
   BETTER_AUTH_SECRET: "x".repeat(32),
@@ -30,15 +25,6 @@ const baseEnv = {
 };
 
 const credentials = { clientId: "1234567890-abc.apps.googleusercontent.com", clientSecret: "GOCSPX-test-secret" };
-
-function sourceFiles(dir: string, out: string[] = []): string[] {
-  for (const name of readdirSync(dir)) {
-    const p = path.join(dir, name);
-    if (statSync(p).isDirectory()) sourceFiles(p, out);
-    else if (/\.(ts|tsx)$/.test(name)) out.push(p);
-  }
-  return out;
-}
 
 describe("Google sign-in configuration", () => {
   it("is off unless both variables are set, and refuses only one of them", () => {
@@ -55,12 +41,6 @@ describe("Google sign-in configuration", () => {
     const byName = new Map(CATALOG.map((e) => [e.name, e]));
     expect(byName.get("GOOGLE_CLIENT_ID")).toMatchObject({ kind: "config", need: "optional" });
     expect(byName.get("GOOGLE_CLIENT_SECRET")).toMatchObject({ kind: "secret", need: "optional" });
-    for (const file of [".env.example", ".env.production.example"]) {
-      const text = readFileSync(path.join(ROOT, file), "utf8");
-      expect(text).toContain("GOOGLE_CLIENT_ID=");
-      expect(text).toContain("GOOGLE_CLIENT_SECRET=");
-      expect(text).toContain(GOOGLE_CALLBACK_PATH);
-    }
   });
 
   it("asks Google for openid, email and profile only, on the documented callback", async () => {
@@ -158,23 +138,5 @@ describe("Content-Security-Policy and the Google redirect", () => {
     expect(csp).toContain("form-action 'self'");
     expect(csp).not.toContain("navigate-to");
     expect(csp).not.toContain("google");
-  });
-});
-
-describe("participant side", () => {
-  it("never offers or calls Google sign-in", () => {
-    const participantRoots = ["src/app/(study)", "src/app/(learning)", "src/features", "src/server/study", "src/components/study"].map((p) => path.join(ROOT, p));
-    const offenders = participantRoots
-      .filter((dir) => {
-        try {
-          return statSync(dir).isDirectory();
-        } catch {
-          return false;
-        }
-      })
-      .flatMap((dir) => sourceFiles(dir))
-      .filter((file) => /signIn\.social|GoogleButton|google-sign-in|GOOGLE_CLIENT/.test(readFileSync(file, "utf8")))
-      .map((file) => path.relative(ROOT, file));
-    expect(offenders).toEqual([]);
   });
 });

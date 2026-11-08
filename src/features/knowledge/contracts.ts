@@ -16,20 +16,19 @@ import {
   nonBlank,
   quoteSchema,
   relationshipTypeCodeSchema,
-  sha256Schema,
   slugSchema,
   tiptapDocSchema,
   uuidSchema,
 } from "@/lib/validation/primitives";
 
-export const verificationStateSchema = z.enum(VERIFICATION_STATES);
-export const provenanceKindSchema = z.enum(PROVENANCE_KINDS);
-export const sourceReliabilitySchema = z.enum(SOURCE_RELIABILITIES);
-export const conceptTypeSchema = z.enum(CONCEPT_TYPES);
-export const knowledgeCategoryCodeSchema = z.enum(KNOWLEDGE_CATEGORY_CODES);
-export const relationshipSemanticsSchema = z.enum(RELATIONSHIP_SEMANTICS);
+const verificationStateSchema = z.enum(VERIFICATION_STATES);
+const provenanceKindSchema = z.enum(PROVENANCE_KINDS);
+const sourceReliabilitySchema = z.enum(SOURCE_RELIABILITIES);
+const conceptTypeSchema = z.enum(CONCEPT_TYPES);
+const knowledgeCategoryCodeSchema = z.enum(KNOWLEDGE_CATEGORY_CODES);
+const relationshipSemanticsSchema = z.enum(RELATIONSHIP_SEMANTICS);
 
-export const VERIFICATION_TRANSITIONS: Record<VerificationState, readonly VerificationState[]> = {
+const VERIFICATION_TRANSITIONS: Record<VerificationState, readonly VerificationState[]> = {
   draft: ["under_review", "archived"],
   under_review: ["verified", "needs_evidence", "rejected", "draft"],
   needs_evidence: ["under_review", "rejected", "archived"],
@@ -59,12 +58,11 @@ export const verificationTransitionSchema = z
       ctx.addIssue({ code: "custom", path: ["reason"], message: "Give a reason for this decision" });
     }
   });
-export type VerificationTransition = z.infer<typeof verificationTransitionSchema>;
 
-export const IMPORTABLE_STATES = ["under_review", "needs_evidence"] as const;
+const IMPORTABLE_STATES = ["under_review", "needs_evidence"] as const;
 export type ImportableState = (typeof IMPORTABLE_STATES)[number];
 
-export const FILE_STATES = [...IMPORTABLE_STATES, "verified"] as const;
+const FILE_STATES = [...IMPORTABLE_STATES, "verified"] as const;
 export type FileState = (typeof FILE_STATES)[number];
 const importableStateSchema = z.enum(FILE_STATES);
 
@@ -74,7 +72,7 @@ const localSourceIdSchema = z
   .string()
   .regex(/^([a-z0-9]+(-[a-z0-9]+)*:)?[A-Za-z][A-Za-z0-9_-]{0,31}$/, "Source ids look like S1 or <slug>:S1");
 
-export const formatSourceSchema = z.object({
+const formatSourceSchema = z.object({
   id: localSourceIdSchema,
   kind: provenanceKindSchema,
   title: nonBlank(1000),
@@ -87,14 +85,14 @@ export const formatSourceSchema = z.object({
   notes: z.string().nullish(),
 });
 
-export const formatEvidenceSchema = z.object({
+const formatEvidenceSchema = z.object({
   source_id: localSourceIdSchema,
   locator: nonBlank(300),
   quote: nonBlank(1200),
   note: z.string().nullish(),
 });
 
-export const formatClaimSchema = z
+const formatClaimSchema = z
   .object({
     text: nonBlank(4000),
     source_ids: z.array(localSourceIdSchema).min(1, "Every claim cites at least one source"),
@@ -109,7 +107,7 @@ export const formatClaimSchema = z
     });
   });
 
-export const formatConceptSchema = z
+const formatConceptSchema = z
   .object({
     key: conceptKeySchema,
     type: conceptTypeSchema,
@@ -132,13 +130,13 @@ export const formatConceptSchema = z
     }
   });
 
-export const formatRelationshipEvidenceSchema = z.strictObject({
+const formatRelationshipEvidenceSchema = z.strictObject({
   source_id: localSourceIdSchema,
   locator: nonBlank(200),
   quote: quoteSchema.refine((s) => s.trim().length > 0, "Must not be blank"),
 });
 
-export const formatRelationshipSchema = z
+const formatRelationshipSchema = z
   .object({
     source: conceptKeySchema,
     target: conceptKeySchema,
@@ -164,7 +162,7 @@ export const formatRelationshipSchema = z
     });
   });
 
-export const formatMediaCandidateSchema = z.object({
+const formatMediaCandidateSchema = z.object({
   url: httpUrlSchema,
   title: nonBlank(1000),
   licence: z.string().nullish(),
@@ -176,7 +174,7 @@ export const formatMediaCandidateSchema = z.object({
   dimensions_source: z.string().nullish(),
 });
 
-export const formatRegionSchema = z.object({
+const formatRegionSchema = z.object({
   place: z.string().nullish(),
   district: z.string().nullish(),
   state: z.string().nullish(),
@@ -185,7 +183,7 @@ export const formatRegionSchema = z.object({
   lon: z.number().min(-180).max(180).nullish(),
 });
 
-export const formatGiSchema = z.object({
+const formatGiSchema = z.object({
   registered: z.boolean(),
   application_no: z.string().nullish(),
   year: z.number().int().min(1999).max(2100).nullish(),
@@ -271,51 +269,7 @@ const demoRefine =
     if (issue) ctx.addIssue({ code: "custom", path: ["isDemo"], message: issue });
   };
 
-export const traditionInputSchema = z
-  .object({
-    slug: slugSchema,
-    name: nonBlank(300),
-    altNames: z.array(z.string()).default([]),
-    summary: z.string().max(4000).nullish(),
-    regionPlace: z.string().nullish(),
-    regionDistrict: z.string().nullish(),
-    regionState: z.string().nullish(),
-    regionCountry: z.string().nullish(),
-    latitude: z.number().min(-90).max(90).nullish(),
-    longitude: z.number().min(-180).max(180).nullish(),
-    giRegistered: z.boolean().nullish(),
-    giApplicationNo: z.string().nullish(),
-    giYear: z.number().int().min(1999).max(2100).nullish(),
-    isDemo: z.boolean().default(false),
-  })
-  .superRefine(demoRefine("slug", "name"));
-export type TraditionInput = z.infer<typeof traditionInputSchema>;
-
-export const sourceInputSchema = z
-  .object({
-    kind: provenanceKindSchema,
-    title: nonBlank(1000),
-    author: z.string().nullish(),
-    publisher: z.string().nullish(),
-    year: z.number().int().min(0).max(2100).nullish(),
-    url: httpUrlSchema.nullish(),
-    accessedOn: z.iso.date().nullish(),
-    reliability: sourceReliabilitySchema.nullish(),
-    citation: z.string().nullish(),
-    notes: z.string().nullish(),
-    isDemo: z.boolean().default(false),
-  })
-  .superRefine((v, ctx) => {
-    if (v.isDemo && !v.title.startsWith("Demo:")) {
-      ctx.addIssue({ code: "custom", path: ["title"], message: "Demo sources need a 'Demo:' title" });
-    }
-    if (v.isDemo && v.kind !== "unverified") {
-      ctx.addIssue({ code: "custom", path: ["kind"], message: "Demo sources are always 'unverified'" });
-    }
-  });
-export type SourceInput = z.infer<typeof sourceInputSchema>;
-
-export const claimInputSchema = z.object({
+const claimInputSchema = z.object({
   text: nonBlank(4000),
   quote: quoteSchema.nullish(),
   sources: z
@@ -352,7 +306,6 @@ export const conceptInputSchema = z
     }
   })
   .superRefine(demoRefine("key", "title"));
-export type ConceptInput = z.infer<typeof conceptInputSchema>;
 
 export const relationshipTypeSchema = z
   .object({
@@ -377,36 +330,9 @@ export const relationshipTypeSchema = z
   });
 export type RelationshipTypeDefinition = z.infer<typeof relationshipTypeSchema>;
 
-export const relationshipInputSchema = z
-  .object({
-    sourceConceptId: uuidSchema,
-    targetConceptId: uuidSchema,
-    typeCode: relationshipTypeCodeSchema,
-    explanation: z.string().max(4000).nullish(),
-    conditions: z.string().max(4000).nullish(),
-    strength: z.number().min(0).max(1).nullish(),
-    ordinal: z.number().int().positive().nullish(),
-    provenanceKind: provenanceKindSchema,
-    sources: z
-      .array(
-        z.object({
-          sourceId: uuidSchema,
-          quote: quoteSchema.nullish(),
-          locator: z.string().max(200).nullish(),
-        }),
-      )
-      .default([]),
-    isDemo: z.boolean().default(false),
-  })
-  .refine((r) => r.sourceConceptId !== r.targetConceptId, {
-    path: ["targetConceptId"],
-    message: "A concept cannot relate to itself",
-  });
-export type RelationshipInput = z.infer<typeof relationshipInputSchema>;
+const KNOWLEDGE_BUNDLE_SCHEMA_VERSION = 1 as const;
 
-export const KNOWLEDGE_BUNDLE_SCHEMA_VERSION = 1 as const;
-
-export const bundleEvidenceSchema = z.object({ locator: z.string(), quote: z.string(), note: z.string().nullable() });
+const bundleEvidenceSchema = z.object({ locator: z.string(), quote: z.string(), note: z.string().nullable() });
 const bundleSourceRefSchema = z.object({ sourceId: uuidSchema, locator: z.string().nullish(), evidence: z.array(bundleEvidenceSchema).default([]) });
 
 const bundleCategorySchema = z.object({
@@ -416,7 +342,7 @@ const bundleCategorySchema = z.object({
   position: z.number().int(),
 });
 
-export const bundleRelationshipTypeSchema = z.object({
+const bundleRelationshipTypeSchema = z.object({
   code: relationshipTypeCodeSchema,
   label: z.string(),
   inverseLabel: z.string().nullable(),
@@ -426,7 +352,7 @@ export const bundleRelationshipTypeSchema = z.object({
   allowsCycles: z.boolean(),
 });
 
-export const bundleTraditionSchema = z.object({
+const bundleTraditionSchema = z.object({
   id: uuidSchema,
   slug: slugSchema,
   name: z.string(),
@@ -451,7 +377,7 @@ export const bundleTraditionSchema = z.object({
   verificationState: verificationStateSchema,
 });
 
-export const bundleSourceSchema = z.object({
+const bundleSourceSchema = z.object({
   id: uuidSchema,
   kind: provenanceKindSchema,
   title: z.string(),
@@ -464,7 +390,7 @@ export const bundleSourceSchema = z.object({
   verificationState: verificationStateSchema,
 });
 
-export const bundleConceptSchema = z.object({
+const bundleConceptSchema = z.object({
   id: uuidSchema,
   key: conceptKeySchema,
   slug: slugSchema,
@@ -490,7 +416,7 @@ export const bundleConceptSchema = z.object({
   assetIds: z.array(uuidSchema).default([]),
 });
 
-export const bundleRelationshipSchema = z.object({
+const bundleRelationshipSchema = z.object({
   id: uuidSchema,
   source: conceptKeySchema,
   target: conceptKeySchema,
@@ -553,14 +479,12 @@ export const knowledgeBundleSchema = z
     }
   });
 export type KnowledgeBundle = z.infer<typeof knowledgeBundleSchema>;
-
-export const snapshotItemSchema = z.object({
-  itemKind: z.enum(["tradition", "category", "concept", "relationship_type", "relationship", "source", "claim", "asset"]),
-  entityRef: z.string().min(1),
-  entityKey: z.string().nullish(),
-  itemSha256: sha256Schema,
-});
-export type SnapshotItem = z.infer<typeof snapshotItemSchema>;
+export type SnapshotItem = {
+  itemKind: "tradition" | "category" | "concept" | "relationship_type" | "relationship" | "source" | "claim" | "asset";
+  entityRef: string;
+  entityKey?: string | null;
+  itemSha256: string;
+};
 
 export function slugFromConceptKey(key: string): string {
   return key.replace(/[._]/g, "-");

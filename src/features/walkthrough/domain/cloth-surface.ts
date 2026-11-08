@@ -1,7 +1,7 @@
 import { samplePath, smoothstep, type Box, type Vec3 } from "./geometry";
 
 export type HeightField = (x: number, z: number, y: number) => number;
-export type FoldAmount = (point: Vec3) => number;
+type FoldAmount = (point: Vec3) => number;
 
 export interface ClothSpec {
   readonly points: readonly Vec3[];

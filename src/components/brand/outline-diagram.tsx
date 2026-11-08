@@ -2,7 +2,7 @@ import { useId } from "react";
 
 import { cn } from "@/lib/utils";
 
-export type DiagramFill = "raised" | "hover" | "accent" | "none";
+type DiagramFill = "raised" | "hover" | "accent" | "none";
 
 export interface DiagramNode {
   id: string;

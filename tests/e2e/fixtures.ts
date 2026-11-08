@@ -4,7 +4,7 @@ import { rendererMismatch, type ExpectedGpu } from "./gpu-mode";
 import { INVITE_STORAGE_STATE } from "./invite-state";
 
 export { expect } from "@playwright/test";
-export type { Browser, BrowserContext, CDPSession, Locator, Page, Request, Response } from "@playwright/test";
+export type { Browser, BrowserContext,   Page,   } from "@playwright/test";
 
 async function readRenderer(browser: Browser): Promise<string | null> {
   const ctx = await browser.newContext();

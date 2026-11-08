@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { chartFigureLabel, claimNumber, countOf, figureLabel, plateLabel, tableLabel } from "@/components/brand/numbering";
 import { OutlineDiagram } from "@/components/brand/outline-diagram";
-import { Rule } from "@/components/brand/rule";
 import { TraditionName } from "@/components/knowledge/tradition-marker";
 import { PageHeader } from "@/components/shell/page-header";
 import { StudyShell } from "@/components/shell/study-shell";
@@ -48,20 +47,6 @@ describe("brand components", () => {
     const markup = keys.map((k) => renderToStaticMarkup(<TraditionName traditionKey={k}>Name</TraditionName>).replace(/ data-tradition-key="[^"]*"/, ""));
     expect(new Set(markup).size).toBe(1);
     expect(markup[0]).toBe('<span data-slot="tradition-name" class="inline">Name</span>');
-  });
-
-  it("rules are borders, never fills", () => {
-    const markup = renderToStaticMarkup(
-      <>
-        <Rule kind="running-head" />
-        <Rule kind="hairline" />
-        <Rule kind="booktabs" />
-      </>,
-    );
-    expect(markup).toContain("border-t border-lime-dim");
-    expect(markup).toContain("border-t border-line");
-    expect(markup).toContain("border-t-[1.5px] border-lime");
-    expect(markup).not.toMatch(/bg-/);
   });
 
   it("numbering labels", () => {

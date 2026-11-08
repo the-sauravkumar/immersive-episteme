@@ -4,7 +4,7 @@ export const LEARNING_PROGRESS_ENDPOINT = "/api/study/learning-progress";
 
 const code = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9_.:-]{0,119}$/);
 
-export const stageRefSchema = z.object({ traditionKey: code, stageKey: code, stageNumber: z.number().int().positive().max(1000) });
+const stageRefSchema = z.object({ traditionKey: code, stageKey: code, stageNumber: z.number().int().positive().max(1000) });
 export type StageRef = z.infer<typeof stageRefSchema>;
 
 export const learningProgressRequestSchema = z.discriminatedUnion("kind", [
@@ -12,7 +12,7 @@ export const learningProgressRequestSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("stage_left"), stage: stageRefSchema, activeMs: z.number().int().nonnegative().max(86_400_000) }),
   z.object({ kind: z.literal("finish") }),
 ]);
-export type LearningProgressRequest = z.infer<typeof learningProgressRequestSchema>;
+type LearningProgressRequest = z.infer<typeof learningProgressRequestSchema>;
 
 export type StageEntryOutcome =
   | { readonly ok: true; readonly persisted: boolean; readonly visitCount: number; readonly backStep: boolean; readonly complete: boolean; readonly unvisited: number }

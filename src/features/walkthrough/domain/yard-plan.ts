@@ -55,7 +55,7 @@ export interface CurvedWords {
   readonly colour: "ink" | "lime";
 }
 
-export interface PlacedItem {
+interface PlacedItem {
   readonly item: StageItem;
   readonly looks: readonly SubstanceLook[];
   readonly x: number;
@@ -66,7 +66,7 @@ export interface PlacedItem {
   readonly benchLength: number;
 }
 
-export interface ClothPiece {
+interface ClothPiece {
   readonly name: string;
   readonly state: "before" | "after";
   readonly spec: ClothSpec;

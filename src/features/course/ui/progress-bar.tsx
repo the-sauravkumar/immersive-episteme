@@ -2,7 +2,7 @@
 
 import type { BarSegment } from "@/features/course/domain/panel-model";
 
-export interface StepButton {
+interface StepButton {
   readonly label: string;
   readonly detail: string | null;
   readonly disabled: boolean;

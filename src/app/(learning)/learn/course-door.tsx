@@ -9,7 +9,7 @@ import type { DoorSessionProps } from "./door-props";
 
 import { useDoorProgress } from "./door-progress";
 
-export function courseStop(event: CourseStageEvent, templates: readonly StageTemplate[]): StageRef {
+function courseStop(event: CourseStageEvent, templates: readonly StageTemplate[]): StageRef {
   if (event.stageKey !== null && event.stageNumber !== null) return { traditionKey: event.tradition, stageKey: event.stageKey, stageNumber: event.stageNumber };
   const template = templates.find((candidate) => candidate.tradition === event.tradition)!;
   return { traditionKey: event.tradition, stageKey: PRODUCT_STOP_KEY, stageNumber: template.stages.length + 1 };

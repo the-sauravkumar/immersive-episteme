@@ -9,7 +9,7 @@ export interface CausalDepthResult {
   steps: number;
 }
 
-export function causalArcs(edges: ReadonlyArray<CanonicalEdge>, config: Pick<ScoringConfig, "causalTypes">): Array<[string, string]> {
+function causalArcs(edges: ReadonlyArray<CanonicalEdge>, config: Pick<ScoringConfig, "causalTypes">): Array<[string, string]> {
   const arcs = new Map<string, [string, string]>();
   for (const e of edges) {
     if (!e.directed || e.type === null) continue;

@@ -5,7 +5,7 @@ import { ALL_RULES, type RuleDefinition } from "./rules";
 import type { IntegrityIssue, KnowledgeGraphModel, Severity } from "./types";
 import { sortIssues, validateGraph, type ValidationOptions } from "./validate";
 
-export const INTEGRITY_REPORT_VERSION = 1 as const;
+const INTEGRITY_REPORT_VERSION = 1 as const;
 
 export type StateCounts = Record<VerificationState, number>;
 
@@ -27,7 +27,7 @@ export function countStates(items: readonly { verificationState: VerificationSta
   return counts;
 }
 
-export function buildIntegrityReport(model: KnowledgeGraphModel, issues: readonly IntegrityIssue[]): IntegrityReport {
+function buildIntegrityReport(model: KnowledgeGraphModel, issues: readonly IntegrityIssue[]): IntegrityReport {
   const sorted = sortIssues(issues);
   const issueCounts: Record<Severity, number> = { error: 0, warning: 0, info: 0 };
   const byCode: Record<string, number> = {};

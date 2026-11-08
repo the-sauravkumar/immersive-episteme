@@ -13,7 +13,7 @@ export function assertConceptId(id: string): void {
   }
 }
 
-export function levelKeys(source: string, target: string, type: string | null, directed: boolean): Record<MatchLevel, string> {
+function levelKeys(source: string, target: string, type: string | null, directed: boolean): Record<MatchLevel, string> {
   const [lo, hi] = cmp(source, target) <= 0 ? [source, target] : [target, source];
   const l2 = directed ? `${source}>${target}` : `${lo}~${hi}`;
   return {

@@ -1,8 +1,9 @@
 import type { Pool, PoolClient } from "pg";
 
 import { MAP_FORMAT, extendsLog, type MapPayload } from "@/components/assessment/map-state";
+import { inTransaction } from "@/server/db/transaction";
 
-import { AssessmentError, assertUuid, inTransaction, mapDbError, type Q } from "./common";
+import { AssessmentError, assertUuid, mapDbError, type Q } from "./common";
 import { conceptSetFromSnapshot, conceptSetFromTables, type ConceptSet } from "./concept-set";
 import { validateMapPayload } from "./validate-map";
 
@@ -11,9 +12,9 @@ export interface ParticipantIdentity {
   sessionId: string;
 }
 
-export type MapPhase = "pre" | "post";
+type MapPhase = "pre" | "post";
 
-export interface StoredMap {
+interface StoredMap {
   id: string;
   revision: number;
   isFinal: boolean;

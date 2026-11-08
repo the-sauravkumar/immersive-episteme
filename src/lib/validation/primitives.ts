@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
-export const SHA256_REGEX = /^[0-9a-f]{64}$/;
-export const CONCEPT_KEY_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*\.[a-z_]+\.[a-z0-9]+(-[a-z0-9]+)*$/;
+const SHA256_REGEX = /^[0-9a-f]{64}$/;
+const CONCEPT_KEY_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*\.[a-z_]+\.[a-z0-9]+(-[a-z0-9]+)*$/;
 export const RELATIONSHIP_TYPE_CODE_REGEX = /^[A-Z][A-Z0-9_]*$/;
 
 export const DEMO_TITLE_PREFIX = "Demo:";
@@ -42,7 +42,7 @@ export type TiptapNode = {
   marks?: { type: string; attrs?: Record<string, unknown> }[];
   text?: string;
 };
-export const tiptapNodeSchema: z.ZodType<TiptapNode> = z.lazy(() =>
+const tiptapNodeSchema: z.ZodType<TiptapNode> = z.lazy(() =>
   z.object({
     type: z.string().min(1),
     attrs: z.record(z.string(), z.unknown()).optional(),

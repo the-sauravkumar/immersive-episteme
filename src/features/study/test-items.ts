@@ -102,7 +102,6 @@ function identifiable(object: PlacedObject, pool: readonly PooledObject[]): bool
   return pool.filter((other) => other.still === still && other.item.label !== object.item.label).length === 0;
 }
 
-
 function nameOptions(target: StageItem, targetStill: string, pool: readonly PooledObject[], turn: number): { options: { id: string; label: string }[]; correct: string } | null {
   const others = pool.filter((other) => other.item.role === target.role && other.item.label !== target.label && other.still !== targetStill);
   const inSameVessel = [...new Set(others.filter((other) => other.item.modelId === target.modelId).map((other) => other.item.label))];
@@ -216,7 +215,7 @@ export function linearOrder(tradition: UnseenTradition): UnseenStage[] | null {
 
 const ORDER_WORDS = /\b(after|afterwards|again|before|beforehand|earlier|final|finally|first|following|later|next|once|previous|previously|repeat|repeated|subsequently|then|until|when)\b/i;
 
-export function accountLine(stage: UnseenStage): string {
+function accountLine(stage: UnseenStage): string {
   return ORDER_WORDS.test(stage.summary) ? stage.title : `${stage.title}: ${stage.summary}`;
 }
 
@@ -288,7 +287,7 @@ export function transferItems(tradition: UnseenTradition): DraftItem[] {
 
 const positioned = (items: readonly (DraftItem | null)[]): GeneratedItem[] => items.filter((item): item is DraftItem => item !== null).map((item, position) => ({ ...item, position }));
 
-export function conceptMapItem(template: StageTemplate, knownConceptKeys: ReadonlySet<string>): DraftItem | null {
+function conceptMapItem(template: StageTemplate, knownConceptKeys: ReadonlySet<string>): DraftItem | null {
   const stageKeys = template.stages.map((stage) => stage.sourceStageKeys[0]).filter((key): key is string => !!key && knownConceptKeys.has(key));
   const objectKeys = [...new Set(template.stages.flatMap((stage) => stage.items.map((item) => item.key)))].filter((key) => knownConceptKeys.has(key));
   const conceptKeys = [...stageKeys, ...objectKeys];

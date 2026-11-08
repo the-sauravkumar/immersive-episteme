@@ -18,7 +18,7 @@ export const EXPORT_SCHEMA_VERSION = 1;
 
 export type ExportScope = "pseudonymised" | "identified";
 
-export interface ContentManifest {
+interface ContentManifest {
   snapshot: { id: string; versionLabel: string; kind: string; status: string; payloadSha256: string; itemCount: number; includesUnverified: boolean } | null;
   snapshotItems: { kind: string; ref: string; sha256: string }[];
   manifest: { id: string; manifestHash: string; compilerVersion: string; seed: string; traditions: string[]; status: string; ruleSetId: string; ruleSetConfigSha256: string } | null;

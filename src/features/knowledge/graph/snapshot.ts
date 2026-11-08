@@ -13,9 +13,9 @@ import { relationshipId } from "./validate";
 
 export type SnapshotKind = "review" | "publishable";
 
-export const SNAPSHOT_ENVELOPE_VERSION = 1 as const;
+const SNAPSHOT_ENVELOPE_VERSION = 1 as const;
 
-export const SNAPSHOT_NOTICES: Record<SnapshotKind, string> = {
+const SNAPSHOT_NOTICES: Record<SnapshotKind, string> = {
   review:
     "REVIEW SNAPSHOT. Contains content that no curator has verified (under_review / needs_evidence). " +
     "For researcher review only: not publishable, and not for use in a study.",

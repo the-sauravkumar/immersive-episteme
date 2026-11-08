@@ -3,7 +3,7 @@ import { z } from "zod";
 import { relationshipTypeCodeSchema } from "@/lib/validation/primitives";
 
 export const MAP_FORMAT = "cmap-editor/1";
-export const MAX_EDIT_LOG = 5000;
+const MAX_EDIT_LOG = 5000;
 
 export interface MapConcept {
   nodeKey: string;
@@ -17,7 +17,7 @@ export interface MapRelationshipType {
   directed: boolean;
 }
 
-export const mapNodeSchema = z.object({
+const mapNodeSchema = z.object({
   key: z.string().min(1).max(64),
   conceptId: z.uuid(),
   label: z.string().min(1).max(300),
@@ -26,7 +26,7 @@ export const mapNodeSchema = z.object({
 });
 export type MapNode = z.infer<typeof mapNodeSchema>;
 
-export const mapEdgeSchema = z
+const mapEdgeSchema = z
   .object({
     key: z.string().regex(/^e[1-9][0-9]{0,5}$/),
     source: z.string().min(1).max(64),
@@ -38,10 +38,9 @@ export const mapEdgeSchema = z
   .refine((e) => e.source !== e.target, { message: "A relationship needs two different concepts" });
 export type MapEdge = z.infer<typeof mapEdgeSchema>;
 
-export const EDIT_OPS = ["add_edge", "retype_edge", "reverse_edge", "delete_edge", "move_node", "set_required"] as const;
-export type EditOp = (typeof EDIT_OPS)[number];
+const EDIT_OPS = ["add_edge", "retype_edge", "reverse_edge", "delete_edge", "move_node", "set_required"] as const;
 
-export const editLogEntrySchema = z.strictObject({
+const editLogEntrySchema = z.strictObject({
   seq: z.number().int().min(0),
   at: z.iso.datetime({ offset: true }),
   op: z.enum(EDIT_OPS),

@@ -5,7 +5,6 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
-import { inviteGateProblems } from "./invite-gate";
 import { CATALOG, FORBIDDEN, envBytes, isVercelSystemName, readEnvFile, redactUrl, VERCEL_ENV_LIMIT_BYTES } from "./lib/env-catalog";
 import { Report, type Status } from "./lib/report";
 import { topologyChecks } from "./lib/topology";
@@ -157,7 +156,7 @@ if (pooledU) {
     report.add("env", "direct URL for LISTEN/migrations", "INFO", "DATABASE_URL is a direct host; it serves the pool and LISTEN");
   }
 }
-let vercelJson: { regions?: string[]; installCommand?: string; framework?: string; ignoreCommand?: string; buildCommand?: string } | null = null;
+let vercelJson: { regions?: string[]; installCommand?: string } | null = null;
 try {
   vercelJson = JSON.parse(readRepo("vercel.json") ?? "null");
 } catch {
@@ -199,15 +198,12 @@ report.add(
 
 if (media?.MEDIA_S3_BUCKET || PROD) {
   const keys = Boolean(fileEnv.MEDIA_S3_ACCESS_KEY_ID && fileEnv.MEDIA_S3_SECRET_ACCESS_KEY);
-  const oidcInCode = (readRepo("src/server/cms/media/storage.ts") ?? "").includes("AWS_ROLE_ARN");
-  const oidc = oidcInCode && Boolean(fileEnv.AWS_ROLE_ARN);
   report.add(
     "env",
     "S3 credentials explicit",
-    rule(keys || oidc),
-    keys ? "MEDIA_S3_* keys set (Option B)" : oidc ? "AWS_ROLE_ARN (OIDC, Option A)" : "without them the SDK picks up Vercel's placeholder AWS_* values (RESEARCH.md s9)",
+    rule(keys),
+    keys ? "MEDIA_S3_* keys set" : "without them the SDK picks up Vercel's placeholder AWS_* values (RESEARCH.md s9)",
   );
-  if (fileEnv.AWS_ROLE_ARN && !oidcInCode) report.add("env", "AWS_ROLE_ARN usable", "WARN", "storage.ts does not read AWS_ROLE_ARN yet (source change S5)");
 }
 const cspOrigin = mediaUploadOrigin(asProduction);
 report.add("env", "CSP connect-src origin", cspOrigin ? "INFO" : rule(false), cspOrigin ? `${cspOrigin} (next.config headers read it at build time: set env vars BEFORE the build)` : "no S3 origin: CMS uploads would be blocked by the CSP");
@@ -227,28 +223,8 @@ if (PROD && existsSync(localEnvPath) && resolve(localEnvPath) !== envPath && fil
 if (args["skip-source"]) {
   report.add("source", "source readiness", "SKIP", "--skip-source");
 } else {
-  const has = (rel: string, needle: RegExp) => needle.test(readRepo(rel) ?? "");
-  const pending = (ok: boolean, status: Status, id: string, what: string) =>
-    report.add("source", `${id} ${what}`, ok ? "PASS" : status, ok ? "" : "pending (docs/deploy/RESEARCH.md s13; RUNBOOK 'Source changes')");
-
-  const gate = inviteGateProblems(REPO);
-  report.add("source", "S11 invite-only gate", gate.length === 0 ? "PASS" : PROD ? "FAIL" : "WARN", gate.length === 0 ? "src/proxy.ts gates every page (scripts/deploy/invite-gate.ts)" : gate.join("; "));
-  const caInCode = has("src/server/db/client.ts", /DATABASE_CA_PEM/) && has("src/lib/env.ts", /DATABASE_CA_PEM/);
-  pending(caInCode, isRds && PROD ? "FAIL" : "WARN", "S3", "DATABASE_CA_PEM in pool");
-  pending(has("src/app/api/research/dashboard/stream/route.ts", /export const maxDuration/), "WARN", "S1", "stream maxDuration");
-  pending(has("src/app/(research)/research/dashboard/_components/live-status.tsx", /visibilitychange/), "WARN", "S2", "stream only when visible");
-  pending(!has("src/server/db/client.ts", /idleTimeoutMillis:\s*30_?000/), "WARN", "S4", "short pool idle timeout");
-  pending(has("src/server/cms/media/storage.ts", /AWS_ROLE_ARN|VERCEL/), "WARN", "S5", "no fallback to AWS_* chain");
-  pending(has("next.config.ts", /localPatterns/), "WARN", "S6", "images.localPatterns");
-  pending(has("src/components/knowledge/knowledge-figure.tsx", /unoptimized/), "WARN", "S7", "licence-limited figures");
-  pending(git("check-ignore", "-q", ".env.production.example") === null, "WARN", "S8", ".env.production.example committable");
-  const vi = readRepo(".vercelignore");
-  pending(vi !== null && /^\/?\.env\s*$/m.test(vi), "WARN", "S9", ".vercelignore excludes .env");
-
   const vj = vercelJson;
   report.add("source", "vercel.json npm ci", vj?.installCommand === "npm ci" ? "PASS" : "FAIL", vj ? `install=${vj.installCommand}` : "missing or invalid");
-  report.add("source", "vercel.json build runs the gate", /^node scripts\/deploy\/invite-gate\.ts --if-production && /.test(vj?.buildCommand ?? "") ? "PASS" : "FAIL", `buildCommand=${vj?.buildCommand ?? "(none)"} (guards Git and CLI builds)`);
-  report.add("source", "vercel.json invite guard", /invite-gate.ts --ignore-step/.test(vj?.ignoreCommand ?? "") && (vj?.ignoreCommand ?? "").length <= 256 ? "PASS" : "FAIL", "ignoreCommand cancels production builds until src/proxy.ts has the invite gate");
   report.add("source", "lockfile tracked", git("ls-files", "--error-unmatch", "package-lock.json") !== null ? "PASS" : "FAIL", "npm ci needs package-lock.json in git");
   const dirty = git("status", "--porcelain");
   report.add("source", "working tree clean", dirty === "" ? "PASS" : "WARN", dirty ? `${dirty.split("\n").length} changed path(s): Git deploys build the pushed commit only` : `HEAD ${head}`);

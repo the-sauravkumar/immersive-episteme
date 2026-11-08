@@ -18,7 +18,7 @@ const KENNEDY =
   "Kennedy, R. S., Lane, N. E., Berbaum, K. S., & Lilienthal, M. G. (1993). Simulator Sickness Questionnaire: An enhanced method for quantifying simulator sickness. The International Journal of Aviation Psychology, 3(3), 203–220. https://doi.org/10.1207/s15327108ijap0303_3";
 const EUDAVE = "Eudave, L., & Martínez, M. (2025). To VR or not to VR: Assessing cybersickness in navigational tasks at different levels of immersion. Frontiers in Virtual Reality, 6, 1518735. https://doi.org/10.3389/frvir.2025.1518735";
 
-export const NEUTRAL_TERM = "the learning environment";
+const NEUTRAL_TERM = "the learning environment";
 
 export function neutralise(original: string): string {
   return original
@@ -27,11 +27,11 @@ export function neutralise(original: string): string {
     .replace(/The virtual environment/g, "The learning environment");
 }
 
-export function awkward(original: string): string {
+function awkward(original: string): string {
   return original.replace("cumbersome", "awkward");
 }
 
-export type Substitution = "neutral_term" | "awkward" | null;
+type Substitution = "neutral_term" | "awkward" | null;
 
 export interface VerifiedItem {
   key: string;
@@ -44,13 +44,13 @@ export interface VerifiedItem {
   substitution: Substitution;
 }
 
-export interface PendingItem {
+interface PendingItem {
   key: string;
   source: string;
   reason: string;
 }
 
-export interface ResponseScale {
+interface ResponseScale {
   points: number;
   min: 0 | 1;
   anchors: Record<string, string>;
@@ -320,7 +320,7 @@ export const INSTRUMENT_DEFINITIONS: readonly InstrumentDefinition[] = [
   },
 ];
 
-export function instrumentConfig(d: InstrumentDefinition): Record<string, unknown> {
+function instrumentConfig(d: InstrumentDefinition): Record<string, unknown> {
   return {
     instrument: {
       name: d.name,

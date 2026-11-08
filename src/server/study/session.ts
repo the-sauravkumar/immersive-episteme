@@ -14,8 +14,8 @@ import { practiceRoute, STEP_ROUTE, type StudyStep } from "./config";
 import { loadSessionState, syncPosition, type Position, type SessionState } from "./engine";
 import { ENROLMENT_TTL_SECONDS, HISTORY_TTL_SECONDS, signEnrolment, signHistory, verifyEnrolment, verifyHistory, type EnrolmentClaims, type HistoryEntries } from "./tokens";
 
-export const ENROLMENT_COOKIE = hostOnly("ie_study_enrolment");
-export const HISTORY_COOKIE = hostOnly("ie_study_history");
+const ENROLMENT_COOKIE = hostOnly("ie_study_enrolment");
+const HISTORY_COOKIE = hostOnly("ie_study_history");
 
 const cookieBase = { httpOnly: true, secure: SECURE_COOKIES, sameSite: "lax" as const, path: "/" };
 

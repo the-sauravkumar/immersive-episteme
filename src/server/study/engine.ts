@@ -8,13 +8,14 @@ import type { LearningCondition } from "@/lib/permissions/learning";
 import type { ConditionInterface } from "@/lib/validation/enums";
 import { PARTICIPANT_SESSION_TTL_SECONDS } from "@/server/auth/participant-session-token";
 import { conditionFromInterface } from "@/server/auth/study-session-port-types";
+import { inTransaction } from "@/server/db/transaction";
 import { recordLearningEnded } from "@/server/learning/context-data";
 import { REQUIRED_ANSWER_MESSAGE } from "@/features/study/answer-presence";
 
 import { coverageOf, admitStop, inAssignedOrder, requiredStops, type StageCoverage, type StageStop, type StageVisit, type StopAdmission } from "@/features/study/stage-coverage";
 
 import { drawCondition, drawTraditionOrder, type AllocatableCondition, type DrawAlgorithm } from "./allocation";
-import { isDeliverable, isKeyedItem, itemConfig, parseAnswer, scoreItem, toResponseRaw, type DeliveredItem, type ParsedAnswer } from "./answers";
+import { isKeyedItem, itemConfig, parseAnswer, scoreItem, toResponseRaw, type DeliveredItem, type ParsedAnswer } from "./answers";
 import {
   BLIND_STEPS,
   instrumentsFor,
@@ -66,25 +67,9 @@ export class StudyEngineError extends Error {
 }
 
 export const KEY_MATCH_TOTAL_METRIC = { name: "assessment.key_match_total", version: "1.0.0", pipeline: KEY_MATCH_METRIC.pipeline } as const;
-export const TEST_SCORE_METRIC = { version: "1.0.0", pipeline: KEY_MATCH_METRIC.pipeline } as const;
+const TEST_SCORE_METRIC = { version: "1.0.0", pipeline: KEY_MATCH_METRIC.pipeline } as const;
 
 const sha256 = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
-
-async function withTx<T>(pool: Pool | PoolClient, fn: (c: PoolClient) => Promise<T>): Promise<T> {
-  if (typeof (pool as Pool).totalCount !== "number") return fn(pool as PoolClient);
-  const client = await (pool as Pool).connect();
-  try {
-    await client.query("BEGIN");
-    const out = await fn(client);
-    await client.query("COMMIT");
-    return out;
-  } catch (err) {
-    await client.query("ROLLBACK");
-    throw err;
-  } finally {
-    client.release();
-  }
-}
 
 type Actor = { kind: "participant"; code: string } | { kind: "system" };
 
@@ -102,7 +87,6 @@ async function journal(
     [actor.kind, actor.kind === "participant" ? actor.code : "study-engine", action, entity, entityId, JSON.stringify(after), reason],
   );
 }
-
 
 export interface EnrollableStudy {
   id: string;
@@ -149,7 +133,7 @@ function toStudy(row: StudyRow): EnrollableStudy {
   };
 }
 
-export function normaliseStudyCode(input: string): string {
+function normaliseStudyCode(input: string): string {
   return input.trim().toLowerCase();
 }
 
@@ -217,7 +201,7 @@ export async function enrolParticipant(
       throw new StudyEngineError("repeat_browser", "This browser has already been used to take part in this study.");
     }
   }
-  return withTx(pool, async (c) => {
+  return inTransaction(pool, async (c) => {
     const cap = study.protocol.config.enrolment.maxParticipants;
     if (cap !== undefined) {
       await c.query("SELECT pg_advisory_xact_lock(hashtextextended('ie-enrolment:' || $1, 0))", [study.id]);
@@ -289,7 +273,7 @@ export async function recordConsent(
   if (!consent) throw new StudyEngineError("study_misconfigured", "The study has no consent text configured.");
   if (input.shownVersion !== consent.version) throw new StudyEngineError("study_misconfigured", "The consent text changed; please read it again.");
   try {
-    await withTx(pool, async (c) => {
+    await inTransaction(pool, async (c) => {
       await c.query("SELECT 1 FROM participants WHERE id = $1 FOR UPDATE", [input.participantId]);
       const p = await loadParticipant(c, input.participantId);
       if (!p || p.studyId !== input.study.id) throw new StudyEngineError("participant_not_found", "Participant not found.");
@@ -308,7 +292,6 @@ export async function recordConsent(
   }
 }
 
-
 export interface OpenedSession {
   sessionId: string;
   participantId: string;
@@ -317,11 +300,11 @@ export interface OpenedSession {
   created: boolean;
 }
 
-export function allocationSeed(study: Pick<EnrollableStudy, "id" | "protocolVersion" | "protocol">): string {
+function allocationSeed(study: Pick<EnrollableStudy, "id" | "protocolVersion" | "protocol">): string {
   return study.protocol.config.allocation.seed ?? `study:${study.id}:protocol:${study.protocolVersion}`;
 }
 
-export function blindPrefix(protocol: StudyProtocol): StudyStep[] {
+function blindPrefix(protocol: StudyProtocol): StudyStep[] {
   const out: StudyStep[] = [];
   for (const s of protocol.steps) {
     if (!BLIND_STEPS.includes(s)) break;
@@ -332,7 +315,7 @@ export function blindPrefix(protocol: StudyProtocol): StudyStep[] {
 
 export async function openSessionAfterConsent(pool: Pool | PoolClient, input: { participantId: string; studyId: string; appBuild: string }): Promise<OpenedSession> {
   const study = await loadStudy(pool, input.studyId);
-  const opened = await withTx(pool, async (c) => {
+  const opened = await inTransaction(pool, async (c) => {
     const p = await loadParticipant(c, input.participantId);
     if (!p || p.studyId !== study.id) throw new StudyEngineError("participant_not_found", "Participant not found.");
     if (p.latestConsent?.decision !== "granted") throw new StudyEngineError("consent_required", "Consent is required before the session starts.");
@@ -446,7 +429,7 @@ async function preTestScore(
 }
 
 export async function allocateSession(pool: Pool | PoolClient, sessionId: string): Promise<{ condition: LearningCondition; conditionId: string; created: boolean }> {
-  const result = await withTx(pool, async (c) => {
+  const result = await inTransaction(pool, async (c) => {
     const pre = await loadSessionState(c, sessionId);
     if (!pre) throw new StudyEngineError("session_closed", "The session does not exist.");
     await c.query("SELECT pg_advisory_xact_lock(hashtextextended('ie-allocation:' || $1, 0))", [pre.study.id]);
@@ -485,8 +468,7 @@ export async function allocateSession(pool: Pool | PoolClient, sessionId: string
   return { condition: result.condition, conditionId: result.conditionId, created: result.created };
 }
 
-
-export interface JournalEntry {
+interface JournalEntry {
   action: string;
   after: Record<string, unknown>;
   occurredAt: Date;
@@ -569,7 +551,7 @@ export async function loadSessionState(q: Q, sessionId: string): Promise<Session
   };
 }
 
-export function isSessionOpen(s: SessionState): boolean {
+function isSessionOpen(s: SessionState): boolean {
   return !s.withdrawn && !s.excluded && s.status !== "completed" && s.status !== "abandoned" && (s.participantStatus === "enrolled" || s.participantStatus === "active");
 }
 
@@ -579,7 +561,7 @@ export function completedSteps(s: Pick<SessionState, "journal">): Set<StudyStep>
   return done;
 }
 
-export function deviceCheckPassed(s: Pick<SessionState, "journal">): boolean {
+function deviceCheckPassed(s: Pick<SessionState, "journal">): boolean {
   const checks = s.journal.filter((e) => e.action === "study.device_checked");
   return checks.length > 0 && checks[checks.length - 1]!.after.outcome === "passed";
 }
@@ -624,13 +606,13 @@ async function markStepCompleted(q: Q, s: SessionState, step: StudyStep, details
   s.journal.push({ action: "study.step_completed", after: { step, ...details }, occurredAt: s.now });
 }
 
-export async function touch(q: Q, sessionId: string): Promise<void> {
+async function touch(q: Q, sessionId: string): Promise<void> {
   await q.query("UPDATE study_sessions SET last_activity_at = now() WHERE id = $1", [sessionId]);
 }
 
-export { STEP_ASSESSMENTS };
+;
 
-export function isAssessmentStep(step: StudyStep): boolean {
+function isAssessmentStep(step: StudyStep): boolean {
   return !!STEP_ASSESSMENTS[step] || isQuestionnaireStep(step);
 }
 
@@ -699,7 +681,7 @@ export async function listStepAssessments(q: Q, s: Pick<SessionState, "study" | 
   return withItems(q, a.rows);
 }
 
-export function assessmentReadiness(a: StepAssessment): { ready: true } | { ready: false; reason: string } {
+function assessmentReadiness(a: StepAssessment): { ready: true } | { ready: false; reason: string } {
   const blocker = instrumentBlocker(a);
   if (blocker) return { ready: false, reason: `${a.code} v${a.version}: ${blocker}` };
   if (a.items.length === 0) return { ready: false, reason: `${a.code} v${a.version}: no items` };
@@ -736,7 +718,7 @@ export async function stageVisitsOf(q: Q, sessionId: string): Promise<StageVisit
   return r.rows.map((row) => ({ traditionKey: row.tradition_key, stageKey: row.stage_key }));
 }
 
-export async function stageCoverage(q: Q, s: SessionState): Promise<StageCoverage> {
+async function stageCoverage(q: Q, s: SessionState): Promise<StageCoverage> {
   return coverageOf(await assignedStops(s), await stageVisitsOf(q, s.sessionId));
 }
 
@@ -759,7 +741,7 @@ export interface StageEntryResult {
 }
 
 export async function recordStageEntered(pool: Pool | PoolClient, sessionId: string, target: StageVisit): Promise<StageEntryResult> {
-  const result = await withTx(pool, async (c): Promise<StageEntryResult | { refused: Extract<StopAdmission, { admitted: false }> }> => {
+  const result = await inTransaction(pool, async (c): Promise<StageEntryResult | { refused: Extract<StopAdmission, { admitted: false }> }> => {
     const s = await openLearningSession(c, sessionId);
     const required = await assignedStops(s);
     const visits = await stageVisitsOf(c, sessionId);
@@ -790,7 +772,7 @@ export async function recordStageEntered(pool: Pool | PoolClient, sessionId: str
 }
 
 export async function recordStageLeft(pool: Pool | PoolClient, sessionId: string, target: StageVisit & { activeMs: number }): Promise<boolean> {
-  return withTx(pool, async (c) => {
+  return inTransaction(pool, async (c) => {
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) return false;
@@ -917,7 +899,7 @@ async function readDelayedSchedule(q: Q, sessionId: string): Promise<DelayedSche
   return row ? { scheduledAt: row.scheduled_at, opensAt: row.opens_at, dueAt: row.due_at, closesAt: row.closes_at, returnedAt: row.returned_at, completedAt: row.completed_at, missedAt: row.missed_at } : null;
 }
 
-export async function ensureDelayedSchedule(q: Q, s: Pick<SessionState, "sessionId" | "participantId" | "study" | "journal" | "now">): Promise<DelayedSchedule> {
+async function ensureDelayedSchedule(q: Q, s: Pick<SessionState, "sessionId" | "participantId" | "study" | "journal" | "now">): Promise<DelayedSchedule> {
   const existing = await readDelayedSchedule(q, s.sessionId);
   if (existing) return existing;
   const window = delayedWindowFrom(immediateStepsEndedAt(s), s.study.protocol.config.delayedTest);
@@ -976,7 +958,7 @@ async function scheduleOpenDelayedSession(c: PoolClient, input: { studyCode: str
 }
 
 export async function returnForDelayedTest(pool: Pool | PoolClient, input: { studyCode: string; participantCode: string }): Promise<DelayedReturn> {
-  return withTx(pool, async (c) => {
+  return inTransaction(pool, async (c) => {
     const r = await c.query<{ session_id: string }>(
       `SELECT d.session_id FROM delayed_test_schedule d
          JOIN studies st ON st.id = d.study_id JOIN participants p ON p.id = d.participant_id
@@ -997,7 +979,7 @@ export async function returnForDelayedTest(pool: Pool | PoolClient, input: { stu
 }
 
 export async function completeEntrance(pool: Pool | PoolClient, sessionId: string): Promise<void> {
-  await withTx(pool, async (c) => {
+  await inTransaction(pool, async (c) => {
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
@@ -1017,14 +999,13 @@ export async function currentReconstructionPhase(q: Q, sessionId: string): Promi
 }
 
 export async function learningStepIsCurrent(pool: Pool | PoolClient, sessionId: string): Promise<boolean> {
-  return withTx(pool, async (c) => {
+  return inTransaction(pool, async (c) => {
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) return false;
     const pos = await syncPosition(c, s);
     return pos.kind === "step" && pos.step === "learning";
   });
 }
-
 
 export interface DeviceReport {
   viewport: { width: number; height: number };
@@ -1054,7 +1035,7 @@ export function evaluateDevice(
 }
 
 export async function recordDeviceCheck(pool: Pool | PoolClient, sessionId: string, report: DeviceReport): Promise<Exclude<DeviceOutcome, { kind: "reassigned" }>> {
-  return withTx(pool, async (c) => {
+  return inTransaction(pool, async (c) => {
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
     if (deviceCheckPassed(s)) return { kind: "passed" };
@@ -1108,7 +1089,7 @@ export async function recordWalkthroughWebglFailure(
   gpu: { webglVersion: 1 | 2 | null; softwareRenderer: boolean },
   opts: { appBuild: string },
 ): Promise<WalkthroughFailureOutcome> {
-  return withTx(pool, async (c) => {
+  return inTransaction(pool, async (c) => {
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
@@ -1184,8 +1165,7 @@ async function reassignToConventional(
   return { kind: "reassigned", sessionId: newId, condition: "2d" };
 }
 
-
-export async function startAssessment(q: Q, s: SessionState, assessment: StepAssessment, step: StudyStep): Promise<{ presentedAt: Date }> {
+async function startAssessment(q: Q, s: SessionState, assessment: StepAssessment, step: StudyStep): Promise<{ presentedAt: Date }> {
   const prior = s.journal.find((e) => e.action === "study.assessment_started" && e.after.assessmentId === assessment.id && e.after.step === step);
   if (prior) return { presentedAt: prior.occurredAt };
   await q.query(
@@ -1203,7 +1183,7 @@ export async function startAssessment(q: Q, s: SessionState, assessment: StepAss
 }
 
 export async function markAssessmentPresented(pool: Pool | PoolClient, input: { sessionId: string; step: StudyStep; assessmentId: string }): Promise<{ presentedAt: Date }> {
-  return withTx(pool, async (c) => {
+  return inTransaction(pool, async (c) => {
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [input.sessionId]);
     const s = await loadSessionState(c, input.sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
@@ -1227,7 +1207,7 @@ export async function submitAssessment(
   pool: Pool | PoolClient,
   input: { sessionId: string; step: StudyStep; assessmentId: string; values: Record<string, string[]>; clientTs?: string | null },
 ): Promise<SubmitResult> {
-  return withTx(pool, async (c) => {
+  return inTransaction(pool, async (c) => {
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [input.sessionId]);
     const s = await loadSessionState(c, input.sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
@@ -1321,9 +1301,8 @@ export async function submitAssessment(
   });
 }
 
-
 export async function startFamiliarisation(pool: Pool | PoolClient, sessionId: string): Promise<{ startedAt: Date }> {
-  return withTx(pool, async (c) => {
+  return inTransaction(pool, async (c) => {
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
     const pos = await syncPosition(c, s);
@@ -1337,7 +1316,7 @@ export async function startFamiliarisation(pool: Pool | PoolClient, sessionId: s
 }
 
 export async function completeFamiliarisation(pool: Pool | PoolClient, sessionId: string): Promise<void> {
-  await withTx(pool, async (c) => {
+  await inTransaction(pool, async (c) => {
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
     const pos = await syncPosition(c, s);
@@ -1350,7 +1329,7 @@ export async function completeFamiliarisation(pool: Pool | PoolClient, sessionId
 }
 
 export async function completeOnboarding(pool: Pool | PoolClient, sessionId: string): Promise<void> {
-  await withTx(pool, async (c) => {
+  await inTransaction(pool, async (c) => {
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
     const pos = await syncPosition(c, s);
@@ -1367,7 +1346,7 @@ export async function completeOnboarding(pool: Pool | PoolClient, sessionId: str
 type FinishRefusal = { kind: "unvisited"; unvisited: readonly StageStop[] };
 
 export async function finishLearning(pool: Pool | PoolClient, sessionId: string): Promise<void> {
-  const refused = await withTx(pool, async (c): Promise<FinishRefusal | null> => {
+  const refused = await inTransaction(pool, async (c): Promise<FinishRefusal | null> => {
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
     const pos = await syncPosition(c, s);
@@ -1384,7 +1363,6 @@ export async function finishLearning(pool: Pool | PoolClient, sessionId: string)
   if (refused) throw new StudyEngineError("learning_incomplete", "Every stage must be visited before learning can finish.", { unvisited: refused.unvisited });
 }
 
-
 export type ResumeResult = { kind: "resumed"; gapSeconds: number; interruptionCount: number } | { kind: "refused"; reason: "resume_not_allowed" | "too_many_interruptions" | "gap_too_long" };
 
 export function resumeDecision(
@@ -1398,7 +1376,7 @@ export function resumeDecision(
 }
 
 export async function resumeSession(pool: Pool | PoolClient, sessionId: string): Promise<ResumeResult> {
-  return withTx(pool, async (c) => {
+  return inTransaction(pool, async (c) => {
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
     const s = await loadSessionState(c, sessionId);
     if (!s || !isSessionOpen(s)) throw new StudyEngineError("session_closed", "The session is not open.");
@@ -1462,7 +1440,7 @@ export async function closeStaleSessions(pool: Pool | PoolClient, studyId: strin
   );
   const ended: TimedSessionEnd[] = [];
   for (const { id } of candidates.rows) {
-    const end = await withTx(pool, async (c): Promise<TimedSessionEnd | null> => {
+    const end = await inTransaction(pool, async (c): Promise<TimedSessionEnd | null> => {
       await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [id]);
       const s = await loadSessionState(c, id);
       if (!s || s.status !== "in_progress" || !isSessionOpen(s)) return null;
@@ -1500,12 +1478,11 @@ export async function closeStaleSessions(pool: Pool | PoolClient, studyId: strin
   return ended;
 }
 
-
 export const WITHDRAWAL_REASONS = ["not_stated", "no_longer_wish_to_take_part", "no_time", "technical_problem", "felt_unwell"] as const;
 export type WithdrawalReason = (typeof WITHDRAWAL_REASONS)[number];
 
 export async function withdraw(pool: Pool | PoolClient, input: { participantId: string; sessionId?: string | null; reason: WithdrawalReason }): Promise<{ retentionDays: number | null }> {
-  return withTx(pool, async (c) => {
+  return inTransaction(pool, async (c) => {
     const p = await loadParticipant(c, input.participantId);
     if (!p) throw new StudyEngineError("participant_not_found", "Participant not found.");
     const study = await loadStudy(c, p.studyId);
@@ -1537,7 +1514,7 @@ export async function withdraw(pool: Pool | PoolClient, input: { participantId: 
 }
 
 export async function completeSession(pool: Pool | PoolClient, sessionId: string, opts: { telemetryPending?: number | null } = {}): Promise<void> {
-  await withTx(pool, async (c) => {
+  await inTransaction(pool, async (c) => {
     await c.query("SELECT 1 FROM study_sessions WHERE id = $1 FOR UPDATE", [sessionId]);
     const s = await loadSessionState(c, sessionId);
     if (!s) throw new StudyEngineError("session_closed", "The session is not open.");
@@ -1554,4 +1531,4 @@ export async function completeSession(pool: Pool | PoolClient, sessionId: string
   });
 }
 
-export { isDeliverable };
+;

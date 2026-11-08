@@ -7,7 +7,7 @@ import { SHEET_TEXT } from "@/features/learning/strings";
 import { useOptionalTelemetry } from "@/features/telemetry/client/provider";
 import { cn } from "@/lib/utils";
 
-export interface LayerTabsProps {
+interface LayerTabsProps {
   layers: readonly KnowledgeLayerId[];
   value: KnowledgeLayerId;
   onValueChange(layer: KnowledgeLayerId): void;
@@ -16,9 +16,9 @@ export interface LayerTabsProps {
   className?: string;
 }
 
-export const layerTabId = (idBase: string, layer: KnowledgeLayerId) => `${idBase}-${layer}`;
+const layerTabId = (idBase: string, layer: KnowledgeLayerId) => `${idBase}-${layer}`;
 
-export function LayerTabs({ layers, value, onValueChange, panelId, idBase, className }: LayerTabsProps) {
+function LayerTabs({ layers, value, onValueChange, panelId, idBase, className }: LayerTabsProps) {
   const ordered = orderLayers(layers);
   const listRef = useRef<HTMLDivElement>(null);
   if (ordered.length < 2) return null;
