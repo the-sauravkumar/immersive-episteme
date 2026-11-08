@@ -341,18 +341,6 @@
       "notes": "Akola dabu types phetia and nangna; three resists of increasing strength: chuna/lime (kirana), mitti/mud, rait/sand; also describes a boiled bedja-gum + oil hot resist with ash dusting, metal blocks, naphthol/alizarin. Places Akola in Udaipur district. Fact-check: Phetia worn by Jat and Chaudhury women after childbirth or at weddings; nangna by Gujjar women (occasion not given)."
     },
     {
-      "id": "dabu:S12",
-      "kind": "practitioner_testimony",
-      "title": "Indigo Dye Workshop",
-      "author": "Pratt's Textile Dye Garden",
-      "publisher": "Pratt Institute",
-      "year": null,
-      "url": "https://textiledyegarden.pratt.edu/learn/past-workshops/indigo-dye-workshop",
-      "accessed": "2026-10-14",
-      "reliability": "medium",
-      "notes": "Clay resist works only with indigo because vat is cold and immersion brief; most natural dyes need heat and long immersion which would wash clay off; indigo turns green to blue as it oxygenates."
-    },
-    {
       "id": "dabu:S18",
       "kind": "researcher_interpretation",
       "title": "Dabu Printing",
@@ -624,10 +612,10 @@
       "category": "cross_tradition_comparisons",
       "title": "Resist methods: clay pastes, lime outlines and wax",
       "summary": "Ajrakh gach is a paste of tree gum, clay (lal mitti), water and millet flour, with alum added to half of it; the clay and millet resist indigo while the alum acts as mordant.",
-      "body_md": "Ajrakh gach is a paste of tree gum, clay (lal mitti), water and millet flour, with alum added to half of it; the clay and millet resist indigo while the alum acts as mordant. [ajrakh:S1]\n\nAjrakh white outlines (khariyanu) are printed with a lime and tree-gum resist. [ajrakh:S1]\n\nDabu paste is mud, gum and lime; the Deesa paste uses river-bed silt. [dabu:S1, dabu:S3]\n\nIn Dabu sources lime is the weakest resist, used for fine outlines, mud is used for repeated indigo immersion and sand for absorbent colours. [dabu:S6]\n\nBagru and Sanganeri dabu paste mixes black clay (kali mitti), lime, wheat flour and gum in ratios that depend on the type of dabu needed, and is used only for indigo patterns. [bagru:S1, sanganeri:S1]\n\nBeeswax is listed as a Machilipatnam raw material; wax applied with a kalam before indigo appears in a general kalamkari description. [machilipatnam-kalamkari:S4, machilipatnam-kalamkari:S5]",
+      "body_md": "Ajrakh gach is a paste of tree gum, clay (lal mitti), water and millet flour, with alum added to half of it; the clay and millet resist indigo while the alum acts as mordant. [ajrakh:S1]\n\nAjrakh white outlines (khariyanu) are printed with a lime and tree-gum resist. [ajrakh:S1]\n\nDabu paste is mud, gum and lime; the Deesa paste uses river-bed silt. [dabu:S1, dabu:S3]\n\nAn Akola account lists three mud resists: chuna (lime) or kirana, the weakest, for fine outlines; mitti (mud) when the cloth is immersed in indigo a few times; and rait (sand), the strongest, for the most absorbent colours. [dabu:S6]\n\nBagru and Sanganeri dabu paste is prepared by mixing kali mitti (clay soil), lime, wheat flour and gum in specific ratios depending on the type of dabu paste needed, and the technique is used only for creating patterns with indigo blue. [bagru:S1, sanganeri:S1]\n\nBeeswax is listed among the Machilipatnam Kalamkari raw materials; an Asia InCH account of Machilipatnam describes a wax resist hand-printed with a kalam before the indigo is applied. [machilipatnam-kalamkari:S4, machilipatnam-kalamkari:S5]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Ajrakh gach is a paste of tree gum, clay (lal mitti), water and millet flour, with alum added to half of it; the clay and millet resist indigo while the alum acts as mordant.",
@@ -684,13 +672,13 @@
             },
             {
               "source_id": "dabu:S3",
-              "locator": "§ \"Details\"",
+              "locator": "§ \"Craft Revival Trust New Delhi, India\"",
               "quote": "Location: Deesa, Gujarat"
             }
           ]
         },
         {
-          "text": "In Dabu sources lime is the weakest resist, used for fine outlines, mud is used for repeated indigo immersion and sand for absorbent colours.",
+          "text": "An Akola account lists three mud resists: chuna (lime) or kirana, the weakest, for fine outlines; mitti (mud) when the cloth is immersed in indigo a few times; and rait (sand), the strongest, for the most absorbent colours.",
           "source_ids": [
             "dabu:S6"
           ],
@@ -708,7 +696,7 @@
           ]
         },
         {
-          "text": "Bagru and Sanganeri dabu paste mixes black clay (kali mitti), lime, wheat flour and gum in ratios that depend on the type of dabu needed, and is used only for indigo patterns.",
+          "text": "Bagru and Sanganeri dabu paste is prepared by mixing kali mitti (clay soil), lime, wheat flour and gum in specific ratios depending on the type of dabu paste needed, and the technique is used only for creating patterns with indigo blue.",
           "source_ids": [
             "bagru:S1",
             "sanganeri:S1"
@@ -737,7 +725,7 @@
           ]
         },
         {
-          "text": "Beeswax is listed as a Machilipatnam raw material; wax applied with a kalam before indigo appears in a general kalamkari description.",
+          "text": "Beeswax is listed among the Machilipatnam Kalamkari raw materials; an Asia InCH account of Machilipatnam describes a wax resist hand-printed with a kalam before the indigo is applied.",
           "source_ids": [
             "machilipatnam-kalamkari:S4",
             "machilipatnam-kalamkari:S5"
@@ -747,11 +735,6 @@
               "source_id": "machilipatnam-kalamkari:S4",
               "locator": "PDF p. 3",
               "quote": "Beeswax 4."
-            },
-            {
-              "source_id": "machilipatnam-kalamkari:S4",
-              "locator": "PDF p. 3",
-              "quote": "Hence it forms the chief material constituting the Kalamkari fabric."
             },
             {
               "source_id": "machilipatnam-kalamkari:S4",
@@ -787,14 +770,14 @@
       "type": "comparison",
       "category": "cross_tradition_comparisons",
       "title": "Indigo application: resist-and-dip versus direct printing",
-      "summary": "Ajrakh cloth is folded and dipped in the indigo vat, turns green then blue in air, and the darkest blues need three or four immersions.",
-      "body_md": "Ajrakh cloth is folded and dipped in the indigo vat, turns green then blue in air, and the darkest blues need three or four immersions. [ajrakh:S1]\n\nDeesa Dabu cloth is dip-dyed after the clay paste hardens; in the Akola tar-resist process the cloth is dipped in a cold indigo solution, repeated to obtain the required shade. [dabu:S3, dabu:S2]\n\nBagru and Sanganeri cloth is pleated, opened under the liquor and re-dipped; the first dip gives pale sky blue. [bagru:S1, sanganeri:S1]\n\nAt Machilipatnam indigo is mixed with rice starch and printed directly because it needs no mordant. [machilipatnam-kalamkari:S4]\n\nKhatri printers could judge an indigo vat by tasting it; Bagru and Sanganer dyers judge it by its colour. [ajrakh:S8, ajrakh:S11, bagru:S1, sanganeri:S1]",
+      "summary": "Ajrakh cloth is folded and dipped in the indigo vat; at first bright green, it becomes blue as oxygen meets the dye, and the darkest blues need three or four immersions.",
+      "body_md": "Ajrakh cloth is folded and dipped in the indigo vat; at first bright green, it becomes blue as oxygen meets the dye, and the darkest blues need three or four immersions. [ajrakh:S1]\n\nDeesa Dabu cloth is dip-dyed after the clay paste hardens; in the Akola tar-resist process the cloth is dipped in a cold indigo solution, repeated to obtain the required shade. [dabu:S3, dabu:S2]\n\nBagru and Sanganeri cloth is pleated, opened under the liquor and re-dipped; the first dip gives pale sky blue. [bagru:S1, sanganeri:S1]\n\nAt Machilipatnam indigo is mixed with rice starch and printed directly because it needs no mordant. [machilipatnam-kalamkari:S4]\n\nKhatri printers could tell an indigo vat's shade and quality, or what it needed, by tasting it; at Bagru and Sanganer an expert dyer tells the state of the dye by its colour. [ajrakh:S8, ajrakh:S11, bagru:S1, sanganeri:S1]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
-          "text": "Ajrakh cloth is folded and dipped in the indigo vat, turns green then blue in air, and the darkest blues need three or four immersions.",
+          "text": "Ajrakh cloth is folded and dipped in the indigo vat; at first bright green, it becomes blue as oxygen meets the dye, and the darkest blues need three or four immersions.",
           "source_ids": [
             "ajrakh:S1"
           ],
@@ -903,7 +886,7 @@
           ]
         },
         {
-          "text": "Khatri printers could judge an indigo vat by tasting it; Bagru and Sanganer dyers judge it by its colour.",
+          "text": "Khatri printers could tell an indigo vat's shade and quality, or what it needed, by tasting it; at Bagru and Sanganer an expert dyer tells the state of the dye by its colour.",
           "source_ids": [
             "ajrakh:S8",
             "ajrakh:S11",
@@ -919,17 +902,12 @@
             {
               "source_id": "ajrakh:S11",
               "locator": "§ \"Indigo in Kutch, India: Art and Science, Environment and Economics\"",
-              "quote": "10 Atoms natural indigo batik scarf by Shakilbhai Qasam Khatri."
+              "quote": "He could taste a dye bath and know if it needed lime, soda ash, or dates."
             },
             {
               "source_id": "bagru:S1",
               "locator": "PDF p. 11",
               "quote": "The process to start a new indigo tank is tedious and complicated but once the vat is ready for use, it is kept 'alive' by constant additron of indigo lime and jiggery' An expert indigo dyer can tell the stat of dye by the colour"
-            },
-            {
-              "source_id": "bagru:S1",
-              "locator": "PDF p. 8",
-              "quote": "It is interesting to note that allhough the Sanganer Print was inrroduced at Bagru around 1943 seven or eight decades earlier a family of printers immigrated here from village Jahota and started printing motifs of chaupar, camels, horse and dove on dhotis and tulbans of"
             },
             {
               "source_id": "sanganeri:S1",
@@ -954,10 +932,10 @@
       "category": "cross_tradition_comparisons",
       "title": "Mordant systems: myrobalan, alum and iron",
       "summary": "Ajrakh cloth is soaked in harde and dried without rinsing; tannin is an essential pre-mordant aiding adhesion of printed mordants.",
-      "body_md": "Ajrakh cloth is soaked in harde and dried without rinsing; tannin is an essential pre-mordant aiding adhesion of printed mordants. [ajrakh:S1]\n\nBagh cloth is dyed in harara and turns yellowish; harara strengthens the tones of the black and red printed later. [bagh:S1]\n\nBagru and Sanganeri cloth is treated with harda, whose tannic acid attracts the mordants applied by block. [bagru:S1, sanganeri:S1]\n\nMachilipatnam cloth soaks 30–45 minutes in myrobalan, is squeezed and dried in sunlight. [machilipatnam-kalamkari:S3]\n\nIron black is made from iron fermented with jaggery or molasses: scrap iron in Ajrakh (kut), iron strips with jaggery and salt water in Machilipatnam (kasim), and an iron-molasses-gum solution in Bagru and Sanganeri (syahi); the Bagh GI describes iron sulphate or iron filings with jaggery. [ajrakh:S1, bagru:S1, sanganeri:S1, machilipatnam-kalamkari:S4, bagh:S1]\n\nIn Bagru, Sanganeri and Bagh the alizarin bath develops red on alum-printed areas and black on iron-printed areas. In Machilipatnam the black is produced earlier, by iron reacting with the myrobalan tannin, and the alizarin bath helps fix that black. [bagru:S1, sanganeri:S1, bagh:S7, machilipatnam-kalamkari:S4]\n\nA low-reliability Bagru account is the only Dabu-file source for harda and alum mordanting. [dabu:S23]",
+      "body_md": "Ajrakh cloth is soaked in harde and dried without rinsing; tannin is an essential pre-mordant aiding adhesion of printed mordants. [ajrakh:S1]\n\nBagh cloth is treated with harara and turns yellowish; the harara also aids in strengthening the tones of the black and red printed later. [bagh:S1]\n\nBagru and Sanganeri cloth is treated with myrobalan (harda), whose tannic acid attracts the mordants applied with the hand wood block. [bagru:S1, sanganeri:S1]\n\nMachilipatnam cloth is kept 30 to 45 minutes in a myrobalan (karakayya) solution, then squeezed and dried in sunlight. [machilipatnam-kalamkari:S3]\n\nEach black is made from iron with jaggery or molasses: scrap iron fermented in jaggery or molasses in Ajrakh (kut), iron strips with jaggery and salt water in Machilipatnam (kasim), a fermented solution of iron with molasses and gum in Bagru and Sanganeri (syahi), and iron sulphate or iron filings with jaggery and water in the Bagh GI text. [ajrakh:S1, bagru:S1, sanganeri:S1, machilipatnam-kalamkari:S4, bagh:S1]\n\nIn Bagru and Sanganeri alizarin gives red with the alum mordant and black with the ferrous one, and at Bagh alizarin reacts with iron rust to give black and with alum to give red. At Machilipatnam the myrobalan tannin gives black with iron salt at an earlier stage, and alizarin also contributes to fixing that black. [bagru:S1, sanganeri:S1, bagh:S7, machilipatnam-kalamkari:S4]\n\nA Bagru account cited in the Dabu file describes a harda treatment and a later rinse in alum and water that fixes the colour and removes the dabu paste. [dabu:S23]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Ajrakh cloth is soaked in harde and dried without rinsing; tannin is an essential pre-mordant aiding adhesion of printed mordants.",
@@ -978,7 +956,7 @@
           ]
         },
         {
-          "text": "Bagh cloth is dyed in harara and turns yellowish; harara strengthens the tones of the black and red printed later.",
+          "text": "Bagh cloth is treated with harara and turns yellowish; the harara also aids in strengthening the tones of the black and red printed later.",
           "source_ids": [
             "bagh:S1"
           ],
@@ -991,12 +969,12 @@
             {
               "source_id": "bagh:S1",
               "locator": "PDF p. 12",
-              "quote": "Thus the total quantity of the fabric is dyed in about ten lots, repeating the same process each time when dried, the fabric turns yellowish. Making of colours: The printing in Bagh is done with vegetable colours, derived from plants, fruits, flowers, and minerals."
+              "quote": "Thus the total quantity of the fabric is dyed in about ten lots, repeating the same process each time when dried, the fabric turns yellowish."
             }
           ]
         },
         {
-          "text": "Bagru and Sanganeri cloth is treated with harda, whose tannic acid attracts the mordants applied by block.",
+          "text": "Bagru and Sanganeri cloth is treated with myrobalan (harda), whose tannic acid attracts the mordants applied with the hand wood block.",
           "source_ids": [
             "bagru:S1",
             "sanganeri:S1"
@@ -1008,11 +986,6 @@
               "quote": "Tannin - focally ctlled'Peels Karuno' ol 'Ee u' Washed fabrio is treated with myrobalan (harda) u&ich oontains tarmic acid. Tannic acid attrac8 the mordants, which are applied with hand wood - block."
             },
             {
-              "source_id": "bagru:S1",
-              "locator": "PDF p. 2",
-              "quote": "A wide range of uJde ups, Home fumishings and Garments are producd llom Bagru printed cloth."
-            },
-            {
               "source_id": "sanganeri:S1",
               "locator": "PDF p. 10",
               "quote": "cow dung now a day. - Tannin - locally callert 'Peela Katana' of'Harils' Washed fabric is treated with myrobalan (harda) which contains tannic acidTannic acid attrads the morda s, which are applied with hand wood block- 'tlarda' powder is mixed with water, and the cloth"
@@ -1020,7 +993,7 @@
           ]
         },
         {
-          "text": "Machilipatnam cloth soaks 30–45 minutes in myrobalan, is squeezed and dried in sunlight.",
+          "text": "Machilipatnam cloth is kept 30 to 45 minutes in a myrobalan (karakayya) solution, then squeezed and dried in sunlight.",
           "source_ids": [
             "machilipatnam-kalamkari:S3"
           ],
@@ -1034,11 +1007,16 @@
               "source_id": "machilipatnam-kalamkari:S3",
               "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
               "quote": "The scoured dried cloth is taken and kept in the above solution for 30-45 mins."
+            },
+            {
+              "source_id": "machilipatnam-kalamkari:S3",
+              "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+              "quote": "Myrobalan treatment: The required quantity of Myrobalan (karakayya) solution is taken in to a vessel."
             }
           ]
         },
         {
-          "text": "Iron black is made from iron fermented with jaggery or molasses: scrap iron in Ajrakh (kut), iron strips with jaggery and salt water in Machilipatnam (kasim), and an iron-molasses-gum solution in Bagru and Sanganeri (syahi); the Bagh GI describes iron sulphate or iron filings with jaggery.",
+          "text": "Each black is made from iron with jaggery or molasses: scrap iron fermented in jaggery or molasses in Ajrakh (kut), iron strips with jaggery and salt water in Machilipatnam (kasim), a fermented solution of iron with molasses and gum in Bagru and Sanganeri (syahi), and iron sulphate or iron filings with jaggery and water in the Bagh GI text.",
           "source_ids": [
             "ajrakh:S1",
             "bagru:S1",
@@ -1080,7 +1058,7 @@
           ]
         },
         {
-          "text": "In Bagru, Sanganeri and Bagh the alizarin bath develops red on alum-printed areas and black on iron-printed areas. In Machilipatnam the black is produced earlier, by iron reacting with the myrobalan tannin, and the alizarin bath helps fix that black.",
+          "text": "In Bagru and Sanganeri alizarin gives red with the alum mordant and black with the ferrous one, and at Bagh alizarin reacts with iron rust to give black and with alum to give red. At Machilipatnam the myrobalan tannin gives black with iron salt at an earlier stage, and alizarin also contributes to fixing that black.",
           "source_ids": [
             "bagru:S1",
             "sanganeri:S1",
@@ -1126,7 +1104,7 @@
           ]
         },
         {
-          "text": "A low-reliability Bagru account is the only Dabu-file source for harda and alum mordanting.",
+          "text": "A Bagru account cited in the Dabu file describes a harda treatment and a later rinse in alum and water that fixes the colour and removes the dabu paste.",
           "source_ids": [
             "dabu:S23"
           ],
@@ -1163,14 +1141,14 @@
       "type": "comparison",
       "category": "cross_tradition_comparisons",
       "title": "Red dye sources and red-bath additives",
-      "summary": "Ajrakh uses Indian madder (Rubia cordifolia) or synthetic alizarin, which superseded madder and also requires alum.",
-      "body_md": "Ajrakh uses Indian madder (Rubia cordifolia) or synthetic alizarin, which superseded madder and also requires alum. [ajrakh:S1]\n\nAt Bagh the aal root was earlier used; alizarine has taken its place. [bagh:S1]\n\nBagru and Sanganeri red baths use madder, now synthetic alizarin due to shortage. [bagru:S1, sanganeri:S1]\n\nMadder and chay were fine southern red sources; Machilipatnam now uses alizarin brought from Mumbai. [machilipatnam-kalamkari:S4]\n\nIn Akola Dabu, alizarin red was later replaced by naphthol developed in red salt. [dabu:S1, dabu:S2]\n\nDhawai flowers are boiled with alizarin at Bagru and Sanganer to avoid patches and staining. [bagru:S1, sanganeri:S1]\n\nDhavda flowers are used for shine and fixing in the Bagh boiling solution. [bagh:S1]\n\nThe Ajrakh GI application says a handful of dried \"tamansk\" (tamarisk) flowers is added if colour spreads into the white areas. [ajrakh:S1]\n\nMachilipatnam dyers add jajaku leaves to the alizarin bath as a carrier that hastens dyeing. [machilipatnam-kalamkari:S4]",
+      "summary": "Indian madder roots (Rubia cordifolia, majeeta) have traditionally been used in Ajrakh; alizarin, derived from coal tar, rapidly superseded madder and also requires mordants such as alum.",
+      "body_md": "Indian madder roots (Rubia cordifolia, majeeta) have traditionally been used in Ajrakh; alizarin, derived from coal tar, rapidly superseded madder and also requires mordants such as alum. [ajrakh:S1]\n\nAt Bagh the aal root was earlier used; alizarine has taken its place. [bagh:S1]\n\nBagru and Sanganeri red baths were prepared with madder; nowadays synthetic alizarin is used because of the shortage of vegetable alizarin. [bagru:S1, sanganeri:S1]\n\nMadder and chay were fine sources of red in the south; the alizarin used at Machilipatnam is especially brought from Mumbai. [machilipatnam-kalamkari:S4]\n\nIn Akola Dabu the alizarin once used for red was replaced by naphthol; the fabric is dipped in a red salt that reacts with the naphthol to give a bright red. [dabu:S1, dabu:S2]\n\nA local flower, dhawadi phool, is boiled with alizarin at Bagru and Sanganer to avoid patches and staining. [bagru:S1, sanganeri:S1]\n\nDhavda flowers are used for shine and fixing in the Bagh boiling solution. [bagh:S1]\n\nThe Ajrakh GI application says a handful of dried \"tamansk\" (tamarisk) flowers is added if colour spreads into the white areas. [ajrakh:S1]\n\nMachilipatnam dyers add jajaku leaves to the alizarin bath as a carrier that hastens dyeing. [machilipatnam-kalamkari:S4]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
-          "text": "Ajrakh uses Indian madder (Rubia cordifolia) or synthetic alizarin, which superseded madder and also requires alum.",
+          "text": "Indian madder roots (Rubia cordifolia, majeeta) have traditionally been used in Ajrakh; alizarin, derived from coal tar, rapidly superseded madder and also requires mordants such as alum.",
           "source_ids": [
             "ajrakh:S1"
           ],
@@ -1201,7 +1179,7 @@
           ]
         },
         {
-          "text": "Bagru and Sanganeri red baths use madder, now synthetic alizarin due to shortage.",
+          "text": "Bagru and Sanganeri red baths were prepared with madder; nowadays synthetic alizarin is used because of the shortage of vegetable alizarin.",
           "source_ids": [
             "bagru:S1",
             "sanganeri:S1"
@@ -1220,7 +1198,7 @@
           ]
         },
         {
-          "text": "Madder and chay were fine southern red sources; Machilipatnam now uses alizarin brought from Mumbai.",
+          "text": "Madder and chay were fine sources of red in the south; the alizarin used at Machilipatnam is especially brought from Mumbai.",
           "source_ids": [
             "machilipatnam-kalamkari:S4"
           ],
@@ -1238,7 +1216,7 @@
           ]
         },
         {
-          "text": "In Akola Dabu, alizarin red was later replaced by naphthol developed in red salt.",
+          "text": "In Akola Dabu the alizarin once used for red was replaced by naphthol; the fabric is dipped in a red salt that reacts with the naphthol to give a bright red.",
           "source_ids": [
             "dabu:S1",
             "dabu:S2"
@@ -1258,16 +1236,11 @@
               "source_id": "dabu:S2",
               "locator": "§ \"process:\"",
               "quote": "-The fabric is left to dry in the sun. -The fabric is dipped in a red salt, which reacts with the naphthol to give a bright red shade to the printed areas. -A printed fabric is now dipped in a gum (gaund) solution that later"
-            },
-            {
-              "source_id": "dabu:S2",
-              "locator": "§ \"Significance:\"",
-              "quote": "Like the essence of earth, the Akola Dabu prints remain the primeval printing method."
             }
           ]
         },
         {
-          "text": "Dhawai flowers are boiled with alizarin at Bagru and Sanganer to avoid patches and staining.",
+          "text": "A local flower, dhawadi phool, is boiled with alizarin at Bagru and Sanganer to avoid patches and staining.",
           "source_ids": [
             "bagru:S1",
             "sanganeri:S1"
@@ -1279,19 +1252,9 @@
               "quote": "The quantity of alizarin dye is calculated by the expenenced dyet 'l)hawadi pha>l', a local flower is boiled along with alizarin to avoid patches and staining."
             },
             {
-              "source_id": "bagru:S1",
-              "locator": "PDF p. 7",
-              "quote": "She studied heritage textiles of India and more particularly of Varanasi, Bagru, Sanganer etc."
-            },
-            {
               "source_id": "sanganeri:S1",
               "locator": "PDF p. 11",
               "quote": "'Dluwadi phool', a local flower is boiled along with alizarin to avoid patches and staining."
-            },
-            {
-              "source_id": "sanganeri:S1",
-              "locator": "PDF p. 6",
-              "quote": "Io the Jaipur Sanganer designs there is nore of tte flavow of the paintings of the earlier days, like stylized sunflowers, narcissuses, roses a.od other flowers with luxuriant foliage- The religious textiles consist of pieces in various sizes printed with the deity's names: a spcial"
             }
           ]
         },
@@ -1367,10 +1330,10 @@
       "category": "cross_tradition_comparisons",
       "title": "The ground after the red bath: white, cream or pink",
       "summary": "Madder often leaves a pinkish tinge on Ajrakh whites; the cloth is soaked in camel dung and spread on sandy river banks in the sun, sprinkled with water, for at least three days.",
-      "body_md": "Madder often leaves a pinkish tinge on Ajrakh whites; the cloth is soaked in camel dung and spread on sandy river banks in the sun, sprinkled with water, for at least three days. [ajrakh:S1]\n\nAlizarin tints the Sanganeri ground off-white or yellow, so it is laid on a river bed and sprinkled with dilute cow dung as it dries; the GI calls this the most typical Sanganeri step. [sanganeri:S1]\n\nIn Bagh tarai the cloth is washed three to four times in the stream and repeatedly moistened while drying. [bagh:S1]\n\nThe Bagru ground is mostly off-white (cream), while the Sanganeri background is white. [bagru:S1]\n\nAt Machilipatnam, portions not treated with alum imbibe a pinkish colour in the alizarin bath. [machilipatnam-kalamkari:S4]",
+      "body_md": "Madder often leaves a pinkish tinge on Ajrakh whites; the cloth is soaked in camel dung and spread on sandy river banks in the sun, sprinkled with water, for at least three days. [ajrakh:S1]\n\nAlizarin often over-dyes Sanganeri cloth, leaving an off-white or yellow tinge, so it is laid on a river bed and sprinkled with a mild solution of cow dung and water, again as it dries; the GI calls this sun bleaching (tapai) the most typical part of the Sanganeri process. [sanganeri:S1]\n\nIn Bagh tarai the cloth is washed three to four times in the stream and repeatedly moistened while drying. [bagh:S1]\n\nThe Bagru ground is mostly off-white (cream), while the Sanganeri background is white. [bagru:S1]\n\nAt Machilipatnam, portions not treated with alum imbibe a pinkish colour in the alizarin bath. [machilipatnam-kalamkari:S4]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Madder often leaves a pinkish tinge on Ajrakh whites; the cloth is soaked in camel dung and spread on sandy river banks in the sun, sprinkled with water, for at least three days.",
@@ -1396,7 +1359,7 @@
           ]
         },
         {
-          "text": "Alizarin tints the Sanganeri ground off-white or yellow, so it is laid on a river bed and sprinkled with dilute cow dung as it dries; the GI calls this the most typical Sanganeri step.",
+          "text": "Alizarin often over-dyes Sanganeri cloth, leaving an off-white or yellow tinge, so it is laid on a river bed and sprinkled with a mild solution of cow dung and water, again as it dries; the GI calls this sun bleaching (tapai) the most typical part of the Sanganeri process.",
           "source_ids": [
             "sanganeri:S1"
           ],
@@ -1419,7 +1382,7 @@
             {
               "source_id": "sanganeri:S1",
               "locator": "PDF p. 9",
-              "quote": "This is most typical paxt of production process of Sanganeri Hand Block Printing."
+              "quote": "Sun Blerchiug or locally oalled \"Tapai\" to get white background of the fa.bric. This is most typical paxt of production process of Sanganeri Hand Block Printing."
             }
           ]
         },
@@ -1491,7 +1454,7 @@
       "body_md": "Ajrakh: 15–16 stages over 15–21 days (GI), about 14 stages (V&A label), 16 stages (Mongabay). [ajrakh:S1, ajrakh:S3, ajrakh:S10]\n\nAjrakh scouring (saaj) is repeated eight to ten times. [ajrakh:S1]\n\nEach Bagh sari takes at least three weeks after printing, is washed at least three times and goes to the bhatti at least twice. [bagh:S1]\n\nBagh printed cloth is kept eight to fifteen days so the colour sets. [bagh:S1]\n\nBagru and Sanganeri printed fabric is left at least three to four days, and longer ageing gives a better result. [bagru:S1, sanganeri:S1]\n\nMachilipatnam printed cloth is kept two to three days until dry; the whole process takes almost two months. [machilipatnam-kalamkari:S4]\n\nDabu resist-and-dye is repeated through a dye bath for each colour. [dabu:S3]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Ajrakh: 15–16 stages over 15–21 days (GI), about 14 stages (V&A label), 16 stages (Mongabay).",
@@ -1504,11 +1467,6 @@
             {
               "source_id": "ajrakh:S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
-              "quote": "An interesting fact about Ajrakh is this that nature plays an important role in making."
-            },
-            {
-              "source_id": "ajrakh:S1",
-              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 2",
               "quote": "In total, 15-16 different stages are involved in the process of dyeing and printing, which take approximately 15-21 days."
             },
             {
@@ -1518,17 +1476,7 @@
             },
             {
               "source_id": "ajrakh:S10",
-              "locator": "§ \"Exploring solutions\"",
-              "quote": "It can then be reused in the Ajrakh process,\" Srivastava told Mongabay India."
-            },
-            {
-              "source_id": "ajrakh:S10",
-              "locator": "§ \"History repeats itself\"",
-              "quote": "\"Instead of raining over a period of time, it now rains heavily on some days, and then there is a dry spell,\" said Khalid Khatri, a young craftsman."
-            },
-            {
-              "source_id": "ajrakh:S10",
-              "locator": "§ \"Water woes: Kutch's age-old Ajrakh craft faces its nemesis, once again\"",
+              "locator": "§ \"Share this article\"",
               "quote": "Ajrakh from Gujarat, a 16-stage, water-intensive block printing technique that uses natural dyes"
             }
           ]
@@ -1543,11 +1491,6 @@
               "source_id": "ajrakh:S1",
               "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
               "quote": "The entire procedure is repeated eight to ten times until a suitable level of saponification is achieved, meaning the Saaj process can take many days to complete, depending upon the level of impurities in the cloth, usually by the third or fourth steeping the dung"
-            },
-            {
-              "source_id": "ajrakh:S1",
-              "locator": "GI Journal No. 188 copy (application 1050), PDF p. 10",
-              "quote": "Two Master Artisans of the Kutch Ajrakh."
             }
           ]
         },
@@ -1574,11 +1517,6 @@
               "source_id": "bagh:S1",
               "locator": "PDF p. 14",
               "quote": "The printed material when dry is rolled into bundles and kept away for eight to fifteen days. This allows the colour to set in properly."
-            },
-            {
-              "source_id": "bagh:S1",
-              "locator": "PDF p. 16",
-              "quote": "J) Uniqueness: `Bagh prints' are trendy, cool and comfortable cloth material."
             }
           ]
         },
@@ -1655,10 +1593,10 @@
       "category": "cross_tradition_comparisons",
       "title": "Water and environmental dependence",
       "summary": "Ajrakh printing concentrated where extra soft water was available; iron in the water dulls and darkens the result.",
-      "body_md": "Ajrakh printing concentrated where extra soft water was available; iron in the water dulls and darkens the result. [ajrakh:S1]\n\nBagh's proximity to the river was an important reason for its choice; the river water's chemistry is said to give luminous tones. [bagh:S1]\n\nBagru water is claimed to have excellent properties for dyeing, and the Sanjaria river now runs dry. [bagru:S1, bagru:S4]\n\nThe water of the river \"Saraswati\" is credited with Sanganer's characteristic shades. [sanganeri:S10]\n\nCoromandel chintz pre-eminence is attributed to local soil, water and dye plants. [machilipatnam-kalamkari:S11]\n\nAkola depends on the Beduch river plus hand pumps and tube wells; the craft archive calls for water reuse and reports that chemical residues pollute groundwater. [dabu:S2]\n\nUntreated Sanganer printing wastewater pollutes the Amanishah Nallah and groundwater. [sanganeri:S11]",
+      "body_md": "Ajrakh printing concentrated where extra soft water was available; iron in the water dulls and darkens the result. [ajrakh:S1]\n\nBagh's proximity to the river was an important reason for its choice; the river water's chemistry is said to give luminous tones. [bagh:S1]\n\nBagru water is claimed to have excellent properties for dyeing, and the Sanjaria river now runs dry. [bagru:S1, bagru:S4]\n\nThe water of the river Saraswati, with the soil, the sunshine, the humid air and the local flowers, leaves and herbs, is said to have contributed to the characteristic shades of Sanganer's natural dyes. [sanganeri:S10]\n\nChintz techniques are associated with the Coromandel Coast because of a favourable combination of chemicals in the local soil, water and dye plants. [machilipatnam-kalamkari:S11]\n\nThe Akola villages receive water from the river Beduch and from hand pumps and tube wells; the craft archive says measures are needed to reuse the water and that residue water washing back into the ground pollutes the region's groundwater. [dabu:S2]\n\nWastewater from Sanganer dyeing and printing units is discharged on land without treatment and reaches the Amanishah Nallah; groundwater samples were found polluted by its percolation. [sanganeri:S11]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Ajrakh printing concentrated where extra soft water was available; iron in the water dulls and darkens the result.",
@@ -1726,7 +1664,7 @@
           ]
         },
         {
-          "text": "The water of the river \"Saraswati\" is credited with Sanganer's characteristic shades.",
+          "text": "The water of the river Saraswati, with the soil, the sunshine, the humid air and the local flowers, leaves and herbs, is said to have contributed to the characteristic shades of Sanganer's natural dyes.",
           "source_ids": [
             "sanganeri:S10"
           ],
@@ -1735,16 +1673,11 @@
               "source_id": "sanganeri:S10",
               "locator": "PDF p. 5",
               "quote": "The water of the river ,,Saraswati, the soil, the sunshine, the humid air, and the availability of flowers, leaves and herbs all contributed to the characteristic seasoning of the shades and tints produced by the natural dyes."
-            },
-            {
-              "source_id": "sanganeri:S10",
-              "locator": "PDF p. 3",
-              "quote": "King Sawai jai Singh has to be credited for settling a foundation to this Printing as he invited artists and craftsman from all over the country especially from Gujarat and Malwa to Sanganer, a place near Jaipur."
             }
           ]
         },
         {
-          "text": "Coromandel chintz pre-eminence is attributed to local soil, water and dye plants.",
+          "text": "Chintz techniques are associated with the Coromandel Coast because of a favourable combination of chemicals in the local soil, water and dye plants.",
           "source_ids": [
             "machilipatnam-kalamkari:S11"
           ],
@@ -1757,7 +1690,7 @@
           ]
         },
         {
-          "text": "Akola depends on the Beduch river plus hand pumps and tube wells; the craft archive calls for water reuse and reports that chemical residues pollute groundwater.",
+          "text": "The Akola villages receive water from the river Beduch and from hand pumps and tube wells; the craft archive says measures are needed to reuse the water and that residue water washing back into the ground pollutes the region's groundwater.",
           "source_ids": [
             "dabu:S2"
           ],
@@ -1780,7 +1713,7 @@
           ]
         },
         {
-          "text": "Untreated Sanganer printing wastewater pollutes the Amanishah Nallah and groundwater.",
+          "text": "Wastewater from Sanganer dyeing and printing units is discharged on land without treatment and reaches the Amanishah Nallah; groundwater samples were found polluted by its percolation.",
           "source_ids": [
             "sanganeri:S11"
           ],
@@ -1788,7 +1721,7 @@
             {
               "source_id": "sanganeri:S11",
               "locator": "Abstract (OpenAlex record; full text not reachable)",
-              "quote": "[Abstract via OpenAlex W-record for doi:10.3906/muh-1310-8; full text not reachable] Wastewater and groundwater samples of Sanganer were studied to find out the pollution load of wastewater generated from dyeing and printing units and its impact on the quality of domestic wastewater of the Amanishah Nallah"
+              "quote": "Wastewater and groundwater samples of Sanganer were studied to find out the pollution load of wastewater generated from dyeing and printing units and its impact on the quality of domestic wastewater of the Amanishah Nallah"
             },
             {
               "source_id": "sanganeri:S11",
@@ -1821,10 +1754,10 @@
       "category": "cross_tradition_comparisons",
       "title": "Printer communities: Chhipa and Khatri histories",
       "summary": "Ajrakh came to Kutch from Sindh some 400 years ago when the King of Kutch invited Khatri craftsmen.",
-      "body_md": "Ajrakh came to Kutch from Sindh some 400 years ago when the King of Kutch invited Khatri craftsmen. [ajrakh:S1]\n\nThe Khatri community of chhipas is believed to have come to Bagh about 400 years ago from Larkana in Sindh. [bagh:S1]\n\nBagru Chhipas came from Sawai Madhopur, Alwar, Jhunjhunu and Sikar districts (one account says some 300 years ago, another 450) and claim descent from Saint Namdeo. [bagru:S1, bagru:S5]\n\nThe Chhipa printers of Sanganer are described as Hindus who follow Sant Namdev. [sanganeri:S10]\n\nThe Akola block printers are the Chippa community. [dabu:S1, dabu:S2]\n\nSurvey respondents in Bagru and Sanganer were mostly from the Khatri or Chhipa community. [bagru:S3, sanganeri:S4]\n\nMachilipatnam printing is done in karkhanas; castes named include Devangas, Padmasalis, Kannebhaktulu and Senapathalu, with Hindu and Muslim dyers. [machilipatnam-kalamkari:S4, machilipatnam-kalamkari:S3]",
+      "body_md": "Ajrakh came to Kutch from Sindh some 400 years ago when the King of Kutch invited Khatri craftsmen. [ajrakh:S1]\n\nThe Khatri community of chhipas is believed to have come to Bagh about 400 years ago from Larkana in Sindh. [bagh:S1]\n\nBagru Chhipas came from Sawai Madhopur, Alwar, Jhunjhunu and Sikar districts (one account says some 300 years ago, another 450) and claim descent from Saint Namdeo. [bagru:S1, bagru:S5]\n\nThe printers of Sanganer belong to the Chhipa community, described as Hindus and followers of the Marathi saint Namdev. [sanganeri:S10]\n\nThe Akola block printers are the Chippa community. [dabu:S1, dabu:S2]\n\nSurvey respondents in Bagru and Sanganer were mostly from the Khatri or Chhipa community. [bagru:S3, sanganeri:S4]\n\nMachilipatnam printing is done in karkhanas; castes named include Devangas, Padmasalis, Kannebhaktulu and Senapathalu, with Hindu and Muslim dyers. [machilipatnam-kalamkari:S4, machilipatnam-kalamkari:S3]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Ajrakh came to Kutch from Sindh some 400 years ago when the King of Kutch invited Khatri craftsmen.",
@@ -1877,7 +1810,7 @@
           ]
         },
         {
-          "text": "The Chhipa printers of Sanganer are described as Hindus who follow Sant Namdev.",
+          "text": "The printers of Sanganer belong to the Chhipa community, described as Hindus and followers of the Marathi saint Namdev.",
           "source_ids": [
             "sanganeri:S10"
           ],
@@ -1899,17 +1832,7 @@
             {
               "source_id": "dabu:S1",
               "locator": "§ \"Dabu printing\"",
-              "quote": "46 shares Share Tweet Pin 46 LinkedIn aavaran , akola printing , akola rajasthan , Beduch river , block print rajasthan , block printing india , dabu , Dabu printing , dabu technique , fatia , fatia rajasthan , handicrafts india , Handmade , Indigo"
-            },
-            {
-              "source_id": "dabu:S1",
-              "locator": "§ \"Dabu printing\"",
               "quote": "the native craftsmen known as Chippas , specialize in block printing."
-            },
-            {
-              "source_id": "dabu:S2",
-              "locator": "§ \"page text\" (occurrence 2 of 2)",
-              "quote": "Home Block print Block Print~Akola"
             },
             {
               "source_id": "dabu:S2",
@@ -1992,14 +1915,14 @@
       "type": "comparison",
       "category": "cross_tradition_comparisons",
       "title": "Designs tied to client communities",
-      "summary": "Maldhari groups (including Jat) each had distinct Ajrakh styles and palettes that Khatris did not change.",
-      "body_md": "Maldhari groups (including Jat) each had distinct Ajrakh styles and palettes that Khatris did not change. [ajrakh:S7]\n\nBagh artisans formerly made different prints and clothes for different communities and castes, including Jat; now only Adivasis retain this. [bagh:S1]\n\nColours and designs of Bagru prints identify the user community (Jat, Meena, Rajput, Mali). [bagru:S1]\n\nThe Dabu phetia was worn by Jat and Chaudhury women and nangna by Gujjar women. [dabu:S6]\n\nSanganer syahi-begar designs were used for local men's safas, while buti florals were favoured by the Jaipur court. [sanganeri:S8, sanganeri:S9]",
+      "summary": "Ismail Khatri says each Maldhari community they worked with (Nodai, Haleputra, Sama, Sumra and Jat) had a distinct style, colour palette and design, and that they never changed the Ajrakh design.",
+      "body_md": "Ismail Khatri says each Maldhari community they worked with (Nodai, Haleputra, Sama, Sumra and Jat) had a distinct style, colour palette and design, and that they never changed the Ajrakh design. [ajrakh:S7]\n\nBagh artisans used to make different prints and clothes for different communities and castes, including Jats; now only the Adivasis keep this differentiation, and only for particular occasions. [bagh:S1]\n\nColours and designs of Bagru prints identify the user community (Jat, Meena, Rajput, Mali). [bagru:S1]\n\nThe Dabu phetia was worn by Jat and Chaudhury women and nangna by Gujjar women. [dabu:S6]\n\nSanganer syahi-begar designs were used for local men's safas, while buti florals were favoured by the Jaipur court. [sanganeri:S8, sanganeri:S9]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
-          "text": "Maldhari groups (including Jat) each had distinct Ajrakh styles and palettes that Khatris did not change.",
+          "text": "Ismail Khatri says each Maldhari community they worked with (Nodai, Haleputra, Sama, Sumra and Jat) had a distinct style, colour palette and design, and that they never changed the Ajrakh design.",
           "source_ids": [
             "ajrakh:S7"
           ],
@@ -2012,17 +1935,12 @@
             {
               "source_id": "ajrakh:S7",
               "locator": "§ \"We have walked all over the Banni\"",
-              "quote": "A Jat Maldhari couple; the Jat man is wearing a traditional Ajrakh dhoti \"Traditional double-sided Ajrakh was made using camel dungs."
-            },
-            {
-              "source_id": "ajrakh:S7",
-              "locator": "§ \"We have walked all over the Banni\"",
               "quote": "They never changed styles and we never changed the Ajrakh design."
             }
           ]
         },
         {
-          "text": "Bagh artisans formerly made different prints and clothes for different communities and castes, including Jat; now only Adivasis retain this.",
+          "text": "Bagh artisans used to make different prints and clothes for different communities and castes, including Jats; now only the Adivasis keep this differentiation, and only for particular occasions.",
           "source_ids": [
             "bagh:S1"
           ],
@@ -2108,7 +2026,7 @@
       "body_md": "Machilipatnam Kalamkari: application 90, certificate 71 dated 10-07-2008. [machilipatnam-kalamkari:S1]\n\nBagh Prints: a GI index gives a certificate date of 10/7/2008; logo application 505 certified 31-03-2016. [bagh:S12, bagh:S2]\n\nSanganeri: application 147 listed for April 2009 to March 2010. [sanganeri:S2]\n\nBagru: application 183 filed 10-08-2009, certificate 150 issued 11-05-2011. [bagru:S2]\n\nKutch Ajrakh: application 1050, certificate dated 22-04-2024. [ajrakh:S2]\n\nAakola Dabu: application 845 filed 04-03-2022, status Pre Examination. [dabu:S5]\n\nSecondary sources give dates the registry contradicts: a Bagru GI in 2024, Sanganeri in 2023, Machilipatnam in 2012, and a Dabu GI in 2023. [bagru:S8, sanganeri:S14, machilipatnam-kalamkari:S15, dabu:S20]",
       "local_terms": [],
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Machilipatnam Kalamkari: application 90, certificate 71 dated 10-07-2008.",
@@ -2236,18 +2154,8 @@
           "evidence": [
             {
               "source_id": "bagru:S8",
-              "locator": "§ \"References\"",
-              "quote": "Retrieved from \" https://en.wikipedia.org/w/index.php?title=Bagru_print&oldid=1359443271 \" Categories : Textile printing Relief printing Rajasthani arts Painted fabrics Textile arts of India Indian handicrafts Indian clothing Printed fabrics Culture of India Hidden categories: Use dmy dates from May 2024 Use British English from May 2024 All Wikipedia articles"
-            },
-            {
-              "source_id": "bagru:S8",
               "locator": "§ \"Bagru Print GI Tag\"",
               "quote": "In 2024, Bagru print was granted the Geographical Indication (GI) tag"
-            },
-            {
-              "source_id": "sanganeri:S14",
-              "locator": "§ \"page text\"",
-              "quote": "Sanganeri Print - AIACA Home About us Contact us Home About us Contact us Home About us Contact us"
             },
             {
               "source_id": "sanganeri:S14",
@@ -2288,10 +2196,10 @@
       "category": "cross_tradition_comparisons",
       "title": "Bagru and Sanganeri: a shared process chain",
       "summary": "Both GI texts print ferrous syahi (usually with the outline block) and alum begar.",
-      "body_md": "Both GI texts print ferrous syahi (usually with the outline block) and alum begar. [bagru:S1, sanganeri:S1]\n\nBoth obtain green by yellow-dyeing indigo-dyed cloth after re-printing dabu to keep some blue. [bagru:S1, sanganeri:S1]\n\nFour persons hold the cloth while a fifth rubs on turmeric-pomegranate dye with a loose woollen cloth. [bagru:S1, sanganeri:S1]\n\nBagru prints differ from Sanganeri mainly in the off-white versus white background. [bagru:S1, bagru:S4]",
+      "body_md": "Both GI texts print ferrous syahi (usually with the outline block) and alum begar. [bagru:S1, sanganeri:S1]\n\nIn both GI texts the fabric is turned green by a further yellow dyeing, after dabu is printed to retain some blue areas. [bagru:S1, sanganeri:S1]\n\nFour persons hold the cloth while a fifth rubs on turmeric-pomegranate dye with a loose woollen cloth. [bagru:S1, sanganeri:S1]\n\nThe Bagru GI text says Bagru print differs from Sanganeri print only in the background: white in Sanganeri, off-white in Bagru. [bagru:S1]",
       "local_terms": [],
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "claims": [
         {
           "text": "Both GI texts print ferrous syahi (usually with the outline block) and alum begar.",
@@ -2323,17 +2231,12 @@
           ]
         },
         {
-          "text": "Both obtain green by yellow-dyeing indigo-dyed cloth after re-printing dabu to keep some blue.",
+          "text": "In both GI texts the fabric is turned green by a further yellow dyeing, after dabu is printed to retain some blue areas.",
           "source_ids": [
             "bagru:S1",
             "sanganeri:S1"
           ],
           "evidence": [
-            {
-              "source_id": "bagru:S1",
-              "locator": "PDF p. 9",
-              "quote": "or fixing of colours after washing locally called \"Ralgai' Plate No'4 Annexure 13 - Resist Printing or mud clay printing locally called \"Dhabu Datai\" Plate No.S{ Annexure 13 - Dyeing with blue colour locally called \"Neel Rangai\" Plate No'7-8 Annexure 13 - Dyeing with yellow"
-            },
             {
               "source_id": "bagru:S1",
               "locator": "PDF p. 11",
@@ -2371,21 +2274,15 @@
           ]
         },
         {
-          "text": "Bagru prints differ from Sanganeri mainly in the off-white versus white background.",
+          "text": "The Bagru GI text says Bagru print differs from Sanganeri print only in the background: white in Sanganeri, off-white in Bagru.",
           "source_ids": [
-            "bagru:S1",
-            "bagru:S4"
+            "bagru:S1"
           ],
           "evidence": [
             {
               "source_id": "bagru:S1",
               "locator": "PDF p. 8",
               "quote": "8.13 Bagru print does not differ from Sanganeri Print excpt that whereas in the Sanganeri Print the background is u/hite, in Bagru Print it is off white or ftwn."
-            },
-            {
-              "source_id": "bagru:S4",
-              "locator": "PDF p. 7",
-              "quote": "Ramesha M N, Bagru- Enchanting prints from the Desert, Indian Silk, March 200, pp 36. d."
             }
           ]
         }
@@ -2409,214 +2306,417 @@
       "source": "bagru.material.dabu-paste",
       "target": "sanganeri.material.dabu-resist-paste",
       "type": "SIMILAR_TO",
-      "explanation": "Both GI texts give the same recipe: black clay, lime, wheat flour and gum, in ratios set by the dabu type, with family-held recipes.",
-      "conditions": "The Bagru and Sanganeri GI documents share near-identical wording, so this agreement is not independent corroboration. The Bagru paste concept is needs_evidence (conflicting meanings of bidhan).",
+      "explanation": "Both GI texts give the same dabu recipe: kali mitti (clay soil), lime, wheat flour and gum.",
+      "conditions": "The Bagru and Sanganeri GI documents share near-identical wording, so this agreement is not independent corroboration.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 13",
+          "quote": "Dabu paste is prepared by mixing 'Kali Mitti\" (clay soil), lime @idhan) wheat flour and gum."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 14",
+          "quote": "Dabu paste is prepared by mixing *Kali mittf', lime (Bidhan) wheai flour and gurn"
+        }
       ]
     },
     {
       "source": "bagru.material.dabu-paste",
       "target": "dabu.material.mud-black-clay",
       "type": "SIMILAR_TO",
-      "explanation": "Bagru dabu and Akola-centred Dabu sources both name black clay as the resist base, mixed with lime and gum.",
-      "conditions": "Dabu sources also give riverbank mud and river-bed silt; which clay is used varies by centre.",
+      "explanation": "The Bagru GI text makes dabu from black clay soil; a Dabu source names black clay, lime and natural gum as the resist paste.",
+      "conditions": "The Deesa account (Craft Revival Trust) gives river-bed silt with gum, lime and molasses instead.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "dabu:S20",
         "dabu:S3"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 14",
+          "quote": "*Dabu\" (Resist) paste used at Bagru is made out of looally available black clay soil."
+        },
+        {
+          "source_id": "dabu:S20",
+          "locator": "§ \"CRAFT HISTORY\"",
+          "quote": "The process involves applying a handmade resist paste of black clay, lime, and natural gum to block-printed designs"
+        },
+        {
+          "source_id": "dabu:S3",
+          "locator": "§ \"Craft Revival Trust New Delhi, India\"",
+          "quote": "The resist Dabu clay paste is made of a complex mixture of silt, from the dried river-bed, a local natural gum, lime, sugar-cane molasses"
+        }
       ]
     },
     {
       "source": "ajrakh.material.gach-mud-resist",
       "target": "dabu.material.mud-black-clay",
       "type": "SIMILAR_TO",
-      "explanation": "Both are clay pastes bound with gum that resist indigo; Ajrakh adds millet flour, Dabu recipes add lime and wheat by-products.",
+      "explanation": "Both are resist pastes of clay and gum: Ajrakh gach is tree gum, clay, water and millet flour; the Dabu sources give clay or river-bed silt with gum and lime.",
       "conditions": "Ajrakh gach is also an alum carrier (see the gach/dabu-printing contrast).",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "dabu:S3",
         "dabu:S20"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+          "quote": "a smooth fine paste is mixed from tree gum (Guar ka godh), clay (lal mitti), water and millet flour."
+        },
+        {
+          "source_id": "dabu:S3",
+          "locator": "§ \"Craft Revival Trust New Delhi, India\"",
+          "quote": "The resist Dabu clay paste is made of a complex mixture of silt, from the dried river-bed, a local natural gum, lime, sugar-cane molasses"
+        },
+        {
+          "source_id": "dabu:S20",
+          "locator": "§ \"CRAFT HISTORY\"",
+          "quote": "The process involves applying a handmade resist paste of black clay, lime, and natural gum to block-printed designs"
+        }
       ]
     },
     {
       "source": "ajrakh.process_stage.gach",
       "target": "bagru.process_stage.dabu-printing",
       "type": "CONTRASTS_WITH",
-      "explanation": "Ajrakh gach carries alum, so one printing both resists indigo and mordants the later red; Bagru dabu is a pure resist, used only to make patterns in indigo.",
+      "explanation": "Ajrakh gach carries alum, so one printing both resists indigo and mordants the later red; the Bagru GI text describes dabu as a mechanical resist that prevents dye from penetrating.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "bagru:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+          "quote": "act as a resist, preventing indigo from staining the cloth beneath, whilst the alum content acts a mordant for subsequent application of red dye."
+        },
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 11",
+          "quote": "Dhabu aca as mechanical resist and prevents the penetration of dye during dyeing on areas covered wilh 'dhabu''"
+        }
       ]
     },
     {
       "source": "ajrakh.material.lime-gum-resist",
       "target": "dabu.material.lime-chuna",
       "type": "SIMILAR_TO",
-      "explanation": "Both traditions use a lime-based resist for fine lines: Ajrakh khariyanu white outlines, and Dabu lime (kirana) as the weakest resist for fine outlines.",
+      "explanation": "Both use a lime resist for outlines: Ajrakh outlines where white is required, and Dabu lime (kirana), the weakest resist, for fine outlines.",
       "conditions": "In Ajrakh the lime also discharges alum; no Dabu source records that effect.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "dabu:S6"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+          "quote": "Outlines of the design, where white is required, are printed with a carved wooden block and a resist paste containing lime and tree gum."
+        },
+        {
+          "source_id": "dabu:S6",
+          "locator": "§ \"Hand Block Printing of Akola, Rajasthan\"",
+          "quote": "chuna /lime or kirana is the weakest resist which is used for fine outlines."
+        }
       ]
     },
     {
       "source": "ajrakh.material.dusting-agents",
       "target": "dabu.material.sawdust",
       "type": "SIMILAR_TO",
-      "explanation": "Wet resist paste is dusted at once with sawdust (Ajrakh also cow dung or rice husk) to stop the clay smudging.",
+      "explanation": "Wet resist paste is dusted at once with sawdust (in Ajrakh also powdered cow dung) to stop the clay smudging.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "dabu:S3"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+          "quote": "Saw dust or finely powdered cow dung is sprinkled over immediately after printing these two gach pastes, to prevent the wet day from smudging."
+        },
+        {
+          "source_id": "dabu:S3",
+          "locator": "§ \"Craft Revival Trust New Delhi, India\"",
+          "quote": "covered with sawdust without delay to ensure the wet clay does not smudge"
+        }
       ]
     },
     {
       "source": "bagru.material.sawdust",
       "target": "sanganeri.material.sawdust",
       "type": "SIMILAR_TO",
-      "explanation": "Both GI texts say sawdust absorbs water from the dabu and adds a further resist layer.",
+      "explanation": "Both GI texts say sawdust absorbs water from the dabu and adds a further layer of resist.",
       "conditions": "Shared GI wording; not independent.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 11",
+          "quote": "Saw dust has two major functiofls at this stage-first to absorb water from the Dhabu paste and give additional layers of resist'"
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "Saw dust has two major functions at this stage-first to absorb water from the Dha!,u paste and glve additional layers of resist."
+        }
       ]
     },
     {
       "source": "dabu.artisan_decision.choosing-resist-strength",
       "target": "bagru.artisan_decision.dabu-strength-selection",
       "type": "SIMILAR_TO",
-      "explanation": "Resist strength is chosen for the number of dye immersions it must survive: mud for repeated indigo dips (Dabu sources); kaligar, dolidar and gawarbali types at Bagru.",
-      "conditions": "The Dabu concept is needs_evidence; both rest on medium/low sources.",
+      "explanation": "The resist is chosen for the dyeing it must survive: mud when the cloth is immersed in indigo a few times (Akola account); gawarbali dabu, strengthened with oil and gawar seed powder, for repeated dyeing at Bagru.",
+      "conditions": "Both rest on secondary sources of medium reliability.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "dabu:S6",
         "bagru:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "dabu:S6",
+          "locator": "§ \"Hand Block Printing of Akola, Rajasthan\"",
+          "quote": "Mitti /mud is used when the cloth needs to be immersed in indigo a few times"
+        },
+        {
+          "source_id": "bagru:S4",
+          "locator": "PDF p. 5",
+          "quote": "Gawarbali Dabu has oil and gawar seed powder added to the paste which gives strength to cloth to go through repeated dyeing."
+        }
       ]
     },
     {
       "source": "sanganeri.process_stage.dabu-resist-printing",
       "target": "dabu.artisan_decision.mud-versus-tar",
       "type": "SIMILAR_TO",
-      "explanation": "Both record that mud resist gives imprecise lines: Sanganeri dabu gives no sharp definition because the paste is thick and sticky; Akola printers moved to tar for finer designs because mud cracked.",
+      "explanation": "Both record that mud resist gives imprecise lines: the Sanganeri GI text says dabu gives no sharp definition because the paste is thick and sticky; Akola printers moved to tar for more refined designs, which mud, mostly cracking, made difficult.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "sanganeri:S1",
         "dabu:S2",
         "dabu:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "Since the resist paste'dlwbu'is thick and sticky no sharp definitioas are achieved."
+        },
+        {
+          "source_id": "dabu:S2",
+          "locator": "§ \"Design:\"",
+          "quote": "shifted to the use of tar in a quest for obtaining more refined designs, which was difficult with the use of mud, which mostly cracked"
+        },
+        {
+          "source_id": "dabu:S1",
+          "locator": "§ \"Dabu printing\"",
+          "quote": "the craftsmen began to use tar instead of mud in case of designs which require sharper contrasts."
+        }
       ]
     },
     {
       "source": "ajrakh.process_stage.resist-washing",
       "target": "dabu.process_stage.washing-off-resist",
       "type": "SIMILAR_TO",
-      "explanation": "After indigo, the clay resist is washed off, leaving the reserved pattern.",
-      "conditions": "Akola tar resist is boiled off instead of washed.",
+      "explanation": "After dyeing, the resist paste is washed out: gently and then vigorously in Ajrakh, thoroughly to remove all traces of the paste in Dabu.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "dabu:S18"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+          "quote": "This washing begins gently, to loosen the clay of the resist pastes without smudging, then becomes a vigorous soaking and beating"
+        },
+        {
+          "source_id": "dabu:S18",
+          "locator": "§ \"Dabu Printing\"",
+          "quote": "dried again and then washed thoroughly to remove all traces of the paste and excess dye."
+        }
       ]
     },
     {
       "source": "machilipatnam-kalamkari.material.beeswax-resist",
       "target": "dabu.material.mud-black-clay",
       "type": "CONTRASTS_WITH",
-      "explanation": "Wax resist (applied with a kalam and removed by boiling) contrasts with a clay paste that is block-printed and washed off.",
-      "conditions": "The wax account is a general kalamkari description, not Pedana-specific; the Machilipatnam concept is needs_evidence.",
+      "explanation": "Machilipatnam lists beeswax among its raw materials and hand-prints the wax resist with a kalam; the Dabu resist is a paste of river-bed silt, gum, lime and molasses.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "machilipatnam-kalamkari:S5",
         "machilipatnam-kalamkari:S4",
         "dabu:S3"
+      ],
+      "evidence": [
+        {
+          "source_id": "machilipatnam-kalamkari:S5",
+          "locator": "§ \"Hand Block – Printing/ Kalamkari of Machilipatnam, Andhra Pradesh\"",
+          "quote": "The wax-resist is hand-printed on to the fabric with a kalam or pen made of an iron loop attached to a bamboo stick."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 3",
+          "quote": "Dyes-They are described in detail in the process. 3. Beeswax 4. Fuel"
+        },
+        {
+          "source_id": "dabu:S3",
+          "locator": "§ \"Craft Revival Trust New Delhi, India\"",
+          "quote": "The resist Dabu clay paste is made of a complex mixture of silt, from the dried river-bed, a local natural gum, lime, sugar-cane molasses"
+        }
       ]
     },
     {
       "source": "machilipatnam-kalamkari.material.indigo",
       "target": "dabu.process_stage.dip-dyeing",
       "type": "CONTRASTS_WITH",
-      "explanation": "Machilipatnam prints indigo directly in rice starch, since indigo needs no mordant; Dabu reserves areas with a resist and dips the whole cloth in a cold vat.",
-      "conditions": "Other Machilipatnam sources describe wax-resist-and-dip indigo in general kalamkari; synthetic blue is reported to have replaced natural indigo there.",
+      "explanation": "Machilipatnam prints indigo directly, since it needs no mordant; Dabu cloth is dip-dyed, in a cold indigo solution in the Akola account.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "machilipatnam-kalamkari:S4",
         "dabu:S3",
         "dabu:S2"
+      ],
+      "evidence": [
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 12",
+          "quote": "Indigo does not require any mordant so the solution is printed directly."
+        },
+        {
+          "source_id": "dabu:S3",
+          "locator": "§ \"Craft Revival Trust New Delhi, India\"",
+          "quote": "The fabric is then dip dyed."
+        },
+        {
+          "source_id": "dabu:S2",
+          "locator": "§ \"process:\"",
+          "quote": "It is a cold dyeing process where the cloth is dipped in a solution of Indigo dye."
+        }
       ]
     },
     {
       "source": "ajrakh.artisan_decision.indigo-dip-count",
       "target": "dabu.artisan_decision.number-of-dips-and-cycles",
       "type": "SIMILAR_TO",
-      "explanation": "The dyer decides how many dips (and, in Ajrakh, re-prints of resist between dips) are needed for the shade.",
+      "explanation": "The number of dips follows the shade wanted: three or four immersions for the darkest Ajrakh blues; Dabu dyeing is repeated to obtain the required shade.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "dabu:S2",
         "dabu:S18"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+          "quote": "If a design required the darkest shades of the blue then the cloth may be subjected to a total of three or four immersions"
+        },
+        {
+          "source_id": "dabu:S2",
+          "locator": "§ \"process:\"",
+          "quote": "The process is repeated again to obtain the required shade."
+        },
+        {
+          "source_id": "dabu:S18",
+          "locator": "§ \"Dabu Printing\"",
+          "quote": "This process can be done more than once to achieve the desired color and effect."
+        }
       ]
     },
     {
       "source": "ajrakh.artisan_decision.tasting-indigo-vat",
       "target": "bagru.artisan_decision.reading-the-indigo-vat",
       "type": "SIMILAR_TO",
-      "explanation": "Both are tacit judgements of vat condition without a written recipe; the cue differs: taste in Ajrakh accounts, vat colour at Bagru.",
+      "explanation": "Both judge the vat by the senses: Khatri printers tasted the indigo to tell its shade, quality or needs; at Bagru an expert dyer tells the state of the dye by its colour.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S8",
         "ajrakh:S11",
         "bagru:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S8",
+          "locator": "§ \"We work in harmony with nature\"",
+          "quote": "they could dip their finger in a pot of indigo, taste it, and be able to tell the shade and quality."
+        },
+        {
+          "source_id": "ajrakh:S11",
+          "locator": "§ \"Indigo in Kutch, India: Art and Science, Environment and Economics\"",
+          "quote": "He could taste a dye bath and know if it needed lime, soda ash, or dates."
+        },
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 11",
+          "quote": "An expert indigo dyer can tell the stat of dye by the colour"
+        }
       ]
     },
     {
       "source": "ajrakh.tool.underground-indigo-vat",
       "target": "sanganeri.tool.indigo-vat",
       "type": "SIMILAR_TO",
-      "explanation": "Once established, the vat is kept active for long periods by replenishing ingredients.",
+      "explanation": "Once established, the vat is kept active by replenishing its ingredients.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "sanganeri:S1"
@@ -2638,82 +2738,147 @@
       "source": "bagru.process_stage.neel-rangai-indigo",
       "target": "sanganeri.process_stage.indigo-dyeing",
       "type": "SIMILAR_TO",
-      "explanation": "Identical descriptions: pleated cloth opened under the liquor, oxidised and re-dipped from pale sky blue to the desired shade.",
+      "explanation": "Identical wording in both GI texts: indigo has poor affinity to the fabric in the presence of water, so the first dip gives a pale sky blue.",
       "conditions": "Shared GI wording; not independent.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 11",
+          "quote": "Indigo has poor affinity to the Abric in t}e presence of water, so tlre first 'dip' gives a pale sky blue shade."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 12",
+          "quote": "Indigo has poor atrni1V to the fabric in the presio\"\" of water, so the first 'dip' gves a pale sky blue shade."
+        }
       ]
     },
     {
       "source": "ajrakh.process_stage.kasano",
       "target": "bagru.process_stage.peela-karna-harda",
       "type": "SIMILAR_TO",
-      "explanation": "Both soak scoured cloth in myrobalan (harde/harda) solution and dry it as a tannin pre-mordant before mordant printing.",
+      "explanation": "Both treat the cloth with myrobalan (harde, harda) before mordant printing: the Ajrakh GI text calls its tannin an essential pre-mordant that aids the printed mordants; at Bagru the cloth is submerged in harda water, squeezed and dried.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "bagru:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+          "quote": "The tannin in the Myroballan penetrates the cotton fibres and is essential pre-mordant which aids the adhesion of the subsequent printed mordants onto the cloth."
+        },
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 10",
+          "quote": "'Ilarda' powder is mixed with water, and the cloth is submerged in it, squeezed and dried flat on the ground."
+        }
       ]
     },
     {
       "source": "bagh.process_stage.harara-treatment",
       "target": "machilipatnam-kalamkari.process_stage.myrobalan-treatment",
       "type": "SIMILAR_TO",
-      "explanation": "Both dip the scoured cloth in myrobalan and dry it, turning it yellowish before printing.",
+      "explanation": "Both treat the scoured cloth with myrobalan (harara at Bagh): at Bagh the day after mengni karna, at Machilipatnam after bleaching, where it is then squeezed and dried in the sun.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagh:S1",
         "machilipatnam-kalamkari:S4",
         "machilipatnam-kalamkari:S3"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 12",
+          "quote": "On the day after mengnikarna the fabric has to be treated with a solution of harara powder"
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 7",
+          "quote": "The cloth thus bleached is then soaked in a myrobalan solution."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S3",
+          "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+          "quote": "After 45 minutes the cloth is` taken out, squeezed evenly and dried in the sunlight."
+        }
       ]
     },
     {
       "source": "bagru.process_stage.peela-karna-harda",
       "target": "sanganeri.process_stage.harda-treatment",
       "type": "SIMILAR_TO",
-      "explanation": "Identical peela karna: harda in water, submerge, squeeze, dry flat, fold and beat.",
+      "explanation": "Identical peela karna: the dried cloth is folded and beaten with a wooden mallet to remove excess harda and open up the fibre.",
       "conditions": "Shared GI wording; not independent.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 10",
+          "quote": "it is folded and beaten with a wooden mallet to remove excss 'harda' powder and open up the fiber to accept the dye."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 10",
+          "quote": "it is folded and beaten with a wooden mallet to remove excess 'harda' powder and open up the fiber to accept the dye."
+        }
       ]
     },
     {
       "source": "machilipatnam-kalamkari.process_stage.myrobalan-treatment",
       "target": "bagru.process_stage.peela-karna-harda",
       "type": "SIMILAR_TO",
-      "explanation": "Myrobalan soak, squeeze and dry, as the step before mordant printing.",
+      "explanation": "In both the cloth is soaked in myrobalan (harda), squeezed and dried.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "machilipatnam-kalamkari:S3",
         "bagru:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "machilipatnam-kalamkari:S3",
+          "locator": "§ \"Process involved in Block printing with Natural Dyes in Pedana\"",
+          "quote": "After 45 minutes the cloth is` taken out, squeezed evenly and dried in the sunlight."
+        },
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 10",
+          "quote": "'Ilarda' powder is mixed with water, and the cloth is submerged in it, squeezed and dried flat on the ground."
+        }
       ]
     },
     {
       "source": "ajrakh.material.kut-iron-paste",
       "target": "machilipatnam-kalamkari.material.kasim-iron-acetate",
       "type": "SIMILAR_TO",
-      "explanation": "Both are iron liquors from scrap iron fermented with jaggery, thickened or printed for black.",
-      "conditions": "Recipes differ (gram flour and tamarind in Ajrakh; salt water and paddy husk at Machilipatnam).",
+      "explanation": "Both ferment iron with jaggery for the black: scrap iron with jaggery or molasses and gram flour in Ajrakh kut; iron filings with paddy husk, salt and jaggery in Machilipatnam kasim.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "machilipatnam-kalamkari:S4"
@@ -2722,7 +2887,7 @@
         {
           "source_id": "ajrakh:S1",
           "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
-          "quote": "The kut is a smooth finer paste made from jaggery, or molasses, in which scrap iron such as horse-hoes and besan (gram flour)"
+          "quote": "made from jaggery, or molasses, in which scrap iron such as horse-hoes and besan (gram flour) have been fermented for ten to fifteen days."
         },
         {
           "source_id": "machilipatnam-kalamkari:S4",
@@ -2735,87 +2900,174 @@
       "source": "bagru.material.syahi-iron-black",
       "target": "sanganeri.material.syahi-iron-black",
       "type": "SIMILAR_TO",
-      "explanation": "Syahi in both is fermented iron (rusted horseshoes) with jaggery and gum that turns black with harda.",
-      "conditions": "The GI texts share wording, but Sanganeri also has independent sources (Gaatha, Jain & Hada).",
+      "explanation": "Syahi in both GI texts is a fermented solution of iron with molasses (jaggery) and gum that turns deep black with harda; a Sanganer history describes horseshoe iron and jaggery left in cold water for a fortnight.",
+      "conditions": "The GI texts share wording; the Sanganer history (Jain and Hada) is separate from them.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1",
         "sanganeri:S10"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 13",
+          "quote": "essentially a fermented solution ofiron and fermenting agent molasses 6iggery, gur) and gum. Syahi in combination with harda dev'elops into a deep black colour."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 14",
+          "quote": "essentially a fermented solution of iron and fermenting agent molasses fiiggery, gur) and gum. Syahi in combination witl harda develops into a deep black colour."
+        },
+        {
+          "source_id": "sanganeri:S10",
+          "locator": "PDF p. 6",
+          "quote": "iron pieces in the form of horse shoe and jaggery were placed in a certain proportion in cold water for a fortnight"
+        }
       ]
     },
     {
       "source": "bagh.material.iron-black",
       "target": "bagru.material.syahi-iron-black",
       "type": "SIMILAR_TO",
-      "explanation": "Both describe black made from iron (rust or filings) left with jaggery and water, printed as the black mordant.",
-      "conditions": "Bagh sources also describe market-bought ferrous sulphate cooked with tamarind seed powder.",
+      "explanation": "Both make the black from iron with jaggery: iron sulphate (hirakasish) or iron filings with jaggery and water at Bagh, old rusted horseshoe nails with jaggery at Bagru.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagh:S1",
         "bagru:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 13",
+          "quote": "Hirakasish or iron sulphate or iron filings are filled in earthen pot where jaggery and water are added to the pot"
+        },
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 10",
+          "quote": "ferrous (syahee) which is traditionally made by reaction of old rusted hone shoe nails with jigsery."
+        }
       ]
     },
     {
       "source": "bagh.scientific_mechanism.indirect-mordant-dyeing",
       "target": "bagru.scientific_mechanism.two-mordant-single-dyebath",
       "type": "SIMILAR_TO",
-      "explanation": "Both describe printed mordants reacting in one alizarin bath to give different colours on the same cloth.",
+      "explanation": "Both describe printed mordants reacting with one dye to give different colours on the same cloth.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagh:S7",
         "bagh:S1",
         "bagru:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagh:S7",
+          "locator": "PDF p. 1",
+          "quote": "the mordants applied during the course of printing with the blocks react with the dyeing compound (alizarin in this case) to give the final colours."
+        },
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 13",
+          "quote": "first block printing is done with alum, which is a mordant, after which the colour is retained by dipping the cloth in the specific solution"
+        },
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 10",
+          "quote": "the dye reacts with two mordanb at two different locations on tle same print giving two different shades of colours."
+        }
       ]
     },
     {
       "source": "bagru.scientific_mechanism.two-mordant-single-dyebath",
       "target": "sanganeri.explanation.one-dye-two-mordants",
       "type": "SIMILAR_TO",
-      "explanation": "Identical statement: the dye reacts with two mordants at two locations, giving red with alum and black with ferrous.",
+      "explanation": "Identical statement: the dye reacts with two mordants at two locations on the same print, giving two shades.",
       "conditions": "Shared GI wording; not independent.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 10",
+          "quote": "the dye reacts with two mordanb at two different locations on tle same print giving two different shades of colours."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "the dye reacts with two mordents at two diiTerent locations on the same print grvhg two different shades of colours'"
+        }
       ]
     },
     {
       "source": "machilipatnam-kalamkari.scientific_mechanism.mordant-selective-red-development",
       "target": "bagh.scientific_mechanism.indirect-mordant-dyeing",
       "type": "SIMILAR_TO",
-      "explanation": "Alum and iron printed in different areas yield red and black when the whole cloth is boiled in a red bath.",
+      "explanation": "Alum and iron mordants in different areas give red and black with the dye: red where alum is, black where iron is, and alizarin develops the red with alum at Machilipatnam; at Bagh alizarin gives black with iron rust and red with alum.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "machilipatnam-kalamkari:S10",
         "machilipatnam-kalamkari:S4",
         "bagh:S7"
+      ],
+      "evidence": [
+        {
+          "source_id": "machilipatnam-kalamkari:S10",
+          "locator": "§ \"Bed curtain\"",
+          "quote": "The areas to be red in the finished piece are painted with an alum mordant, and the black areas with an iron mordant."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 11",
+          "quote": "the red color develops as a result of the combination of alum and alizerine"
+        },
+        {
+          "source_id": "bagh:S7",
+          "locator": "PDF p. 3",
+          "quote": "The Alizarin powder reacts with the iron rust to give a bright black colour and with the alum solution to give a bright red colour."
+        }
       ]
     },
     {
       "source": "ajrakh.process_stage.kut",
       "target": "bagh.scientific_mechanism.iron-alizarin-black",
       "type": "CONTRASTS_WITH",
-      "explanation": "The Ajrakh GI text says kut develops its black on printing, as iron reacts with the tannin on harde-treated cloth; a Bagh source says the black forms when alizarin reacts with iron in the dye bath.",
-      "conditions": "Unresolved chemistry: see shared.open_question.iron-anthraquinone-colour-chemistry. The Bagh concept is needs_evidence.",
+      "explanation": "The Ajrakh GI text says kut develops its black on the harde-treated cloth, as the iron oxidises with the tannic acid; a Bagh source says alizarin reacts with the iron rust to give the black.",
+      "conditions": "Unresolved chemistry: see shared.open_question.iron-anthraquinone-colour-chemistry.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "bagh:S7"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 6",
+          "quote": "onto the harde treated cloth kut develops a deep fast chocolate-black colour as the iron particles in the kut paste oxidise with the tannic acid."
+        },
+        {
+          "source_id": "bagh:S7",
+          "locator": "PDF p. 3",
+          "quote": "The Alizarin powder reacts with the iron rust to give a bright black colour and with the alum solution to give a bright red colour."
+        }
       ]
     },
     {
@@ -2823,25 +3075,42 @@
       "target": "sanganeri.material.begar-alum-mordant",
       "type": "SIMILAR_TO",
       "explanation": "Both add a colourant to the colourless alum paste: a simple chemical colour at Bagh, a pinch of geru (red ochre) at Sanganer.",
-      "conditions": "Only the Bagh source states the purpose (to let the printer see placement); the Sanganeri sources give the ingredient, not the reason.",
+      "conditions": "The Bagh source gives the purpose as letting the printer gauge the print; the Sanganer account says the ochre brings out colour in the otherwise transparent paste.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagh:S1",
         "sanganeri:S8",
         "sanganeri:S10"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 13",
+          "quote": "Since alum is colourless, to enable the block-printer to gauge his print during the printing process, a simple colour (chemical) colour is used"
+        },
+        {
+          "source_id": "sanganeri:S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "Alum was mixed with sticky tree gum paste and a pinch of Geru red ochre to bring out colour in the otherwise transparent paste."
+        },
+        {
+          "source_id": "sanganeri:S10",
+          "locator": "PDF p. 6",
+          "quote": "Red colour dye was made using alum and ,,geru a red soil"
+        }
       ]
     },
     {
       "source": "ajrakh.artisan_decision.lime-alum-separation",
       "target": "machilipatnam-kalamkari.artisan_decision.avoid-iron-with-alum",
       "type": "SIMILAR_TO",
-      "explanation": "Practitioners keep a known spoiler away from the alum red: lime (which discharges alum) in Ajrakh, iron (which darkens the colour) at Machilipatnam.",
+      "explanation": "Practitioners keep a known spoiler apart: lime, which discharges the alum, away from the alum print in Ajrakh; iron implements and utensils, since iron darkens the colour, at Machilipatnam.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "machilipatnam-kalamkari:S4"
@@ -2863,11 +3132,11 @@
       "source": "ajrakh.environmental_condition.water-iron-content",
       "target": "machilipatnam-kalamkari.artisan_decision.avoid-iron-with-alum",
       "type": "SIMILAR_TO",
-      "explanation": "Both sources say stray iron darkens the colours: iron in Ajrakh water dulls and darkens the result; Machilipatnam printers avoid iron utensils with alum for the same reason.",
+      "explanation": "Both sources say stray iron darkens the colours: iron in the Ajrakh water supply dulls and darkens the result; Machilipatnam printers avoid iron implements and utensils because iron darkens the colour.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "machilipatnam-kalamkari:S4"
@@ -2889,140 +3158,263 @@
       "source": "machilipatnam-kalamkari.process_stage.alum-fixing-dip",
       "target": "bagru.scientific_mechanism.alum-fixes-fugitive-yellow",
       "type": "SIMILAR_TO",
-      "explanation": "A late alum bath fixes the applied yellow: at Machilipatnam excess yellow runs off and colours are fixed; at Bagru alum makes the fugitive turmeric-pomegranate yellow fast.",
+      "explanation": "A late alum bath fixes the yellow: at Machilipatnam the excess yellow runs off and all the colours are fixed; at Bagru alum post-mordanting makes the fugitive turmeric and pomegranate yellow fast.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "machilipatnam-kalamkari:S4",
         "bagru:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 12",
+          "quote": "The fabric is then submerged in this solution for a while. The excess yellow color runs off and all the colors are fixed."
+        },
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 12",
+          "quote": "The dye extractd from turmeric and pomegranate peals is very fugitive and in order to make it fast, post mordanting is done with alum (fitkari)"
+        }
       ]
     },
     {
       "source": "ajrakh.material.synthetic-alizarin",
       "target": "bagru.material.madder-alizarin",
       "type": "SIMILAR_TO",
-      "explanation": "In both, synthetic alizarin has replaced madder as the red dye and still develops red on alum.",
+      "explanation": "In both, synthetic alizarin has taken the place of madder: it rapidly superseded madder in the Ajrakh account, and at Bagru it is used because of the shortage of vegetable alizarin from madder.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "bagru:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+          "quote": "Derived from coal tar this crystalline red dye rapidly superseded madder, its natural counterpart."
+        },
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 14",
+          "quote": "maddar (Rubia thctoria, Rubia manjista) which contairu substances called alizarine and purpurin. Nowadays synthetic alizarine is used due to shortage of vegetable alizarine."
+        }
       ]
     },
     {
       "source": "bagh.material.alizarin",
       "target": "machilipatnam-kalamkari.material.alizarin-and-red-roots",
       "type": "SIMILAR_TO",
-      "explanation": "Both record an earlier root dye (aal at Bagh; chay and madder in the south) replaced by alizarin.",
-      "conditions": "Bagh sources disagree on what \"aal\" alizarin comes from (open question in the Bagh file).",
+      "explanation": "Both record an earlier root material replaced by alizarin: the aal root at Bagh; in the Machilipatnam sources chay root was a fine source of red in the south, and alizarin is used today instead of organic matter.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagh:S1",
         "machilipatnam-kalamkari:S4",
         "machilipatnam-kalamkari:S6"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 13",
+          "quote": "Earlier, the root of the aal tree (aalkajad) was used as a fastening agent; now alizarine has taken its place."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 2",
+          "quote": "chay (chay is oldenlandia), the root of oldenlandia umbellata, were highly estimated as fine sources of red in the south."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S6",
+          "locator": "PDF p. 6",
+          "quote": "Alizarin is used today instead of organic matter."
+        }
       ]
     },
     {
       "source": "dabu.material.alizarin-and-naphthol-reds",
       "target": "sanganeri.material.madder-alizarin",
       "type": "CONTRASTS_WITH",
-      "explanation": "Akola Dabu replaced alizarin with naphthol printed and developed in red salt; Sanganer replaced madder with synthetic alizarin but kept the alum-mordant bath.",
+      "explanation": "Akola Dabu replaced alizarin with naphthol, turned red in a red salt; Sanganer replaced the vegetable alizarin of madder with synthetic alizarin.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "dabu:S1",
         "dabu:S2",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "dabu:S1",
+          "locator": "§ \"Dabu printing\"",
+          "quote": "Alizarin pigment used to impart red color was replaced by Naphthol"
+        },
+        {
+          "source_id": "dabu:S2",
+          "locator": "§ \"process:\"",
+          "quote": "dipped in a red salt, which reacts with the naphthol to give a bright red shade"
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 14",
+          "quote": "maddar (Rubia tirctoria, Rubia manjista) which contains substanoes called alizarine and purpurin. Nowadays synthetic alizarine is used due to shortage of vegetable alizarine."
+        }
       ]
     },
     {
       "source": "bagru.material.dhawai-flowers",
       "target": "sanganeri.material.dhawai-phool",
       "type": "SIMILAR_TO",
-      "explanation": "Both GI texts say dhawai flowers are boiled with alizarin to avoid patches and staining.",
+      "explanation": "Both GI texts say dhawadi phool, a local flower, is boiled with alizarin to avoid patches and staining.",
       "conditions": "Shared GI wording; not independent.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 10",
+          "quote": "'l)hawadi pha>l', a local flower is boiled along with alizarin to avoid patches and staining."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "'Dluwadi phool', a local flower is boiled along with alizarin to avoid patches and staining."
+        }
       ]
     },
     {
       "source": "bagh.material.dhavda-flowers",
       "target": "sanganeri.material.dhawai-phool",
       "type": "SIMILAR_TO",
-      "explanation": "A flower boiled with alizarin in the red bath; Bagh sources identify the bhatti flower as Woodfordia fruticosa.",
-      "conditions": "The stated role differs (shine and fixing at Bagh, avoiding patches at Sanganer); the Bagh concept is needs_evidence because its identity and role are disputed.",
+      "explanation": "A flower is boiled with alizarin in the red bath; a Bagh source identifies the Bagh flower as Woodfordia fruticosa.",
+      "conditions": "The stated role differs: shining and fixing at Bagh, avoiding patches and staining at Sanganer.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagh:S1",
         "bagh:S5",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 15",
+          "quote": "it is boiled in a solution of dhavdakaphool (for shining and fixing) and alizarine (to fasten colours)."
+        },
+        {
+          "source_id": "bagh:S5",
+          "locator": "§ \"Bagh and its legacy in print\"",
+          "quote": "boiled in a mixture containing alizarin (the chemical that transforms the fuchsia pink to the delightful red), dhavdi flowers (Woodfordia fruticosa"
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "'Dluwadi phool', a local flower is boiled along with alizarin to avoid patches and staining."
+        }
       ]
     },
     {
       "source": "ajrakh.material.dhawri-tamarisk",
       "target": "bagru.material.dhawai-flowers",
       "type": "SIMILAR_TO",
-      "explanation": "Both add dried flowers to the red bath to keep colour from staining where it is not wanted.",
-      "conditions": "The Ajrakh GI application names dried tamarisk flowers and the Bagru GI application \"dhawai ka phool\" (Wood Fordia Floribunda); the similarity is of function only.",
+      "explanation": "Both add flowers to the red bath to keep colour from staining: dried \"tamansk\" (tamarisk) flowers in Ajrakh if colour spreads into the white areas, dhawadi phool at Bagru to avoid patches and staining.",
+      "conditions": "The similarity is of function only; the two GI applications name different flowers.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "bagru:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+          "quote": "if colour spreads into the white areas a handful of dried tamansk flowers are added."
+        },
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 10",
+          "quote": "'l)hawadi pha>l', a local flower is boiled along with alizarin to avoid patches and staining."
+        }
       ]
     },
     {
       "source": "machilipatnam-kalamkari.material.dye-bath-plant-additives",
       "target": "bagh.material.dhavda-flowers",
       "type": "SIMILAR_TO",
-      "explanation": "A locally gathered plant is added to the alizarin boil as a fixer: gaja leaves at Machilipatnam, dhavda flowers at Bagh.",
-      "conditions": "Bagh concept is needs_evidence.",
+      "explanation": "A plant is added to the dye boil to fix the colours: gaja leaves from the local forest at Machilipatnam, dhavda flowers at Bagh.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "machilipatnam-kalamkari:S13",
         "bagh:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "machilipatnam-kalamkari:S13",
+          "locator": "§ \"Rajarshi Sengupta\"",
+          "quote": "While boiling, leaves from the local forest, known as gaja, are added to the water to fix the colours."
+        },
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 15",
+          "quote": "it is boiled in a solution of dhavdakaphool (for shining and fixing) and alizarine (to fasten colours)."
+        }
       ]
     },
     {
       "source": "ajrakh.tool.copper-dye-pot",
       "target": "bagh.tool.copper-bhatti-vat",
       "type": "SIMILAR_TO",
-      "explanation": "The red bath is heated in large copper vessels over a wood fire, with cloth kept moving by sticks.",
-      "conditions": "Machilipatnam sources disagree on copper versus iron vessels.",
+      "explanation": "The red dye is heated in large copper vessels: a copper pot in Ajrakh, copper vats on brick and cement furnaces at Bagh.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "bagh:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 7",
+          "quote": "Alizarin crystals or the crushed and steeped roots of majeeta or Indian Madder are gently heated in a large copper pot."
+        },
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 15",
+          "quote": "The vats are generally made of copper and are fixed on brick and cement furnaces."
+        }
       ]
     },
     {
       "source": "ajrakh.historical_context.synthetic-dye-shift-and-revival",
       "target": "sanganeri.open_question.natural-vs-synthetic-share",
       "type": "SIMILAR_TO",
-      "explanation": "Both record a shift to synthetic dyes, with natural dyes kept for particular orders or markets.",
-      "conditions": "Neither tradition has a reliable measured share.",
+      "explanation": "Both record a shift to synthetic dyes, with natural dyes kept for particular orders.",
+      "conditions": "Neither source measures the share.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S9",
         "sanganeri:S4"
@@ -3044,25 +3436,37 @@
       "source": "bagru.open_question.natural-vs-synthetic-share",
       "target": "bagh.environmental_condition.synthetic-substitution",
       "type": "SIMILAR_TO",
-      "explanation": "Both record synthetic dyes adopted for cost, time or demand alongside natural dyeing.",
+      "explanation": "Both record synthetic dyes taken up alongside natural dyeing: chemical dyes in abundance with natural dyes only for specific orders at Bagru and Sanganer; synthetic colours at Bagh, because natural dyeing takes so long.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S3",
         "bagh:S5"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S3",
+          "locator": "PDF p. 5",
+          "quote": "that includes the usage of chemical dyes in abundance and the usage of natural dyes only for specific orders."
+        },
+        {
+          "source_id": "bagh:S5",
+          "locator": "§ \"Bagh and its legacy in print\"",
+          "quote": "Owing to its time inefficiency, artists and small entrepreneurs have forayed into synthetic colours, which are more diverse and cater to urban demands."
+        }
       ]
     },
     {
       "source": "ajrakh.process_stage.tapano",
       "target": "sanganeri.process_stage.sun-bleaching",
       "type": "SIMILAR_TO",
-      "explanation": "After the red bath, cloth is treated with dung, spread on a river bed or bank in the sun and kept moist to whiten the ground.",
-      "conditions": "Camel dung in Ajrakh, cow dung at Sanganer.",
+      "explanation": "Dyed cloth is treated with dung by a river: soaked in camel dung and spread on sandy river banks in the sun in Ajrakh; laid flat on a river bed and sprinkled with cow dung and water at Sanganer.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "sanganeri:S1"
@@ -3071,7 +3475,7 @@
         {
           "source_id": "ajrakh:S1",
           "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
-          "quote": "then spread on the sandy banks of a river in the sun and regularly sprinkled with water to keep it moist throughout the day."
+          "quote": "The dyed cloth would be soaked in a solution of camel dung, then spread on the sandy banks of a river in the sun"
         },
         {
           "source_id": "sanganeri:S1",
@@ -3084,11 +3488,11 @@
       "source": "ajrakh.scientific_mechanism.madder-staining-and-clearing",
       "target": "sanganeri.explanation.tapai-alkali-and-heat",
       "type": "SIMILAR_TO",
-      "explanation": "Both GI texts attribute the whitening to dung combined with sun (and moisture).",
-      "conditions": "Applicant explanations without measurement; the Sanganeri concept and the shared sun-bleaching mechanism are needs_evidence.",
+      "explanation": "Both GI texts attribute the whitening to dung combined with the sun (and, in Ajrakh, moisture).",
+      "conditions": "Applicant explanations without measurement.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "sanganeri:S1"
@@ -3110,15 +3514,32 @@
       "source": "bagh.process_stage.tarai",
       "target": "sanganeri.process_stage.sun-bleaching",
       "type": "SIMILAR_TO",
-      "explanation": "Repeated wetting while the cloth dries in the sun near running water, after dyeing.",
+      "explanation": "The cloth is wetted again while it dries: sprayed with water by hand in Bagh tarai, sprinkled with cow dung and water at Sanganer; a Bagh source adds that it is sun-dried on river stones for natural bleaching.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagh:S1",
         "bagh:S6",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 15",
+          "quote": "after washing the cloth, when it is being dried, it is repeatedly moistened by spraying water on it with the hands."
+        },
+        {
+          "source_id": "bagh:S6",
+          "locator": "§ \"This 400-year-old tradition of block printing, using natural ingredients and labour-intensive techniques, is no mean fea\"",
+          "quote": "sun-dried on river stones for natural bleaching, and washed three times in running water; a process called tarai ."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "A mild solution ofcow dung and water is sprhkled over the fubric. This process is repeated again when the fabric is drying."
+        }
       ]
     },
     {
@@ -3129,22 +3550,39 @@
       "conditions": "Both statements come partly from GI texts that share wording.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1",
         "sanganeri:S8"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 14",
+          "quote": "The ground colour of Bagru l{and Block Textile is mostly off white (cream)."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 11",
+          "quote": "In order to make the ground look whitg again the fabric is sun-bleached."
+        },
+        {
+          "source_id": "sanganeri:S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "This resulted in a bright white background and clear richly coloured butis and butahs."
+        }
       ]
     },
     {
       "source": "machilipatnam-kalamkari.outcome.pink-ground-and-red-black",
       "target": "sanganeri.outcome.white-ground-red-black",
       "type": "CONTRASTS_WITH",
-      "explanation": "The Machilipatnam account leaves unmordanted areas pinkish after the alizarin bath; Sanganer whitens them again.",
+      "explanation": "In the Machilipatnam account the portions not treated with alum take on a pinkish colour; Sanganer sun-bleaches the cloth so the ground looks white again.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "machilipatnam-kalamkari:S4",
         "sanganeri:S1"
@@ -3166,25 +3604,37 @@
       "source": "bagh.process_stage.curing",
       "target": "bagru.process_stage.sukhai-ageing",
       "type": "SIMILAR_TO",
-      "explanation": "Mordant-printed cloth rests before washing so the colour or mordant sets.",
-      "conditions": "Durations differ: 8–15 days at Bagh, at least 3–4 days at Bagru.",
+      "explanation": "Printed cloth rests so that the colour sets or the mordant paste penetrates the fibre.",
+      "conditions": "Durations differ: 8 to 15 days at Bagh, at least 3 to 4 days at Bagru.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagh:S1",
         "bagru:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 14",
+          "quote": "The printed material when dry is rolled into bundles and kept away for eight to fifteen days. This allows the colour to set in properly."
+        },
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 10",
+          "quote": "The printed ftbric is left for at least three-four days so that the print (mordant paste) panetrates into the fiber struoture."
+        }
       ]
     },
     {
       "source": "machilipatnam-kalamkari.process_stage.curing-drying",
       "target": "sanganeri.process_stage.ageing",
       "type": "SIMILAR_TO",
-      "explanation": "Mordant-printed cloth is left to dry and cure before washing.",
-      "conditions": "Durations differ: one to three days at Machilipatnam, at least 3–4 days at Sanganer.",
+      "explanation": "Printed cloth is left before the next step: two to three days until dry, or one day in the sun, at Machilipatnam; at least three to four days at Sanganer so the mordant paste penetrates.",
+      "conditions": "Durations differ: one to three days at Machilipatnam, at least 3 to 4 days at Sanganer.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "machilipatnam-kalamkari:S4",
         "machilipatnam-kalamkari:S3",
@@ -3212,96 +3662,173 @@
       "source": "bagh.process_stage.bichalna",
       "target": "machilipatnam-kalamkari.process_stage.degumming-wash",
       "type": "SIMILAR_TO",
-      "explanation": "Printed cloth is washed in flowing water to remove unfixed mordant and gum before the red bath. Both sources warn about faulty washing: permanent stains at Bagh, colour developing in unwanted areas at Machilipatnam.",
+      "explanation": "Printed cloth is washed in flowing water: at Bagh each piece is kept under flowing water for at least 20 minutes; at Machilipatnam it removes the gum and unwanted mordant so that no colour develops in unwanted areas.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagh:S1",
         "machilipatnam-kalamkari:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 15",
+          "quote": "Each piece needs to be kept under flowing water for at least 20 minutes."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 10",
+          "quote": "It is washed in flowing water to remove the gum and any unwanted mordant so as to avoid development of color in any unwanted area"
+        }
       ]
     },
     {
       "source": "bagru.process_stage.dhulai-mordant-wash",
       "target": "machilipatnam-kalamkari.process_stage.degumming-wash",
       "type": "SIMILAR_TO",
-      "explanation": "Washing out excess mordant in running water before dyeing.",
+      "explanation": "Excess mordant is washed out in running water before dyeing.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "machilipatnam-kalamkari:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 10",
+          "quote": "The printed 6bric is washed in nuuring water to remove excess mordanb."
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 10",
+          "quote": "It is washed in flowing water to remove the gum and any unwanted mordant so as to avoid development of color in any unwanted area"
+        }
       ]
     },
     {
       "source": "ajrakh.process_stage.saaj",
       "target": "bagh.process_stage.mengni-karna",
       "type": "SIMILAR_TO",
-      "explanation": "Repeated overnight soaking in an oil, alkali or salt, and dung mixture: castor oil, soda ash and camel dung (Ajrakh, 8–10 times); castor oil, rock salt and goat dung (Bagh, three times).",
+      "explanation": "Both pre-treat the cloth by steeping it in an oil mixture: in the Ajrakh saaj the dung and oil mixture emulsifies to a rich lather by the third or fourth steeping; Bagh mixes unrefined castor oil into a dhaul solution.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "bagh:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 5",
+          "quote": "by the third or fourth steeping the dung and oil mixture emulsifies to produce a rich lather, which leaves the cloth bright white and soft"
+        },
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 11",
+          "quote": "1 kg of arandikatel or unrefined castor oil. The three are mixed to make a dhaul solution."
+        }
       ]
     },
     {
       "source": "bagru.process_stage.hari-sarana-scouring",
       "target": "machilipatnam-kalamkari.process_stage.scouring-dung-bleaching",
       "type": "SIMILAR_TO",
-      "explanation": "Grey cloth is soaked overnight in dung and water, then washed and spread in the sun.",
-      "conditions": "The Machilipatnam district page describes alkaline boiling instead, as current practice.",
+      "explanation": "Grey cloth is treated with dung and water and kept overnight: left dipped in a cow dung paste at Bagru, soaked briefly in buffalo or cow dung and water and kept wet overnight at Machilipatnam.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "machilipatnam-kalamkari:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 9",
+          "quote": "Cow dung and watr are mixed together and the cloth is then left dipped in that paste ovemight"
+        },
+        {
+          "source_id": "machilipatnam-kalamkari:S4",
+          "locator": "PDF p. 6",
+          "quote": "a solution of buffalo or cow dung and water for 5 to 10 minutes. It is wrung out a little and kept wet overnight."
+        }
       ]
     },
     {
       "source": "ajrakh.environmental_condition.water-iron-content",
       "target": "bagh.environmental_condition.river-water-chemistry",
       "type": "CONTRASTS_WITH",
-      "explanation": "Ajrakh sources report iron in the water as harmful (dull, dark prints and black spots); a Bagh source credits the river's iron content, with running water, for finer colours.",
-      "conditions": "The Bagh claim is untested and its concept is needs_evidence; Bagh sources disagree on the mineral.",
+      "explanation": "Ajrakh sources report iron in the water as harmful (dull, dark results and black spots); a Bagh source credits the river's iron content, with running water, for finer colours.",
+      "conditions": "The Bagh source gives no measurement.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "ajrakh:S10",
         "bagh:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 8",
+          "quote": "presence of iron in the water supply dulls and darkens the final result."
+        },
+        {
+          "source_id": "ajrakh:S10",
+          "locator": "§ \"History repeats itself\"",
+          "quote": "If there is even one percent iron in water, the (pale yellow) cloth gets black spots."
+        },
+        {
+          "source_id": "bagh:S4",
+          "locator": "§ \"Thappa Chappai\"",
+          "quote": "The iron content of the river and the running water helps in bringing out finer colors and also softens the fabric."
+        }
       ]
     },
     {
       "source": "bagh.environmental_condition.river-water-chemistry",
       "target": "bagru.open_question.water-quality-claim",
       "type": "SIMILAR_TO",
-      "explanation": "Both GI texts credit local river water with properties good for dyeing, without measurement.",
-      "conditions": "Both concepts are needs_evidence.",
+      "explanation": "Both GI texts credit the local water with properties good for dyeing and printing, without measurement.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagh:S1",
         "bagru:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 9",
+          "quote": "The chemical composition of this river water has proved to be good for the vegetable dyes used for printing at bagh."
+        },
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 14",
+          "quote": "Locally awailable water has excellent properties, ideal for dyeing and printing."
+        }
       ]
     },
     {
       "source": "sanganeri.open_question.which-river-and-water-effect",
       "target": "machilipatnam-kalamkari.environmental_condition.coromandel-soil-water-plants",
       "type": "SIMILAR_TO",
-      "explanation": "Both attribute characteristic colours to local water (with soil, sun or plants), without chemical evidence.",
-      "conditions": "Both concepts are needs_evidence.",
+      "explanation": "Both attribute characteristic colours to local water with the soil and other local conditions, without chemical evidence.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "sanganeri:S10",
         "machilipatnam-kalamkari:S11"
@@ -3323,57 +3850,110 @@
       "source": "ajrakh.environmental_condition.soft-water-siting",
       "target": "bagh.environmental_condition.flowing-river-water",
       "type": "SIMILAR_TO",
-      "explanation": "Printing settled where suitable water was available: soft water in Kutch, the Bagh river at Bagh.",
+      "explanation": "Printing settled where suitable water was available: extra soft water in Kutch, the flowing river at Bagh.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "bagh:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+          "quote": "Ajrakh printing originally came from Sindh and got concentrated where extra soft water was available."
+        },
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 8",
+          "quote": "Bagh's proximity to the river was an important reason for its choice as flowing river water is vital to the process of printing."
+        }
       ]
     },
     {
       "source": "ajrakh.environmental_condition.soft-water-siting",
       "target": "bagh.environmental_condition.seasonal-water-availability",
       "type": "SIMILAR_TO",
-      "explanation": "Practitioners attribute shade differences to the water used: a Khavda printer says weather and water made shades differ; a Bagh artisan says reds and greys fix poorly when washing is done at the Narmada.",
+      "explanation": "Practitioners attribute colour differences to the water: a Khavda printer says the weather and water made the shades differ; a Bagh artisan finds reds and greys do not come out properly when he washes at the Narmada.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "practitioner_testimony",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S7",
         "bagh:S3"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S7",
+          "locator": "§ \"Khavda\"",
+          "quote": "But the weather and the water was different, and so the shades of the color were different."
+        },
+        {
+          "source_id": "bagh:S3",
+          "locator": "§ \"Hand Block – Printing of Bagh, Madhya Pradesh\"",
+          "quote": "he has to go to Narmada (40 km away) to wash the textiles, he finds that reds and greys do not come out properly."
+        }
       ]
     },
     {
       "source": "ajrakh.historical_context.dhamadka-centre",
       "target": "bagru.environmental_condition.water-sanjaria-river",
       "type": "SIMILAR_TO",
-      "explanation": "The river that drew printers has dried: Dhamadka's by 1989; Bagru's Sanjaria now runs dry while printing continues.",
-      "conditions": "Ajrakh printers later relocated after the 2001 earthquake; Bagru printers did not move.",
+      "explanation": "The river at each centre has dried: the Dhamadka stream by 1989; at Bagru the river now runs dry while the artisans still practise there.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "ajrakh:S9",
         "bagru:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 3",
+          "quote": "This water stream dried up in 1989 and water levels from wells and tanks continued to fall."
+        },
+        {
+          "source_id": "ajrakh:S9",
+          "locator": "§ \"We are running out of water\"",
+          "quote": "In Dhamadka, the river Saran was always flowing, but it died a slow death by 1989."
+        },
+        {
+          "source_id": "bagru:S4",
+          "locator": "PDF p. 3",
+          "quote": "Today though the river runs dry these artisans thrive in Bagru practicing their same methods of the past"
+        }
       ]
     },
     {
       "source": "bagh.environmental_condition.seasonal-water-availability",
       "target": "bagru.environmental_condition.water-sanjaria-river",
       "type": "SIMILAR_TO",
-      "explanation": "The local river fails (several times a year at Bagh, now permanently at Bagru), affecting washing.",
+      "explanation": "The local river fails: the Bagh river is dry several times a year; the Bagru river now runs dry.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagh:S1",
         "bagru:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 8",
+          "quote": "the river Bagh that flows through Bagh is dry several times during the year"
+        },
+        {
+          "source_id": "bagru:S4",
+          "locator": "PDF p. 3",
+          "quote": "Today though the river runs dry these artisans thrive in Bagru"
+        }
       ]
     },
     {
@@ -3384,23 +3964,45 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S9",
         "ajrakh:S11",
         "bagru:S6",
         "bagru:S4"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S9",
+          "locator": "§ \"We are running out of water\"",
+          "quote": "the level of water has been going down by 10-15 feet every year even here."
+        },
+        {
+          "source_id": "ajrakh:S11",
+          "locator": "§ \"Indigo in Kutch, India: Art and Science, Environment and Economics\"",
+          "quote": "the recycled water can be reused for washing fabric."
+        },
+        {
+          "source_id": "bagru:S6",
+          "locator": "§ \"Place: The Final Process\"",
+          "quote": "the region's water table has dropped, threatening the long-term production of textiles in the village."
+        },
+        {
+          "source_id": "bagru:S4",
+          "locator": "PDF p. 4",
+          "quote": "Now-a-days the used water is treated for recycling or charged into underground."
+        }
       ]
     },
     {
       "source": "sanganeri.environmental_condition.effluent-and-water-pollution",
       "target": "machilipatnam-kalamkari.environmental_condition.effluent-pollution",
       "type": "SIMILAR_TO",
-      "explanation": "Printing effluent pollutes local water, and sources blame screen or chemical printing rather than hand-block work.",
-      "conditions": "The Machilipatnam concept is needs_evidence (journalism only).",
+      "explanation": "Printing effluent pollutes local water; the sources blame the screen printing units at Sanganer and the chemical colours at Pedana.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "sanganeri:S10",
         "machilipatnam-kalamkari:S15"
@@ -3413,7 +4015,7 @@
         },
         {
           "source_id": "machilipatnam-kalamkari:S15",
-          "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra's Pedana\"",
+          "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
           "quote": "The chemicals used in the colours let out toxic effluents, which is contaminating the water table."
         }
       ]
@@ -3422,14 +4024,26 @@
       "source": "dabu.environmental_condition.water-pollution-and-hazards",
       "target": "bagru.environmental_condition.groundwater-and-effluent",
       "type": "SIMILAR_TO",
-      "explanation": "Chemical residues from printing pollute local groundwater.",
+      "explanation": "Chemical residues from printing pollute the local groundwater.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "dabu:S2",
         "bagru:S5"
+      ],
+      "evidence": [
+        {
+          "source_id": "dabu:S2",
+          "locator": "§ \"Waste:\"",
+          "quote": "with the advent of chemical dyes and other mordents, the residue water which washes back into the ground is polluting the groundwater of the region"
+        },
+        {
+          "source_id": "bagru:S5",
+          "locator": "§ \"Waste:\"",
+          "quote": "The chemicals in the water seep underground, polluting the underground water of the area"
+        }
       ]
     },
     {
@@ -3437,42 +4051,83 @@
       "target": "bagh.historical_context.khatri-migration-from-sindh",
       "type": "SIMILAR_TO",
       "explanation": "Both trace Khatri printers from Sindh about four centuries ago.",
-      "conditions": "Dates in both files are contested (open questions); the Ajrakh concept is needs_evidence.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "bagh:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+          "quote": "came to Kutch from Sindh some 400 years ago at the behest of the King of Kutch, who invited craftsmen from Khatri community"
+        },
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 8",
+          "quote": "khatri community which comprises the chhipas or printers are believed to have come to Bagh - about 400 years ago - from Larkana is Sindh"
+        }
       ]
     },
     {
       "source": "bagru.historical_context.chhipa-community",
       "target": "sanganeri.historical_context.chhipa-community",
       "type": "SIMILAR_TO",
-      "explanation": "Hereditary Chhipa printers in both, linked to Sant Namdev.",
+      "explanation": "Chhipa printers in both, linked to Sant Namdev: the Bagru Chhipas claim descent from him, and Sanganer's printers were his followers.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S5",
         "sanganeri:S10"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S5",
+          "locator": "§ \"Myths & Legends:\"",
+          "quote": "All the Chiapas of Bagru claim to be the descendants of saint Namdeo of Maharashtra (1270-1350)."
+        },
+        {
+          "source_id": "sanganeri:S10",
+          "locator": "PDF p. 5",
+          "quote": "The printers belong to Chhipa community. They were all Hindus and were followers of the renowned Marathi Saint Namdev."
+        }
       ]
     },
     {
       "source": "bagru.historical_context.chhipa-community",
       "target": "dabu.historical_context.chhipa-and-allied-communities",
       "type": "SIMILAR_TO",
-      "explanation": "Both centres are worked by the Chhipa community.",
-      "conditions": "One craft organisation credits Dabu to the Khatri community (Dabu open question).",
+      "explanation": "The printers of both centres are of the Chhipa (Chippa) community.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "dabu:S1",
         "dabu:S2"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 7",
+          "quote": "The hand printers\" known as chhipa, came from Sawai ll{adhopur, Alwar, Jhuojhunu and Siker districts of Rajasthan to satle in Bagru"
+        },
+        {
+          "source_id": "dabu:S1",
+          "locator": "§ \"Dabu printing\"",
+          "quote": "the native craftsmen known as Chippas , specialize in block printing."
+        },
+        {
+          "source_id": "dabu:S2",
+          "locator": "§ \"History:\" (occurrence 1 of 2)",
+          "quote": "The Hindu caste of cotton printers and dyes known as Chippas were the prominent printing community in Rajasthan."
+        }
       ]
     },
     {
@@ -3480,30 +4135,69 @@
       "target": "ajrakh.historical_context.khatri-migration-to-kutch",
       "type": "CONTRASTS_WITH",
       "explanation": "Bagru Chhipa accounts trace migration within Rajasthan and descent from Saint Namdeo; Ajrakh Khatri accounts trace migration from Sindh.",
-      "conditions": "Not a clean opposition: Bagh sources call Khatris chhipas, and Bagru and Sanganer respondents were mostly Khatri or Chhipa.",
+      "conditions": "Not a clean opposition: the Bagh GI text calls the Khatri community chhipas, and Bagru and Sanganer survey respondents were mostly Khatri or Chhipa.",
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "bagru:S5",
         "ajrakh:S1",
         "bagh:S1",
         "bagru:S3"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 7",
+          "quote": "The hand printers\" known as chhipa, came from Sawai ll{adhopur, Alwar, Jhuojhunu and Siker districts of Rajasthan to satle in Bagru"
+        },
+        {
+          "source_id": "bagru:S5",
+          "locator": "§ \"Myths & Legends:\"",
+          "quote": "All the Chiapas of Bagru claim to be the descendants of saint Namdeo of Maharashtra (1270-1350)."
+        },
+        {
+          "source_id": "ajrakh:S1",
+          "locator": "GI Journal No. 188 copy (application 1050), PDF p. 9",
+          "quote": "came to Kutch from Sindh some 400 years ago at the behest of the King of Kutch, who invited craftsmen from Khatri community"
+        },
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 8",
+          "quote": "khatri community which comprises the chhipas or printers are believed to have come to Bagh - about 400 years ago - from Larkana is Sindh"
+        },
+        {
+          "source_id": "bagru:S3",
+          "locator": "PDF p. 6",
+          "quote": "The artisans were mostly from the Khatri or Chhipa community."
+        }
       ]
     },
     {
       "source": "bagru.historical_context.kharadi-block-makers",
       "target": "sanganeri.historical_context.kharadi-block-makers",
       "type": "SIMILAR_TO",
-      "explanation": "Blocks are carved by a separate group of turners, the Kharadis, from shisham, mango and teak.",
+      "explanation": "Blocks are made by turners, the Kharadis, from dried wood such as shisham, mango and teak.",
       "conditions": "Shared GI wording; not independent.",
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 2",
+          "quote": "Tumers locally known as Kharadiyes posses the skill of producing desired blocks using dried wood of plants like 'shisham\", \"gu{an\", *mango\", \"teak\" and \"ardu'."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 2",
+          "quote": "Turners locally known as Kharadiyes posses the skill of producing tlesired blocks using dried wood ofplants like *shisham-, *eurjao\", \"6ango\", \"teak\" and \"ardu\"."
+        }
       ]
     },
     {
@@ -3514,50 +4208,91 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S7",
         "bagh:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "ajrakh:S7",
+          "locator": "§ \"We have walked all over the Banni\"",
+          "quote": "the Maldhari community had a distinct style, a distinct color palette and design."
+        },
+        {
+          "source_id": "bagh:S1",
+          "locator": "PDF p. 16",
+          "quote": "Earlier the artisans used to make different prints and even different clothes for different communities and castes"
+        }
       ]
     },
     {
       "source": "bagru.historical_context.community-clientele",
       "target": "dabu.design_principle.community-specific-patterns",
       "type": "SIMILAR_TO",
-      "explanation": "Designs and garment formats tied to the wearer's community, including Jat women in both accounts.",
+      "explanation": "Designs tied to the wearer's community, with the Jat named in both: Bagru colours and designs specific to the Jat, Meena, Rajput and Mali communities; the Akola phetia worn by Jat and Chaudhury women.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "dabu:S6"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 14",
+          "quote": "Colours and designs on Bagru l{and Block Print enables identification of user community. (Coloun and designs are specific for Jat, Meena, Rajput, Mali communities)."
+        },
+        {
+          "source_id": "dabu:S6",
+          "locator": "§ \"Hand Block Printing of Akola, Rajasthan\"",
+          "quote": "The former is worn primarily by the women of the Jat and Chaudhury castes"
+        }
       ]
     },
     {
       "source": "sanganeri.design_principle.social-design-categories",
       "target": "bagru.historical_context.community-clientele",
       "type": "SIMILAR_TO",
-      "explanation": "Design and colour chosen by user group and occasion.",
+      "explanation": "Design and colour follow the user group.",
       "conditions": "Sanganer also served the Jaipur court, unlike the folk clientele of Bagru.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "sanganeri:S8",
         "sanganeri:S9",
         "bagru:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "sanganeri:S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "The 'Syahi Begar' black and red designs on gossamer white cloth adorned the Safa turbans or Angochha shawls of men of the local community ."
+        },
+        {
+          "source_id": "sanganeri:S9",
+          "locator": "§ \"Sanganeri\"",
+          "quote": "Fabrics and garments with floral motifs on white or soft-toned colours were patronised by the nobility at Jaipur court"
+        },
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 5",
+          "quote": "Irr contrast to the courtly sensibility of the Sanganer work, the Bagru lland Block Prints are deeply rooted in the local folk milieu."
+        }
       ]
     },
     {
       "source": "ajrakh.design_principle.both-sided-printing",
       "target": "sanganeri.outcome.print-visible-on-reverse",
       "type": "CONTRASTS_WITH",
-      "explanation": "Ajrakh achieves a two-sided cloth by printing the reverse separately with registration; the Sanganeri GI specifies a single-face print that shows almost as vividly on the underside.",
+      "explanation": "Double-sided Ajrakh prints the same outline design again on the reverse; in Sanganeri printing the design is seen equally vividly on the underside of the cloth.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "ajrakh:S1",
         "sanganeri:S1",
@@ -3585,14 +4320,26 @@
       "source": "dabu.historical_context.gi-application",
       "target": "ajrakh.historical_context.gi-registration",
       "type": "CONTRASTS_WITH",
-      "explanation": "Aakola Dabu is an unregistered application at Pre Examination; Kutch Ajrakh is registered.",
+      "explanation": "Aakola Dabu is an application at Pre Examination; Kutch Ajrakh is registered.",
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "dabu:S5",
         "ajrakh:S2"
+      ],
+      "evidence": [
+        {
+          "source_id": "dabu:S5",
+          "locator": "§ \"Application Details\"",
+          "quote": "Application Number 845 Geographical Indications Aakola Dabu Prints Status Pre Examination"
+        },
+        {
+          "source_id": "ajrakh:S2",
+          "locator": "§ \"Application Details\"",
+          "quote": "Status Registered"
+        }
       ]
     },
     {
@@ -3603,37 +4350,71 @@
       "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "dabu:S5",
         "dabu:S20",
         "bagru:S2",
         "bagru:S8"
+      ],
+      "evidence": [
+        {
+          "source_id": "dabu:S5",
+          "locator": "§ \"Application Details\"",
+          "quote": "Application Number 845 Geographical Indications Aakola Dabu Prints Status Pre Examination"
+        },
+        {
+          "source_id": "dabu:S20",
+          "locator": "§ \"WHAT MAKES IT UNIQUE:\"",
+          "quote": "Received a GI tag in 2023"
+        },
+        {
+          "source_id": "bagru:S2",
+          "locator": "§ \"Application Details\"",
+          "quote": "Certificate Number 150 Certificate Date 11-05-2011"
+        },
+        {
+          "source_id": "bagru:S8",
+          "locator": "§ \"Bagru Print GI Tag\"",
+          "quote": "In 2024, Bagru print was granted the Geographical Indication (GI) tag"
+        }
       ]
     },
     {
       "source": "bagru.historical_context.market-change-and-imitation",
       "target": "sanganeri.historical_context.screen-printing-shift",
       "type": "SIMILAR_TO",
-      "explanation": "Screen-printed imitations sold under the tradition's name are cited in both GI applications.",
+      "explanation": "Both GI applications cite screen-printed fakes sold all over India under the tradition's name.",
       "conditions": "Shared GI wording; not independent.",
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 16",
+          "quote": "Fake (screm printe/) Bagru Textiles are being sold ali over India in the name of Bagru l{and Block Print."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 16",
+          "quote": "Fake (screen printed) Sanganeri Textiles are being sold all over India in tle name of Sanganeri Print."
+        }
       ]
     },
     {
       "source": "machilipatnam-kalamkari.outcome.screen-printed-imitation",
       "target": "sanganeri.historical_context.screen-printing-shift",
       "type": "SIMILAR_TO",
-      "explanation": "Cheaper screen-printed work with chemical colours competes with block printing.",
-      "conditions": "Machilipatnam concept is needs_evidence.",
+      "explanation": "Printing with chemical colours is described as cheaper: at Pedana chemical colours may be cheaper but fade in two to three washes; at Sanganer screen printing with synthetic dyes was cost effective and faster.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "historical_documentation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "machilipatnam-kalamkari:S15",
         "sanganeri:S12"
@@ -3641,8 +4422,8 @@
       "evidence": [
         {
           "source_id": "machilipatnam-kalamkari:S15",
-          "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra's Pedana\"",
-          "quote": "There is a clear difference between block-printed and screen-printed Kalamkari. But at first sight, it is difficult to tell the difference."
+          "locator": "§ \"As fake Kalamkari takes over the market, the original struggles in Andhra’s Pedana\"",
+          "quote": "If you use chemical colours, it may be cheaper, but the colour fades in two to three washes"
         },
         {
           "source_id": "sanganeri:S12",
@@ -3655,59 +4436,116 @@
       "source": "bagru.process_stage.chhapai-mordant-printing",
       "target": "sanganeri.process_stage.mordant-printing",
       "type": "SIMILAR_TO",
-      "explanation": "Same two-mordant printing: ferrous syahi with the outline block, alum begar as filler.",
-      "conditions": "Shared GI wording; Sanganeri adds an independent Gaatha account.",
+      "explanation": "Same two-mordant printing in both GI texts: ferrous (syahi, from rusted horseshoe nails) and aluminium sulphate (begar), the ferrous usually with the outline block; a Sanganer account fills the outline with begar using a datta block.",
+      "conditions": "Shared GI wording; the Sanganer craft account (Gaatha) is separate from it.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1",
         "sanganeri:S8"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 10",
+          "quote": "two mordant-fenous ('syahee ) made out of rusted horse shoe nails, and aluminum sulphate ('beggar). Usually ferrous is printed with the outline block ('rekh)."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 10",
+          "quote": "two mordant-ferrous ('ry\"h*r) made out of rusted horse shoe nails, and aluminum zulphate (b*SC*) Uzually ferrous is printed with the outline block ('reAh')."
+        },
+        {
+          "source_id": "sanganeri:S8",
+          "locator": "§ \"Syahi Begar\"",
+          "quote": "The begar paste was then applied using a 'Datta' block to fill in the 'Rekh' (the outlining block)"
+        }
       ]
     },
     {
       "source": "bagru.process_stage.haldi-naspal-putai",
       "target": "sanganeri.process_stage.yellow-dyeing",
       "type": "SIMILAR_TO",
-      "explanation": "Same hand-rubbed turmeric-pomegranate yellow applied by five people.",
+      "explanation": "Same yellow dyeing by five people: four hold the cloth and a fifth applies the dye with a loose-woven woollen fabric used as a sponge.",
       "conditions": "Shared GI wording; not independent.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 11",
+          "quote": "Four persons hold it at each oomer and fifth person dips a loose-woven woolen fabrio which acts as a sponge in the dye"
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 12",
+          "quote": "Four persons hold it at each corner and fifth person dips a loose-woven woolel fabric which acts as a sponge in the dye"
+        }
       ]
     },
     {
       "source": "bagru.outcome.bagru-green",
       "target": "sanganeri.outcome.green-by-overdyeing",
       "type": "SIMILAR_TO",
-      "explanation": "Green from yellow over indigo, with dabu keeping some areas blue.",
-      "conditions": "Sanganeri adds an 1850 V&A example of indigo-plus-yellow green.",
+      "explanation": "Green from yellow dyeing over the blue, with dabu keeping some areas blue; a V&A Sanganer textile has green made by combining indigo with a yellow dye.",
+      "conditions": null,
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
         "sanganeri:S1",
         "sanganeri:S5"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 11",
+          "quote": "green it is taken for further process of yellow dyeing but before this it is printed with dhabu to retain some blue areas."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 12",
+          "quote": "green it is taken for further process of yellow dyeing but before this it is printed with dhabu to refain some blue areas."
+        },
+        {
+          "source_id": "sanganeri:S5",
+          "locator": "§ \"Textile\"",
+          "quote": "green made by combining indigo with a yellow dye, probably turmeric."
+        }
       ]
     },
     {
       "source": "bagru.tradition.bagru-hand-block-print",
       "target": "sanganeri.tradition.sanganeri-hand-block-printing",
       "type": "CONTRASTS_WITH",
-      "explanation": "Neighbouring Jaipur centres with a shared method: Bagru is rooted in the local folk milieu with an off-white ground; Sanganer has a courtly sensibility, and its GI specification gives a white base colour.",
-      "conditions": "The folk/courtly characterisation comes from the Bagru GI dossier.",
+      "explanation": "Neighbouring centres: the Bagru GI dossier sets Bagru's local folk milieu against the courtly sensibility of Sanganer, and the Sanganeri GI specification gives a white base colour.",
+      "conditions": "The folk and courtly characterisation comes from the Bagru GI dossier.",
       "ordinal": null,
       "provenance_kind": "researcher_interpretation",
-      "verification_state": "under_review",
+      "verification_state": "verified",
       "source_ids": [
         "bagru:S1",
-        "bagru:S4",
         "sanganeri:S1"
+      ],
+      "evidence": [
+        {
+          "source_id": "bagru:S1",
+          "locator": "PDF p. 5",
+          "quote": "Irr contrast to the courtly sensibility of the Sanganer work, the Bagru lland Block Prints are deeply rooted in the local folk milieu."
+        },
+        {
+          "source_id": "sanganeri:S1",
+          "locator": "PDF p. 1",
+          "quote": "Base colour of S4rganri tland Block Printings is white."
+        }
       ]
     }
   ],
