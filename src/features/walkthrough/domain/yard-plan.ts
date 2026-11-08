@@ -1,7 +1,7 @@
 import { CLOTH_AFTER_LABEL, type StageItem, type StationKind } from "@/features/process/domain/stage-template";
 import { looksOfItem, trayPadLookOf, workLiquidOf, type SubstanceLook } from "@/features/process/domain/substance-look";
 import { cosineFall, smoothstep, type Box, type Vec3 } from "./geometry";
-import { settleCloth, type ClothSurface, type HeightField } from "./cloth-surface";
+import type { ClothSpec, HeightField } from "./cloth-surface";
 
 export const CLOTH_LINE_X = 3;
 export const RAIL_HEIGHT = 4.5;
@@ -68,7 +68,7 @@ export interface PlacedItem {
 export interface ClothPiece {
   readonly name: string;
   readonly state: "before" | "after";
-  readonly surface: ClothSurface;
+  readonly spec: ClothSpec;
 }
 
 export interface YardPlan {
@@ -301,12 +301,7 @@ export function buildYardPlan(stage: YardStage): YardPlan {
   const curvedWords: CurvedWords[] = [];
   const cloth: ClothPiece[] = [];
   const specOf = (points: readonly Vec3[], name: string, state: "before" | "after", fold: number, step = CLOTH_ROW_METRES, amount: (p: Vec3) => number = foldAmount): ClothPiece => {
-    const startAlong = cloth[cloth.length - 1]?.surface.endAlong;
-    return {
-      name,
-      state,
-      surface: settleCloth({ points, width: CLOTH_WIDTH, metresPerRepeat: 3.46, fold, foldFrequency: 3.1, step, columns: CLOTH_COLUMNS, foldAmount: amount, field, ...(startAlong ? { startAlong } : {}) }),
-    };
+    return { name, state, spec: { points, width: CLOTH_WIDTH, metresPerRepeat: 3.46, fold, foldFrequency: 3.1, step, columns: CLOTH_COLUMNS, foldAmount: amount, field } };
   };
   let lastGround = 6;
   const start = rails[0]!;

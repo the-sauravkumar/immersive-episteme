@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fittedSurfaceSteps, flatLevel, heapHeight, levelInVessel, moundHeight, pasteHeight, wallFilm } from "@/features/walkthrough/domain/fill-surface";
+import { fittedSurfaceSteps, flatLevel, heapHeight, levelInVessel, moundHeight, pasteHeight, wallFilmSteps } from "@/features/walkthrough/domain/fill-surface";
 import { hasCakePieces, isLumpCrystal, PASTE_FORMS, pasteThicknessOf, powderGrainOf } from "@/features/walkthrough/domain/substance-body";
 import { scatterOnSurface } from "@/features/walkthrough/domain/surface-scatter";
 import { albedoForDisplay, filmicToScene } from "@/features/walkthrough/domain/lit-colour";
@@ -163,7 +163,7 @@ describe("powder heaps, pastes and scattered grains", () => {
   });
 
   it("a wall film follows the wall from under the fill and fades out at its top", () => {
-    const film = wallFilm(8, 64, () => level - 0.005, () => level + 0.02, (theta, y) => wallRadius(profile, theta, y), 0.0007);
+    const film = settle(wallFilmSteps(8, 64, () => level - 0.005, () => level + 0.02, (theta, y) => wallRadius(profile, theta, y), 0.0007));
     expect(film.share[0]).toBe(0);
     expect(film.share[8]).toBe(1);
     let deepest = 0;

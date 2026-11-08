@@ -54,7 +54,9 @@ function flattestAxis(matrix: Symmetric): [number, number, number] {
   return [v[0]![least]!, v[1]![least]!, v[2]![least]!];
 }
 
-export function wallPlaneNormals(positions: ArrayLike<number>, radius: number): Float32Array {
+const VERTICES_PER_STEP = 128;
+
+export function* wallPlaneNormalSteps(positions: ArrayLike<number>, radius: number): Generator<void, Float32Array> {
   const count = Math.floor(positions.length / 3);
   const grid = neighbourhoodGrid(positions, radius);
   const products = new Float64Array(grid.cells * 6);
@@ -76,6 +78,7 @@ export function wallPlaneNormals(positions: ArrayLike<number>, radius: number): 
   const gathered = new Float64Array(6);
   const mean = new Float64Array(3);
   for (let i = 0; i < count; i++) {
+    if (i % VERTICES_PER_STEP === 0) yield;
     const [x, y, z] = [positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!];
     gathered.fill(0);
     mean.fill(0);

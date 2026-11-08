@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import type { WorkPacer } from "./work-pacer";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { roundSegments } from "../domain/surface-density";
 import { creasedNormals } from "./creased-normals";
@@ -177,9 +178,10 @@ function kalamSpindle(): THREE.BufferGeometry {
   return creasedNormals(geometry, 1);
 }
 
-function kalamThreads(): THREE.BufferGeometry {
+async function kalamThreads(pacer: WorkPacer): Promise<THREE.BufferGeometry> {
   const threads: THREE.BufferGeometry[] = [];
   for (let thread = 0; thread < THREADS; thread++) {
+    await pacer.pace();
     const hand = thread % 2 === 0 ? 1 : -1;
     const start = (thread / THREADS) * Math.PI * 2;
     const turns = 2.1 + (thread % 5) * 0.14;
@@ -256,7 +258,7 @@ async function kalam(library: MaterialLibrary): Promise<THREE.Object3D> {
   const [stickGeometry, spindleGeometry, threadGeometry] = await Promise.all([
     library.shared("tool:kalam-stick", async () => kalamStick()),
     library.shared("tool:kalam-spindle", async () => kalamSpindle()),
-    library.shared("tool:kalam-threads", async () => kalamThreads()),
+    library.shared("tool:kalam-threads", () => kalamThreads(library.pacer)),
   ]);
   const part = new THREE.Group();
   const stick = solidMesh(stickGeometry, bamboo);
@@ -296,16 +298,17 @@ function outlineCurve(): THREE.CatmullRomCurve3 {
   return new THREE.CatmullRomCurve3(BLOCK_OUTLINE.map(([x, y]) => new THREE.Vector3(x, y, 0)), true, "catmullrom", 0.35);
 }
 
-function blockBody(): THREE.BufferGeometry {
+async function blockBody(pacer: WorkPacer): Promise<THREE.BufferGeometry> {
   const shape = new THREE.Shape(outlineCurve().getSpacedPoints(160).slice(0, -1).map((point) => new THREE.Vector2(point.x, point.y)));
   holesIn(shape);
   const geometry = new THREE.ExtrudeGeometry(shape, { depth: BODY_HEIGHT - 0.003, bevelEnabled: true, bevelThickness: 0.0015, bevelSize: 0.0015, bevelOffset: -0.0015, bevelSegments: 2, curveSegments: 20 });
   geometry.rotateX(-Math.PI / 2);
   geometry.translate(0, COMB_HEIGHT + 0.0015, 0);
+  await pacer.yieldSlice();
   return creasedNormals(geometry, 0.75);
 }
 
-function blockComb(): THREE.BufferGeometry {
+async function blockComb(pacer: WorkPacer): Promise<THREE.BufferGeometry> {
   const curve = outlineCurve();
   const points: THREE.Vector2[] = [];
   for (let tooth = 0; tooth < COMB_TEETH; tooth++) {
@@ -320,10 +323,11 @@ function blockComb(): THREE.BufferGeometry {
   holesIn(shape);
   const geometry = new THREE.ExtrudeGeometry(shape, { depth: COMB_HEIGHT + 0.0004, bevelEnabled: false, curveSegments: 20 });
   geometry.rotateX(-Math.PI / 2);
+  await pacer.yieldSlice();
   return creasedNormals(geometry, 0.75);
 }
 
-function blockHandle(): THREE.BufferGeometry {
+async function blockHandle(pacer: WorkPacer): Promise<THREE.BufferGeometry> {
   const shape = new THREE.Shape([new THREE.Vector2(-0.046, 0), new THREE.Vector2(-0.03, -0.0135), new THREE.Vector2(0.03, -0.0135), new THREE.Vector2(0.046, 0), new THREE.Vector2(0.03, 0.0135), new THREE.Vector2(-0.03, 0.0135)]);
   for (const x of HANDLE_NAIL_HOLES) {
     const hole = new THREE.Path();
@@ -346,6 +350,7 @@ function blockHandle(): THREE.BufferGeometry {
     position.setZ(i, position.getZ(i) * (1.08 - 0.14 * height));
   }
   lofted.translate(0, COMB_HEIGHT + BODY_HEIGHT + 0.0041, 0);
+  await pacer.yieldSlice();
   const geometry = creasedNormals(lofted, 0.35);
   return setTones(geometry, (x, y, z) => {
     const streak = 0.5 + 0.5 * Math.sin(x * 240 + z * 90);
@@ -357,9 +362,9 @@ function blockHandle(): THREE.BufferGeometry {
 export async function buildCarvedBlock(library: MaterialLibrary): Promise<THREE.Object3D> {
   const [body, face, handle] = await Promise.all([projectedMaterial(library, BLOCK_WOOD), projectedMaterial(library, BLOCK_FACE), projectedMaterial(library, BLOCK_HANDLE)]);
   const [bodyGeometry, combGeometry, handleGeometry] = await Promise.all([
-    library.shared("tool:block-body", async () => blockBody()),
-    library.shared("tool:block-comb", async () => blockComb()),
-    library.shared("tool:block-handle", async () => blockHandle()),
+    library.shared("tool:block-body", () => blockBody(library.pacer)),
+    library.shared("tool:block-comb", () => blockComb(library.pacer)),
+    library.shared("tool:block-handle", () => blockHandle(library.pacer)),
   ]);
   const group = new THREE.Group();
   group.add(solidMesh(bodyGeometry, body), solidMesh(combGeometry, face), solidMesh(handleGeometry, handle));

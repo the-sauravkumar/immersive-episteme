@@ -49,7 +49,9 @@ export function neighbourhoodGrid(positions: ArrayLike<number>, radius: number):
   return { cells: counts.length, cellOfVertex, members, centres, around };
 }
 
-export function smoothedValues(positions: ArrayLike<number>, values: ArrayLike<number>, width: number, radius: number): Float32Array {
+const VERTICES_PER_STEP = 128;
+
+export function* smoothedValueSteps(positions: ArrayLike<number>, values: ArrayLike<number>, width: number, radius: number): Generator<void, Float32Array> {
   const count = Math.floor(positions.length / 3);
   const grid = neighbourhoodGrid(positions, radius);
   const sums = new Float64Array(grid.cells * width);
@@ -57,6 +59,7 @@ export function smoothedValues(positions: ArrayLike<number>, values: ArrayLike<n
   const smoothed = new Float32Array(count * width);
   const total = new Float64Array(width);
   for (let i = 0; i < count; i++) {
+    if (i % VERTICES_PER_STEP === 0) yield;
     total.fill(0);
     let weights = 0;
     grid.around(positions[i * 3]!, positions[i * 3 + 1]!, positions[i * 3 + 2]!, (cell, weight) => {

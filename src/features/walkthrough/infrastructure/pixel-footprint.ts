@@ -16,7 +16,7 @@ export function trackPixelFootprint(material: THREE.Material): { value: number }
   material.onBeforeRender = (renderer, scene, camera, geometry, object, group) => {
     earlier(renderer, scene, camera, geometry, object, group);
     const target = renderer.getRenderTarget();
-    viewHeight.value = target ? target.height : renderer.getDrawingBufferSize(drawingBuffer).y;
+    viewHeight.value = target ? target.viewport.height : renderer.getDrawingBufferSize(drawingBuffer).y;
   };
   return viewHeight;
 }

@@ -12,6 +12,9 @@ export interface WallFilmGrid extends SurfaceGrid {
 export type HeightAt = (x: number, z: number, wallNearness: number) => number;
 
 const RIM_TUCK_METRES = 0.0015;
+const SPOKES_PER_STEP = 64;
+const SHADED_RINGS_PER_STEP = 8;
+const FILM_SPOKES_PER_STEP = 32;
 const TAU = Math.PI * 2;
 const CREST_ROUNDING = 0.3;
 
@@ -65,6 +68,7 @@ export function* fittedSurfaceSteps(profile: VesselProfile, rimLevel: number, ri
     const along = ring / rings;
     const reach = 1 - (1 - along) * (1 - along);
     for (let spoke = 0; spoke < spokes; spoke++) {
+      if (spoke % SPOKES_PER_STEP === 0) yield;
       const theta = (spoke / spokes) * TAU;
       const first = (wallRadius(profile, theta, rimLevel) + tuck) * reach;
       const raised = heightAt(Math.cos(theta) * first, Math.sin(theta) * first, reach);
@@ -73,7 +77,6 @@ export function* fittedSurfaceSteps(profile: VesselProfile, rimLevel: number, ri
       const z = Math.sin(theta) * radius;
       positions.set([x, heightAt(x, z, reach), z], (1 + (ring - 1) * spokes + spoke) * 3);
     }
-    yield;
   }
   const indices = new Uint32Array((spokes + (rings - 1) * spokes * 2) * 3);
   let cursor = 0;
@@ -243,7 +246,7 @@ export interface SurfaceShading {
   readonly wall: number;
 }
 
-export function surfaceShade(grid: SurfaceGrid, rings: number, spokes: number, shading: SurfaceShading): Float32Array {
+export function* surfaceShadeSteps(grid: SurfaceGrid, rings: number, spokes: number, shading: SurfaceShading): Generator<void, Float32Array> {
   const heights = grid.positions;
   const heightOf = (ring: number, spoke: number): number => {
     if (ring <= 0) return heights[1]!;
@@ -254,6 +257,7 @@ export function surfaceShade(grid: SurfaceGrid, rings: number, spokes: number, s
   const spokeStep = Math.max(1, Math.round(spokes * SHADE_SPOKE_REACH));
   const colours = new Float32Array((1 + rings * spokes) * 3).fill(1);
   for (let ring = 1; ring <= rings; ring++) {
+    if (ring % SHADED_RINGS_PER_STEP === 1) yield;
     const along = ring / rings;
     const reach = 1 - (1 - along) * (1 - along);
     const nearWall = 1 - shading.wall * reach ** 7;
@@ -269,11 +273,12 @@ export function surfaceShade(grid: SurfaceGrid, rings: number, spokes: number, s
 
 const FILM_ROWS_TUCKED = 2;
 
-export function wallFilm(rows: number, spokes: number, bottom: (theta: number) => number, top: (theta: number) => number, wallAt: (theta: number, y: number) => number, inset: number): WallFilmGrid {
+export function* wallFilmSteps(rows: number, spokes: number, bottom: (theta: number) => number, top: (theta: number) => number, wallAt: (theta: number, y: number) => number, inset: number): Generator<void, WallFilmGrid> {
   const across = rows + 1;
   const positions = new Float32Array(across * spokes * 3);
   const share = new Float32Array(across * spokes);
   for (let spoke = 0; spoke < spokes; spoke++) {
+    if (spoke % FILM_SPOKES_PER_STEP === 0) yield;
     const theta = (spoke / spokes) * TAU;
     const from = bottom(theta);
     const to = top(theta);

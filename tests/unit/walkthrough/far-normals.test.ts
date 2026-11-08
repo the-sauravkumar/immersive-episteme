@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { wallPlaneNormals } from "@/features/walkthrough/domain/far-normals";
+import { wallPlaneNormalSteps } from "@/features/walkthrough/domain/far-normals";
+
+function wallPlaneNormals(...args: Parameters<typeof wallPlaneNormalSteps>): Float32Array {
+  const steps = wallPlaneNormalSteps(...args);
+  for (;;) {
+    const step = steps.next();
+    if (step.done) return step.value;
+  }
+}
 
 function corrugated(columns: number, spacing: number, wave: number, depth: number, lift = 0) {
   const positions: number[] = [];

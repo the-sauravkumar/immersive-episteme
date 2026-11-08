@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { clothBodyBoxes, settleCloth } from "../domain/cloth-surface";
+import { clothBodyBoxes, clothSettlingSteps } from "../domain/cloth-surface";
 import { smoothstep } from "../domain/geometry";
 import type { Box, Vec3 } from "../domain/geometry";
 import type { CheckedSolid, ClothMesh, SolidField } from "../domain/scene-check";
@@ -141,7 +141,7 @@ export async function buildEntrance(kit: YardKit, options: EntranceOptions): Pro
     [0.5, 0.012, WALL_Z + 14],
     [0.5, 0.012, WALL_Z + 19.5],
   ];
-  const surface = settleCloth({
+  const surface = await kit.library.pacer.run(clothSettlingSteps({
     points,
     width: 1.5,
     metresPerRepeat: 3.46,
@@ -151,7 +151,7 @@ export async function buildEntrance(kit: YardKit, options: EntranceOptions): Pro
     columns: 44,
     foldAmount: (p) => smoothstep(0.4, 1.2, p[1]) * (1 - smoothstep(2.6, 3.3, p[1])),
     field: (x, z, y) => (Math.abs(x) < 1 && Math.abs(z - railZ) < 0.06 && y > 3 ? 3.476 : 0.012),
-  });
+  }));
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(surface.positions, 3));
   geometry.setAttribute("uv", new THREE.BufferAttribute(surface.uvs, 2));
