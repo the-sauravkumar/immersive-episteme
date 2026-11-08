@@ -47,7 +47,7 @@ export function ContactLink({ institution, className }: { institution: Instituti
   const contact = institution.contact?.trim();
   if (!contact) return null;
   return (
-    <a href={`mailto:${contact}`} className={cn(LINK, "break-all", className)}>
+    <a href={`mailto:${contact}`} className={cn(LINK, "inline-flex min-h-11 items-center break-all", className)}>
       {contact}
     </a>
   );

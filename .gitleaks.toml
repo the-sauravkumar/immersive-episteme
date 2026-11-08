@@ -7,3 +7,9 @@ useDefault = true
 description = "Study test item keys in the generated battery (db/seeds/study-test-items.generated.json) look like API keys to the generic rule; they are item identifiers such as pre.place.ajrakh.2.0 (DR-108)"
 regexTarget = "line"
 regexes = ['''^\s*"itemKey": "[a-z0-9.-]+",?\s*$''']
+
+[[allowlists]]
+description = "A made-up BETTER_AUTH_SECRET in the deploy unit-test fixtures; no deployment uses it"
+paths = ['''^tests/unit/deploy-[a-z-]+\.test\.ts$''']
+regexTarget = "line"
+regexes = ['''^\s*BETTER_AUTH_SECRET: "Q7v-x2LmZ9pR4tYc8NwK1sHjD6fGbE3aU5oIzV0yXqT",$''']

@@ -11,6 +11,10 @@ const templates = readdirSync(dir)
   .sort()
   .map((name) => JSON.parse(readFileSync(join(dir, name), "utf8")) as StageTemplate);
 
+const photoRecords = new Set(
+  (JSON.parse(readFileSync(join(process.cwd(), "tools", "walkthrough-lab", "study-photos.json"), "utf8")) as { tradition: string; record: string }[]).map((photo) => `${photo.tradition} ${photo.record.replace(/\/+$/, "")}`),
+);
+
 const textOf = async (page: Page, selector: string): Promise<string> => ((await page.locator(selector).first().textContent()) ?? "").trim();
 
 async function startDemo(page: Page): Promise<void> {
@@ -33,7 +37,10 @@ test("Door 1 shows the template's own words, in template order, for every stage 
       await page.locator(".step-next:visible").click();
     }
     await expect(page.locator("#course-stage-name:visible")).toHaveText("Finished Textiles");
-    for (const product of template.products) await expect(page.locator(`img[src="${product.file}"]`)).toHaveCount(1);
+    await expect.poll(() => page.locator("[data-course-root]:visible img").count()).toBeGreaterThanOrEqual(template.products.length);
+    const replaced: string[] = [];
+    for (const product of template.products) if ((await page.locator(`img[src="${product.file}"]`).count()) === 0) replaced.push(product.record);
+    expect(replaced.filter((record) => !photoRecords.has(`${template.tradition} ${record.replace(/\/+$/, "")}`)), "products missing without a study photograph of the same record").toEqual([]);
     expect(await textOf(page, ".panel-kicker:visible")).toBe(template.traditionName);
     if (template !== templates.at(-1)) {
       await expect(page.locator(".step-next:visible")).toBeEnabled();
